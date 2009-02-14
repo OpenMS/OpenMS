@@ -49,5 +49,6 @@
 	- @subpage SemanticValidator
 	- @subpage DecoyDatabase
 	- @subpage CaapConvert
+	- @subpage IdXMLEvaluation
 
 */

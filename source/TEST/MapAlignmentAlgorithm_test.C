@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,6 +66,13 @@ START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std:
   std::vector< FeatureMap<> > maps;
   std::vector<TransformationDescription> transformations;
   TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
+END_SECTION
+
+START_SECTION((virtual void alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&)))
+  MapAlignmentAlgorithm ma;
+  std::vector< std::vector< PeptideIdentification > > maps;
+  std::vector<TransformationDescription> transformations;
+  TEST_EXCEPTION(Exception::NotImplemented, ma.alignPeptideIdentifications(maps,transformations));
 END_SECTION
 
 START_SECTION((static void registerChildren()))

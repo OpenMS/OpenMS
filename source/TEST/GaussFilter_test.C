@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,7 @@ START_SECTION((template<typename InputPeakIterator, typename OutputPeakContainer
   MSSpectrum<Peak1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-    it->setIntensity(1.0);
+    it->setIntensity(1.0f);
     it->setMZ(500.0+0.2*i);
   }
 
@@ -90,19 +90,19 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
   Peak1D p;
   for (int i=0; i<9; ++i)
   {
-  	p.setIntensity(0.0);
+  	p.setIntensity(0.0f);
     p.setMZ(500.0+0.03*i);
     if (i==3)
     {
-  		p.setIntensity(1.0);
+  		p.setIntensity(1.0f);
     }
     if (i==4)
     {
-  		p.setIntensity(0.8);
+  		p.setIntensity(0.8f);
     }
     if (i==5)
     {
-  		p.setIntensity(1.2);
+  		p.setIntensity(1.2f);
     }
     exp[0].push_back(p);
     exp[1].push_back(p);

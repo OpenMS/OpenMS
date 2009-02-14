@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -55,14 +55,14 @@ START_SECTION((~PeakIndex()))
 }
 END_SECTION
 
-START_SECTION((PeakIndex(UInt peak)))
+START_SECTION((PeakIndex(Size peak)))
 {
   PeakIndex i(17);
 	TEST_EQUAL(i.peak,17)
 }
 END_SECTION
 
-START_SECTION((PeakIndex(UInt spectrum, UInt peak)))
+START_SECTION((PeakIndex(Size spectrum, Size peak)))
 {
   PeakIndex i(5,17);
 	TEST_EQUAL(i.peak,17)

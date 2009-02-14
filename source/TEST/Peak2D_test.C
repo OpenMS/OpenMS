@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -101,7 +101,7 @@ END_SECTION
 
 START_SECTION((void setIntensity(IntensityType intensity)))
 	Peak2D p;
-  p.setIntensity(17.8);
+  p.setIntensity(17.8f);
   TEST_REAL_SIMILAR(p.getIntensity(), 17.8)
 END_SECTION
 
@@ -110,7 +110,7 @@ START_SECTION((Peak2D(const Peak2D &p)))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Peak2D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	Peak2D::PositionType pos2;
 	Peak2D::IntensityType i2;
@@ -130,7 +130,7 @@ START_SECTION((Peak2D& operator=(const Peak2D &rhs)))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Peak2D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	Peak2D::PositionType pos2;
 	Peak2D::IntensityType i2;
@@ -151,9 +151,9 @@ START_SECTION((bool operator == (const Peak2D& rhs) const))
 	Peak2D p2(p1);
 	TEST_EQUAL(p1==p2, true)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, true)
 	
 	p1.getPosition()[0]=5;
@@ -167,9 +167,9 @@ START_SECTION((bool operator != (const Peak2D& rhs) const))
 	Peak2D p2(p1);
 	TEST_EQUAL(p1!=p2, false)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.getPosition()[0]=5;
@@ -261,13 +261,13 @@ START_SECTION([EXTRA] struct IntensityLess)
 	std::vector<Peak2D > v;
 	Peak2D p;
 	
-	p.setIntensity(2.5);
+	p.setIntensity(2.5f);
 	v.push_back(p);
 
-	p.setIntensity(3.5);
+	p.setIntensity(3.5f);
 	v.push_back(p);
 
-	p.setIntensity(1.5);
+	p.setIntensity(1.5f);
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), Peak2D::IntensityLess());

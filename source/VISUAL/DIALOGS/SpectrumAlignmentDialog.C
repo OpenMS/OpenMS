@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,8 @@
 namespace OpenMS
 {
 	SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget* parent)
-		: layer_indices_1(),
-			layer_indices_2()
+		: layer_indices_1_(),
+			layer_indices_2_()
 	{
 		setupUi(this);
 		
@@ -53,12 +53,12 @@ namespace OpenMS
 			if (layer.flipped)
 			{
 				layer_list_2->addItem(layer.name.toQString());
-				layer_indices_2.push_back(i);
+				layer_indices_2_.push_back(i);
 			}
 			else
 			{
 				layer_list_1->addItem(layer.name.toQString());
-				layer_indices_1.push_back(i);
+				layer_indices_1_.push_back(i);
 			}
 		}
 		// select first item of each list
@@ -78,9 +78,9 @@ namespace OpenMS
 		{
 			return -1;
 		}
-		if (layer_indices_1.size() > (Size)(layer_list_1->currentRow()))
+		if (layer_indices_1_.size() > (Size)(layer_list_1->currentRow()))
 		{
-			return layer_indices_1[(Size)(layer_list_1->currentRow())];
+			return layer_indices_1_[(Size)(layer_list_1->currentRow())];
 		}
 		return -1;
 	}
@@ -91,9 +91,9 @@ namespace OpenMS
 		{
 			return -1;
 		}
-		if (layer_indices_2.size() > (Size)(layer_list_2->currentRow()))
+		if (layer_indices_2_.size() > (Size)(layer_list_2->currentRow()))
 		{
-			return layer_indices_2[(Size)(layer_list_2->currentRow())];
+			return layer_indices_2_[(Size)(layer_list_2->currentRow())];
 		}
 		return -1;
 	}

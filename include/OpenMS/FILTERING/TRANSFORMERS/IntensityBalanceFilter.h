@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -74,10 +74,10 @@ namespace OpenMS
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 			double bands = 10;
-    	std::multimap<double, uint> band_intensity;
+    	std::multimap<double, Size> band_intensity;
     	double size = spectrum.getPrecursorPeak().getPosition()[0];
-    	uint j = 0;
-    	for (uint i = 0; i < bands; ++i)
+    	Size j = 0;
+    	for (Size i = 0; i < bands; ++i)
     	{
       	double intensity = 0;
 
@@ -93,7 +93,7 @@ namespace OpenMS
     	double total_intensity = 0;
     	double twobiggest = 0;
     	double sevensmallest = 0;
-    	for (std::multimap<double, uint>::reverse_iterator mmrit = band_intensity.rbegin(); mmrit != band_intensity.rend(); ++mmrit, ++j)
+    	for (std::multimap<double, Size>::reverse_iterator mmrit = band_intensity.rbegin(); mmrit != band_intensity.rend(); ++mmrit, ++j)
     	{
       	total_intensity += mmrit->first;
       	//take the two biggest

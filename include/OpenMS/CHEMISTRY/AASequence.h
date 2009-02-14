@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -96,7 +96,7 @@ namespace OpenMS
 				}
 
 				/// detailed constructor with pointer to the vector and offset position
-				ConstIterator(const std::vector<const Residue*>* vec_ptr, SignedSize position)
+				ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
 				{
 					vector_ = vec_ptr;
 					position_ = position;
@@ -227,7 +227,7 @@ namespace OpenMS
 				}
 
 				/// detailed constructor with pointer to the vector and offset position
-				Iterator(std::vector<const Residue*>* vec_ptr, Int position)
+				Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
 				{
 					vector_ = vec_ptr;
 					position_ = position;
@@ -543,10 +543,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// writes a peptide to an output stream
-			friend std::ostream& operator << (std::ostream& os, const AASequence& peptide);
+			friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 			
 			/// reads a peptide from an input stream
-			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
+			friend OPENMS_DLLAPI std::istream& operator >> (std::istream& is, const AASequence& peptide);
 			//@}
 			
 		protected:
@@ -566,9 +566,9 @@ namespace OpenMS
 			String c_term_mod_;
 	};			
 
-	std::ostream& operator << (std::ostream& os, const AASequence& peptide);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 
-	std::istream& operator >> (std::istream& os, const AASequence& peptide);
+	OPENMS_DLLAPI std::istream& operator >> (std::istream& os, const AASequence& peptide);
 	
 } // namespace OpenMS
 

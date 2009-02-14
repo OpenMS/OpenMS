@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -60,8 +60,9 @@ namespace OpenMS
 		//std::cout << "A:\n" << A << std::endl;
 		#endif
 		
-		Int a_rows = A.rows();
-		Int a_cols = A.cols();
+		// this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
+		int a_rows = (int)A.rows();
+		int a_cols = (int)A.cols();
 		
 		// translate b
 		double *b_vec = new double[a_rows];

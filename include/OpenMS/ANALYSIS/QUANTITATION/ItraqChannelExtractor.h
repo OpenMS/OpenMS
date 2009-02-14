@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,13 @@ namespace OpenMS
 {
 	
 	/**
-		@brief
+		@brief [experimental class] extracts the iTRAQ channels from tandem MS data and stores intensity values in a consensus map
 		
-		@todo Docu (Chris)
+		[experimental class]
+		This class supports 4 and 8 channel iTRAQ and will optionally do peak picking before the quantitation step.
+		Quantitation is done by adding all signals within a small delta around the expected m/z of each channel.
+		No postprocessing is done here. Use ItraqQuantifier for that!
+	
 	*/
 	class OPENMS_DLLAPI ItraqChannelExtractor
 		: public DefaultParamHandler,
@@ -66,7 +70,7 @@ namespace OpenMS
 		ItraqChannelExtractor& operator = (const ItraqChannelExtractor& rhs);
 
 		
-		/// @brief extracts the iTRAQ channels from the MS data and stores intensity values in a consensus map
+		/// @brief extracts the iTRAQ channels from the tandem MS data and stores intensity values in a consensus map
 		///
 		/// @param ms_exp_data Raw data to read
 		/// @param consensus_map 

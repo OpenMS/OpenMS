@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -53,27 +53,27 @@ namespace OpenMS
 	{
 	}
 
-	void ModificationDefinitionsSet::setMaxModifications(UInt max_mod)
+	void ModificationDefinitionsSet::setMaxModifications(Size max_mod)
 	{
 		max_mods_per_peptide_ = max_mod;
 	}
 
-	UInt ModificationDefinitionsSet::getMaxModifications() const
+	Size ModificationDefinitionsSet::getMaxModifications() const
 	{
 		return max_mods_per_peptide_;
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfModifications() const
+	Size ModificationDefinitionsSet::getNumberOfModifications() const
 	{
 		return variable_mods_.size() + fixed_mods_.size();
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfFixedModifications() const
+	Size ModificationDefinitionsSet::getNumberOfFixedModifications() const
 	{
 		return fixed_mods_.size();
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfVariableModifications() const
+	Size ModificationDefinitionsSet::getNumberOfVariableModifications() const
 	{
 		return variable_mods_.size();
 	}

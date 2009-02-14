@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
@@ -183,7 +183,7 @@ namespace OpenMS
 			for (Size r=0; r<rules.size(); ++r)
 			{
 				//Count the number of distince matched terms
-				UInt terms_count = rules[r].getCVTerms().size();
+				Size terms_count = rules[r].getCVTerms().size();
 				UInt match_count = 0;
 				for (Size t=0; t<terms_count; ++t)
 				{
@@ -242,7 +242,7 @@ namespace OpenMS
 			open_tags_.pop_back();
 	  }
 	
-	  void SemanticValidator::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+	  void SemanticValidator::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
 	  {
 	  	//nothing to do here
 	  }
@@ -396,7 +396,11 @@ namespace OpenMS
 					String value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::NONE)
           {
-            errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+						//Quality CV does not state value type :(
+						if (!parsed_term.accession.hasPrefix("PATO:"))
+						{
+            	errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+          	}
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_STRING)
           {

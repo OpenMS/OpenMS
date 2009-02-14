@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -235,10 +235,10 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.setRT(11.1);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
-	peak.setIntensity(47.11);
+	peak.setIntensity(47.11f);
 	spec.push_back(peak);
 	peak.getPosition()[0] = 10;
-	peak.setIntensity(48.11);
+	peak.setIntensity(48.11f);
 	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
 	spec.push_back(peak);

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -31,11 +31,15 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include <limits>
+
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #endif
+
+//#define ITRAQ_DEBUG 1
 
 namespace OpenMS
 {
@@ -96,7 +100,7 @@ namespace OpenMS
 	 *	@param consensus_map_in Raw iTRAQ intensities from previous step
 	 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
 	 *
-	 *	@throws Exception::FailedAPICall is least-squares fit fails
+	 *	@throws Exception::FailedAPICall if least-squares fit fails
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 	 */
 	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
@@ -117,7 +121,7 @@ namespace OpenMS
 	 *	@param protein_ids List of proteins inferred from peptides
 	 *	@param consensus_map_out Postprocessed iTRAQ ratios for Proteins (if provided) or Peptides otherwise
 	 *
-	 *	@throws Exception::FailedAPICall is least-squares fit fails
+	 *	@throws Exception::FailedAPICall if least-squares fit fails
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 	 */
 	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
@@ -273,9 +277,9 @@ namespace OpenMS
 		std::cout << "reference_channel is: " << reference_channel  << std::endl;
 		#endif
 
-		Map <Int, Int> map_to_vectorindex;
-		Int ref_mapid = 0;
-		Int index = 0;
+		Map <Size, Size> map_to_vectorindex;
+		Size ref_mapid = 0;
+		Size index = 0;
 		for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map_out.getFileDescriptions().begin(); 
 			 file_it!=consensus_map_out.getFileDescriptions().end(); 
 			 ++file_it)
@@ -288,7 +292,7 @@ namespace OpenMS
 				#endif	
 			}
 			map_to_vectorindex[file_it->first] = index;
-			index++;
+			++index;
 		}
 
 		if (channel_map_.has(reference_channel))
@@ -334,7 +338,22 @@ namespace OpenMS
 						 it_elements != consensus_map_out[i].end();
 						 ++it_elements)
 				{
-					peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+					if (ref_intensity==0) //avoid nan's and inf's
+					{
+						if (it_elements->getIntensity()==0) // 0/0 will give 'nan'
+						{
+							//so leave it out completely (there is no information to be gained)
+						}
+						else	// x/0 is 'inf' but std::sort() has problems with that
+						{
+							peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
+						}
+					}
+					else // everything seems fine
+					{
+						peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+					}
+					
 					// control
 					peptide_intensities[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
 				}					
@@ -342,7 +361,7 @@ namespace OpenMS
 
 			double max_deviation_from_control = 0;
 			// find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-			for (Map <Int, Int>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
+			for (Map <Size, Size>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
 			{
 				// sort vector (partial_sort might improve performance here)
 				std::sort(peptide_ratios[it_map->second].begin(), peptide_ratios[it_map->second].end());
@@ -461,7 +480,7 @@ namespace OpenMS
 			
 			// put quantitative info on Proteins
 			ProteinInference inferrer;
-			inferrer.infer(consensus_map_out, ref_mapid);
+			inferrer.infer(consensus_map_out,(UInt) ref_mapid);
 
 		}
 

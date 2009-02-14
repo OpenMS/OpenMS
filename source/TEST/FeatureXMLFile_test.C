@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,11 +30,12 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(float a, float b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -72,7 +73,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"FeatureXML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"FeatureXML");
 
 	TEST_EQUAL(e.size(),2)
 	TEST_REAL_SIMILAR(e[0].getRT(), 25)
@@ -154,7 +155,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 END_SECTION
 
-START_SECTION((void store(String filename, const FeatureMap<>& feature_map) const))
+START_SECTION((void store(String filename, const FeatureMap<> &feature_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
@@ -167,7 +168,7 @@ START_SECTION((void store(String filename, const FeatureMap<>& feature_map) cons
   TEST_EQUAL(map==map2, true)
 END_SECTION
 
-START_SECTION( PeakFileOptions& getOptions() )
+START_SECTION((PeakFileOptions& getOptions()))
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
@@ -208,7 +209,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(filename),true);
 END_SECTION
 
-START_SECTION( const PeakFileOptions& getOptions() const )
+START_SECTION((const PeakFileOptions& getOptions() const))
 	FeatureXMLFile f;
  	FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));

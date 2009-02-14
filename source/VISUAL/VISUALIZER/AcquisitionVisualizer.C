@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copymain (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copymain (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ namespace OpenMS
 	  
 		addLabel_("Show Acquisition information");		
 		addSeparator_();
-		addIntLineEdit_(acquisitionnumber_, "Index/Number of the scan" );
+		addIntLineEdit_(acquisitionnumber_, "Identifier of the scan" );
 		acquisitionnumber_->setReadOnly(true);
 			
 		finishAdding_();
@@ -55,12 +55,12 @@ namespace OpenMS
 	
 	void AcquisitionVisualizer::update_()
 	{
-	  acquisitionnumber_->setText(String(temp_.getNumber()).c_str() );
+	  acquisitionnumber_->setText(temp_.getIdentifier().toQString() );
 	}
 	
 	void AcquisitionVisualizer::store()
 	{
-		ptr_->setNumber(acquisitionnumber_->text().toInt());
+		ptr_->setIdentifier(acquisitionnumber_->text());
 					
 		temp_ = (*ptr_);
 	}

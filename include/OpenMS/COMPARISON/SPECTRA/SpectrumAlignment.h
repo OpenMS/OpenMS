@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -72,11 +72,11 @@ namespace OpenMS
 		// @}
 
 		template <typename SpectrumType>
-		void getSpectrumAlignment(std::vector<std::pair<UInt, UInt> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const
+		void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const
 		{
 			double tolerance = (double)param_.getValue("tolerance");
-			std::map<UInt, std::map<UInt, std::pair<UInt, UInt> > > traceback;
-			std::map<UInt, std::map<UInt, double> > matrix;
+			std::map<Size, std::map<Size, std::pair<Size, Size> > > traceback;
+			std::map<Size, std::map<Size, double> > matrix;
 			
 			// init the matrix with "gap costs" tolerance
 			matrix[0][0] = 0;
@@ -92,8 +92,8 @@ namespace OpenMS
 			}
 			
 			// fill in the matrix
-			UInt left_ptr(1);
-			UInt last_i(0), last_j(0);
+			Size left_ptr(1);
+			Size last_i(0), last_j(0);
 			//Size off_band_counter(0);
 			for (Size i = 1; i <= s1.size(); ++i)
 			{
@@ -238,8 +238,8 @@ namespace OpenMS
 #endif
 	
 			// do traceback
-			UInt i = last_i;
-			UInt j = last_j;
+			Size i = last_i;
+			Size j = last_j;
 	
 			while (i >= 1 && j >= 1)
 			{
@@ -247,8 +247,8 @@ namespace OpenMS
 				{
 					alignment.push_back(std::make_pair(i - 1, j - 1));
 				}
-				UInt new_i = traceback[i][j].first;
-				UInt new_j = traceback[i][j].second;
+				Size new_i = traceback[i][j].first;
+				Size new_j = traceback[i][j].second;
 	
 				i = new_i;
 				j = new_j;
@@ -261,8 +261,8 @@ namespace OpenMS
 			// print alignment
 			cerr << "Alignment (size=" << alignment.size() << "): " << endl;
 			
-			UInt i_s1(0), i_s2(0);
-			for (vector<pair<UInt, UInt> >::const_reverse_iterator it = alignment.rbegin(); it != alignment.rend(); ++it, ++i_s1, ++i_s2)
+			Size i_s1(0), i_s2(0);
+			for (vector<pair<Size, Size> >::const_reverse_iterator it = alignment.rbegin(); it != alignment.rend(); ++it, ++i_s1, ++i_s2)
 			{
 				while (i_s1 < it->first - 1)
 				{

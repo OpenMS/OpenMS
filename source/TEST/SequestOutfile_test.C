@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -257,7 +257,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	TEST_STRING_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
 END_SECTION
 
-START_SECTION(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
+START_SECTION(bool getColumns(const String& line, vector< String >& substrings, Size number_of_columns, Size reference_column))
 	String line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT   +2   C.ETQAWSIATILETLYDL.-";
 	vector< String > substrings, columns;
 	columns.push_back("1.");
@@ -286,10 +286,10 @@ START_SECTION(bool getColumns(const String& line, vector< String >& substrings, 
 	TEST_EQUAL((columns == substrings), true)
 END_SECTION
 
-START_SECTION(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found))
-	map< String, UInt > ac_position_map, not_found;
+START_SECTION(void getSequences(const String& database_filename, const map< String, Size >& ac_position_map, vector< String >& sequences, vector< pair< String, Size > >& found, map< String, Size >& not_found))
+	map< String, Size > ac_position_map, not_found;
 	vector< String > sequences, found_sequences;
-	vector< pair< String, UInt > > found;
+	vector< pair< String, Size > > found;
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file 'a' could not be found")
@@ -311,7 +311,7 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 	TEST_EQUAL(not_found.size(), 2)
 	if ( found.size() == 2 && not_found.size() == 2 )
 	{
-		map< String, UInt >::const_iterator i = ++ac_position_map.begin();
+		map< String, Size >::const_iterator i = ++ac_position_map.begin();
 		TEST_EQUAL(i->first, found[0].first)
 		TEST_EQUAL(i->second, found[0].second)
 
@@ -395,7 +395,7 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 END_SECTION
 
-START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns))
+START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
 	
 	String result_filename = OPENMS_GET_TEST_DATA_PATH("../TOPP/tmp/Sequest.mzXML.13.1.d.out");
 	DateTime datetime;
@@ -416,7 +416,7 @@ START_SECTION(void readOutHeader(const String& result_filename, DateTime& dateti
 	 peptide_column(-1),
 	 score_column(-1);
 	
-	UInt
+	Size
 	 precursor_mass_type(0),
 	 ion_mass_type(0),
 	 displayed_peptides(0),

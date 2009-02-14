@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -64,8 +64,8 @@ namespace OpenMS
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		//define reference map (the one with most peaks)
-		UInt reference_map_index = 0;
-		UInt max_count = 0;		
+		Size reference_map_index = 0;
+		Size max_count = 0;		
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			// initialize getSize() by calling updateRanges()
@@ -160,8 +160,8 @@ namespace OpenMS
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		// define reference map (the one with most peaks)
-		UInt reference_map_index = 0;
-		UInt max_count = 0;		
+		Size reference_map_index = 0;
+		Size max_count = 0;		
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
@@ -255,7 +255,7 @@ namespace OpenMS
 		return;
 	}
 
-	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
+	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
 	{
 		// the result
 		TransformationDescription lm;

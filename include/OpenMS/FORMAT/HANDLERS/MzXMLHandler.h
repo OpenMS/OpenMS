@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -122,7 +122,7 @@ namespace OpenMS
 	      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 				
 				// Docu in base class
-	      virtual void characters(const XMLCh* const chars, const unsigned int length);
+	      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 	
 	  		///Write the contents to a stream
 				void writeTo(std::ostream& os);
@@ -481,11 +481,12 @@ namespace OpenMS
 				}
 				else if (type=="zoom")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					exp_->back().getInstrumentSettings().setZoomScan(true);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="Full")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="SIM")
 				{
@@ -501,28 +502,29 @@ namespace OpenMS
 				}
 				else if (type=="Q1")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="Q3")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="EMS")//Non-standard type: Enhanced MS (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="EPI")//Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					exp_->back().setMSLevel(2);
 				}
 				else if (type=="ER") // Non-stanard type: Enhanced Resolution (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					exp_->back().getInstrumentSettings().setZoomScan(true);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
 				}
 					
@@ -719,7 +721,7 @@ namespace OpenMS
 	  }
 	
 		template <typename MapType>
-	  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
+	  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 	  {
 	  	//Abort if this spectrum should be skipped
 	    if (skip_spectrum_) return;
@@ -1000,7 +1002,7 @@ namespace OpenMS
 				UInt ms_level = spec.getMSLevel();
 				open_scans.push(ms_level);
 
-				UInt spectrum_id = s+1;
+				Size spectrum_id = s+1;
 				if (all_prefixed_numbers)
 				{
 					spectrum_id = spec.getNativeID().substr(5).toInt();
@@ -1032,11 +1034,15 @@ namespace OpenMS
 				{
 					case InstrumentSettings::UNKNOWN:
 						break;
-					case InstrumentSettings::FULL:
-						os << "\" scanType=\"Full";
-						break;
-					case InstrumentSettings::ZOOM:
-						os << "\" scanType=\"zoom";
+					case InstrumentSettings::MASSSPECTRUM:
+						if (spec.getInstrumentSettings().getZoomScan())
+						{
+							os << "\" scanType=\"zoom";
+						}
+						else
+						{
+							os << "\" scanType=\"Full";
+						}
 						break;
 					case InstrumentSettings::SIM:
 						os << "\" scanType=\"SIM";

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -52,8 +52,8 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		template<typename ValueType=UInt, typename BinSizeType=Real>
-		class OPENMS_DLLAPI Histogram
+		template<typename ValueType=UInt, typename BinSizeType=DoubleReal>
+		class Histogram
 		{
 		 public:
 
@@ -99,7 +99,7 @@ namespace OpenMS
 					// if max_ == min_ there is only one bin
 					if (max_ != min_)
 					{
-						bins_ = std::vector<ValueType>(UInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
+						bins_ = std::vector<ValueType>(Size(ceil((max_-min_)/bin_size_)),0);
 					}
 					else
 					{
@@ -109,7 +109,7 @@ namespace OpenMS
 			}
 	
 			///destructor
-			~Histogram()
+			virtual ~Histogram()
 			{
 			}
 			//@}
@@ -155,7 +155,7 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			ValueType operator [] (UInt index) const
+			ValueType operator [] (Size index) const
 			{
 				if (index >= bins_.size())
 				{
@@ -169,14 +169,14 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			BinSizeType centerOfBin(UInt bin_index) const
+			BinSizeType centerOfBin(Size bin_index) const
 			{
 				if (bin_index >= bins_.size())
 				{
 					throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
 				
-				return min_+((BinSizeType)bin_index+0.5)*bin_size_;
+				return (BinSizeType)(min_+((BinSizeType)bin_index+0.5)*bin_size_);
 			}
 
 			/**
@@ -191,12 +191,16 @@ namespace OpenMS
 	
 			/**
 			  @brief increases the bin corresponding to value @p val by @p increment
-
+				
+				@return The index of the increased bin.
+				
 			  @exception Exception::OutOfRange is thrown if the value is out of valid range
 			*/
-			void inc(BinSizeType val, ValueType increment=1)
+			Size inc(BinSizeType val, ValueType increment=1)
 			{
-			  bins_[valToBin_(val)]+=increment;
+				Size bin_index = valToBin_(val);
+			  bins_[bin_index]+=increment;
+			  return bin_index;
 			}
 	
 			/**
@@ -206,18 +210,26 @@ namespace OpenMS
 			*/
 			void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)
 			{
-				if (bin_size <= 0)
+				min_ = min;
+				max_ = max;
+				bin_size_ = bin_size;
+				bins_.clear();
+					
+				if (bin_size_ <= 0)
 				{
 					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
 				else
 				{
-					min_ = min;
-					max_ = max;
-					bin_size_ = bin_size;
-					
-					bins_.clear();
-					bins_.resize(UInt(ceil((max_-min_)/bin_size_)),0);
+					// if max_ == min_ there is only one bin
+					if (max_ != min_)
+					{
+						bins_.resize(Size(ceil((max_-min_)/bin_size_)),0);
+					}
+					else
+					{
+						bins_.resize(1, 0);
+					}
 				}
 			}
 	
@@ -264,11 +276,11 @@ namespace OpenMS
 			//@}
 
 			/// Transforms the bin values with f(x)=multiplier*log(x+1) 	 
-			void applyLogTransformation(Real multiplier) 	 
+			void applyLogTransformation(BinSizeType multiplier) 	 
 			{ 	 
 				for (typename std::vector<ValueType>::iterator it = bins_.begin(); it!=bins_.end(); ++it) 	 
 				{ 	 
-					*it = (ValueType)(multiplier*log((Real)(*it+1.0f))); 	 
+					*it = (ValueType)(multiplier*log((BinSizeType)(*it+1.0f))); 	 
 				} 	 
 			}
 			
@@ -286,7 +298,7 @@ namespace OpenMS
 
 			  @exception Exception::OutOfRange is thrown if the value is out of valid range
 			*/
-			UInt valToBin_(BinSizeType val) const
+			Size valToBin_(BinSizeType val) const
 			{
 				//std::cout << "val: " << val << " (min: " << min_ << " max: " << max_ << ")" << std::endl;
 				if (val < min_ || val > max_)
@@ -295,11 +307,11 @@ namespace OpenMS
 				}
 				if (val == max_)
 				{
-					return UInt(bins_.size()-1);
+					return Size(bins_.size()-1);
 				}
 				else
 				{
-					return (UInt) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
+					return (Size) floor ( (val-min_) / (max_-min_) * bins_.size() );
 				}				
 			}
 		};

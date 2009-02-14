@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,12 +28,13 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(Real a, Real b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -78,7 +79,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"mzData");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"mzData");
 
 //---------------------------------------------------------------------------
   // 60 : (120,100)
@@ -86,9 +87,9 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 2)
+	TEST_EQUAL(e[2].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 60)
 	TEST_REAL_SIMILAR(e[1].getRT(), 120)
 	TEST_REAL_SIMILAR(e[2].getRT(), 180)
@@ -166,8 +167,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 1")
 	TEST_EQUAL(e[1].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 2")
 	TEST_EQUAL(e[2].getInstrumentSettings().metaValueExists("SpecComment"), false)
-	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::FULL)
-	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::FULL)
+	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
+	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
 	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::SIM)
 	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
@@ -189,8 +190,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   ABORT_IF(e[1].getAcquisitionInfo().size()!=2);
 	TEST_EQUAL(e[1].getType(), SpectrumSettings::RAWDATA)
 	TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
-	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getNumber(), 501)
-	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getNumber(), 502)
+	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getIdentifier(), "501")
+	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getIdentifier(), "502")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getMetaValue("AcqComment"), "Acquisition 1")
@@ -200,7 +201,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   ABORT_IF(e[2].getAcquisitionInfo().size()!=1);
 	TEST_EQUAL(e[2].getType(), SpectrumSettings::PEAKS)
 	TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
-	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getNumber(), 601)
+	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
 
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
@@ -528,8 +529,8 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_STRING_EQUAL(e[0].getNativeID(),"spectrum=10")
 	TEST_EQUAL(e[1].size(), 5)
 	TEST_STRING_EQUAL(e[1].getNativeID(),"spectrum=12")
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 1)
 
 	// load all MS levels
 	file.getOptions().clearMSLevels();
@@ -538,9 +539,9 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 2)
+	TEST_EQUAL(e[2].getMSLevel(), 1)
 END_SECTION
 
 START_SECTION(([EXTRA] load with RT range))
@@ -557,8 +558,8 @@ START_SECTION(([EXTRA] load with RT range))
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
 	TEST_EQUAL(e.size(), 2)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 2)
+	TEST_EQUAL(e[1].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 120)
 	TEST_REAL_SIMILAR(e[1].getRT(), 180)
 END_SECTION
@@ -655,23 +656,23 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	MSExperiment<> exp;
 	MSSpectrum<> spec;
 	spec.resize(5);
-	spec[0].setIntensity(1.0); spec[0].setMZ(1.0);
-	spec[1].setIntensity(2.0); spec[1].setMZ(2.0);
-	spec[2].setIntensity(3.0); spec[2].setMZ(3.0);
-	spec[3].setIntensity(4.0); spec[3].setMZ(4.0);
-	spec[4].setIntensity(5.0); spec[4].setMZ(5.0);
+	spec[0].setIntensity(1.0f); spec[0].setMZ(1.0);
+	spec[1].setIntensity(2.0f); spec[1].setMZ(2.0);
+	spec[2].setIntensity(3.0f); spec[2].setMZ(3.0);
+	spec[3].setIntensity(4.0f); spec[3].setMZ(4.0);
+	spec[4].setIntensity(5.0f); spec[4].setMZ(5.0);
 	MSSpectrum<>::MetaDataArray mda1;
-	mda1.push_back(1.1);
-	mda1.push_back(1.2);
-	mda1.push_back(1.3);
-	mda1.push_back(1.4);
-	mda1.push_back(1.5);
+	mda1.push_back(1.1f);
+	mda1.push_back(1.2f);
+	mda1.push_back(1.3f);
+	mda1.push_back(1.4f);
+	mda1.push_back(1.5f);
 	MSSpectrum<>::MetaDataArray mda2;
-	mda2.push_back(-2.1);
-	mda2.push_back(-2.2);
-	mda2.push_back(-2.3);
-	mda2.push_back(-2.4);
-	mda2.push_back(-2.5);
+	mda2.push_back(-2.1f);
+	mda2.push_back(-2.2f);
+	mda2.push_back(-2.3f);
+	mda2.push_back(-2.4f);
+	mda2.push_back(-2.5f);
 
 	//spectrum 1 (one meta data arrays)
 	spec.setRT(500.0);

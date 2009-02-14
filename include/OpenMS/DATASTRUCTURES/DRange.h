@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -48,7 +48,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	template <UInt D>
-	class OPENMS_DLLAPI DRange
+	class DRange
 		:	public Internal::DIntervalBase<D>
 	{
 	 public:
@@ -88,28 +88,24 @@ namespace OpenMS
 		DRange()
 			: Base()
 		{
-			
 		}
 		
 		/// Constructor that takes two Points and constructs a range.
 		DRange(const PositionType& lower, const PositionType& upper)
 			:Base(lower, upper)
 		{
-			
 		}
 		
 		/// Copy constructor.
 		DRange(const DRange& range)
 			: Base(range)
 		{
-			
 		}
 
 		/// Copy constructor for the base class
 		DRange(const Base& range)
 			: Base(range)
 		{
-			
 		}
 
 		///Convenient constructor for DRange<2>
@@ -137,7 +133,9 @@ namespace OpenMS
 		}
 
 		/// Destuctor 
-		~DRange() {}
+		~DRange()
+		{
+		}
 		//@}
 
 		/**	@name Predicates */
@@ -278,7 +276,7 @@ namespace OpenMS
 		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
-      for (Size i = 0; i != D; i++)
+      for (UInt i = 0; i != D; i++)
       {
         if (max_[i]<=min_[i])
         {

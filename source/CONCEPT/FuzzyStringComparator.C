@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -61,8 +61,8 @@ namespace OpenMS
     line_str_1_max_(),
     line_str_2_max_(),
 		use_prefix_(false),
-		whitelist(),
-		whitelist_cases()
+		whitelist_(),
+		whitelist_cases_()
   {
 	}
 
@@ -139,21 +139,21 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-			if ( !whitelist_cases.empty() )
+			if ( !whitelist_cases_.empty() )
 			{
 				*log_dest_ <<
 					prefix << '\n' <<
 					prefix << "  whitelist cases:\n";
 				UInt length = 0;
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-							wlcit != whitelist_cases.end();
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+							wlcit != whitelist_cases_.end();
 							++wlcit
 						)
 				{
 					if ( wlcit->first.size() > length) length = wlcit->first.size();
 				}
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-							wlcit != whitelist_cases.end();
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+							wlcit != whitelist_cases_.end();
 							++wlcit
 						)
 				{
@@ -208,21 +208,21 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-				if ( !whitelist_cases.empty() )
+				if ( !whitelist_cases_.empty() )
 				{
 					*log_dest_ <<
 						prefix << '\n' <<
 						prefix << "  whitelist cases:\n";
 					UInt length = 0;
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-								wlcit != whitelist_cases.end();
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+								wlcit != whitelist_cases_.end();
 								++wlcit
 							)
 					{
 						if ( wlcit->first.size() > length) length = wlcit->first.size();
 					}
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-								wlcit != whitelist_cases.end();
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+								wlcit != whitelist_cases_.end();
 								++wlcit
 							)
 					{
@@ -259,8 +259,8 @@ namespace OpenMS
   Int FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
   {
 		
-		for ( StringList::const_iterator slit = whitelist.begin();
-					slit != whitelist.end();
+		for ( StringList::const_iterator slit = whitelist_.begin();
+					slit != whitelist_.end();
 					++slit
 				)
 		{
@@ -268,8 +268,8 @@ namespace OpenMS
 					 line_str_2.find(*slit)!=std::string::npos
 				 )
 			{
-				++whitelist_cases[*slit];
-				// *log_dest_ << "whitelist case: " << *slit << '\n';
+				++whitelist_cases_[*slit];
+				// *log_dest_ << "whitelist_ case: " << *slit << '\n';
 				return is_status_success_;
 			}
 		}
@@ -300,14 +300,14 @@ namespace OpenMS
 				line_1_pos_ = line_1_.tellg(); // save current reading position
 				line_1_ >> letter_1_; // read letter
 				// std::cout << ":::" << letter_1_ << line_1_pos_ << std::endl;
-				if ( ( is_space_1_ = isspace(letter_1_) ) ) // is whitespace?
+				if ( ( is_space_1_ = (bool) isspace(letter_1_) ) ) // is whitespace?
 				{
 					line_1_ >> std::ws; // skip over further whitespace
 				}
 				else
 				{
 					line_1_.seekg(line_1_pos_); // rewind to saved position
-					if ( ( is_number_1_ = ( line_1_ >> number_1_ ) ) ) // is a number?
+					if ( ( is_number_1_ = (bool) ( line_1_ >> number_1_ ) ) ) // is a number?
 					{
 						// letter_1_ = '\0';
 						// std::cout << line_1_pos_ << std::endl;
@@ -322,14 +322,14 @@ namespace OpenMS
 
 				line_2_pos_ = line_2_.tellg(); // save current reading position
 				line_2_ >> letter_2_; // read letter
-				if ( ( is_space_2_ = isspace(letter_2_) ) ) // is whitespace?
+				if ( ( is_space_2_ = (bool) isspace(letter_2_) ) ) // is whitespace?
 				{
 					line_2_ >> std::ws; // skip over further whitespace
 				}
 				else
 				{
 					line_2_.seekg(line_2_pos_); // rewind to saved position
-					if ( ( is_number_2_ = ( line_2_ >> number_2_ ) ) ) // is a number?
+					if ( ( is_number_2_ = (bool) ( line_2_ >> number_2_ ) ) ) // is a number?
 					{
 						// letter_2_ = '\0';
 					}
@@ -527,7 +527,7 @@ namespace OpenMS
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -535,7 +535,7 @@ namespace OpenMS
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -561,13 +561,12 @@ namespace OpenMS
 			// read the next line in both input streams, skipping over 
 			// - empty lines
 			// - lines consisting of whitespace only
-			// - XML stylesheet lines (xml-stylesheet)
 
 			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -575,7 +574,7 @@ namespace OpenMS
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
 

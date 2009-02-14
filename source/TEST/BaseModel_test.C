@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-
 ///////////////////////////
 
 START_TEST(BaseModel, "$Id$")
@@ -49,9 +48,9 @@ class TestModel : public BaseModel<2>
 		: BaseModel<2>()
 	{
 		setName(getProductName());
-		
+
 		check_defaults_ = false;
-		
+
 		defaultsToParam_();
 	}
 
@@ -60,21 +59,21 @@ class TestModel : public BaseModel<2>
 	{
 		updateMembers_();
 	}
-	
+
 	virtual ~TestModel()
 	{
 	}
-	
+
 	virtual TestModel& operator = (const TestModel& source)
 	{
 		if (&source == this) return *this;
-		
+
 		BaseModel<2>::operator = (source);
 		updateMembers_();
-		
+
 		return *this;
 	}
-	
+
 	void updateMembers_()
 	{
 		BaseModel<2>::updateMembers_();
@@ -95,8 +94,8 @@ class TestModel : public BaseModel<2>
 	}
 
 	static const String getProductName()
-	{ 
-		return "TestModel"; 
+	{
+		return "TestModel";
 	}
 
 };
@@ -106,7 +105,7 @@ class TestModel : public BaseModel<2>
 TestModel* ptr = 0;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL((Size)ptr, 0)
 END_SECTION
 
 // destructor
@@ -118,7 +117,7 @@ END_SECTION
 START_SECTION((virtual BaseModel& operator=(const BaseModel &source)))
 	TestModel tm1;
   TestModel tm2;
-  
+
   tm1.setCutOff(3.3);
   tm2 = tm1;
 	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
@@ -126,9 +125,9 @@ END_SECTION
 
 // copy constructor
 START_SECTION((BaseModel(const BaseModel &source)))
-	TestModel tm1;	
+	TestModel tm1;
   tm1.setCutOff(0.1);
-	
+
   TestModel tm2(tm1);
 	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
 END_SECTION
@@ -174,7 +173,7 @@ START_SECTION((template <typename PeakType> void fillIntensity(PeakType &peak) c
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
   p.getPosition()[1]=0.2;
-  p.setIntensity(0.1);
+  p.setIntensity(0.1f);
   t.fillIntensity(p);
   TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
 END_SECTION
@@ -193,7 +192,7 @@ START_SECTION((template <class PeakIterator> void fillIntensities(PeakIterator b
   TEST_EQUAL(vec[2].getIntensity(), 2.0)
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
 END_SECTION
-	
+
 START_SECTION([EXTRA] DefaultParmHandler::setParameters(...))
 	Param p;
 	p.setValue("cutoff",17.0);
@@ -213,16 +212,16 @@ START_SECTION((virtual IntensityType getCutOff() const))
 END_SECTION
 
 START_SECTION((virtual void getSamples(SamplesType &cont) const =0))
-	// TODO
+  NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((virtual void getSamples(std::ostream &os)))
-	// TODO
+  NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((template <class PeakIterator> void registerChildren()))
 {
-	// TODO
+  NOT_TESTABLE;
 }
 END_SECTION
 

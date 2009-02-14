@@ -3,6 +3,7 @@ set(directory source/FORMAT/VALIDATORS)
 
 ### list all filenames of the directory here
 set(sources_list
+XMLValidator.C
 MzMLValidator.C
 SemanticValidator.C
 )

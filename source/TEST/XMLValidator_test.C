@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 ///////////////////////////
 
@@ -50,7 +50,7 @@ START_SECTION(([EXTRA]~XMLValidator()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((bool isValid(const String &filename, const String &schema) ))
+START_SECTION((bool isValid(const String &filename, const String &schema,  std::ostream& os = std::cerr) ))
 	XMLValidator v;
 	
 	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_valid.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), true);

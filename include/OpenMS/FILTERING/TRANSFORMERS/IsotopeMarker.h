@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -78,17 +78,17 @@ namespace OpenMS
 		{
 			double mzvariation = (double)param_.getValue("mz_variation");
     	double invariation = (double)param_.getValue("in_variation");
-    	UInt marks = (unsigned int)param_.getValue("marks");
+    	UInt marks = (UInt)param_.getValue("marks");
 			
     	spectrum.sortByPosition();
 			
-			std::map<double, uint> isotopemarks ; // possible isotopes
+			std::map<double, Size> isotopemarks ; // possible isotopes
 			
-    	for (uint i = 0; i < spectrum.size(); ++i)
+    	for (Size i = 0; i < spectrum.size(); ++i)
     	{
       	double mz = spectrum[i].getPosition()[0];
       	double intensity = spectrum[i].getIntensity();
-      	uint j = i+1;
+      	Size j = i+1;
 
       	//std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
 				IsotopeDistribution id;
@@ -113,7 +113,7 @@ namespace OpenMS
       	}
     	}
 			
-    	for (std::map<double, uint>::const_iterator cmit = isotopemarks.begin(); cmit != isotopemarks.end(); ++cmit)
+    	for (std::map<double, Size>::const_iterator cmit = isotopemarks.begin(); cmit != isotopemarks.end(); ++cmit)
     	{
       	if (cmit->second >= marks)
       	{

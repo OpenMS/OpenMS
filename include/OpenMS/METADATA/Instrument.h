@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -142,7 +142,7 @@ namespace OpenMS
       /// returns a mutable reference to the instrument software
       Software& getSoftware();
       /// sets the instrument software
-      void setSoftware(const Software& ion_sources);
+      void setSoftware(const Software& software);
       
 			/// returns the ion optics type
       IonOpticsType getIonOptics() const;

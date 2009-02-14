@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -83,17 +83,17 @@ START_SECTION((SampleState getState() const))
 	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
 END_SECTION
 
-START_SECTION((float getMass() const))
+START_SECTION((DoubleReal getMass() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getMass(),0.0)
 END_SECTION
 
-START_SECTION((float getVolume() const))
+START_SECTION((DoubleReal getVolume() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getVolume(),0.0)
 END_SECTION
 
-START_SECTION((float getConcentration() const))
+START_SECTION((DoubleReal getConcentration() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getConcentration(),0.0)
 END_SECTION
@@ -128,19 +128,19 @@ START_SECTION((void setState(SampleState state)))
 	TEST_EQUAL(s.getState(),Sample::LIQUID)
 END_SECTION
 
-START_SECTION((void setMass(float mass)))
+START_SECTION((void setMass(DoubleReal mass)))
 	Sample s;
 	s.setMass(4711.2);
 	TEST_REAL_SIMILAR(s.getMass(),4711.2)
 END_SECTION
 
-START_SECTION((void setVolume(float volume)))
+START_SECTION((void setVolume(DoubleReal volume)))
 	Sample s;
 	s.setVolume(4711.3);
 	TEST_REAL_SIMILAR(s.getVolume(),4711.3)
 END_SECTION
 
-START_SECTION((void setConcentration(float concentration)))
+START_SECTION((void setConcentration(DoubleReal concentration)))
 	Sample s;
 	s.setConcentration(4711.4);
 	TEST_REAL_SIMILAR(s.getConcentration(),4711.4)
@@ -160,7 +160,7 @@ END_SECTION
 START_SECTION((void setSubsamples(const std::vector<Sample>& subsamples)))
 	Sample s,s2,s3;
 	vector<Sample> v;
-	
+
 	//size=2
 	s2.setName("2");
 	s3.setName("3");
@@ -182,17 +182,17 @@ START_SECTION((Int countTreatments() const))
 	TEST_EQUAL(s.countTreatments(),1)
 END_SECTION
 
-START_SECTION((const SampleTreatment& getTreatment(UInt position) const ))
+START_SECTION((const SampleTreatment& getTreatment(UInt position) const))
 	Sample s;
 	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 END_SECTION
 
-START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1) ))
+START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
 	Tagging t;
-	
+
 	//different treatments
 	d.setEnzyme("D");
 	m.setReagentName("m");
@@ -204,13 +204,13 @@ START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_po
 	TEST_EQUAL(s.getTreatment(0).getType(),"Digestion")
 	TEST_EQUAL(s.getTreatment(1).getType(),"Modification")
 	TEST_EQUAL(s.getTreatment(2).getType(),"Tagging")
-	
+
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(1))).getReagentName(),"m")
 	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
 END_SECTION
 
-START_SECTION((SampleTreatment& getTreatment(UInt position) ))
+START_SECTION((SampleTreatment& getTreatment(UInt position)))
 	Sample s;
 	Digestion d;
 	s.addTreatment(d);
@@ -218,12 +218,12 @@ START_SECTION((SampleTreatment& getTreatment(UInt position) ))
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
 END_SECTION
 
-START_SECTION((void removeTreatment(UInt position) ))
+START_SECTION((void removeTreatment(UInt position)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
 	Tagging t;
-	
+
 	//different treatments
 	d.setEnzyme("D");
 	m.setReagentName("m");
@@ -231,7 +231,7 @@ START_SECTION((void removeTreatment(UInt position) ))
 	s.addTreatment(d);
 	s.addTreatment(m);
 	s.addTreatment(t);
-	
+
 	//removeTreatment
 	m2.setReagentName("m2");
 	m3.setReagentName("m3");
@@ -242,8 +242,8 @@ START_SECTION((void removeTreatment(UInt position) ))
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
 	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m")
 	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(3))).getReagentName(),"m3")
-	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(4))).getMassShift(),5.0)	
-	
+	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(4))).getMassShift(),5.0)
+
 	s.removeTreatment(4);
 	TEST_EQUAL(s.countTreatments(),4)
 	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
@@ -284,22 +284,22 @@ START_SECTION((Sample(const Sample& source)))
 
 	//meta info
 	s.setMetaValue("label",String("horse"));
-	
+
 	//subsamples
 	Sample ss;
 	ss.setName("2");
-	s.getSubsamples().push_back(ss);	
-	
+	s.getSubsamples().push_back(ss);
+
 	//treatments
 	Digestion d;
 	d.setEnzyme("D");
 	s.addTreatment(d);
-	
+
 	//-----------------
-	//Copy construction	
+	//Copy construction
 	//-----------------
 	Sample s2(s);
-	
+
 	//basic stuff
 	TEST_EQUAL(s2.getName(),"TTEST")
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
@@ -307,15 +307,15 @@ START_SECTION((Sample(const Sample& source)))
 	TEST_EQUAL(s2.getState(),Sample::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
-	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)	
+	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
 	TEST_EQUAL(s2.getOrganism(),"TTEST2")
-	
+
 	//meta
-	TEST_EQUAL("horse",s.getMetaValue("label"))
-	
+	TEST_EQUAL(s.getMetaValue("label"),"horse")
+
 	//subsamples
-	TEST_EQUAL("2",s.getSubsamples()[0].getName())
-	
+	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
+
 	//treatments
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
@@ -336,23 +336,23 @@ START_SECTION((Sample& operator= (const Sample& source)))
 
 	//meta
 	s.setMetaValue("label",String("horse"));
-	
+
 	//subsamples
 	Sample ss;
 	ss.setName("2");
-	s.getSubsamples().push_back(ss);	
-	
+	s.getSubsamples().push_back(ss);
+
 	//treatments
 	Digestion d;
 	d.setEnzyme("D");
 	s.addTreatment(d);
-	
+
 	//-----------------
-	//Copy construction	
+	//Copy construction
 	//-----------------
 	Sample s2;
 	s2=s;
-	
+
 	//basic stuff
 	TEST_EQUAL(s2.getName(),"TTEST")
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
@@ -361,14 +361,14 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	TEST_EQUAL(s2.getState(),Sample::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
-	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)	
+	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
 
 	//meta
-	TEST_EQUAL("horse",s.getMetaValue("label"))
-	
+	TEST_EQUAL(s.getMetaValue("label"),"horse")
+
 	//subsamples
-	TEST_EQUAL("2",s.getSubsamples()[0].getName())
-	
+	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
+
 	//treatments
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
@@ -376,44 +376,44 @@ END_SECTION
 START_SECTION((bool operator== (const Sample& rhs) const))
 	const Sample empty;
 	Sample edit;
-	
+
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setName("TTEST");
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setOrganism("TTEST2");
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setNumber("Sample4711");
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setComment("Sample Description");
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setState(Sample::LIQUID);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setMass(4711.2);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setVolume(4711.3);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
-	
+
 	edit.setConcentration(4711.4);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,60 +39,60 @@ START_TEST(Precursor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Precursor* ptr = 0;
-START_SECTION(Precursor())
+START_SECTION((Precursor()))
 	ptr = new Precursor();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~Precursor())
+START_SECTION((~Precursor()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(float getActivationEnergy() const)
+START_SECTION((DoubleReal getActivationEnergy() const ))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergy(),0);
 END_SECTION
 
-START_SECTION(void setActivationEnergy(float activation_energy))
+START_SECTION((void setActivationEnergy(DoubleReal activation_energy)))
   Precursor tmp;
   tmp.setActivationEnergy(47.11);
   TEST_REAL_SIMILAR(tmp.getActivationEnergy(),47.11);
 END_SECTION
 
-START_SECTION(ActivationMethod getActivationMethod() const)
+START_SECTION((ActivationMethod getActivationMethod() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::ACTMETHNULL);
 END_SECTION
 
-START_SECTION(void setActivationMethod(ActivationMethod activation_method))
+START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
   Precursor tmp;
   tmp.setActivationMethod(Precursor::CID);
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
 END_SECTION
 
-START_SECTION(EnergyUnits getActivationEnergyUnit() const)
+START_SECTION((EnergyUnits getActivationEnergyUnit() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::UNITSNULL);
 END_SECTION
 
-START_SECTION(void setActivationEnergyUnit(EnergyUnits activation_energy_unit))
+START_SECTION((void setActivationEnergyUnit(EnergyUnits activation_energy_unit)))
   Precursor tmp;
   tmp.setActivationEnergyUnit(Precursor::EV);
   TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::EV);
 END_SECTION
 
-START_SECTION(float getWindowSize() const)
+START_SECTION((DoubleReal getWindowSize() const ))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getWindowSize(), 0);
 END_SECTION
 
-START_SECTION(void setWindowSize(float size))
+START_SECTION((void setWindowSize(DoubleReal size)))
   Precursor tmp;
   tmp.setWindowSize(22.7);
   TEST_REAL_SIMILAR(tmp.getWindowSize(), 22.7);
 END_SECTION
 
-START_SECTION(Precursor(const Precursor& source))
+START_SECTION((Precursor(const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
@@ -108,7 +108,7 @@ START_SECTION(Precursor(const Precursor& source))
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 END_SECTION
 
-START_SECTION(Precursor& operator= (const Precursor& source))
+START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
@@ -134,7 +134,7 @@ START_SECTION(Precursor& operator= (const Precursor& source))
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
 END_SECTION
 
-START_SECTION(bool operator== (const Precursor& rhs) const)
+START_SECTION((bool operator== (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -159,7 +159,7 @@ START_SECTION(bool operator== (const Precursor& rhs) const)
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
-START_SECTION(bool operator!= (const Precursor& rhs) const)
+START_SECTION((bool operator!= (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);

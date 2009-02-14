@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ using namespace std;
 	DoubleReal PeakIntensityPredictor::predict(const AASequence& sequence)
 	{
 		//get corresponding attribute values
-		vector<DoubleReal> aafeat = AAIndex::getPropertyVector(sequence);
+		vector<DoubleReal> aafeat = getPropertyVector_(sequence);
 		//normalize vector (center and scale by variance)
 		llm_.normalizeVector(aafeat);
 		//pass data_ to llm model and return predicted value
@@ -56,7 +56,7 @@ using namespace std;
 	DoubleReal PeakIntensityPredictor::predict(const AASequence& sequence, vector<DoubleReal>& add_info)
 	{
 		//get corresponding attribute values
-		vector<DoubleReal> aafeat = AAIndex::getPropertyVector(sequence);
+		vector<DoubleReal> aafeat = getPropertyVector_(sequence);
 		//normalize vector (center and scale by variance)
 		llm_.normalizeVector(aafeat);
 		//pass data_ to llm model and return predicted value
@@ -145,10 +145,10 @@ using namespace std;
 		DoubleReal min_dist = 0.0;
 		Matrix<DoubleReal> code = llm_.getCodebooks();
 
-		//calculate euclidean distance of vector data to prototype no 1.
+		//calculate euclidean distance of vector data to prototype no 0.
 		for(Size c=0; c<data.size(); c++)
 		{
-			min_dist += (data[c] - code.getValue(1, c))*(data[c] - code.getValue(1, c));
+			min_dist += (data[c] - code.getValue(0, c))*(data[c] - code.getValue(0, c));
 		}
 	
 		//calculate euclidean distance of vector data to the remaining prototypes
@@ -193,6 +193,49 @@ using namespace std;
 		return foo;
 	}
 
+	std::vector<DoubleReal> PeakIntensityPredictor::getPropertyVector_(const AASequence& sequence)
+	{
+		std::vector<DoubleReal> out(18);
+		
+		//for each element in sequence = residue
+		for(Size pos=0; pos<sequence.size(); pos++)
+		{
+			char amino = sequence[pos].getOneLetterCode()[0];
+			
+			// numResidues of R
+			out[0] += (amino=='R' ? 1.0 : 0.0);
+			//The Kerr-constant increments
+			out[7] += AAIndex::getKHAG800101(amino); 
+			//Relative population of conformational state E
+			out[15] += AAIndex::getVASM830103(amino); 
+			//Hydropathy scale (36% accessibility)
+			out[10] += AAIndex::getNADH010106(amino);
+			//Hydropathy scale (50% accessibility)
+			out[11] += AAIndex::getNADH010107(amino);
+			//Hydrophobicity coefficient in RP-HPLC, C8 with 0.1%TFA/MeCN/H2 O,
+			out[16] += AAIndex::getWILM950102(amino);
+			//Information measure for extended without H-bond,
+			out[14] += AAIndex::getROBB760107(amino);
+			//Optimized average non-bonded energy per atom,
+			out[12] += AAIndex::getOOBM850104(amino);
+			//Positive charge
+			out[3] += AAIndex::getFAUJ880111(amino);
+			//Helix-coil equilibrium constant
+			out[4] += AAIndex::getFINA770101(amino);
+			//Signal sequence helical potential
+			out[1] += AAIndex::getARGP820102(amino);
+			out[8] += (amino=='M' ? 1.0 : 0.0);// numResidues of M
+			out[2] += (amino=='F' ? 1.0 : 0.0);// numResidues of F
+			out[6] += (amino=='H' ? 1.0 : 0.0);// numResidues of H
+			out[13] += (amino=='Q' ? 1.0 : 0.0);// numResidues of Q
+			out[17] += (amino=='Y' ? 1.0 : 0.0);// numResiduesof Y
+		}	
+		
+		out[5] = AAIndex::calculateGB(sequence, 500.0); //Estimated gas-phase basicity at 500 K
+		out[9] = sequence.getAverageWeight();
+					
+		return out;					
+	}
 
 
 

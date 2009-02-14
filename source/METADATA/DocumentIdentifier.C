@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -78,10 +78,10 @@ namespace OpenMS
 
 	void DocumentIdentifier::setLoadedFileType(const String& file_name)
 	{
-		file_type_ = FileHandler::typeToName(FileHandler::getTypeByContent(file_name));
+		file_type_ = FileHandler::getTypeByContent(file_name);
 	}
 
-	const String& DocumentIdentifier::getLoadedFileType() const
+	const FileTypes::Type& DocumentIdentifier::getLoadedFileType() const
 	{
 		return file_type_;
 	}

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <cmath>
+#include <limits>
 #include <iostream>
 #include <boost/math/special_functions/gamma.hpp>
 
@@ -151,7 +152,7 @@ namespace OpenMS
 		gamma_table_.clear();
 		exp_table_.clear();
 		DoubleReal query=0;
-		gamma_table_.push_back (INT_MAX);
+		gamma_table_.push_back (std::numeric_limits<int>::max());
 		query += table_steps_; 
 		while (query <= up_to)
 		{

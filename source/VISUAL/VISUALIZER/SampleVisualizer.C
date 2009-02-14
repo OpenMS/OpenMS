@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copymain (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copymain (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -51,9 +51,9 @@ namespace OpenMS
 		addLineEdit_(sampleorganism_, "Organism" );
 	  addTextEdit_(samplecomment_, "Comment");
 		addComboBox_(samplestate_, "State");
-		addDoubleLineEdit_(samplemass_,"Mass (in mg)");
+		addDoubleLineEdit_(samplemass_,"Mass (in gram)");
 		addDoubleLineEdit_(samplevolume_, "Volume (in ml)");
-		addDoubleLineEdit_(sampleconcentration_, "Concentration (in mg/ml)");
+		addDoubleLineEdit_(sampleconcentration_, "Concentration (in g/l)");
 		
 		finishAdding_();
 	}

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -65,10 +65,10 @@ namespace OpenMS
       }
 
 			/// returns the number of modifications read from the unimod.xml file
-			UInt getNumberOfModifications() const;
+			Size getNumberOfModifications() const;
 
 			/// returns the modification with the given index 
-			const ResidueModification& getModification(UInt index) const;
+			const ResidueModification& getModification(Size index) const;
 
 			/// returns all modifications which have the given name as synonym
 			std::set<String> searchModifications(const String& name) const;
@@ -89,7 +89,7 @@ namespace OpenMS
 			const ResidueModification& getModification(const String& residue_name, const String& mod_name) const;
 
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
-			UInt findModificationIndex(const String& mod_name) const;
+			Size findModificationIndex(const String& mod_name) const;
 
 			/// query the modifications DB to get the modifications with mass, without any specific origin
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);

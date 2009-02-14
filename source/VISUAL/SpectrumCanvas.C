@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -356,7 +356,7 @@ namespace OpenMS
 		painter.restore();
 	}
 	
-	UInt SpectrumCanvas::activeLayerIndex() const
+	Size SpectrumCanvas::activeLayerIndex() const
 	{
 		return current_layer_;	
 	}
@@ -393,16 +393,16 @@ namespace OpenMS
 		return finishAdding_();
 	}
 
-	void SpectrumCanvas::setLayerName(UInt i, const String& name)
+	void SpectrumCanvas::setLayerName(Size i, const String& name)
 	{ 
 		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
 	  getLayer_(i).name = name; 
 		if (i==0 && spectrum_widget_) spectrum_widget_->setWindowTitle(name.toQString());
 	}
 
-	void SpectrumCanvas::changeVisibility(int i, bool b)
+	void SpectrumCanvas::changeVisibility(Size i, bool b)
 	{
-		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
 		LayerData& layer = getLayer_(i);
 		if (layer.visible!=b)
 		{
@@ -412,9 +412,9 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumCanvas::changeLayerFilterState(int i, bool b)
+	void SpectrumCanvas::changeLayerFilterState(Size i, bool b)
 	{
-		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
 		LayerData& layer = getLayer_(i);
 		if (layer.filters.isActive()!=b)
 		{
@@ -435,7 +435,7 @@ namespace OpenMS
 		DRange<3>::PositionType min = overall_data_range_.min();
 		DRange<3>::PositionType max = overall_data_range_.max();
 		
-		for (UInt layer_index=0; layer_index< getLayerCount(); ++layer_index)
+		for (Size layer_index=0; layer_index< getLayerCount(); ++layer_index)
 		{
 			if (getLayer(layer_index).type==LayerData::DT_PEAK)
 			{
@@ -850,7 +850,7 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumCanvas::modificationStatus_(UInt layer_index, bool modified)
+	void SpectrumCanvas::modificationStatus_(Size layer_index, bool modified)
 	{
 		LayerData& layer = getLayer_(layer_index);
 		if (layer.modified!=modified)

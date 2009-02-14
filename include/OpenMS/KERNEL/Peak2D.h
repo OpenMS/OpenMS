@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -323,6 +323,8 @@ namespace OpenMS
 		};
 		//@}
 		
+		friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Peak2D& point);
+
 	 protected:
 	 	
 		/// The data point position
@@ -332,7 +334,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const Peak2D& point);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Peak2D& point);
 
 } // namespace OpenMS
 

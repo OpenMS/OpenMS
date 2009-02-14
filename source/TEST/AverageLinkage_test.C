@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -72,36 +72,36 @@ START_SECTION((AverageLinkage& operator=(const AverageLinkage &source)))
 }
 END_SECTION
 
-START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
+START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
 {
 	DistanceMatrix<Real> matrix(6,666);
-	matrix.setValue(1,0,0.5);
-	matrix.setValue(2,0,0.8);
-	matrix.setValue(2,1,0.3);
-	matrix.setValue(3,0,0.6);
-	matrix.setValue(3,1,0.8);
-	matrix.setValue(3,2,0.8);
-	matrix.setValue(4,0,0.8);
-	matrix.setValue(4,1,0.8);
-	matrix.setValue(4,2,0.8);
-	matrix.setValue(4,3,0.4);
-	matrix.setValue(5,0,0.7);
-	matrix.setValue(5,1,0.8);
-	matrix.setValue(5,2,0.8);
-	matrix.setValue(5,3,0.8);
-	matrix.setValue(5,4,0.8);
+	matrix.setValue(1,0,0.5f);
+	matrix.setValue(2,0,0.8f);
+	matrix.setValue(2,1,0.3f);
+	matrix.setValue(3,0,0.6f);
+	matrix.setValue(3,1,0.8f);
+	matrix.setValue(3,2,0.8f);
+	matrix.setValue(4,0,0.8f);
+	matrix.setValue(4,1,0.8f);
+	matrix.setValue(4,2,0.8f);
+	matrix.setValue(4,3,0.4f);
+	matrix.setValue(5,0,0.7f);
+	matrix.setValue(5,1,0.8f);
+	matrix.setValue(5,2,0.8f);
+	matrix.setValue(5,3,0.8f);
+	matrix.setValue(5,4,0.8f);
 	DistanceMatrix<Real> matrix2(matrix);
 
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
-	tree.push_back(BinaryTreeNode(1,2,0.3));
-	tree.push_back(BinaryTreeNode(2,3,0.4));
-	tree.push_back(BinaryTreeNode(0,1,0.65));
-	tree.push_back(BinaryTreeNode(0,1,0.766667));
-	tree.push_back(BinaryTreeNode(0,1,0.78));
+	tree.push_back(BinaryTreeNode(1,2,0.3f));
+	tree.push_back(BinaryTreeNode(2,3,0.4f));
+	tree.push_back(BinaryTreeNode(0,1,0.65f));
+	tree.push_back(BinaryTreeNode(0,1,0.766667f));
+	tree.push_back(BinaryTreeNode(0,1,0.78f));
 
 	AverageLinkage al;
-	al.cluster(matrix,result);
+	al(matrix,result);
 	TEST_EQUAL(tree.size(), result.size());
 	for (Size i = 0; i < result.size(); ++i)
 	{
@@ -114,11 +114,11 @@ START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vect
 	Real th(0.7);
 	tree.pop_back();
 	tree.pop_back();
-	tree.push_back(BinaryTreeNode(0,1,-1.0));
-	tree.push_back(BinaryTreeNode(0,1,-1.0));
+	tree.push_back(BinaryTreeNode(0,1,-1.0f));
+	tree.push_back(BinaryTreeNode(0,1,-1.0f));
 	result.clear();
 
-	al.cluster(matrix2,result,th);
+	al(matrix2,result,th);
 	TEST_EQUAL(tree.size(), result.size());
 	for (Size i = 0; i < result.size(); ++i)
 	{

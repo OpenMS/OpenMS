@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@ END_SECTION
 
 START_SECTION((void updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff)))
 	trans->updateBoxStates(map, 0, 0, 0);
-	trans->updateBoxStates(map, INT_MAX, 0, 0);
+	trans->updateBoxStates(map, numeric_limits<int>::max(), 0, 0);
 	TEST_NOT_EQUAL (trans, 0)
 END_SECTION
 

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -105,13 +105,13 @@ public:
 	@brief setter for number of modifications
 	@param number_of_mods
 	*/
-	void setNumberOfModifications(UInt number_of_mods) const;
+	void setNumberOfModifications(Size number_of_mods) const;
 
 	/**
 	@brief getter for number of modifications
 	@return number of modifications
 	*/
-	UInt getNumberOfModifications() const;
+	Size getNumberOfModifications() const;
 
 	/**
 	@brief setter for tags

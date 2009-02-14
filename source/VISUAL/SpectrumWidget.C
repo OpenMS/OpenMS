@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -116,7 +116,7 @@ namespace OpenMS
 	
 	void SpectrumWidget::showIntensityDistribution()
 	{
-		Histogram<UInt,Real> dist = createIntensityDistribution_();
+		Histogram<> dist = createIntensityDistribution_();
 		HistogramDialog dw(dist);
 		dw.setLegend("intensity");
 		dw.setLogMode(true);
@@ -148,7 +148,7 @@ namespace OpenMS
 
 	void SpectrumWidget::showMetaDistribution(const String& name)
 	{
-		Histogram<UInt,Real> dist = createMetaDistribution_(name);
+		Histogram<> dist = createMetaDistribution_(name);
 		HistogramDialog dw(dist);
 		dw.setLegend(name);
 		

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -153,7 +153,7 @@ namespace OpenMS
 				boundary_.push(IndexWithPriority(*citer,priority));
 			}
 			// pass on charge information
-			result_region.charge_ = seed_region.charge_;
+			result_region.charge = seed_region.charge;
 
 			// re-compute intensity threshold
 			intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);

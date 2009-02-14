@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copymain (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copymain (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,10 +41,10 @@ namespace OpenMS
 	{
 		addLabel_("Modify DocumentIdentifier information");
 		addSeparator_();
-		addLineEdit_(file_path_,"Data loaded from file");
-		addLineEdit_(file_type_,"Data loaded of type");
-		addSeparator_();
 		addLineEdit_(identifier_, "Idenifier");
+		addSeparator_();
+		addLineEdit_(file_path_,"Loaded from file");
+		addLineEdit_(file_type_,"File type");
 		finishAdding_();
 	}
 
@@ -53,7 +53,7 @@ namespace OpenMS
 	{
 	  identifier_->setText(temp_.getIdentifier().c_str());
 	  file_path_->setText(temp_.getLoadedFilePath().c_str());
-	  file_type_->setText(temp_.getLoadedFileType().c_str());
+	  file_type_->setText(FileHandler::typeToName(temp_.getLoadedFileType()).c_str());
 		file_path_->setReadOnly(true);
 		file_type_->setReadOnly(true);
 	}

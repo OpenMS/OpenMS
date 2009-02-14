@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -180,9 +180,9 @@ namespace OpenMS
       /// sets the resolution
       void setResolution(DoubleReal resolution);
 			
-			/// returns the mass accuracy i.e. how much the theoretical mass differs from the measured mass (in m/z)
+			/// returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
       DoubleReal getAccuracy() const;
-      /// sets the accuracy  i.e. how much the theoretical mass differs from the measured mass  (in m/z)
+      /// sets the accuracy  i.e. how much the theoretical mass may differ from the measured mass  (in ppm)
       void setAccuracy(DoubleReal accuracy);
 			
 			/// returns the scan rate (in s)
@@ -195,9 +195,9 @@ namespace OpenMS
       /// sets the scan time for a single scan (in s)
       void setScanTime(DoubleReal scan_time);
 			
-			/// returns the path length for a TOF mass analyzer (in mm)
+			/// returns the path length for a TOF mass analyzer (in meter)
       DoubleReal getTOFTotalPathLength() const;
-      /// sets the path length for a TOF mass analyzer (in mm)
+      /// sets the path length for a TOF mass analyzer (in meter)
       void setTOFTotalPathLength(DoubleReal TOF_total_path_length);
 			
 			/// returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)

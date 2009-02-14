@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -202,10 +202,10 @@ namespace OpenMS
     template <typename Value>
     static void computeRank(std::vector<Value>& w)
     {
-      UInt i = 0; // main index
-      UInt v, z  = 0;	// "secondary" indices
+      Size i = 0; // main index
+      Size v, z  = 0;	// "secondary" indices
       Value rank = 0;
-      UInt n = ( w.size() - 1);
+      Size n = ( w.size() - 1);
 			
       while (i < n) 
       {

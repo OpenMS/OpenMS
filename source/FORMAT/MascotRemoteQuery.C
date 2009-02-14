@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,12 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-
-/*
- * remotemascotquery.cpp
- * (c) 2008 Daniel Jameson, University of Manchester
- *  
- */
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <iostream>
@@ -245,6 +239,10 @@ void MascotRemoteQuery::execQuery()
 
 void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 {
+	if (error)
+	{
+		cerr << "MascotRemoteQuery: An error occured (requestId=" << requestId << "): " << http_->errorString().toStdString() << endl;
+	}
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "Request Finished Id: " << requestId << endl;
 	cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << endl;
@@ -252,33 +250,37 @@ void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 	
 }
 
-void MascotRemoteQuery::httpDataReadProgress(int bytes_read, int bytes_total)
+
+void MascotRemoteQuery::httpDataReadProgress(int /*bytes_read*/, int /*bytes_total*/)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << endl;
 #endif
 }
 
-void MascotRemoteQuery::httpDataSendProgress(int bytes_sent, int bytes_total)
+void MascotRemoteQuery::httpDataSendProgress(int /*bytes_sent*/, int /*bytes_total*/)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << endl;
 #endif
 }
 
-void MascotRemoteQuery::httpRequestStarted(int requestId)
+
+
+void MascotRemoteQuery::httpRequestStarted(int /*requestId*/)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cout<<"Request started: "<<requestId<<endl;
 #endif
 }
 
-void MascotRemoteQuery::httpStateChanged(int state)
+void MascotRemoteQuery::httpStateChanged(int /*state*/)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cout<<"State change: "<<state<<endl;
 #endif
 }
+
 
 void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header) 
 {
@@ -323,6 +325,10 @@ cout<<"Cookie created:"<<cookie_->toStdString()<<endl;
 
 void MascotRemoteQuery::httpDone(bool error)
 {
+	if (error)
+	{
+		cerr << "'" << http_->errorString().toStdString() << "'" << endl;
+	}
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDone(bool error): ";
@@ -369,52 +375,35 @@ void MascotRemoteQuery::httpDone(bool error)
 #endif
 			results_path_.append("&_sigthreshold=0&query_master=1&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_query=1&pep_rank=1&_sigthreshold=0.05&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&prot_thresh=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1");
 		
-		
-		
-		/* This will retrieve the dat file, it seems that TOPP wants the XML though.
-		resultsPath->append("/x-cgi/ms-status.exe?Autorefresh=false&Show=RESULTFILE&DateDir=");
-		resultsPath->append(rx.cap(1));
-		resultsPath->append("&ResJob=");
-		resultsPath->append(rx.cap(2));
-		resultsPath->append("&BrowserSafe=false");
-		datFileName=new QString(rx.cap(2));
-		*/
-
 		//Finished search, fire off results retrieval
 		emit queryDone();
 		
 		} 
 		else 
 		{	
-		//In theory finished results retrieval, save results file. Quite possible that errors
-		//would land you here too.
-
-#ifdef MASCOTREMOTEQUERY_DEBUG
-		cerr << "Get the XML File" << endl;
-#endif
-		mascot_xml_ = new_bytes;
-		//Write the XML file
-
-						/*
-		QFile output("searchresults.xml");
-		output.open(QIODevice::WriteOnly);
-		output.write(newBytes);
-*/
-
-		/* This would write out the .dat file...
-		QString response(newBytes);
-		QRegExp rx("<PRE>(.*)</PRE>");
-		int pos=0;
-		pos=rx.indexIn(response);
-		QFile output(*datFileName);
-		output.open(QIODevice::WriteOnly);
-		output.write(rx.cap(1).toAscii());
-		*/
-		
-	/*
-		output.close();
-		*/
-		emit done();
+			if (new_bytes.contains("Sorry, your search could not be performed due to the following mistake entering data."))
+			{
+				String error = String(QString(new_bytes));
+				vector<String> split;
+				error.split('\n', split);
+				for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+				{
+					if (it->hasPrefix("Sorry"))
+					{
+						error_message_ += *it + "\n";
+					}
+				}
+				emit done();
+			}
+			else
+			{
+				// seems to be fine so grab the xml
+				#ifdef MASCOTREMOTEQUERY_DEBUG
+				cerr << "Get the XML File" << endl;
+				#endif
+				mascot_xml_ = new_bytes;
+				emit done();
+			}
 		}
 	}
 }
@@ -427,6 +416,16 @@ void MascotRemoteQuery::httpDone(bool error)
 	const QByteArray& MascotRemoteQuery::getMascotXMLResponse() const
 	{
 		return mascot_xml_;
+	}
+
+	bool MascotRemoteQuery::hasError() const
+	{
+		return error_message_ != "";
+	}
+
+	const String& MascotRemoteQuery::getErrorMessage() const
+	{
+		return error_message_;
 	}
 
 	void MascotRemoteQuery::updateMembers_()

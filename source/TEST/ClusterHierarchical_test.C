@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -195,7 +195,7 @@ START_SECTION((void setThreshold(double x)))
 }
 END_SECTION
 
-START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
+START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(std::vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
 {
 	vector<UInt> d(6,0);
 	for (Size i = 0; i<d.size(); ++i)
@@ -207,11 +207,11 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 	SingleLinkage sl;
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
-	tree.push_back(BinaryTreeNode(1,2,0.3));
-	tree.push_back(BinaryTreeNode(2,3,0.4));
-	tree.push_back(BinaryTreeNode(0,1,0.5));
-	tree.push_back(BinaryTreeNode(0,1,0.6));
-	tree.push_back(BinaryTreeNode(0,1,0.7));
+	tree.push_back(BinaryTreeNode(1,2,0.3f));
+	tree.push_back(BinaryTreeNode(2,3,0.4f));
+	tree.push_back(BinaryTreeNode(0,1,0.5f));
+	tree.push_back(BinaryTreeNode(0,1,0.6f));
+	tree.push_back(BinaryTreeNode(0,1,0.7f));
 	DistanceMatrix<Real> matrix;
 
 	ch.cluster<UInt,lowlevelComparator>(d,lc,sl,result, matrix);
@@ -239,7 +239,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	s2.pop_back();
 	s3.pop_back();
 	peak.setMZ(666.66);
-	peak.setIntensity(999.99);
+	peak.setIntensity(999.99f);
 	s2.push_back(peak);
 	s2.sortByPosition();
 	s3.push_back(peak);

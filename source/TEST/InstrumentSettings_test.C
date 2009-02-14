@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,96 +39,112 @@ START_TEST(InstrumentSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InstrumentSettings* ptr = 0;
-START_SECTION(InstrumentSettings())
+START_SECTION((InstrumentSettings()))
 	ptr = new InstrumentSettings();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~InstrumentSettings())
+START_SECTION((~InstrumentSettings()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(IonSource::Polarity getPolarity() const)
+START_SECTION((IonSource::Polarity getPolarity() const))
 	InstrumentSettings tmp;
 	TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
 END_SECTION
 
-START_SECTION(void setPolarity(IonSource::Polarity polarity))
+START_SECTION((void setPolarity(IonSource::Polarity polarity)))
 	InstrumentSettings tmp;
 	tmp.setPolarity(IonSource::NEGATIVE);
 	TEST_EQUAL(tmp.getPolarity(),IonSource::NEGATIVE);
 END_SECTION
 
-START_SECTION(const std::vector< ScanWindow >&  getScanWindows() const)
+START_SECTION((const std::vector< ScanWindow >&  getScanWindows() const))
 	InstrumentSettings tmp;
   TEST_EQUAL(tmp.getScanWindows().size(),0);
 END_SECTION
 
-START_SECTION(std::vector< ScanWindow >&  getScanWindows();)
+START_SECTION((std::vector< ScanWindow >& getScanWindows()))
 	InstrumentSettings tmp;
   tmp.getScanWindows().resize(1);
   TEST_EQUAL(tmp.getScanWindows().size(),1);
 END_SECTION
 
-START_SECTION(void setScanWindows(std::vector< ScanWindow >  scan_windows))
+START_SECTION((void setScanWindows(std::vector< ScanWindow >  scan_windows)))
 	InstrumentSettings tmp;
   vector<InstrumentSettings::ScanWindow> vec(17);
   tmp.setScanWindows(vec);
   TEST_EQUAL(tmp.getScanWindows().size(),17);
 END_SECTION
 
-START_SECTION(ScanMode getScanMode() const)
+START_SECTION((ScanMode getScanMode() const))
 	InstrumentSettings tmp;
 	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::UNKNOWN);
 END_SECTION
 
-START_SECTION(void setScanMode(ScanMode scan_mode))
+START_SECTION((void setScanMode(ScanMode scan_mode)))
 	InstrumentSettings tmp;
-	tmp.setScanMode(InstrumentSettings::ZOOM);
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ZOOM);
+	tmp.setScanMode(InstrumentSettings::SIM);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::SIM);
 END_SECTION
 
-START_SECTION(InstrumentSettings(const InstrumentSettings& source))
+START_SECTION((bool getZoomScan() const))
+	InstrumentSettings tmp;
+	TEST_EQUAL(tmp.getZoomScan(),false);
+END_SECTION
+
+START_SECTION((void setZoomScan(bool zoom_scan)))
+	InstrumentSettings tmp;
+	tmp.setZoomScan(true);
+	TEST_EQUAL(tmp.getZoomScan(),true);
+END_SECTION
+
+START_SECTION((InstrumentSettings(const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::ZOOM);
+  tmp.setScanMode(InstrumentSettings::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
+	tmp.setZoomScan(true);
   
   InstrumentSettings tmp2(tmp);
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ZOOM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+	TEST_EQUAL(tmp2.getZoomScan(),true);
 END_SECTION
 
-START_SECTION(InstrumentSettings& operator= (const InstrumentSettings& source))
+START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::ZOOM);
+  tmp.setScanMode(InstrumentSettings::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
+	tmp.setZoomScan(true);
   
   InstrumentSettings tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ZOOM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(tmp2.getZoomScan(),true);
   
   tmp2 = InstrumentSettings();
   TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::UNKNOWN);
   TEST_EQUAL(tmp2.getScanWindows().size(),0);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::POLNULL);  
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
+	TEST_EQUAL(tmp2.getZoomScan(),false);
 END_SECTION
 
-START_SECTION(bool operator== (const InstrumentSettings& rhs) const)
+START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit==empty,true);
   
-  edit.setScanMode(InstrumentSettings::ZOOM);
+  edit.setScanMode(InstrumentSettings::SIM);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty; 
@@ -142,14 +158,18 @@ START_SECTION(bool operator== (const InstrumentSettings& rhs) const)
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty,false);
+
+	edit = empty;
+	edit.setZoomScan(true);
+	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
-START_SECTION(bool operator!= (const InstrumentSettings& rhs) const)
+START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
   
-  edit.setScanMode(InstrumentSettings::ZOOM);
+  edit.setScanMode(InstrumentSettings::SIM);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;	
@@ -162,6 +182,10 @@ START_SECTION(bool operator!= (const InstrumentSettings& rhs) const)
 
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
+	TEST_EQUAL(edit!=empty,true);
+
+	edit = empty;
+	edit.setZoomScan(true);
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 

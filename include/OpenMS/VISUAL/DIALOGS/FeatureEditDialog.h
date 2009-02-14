@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGSFEATUREEDITDIALOG_H
-#define OPENMS_VISUAL_DIALOGSFEATUREEDITDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_FeatureEditDialog.h>
@@ -65,4 +65,4 @@ namespace OpenMS
 	};
 	
 }
-#endif // OPENMS_VISUAL_DIALOGSFEATUREEDITDIALOG_H
+#endif // OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H

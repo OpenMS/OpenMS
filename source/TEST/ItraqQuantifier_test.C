@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -88,7 +88,8 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.idXML"), protein_ids, peptide_ids);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.idXML"), protein_ids, peptide_ids, document_id);
 	
 	ItraqQuantifier iq;
 	iq.run(cm_in, peptide_ids, protein_ids, cm_out);

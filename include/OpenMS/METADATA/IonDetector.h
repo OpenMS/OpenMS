@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -113,9 +113,9 @@ namespace OpenMS
       /// sets the resolution (in ns)
       void setResolution(DoubleReal resolution);
 			
-			/// retruns the analog-to-digital converter sampling frequency (in MHz)
+			/// retruns the analog-to-digital converter sampling frequency (in Hz)
       DoubleReal getADCSamplingFrequency() const;
-      /// sets the analog-to-digital converter sampling frequency (in MHz)
+      /// sets the analog-to-digital converter sampling frequency (in Hz)
       void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
 
 			/**

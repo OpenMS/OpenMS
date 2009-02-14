@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,7 @@ namespace OpenMS
 				fwd_scores.push_back(pit->getScore());
 			}
 		}
-		UInt number_of_fwd_scores = fwd_scores.size();
+		Size number_of_fwd_scores = fwd_scores.size();
 
 		for (vector<PeptideIdentification>::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
     {
@@ -112,7 +112,7 @@ namespace OpenMS
 
 		// calculate fdr for the forward scores
 		Map<double, double> score_to_fdr;
-		UInt j = 0;
+		Size j = 0;
 		DoubleReal minimal_fdr = 1.;
 		
 		if (q_value)
@@ -260,7 +260,7 @@ namespace OpenMS
 
    	// calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
-    UInt j = 0;
+    Size j = 0;
     for (Size i = 0; i != fwd_scores.size(); ++i)
     {
       while (j != rev_scores.size() &&

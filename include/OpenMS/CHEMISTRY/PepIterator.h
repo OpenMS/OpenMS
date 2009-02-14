@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -97,29 +97,29 @@ class OPENMS_DLLAPI PepIterator : public FactoryProduct
 	
 	/**
 	@brief setter for spectrum
-	@param s ms spectrum given as vector of floats
+	@param s ms spectrum given as vector of DoubleReals
 	@throw Exception::InvalidValue if spectrum is not sorted acendingly
 	*/
-	virtual void setSpectrum (const std::vector<float> & s) = 0;
+	virtual void setSpectrum (const std::vector<DoubleReal> & s) = 0;
  
 	/**
 	@brief getter for spectrum
 	@return the used spectrum
 	*/
-	virtual const std::vector<float> & getSpectrum ()=0;
+	virtual const std::vector<DoubleReal> & getSpectrum ()=0;
 
 	/**
 	@brief setter for tolerance
 	@param t tolerance value
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t) = 0;
+	virtual void setTolerance (DoubleReal t) = 0;
 	
 	/**
 	@brief getter for tolerance
 	@return tolerance
 	*/
-	virtual float getTolerance()=0;
+	virtual DoubleReal getTolerance()=0;
 	
 	/**
 	@brief initializing iterator

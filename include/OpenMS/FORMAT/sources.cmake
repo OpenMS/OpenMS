@@ -64,9 +64,9 @@ TextFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
 XMLFile.h
-XMLValidator.h
 XTandemInfile.h
 XTandemXMLFile.h
+FileTypes.h
 )
 
 ### add path to the filenames

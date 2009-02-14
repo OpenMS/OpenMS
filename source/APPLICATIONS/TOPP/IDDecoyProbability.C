@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -94,8 +94,9 @@ class TOPPIDDecoyProbability
 
 			vector<PeptideIdentification> fwd_pep, rev_pep, out_pep;
 			vector<ProteinIdentification> fwd_prot, rev_prot;
-			IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-			IdXMLFile().load(rev_in, rev_prot, rev_pep);
+			String document_id;
+			IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
+			IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
 			
       //-------------------------------------------------------------
       // calculations

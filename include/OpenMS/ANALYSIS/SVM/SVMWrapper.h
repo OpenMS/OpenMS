@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -123,7 +123,7 @@ namespace OpenMS
 		
 		bool load(const String& filename)
 		{
-			UInt counter = 0;
+			Size counter = 0;
 			std::vector<String> parts;
 			std::vector<String> temp_parts;
 			
@@ -186,7 +186,7 @@ namespace OpenMS
 	    SVMWrapper();
 
 			/// destructor	
-	    ~SVMWrapper();
+	    virtual ~SVMWrapper();
 	
 		  /**
 		    @brief You can set the parameters of the svm: 
@@ -213,7 +213,7 @@ namespace OpenMS
 
 	      The svm is trained with the data stored in the 'svm_problem' structure.
 			*/
-	    Int  train(struct svm_problem* problem);
+	    Int train(struct svm_problem* problem);
 	
 		  /**
 		    @brief	trains the svm 
@@ -288,7 +288,7 @@ namespace OpenMS
 		    This function creates 'number' equally sized random partitions and stores them in 'partitions'. 
 		    
 		  */
-			static void createRandomPartitions(svm_problem* problem, UInt number, std::vector<svm_problem*>& partitions);
+			static void createRandomPartitions(svm_problem* problem, Size number, std::vector<svm_problem*>& partitions);
 	
 		  /**
 		    @brief You can create 'number' equally sized random partitions
@@ -297,20 +297,20 @@ namespace OpenMS
 		    
 		  */
 			static void createRandomPartitions(const SVMData&				  problem,
-																				UInt  			 					  number,
+																				Size  			 					  number,
 																				std::vector<SVMData>&		problems);
 		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 
 		    
 		  */
-	    static svm_problem* mergePartitions(const std::vector<svm_problem*>& problems,UInt except);
+	    static svm_problem* mergePartitions(const std::vector<svm_problem*>& problems, Size except);
 																	 				
 		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 
 		    
 		  */
 			static void mergePartitions(const std::vector<SVMData>& problems,
-			 													  UInt 											  except,
+			 													  Size 											  except,
 				 													SVMData&										merged_problem);
 
 		  /**
@@ -331,7 +331,7 @@ namespace OpenMS
 		    @brief Performs a CV for the data given by 'problem'
 		    
 		  */
-			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, UInt number_of_partitions, UInt number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt", bool mcc_as_performance_measure = false);
+			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, Size number_of_partitions, Size number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt", bool mcc_as_performance_measure = false);
 																 					
 		  /**
 		    @brief Performs a CV for the data given by 'problem'
@@ -341,8 +341,8 @@ namespace OpenMS
 												 								const	std::map<SVM_parameter_type, DoubleReal>&    start_values_map,
 												 								const	std::map<SVM_parameter_type, DoubleReal>&    step_sizes_map,
 												 								const	std::map<SVM_parameter_type, DoubleReal>&    end_values_map,
-												 								UInt 												   				 			 			 number_of_partitions,
-												 								UInt 												   				 						 number_of_runs,
+												 								Size 												   				 			 			 number_of_partitions,
+												 								Size 												   				 						 number_of_runs,
 												 								std::map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
 												 								bool																	 			 			 additive_step_sizes = true,
 												 								bool				 												   			 			 output = false,
@@ -386,13 +386,13 @@ namespace OpenMS
 		    the sequences 'x' and 'y' that had been encoded by the encodeOligoBorder... function
 		    of the LibSVMEncoder class. 	      		    
 		  */
-			static DoubleReal kernelOligo(const svm_node*	x, const svm_node* y, const std::vector<DoubleReal>&	gauss_table, DoubleReal sigma_square = 0,	UInt	max_distance = 50);
+			static DoubleReal kernelOligo(const svm_node*	x, const svm_node* y, const std::vector<DoubleReal>&	gauss_table, DoubleReal sigma_square = 0,	Size	max_distance = 50);
 
 		  /**
 		    @brief calculates the significance borders of the error model and stores them in 'sigmas'	      
 		    
 		  */
-			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UInt number_of_runs = 5, UInt number_of_partitions = 5, DoubleReal step_size = 0.01, UInt max_iterations = 1000000);
+			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, Size number_of_runs = 5, Size number_of_partitions = 5, DoubleReal step_size = 0.01, Size max_iterations = 1000000);
 
 		  /**
 		    @brief calculates the significance borders of the error model and stores them in 'sigmas'	      
@@ -401,10 +401,10 @@ namespace OpenMS
 			void getSignificanceBorders(const SVMData& data, 
 																	std::pair<DoubleReal, DoubleReal>& sigmas,
 																	DoubleReal confidence = 0.95,
-																	UInt number_of_runs = 5,
-																	UInt number_of_partitions = 5,
+																	Size number_of_runs = 5,
+																	Size number_of_partitions = 5,
 																	DoubleReal step_size = 0.01,
-																	UInt max_iterations = 1000000);
+																	Size max_iterations = 1000000);
 
 		  /**
 		    @brief calculates a p-value for a given data point using the model parameters
@@ -435,7 +435,7 @@ namespace OpenMS
 		  */
 			void scaleData(svm_problem* data, Int max_scale_value = -1);
 
-			static void calculateGaussTable(UInt border_length, DoubleReal sigma, std::vector<DoubleReal>&	gauss_table);
+			static void calculateGaussTable(Size border_length, DoubleReal sigma, std::vector<DoubleReal>&	gauss_table);
 
 		  /**
 		    @brief computes the kernel matrix using the actual svm parameters	and the given data
@@ -487,7 +487,7 @@ namespace OpenMS
 			void setWeights(const std::vector<Int>& weight_labels, const std::vector<DoubleReal>& weights);
 
 	 private:
-			UInt getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
+			Size getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
 		  /**
 		    @brief Initializes the svm with standard parameters
@@ -501,8 +501,8 @@ namespace OpenMS
 			std::vector<DoubleReal>								sigmas_;							// for the combined oligo kernel (amount of positional smearing) 
 			std::vector<DoubleReal>								gauss_table_;					// lookup table for fast computation of the oligo kernel
 			std::vector<std::vector<DoubleReal>	> gauss_tables_;				// lookup table for fast computation of the combined oligo kernel
-			UInt			 														kernel_type_;					// the actual kernel type	
-			UInt			 														border_length_;				// the actual kernel type				
+			Size			 														kernel_type_;					// the actual kernel type	
+			Size			 														border_length_;				// the actual kernel type				
 			svm_problem*													training_set_;				// the training set
 			svm_problem*													training_problem_;		// the training set
 			SVMData 															training_data_;				// the training set (different encoding)

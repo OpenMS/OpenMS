@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <cstdlib>
 #include <vector>
@@ -55,6 +56,8 @@ using namespace std;
 	@page TOPP_PepNovoAdapter PepNovoAdapter
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
 
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra. The wrapper can be executed in three different
@@ -87,7 +90,7 @@ using namespace std;
 				This mode is selected by the <b>-pepnovo_out</b> option in the command line.
 				</li>
 	</ol>
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PepNovoAdapter.cli
 */
@@ -155,7 +158,6 @@ class TOPPPepNovoAdapter
 		}
 
   UInt MSExperiment2DTAs(MSExperiment<Peak1D>& msexperiment, const String& common_name,	const vector< Int >& charges,	map< String, Real >& dta_filenames_and_precursor_retention_times, bool make_dtas = true)
-		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
 			String filename;
@@ -233,7 +235,7 @@ class TOPPPepNovoAdapter
 				min_sequence_length(0),
 				max_sequence_length(0),
 				num_results(0);
-			
+
 			UInt
 				msms_spectra_altogether(0),
 				msms_spectra_in_file(0);
@@ -255,9 +257,9 @@ class TOPPPepNovoAdapter
 				substrings2,
 				spectra,
 				models;
-			
+
 			FileHandler fh;
-			FileHandler::Type type;
+			FileTypes::Type type;
 			MSExperiment<Peak1D> msexperiment;
 			vector< PeptideIdentification > peptide_identifications;
 			ProteinIdentification protein_identification;
@@ -387,7 +389,7 @@ class TOPPPepNovoAdapter
 				Int range_start(0), range_end(0);
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
-				
+
 				for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); )
 				{
 					if ( substrings_it->empty() ) substrings.erase(substrings_it);
@@ -491,7 +493,7 @@ class TOPPPepNovoAdapter
 					}
 				}
 			}
-			
+
 			keep_dta_files = getFlag_("keep_dta_files");
 			if ( pepnovo_in && !pepnovo_out ) keep_dta_files = true;
 
@@ -761,7 +763,7 @@ class TOPPPepNovoAdapter
 				{
 					File::absolutePath(*spectra_it);
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -789,7 +791,7 @@ class TOPPPepNovoAdapter
 					}
 				}
 			}
-			
+
 			// if no msms spectra were found
 			if ( exit_code == EXECUTION_OK && !msms_spectra_altogether )
 			{
@@ -803,7 +805,7 @@ class TOPPPepNovoAdapter
 				for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -930,16 +932,16 @@ class TOPPPepNovoAdapter
 
 				vector< ProteinIdentification > identifications;
 				identifications.push_back(protein_identification);
-				
+
 				IdXMLFile().store(output_filename, identifications, peptide_identifications);
 			}
-			
+
 			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
 			{
 				writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 				files[logfile] = readable;
 			}
-			
+
 			// deleting all temporary files
 			writeLog_("removing temporary files");
 			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
@@ -956,7 +958,7 @@ class TOPPPepNovoAdapter
 					if ( !File::remove(string_buffer) ) writeLog_("'" + string_buffer + "' could not be removed!");
 				}
 			}
-			
+
 			return exit_code;
 		}
 };

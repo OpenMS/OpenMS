@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -52,6 +52,18 @@ START_SECTION((virtual ~LabeledPairFinder()))
 	delete ptr;
 END_SECTION
 
+START_SECTION((static BaseGroupFinder* create()))
+	BaseGroupFinder* base_ptr = 0;
+	base_ptr = LabeledPairFinder::create();
+	TEST_NOT_EQUAL(base_ptr, 0)
+END_SECTION
+
+START_SECTION((static const String getProductName()))
+  LabeledPairFinder spf;
+  
+  TEST_STRING_EQUAL(spf.getProductName(),"labeled_pair_finder")
+END_SECTION
+
 FeatureMap<> features;
 features.resize(10);
 //start
@@ -59,13 +71,13 @@ features[0].setRT(1.0f);
 features[0].setMZ(1.0f);
 features[0].setCharge(1);
 features[0].setOverallQuality(1);
-features[0].setIntensity(4.0);
+features[0].setIntensity(4.0f);
 //best
 features[1].setRT(1.5f);
 features[1].setMZ(5.0f);
 features[1].setCharge(1);
 features[1].setOverallQuality(1);
-features[1].setIntensity(2.0);
+features[1].setIntensity(2.0f);
 //inside (down, up, left, right)
 features[2].setRT(1.0f);
 features[2].setMZ(5.0f);

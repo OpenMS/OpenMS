@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,8 +28,10 @@
 
 ///////////////////////////
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ANDIFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 
@@ -61,7 +63,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e);
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), File::absolutePath(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"cdf");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"cdf");
 
   //---------------------------------------------------------------------------
   // 60 : (120,100)
@@ -69,15 +71,15 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 1)
+	TEST_EQUAL(e[2].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 60)
 	TEST_REAL_SIMILAR(e[1].getRT(), 120)
 	TEST_REAL_SIMILAR(e[2].getRT(), 180)
-	TEST_REAL_SIMILAR(e[0].size(), 1)
-	TEST_REAL_SIMILAR(e[1].size(), 3)
-	TEST_REAL_SIMILAR(e[2].size(), 5)
+	TEST_EQUAL(e[0].size(), 1)
+	TEST_EQUAL(e[1].size(), 3)
+	TEST_EQUAL(e[2].size(), 5)
 	TEST_STRING_EQUAL(e[0].getNativeID(), "index=0")
 	TEST_STRING_EQUAL(e[1].getNativeID(), "index=1")
 	TEST_STRING_EQUAL(e[2].getNativeID(), "index=2")

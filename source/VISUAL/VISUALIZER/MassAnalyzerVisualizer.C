@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copymain (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copymain (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ namespace OpenMS
 		addDoubleLineEdit_(acc_, "Accuracy" );
 		addDoubleLineEdit_(scan_rate_, "Scan rate (in s)" );
 		addDoubleLineEdit_(scan_time_, "Scan time (in s)" );
-		addDoubleLineEdit_(TOF_, "TOF Total path length (in mm)" );
+		addDoubleLineEdit_(TOF_, "TOF Total path length (in meter)" );
 		addDoubleLineEdit_(iso_, "Isolation width (in m/z)" );
 		addDoubleLineEdit_(final_MS_, "Final MS exponent" );
 		addDoubleLineEdit_(magnetic_fs_, "Magnetic field strength (in T)" );

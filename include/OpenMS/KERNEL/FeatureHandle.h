@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@ namespace OpenMS
   	
 	 public:
 
-		class FeatureHandleMutable;
+		class FeatureHandleMutable_;
 
     ///@name Constructors and destructor
     //@{
@@ -62,7 +62,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor with map index, element index and position
-		FeatureHandle(UInt map_index, UInt element_index, const Peak2D& point)
+		FeatureHandle(Size map_index, Size element_index, const Peak2D& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -70,7 +70,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and Feature
-		FeatureHandle(UInt map_index, UInt element_index, const Feature& point)
+		FeatureHandle(Size map_index, Size element_index, const Feature& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -78,7 +78,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and ConsensusFeature
-		FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point);
+		FeatureHandle(Size map_index, Size element_index, const ConsensusFeature& point);
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: Peak2D(rhs),
@@ -114,32 +114,32 @@ namespace OpenMS
 		(which see), you <i>must not</i> modify the map index of element index if
 		there is more than one FeatureHandle stored in a ConsensusFeature.
 		Consequently, we "disable" setMapIndex() or setElementIndex() even within
-		FeatureHandleMutable.  On the other hand, it is perfectly safe to apply
+		FeatureHandleMutable_.  On the other hand, it is perfectly safe to apply
 		FeatureHandle::setRT(), FeatureHandle::setMZ(),
 		FeatureHandle::setIntensity(), FeatureHandle::setCharge(), etc..
 		*/
-		FeatureHandleMutable& asMutable() const;
+		FeatureHandleMutable_& asMutable() const;
     //@}
     
     ///@name Accessors
     //@{
 		/// Returns the map index
-		UInt getMapIndex() const
+		Size getMapIndex() const
 		{
 			return map_index_;
 		}
 		/// Set the map index
-		void setMapIndex(UInt i)
+		void setMapIndex(Size i)
 		{
 			map_index_ = i;
 		}
 		/// Returns the element index
-		UInt getElementIndex() const
+		Size getElementIndex() const
 		{
 			return element_index_;
 		}
 		/// Set the element index
-		void setElementIndex(UInt e)
+		void setElementIndex(Size e)
 		{
 			element_index_= e;
 		}
@@ -186,9 +186,9 @@ namespace OpenMS
 	 protected:
     	
 		/// Int of the element's container
-		UInt map_index_;
+		Size map_index_;
 		/// Int of the element within element's container
-		UInt element_index_;
+		Size element_index_;
 		/// Charge of the feature
 		Int charge_;
   };
@@ -199,19 +199,19 @@ namespace OpenMS
 	This is done because these are used by IndexLess comparator.  This way it is
 	a bit harder to use FeatureHandle::asMutable() for illegal purposes ;-)
 	*/
-	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable : public FeatureHandle
+	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable_ : public FeatureHandle
 	{
 	 private:
 		FeatureHandle::setElementIndex;
 		FeatureHandle::setMapIndex;
-		FeatureHandleMutable();
-		FeatureHandleMutable(const FeatureHandleMutable&);
+		FeatureHandleMutable_();
+		FeatureHandleMutable_(const FeatureHandleMutable_&);
 	};
 
-	inline FeatureHandle::FeatureHandleMutable& FeatureHandle::asMutable() const
+	inline FeatureHandle::FeatureHandleMutable_& FeatureHandle::asMutable() const
 	{
-		// the const cast is to remove constness, but note that FeatureHandleMutable lacks some mutators
-		return static_cast<FeatureHandleMutable&>(const_cast<FeatureHandle&>(*this));
+		// the const cast is to remove constness, but note that FeatureHandleMutable_ lacks some mutators
+		return static_cast<FeatureHandleMutable_&>(const_cast<FeatureHandle&>(*this));
 	}
 	
   ///Print the contents of a FeatureHandle to a stream.

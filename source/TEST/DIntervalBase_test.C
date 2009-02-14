@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,6 @@ END_SECTION
 //misc stuff for testing
 typedef DIntervalBase<2> I2;
 typedef DIntervalBase<2>::PositionType I2Pos;
-const I2 empty;
 I2Pos p1;
 p1[0]=5.0;
 p1[1]=17.5;
@@ -77,25 +76,17 @@ p2[0]=65.0;
 p2[1]=-57.5;
 
 START_SECTION((PositionType const& max() const))
-  TEST_EQUAL(empty.max(),I2Pos::min_negative);
+  TEST_EQUAL(I2::empty.max()==I2Pos::min_negative(), true);
+  TEST_EQUAL(I2::zero.max()==I2Pos::zero(), true);
 END_SECTION
 
 START_SECTION((PositionType const& min() const))
-  TEST_EQUAL(empty.min(),I2Pos::max);
-END_SECTION
-
-START_SECTION([EXTRA] empty)
-  TEST_EQUAL(empty.max(),I2Pos::min_negative);
-  TEST_EQUAL(empty.min(),I2Pos::max);
-END_SECTION
-
-START_SECTION([EXTRA] zero)
-  TEST_EQUAL(I2::zero.max(),I2Pos::zero);
-  TEST_EQUAL(I2::zero.min(),I2Pos::zero);
+  TEST_EQUAL(I2::empty.min()==I2Pos::max(), true);
+  TEST_EQUAL(I2::zero.min()==I2Pos::zero(), true);
 END_SECTION
 
 START_SECTION((void setMinMax(PositionType const & min, PositionType const & max)))
-  I2 tmp(empty);
+  I2 tmp(I2::empty);
   tmp.setMinMax(p1,p2);
   TEST_REAL_SIMILAR(tmp.min()[0],5.0);
   TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
@@ -104,7 +95,7 @@ START_SECTION((void setMinMax(PositionType const & min, PositionType const & max
 END_SECTION
 
 START_SECTION((void setMin(PositionType const & position)))
-  I2 tmp(empty);
+  I2 tmp(I2::empty);
   tmp.setMin(p1);
   TEST_EQUAL(tmp.min(),p1);
   TEST_EQUAL(tmp.max(),p1);
@@ -116,7 +107,7 @@ START_SECTION((void setMin(PositionType const & position)))
 END_SECTION
 
 START_SECTION((void setMax(PositionType const & position)))
-  I2 tmp(empty);
+  I2 tmp(I2::empty);
   tmp.setMax(p1);
   TEST_EQUAL(tmp.min(),p1);
   TEST_EQUAL(tmp.max(),p1);
@@ -130,19 +121,19 @@ END_SECTION
 START_SECTION((bool operator==(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp==tmp,true);
-	TEST_EQUAL(tmp==empty,true);
+	TEST_EQUAL(tmp==I2::empty,true);
 	
 	tmp.setMax(p1);
-	TEST_EQUAL(tmp==empty,false);
+	TEST_EQUAL(tmp==I2::empty,false);
 END_SECTION
 
 START_SECTION((bool operator!=(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp!=tmp,false);
-	TEST_EQUAL(tmp!=empty,false);
+	TEST_EQUAL(tmp!=I2::empty,false);
 	
 	tmp.setMax(p1);
-	TEST_EQUAL(tmp!=empty,true);
+	TEST_EQUAL(tmp!=I2::empty,true);
 END_SECTION
 
 START_SECTION((DIntervalBase(const DIntervalBase& rhs)))
@@ -163,18 +154,20 @@ START_SECTION((DIntervalBase& operator=(const DIntervalBase & rhs)))
 	TEST_EQUAL(tmp==tmp2,false);
 	tmp2 = tmp;
 	TEST_EQUAL(tmp==tmp2,true);
-	tmp2 = tmp = empty;
+	tmp2 = tmp = I2::empty;
 	TEST_EQUAL(tmp==tmp2,true);
-	TEST_EQUAL(tmp==empty,true);
+	TEST_EQUAL(tmp==I2::empty,true);
 END_SECTION
 
 START_SECTION((void clear()))
 	I2 tmp;
-	TEST_EQUAL(tmp==empty,true);
+	TEST_EQUAL(tmp==I2::empty,true);
 	tmp.setMax(p1);
-	TEST_EQUAL(tmp==empty,false);
+	TEST_EQUAL(tmp==I2::empty,false);
 	tmp.clear();
-	TEST_EQUAL(tmp==empty,true);
+	TEST_EQUAL(tmp==I2::empty,true);
+  TEST_EQUAL(tmp.max()==I2Pos::min_negative(), true);
+  TEST_EQUAL(tmp.min()==I2Pos::max(), true);
 END_SECTION
 
 START_SECTION((PositionType center() const))

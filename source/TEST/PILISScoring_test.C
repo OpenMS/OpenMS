@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,8 @@ END_SECTION
 START_SECTION(void getScores(std::vector<PeptideIdentification>& ids))
 	vector<PeptideIdentification> ids;
 	vector<ProteinIdentification> prot_ids;
-	IdXMLFile().load(filename, prot_ids, ids);
+	String document_id;
+	IdXMLFile().load(filename, prot_ids, ids, document_id);
 	ptr->getScores(ids);
 	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
 	{
@@ -79,7 +80,8 @@ END_SECTION
 START_SECTION(void getScore(PeptideIdentification& id))
 	vector<PeptideIdentification> ids;
 	vector<ProteinIdentification> prot_ids;
-	IdXMLFile().load(filename, prot_ids, ids);
+	String document_id;
+	IdXMLFile().load(filename, prot_ids, ids, document_id);
 	ptr->getScore(ids[0]);
 	TEST_REAL_SIMILAR(ids[0].getHits().begin()->getScore(), 33.85)
 END_SECTION

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,79 +39,79 @@ START_TEST(StopWatch, "$Id$")
 
 using namespace OpenMS;
 
-START_SECTION(StopWatch& operator = (const StopWatch& stop_watch))
+START_SECTION((StopWatch& operator = (const StopWatch& stop_watch)))
   // ???
 END_SECTION
 
-START_SECTION(StopWatch())
+START_SECTION((StopWatch()))
   // ???
 END_SECTION
 
-START_SECTION(StopWatch(const StopWatch& stop_watch))
+START_SECTION((StopWatch(const StopWatch& stop_watch)))
   // ???
 END_SECTION
 
-START_SECTION(bool isRunning() const )
+START_SECTION((bool isRunning() const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator != (const StopWatch& stop_watch) const )
+START_SECTION((bool operator != (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator < (const StopWatch& stop_watch) const )
+START_SECTION((bool operator < (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator <= (const StopWatch& stop_watch) const )
+START_SECTION((bool operator <= (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator == (const StopWatch& stop_watch) const)
+START_SECTION((bool operator == (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator > (const StopWatch& stop_watch) const )
+START_SECTION((bool operator > (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool operator >= (const StopWatch& stop_watch) const )
+START_SECTION((bool operator >= (const StopWatch& stop_watch) const))
   // ???
 END_SECTION
 
-START_SECTION(bool start())
+START_SECTION((bool start()))
   // ???
 END_SECTION
 
-START_SECTION(bool stop())
+START_SECTION((bool stop()))
   // ???
 END_SECTION
 
-START_SECTION(double getCPUTime() const )
+START_SECTION((DoubleReal getCPUTime() const ))
   // ???
 END_SECTION
 
-START_SECTION(double getClockTime() const)
+START_SECTION((DoubleReal getClockTime() const ))
   // ???
 END_SECTION
 
-START_SECTION(double getSystemTime() const)
+START_SECTION((DoubleReal getSystemTime() const ))
   // ???
 END_SECTION
 
-START_SECTION(double getUserTime() const)
+START_SECTION((DoubleReal getUserTime() const ))
   // ???
 END_SECTION
 
-START_SECTION(void clear())
+START_SECTION((void clear()))
   // ???
 END_SECTION
 
-START_SECTION(void reset())
+START_SECTION((void reset()))
   // ???
 END_SECTION
 
-START_SECTION(~StopWatch())
+START_SECTION((virtual ~StopWatch()))
   // ???
 END_SECTION
 

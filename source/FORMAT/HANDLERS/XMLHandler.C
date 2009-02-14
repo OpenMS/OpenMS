@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,7 @@ namespace OpenMS
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+		void XMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
 		{
 		}
 		
@@ -138,8 +138,8 @@ namespace OpenMS
 		//*******************************************************************************************************************
 
 		StringManager::StringManager()
-			: xml_strings_(100),
-				c_strings_(100)
+			: xml_strings_(0),
+				c_strings_(0)
 		{
 		}
 		

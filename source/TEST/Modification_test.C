@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,55 +46,55 @@ TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Modification* dv_ptr = 0;
-START_SECTION(Modification())
+START_SECTION((Modification()))
 	dv_ptr = new Modification;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 END_SECTION
 
 // destructor
-START_SECTION(~Modification())
+START_SECTION((virtual ~Modification()))
 	delete dv_ptr;
 END_SECTION
 
-START_SECTION(const String& getReagentName() const)
+START_SECTION((const String& getReagentName() const))
 	Modification s;
 	TEST_EQUAL(s.getReagentName(),"")
 END_SECTION
 
-START_SECTION(float getMass() const)
+START_SECTION((DoubleReal getMass() const ))
 	Modification s;
 	TEST_REAL_SIMILAR(s.getMass(),0.0)
 END_SECTION
 
-START_SECTION(const SpecificityType& getSpecificityType() const)
+START_SECTION((const SpecificityType& getSpecificityType() const))
 	Modification s;
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
 END_SECTION
 
-START_SECTION(const String& getAffectedAminoAcids() const)
+START_SECTION((const String& getAffectedAminoAcids() const))
 	Modification s;
 	TEST_EQUAL(s.getAffectedAminoAcids(),"")
 END_SECTION
 
-START_SECTION(void setReagentName(const String& reagent_name))
+START_SECTION((void setReagentName(const String& reagent_name)))
 	Modification s;
 	s.setReagentName("TTEST");
 	TEST_EQUAL(s.getReagentName(),"TTEST")
 END_SECTION
 
-START_SECTION(void setMass(float mass))
+START_SECTION((void setMass(DoubleReal mass)))
 	Modification s;
 	s.setMass(11.9);
 	TEST_REAL_SIMILAR(s.getMass(),11.9)
 END_SECTION
 
-START_SECTION(void setSpecificityType(const SpecificityType& specificity_type))
+START_SECTION((void setSpecificityType(const SpecificityType& specificity_type)))
 	Modification s;
 	s.setSpecificityType(Modification::CTERM);
 	TEST_EQUAL(s.getSpecificityType(),Modification::CTERM)
 END_SECTION
 
-START_SECTION(void setAffectedAminoAcids(const String& affected_amino_acids))
+START_SECTION((void setAffectedAminoAcids(const String& affected_amino_acids)))
 	Modification s;
 	s.setAffectedAminoAcids("ABCDE");
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
@@ -107,7 +107,7 @@ START_SECTION([EXTRA] getType)
 END_SECTION
 
 //copy ctr
-START_SECTION(Modification(const Modification&))
+START_SECTION((Modification(const Modification&)))
 	Modification s;
 	//set
 	s.setReagentName("TTEST");
@@ -129,7 +129,7 @@ START_SECTION(Modification(const Modification&))
 END_SECTION
 
 //assignment operator
-START_SECTION(Modification& operator=(const Modification&))
+START_SECTION((Modification& operator=(const Modification&)))
 	Modification s,s2;
 	//set
 	s.setReagentName("TTEST");
@@ -150,7 +150,7 @@ START_SECTION(Modification& operator=(const Modification&))
 END_SECTION
 
 //clone
-START_SECTION(SampleTreatment* clone() const)
+START_SECTION((virtual SampleTreatment* clone() const ))
 	Modification s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -176,7 +176,7 @@ START_SECTION(SampleTreatment* clone() const)
 	TEST_EQUAL(String(dp->getMetaValue("color")),"red")
 END_SECTION
 
-START_SECTION(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Modification empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);

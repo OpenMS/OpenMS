@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -31,8 +31,22 @@
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <seqan/index.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+
+#ifdef _MSC_VER // disable some seqan warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4244 )
+#	pragma warning( disable : 4267 )
+#	pragma warning( disable : 4390 )
+#	pragma warning( disable : 4521 )
+#	pragma warning( disable : 4522 )
+#	pragma warning( disable : 4800 )
+#endif
+#include <seqan/index.h>
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 namespace OpenMS
 {
@@ -83,11 +97,11 @@ namespace OpenMS
 		@brief the function that will find all peptide candidates for a given spectrum
 		@param spec const reference of double vector describing the spectrum
 		@param candidates output parameters which holds the candidates of the masses given in spec after call
-		@return a vector of int pairs.
+		@return a vector of SignedSize pairs.
 
 		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
 		*/
-		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, double > > >& candidates, const std::vector<double> & spec);
+		void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double > > >& candidates, const std::vector<double> & spec);
 
 		/**
 		@brief saves the suffix array to disc
@@ -156,13 +170,13 @@ namespace OpenMS
 		@brief setter for number of modifications
 		@param number_of_mods
 		*/
-		void setNumberOfModifications(unsigned int number_of_mods);
+		void setNumberOfModifications(Size number_of_mods);
 
 		/**
 		@brief getter for number of modifications
 		@return number of modifications
 		*/
-		unsigned int getNumberOfModifications();
+		Size getNumberOfModifications();
 
 		void printStatistic ();
 
@@ -180,7 +194,7 @@ namespace OpenMS
 
 		@see goNext
 		*/
-		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
+		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -259,7 +273,7 @@ namespace OpenMS
 
 		@see goNextSubTree_
 		*/
-		inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
+		inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
 		{
 			// preorder dfs
 			if (!goDown(it))
@@ -270,17 +284,17 @@ namespace OpenMS
 
 
 
-		inline void parseTree_(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
+		inline void parseTree_(TIter& it, std::vector<std::pair<SignedSize, SignedSize> >& out_number, std::vector<std::pair<SignedSize, SignedSize> >& edge_length, std::vector<SignedSize>& leafe_depth)
 		{
-			int depth = 1;
+			SignedSize depth = 1;
 			while (!atEnd(it))
 			{
-				int le = 0;
+				SignedSize le = 0;
 				bool isLeaf = false;
 				if (length(parentEdgeLabel(it))>0){
 					if (countChildren(it)>0)
 					{
-						edge_length.push_back(std::pair<int,int>(depth,length(parentEdgeLabel(it))));
+						edge_length.push_back(std::pair<SignedSize,SignedSize>(depth,length(parentEdgeLabel(it))));
 					} else
 					{
 						//le <- length(representative(it));
@@ -288,7 +302,7 @@ namespace OpenMS
 					}
 				}
 				if (countChildren(it)>0) {
-					out_number.push_back(std::pair<int,int> (depth,countChildren(it)));
+					out_number.push_back(std::pair<SignedSize,SignedSize> (depth,countChildren(it)));
 				} else {
 					leafe_depth.push_back(depth);
 				}
@@ -298,7 +312,7 @@ namespace OpenMS
 					while(!goRight(it)) {
 						goUp(it);
 						if (isLeaf) {
-							edge_length.push_back(std::pair<int,int>(depth,le - length(parentEdgeLabel(it))));
+							edge_length.push_back(std::pair<SignedSize,SignedSize>(depth,le - length(parentEdgeLabel(it))));
 							isLeaf = false;
 						}
 						depth--;
@@ -320,10 +334,10 @@ namespace OpenMS
 		@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
 		@param spec const reference to spectrum
 		@param m mass
-		@return int with the index of the first occurence
+		@return SignedSize with the index of the first occurence
 		@note requires that there is at least one occurence
 		*/
-		int findFirst_ (const std::vector<double> & spec, double & m);
+		SignedSize findFirst_ (const std::vector<double> & spec, double & m);
 
 		/**
 		@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
@@ -331,16 +345,16 @@ namespace OpenMS
 		@param m mass
 		@param start start index
 		@param end end index
-		@return int with the index of the first occurence
+		@return SignedSize with the index of the first occurence
 		@note requires that there is at least one occurence
 		*/
-		int findFirst_ (const std::vector<double> & spec, double & m,int start, int  end);
+		SignedSize findFirst_ (const std::vector<double> & spec, double & m,SignedSize start, SignedSize  end);
 
 		const String& s_; ///< reference to strings for which the suffix array is build
 
 		double masse_[255]; ///< amino acid masses
 
-		int number_of_modifications_; ///< number of allowed modifications
+		SignedSize number_of_modifications_; ///< number of allowed modifications
 
 		std::vector<String> tags_; ///< all tags
 

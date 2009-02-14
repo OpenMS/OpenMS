@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -79,7 +79,7 @@ namespace OpenMS
 		void toggleMirrorView(bool mirror);
 		
 		/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
-		void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
+		void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 		
 		/// Resets the alignment
 		void resetAlignment();
@@ -94,9 +94,9 @@ namespace OpenMS
 
 	protected:
 		// Docu in base class
-		virtual Math::Histogram<UInt, Real> createIntensityDistribution_() const;
+		virtual Math::Histogram<> createIntensityDistribution_() const;
 		// Docu in base class
-		virtual Math::Histogram<UInt, Real> createMetaDistribution_(const String& name) const;
+		virtual Math::Histogram<> createMetaDistribution_(const String& name) const;
 		// Docu in base class
 		virtual void recalculateAxes_();
 		

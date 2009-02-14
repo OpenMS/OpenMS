@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H
-#define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H
+#ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H
+#define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H
 
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -122,4 +122,4 @@ namespace OpenMS
 
 
 }
-#endif //OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H
+#endif //OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H

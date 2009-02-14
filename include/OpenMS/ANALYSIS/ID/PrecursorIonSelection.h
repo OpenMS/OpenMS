@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -33,16 +33,40 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
-//#include <cmath>
+
 #include <set>
-#include <fstream>
+//#include <fstream>
 namespace OpenMS
 {
-  
-  class PrecursorIonSelection : public DefaultParamHandler
+	/**
+		 @brief This class implements different precursor ion selection strategies.
+
+		 
+
+		 @htmlinclude OpenMS_PrecursorIonSelection.parameters
+
+	*/
+  class OPENMS_DLLAPI PrecursorIonSelection : public DefaultParamHandler
   {
   public:
 
+		/** 
+	    @brief Precursor ion selection type (iterative, static, upshift, downshift, dynamic exclusion).
+	
+			The iterative strategy changes the ranking of possible precursors based on
+			identification results from previous iterations.
+
+			The upshift strategy assigns a higher priority to precursors  whose masses are matching
+			peptide masses of potential protein identifications to enable a safe identification in the next iterations.
+
+			The downshift strategy assigns a lower priority to precursors  whose masses are matching
+			peptide masses of safe protein identifications.
+
+			The dynamic exclusion exludes precursors whose masses are matching peptide masses of safe protein identifications.
+
+			The static selection uses precomputed scores to rank the precursor, the order of precursors isn't
+			changed throughout the run.
+	  */
     enum Type
 			{
 				IPS,
@@ -59,23 +83,6 @@ namespace OpenMS
 		const DoubleReal& getMaxScore() const;
 		void setMaxScore(const DoubleReal& max_score);
 
-		/// returns a const reference to the PeptideIdentification vector
-		inline const std::vector<PeptideIdentification>& getPeptideIdentifications() const
-		{
-			return peptide_ids_;
-		};
-		
-		/// returns a mutable reference to the PeptideIdentification vector
-		inline std::vector<PeptideIdentification>& getPeptideIdentifications()
-		{
-			return peptide_ids_;
-		};
-		
-		/// sets the PeptideIdentification vector
-		inline void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_ids )
-		{
-			peptide_ids_ = peptide_ids;
-		};
 		
 		/// Compare by score
 		struct TotalScoreMore
@@ -124,7 +131,9 @@ namespace OpenMS
 		 *	
 		 *	@param features FeatureMap with all possible precursors
 		 *	@param new_pep_ids Peptide identifications
+		 *  @param prot_ids Protein identifications
 		 *	@param preprocessed_db Information from preprocessed database
+		 *  @param check_meta_values True if the FeatureMap should be checked for the presence of required meta values
 		 *
 		 */
     void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,
@@ -137,16 +146,24 @@ namespace OpenMS
 		 *	
 		 *	@param features FeatureMap with all possible precursors
 		 *	@param pep_ids Peptide identifications
+		 *	@param prot_ids Protein identifications
 		 *	@param preprocessed_db Information from preprocessed database
 		 *  @param step_size Number of MS/MS spectra considered per iteration
+		 *  @param path Path to output file
 		 *
 		 */
     void simulateRun(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,
 										 std::vector<ProteinIdentification>& prot_ids,
 										 PrecursorIonSelectionPreprocessing& preprocessed_db,
 										 UInt step_size, String path);
-    
 
+
+		void reset();
+
+		const std::map<String,std::set<String> >& getPeptideProteinCounter()
+		{
+			return prot_id_counter_;
+		}
 		
   private:
 
@@ -184,14 +201,14 @@ namespace OpenMS
     DoubleReal max_score_;
     /// precursor ion selection strategy
     Type type_;
-		/// peptide identications
-		std::vector<PeptideIdentification> peptide_ids_;
 		/// stores the peptide sequences for all protein identifications
 		std::map<String,std::set<String> > prot_id_counter_;
 		/// precursor ion error tolerance 
 		DoubleReal mz_tolerance_;
 		/// precursor ion error tolerance unit (ppm or Da)
 		String mz_tolerance_unit_;
+		/// maximal number of iterations
+		UInt max_iteration_;
 		
   };
 

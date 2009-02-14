@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ END_SECTION
 
 START_SECTION((RichPeak1D(const RichPeak1D &p)))
 	RichPeak1D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setMetaValue("cluster_id",4711);
 	
 	RichPeak1D copy_of_p(p);
@@ -62,7 +62,7 @@ END_SECTION
 
 START_SECTION((RichPeak1D& operator=(const RichPeak1D &rhs)))
 	RichPeak1D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setMetaValue("cluster_id",4711);
 	
 	RichPeak1D copy_of_p;
@@ -76,9 +76,9 @@ START_SECTION((bool operator == (const RichPeak1D& rhs) const))
 	RichPeak1D p1, p2;
 	TEST_EQUAL(p1==p2, true)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, true)
 
 	p1.setMetaValue("cluster_id",4711);
@@ -91,9 +91,9 @@ START_SECTION((bool operator != (const RichPeak1D& rhs) const))
 	RichPeak1D p1, p2;
 	TEST_EQUAL(p1!=p2, false)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 
 	p1.setMetaValue("cluster_id",4711);

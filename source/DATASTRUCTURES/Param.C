@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -285,7 +285,7 @@ namespace OpenMS
 	
 	Size Param::ParamNode::size() const
 	{
-		UInt subnode_size = 0;
+		Size subnode_size = 0;
 		for (vector<ParamNode>::const_iterator it=nodes.begin(); it!=nodes.end(); ++it)
 		{
 			subnode_size += it->size();

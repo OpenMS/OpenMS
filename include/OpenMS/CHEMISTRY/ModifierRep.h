@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -59,13 +59,13 @@ virtual ~ModifierRep ();
 @brief setter for number of modifications
 @param i number of modifications
 */
-void setNumberOfModifications(UInt i);
+void setNumberOfModifications(Size i);
 
 /**
 @brief getter for number of modifications
 @return number of modifications
 */
-UInt getNumberOfModifications() const;
+Size getNumberOfModifications() const;
 
 /**
 @brief getter for the modification table
@@ -79,13 +79,13 @@ const std::vector<std::vector<double> > & getModificationTable ();
 
 all modification for the given amino acid are added to the map. The key is the mass, the value is the number of modifications for that mass. So the advantage of using a map is that a value will occure only once. the mass of the modification is added to all elements in the map whose number of modifications is smaller than the maximal number of modifications.
 */
-void refreshModificationList (std::map<double,int> & mod_map,const char & c);
+void refreshModificationList (std::map<double, SignedSize> & mod_map,const char & c);
 
 /**
 @brief calculates the maximal number unique masses of combinations of modifications (maximal possible size of the modification map)
-@return int
+@return Size
 */
-UInt getMaxModificationMasses ();
+Size getMaxModificationMasses ();
 
 /**
 @brief gets all modification possibilities for a given mass
@@ -109,7 +109,7 @@ protected:
 
 std::vector<std::vector<double> > modification_table_; ///< all possible modifications
 
-int number_of_modifications_; ///< number of maximal modifications
+Size number_of_modifications_; ///< number of maximal modifications
 
 std::map<String,std::vector<String> > mass_mapping_; ///< maps a mass to the combination of modifications
 

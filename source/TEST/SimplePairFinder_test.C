@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -75,11 +75,11 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   PositionType pos2(200,300);
   PositionType pos3(400,500);
   feat1.setPosition(pos1);
-  feat1.setIntensity(100);
+  feat1.setIntensity(100.0f);
   feat2.setPosition(pos2);
-  feat2.setIntensity(300);
+  feat2.setIntensity(300.0f);
   feat3.setPosition(pos3);
-  feat3.setIntensity(400);
+  feat3.setIntensity(400.0f);
   scene.push_back(feat1);
   scene.push_back(feat2);
   scene.push_back(feat3);
@@ -92,11 +92,11 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   PositionType pos5(204,304);
   PositionType pos6(404,504);
   feat4.setPosition(pos4);
-  feat4.setIntensity(100);
+  feat4.setIntensity(100.0f);
   feat5.setPosition(pos5);
-  feat5.setIntensity(300);
+  feat5.setIntensity(300.0f);
   feat6.setPosition(pos6);
-  feat6.setIntensity(400);
+  feat6.setIntensity(400.0f);
   model.push_back(feat4);
   model.push_back(feat5);
   model.push_back(feat6);

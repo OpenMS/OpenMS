@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -95,9 +95,9 @@ namespace OpenMS
       /// sets the state of aggregation
       void setState(SampleState state);
 
-			/// returns the mass (in mg) (default: 0.0)
+			/// returns the mass (in gram) (default: 0.0)
       DoubleReal getMass() const;
-      /// sets the mass (in mg)
+      /// sets the mass (in gram)
       void setMass(DoubleReal mass);
 
 			/// returns the volume (in ml) (default: 0.0)
@@ -105,9 +105,9 @@ namespace OpenMS
       /// sets the volume (in ml)
       void setVolume(DoubleReal volume);
 
-			/// returns the concentration (in mg/ml) (default: 0.0)
+			/// returns the concentration (in g/l) (default: 0.0)
       DoubleReal getConcentration() const;
-      /// sets the concentration (in mg/ml)
+      /// sets the concentration (in g/l)
       void setConcentration(DoubleReal concentration);
 
 			/// returns a mutable reference to the vector of subsamples that were combined to create this sample

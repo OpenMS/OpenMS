@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,12 +41,12 @@ namespace OpenMS
 		
 	}
 	
-	UInt EnzymaticDigestion::getMissedCleavages() const
+	Size EnzymaticDigestion::getMissedCleavages() const
 	{
 		return missed_cleavages_;
 	}
 
-	void EnzymaticDigestion::setMissedCleavages(UInt missed_cleavages)
+	void EnzymaticDigestion::setMissedCleavages(Size missed_cleavages)
 	{
 		missed_cleavages_ = missed_cleavages;
 	}
@@ -82,9 +82,9 @@ namespace OpenMS
 		};
 	}
 	
-	UInt EnzymaticDigestion::peptideCount(const AASequence& protein)
+	Size EnzymaticDigestion::peptideCount(const AASequence& protein)
 	{
-		UInt count = 1;
+		Size count = 1;
 		AASequence::ConstIterator iterator = protein.begin();
 		while(nextCleavageSite_(protein,iterator), iterator != protein.end())
 		{
@@ -92,7 +92,7 @@ namespace OpenMS
 		}
 		
 		//missed cleavages
-		UInt sum = count;
+		Size sum = count;
 		for (Size i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 		{
 			sum += count - i;
@@ -104,7 +104,7 @@ namespace OpenMS
 	void EnzymaticDigestion::digest(const AASequence& protein, std::vector<AASequence>& output)
 	{
 		//initialization
-		UInt count = 1;
+		Size count = 1;
 		output.clear();
 		
 		//missed cleavage iterators
@@ -134,7 +134,7 @@ namespace OpenMS
 		if (mc_iterators.size() > 2) //there is at least one cleavage site!
 		{
 			//resize to number of fragments
-			UInt sum = count;
+			Size sum = count;
 			for (Size i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
@@ -143,7 +143,7 @@ namespace OpenMS
 			output.resize(sum);
 			
 			//generate fragments with missed cleavages
-			UInt pos = count;
+			Size pos = count;
 			for (Size i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();

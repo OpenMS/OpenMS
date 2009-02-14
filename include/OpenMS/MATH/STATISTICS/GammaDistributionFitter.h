@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,29 @@ namespace OpenMS
 				struct GammaDistributionFitResult
 				{
 					public:
-	
+						
+						GammaDistributionFitResult()
+							: b(1.0),
+								p(5.0)
+						{
+						}
+
+						GammaDistributionFitResult(const GammaDistributionFitResult& rhs)
+							: b(rhs.b),
+								p(rhs.p)
+						{
+						}
+
+						GammaDistributionFitResult& operator = (const GammaDistributionFitResult& rhs)
+						{
+							if (this != &rhs)
+							{
+								b = rhs.b;
+								p = rhs.p;
+							}
+							return *this;
+						}
+									
 						/// parameter b of the gamma distribution
 						double b;
 	

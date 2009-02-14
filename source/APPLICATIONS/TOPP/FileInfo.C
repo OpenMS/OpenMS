@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -137,23 +138,23 @@ class TOPPFileInfo
 
 		//file names
 		String in = getStringOption_("in");
-		
+
 		//file type
 		FileHandler fh;
-		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
+		FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
 
-		if (in_type==FileHandler::UNKNOWN)
+		if (in_type==FileTypes::UNKNOWN)
 		{
 			in_type = fh.getType(in);
 			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
 		}
 
-		if (in_type==FileHandler::UNKNOWN)
+		if (in_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine input file type!");
 			return PARSE_ERROR;
 		}
-		
+
 		os << endl
 				 << "-- General information --" << endl
 				 << endl
@@ -173,29 +174,29 @@ class TOPPFileInfo
 			os << endl << "Validating " << fh.typeToName(in_type) << " file";
 			switch(in_type)
 			{
-				case FileHandler::MZDATA :
+				case FileTypes::MZDATA :
 					os << " against XML schema version " << MzDataFile().getVersion() << endl;
-					valid = MzDataFile().isValid(in);
+					valid = MzDataFile().isValid(in,os);
 					break;
-				case FileHandler::MZML :
+				case FileTypes::MZML :
 					os << " against XML schema version " << MzMLFile().getVersion() << endl;
-					valid = MzMLFile().isValid(in);
+					valid = MzMLFile().isValid(in,os);
 					break;
-				case FileHandler::FEATUREXML :
+				case FileTypes::FEATUREXML :
 					os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
-					valid = FeatureXMLFile().isValid(in);
+					valid = FeatureXMLFile().isValid(in,os);
 					break;
-				case FileHandler::IDXML :
+				case FileTypes::IDXML :
 					os << " against XML schema version " << IdXMLFile().getVersion() << endl;
-					valid = IdXMLFile().isValid(in);
+					valid = IdXMLFile().isValid(in,os);
 					break;
-				case FileHandler::CONSENSUSXML :
+				case FileTypes::CONSENSUSXML :
 					os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
-					valid = ConsensusXMLFile().isValid(in);
+					valid = ConsensusXMLFile().isValid(in,os);
 					break;
-				case FileHandler::MZXML :
+				case FileTypes::MZXML :
 					os << " against XML schema version " << MzXMLFile().getVersion() << endl;
-					valid = MzXMLFile().isValid(in);
+					valid = MzXMLFile().isValid(in,os);
 					break;
 				default:
 					os << endl << "Aborted: Validation of this file type is not supported!" << endl;
@@ -210,8 +211,8 @@ class TOPPFileInfo
 			{
 				os << "Failed: errors are listed above!" << endl;
 			}
-			
-			if (in_type==FileHandler::MZML)
+
+			if (in_type==FileTypes::MZML)
 			{
 				if (!valid)
 				{
@@ -240,7 +241,7 @@ class TOPPFileInfo
 					}
 				}
 			}
-			
+
 			return EXECUTION_OK;
 		}
 
@@ -248,7 +249,7 @@ class TOPPFileInfo
 		//-------------------------------------------------------------
 		// Features
 		//-------------------------------------------------------------
-		if (in_type==FileHandler::FEATUREXML)
+		if (in_type==FileTypes::FEATUREXML)
 		{
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
@@ -276,21 +277,21 @@ class TOPPFileInfo
 		//-------------------------------------------------------------
 		// Consensus features
 		//-------------------------------------------------------------
-		else if (in_type==FileHandler::CONSENSUSXML)
+		else if (in_type==FileTypes::CONSENSUSXML)
 		{
 			ConsensusXMLFile().load(in,cons);
 			cons.updateRanges();
 
-			std::map<UInt,UInt> num_consfeat_of_size;
+			std::map<Size,UInt> num_consfeat_of_size;
 			for ( ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit )
 			{
 				++num_consfeat_of_size[cmit->size()];
 			}
 
-			os << 
+			os <<
 				"\n"
 				"Number of consensus features:" << std::endl;
-			for ( std::map<UInt,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+			for ( std::map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
 			{
 				os << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
 			}
@@ -516,20 +517,20 @@ class TOPPFileInfo
 			os << endl
 					 << "-- Meta information --" << endl
 					 << endl;
-					 
-			if (in_type==FileHandler::FEATUREXML) //features
+
+			if (in_type==FileTypes::FEATUREXML) //features
 			{
 				os << "Document id       : " << feat.getIdentifier() << endl
 						 << endl;
 			}
-			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
+			else if (in_type==FileTypes::CONSENSUSXML) //consensus features
 			{
 				os << "Document id       : " << cons.getIdentifier() << endl
 						 << endl;
 			}
 			else //peaks
 			{
-				
+
 				os << "Document id       : " << exp.getIdentifier() << endl
 						 << "Date              : " << exp.getDateTime().get() << endl;
 
@@ -539,7 +540,7 @@ class TOPPFileInfo
 						 << "  Name             : " << exp.getSample().getName() << endl
 						 << "  Organism         : " << exp.getSample().getOrganism()  << endl
 						 << "  Comment          : " << exp.getSample().getComment()  << endl;
-	
+
 				//instrument info
 				os << endl
 						 << "Instrument" << endl
@@ -565,7 +566,7 @@ class TOPPFileInfo
 					if (i!=exp.getInstrument().getIonDetectors().size()-1) os << ", ";
 				}
 				os << endl << endl;
-	
+
 				//contact persons
 				for (Size i=0; i< exp.getContacts().size(); ++i)
 				{
@@ -586,9 +587,9 @@ class TOPPFileInfo
 					 << endl;
 			OpenMS::SomeStatistics some_statistics;
 
-			if (in_type==FileHandler::FEATUREXML) //features
+			if (in_type==FileTypes::FEATUREXML) //features
 			{
-				UInt size = feat.size();
+				Size size = feat.size();
 
 				std::vector<double> intensities;
 				intensities.reserve(size);
@@ -626,9 +627,9 @@ class TOPPFileInfo
 				os << "Qualities in mass-to-charge dimension:\n" << some_statistics(mz_qualities) << endl;
 
 			}
-			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
+			else if (in_type==FileTypes::CONSENSUSXML) //consensus features
 			{
-				UInt size = cons.size();
+				Size size = cons.size();
 
 				std::vector<double> intensities;
 				intensities.reserve(size);
@@ -719,7 +720,7 @@ class TOPPFileInfo
 			{
 				//copy intensities of  MS-level 1 peaks
 				exp.updateRanges(1);
-				UInt size = exp.getSize();
+				Size size = exp.getSize();
 				std::vector<double> intensities;
 				intensities.reserve(size);
 				for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
@@ -777,7 +778,7 @@ class TOPPFileInfo
 	ExitCodes main_(int , const char**)
 	{
 		String out = getStringOption_("out");
-		
+
 		//output to command line
 		if (out=="")
 		{

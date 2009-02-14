@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -54,16 +54,25 @@ END_SECTION
 
 // ctor for all supported types a DataValue object can hold
 
-START_SECTION((DataValue(DoubleReal)))
-	DoubleReal x = -3.0;
+START_SECTION((DataValue(long double)))
+	long double x = -3.4L;
 	DataValue d(x);
-	TEST_REAL_SIMILAR((DoubleReal)d, -3.0)
+	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((DoubleReal)d, -3.4L)
 END_SECTION
 
-START_SECTION((DataValue(Real)))
-	Real x = 3.0;
+START_SECTION((DataValue(double)))
+	double x = -3.0;
 	DataValue d(x);
-	TEST_REAL_SIMILAR((Real)d, 3.0)
+	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((DoubleReal)d, -3.0);
+END_SECTION
+
+START_SECTION((DataValue(float)))
+	float x = 3.0;
+	DataValue d(x);
+	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((DoubleReal)d, 3.0);
 END_SECTION
 
 START_SECTION((DataValue(Int)))
@@ -136,7 +145,7 @@ START_SECTION((DataValue(const DataValue&)))
 	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p1, 1.23)
 	TEST_REAL_SIMILAR( (Real) copy_of_p3, 1.23)
 	TEST_EQUAL( (Int) copy_of_p4, -3)
-	TEST_REAL_SIMILAR( (UInt) copy_of_p5, 123)
+	TEST_EQUAL( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
 	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
@@ -166,7 +175,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	copy_of_p = p4;
 	TEST_EQUAL( (Int) copy_of_p, -3)
 	copy_of_p = p5;
-	TEST_REAL_SIMILAR( (UInt) copy_of_p, 123)
+	TEST_EQUAL( (UInt) copy_of_p, 123)
 	copy_of_p = p6;
 	TEST_EQUAL( (std::string) copy_of_p, "test char")
 	copy_of_p = p7;
@@ -186,14 +195,14 @@ END_SECTION
 START_SECTION((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
-	TEST_NOT_EQUAL( res1, 0)
+	TEST_NOT_EQUAL( res1, false)
 	DataValue p2((Real)1.2);
 	bool res2 =  p2.isEmpty();
-	TEST_EQUAL( res2, 0)
+	TEST_EQUAL( res2, false)
 	TEST_REAL_SIMILAR( (Real) p2, 1.2)
 	DataValue p4("2");
 	bool res4 =  p4.isEmpty();
-	TEST_EQUAL( res4, 0)
+	TEST_EQUAL( res4, false)
 	TEST_EQUAL( (std::string) p4, "2")
 END_SECTION
 
@@ -219,8 +228,8 @@ START_SECTION((operator IntList() const))
 	DataValue d(il);
 	IntList il_op = d;
 	TEST_EQUAL(il_op,d);
-	
-	
+
+
   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
 END_SECTION
 
@@ -232,18 +241,26 @@ START_SECTION((operator DoubleList() const))
 	TEST_EQUAL(dl_op,d);
 END_SECTION
 
-START_SECTION((operator DoubleReal() const))
-	DataValue d((DoubleReal) 5.5);
-	DoubleReal k = d;
-	TEST_REAL_SIMILAR(k,5.5)
+START_SECTION((operator long double() const))
+	DataValue d(5.4L);
+	long double k = d;
+	TEST_REAL_SIMILAR(k,5.4L)
 
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 END_SECTION
 
-START_SECTION((operator Real() const))
-	DataValue d((Real) 5.45);
-	Real k = d;
-	TEST_REAL_SIMILAR(k,5.45)
+START_SECTION((operator double() const))
+	DataValue d(5.4);
+	double k = d;
+	TEST_REAL_SIMILAR(k,5.4)
+
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
+END_SECTION
+
+START_SECTION((operator float() const))
+	DataValue d(5.4f);
+	float k = d;
+	TEST_REAL_SIMILAR(k,5.4f)
 
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 END_SECTION
@@ -260,7 +277,7 @@ START_SECTION((operator UInt() const))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
-	
+
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 END_SECTION
@@ -301,16 +318,16 @@ END_SECTION
 
 START_SECTION((const char* toChar() const))
 	DataValue a;
-  TEST_EQUAL(a.toChar() == NULL, true)  
+  TEST_EQUAL(a.toChar() == NULL, true)
   a = DataValue("hello");
-  TEST_EQUAL(a.toChar(),std::string("hello"))
+  TEST_STRING_EQUAL(a.toChar(),"hello")
 	a = DataValue(5);
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
 END_SECTION
 
 START_SECTION((String toString() const))
 	DataValue a;
-  TEST_EQUAL(a.toString(), "")  
+  TEST_EQUAL(a.toString(), "")
   a = DataValue("hello");
   TEST_EQUAL(a.toString(),"hello")
 	a = DataValue(5);
@@ -347,7 +364,7 @@ END_SECTION
 
 START_SECTION((QString toQString() const))
 	DataValue a;
-  TEST_EQUAL(a.toQString().toStdString(), "")  
+  TEST_EQUAL(a.toQString().toStdString(), "")
   a = DataValue("hello");
   TEST_EQUAL(a.toQString().toStdString(),"hello")
 	a = DataValue(5);
@@ -392,10 +409,10 @@ START_SECTION((DataType valueType() const))
 
 	DataValue a6(UInt(2));
 	TEST_EQUAL(a6.valueType(), DataValue::INT_VALUE);
-	
+
 	DataValue a7(IntList::create("1,2,3"));
 	TEST_EQUAL(a7.valueType(),DataValue::INT_LIST)
-	
+
 	DataValue a8(DoubleList::create("1.2,32.4567"));
 	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
 END_SECTION

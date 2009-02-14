@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-float peptide_significance_threshold = 42.3;
+DoubleReal peptide_significance_threshold = 42.3;
 std::vector<PeptideHit> peptide_hits;
 PeptideHit peptide_hit;
 ProteinIdentification protein_identification;
@@ -147,7 +147,7 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 END_SECTION
 
 
-START_SECTION((Real getSignificanceThreshold() const))
+START_SECTION((DoubleReal getSignificanceThreshold() const))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
@@ -173,7 +173,7 @@ START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
 	TEST_EQUAL(hits.getHits() == peptide_hits, true)
 END_SECTION
 
-START_SECTION((void setSignificanceThreshold(Real value)))
+START_SECTION((void setSignificanceThreshold(DoubleReal value)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)

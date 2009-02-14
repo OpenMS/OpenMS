@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -171,7 +171,7 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewOpenDialog::setMergeLayers(const Map<UInt,String>& layers)
+	void TOPPViewOpenDialog::setMergeLayers(const Map<Size,String>& layers)
 	{
 		//remove all items
 		merge_combo_->clear();
@@ -181,9 +181,9 @@ namespace OpenMS
 			merge_->setEnabled(true);
 			merge_combo_->setEnabled(true);
 			UInt i=0;
-			for (Map<UInt,String>::const_iterator it=layers.begin(); it!=layers.end(); ++it)
+			for (Map<Size,String>::const_iterator it=layers.begin(); it!=layers.end(); ++it)
 			{
-				merge_combo_->insertItem(i++,it->second.toQString(), it->first);
+				merge_combo_->insertItem(i++,it->second.toQString(), (int)(it->first));
 			}
 		}
 		else

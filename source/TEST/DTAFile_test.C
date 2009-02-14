@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	
 	TEST_EQUAL(s.size(), 25);
 	TEST_REAL_SIMILAR(s.getPrecursorPeak().getPosition()[0], 582.40666)
-	TEST_REAL_SIMILAR(s.getPrecursorPeak().getCharge(), 3)
+	TEST_EQUAL(s.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
 	DSpectrum<>::ConstIterator it(s.begin());
@@ -175,7 +175,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	
 	TEST_EQUAL(s2.size(), 25);
 	TEST_REAL_SIMILAR(s2.getPrecursorPeak().getPosition()[0], 582.4066)
-	TEST_REAL_SIMILAR(s2.getPrecursorPeak().getCharge(), 3)
+	TEST_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
 	DSpectrum<>::ConstIterator it2(s2.begin());
@@ -310,7 +310,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	dta.load(filename,spec2);
 
 	TEST_REAL_SIMILAR(spec.getPrecursorPeak().getPosition()[0],582.40666)
-	TEST_REAL_SIMILAR(spec.getPrecursorPeak().getCharge(),3)
+	TEST_EQUAL(spec.getPrecursorPeak().getCharge(),3)
 	
 	ABORT_IF(spec2.size() != 3)
 	

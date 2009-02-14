@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@ START_SECTION(XMLFile(const String &schema_location, const String &version))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool isValid(const String &filename) )
+START_SECTION(bool isValid(const String &filename,  std::ostream& os = std::cerr) )
 	XMLFile f("","");
 	TEST_EXCEPTION(Exception::NotImplemented, f.isValid(""))
 END_SECTION

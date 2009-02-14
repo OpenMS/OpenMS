@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -70,7 +70,7 @@ CompareFouriertransform copy;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 END_SECTION
 
-START_SECTION(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& ) const)
 	
 	MSSpectrum<> spectrum;
 	spectrum.setRT(1);
@@ -88,6 +88,27 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
   double score = (*ptr)(spectrum);
 	  
 	TEST_REAL_SIMILAR(score, 0);
+END_SECTION
+
+START_SECTION(void CompareFouriertransform::transform(PeakSpectrum & spec) )
+	
+	MSSpectrum<> spectrum;
+	spectrum.setRT(1);
+	
+	spectrum.setMSLevel(1);
+		
+	for (Real mz=500.0; mz<=900; mz+=100.0)
+	    { 
+	      Peak1D peak;
+	      peak.setMZ(mz);
+	      peak.setIntensity(mz);
+	      spectrum.push_back(peak);
+	      
+	    }
+	ptr->transform(spectrum);
+	DSpectrum<>::MetaDataArrays& temp = spectrum.getMetaDataArrays();
+	TEST_STRING_SIMILAR("Fouriertransformation", temp[temp.size()-1].getName())  
+	
 END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)

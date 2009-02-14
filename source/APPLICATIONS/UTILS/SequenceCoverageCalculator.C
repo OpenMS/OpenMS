@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,12 +68,12 @@ class TOPPSequenceCoverageCalculator
 			registerInputFile_("in_peptides","<file>","","input file containing the identified peptides");
 		}
 
-		void getStartAndEndIndex(const String& sequence, const String& substring, pair<UInt, UInt>& indices)
+		void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
 		{
 			indices.first = 0;
 			indices.second = 0;
-			UInt temp_index = 0;
-			UInt temp_count = 0;
+			Size temp_index = 0;
+			Size temp_count = 0;
 			
 			if (sequence.hasSubstring(substring))
 			{
@@ -107,14 +107,14 @@ class TOPPSequenceCoverageCalculator
 			String database_name = "";
 			vector< FASTAFile::FASTAEntry > proteins;
 			vector<DoubleReal> statistics;
-			vector<UInt> counts;
-			vector<UInt> mod_counts;
+			vector<Size> counts;
+			vector<Size> mod_counts;
 			vector<PeptideHit> temp_hits;
-			vector<UInt> coverage;
-			UInt spectrum_count = 0;
-			map<String, UInt> unique_peptides;
-			map<String, UInt> temp_unique_peptides;
-			map<String, UInt> temp_modified_unique_peptides;
+			vector<Size> coverage;
+			Size spectrum_count = 0;
+			map<String, Size> unique_peptides;
+			map<String, Size> temp_unique_peptides;
+			map<String, Size> temp_modified_unique_peptides;
 
 			protein_identifications.push_back(ProteinIdentification());
 			//-------------------------------------------------------------
@@ -126,7 +126,8 @@ class TOPPSequenceCoverageCalculator
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			idXML_file.load(inputfile_name, protein_identifications, identifications);
+			String document_id;
+			idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 			FASTAFile().load(database_name, proteins);				
 
 			statistics.resize(proteins.size(), 0.);
@@ -157,7 +158,7 @@ class TOPPSequenceCoverageCalculator
 
 						if (temp_hits.size() == 1)
 						{
-							pair<UInt, UInt> indices;
+							pair<Size, Size> indices;
 							getStartAndEndIndex(proteins[j].sequence, temp_hits[0].getSequence().toUnmodifiedString(), indices);
 							for (Size k = indices.first; k < indices.second; ++k)
 							{
@@ -206,8 +207,8 @@ class TOPPSequenceCoverageCalculator
 			cout << "Number of unique identified peptides: " << unique_peptides.size() << endl;
 			
 			vector<DoubleReal>::iterator it = statistics.begin(); 
-			vector<UInt>::iterator it2 = counts.begin(); 
-			vector<UInt>::iterator it3 = mod_counts.begin(); 
+			vector<Size>::iterator it2 = counts.begin(); 
+			vector<Size>::iterator it3 = mod_counts.begin(); 
 			while(it != statistics.end())
 			{
 				if (*it == 0.)

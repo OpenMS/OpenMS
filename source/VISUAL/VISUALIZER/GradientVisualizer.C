@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copymain (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copymain (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -104,16 +104,15 @@ namespace OpenMS
 	{
 	  //Check whether new timepoint is in range
 		String m(new_timepoint_->text()) ;
-		int num_time = timepoints_.size();
 		
-		if(num_time==0 && m.trim().length() !=0)
+		if(timepoints_.empty() && m.trim().length() !=0)
 		{
 			temp_.addTimepoint(m.toInt());
 			update_();
 		}
 		else
 		{
-			if( m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
+			if( m.trim().length() !=0 && timepoints_.back() < m.toInt())
 			{
 				temp_.addTimepoint(m.toInt());
 				update_();
@@ -144,15 +143,15 @@ namespace OpenMS
 	void GradientVisualizer::store()
 	{
 		//Check, whether sum is 100
-		int time_size = timepoints_.size();
-		int elu_size = eluents_.size();
-		int count = 0;
-		int elu_count = 0;
+		Size time_size = timepoints_.size();
+		Size elu_size = eluents_.size();
+		Size count = 0;
+		Size elu_count = 0;
 		int sum_check=0;
-		for(int i=0; i< time_size; ++i )
+		for(Size i=0; i< time_size; ++i )
 		{ 
 			elu_count=i;
-			for(int j=0; j< elu_size; ++j )
+			for(Size j=0; j< elu_size; ++j )
 			{
 				String value((gradientdata_[elu_count])->text());
 				elu_count  = elu_count+ time_size;
@@ -193,12 +192,10 @@ namespace OpenMS
 		
 		eluents_ =    temp_.getEluents();
 	  timepoints_ = temp_.getTimepoints();
-	 	UInt num_timepoints = temp_.getTimepoints().size();	
-			
 			
 		//Add labels to display eluent-timepoint-percentage-triplets.	
 		QLabel* label = new QLabel("Eluent names\\Timepoints", this);
-	  viewlayout_->addWidget(label, 0, 0, 1, num_timepoints);
+	  viewlayout_->addWidget(label, 0, 0, 1, (int)temp_.getTimepoints().size());
 		label->show();
 		nextrow_++;
 		gradientlabel_.push_back(label);
@@ -210,7 +207,7 @@ namespace OpenMS
 		{
 			//Add labels to display eluent-timepoint-percentage-triplets.	
 			QLabel* label1 = new QLabel(String(timepoints_[i]).c_str(), this);
-	  	viewlayout_->addWidget(label1, 1, i+1);
+	  	viewlayout_->addWidget(label1, 1, (int)(i+1));
 			label1->show();
 			gradientlabel_.push_back(label1);
 		}
@@ -230,7 +227,7 @@ namespace OpenMS
 			{
 			  percentage_ = new QLineEdit(this);
 				percentage_->setText( String(  temp_.getPercentage( eluents_[i], timepoints_[j]) ).c_str()  );
-				viewlayout_->addWidget(percentage_, nextrow_, j+1);
+				viewlayout_->addWidget(percentage_, nextrow_, (int)(j+1));
 				//Store pointers to the QLineEdits
 				gradientdata_.push_back(percentage_);	
 				percentage_->show();

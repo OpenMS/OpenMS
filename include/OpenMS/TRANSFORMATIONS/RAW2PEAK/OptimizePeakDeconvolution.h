@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -50,8 +50,8 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
     extern std::vector<PeakShape> peaks_DC_;
-    extern std::vector<double> positions_DC_;
-    extern std::vector<double> signal_DC_;
+    extern std::vector<DoubleReal> positions_DC_;
+    extern std::vector<DoubleReal> signal_DC_;
 
 		/**
 			 @brief Class for the penalty factors used during the optimization.
@@ -74,7 +74,7 @@ namespace OpenMS
       }
       ~PenaltyFactorsIntensity(){}
 
-      double height;
+      DoubleReal height;
 
 
     };
@@ -151,27 +151,27 @@ namespace OpenMS
 		}
 		
 		/// Non-mutable access to the charge
-    inline int getCharge() const { return charge_; }
+    inline Int getCharge() const { return charge_; }
     /// Mutable access to the charge
-    inline void setCharge(const int charge) { charge_ = charge; }
+    inline void setCharge(const Int charge) { charge_ = charge; }
     //@}
 
 
     /// Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
-    bool optimize(std::vector<PeakShape>& peaks,int failure);
+    bool optimize(std::vector<PeakShape>& peaks,Int failure);
 
   protected:
     // Penalty factors for some parameter in the optimization
     OptimizationFunctions::PenaltyFactorsIntensity penalties_;
 
     /// Charge state of the current isotope pattern
-    int charge_;
+    Int charge_;
 
     /// distance between two isotopic peaks
-    static const double dist_;
+    static const DoubleReal dist_;
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
-    int getNumberOfPeaks_(int charge, std::vector<PeakShape>& temp_shapes);
+    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes);
 
     // After each iteration the fwhm of all peaks is checked whether it isn't too large
     bool checkFWHM_(std::vector<PeakShape>& peaks,gsl_multifit_fdfsolver *& fit);

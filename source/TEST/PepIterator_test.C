@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,6 @@ START_TEST(PepIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PepIterator* ptr = 0;
 START_SECTION(PepIterator())
 {
 	NOT_TESTABLE
@@ -88,25 +87,25 @@ START_SECTION((virtual String getFastaFile()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setSpectrum(const std::vector< float > &s)=0))
+START_SECTION((virtual void setSpectrum(const std::vector< DoubleReal > &s)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual const std::vector<float>& getSpectrum()=0))
+START_SECTION((virtual const std::vector<DoubleReal>& getSpectrum()=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual void setTolerance(float t)=0))
+START_SECTION((virtual void setTolerance(DoubleReal t)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual float getTolerance()=0))
+START_SECTION((virtual DoubleReal getTolerance()=0))
 {
   NOT_TESTABLE
 }

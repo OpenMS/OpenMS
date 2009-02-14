@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -41,16 +42,16 @@ using namespace std;
 
 /**
 	@page TOPP_FileConverter FileConverter
-	
+
 	@brief Converts between different MS file formats.
-	
+
 	This converter tries to determine the file type from the file extension or from the first few lines
 	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
-	
-	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
-	In these cases a warning is shown. 
 
-	@improvement Implement support for writing MGF (Andreas) 
+	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
+	In these cases a warning is shown.
+
+	@improvement Implement support for writing MGF (Andreas)
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileConverter.cli
@@ -66,9 +67,9 @@ class TOPPFileConverter
 	TOPPFileConverter()
 		: TOPPBase("FileConverter","Converts between different MS file formats.")
 	{
-			
+
 	}
-	
+
  protected:
 
 	void registerOptionsAndFlags_()
@@ -77,81 +78,81 @@ class TOPPFileConverter
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
-		
+
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 	}
-	
+
 	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-	
+
 		//input file names
 		String in = getStringOption_("in");
-			
+
 		//input file type
 		FileHandler fh;
-		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
-					
-		if (in_type==FileHandler::UNKNOWN)
+		FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
+
+		if (in_type==FileTypes::UNKNOWN)
 		{
 			in_type = fh.getType(in);
 			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
 		}
 
-		if (in_type==FileHandler::UNKNOWN)
+		if (in_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine input file type!");
 			return PARSE_ERROR;
 		}
 
-	
+
 		//output file names and types
 		String out = getStringOption_("out");
-		FileHandler::Type out_type = fh.nameToType(getStringOption_("out_type"));
-			
-		if (out_type==FileHandler::UNKNOWN)
+		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+
+		if (out_type==FileTypes::UNKNOWN)
 		{
 			out_type = fh.getTypeByFileName(out);
 		}
 
-		if (out_type==FileHandler::UNKNOWN)
+		if (out_type==FileTypes::UNKNOWN)
 		{
 			writeLog_("Error: Could not determine output file type!");
 			return PARSE_ERROR;
 		}
 
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
-			
+
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
 		typedef MSExperiment< Peak1D > MSExperimentType;
 		MSExperimentType exp;
-		
+
 		typedef MSExperimentType::SpectrumType SpectrumType;
 
 		typedef FeatureMap<> FeatureMapType;
 
 		writeDebug_(String("Loading input file"), 1);
-			
-		if (in_type == FileHandler::FEATUREXML)
+
+		if (in_type == FileTypes::FEATUREXML)
 		{
 			// You will lose information and waste memory. Enough reasons to issue a warning!
-			writeLog_("Warning: Converting features to peaks. You will lose information!");	
+			writeLog_("Warning: Converting features to peaks. You will lose information!");
 			FeatureMapType fm;
 			FeatureXMLFile().load(in,fm);
 			fm.sortByPosition();
 			exp.set2DData(fm);
 		}
-		else if (in_type == FileHandler::CONSENSUSXML)
+		else if (in_type == FileTypes::CONSENSUSXML)
 		{
 			// You you will lose information and waste memory. Enough reasons to issue a warning!
-			writeLog_("Warning: Converting consensus features to peaks. You will lose information!");	
+			writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
 			ConsensusMap cm;
 			ConsensusXMLFile().load(in,cm);
 			cm.sortByPosition();
@@ -161,46 +162,46 @@ class TOPPFileConverter
 		{
 			fh.loadExperiment(in,exp,in_type,log_type_);
 		}
-		
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-		
+
 		writeDebug_(String("Writing output file"), 1);
-		if (out_type == FileHandler::MZML)
+		if (out_type == FileTypes::MZML)
 		{
 			//add data processing entry
 			addDataProcessing_(exp, DataProcessing::CONVERSION_MZML);
-			
+
 			MzMLFile f;
 			f.setLogType(log_type_);
-			f.store(out,exp);					
-		}			
-		else if (out_type == FileHandler::MZDATA)
+			f.store(out,exp);
+		}
+		else if (out_type == FileTypes::MZDATA)
 		{
 			MzDataFile f;
 			f.setLogType(log_type_);
-			f.store(out,exp);			
+			f.store(out,exp);
 		}
-		else if (out_type == FileHandler::MZXML)
+		else if (out_type == FileTypes::MZXML)
 		{
 			MzXMLFile f;
 			f.setLogType(log_type_);
-			f.store(out,exp);					
+			f.store(out,exp);
 		}
-		else if (out_type == FileHandler::DTA2D)
+		else if (out_type == FileTypes::DTA2D)
 		{
 			DTA2DFile f;
 			f.setLogType(log_type_);
 			f.store(out,exp);
 		}
-		else if (out_type == FileHandler::FEATUREXML)
+		else if (out_type == FileTypes::FEATUREXML)
 		{
 			//add data processing entry
 			addDataProcessing_(exp, DataProcessing::CONVERSION_FEATUREXML);
-			
+
 			// The feature specific information is only defaulted. Enough reasons to issue a warning!
-			writeLog_("Warning: Converting peaks to features results in incomplete features!");	
+			writeLog_("Warning: Converting peaks to features results in incomplete features!");
 			FeatureMapType feature_map;
 			feature_map.reserve(exp.getSize());
 			typedef FeatureMapType::FeatureType FeatureType;
@@ -227,7 +228,7 @@ class TOPPFileConverter
 			feature_map.updateRanges();
 			FeatureXMLFile().store(out,feature_map);
 		}
-		else if (out_type == FileHandler::MGF)
+		else if (out_type == FileTypes::MGF)
 		{
 			MascotInfile2 f;
 			Param p(f.getParameters());
@@ -239,9 +240,9 @@ class TOPPFileConverter
 		{
 			writeLog_("Unknown output file type given. Aborting!");
 			printUsage_();
-			return ILLEGAL_PARAMETERS;					
+			return ILLEGAL_PARAMETERS;
 		}
-			
+
 		return EXECUTION_OK;
 	}
 };

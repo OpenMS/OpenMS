@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -215,7 +215,8 @@ class TOPPIDFilter
 			
 		if (exclusion_peptides_file_name  != "")
 		{
-			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion);
+			String document_id;
+			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
 			for (Size i = 0; i < identifications_exclusion.size(); i++)
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
@@ -226,8 +227,8 @@ class TOPPIDFilter
 				}
 			} 
 		}												 
-			
-		IdXML_file.load(inputfile_name, protein_identifications, identifications);
+		String document_id;
+		IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 
 		//-------------------------------------------------------------
 		// calculations

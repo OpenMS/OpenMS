@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -50,17 +50,17 @@ START_SECTION((DataFilters()))
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((~DataFilters()))
+START_SECTION(([EXTRA]~DataFilters()))
 	delete ptr;	
 END_SECTION
 
 DataFilters::DataFilter* ptr2;
-START_SECTION((DataFilters::DataFilter()))
+START_SECTION(([EXTRA]DataFilters::DataFilter()))
 	ptr2 = new DataFilters::DataFilter();
 	TEST_NOT_EQUAL(ptr2, 0)
 END_SECTION
 
-START_SECTION((~DataFilters::DataFilter()))
+START_SECTION(([EXTRA]~DataFilters::DataFilter()))
 	delete ptr2;	
 END_SECTION
 
@@ -79,7 +79,7 @@ DataFilters::DataFilter filter_11;
 DataFilters::DataFilter filter_12;
 
 
-START_SECTION((void DataFilter::fromString(const String& filter) ))
+START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value '' was used but is not valid! Invalid filter format.")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value 'not_enough_arguments' was used but is not valid! Invalid filter format.")
@@ -110,7 +110,7 @@ START_SECTION((void DataFilter::fromString(const String& filter) ))
 END_SECTION
 
 
-START_SECTION((String DataFilter::toString() const))
+START_SECTION(([EXTRA]String DataFilter::toString() const))
 	
 	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334")
 	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000")
@@ -125,7 +125,7 @@ START_SECTION((String DataFilter::toString() const))
 END_SECTION
 
 
-START_SECTION((bool DataFilter::operator==(const DataFilter& rhs) const))
+START_SECTION(([EXTRA]bool DataFilter::operator==(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 == filter_7, true)
 	TEST_EQUAL(filter_1 == filter_2, false)
@@ -134,7 +134,7 @@ START_SECTION((bool DataFilter::operator==(const DataFilter& rhs) const))
 END_SECTION
 
 
-START_SECTION((bool DataFilter::operator!=(const DataFilter& rhs) const))
+START_SECTION(([EXTRA]bool DataFilter::operator!=(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 != filter_7, false)
 	TEST_EQUAL(filter_3 != filter_4, true)
@@ -142,6 +142,16 @@ START_SECTION((bool DataFilter::operator!=(const DataFilter& rhs) const))
 	
 END_SECTION
 
+START_SECTION((bool isActive() const))
+	DataFilters tmp;
+	TEST_EQUAL(tmp.isActive(), false)
+END_SECTION
+
+START_SECTION((void setActive(bool is_active)))
+	DataFilters tmp;
+	tmp.setActive(true);
+	TEST_EQUAL(tmp.isActive(), true)
+END_SECTION
 
 DataFilters filters;
 
@@ -158,7 +168,7 @@ START_SECTION((void add(const DataFilter& filter)))
 END_SECTION
 
 
-START_SECTION((const DataFilter& operator[](UInt index) const ))
+START_SECTION((const DataFilter& operator[](Size index) const ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
@@ -168,7 +178,7 @@ START_SECTION((const DataFilter& operator[](UInt index) const ))
 END_SECTION
 
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const))
 
 	TEST_EQUAL(filters.size(), 3)
 	filters.add(filter_4);
@@ -187,7 +197,7 @@ START_SECTION((UInt size() const))
 END_SECTION
 
 
-START_SECTION((void remove(UInt index) ))
+START_SECTION((void remove(Size index)))
 
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
 	filters.remove(0);
@@ -198,7 +208,7 @@ START_SECTION((void remove(UInt index) ))
 END_SECTION
 
 
-START_SECTION((void replace(UInt index, const DataFilter& filter) ))
+START_SECTION((void replace(Size index, const DataFilter &filter)))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9
@@ -227,7 +237,7 @@ END_SECTION
 
 ///construct some test features
 Feature feature_1;
-feature_1.setIntensity(1000.00);
+feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
 feature_1.setOverallQuality(31.3334);
 feature_1.setMetaValue(String("test_int"), 5);
@@ -235,7 +245,7 @@ feature_1.setMetaValue(String("test_double"), 23.42);
 feature_1.setMetaValue(String("test_string"), String("hello world 1"));
 
 Feature feature_2;
-feature_2.setIntensity(122.01);
+feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
 feature_2.setOverallQuality(0.002);
 feature_2.setMetaValue(String("test_int"), 10);
@@ -243,7 +253,7 @@ feature_2.setMetaValue(String("test_double"), 0.042);
 feature_2.setMetaValue(String("test_string"), String("hello world 2"));
 
 Feature feature_3;
-feature_3.setIntensity(55.0);
+feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
 feature_3.setOverallQuality(1);
 feature_3.setMetaValue(String("test_int"), 0);
@@ -252,28 +262,28 @@ feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 
 ///construct some test consensus features
 ConsensusFeature c_feature_1;
-c_feature_1.setIntensity(1000.00);
+c_feature_1.setIntensity(1000.00f);
 c_feature_1.setCharge(4);
 c_feature_1.setQuality(31.3334);
 
 ConsensusFeature c_feature_2;
-c_feature_2.setIntensity(122.01);
+c_feature_2.setIntensity(122.01f);
 c_feature_2.setCharge(3);
 c_feature_2.setQuality(0.002);
 
 ConsensusFeature c_feature_3;
-c_feature_3.setIntensity(55.0);
+c_feature_3.setIntensity(55.0f);
 c_feature_3.setCharge(4);
 c_feature_3.setQuality(1);
 
 ///construct some test peaks
 MSSpectrum<Peak1D> spec;
 Peak1D peak;
-peak.setIntensity(201.334);
+peak.setIntensity(201.334f);
 spec.push_back(peak);
-peak.setIntensity(2008.2);
+peak.setIntensity(2008.2f);
 spec.push_back(peak);
-peak.setIntensity(0.001);
+peak.setIntensity(0.001f);
 spec.push_back(peak);
 
 MSSpectrum<Peak1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
@@ -287,14 +297,14 @@ mdas[0][2] = 0;
 
 mdas[1].setName("test_double");
 mdas[1].resize(3);
-mdas[1][0] =  23.42;
-mdas[1][1] = 0.000;
-mdas[1][2] = 100.01;
+mdas[1][0] =  23.42f;
+mdas[1][1] = 0.0f;
+mdas[1][2] = 100.01f;
 
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);
 
-START_SECTION((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const))
+START_SECTION((template < class PeakType > bool passes(const MSSpectrum< PeakType > &spectrum, Size peak_index) const ))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
 	TEST_EQUAL(filters.passes(spec,0), true) // 201.334
@@ -382,7 +392,7 @@ START_SECTION((bool passes(const Feature& feature) const))
 
 END_SECTION
 
-START_SECTION(bool passes(const ConsensusFeature& consensus_feature) const)
+START_SECTION((bool passes(const ConsensusFeature& consensus_feature) const))
 
 	filters.clear();
 	filters.add(filter_3); // "Charge = 4"

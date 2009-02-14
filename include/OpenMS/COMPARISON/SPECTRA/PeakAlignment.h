@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -29,13 +29,7 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
-
-#include <cfloat>
-#include <cmath>
 #include <vector>
-#include <map>
 
 namespace OpenMS
 {
@@ -86,7 +80,7 @@ namespace OpenMS
 	}
 
 	/// make alignment and get the traceback
-	std::vector< std::pair<UInt,UInt> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+	std::vector<std::pair<Size, Size> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
 	private:
 

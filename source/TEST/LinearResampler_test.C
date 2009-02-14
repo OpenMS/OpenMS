@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -60,15 +60,15 @@ START_SECTION((template<typename InputSpectrumIterator, typename OutputPeakType 
   MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
-  spec[0].setIntensity(3);
+  spec[0].setIntensity(3.0f);
   spec[1].setMZ(0.5);
-  spec[1].setIntensity(6);
+  spec[1].setIntensity(6.0f);
   spec[2].setMZ(1.);
-  spec[2].setIntensity(8);
+  spec[2].setIntensity(8.0f);
   spec[3].setMZ(1.6);
-  spec[3].setIntensity(2);
+  spec[3].setIntensity(2.0f);
   spec[4].setMZ(1.8);
-  spec[4].setIntensity(1);
+  spec[4].setIntensity(1.0f);
   raw[0] = spec;
 
   LinearResampler lr;
@@ -93,15 +93,15 @@ START_SECTION((template<typename InputPeakType, typename OutputPeakType > void r
   MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
-  spec[0].setIntensity(3);
+  spec[0].setIntensity(3.0f);
   spec[1].setMZ(0.5);
-  spec[1].setIntensity(6);
+  spec[1].setIntensity(6.0f);
   spec[2].setMZ(1.);
-  spec[2].setIntensity(8);
+  spec[2].setIntensity(8.0f);
   spec[3].setMZ(1.6);
-  spec[3].setIntensity(2);
+  spec[3].setIntensity(2.0f);
   spec[4].setMZ(1.8);
-  spec[4].setIntensity(1);
+  spec[4].setIntensity(1.0f);
   raw[0] = spec;
 
   LinearResampler lr;
@@ -123,15 +123,15 @@ START_SECTION((template< typename InputPeakIterator, typename OutputPeakContaine
   MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
-  spec[0].setIntensity(3);
+  spec[0].setIntensity(3.0f);
   spec[1].setMZ(0.5);
-  spec[1].setIntensity(6);
+  spec[1].setIntensity(6.0f);
   spec[2].setMZ(1.);
-  spec[2].setIntensity(8);
+  spec[2].setIntensity(8.0f);
   spec[3].setMZ(1.6);
-  spec[3].setIntensity(2);
+  spec[3].setIntensity(2.0f);
   spec[4].setMZ(1.8);
-  spec[4].setIntensity(1);
+  spec[4].setIntensity(1.0f);
 
   LinearResampler lr;
   lr.setParameters(param);
@@ -153,15 +153,15 @@ START_SECTION((template<typename InputPeakContainer, typename OutputPeakContaine
   MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
-  spec[0].setIntensity(3);
+  spec[0].setIntensity(3.0f);
   spec[1].setMZ(0.5);
-  spec[1].setIntensity(6);
+  spec[1].setIntensity(6.0f);
   spec[2].setMZ(1.);
-  spec[2].setIntensity(8);
+  spec[2].setIntensity(8.0f);
   spec[3].setMZ(1.6);
-  spec[3].setIntensity(2);
+  spec[3].setIntensity(2.0f);
   spec[4].setMZ(1.8);
-  spec[4].setIntensity(1);
+  spec[4].setIntensity(1.0f);
 
   LinearResampler lr;
   lr.setParameters(param);

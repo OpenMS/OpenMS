@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -172,7 +172,7 @@ namespace OpenMS
 		{
 			for ( UInt i = 0; i < DIMENSION; ++i )
 			{
-				if ( bounding_box .min_[i] > max_[i] ) return false;
+				if ( bounding_box.min_[i] > max_[i] ) return false;
 				if ( bounding_box.max_[i] <  min_[i] ) return false;
 			}
 			return true;
@@ -181,7 +181,14 @@ namespace OpenMS
 		/// Test if bounding box is empty
 		bool isEmpty() const
 		{
-			return *this == Base::empty;
+      for (UInt i = 0; i != D; i++)
+      {
+        if (max_[i]<=min_[i])
+        {
+        	return true;
+      	}
+      }
+			return false; 
 		}
 
 		//@}

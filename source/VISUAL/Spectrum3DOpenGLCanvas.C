@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -395,7 +395,7 @@ namespace OpenMS
 		glNewList(list,GL_COMPILE);
 		glPointSize(3.0);
 	
-		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();++i)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
 			if(layer.visible)
@@ -448,7 +448,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 	
-		for (UInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
 			if(layer.visible)
@@ -728,7 +728,7 @@ namespace OpenMS
 		return i_mz;
 	}
 	
-	double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int layer_index)
+	double Spectrum3DOpenGLCanvas::scaledIntensity(Real intensity,Size layer_index)
 	{
 		double scaledintensity= 0;
 		switch(canvas_3d_.intensity_mode_)
@@ -889,7 +889,7 @@ namespace OpenMS
 		int_scale_.min_[0]= canvas_3d_.overall_data_range_.max_[2];
 		int_scale_.max_[0]= canvas_3d_.overall_data_range_.min_[2];
 		
-		for (UInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{
 			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[1]); 
 					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[1]); 
@@ -910,7 +910,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum3DOpenGLCanvas::recalculateDotGradient_(UInt layer)
+	void Spectrum3DOpenGLCanvas::recalculateDotGradient_(Size layer)
 	{
 		canvas_3d_.getLayer_(layer).gradient.fromString(canvas_3d_.getLayer_(layer).param.getValue("dot:gradient"));
 		switch(canvas_3d_.intensity_mode_)

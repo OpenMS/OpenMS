@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@ namespace OpenMS
 		MzMLValidator::MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
 			: SemanticValidator(mapping, cv)
 		{
+			setCheckUnits(true);
 		}
 		
 		MzMLValidator::~MzMLValidator()
@@ -110,6 +111,16 @@ namespace OpenMS
 			}
 			path = String("/") + path;
 			return path;
+		}
+		
+		//reimplemented to catch non-PSI CVs
+		void MzMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
+		{
+			//some CVs cannot be validates because they use 'part_of' which spoils the inheritance
+			if (parsed_term.accession.hasPrefix("GO:")) return;
+			if (parsed_term.accession.hasPrefix("BTO:")) return;
+			
+			SemanticValidator::handleTerm_(path,parsed_term);
 		}
 
 	} // namespace Internal

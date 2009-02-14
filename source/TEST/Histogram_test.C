@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -72,12 +72,12 @@ START_SECTION((BinSizeType binSize() const))
 	TEST_REAL_SIMILAR(d.binSize(), 1)
 END_SECTION
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const ))
 	TEST_EQUAL(d.size(), 10)
 END_SECTION
 
-START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
-	Histogram<float, float> d3(5.5, 7.7, 0.2);
+START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
+	Histogram<float, float> d3(5.5f, 7.7f, 0.2f);
 	TEST_REAL_SIMILAR(d3.min(), 5.5)
 	TEST_REAL_SIMILAR(d3.max(), 7.7)
 	TEST_REAL_SIMILAR(d3.binSize(), 0.2)
@@ -91,7 +91,7 @@ START_SECTION((ValueType maxValue() const))
 	TEST_REAL_SIMILAR(d.maxValue(), 0.0)
 END_SECTION
 
-START_SECTION((ValueType operator [] (UInt index) const ))
+START_SECTION((ValueType operator [] (Size index) const))
 	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_SIMILAR(d[0],0.0);
@@ -102,20 +102,28 @@ START_SECTION((ValueType operator [] (UInt index) const ))
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 END_SECTION
 
-START_SECTION((void inc(BinSizeType val, ValueType increment=1) ))
-	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
-	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
-	d.inc(4, 1.0);
-	d.inc(5.9, 1.0);
+START_SECTION((Size inc(BinSizeType val, ValueType increment=1)))
+	Size bin_index = 123456;
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9f, 250.3f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1f, 250.3f))
+		
+	bin_index = d.inc(4.0f, 1.0);
+	TEST_EQUAL(bin_index,0);
+	bin_index = d.inc(5.9f, 1.0);
+	TEST_EQUAL(bin_index,0);
+	
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
 	TEST_REAL_SIMILAR(d[2],0.0);
 	TEST_REAL_SIMILAR(d[3],0.0);
 	TEST_REAL_SIMILAR(d[4],0.0);
 	
-	d.inc(8.0, 45.0);
-	d.inc(8.1, 1.0);
-	d.inc(9.9, 4.0);
+	bin_index = d.inc(8.0f, 45.0);
+	TEST_EQUAL(bin_index,2);
+	bin_index = d.inc(8.1f, 1.0);
+	TEST_EQUAL(bin_index,2);
+	bin_index = d.inc(9.9f, 4.0);
+	TEST_EQUAL(bin_index,2);
 
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
@@ -123,9 +131,12 @@ START_SECTION((void inc(BinSizeType val, ValueType increment=1) ))
 	TEST_REAL_SIMILAR(d[3],0.0);
 	TEST_REAL_SIMILAR(d[4],0.0);
 
-	d.inc(12.0, 1.0);
-	d.inc(13.1, 2.0);
-	d.inc(14.0, 3.0);	
+	bin_index = d.inc(12.0f, 1.0);
+	TEST_EQUAL(bin_index,4);
+	bin_index = d.inc(13.1f, 2.0);
+	TEST_EQUAL(bin_index,4);
+	bin_index = d.inc(14.0f, 3.0);	
+	TEST_EQUAL(bin_index,4);
 
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
@@ -154,22 +165,22 @@ START_SECTION((ConstIterator end() const))
 	TEST_EQUAL(it==d.end(),true);
 END_SECTION
 
-START_SECTION((ValueType binValue(BinSizeType val) const ))
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
-	TEST_REAL_SIMILAR(d.binValue(4.0),2.0);
-	TEST_REAL_SIMILAR(d.binValue(5.9),2.0);
-	TEST_REAL_SIMILAR(d.binValue(6.0),0.0);
-	TEST_REAL_SIMILAR(d.binValue(7.9),0.0);
-	TEST_REAL_SIMILAR(d.binValue(8.0),50.0);
-	TEST_REAL_SIMILAR(d.binValue(9.9),50.0);
-	TEST_REAL_SIMILAR(d.binValue(10.0),0.0);
-	TEST_REAL_SIMILAR(d.binValue(11.9),0.0);
-	TEST_REAL_SIMILAR(d.binValue(12.0),6.0);
-	TEST_REAL_SIMILAR(d.binValue(14.0),6.0);
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
+START_SECTION((ValueType binValue(BinSizeType val) const))
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9f))
+	TEST_REAL_SIMILAR(d.binValue(4.0f),2.0);
+	TEST_REAL_SIMILAR(d.binValue(5.9f),2.0);
+	TEST_REAL_SIMILAR(d.binValue(6.0f),0.0);
+	TEST_REAL_SIMILAR(d.binValue(7.9f),0.0);
+	TEST_REAL_SIMILAR(d.binValue(8.0f),50.0);
+	TEST_REAL_SIMILAR(d.binValue(9.9f),50.0);
+	TEST_REAL_SIMILAR(d.binValue(10.0f),0.0);
+	TEST_REAL_SIMILAR(d.binValue(11.9f),0.0);
+	TEST_REAL_SIMILAR(d.binValue(12.0f),6.0);
+	TEST_REAL_SIMILAR(d.binValue(14.0f),6.0);
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1f))
 END_SECTION
 	
-START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
+START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
 	d.reset(1, 11, 2);
 	TEST_REAL_SIMILAR(d.min(), 1)
 	TEST_REAL_SIMILAR(d.max(), 11)
@@ -193,7 +204,7 @@ START_SECTION((Histogram& operator = (const Histogram& histogram)))
 	TEST_EQUAL(d == dist, true)
 END_SECTION
 
-START_SECTION((void applyLogTransformation(Real multiplier)))
+START_SECTION((void applyLogTransformation(BinSizeType multiplier)))
 	TOLERANCE_ABSOLUTE(0.01)
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
@@ -209,7 +220,7 @@ START_SECTION((void applyLogTransformation(Real multiplier)))
 	TEST_REAL_SIMILAR(dist.binValue(4.5),9.21044);
 END_SECTION
 
-START_SECTION((BinSizeType centerOfBin(UInt bin_index) const  ))
+START_SECTION((BinSizeType centerOfBin(Size bin_index) const))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);

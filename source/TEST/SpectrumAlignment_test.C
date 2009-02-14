@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -84,7 +84,7 @@ START_SECTION(SpectrumAlignment& operator=(const SpectrumAlignment &source))
 
 END_SECTION
 		    
-START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const SpectrumType &s1, const SpectrumType &s2) const)
+START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::vector< std::pair< Size, Size > > &alignment, const SpectrumType &s1, const SpectrumType &s2) const)
 	PeakSpectrum s1, s2;
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
@@ -92,10 +92,10 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
   TOLERANCE_ABSOLUTE(0.01)
 
 	SpectrumAlignment sas1;
-	vector<pair<UInt, UInt > > alignment;
+	vector<pair<Size, Size > > alignment;
 	sas1.getSpectrumAlignment(alignment, s1, s2);
 	
-	for (vector<pair<UInt, UInt > >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+	for (vector<pair<Size, Size > >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 	{
 		cerr << it->first << " " << it->second << endl;
 	}

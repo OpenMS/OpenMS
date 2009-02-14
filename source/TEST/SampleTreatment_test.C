@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -32,63 +32,65 @@
 #include <OpenMS/METADATA/Tagging.h>
 #include <sstream>
 
-///////////////////////////
-
-START_TEST(SampleTreatment, "$Id$")
-
-/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-TOLERANCE_ABSOLUTE(0.001)
+///////////////////////////
 
 class Test: public SampleTreatment
 {
-	public:
-		Test():
-		SampleTreatment("Test")
-		{
-			
-		};
-		
-		Test(const Test& source):
-		SampleTreatment(source)
-		{
-			
-		};
-		
-		virtual ~Test()
-		{
-			
-		};
-		
-		Test& operator = (const Test& source)
-		{
-		  if (&source != this)
-		  {
-		  	SampleTreatment::operator=(source);
-		  }
-		  return *this;
-		};
-	
-		
-		virtual SampleTreatment* clone() const
-		{
-			return new Test(*this);
-		};
+  public:
+    Test():
+    SampleTreatment("Test")
+    {
 
-		virtual bool operator== (const SampleTreatment& rhs) const
-		{
-	  	if (type_!=rhs.getType()) return false;
-	  	
-	  	const Test* tmp = dynamic_cast<const Test*>(&rhs);
-			return 
-				SampleTreatment::operator==(*tmp)
-				;
-		};
+    };
+
+    Test(const Test& source):
+    SampleTreatment(source)
+    {
+
+    };
+
+    virtual ~Test()
+    {
+
+    };
+
+    Test& operator = (const Test& source)
+    {
+      if (&source != this)
+      {
+        SampleTreatment::operator=(source);
+      }
+      return *this;
+    };
+
+
+    virtual SampleTreatment* clone() const
+    {
+      return new Test(*this);
+    };
+
+    virtual bool operator== (const SampleTreatment& rhs) const
+    {
+      if (type_!=rhs.getType()) return false;
+
+      const Test* tmp = dynamic_cast<const Test*>(&rhs);
+      return
+        SampleTreatment::operator==(*tmp)
+        ;
+    };
 };
+
+
+START_TEST(SampleTreatment, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+TOLERANCE_ABSOLUTE(0.001)
 
 Test* dv_ptr = 0;
 START_SECTION((SampleTreatment(const String& type)))
@@ -120,7 +122,7 @@ START_SECTION([EXTRA] MetaInfo)
 	Test s;
 	//empty
 	TEST_EQUAL(s.isMetaEmpty(),true)
-	
+
 	s.setMetaValue("origin",String("cow"));
 	s.setMetaValue("size",1.0);
 	TEST_EQUAL(s.isMetaEmpty(),false)
@@ -137,7 +139,7 @@ START_SECTION((SampleTreatment(const SampleTreatment&)))
 	Test s2(s);
 	//get
 	TEST_EQUAL(s2.getComment(),"TTEST")
-	TEST_EQUAL("horse",s.getMetaValue("origin"))
+	TEST_EQUAL(s.getMetaValue("origin"),"horse")
 END_SECTION
 
 START_SECTION((SampleTreatment& operator=(const SampleTreatment&)))
@@ -149,7 +151,7 @@ START_SECTION((SampleTreatment& operator=(const SampleTreatment&)))
 	s2 = s;
 	//get
 	TEST_EQUAL(s2.getComment(),"TTEST")
-	TEST_EQUAL("horse",s.getMetaValue("origin"))
+	TEST_EQUAL(s.getMetaValue("origin"),"horse")
 END_SECTION
 
 START_SECTION((virtual SampleTreatment* clone() const=0))
@@ -157,7 +159,7 @@ START_SECTION((virtual SampleTreatment* clone() const=0))
 	SampleTreatment* st1;
 	SampleTreatment* st;
 	Test* dp;
-	
+
 	//set
 	s.setComment("TTEST");
 	s.setMetaValue("origin",String("horse"));
@@ -166,27 +168,27 @@ START_SECTION((virtual SampleTreatment* clone() const=0))
 	st1 = &s;
 	st = st1->clone();
 	dp = dynamic_cast<Test*>(st);
-	
+
 	//get
 	TEST_EQUAL(dp->getComment(),"TTEST")
-	TEST_EQUAL("horse",dp->getMetaValue("origin"))
+	TEST_EQUAL(dp->getMetaValue("origin"),"horse")
 END_SECTION
 
 START_SECTION((bool operator== (const SampleTreatment& rhs) const))
 	Test edit,empty;
-	
+
 	edit.setComment("bla");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_EQUAL(edit==empty, true);
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
-	
+	TEST_EQUAL(edit==empty, true);
+
 	Tagging t;
-	TEST_EQUAL(t==empty, false);	
+	TEST_EQUAL(t==empty, false);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

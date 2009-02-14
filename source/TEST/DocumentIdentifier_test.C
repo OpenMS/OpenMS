@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,8 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -62,7 +64,7 @@ START_SECTION((DocumentIdentifier(const DocumentIdentifier &source)))
 	DocumentIdentifier di2(di1);
 	TEST_EQUAL(di2.getIdentifier(), "this is a test");
 	TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(di2.getLoadedFileType() == "Unknown", true)
+	TEST_EQUAL(FileHandler::typeToName(di2.getLoadedFileType()) == "Unknown", true)
 }
 END_SECTION
 
@@ -76,7 +78,7 @@ START_SECTION((DocumentIdentifier& operator=(const DocumentIdentifier &source)))
 	DocumentIdentifier di2 = di1;
 	TEST_EQUAL(di2.getIdentifier(), "this is a test");
 	TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(di2.getLoadedFileType() == "Unknown", true)
+	TEST_EQUAL(FileHandler::typeToName(di2.getLoadedFileType()) == "Unknown", true)
 }
 END_SECTION
 
@@ -114,11 +116,11 @@ START_SECTION((void setLoadedFileType(const String &name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFileType( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
-	TEST_EQUAL(di1.getLoadedFileType(), "Unknown")
+	TEST_EQUAL(FileHandler::typeToName(di1.getLoadedFileType()), "Unknown")
 }
 END_SECTION
 
-START_SECTION((const String& getLoadedFile() const))
+START_SECTION((const FileTypes::Type& getLoadedFileType() const))
 {
 	// tested above
   NOT_TESTABLE
@@ -153,7 +155,7 @@ START_SECTION((void swap(DocumentIdentifier& from)))
 	TEST_EQUAL(di1.getIdentifier() == "", true)
 	TEST_EQUAL(di2.getIdentifier() == "this is a test", true)
   TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(di2.getLoadedFileType() == "Unknown", true)
+	TEST_EQUAL(FileHandler::typeToName(di2.getLoadedFileType()) == "Unknown", true)
 
 }
 END_SECTION

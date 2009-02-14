@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,49 +46,49 @@ TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Digestion* dv_ptr = 0;
-START_SECTION(Digestion())
+START_SECTION((Digestion()))
 	dv_ptr = new Digestion;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 END_SECTION
 
 // destructor
-START_SECTION(~Digestion())
+START_SECTION((virtual ~Digestion()))
 	delete dv_ptr;
 END_SECTION
 
 //basic accessors
-START_SECTION(const String& getEnzyme() const)
+START_SECTION((const String& getEnzyme() const))
 	Digestion s;
 	TEST_EQUAL(s.getEnzyme(),"")
 END_SECTION
 
 //basic accessors
-START_SECTION(float getDigestionTime() const)
+START_SECTION((DoubleReal getDigestionTime() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getDigestionTime(),0.0)
 END_SECTION
 
 //basic accessors
-START_SECTION(float getTemperature() const)
+START_SECTION((DoubleReal getTemperature() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getTemperature(),0.0)
 END_SECTION
 
 //basic accessors
-START_SECTION(float getPh() const)
+START_SECTION((DoubleReal getPh() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getPh(),0.0)
 END_SECTION
 
 //basic accessors
-START_SECTION(void setEnzyme(const String& enzyme))
+START_SECTION((void setEnzyme(const String& enzyme)))
 	Digestion s;
 	s.setEnzyme("TTEST");
 	TEST_EQUAL(s.getEnzyme(),"TTEST")
 END_SECTION
 
 //basic accessors
-START_SECTION(void setDigestionTime(float digestion_time))
+START_SECTION((void setDigestionTime(DoubleReal digestion_time)))
 	Digestion s;
 	//set
 	s.setDigestionTime(4711.2);
@@ -96,14 +96,14 @@ START_SECTION(void setDigestionTime(float digestion_time))
 END_SECTION
 
 //basic accessors
-START_SECTION(void setTemperature(float temperature))
+START_SECTION((void setTemperature(DoubleReal temperature)))
 	Digestion s;
 	s.setTemperature(4711.3);
 	TEST_REAL_SIMILAR(s.getTemperature(),4711.3)
 END_SECTION
 
 //basic accessors
-START_SECTION(void setPh(float ph))
+START_SECTION((void setPh(DoubleReal ph)))
 	Digestion s;
 	s.setPh(4711.4);
 	TEST_REAL_SIMILAR(s.getPh(),4711.4)
@@ -116,7 +116,7 @@ START_SECTION([EXTRA] getType)
 END_SECTION
 
 //copy ctr
-START_SECTION(Digestion(const Digestion&))
+START_SECTION((Digestion(const Digestion&)))
 	Digestion s;
 	//set
 	s.setEnzyme("TTEST");
@@ -136,7 +136,7 @@ START_SECTION(Digestion(const Digestion&))
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
 END_SECTION
 
-START_SECTION(Digestion& operator=(const Digestion&))
+START_SECTION((Digestion& operator=(const Digestion&)))
 	Digestion s,s2;
 	//set
 	s.setEnzyme("TTEST");
@@ -156,7 +156,7 @@ START_SECTION(Digestion& operator=(const Digestion&))
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
 END_SECTION
 
-START_SECTION(SampleTreatment* clone() const)
+START_SECTION((virtual SampleTreatment* clone() const ))
 	Digestion s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -182,7 +182,7 @@ START_SECTION(SampleTreatment* clone() const)
 	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
 END_SECTION
 
-START_SECTION(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Digestion empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);

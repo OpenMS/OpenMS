@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_FILEHANDLER_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -53,37 +54,16 @@ namespace OpenMS
 		It also offer a common interface to load MSExperiment data
 		and allows querying for supported file types.
 
+		@see FileTypes
+
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI FileHandler
 	{
 	 public:
-		/**
-			 @brief The known file types.
-
-			 @see nameToType and typeToName
-		*/
-		enum Type
-		{
-			UNKNOWN,        		///< Unknown file extension
-			DTA,            		///< DTA file (.dta)
-			DTA2D,          		///< DTA2D file (.dta2d)
-			MZDATA,         		///< MzData file (.MzData)
-			MZXML,          		///< MzXML file (.MzXML)
-			FEATUREXML,     		///< %OpenMS feature file (.featureXML)
-			ANDIMS,         		///< ANDI\\MS file (.cdf)
-			IDXML,  						///< %OpenMS identification format (.idXML)
-			CONSENSUSXML,  			///< %OpenMS consensus map format (.consensusXML)
-			MGF,								///< Mascot Generic Format (.mgf)
-			PARAM,          		///< %OpenMS parameters file (.ini)
-			TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
-			MZML,								///< MzML file (.mzML)
-			MS2,								///< MS2 file (.ms2)
-			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
-		};
 
 		/// String representations of the file types
-		static const std::string NamesOfTypes[SIZE_OF_TYPE];
+		static const std::string NamesOfTypes[FileTypes::SIZE_OF_TYPE];
 
 		/**
 			@brief Tries to determine the file type (by name or content)
@@ -93,27 +73,27 @@ namespace OpenMS
 
 			@exception Exception::FileNotFound is thrown if the file is not present
 		*/
-		static Type getType(const String& filename);
+		static FileTypes::Type getType(const String& filename);
 
 
 		/// Determines the file type from a file name
-		static Type getTypeByFileName(const String& filename);
+		static FileTypes::Type getTypeByFileName(const String& filename);
 
 		/**
 			@brief Determines the file type of a file by parsing the first few lines
 
 			@exception Exception::FileNotFound is thrown if the file is not present
 		*/
-		static Type getTypeByContent(const String& filename);
+		static FileTypes::Type getTypeByContent(const String& filename);
 
 		/// Converts a file type name into a Type
-		static Type nameToType(const String& name);
+		static FileTypes::Type nameToType(const String& name);
 
 		/// Converts a Type into a file type name
-		static String typeToName(Type type);
+		static String typeToName(FileTypes::Type type);
 
 		/// Returns if the file type is supported in this build of the library
-		static bool isSupported(Type type);
+		static bool isSupported(FileTypes::Type type);
 
     /// Mutable access to the options for loading
     PeakFileOptions& getOptions();
@@ -131,10 +111,10 @@ namespace OpenMS
 
 			 @return true if the file could be loaded, false otherwise
 		*/
-		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
+		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
 		{
-			Type type;
-			if (force_type != UNKNOWN)
+			FileTypes::Type type;
+			if (force_type != FileTypes::UNKNOWN)
 			{
 				type = force_type;
 			}
@@ -153,13 +133,13 @@ namespace OpenMS
 			//load right file
 			switch(type)
 			{
-				case DTA:
+				case FileTypes::DTA:
 					exp.reset();
 					exp.resize(1);
 					DTAFile().load(filename,exp[0]);
 					return true;
 					break;
-				case DTA2D:
+				case FileTypes::DTA2D:
 					{
 						DTA2DFile f;
 						f.getOptions() = options_;
@@ -168,7 +148,7 @@ namespace OpenMS
 						return true;
 					}
 					break;
-				case MZXML:
+				case FileTypes::MZXML:
 					{
 						MzXMLFile f;
 						f.getOptions() = options_;
@@ -177,7 +157,7 @@ namespace OpenMS
 						return true;
 					}
 					break;
-				case MZDATA:
+				case FileTypes::MZDATA:
 					{
 						MzDataFile f;
 						f.getOptions() = options_;
@@ -186,7 +166,7 @@ namespace OpenMS
 						return true;
 					}
 					break;
-				case MZML:
+				case FileTypes::MZML:
 					{
 						MzMLFile f;
 						f.getOptions() = options_;
@@ -196,7 +176,7 @@ namespace OpenMS
 					}
 					break;
 #ifdef USE_ANDIMS
-				case ANDIMS:
+				case FileTypes::ANDIMS:
 					{
 						ANDIFile f;
 						f.setLogType(log);
@@ -205,14 +185,14 @@ namespace OpenMS
 					}
 					break;
 #endif
-				case MGF:
+				case FileTypes::MGF:
 					{
 						MascotInfile2 f;
 						f.setLogType(log);
 						f.load(filename, exp);
 						return true;
 					}
-				case MS2:
+				case FileTypes::MS2:
 					{
 						MS2File f;
 						f.setLogType(log);
@@ -233,10 +213,10 @@ namespace OpenMS
 
 			 @return true if the file could be loaded, false otherwise
 		*/
-		template <class FeatureType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, Type force_type = UNKNOWN)
+		template <class FeatureType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
 		{
-			Type type;
-			if (force_type != UNKNOWN)
+			FileTypes::Type type;
+			if (force_type != FileTypes::UNKNOWN)
 			{
 				type = force_type;
 			}
@@ -255,7 +235,7 @@ namespace OpenMS
 			//load right file
 			switch(type)
 			{
-				case FEATUREXML:
+				case FileTypes::FEATUREXML:
 					FeatureXMLFile().load(filename,map);
 					return true;
 					break;

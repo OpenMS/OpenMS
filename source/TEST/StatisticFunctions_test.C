@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -163,94 +163,94 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	v1.clear();
 	v2.clear();
 
-	v1.push_back(0.3716803);
-	v1.push_back(0.2778111);
-	v1.push_back(0.8152372);
-	v1.push_back(0.7715097);
-	v1.push_back(0.0163179);
-	v1.push_back(-0.4898738);
-	v1.push_back(-0.6060137);
-	v1.push_back(-0.8882970);
-	v1.push_back(0.2913591);
-	v1.push_back(-0.3661791);
-	v1.push_back(0.1320750);
-	v1.push_back(0.2637229);
-	v1.push_back(-0.7390226);
-	v1.push_back(-0.0395929);
-	v1.push_back(0.3387334);
-	v1.push_back(0.8598541);
-	v1.push_back(0.7388236);
-	v1.push_back(-0.5928083);
-	v1.push_back(0.9226006);
-	v1.push_back(-0.3571427);
+	v1.push_back(0.3716803f);
+	v1.push_back(0.2778111f);
+	v1.push_back(0.8152372f);
+	v1.push_back(0.7715097f);
+	v1.push_back(0.0163179f);
+	v1.push_back(-0.4898738f);
+	v1.push_back(-0.6060137f);
+	v1.push_back(-0.8882970f);
+	v1.push_back(0.2913591f);
+	v1.push_back(-0.3661791f);
+	v1.push_back(0.1320750f);
+	v1.push_back(0.2637229f);
+	v1.push_back(-0.7390226f);
+	v1.push_back(-0.0395929f);
+	v1.push_back(0.3387334f);
+	v1.push_back(0.8598541f);
+	v1.push_back(0.7388236f);
+	v1.push_back(-0.5928083f);
+	v1.push_back(0.9226006f);
+	v1.push_back(-0.3571427f);
 
-	v2.push_back(0.6396969);
-	v2.push_back(0.7942405);
-	v2.push_back(-0.6364473);
-	v2.push_back(-0.6845633);
-	v2.push_back(-0.6908862);
-	v2.push_back(-0.5034169);
-	v2.push_back(0.5745298);
-	v2.push_back(-0.1247591);
-	v2.push_back(-0.5129564);
-	v2.push_back(0.0745857);
-	v2.push_back(0.0733665);
-	v2.push_back(-0.0118882);
-	v2.push_back(0.1763471);
-	v2.push_back(0.1027599);
-	v2.push_back(-0.9737805);
-	v2.push_back(0.8747677);
-	v2.push_back(0.9479392);
-	v2.push_back(0.0843604);
-	v2.push_back(-0.3518961);
-	v2.push_back(-0.3034039);
+	v2.push_back(0.6396969f);
+	v2.push_back(0.7942405f);
+	v2.push_back(-0.6364473f);
+	v2.push_back(-0.6845633f);
+	v2.push_back(-0.6908862f);
+	v2.push_back(-0.5034169f);
+	v2.push_back(0.5745298f);
+	v2.push_back(-0.1247591f);
+	v2.push_back(-0.5129564f);
+	v2.push_back(0.0745857f);
+	v2.push_back(0.0733665f);
+	v2.push_back(-0.0118882f);
+	v2.push_back(0.1763471f);
+	v2.push_back(0.1027599f);
+	v2.push_back(-0.9737805f);
+	v2.push_back(0.8747677f);
+	v2.push_back(0.9479392f);
+	v2.push_back(0.0843604f);
+	v2.push_back(-0.3518961f);
+	v2.push_back(-0.3034039f);
 
 	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
 
 	v1.clear();
 	v2.clear();
 
-	v1.push_back(-0.1833341);
-	v1.push_back(0.6564449);
-	v1.push_back(0.8725039);
-	v1.push_back(0.3610921);
-	v1.push_back(0.7926144);
-	v1.push_back(0.1833341);
-	v1.push_back(-0.6564449);
-	v1.push_back(-0.4141061);
-	v1.push_back(-0.8725039);
-	v1.push_back(0.8269985);
-	v1.push_back(-0.5878715);
-	v1.push_back(-0.2950443);
-	v1.push_back(-0.3610921);
-	v1.push_back(-0.8269985);
-	v1.push_back(-0.0470327);
-	v1.push_back(0.4141061);
-	v1.push_back(0.0470327);
-	v1.push_back(0.2950443);
-	v1.push_back(-0.7926144);
-	v1.push_back(0.5878715);
+	v1.push_back(-0.1833341f);
+	v1.push_back(0.6564449f);
+	v1.push_back(0.8725039f);
+	v1.push_back(0.3610921f);
+	v1.push_back(0.7926144f);
+	v1.push_back(0.1833341f);
+	v1.push_back(-0.6564449f);
+	v1.push_back(-0.4141061f);
+	v1.push_back(-0.8725039f);
+	v1.push_back(0.8269985f);
+	v1.push_back(-0.5878715f);
+	v1.push_back(-0.2950443f);
+	v1.push_back(-0.3610921f);
+	v1.push_back(-0.8269985f);
+	v1.push_back(-0.0470327f);
+	v1.push_back(0.4141061f);
+	v1.push_back(0.0470327f);
+	v1.push_back(0.2950443f);
+	v1.push_back(-0.7926144f);
+	v1.push_back(0.5878715f);
 
-	v2.push_back(0.0336114);
-	v2.push_back(0.4309199);
-	v2.push_back(0.7612631);
-	v2.push_back(0.1303875);
-	v2.push_back(0.6282377);
-	v2.push_back(0.0336114);
-	v2.push_back(0.4309199);
-	v2.push_back(0.1714839);
-	v2.push_back(0.7612631);
-	v2.push_back(0.6839264);
-	v2.push_back(0.3455929);
-	v2.push_back(0.0870511);
-	v2.push_back(0.1303875);
-	v2.push_back(0.6839264);
-	v2.push_back(0.0022121);
-	v2.push_back(0.1714839);
-	v2.push_back(0.0022121);
-	v2.push_back(0.0870511);
-	v2.push_back(0.6282377);
-	v2.push_back(0.3455929);
+	v2.push_back(0.0336114f);
+	v2.push_back(0.4309199f);
+	v2.push_back(0.7612631f);
+	v2.push_back(0.1303875f);
+	v2.push_back(0.6282377f);
+	v2.push_back(0.0336114f);
+	v2.push_back(0.4309199f);
+	v2.push_back(0.1714839f);
+	v2.push_back(0.7612631f);
+	v2.push_back(0.6839264f);
+	v2.push_back(0.3455929f);
+	v2.push_back(0.0870511f);
+	v2.push_back(0.1303875f);
+	v2.push_back(0.6839264f);
+	v2.push_back(0.0022121f);
+	v2.push_back(0.1714839f);
+	v2.push_back(0.0022121f);
+	v2.push_back(0.0870511f);
+	v2.push_back(0.6282377f);
+	v2.push_back(0.3455929f);
 
 	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
 }

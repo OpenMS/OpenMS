@@ -28,8 +28,6 @@
 
 @page coding_conventions Coding conventions
 
-<CENTER>$Revision: 3631 $</CENTER>
-
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Formatting</H1>
 
 All %OpenMS files use a tab width of two. Use the command <TT>set tabstop=2</TT> in
@@ -690,8 +688,8 @@ NEW_TMP_FILE should be called. Otherwise only the last writen file is checked.
 
 <H3>Tools for testing and checking your code.</H3>
 
-There are also some PHP tools for testing other tasks in the <TT>source/config/tools/</TT> directory.
-See <TT>source/config/tools/README.txt</TT> for details!
+There are also some PHP tools for testing other tasks in the <TT>tools/</TT> directory.
+See <TT>tools/README.txt</TT> for details!
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Testing the TOPP programs</H2>
 

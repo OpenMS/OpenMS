@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-	vector<float> specc;
+	vector<DoubleReal> specc;
 	specc.push_back(178.1864);
 	specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -73,7 +73,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
 	ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-  vector<float> specc;
+  vector<DoubleReal> specc;
   specc.push_back(178.1864);
   specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -89,18 +89,18 @@ END_SECTION
 
 START_SECTION(virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
-	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('K','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('R','P'),0)
-	TEST_EQUAL(ptr->isDigestingEnd('K','P'),0)
-	TEST_EQUAL(ptr->isDigestingEnd('S','S'),0)
+	TEST_EQUAL(ptr->isDigestingEnd('R','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('K','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('R','P'),false)
+	TEST_EQUAL(ptr->isDigestingEnd('K','P'),false)
+	TEST_EQUAL(ptr->isDigestingEnd('S','S'),false)
 END_SECTION
 
 START_SECTION([EXTRA] FASTAEntry operator*())
-	vector<float> spec;
+	vector<DoubleReal> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
-	const vector<float> specc (spec);
+	const vector<DoubleReal> specc (spec);
 
 	ptr = new EdwardsLippertIteratorTryptic();
 	FastaIterator * fit = new FastaIterator();
@@ -110,7 +110,7 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 	fit->begin();
 	ptr->begin();
 	
-	float tol = 0.2;
+	DoubleReal tol = 0.2;
 	ptr->setTolerance(tol);
 	
 	while (!ptr->isAtEnd())

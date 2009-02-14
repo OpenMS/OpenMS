@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -120,15 +120,15 @@ namespace OpenMS
 		}
 
 		/// Non-mutable access to the quality in dimension c
-		QualityType getQuality( UInt index ) const
+		QualityType getQuality( Size index ) const
 		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(UInt): index overflow!" );
+			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(Size): index overflow!" );
 			return qualities_[ index ];
 		}
 		/// Set the quality in dimension c
-		void setQuality( UInt index, QualityType q )
+		void setQuality( Size index, QualityType q )
 		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(UInt): index overflow!" );
+			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(Size): index overflow!" );
 			qualities_[ index ] = q;
 		}
 

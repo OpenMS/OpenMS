@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -147,7 +147,7 @@ START_SECTION((String(double d)))
 	TEST_EQUAL(s,"17.012345")
 END_SECTION
 
-START_SECTION((String(long double d)))
+START_SECTION((String(long double ld)))
 	String s(17.012345L); // suffix L indicates long double
 	TEST_EQUAL(s,"17.012345")
 END_SECTION
@@ -156,6 +156,12 @@ START_SECTION((String(long long unsigned int i)))
 	String s((long long unsigned int)(12345678));
 	TEST_EQUAL(s,"12345678")
 END_SECTION
+
+START_SECTION(String(long long signed int i))
+	String s((long long signed int)(-12345678));
+	TEST_EQUAL(s,"-12345678")
+END_SECTION
+
 
 START_SECTION((static String numberLength(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
@@ -187,20 +193,20 @@ START_SECTION((template<class InputIterator> String(InputIterator first, InputIt
 	++i;++i;
 	--j;--j;
 	s2 = String(i,j);
-	TEST_EQUAL("CDEFGHIJKLMN",s2)
-	
+	TEST_EQUAL(s2,"CDEFGHIJKLMN")
+
 	//test cases where the begin is equal to the end
 	i = s.begin();
 	j = s.begin();
 	s2 = String(i,j);
 	TEST_EQUAL(s2,"")
-	TEST_EQUAL(s2.size(),0)
+	TEST_EQUAL(s2.size(),0U)
 
 	i = s.end();
 	j = s.end();
 	s2 = String(i,j);
 	TEST_EQUAL(s2,"")
-	TEST_EQUAL(s2.size(),0)
+	TEST_EQUAL(s2.size(),0U)
 END_SECTION
 
 String s("ACDEFGHIKLMNPQRSTVWY");
@@ -329,21 +335,21 @@ END_SECTION
 
 START_SECTION((String& trim()))
 	String s("\n\r\t test \n\r\t");
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"test");
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"test");
 	s = "";
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"");
 	s = " t";
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"t");
 	s = "t ";
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"t");
 	s = "\t\r\n ";
-	s.trim();	
+	s.trim();
 	TEST_EQUAL(s,"");
 END_SECTION
 
@@ -385,7 +391,7 @@ START_SECTION((String& fillRight(char c, UInt size)))
 	s.fillRight('y',5);
 	TEST_EQUAL(s,"TESTy")
 	s.fillRight('z',7);
-	TEST_EQUAL(s,"TESTyzz")	
+	TEST_EQUAL(s,"TESTyzz")
 END_SECTION
 
 START_SECTION((Int toInt() const))
@@ -397,11 +403,11 @@ START_SECTION((Int toInt() const))
 	s = "123.9";
 	TEST_EQUAL(s.toInt(),123);
 	s = "73629.00";
-	TEST_REAL_SIMILAR(s.toInt(),73629);
+	TEST_EQUAL(s.toInt(),73629);
 	s = "73629.50";
-	TEST_REAL_SIMILAR(s.toInt(),73629);
+	TEST_EQUAL(s.toInt(),73629);
 	s = "73629.99";
-	TEST_REAL_SIMILAR(s.toInt(),73629);
+	TEST_EQUAL(s.toInt(),73629);
 END_SECTION
 
 START_SECTION((Real toFloat() const))
@@ -452,7 +458,7 @@ START_SECTION((bool split(char splitter, std::vector<String>& substrings) const)
 	TEST_EQUAL(split[5],String("5"));
 	TEST_EQUAL(split[6],String(""));
 
-	
+
 	s = "1;2;3;4;5";
 	result = s.split(';', split);
 	TEST_EQUAL(result,true);
@@ -473,7 +479,7 @@ START_SECTION((bool split(char splitter, std::vector<String>& substrings) const)
 	result = s.split(',', split);
 	TEST_EQUAL(result,false);
 	TEST_EQUAL(split.size(),0);
-	
+
 
 END_SECTION
 
@@ -483,7 +489,7 @@ START_SECTION((template<class StringIterator> void concatenate(StringIterator fi
 	String s;
 	s.concatenate(split.begin(),split.end(),"g");
 	TEST_EQUAL(s,"1g2g3g4g5");
-	
+
 	String("1;2;3;4;5").split(';',split);
 	s.concatenate(split.begin(),split.end());
 	TEST_EQUAL(s,"12345");
@@ -491,7 +497,7 @@ START_SECTION((template<class StringIterator> void concatenate(StringIterator fi
 	String("").split(';',split);
 	s.concatenate(split.begin(),split.end());
 	TEST_EQUAL(s,"");
-	
+
 	s.concatenate(split.begin(),split.end(),"_");
 	TEST_EQUAL(s,"");
 END_SECTION
@@ -540,7 +546,7 @@ START_SECTION((String& substitute(char from, char to)))
 
 	s.substitute('c','-');
 	TEST_EQUAL(s,"xb-defy")
-	
+
 	s = ".....";
 	s.substitute('.',',');
 	TEST_EQUAL(s,",,,,,")
@@ -571,7 +577,7 @@ START_SECTION((String& substitute(const String& from, const String& to)))
 
 	s.substitute("","blblblblbl");
 	TEST_EQUAL(s,"xyz!")
-	
+
 	//mutiple occurences
 	s = "abcdefgabcdefgabcdefgab";
 	s.substitute("ab","x");
@@ -586,10 +592,10 @@ START_SECTION((String& remove(char what)))
 
 	s.remove('a');
 	TEST_EQUAL(s, "bcbc");
-	
+
 	s.remove('c');
 	TEST_EQUAL(s, "bb");
-	
+
 	s.remove('b');
 	TEST_EQUAL(s, "");
 END_SECTION
@@ -597,30 +603,30 @@ END_SECTION
 START_SECTION((String& ensureLastChar(char end)))
 	String s = "/";
 	s.ensureLastChar('/');
-	TEST_EQUAL("/", s)
+	TEST_EQUAL(s, "/")
 
 	s.ensureLastChar('\\');
-	TEST_EQUAL("/\\", s)
+	TEST_EQUAL(s, "/\\")
 
 	s.ensureLastChar('\\');
-	TEST_EQUAL("/\\", s)
+	TEST_EQUAL(s, "/\\")
 
 	s.ensureLastChar('/');
-	TEST_EQUAL("/\\/", s)
+	TEST_EQUAL(s, "/\\/")
 END_SECTION
 
 START_SECTION((String& removeWhitespaces()))
 	String s;
-	
-	s.removeWhitespaces();	
+
+	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
-	
+
 	s = "\n\r\t test \n\r\t";
-	s.removeWhitespaces();	
+	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 
 	s = "\n\r\t te \n\r\tst \n\r\t";
-	s.removeWhitespaces();	
+	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 END_SECTION
 
@@ -663,7 +669,7 @@ START_SECTION((String operator+ (double d) const))
 	TEST_EQUAL(fixed + (double)(4), "test4")
 END_SECTION
 
-START_SECTION((String operator+ (long double d) const))
+START_SECTION((String operator+(long double ld) const ))
 	TEST_EQUAL(fixed + (long double)(4), "test4")
 END_SECTION
 

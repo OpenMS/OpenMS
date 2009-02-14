@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -142,9 +142,9 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UInt,Real> Spectrum2DWidget::createIntensityDistribution_() const
+	Histogram<> Spectrum2DWidget::createIntensityDistribution_() const
 	{
-		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
+		Histogram<> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 		
 		if (canvas_->getCurrentLayer().type==LayerData::DT_PEAK)
 		{
@@ -178,9 +178,9 @@ namespace OpenMS
 		return tmp;
 	}
 
-	Histogram<UInt, Real> Spectrum2DWidget::createMetaDistribution_(const String& name) const
+	Histogram<> Spectrum2DWidget::createMetaDistribution_(const String& name) const
 	{
-		Histogram<UInt,Real> tmp;
+		Histogram<> tmp;
 
 		if (canvas_->getCurrentLayer().type==LayerData::DT_PEAK)
 		{
@@ -325,7 +325,7 @@ namespace OpenMS
 			}
 			else
 			{
-				UInt feature_index = goto_dialog.getFeatureNumber();
+				Size feature_index = goto_dialog.getFeatureNumber();
 				///check if the feature index exists
 				if (feature_index>=canvas()->getCurrentLayer().features.size())
 				{

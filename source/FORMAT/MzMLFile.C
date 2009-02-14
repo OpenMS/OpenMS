@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 
@@ -55,7 +55,7 @@ namespace OpenMS
   }
 	
 	//reimplemented in order to handle index MzML
-	bool MzMLFile::isValid(const String& filename) 
+	bool MzMLFile::isValid(const String& filename, std::ostream& os) 
 	{
 		//determine if this is indexed mzML or not
 		bool indexed = false;
@@ -75,7 +75,7 @@ namespace OpenMS
 			current_location = File::find(schema_location_);
 		}
 		
-		return XMLValidator().isValid(filename,current_location);
+		return XMLValidator().isValid(filename,current_location,os);
 	}
 	
 	bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
@@ -86,10 +86,10 @@ namespace OpenMS
 		
 		//load cvs
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI",File::find("/CV/psi-ms.obo"));
+		cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
-		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
+		cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 		
 		//validate

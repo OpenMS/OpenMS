@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -77,13 +77,13 @@ START_SECTION(void resize(SizeType dimensionsize, Value value=Value()))
 }
 END_SECTION
 
-START_SECTION((SizeType dimensionsize() const ))
+START_SECTION((SizeType dimensionsize() const))
 {
 	TEST_EQUAL(dm2.dimensionsize(),5)
 }
 END_SECTION
 
-START_SECTION((void setValue(SizeType const i, SizeType const j, value_type value)))
+START_SECTION((void setValue(SizeType i, SizeType j, ValueType value)))
 {
 	dm.setValue(0,1,10);
 	dm.setValue(0,2,9);
@@ -103,7 +103,7 @@ START_SECTION((void setValue(SizeType const i, SizeType const j, value_type valu
 }
 END_SECTION
 
-START_SECTION((const value_type getValue(SizeType const i, SizeType const j) const ))
+START_SECTION((const ValueType getValue(SizeType i, SizeType j) const))
 {
 	TEST_EQUAL(dm.getValue(0,1),10)
 	TEST_EQUAL(dm.getValue(0,2),9)
@@ -118,7 +118,7 @@ START_SECTION((const value_type getValue(SizeType const i, SizeType const j) con
 }
 END_SECTION
 
-START_SECTION((value_type getValue(SizeType const i, SizeType const j)))
+START_SECTION((ValueType getValue(SizeType i, SizeType j)))
 {
 	TEST_EQUAL(dm.getValue(0,1),10)
 	TEST_EQUAL(dm.getValue(0,2),9)
@@ -140,7 +140,7 @@ START_SECTION((void clear()))
 }
 END_SECTION
 
-START_SECTION((void setValueQuick(SizeType const i, SizeType const j, value_type value)))
+START_SECTION((void setValueQuick(SizeType i, SizeType j, ValueType value)))
 {
 	dm.setValueQuick(0,1,1);
 	dm.setValueQuick(0,2,2);
@@ -165,7 +165,7 @@ START_SECTION((void setValueQuick(SizeType const i, SizeType const j, value_type
 }
 END_SECTION
 
-START_SECTION((const value_type operator()(SizeType const i, SizeType const j) const ))
+START_SECTION((const ValueType operator()(SizeType i, SizeType j) const))
 {
 	TEST_EQUAL(dm.getValue(0,1),dm(0,1))
 	TEST_EQUAL(dm.getValue(0,2),dm(0,2))
@@ -180,7 +180,7 @@ START_SECTION((const value_type operator()(SizeType const i, SizeType const j) c
 }
 END_SECTION
 
-START_SECTION((value_type operator()(SizeType const i, SizeType const j)))
+START_SECTION((ValueType operator()(SizeType i, SizeType j)))
 {
 	TEST_EQUAL(dm.getValue(0,1),dm(0,1))
 	TEST_EQUAL(dm.getValue(0,2),dm(0,2))
@@ -208,7 +208,7 @@ START_SECTION((void reduce(SizeType j)))
 }
 END_SECTION
 
-START_SECTION((std::pair<UInt,UInt> getMinElementCoordinates() ))
+START_SECTION((std::pair<UInt,UInt> getMinElementCoordinates() const))
 {
 	dm.updateMinElement();
 	pair<UInt,UInt> min = dm.getMinElementCoordinates();
@@ -229,7 +229,7 @@ END_SECTION
 
 DistanceMatrix<double> dm3(dm);
 
-START_SECTION(bool operator==(DistanceMatrix< Value > const &rhs) const)
+START_SECTION(bool operator==(DistanceMatrix< ValueType > const &rhs) const)
 {
 	TEST_EQUAL((dm==dm3),true)
 }

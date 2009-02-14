@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -33,14 +33,24 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 #include <algorithm>
 #include <cmath>
 #include <set>
 #include <fstream>
 namespace OpenMS
 {
-  
-  class PrecursorIonSelectionPreprocessing : public DefaultParamHandler
+	
+  /**
+		 @brief This class implements the database preprocessing needing for precursor ion selection.
+
+		 
+
+		 @htmlinclude OpenMS_PrecursorIonSelectionPreprocessing.parameters
+
+	*/
+  class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing : public DefaultParamHandler
   {
   public:
       PrecursorIonSelectionPreprocessing();
@@ -51,7 +61,7 @@ namespace OpenMS
 		
 		//const std::set<AASequence>& getSequences() const;
 
-		const std::map<String,std::vector<DoubleReal> >& getProtMasses();
+		const std::map<String,std::vector<DoubleReal> >& getProtMasses() const;
 
 
 		const std::vector<DoubleReal> & getMasses(String acc);
@@ -71,8 +81,6 @@ namespace OpenMS
 		
 		/**
 		 *	@brief Loads tryptric peptide masses of a given database.
-		 *	
-		 *	@param db_path Path to database file (fasta)
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing can't be found
 		 *	@throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
@@ -84,9 +92,9 @@ namespace OpenMS
 		DoubleReal getWeight(DoubleReal mass);
   protected:
 		/// saves the preprocessed db
-		void savePreprocessedDB_(String& path);
+		void savePreprocessedDB_(String db_path,String path);
 		/// loads the preprocessed db
-		void loadPreprocessedDB_(String& path);
+		void loadPreprocessedDB_(String path);
 
 		/// all tryptic masses of the distinct peptides in the database
 		std::vector<DoubleReal> masses_;
@@ -99,7 +107,7 @@ namespace OpenMS
 		/// counter for the bins
 		std::vector<UInt> counter_;
 		/// maximal relative frequency of a mass
-    DoubleReal f_max_;
+    UInt f_max_;
 
   };
 }

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -60,19 +60,19 @@ START_SECTION((AveragePosition(AveragePosition const &rhs)))
 	pos1[1] = 2.0;
 	pos1[2] = 3.0;
 	pos1[3] = 4.0;
-	
+
 	DPosition<4> pos2;
 	pos2[0] = 13.0;
 	pos2[1] = 10.0;
 	pos2[2] = 7.0;
 	pos2[3] = 4.0;
-	
+
 	AveragePosition<4> avg;
 	avg.add(pos1,6);
 	avg.add(pos2);
 
 	AveragePosition<4> avg_cpy = avg;
-	
+
 	TEST_REAL_SIMILAR(avg.getPosition()[0],avg_cpy.getPosition()[0]);
 	TEST_REAL_SIMILAR(avg.getPosition()[1],avg_cpy.getPosition()[1]);
 	TEST_REAL_SIMILAR(avg.getPosition()[2],avg_cpy.getPosition()[2]);
@@ -88,13 +88,13 @@ START_SECTION((PositionType const& getPosition() const))
 	pos1[1] = 2.0;
 	pos1[2] = 3.0;
 	pos1[3] = 4.0;
-	
+
 	DPosition<4> pos2;
 	pos2[0] = 13.0;
 	pos2[1] = 10.0;
 	pos2[2] = 7.0;
 	pos2[3] = 4.0;
-	
+
 	AveragePosition<4> avg;
 	avg.add(pos1,-1);
 	avg.add(pos2);
@@ -143,7 +143,7 @@ START_SECTION((void clear()))
 	TEST_EQUAL(avg.getPosition(),pos1);
 	TEST_REAL_SIMILAR(avg.getWeight(),2);
 	avg.clear();
-	TEST_EQUAL(avg.getPosition(),DPosition<4>::zero);
+	TEST_EQUAL(avg.getPosition(),DPosition<4>::zero());
 	TEST_EQUAL(avg.getWeight(),0);
 }
 END_SECTION

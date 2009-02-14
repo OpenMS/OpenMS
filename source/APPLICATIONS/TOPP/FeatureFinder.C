@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -48,7 +48,7 @@ using namespace std;
 	computes positions in rt and m/z dimension and a charge estimate
 	of each peptide.
 	
-	The algorithm identifies pronounced regions of raw data points around so-called <tt>seeds</tt>. 
+	The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>. 
   In the next step, we iteratively fit a model of the isotope profile and the retention time to
   these data points. Data points with a low probability under this model are removed from the
   feature region. The intensity of the feature is then given by the sum of the data points included
@@ -88,7 +88,7 @@ using namespace std;
 		</tr>
 	</table>
 	
-	For the @em picked_peak algorithm peak data is needed. In order to create peak data from raw data use the @ref TOPP_PeakPicker.
+	For the @em picked_peak algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
 	
 	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 

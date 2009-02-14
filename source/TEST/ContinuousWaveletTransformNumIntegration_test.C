@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,7 +66,7 @@ START_SECTION((template <typename InputPeakIterator> void transform(InputPeakIte
   
   transformer.init(scale,spacing);
   std::vector<Peak1D > raw_data(9);
-  raw_data[4].setIntensity(1);
+  raw_data[4].setIntensity(1.0f);
   transformer.transform(raw_data.begin(),raw_data.end(),1.);
   TEST_REAL_SIMILAR(transformer[4],0)
   TEST_REAL_SIMILAR(transformer.getWavelet()[0],1.)

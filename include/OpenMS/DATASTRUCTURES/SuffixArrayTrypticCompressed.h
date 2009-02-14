@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ public:
 	@throw Exception::InvalidValue if string does not start with empty string ($)
 	@throw FileNotFound is thrown if the given file was not found
 
-	The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of int pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
+	The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of SignedSize pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
 	*/
 	SuffixArrayTrypticCompressed(const String& st, const String& filename);
 
@@ -76,12 +76,12 @@ public:
 	@brief the function that will find all peptide candidates for a given spectrum
 	@param spec const reference of double vector describing the spectrum
 	@param candidates output parameter which contains the candidates of the masses given in spec
-	@return a vector of int pairs.
+	@return a vector of SignedSize pairs.
 	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
 	*/
-	void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, double > > >& candidates, const std::vector<double> & spec);
+	void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double > > >& candidates, const std::vector<double> & spec);
 
 	/**
 	@brief saves the suffix array to disc
@@ -148,13 +148,13 @@ public:
 	@brief setter for number of modifications
 	@param number_of_mods
 	*/
-	void setNumberOfModifications(unsigned int number_of_mods);
+	void setNumberOfModifications(Size number_of_mods);
 
 	/**
 	@brief getter for number of modifications
-	@return unsigned int describing number of modifications
+	@return unsigned SignedSize describing number of modifications
 	*/
-	unsigned int getNumberOfModifications ();
+	Size getNumberOfModifications ();
 
 	/**
 	@brief output for statistic
@@ -170,27 +170,27 @@ protected:
 
 	/**
 	@brief gets the index of the next sperator for a given index
-	@param p const int describing a position in the string
-	@return int with the index of the next occurence of the sperator or -1 if there is no more seperator
+	@param p const SignedSize describing a position in the string
+	@return SignedSize with the index of the next occurence of the sperator or -1 if there is no more seperator
 	*/
-	int getNextSep_(const int p) const;
+	SignedSize getNextSep_(const SignedSize p) const;
 
 	/**
 	@brief gets the lcp for two strings described as pairs of ints
 	@param last_point const pair of ints describing a substring
 	@param current_point const pair of ints describing a substring
-	@return int with the length of the lowest common prefix
+	@return SignedSize with the length of the lowest common prefix
 	*/
-	int getLCP_(const std::pair<int, int>& last_point, const std::pair<int, int>& current_point);
+	SignedSize getLCP_(const std::pair<SignedSize, SignedSize>& last_point, const std::pair<SignedSize, SignedSize>& current_point);
 
 	/**
 	@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
 	@param spec const reference to spectrum
 	@param m mass
-	@return int with the index of the first occurence
+	@return SignedSize with the index of the first occurence
 	@note requires that there is at least one occurence
 	*/
-	int findFirst_(const std::vector<double>& spec, double& m);
+	SignedSize findFirst_(const std::vector<double>& spec, double& m);
 
 	/**
 	@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
@@ -198,15 +198,15 @@ protected:
 	@param m mass
 	@param start start index
 	@param end end index
-	@return int with the index of the first occurence
+	@return SignedSize with the index of the first occurence
 	@note requires that there is at least one occurence
 	*/
-	int findFirst_(const std::vector<double>& spec, double& m, int start, int end);
+	SignedSize findFirst_(const std::vector<double>& spec, double& m, SignedSize start, SignedSize end);
 
 	/**
 	@brief treats the suffix array as a tree and parses the tree using postorder traversion. This is realised by a recursive algorithm.
-	@param start_index int describing the start index in indices_ vector
-	@param stop_index int describing the end index in indices_ vector
+	@param start_index SignedSize describing the start index in indices_ vector
+	@param stop_index SignedSize describing the end index in indices_ vector
 	@param depth at with depth the traversion is at the actual position
 	@param walked_in how many characters we have seen from root to actual position
 	@param edge_len how many characters we have seen from last node to actual position
@@ -215,37 +215,37 @@ protected:
 	@param leafe_depth will be filled with the depth of every leafe
 	@note intialize: walked_in=0, depth=1, edge_len=1
 	*/
-	void parseTree_(int start_index, int stop_index, int depth, int walked_in, int edge_len, std::vector<std::pair<int,int> >& out_number, std::vector<std::pair<int,int> >& edge_length, std::vector<int>& leafe_depth);
+	void parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, std::vector<std::pair<SignedSize,SignedSize> >& out_number, std::vector<std::pair<SignedSize,SignedSize> >& edge_length, std::vector<SignedSize>& leafe_depth);
 	
 	/**
 	@brief indicates if a node during traversal has more outgoings
-	@param start_index int describing the start index in indices_ vector
-	@param stop_index int describing the end index in indices_ vector
+	@param start_index SignedSize describing the start index in indices_ vector
+	@param stop_index SignedSize describing the end index in indices_ vector
 	@param walked_in how many characters we have seen from root to actual position
 	*/
-	bool hasMoreOutgoings_(int start_index, int stop_index, int walked_in);
+	bool hasMoreOutgoings_(SignedSize start_index, SignedSize stop_index, SignedSize walked_in);
 
 	const String& s_; ///< the string with which the suffix array is build
 
 	double tol_; ///< mass tolerance for finding candidates
 	
-	std::vector<std::pair<int,int> > indices_; ///< vector of pairs of ints describing all relevant sufices
+	std::vector<std::pair<SignedSize,SignedSize> > indices_; ///< vector of pairs of ints describing all relevant sufices
 
-	std::vector<int> lcp_; ///< vector of ints with lcp values
+	std::vector<SignedSize> lcp_; ///< vector of ints with lcp values
 
-	std::vector<int> skip_; ///< vector of ints with skip values
+	std::vector<SignedSize> skip_; ///< vector of ints with skip values
 
-	//const int getIndex_ (const String & s);
+	//const SignedSize getIndex_ (const String & s);
 
 	double masse_[256]; ///< mass table
 
-	int number_of_modifications_; ///< number of allowed modifications
+	Size number_of_modifications_; ///< number of allowed modifications
 
 	std::vector<String> tags_; ///< all given tags
 
 	bool use_tags_ ; ///< indicates whether tags are used or not
 
-	int progress_;
+	SignedSize progress_;
 };
 }
 

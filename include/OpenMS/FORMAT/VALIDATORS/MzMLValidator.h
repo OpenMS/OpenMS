@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZMLVALIDATOR_H
-#define OPENMS_FORMAT_MZMLVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
@@ -63,7 +63,10 @@ namespace OpenMS
 
 				// Docu in base class
 				virtual String getPath_(UInt remove_from_end = 0) const;
-
+				
+				// Docu in base class
+				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
+				
 				///CV terms which can have a value (term => value type)
 				Map<String,std::vector<CVTerm> > param_groups_;
 				
@@ -87,4 +90,5 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZMLVALIDATOR_H
+#endif
+

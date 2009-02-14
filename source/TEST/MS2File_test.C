@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -37,7 +38,7 @@ using namespace std;
 ///////////////////////////
 ///////////////////////////
 
-START_TEST(MS2File, "$Id: $")
+START_TEST(MS2File, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -55,14 +56,14 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
+START_SECTION((template <typename MapType> void load(const String& filename, MapType& exp)))
 	MS2File file;
 	PeakMap exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"), exp);
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"));
-	TEST_STRING_EQUAL(exp.getLoadedFileType(),"ms2");
+	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"ms2");
 
 	TEST_EQUAL(exp.size(), 2)
 

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #define OPENMS_DATASTRUCTURES_DOUBLELIST_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 #ifdef OPENMS_COMPILER_MSVC
@@ -77,6 +78,8 @@ namespace OpenMS
 
 			/// Returns a list that is created by splitting the given comma-separated string (String are not trimmed!)
 			static DoubleList create(const String& list);
+			///Returns a list that is created by converting every string element of the given StringList
+			static DoubleList create(const StringList& list);
 			/// Returns if a string is contains in the list
 			bool contains(DoubleReal s) const;
 			

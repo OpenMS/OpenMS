@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,34 +37,34 @@ namespace OpenMS
 {
 
 /**
-@brief comperator for two floats with a tolerance value
+@brief comperator for two DoubleReals with a tolerance value
 */
-struct FloatsWithTolLess : public binary_function<float , float, bool>
+struct FloatsWithTolLess : public binary_function<DoubleReal , DoubleReal, bool>
 {
 	/**
 	@brief constructor
 	@param t const reference to the tolerance
 	*/
-	FloatsWithTolLess(const float & t) : tol_(t) {}
+	FloatsWithTolLess(const DoubleReal & t) : tol_(t) {}
 	/**
 	@brief copy constructor
 	*/
 	FloatsWithTolLess(const FloatsWithTolLess & rhs ) : tol_(rhs.tol_) {}
 	
 	/**
-	@brief implementation of the '<' operator for two floats with the tolerance value
-	@param f1 first float
-	@param f2 second float
-	@return true if first float '<' second float-tolerance
+	@brief implementation of the '<' operator for two DoubleReals with the tolerance value
+	@param f1 first DoubleReal
+	@param f2 second DoubleReal
+	@return true if first DoubleReal '<' second DoubleReal-tolerance
 	*/
-	bool operator()( float f1, float f2) const
+	bool operator()( DoubleReal f1, DoubleReal f2) const
 	
 	{
 		return (f1<(f2-tol_));
 	}
 
 	protected:
-	float const & tol_; ///< tolerance value
+	DoubleReal const & tol_; ///< tolerance value
 };
 
 
@@ -163,7 +163,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return old;
 	}	
 
-	void EdwardsLippertIterator::setTolerance (float t)
+	void EdwardsLippertIterator::setTolerance (DoubleReal t)
 	{
 		if (t<0)
 		{
@@ -172,12 +172,12 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		tol_ = t;
 	}
 
-	float EdwardsLippertIterator::getTolerance ()
+	DoubleReal EdwardsLippertIterator::getTolerance ()
 	{
 		return (tol_);
 	}
 	
-	void EdwardsLippertIterator::setSpectrum (const vector<float> & s)
+	void EdwardsLippertIterator::setSpectrum (const vector<DoubleReal> & s)
 	{
 		//check if spectrum is sorted
 		for (Size i = 1; i < s.size();++i)
@@ -191,7 +191,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		massMax_ = spec_.back();
 	}
 
-	const vector<float> & EdwardsLippertIterator::getSpectrum ()
+	const vector<DoubleReal> & EdwardsLippertIterator::getSpectrum ()
 	{
 		return (spec_);
 	}
@@ -281,7 +281,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	
 	bool EdwardsLippertIterator::hasNext_ ()
 	{
-		float mold = m_;
+		DoubleReal mold = m_;
 		unsigned int bold = b_;
 		unsigned int eold = e_;
 		string res = next_();
@@ -319,7 +319,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	}
 		
 	
-	bool EdwardsLippertIterator::isInSpectrum_ (float & mass)
+	bool EdwardsLippertIterator::isInSpectrum_ (DoubleReal & mass)
 	{
 		return (binary_search(spec_.begin(),spec_.end(),mass,FloatsWithTolLess(tol_)));
 	}

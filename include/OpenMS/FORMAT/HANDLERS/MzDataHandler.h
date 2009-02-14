@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -173,7 +173,7 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 			
 			// Docu in base class
-      virtual void characters(const XMLCh* const chars, const unsigned int length);
+      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
   		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
@@ -326,7 +326,7 @@ namespace OpenMS
 			
 				The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
 			*/
-			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& name="", Int id=-1)
+			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& name="", SignedSize id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (tag=="supDataArrayBinary" || tag=="supDataArray")
@@ -353,7 +353,7 @@ namespace OpenMS
 		//--------------------------------------------------------------------------------
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
+		void MzDataHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 		{
 			// skip current spectrum
 			if (skip_spectrum_) return;
@@ -637,7 +637,7 @@ namespace OpenMS
 			else if (tag=="acquisition")
 			{
 				spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
-				spec_.getAcquisitionInfo().back().setNumber(attributeAsInt_(attributes, s_acqnumber));
+				spec_.getAcquisitionInfo().back().setIdentifier(attributeAsString_(attributes, s_acqnumber));
 			}
 			else if (tag=="spectrumInstrument" || tag=="acqInstrument")
 			{
@@ -735,7 +735,7 @@ namespace OpenMS
 			// vector of base64-encoded strings:
 			// Each string represents one property (e.g. mzData) and decodes
 			// to a vector of property values - one value for every peak in the spectrum.
-			for (Size i=0; i<data_to_decode_.size(); i++)
+			for (Size i=0; i<data_to_decode_.size(); ++i)
 			{
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
@@ -798,7 +798,7 @@ namespace OpenMS
 				}
 				
 				//push_back the peaks into the container				
-				for (Size n = 0 ; n < peak_count_ ; n++)
+				for (Size n = 0 ; n < peak_count_ ; ++n)
 				{
 					DoubleReal mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
 					DoubleReal intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
@@ -1048,7 +1048,7 @@ namespace OpenMS
 					warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
 				}
 				//Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-				Map<UInt,UInt> level_id; 
+				Map<Int,Size> level_id; 
 				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
 				for (Size s=0; s<cexp_->size(); ++s)
@@ -1056,7 +1056,7 @@ namespace OpenMS
 					logger_.setProgress(s);
 					const SpectrumType& spec = (*cexp_)[s];
 					
-					UInt spectrum_id = s+1;
+					Size spectrum_id = s+1;
 					if (all_prefixed_numbers)
 					{
 						spectrum_id = spec.getNativeID().substr(9).toInt();
@@ -1086,7 +1086,17 @@ namespace OpenMS
 						for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
 							const Acquisition& ac = spec.getAcquisitionInfo()[i];
-							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
+							Int acq_number;
+							try
+							{
+								acq_number =  ac.getIdentifier().toInt();
+							}
+							catch(...)
+							{
+								warning(STORE, String("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
+								acq_number = 0;
+							}
+							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << acq_number << "\">\n";
 							writeUserParam_(os, ac, 7);
 							os << "\t\t\t\t\t\t</acquisition>\n";
 						}
@@ -1113,11 +1123,15 @@ namespace OpenMS
 						case InstrumentSettings::UNKNOWN:
 							//do nothing here
 							break;
-						case InstrumentSettings::FULL:
-							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
-							break;
-						case InstrumentSettings::ZOOM:
-							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
+						case InstrumentSettings::MASSSPECTRUM:
+							if (iset.getZoomScan())
+							{
+								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
+							}
+							else
+							{
+								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
+							}
 							break;
 						case InstrumentSettings::SIM:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedIonDetection\"/>\n";
@@ -1137,7 +1151,7 @@ namespace OpenMS
 						case InstrumentSettings::PRECURSOR:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
 							break;
-						case InstrumentSettings::PDA:
+						case InstrumentSettings::ABSORBTION:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
 							break;
 						case InstrumentSettings::EMC:
@@ -1160,8 +1174,8 @@ namespace OpenMS
 					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
 					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
 					{
-						UInt precursor_ms_level = spec.getMSLevel()-1;
-						UInt precursor_id = -1;
+						Int precursor_ms_level = spec.getMSLevel()-1;
+						SignedSize precursor_id = -1;
 						if (level_id.has(precursor_ms_level))
 						{
 							precursor_id = level_id[precursor_ms_level];
@@ -1312,11 +1326,12 @@ namespace OpenMS
 				{
 					if (value=="Zoom")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+						spec_.getInstrumentSettings().setZoomScan(true);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else if (value=="MassScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else if (value=="SelectedIonDetection")
 					{
@@ -1340,7 +1355,7 @@ namespace OpenMS
 					}
 					else if (value=="ProductIonScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 						spec_.setMSLevel(2);
 					}
 					else if (value=="PrecursorIonScan")
@@ -1349,11 +1364,12 @@ namespace OpenMS
 					}
 					else if (value=="EnhancedResolutionScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+						spec_.getInstrumentSettings().setZoomScan(true);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 						warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
 					}
 				}
@@ -1573,6 +1589,10 @@ namespace OpenMS
 				{
 					exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asDouble_(value) );
 				}
+				else if (accession=="PSI:1000017")
+				{
+					//ignored
+				}
 				else 
 				{
 					error = "AnalyzerList.Analyzer.UserParam";
@@ -1611,6 +1631,10 @@ namespace OpenMS
 				{
 					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
+				else if (accession=="PSI:1000035")
+				{
+					//ignored
+				}
 				else 
 				{
 					error = "DataProcessing.DataProcessing.UserParam";
@@ -1618,12 +1642,12 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + ", value=\"" + value + "\" in tag " + parent_tag);
+				warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
 			}
 
 			if (error != "")
 			{
-				warning(LOAD, String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\" in " + error);
+				warning(LOAD, String("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
 			}
 			//std::cout << "End of MzDataHander::cvParam_" << std::endl;
 		}

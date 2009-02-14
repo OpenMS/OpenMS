@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -162,9 +162,9 @@ namespace OpenMS
 			/// Sets the peptide and protein hits
 	    void setHits(const std::vector<ProteinHit>& hits); 
 			/// returns the peptide significance threshold value
-	    Real getSignificanceThreshold() const;
+	    DoubleReal getSignificanceThreshold() const;
 			/// setting of the peptide significance threshold value
-			void setSignificanceThreshold(Real value);
+			void setSignificanceThreshold(DoubleReal value);
 	    /// returns the protein score type
 	    const String& getScoreType() const;   
 	    /// sets the protein score type
@@ -219,7 +219,7 @@ namespace OpenMS
 	    String protein_score_type_;   
 			bool higher_score_better_;
 		  std::vector<ProteinHit> protein_hits_; 
-			Real protein_significance_threshold_;
+			DoubleReal protein_significance_threshold_;
 	    //@}
   };
 

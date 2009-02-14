@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -44,14 +44,16 @@
 namespace OpenMS
 {
   /** 
-		@brief FeatureFinderAlgorithm implementation using the Watershed Segmentation.
+		@brief Feature detecton algorithm based on watershed segmentation.
     
     The watershed segmentation algorithm is based on the paper:
     @n Watersheds in digital spaces: an efficient algorithm based onimmersion simulations
     @n Vincent, L.   Soille, P.  
 		@n IEEE Transactions on Pattern Analysis and Machine Intelligence, 1991, 13 (6), 583-598
-    
+
     @experimental Currently only the watershed segmentation is returned, not real features!
+
+    @htmlinclude OpenMS_FeatureFinderAlgorithmWatershed.parameters
     
     @ingroup FeatureFinder
 	*/
@@ -69,8 +71,8 @@ namespace OpenMS
 			/// Internal respresentation of (resampled) data points
       struct GridPoint
       {
-        UInt spectrum;
-        UInt peak;
+        Size spectrum;
+        Size peak;
         UInt intensity;
         UInt distance;
         Int flag;
@@ -296,7 +298,8 @@ namespace OpenMS
             for (Size n = 0; n < neighbors.size(); ++n)
             {
               GridPoint* neighbor = neighbors[n];
-              if (((neighbor->flag == WATERSHED) || (neighbor->flag > 0)) && (neighbor->distance < current_dist))
+							UInt distance = neighbor->distance;
+              if (((neighbor->flag == WATERSHED) || (neighbor->flag > 0)) && (distance < current_dist))
               {
                 if (neighbor->flag > 0)
                 {
@@ -314,7 +317,7 @@ namespace OpenMS
                   current_point->flag = WATERSHED; 
                 }          
               }
-              else if (neighbor->flag == MASK && neighbor->distance == 0)
+              else if (neighbor->flag == MASK && distance == 0)
               {
                 neighbor->distance = current_dist + 1;
                 fifo_.push_back(neighbor);

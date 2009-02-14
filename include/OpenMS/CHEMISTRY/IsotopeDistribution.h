@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ namespace OpenMS
 			/// @name typedefs
 			//@{
 			/// container type, first holds the weight of the isotope, second the probability
-			typedef std::vector<std::pair<UInt, double> > ContainerType;
+			typedef std::vector<std::pair<Size, double> > ContainerType;
 			typedef ContainerType::iterator iterator;
 			typedef ContainerType::iterator Iterator;
 			typedef ContainerType::const_iterator const_iterator;
@@ -67,12 +67,12 @@ namespace OpenMS
 			/// @name Constructors and Destructors
 			//@{
 			/** Default constructor, note max_isotope must be set later 
-					@see setMaxIsotope(UInt max_isotope)
+					@see setMaxIsotope(Size max_isotope)
 			*/
 			IsotopeDistribution();
 
 			/// Detailed constructor which sets the @p max_isotope
-			IsotopeDistribution(UInt max_isotope);
+			IsotopeDistribution(Size max_isotope);
 
 			/// Copy constructor
 			IsotopeDistribution(const IsotopeDistribution& isotope_distribution);
@@ -89,10 +89,10 @@ namespace OpenMS
 					and used to limit the calculations. This is useful as distributions
 					with numerous isotopes tend to have a lot of numerical zeros at the end
 			*/
-			void setMaxIsotope(UInt max_isotope);
+			void setMaxIsotope(Size max_isotope);
 			
 			/// returns the currently set maximum isotope
-			UInt getMaxIsotope() const;
+			Size getMaxIsotope() const;
 
 			/// overwrites the container which holds the distribution using @p distribution
 			void set(const ContainerType& distribution);
@@ -101,10 +101,10 @@ namespace OpenMS
 			const ContainerType& getContainer() const;
 
 			/// returns the maximal weight isotope which is stored in the distribution
-			UInt getMax() const;
+			Size getMax() const;
 
 			/// returns the minimal weight isotope which is stored in the distribution
-			UInt getMin() const;
+			Size getMin() const;
 
 			/// returns the size of the distribtion which is the number of isotopes in the distribution
 			Size size() const;
@@ -160,10 +160,10 @@ namespace OpenMS
 			IsotopeDistribution& operator += (const IsotopeDistribution& isotope_distribution);
 
 			/// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+')
-			IsotopeDistribution operator * (UInt factor) const;
+			IsotopeDistribution operator * (Size factor) const;
 
 			/// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
-			IsotopeDistribution& operator *= (UInt factor);
+			IsotopeDistribution& operator *= (Size factor);
 
 			/// equality operator, returns true if the @p isotope_distribution is identical to this, false else
 			bool operator == (const IsotopeDistribution& isotope_distribution) const;
@@ -189,13 +189,13 @@ namespace OpenMS
 			void convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const;
 
 			/// convolves the distribution @p input @p factor times and stores the result in @p result
-			void convolvePow_(ContainerType& result, const ContainerType& input, UInt factor) const;
+			void convolvePow_(ContainerType& result, const ContainerType& input, Size factor) const;
 
 			/// convolves the distribution @p input with itself and stores the result in @p result
 			void convolveSquare_(ContainerType& result, const ContainerType& input) const;
 
 			/// maximal isotopes which is used to calculate the distribution
-			UInt max_isotope_;
+			Size max_isotope_;
 
 			/// stores the isotope distribution
 			ContainerType distribution_;

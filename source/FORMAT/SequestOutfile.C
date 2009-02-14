@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ namespace OpenMS
 		vector<String> substrings;
 		
 		// map the protein hits according to their accession number in the result file
-		map<String, UInt> ac_position_map;
+		map<String, Size> ac_position_map;
 		
 		// get the protein hits that have already been found in another out-file
 		vector<ProteinHit> protein_hits = protein_identification.getHits();
@@ -96,7 +96,7 @@ namespace OpenMS
 		
 		DateTime datetime;
 		Real precursor_mz_value(0.0);
-		UInt
+		Size
 			precursor_mass_type(0),
 			ion_mass_type(0),
 			number_of_columns(0),
@@ -318,8 +318,8 @@ namespace OpenMS
 	SequestOutfile::getColumns(
 		const String& line,
 		vector<String>& substrings,
-		UInt number_of_columns,
-		UInt reference_column)
+		Size number_of_columns,
+		Size reference_column)
 	{
 		String buffer;
 
@@ -385,10 +385,10 @@ namespace OpenMS
 	void
 	SequestOutfile::getSequences(
 		const String& database_filename,
-		const map<String, UInt>& ac_position_map,
+		const map<String, Size>& ac_position_map,
 		vector<String>& sequences,
-		vector<pair<String, UInt> >& found,
-		map<String, UInt>& not_found)
+		vector<pair<String, Size> >& found,
+		map<String, Size>& not_found)
 	{	
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
@@ -398,7 +398,7 @@ namespace OpenMS
 		
 		String line, accession, accession_type, sequence;
 		not_found = ac_position_map;
-		map<String, UInt>::iterator nf_i = not_found.end();
+		map<String, Size>::iterator nf_i = not_found.end();
 		while (getline(database_file, line) && !not_found.empty())
 		{
 			if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
@@ -569,9 +569,9 @@ namespace OpenMS
 		DateTime& datetime,
 		Real& precursor_mz_value,
 		Int& charge,
-		UInt& precursor_mass_type,
-		UInt& ion_mass_type,
-		UInt& displayed_peptides,
+		Size& precursor_mass_type,
+		Size& ion_mass_type,
+		Size& displayed_peptides,
 		String& sequest,
 		String& sequest_version,
 		String& database_type,
@@ -588,7 +588,7 @@ namespace OpenMS
 		Int& reference_column,
 		Int& peptide_column,
 		Int& score_column,
-		UInt& number_of_columns)
+		Size& number_of_columns)
 	{
 		charge = 0;
 		precursor_mz_value = 0.0;
@@ -833,7 +833,7 @@ namespace OpenMS
 // 			rank_sp,
 // 			delta_mass;
 // 
-// 		UInt
+// 		Size
 // 			precursor_mass_type(0),
 // 			ion_mass_type(0),
 // 			number_of_columns(0),
@@ -872,7 +872,7 @@ namespace OpenMS
 // 			
 // // 		map< String, vector< Real > > out_filenames_and_discriminant_scores;
 // 		vector< vector< Real > > discriminant_scores;
-// 		map< Real, UInt > discriminant_scores_histogram;
+// 		map< Real, Size > discriminant_scores_histogram;
 // 			
 // 		for ( vector< pair < String, vector< Real > > >::const_iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i )
 // 		{
@@ -899,7 +899,7 @@ namespace OpenMS
 // 			}
 // 			
 // 			// needed: XCorr, peptide length, delta Cn, rankSp, delta Mass
-// 			for ( UInt viewed_peptides = 0 ; viewed_peptides < displayed_peptides; )
+// 			for ( Size viewed_peptides = 0 ; viewed_peptides < displayed_peptides; )
 // 			{
 // 				if ( !getline(out_file, line) ) break; // if fewer peptides were found than may be displayed, break
 // 				++line_number;
@@ -940,7 +940,7 @@ namespace OpenMS
 // 				if ( substrings[reference_column].find_last_of('+') != String::npos )
 // 				{
 // 					proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
-// 					for ( UInt prot = 0; prot < proteins_per_peptide; ++prot ) getline(out_file, line);
+// 					for ( Size prot = 0; prot < proteins_per_peptide; ++prot ) getline(out_file, line);
 // 					line_number += proteins_per_peptide;
 // 				}
 // 			}
@@ -1000,7 +1000,7 @@ namespace OpenMS
 	Real SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
 	Real SequestOutfile::rank_sp_weights_[] = {-0.455f, -0.194f, -0.201f};
 	Real SequestOutfile::delta_mass_weights_[] =  {-0.84f, -0.314f, -0.277f};
-	UInt SequestOutfile::max_pep_lens_[] = {100, 15, 25};
-	UInt SequestOutfile::num_frags_[] = {2, 2, 4};
+	Size SequestOutfile::max_pep_lens_[] = {100, 15, 25};
+	Size SequestOutfile::num_frags_[] = {2, 2, 4};
 } //namespace OpenMS
 

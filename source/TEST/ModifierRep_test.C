@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -63,14 +63,14 @@ START_SECTION(ModifierRep(const ModifierRep &source))
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(UInt i))
+START_SECTION(void setNumberOfModifications(Size i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifications() const )
+START_SECTION(Size getNumberOfModifications() const )
 	ptr = new ModifierRep();
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
@@ -120,11 +120,11 @@ START_SECTION(const std::vector<std::vector<double> >& getModificationTable())
 	}*/
 END_SECTION
 
-START_SECTION(UInt getMaxModificationMasses())
+START_SECTION(Size getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
-	std::set<float> mod_masses_set;
+	std::set<double> mod_masses_set;
 	for (Size i = 0; i < mod_table.size();++i)
 	{
 		for (Size j = 0; j < mod_table.at(i).size();++j)
@@ -136,7 +136,7 @@ START_SECTION(UInt getMaxModificationMasses())
 	TEST_EQUAL(mod_masses_set.size(),ptr->getMaxModificationMasses());
 END_SECTION
 
-START_SECTION(void refreshModificationList(std::map< double, int > &mod_map, const char &c))
+START_SECTION(void refreshModificationList(std::map< double, SignedSize > &mod_map, const char &c))
 				/*
 	ptr = new ModifierRep();
 	std::map<double,int> mods;
@@ -184,7 +184,7 @@ START_SECTION(std::vector<String> getModificationsForMass(double &m))
 					//std::cout<<" f:"<<res.at(k)<<",";
 					if (res.at(k)==tupel||res.at(k)==tupel_changed) found = true;
 				}
-				TEST_EQUAL (found,1);
+				TEST_EQUAL (found, true);
 			}
 		}
 	}

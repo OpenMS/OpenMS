@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -242,7 +242,7 @@ START_SECTION((std::pair<UInt,UInt> sizePair() const))
 }
 END_SECTION
 
-START_SECTION((bool operator == ( Matrix const & rhs ) const throw (Exception::Precondition)))
+START_SECTION((bool operator==(Matrix const &rhs) const))
 {
 	Matrix<int> mi1(4,5,6);
 	mi1(2,3)=17;
@@ -260,7 +260,7 @@ START_SECTION((bool operator == ( Matrix const & rhs ) const throw (Exception::P
 }
 END_SECTION
 
-START_SECTION((bool operator < ( Matrix const & rhs ) const throw (Exception::Precondition)))
+START_SECTION((bool operator<(Matrix const &rhs) const))
 {
 	Matrix<int> mi1(4,5,6);
 	TEST_EQUAL(mi1<mi1,false);
@@ -281,15 +281,15 @@ START_SECTION((bool operator < ( Matrix const & rhs ) const throw (Exception::Pr
 }
 END_SECTION
 
-START_SECTION((template <int ROWS, int COLS> void setMatrix (const ValueType matrix[ROWS][COLS])))
+START_SECTION((template <int ROWS, int COLS> void setMatrix(const ValueType matrix[ROWS][COLS])))
 {
 	double test_matrix[4][4] = {
-		{0, 2.5,   3, 0.1},		
+		{0, 2.5,   3, 0.1},
 		{0,   1, 5.9, 0.2},
 		{0,   2, 5.6, 0.1},
-		{0,   2,   3, 0.1}	
+		{0,   2,   3, 0.1}
 	};
-	
+
 	Matrix<double> myMatrix;
 	myMatrix.setMatrix<4,4>(test_matrix);
 	for (size_t i=0;i<4;++i)
@@ -298,13 +298,12 @@ START_SECTION((template <int ROWS, int COLS> void setMatrix (const ValueType mat
 		{
 			TEST_EQUAL( myMatrix(i,j), test_matrix[i][j] )
 		}
-	}	
+	}
 
 }
 END_SECTION
 
-
-START_SECTION((gsl_matrix* Matrix<double>::toGslMatrix()))
+START_SECTION((gsl_matrix * toGslMatrix()))
 {
 	Matrix<double> mi(2,3,6);
 	mi(1,2)=112;
@@ -323,7 +322,7 @@ START_SECTION((gsl_matrix* Matrix<double>::toGslMatrix()))
 }
 END_SECTION
 
-START_SECTION((template <typename Value> std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
+START_SECTION((template <typename  Value > std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
 {
 	Matrix<int> mi(2,3,6);
 	mi(1,2)=112;

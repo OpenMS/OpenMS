@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 namespace OpenMS
 {
 	
-	FeatureHandle::FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point)
+	FeatureHandle::FeatureHandle(Size map_index, Size element_index, const ConsensusFeature& point)
 		: Peak2D(point),
 			map_index_(map_index),
 			element_index_(element_index),

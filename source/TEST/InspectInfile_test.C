@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -320,22 +320,22 @@ END_SECTION
 
 
 START_SECTION(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
-	file.setPrecursorMassTolerance(1.3);
-	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3)
+	file.setPrecursorMassTolerance(1.3f);
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3f)
 END_SECTION
 
 START_SECTION((Real getPrecursorMassTolerance() const))
-	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3)
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3f)
 END_SECTION
 
 
 START_SECTION(void setPeakMassTolerance(Real peak_mass_tolerance))
-	file.setPeakMassTolerance(0.3);
-	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3)
+	file.setPeakMassTolerance(0.3f);
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3f)
 END_SECTION
 
 START_SECTION((Real getPeakMassTolerance() const))
-	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3)
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3f)
 END_SECTION
 
 

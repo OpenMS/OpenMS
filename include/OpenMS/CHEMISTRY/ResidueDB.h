@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -94,9 +94,9 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns the number of residues stored
-			UInt getNumberOfResidues() const;
+			Size getNumberOfResidues() const;
 
-			UInt getNumberOfModifiedResidues() const;
+			Size getNumberOfModifiedResidues() const;
 			
 			/// returns a pointer to the residue with name, 3 letter code or 1 letter code name
 			const Residue* getResidue(const String& name) const;

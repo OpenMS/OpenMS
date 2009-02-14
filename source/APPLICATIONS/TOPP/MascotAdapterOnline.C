@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/MascotInfile2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
@@ -59,9 +60,11 @@ using namespace std;
 
 /**
 	@page TOPP_MascotAdapterOnline MascotAdapterOnline
-	
+
 	@brief Identifies peptides in MS/MS spectra via Mascot.
-	
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
 
@@ -81,9 +84,9 @@ class TOPPMascotAdapterOnline
 			: TOPPBase("MascotAdapterOnline","Annotates MS/MS spectra using Mascot.")
 		{
 		}
-	
+
 	protected:
-		
+
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
@@ -112,7 +115,7 @@ class TOPPMascotAdapterOnline
       return Param();
     }
 
-		
+
 		ExitCodes main_(int argc, const char** argv)
 		{
 			//-------------------------------------------------------------
@@ -122,7 +125,7 @@ class TOPPMascotAdapterOnline
       //input/output files
 			String in(getStringOption_("in")), out(getStringOption_("out"));
 			FileHandler fh;
-			FileHandler::Type in_type = fh.getType(in);
+			FileTypes::Type in_type = fh.getType(in);
 
       //-------------------------------------------------------------
       // loading input
@@ -130,7 +133,7 @@ class TOPPMascotAdapterOnline
 
 			PeakMap exp;
 			fh.loadExperiment(in, exp, in_type, log_type_);
-		
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -138,13 +141,13 @@ class TOPPMascotAdapterOnline
 			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
       MascotInfile2 mascot_infile;
 			mascot_infile.setParameters(mascot_param);
-		
+
 			// get the spectra into string stream
 			stringstream ss;
 			mascot_infile.store(ss, in, exp);
-		
-			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the 
-			// QEventLoop to process the signals and slots and grab the results afterwards from 
+
+			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
+			// QEventLoop to process the signals and slots and grab the results afterwards from
 			// the MascotRemotQuery instance
 			char** argv2 = const_cast<char**>(argv);
 			QCoreApplication event_loop(argc, argv2);
@@ -155,13 +158,21 @@ class TOPPMascotAdapterOnline
 
 			// remove unnecessary spectra
 			ss.clear();
-			
+
 		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
 			QTimer::singleShot(1000, mascot_query, SLOT(run()));
 			event_loop.exec();
-		
+
+			if (mascot_query->hasError())
+			{
+				writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
+				delete mascot_query;
+				return EXTERNAL_PROGRAM_ERROR;
+			}
+
 			// write Mascot response to file
-			String mascot_tmp_file_name("mascot_tmp_file");
+			String unique_name = File::getUniqueName(); // body for the tmp files
+			String mascot_tmp_file_name(unique_name + "_Mascot_response");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
 			mascot_tmp_file.open(QIODevice::WriteOnly);
 			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
@@ -170,7 +181,6 @@ class TOPPMascotAdapterOnline
 			// clean up
 			delete mascot_query;
 
-
 			vector<PeptideIdentification> pep_ids;
 			ProteinIdentification prot_id;
 
@@ -178,13 +188,13 @@ class TOPPMascotAdapterOnline
 			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
 
 			// delete file
-			//mascot_tmp_file.remove();
+			mascot_tmp_file.remove();
 
 			vector<ProteinIdentification> prot_ids;
 			prot_ids.push_back(prot_id);
 
 			writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications", 5);
-			
+
 
       //-------------------------------------------------------------
       // writing output

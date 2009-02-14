@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -81,9 +81,9 @@ namespace OpenMS
 	}
 	
 	//change the current layer
-	void Spectrum1DCanvas::activateLayer(int layer_index)
+	void Spectrum1DCanvas::activateLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
+		if (layer_index >= getLayerCount() || layer_index==current_layer_)
 		{
 			return ;
 		}
@@ -131,28 +131,28 @@ namespace OpenMS
 			{
 				if (!show_alignment_)
 				{
-					point.setY(height() - (tmp.y() / 2));
+					point.setY(height() - (int)(tmp.y() / 2.0));
 				}
 				else // show_alignment_
 				{
-					point.setY(height() - ((tmp.y() * alignment_shrink_factor) / 2));
+					point.setY(height() - (int)((tmp.y() * alignment_shrink_factor) / 2.0));
 				}
 			}
 			else // !flipped
 			{
 				if (!show_alignment_)
 				{
-					point.setY(tmp.y() / 2);
+					point.setY((int)(tmp.y() / 2.0));
 				}
 				else // show_alignment_
 				{
-					point.setY((tmp.y() * alignment_shrink_factor) / 2);
+					point.setY((int)((tmp.y() * alignment_shrink_factor) / 2.0));
 				}
 			}
 		}
 		else // !mirror_mode_
 		{
-			point.setY(tmp.y());
+			point.setY((int)(tmp.y()));
 		}
 	}
 	
@@ -333,7 +333,7 @@ namespace OpenMS
 				{
 					if ((*it)->isSelected())
 					{
-						(*it)->move(delta, this);
+						(*it)->move(delta);
 					}
 				}
 				update_buffer_ = true;
@@ -482,7 +482,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::keyPressEvent(QKeyEvent* e)
 	{
 		// Delete pressed => delete selected annotations from the current layer
-		if (e->key()==Qt::Key_Delete || e->key()==Qt::Key_Backspace)
+		if (e->key()==Qt::Key_Delete)
 		{
 			e->accept();
 			getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
@@ -515,7 +515,7 @@ namespace OpenMS
 		
 		//reference to the current data
 		SpectrumType& spectrum = getCurrentLayer_().getCurrentSpectrum();
-		UInt spectrum_index = (UInt)getCurrentLayer_().current_spectrum;
+		Size spectrum_index = getCurrentLayer_().current_spectrum;
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
 		PointType lt = widgetToData(p - QPoint(1, 1), true);
@@ -578,9 +578,9 @@ namespace OpenMS
 	//////////////////////////////////////////////////////////////////////////////////
 	// SLOTS
 	
-	void Spectrum1DCanvas::removeLayer(int layer_index)
+	void Spectrum1DCanvas::removeLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()))
+		if (layer_index >= getLayerCount())
 		{
 			return;
 		}
@@ -880,7 +880,7 @@ namespace OpenMS
 
 	}
 	
-	void Spectrum1DCanvas::drawHighlightedPeak_(UInt layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
+	void Spectrum1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
 	{
 		if (peak.isValid())
 		{
@@ -906,7 +906,7 @@ namespace OpenMS
 			}
 			else
 			{
-				top_end.setY(0.0);
+				top_end.setY(0);
 			}
 			
 			// paint the crosshair only for currently selected peaks of the current layer
@@ -1173,7 +1173,7 @@ namespace OpenMS
 		QAction* result = 0;
 		QAction* new_action = 0;
 		
-		Annotations1DContainer annots_1d = getCurrentLayer_().getCurrentAnnotations();
+		Annotations1DContainer& annots_1d = getCurrentLayer_().getCurrentAnnotations();
 		Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
 		if (annot_item)
 		{
@@ -1228,7 +1228,7 @@ namespace OpenMS
 				new_action->setEnabled(false);
 			}
 			context_menu->addSeparator();
-			new_action = context_menu->addAction("Clear alignment");
+			new_action = context_menu->addAction("Reset alignment");
 			if (!show_alignment_)
 			{
 				new_action->setEnabled(false);
@@ -1333,7 +1333,7 @@ namespace OpenMS
 						update_(__PRETTY_FUNCTION__);
 					}
 				}
-				else if (result->text()=="Clear alignment")
+				else if (result->text()=="Reset alignment")
 				{
 					resetAlignment();
 				}
@@ -1384,7 +1384,7 @@ namespace OpenMS
 		return if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not;
 	}
 
-	void Spectrum1DCanvas::updateLayer_(UInt i)
+	void Spectrum1DCanvas::updateLayer_(Size i)
 	{
 		LayerData& layer = getLayer_(i);
 		try
@@ -1553,8 +1553,8 @@ namespace OpenMS
 						{
 							alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
 						}
-						painter.drawLine(xl,y*alignment_shrink_factor/2, xh, y*alignment_shrink_factor/2);
-						painter.drawLine(xl,yl-y*alignment_shrink_factor/2, xh, yl-y*alignment_shrink_factor/2);
+						painter.drawLine(xl,(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, (int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
+						painter.drawLine(xl,yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
 					}
 				}
 			}
@@ -1563,7 +1563,7 @@ namespace OpenMS
 		painter.restore();
 	}
 	
-	void Spectrum1DCanvas::performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param)
+	void Spectrum1DCanvas::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
 	{
 		alignment_.clear();
 		if (layer_index_1 >= getLayerCount() || layer_index_2 >= getLayerCount())
@@ -1578,7 +1578,7 @@ namespace OpenMS
 		SpectrumAlignment aligner;
 		aligner.setParameters(param);
 		
-		std::vector<std::pair<UInt, UInt> > aligned_peaks_indices;
+		std::vector<std::pair<Size, Size> > aligned_peaks_indices;
 		aligner.getSpectrumAlignment(aligned_peaks_indices, spectrum_1, spectrum_2);
 
 		for (Size i = 0; i < aligned_peaks_indices.size(); ++i)
@@ -1646,7 +1646,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::ensureAnnotationsWithinDataRange_()
 	{
-		for (UInt i = 0; i < getLayerCount(); ++i)
+		for (Size i = 0; i < getLayerCount(); ++i)
 		{
 			if (intensity_mode_==IM_PERCENTAGE)
 			{
@@ -1664,7 +1664,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum1DCanvas::flipLayer(UInt index)
+	void Spectrum1DCanvas::flipLayer(Size index)
 	{
 		if (index < getLayerCount())
 		{

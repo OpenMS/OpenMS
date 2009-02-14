@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -44,12 +44,12 @@ using namespace std;
 typedef FeatureFinderAlgorithmWatershed<Peak1D,Feature> FFAW;
 
 FFAW* ptr;
-START_SECTION(FeatureFinderAlgorithmWatershed())
+START_SECTION((FeatureFinderAlgorithmWatershed()))
 	ptr = new FFAW;
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((virtual ~FeatureFinderAlgorithmWatershed()))
+START_SECTION(([EXTRA]virtual ~FeatureFinderAlgorithmWatershed()))
 	delete ptr;
 END_SECTION
 
@@ -57,7 +57,7 @@ START_SECTION([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
 	FeatureFinderAlgorithmWatershed<RichPeak1D,Feature> ffa;
 END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION((virtual void run()))
   //create input
 	MSExperiment<> input;
 	input.reserve(500);
@@ -71,7 +71,7 @@ START_SECTION(virtual void run())
 		{
 			MSExperiment<>::PeakType peak;
 			peak.setMZ(p);
-			peak.setIntensity(1.0);
+			peak.setIntensity(1.0f);
 			spec.push_back(peak);
 		}
 		input.push_back(spec);
@@ -101,20 +101,20 @@ START_SECTION(virtual void run())
 		
 	//--------------------------------------------------------------------
 	//TEST WITH ONE BASIN IN THE CENTER
-	input[250][250].setIntensity(4.0);
+	input[250][250].setIntensity(4.0f);
 	input.updateRanges(1);
 	ffaw.setData(input, output, ff);
   ffaw.run();
 	TEST_EQUAL(output.size(),1);
-	TEST_REAL_SIMILAR(output[0].getRT(),250.0);
+	TEST_REAL_SIMILAR(output[0].getRT(),250.0f);
 	TEST_REAL_SIMILAR(output[0].getMZ(),749.5);
 	//MzDataFile().store(String("ff_in_")+test_number,input);
 	//FeatureXMLFile().store(String("ff_out_")+(test_number++),output);
 	
 	//--------------------------------------------------------------------
 	//TEST WITH THREE BASIN IN V-SHAPE
-	input[125][125].setIntensity(2.0);
-	input[125][375].setIntensity(4.0);
+	input[125][125].setIntensity(2.0f);
+	input[125][375].setIntensity(4.0f);
 	input.updateRanges(1);
 	ffaw.setData(input, output, ff);
   ffaw.run();
@@ -137,7 +137,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	delete ptr2;
 END_SECTION
 
-START_SECTION(static const String getProductName())
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(FFAW::getProductName(),"watershed")
 END_SECTION
 

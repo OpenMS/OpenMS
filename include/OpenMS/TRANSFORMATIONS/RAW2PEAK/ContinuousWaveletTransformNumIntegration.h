@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -206,7 +206,7 @@ namespace OpenMS
 #endif
 
       double v=0.;
-      int middle = wavelet_.size();
+      Size middle = wavelet_.size();
 
       double start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
 				: first->getMZ();
@@ -224,7 +224,11 @@ namespace OpenMS
       {
         // search for the corresponding datapoint of help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
-				int index_w_r = (int)Math::round(distance / spacing_);
+				Size index_w_r = (Size)Math::round(distance / spacing_);
+				if (index_w_r >= wavelet_.size()) 
+				{
+				  index_w_r = wavelet_.size()-1;
+				} 
         double wavelet_right =  wavelet_[index_w_r];
 
 #ifdef DEBUG_PEAK_PICKING
@@ -235,7 +239,7 @@ namespace OpenMS
 
         // search for the corresponding datapoint for (help-1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help-1)->getMZ());
-				unsigned int index_w_l = (unsigned int)Math::round(distance / spacing_);
+				Size index_w_l = (Size)Math::round(distance / spacing_);
 				if (index_w_l >= wavelet_.size()) 
 				{
 				  index_w_l = wavelet_.size()-1;
@@ -267,8 +271,12 @@ namespace OpenMS
       {
         // search for the corresponding datapoint for help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
-				unsigned int index_w_l = (unsigned int)Math::round(distance / spacing_);
-        double wavelet_left =  wavelet_[index_w_l];
+				Size index_w_l = (Size)Math::round(distance / spacing_);
+				if (index_w_l >= wavelet_.size()) 
+				{
+				  index_w_l = wavelet_.size()-1;
+				}
+				double wavelet_left =  wavelet_[index_w_l];
 
 #ifdef DEBUG_PEAK_PICKING
         std::cout << " help " << (help)->getMZ() << " distance x, help" << distance << std::endl;
@@ -278,7 +286,7 @@ namespace OpenMS
 
         // search for the corresponding datapoint for (help+1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help+1)->getMZ());
-				unsigned int index_w_r = (unsigned int)Math::round(distance / spacing_);
+				Size index_w_r = (Size)Math::round(distance / spacing_);
         if (index_w_r >= wavelet_.size()) 
 				{
 				  index_w_r = wavelet_.size()-1;

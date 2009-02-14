@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,7 +66,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DTextItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
+	void Annotation1DTextItem::move(const PointType& delta)
 	{
 		position_.setX(position_.getX()+delta.getX());
 		position_.setY(position_.getY()+delta.getY());

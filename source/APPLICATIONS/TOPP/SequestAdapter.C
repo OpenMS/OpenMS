@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 
@@ -56,6 +57,8 @@ using namespace std;
 	@page TOPP_SequestAdapter SequestAdapter
 
 	@brief Identifies peptides in MS/MS spectra via Sequest.
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
 
 	This wrapper application serves for getting peptide peptide_identifications
 	for MS/MS spectra. The wrapper can be executed in three different
@@ -111,8 +114,8 @@ class TOPPSequestAdapter
 
 	protected:
 		static const Int max_peptide_mass_units = 2;
-		static const UInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
-		UInt dtas;
+		static const Size max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
+		Size dtas;
 
 		void registerOptionsAndFlags_()
 		{
@@ -260,7 +263,7 @@ class TOPPSequestAdapter
 			return false;
 		}
 
-		bool correctNetworkPath(String& network_path, UInt backslashes = 2)
+		bool correctNetworkPath(String& network_path, Size backslashes = 2)
 		{
 			String::size_type pos(0);
 			while ( (pos < network_path.length()) && (network_path[pos] == '\\') ) ++pos;
@@ -271,7 +274,7 @@ class TOPPSequestAdapter
 			return true;
 		}
 
-  UInt
+  Size
 		MSExperiment2DTAs(
 			MSExperiment<Peak1D>& msexperiment,
 			const String& common_name,
@@ -279,13 +282,12 @@ class TOPPSequestAdapter
 			map< String, Real >& outfile_names_and_precursor_retention_times,
 			vector< String >& dta_filenames,
 			bool make_dtas = true)
-		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
 			String filename;
-			UInt scan_number(0);
-			UInt msms_spectra(0);
-			UInt dtas(0);
+			Size scan_number(0);
+			Size msms_spectra(0);
+			Size dtas(0);
 
 			for ( MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it )
 			{
@@ -372,8 +374,8 @@ class TOPPSequestAdapter
 				substrings2,
 				spectra;
 
-			
-			UInt
+
+			Size
 				msms_spectra_in_file(0),
 				msms_spectra_altogether(0);
 
@@ -389,7 +391,7 @@ class TOPPSequestAdapter
 			ContactPerson contact_person;
 			ExitCodes exit_code = EXECUTION_OK;
 			FileHandler fh;
-			FileHandler::Type type;
+			FileTypes::Type type;
 			MSExperiment<Peak1D> msexperiment;
 			vector<PeptideIdentification> peptide_identifications;
 			vector<ProteinIdentification> pis;
@@ -403,8 +405,8 @@ class TOPPSequestAdapter
 	 		vector< String > dta_filenames;
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
-			map< String, UInt > files;
-			UInt const
+			map< String, Size > files;
+			Size const
 				exist(1),
 				readable(2),
 				writable(4),
@@ -990,9 +992,9 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 			// checking accessability of files
 			bool existed(false);
-			UInt file_tag(0);
+			Size file_tag(0);
 
-			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+			for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
 				string_buffer = files_it->first;
 				file_tag = files_it->second;
@@ -1038,7 +1040,7 @@ class TOPPSequestAdapter
 				{
 					*spectra_it = File::absolutePath(*spectra_it);
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -1060,7 +1062,7 @@ class TOPPSequestAdapter
 							{
 								writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
 								// deleting all temporary files
-								for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+								for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 								{
 									if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
 								}
@@ -1085,7 +1087,7 @@ class TOPPSequestAdapter
 				for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -1127,7 +1129,7 @@ class TOPPSequestAdapter
 
 					batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 
-					for ( UInt i = 0; i <= UInt(dtas / max_dtas_per_run); ++i )
+					for ( Size i = 0; i <= Size(dtas / max_dtas_per_run); ++i )
 					{
 						batchfile << " && " << sequest_directory_win << "sequest.exe -P" << input_file_directory_network << File::basename(input_filename) << "  " << temp_data_directory_network << "*.dta_" << i<< " > " <<  temp_data_directory_network << sequest_screen_output << " && move sequest.log sequest.log" << i;
 					}
@@ -1149,7 +1151,7 @@ class TOPPSequestAdapter
 					{
 						bool no_log(false);
 						string_buffer.clear();
-						for ( UInt i = 0; i <= (UInt) (dtas / max_dtas_per_run); ++i )
+						for ( Size i = 0; i <= (Size) (dtas / max_dtas_per_run); ++i )
 						{
 							ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
 							if ( !sequest_log )
@@ -1220,7 +1222,7 @@ class TOPPSequestAdapter
 					sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();
 					protein_identification.setSearchParameters(sp);
 
-					UInt peptide_identification_size = peptide_identifications.size();
+					Size peptide_identification_size = peptide_identifications.size();
 					for ( vector< pair < String, vector< Real > > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it )
 					{
 						try
@@ -1264,16 +1266,16 @@ class TOPPSequestAdapter
 					}
 				}
 			}
-			
+
 			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
 			{
 				writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 				files[logfile] = readable;
 			}
-			
+
 			// deleting all temporary files
 			writeLog_("removing temporary files");
-			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+			for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
 				if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
 			}

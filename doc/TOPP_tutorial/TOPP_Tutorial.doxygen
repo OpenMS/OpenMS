@@ -232,21 +232,21 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example_signalprocessing Raw data processing
+	@page TOPP_example_signalprocessing Profile data processing
 
-		@b Goal: You want to find all peaks in your raw data.
+		@b Goal: You want to find all peaks in your profile data.
 
 		The first step shown here is the elimination of noise using the @b NoiseFilter. The
-		now smoothed raw data can be further processed by subtracting the baseline
+		now smoothed profile data can be further processed by subtracting the baseline
 		with the @b BaselineFilter. Then use the @b PeakPicker to find all peaks in the
-		baseline-reduced raw data.
+		baseline-reduced profile data.
 
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
 
 		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
 	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
-	  or our @b BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data using the
+	  or our @b BaselineFilter with non equally spaced profile data, e.g. TOF data, you have to generate equally spaced data using the
 	  @b Resampler tool.
 
 	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
@@ -262,7 +262,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
 		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
 		  - <tt>fwhm_bound</tt> - The minimal width of a peak
-		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a raw data point has to reach in order to be considered a peak. The lower this value is, the more low-intensity peaks will be reported. 
+		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a data point has to reach in order to be considered a peak. The lower this value is, the more low-intensity peaks will be reported. 
 		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
 */
 
@@ -316,7 +316,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				This algorihtm does a star-wise alignment of the input data. The center of the star is the map with
 				most data points. All other maps are then aligned to the center map by estimating a linear transformation
 				(shift and stretch) of retention times. The transformation is estimated using a pose clustering approach.
@@ -330,7 +330,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				This algorithms uses a dynamic-programming approach based on spectrum similariy for the alignment.
 				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
 				to the retention time pairs.
@@ -347,19 +347,19 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 @page TOPP_example_featuredetection Feature detection
 
 	For quantitation, the @b FeatureFinder tool is used. It extracts the
-	features from raw or peak maps.  The @b FeatureFinder offers different
+	features from profile data or centroided data. The @b FeatureFinder offers different
 	algorithms:
 
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
-			This algorithm detects and quantifies peptide signals in a raw LC-MS map. We use
+			This algorithm detects and quantifies peptide signals in a profile LC-MS map. We use
 			the wavelet transform to identify signal candidates. The transform uses a mother
 			wavelet which models the intensity pattern of peptide isotopic peaks. Isotopic
 			pattern of the same peptide ion in adjacent scans are clustered using a sweep-line
@@ -399,13 +399,13 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
-			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
+			This is an @b experimental algorithm for feature detection in profile MS (not MS/MS) data sets.
 			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
 			detection of isotopic patterns following the averagine model.
 			For more information about the theory behind this technique, please refer to
@@ -447,11 +447,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
-			This is an @b algorithm for feature detection based on peak data.
+			This is an algorithm for feature detection based on peak data.
 		  In contrast to the other algorithms, it is based on peak/stick data,
-		  which makes it applicable even if no raw data is available.
+		  which makes it applicable even if no profile data is available.
 			Another advantage is its speed due to the reduced amount of data after peak picking.
 			
 			<B>Seeding:</B>
@@ -479,20 +479,20 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 	<TABLE border=1>
 	<TR>
-		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				
-				This is another algorithm for feature detection in raw data.
+				This is another algorithm for feature detection in profile data.
 				It is similar to the "simplest" algorithm, except for the modeling.
 				
 				@b Seeding: see "simplest"
 				
 				@b Extension: see "simplest"
 				
-				@b Modelling: <br/>
+				@b Modelling: <br>
 				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
 				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 				(class EMGFitter1D, class LmaGaussFitter1D)
@@ -506,24 +506,24 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+			<TD> <b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
-				This is an algorithm for feature detection in raw data.
+				@b Description: <br>
+				This is an algorithm for feature detection in profile data.
 				The following components are used:
 				
-				@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
-				 algorithm, all raw data points above the noise threshold are sorted with respect
+				@b Seeding: <br> A "seed" is a starting point for finding a feature.  In this
+				 algorithm, all data points above the noise threshold are sorted with respect
 				 to intensity.  The strongest unused data point is used as a seed.  (class
 				 SimpleSeeder)
 				
-				@b Extension: <br/> A "region" is extended around the seed.  The region grows
+				@b Extension: <br> A "region" is extended around the seed.  The region grows
 				in RT and m/z simultaneously.  These data points are marked as used.  (class
 				SimpleExtender)
 				
-				@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
+				@b Modelling: <br> A theoretical "model" is fitted to the data points of the
 				region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
 				uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
 				are chosen to represent the data points to the left and right of the maximum
@@ -565,7 +565,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 
 		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
-		application calculates the features from a raw/peak map.
+		application calculates the features from profile data or centroided data.
 
 		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
 		@b FeatureLinker algorithm type @em labeled.
@@ -599,7 +599,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	@page TOPP_example_calibration Calibration
 
 	We offer two calibration methods: an internal and an external calibration. Both
-	can handle peak data as well as raw data. If you want to calibrate raw data,
+	can handle peak data as well as profile data. If you want to calibrate profile data,
 	a peak picking step is necessary, the important parameters can be set via the ini-file.
 	If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
 

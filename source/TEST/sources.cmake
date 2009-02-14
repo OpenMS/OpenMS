@@ -119,7 +119,6 @@ GaussModel_test.C
 GoodDiffFilter_test.C
 Gradient_test.C
 HPLC_test.C
-HiddenMarkovModel_test.C
 HierarchicalClustering_test.C
 Histogram_test.C
 IDConsensusFeatureMapper_test.C
@@ -199,9 +198,11 @@ OMSSACSVFile_test.C
 OMSSAXMLFile_test.C
 OptimizePeakDeconvolution_test.C
 OptimizePick_test.C
+HiddenMarkovModel_test.C
 PILISIdentification_test.C
 PILISModelGenerator_test.C
 PILISModel_test.C
+ProtonDistributionModel_test.C
 PILISScoring_test.C
 PTMXMLFile_test.C
 Param_test_1.C
@@ -235,7 +236,6 @@ ProductModel_test.C
 ProteinHit_test.C
 ProteinIdentification_test.C
 ProteinInference_test.C
-ProtonDistributionModel_test.C
 ROCCurve_test.C
 RangeManager_test.C
 RangeUtils_test.C
@@ -303,6 +303,8 @@ ZhangSimilarityScore_test.C
 AAIndex_test.C
 LocalLinearMap_test.C
 PeakIntensityPredictor_test.C
+PrecursorIonSelectionPreprocessing_test.C
+PrecursorIonSelection_test.C
 )
 
 if (USE_ANDIMS) 	 

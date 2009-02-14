@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -130,7 +130,7 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			const DataFilter& operator[](UInt index) const;
+			const DataFilter& operator[](Size index) const;
 			
 			///Adds a filter
 			void add(const DataFilter& filter);
@@ -140,14 +140,14 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			void remove(UInt index);
+			void remove(Size index);
 			
 			/**
 			  @brief Replaces the filter corresponding to @p index
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			void replace(UInt index, const DataFilter& filter);
+			void replace(Size index, const DataFilter& filter);
 			
 			///Removes all filters
 			void clear();
@@ -171,7 +171,7 @@ namespace OpenMS
 			
 			///Returns if the @p peak fulfills the current filter criteria
 			template<class PeakType>
-			bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const
+			bool passes(const MSSpectrum<PeakType>& spectrum, Size peak_index) const
 			{
 				if (!is_active_) return true;
 				
@@ -212,18 +212,18 @@ namespace OpenMS
 			///Array of DataFilters
 			std::vector<DataFilter> filters_;
 			///Vector of meta indices acting as index cache
-			std::vector<UInt> meta_indices_;
+			std::vector<Size> meta_indices_;
 
 			///Determines if the filters are activated
 			bool is_active_;
 			
 			///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
-			inline bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, UInt index) const
+			inline bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const
 			{
-				if (!meta_interface.metaValueExists(index)) return false;
+				if (!meta_interface.metaValueExists((UInt)index)) return false;
 				else if (filter.op!=EXISTS)
 				{
-					const DataValue& data_value = meta_interface.getMetaValue(index);
+					const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
 					if(!filter.value_is_numerical)
 					{
 						if(data_value.valueType() != DataValue::STRING_VALUE) return false;

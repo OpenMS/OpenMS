@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -40,9 +40,11 @@ namespace OpenMS
 {
 
 	/**
-		@brief
+		@brief [experimental class] does postprocessing on raw iTRAQ channel quantitation
 		
-		@todo Docu (Chris)
+		Using the raw consensus map from ItraqChannelExtractor, a non-negative isotope correction, normalization (using median) 
+		and [optionally] protein inference is computed.
+
 	*/
 	class OPENMS_DLLAPI ItraqQuantifier
 		: public DefaultParamHandler,

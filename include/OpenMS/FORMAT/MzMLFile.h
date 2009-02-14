@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,8 +47,12 @@ namespace OpenMS
 
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
-		@todo Implement Base64 integers, 16 bit, zlib support, chromatograms and CV units (Hiwi)
-
+		@todo Implement Base64 integers, 16 bit (Hiwi)
+		
+		@todo Implement zlib support (Hiwi)
+		
+		@todo Implement chromatograms (Hiwi)
+		
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzMLFile
@@ -110,7 +114,7 @@ namespace OpenMS
 		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
 				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
 			*/
-			bool isValid(const String& filename);
+			bool isValid(const String& filename, std::ostream& os = std::cerr);
 
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.

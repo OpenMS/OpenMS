@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ namespace OpenMS
 
  		This class calcalates the probabilities using a target deocy approach. Like
 		in peptide prophet the forward distribution is modeled using a gaussian 
-		distribution the reverse scores are modeled using a famma distribution.
+		distribution the reverse scores are modeled using a gamma distribution.
 
 		@htmlinclude OpenMS_IDDecoyProbability.parameters
 
@@ -74,8 +74,6 @@ namespace OpenMS
 									const std::vector<PeptideIdentification>& fwd_ids, 
 									const std::vector<PeptideIdentification>& rev_ids);
 
-			void generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename);
-
 		protected:
 
 			/** @brief struct to be used to store a transformation (used for fitting)
@@ -84,15 +82,46 @@ namespace OpenMS
 			*/
 			struct Transformation_
 			{
-			  double y_factor;
-			  double x_factor;
-			  double x_shift;
-			  double x_max;
-			  double y_max_bin;
+				Transformation_()
+					: max_intensity(0),
+						diff_score(0),
+						min_score(0),
+						max_score(0),
+						max_intensity_bin(0)
+				{
+				}
+
+				Transformation_(const Transformation_& rhs)
+					: max_intensity(rhs.max_intensity),
+						diff_score(rhs.diff_score),
+						min_score(rhs.min_score),
+						max_score(rhs.max_score),
+						max_intensity_bin(rhs.max_intensity_bin)
+				{
+				}
+				
+				Transformation_& operator = (const Transformation_& rhs)
+				{
+					if (this != &rhs)
+					{
+						max_intensity = rhs.max_intensity;
+          	diff_score = rhs.diff_score;
+          	min_score = rhs.min_score;
+          	max_score = rhs.max_score;
+          	max_intensity_bin = rhs.max_intensity_bin;
+					}
+					return *this;
+				}
+				
+			  double max_intensity;
+			  double diff_score;
+			  double min_score;
+			  double max_score;
+			  Size max_intensity_bin;
 			};
 
 			// normalizes histograms
-			void normalizeBins_(const std::vector<double>& scores, Map<double, double>& binned, Transformation_& trafo);
+			void normalizeBins_(const std::vector<double>& scores, std::vector<double>& binned, Transformation_& trafo);
 
 			// returns the probability of given score with the transformations of reverse and forward searches and the results of the fits
 			double getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
@@ -100,7 +129,13 @@ namespace OpenMS
 														const Math::GaussFitter::GaussFitResult& result_gauss,
 														const Transformation_& gauss_trafo,
 														double score);
-			
+		
+
+      void generateDistributionImage_(const std::vector<double>& ids, const String& formula, const String& filename);
+
+      void generateDistributionImage_(const std::vector<double>& all_ids, const Transformation_& all_trans, const String& fwd_formula, const String& rev_formula, const String& filename);
+
+
   };
  
 } // namespace OpenMS

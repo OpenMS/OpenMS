@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -52,10 +52,10 @@ namespace OpenMS
 	void Annotation1DItem::drawBoundingBox_(QPainter& painter)
 	{
 		// draw additional filled rectangles to highlight bounding box of selected distance_item
-		painter.fillRect(bounding_box_.topLeft().x()-3, bounding_box_.topLeft().y()-3, 3, 3, painter.pen().color());
-		painter.fillRect(bounding_box_.topRight().x(), bounding_box_.topRight().y()-3, 3, 3, painter.pen().color());
-		painter.fillRect(bounding_box_.bottomRight().x(), bounding_box_.bottomRight().y(), 3, 3, painter.pen().color());
-		painter.fillRect(bounding_box_.bottomLeft().x()-3, bounding_box_.bottomLeft().y(), 3, 3, painter.pen().color());
+		painter.fillRect((int)(bounding_box_.topLeft().x())-3, (int)(bounding_box_.topLeft().y())-3, 3, 3, painter.pen().color());
+		painter.fillRect((int)(bounding_box_.topRight().x()), (int)(bounding_box_.topRight().y())-3, 3, 3, painter.pen().color());
+		painter.fillRect((int)(bounding_box_.bottomRight().x()), (int)(bounding_box_.bottomRight().y()), 3, 3, painter.pen().color());
+		painter.fillRect((int)(bounding_box_.bottomLeft().x())-3, (int)(bounding_box_.bottomLeft().y()), 3, 3, painter.pen().color());
 	}
 	
 	const QRectF& Annotation1DItem::boundingBox() const

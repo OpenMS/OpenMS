@@ -3,32 +3,41 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
+- Finalized mzML implementation (version 1.10)
+  - previously unsupported parts
+  - indexed mzML
+  - semantic validation (see FileInfo)
 - Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 - Improved the framework for meta data visualization.
-- Finalized MzML implementation (version 1.10)
-  - previously unsupported parts
-  - index MzML
-  - semantic validation
-  - correctly handling of nativeID for all formats
-- Meta data: Several extensions to the meta data handling classes for mzML compliance.
+- Several extensions to the meta data classes were made for mzML compliance.
 - The macros used for unit testing in source/TEST have been revised.
 - More consistent handling of single vs. double numeric precision, esp. in file output.
+- Added ANALYSIS/PIP/PeakIntensityPredictor class for peak intensity prediction (contributed by Alexandra Scherbart).
+- Added support for Intel Compiler versions 10 and 11
+- Added support for Qt up to 4.5 rc1
 
 New features and improvements of TOPP:
 - Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).
 - Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
 - Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
 - FeatureLinker: Added automated RT parameter estimation for 'labeled' algorithm.
-- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported
+- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported.
 - Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
-- FileInfo: The option '-v' now also does a semantic validation of MzML files.
+- FileInfo: The option '-v' now also does a semantic validation of mzML files.
 - FileMerger: Improved interface
 - ConsensusID: Now also supports consensus identification of features and consensus features.
+- INIFileEditor: Support for string/int/double lists and input/output files was added.
+- Added PrecursorIonSelector: A tool for result-driven precursor ion selection.
+- FalseDiscoveryRate: corrected FDR calculations and added optional support for q-values
+- Added MascotAdapterOnline: which allows queries to Mascot via network (together with Daniel Jameson)
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
+- Added support for consensus features (consensusXML)
 - Added measuring and generic annotations to 1D view
+- Several minor interface improvements and bugfixes
 
 Changes to OpenMS XML formats:
 - ParamXML:
@@ -39,19 +48,26 @@ Changes to OpenMS XML formats:
 - featureXML:
   - Added tag <subordinate> to store competing features that did not qualify for the final map
   - Removed <description> section
-  - Added document Id
+  - Added document identifier
   - Added protein and peptide information
 - consensusXML:
-	- Added document Id
+	- Added document identifier
 	- Added protein and peptide information
+- idXML:
+	- Added document identifier
 
 Changes to the contrib package:
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
+- Updated xerces-c to version 3.0.0
+- Updated boost to version 1.37.0
+- Downgraded GSL to 1.8 (because of Mac/Windows support)
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
   - Renamed MSMetaDataExplorer to MetaDataBrowser
   - Renamed ProcessingMethod to DataProcessing
+  - Moved XMLValidator from FORMAT/ to FORMAT/VALIDATORS/
 - Removed classes
   - DPeakArray (moved the functionality to the classes that inherited from it)
   - IDSpectrumMapper (replaced by IDMapper)
@@ -68,6 +84,9 @@ Detailed list of changes to specific OpenMS classes:
 	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
 	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
 - Changes to classes
+	- InstrumentSettings
+	  - Revisited scan modes
+	  - Added bool member for zoom scans (no longer a scan mode)
 	- MassAnalyzer: Removed tandem scanning method. This is stored in the ScanMode of InstrumentSettings.
 	- DataProcessing: Now contains Software and can handle multiple processing actions.
 	- Software: Only contains name and version now.
@@ -78,6 +97,7 @@ Detailed list of changes to specific OpenMS classes:
     - Added Software
     - Added ion optics type
   - AcquisitionInfo: Added MetaInfoInterface
+  - Acquisition: integer 'number' member was changed to a string 'identifier' (for mzML)
   - ExperimentalSettings
     - Now contains multiple SourceFiles and DataProcessings
     - ExperimentType was removed
@@ -110,6 +130,10 @@ Detailed list of changes to specific OpenMS classes:
     - Made now() is static now and returns the current Date instead of modifying the object.
   - MSExperiment: The date is now a DateTime object.
   - ProgressLogger: Nested application uses indentation.
+  - XMLValidator: The output stream for error messages can now be set in the isValid(...) method
+  - XMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - MzMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - IdXMLFile: Adden document identifier to the load(...) and store(...) method
 	
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
@@ -147,7 +171,7 @@ New features and improvements of TOPP:
   and protein levels
 
 New features and improvements of TOPPView:
-- Mayor update to the user interface and functionality
+- Major update to the user interface and functionality
 - Speed improvements of the 2D view
 - Many bug fixes
 - Updated tutorial

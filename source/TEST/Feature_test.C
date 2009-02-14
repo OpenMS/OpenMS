@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -75,7 +75,7 @@ START_SECTION((void setOverallQuality(QualityType q)))
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
 END_SECTION
 
-START_SECTION((QualityType getQuality(UInt index) const))
+START_SECTION((QualityType getQuality(Size index) const ))
 	Feature p;
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	p.setQuality(0, 123.456);
@@ -88,7 +88,7 @@ START_SECTION((QualityType getQuality(UInt index) const))
   TEST_EXCEPTION(Exception::Precondition, p.getQuality(10))
 END_SECTION
 
-START_SECTION((void setQuality(UInt index, QualityType q)))
+START_SECTION((void setQuality(Size index, QualityType q)))
 	Feature p;
 	p.setQuality(1, 123.456);
 	TEST_REAL_SIMILAR(p.getQuality(1), 123.456)
@@ -143,7 +143,7 @@ START_SECTION([EXTRA](IntensityType& getIntensity()))
 	TEST_REAL_SIMILAR(p.getIntensity(), 123.456)
 	p.setIntensity(-0.12345);
 	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345)
-	p.setIntensity(0.0);
+	p.setIntensity(0.0f);
 	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
 END_SECTION
 
@@ -201,7 +201,7 @@ START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
 	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 END_SECTION
 
-START_SECTION(ConvexHull2D& getConvexHull() const)
+START_SECTION((ConvexHull2D& getConvexHull() const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	
@@ -226,7 +226,7 @@ END_SECTION
 hulls[0].addPoint(DPosition<2>(3.0,2.0));
 hulls[1].addPoint(DPosition<2>(2.0,1.0));
 
-START_SECTION( bool encloses(DoubleReal rt, DoubleReal mz) const)
+START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 
@@ -349,12 +349,12 @@ START_SECTION((bool operator==(const Feature &rhs) const))
 	Feature p2(p1);
 	TEST_EQUAL(p1==p2, true)
 
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
   p1.setOverallQuality(0.9);
   p1.setQuality(0, 0.1);
   p1.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
   p2.setOverallQuality(0.9);
   p2.setQuality(0, 0.1);
   p2.setModelDescription(desc);
@@ -371,9 +371,9 @@ START_SECTION([EXTRA](Feature& operator != (const Feature& rhs)))
 	Feature p2(p1);
 	TEST_EQUAL(p1!=p2, false)
 
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 
 	p1.getPosition()[0]=5;

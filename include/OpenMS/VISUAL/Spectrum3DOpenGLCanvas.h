@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -118,10 +118,10 @@ namespace OpenMS
 			///  returns the mz-value : BB-coordinates  --> value
 			double scaledInversMZ(double mz);
 	    /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-			double scaledIntensity(double intensity,int layer_index);
+			double scaledIntensity(Real intensity,Size layer_index);
 	
 			/// recalculates the dot gradient inerpolation values.
-			void recalculateDotGradient_(UInt layer);
+			void recalculateDotGradient_(Size layer);
 			///calculate the ticks for the gridlines
 			void calculateGridLines_();
 		

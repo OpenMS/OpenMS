@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -35,7 +36,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-DRange<1> makeRange(float a, float b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -58,6 +59,17 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
+START_SECTION(const PeakFileOptions& getOptions() const)
+	ConsensusXMLFile file;
+	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
+END_SECTION
+
+START_SECTION(PeakFileOptions& getOptions())
+	ConsensusXMLFile file;
+	file.getOptions().addMSLevel(1);
+	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
+END_SECTION
+
 START_SECTION((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap map;
   ConsensusXMLFile file;
@@ -65,7 +77,7 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 
 //test DocumentIdentifier addition
 	TEST_STRING_EQUAL(map.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"));
-	TEST_STRING_EQUAL(map.getLoadedFileType(),"ConsensusXML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(map.getLoadedFileType()),"ConsensusXML");
 
 	//meta data
   TEST_EQUAL(map.getIdentifier(),"lsid")
@@ -175,7 +187,7 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 
 END_SECTION
 
-START_SECTION((void store(const String &filename, const ConsensusMap &map)))
+START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 

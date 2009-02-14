@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -81,8 +81,8 @@ namespace OpenMS
 			spectrum.sortByPosition();
 	
 			/// @improvement think about an correct fast algorithm, not just an heuristic (Andreas)
-	    uint j = spectrum.size() - 1;
-	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
+	    Size j = spectrum.size() - 1;
+	    for (Size i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {
 	      double sum = spectrum[i].getPosition()[0] + spectrum[j].getPosition()[0];
 				

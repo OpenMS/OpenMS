@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -136,8 +136,8 @@ namespace OpenMS
 	
 		GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(vector<DPosition<2> >& input)
 		{
-		  const gsl_multifit_fdfsolver_type* T;
-		  gsl_multifit_fdfsolver* s;
+		  const gsl_multifit_fdfsolver_type* T = NULL;
+		  gsl_multifit_fdfsolver* s = NULL;
 		
 		  int status = 0;
 		  size_t iter = 0;
@@ -147,8 +147,8 @@ namespace OpenMS
 		  gsl_multifit_function_fdf f;
 		  double x_init[2] = { init_param_.b, init_param_.p };
 		  gsl_vector_view x = gsl_vector_view_array (x_init, p);
-		  const gsl_rng_type * type;
-		  gsl_rng* r;
+		  const gsl_rng_type * type = NULL;
+		  gsl_rng* r = NULL;
 		
 		  gsl_rng_env_setup();
 		
@@ -187,10 +187,11 @@ namespace OpenMS
 	
 		    status = gsl_multifit_test_delta (s->dx, s->x, 1e-4, 1e-4);
 		  }
-		  while (status == GSL_CONTINUE && iter < 10000);
+		  while (status == GSL_CONTINUE && iter < 1000);
 	
 			if (status!=GSL_SUCCESS)
 			{
+				gsl_rng_free(r);
 				gsl_multifit_fdfsolver_free(s);
 	
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GammaDistributionFitter","Could not fit the gaussian to the data");
@@ -210,6 +211,7 @@ namespace OpenMS
 			cout << gnuplot_formula_ << endl;
 #endif
 			
+			gsl_rng_free(r);
 			gsl_multifit_fdfsolver_free (s);
 	
 			return result;

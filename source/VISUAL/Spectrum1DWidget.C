@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -97,9 +97,9 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UInt,Real> Spectrum1DWidget::createIntensityDistribution_() const
+	Histogram<> Spectrum1DWidget::createIntensityDistribution_() const
 	{
-		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
+		Histogram<> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 	
 		for (ExperimentType::SpectrumType::ConstIterator it = canvas_->getCurrentLayer().peaks[0].begin(); it != canvas_->getCurrentLayer().peaks[0].end(); ++it)
 		{
@@ -109,9 +109,9 @@ namespace OpenMS
 	}
 
 
-	Histogram<UInt, Real> Spectrum1DWidget::createMetaDistribution_(const String& name) const
+	Histogram<> Spectrum1DWidget::createMetaDistribution_(const String& name) const
 	{	
-		Histogram<UInt,Real> tmp;
+		Histogram<> tmp;
 		const ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = canvas_->getCurrentLayer().peaks[0].getMetaDataArrays();
 		for(ExperimentType::SpectrumType::MetaDataArrays::const_iterator it = meta_arrays.begin(); it != meta_arrays.end(); it++)
 		{
@@ -196,7 +196,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum1DWidget::performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param)
+	void Spectrum1DWidget::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
 	{
 		spacer_->changeSize(0,10);
 		grid_->removeWidget(y_axis_);

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -53,12 +53,10 @@ namespace OpenMS
 		Normally QFileSystemWatcher emits a signal every time a file is changed.
 		This causes several signals for large files (one for each flush of the buffer).
 		
-		@todo Find out why this does not work with Qt 4.4.1 (Marc)
-		
 		@ingroup System
 	*/
 	class OPENMS_DLLAPI FileWatcher
-		: public QFileSystemWatcher		///@todo find out why ICC requires public instead of protected (Marc, Chris)
+		: public QFileSystemWatcher ///@todo find out why ICC requires public instead of protected (Marc, Chris)
 	{
     Q_OBJECT
     

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
@@ -80,7 +81,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 		//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
-	TEST_STRING_EQUAL(exp.getLoadedFileType(),"Unknown");
+	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"Unknown");
 
 
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")

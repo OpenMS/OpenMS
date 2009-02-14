@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -36,35 +36,33 @@ namespace OpenMS
 	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
   struct IsotopeCluster
   {
-  	/// An index e..g in an MSExperiment
-  	typedef std::pair<UInt,UInt> IndexPair;
+  	/// An index e.g. in an MSExperiment
+  	typedef std::pair<Size,Size> IndexPair;
 		/// A set of index pairs, usually referring to an MSExperiment.
 		typedef std::set<IndexPair> IndexSet;
 		
-		/// Charge score
-		typedef DoubleReal ProbabilityType;	
-		
 		///index set with associated charge estimate
 		struct ChargedIndexSet 
-		: public IndexSet
+			: public IndexSet
 		{
-			ChargedIndexSet() : charge_(0), max_charge_score_() { }
+			ChargedIndexSet()
+			: charge(0)
+			{
+			}
 			/// charge estimate (convention: zero means "no charge estimate")
-			UInt charge_;			
-			/// Score of highest scoring charge state
-			ProbabilityType max_charge_score_; 
+			Size charge;			
 		};
 		  	
     IsotopeCluster()
-      : peaks_(), 
-      	scans_()
+      : peaks(), 
+      	scans()
     {
     }
     /// peaks in this cluster
-    ChargedIndexSet peaks_;
+    ChargedIndexSet peaks;
     
     /// the scans of this cluster
-    std::vector<UInt> scans_;
+    std::vector<Size> scans;
   };
 
 } // namespace OPENMS

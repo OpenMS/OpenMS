@@ -2,9 +2,9 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -54,15 +54,15 @@ using namespace std;
 START_SECTION(IsotopeDistribution())
 	IsotopeDistribution* ptr = 0;
 	ptr = new IsotopeDistribution();
-	UInt max_isotope = ptr->getMaxIsotope();
+	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
 END_SECTION
 
-START_SECTION(IsotopeDistribution(UInt max_isotope))
+START_SECTION(IsotopeDistribution(Size max_isotope))
 	IsotopeDistribution* ptr = new IsotopeDistribution(117);
-	UInt max_isotope = ptr->getMaxIsotope();
+	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
@@ -103,7 +103,7 @@ START_SECTION(IsotopeDistribution& operator = (const IsotopeDistribution& isotop
 	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 END_SECTION
 
-START_SECTION(void setMaxIsotope(UInt max_isotope))
+START_SECTION(void setMaxIsotope(Size max_isotope))
 	IsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
 	TEST_EQUAL(iso->getMaxIsotope(), 0)
@@ -112,7 +112,7 @@ START_SECTION(void setMaxIsotope(UInt max_isotope))
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 END_SECTION
 
-START_SECTION(UInt getMaxIsotope() const)
+START_SECTION(Size getMaxIsotope() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -125,28 +125,28 @@ START_SECTION(IsotopeDistribution operator + (const IsotopeDistribution& isotope
 	TEST_EQUAL(container[0].second, 1)
 END_SECTION
 
-START_SECTION(IsotopeDistribution& operator *= (UInt factor))
+START_SECTION(IsotopeDistribution& operator *= (Size factor))
 	EmpiricalFormula ef("C222N190O110");
 	IsotopeDistribution id = ef.getIsotopeDistribution(11);
 	IsotopeDistribution::ContainerType container;
-	container.push_back(make_pair<UInt, double>(7084, 0.0349429));
-	container.push_back(make_pair<UInt, double>(7085, 0.109888));
-	container.push_back(make_pair<UInt, double>(7086, 0.180185));
-	container.push_back(make_pair<UInt, double>(7087, 0.204395));
-	container.push_back(make_pair<UInt, double>(7088, 0.179765));
-	container.push_back(make_pair<UInt, double>(7089, 0.130358));
-	container.push_back(make_pair<UInt, double>(7090, 0.0809864));
-	container.push_back(make_pair<UInt, double>(7091, 0.0442441));
-	container.push_back(make_pair<UInt, double>(7092, 0.0216593));
-	container.push_back(make_pair<UInt, double>(7093, 0.00963707));
-	container.push_back(make_pair<UInt, double>(7094, 0.0039406));
+	container.push_back(make_pair<Size, double>(7084, 0.0349429));
+	container.push_back(make_pair<Size, double>(7085, 0.109888));
+	container.push_back(make_pair<Size, double>(7086, 0.180185));
+	container.push_back(make_pair<Size, double>(7087, 0.204395));
+	container.push_back(make_pair<Size, double>(7088, 0.179765));
+	container.push_back(make_pair<Size, double>(7089, 0.130358));
+	container.push_back(make_pair<Size, double>(7090, 0.0809864));
+	container.push_back(make_pair<Size, double>(7091, 0.0442441));
+	container.push_back(make_pair<Size, double>(7092, 0.0216593));
+	container.push_back(make_pair<Size, double>(7093, 0.00963707));
+	container.push_back(make_pair<Size, double>(7094, 0.0039406));
 
 	for (Size i = 0; i != id.size(); ++i)
 	{
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
 	}
-	
+
 END_SECTION
 
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
@@ -155,7 +155,7 @@ START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) c
 	TEST_EQUAL(iso1 == iso2, false)
 	iso2.setMaxIsotope(1);
 	TEST_EQUAL(iso1 == iso2, true)
-	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)), 
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
 											iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso3 == iso4, true)
 END_SECTION
@@ -174,19 +174,19 @@ START_SECTION(const ContainerType& getContainer() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(UInt getMax() const)
+START_SECTION(Size getMax() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMax(), 4)
 END_SECTION
 
-START_SECTION(UInt getMin() const)
+START_SECTION(Size getMin() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMin(), 2)
 	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso2.getMin(), 48)
 END_SECTION
 
-START_SECTION(UInt size() const)
+START_SECTION(Size size() const)
 	IsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1.size(), 1)
 	TEST_EQUAL(iso2.size(), 5)
@@ -210,7 +210,7 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.572779)
 
 	iso.estimateFromPeptideWeight(10000.0);
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)	
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
 END_SECTION
 
 START_SECTION(void trimRight(DoubleReal cutoff))
@@ -242,7 +242,7 @@ START_SECTION(void renormalize())
 END_SECTION
 
 START_SECTION(IsotopeDistribution& operator+=(const IsotopeDistribution &isotope_distribution))
-	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)), 
+	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
 											iso2(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1 == iso2, false)
 	iso1 += IsotopeDistribution(EmpiricalFormula("H1").getIsotopeDistribution(11));
@@ -257,8 +257,8 @@ START_SECTION(IsotopeDistribution& operator+=(const IsotopeDistribution &isotope
 
 END_SECTION
 
-START_SECTION(IsotopeDistribution operator *(UInt factor) const)
-	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)), 
+START_SECTION(IsotopeDistribution operator *(Size factor) const)
+	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
 											iso2(EmpiricalFormula("H5").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1 == iso2, false)
 	IsotopeDistribution iso3 = iso1 * 5;
@@ -283,7 +283,7 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   TEST_EQUAL(iso1 != iso2, false)
   IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
                       iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
-  TEST_EQUAL(iso3 != iso4, false)	
+  TEST_EQUAL(iso3 != iso4, false)
 END_SECTION
 
 START_SECTION(Iterator begin())

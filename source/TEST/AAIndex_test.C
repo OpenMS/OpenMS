@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ AASequence seq2("GTVVTGR");
 AASequence seq3("EHVLLAR");
 
 
-START_TEST(AASequenceIndeces, "$Id: AASequenceIndeces_test.C 0001 2008-08-14 11:44:24 ascherbart $")
+START_TEST(AASequenceIndeces, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -48,29 +48,6 @@ START_TEST(AASequenceIndeces, "$Id: AASequenceIndeces_test.C 0001 2008-08-14 11:
 //EHVLLAR 15 0587  837.494 1442.70 1  318.5 1.259  171  190 18.1300000  3.00000e-01  -9.970000 2  7.73  9.34 0 0 1 0 0 5.22075034
 
 TOLERANCE_ABSOLUTE(0.01)
-
-START_SECTION(static vector<DoubleReal> getPropertyVector(const AASequence& sequence))
-	vector<DoubleReal> calculated = AAIndex::getPropertyVector(seq3);
-	TEST_REAL_SIMILAR(calculated[0], 1.0);
-	TEST_REAL_SIMILAR(calculated[1], 9.34);
-	TEST_REAL_SIMILAR(calculated[2], 0.0);
-	TEST_REAL_SIMILAR(calculated[3], 2.0);
-	TEST_REAL_SIMILAR(calculated[4], 7.73);
-	TEST_REAL_SIMILAR(calculated[5], 1442.7);
-	TEST_REAL_SIMILAR(calculated[6], 1.0);
-	TEST_REAL_SIMILAR(calculated[7], 318.5);
-	TEST_REAL_SIMILAR(calculated[8], 0.0);
-	TEST_REAL_SIMILAR(calculated[9], 836.978);		
-	TEST_REAL_SIMILAR(calculated[10], 171.0);
-	TEST_REAL_SIMILAR(calculated[11], 190.0);
-	TEST_REAL_SIMILAR(calculated[12], -9.97);
-	TEST_REAL_SIMILAR(calculated[13], 0.0);
-	TEST_REAL_SIMILAR(calculated[14], 0.3);
-	TEST_REAL_SIMILAR(calculated[15], 1.259);
-	TEST_REAL_SIMILAR(calculated[16], 18.13);
-	TEST_REAL_SIMILAR(calculated[17], 0.0);
-		
-END_SECTION
 
 START_SECTION(static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=500.0) )
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq1), 1337.53)
@@ -100,18 +77,6 @@ END_SECTION
 START_SECTION(static DoubleReal polar(char aa))
 	TEST_REAL_SIMILAR(AAIndex::polar('S'),1.0)
 	TEST_REAL_SIMILAR(AAIndex::polar('A'),0.0)
-END_SECTION
-
-START_SECTION(static DoubleReal GBsidechain(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBsidechain('A'),0.0)
-END_SECTION
-
-START_SECTION(static DoubleReal GBleft(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBleft('A'),881.82)
-END_SECTION
-
-START_SECTION(static DoubleReal GBdeltaright(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBdeltaright('A'),0.0)
 END_SECTION
 
 START_SECTION(static DoubleReal getKHAG800101(char aa))

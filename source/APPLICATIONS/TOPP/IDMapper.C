@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -42,9 +43,9 @@ using namespace std;
 
 /**
 	@page TOPP_IDMapper IDMapper
-	
+
 	Assigns protein/peptide identifications to feature or consensus features.
-	
+
 	This tool is typically used before @ref TOPP_ConsensusID.
 
 	<B>The command line parameters of this tool are:</B>
@@ -64,18 +65,18 @@ class TOPPIDMapper
 			: TOPPBase("IDMapper", "Assigns protein/peptide identifications to feature or consensus features.")
 		{
 		}
-	
+
 	protected:
-	
+
 		void registerOptionsAndFlags_()
-		{	
+		{
 			registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
 			setValidFormats_("id",StringList::create("idXML"));
 			registerInputFile_("in", "<file>", "", "Protein/peptide identifications file");
 			setValidFormats_("in",StringList::create("featureXML,consensusXML"));
-			registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");		
+			registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
 			setValidFormats_("out",StringList::create("featureXML,consensusXML"));
-				
+
 			addEmptyLine_();
 			IDMapper mapper;
 			registerDoubleOption_("rt_delta","<value>",mapper.getRTDelta(), "Maximum allowed RT deviation between identification and feature.", false);
@@ -83,19 +84,20 @@ class TOPPIDMapper
 			registerDoubleOption_("mz_delta","<value>",mapper.getMZDelta(), "Maximum allowed m/z deviation between identification and feature.", false);
 			setMinFloat_("mz_delta",0.0);
 		}
-	
+
 		ExitCodes main_(int , const char**)
 		{
 			String in = getStringOption_("in");
-			FileHandler::Type in_type = FileHandler::getType(in);
+			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
-				
+
 			//----------------------------------------------------------------
 			// load idXML
 			//----------------------------------------------------------------
 			vector<ProteinIdentification> protein_ids;
 			vector<PeptideIdentification> peptide_ids;
-			IdXMLFile().load(getStringOption_("id"),protein_ids,peptide_ids);
+			String document_id;
+			IdXMLFile().load(getStringOption_("id"),protein_ids,peptide_ids, document_id);
 
 			//----------------------------------------------------------------
 			//create mapper
@@ -107,7 +109,7 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			// consensusXML
 			//----------------------------------------------------------------
-			if (in_type == FileHandler::CONSENSUSXML)
+			if (in_type == FileTypes::CONSENSUSXML)
 			{
 				ConsensusXMLFile file;
 				ConsensusMap map;
@@ -115,11 +117,11 @@ class TOPPIDMapper
 				mapper.annotate(map,peptide_ids,protein_ids);
 				file.store(out,map);
 			}
-			
+
 			//----------------------------------------------------------------
 			// featureXML
 			//----------------------------------------------------------------
-			if (in_type == FileHandler::FEATUREXML)
+			if (in_type == FileTypes::FEATUREXML)
 			{
 				FeatureMap<> map;
 				FeatureXMLFile file;
@@ -127,7 +129,7 @@ class TOPPIDMapper
 				mapper.annotate(map,peptide_ids,protein_ids);
 				file.store(out,map);
 			}
-			
+
 			return EXECUTION_OK;
 		}
 

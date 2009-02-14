@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -42,8 +42,11 @@ using namespace std;
 /**
 	@page CVInspector CVInspector
 	
-	@brief A tool for the validation of PSI mapping and CV files
+	@brief A tool for visualization and validation of PSI mapping and CV files
 	
+	This tool is used to validate the correct use of mapping files and CV files.
+	
+	TIt can also generate a HTML page
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_CVInspector.cli
@@ -57,7 +60,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","A tool for the validation of PSI mapping and CV files",false)
+		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files",false)
 	{
 	}
 	
@@ -89,11 +92,20 @@ class TOPPCVInspector
 			StringList tags;
 			if (child_term.obsolete)
 			{
-				tags.push_back("obsolete");
+				tags.push_back("<font color=darkred>obsolete</font>");
 			}
 			if (child_term.xref_type!=ControlledVocabulary::CVTerm::NONE)
 			{
 				tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
+			}
+			if (child_term.units.size()>0)
+			{
+				StringList units;
+				for (set<String>::const_iterator u_it=child_term.units.begin(); u_it!=child_term.units.end(); ++u_it)
+				{
+					units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+				}
+				tags.push_back(String("units=") + units.concatenate(","));
 			}
 			if (tags.size()!=0)
 			{
@@ -204,11 +216,11 @@ class TOPPCVInspector
 				//create table with terms
 				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
 				{
-					++term_count;
 					//create term line
 					String term_line = String("      <TR><TD valign=\"top\">Term:</TD><TD>");
 					if (tit->getAllowChildren())
 					{
+						++term_count;
 						term_line += String("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
 					}
 					else
@@ -247,11 +259,20 @@ class TOPPCVInspector
 						const ControlledVocabulary::CVTerm& term = cv.getTerm(tit->getAccession());
 						if (term.obsolete)
 						{
-							tags.push_back("obsolete");
+							tags.push_back("<font color=darkred>obsolete</font>");
 						}
 						if (term.xref_type!=ControlledVocabulary::CVTerm::NONE)
 						{
 							tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
+						}
+						if (term.units.size()>0)
+						{
+							StringList units;
+							for (set<String>::const_iterator u_it=term.units.begin(); u_it!=term.units.end(); ++u_it)
+							{
+								units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+							}
+							tags.push_back(String("units=") + units.concatenate(","));
 						}
 					}
 					if (tags.size()!=0)

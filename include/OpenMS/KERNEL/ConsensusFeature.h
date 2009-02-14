@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -40,14 +40,14 @@ namespace OpenMS
 {
 	/**
 		@brief A 2-dimensional consensus feature.
-	
+
 		A consensus feature represents corresponding features in multiple feature
 		maps. The corresponding features are represented a set of @ref
 		FeatureHandle instances.  Each ConsensusFeature "contains" zero or more
 		FeatureHandles.
-	
+
 		@see ConsensusMap
-	
+
 		@ingroup Kernel
 	*/
 	class OPENMS_DLLAPI ConsensusFeature
@@ -91,15 +91,15 @@ namespace OpenMS
 			{
 				return ( left.size() < right.size() );
 			}
-			inline bool operator () ( ConsensusFeature const & left, UInt const & right ) const
+			inline bool operator () ( ConsensusFeature const & left, Size const & right ) const
 			{
 				return ( left.size() < right );
 			}
-			inline bool operator () ( UInt const & left, ConsensusFeature const & right ) const
+			inline bool operator () ( Size const & left, ConsensusFeature const & right ) const
 			{
 				return ( left< right.size() );
 			}
-			inline bool operator () ( const UInt & left,	const UInt & right ) const
+			inline bool operator () ( const Size & left,	const Size & right ) const
 			{
 				return ( left < right );
 			}
@@ -173,7 +173,7 @@ namespace OpenMS
 			feature. Sets the consensus feature position and intensity to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(UInt map_index,	UInt element_index, const Peak2D& element)
+		ConsensusFeature(Size map_index,	Size element_index, const Peak2D& element)
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(0.0),
@@ -189,7 +189,7 @@ namespace OpenMS
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(UInt map_index,	UInt element_index, const Feature& element)
+		ConsensusFeature(Size map_index,	Size element_index, const Feature& element)
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getOverallQuality()),
@@ -204,7 +204,7 @@ namespace OpenMS
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(UInt map_index,	UInt element_index, const ConsensusFeature& element)
+		ConsensusFeature(Size map_index,	Size element_index, const ConsensusFeature& element)
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getQuality()),
@@ -225,7 +225,7 @@ namespace OpenMS
 			quality_ = rhs.quality_;
 			charge_ = rhs.charge_;
 			peptide_identifications_ =  rhs.peptide_identifications_;
-			
+
 			return *this;
 		}
 
@@ -263,20 +263,20 @@ namespace OpenMS
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(UInt map_index, UInt element_index, const Peak2D& element)
+		void insert(Size map_index, Size element_index, const Peak2D& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
 		}
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(UInt map_index, UInt element_index, const Feature& element)
+		void insert(Size map_index, Size element_index, const Feature& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
 			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
@@ -284,10 +284,10 @@ namespace OpenMS
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(UInt map_index, UInt element_index, const ConsensusFeature& element)
+		void insert(Size map_index, Size element_index, const ConsensusFeature& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
 			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
@@ -325,8 +325,8 @@ namespace OpenMS
 		/// Returns the position range of the contained elements
 		DRange<2> getPositionRange() const
 		{
-			DPosition<2> min = DPosition<2>::max;
-			DPosition<2> max = DPosition<2>::min;
+			DPosition<2> min = DPosition<2>::max();
+			DPosition<2> max = DPosition<2>::min();
 			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
 			{
 				if (it->getRT()<min[0]) min[0]=it->getRT();
@@ -339,8 +339,8 @@ namespace OpenMS
 		/// Returns the intensity range of the contained elements
 		DRange<1> getIntensityRange() const
 		{
-			DPosition<1> min = DPosition<1>::max;
-			DPosition<1> max = DPosition<1>::min;
+			DPosition<1> min = DPosition<1>::max();
+			DPosition<1> max = DPosition<1>::min();
 			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
 			{
 				if (it->getIntensity()<min[0]) min[0]=it->getIntensity();

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -55,8 +55,8 @@ END_SECTION
 
 START_SECTION((void setFileSize(Real file_size)))
   SourceFile tmp;
-	tmp.setFileSize(1.667);
-  TEST_REAL_SIMILAR(tmp.getFileSize(),1.667);
+	tmp.setFileSize(1.667f);
+  TEST_REAL_SIMILAR(tmp.getFileSize(),1.667f);
 END_SECTION
 
 START_SECTION((const String& getFileType() const))

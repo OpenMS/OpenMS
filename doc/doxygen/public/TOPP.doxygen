@@ -29,11 +29,6 @@
   
   'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
-
-	Installation instructions for your platform can be found here:
-	 - @ref install_linux
-	 - @ref install_win
-	 - @ref install_mac
   
   <BR>
   
@@ -78,8 +73,6 @@
   - @subpage TOPP_SequestAdapter - Annotates MS/MS spectra using Sequest.
   - @subpage TOPP_OMSSAAdapter - Annotates MS/MS spectra using OMSSA.
 	- @subpage TOPP_PepNovoAdapter - Annotates MS/MS spectra using PepNovo.
- 	- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications.
- 	- @subpage TOPP_PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
  	- @subpage TOPP_XTandemAdapter - Annotates MS/MS spectra using XTandem.
 	- @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
@@ -101,7 +94,9 @@
 	- @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
 	
 	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
+	
 	@todo Add DataProcessing for all TOPP tools (Hiwi)
+	
 	@todo Make mzML the default format of TOPP tools as soon as mzML 1.1 is finished and implemented completely (Hiwi)
-	@todo Fix remaining TOPP tests - pipes to command line, sed (Marc, Andreas, Chris)
+	
 */

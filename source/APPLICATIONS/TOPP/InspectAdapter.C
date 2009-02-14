@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,8 @@ using namespace std;
 	@page TOPP_InspectAdapter InspectAdapter
 
 	@brief Identifies peptides in MS/MS spectra via Inspect.
+
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
 
 	This wrapper application serves for getting peptide peptide_identifications
 	for MS/MS spectra. The wrapper can be executed in three different

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -122,7 +122,7 @@ START_SECTION(void setTolerance(double t))
 }
 END_SECTION
 
-START_SECTION(unsigned int getNumberOfModifications ())
+START_SECTION(Size getNumberOfModifications ())
 {
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -140,7 +140,7 @@ START_SECTION(String toString())
 }
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(unsigned int number_of_mods))
+START_SECTION(void setNumberOfModifications(Size number_of_mods))
 {
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -168,13 +168,13 @@ START_SECTION(const std::vector<OpenMS::String>& getTags())
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
@@ -184,34 +184,34 @@ END_SECTION
 START_SECTION((void setUseTags(bool use_tags)))
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 }
 END_SECTION
 
 START_SECTION(bool getUseTags())
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 }
 END_SECTION
 
@@ -223,16 +223,16 @@ START_SECTION((bool open(const String &filename)))
 END_SECTION
 
 
-START_SECTION((bool save(const String &filename)))
-{
-	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
-	//needs no further testing because the functionality comes from seqan
-}
-END_SECTION
+//START_SECTION((bool save(const String &filename)))
+//{
+//	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
+//	//needs no further testing because the functionality comes from seqan
+//}
+//END_SECTION
 
 #if 1
 
-START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)))
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)))
 {
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
@@ -253,7 +253,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
 	const vector<double> specc (spec);
-	vector <vector< pair<pair<int,int>,double> > > res;
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 
@@ -285,7 +285,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	sa = new SuffixArraySeqan(txt,"");
 	STATUS("Okay!");
 	vector<double> spec_new;
-	for (int i = 500; i < 5000; i+=20) 
+	for (int i = 500; i < 5000; i += 197)
 	{
 		spec_new.push_back((double)i);
 	}
@@ -303,7 +303,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 		{
 			for (Size k = j+1; k < res.at(i).size();k++)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, false);
 				
 			}
 		}
@@ -329,7 +329,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	STATUS("Okay!");
 
 	// getting all candidates with tags 
-	int number_of_tags=0;
+	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
 	for (Size i = 0; i < res.size();i++)
 	{
@@ -380,7 +380,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 				}
 			}
 			if (!has_tag) cout <<seq << endl;
-			TEST_EQUAL(has_tag,1);
+			TEST_EQUAL(has_tag, true);
 			TEST_EQUAL(res.at(i).at(j).second,0);
 			
 			res_with_tags.push_back(seq);

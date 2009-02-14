@@ -127,10 +127,27 @@ dotdoc:
 
 #######################################################################
 # Creates the internal documentation without class documentation.
-noclassdoc: toppdoc_try
+noclassdoc:
+	@make paramdoc
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "Creating the internal documentation with out class documentation";
+	@echo "";
+	@rm -rf doxygen/xml_output html
+	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen doxygen/Doxyfile_noclass
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The documentation has been successfully created.";
+	@echo "You can now open 'index.html' in a web browser.";
+	@echo "";
+
+#######################################################################
+# Creates the internal documentation without class documentation.
+nodoc:
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the internal documentation with out class and TOPP documentation";
 	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile

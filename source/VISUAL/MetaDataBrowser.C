@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -210,8 +210,7 @@ namespace OpenMS
 		visualizer->load(meta);
 
     QStringList labels;
-    String name = String("Acquisition Nr. ") + meta.getNumber();
-    labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
+    labels << "Acquisition" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem* item;
 		if(parent == 0)

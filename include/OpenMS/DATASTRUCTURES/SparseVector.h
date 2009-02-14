@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief SparseVector implementation. The container will not actually store a specified type of element - the sparse element, e.g. zero (by default)
 
-		SparseVector for allround usage, will work with int, uint, double, float. This should use less space than a normal vector
+		SparseVector for allround usage, will work with Int, UInt, DoubleReal, Real. This should use less space than a normal vector
 		(if more than half of the elements are sparse elements, since the underlying structure is a map) and functions can just
 		ignore sparse elements (hop(), @see SparseVectorIterator) for faster look over the elements of the container
 
@@ -426,7 +426,7 @@ namespace OpenMS
 			Value sparse_element_;
 
 			///Updates position of @p it and all larger elements
-			void update_(map_iterator it, UInt amount_deleted)
+			void update_(map_iterator it, Size amount_deleted)
 			{
 				while(it != values_.end())
 				{

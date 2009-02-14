@@ -3,6 +3,7 @@ set(directory include/OpenMS/FORMAT/VALIDATORS)
 
 ### list all header files of the directory here
 set(sources_list_h
+XMLValidator.h
 MzMLValidator.h
 SemanticValidator.h
 )

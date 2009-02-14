@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -63,8 +63,8 @@ START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   opt_2d_copy = opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  double abs_err = opt_2d_copy.getMaxAbsError();
-  double rel_err = opt_2d_copy.getMaxRelError();
+  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
+  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -87,8 +87,8 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
   TwoDOptimization opt_2d_copy(opt_2d);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  double abs_err = opt_2d_copy.getMaxAbsError();
-  double rel_err = opt_2d_copy.getMaxRelError();
+  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
+  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -134,34 +134,34 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peaks.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks.getMetaDataArrays()[1].push_back(100.); //area
   peaks.getMetaDataArrays()[3].setName("leftWidth");
-	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
   peaks.getMetaDataArrays()[4].setName("rightWidth");
-	peaks.getMetaDataArrays()[4].push_back(2.6); //right width
+	peaks.getMetaDataArrays()[4].push_back(2.6f); //right width
   peaks.getMetaDataArrays()[5].setName("peakShape");
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
   peaks.getMetaDataArrays()[1].push_back(100.); //area
-	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
-	peaks.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
+	peaks.getMetaDataArrays()[4].push_back(2.5f); //right width
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
   MSSpectrum<> peaks2;
   peaks2.getMetaDataArrays().resize(6);
   peaks2.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks2.getMetaDataArrays()[1].push_back(100.); //area
   peaks2.getMetaDataArrays()[3].setName("leftWidth");
-	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
   peaks2.getMetaDataArrays()[4].setName("rightWidth");
-	peaks2.getMetaDataArrays()[4].push_back(2.6); //right width
+	peaks2.getMetaDataArrays()[4].push_back(2.6f); //right width
   peaks2.getMetaDataArrays()[5].setName("peakShape");
 	peaks2.getMetaDataArrays()[5].push_back(0); //shape
   peaks2.getMetaDataArrays()[1].push_back(100.); //area
-	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
-	peaks2.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
+	peaks2.getMetaDataArrays()[4].push_back(2.5f); //right width
 	peaks2.getMetaDataArrays()[5].push_back(0); //shape
 	
 	Peak1D peak;
   PeakShape peak_shape,peak_shape2;
   peak.setMZ(500);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
   peak_shape.right_width = 2.5;
@@ -170,7 +170,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
   peak.setMZ(501);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape2.mz_position = 501;
   peak_shape2.left_width = 2.5;
   peak_shape2.right_width = 2.5;
@@ -184,7 +184,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	ms_exp.begin()->setRT(100);
 			
   float origin = 499;
-  float spacing = 0.1;
+  float spacing = 0.1f;
 
 	MSSpectrum<Peak1D >	 raw_spec;
   for (Size i = 0; i < 20 ;++i)
@@ -195,7 +195,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
     raw_spec.push_back(data_point);
   }
   peak.setMZ(500.02);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
   peak_shape.right_width = 2.5;
@@ -204,7 +204,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks2.push_back(peak);
   peak.setMZ(501);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape2.mz_position = 501;
   peak_shape2.left_width = 2.5;
   peak_shape2.right_width = 2.5;
@@ -260,9 +260,9 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 
 END_SECTION
 
-START_SECTION((void setMaxAbsError(double eps_abs)))
+START_SECTION((void setMaxAbsError(DoubleReal eps_abs)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
+  DoubleReal abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
@@ -270,9 +270,9 @@ START_SECTION((void setMaxAbsError(double eps_abs)))
  	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
 END_SECTION
 
-START_SECTION((void setMaxRelError(double eps_rel)))
+START_SECTION((void setMaxRelError(DoubleReal eps_rel)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
+  DoubleReal rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
@@ -282,7 +282,7 @@ END_SECTION
 	
 START_SECTION((DoubleReal getMaxAbsError() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
+  DoubleReal abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
@@ -292,7 +292,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMaxRelError() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
+  DoubleReal rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
@@ -300,9 +300,9 @@ START_SECTION((DoubleReal getMaxRelError() const))
  	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
 END_SECTION
 	
-START_SECTION((void setMaxPeakDistance(double max_peak_distance)))
+START_SECTION((void setMaxPeakDistance(DoubleReal max_peak_distance)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double max_peak_distance = 0.01;
+  DoubleReal max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -312,7 +312,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMaxPeakDistance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double max_peak_distance = 0.01;
+  DoubleReal max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -322,9 +322,9 @@ END_SECTION
 
 
 
-START_SECTION((void setMZTolerance(double tolerance_mz)))
+START_SECTION((void setMZTolerance(DoubleReal tolerance_mz)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double mz_tolerance = 0.01;
+  DoubleReal mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
@@ -334,7 +334,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMZTolerance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double mz_tolerance = 0.01;
+  DoubleReal mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
@@ -342,8 +342,8 @@ START_SECTION((DoubleReal getMZTolerance() const))
  	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
 END_SECTION
 
-START_SECTION((void setMaxIterations(int max_iteration)))
-  int number = 20;
+START_SECTION((void setMaxIterations(UInt max_iteration)))
+	UInt number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
@@ -351,8 +351,8 @@ START_SECTION((void setMaxIterations(int max_iteration)))
  	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
 END_SECTION
 
-START_SECTION((Int getMaxIterations() const))
-  int number = 20;
+START_SECTION((UInt getMaxIterations() const))
+  UInt number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);

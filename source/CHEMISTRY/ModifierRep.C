@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,9 @@ using namespace std;
 
 ModifierRep::ModifierRep()
 {
-	ResidueDB* rdb = ResidueDB::getInstance();
+	//ResidueDB* rdb = ResidueDB::getInstance();
 
-	char aa[] = "ARNDCEQGHILKMFPSTWYV";
+	//char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
 	for (Size i = 0; i<256;++i)
 	{
@@ -79,12 +79,12 @@ ModifierRep::~ModifierRep ()
 
 }
 
-void ModifierRep::setNumberOfModifications(UInt i)
+void ModifierRep::setNumberOfModifications(Size i)
 {
 	number_of_modifications_ = i;
 }
 
-UInt ModifierRep::getNumberOfModifications() const
+Size ModifierRep::getNumberOfModifications() const
 {
 	return (number_of_modifications_);
 }
@@ -94,13 +94,13 @@ const vector<vector<double> > & ModifierRep::getModificationTable ()
 	return (modification_table_);
 }
 
-UInt ModifierRep::getMaxModificationMasses ()
+Size ModifierRep::getMaxModificationMasses ()
 {
 	if (number_of_modifications_==0)
 	{
 		return(0);
 	}
-	map<double,int> mod_masses;
+	map<double, SignedSize> mod_masses;
 
 	for (Size i = 0; i < modification_table_.size();++i)
 	{
@@ -111,18 +111,18 @@ UInt ModifierRep::getMaxModificationMasses ()
 	}
 	vector<double> all_single_mods;
 
-	map<double,int>::iterator it;
+	map<double, SignedSize>::iterator it;
 	for (it = mod_masses.begin();it!=mod_masses.end();++it)
 	{
 		all_single_mods.push_back(it->first);
 	}
 
-	for (int k = 1; k < number_of_modifications_; ++k)
+	for (Size k = 1; k < number_of_modifications_; ++k)
 	{
 		vector<double> to_add;
 		for (Size i = 0; i < all_single_mods.size();++i)
 		{
-			map<double,int>::iterator it2;
+			map<double, SignedSize>::iterator it2;
 			for (it2 = mod_masses.begin();it2!=mod_masses.end();++it2)
 			{
 				to_add.push_back((it2->first)+all_single_mods.at(i));
@@ -139,7 +139,7 @@ UInt ModifierRep::getMaxModificationMasses ()
 	return(mod_masses.size());
 }
 
-void ModifierRep::refreshModificationList (map<double,int> & mod_map,const char & c)
+void ModifierRep::refreshModificationList (map<double, SignedSize> & mod_map,const char & c)
 {
 	if (modification_table_.at((int)c).size()==0) {
 		return;
@@ -148,12 +148,12 @@ void ModifierRep::refreshModificationList (map<double,int> & mod_map,const char 
 		for (Size i = 0;i<modification_table_.at(int(c)).size();++i)
 		{
 			double mod_mass = modification_table_.at(int(c)).at(i);
-			map<double,int>::iterator it;
-			vector<pair<double,int> > to_add;
+			map<double, SignedSize>::iterator it;
+			vector<pair<double, SignedSize> > to_add;
 			for (it=mod_map.begin();it!=mod_map.end();++it){
-				if(it->second<number_of_modifications_)
+				if(it->second < (SignedSize)number_of_modifications_)
 				{
-					to_add.push_back(pair<double,int>(it->first+mod_mass,it->second+1));
+					to_add.push_back(pair<double, SignedSize>(it->first+mod_mass,it->second+1));
 				}
 			}
 			for (Size j = 0; j<to_add.size();++j){
@@ -200,11 +200,11 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 			res.push_back(*it);
 		}
 
-		for (int k = 1; k < number_of_modifications_; ++k)
+		for (Size k = 1; k < number_of_modifications_; ++k)
 		{
 			vector<String> to_add;
 			set<String>::iterator it2 = all_mods.begin();
-			int c = 0;
+			SignedSize c = 0;
 			for (;it2!=all_mods.end();++it2)
 			{
 				for (Size i = c; i < res.size();++i)

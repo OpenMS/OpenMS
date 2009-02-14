@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -73,11 +73,11 @@ public:
 	@brief the function that will find all peptide candidates for a given spectrum
 	@param spec const reference of double vector describing the spectrum
 	@param candidates the candidates which are returned for the masses given in spec
-	@return a vector of int pairs.
+	@return a vector of SignedSize pairs.
 	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	*/
-	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>,double > > >& candidates, const std::vector<double> & spec) = 0;
+	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>,double > > >& candidates, const std::vector<double> & spec) = 0;
 
 	/**
 	@brief saves the suffix array to disc
@@ -144,13 +144,13 @@ public:
 	@brief setter for number of modifications
 	@param number_of_mods
 	*/
-	virtual void setNumberOfModifications(unsigned int number_of_mods) = 0;
+	virtual void setNumberOfModifications(Size number_of_mods) = 0;
 
 	/**
 	@brief getter for number of modifications
-	@return unsigned int describing number of modifications
+	@return Size describing number of modifications
 	*/
-	virtual unsigned int getNumberOfModifications () = 0;
+	virtual Size getNumberOfModifications () = 0;
 
 	/**
 	@brief output for statistic

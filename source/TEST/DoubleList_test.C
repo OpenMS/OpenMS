@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(DoubleList, "$Id$")
+START_TEST(DoubleList, "$$")
 
 /////////////////////////////////////////////////////////////
 
@@ -61,6 +61,21 @@ START_SECTION(static DoubleList create(const String& list))
 
 	DoubleList list3 = DoubleList::create("");
 	TEST_EQUAL(list3.size(),0);
+END_SECTION
+
+START_SECTION(static DoubleList create(const StringList& list))
+	DoubleList list = DoubleList::create(StringList::create("1.222,5.33789"));
+	TEST_EQUAL(list.size(),2);
+	TEST_REAL_SIMILAR(list[0],1.222);
+	TEST_REAL_SIMILAR(list[1],5.33789);
+
+	DoubleList list2 = DoubleList::create(StringList::create("2.33334"));
+	TEST_EQUAL(list2.size(),1);
+	TEST_REAL_SIMILAR(list2[0],2.33334);
+
+	DoubleList list3 = DoubleList::create(StringList::create(""));
+	TEST_EQUAL(list3.size(),0);
+	TEST_EXCEPTION(Exception::ConversionError,DoubleList::create(StringList::create("ein,exception")));
 END_SECTION
 
 START_SECTION(DoubleList(const DoubleList& rhs))
@@ -111,7 +126,17 @@ START_SECTION(DoubleList& operator=(const std::vector<DoubleReal>& rhs))
 	TEST_EQUAL(list2.size(),2);
 	TEST_REAL_SIMILAR(list2[0],1.22);
 	TEST_REAL_SIMILAR(list2[1],3.67);
+END_SECTION
 
+START_SECTION(DoubleList& operator=(const std::vector<Real>& rhs))
+	std::vector<Real> list;
+	list.push_back(1.22);
+	list.push_back(3.67);
+	DoubleList list2;
+	list2 = list;
+	TEST_EQUAL(list2.size(),2);
+	TEST_REAL_SIMILAR(list2[0],1.22);
+	TEST_REAL_SIMILAR(list2[1],3.67);
 END_SECTION
 
 START_SECTION((template<typename DoubleType> DoubleList& operator<<(DoubleType value)))
@@ -124,7 +149,7 @@ START_SECTION((template<typename DoubleType> DoubleList& operator<<(DoubleType v
 	TEST_EQUAL(list[3],1.2);
 END_SECTION
 
-START_SECTION(bool contains(const String& s) const)
+START_SECTION(bool contains(DoubleReal s) const)
 	DoubleList list = DoubleList::create("1.2,3.4");
 	TEST_EQUAL(list.contains(1.2),true)
 	TEST_EQUAL(list.contains(3.4),true)

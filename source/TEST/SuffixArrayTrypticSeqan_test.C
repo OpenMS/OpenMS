@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -91,7 +91,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	spec.push_back(245.2816);
 	spec.push_back(387.4392);
 	const vector<double> specc (spec);
-	vector <vector< pair<pair<int,int>,double> > > res;
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 	for (Size i = 0; i<res.size();i++)
@@ -119,7 +119,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	getline(i_stream,txt);
 	sa = new SuffixArrayTrypticSeqan(txt,"");
 	vector<double> spec_new;
-	for (int i = 500; i < 5000; i += 20) 
+	for (int i = 500; i < 5000; i += 197) 
 	{
 		spec_new.push_back((double)i);
 	}
@@ -129,13 +129,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	sa->findSpec(res, specc_new);
 	
 	//checking for doubled results;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
-			for (Size k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();++k)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);			
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, false);			
 			}
 		}
 	}
@@ -161,7 +161,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 		}
 	}
 	// getting all candidates with tags 
-	int number_of_tags=0;
+	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
 	for (Size i = 0; i < res.size();i++)
 	{
@@ -208,7 +208,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 				}
 			}
 			if (!has_tag) cout << seq << endl;
-			TEST_EQUAL(has_tag,1);
+			TEST_EQUAL(has_tag,true);
 			TEST_EQUAL(res.at(i).at(j).second, 0);
 			
 			res_with_tags.push_back(seq);

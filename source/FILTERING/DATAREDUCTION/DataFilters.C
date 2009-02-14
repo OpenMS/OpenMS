@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -153,7 +153,7 @@ namespace OpenMS
 		}
 	}
 	
-	void DataFilters::remove(UInt index)
+	void DataFilters::remove(Size index)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_.erase(filters_.begin()+index);
@@ -169,7 +169,7 @@ namespace OpenMS
 		return is_active_;
 	}
 
-	void DataFilters::replace(UInt index, const DataFilter& filter)
+	void DataFilters::replace(Size index, const DataFilter& filter)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_[index] = filter;
@@ -197,7 +197,7 @@ namespace OpenMS
 		return filters_.size();
 	}
 	
-	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const
+	const DataFilters::DataFilter& DataFilters::operator[](Size index) const
 	{		
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		return filters_[index];

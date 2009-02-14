@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //									 OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//	Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//	Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //	This library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
@@ -99,24 +99,7 @@ namespace OpenMS
 			fitter.setParameters(params);
 
 			/// Summary of fitting results
-			struct Summary
-			{
-				std::map<String,UInt> exception; //count exceptions
-				UInt no_exceptions;
-				std::map<String,UInt> mz_model; //count used mz models
-				std::map<float,UInt> mz_stdev; //count used mz standard deviations
-				std::vector<UInt> charge; //count used charges
-				DoubleReal corr_mean, corr_max, corr_min;		//boxplot for correlation
-
-				/// Initial values
-				Summary() :
-					no_exceptions(0),
-					corr_mean(0),
-					corr_max(0),
-					corr_min(1)
-				{}
-
-			} summary;
+			Summary summary;
 
 			try
 			{

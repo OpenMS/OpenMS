@@ -30,19 +30,15 @@
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
-#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
+//#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
-#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
@@ -113,13 +109,15 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWatershed.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -130,7 +128,7 @@ using namespace OpenMS;
 void writeParameters(const String& class_name, const Param& param)
 {
 	ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
-	
+
 	f << "<B>Parameters of this class are:</B><BR><BR>\n";
 	f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
 	f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
@@ -160,7 +158,7 @@ void writeParameters(const String& class_name, const Param& param)
 		{
 			type = "float";
 			if (it->value.valueType()==DataValue::DOUBLE_LIST) type += " list";
-			
+
 			//restrictions
 			bool first = true;
 			if (it->min_float!=-numeric_limits<DoubleReal>::max())
@@ -178,7 +176,7 @@ void writeParameters(const String& class_name, const Param& param)
 		{
 			type = "string";
 			if (it->value.valueType()==DataValue::STRING_LIST) type += " list";
-			
+
 			//restrictions
 			if (it->valid_strings.size()!=0)
 			{
@@ -311,22 +309,23 @@ int main (int argc , char** argv)
 	DOCME(MSPFile);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
+	DOCME(MapAlignmentAlgorithmApplyGivenTrafo);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
 	DOCME(NeutralLossMarker);
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
-	DOCME(PILISScoring);
-	DOCME(PILISModel);
-	DOCME(PILISNeutralLossModel);
-	DOCME(PILISModelGenerator);
-	DOCME(PILISIdentification);
+	//DOCME(PILISScoring);
+	//DOCME(PILISModel);
+	//DOCME(PILISNeutralLossModel);
+	//DOCME(PILISModelGenerator);
+	//DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);
-	DOCME(ProtonDistributionModel);
+	//DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
 	DOCME(SpectrumAlignment);
@@ -341,6 +340,8 @@ int main (int argc , char** argv)
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
 	DOCME(CompareFouriertransform);
+	DOCME(PrecursorIonSelection);
+	DOCME(PrecursorIonSelectionPreprocessing);
 
 	//////////////////////////////////
 	// More complicated cases
@@ -348,6 +349,7 @@ int main (int argc , char** argv)
 
 	DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>()))
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmWatershed, (FeatureFinderAlgorithmWatershed<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))

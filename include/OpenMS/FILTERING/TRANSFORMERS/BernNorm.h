@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -85,7 +85,7 @@ namespace OpenMS
 
     	// find highest peak and ranking
     	double maxint = 0;
-    	std::map<double, uint> peakranks;
+    	std::map<double, Size> peakranks;
     	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
       	peakranks[it->getIntensity()] = 0;
@@ -94,8 +94,8 @@ namespace OpenMS
        		maxint = it->getIntensity();
       	}
     	}
-    	uint rank = 0;
-    	for (std::map<double, uint>::reverse_iterator mit = peakranks.rbegin(); mit != peakranks.rend(); ++mit)
+    	UInt rank = 0;
+    	for (std::map<double, Size>::reverse_iterator mit = peakranks.rbegin(); mit != peakranks.rend(); ++mit)
     	{
      		mit->second = ++rank;
     	}

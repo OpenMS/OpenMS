@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,13 +41,13 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution()
 		:	max_isotope_(0)
 	{
-		distribution_.push_back(make_pair<UInt, double>(0, 1));
+		distribution_.push_back(make_pair<Size, double>(0, 1));
 	}
 
-	IsotopeDistribution::IsotopeDistribution(UInt max_isotope)
+	IsotopeDistribution::IsotopeDistribution(Size max_isotope)
 		:	max_isotope_(max_isotope)
 	{
-		distribution_.push_back(make_pair<UInt, double>(0, 1));
+		distribution_.push_back(make_pair<Size, double>(0, 1));
 	}
 
 	IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution& isotope_distribution)
@@ -60,12 +60,12 @@ namespace OpenMS
 	{
 	}
 
-	void IsotopeDistribution::setMaxIsotope(UInt max_isotope)
+	void IsotopeDistribution::setMaxIsotope(Size max_isotope)
 	{
 		max_isotope_ = max_isotope;
 	}
 
-	UInt IsotopeDistribution::getMaxIsotope() const
+	Size IsotopeDistribution::getMaxIsotope() const
 	{
 		return max_isotope_;
 	}
@@ -98,7 +98,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution& IsotopeDistribution::operator *= (UInt factor)
+	IsotopeDistribution& IsotopeDistribution::operator *= (Size factor)
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -106,7 +106,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution IsotopeDistribution::operator * (UInt factor) const
+	IsotopeDistribution IsotopeDistribution::operator * (Size factor) const
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -126,7 +126,7 @@ namespace OpenMS
 		return distribution_;
 	}
 
-	UInt IsotopeDistribution::getMax() const
+	Size IsotopeDistribution::getMax() const
 	{
 		if (distribution_.size() == 0)
 		{
@@ -135,7 +135,7 @@ namespace OpenMS
 		return distribution_[distribution_.size()-1].first;
 	}
 
-	UInt IsotopeDistribution::getMin() const
+	Size IsotopeDistribution::getMin() const
 	{
 		if (distribution_.size() == 0)
 		{
@@ -183,7 +183,7 @@ namespace OpenMS
 			ContainerType single, conv_dist;
 			//calculate distribution for single element
 			ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
-			convolvePow_(single, dist, (UInt)Math::round(average_weight * factors[i]));
+			convolvePow_(single, dist, (Size)Math::round(average_weight * factors[i]));
 			//convolve it with the existing distributions
 			conv_dist = distribution_;
 			convolve_(distribution_, single, conv_dist);
@@ -219,7 +219,7 @@ namespace OpenMS
 		result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair<UInt, double>(left[0].first + right[0].first + i, 0);
+      result[i] = make_pair<Size, double>(left[0].first + right[0].first + i, 0);
     }
 
 		// we loop backwards because then the small products tend to come first
@@ -233,12 +233,12 @@ namespace OpenMS
 		}
 	}
 
-	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, UInt n) const
+	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
 	{
 		/*	
 		// my code 
 		ContainerType tmp, tmp_result;
-		tmp.push_back(make_pair<UInt, double>(0, 1));
+		tmp.push_back(make_pair<Size, double>(0, 1));
 		for (Size i=0; i!=n; ++i)
 		{
 			convolve(tmp_result, input, tmp);
@@ -256,7 +256,7 @@ namespace OpenMS
 		}
 
     // find binary logarithm of n
-    UInt log2n = 0;
+    Size log2n = 0;
     for (; (1U << log2n) < n; ++log2n) ;
 
 	  // get started
@@ -267,7 +267,7 @@ namespace OpenMS
     else 
 		{
       result.clear();
-      result.push_back(make_pair<UInt, double>(0, 1.0));
+      result.push_back(make_pair<Size, double>(0, 1.0));
     }
 
     ContainerType intermediate;
@@ -306,7 +306,7 @@ namespace OpenMS
     result.resize(r_max);
 		for (ContainerType::size_type i = 0; i != r_max; ++i)
 		{
-			result[i] = make_pair<UInt, double>(2 * input[0].first + i, 0);
+			result[i] = make_pair<Size, double>(2 * input[0].first + i, 0);
 		}
 
     // we loop backwards because then the small products tend to come first

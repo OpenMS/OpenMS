@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	void CompleteLinkage::cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold /*=1*/) const
+	void CompleteLinkage::operator () (DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold /*=1*/) const
 	{
 		// attention: clustering process is done by clustering the indices
 		// pointing to elements in inputvector and distances in inputmatrix
@@ -64,11 +64,11 @@ namespace OpenMS
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
 		}
 
-		std::vector< std::vector<UInt> >clusters;
+		std::vector< std::vector<Size> >clusters;
 		clusters.reserve(original_distance.dimensionsize());
 		for (Size i = 0; i < original_distance.dimensionsize(); ++i)
 		{
-			clusters.push_back(std::vector<UInt>(1,i));
+			clusters.push_back(std::vector<Size>(1,i));
 		}
 
 		cluster_tree.clear();
@@ -76,7 +76,7 @@ namespace OpenMS
 
 		// Initial minimum-distance pair
 		original_distance.updateMinElement();
-		std::pair<UInt,UInt> min = original_distance.getMinElementCoordinates();
+		std::pair<Size,Size> min = original_distance.getMinElementCoordinates();
 
 		while(original_distance(min.first,min.second) < threshold)
 		{

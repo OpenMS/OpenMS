@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -71,8 +71,9 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
   IDDecoyProbability decoy;
 	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev;
 	vector<PeptideIdentification> pep_ids_fwd, pep_ids_rev, prob_ids;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), prot_ids_fwd, pep_ids_fwd);
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), prot_ids_rev, pep_ids_rev);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), prot_ids_fwd, pep_ids_fwd, document_id);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), prot_ids_rev, pep_ids_rev, document_id);
 
 	decoy.apply(prob_ids, pep_ids_fwd, pep_ids_rev);
 
@@ -84,12 +85,11 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 			{
 				double prob(pit->getScore());
 				double orig_score((double)pit->getMetaValue("XTandem_score"));
-				cerr << orig_score << " " << prob << endl;
 				if (orig_score > 40.0)
 				{
 					TEST_EQUAL(prob > 0.9, true)
 				}
-				if (orig_score < 25)
+				if (orig_score < 20)
 				{
 					TEST_EQUAL(prob < 0.05, true)
 				}
@@ -97,11 +97,6 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 		}
 	}
 }
-END_SECTION
-
-
-START_SECTION(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
-	NOT_TESTABLE
 END_SECTION
 
 

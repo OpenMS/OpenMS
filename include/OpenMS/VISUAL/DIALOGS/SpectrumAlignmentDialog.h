@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -59,9 +59,9 @@ namespace OpenMS
 		protected:
 			
 			/// Stores the layer indices of the layers in the left list (non-flipped layers)
-			std::vector<UInt> layer_indices_1;
+			std::vector<UInt> layer_indices_1_;
 			/// Stores the layer indices of the layers in the right list (flipped layers)
-			std::vector<UInt> layer_indices_2;
+			std::vector<UInt> layer_indices_2_;
 			
 		private:
 			

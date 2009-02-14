@@ -3,6 +3,13 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/source/TEST)
 include(executables.cmake)
 
+if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS_RELEASE_SAVED ${CMAKE_CXX_FLAGS_RELEASE})
+	#disable optimization for tests
+	set(CMAKE_CXX_FLAGS_RELEASE "-O0")
+endif()
+
+
 ### CONCEPT
 foreach(i ${concept_executables_list})
   add_executable(${i} ${i}.C)
@@ -137,6 +144,10 @@ set(TEST_executables
 ### TEST target
 add_custom_target(TEST)
 add_dependencies(TEST ${TEST_executables})
+
+if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX)
+	set(${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE_SAVED})
+endif()
 
 ### tests
 foreach(i ${TEST_executables})

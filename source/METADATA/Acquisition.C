@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -32,28 +32,25 @@ namespace OpenMS
 {
 	Acquisition::Acquisition():
 		MetaInfoInterface(),
-		number_(-1)
+		identifier_()
 	{
-	  
 	}
 	
 	Acquisition::Acquisition(const Acquisition& source):
 		MetaInfoInterface(source),
-	  number_(source.number_)
+	  identifier_(source.identifier_)
 	{
-	  
 	}
 	
 	Acquisition::~Acquisition()
 	{
-	  
 	}
 	
 	Acquisition& Acquisition::operator = (const Acquisition& source)
 	{
 	  if (&source == this) return *this;
 	  
-	  number_ = source.number_;
+	  identifier_ = source.identifier_;
 	  MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -62,7 +59,7 @@ namespace OpenMS
   bool Acquisition::operator== (const Acquisition& rhs) const
   {
   	return 
-  		number_ == rhs.number_ &&
+  		identifier_ == rhs.identifier_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -72,14 +69,14 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	Int Acquisition::getNumber() const 
+	const String& Acquisition::getIdentifier() const 
 	{
-	  return number_; 
+	  return identifier_; 
 	}
 	
-	void Acquisition::setNumber(Int number)
+	void Acquisition::setIdentifier(const String& identifier)
 	{
-	  number_ = number; 
+	  identifier_ = identifier; 
 	}
 
 }	

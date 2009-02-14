@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,14 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Andreas Bertsch, Daniel Jameson$
 // --------------------------------------------------------------------------
-
-/*
- * remotemascotquery.h
- * (c) 2008 Daniel Jameson, University of Manchester
- *  
- */
 
 #ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
 #define OPENMS_FORMAT_MASCOTREMOTEQUERY_H
@@ -40,17 +34,14 @@
 #include <QtNetwork/QHttpRequestHeader>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <vector>
 
 namespace OpenMS
 {
 	/**
-		@brief
-		
-		@todo Docu (Andreas)
+		@brief Class which handles the communication between OpenMS and the Mascot server
+
+		This class provides a communication interface which is able to query the Mascot
+		server and reports the identifications provided be the Mascot server
 	*/
 	class OPENMS_DLLAPI MascotRemoteQuery 
 		: public QObject,
@@ -74,12 +65,19 @@ namespace OpenMS
 			//@}
 
 
+			/// sets the query spectra, given in MGF file format
 			void setQuerySpectra(const String& exp);
 			
+			/// returns the Mascot XML response which contains the identifications
 			const QByteArray& getMascotXMLResponse() const;
+		
+			/// predicate which returns true if an error occurred during the query
+			bool hasError() const;
+
+			/// returns the error message, if hasError can be used to check whether an error has occurred
+			const String& getErrorMessage() const;	
 			
-			
-			/// assignment operator 
+			/// assignment operator  
 			MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
 
 		protected:
@@ -145,6 +143,8 @@ namespace OpenMS
 			QString results_path_;
 
 			QString cookie_;
+
+			String error_message_;
 };
 
 }

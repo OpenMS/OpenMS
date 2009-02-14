@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -90,25 +90,25 @@ END_SECTION
 START_SECTION((Int getLeftPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 0)
+  TEST_EQUAL(cwt.getLeftPaddingIndex(), 0)
 END_SECTION
 
 START_SECTION((Int getRightPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_SIMILAR(cwt.getRightPaddingIndex(), 0)
+  TEST_EQUAL(cwt.getRightPaddingIndex(), 0)
 END_SECTION
 
 START_SECTION((Int getSignalLength() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_SIMILAR(cwt.getSignalLength(), 0)
+  TEST_EQUAL(cwt.getSignalLength(), 0)
 END_SECTION
 
 START_SECTION((int getSize() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_SIMILAR(cwt.getSize(), 0)
+  TEST_EQUAL(cwt.getSize(), 0)
 END_SECTION
 
 START_SECTION((const std::vector<double>& getWavelet() const))
@@ -134,7 +134,7 @@ END_SECTION
 START_SECTION((double operator[](unsigned int i)))
   std::vector<Peak1D > signal;
   Peak1D rp;
-  rp.setIntensity(100);
+  rp.setIntensity(100.0f);
   signal.push_back(rp);
   
   ContinuousWaveletTransform cwt;
@@ -147,21 +147,21 @@ START_SECTION((int& getLeftPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getLeftPaddingIndex() = 2;
   
-  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 2)
+  TEST_EQUAL(cwt.getLeftPaddingIndex(), 2)
 END_SECTION
 
 START_SECTION((int& getRightPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getRightPaddingIndex() = 2;
   
-  TEST_REAL_SIMILAR(cwt.getRightPaddingIndex(), 2)
+  TEST_EQUAL(cwt.getRightPaddingIndex(), 2)
 END_SECTION
 
 START_SECTION((int& getSignalLength()))
   ContinuousWaveletTransform cwt;
   cwt.getSignalLength() = 2;
   
-  TEST_REAL_SIMILAR(cwt.getSignalLength(), 2)
+  TEST_EQUAL(cwt.getSignalLength(), 2)
 END_SECTION
 
 START_SECTION((std::vector<double>& getWavelet()))
@@ -190,7 +190,7 @@ START_SECTION((void setLeftPaddingIndex(const int end_left_padding)))
   ContinuousWaveletTransform cwt;
   cwt.setLeftPaddingIndex(2);
   
-  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 2)
+  TEST_EQUAL(cwt.getLeftPaddingIndex(), 2)
 END_SECTION
 
 START_SECTION((void setRightPaddingIndex(const int begin_right_padding)))

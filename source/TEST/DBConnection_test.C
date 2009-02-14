@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -74,7 +74,7 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 	{
 		continue;
 	}
-	
+
 	//extract connection info
 	if (it->hasPrefix("Host:")) host = it->suffix(':').trim();
 	if (it->hasPrefix("Port:")) port = it->suffix(':').trim();
@@ -125,8 +125,8 @@ END_SECTION
 START_SECTION((String getStringValue(const String &table, const String &column, const String &id)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-		TEST_EQUAL("bla",con.getStringValue("Dummy","text","5"));
-		TEST_EQUAL("bluff",con.getStringValue("Dummy","text","4711"));
+		TEST_EQUAL(con.getStringValue("Dummy","text","5"),"bla");
+		TEST_EQUAL(con.getStringValue("Dummy","text","4711"),"bluff");
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getStringValue("Dummy2","text56","4711"))
 		TEST_EXCEPTION(Exception::ConversionError, con.getStringValue("Dummy","id","sdfsdfsdf"))
 END_SECTION
@@ -154,7 +154,7 @@ START_SECTION((UInt getId(const String &table, const String &column, const Strin
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getId("Dummy","text","bla"));
 		TEST_EQUAL(4711,con.getId("Dummy","text","bluff"));
-		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getId("Dummy2","text56","4711"))		
+		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getId("Dummy2","text56","4711"))
 END_SECTION
 
 START_SECTION((void render(QSqlQuery &result, std::ostream &out=std::cout, const String &separator=" | ", const String &line_begin="", const String &line_end="\n")))
@@ -180,11 +180,11 @@ START_SECTION((template<class StringListType> void executeQueries(const StringLi
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQueries(qs);
-	  
+
 	  QSqlQuery result = con.executeQuery("SELECT * FROM Dummy");
 		stringstream s2;
 		con.render(result,s2,"x","",";");
-		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")	  	  
+		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")
 END_SECTION
 
 

@@ -2,21 +2,19 @@
 
 	@page install_win Installation on Windows
 
-  @section install_win_read Read this!
+  @section install_win_read Read this section first!
 
 
   This document addresses %OpenMS users and explains the
   installation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
 	encouraged to <b>download the windows binary installer</b>
 	(see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>),
-	instead of building %OpenMS from sources. The windows binary version should work on many versions of windows including WinXP, VISTA and Win2000
-	and installation should take you a few minutes only. Be aware though that %OpenMS on any windows platform is currently only 32-bit enabled. A 64-bit version is on its way right now (expected January 2009).
+	instead of building %OpenMS from sources. For more information read the install instructions for the TOPP binaries.
 
-  @warning Compilation (not installation!) of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
+  @warning Compilation of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
 
 	This document especially considers the installation
-  of several libraries which are required by %OpenMS. Most of these
-  libraries are made available in our "contrib-package" (see below), or can be downloaded as binaries.
+  of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
   <br>
   <br>
 
@@ -25,7 +23,7 @@
  <UL>
     <LI>whenever there is a $ this implies entering everything that follows the $ into a command line (usually the Visual Studio Command line)
     <LI>A string in <> is something the user needs to choose e.g. <path_to_contrib> means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-    <LI>Whenever you added a path to your Windows PATH Environment variable, <tt>Command Line</tt> which are already open are not refreshed. You will need a to open a new one.
+    <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Lines</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
 
@@ -33,8 +31,8 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008 installed (2003 is not supported, but might work, if you compile your own contrib)
-    <LI>Have CMake 2.6 or greater installed (www.cmake.org)
+    <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
+    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     You can find the binaries here: http://subversion.tigris.org
@@ -42,7 +40,8 @@
     <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
     <br>Make sure to add the location of 7z.exe to your PATH (usually this is "C:\progam files\7-zip")
     <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
-    <br>Make sure to add the location of patch.exe to your PATH.
+    <br>Make sure to add the location of patch.exe to your PATH. On Vista patch.exe requires elevation, 
+    		i.e. you need an admin account with disabled UAC (User Account Control), otherwise the contrib will not build.
   </UL>
 
 
@@ -89,8 +88,8 @@
 			</tr>
 		</table>
 
-    <b> Install Qt</b>
-    QT (choose commercial or non-commercial - whatever is applicable to you: read more on the Trolltech website)
+  @subsection install_qt QT installation
+    QT comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Trolltech website
     <OL>
       <LI>non-commercial:
         <OL>
@@ -108,31 +107,29 @@
         </OL>
       <LI>set the Environment Variable QTDIR to your Qt-Directory
       <LI>add the <Qt>/bin (!) directory to your PATH Environment Variable
+		</OL>
 
-
+	@subsection install_win_contrib Contrib installation
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
 		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn and XERCES-C.
 		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>
-			<li>you get all the libraries in versions tested with %OpenMS.</li>
-			<li>it contains a batch script that builds all the libraries in one step.</li>
-			<li>you don't have to spend hours reading installation instructions of all the libraries.</li>
+			<li>You get all the libraries in versions tested with %OpenMS.</li>
+			<li>It contains a batch script that builds all the libraries in one step.</li>
+			<li>You don't have to spend hours reading installation instructions of all the libraries.</li>
+			<li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
 		</ul>
-		We recommend using the contrib package! Qt and MySQL are not
-		contained in the contrib package. If they are not installed on your system, you
-		have to install those two libraries first.
 
-
-		@subsection install_win_contrib Contrib installation
+=======		@subsection install_win_contrib Contrib installation
 
   @b Download:
 
   The contrib package is contained in the %OpenMS release package.
 
   If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
-	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib_win</pre> (Warning: this might change soon)
+	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>
 	to obtain the latest developer version (potentially unstable).
 
   @b Installation:
@@ -143,25 +140,25 @@
       <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
       <LI>create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
-      <LI>call CMake to build the contrib
-				You will need to set two important parameters which determine the type of contrib that is build.
-				These two parameters tell us which Visual Studio version you are using (CONTRIB_MSVC_VERSION should be 8 or 9) and which address model (CONTRIB_ADDRESSMODEL should be 32 or 64; 32bit or 64bit applications) you want to be generated. 
-				If the 64bit version is available depends on your installation of Visual Studio. Be aware that you can build 64bit apps even if your operating system is only 32bit (but you will not be
-				able to run 64bit apps in this case).
+      <LI>call CMake to build the contrib<br>
+				Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
+				able to run 64bit apps in this case.
 				
 @code
-cd <path_to_contrib_build_directory>
+cd <path_to_contrib_build>
 cmake -G "<generator>" "<path_to_contrib>"
-cmake -D CONTRIB_MSVC_VERSION:STRING=<version> -D CONTRIB_ADDRESSMODEL:STRING=<bit> -G "<generator>" "<path_to_contrib>"
 @endcode
 
-        For the <generator> you should choose the one that reflects your settings of CONTRIB_MSVC_VERSION and CONTRIB_ADDRESSMODEL. It should be identical to the one you will later use for %OpenMS as well. Type <tt>$ cmake</tt> to see a list of available generators.
+        The <generator> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
+        Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
+        Type <tt>$ cmake</tt> to see a list of available generators.<br>
+        Example:
 @code
 cd c:\svn\contrib_win64_build
-cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "Visual Studio 9 2008 Win64" "c:\svn\contrib_win"
+cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 @endcode
 
-				<LI>add the <contrib>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+				<LI>add the <path_to_contrib_build>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
 
@@ -169,8 +166,7 @@ cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "
   @section install_win_openms Installing OpenMS
 
 		If you have not installed the libraries which %OpenMS requires,
-		please refer to the section @ref install_win_required above. Otherwise you might only get parts of the
-		full %OpenMS functionality.
+		please refer to the section @ref install_win_required above.
 		<br>
 		Assuming you have successfully installed the dependent libraries, you need to
 		get the %OpenMS source code. The latest stable version of %OpenMS
@@ -186,44 +182,43 @@ cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "
           -e.g. $ mkdir OpenMS_Win64
       <LI>call CMake to create the BuildSystem there
 @code
-cd <path_to_OpenMS_build_directory>
-cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
+cd <path_to_OpenMS_build>
+cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
 @endcode
           The choice of <generator> is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
+          If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
           Example:
 @code
 cd c:\svn\OpenMS_Win64
-cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"
+cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2008 Win64" "../OpenMS"
 @endcode
 
       </OL>
 
 		Now there should be a <tt>OpenMS.sln</tt> file in your build directory, which you can open using Visual Studio.
-		If you chose another generator (e.g. Eclipse) you will find something equivalent.
+		If you choose another generator (e.g. Eclipse) you will find something equivalent.
 
-  @section install_win_testing_openms Testing your OpenMS installation
-
-		After you have installed %OpenMS, you can test your installation
-		by executing "test" target in the IDE.
-
-
+		In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
+		
 		@section install_win_topp Building the TOPP tools
 
 		TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 		<BR>
 		<BR>
 		After you have built %OpenMS, you can build the TOPP tools
-		by building the "TOPP" target in the IDE.
+		by building the "TOPP" project in the IDE.
 
 		<br>
 
-		@section install_linux_testing_topp Testing the TOPP tools
+  @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-		After you have built the TOPP tools, you can test by exeuting the "TEST" and "test" target (in that order) in the IDE.
+		After you have build %OpenMS, TOPP and the corresponding tests (e.g. by executing the 'ALL_BUILD' project), you can test your installation
+		by executing "RUN_TESTS" project in the IDE. 
 
+  @section create_doc [deprecated] Building the documentation
 
-  @section create_doc Building the documentation (not working right now - sorry)
-
+	This information is old. Please use the online documentation.
+	
 	In order to build the class documentation, TOPP tutorials and more, you will need to install three programs:
 
   <OL>
@@ -259,7 +254,10 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64
   </OL>
 
 
-  @section enable_db Enabling database support (not working right now)
+  @section enable_db [deprecated] Enabling database support
+  
+  This information is based on an old OpenMS version and might not work.
+  
 	%OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
 	We try to install a MySQL driver (installing other db-drivers should work accordingly).
 

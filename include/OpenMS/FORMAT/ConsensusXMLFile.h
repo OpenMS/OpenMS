@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,7 @@ namespace OpenMS
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 			// Docu in base class
-			virtual void characters(const XMLCh* const chars, const unsigned int length);
+			virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
 
 			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -646,11 +646,11 @@ START_SECTION("TEST_REAL_SIMILAR()")
 }
 END_SECTION
 
-#if 1
+#if 0
 
 START_SECTION("TEST_STRING_SIMILAR")
 {
-	
+
 	const char lhs[] = "a  bcd  ef 10.0 ghi jk   l\n l 101.125mno p \nqrs";
 	const char rhs[] = "a \t bcd ef 12.0 ghi  jk l\n l 124.125mno  p  \nqrs";
 	TOLERANCE_ABSOLUTE(1.);
@@ -682,20 +682,20 @@ START_SECTION("TEST_STRING_SIMILAR")
 		for ( UInt tr = 0; tr < 2; ++tr )
 		{
 			TOLERANCE_RELATIVE(tolerance_relative[tr]);
-			
+
 			for ( UInt i = 0; i < number_of_numbers; ++i )
 			{
 				const double ni = numbers[i];
 				const OpenMS::String& si = number_strings[i];
-	
+
 				for ( UInt j = 0; j < number_of_numbers; ++j )
 				{
 					const double nj = numbers[j];
 					const OpenMS::String& sj = number_strings[j];
-			
+
 					// Bypass the macros to avoid lengthy output. These functions do the real job.
 					const bool ne = TEST::isRealSimilar(ni,nj);
-					const bool se = TEST::isStringSimilar(si,sj);
+					const bool se = TEST::testStringSimilar(si,sj);
 
 					if ( se != ne || compare_always )
 					{
@@ -715,9 +715,12 @@ START_SECTION("TEST_STRING_SIMILAR")
 			}
 		}
 	}
-	
+
 }
 END_SECTION
+#endif
+
+#if 1
 
 START_SECTION("TEST_FILE_SIMILAR")
 {
@@ -729,7 +732,7 @@ START_SECTION("TEST_FILE_SIMILAR")
 		std::ofstream file1(filename1.c_str());
 		std::ofstream file2(filename2.c_str());
 		file1 << "1 \n xx\n 2.008	\n 3" << std::flush;
-		file2 << "1.08 \n    xx\n		\n\n  				  	0002.04000 \n 3" << std::flush; 
+		file2 << "1.08 \n    xx\n		\n\n  				  	0002.04000 \n 3" << std::flush;
 		file1.close();
 		file2.close();
 	}
@@ -778,6 +781,52 @@ START_SECTION("ABORT_IF")
 	ABORT_IF(true)
 	TEST_EQUAL(1, 0)
 END_SECTION
+
+START_SECTION("TEST_REAL_SIMILAR : type checking")
+{
+ 	TEST_REAL_SIMILAR( 0.0  , 0.0  );
+ 	TEST_REAL_SIMILAR( 0.0  , 0.0F );
+ 	TEST_REAL_SIMILAR( 0.0  , 0.0L );
+ 	TEST_REAL_SIMILAR( 0.0F , 0.0  );
+ 	TEST_REAL_SIMILAR( 0.0F , 0.0F );
+ 	TEST_REAL_SIMILAR( 0.0F , 0.0L );
+ 	TEST_REAL_SIMILAR( 0.0L , 0.0  );
+ 	TEST_REAL_SIMILAR( 0.0L , 0.0F );
+ 	TEST_REAL_SIMILAR( 0.0L , 0.0L );
+
+	TEST_REAL_SIMILAR( 0.0  , 0U   );
+	TEST_REAL_SIMILAR( 0U   , 0.0  ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0U   , 0U   ); FAILURE_IS_SUCCESS;
+
+	TEST_REAL_SIMILAR( 0.0  , 0L   );
+	TEST_REAL_SIMILAR( 0L   , 0.0  ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0L   , 0L   ); FAILURE_IS_SUCCESS;
+
+	TEST_REAL_SIMILAR( 0   , 0U   ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0   , 0L   ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0   , 0UL  ); FAILURE_IS_SUCCESS;
+
+	TEST_REAL_SIMILAR( 0.0  , 0UL  );
+	TEST_REAL_SIMILAR( 0UL  , 0.0  ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0UL  , 0UL  ); FAILURE_IS_SUCCESS;
+
+	TEST_REAL_SIMILAR( 0.0F , 0    );
+	TEST_REAL_SIMILAR( 0.0  , 0    );
+	TEST_REAL_SIMILAR( 0.0L , 0    );
+	TEST_REAL_SIMILAR( 0    , 0.0F ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0    , 0.0  ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0    , 0.0L ); FAILURE_IS_SUCCESS;
+
+	TEST_REAL_SIMILAR( 0.0F , 0U   );
+	TEST_REAL_SIMILAR( 0.0  , 0U   );
+	TEST_REAL_SIMILAR( 0.0L , 0U   );
+	TEST_REAL_SIMILAR( 0U   , 0.0F ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0U   , 0.0  ); FAILURE_IS_SUCCESS;
+	TEST_REAL_SIMILAR( 0U   , 0.0L ); FAILURE_IS_SUCCESS;
+
+}
+END_SECTION
+
 
 #endif
 

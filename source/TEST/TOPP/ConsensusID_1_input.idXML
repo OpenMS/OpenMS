@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="file:///some/path/to/IdXML.xsl?>
-<IdXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
 	</SearchParameters>
 	<SearchParameters id="SP_1" db="Dummy" db_version="1.2" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >

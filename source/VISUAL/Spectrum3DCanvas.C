@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -133,9 +133,9 @@ namespace OpenMS
 		return true;
 	}
 
-	void Spectrum3DCanvas::activateLayer(int layer_index)
+	void Spectrum3DCanvas::activateLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
+		if (layer_index >= getLayerCount() || layer_index==current_layer_)
 		{
 			return ;
 		}
@@ -144,9 +144,9 @@ namespace OpenMS
 		update_(__PRETTY_FUNCTION__);
 	}
 	
-	void Spectrum3DCanvas::removeLayer(int layer_index)
+	void Spectrum3DCanvas::removeLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()))
+		if (layer_index >= getLayerCount())
 		{
 			return;
 		}
@@ -332,7 +332,7 @@ namespace OpenMS
 	}
 
 
-	void Spectrum3DCanvas::updateLayer_(UInt i)
+	void Spectrum3DCanvas::updateLayer_(Size i)
 	{
 		LayerData& layer = getLayer_(i);
 		

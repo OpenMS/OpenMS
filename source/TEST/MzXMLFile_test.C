@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -29,13 +29,14 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(float a, float b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -83,7 +84,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"mzXML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"mzXML");
 
   //---------------------------------------------------------------------------
   // 60 : (120,100)
@@ -239,9 +240,9 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_3_64bit.mzXML"),e3);
 
   TEST_EQUAL(e3.size(), 3)
-	TEST_REAL_SIMILAR(e3[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e3[1].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e3[2].getMSLevel(), 1)
+	TEST_EQUAL(e3[0].getMSLevel(), 1)
+	TEST_EQUAL(e3[1].getMSLevel(), 1)
+	TEST_EQUAL(e3[2].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e3[0].getRT(), 1)
 	TEST_REAL_SIMILAR(e3[1].getRT(), 121)
 	TEST_REAL_SIMILAR(e3[2].getRT(), 3661)

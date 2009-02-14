@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -176,7 +176,7 @@ int main( int argc, const char** argv )
 	
 	//create histogram	
 	if (verbose) cout << "Creating histogram:" << endl;
-	Histogram<UInt,Real> hist(min,max,bin_size);
+	Histogram<> hist(min,max,bin_size);
 	for (Size i=0; i<input_data.size(); ++i)
 	{
 		if (input_data[i]>=min && input_data[i]<=max)

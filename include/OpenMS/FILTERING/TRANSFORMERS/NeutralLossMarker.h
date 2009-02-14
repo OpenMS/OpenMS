@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -75,13 +75,13 @@ namespace OpenMS
 			// how often a peak needs to be marked to be returned
     	double marks = (double)param_.getValue("marks");
     	double tolerance = (double)param_.getValue("tolerance");
-    	std::map<double, int> ions_w_neutrallosses;
+    	std::map<double, SignedSize> ions_w_neutrallosses;
     	spectrum.sortByPosition();
-    	for (uint i = 0; i < spectrum.size(); ++i)
+    	for (Size i = 0; i < spectrum.size(); ++i)
     	{
       	double mz = spectrum[i].getPosition()[0];
       	double intensity = spectrum[i].getIntensity();
-      	int j = i - 1;
+      	SignedSize j = i - 1;
       	while (j >= 0)
       	{
         	double curmz = spectrum[j].getPosition()[0];
@@ -109,7 +109,7 @@ namespace OpenMS
       	}
     	}
 			
-    	for (std::map<double, int>::const_iterator cmit = ions_w_neutrallosses.begin(); cmit != ions_w_neutrallosses.end(); ++cmit)
+    	for (std::map<double, SignedSize>::const_iterator cmit = ions_w_neutrallosses.begin(); cmit != ions_w_neutrallosses.end(); ++cmit)
     	{
       	if (cmit->second >= marks)
       	{

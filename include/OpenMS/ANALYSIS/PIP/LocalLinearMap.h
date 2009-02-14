@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,26 +66,10 @@ namespace OpenMS
 				DoubleReal radius; /**< width of Gaussian neighborhood function */
 			};
 		
-			/** @name Constructors and Destructors
-			*/
-			//@{
 			/// default constructor
 			LocalLinearMap();
-			/**
-			 @brief constructor with default model load
-			
-				Load constructor with default model
-				@param codefile  read file with positions of prototypes (codebooks)
-				@param Afile read file corresponding to linear mappings
-				@param xdim size of first coordinate of grid structure
-				@param ydim size of second coordinate of grid structure
-				@param radius width of Gaussian neighborhood
-				@see LLMParam
-			 */
-			LocalLinearMap(String codefile, String Afile, UInt xdim, UInt ydim, DoubleReal radius);
 			/// destructor
 			virtual ~LocalLinearMap();
-			//@}
 	
 			///return parameters of the LocalLinearMap model
 			const LLMParam& getLLMParam() const;
@@ -119,8 +103,6 @@ namespace OpenMS
 			LocalLinearMap(LocalLinearMap& rhs);
 			///Assignment operator not implemented => private
 			LocalLinearMap& operator = (const LocalLinearMap& llm);
-			///Equality operator not implemented => private
-			bool operator == (const LocalLinearMap& llm) const;
 		
 		};
 	

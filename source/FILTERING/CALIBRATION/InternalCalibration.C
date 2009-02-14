@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -38,6 +38,7 @@ namespace OpenMS
 		defaults_.setValue("window_length",5.0,"In a window of this radius around each reference mass peaks are picked.");
 		subsections_.push_back("PeakPicker");
 		defaultsToParam_();
+		updateMembers_();
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -451,13 +451,13 @@ namespace OpenMS
 	}
 	
 	void SVMWrapper::createRandomPartitions(svm_problem* 					problem,
-																					UInt  			 					number,
+																					Size  			 					number,
 																					vector<svm_problem*>& 	problems)
 	{
-		vector<UInt> indices;
-		UInt partition_count = 0;
-		UInt actual_partition_size = 0; 
-		vector<UInt>::iterator indices_iterator;
+		vector<Size> indices;
+		Size partition_count = 0;
+		Size actual_partition_size = 0; 
+		vector<Size>::iterator indices_iterator;
 		
 		for (Size i = 0; i < problems.size(); ++i)
 		{
@@ -520,13 +520,13 @@ namespace OpenMS
 	}
 	
 	void SVMWrapper::createRandomPartitions(const SVMData&				  problem,
-																					UInt  			 					  number,
+																					Size  			 					  number,
 																					vector<SVMData>& 				problems)
 	{
-		vector<UInt> indices;
-		UInt partition_count = 0;
-		UInt actual_partition_size = 0; 
-		vector<UInt>::iterator indices_iterator;
+		vector<Size> indices;
+		Size partition_count = 0;
+		Size actual_partition_size = 0; 
+		vector<Size>::iterator indices_iterator;
 		
 		for (Size i = 0; i < problems.size(); ++i)
 		{
@@ -589,11 +589,11 @@ namespace OpenMS
 	}
 	
 	svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems,
-								 													 UInt 											 except)
+								 													 Size 											 except)
 	{
 		svm_problem* merged_problem = NULL;
-		UInt count = 0;
-		UInt actual_index = 0;
+		Size count = 0;
+		Size actual_index = 0;
 		
 		if (problems.size() == 1 && except == 0)
 		{
@@ -630,11 +630,11 @@ namespace OpenMS
 	}
 	
 	void SVMWrapper::mergePartitions(const vector<SVMData>& problems,
-				 													 UInt 								  except,
+				 													 Size 								  except,
 				 													 SVMData&								merged_problem)
 	{
-		UInt count = 0;
-		UInt actual_index = 0;
+		Size count = 0;
+		Size actual_index = 0;
 		
 		merged_problem.sequences.clear();
 		merged_problem.labels.clear();
@@ -670,7 +670,7 @@ namespace OpenMS
 	
 	void SVMWrapper::getLabels(svm_problem* problem, vector<DoubleReal>& labels)
 	{
-		UInt count = 0;
+		Size count = 0;
 		labels.clear();
 		
 		if (problem != NULL)
@@ -687,8 +687,8 @@ namespace OpenMS
 																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
-																 								UInt 												   				 			 number_of_partitions,
-																 								UInt 												   				 			 number_of_runs,
+																 								Size 												   				 			 number_of_partitions,
+																 								Size 												   				 			 number_of_runs,
 																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
 																 								bool																	 			 additive_step_sizes,
 																 								bool				 												   			 output,
@@ -698,7 +698,7 @@ namespace OpenMS
 		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
-		vector<pair<DoubleReal, UInt> > combined_parameters;
+		vector<pair<DoubleReal, Size> > combined_parameters;
 		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
 		for (Size i = 1; i < gauss_tables_.size(); ++i)
@@ -712,17 +712,17 @@ namespace OpenMS
 		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
 		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
 		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
-		UInt actual_index = 0;
+		Size actual_index = 0;
 		bool condition = false;
 		bool found = false;
-		UInt counter = 0;
+		Size counter = 0;
 		vector<svm_problem*> partitions;
 		svm_problem** training_data;
 		DoubleReal temp_performance = 0;
 		vector<DoubleReal> predicted_labels;
 		vector<DoubleReal> real_labels;
 		vector<DoubleReal> performances;
-		UInt max_index = 0;
+		Size max_index = 0;
 		DoubleReal max = 0;
 		ofstream performances_file;
 		ofstream run_performances_file;
@@ -1177,8 +1177,8 @@ namespace OpenMS
 																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
 																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
-																 								UInt 												   				 			 number_of_partitions,
-																 								UInt 												   				 			 number_of_runs,
+																 								Size 												   				 			 number_of_partitions,
+																 								Size 												   				 			 number_of_runs,
 																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
 																 								bool																	 			 additive_step_sizes,
 																 								bool				 												   			 output,
@@ -1188,7 +1188,7 @@ namespace OpenMS
 		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
-		vector<pair<DoubleReal, UInt> > combined_parameters;
+		vector<pair<DoubleReal, Size> > combined_parameters;
 		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
 		for (Size i = 1; i < gauss_tables_.size(); ++i)
@@ -1202,17 +1202,17 @@ namespace OpenMS
 		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
 		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
 		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
-		UInt actual_index = 0;
+		Size actual_index = 0;
 		bool condition = false;
 		bool found = false;
-		UInt counter = 0;
+		Size counter = 0;
 		vector<SVMData> partitions;
 		vector<SVMData> training_data;
 		DoubleReal temp_performance = 0;
 		vector<DoubleReal> predicted_labels;
 		vector<DoubleReal> real_labels;
 		vector<DoubleReal> performances;
-		UInt max_index = 0;
+		Size max_index = 0;
 		DoubleReal max = 0;
 		ofstream performances_file;
 		ofstream run_performances_file;
@@ -1854,7 +1854,7 @@ namespace OpenMS
 																		 const svm_node*						y,
 																		 const vector<DoubleReal>& 	gauss_table,
 																		 DoubleReal 								sigma_square,
-												  					 UInt 											max_distance)
+												  					 Size 											max_distance)
   {
     DoubleReal kernel = 0;
     Int    i1     = 0;
@@ -1866,7 +1866,7 @@ namespace OpenMS
     {
       if (x[i1].index == y[i2].index)
       {
-  	if (((UInt) abs(x[i1].value - y[i2].value)) <= max_distance)
+  	if (((Size) abs(x[i1].value - y[i2].value)) <= max_distance)
     	{
           if (sigma_square == 0)
           {
@@ -1990,7 +1990,7 @@ namespace OpenMS
 		{
 			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for (Size j = 0; j < (UInt) problem2->l; j++)
+				for (Size j = 0; j < (Size) problem2->l; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 
@@ -2053,7 +2053,7 @@ namespace OpenMS
 		{
 			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for (Size j = 0; j < (UInt) problem2.labels.size(); j++)
+				for (Size j = 0; j < problem2.labels.size(); j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
 
@@ -2068,10 +2068,10 @@ namespace OpenMS
 	void SVMWrapper::getSignificanceBorders(svm_problem* data, 
 																					pair<DoubleReal, DoubleReal>& sigmas,
 																					DoubleReal confidence,
-																					UInt number_of_runs,
-																					UInt number_of_partitions,
+																					Size number_of_runs,
+																					Size number_of_partitions,
 																					DoubleReal step_size,
-																					UInt max_iterations)
+																					Size max_iterations)
 	{
 		vector<pair<DoubleReal, DoubleReal> > points;
 		vector<DoubleReal> 										differences;
@@ -2079,8 +2079,8 @@ namespace OpenMS
 		svm_problem*													training_data;
 		vector<DoubleReal>										predicted_labels;
 		vector<DoubleReal>										real_labels;
-		UInt																	counter = 0;
-		UInt																	target = 0;
+		Size																	counter = 0;
+		Size																	target = 0;
 		ofstream															file("points.txt");
 		DoubleReal 														mean;
 		DoubleReal														intercept = 0;
@@ -2120,7 +2120,7 @@ namespace OpenMS
 		file << flush;
 								
 		// trying to find the two line parameters
-		target = (UInt) Math::round(confidence * points.size());
+		target = (Size) Math::round(confidence * points.size());
 		
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
 		intercept = mean;
@@ -2149,18 +2149,18 @@ namespace OpenMS
 	void SVMWrapper::getSignificanceBorders(const SVMData& data, 
 																					pair<DoubleReal, DoubleReal>& sigmas,
 																					DoubleReal confidence,
-																					UInt number_of_runs,
-																					UInt number_of_partitions,
+																					Size number_of_runs,
+																					Size number_of_partitions,
 																					DoubleReal step_size,
-																					UInt max_iterations)
+																					Size max_iterations)
 	{
 		vector<pair<DoubleReal, DoubleReal> > points;
 		vector<DoubleReal> 										differences;
 		vector<SVMData>			  								partitions;
 		SVMData																training_data;
 		vector<DoubleReal>										predicted_labels;
-		UInt																	counter = 0;
-		UInt																	target = 0;
+		Size																	counter = 0;
+		Size																	target = 0;
 		ofstream															file("points.txt");
 		DoubleReal 														mean;
 		DoubleReal														intercept = 0;
@@ -2209,7 +2209,7 @@ namespace OpenMS
 		file << flush;
 								
 		// trying to find the two line parameters
-		target = (UInt) Math::round(confidence * points.size());
+		target = (Size) Math::round(confidence * points.size());
 		
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
 		intercept = mean;
@@ -2235,11 +2235,11 @@ namespace OpenMS
 			<< " % of points" << endl;			
 	}
 	
-	UInt SVMWrapper::getNumberOfEnclosedPoints_(DoubleReal intercept, 
+	Size SVMWrapper::getNumberOfEnclosedPoints_(DoubleReal intercept, 
 																						 DoubleReal slope, 
 																						 const vector<pair<DoubleReal, DoubleReal> >& points)
 	{
-		UInt counter = 0;
+		Size counter = 0;
 		DoubleReal lower_bound = 0.;
 		DoubleReal upper_bound = 0.;
 		
@@ -2401,7 +2401,7 @@ namespace OpenMS
 		}
 	}																		  																										
 
-	void SVMWrapper::calculateGaussTable(UInt border_length, 
+	void SVMWrapper::calculateGaussTable(Size border_length, 
 																			 DoubleReal sigma, 
 																			 vector<DoubleReal>&	gauss_table)
 	{

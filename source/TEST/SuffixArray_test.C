@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -38,8 +38,7 @@ START_TEST(SuffixArray, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SuffixArray* ptr = 0;
-START_SECTION(SuffixArray())
+START_SECTION((SuffixArray()))
 {
 	NOT_TESTABLE
 }
@@ -69,7 +68,7 @@ START_SECTION((virtual String toString()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)=0))
 {
   NOT_TESTABLE
 }
@@ -129,13 +128,13 @@ START_SECTION((virtual bool getUseTags()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setNumberOfModifications(unsigned int number_of_mods)=0))
+START_SECTION((virtual void setNumberOfModifications(Size number_of_mods)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual unsigned int getNumberOfModifications()=0))
+START_SECTION((virtual Size getNumberOfModifications()=0))
 {
   NOT_TESTABLE
 }

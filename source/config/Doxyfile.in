@@ -111,7 +111,7 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn/* \
                          *_moc* \
                          */UIC/* \
-                         */contrib/*
+                         */contrib/* */backup/* */weg/* */old/* */new/*
 EXAMPLE_PATH           = ../source/EXAMPLES/ \
 												 doxygen/parameters/output/
 EXAMPLE_PATTERNS       = 

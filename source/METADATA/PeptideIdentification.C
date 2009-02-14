@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -107,12 +107,12 @@ namespace OpenMS {
   	hits_ = hits;
   }
 
-  Real PeptideIdentification::getSignificanceThreshold() const
+  DoubleReal PeptideIdentification::getSignificanceThreshold() const
   {
   	return significance_threshold_;
   }
 
-	void PeptideIdentification::setSignificanceThreshold(Real value)
+	void PeptideIdentification::setSignificanceThreshold(DoubleReal value)
 	{
 		significance_threshold_ = value;
 	}

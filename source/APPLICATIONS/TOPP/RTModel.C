@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -651,13 +651,15 @@ class TOPPRTModel
 				}
 				else
 				{
-					IdXMLFile().load(inputfile_name, protein_identifications, identifications);
+					String document_id;
+					IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
 				}
 			}
 			else
 			{
-				IdXMLFile().load(inputfile_positives, protein_identifications, identifications);
-				IdXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative);				
+				String document_id;
+				IdXMLFile().load(inputfile_positives, protein_identifications, identifications, document_id);
+				IdXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative, document_id);				
 			}
 		  													
 			//-------------------------------------------------------------
@@ -667,7 +669,7 @@ class TOPPRTModel
 			{
 				for (Size i = 0; i < identifications.size(); i++)
 				{
-					UInt temp_size = identifications[i].getHits().size();
+					Size temp_size = identifications[i].getHits().size();
 					if (temp_size > 0)
 					{
 						if (temp_size == 1)
@@ -861,7 +863,7 @@ class TOPPRTModel
 			{
 				for (Size i = 0; i < identifications_negative.size(); i++)
 				{
-					UInt temp_size = identifications_negative[i].getHits().size();
+					Size temp_size = identifications_negative[i].getHits().size();
 					if (temp_size > 0)
 					{
 						if (temp_size == 1)

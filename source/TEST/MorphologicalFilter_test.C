@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -238,7 +238,7 @@ START_SECTION((virtual ~MorphologicalFilter()))
 }
 END_SECTION
 
-START_SECTION(Method method( const std::string &rhs ))
+START_SECTION((static Method method(const std::string &rhs)))
 {
 	TEST_EQUAL(MorphologicalFilter::method("erosion"),MorphologicalFilter::EROSION);
 	TEST_EQUAL(MorphologicalFilter::method("closing"),MorphologicalFilter::CLOSING);
@@ -631,7 +631,7 @@ START_SECTION((template <typename InputPeakContainer, typename OutputPeakContain
 }   
 END_SECTION
 
-START_SECTION((template <typename PeakType, typename AllocType> void filterMSExperiment( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, MSExperiment<PeakType, typename AllocType>& ms_exp)))
+START_SECTION((template <typename PeakType , typename AllocType > void filterMSExperiment(Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, MSExperiment< PeakType, AllocType > &ms_exp)))
 {
  	MSSpectrum<Peak1D> raw;
 	raw.setComment("Let's see if this comment is copied by the filter.");

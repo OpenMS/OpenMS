@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
-		vector< UInt > new_peptide_indices;		
+		vector<Size> new_peptide_indices;		
 
 		filtered_identification = identification;		
 		filtered_identification.setHits(vector<PeptideHit>());
@@ -105,10 +105,10 @@ namespace OpenMS
 	}
 
 	void IDFilter::filterIdentificationsByLength(const PeptideIdentification& 	identification,
-																							 UInt            								min_length,
+																							 Size            								min_length,
 																							 PeptideIdentification& 				filtered_identification)
 	{
-		vector< UInt > new_peptide_indices;		
+		vector<Size> new_peptide_indices;		
 		vector<PeptideHit> filtered_peptide_hits;
 		
 		filtered_identification = identification;		
@@ -254,7 +254,7 @@ namespace OpenMS
 																										 			DoubleReal 										p_value)
 	{
 		DoubleReal border = 1 - p_value;
-		vector< UInt > new_peptide_indices;		
+		vector< Size > new_peptide_indices;		
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
 		
@@ -281,7 +281,7 @@ namespace OpenMS
 																						 			DoubleReal 										p_value)
 	{
 		DoubleReal border = 1 - p_value;
-		vector< UInt > new_peptide_indices;		
+		vector< Size > new_peptide_indices;		
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
 		
@@ -315,7 +315,7 @@ namespace OpenMS
 		filtered_identification.setHits(vector<ProteinHit>());
 		String identifier = identification.getIdentifier();
 		
-		UInt i = 0;		
+		Size i = 0;		
 		for (Size j = 0; j < temp_protein_hits.size(); ++j)
 		{
 			bool found = false;

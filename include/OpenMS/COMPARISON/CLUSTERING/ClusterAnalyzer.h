@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -50,7 +50,7 @@ namespace OpenMS
 	{
 		public:
 		/// constructor
-		BinaryTreeNode(size_t i, size_t j, Real x);
+		BinaryTreeNode(Size i, Size j, Real x);
 
 		/// destructor
 		~BinaryTreeNode();
@@ -61,8 +61,8 @@ namespace OpenMS
 		/// assignment operator
 		BinaryTreeNode& operator = (const BinaryTreeNode& source);
 
-		size_t left_child;
-		size_t right_child;
+		Size left_child;
+		Size right_child;
 		Real distance;
 
 		private:
@@ -116,32 +116,31 @@ namespace OpenMS
 		@param original DistanceMatrix for all clustered elements started from
 		@return a vector that holds the cohesions of each cluster given with @p clusters (order corresponds to @p clusters)
 	*/
-	std::vector< Real > cohesion(std::vector< std::vector<UInt> >& clusters, DistanceMatrix<Real>& original);
+	std::vector< Real > cohesion(std::vector< std::vector<Size> >& clusters, DistanceMatrix<Real>& original);
 
 	/**
 		@brief Method to calculate the average aberration from average population in partition resulting from a certain step in clustering
 
-		@param cluster_quantity desired partition size analogue to ClusterAnalyzer::cut
+		@param cluster_quantity desired partition Size analogue to ClusterAnalyzer::cut
 		@param tree vector of BinaryTreeNode's representing the clustering
 		@throw invalid_parameter if desired clustering is invalid
 		@return the average aberration from the average cluster population (number of elements/cluster_quantity) at cluster_quantity
 		@see BinaryTreeNode
 	*/
-	Real averagePopulationAberration(UInt cluster_quantity, std::vector<BinaryTreeNode>& tree);
+	Real averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode>& tree);
 
 /**
 		@brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
 
-		@param cluster_quantity size_t giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
+		@param cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
 		@param tree vector of BinaryTreeNode's representing the clustering
 		@param clusters vector of vectors holding the clusters (with indices to the actual elements)
-		@param original DistanceMatrix for all clustered elements started from
 		@throw invalid_parameter if desired clusterstep is invalid
 		@see BinaryTreeNode
 
 		after call of this method the argument clusters is filled corresponding to the given @p cluster_quantity with the indices of the elements clustered
 	*/
-	void cut(size_t cluster_quantity, std::vector< std::vector<UInt> >& clusters, std::vector<BinaryTreeNode>& tree);
+	void cut(Size cluster_quantity, std::vector< std::vector<Size> >& clusters, std::vector<BinaryTreeNode>& tree);
 
 /**
 		@brief Returns the hirarchy described by a clustering tree as Newick-String

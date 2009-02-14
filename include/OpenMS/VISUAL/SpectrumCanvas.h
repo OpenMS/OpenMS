@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -203,7 +203,7 @@ namespace OpenMS
 			return show_grid_; 
 		}
 		/// returns the layer data with index @p index
-		inline const LayerData& getLayer(UInt index) const
+		inline const LayerData& getLayer(Size index) const
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer(index) index overflow");
 			return layers_[index];
@@ -272,7 +272,7 @@ namespace OpenMS
 		}
 
 		/// returns a layer flag of the layer @p layer
-		bool getLayerFlag(UInt layer, LayerData::Flags f) const
+		bool getLayerFlag(Size layer, LayerData::Flags f) const
 		{
 			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
 			switch(f)
@@ -295,7 +295,7 @@ namespace OpenMS
 		}
 
 		/// sets a layer flag of the layer @p layer
-		void setLayerFlag(UInt layer, LayerData::Flags f, bool value)
+		void setLayerFlag(Size layer, LayerData::Flags f, bool value)
 		{
 			//abort if there are no layers
 			if (layers_.empty()) return;
@@ -354,17 +354,17 @@ namespace OpenMS
 		*/
 		//@{
 		/// Returns the number of layers
-		inline UInt getLayerCount() const
+		inline Size getLayerCount() const
 		{
-			return (UInt)layers_.size();
+			return layers_.size();
 		}
 			
 		/// Returns the index of the active layer
-		UInt activeLayerIndex() const;
+		Size activeLayerIndex() const;
 		///change the active layer (the one that is used for selecting and so on)
-		virtual void activateLayer(int layer_index)=0;
+		virtual void activateLayer(Size layer_index)=0;
 		///removes the layer with index @p layer_index
-		virtual void removeLayer(int layer_index)=0;
+		virtual void removeLayer(Size layer_index)=0;
 		/**
 			@brief Add a peak data layer
 			
@@ -432,7 +432,7 @@ namespace OpenMS
 		}
 
 		/// Returns the minimum intensity of the layer with index @p index
-		inline Real getMinIntensity(UInt index) const 
+		inline Real getMinIntensity(Size index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
@@ -449,7 +449,7 @@ namespace OpenMS
 		}
 
 		/// Returns the maximum intensity of the layer with index @p index
-		inline Real getMaxIntensity(UInt index) const 
+		inline Real getMaxIntensity(Size index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
@@ -466,7 +466,7 @@ namespace OpenMS
 		}
 
 		/// Sets the @p name of layer @p i
-		void setLayerName(UInt i, const String& name);
+		void setLayerName(Size i, const String& name);
 
 		/// Sets the parameters of the current layer
 		inline void setCurrentLayerParameters(const Param& param) 
@@ -513,7 +513,7 @@ namespace OpenMS
 			@param i the index of the layer
 			@param b true if layer is supposed to be visible
 		*/
-		void changeVisibility(int i, bool b);
+		void changeVisibility(Size i, bool b);
 
 		/**
 			@brief change if the defined data filters are used
@@ -521,7 +521,7 @@ namespace OpenMS
 			@param i the index of the layer
 			@param b true if layer is supposed to be visible
 		*/
-		void changeLayerFilterState(int i, bool b);
+		void changeLayerFilterState(Size i, bool b);
 
 		/**
 			@brief Whether or not to show grid lines
@@ -596,7 +596,7 @@ namespace OpenMS
 	signals:
 
 		/// Signal emitted whenever the modification status of a layer changes (editing and storing)
-		void layerModficationChange(UInt layer, bool modified);
+		void layerModficationChange(Size layer, bool modified);
 		
 		/// Signal emitted whenever a new layer is activated within the current window
 		void layerActivated(QWidget* w);
@@ -644,7 +644,7 @@ namespace OpenMS
 		virtual bool finishAdding_() = 0;
 		
 		///Returns the layer with index @p index
-		inline LayerData& getLayer_(UInt index)
+		inline LayerData& getLayer_(Size index)
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
 			return layers_[index];
@@ -735,7 +735,7 @@ namespace OpenMS
 		virtual void updateScrollbars_();
 		
 		///Updates layer @p i when the data in the corresponding file changes
-		virtual void updateLayer_(UInt i) = 0;
+		virtual void updateLayer_(Size i) = 0;
 		
 		/**
 			@brief Convert widget to chart coordinates
@@ -857,13 +857,13 @@ namespace OpenMS
 		virtual void update_(const char* caller_name);
 		
 		///Takes all actions necessary when the modification status of a layer changes (signals etc.)
-		void modificationStatus_(UInt layer_index, bool modified);
+		void modificationStatus_(Size layer_index, bool modified);
 		
 		/// Whether to recalculate the data in the buffer when repainting
 		bool update_buffer_;
 
 		/// Stores the index of the currently active layer.
-		UInt current_layer_;
+		Size current_layer_;
 
 		/// Changes the size of the paint buffer to the currently required size
 		void adjustBuffer_();

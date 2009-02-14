@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,7 @@ START_SECTION((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolut
   opt_deconv_copy = opt_deconv;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
  
-  double charge = opt_deconv_copy.getCharge();
+  DoubleReal charge = opt_deconv_copy.getCharge();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -82,7 +82,7 @@ START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   
   OptimizePeakDeconvolution opt_deconv_copy(opt_deconv);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
-  double charge = opt_deconv_copy.getCharge();
+  DoubleReal charge = opt_deconv_copy.getCharge();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -93,7 +93,7 @@ START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
 END_SECTION
 
 
-START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
+START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;
@@ -105,7 +105,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
   peak_shapes[0] = peak_shape;
 //  peak_shapes[1] = peak_shape;
   float origin = 499;
-  float spacing = 0.1;
+  float spacing = 0.1f;
  
 	OptimizationFunctions::positions_DC_.resize(20);
   OptimizationFunctions::signal_DC_.resize(20);
@@ -130,8 +130,8 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
 END_SECTION
 
 
-START_SECTION((void setCharge(const int charge)))
-  int charge = 2;
+START_SECTION((void setCharge(const Int charge)))
+  Int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setCharge(charge);
@@ -139,8 +139,8 @@ START_SECTION((void setCharge(const int charge)))
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
 END_SECTION
 
-START_SECTION((int getCharge() const))
-  int charge = 2;
+START_SECTION((Int getCharge() const))
+  Int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setCharge(charge);

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -92,14 +92,15 @@ class TOPPIDMerger
 		//-------------------------------------------------------------
 		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
-		IdXMLFile().load(file_names[0], protein_identifications, identifications);
+		String document_id;
+		IdXMLFile().load(file_names[0], protein_identifications, identifications, document_id);
 
 		vector<String> used_ids;
 		for (Size i=1; i<file_names.size(); ++i)
 		{
 			vector<ProteinIdentification> additional_protein_identifications;
 			vector<PeptideIdentification> additional_identifications;
-			IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
+			IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications, document_id);
 			
 			for (Size i=0; i<additional_protein_identifications.size();++i)
 			{

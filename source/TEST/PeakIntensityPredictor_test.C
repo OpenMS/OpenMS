@@ -33,7 +33,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(PeakIntensityPredictor, "$Id: PeakIntensityPredictor_test.C 0003 2008-08-14 16:47:24 ascherbart $")
+START_TEST(PeakIntensityPredictor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -105,5 +105,4 @@ START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& seq
 END_SECTION
 
 END_TEST
-
 

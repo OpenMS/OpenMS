@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -61,10 +61,10 @@ namespace OpenMS
 	{
 	}
 	
-	Histogram<UInt,Real> Spectrum3DWidget::createIntensityDistribution_() const
+	Histogram<> Spectrum3DWidget::createIntensityDistribution_() const
 	{
 		//cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
-		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
+		Histogram<> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 
 		for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().peaks.begin(); spec_it != canvas_->getCurrentLayer().peaks.end(); ++spec_it)
 		{
@@ -78,9 +78,9 @@ namespace OpenMS
 		return tmp;
 	}
 
-	Histogram<UInt, Real> Spectrum3DWidget::createMetaDistribution_(const String& name) const
+	Histogram<> Spectrum3DWidget::createMetaDistribution_(const String& name) const
 	{
-		Histogram<UInt,Real> tmp;
+		Histogram<> tmp;
 		
 		//determine min and max of the data
 		Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-//~ #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 namespace OpenMS
 {
@@ -94,7 +94,7 @@ namespace OpenMS
       void setLoadedFileType(const String& file_name);
 
       /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
-      const String& getLoadedFileType() const;
+      const FileTypes::Type& getLoadedFileType() const;
 
       //@}
 
@@ -103,8 +103,8 @@ namespace OpenMS
       String id_;
       /// the path to the loaded file
       String file_path_;
-      /// the type name of the loaded file
-      String file_type_;
+      /// the type of the loaded file
+      FileTypes::Type file_type_;
   };
 } // namespace OpenMS
 

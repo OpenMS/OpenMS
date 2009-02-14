@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -33,16 +33,18 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+
 
 namespace OpenMS
 {
 	/**
 		@brief Representation of an Inspect outfile
-		
+
 		This class serves to read in an Inspect outfile and write an IdXML file
-		
+
   	@todo Handle Modifications (Andreas)
-		
+
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI InspectOutfile
@@ -62,20 +64,20 @@ namespace OpenMS
 
 			/// equality operator
 			bool operator==(const InspectOutfile& inspect_outfile) const;
-			
+
 			/** load the results of an Inspect search
-					
+
 					@param result_filename Input parameter which is the file name of the input file
 					@param peptide_identifications Output parameter which holds the peptide identifications from the given file
 					@param protein_identification Output parameter which holds the protein identifications from the given file
 					@param p_value_threshold
-					@param database_filename 
+					@param database_filename
 					@throw FileNotFound is thrown if the given file could not be found
 					@throw ParseError is thrown if the given file could not be parsed
-					@throw FileEmptry is thrown if the given file is empty 
+					@throw FileEmptry is thrown if the given file is empty
 			*/
 			std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "");
-			
+
 			/** loads only results which exceeds a given P-value threshold
 
 					@param result_filename The filename of the results file
@@ -86,7 +88,7 @@ namespace OpenMS
 			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold);
 
 			/** generates a trie database from another one, using the wanted records only
-			
+
 					@throw Exception::FileNotFound
 					@throw Exception::ParseError
 					@throw Exception::UnableToCreateFile
@@ -99,7 +101,7 @@ namespace OpenMS
 					@throw Exception::UnableToCreateFile
 			*/
 			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "");
-			
+
 
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
@@ -112,14 +114,14 @@ namespace OpenMS
 			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids);
 
 			/** retrieve the labes of a given database (at the moment FASTA and Swissprot)
-					
+
 					@throw Exception::FileNotFound
 					@throw Exception::ParseError
 			*/
 			void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label);
 
 			/** retrieve sequences from a trie database
-					
+
 					@throw Exception::FileNotFound
 			*/
 			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences);
@@ -135,8 +137,8 @@ namespace OpenMS
 				exp.reset();
 				//input file type
 				FileHandler fh;
-				FileHandler::Type in_type = fh.getTypeByContent(in_filename);
-				if (in_type==FileHandler::UNKNOWN)
+				FileTypes::Type in_type = fh.getTypeByContent(in_filename);
+				if (in_type==FileTypes::UNKNOWN)
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!" , in_filename);
 				}
@@ -145,7 +147,7 @@ namespace OpenMS
 			}
 
 			/** get the search engine and its version from a file with the output of InsPecT without parameters
-					
+
 					@throw Exception::FileNotFound
 			*/
 			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification);
@@ -167,7 +169,7 @@ namespace OpenMS
 			static const char trie_delimiter_; ///< the sequences in the trie database are delimited by this character
 			static const String score_type_;///< type of score
 	};
-	
+
 } //namespace OpenMS
 
 #endif // OPENMS_FORMAT_INSPECTOUTFILE_H

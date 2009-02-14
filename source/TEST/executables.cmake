@@ -123,8 +123,7 @@ set(format_executables_list
   MzXMLFile_test
   MzMLFile_test
   MzDataFile_test
-  Param_test_1
-  Param_test_2
+  Param_test
   FeatureXMLFile_test
   MascotXMLFile_test
   PeakFileOptions_test
@@ -283,17 +282,18 @@ set(analysis_executables_list
   FeatureDecharger_test
   ConsensusID_test
   ProteinInference_test
-  ProtonDistributionModel_test
   PILISScoring_test
-  HiddenMarkovModel_test
   IDDecoyProbability_test
   FalseDiscoveryRate_test
   LocalLinearMap_test
   PeakIntensityPredictor_test
+  IDMapper_test
+  PrecursorIonSelectionPreprocessing_test
+  PrecursorIonSelection_test
 )
 
 set(applications_executables_list
-TOPPBase_test
+	TOPPBase_test
 )
 
 set(transformations_executables_list

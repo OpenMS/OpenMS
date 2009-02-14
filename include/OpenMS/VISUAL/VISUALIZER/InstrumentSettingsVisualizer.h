@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,6 +66,7 @@ namespace OpenMS
 			///@name Edit fields and buttons
 	    //@{
 	   	QComboBox* instrumentsettings_scan_mode_;
+			QComboBox* zoom_scan_;
 			QComboBox* instrumentsettings_polarity_;
 			//@}
 		

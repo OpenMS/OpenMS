@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -54,7 +54,7 @@ cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
 SemanticValidator* ptr = 0;
-START_SECTION(SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv))
+START_SECTION((SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
@@ -63,23 +63,23 @@ START_SECTION((virtual ~SemanticValidator()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(void setTag(const String& tag))
+START_SECTION((void setTag(const String& tag)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setAccessionAttribute(const String& accession))
+START_SECTION((void setAccessionAttribute(const String& accession)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setNameAttribute(const String& name))
+START_SECTION((void setNameAttribute(const String& name)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setValueAttribute(const String& value))
+START_SECTION((void setValueAttribute(const String& value)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool validate(const String& filename, StringList& output))
+START_SECTION((bool validate(const String &filename, StringList &errors, StringList &warnings)))
 	StringList errors, warnings;
 	
 	//----------------------------------------------------------------------------------------
@@ -89,13 +89,13 @@ START_SECTION(bool validate(const String& filename, StringList& output))
 
 	//----------------------------------------------------------------------------------------
 	//test of valid file
-	TEST_EQUAL(sv.validate(OPENMS_GET_TEST_DATA_PATH("SemanticValidator_valid.mzML"), errors, warnings),true);
+	TEST_EQUAL(sv.validate(OPENMS_GET_TEST_DATA_PATH("SemanticValidator_valid.xml"), errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),0)
 
 	//----------------------------------------------------------------------------------------
 	//test of corrupt file
-	TEST_EQUAL(sv.validate(OPENMS_GET_TEST_DATA_PATH("SemanticValidator_corrupt.mzML"), errors, warnings),false);
+	TEST_EQUAL(sv.validate(OPENMS_GET_TEST_DATA_PATH("SemanticValidator_corrupt.xml"), errors, warnings),false);
 	TEST_EQUAL(errors.size(),5)
 	TEST_STRING_EQUAL(errors[0],"Violated mapping rule 'R3' at element '/mzML/fileDescription/sourceFileList/sourceFile'")
 	TEST_STRING_EQUAL(errors[1],"Name of CVTerm not correct: 'MS:1000554 - LCQ Deca2 - invalid repeat' should be 'LCQ Deca'")

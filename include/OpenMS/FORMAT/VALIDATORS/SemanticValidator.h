@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEMANTICVALIDATOR_H
-#define OPENMS_FORMAT_SEMANTICVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -86,14 +86,20 @@ namespace OpenMS
 				/// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
 				void setValueAttribute(const String& value);
 
-				/** If set to true, the xsd value types are checked, and errors are given in the cases
+				/**
+					@brief Set if CV term value types shoulf be check (enabled by default)
+					
+					If set to true, the xsd value types are checked, and errors are given in the cases
 				 		- CVTerm needs value but has none
 						- CVTerm has value but must not have one
 						- CVTerm has value, needs value but value is of wrong type
 				*/
 				void setCheckTermValueTypes(bool check);
 
-				/** If set to true additional checks for CVTerms are performed:
+				/** 
+					@brief Set if CV termunits shoulf be check (disabled by default)
+					
+					If set to true additional checks for CVTerms are performed:
 				 		- CVTerm that must have a unit, but has none
 						- CVTerm that has a wrong unit
 				*/
@@ -127,7 +133,7 @@ namespace OpenMS
 				void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 	
 	      // Docu in base class
-	      void characters(const XMLCh* const chars, const unsigned int /*length*/);
+	      void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 				
 				/// Returns the current element path
 				virtual String getPath_(UInt remove_from_end = 0) const;
@@ -191,4 +197,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEMANTICVALIDATOR_H
+#endif // OPENMS_FORMAT_VSLIDATORS_SEMANTICVALIDATOR_H

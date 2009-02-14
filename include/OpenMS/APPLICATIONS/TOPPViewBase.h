@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -70,12 +70,9 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Review documentation of all new features (Johannes)
-		
+		@improvement Support Drag&Drop of files from Explorer/Konqueror (HiWi)
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
-		
-		@improvement For "Open"/"Save as" Dialogs, use the path of the currently opened file as default (Hiwi)
-		
+  
     @ingroup TOPPView_elements
   */
   class OPENMS_DLLAPI TOPPViewBase 
@@ -142,6 +139,8 @@ namespace OpenMS
 			const LayerData* getCurrentLayer() const;
 			
     public slots:
+      /// changes the current path according to the currently active window/layer
+      void updateCurrentPath();
       /// shows the URL stored in the data of the sender QAction
       void showURL();
       /// shows the dialog for opening files
@@ -212,7 +211,9 @@ namespace OpenMS
 			/// dialog for inspecting file meta data
 			void metadataFileDialog();
 			/// Shows the selected spectrum
-			void spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/);
+			void spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/);
+			/// Opens a new 1D window and shows the spectrum, if not already in 1D
+			void spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/);
 
     protected slots:
       /** @name Layer manager and filter manager slots
@@ -279,6 +280,7 @@ namespace OpenMS
   			@param peak_map The peak data (empty if not peak data)
   			@param is_feature Flag that indicates the actual data type
   			@param is_2D If more that one MS1 spectrum is contained in peak data
+  			@param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
   			@param show_options If the options dialog should be shown (otherwise the defaults are used)
   			@param filename source file name (if the data came from a file)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
@@ -426,6 +428,10 @@ namespace OpenMS
   		
   		/// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
       void showTOPPDialog_(bool visible);
+      
+      /// The current path (used for loading and storing).
+      /// Depending on the preferences this is static or changes with the current window/layer.
+      String current_path_;
   }
   ; //class
 

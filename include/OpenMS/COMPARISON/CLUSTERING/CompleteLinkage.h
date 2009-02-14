@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -73,7 +73,7 @@ namespace OpenMS
 				The clustering method is complete linkage, where the updated distances after merging two clusters are each the maximal distance between the elements of their clusters. After @p theshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance:-1) to the root.
 			@see ClusterFunctor , BinaryTreeNode
 			*/
-			void cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const;
+			void operator () (DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const;
 
 			/// creates a new instance of a CompleteLinkage object
 			static ClusterFunctor* create()

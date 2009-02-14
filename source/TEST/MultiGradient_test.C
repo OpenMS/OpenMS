@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ START_SECTION((~MultiGradient()))
 	delete d10_ptr;
 END_SECTION
 
-START_SECTION((InterpolationMode getInterpolationMode() const ))
+START_SECTION((InterpolationMode getInterpolationMode() const))
 	TEST_EQUAL(MultiGradient().getInterpolationMode(),MultiGradient::IM_LINEAR)
 END_SECTION
 
@@ -61,7 +61,7 @@ START_SECTION((void setInterpolationMode(InterpolationMode mode)))
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
 END_SECTION
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const ))
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
 END_SECTION

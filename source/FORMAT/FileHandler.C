@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -33,20 +33,20 @@ using namespace std;
 
 namespace OpenMS
 {
+
 	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML", "ms2"};
 
-
-	FileHandler::Type FileHandler::getType(const String& filename)
+	FileTypes::Type FileHandler::getType(const String& filename)
 	{
-		Type type = getTypeByFileName(filename);
-		if (type==UNKNOWN)
+		FileTypes::Type type = getTypeByFileName(filename);
+		if (type==FileTypes::UNKNOWN)
 		{
 			type = getTypeByContent(filename);
 		}
 		return type;
 	}
 
-	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
+	FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
 	{
 		String tmp;
 		try
@@ -56,132 +56,132 @@ namespace OpenMS
 		// no '.' => unknown type
 		catch (Exception::ElementNotFound&)
 		{
-			return UNKNOWN;
+			return FileTypes::UNKNOWN;
 		}
 		tmp.toUpper();
 		if (tmp == "MZDATA")
 		{
-			return MZDATA;
+			return FileTypes::MZDATA;
 		}
 		else if (tmp == "MZML")
 		{
-			return MZML;
+			return FileTypes::MZML;
 		}
 		else if (tmp == "DTA")
 		{
-			return DTA;
+			return FileTypes::DTA;
 		}
 		else if (tmp == "DTA2D")
 		{
-			return DTA2D;
+			return FileTypes::DTA2D;
 		}
 		else if (tmp == "MZXML")
 		{
-			return MZXML;
+			return FileTypes::MZXML;
 		}
 		else if (tmp == "CDF")
 		{
-			return ANDIMS;
+			return FileTypes::ANDIMS;
 		}
 		else if (tmp == "NETCDF")
 		{
-			return ANDIMS;
+			return FileTypes::ANDIMS;
 		}
 		else if (tmp == "FEATUREXML")
 		{
-			return FEATUREXML;
+			return FileTypes::FEATUREXML;
 		}
 		else if (tmp == "IDXML")
 		{
-			return IDXML;
+			return FileTypes::IDXML;
 		}
 		else if (tmp == "CONSENSUSXML")
 		{
-			return CONSENSUSXML;
+			return FileTypes::CONSENSUSXML;
 		}
 		else if (tmp == "MGF")
 		{
-			return MGF;
+			return FileTypes::MGF;
 		}
 		else if (tmp == "INI")
 		{
-			return PARAM;
+			return FileTypes::PARAM;
 		}
 		else if (tmp == "TRAFOXML")
 		{
-			return TRANSFORMATIONXML;
+			return FileTypes::TRANSFORMATIONXML;
 		}
 		else if (tmp == "MS2")
 		{
-			return MS2;
+			return FileTypes::MS2;
 		}
 
-		return UNKNOWN;
+		return FileTypes::UNKNOWN;
 
 	}
 
-	FileHandler::Type FileHandler::nameToType(const String& name)
+	FileTypes::Type FileHandler::nameToType(const String& name)
 	{
 		String tmp = name;
 		tmp.toUpper();
 		String tmp2;
 
-		for (int i=0; i < SIZE_OF_TYPE; ++i)
+		for (int i=0; i < FileTypes::SIZE_OF_TYPE; ++i)
 		{
 			tmp2 = NamesOfTypes[i];
 			tmp2.toUpper();
 			if (tmp == tmp2)
 			{
-				return (Type)i;
+				return (FileTypes::Type)i;
 			}
 		}
 
-		return UNKNOWN;
+		return FileTypes::UNKNOWN;
 	}
 
-	String FileHandler::typeToName(Type type)
+	String FileHandler::typeToName(FileTypes::Type type)
 	{
 		return NamesOfTypes[type];
 	}
 
-	bool FileHandler::isSupported(Type type)
+	bool FileHandler::isSupported(FileTypes::Type type)
 	{
 		switch (type)
 		{
-		case DTA:
+		case FileTypes::DTA:
 			return true;
-		case DTA2D:
+		case FileTypes::DTA2D:
 			return true;
-		case MZXML:
+		case FileTypes::MZXML:
 			return true;
-		case MZML:
+		case FileTypes::MZML:
 			return true;
-		case MZDATA:
+		case FileTypes::MZDATA:
 			return true;
-		case FEATUREXML:
+		case FileTypes::FEATUREXML:
 			return true;
 #ifdef USE_ANDIMS
-		case ANDIMS:
+		case FileTypes::ANDIMS:
 			return true;
 #endif
-		case IDXML:
+		case FileTypes::IDXML:
 			return true;
-		case CONSENSUSXML:
+		case FileTypes::CONSENSUSXML:
 			return true;
-		case MGF:
+		case FileTypes::MGF:
 			return true;
-		case PARAM:
+		case FileTypes::PARAM:
 			return true;
-		case TRANSFORMATIONXML:
+		case FileTypes::TRANSFORMATIONXML:
 			return true;
-		case MS2:
+		case FileTypes::MS2:
 			return true;
 		default:
 			return false;
 		}
 	}
 
-	FileHandler::Type FileHandler::getTypeByContent(const String& filename)
+	FileTypes::Type FileHandler::getTypeByContent(const String& filename)
 	{
     //load first 5 lines
     TextFile file(filename,true,5);
@@ -191,37 +191,37 @@ namespace OpenMS
 		String all_simple = file[0] + ' ' + two_five;
 
 		//mzXML (all lines)
-    if (all_simple.hasSubstring("<mzXML")) return MZXML;
-    
+    if (all_simple.hasSubstring("<mzXML")) return FileTypes::MZXML;
+
     //mzData (all lines)
-    if (all_simple.hasSubstring("<mzData")) return MZDATA;
+    if (all_simple.hasSubstring("<mzData")) return FileTypes::MZDATA;
 
     //mzML (all lines)
-    if (all_simple.hasSubstring("<mzML")) return MZML;
-    
+    if (all_simple.hasSubstring("<mzML")) return FileTypes::MZML;
+
     //feature map (all lines)
-    if (all_simple.hasSubstring("<featureMap")) return FEATUREXML;
+    if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;
 
     //ANDIMS (first line)
-    if (file[0].hasSubstring("CDF")) return ANDIMS;
+    if (file[0].hasSubstring("CDF")) return FileTypes::ANDIMS;
 
     //IdXML (all lines)
-    if (all_simple.hasSubstring("<IdXML")) return IDXML;
+    if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;
 
     //ConsensusXML (all lines)
-    if (all_simple.hasSubstring("<consensusXML")) return CONSENSUSXML;
+    if (all_simple.hasSubstring("<consensusXML")) return FileTypes::CONSENSUSXML;
 
     //mzData (all lines)
-    if (all_simple.hasSubstring("<PARAMETERS")) return PARAM;
+    if (all_simple.hasSubstring("<PARAMETERS")) return FileTypes::PARAM;
 
 
     //mzData (all lines)
-    if (all_simple.hasSubstring("<TrafoXML")) return TRANSFORMATIONXML;
+    if (all_simple.hasSubstring("<TrafoXML")) return FileTypes::TRANSFORMATIONXML;
 
 		//tokenize lines two to five
 		vector<String> parts;
 		two_five.split(' ',parts);
-		
+
 		//DTA
 		if (parts.size()==8)
 		{
@@ -237,9 +237,9 @@ namespace OpenMS
 			{
 				conversion_error = true;
 			}
-			if (!conversion_error) return DTA;
+			if (!conversion_error) return FileTypes::DTA;
 		}
-		
+
 		//DTA2D
 		if (parts.size()==12)
 		{
@@ -255,13 +255,13 @@ namespace OpenMS
 			{
 				conversion_error = true;
 			}
-			if (!conversion_error) return DTA2D;
+			if (!conversion_error) return FileTypes::DTA2D;
 		}
-		
+
 		// MGF (Mascot Generic Format)
 		if (two_five.hasSubstring("BEGIN IONS"))
 		{
-			return MGF;
+			return FileTypes::MGF;
 		}
 		else
 		{
@@ -271,7 +271,7 @@ namespace OpenMS
 			{
 				if (line.hasSubstring("BEGIN IONS"))
 				{
-					return MGF;
+					return FileTypes::MGF;
 				}
 			}
 		}
@@ -281,10 +281,10 @@ namespace OpenMS
 		{
 			if (all_simple.size() > 0 && all_simple[0] == 'H')
 			{
-				return MS2;
+				return FileTypes::MS2;
 			}
 		}
-		return UNKNOWN;
+		return FileTypes::UNKNOWN;
 	}
 
 	PeakFileOptions& FileHandler::getOptions()

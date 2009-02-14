@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,9 @@ namespace OpenMS
 	{
 		//-------------------------------------------------------------------
 
-		/// Comparator that allows to compare the indices of two peaks by their intensity.
+		/**
+			@brief Comparator that allows to compare the indices of two peaks by their intensity.
+		*/
 		template < typename FeaFiModuleType >
 		struct IntensityLess
 			: std::binary_function < typename FeatureFinderDefs::IndexPair, typename FeatureFinderDefs::IndexPair, bool >

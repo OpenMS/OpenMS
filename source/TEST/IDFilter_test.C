@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <vector>
@@ -52,7 +51,8 @@ using namespace std;
 ///load input data
 std::vector< ProteinIdentification > protein_identifications;
 std::vector< PeptideIdentification > identifications;
-IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_identifications, identifications);
+String document_id;
+IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_identifications, identifications, document_id);
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];							
 
@@ -82,7 +82,7 @@ START_SECTION((void filterIdentificationsByProteins(const ProteinIdentification&
 	TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
 END_SECTION
 
-START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector<FASTAFile::FASTAEntry> &proteins, PeptideIdentification& filtered_identification)))
+START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification &identification, const std::vector< FASTAFile::FASTAEntry > &proteins, PeptideIdentification &filtered_identification, bool no_protein_identifiers=false)))
 	PeptideIdentification identification2;
 
 	IDFilter().filterIdentificationsByProteins(identification, proteins, identification2);
@@ -152,7 +152,7 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByS
 	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
 
-START_SECTION((template <class IdentificationType> void filterIdentificationsByLength(const IdentificationType &identification, UInt length, IdentificationType &filtered_identification)))
+START_SECTION((void filterIdentificationsByLength(const PeptideIdentification &identification, Size length, PeptideIdentification &filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
 	
@@ -332,7 +332,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByScores(MSExper
 	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
 
-START_SECTION((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment< PeakT > &experiment, UInt n)))
+START_SECTION((template < class PeakT > void filterIdentificationsByBestNHits(MSExperiment< PeakT > &experiment, Size n)))
 	MSExperiment<> experiment;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
@@ -365,7 +365,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByBestNHits(MSEx
 
 END_SECTION
 
-START_SECTION((template <class IdentificationType> void filterIdentificationsByBestNHits(const IdentificationType& identification, UInt n, IdentificationType& filtered_identification)))
+START_SECTION((template < class IdentificationType > void filterIdentificationsByBestNHits(const IdentificationType &identification, Size n, IdentificationType &filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
   
@@ -385,10 +385,10 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByB
 
 END_SECTION
 
-START_SECTION(void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05))
+START_SECTION((void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05)))
 	PeptideIdentification filtered_identification;
-
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"), protein_identifications, identifications);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"), protein_identifications, identifications, document_id);
 	PeptideIdentification identification2 = identifications[0];
 	ProteinIdentification protein_identification2 = protein_identifications[0];							
 	IDFilter().filterIdentificationsByRTPValues(identification2 , filtered_identification, 0.08);
@@ -400,6 +400,36 @@ START_SECTION(void filterIdentificationsByRTPValues(const PeptideIdentification 
 	TEST_EQUAL(hits[1].getSequence(), "DLEPGTDYEVTVSTLFGR")
 	TEST_EQUAL(hits[2].getSequence(), "FINFGVNVEVLSRFQTK")
 	TEST_EQUAL(hits[3].getSequence(), "MSLLSNMISIVKVGYNAR")
+END_SECTION
+
+START_SECTION((void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05)))
+	PeptideIdentification filtered_identification;
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test3.idXML"), protein_identifications, identifications, document_id);
+	PeptideIdentification identification2 = identifications[0];
+	ProteinIdentification protein_identification2 = protein_identifications[0];							
+	IDFilter().filterIdentificationsByRTFirstDimPValues(identification2 , filtered_identification, 0.08);
+	
+	vector<PeptideHit> hits = filtered_identification.getHits();
+	
+	TEST_EQUAL(hits.size(), 4)
+	TEST_EQUAL(hits[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(hits[1].getSequence(), "DLEPGTDYEVTVSTLFGR")
+	TEST_EQUAL(hits[2].getSequence(), "FINFGVNVEVLSRFQTK")
+	TEST_EQUAL(hits[3].getSequence(), "MSLLSNMISIVKVGYNAR")
+END_SECTION
+
+START_SECTION((void removeUnreferencedProteinHits(const ProteinIdentification &identification, const std::vector< PeptideIdentification > peptide_identifications, ProteinIdentification &filtered_identification)))
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test4.idXML"), protein_identifications, identifications, document_id);
+
+	ProteinIdentification protein_identification;
+  IDFilter().removeUnreferencedProteinHits(protein_identifications[0], identifications, protein_identification);
+
+  TEST_EQUAL(protein_identification.getHits().size(), 3)
+  TEST_EQUAL(protein_identification.getHits()[0].getAccession(), "Q824A5")
+  TEST_EQUAL(protein_identification.getHits()[1].getAccession(), "S53854")
+  TEST_EQUAL(protein_identification.getHits()[2].getAccession(), "Q872T5")
 END_SECTION
 
 /////////////////////////////////////////////////////////////

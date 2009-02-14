@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROCESSINGMETHOD_H
-#define OPENMS_METADATA_PROCESSINGMETHOD_H
+#ifndef OPENMS_METADATA_DATAPROCESSING_H
+#define OPENMS_METADATA_DATAPROCESSING_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
@@ -56,6 +56,8 @@ namespace OpenMS
     		PRECURSOR_RECALCULATION,	///< Recalculation of precursor m/z
     		BASELINE_REDUCTION, 		  ///< Baseline reduction
     		PEAK_PICKING, 					  ///< Peak picking (conversion from raw to peak data)
+    		PEAK_PICKING_SUM,					///< Specialized peak picking that reports the sums of raw data point intensities belonging to one peak
+    		PEAK_PICKING_MAX,					///< Specialized Peak picking that reports the maximum raw data point intensity belonging to one peak
     		FEATURE_FINDING, 				  ///< Feature findng (conversion from raw/peak to feature data)
     		ALIGNMENT, 							  ///< Retention time alignment of different maps
     		LOW_INTENSITY_REMOVAL,	  ///< The removal of very low intensity data points
@@ -115,4 +117,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PROCESSINGMETHOD_H
+#endif // OPENMS_METADATA_DATAPROCESSING_H

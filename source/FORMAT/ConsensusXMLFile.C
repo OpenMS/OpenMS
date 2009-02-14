@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -110,7 +110,7 @@ namespace OpenMS
 		}
 	}
 
-	void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
+	void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
 	{
 	}
 
@@ -670,7 +670,7 @@ namespace OpenMS
 		//file descriptions
 		const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
 		os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
-		for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
+		for (ConsensusMap::FileDescriptions::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
 		{
 			setProgress(++progress_);
 			os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second.filename << "\" label=\"" << it->second.label << "\" size=\"" << it->second.size << "\">\n";

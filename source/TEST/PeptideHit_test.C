@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,7 @@ START_TEST(PeptideHit, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-float score = 4.4;
+DoubleReal score = 4.4;
 uint rank = 3;
 AASequence sequence = AASequence("ARRAY");
 std::string sequence2 = "  ARRAY  ";
@@ -138,7 +138,7 @@ START_SECTION((bool operator != (const PeptideHit& rhs) const))
 	hit=hit2;
 END_SECTION
 
-START_SECTION((Real getScore() const))
+START_SECTION((DoubleReal getScore() const ))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -222,25 +222,25 @@ START_SECTION((void setCharge(Int charge)))
 	TEST_EQUAL(-43, hit.getCharge())
 END_SECTION
 
-START_SECTION(void setAABefore(char acid))
+START_SECTION((void setAABefore(char acid)))
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
 END_SECTION
-START_SECTION(char getAABefore() const)
+START_SECTION((char getAABefore() const))
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
 END_SECTION
-START_SECTION(void setAAAfter(char acid))
+START_SECTION((void setAAAfter(char acid)))
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');
 	TEST_EQUAL(hit.getAAAfter(), 'R')
 END_SECTION
-START_SECTION(char getAAAfter() const)
+START_SECTION((char getAAAfter() const))
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ using namespace OpenMS;
 		</tr>
 		<tr>
 			<td><b>Upshift</b></td>
-			<td>Features with m/z matching predicted tryptic peptide masses of unidentified proteins.</td>
+			<td>Features with m/z matching predicted tryptic peptide masses of unidentified proteins are ranked up.</td>
 		</tr>
 		<tr>
 			<td><b>IPS</b></td>
@@ -69,7 +69,8 @@ using namespace OpenMS;
 	</table>
 
 	Given the feature map of the LC-MS run and the identification results
-	the tool determines the next precursors that 
+	the tool determines the next precursors. The precursors are ranked
+	depending on the chosen strategy.
 	
 	It is also possible run a simulation of selection strategies
 	on a complete LC-MS/MS run, e.g. to determine what would have been
@@ -101,11 +102,10 @@ protected:
 		registerStringOption_("ids","<idxml file>","","file containing results of identification (IdXML)");
 		registerIntOption_("num_precursors","<Int>",1,"number of precursors to be selected",false);
 		registerFlag_("load_preprocessing","The preprocessed db is loaded from file, not calculated.");
+		registerFlag_("store_preprocessing","The preprocessed db is stored.");
 		registerFlag_("simulation","Simulate the whole LC-MS/MS run.");
 		registerStringOption_("sim_results","<output file>","","File containing the results of the simulation run",false);
 		registerStringOption_("db_path","<db-file>","","db file",false);
-		registerStringOption_("type","<type>","","the precursor ion selection strategy");
-		setValidStrings_("type",StringList::create("IPS,DEX,Upshift,Downshift,SPS"));
     addEmptyLine_();
     registerSubsection_("algorithm","Settings for the compound list creation and rescoring.");
 
@@ -114,7 +114,7 @@ protected:
 	Param getSubsectionDefaults_(const String& /* section*/) const
   {
 		Param param = PrecursorIonSelectionPreprocessing().getDefaults();
-		param.insert("",PrecursorIonSelection().getDefaults().copy("min_pep_ids"));
+		param.insert("",PrecursorIonSelection().getDefaults().copy(""));
 		return param;
   }
 	 
@@ -133,13 +133,13 @@ protected:
 		bool simulation = getFlag_("simulation");
 		String sim_results = getStringOption_("sim_results");
 		bool load_preprocessing = getFlag_("load_preprocessing");
-		
+		bool store_preprocessing = getFlag_("store_preprocessing");
 		//-------------------------------------------------------------
     // init pis preprocessing
     //-------------------------------------------------------------
 		Param pisp_param = getParam_().copy("algorithm:",true);
-		pisp_param.remove("min_pep_ids"); // needed for selection, not for preprocessing
 		pisp_param.remove("type");
+		pisp_param.remove("min_pep_ids");
 		pisp_param.remove("max_iteration");
 		writeDebug_("Parameters passed to PrecursorIonSelectionPreprocessing", pisp_param,3);
     PrecursorIonSelectionPreprocessing pisp;
@@ -153,13 +153,12 @@ protected:
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-		else pisp.dbPreprocessing(db_path,true);
+		else pisp.dbPreprocessing(db_path,store_preprocessing);
 	
 		
 		//-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
-
 		Param pis_param = getParam_().copy("algorithm:",true);
 		pis_param.removeAll("preprocessing");
 		writeDebug_("Parameters passed to PrecursorIonSelection", pis_param,3);
@@ -176,8 +175,9 @@ protected:
 		
 		std::vector<PeptideIdentification> pep_ids;
 		std::vector<ProteinIdentification> prot_ids;
+		String document_id;
 		IdXMLFile idxml_file;
-		idxml_file.load(ids,prot_ids,pep_ids);
+		idxml_file.load(ids,prot_ids,pep_ids,document_id);
 
 		//-------------------------------------------------------------
     // preprocessing, rescoring

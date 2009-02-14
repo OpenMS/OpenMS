@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -126,13 +126,13 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum<> > r(InstrumentSettings::ZOOM,false);
-	HasScanMode<MSSpectrum<> > r2(InstrumentSettings::FULL,true);
+	HasScanMode<MSSpectrum<> > r(InstrumentSettings::SIM,false);
+	HasScanMode<MSSpectrum<> > r2(InstrumentSettings::MASSSPECTRUM,true);
 	MSSpectrum<> s;
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
 END_SECTION
@@ -186,19 +186,19 @@ START_SECTION((bool operator()(const PeakType& p) const))
 	InIntensityRange<Peak1D > r(5.0,10.0,false);
 	InIntensityRange<Peak1D > r2(5.0,10.0,true);
 	Peak1D p;
-	p.setIntensity(4.9);
+	p.setIntensity(4.9f);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);
-	p.setIntensity(5.0);
+	p.setIntensity(5.0f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(7.5);
+	p.setIntensity(7.5f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(10.0);
+	p.setIntensity(10.0f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(10.1);
+	p.setIntensity(10.1f);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
 END_SECTION
@@ -225,6 +225,29 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	spec.resize(5);
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);	
+END_SECTION
+
+//IsZoomSpectrum
+
+IsZoomSpectrum<MSSpectrum<> >* ptr48 = 0;
+START_SECTION((IsZoomSpectrum(bool reverse = false)))
+	ptr48 = new IsZoomSpectrum<MSSpectrum<> >();
+	TEST_NOT_EQUAL(ptr48, 0)
+END_SECTION
+
+START_SECTION(([EXTRA]~IsZoomSpectrum()))
+	delete ptr48;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+	IsZoomSpectrum<MSSpectrum<> > s;
+	IsZoomSpectrum<MSSpectrum<> > s2(true);
+	MSSpectrum<> spec;
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);
+	spec.getInstrumentSettings().setZoomScan(true);
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

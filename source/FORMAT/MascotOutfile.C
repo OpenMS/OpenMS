@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -50,7 +50,6 @@ namespace OpenMS
 		UInt number_of_queries = 0;
 		map<UInt, UInt> indices;
 		map<UInt, UInt>::iterator indices_iterator;
-		Int temp_int = 0;
 		PeptideIdentification temp_identification;
 		vector<Int> charges;
 		Int temp_charge = 0;
@@ -124,11 +123,11 @@ namespace OpenMS
 		{
 			for (Size i = 1; i <= number_of_queries; i++)
 			{
+				//if no peptide is found for a certain query, there is just a -1 in the qi_p1 line
 	  		it = f.search(it, "q" + String(i) + "_p1=");
 	 		 	if (it!=f.end())
 	  		{				  		
-	  			temp_int = it->suffix('=').trim().toInt();
-	  			if (temp_int != -1)
+	  			if (it->suffix('=').at(0) != '-')
 	  			{
 	  				indices.insert(make_pair(i, indices.size()));
 	  			}

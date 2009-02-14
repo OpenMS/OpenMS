@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -423,25 +423,25 @@ START_SECTION((const String& getProteinMassFilter() const))
 	TEST_STRING_EQUAL(file.getProteinMassFilter() , "30.2 0")
 END_SECTION
 
-START_SECTION(void setPeptideMassUnit(UInt peptide_mass_unit))
+START_SECTION(void setPeptideMassUnit(Size peptide_mass_unit))
 	file.setPeptideMassUnit(0);
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
 END_SECTION
 
-START_SECTION((UInt getPeptideMassUnit() const))
+START_SECTION((Size getPeptideMassUnit() const))
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
 END_SECTION
 
-START_SECTION(void setOutputLines(UInt output_lines))
+START_SECTION(void setOutputLines(Size output_lines))
 	file.setOutputLines(10);
 	TEST_EQUAL(file.getOutputLines() , 10)
 END_SECTION
 
-START_SECTION((UInt getOutputLines() const))
+START_SECTION((Size getOutputLines() const))
 	TEST_EQUAL(file.getOutputLines() , 10)
 END_SECTION
 
-START_SECTION(UInt setEnzyme(String enzyme_name))
+START_SECTION(Size setEnzyme(String enzyme_name))
 	TEST_EQUAL(file.setEnzyme("i_dont_exist_enzyme"), 18)
 	TEST_EQUAL(file.setEnzyme("Trypsin"), 0)
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
@@ -451,61 +451,61 @@ START_SECTION((String getEnzymeName() const))
 	TEST_STRING_EQUAL(file.getEnzymeName(), "Trypsin")
 END_SECTION
 
-START_SECTION((UInt getEnzymeNumber() const))
+START_SECTION((Size getEnzymeNumber() const))
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
 END_SECTION
 
-START_SECTION(void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide))
+START_SECTION(void setMaxAAPerModPerPeptide(Size max_aa_per_mod_per_peptide))
 	file.setMaxAAPerModPerPeptide(4);
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
 END_SECTION
 
-START_SECTION((UInt getMaxAAPerModPerPeptide() const))
+START_SECTION((Size getMaxAAPerModPerPeptide() const))
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
 END_SECTION
 
-START_SECTION(void setMaxModsPerPeptide(UInt max_mods_per_peptide))
+START_SECTION(void setMaxModsPerPeptide(Size max_mods_per_peptide))
 	file.setMaxModsPerPeptide(3);
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
 END_SECTION
 
-START_SECTION((UInt getMaxModsPerPeptide() const))
+START_SECTION((Size getMaxModsPerPeptide() const))
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
 END_SECTION
 
-START_SECTION(void setNucleotideReadingFrame(UInt nucleotide_reading_frame))
+START_SECTION(void setNucleotideReadingFrame(Size nucleotide_reading_frame))
 	file.setNucleotideReadingFrame(0);
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
 END_SECTION
 
-START_SECTION((UInt getNucleotideReadingFrame() const))
+START_SECTION((Size getNucleotideReadingFrame() const))
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
 END_SECTION
 
-START_SECTION(void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites))
+START_SECTION(void setMaxInternalCleavageSites(Size max_internal_cleavage_sites))
 	file.setMaxInternalCleavageSites(2);
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
 END_SECTION
 
-START_SECTION((UInt getMaxInternalCleavageSites() const))
+START_SECTION((Size getMaxInternalCleavageSites() const))
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
 END_SECTION
 
-START_SECTION(void setMatchPeakCount(UInt match_peak_count))
+START_SECTION(void setMatchPeakCount(Size match_peak_count))
 	file.setMatchPeakCount(5);
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
 END_SECTION
 
-START_SECTION((UInt getMatchPeakCount() const))
+START_SECTION((Size getMatchPeakCount() const))
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
 END_SECTION
 
-START_SECTION(void setMatchPeakAllowedError(UInt match_peak_allowed_error))
+START_SECTION(void setMatchPeakAllowedError(Size match_peak_allowed_error))
 	file.setMatchPeakAllowedError(4);
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
 END_SECTION
 
-START_SECTION((UInt getMatchPeakAllowedError() const))
+START_SECTION((Size getMatchPeakAllowedError() const))
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
 END_SECTION
 

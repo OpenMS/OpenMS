@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -138,12 +138,12 @@ double SuffixArrayPeptideFinder::getTolerance() const
 	return (sa_->getTolerance());
 }
 
-void SuffixArrayPeptideFinder::setNumberOfModifications(UInt number_of_mods) const
+void SuffixArrayPeptideFinder::setNumberOfModifications(Size number_of_mods) const
 {
 	sa_->setNumberOfModifications(number_of_mods);
 }
 
-UInt SuffixArrayPeptideFinder::getNumberOfModifications() const
+Size SuffixArrayPeptideFinder::getNumberOfModifications() const
 {
 	return (sa_->getNumberOfModifications());
 }
@@ -200,7 +200,7 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 
 void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<double>& spec)
 {
-	vector<vector<pair<pair<int, int>, double> > > ca;
+	vector<vector<pair<pair<SignedSize, SignedSize>, double> > > ca;
 	sa_->findSpec(ca, spec);
 	
 	ModifierRep mod;

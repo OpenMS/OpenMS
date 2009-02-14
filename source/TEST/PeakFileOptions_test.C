@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ ostream& operator<<(ostream& os, const vector<T>& vec)
 		os << "()";
 		return os;
 	}
-	
+
 	os << "(";
 	typename vector<T>::const_iterator i = vec.begin();
 	while (true)
@@ -55,7 +55,7 @@ ostream& operator<<(ostream& os, const vector<T>& vec)
 	return os;
 }
 
-DRange<1> makeRange(float a, float b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -157,7 +157,7 @@ START_SECTION(void setMSLevels(const vector<Int>& levels))
 	levels.push_back(5);
 	tmp.setMSLevels(levels);
 	TEST_EQUAL(tmp.hasMSLevels(), true);
-	TEST_EQUAL(tmp.getMSLevels(), levels);
+	TEST_EQUAL(tmp.getMSLevels()==levels,true);
 END_SECTION
 
 START_SECTION(void addMSLevel(int level))
@@ -167,13 +167,11 @@ START_SECTION(void addMSLevel(int level))
 	tmp.addMSLevel(5);
 	TEST_EQUAL(tmp.hasMSLevels(), true);
 	TEST_EQUAL(tmp.getMSLevels().size(), 3);
-
 	vector<Int> levels;
 	levels.push_back(1);
 	levels.push_back(3);
 	levels.push_back(5);
-
-	TEST_EQUAL(tmp.getMSLevels(), levels);
+	TEST_EQUAL(tmp.getMSLevels()==levels,true);
 END_SECTION
 
 START_SECTION(void clearMSLevels())
@@ -183,12 +181,12 @@ START_SECTION(void clearMSLevels())
 	levels.push_back(3);
 	levels.push_back(5);
 	tmp.setMSLevels(levels);
-	TEST_EQUAL(tmp.getMSLevels(), levels);
-	
+	TEST_EQUAL(tmp.getMSLevels()==levels,true);
+
 	// now clear the ms levels
 	tmp.clearMSLevels();
 	TEST_EQUAL(tmp.hasMSLevels(), false);
-	TEST_EQUAL(tmp.getMSLevels(), vector<Int>());
+	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
 END_SECTION
 
 START_SECTION(bool hasMSLevels() const)
@@ -209,7 +207,7 @@ END_SECTION
 
 START_SECTION(const vector<Int>& getMSLevels() const)
 	PeakFileOptions tmp;
-	TEST_EQUAL(tmp.getMSLevels(), vector<Int>());
+	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

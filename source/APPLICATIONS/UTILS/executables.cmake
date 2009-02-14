@@ -15,6 +15,7 @@ RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 XMLValidator
+IdXMLEvaluation
 )
 
 ### pass source file list to the upper instance

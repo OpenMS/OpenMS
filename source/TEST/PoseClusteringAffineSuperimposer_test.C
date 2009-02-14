@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -63,16 +63,16 @@ START_SECTION((static const String getProductName()))
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 END_SECTION
 
-START_SECTION((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
+START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector< TransformationDescription > &transformations)))
   std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
   PositionType pos2(5,5);
   feat1.setPosition(pos1);
-  feat1.setIntensity(100);
+  feat1.setIntensity(100.0f);
   feat2.setPosition(pos2);
-  feat2.setIntensity(100);
+  feat2.setIntensity(100.0f);
   input[0].push_back(feat1);
   input[0].push_back(feat2);
   
@@ -81,9 +81,9 @@ START_SECTION((virtual void run(const std::vector<ElementMapType>& maps, std::ve
   PositionType pos3(1.4,1.02);
   PositionType pos4(5.4,5.02);
   feat3.setPosition(pos3);
-  feat3.setIntensity(100);
+  feat3.setIntensity(100.0f);
   feat4.setPosition(pos4);
-  feat4.setIntensity(100);
+  feat4.setIntensity(100.0f);
   input[1].push_back(feat3);
   input[1].push_back(feat4);
 

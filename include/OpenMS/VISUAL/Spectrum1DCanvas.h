@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -93,7 +93,7 @@ namespace OpenMS
 			bool flippedLayersExist();
 			
 			/// Flips the layer with @p index up/downwards
-			void flipLayer(UInt index);
+			void flipLayer(Size index);
 			
 			/// Returns whether this widget is currently in mirror mode
 			bool mirrorModeActive();
@@ -101,13 +101,13 @@ namespace OpenMS
 			/// Sets whether this widget is currently in mirror mode
 			void setMirrorModeActive(bool b);
 		
-			/// Calls dataToWidget() and takes snap_factors_ and percentage_factor_ into account.
+			/// For convenience - calls dataToWidget(float, float, ...)
 			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false, bool percentage = true);
 			
 			/// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
 			void dataToWidget(float x, float y, QPoint& point, bool flipped = false, bool percentage = false);
 			
-			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
+			/// For convenience - calls widgetToData(float, float, ...)
 			PointType widgetToData(const QPoint& pos, bool percentage = false);
 			
 			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
@@ -117,7 +117,7 @@ namespace OpenMS
 			void drawAnnotations(LayerData& layer, QPainter& painter);
 			
 			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
-			void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
+			void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 			
 			/// Resets alignment_
 			void resetAlignment();
@@ -136,9 +136,9 @@ namespace OpenMS
 			
 		public slots:
 			// Docu in base class
-			void activateLayer(int layer_index);
+			void activateLayer(Size layer_index);
 			// Docu in base class
-			void removeLayer(int layer_index);
+			void removeLayer(Size layer_index);
 			/**
 				@brief Sets the visible area.
 				
@@ -161,7 +161,7 @@ namespace OpenMS
 			void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);  
 			
 			/// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
-			void drawHighlightedPeak_(UInt layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
+			void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
 			
 			/// Draws a dashed line using the highlighted peak color parameter
 			void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
@@ -223,7 +223,7 @@ namespace OpenMS
 	    //@}
 			
 			//docu in base class
-			virtual void updateLayer_(UInt i);
+			virtual void updateLayer_(Size i);
 			//docu in base class
 			virtual void translateLeft_();
 			//docu in base class

@@ -49,43 +49,50 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wno-long-long -Wall -Wno-non-virtual-dtor  -pedantic)
+	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long)
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
-	## disable stupid warnings. enable if you want to have fun with MSVC 8
-	## warning! 4275,4251 is for dllexport/import warnings! this could be vital. recheck!
-	#add_definitions(/wd4267 /wd4290 /wd4996 /wd4521 /wd4522 /wd4275 /wd4251)
-	#add_definitions(/wd4267)
-
 	##don't warn about unchecked std::copy()
-	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)
 
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations
 	add_definitions(/DNOMINMAX)
 
-	# compile such that GSL is in DLL mode
+	## xerces bug workaround
+	add_definitions(/DOPENMS_XERCESDLL)
+	
+	## compile such that GSL is in DLL mode
 	add_definitions(/DGSL_DLL)
 
-	# minimal code rebuild
-	add_definitions(/Gm /Zi)
+	## minimal code rebuild
+	#add_definitions(/Gm /Zi)
 
-	#SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib,libcpmt.lib")
-	#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib,libcpmt.lib")
+else()
+	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
 if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
-
 	CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
 	if (WITH_FPIC)
 		add_definitions(-fPIC)
 	endif()
 endif()
 
-#default build type (for Makefile generators): Release
+## -Wconversion flag for GCC
+set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
+if (CXX_WARN_CONVERSION)
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		add_definitions(-Wconversion)
+	endif()
+endif()
+Message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
+
+
+## default build type (for Makefile generators): Release
 set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
@@ -97,7 +104,7 @@ else()
 	Message(FATAL_ERROR "OPENMS_BUILD_TYPE must be 'Debug' or 'Release'!")
 endif()
 
-# user OPENMS DEBUG flag
+## user OPENMS DEBUG flag
 set(OPENMS_ASSERTIONS OFF CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 	set(OPENMS_ASSERTIONS ON CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
@@ -119,7 +126,7 @@ if (STL_DEBUG)
     Message(WARNING "STL debug mode is supported for compiler GCC only")
   endif()
 else()
-	Message(STATUS "STL debug mode: ${STL_DEBUG}")
+	Message(STATUS "[GCC only] STL debug mode: ${STL_DEBUG}")
 endif()
 
 ########################################################
@@ -148,13 +155,10 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-if (MSVC) ## we have another contrib right now
-	FIND_PATH(CONTRIB_CONFIRM_DIR CMakeCache.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-else()
-	FIND_PATH(CONTRIB_CONFIRM_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-endif()
+FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.3.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+
 if (CONTRIB_CONFIRM_DIR STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
-	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct!")
+	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")
 endif()
 
 set(CONTRIB_INCLUDE_DIR ${CONTRIB_DIR}/include/ CACHE INTERNAL "contrib include dir")
@@ -191,7 +195,12 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
 
-OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_2;xerces-c_static_2;libxerces-c;xerces-c" "xerces-c_2D;xerces-c_static_2D;libxerces-c;xerces-c" "xerces_c")
+#set which library extensions are preferred (we want static libraries)
+if(NOT MSVC)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+endif()
+
+OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 OPENMS_CHECKLIB(CONTRIB_GSL "libgsl_dll;gsl" "libgsl_dll_d;gsl" "GSL")
 
@@ -201,20 +210,20 @@ OPENMS_CHECKLIB(CONTRIB_CGAL "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;c
 
 # TODO windoes????
 if (NOT MSVC AND USE_ANDIMS)
-	OPENMS_CHECKLIB(ANDIMS_LIBRARY "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib")
+	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib")
 
-	OPENMS_CHECKLIB(NETCDF_LIBRARY1 "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF_c++")
-	OPENMS_CHECKLIB(NETCDF_LIBRARY2 "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF")
-	set(NETCDF_LIBRARY ${NETCDF_LIBRARY1} ${NETCDF_LIBRARY2})
+	OPENMS_CHECKLIB(CONTRIB_NETCDF_CPP "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF_c++")
+	OPENMS_CHECKLIB(CONTRIB_NETCDF_C "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF")
+	set(CONTRIB_NETCDF ${CONTRIB_NETCDF_CPP} ${CONTRIB_NETCDF_C})
 endif()
 
 # libSVM:
 
-if (MSVC) # we created a lib here, because we cannot just add an object..
+if (MSVC) 
+	## we created a lib here, because we cannot just add an object..
 	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
-	#set(SVM_LIBRARY optimized ${CONTRIB_LIB_DIR}svm.obj debug ${CONTRIB_LIB_DIR}svm_d.obj CACHE INTERNAL "object file of svm library")
 else()
-	# there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
+	## there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
 	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
@@ -258,18 +267,18 @@ endif()
 
 ## define some directories
 if (DO_INSTALL)
-	set(CF_OPENMS_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/OpenMS-${CF_PACKAGE_VERSION} CACHE INTERNAL "Path to the shared documents of OpenMS.")
+	set(CF_OPENMS_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 else()
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 endif()
 
 set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
 
-# check for Microsoft Visual Studio compiler
+## check for Microsoft Visual Studio compiler
 if (MSVC)
 	set(OPENMS_COMPILER_MSVC "1" CACHE INTERNAL "Do we use Microsoft Compiler?")
 endif()
-# check for G++
+## check for G++
 if (CMAKE_COMPILER_IS_GNUCXX)
 	set(OPENMS_COMPILER_GXX "1" CACHE INTERNAL "Do we use G++ Compiler?")
 endif()
@@ -277,13 +286,13 @@ endif()
 INCLUDE(TestBigEndian)
 TEST_BIG_ENDIAN(OPENMS_BIG_ENDIAN)
 
-# check 32/64 bit architecture (defined above!)
+## check 32/64 bit architecture (defined above!)
 if (NOT DEFINED OPENMS_64BIT_ARCHITECTURE)
 	message(FATAL_ERROR "Cmake script was re-ordered and is now invalid! Please make sure that OPENMS_64BIT_ARCHITECTURE is defined when config.h.in is configured!")
 endif()
 
 
-include(CheckTypeSize) #: Check sizeof a type
+include(CheckTypeSize) ## Check sizeof a type
 CHECK_TYPE_SIZE("unsigned char" SIZE_UCHAR)
 CHECK_TYPE_SIZE("unsigned short" SIZE_USHORT)
 CHECK_TYPE_SIZE("unsigned int" SIZE_UINT)
@@ -298,7 +307,7 @@ CHECK_TYPE_SIZE("int32_t" SIZE_INT32)
 if (HAVE_SIZE_INT32)
 	set(CF_OPENMS_INT32_TYPE int32_t)
 else()
-	# search for another Int32 type
+	## search for another Int32 type
 	if (SIZE_INT MATCHES "4")
 		set(CF_OPENMS_INT32_TYPE int)
 	elseif (SIZE_SHORT MATCHES "4")
@@ -306,7 +315,7 @@ else()
 	elseif (SIZE_LONG MATCHES "4")
 		set(CF_OPENMS_INT32_TYPE long)
 	else()
-		message(FATAL_ERROR "Cannot find signed 32bit integer type. Please contact the developers!")
+		Message(FATAL_ERROR "Cannot find signed 32bit integer type. Please contact the developers!")
 	endif()
 endif()
 
@@ -314,7 +323,7 @@ CHECK_TYPE_SIZE("int64_t" SIZE_INT64)
 if (HAVE_SIZE_INT64)
 	set(CF_OPENMS_INT64_TYPE int64_t)
 else()
-	# search for another Int64 type
+	## search for another Int64 type
 	if (SIZE_INT MATCHES "8")
 		set(CF_OPENMS_INT64_TYPE int)
 	elseif (SIZE_LONG MATCHES "8")
@@ -322,36 +331,21 @@ else()
 	elseif (SIZE_LONGLONG MATCHES "8")
 		set(CF_OPENMS_INT64_TYPE "long long")
 	else()
-		message(FATAL_ERROR "Cannot find signed 64bit integer type. Please contact the developers!")
+		Message(FATAL_ERROR "Cannot find signed 64bit integer type. Please contact the developers!")
 	endif()
 endif()
-
-
-#### this is currently disabled due to too many problems
-#### e.g. calling setValue("myParam",114) will not work, because it setValue would require a setValue(String, int) signature,
-####      but only has setValue(String, long long). Casting everything to (Int) (which is long long on 64bit VS) is unintuitiv!)
-## set OpenMS Types (Int) and (UInt) to the size of size_t and not simply as "int" or "unsigned int"
-## - under unix this seems equivalent, but MSVS defined "int" always as 32bit, even on 64bit platforms.
-
-#if (OPENMS_64BIT_ARCHITECTURE)
-#	set(CF_OPENMS_SIZE_T_SIGNED ${CF_OPENMS_INT64_TYPE})
-#else()
-#	set(CF_OPENMS_SIZE_T_SIGNED ${CF_OPENMS_INT32_TYPE})
-#endif()
-
-
 
 CHECK_TYPE_SIZE("uint8_t" SIZE_UINT8)
 if (HAVE_SIZE_UINT8)
 	set(CF_OPENMS_BYTE_TYPE uint8_t)
 else()
-	# search for another uint8 type
+	## search for another uint8 type
 	if (SIZE_UCHAR MATCHES "1")
 		set(CF_OPENMS_BYTE_TYPE "unsigned char")
 	elseif (SIZE_USHORT MATCHES "1")
 		set(CF_OPENMS_BYTE_TYPE "unsigned short")
 	else()
-		message(FATAL_ERROR "Cannot find unsigned 8bit integer (byte) type. Please contact the developers!")
+		Message(FATAL_ERROR "Cannot find unsigned 8bit integer (byte) type. Please contact the developers!")
 	endif()
 endif()
 
@@ -360,18 +354,18 @@ CHECK_TYPE_SIZE("uint64_t" SIZE_UINT64)
 if (HAVE_SIZE_UINT64)
 	set(CF_OPENMS_UINT64_TYPE uint64_t)
 else()
-	# search for another uint64 type
+	## search for another uint64 type
 	if (SIZE_ULONG MATCHES "8")
 		set(CF_OPENMS_UINT64_TYPE "unsigned long")
 	elseif (SIZE_ULONGLONG MATCHES "8")
 		set(CF_OPENMS_UINT64_TYPE "unsigned long long")
 	else()
-		message(FATAL_ERROR "Cannot find uint64 type. Please contact the developers!")
+		Message(FATAL_ERROR "Cannot find uint64 type. Please contact the developers!")
 	endif()
 endif()
 
 ## system headers:
-include(CheckIncludeFileCXX) # Check if the include file exists.
+include(CheckIncludeFileCXX) ## Check if the include file exists.
 
 CHECK_INCLUDE_FILE_CXX("unistd.h" OPENMS_HAS_UNISTD_H)
 CHECK_INCLUDE_FILE_CXX("process.h" OPENMS_HAS_PROCESS_H)
@@ -381,7 +375,7 @@ CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 
-# user flag
+## user flag
 set(OPENMS_ENABLE_EXTERNALMEMORY OFF CACHE BOOL "User switch to enable external memory support (if you run out of RAM+swap). Warning: performance penalty!")
 
 include(CheckFunctionExists)
@@ -394,7 +388,7 @@ if (NOT DEFINED USE_ANDIMS)
 	message(FATAL_ERROR "Cmake script was re-ordered and is now invalid! Please make sure that USE_ANDIMS is defined when config.h.in is configured!")
 endif()
 
-# user flag with default "QMYSQL"
+## user flag with default "QMYSQL"
 set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
 
@@ -402,14 +396,14 @@ set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database pl
 ###    configure Doxyfile														 ###
 ########################################################
 
-## CF_PACKAGE_VERSION (already defined above in manual section)
+# CF_PACKAGE_VERSION ##(already defined above in manual section)
 
 set(CF_OPENMS_PATH ${PROJECT_BINARY_DIR})
 
 ## replace any variables in Doxyfile.in with current values
 configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
 
-### TODO: test this -> when building documentation, set in environment using svnversion before calling doxygen
+## TODO: test this -> when building documentation, set in environment using svnversion before calling doxygen
 #set(CF_PACKAGE_REVISION_FILE)
 #if (OPENMS_HAS_SVNVERSION)
 #
@@ -422,7 +416,7 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_
 #	#set($ENV{OPENMS_REVISION} ${ENV_OPENMS_REVISION}) # set environment variable e.g. for doxygen
 #endif()
 
-# are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
+## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 if (MINGW OR MSVC)
 	set(BUILD_SHARED_LIBS false)
 else()
@@ -461,80 +455,102 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 
 ENDMACRO (QT4_WRAP_UI_OWN)
 
-#needed for MSVC to locate Boost-Libs
-link_directories(${CONTRIB_LIB_DIR})
-
-# big include file for headers and C files, which fills the OpenMS_sources variable
+## big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)
 
-# add library target
-# warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
+## needed for MSVC to locate Boost-Libs (put this above ADD_LIBRARY() - otherwise it will not work)
+link_directories(${CONTRIB_LIB_DIR})
+
+## add library target
+## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
 
 
-# always create the svn version file before compiling OpenMS
+## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
 ## TODO replace this with PreProcessorMacro when compiling lib
 ## e.g. SET_SOURCE_FILE_PROPERTIES(libSource.c main.c COMPILE_FLAGS -DREVISON=234)
-	message(STATUS "Adding dependency on SVN-Version target file...")
-##	add_dependencies(OpenMS svnversion_file_target)
+	Message(STATUS "Adding dependency on SVN-Version target file...")
+#	add_dependencies(OpenMS svnversion_file_target)
 endif()
 
 
-set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${ANDIMS_LIBRARY} ${NETCDF_LIBRARY})
+## all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
-	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 endif()
 
-### OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-set(OPENMS_LIBRARIES OpenMS ${OPENMS_DEP_LIBRARIES})
+if (NOT APPLE)
+	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
+else()
+	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+endif()
+
+## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
+set(OPENMS_LIBRARIES OpenMS)
+if (NOT APPLE)
+	set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES})
+endif()
 
 ####### TOPP #########
 set(TOPP_executables)
 include(source/APPLICATIONS/TOPP/executables.cmake)
 
-
-
 set(TOPP_DIR source/APPLICATIONS/TOPP/)
 foreach(i ${TOPP_executables})
 	set(resource_file ${CMAKE_SOURCE_DIR}/${TOPP_DIR}${i}.rc)
-        set(resource_dir ${CMAKE_SOURCE_DIR}/${TOPP_DIR}/${i}-resources/)
+	set(resource_dir ${CMAKE_SOURCE_DIR}/${TOPP_DIR}/${i}-resources/)
 	## add icons to TOPPView and INIFileEditor
 	if (MSVC AND EXISTS ${resource_file})
-		message(STATUS "Setting resource file ${resource_file} for ${i}")
+		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
-        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND EXISTS ${resource_dir})
-#		SET( MACOSX_BUNDLE_INFO_STRING "${i}" )
-#		SET( MACOSX_BUNDLE_ICON_FILE "${i}.icns" )
-#		SET( MACOSX_BUNDLE_BUNDLE_NAME "${i}" )
-#                SET( MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}" )
-		# set custom Info.plist file
-#		set (MACOSX_BUNDLE_INFO_PLIST "${resource_dir}Info.plist" )
+  elseif(APPLE AND EXISTS ${resource_dir}) 
+    ## transform TOPPView and INIFileEditor to real Mac OS X applications
+		set(MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
+	  set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
+	  set(MACOSX_BUNDLE_VERSION "1.3")
+	  set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
+	  set(MACOSX_BUNDLE_ICON_FILE "${i}.icns")
+	  set(MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
+	  set(MACOSX_BUNDLE_BUNDLE_NAME "${i}")
+    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
 
-		add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
-
-                # Need to copy the icon file
-                ADD_CUSTOM_COMMAND(
-                  TARGET ${i}
-                  POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E echo "Post build for ${i}"
-                  COMMAND ${CMAKE_COMMAND} -E copy
-                  ${resource_dir}Info.plist
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
-                  COMMAND ${CMAKE_COMMAND} -E make_directory
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-                  COMMAND ${CMAKE_COMMAND} -E copy
-                  ${resource_dir}${i}.icns
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-                  )
-#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
-#                EXEC_PROGRAM( "cp ${resource_dir}Info.plist ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
-#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
-#                EXEC_PROGRAM( "cp ${resource_dir}${i}.icns ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
-        else()
+    ## Need to copy the icon file and the custom Info.plist
+    ## if version info changes, please update also the 
+    ## info.plist file located in APPLICATIONS/TOPP/{i}-resources/
+    if(${CMAKE_GENERATOR} MATCHES "Xcode") 
+      ## since Xcode builds several configurations (Debug;Release)
+      ## we need a special handling for the postbuild actions
+      ADD_CUSTOM_COMMAND(
+        TARGET ${i}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
+        #COMMAND ${CMAKE_COMMAND} -E copy
+        #${resource_dir}Info.plist
+        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}${i}.icns
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
+        )
+    else()
+      ADD_CUSTOM_COMMAND(
+        TARGET ${i}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
+        #COMMAND ${CMAKE_COMMAND} -E copy
+        #${resource_dir}Info.plist
+        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}${i}.icns
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+        )
+    endif()
+  else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
@@ -558,15 +574,15 @@ add_dependencies(UTILS ${UTILS_executables})
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
 foreach(i ${OpenMS_doc_executables})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
-	add_executable(${i} EXCLUDE_FROM_ALL ${i}.C)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doc/doxygen/parameters")
+	add_executable(${i} EXCLUDE_FROM_ALL doc/doxygen/parameters/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 endforeach(i)
 add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
 
-###### Examples ######
+##### Examples #####
 set(EXAMPLES_executables)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 include(source/EXAMPLES/executables.cmake)
@@ -578,7 +594,7 @@ add_custom_target(EXAMPLES)
 add_dependencies(EXAMPLES ${EXAMPLES_executables})
 
 
-#### Tests #####
+##### Tests #####
 enable_testing()
 INCLUDE(Dart)
 add_subdirectory(source/TEST)
@@ -591,41 +607,66 @@ add_subdirectory(source/TEST/TOPP)
 #set(OPENMS_INCLUDE_EXTERNAL ${PROJECT_BINARY_DIR}/include)
 
 configure_file(
-"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake.in"
-"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake"
-@ONLY
+	"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake.in"
+	"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake"
+	@ONLY
 )
 
 include(CMakeExportBuildSettings)
 cmake_export_build_settings(${OpenMS_BINARY_DIR}/OpenMSBuildSettings.cmake)
 export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
-# TODO install these files to a specific location to have a standard way to be used with external code
+## TODO install these files to a specific location to have a standard way to be used with external code
 
 ##### targets list #####
-add_custom_target(targets
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-	                COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    [no target]    builds the OpenMS library, TOPP tools and UTILS tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
-                  COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"
-                  COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
-                  COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-	                COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMENT "The most important targets for OpenMS"
-                  VERBATIM
-  )
-
+if (MSVC)
+	add_custom_target(targets
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
+										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD      builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS      executes OpenMS and TOPP tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMENT "The most important targets for OpenMS"
+										VERBATIM
+		)
+else()
+	add_custom_target(targets
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
+										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]    builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMENT "The most important targets for OpenMS"
+										VERBATIM
+		)
+endif()
+	
 ##### Message after OpenMS has been built #####
 if (MSVC)
   add_custom_command(TARGET OpenMS
@@ -725,8 +766,110 @@ MESSAGE(STATUS "")
 MESSAGE(STATUS "-----------------------------------------------------------------")
 MESSAGE(STATUS "")
 
-##### install/copy?? #####
+##### install/copy (cpack mainly) #####
+## TODO:
+##  - this code breaks the windows cmake call (already code for win support added .. needs testing)
 
-# TODO: install (copy) directories?!
-# ...
+
+# general definitions
+set(CPACK_PACKAGE_NAME "OpenMS")
+set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+set(CPACK_PACKAGE_VERSION "1.3.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/OpenMSPackageDescriptionFile.cmake)
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceWelomeFile.txt)
+set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceReadme.txt)
+
 set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
+
+# install routines for MacOSX
+if(APPLE)
+
+	set(CPACK_GENERATOR "PackageMaker")
+	
+	# the OpenMS library
+	install (TARGETS OpenMS
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+		COMPONENT library)
+
+	# the TOPP tools
+	foreach(TOPP_exe ${TOPP_executables})
+		install(TARGETS ${TOPP_exe}
+			RUNTIME DESTINATION bin
+			BUNDLE DESTINATION /Applications/
+			COMPONENT applications)
+	endforeach()
+	
+	# share dir
+	install(DIRECTORY share/
+		DESTINATION share
+		COMPONENT share
+		REGEX ".svn" EXCLUDE)
+
+	# install the documentation and the tutorials
+	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
+  install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+  install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
+  install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
+
+
+	include(CPack)
+
+endif()
+
+if(NOT MSVC AND NOT APPLE)
+	## variables we need to distinguish 32Bit/64Bit versions
+	set(OPENMS_LIB_INSTALL_PATH "lib")
+	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86")
+	if (OPENMS_64BIT_ARCHITECTURE)
+		set(OPENMS_LIB_INSTALL_PATH "lib64")
+		set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+	endif()
+
+  ## CPack installation and packaging procedures
+  install(TARGETS OpenMS 
+    LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
+    ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
+    COMPONENT library)
+
+  ## install utils
+  foreach(util ${UTILS_executables})
+    install(TARGETS ${util}
+      RUNTIME DESTINATION bin
+      BUNDLE DESTINATION bin
+      COMPONENT applications)
+  endforeach()
+
+  ## install TOPP Tools
+  foreach(TOPP_exe ${TOPP_executables})
+    INSTALL(TARGETS ${TOPP_exe} 
+      RUNTIME DESTINATION bin
+      BUNDLE DESTINATION bin
+      COMPONENT applications)
+  endforeach()
+
+  ## install share
+  INSTALL(DIRECTORY share/
+    DESTINATION share
+    COMPONENT share
+    REGEX ".svn" EXCLUDE)
+
+	## install the documentation and the tutorials
+	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
+	install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+	install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
+	install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
+
+	set(CPACK_GENERATOR "RPM")
+	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
+	set(CPACK_COMPONENTS_ALL applications library share)
+
+	## should be the last include
+	include(CPack)
+endif()

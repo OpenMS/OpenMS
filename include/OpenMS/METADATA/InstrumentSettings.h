@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -45,17 +45,18 @@ namespace OpenMS
       enum ScanMode
       {
       	UNKNOWN,					///< Unknown scan method
-      	FULL,							///< Full scan @n Synonyms: 'MSn scan'
-      	ZOOM,							///< Zoom scan @n Synonyms: 'Enhanced resolution scan'
+      	MASSSPECTRUM,			///< Standard mass spectrum @n Synonyms: 'full scan', 'MSn scan'
       	SIM,							///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
       	SRM,							///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
       	CRM,							///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
       	CNG,							///< Constant neutral gain scan @n Synonyms: 'CNG scan'
       	CNL,							///< Constant neutral loss scan @n Synonyms: 'CNG scan'
       	PRECURSOR,				///< Precursor ion scan
-      	PDA,							///< Photodiode array detector scan @n Synonyms: 'PDA scan'
       	EMC,							///< Enhanced multiply charged scan
       	TDF,							///< Time-delayed fragmentation scan
+      	EMR,							///< Electromagnetic radiation scan @n Synonyms: 'EMR spectrum'
+      	EMISSION,					///< Emission scan
+      	ABSORBTION,				///< Absorbtion scan
       	SIZE_OF_SCANMODE
       };
 			
@@ -100,6 +101,11 @@ namespace OpenMS
       /// sets the scan mode
       void setScanMode(ScanMode scan_mode);
 			
+			/// return if this scan is a zoom (enhanced resolution) scan
+			bool getZoomScan() const;
+			/// sets if this scan is a zoom (enhanced resolution) scan
+			void setZoomScan(bool zoom_scan);
+			
 			/// returns the polarity
       IonSource::Polarity getPolarity() const;
       /// sets the polariy
@@ -114,6 +120,7 @@ namespace OpenMS
 
     protected:
       ScanMode scan_mode_;
+      bool zoom_scan_;
       IonSource::Polarity polarity_;
       std::vector< ScanWindow > scan_windows_;
   };

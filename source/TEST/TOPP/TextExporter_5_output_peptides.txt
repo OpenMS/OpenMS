@@ -1,0 +1,8 @@
+#RUN	RunID	ScoreType	ScoreDirection	Date/Time	SearchEngineVersion	Parameters
+#PROTEIN	Score	Rank	Accession	Sequence
+#PEPTIDE	RT	MZ	Score	Rank	Sequence	Charge	AABefore	AAAfter	Accessions	predicted_RT	RT_first_dim	predicted_RT_first_dim
+PEPTIDE	1234.5	675.9	0.9	0	PEP1	1	A	B	PROT1;PROT2	-1	-1	-1
+PEPTIDE	1234.5	675.9	1.4	0	PEP2	1	 	 		-1	-1	-1
+PEPTIDE	-1	-1	44.4	0	PEP3	2	 	 		-1	-1	-1
+PEPTIDE	-1	-1	33.3	0	PEP4	2	 	 		-1	-1	-1
+PEPTIDE	-1	-1	1.4	0	PEP5	1	 	 	PROT3	-1	-1	-1

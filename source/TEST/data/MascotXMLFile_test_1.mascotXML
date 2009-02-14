@@ -5,8 +5,26 @@
 		<Date>2006-03-09T11:31:52Z</Date>
 		<USERNAME>OpenMS</USERNAME>
 		<SEARCH>MIS</SEARCH>
+		<MascotVer>2.2.04</MascotVer>
+		<DB>MSDB_chordata</DB>
+		<FastaVer>MSDB_chordata_20070910.fasta</FastaVer>
 		<NumQueries>3</NumQueries>
 	</header>
+	<search_parameters>
+		<TAXONOMY>. . Eukaryota (eucaryotes)</TAXONOMY>
+		<CLE>Trypsin</CLE>
+		<PFA>1</PFA>
+		<MODS>Carboxymethyl (C),Deamidated (NQ),Guanidinyl (K)</MODS>
+		<QUANTITATION>None</QUANTITATION>
+		<IT_MODS>Acetyl (Protein N-term),Biotin (K),Carbamyl (K)</IT_MODS>
+		<TOL>1.4</TOL>
+		<TOLU>Da</TOLU>
+		<ITOL>0.2</ITOL>
+		<CHARGE>1+, 2+ and 3+</CHARGE>
+		<ITOLU>Da</ITOLU>
+		<MASS>Average</MASS>
+		<INSTRUMENT>ESI-TRAP</INSTRUMENT>
+	</search_parameters>
 	<hits>
 		<hit number="1">
 			<protein accession="AAN17824">

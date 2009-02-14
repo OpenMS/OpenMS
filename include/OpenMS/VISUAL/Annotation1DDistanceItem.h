@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
-			virtual void move(const PointType& delta, Spectrum1DCanvas* canvas);
+			virtual void move(const PointType& delta);
 			/// Sets the start point of the measured distance line
 			void setStartPoint(const PointType& start);
 			/// Sets the peak index of the end peak of the measurement

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -62,12 +62,28 @@ START_SECTION((MascotXMLFile()))
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data) const))
+START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
 
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
 							protein_identification, 
 				   		peptide_identifications);
-	
+				   		
+	ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
+	TEST_EQUAL(search_parameters.missed_cleavages, 1);
+	TEST_EQUAL(search_parameters.taxonomy, ". . Eukaryota (eucaryotes)");
+	TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::AVERAGE);
+	TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
+	TEST_EQUAL(search_parameters.db, "MSDB_chordata");
+	TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
+	TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.2);
+	TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
+	TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
+	TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
+	TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (NQ)");
+	TEST_EQUAL(search_parameters.fixed_modifications[2], "Guanidinyl (K)");
+	TEST_EQUAL(search_parameters.variable_modifications[0], "Acetyl (Protein N-term)");
+	TEST_EQUAL(search_parameters.variable_modifications[1], "Biotin (K)");
+	TEST_EQUAL(search_parameters.variable_modifications[2], "Carbamyl (K)");
 	TEST_EQUAL(peptide_identifications.size(), 3)
 	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_REAL_SIMILAR(peptide_identifications[0].getMetaValue("MZ"), 789.83)
@@ -106,12 +122,12 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Mascot")
 	TEST_EQUAL(peptide_identifications[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identification.getDateTime() == date, true)	
-	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATN(MOD:00565)FK(MOD:00445)")
+	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK(MOD:00445)")
+	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSK(MOD:00445)LSAK(MOD:00445)")
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data, std::map<String, std::vector<AASequence> > &peptides) const))	
+START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))
 	std::map<String, vector<AASequence> > modified_peptides;
 	AASequence aa_sequence_1;
 	AASequence aa_sequence_2;

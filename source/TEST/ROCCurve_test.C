@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -85,13 +85,13 @@ END_SECTION
 START_SECTION((double cutoffPos(double fraction=0.95)))
   double cop = rcp->cutoffPos();
   bool inBounds( cop >=0 && cop <= 1 );
-  TEST_EQUAL(inBounds,1)
+  TEST_EQUAL(inBounds,true)
 END_SECTION
 
 START_SECTION((double cutoffNeg(double fraction=0.95)))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
-  TEST_EQUAL(inBounds,1)
+  TEST_EQUAL(inBounds,true)
 END_SECTION
 
 START_SECTION((ROCCurve(const ROCCurve& source)))

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -156,7 +156,7 @@ namespace OpenMS
 			//tags
 			String tags_string;
 			optionalAttributeAsString_(tags_string,attributes,"tags");
-			StringList tags = StringList::create(tags_string);
+			list_.tags = StringList::create(tags_string);
 			//advanced (for downward compatibility with old Param files)
 			String advanced_string;
 			optionalAttributeAsString_(advanced_string,attributes,"advanced");

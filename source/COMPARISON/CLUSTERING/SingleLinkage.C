@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	void SingleLinkage::cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold /*=1*/) const
+	void SingleLinkage::operator () (DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold /*=1*/) const
 	{
 		// input MUST have >= 2 elements!
 		if(original_distance.dimensionsize()<2)
@@ -68,7 +68,7 @@ namespace OpenMS
 		}
 
 	//SLINK
-		std::vector<UInt> pi;
+		std::vector<Size> pi;
 		pi.reserve(original_distance.dimensionsize());
 		std::vector<Real> lambda;
 		lambda.reserve(original_distance.dimensionsize());

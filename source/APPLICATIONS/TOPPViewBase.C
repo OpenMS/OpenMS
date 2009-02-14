@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,7 @@
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
@@ -159,6 +160,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateCurrentPath()));
 
     box_layout->addWidget(ws_);
 
@@ -402,8 +404,8 @@ namespace OpenMS
   	header_labels.append(QString("m/z"));
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar->setWidget(spectrum_selection_);
-    connect(spectrum_selection_,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, int)));
-
+    connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
+		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
     windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
 
     //data filters
@@ -445,7 +447,9 @@ namespace OpenMS
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
 		defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-    defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
+    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
+		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
+		defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
     defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
     defaults_.setMinInt("preferences:number_of_recent_files",5);
     defaults_.setMaxInt("preferences:number_of_recent_files",20);
@@ -485,7 +489,10 @@ namespace OpenMS
 
   	//load param file
     loadPreferences();
-
+		
+		//set current path
+		current_path_ = param_.getValue("preferences:default_path");
+		
   	//update the menu
   	updateMenu();
 
@@ -613,6 +620,7 @@ namespace OpenMS
 
 		//get pointers
 		QLineEdit* default_path = dlg.findChild<QLineEdit*>("default_path");
+		QCheckBox* default_path_current = dlg.findChild<QCheckBox*>("default_path_current");
 		QLineEdit* temp_path = dlg.findChild<QLineEdit*>("temp_path");
 		QSpinBox* recent_files = dlg.findChild<QSpinBox*>("recent_files");
 		QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
@@ -637,6 +645,14 @@ namespace OpenMS
 
 		//set General values
 		default_path->setText(param_.getValue("preferences:default_path").toQString());
+		if ((String)param_.getValue("preferences:default_path_current")=="true")
+		{
+			default_path_current->setChecked(true);
+		}
+		else
+		{
+			default_path_current->setChecked(false);
+		}
 		temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
 		recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
 		map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
@@ -664,6 +680,14 @@ namespace OpenMS
 		if (dlg.exec())
 		{
 			param_.setValue("preferences:default_path", default_path->text());
+			if (default_path_current->isChecked())
+			{
+				param_.setValue("preferences:default_path_current","true");
+			}
+			else
+			{
+				param_.setValue("preferences:default_path_current","false");
+			}
 			param_.setValue("preferences:tmp_file_path", temp_path->text());
 			param_.setValue("preferences:number_of_recent_files", recent_files->value());
 			param_.setValue("preferences:default_map_view", map_default->currentText());
@@ -707,15 +731,15 @@ namespace OpenMS
 
 		//determine file type
   	FileHandler fh;
-		FileHandler::Type file_type = fh.getType(abs_filename);
-		if (file_type==FileHandler::UNKNOWN)
+		FileTypes::Type file_type = fh.getType(abs_filename);
+		if (file_type==FileTypes::UNKNOWN)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
     	setCursor(Qt::ArrowCursor);
       return;
 		}
 		//abort if file type unsupported
-		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML)
+		if (file_type==FileTypes::PARAM || file_type==FileTypes::IDXML)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
    		setCursor(Qt::ArrowCursor);
@@ -731,13 +755,13 @@ namespace OpenMS
 		bool is_feature = false;
     try
     {
-	    if (file_type==FileHandler::FEATUREXML)
+	    if (file_type==FileTypes::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename,feature_map);
         is_2D = true;
         is_feature = true;
       }
-      else if (file_type==FileHandler::CONSENSUSXML)
+      else if (file_type==FileTypes::CONSENSUSXML)
 	    {
         ConsensusXMLFile().load(abs_filename,consensus_map);
         is_2D = true;
@@ -827,7 +851,7 @@ namespace OpenMS
 		if (is_feature && open_window!=0) //TODO merge
 		{
 			SpectrumCanvas* open_canvas = open_window->canvas();
-			Map<UInt,String> layers;
+			Map<Size,String> layers;
 			for (Size i=0; i<open_canvas->getLayerCount(); ++i)
 			{
 				if (!is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
@@ -971,7 +995,7 @@ namespace OpenMS
 		{
 			if (i < (UInt)(recent_files_.size()))
 			{
-				recent_actions_[i]->setText(recent_files_[i]);
+				recent_actions_[i]->setText(recent_files_[(int)i]);
 				recent_actions_[i]->setVisible(true);
 			}
 			else
@@ -1341,6 +1365,8 @@ namespace OpenMS
 
   void TOPPViewBase::updateSpectrumBar()
   {
+  	spectrum_selection_->clear();
+  	
   	SpectrumCanvas* cc = activeCanvas_();
   	int layer_row = layer_manager_->currentRow();
   	if (layer_row == -1 || cc == 0)
@@ -1348,7 +1374,6 @@ namespace OpenMS
   		return;
   	}
 
-  	spectrum_selection_->clear();
   	spectrum_selection_->blockSignals(true);
   	const LayerData& cl = cc->getCurrentLayer();
   	QTreeWidgetItem* item = 0;
@@ -1382,8 +1407,8 @@ namespace OpenMS
 					}
 					else if (cl.peaks[i].getMSLevel() < cl.peaks[i-1].getMSLevel())
 					{
-						int level_diff = cl.peaks[i-1].getMSLevel() - cl.peaks[i].getMSLevel();
-						int parent_index = 0;
+						Int level_diff = cl.peaks[i-1].getMSLevel() - cl.peaks[i].getMSLevel();
+						Size parent_index = 0;
 						QTreeWidgetItem* parent = 0;
 						if (parent_stack.size() - level_diff >= 2)
 						{
@@ -1420,7 +1445,7 @@ namespace OpenMS
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
 				item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
 				item->setText(3, QString::number(i));
-				
+
 				if (i == cl.current_spectrum)
 				{
 					item->setSelected(true);
@@ -1483,31 +1508,45 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/)
+	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
 	{
+		if (current == 0)
+		{
+			return;
+		}
+
 		Spectrum1DWidget* widget_1d = active1DWindow_();
 		if (widget_1d)
 		{
-			int index = item->text(3).toInt();
+			int index = current->text(3).toInt();
 			widget_1d->canvas()->activateSpectrum(index);
 		}
-		else
+	}
+
+	void TOPPViewBase::spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/)
+	{
+		if (current == 0)
+		{
+			return;
+		}
+
+		if (!active1DWindow_())
 		{
 			SpectrumCanvas* cc = activeCanvas_();
 			const LayerData& cl = cc->getCurrentLayer();
-	
-			int index = item->text(3).toInt();
+
+			int index = current->text(3).toInt();
 
 			FeatureMapType f_dummy;
 			ConsensusMapType c_dummy;
 			ExperimentType exp = cl.peaks;
 			addData_(f_dummy, c_dummy, exp, false, true, true, false, cl.filename, cl.name);
-			
+
 			if (active1DWindow_())
 			{
 				active1DWindow_()->canvas()->activateSpectrum(index);
 			}
-			
+
 			updateSpectrumBar();
 		}
 	}
@@ -1793,7 +1832,8 @@ namespace OpenMS
   	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
-    connect(sw->canvas(),SIGNAL(layerModficationChange(UInt,bool)),this,SLOT(updateLayerBar()));
+    connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateCurrentPath()));
+    connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
 
@@ -1979,7 +2019,7 @@ namespace OpenMS
 		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML);;" ;
 		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;all files (*)";
 
-	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
+	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", current_path_.toQString(), (filter_all+ filter_single).toQString());
   }
 
   void TOPPViewBase::openFileDialog()
@@ -2078,7 +2118,7 @@ namespace OpenMS
 			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"'_ini!");
 			return;
 		}
-		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",param_.getValue("preferences:default_path"),getCurrentLayer()->type);
+		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",current_path_,getCurrentLayer()->type);
 
 		if(tools_dialog.exec()==QDialog::Accepted)
 		{
@@ -2241,12 +2281,13 @@ namespace OpenMS
 		}
 
 		//load id data
-		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
+		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",current_path_.toQString(),"identfication files (*.idXML);; all files (*.*)");
 		if(name!="")
 		{
 			vector<PeptideIdentification> identifications;
 			vector<ProteinIdentification> protein_identifications;
-			IdXMLFile().load(name, protein_identifications, identifications);
+			String document_id;
+			IdXMLFile().load(name, protein_identifications, identifications, document_id);
 			if (layer.type==LayerData::DT_PEAK)
 			{
 				IDMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, protein_identifications);
@@ -2358,31 +2399,31 @@ namespace OpenMS
 			return;
 		}
 		Spectrum1DCanvas* cc = active_1d_window->canvas();
-		
+
 		SpectrumAlignmentDialog spec_align_dialog(active_1d_window);
 		if (spec_align_dialog.exec())
-		{			
+		{
 			Int layer_index_1 = spec_align_dialog.get1stLayerIndex();
 			Int layer_index_2 = spec_align_dialog.get2ndLayerIndex();
-			
+
 			// two layers must be selected:
 			if (layer_index_1 < 0 || layer_index_2 < 0)
 			{
 				QMessageBox::information(this, "Layer selection invalid", "You must select two layers for an alignment.");
 				return;
 			}
-			
+
 			Param param;
 			DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
 			param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
 			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
 			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
-			
+
 			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
-			
+
 			DoubleReal al_score = cc->getAlignmentScore();
 			Size al_size = cc->getAlignmentSize();
-			
+
 			QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
 		}
 	}
@@ -2420,10 +2461,10 @@ namespace OpenMS
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
-		
+
 		//copy spectrum
 		ExperimentType exp = layer.peaks;
-		
+
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
@@ -2432,9 +2473,9 @@ namespace OpenMS
   	{
   		return;
   	}
-		
+
 		w->canvas()->activateSpectrum(index);
-		
+
 		String caption = layer.name;
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 
@@ -2882,6 +2923,21 @@ namespace OpenMS
 		}
 
 		e->ignore();
+	}
+	
+	void TOPPViewBase::updateCurrentPath()
+	{
+		//do not update if the user disabled this feature.
+		if (param_.getValue("preferences:default_path_current")!="true") return;
+		
+		//reset
+		current_path_ = param_.getValue("preferences:default_path");
+		
+		//update if the current layer has a path associated
+		if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
+		{
+			current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+		}
 	}
 
 } //namespace OpenMS

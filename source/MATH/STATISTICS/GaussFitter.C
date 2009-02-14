@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -119,10 +119,10 @@ namespace OpenMS
 	
 		GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> >& input)
 		{
-		  const gsl_multifit_fdfsolver_type *T;
-		  gsl_multifit_fdfsolver *s;
+		  const gsl_multifit_fdfsolver_type *T = NULL;
+		  gsl_multifit_fdfsolver *s = NULL;
 		
-		  int status;
+		  int status(0);
 		  size_t iter = 0;
 		
 		  const size_t p = 3;
@@ -131,8 +131,8 @@ namespace OpenMS
 		  gsl_multifit_function_fdf f;
 		  double x_init[3] = { init_param_.A, init_param_.x0, init_param_.sigma };
 		  gsl_vector_view x = gsl_vector_view_array (x_init, p);
-		  const gsl_rng_type * type;
-		  gsl_rng * r;
+		  const gsl_rng_type * type = NULL;
+		  gsl_rng * r = NULL;
 		
 		  gsl_rng_env_setup();
 		
@@ -178,6 +178,7 @@ namespace OpenMS
 	
 			if (status!=GSL_SUCCESS)
 			{
+				gsl_rng_free(r);
 				gsl_multifit_fdfsolver_free(s);
 	
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GaussFitter","Could not fit the gaussian to the data");
@@ -197,6 +198,7 @@ namespace OpenMS
 			cout << gnuplot_formula_ << endl;
 			#endif
 			
+			gsl_rng_free(r);
 			gsl_multifit_fdfsolver_free (s);
 	
 			return result;

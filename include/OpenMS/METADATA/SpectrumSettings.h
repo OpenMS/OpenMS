@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -56,11 +56,7 @@ namespace OpenMS
   	
     public:
     
-    	/**
-    		@brief spectrum type
-    		
-    		If set to unknown see SpectrumType of the DataProcessing ( in MSExperiment ).
-    	*/
+    	///Spectrum peak type
     	enum SpectrumType
     	{
     		UNKNOWN,	///< Unknown spectrum type

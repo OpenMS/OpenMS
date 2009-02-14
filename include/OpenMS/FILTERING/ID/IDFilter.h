@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -135,13 +135,13 @@ namespace OpenMS
 		    n highestscoring hits are kept. Otherwise the n lowest scoring hits are kept. 
 		  */
       template <class IdentificationType>
-			void filterIdentificationsByBestNHits(const IdentificationType& identification, UInt n, IdentificationType& filtered_identification)
+			void filterIdentificationsByBestNHits(const IdentificationType& identification, Size n, IdentificationType& filtered_identification)
 			{
 				typedef typename IdentificationType::HitType HitType;
 				std::vector<HitType> temp_hits;
 				std::vector<HitType> filtered_hits;
 				IdentificationType temp_identification;
-				UInt count = 0;
+				Size count = 0;
 				
 				temp_identification = identification;
 				filtered_identification = identification;
@@ -178,7 +178,7 @@ namespace OpenMS
 			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification);
 																														
 		  /// only peptides having a length equal to or greater than 'length' will be kept
-		  void filterIdentificationsByLength(const PeptideIdentification& identification, UInt length, PeptideIdentification& filtered_identification);
+		  void filterIdentificationsByLength(const PeptideIdentification& identification, Size length, PeptideIdentification& filtered_identification);
 
 			/// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
 			void removeUnreferencedProteinHits(const ProteinIdentification& 	identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& 	filtered_identification);
@@ -279,7 +279,7 @@ namespace OpenMS
 																															      
       /// filters an MS/MS experiment corresponding to the best n hits for every spectrum
 			template <class PeakT>
-			void filterIdentificationsByBestNHits(MSExperiment< PeakT >& experiment, UInt n)
+			void filterIdentificationsByBestNHits(MSExperiment< PeakT >& experiment, Size n)
 			{
 				//filter protein hits
 				ProteinIdentification temp_protein_identification;				

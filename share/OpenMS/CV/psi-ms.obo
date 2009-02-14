@@ -4,10 +4,10 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.12.0
-remark: release date: 2008-12-17
+remark: version: 1.16.0
+remark: release date: 2009-02-13
 remark: coverage: Mass spectrometer output files
-remark: creator: Fredrik Levander <fredrik.levander <@> immun.lth.se>
+remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
 import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.15
@@ -42,7 +42,7 @@ name: sample mass
 def: "Total mass of sample used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000002 ! mass unit
+relationship: has_units UO:0000021 ! gram
 
 [Term]
 id: MS:1000005
@@ -50,7 +50,7 @@ name: sample volume
 def: "Total volume of solution used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000095 ! volume unit
+relationship: has_units UO:0000098 ! milliliter
 
 [Term]
 id: MS:1000006
@@ -58,7 +58,7 @@ name: sample concentration
 def: "Concentration of sample in picomol/ul, femtomol/ul or attomol/ul solution used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000051 ! concentration unit
+relationship: has_units UO:0000175 ! gram per liter
 
 [Term]
 id: MS:1000007
@@ -75,8 +75,9 @@ relationship: part_of MS:1000458 ! source
 [Term]
 id: MS:1000009
 name: ionization mode
-def: "Whether positive or negative ions are selected for analysis by the spectrometer. Re-map to Polarity Mode." [PSI:MS]
+def: "OBSOLETE Whether positive or negative ions are selected for analysis by the spectrometer." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan polarity (MS\:1000465)
 
 [Term]
 id: MS:1000010
@@ -87,8 +88,7 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000011
 name: mass resolution
-def: "Smallest mass difference between two equal magnitude peaks so that the valley between
-them is a specified fraction of the peak height." [PSI:MS]
+def: "Smallest mass difference between two equal magnitude peaks so that the valley between them is a specified fraction of the peak height." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 
@@ -110,14 +110,16 @@ name: accuracy
 def: "Accuracy is the degree of conformity of a measured mass to its actual value." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000166 ! parts per notation
+relationship: has_units UO:0000169 ! parts per million
+relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000015
 name: scan rate
-def: "Rate in (m/z)/sec for scanning analyzers." [PSI:MS]
+def: "Rate in Th/sec for scanning analyzers." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
+relationship: has_units MS:1000807 ! Th/s
 
 [Term]
 id: MS:1000016
@@ -125,7 +127,8 @@ name: scan time
 def: "The time that an analyzer started a scan, relative to the start of the run." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000017
@@ -164,7 +167,7 @@ name: TOF Total Path Length
 def: "The length of the field free drift space in a time of flight mass spectrometer." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000001 ! length unit
+relationship: has_units UO:0000008 ! meter
 
 [Term]
 id: MS:1000023
@@ -189,7 +192,7 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "B" EXACT []
 synonym: "Magnetic Field" RELATED []
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000227 ! magnetic flux density
+relationship: has_units UO:0000228 ! tesla
 
 [Term]
 id: MS:1000026
@@ -217,12 +220,14 @@ def: "The rate of signal sampling (measurement) with respect to time." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "ADC Sampling Frequency" NARROW []
 is_a: MS:1000481 ! detector attribute
+relationship: has_units UO:0000106 ! hertz
 
 [Term]
 id: MS:1000030
 name: vendor
-def: "Name of instrument vendor, replaced by MS:1000031 Model From Vendor." [PSI:MS]
+def: "OBSOLETE Name of instrument vendor" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by instrument model (MS\:1000031)
 
 [Term]
 id: MS:1000031
@@ -258,8 +263,9 @@ is_a: MS:1000543 ! data processing action
 [Term]
 id: MS:1000036
 name: scan mode
-def: "TODO: Add definition." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000037
@@ -270,14 +276,16 @@ relationship: part_of MS:1000459 ! spectrum instrument description
 [Term]
 id: MS:1000038
 name: minute
-def: "Acquisition time in minutes. Replace by MS:1000016 - Scan Time." [PSI:MS]
+def: "OBSOLETE Acquisition time in minutes." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan time (MS\:1000016)
 
 [Term]
 id: MS:1000039
 name: second
-def: "Acquisition time in seconds. Replace by MS:1000016 - Scan Time." [PSI:MS]
+def: "OBSOLETE Acquisition time in seconds." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan time (MS\:1000016)
 
 [Term]
 id: MS:1000040
@@ -321,14 +329,15 @@ name: collision energy
 def: "Energy for an ion experiencing collision with a stationary gas particle resulting in dissociation of the ion." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000046
 name: energy unit
-def: "Energy units are represented in either eV or Joules. Obsoleted in favor of UO:0000111" [PSI:MS]
+def: "OBSOLETE Energy units are represented in either eV or Joules." [PSI:MS]
 is_a: MS:1000460 ! unit
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology energy unit (UO\:0000111)
 
 [Term]
 id: MS:1000047
@@ -487,9 +496,10 @@ is_a: MS:1000008 ! ionization type
 [Term]
 id: MS:1000072
 name: Electronic Ionization
-def: "The ionization of an atom or molecule by electrons that are typically accelerated to energies between 50 and 150 eV. Usually 70 eV electrons are used to produce positive ions. The term 'electron impact' is not recommended. OBSOLETE because redundant replaced by MS:1000389 electron ionization" [PSI:MS]
+def: "OBSOLETE The ionization of an atom or molecule by electrons that are typically accelerated to energies between 50 and 150 eV. Usually 70 eV electrons are used to produce positive ions. The term 'electron impact' is not recommended. " [PSI:MS]
 synonym: "EI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by electron ionization (MS\:1000389)
 
 [Term]
 id: MS:1000073
@@ -515,14 +525,16 @@ is_a: MS:1000247 ! desorption ionization
 [Term]
 id: MS:1000076
 name: negative ion mode
-def: "TODO: Add defintion." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by negative scan (MS\:1000129)
 
 [Term]
 id: MS:1000077
 name: positive ion mode
-def: "TODO: Add definition." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by positive scan (MS\:1000130)
 
 [Term]
 id: MS:1000078
@@ -659,9 +671,10 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000099
 name: multiple reaction monitoring
-def: "This term is not recommended. See Selected Reaction Monitoring. Replace by MS:1000206 - Selected Reaction Monitoring." [PSI:MS]
+def: "OBSOLETE This term is not recommended. See Selected Reaction Monitoring." [PSI:MS]
 synonym: "MRM" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was merged with selected reaction monitoring (MS\:1000206)
 
 [Term]
 id: MS:1000100
@@ -678,20 +691,23 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000102
 name: single ion monitoring
-def: "The operation of a mass spectrometer to monitor a single ion rather than scanning entire mass spectrum. Remap to MS:1000205." [PSI:MS]
+def: "OBSOLETE The operation of a mass spectrometer to monitor a single ion rather than scanning entire mass spectrum." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by single ion monitoring (MS\:100205)
 
 [Term]
 id: MS:1000103
 name: single reaction monitoring
-def: "See Selected Reaction Monitoring. remap to MS:1000102." [PSI:MS]
+def: "OBSOLETE This term is not recommended. See Selected Reaction Monitoring." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by selected reaction monitoring (MS\:1000206)
 
 [Term]
 id: MS:1000104
 name: None  ??
-def: "None." [PSI:MS]
+def: "OBSOLETE None." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000105
@@ -836,14 +852,14 @@ is_a: MS:1000031 ! instrument model
 
 [Term]
 id: MS:1000127
-name: centroid mass spectrum
+name: centroid spectrum
 def: "Processing of profile data to produce spectra that contains discrete peaks of zero width. Often used to reduce the size of dataset." [PSI:MS]
 synonym: "Discrete Mass Spectrum" EXACT []
 is_a: MS:1000525 ! spectrum representation
 
 [Term]
 id: MS:1000128
-name: profile mass spectrum
+name: profile spectrum
 def: "A profile mass spectrum is created when data is recorded with ion current (counts per second) on one axis and mass/charge ratio on another axis." [PSI:MS]
 synonym: "continuous mass spectrum" EXACT []
 synonym: "Continuum Mass Spectrum" EXACT []
@@ -907,16 +923,16 @@ is_a: MS:1000044 ! dissociation method
 [Term]
 id: MS:1000137
 name: electron volt
-def: "A non-SI unit of energy (eV) defined as the energy acquired by a particle containing one unit of charge through a potential difference of one volt. An electron-volt is equal to 1.602 176 53(14) x 10^-19 J." [PSI:MS]
+def: "OBSOLETE A non-SI unit of energy (eV) defined as the energy acquired by a particle containing one unit of charge through a potential difference of one volt. An electron-volt is equal to 1.602 176 53(14) x 10^-19 J." [PSI:MS]
 synonym: "eV" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology electron volt (UO\:0000266)
 
 [Term]
 id: MS:1000138
 name: percent collision energy
 def: "Collision energy required to fragment an ion represented as a percent value." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: UO:0000111 ! energy unit
 
 [Term]
 id: MS:1000139
@@ -1355,7 +1371,7 @@ def: "The minimum energy that must be imparted to an atom or molecule to produce
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "AE" EXACT []
 is_a: MS:1000507 ! ion attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000210
@@ -1375,9 +1391,10 @@ is_a: MS:1000507 ! ion attribute
 [Term]
 id: MS:1000212
 name: dalton
-def: "A non-SI unit of mass (symbol Da) that is equal to the unified atomic mass unit: 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
+def: "OBSOLETE A non-SI unit of mass (symbol Da) that is equal to the unified atomic mass unit: 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
 synonym: "Da" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology dalton (UO\:0000221)
 
 [Term]
 id: MS:1000213
@@ -1417,9 +1434,10 @@ is_a: MS:1000437 ! ion reaction
 [Term]
 id: MS:1000218
 name: ioniazation efficiency
-def: "The ratio of the number of ions formed to the number of electrons, molecules or photons used. See Ionization Efficiency." [PSI:MS]
+def: "OBSOLETE The ratio of the number of ions formed to the number of electrons, molecules or photons used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by ionization efficiency (MS\:1000392)
 
 [Term]
 id: MS:1000219
@@ -1428,7 +1446,7 @@ def: "The minimum energy required to remove an electron from an atom or molecule
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "IE" EXACT []
 is_a: MS:1000507 ! ion attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000220
@@ -1517,8 +1535,9 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000232
 name: peak intensity
-def: "The height or area of a peak in a mass spectrum. Replaced by MS:1000505 Base Peak Intensity." [PSI:MS]
+def: "OBSOLETE The height or area of a peak in a mass spectrum." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by base peak intensity (MS\:1000505)
 
 [Term]
 id: MS:1000233
@@ -1531,9 +1550,11 @@ is_a: MS:1000507 ! ion attribute
 [Term]
 id: MS:1000234
 name: mass resolving power
-def: "In a mass spectrum, the observed mass divided by the difference between two masses that can be separated. The method by which delta m was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
+def: "OBSOLETE In a mass spectrum, the observed mass divided by the difference between two masses that can be separated. The method by which delta m was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000444 ! m/z Separation Method
+is_obsolete: true
+comment: This term was made obsolete because it was replaced by mass resolving power (MS\:1000800)
 
 [Term]
 id: MS:1000235
@@ -1541,7 +1562,7 @@ name: total ion current chromatogram
 def: "Chromatogram obtained by plotting the total ion current detected in each of a series of mass spectra recorded as a function of retention time." [PSI:MS]
 synonym: "TIC chromatogram" EXACT []
 is_a: MS:1000524 ! data file content
-is_a: MS:1000626 ! chromatogram type
+is_a: MS:1000810 ! mass chromatogram 
 
 [Term]
 id: MS:1000236
@@ -1553,9 +1574,10 @@ is_a: MS:1000496 ! instrument attribute
 [Term]
 id: MS:1000237
 name: unified atomic mass unit
-def: "A non-SI unit of mass (u) defined as one twelfth of ^12 C in its ground state and equal to 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
+def: "OBSOLETE A non-SI unit of mass (u) defined as one twelfth of ^12 C in its ground state and equal to 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
 synonym: "u" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with Unit Ontology dalton (UO\:0000221)
 
 [Term]
 id: MS:1000238
@@ -1581,9 +1603,10 @@ is_a: MS:1000008 ! ionization type
 [Term]
 id: MS:1000241
 name: Atmostpheric Pressure Photoionization
-def: "Atmospheric pressure chemical ionization in which the reactant ions are generated by photo-ionization. OBSOLETE because redundant replace by MS:1000382 atmospheric pressure photoionization" [PSI:MS]
+def: "OBSOLETE Atmospheric pressure chemical ionization in which the reactant ions are generated by photo-ionization." [PSI:MS]
 synonym: "APPI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by atmospheric pressure photoionization (MS\:1000382)
 
 [Term]
 id: MS:1000242
@@ -1759,10 +1782,11 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000266
 name: Laser Desorption
 alt_id: MS:1000394
-def: "The formation of ions through the interaction of a laser with a material or with gas-phase ions or molecules. OBSOLETE as redudant, replace by laser desorption ionization MS:1000393" [PSI:MS]
+def: "OBSOLETE The formation of ions through the interaction of a laser with a material or with gas-phase ions or molecules." [PSI:MS]
 synonym: "Laser Ionization MERGE" EXACT []
 synonym: "LD" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by laser desorption ionization (MS\:1000393)
 
 [Term]
 id: MS:1000267
@@ -1858,9 +1882,10 @@ is_a: MS:1000406 ! surface ionization
 [Term]
 id: MS:1000280
 name: suface ionization
-def: "The ionization of a neutral species when it interacts with a solid surface with an appropriate work function and temperature. OBSOLETE as redudant replace by  MS:1000406 surface ionization" [PSI:MS]
+def: "OBSOLETE The ionization of a neutral species when it interacts with a solid surface with an appropriate work function and temperature." [PSI:MS]
 synonym: "SI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by surface ionization (MS\:1000406)
 
 [Term]
 id: MS:1000281
@@ -1879,9 +1904,10 @@ is_a: MS:1000044 ! dissociation method
 [Term]
 id: MS:1000283
 name: Spark Source Mass Spectrometry
-def: "Mass spectrometry using spark ionization. OBSOLETE because redundant, replace by spark ionization MS:1000404." [PSI:MS]
+def: "OBSOLETE Mass spectrometry using spark ionization." [PSI:MS]
 synonym: "SSMS" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by spark ionization (MS\:1000404)
 
 [Term]
 id: MS:1000284
@@ -1952,7 +1978,8 @@ is_a: MS:1000479 ! purgatory
 id: MS:1000294
 name: mass spectrum
 def: "A plot of the relative abundance of a beam or other collection of ions as a function of the mass-to-charge ratio (m/z)." [PSI:MS]
-is_a: MS:1000479 ! purgatory
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
 
 [Term]
 id: MS:1000295
@@ -2015,7 +2042,7 @@ name: accelerating voltage
 def: "The electrical potential used to impart kinetic energy to ions in a mass spectrometer." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000487 ! ion optics attribute
-relationship: has_units UO:0000217 ! electric potential difference
+relationship: has_units UO:0000218 ! volt
 
 [Term]
 id: MS:1000305
@@ -2124,6 +2151,7 @@ is_a: MS:1000445 ! sequential m/z separation method ?
 id: MS:1000322
 name: charge inversion mass spectrum
 def: "The measurement of the relative abundance of ions that result from a charge inversion reaction as a function of m/z." [PSI:MS]
+is_a: MS:1000524 ! data file content
 is_a: MS:1000294 ! mass spectrum
 
 [Term]
@@ -2147,7 +2175,7 @@ name: constant neutral gain spectrum
 def: "A spectrum formed of all product ions that have been produced by gain of a pre-selected neutral mass following the reaction with and addition of the gas in a collision cell." [PSI:MS]
 synonym: "constant neutral mass gain spectrum" EXACT []
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000326
@@ -2155,13 +2183,14 @@ name: constant neutral loss spectrum
 def: "A spectrum formed of all product ions that have been produced with a selected m/z decrement from any precursor ions. The spectrum shown correlates to the precursor ion spectrum. See also neutral loss spectrum." [PSI:MS]
 synonym: "constant neutral mass loss spectrum" EXACT []
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000327
 name: consecutive reaction monitoring
-def: "A type of MS/MS experiments with three or more stages of m/z separation and in which a particular multi-step reaction path is monitored. OBSOLETE as redundant replace by  consecutive reaction monitoring MS:1000244." [PSI:MS]
+def: "OBSOLETE A type of MS/MS experiments with three or more stages of m/z separation and in which a particular multi-step reaction path is monitored." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by consecutive reaction monitoring (MS\:1000244)
 
 [Term]
 id: MS:1000328
@@ -2233,8 +2262,10 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000339
 name: nth generation product ion spectrum
-def: "The mass spectrum recorded from any mass spectrometer in which the appropriate scan function can be set to record the appropriate generation product ion or ions of m/z selected precursor ions." [PSI:MS]
+def: "OBSOLETE The mass spectrum recorded from any mass spectrometer in which the appropriate scan function can be set to record the appropriate generation product ion or ions of m/z selected precursor ions." [PSI:MS]
 is_a: MS:1000343 ! product ion spectrum
+is_obsolete: true
+comment: This term was made obsolete because it was merged with MSn spectrum (MS\:1000580)
 
 [Term]
 id: MS:1000340
@@ -2248,7 +2279,7 @@ id: MS:1000341
 name: precursor ion spectrum
 def: "Spectrum generated by scanning precursor m/z while monitoring a fixed product m/z" [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000342
@@ -2260,8 +2291,11 @@ is_a: MS:1000506 ! ion role
 [Term]
 id: MS:1000343
 name: product ion spectrum
-def: "A mass spectrum recorded from any spectrometer in which the appropriate m/z separation scan function is set to record the product ion or ions of selected precursor ions." [PSI:MS]
+def: "OBSOLETE A mass spectrum recorded from any spectrometer in which the appropriate m/z separation scan function is set to record the product ion or ions of selected precursor ions." [PSI:MS]
+is_a: MS:1000524 ! data file content
 is_a: MS:1000294 ! mass spectrum
+is_obsolete: true
+comment: This term was made obsolete because it was merged with MSn spectrum (MS\:1000580)
 
 [Term]
 id: MS:1000344
@@ -2387,8 +2421,9 @@ is_a: MS:1000508 ! ion chemical type
 [Term]
 id: MS:1000364
 name: fragment ion
-def: "A product ion that results from the dissociation of a precursor ion. Replaced by MS:1000342- product ion." [PSI:MS]
+def: "OBSOLETE A product ion that results from the dissociation of a precursor ion." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by product ion (MS\:1000342)
 
 [Term]
 id: MS:1000365
@@ -2672,6 +2707,7 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000412
 name: buffer gas
 def: "An inert gas used for collisional deactivation of internally excited ions." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
 
 [Term]
@@ -2714,6 +2750,7 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000419
 name: collision gas
 def: "An inert gas used for collisional excitation. The term target gas is not recommended." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
 
 [Term]
@@ -2992,8 +3029,9 @@ synonym: "instrument configuration" EXACT []
 [Term]
 id: MS:1000464
 name: mass unit
-def: "A unit of measurement for mass." [PSI:MS]
+def: "OBSOLETE A unit of measurement for mass." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with Unit Ontology mass unit (UO:0000002)
 
 [Term]
 id: MS:1000465
@@ -3004,8 +3042,9 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000466
 name: alternating
-def: "Alternating." [PSI:MS]
+def: "OBSOLETE Alternating." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000467
@@ -3129,7 +3168,7 @@ name: source potential
 def: "Potential difference at the MS source in volts." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000482 ! source attribute
-relationship: has_units UO:0000217 ! electric potential difference
+relationship: has_units UO:0000218 ! volt
 
 [Term]
 id: MS:1000487
@@ -3215,8 +3254,8 @@ relationship: part_of MS:1000442 ! spectrum
 
 [Term]
 id: MS:1000500
-name: scan m/z upper limit
-def: "The limit of m/z over which a mass spectrometer can detect ions." [PSI:MS]
+name: scan window upper limit
+def: "The lower m/z bound of a mass spectrometer scan window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "mzRangeStop" RELATED []
 is_a: MS:1000549 ! selection window attribute
@@ -3224,8 +3263,8 @@ relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000501
-name: scan m/z lower limit
-def: "The limit of m/z over which a mass spectrometer can detect ions." [PSI:MS]
+name: scan window lower limit
+def: "The upper m/z bound of a mass spectrometer scan window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "mzRangeStart" RELATED []
 is_a: MS:1000549 ! selection window attribute
@@ -3238,7 +3277,8 @@ def: "The time spent gathering data across a peak." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "Scan Duration" RELATED []
 is_a: MS:1000549 ! selection window attribute
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000503
@@ -3250,7 +3290,7 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000504
 name: base peak m/z
-def: "M/z value of the greatest peak in the mass spectrum." [PSI:MS]
+def: "M/z value of the signal of highest intensity in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000040 ! m/z
@@ -3261,6 +3301,8 @@ name: base peak intensity
 def: "The intensity of the greatest peak in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak
 
 [Term]
 id: MS:1000506
@@ -3286,7 +3328,7 @@ name: activation energy
 def: "Activation Energy." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000510
@@ -3318,7 +3360,7 @@ relationship: part_of MS:1000625 ! chromatogram
 [Term]
 id: MS:1000514
 name: m/z array
-def: "A data array of mass divided by charge values." [PSI:MS]
+def: "A data array of m/z values." [PSI:MS]
 is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000040 ! m/z
 
@@ -3397,18 +3439,20 @@ is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000527
-name: highest m/z value
-def: "Highest m/z value observed in the mass spectum." [PSI:MS]
+name: highest observed m/z
+def: "Highest m/z value observed in the m/z array." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1000808 ! chromatogram attribute
 relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000528
-name: lowest m/z value
-def: "Lowest m/z value observed in the mass spectrum." [PSI:MS]
+name: lowest observed m/z
+def: "Lowest m/z value observed in the m/z array." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1000808 ! chromatogram attribute
 relationship: has_units MS:1000040 ! m/z
 
 [Term]
@@ -3545,8 +3589,9 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000550
 name: time unit
-def: "Time Unit." [PSI:MS]
+def: "OBSOLETE Time Unit." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology time unit (UO\:0000003)
 
 [Term]
 id: MS:1000551
@@ -3729,30 +3774,31 @@ synonym: "Q1 spectrum" EXACT []
 synonym: "Q3 spectrum" EXACT []
 synonym: "full spectrum" EXACT []
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000580
 name: MSn spectrum
 def: "MSn refers to multi-stage MS/MS experiments designed to record product ion spectra where n is the number of product ion stages (progeny ions). For ion traps, sequential MS/MS experiments can be undertaken where n > 2 whereas for a simple triple quadrupole system n= 2." [PSI:MS]
 synonym: "multiple-stage mass spectrometry spectrum" EXACT []
-is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
 synonym: "product ion spectrum" EXACT []
+synonym: "nth generation product ion spectrum" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000581
 name: CRM spectrum
 def: "Spectrum generated from MSn experiment with three or more stages of m/z separation and in which a particular multi-step reaction path is monitored." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 
 [Term]
 id: MS:1000582
 name: SIM spectrum
 def: "Spectrum obtained with the operation of a mass spectrometer in which the abundances of one ion or several ions of specific m/z values are recorded rather than the entire mass spectrum (Selected Ion Monitoring)." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 synonym: "MIM spectrum" EXACT []
 synonym: "multiple ion monitoring spectrum" EXACT []
 synonym: "selected ion monitoring spectrum" EXACT []
@@ -3762,7 +3808,7 @@ id: MS:1000583
 name: SRM spectrum
 def: "Spectrum obtained when data are acquired from specific product ions corresponding to m/z values of selected precursor ions a recorded via two or more stages of mass spectrometry. The precursor/product ion pair is called a transition pair.  Data can be obtained for a single transition pair or multiple transition pairs.  Multiple time segments of different transition pairs can exist in a single file. Single precursor ions can have multiple product ions consitituting multiple transition pairs.  Selected reaction monitoring can be performed as tandem mass spectrometry in time or tandem mass spectrometry in space." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000294 ! mass spectrum
 synonym: "MRM spectrum" EXACT []
 synonym: "multiple reaction monitoring spectrum" EXACT []
 synonym: "selected reaction monitoring spectrum" EXACT []
@@ -3846,7 +3892,8 @@ id: MS:1000595
 name: time array
 def: "A data array of relative time offset values from a reference time." [PSI:MS]
 is_a: MS:1000513 ! binary data array
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000596
@@ -3985,13 +4032,15 @@ id: MS:1000617
 name: wavelength array
 def: "A data array of electromagnetic radiation wavelength values." [PSI:MS]
 is_a: MS:1000513 ! binary data array
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000618
 name: highest wavelength value
-def: "Highest wavelength value observed in the uv/vis spectum." [PSI:MS]
+def: "Highest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000619
@@ -3999,13 +4048,16 @@ name: lowest wavelength value
 def: "Lowest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000620
 name: PDA spectrum
-def: "Spectrum generated from a photodiode array detector (ultraviolet/visible spectrum)." [PSI:MS]
+def: "OBSOLETE Spectrum generated from a photodiode array detector (ultraviolet/visible spectrum)." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+is_obsolete: true
+comment: This term was made obsolete because it was replaced by absorption spectrum (MS\:1000806)
 
 [Term]
 id: MS:1000621
@@ -4051,14 +4103,14 @@ name: selected ion current chromatogram
 def: "Chromatogram created by creating an array of the measurements of a specific single ion current at each time point." [PSI:MS]
 synonym: "SIC chromatogram" EXACT []
 is_a: MS:1000524 ! data file content
-is_a: MS:1000626 ! chromatogram type
+is_a: MS:1000810 ! mass chromatogram
 
 [Term]
 id: MS:1000628
 name: basepeak chromatogram
 def: "Chromatogram created by creating an array of the most intense peaks at each time point." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000626 ! chromatogram type
+is_a: MS:1000810 ! mass chromatogram
 
 [Term]
 id: MS:1000629
@@ -4066,7 +4118,8 @@ name: low intensity threshold
 def: "Threshold below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000630
@@ -4080,7 +4133,8 @@ name: high intensity threshold
 def: "Threshold above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000632
@@ -4752,7 +4806,7 @@ is_a: MS:1000494 ! Thermo Scientific instrument model
 
 [Term]
 id: MS:1000744
-name: selected m/z
+name: selected ion m/z
 def: "Mass-to-charge ratio of the ion selected for fragmentation" [PSI:MS]
 is_a: MS:1000455 ! ion selection attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -4901,8 +4955,7 @@ relationship: part_of MS:1000577 ! data file
 [Term]
 id: MS:1000768
 name: Thermo nativeID format
-def: "controller=xsd:nonNegativeInteger scan=xsd:positiveInteger." [PSI:MS]
-comment: controller=0 is usually the mass spectrometer
+def: "controllerType=xsd:nonNegativeInteger controllerNumber=xsd:positiveInteger scan=xsd:positiveInteger." [PSI:MS]
 is_a: MS:1000767 ! native spectrum identifier format
 
 [Term]
@@ -5030,7 +5083,8 @@ name: inclusive low intensity threshold
 def: "Threshold at or below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000788
@@ -5038,27 +5092,30 @@ name: inclusive high intensity threshold
 def: "Threshold at or above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000789
 name: enhanced multiply charged spectrum
 def: "MS1 spectrum that is enriched in multiply-charged ions compared to singly-charged ions" [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000579 ! MS1 spectrum
 
 [Term]
 id: MS:1000790
 name: time-delayed fragmentation spectrum
-def: "MS2 spectrum in which the product ions are collected after a time delay, which allows the observation of lower energy fragmentation processes after precursor ion activation" [PSI:MS]
+def: "MSn spectrum in which the product ions are collected after a time delay, which allows the observation of lower energy fragmentation processes after precursor ion activation" [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000559 ! spectrum type
+is_a: MS:1000580 ! MSn spectrum
 
 [Term]
 id: MS:1000791
 name: enhanced resolution scan
-def: "Scan with enhanced resolution." [PSI:MS]
+def: "OBSOLETE Scan with enhanced resolution." [PSI:MS]
 is_a: MS:1000020 ! scanning method
+is_obsolete: true
+comment: This term was made obsolete because it was merged with zoom scan (MS\:1000497)
 
 [Term]
 id: MS:1000792
@@ -5069,7 +5126,7 @@ relationship: part_of MS:1000441 ! scan
 
 [Term]
 id: MS:1000793
-name: isolation m/z upper limit
+name: isolation window upper limit
 def: "The highest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
@@ -5077,7 +5134,7 @@ relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000794
-name: isolation m/z lower limit
+name: isolation window lower limit
 def: "The lowest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
@@ -5126,6 +5183,104 @@ name: mass resolving power
 def: "The observed mass divided by the difference between two masses that can be separated: m/dm. The procedure by which dm was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute 
+
+[Term]
+id: MS:1000801
+name: area peak picking
+def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The area defined by all raw data points that belong to the peak is reported." [PSI:MS]
+synonym: "sum peak picking" EXACT []
+is_a: MS:1000035 ! peak picking
+
+[Term]
+id: MS:1000802
+name: height peak picking
+def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The maximum intensity of all raw data points that belong to the peak is reported." [PSI:MS]
+synonym: "max peak picking" EXACT []
+is_a: MS:1000035 ! peak picking
+
+[Term]
+id: MS:1000803
+name: analyzer scan offset
+def: "Offset between two analyzers in a constant neutral loss or neutral gain scan. The value corresponds to the neutral loss or neutral gain value" [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute
+relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000804
+name: electromagnetic radiation spectrum
+def: "A plot of the relative intensity of electromagnetic radiation as a function of the wavelength." [PSI:MS]
+synonym: "EMR spectrum" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000805
+name: emission spectrum
+def: "A plot of the relative intensity of electromagnetic radiation emitted by atoms or molecules when excited." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000806
+name: absorption spectrum
+def: "A plot of the relative intensity of electromagnetic radiation absorbed by atoms or molecules when excited." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000807
+name: Th/s
+def: "Unit describing the scan rate of a spectrum in Thomson per second." [PSI:MS]
+is_a: MS:1000460 ! unit
+
+[Term]
+id: MS:1000808
+name: chromatogram attribute
+def: "Chromatogram properties that are associated with a value." [PSI:MS]
+is_a: MS:1000547 ! object attribute
+relationship: part_of MS:1000625 ! chromatogram
+
+[Term]
+id: MS:1000809
+name: chromatogram title
+def: "A free-form text title describing a chromatogram." [PSI:MS]
+comment: This is the preferred storage place for the spectrum title.
+is_a: MS:1000808 ! chromatogram attribute
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000810
+name: mass chromatogram
+def: "A plot of the relative abundance of a beam or other collection of
+ions as a function of the retention time." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000626 ! chromatogram type
+
+[Term]
+id: MS:1000811
+name: electromagnetic radiation chromatogram 
+def: "The measurement of electromagnetic properties as a function of the
+retention time." [PSI:MS]
+synonym: "EMR radiation chromatogram" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000626 ! chromatogram type
+
+[Term]
+id: MS:1000812
+name: absorption chromatogram 
+def: "The measurement of light absorbed by the sample as a function of
+the retention time." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000811 ! electromagnetic radiation chromatogram 
+
+[Term]
+id: MS:1000813
+name: emission chromatogram  
+def: "The measurement of light emitted by the sample as a function of
+the retention time." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000811 ! electromagnetic radiation chromatogram 
 
 [Typedef]
 id: has_units

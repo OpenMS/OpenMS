@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -125,7 +125,7 @@ namespace OpenMS
 			void warning(ActionMode mode, const String& msg, UInt line=0, UInt column=0) const;
 			
 			/// Parsing method for character data
-		  virtual void characters(const XMLCh* const chars, const unsigned int length);
+		  virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 			/// Parsing method for opening tags
       virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const xercesc::Attributes& attrs);
 			/// Parsing method for closing tags
@@ -178,7 +178,7 @@ namespace OpenMS
 			std::vector< std::vector<String> > cv_terms_;
 			
 			/// Converts @p term to the index of the term in the cv_terms_ entry @p section
-			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message)
+			inline SignedSize cvStringToEnum_(Size section, const String& term, const char* message)
 			{
 				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
 					

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -31,11 +31,12 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","Full","Zoom","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGain","ConstantNeutralLoss","Precursor","PhotodiodeArrayDetector","EnhancedMultiplyCharged","TimeDelayedFragmentation"};
+	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","MassSpectrum","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGain","ConstantNeutralLoss","Precursor","EnhancedMultiplyCharged","TimeDelayedFragmentation","ElectromagneticRadiation","Emission","Absorbtion"};
 
 	InstrumentSettings::InstrumentSettings():
 		MetaInfoInterface(),
 		scan_mode_(UNKNOWN),
+		zoom_scan_(false),
 		polarity_(IonSource::POLNULL),
 		scan_windows_()
 	{
@@ -44,6 +45,7 @@ namespace OpenMS
 	InstrumentSettings::InstrumentSettings(const InstrumentSettings& source):
 		MetaInfoInterface(source),
 	  scan_mode_(source.scan_mode_),
+		zoom_scan_(source.zoom_scan_),
 	  polarity_(source.polarity_),
 		scan_windows_(source.scan_windows_)
 	{
@@ -58,6 +60,7 @@ namespace OpenMS
 		if (&source == this) return *this;
 	  
 	  scan_mode_ = source.scan_mode_;
+		zoom_scan_  = source.zoom_scan_;
 	  polarity_ = source.polarity_;
 	  scan_windows_ = source.scan_windows_;
 	  MetaInfoInterface::operator=(source);
@@ -69,6 +72,7 @@ namespace OpenMS
   {
   	return 
 	 	  scan_mode_ == rhs.scan_mode_ &&
+			zoom_scan_  == rhs.zoom_scan_ &&
 		  polarity_ == rhs.polarity_ &&
 		  scan_windows_ == rhs.scan_windows_ &&
   		MetaInfoInterface::operator==(rhs)
@@ -114,6 +118,16 @@ namespace OpenMS
 	{
 	  scan_windows_ =  scan_windows;
 	}
+
+	bool InstrumentSettings::getZoomScan() const
+	{
+		return zoom_scan_;
+	}
 	
+	void InstrumentSettings::setZoomScan(bool zoom_scan)
+	{
+		zoom_scan_ = zoom_scan;
+	}
+
 }
 

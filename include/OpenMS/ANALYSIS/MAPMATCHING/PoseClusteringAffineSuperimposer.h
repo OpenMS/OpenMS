@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -183,7 +183,7 @@ namespace OpenMS
 						++i
 					)
 			{
-				setProgress(10+Real(i)/model_map_size*100.f);
+				setProgress((UInt)(10+Real(i)/model_map_size*100.f));
 
 				// Adjust window in scene map
 				while ( k_low < scene_map_size &&

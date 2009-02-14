@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
@@ -64,11 +63,6 @@
 
 namespace OpenMS
 {   
-	
-	typedef std::pair<unsigned int,unsigned int> Idx  ;
-	typedef std::set<Idx> IndexSet;
-
- 
 	/**
 		 @brief This class provides the two-dimensional optimization of the picked peak parameters.
 			
@@ -83,15 +77,16 @@ namespace OpenMS
 		 
 		 @htmlinclude OpenMS_TwoDOptimization.parameters
 	*/
-	class OPENMS_DLLAPI TwoDOptimization : public DefaultParamHandler
+	class OPENMS_DLLAPI TwoDOptimization 
+		: public DefaultParamHandler
 	{
 	public:
 
 		///Comparator for the retention time.
 		struct IndexLess
-			: public std::binary_function <Idx,Idx, bool>
+			: public std::binary_function <IsotopeCluster::IndexPair,IsotopeCluster::IndexPair, bool>
 		{
-			inline bool operator () (const Idx& a, const Idx& b) const
+			inline bool operator () (const IsotopeCluster::IndexPair& a, const IsotopeCluster::IndexPair& b) const
 			{
 				return (a.first < b.first);
 			}
@@ -113,7 +108,7 @@ namespace OpenMS
 		///Non-mutable access to the matching epsilon
 		inline DoubleReal getMZTolerance() const {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
-		inline void setMZTolerance(double tolerance_mz)
+		inline void setMZTolerance(DoubleReal tolerance_mz)
 		{
 			tolerance_mz_ = tolerance_mz;
 			param_.setValue("2d:tolerance_mz",tolerance_mz);
@@ -122,7 +117,7 @@ namespace OpenMS
 		///Non-mutable access to the maximal peak distance in a cluster
 		inline DoubleReal getMaxPeakDistance() const {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
-		inline void setMaxPeakDistance(double max_peak_distance)
+		inline void setMaxPeakDistance(DoubleReal max_peak_distance)
 		{
 			max_peak_distance_ = max_peak_distance;
 			param_.setValue("2d:max_peak_distance",max_peak_distance);
@@ -131,7 +126,7 @@ namespace OpenMS
 		///Non-mutable access to the maximal absolute error
 		inline DoubleReal getMaxAbsError() const {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
-		inline void setMaxAbsError(double eps_abs)
+		inline void setMaxAbsError(DoubleReal eps_abs)
 		{
 			eps_abs_ = eps_abs;
 			param_.setValue("delta_abs_error",eps_abs);
@@ -140,16 +135,16 @@ namespace OpenMS
 		///Non-mutable access to the maximal relative error
 		inline DoubleReal getMaxRelError() const {return eps_rel_;}
 		///Mutable access to the maximal relative error
-		inline void setMaxRelError(double eps_rel)
+		inline void setMaxRelError(DoubleReal eps_rel)
 		{
 			eps_rel_ = eps_rel;
 			param_.setValue("delta_rel_error",eps_rel);
 		}
 
 		///Non-mutable access to the maximal number of iterations
-		inline Int getMaxIterations() const {return max_iteration_;}
+		inline UInt getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
-		inline void setMaxIterations(int max_iteration)
+		inline void setMaxIterations(UInt max_iteration)
 		{
 			max_iteration_ = max_iteration;
 			param_.setValue("iterations",max_iteration);
@@ -195,42 +190,42 @@ namespace OpenMS
 		/// Helper struct (contains the size of an area and a raw data container)
 		struct Data
 		{
-			std::vector<std::pair<int,int> > signal2D; 
-			std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
-			unsigned int total_nr_peaks;
-			std::map<int, std::vector<PeakIndex> > matching_peaks;
+			std::vector<std::pair<Int,Int> > signal2D; 
+			std::multimap<DoubleReal,IsotopeCluster>::iterator iso_map_iter;
+			Size total_nr_peaks;
+			std::map<Int, std::vector<PeakIndex> > matching_peaks;
 			MSExperiment<> picked_peaks;
 			MSExperiment<Peak1D>::ConstIterator raw_data_first;
 			OptimizationFunctions::PenaltyFactorsIntensity penalties;
-			std::vector<double> positions;
-			std::vector<double> signal;
+			std::vector<DoubleReal> positions;
+			std::vector<DoubleReal> signal;
 		};
 		
 		/// stores the retention time of each isotopic cluster
-		std::multimap<double,IsotopeCluster> iso_map_;
+		std::multimap<DoubleReal,IsotopeCluster> iso_map_;
       
 		/// Pointer to the current region
-		std::multimap<double,IsotopeCluster>::const_iterator curr_region_;
+		std::multimap<DoubleReal,IsotopeCluster>::const_iterator curr_region_;
 
 		/// upper bound for distance between two peaks belonging to the same region
-		double max_peak_distance_;
+		DoubleReal max_peak_distance_;
 
 		/// threshold for the difference in the peak position of two matching peaks
-		double tolerance_mz_;
+		DoubleReal tolerance_mz_;
       
 		/// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-		//		std::map<int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
-		std::map<int,std::vector<PeakIndex> > matching_peaks_;
+		//		std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
+		std::map<Int,std::vector<PeakIndex> > matching_peaks_;
 
 		
 		/// Convergence Parameter: Maximal absolute error
-		double eps_abs_;
+		DoubleReal eps_abs_;
       
 		/// Convergence Parameter: Maximal relative error 
-		double eps_rel_;
+		DoubleReal eps_rel_;
 
 		/// Convergence Parameter: Maximal number of iterations 
-		int max_iteration_;
+		UInt max_iteration_;
 
 		/// Optimization considering all scans of a cluster or optimization of each scan separately
 		bool real_2D_;
@@ -245,20 +240,20 @@ namespace OpenMS
 		*/
     //@{
     /// Function computing estimated signal and its deviation to the experimental signal*/
-    static int residual2D_(const gsl_vector* x, void* params , gsl_vector* f);
+    static Int residual2D_(const gsl_vector* x, void* params , gsl_vector* f);
     /// Function computing the Jacobian */
-    static int jacobian2D_(const gsl_vector* x, void* params, gsl_matrix* J);
+    static Int jacobian2D_(const gsl_vector* x, void* params, gsl_matrix* J);
     /// Function that calls residual2D and jacobian2D*/
-    static int evaluate2D_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+    static Int evaluate2D_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
 		
 		/**
 			 @name Auxiliary Functions for the search of matching regions
 		*/
 		//@{
-		std::vector<double>::iterator searchInScan_(std::vector<double>::iterator scan_begin,
-																								std::vector<double>::iterator scan_end ,
-																								double current_mz);
+		std::vector<DoubleReal>::iterator searchInScan_(std::vector<DoubleReal>::iterator scan_begin,
+																								std::vector<DoubleReal>::iterator scan_end ,
+																								DoubleReal current_mz);
 
 		/** Performs 2D optimization of all regions */
 		template <typename InputSpectrumIterator,typename OutputPeakType>
@@ -278,12 +273,12 @@ namespace OpenMS
 		void getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
 														 InputSpectrumIterator& first,
 														 InputSpectrumIterator& last,
-														 unsigned int iso_map_idx,
-														 double noise_level,
+														 Size iso_map_idx,
+														 DoubleReal noise_level,
 														 TwoDOptimization::Data& d);
 
 		/// Identify matching peak in a peak cluster
-		void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
+		void findMatchingPeaks_(std::multimap<DoubleReal, IsotopeCluster>::iterator& it,
 														MSExperiment<>& ms_exp);
       
 		//@}
@@ -338,24 +333,24 @@ namespace OpenMS
 				return;
 			}
 		// stores the monoisotopic peaks of isotopic clusters
-		std::vector<double> iso_last_scan;
-		std::vector<double> iso_curr_scan;
-		std::vector<std::multimap<double,IsotopeCluster>::iterator> clusters_last_scan;
-		std::vector<std::multimap<double,IsotopeCluster>::iterator> clusters_curr_scan;
-		std::multimap<double,IsotopeCluster>::iterator cluster_iter;
-		double current_rt=ms_exp_it->getRT(),last_rt  = 0;
+		std::vector<DoubleReal> iso_last_scan;
+		std::vector<DoubleReal> iso_curr_scan;
+		std::vector<std::multimap<DoubleReal,IsotopeCluster>::iterator> clusters_last_scan;
+		std::vector<std::multimap<DoubleReal,IsotopeCluster>::iterator> clusters_curr_scan;
+		std::multimap<DoubleReal,IsotopeCluster>::iterator cluster_iter;
+		DoubleReal current_rt=ms_exp_it->getRT(),last_rt  = 0;
 
 		// retrieve values for accepted peaks distances
 		max_peak_distance_ = param_.getValue("2d:max_peak_distance");
-		double tolerance_mz = param_.getValue("2d:tolerance_mz");
+		DoubleReal tolerance_mz = param_.getValue("2d:tolerance_mz");
 	
 		UInt current_charge     = 0;			// charge state of the current isotopic cluster
-		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			
+		DoubleReal mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
 		// sweep through scans
-		for (Size curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
+		for (UInt curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
 			{
-				unsigned int nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
+				Size nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;
 				current_rt = (ms_exp_it+curr_scan)->getRT();
 				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
@@ -380,12 +375,12 @@ namespace OpenMS
 					{
 	      
 	  
-						for(unsigned int curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
+						for(UInt curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
 							{
 		  
 								// store the m/z of the current peak
-								double curr_mz         = (peak_it+curr_peak)->getMZ();
-								double dist2nextpeak = (peak_it+curr_peak+1)->getMZ() - curr_mz;
+								DoubleReal curr_mz         = (peak_it+curr_peak)->getMZ();
+								DoubleReal dist2nextpeak = (peak_it+curr_peak+1)->getMZ() - curr_mz;
 								
 								if (dist2nextpeak <= max_peak_distance_) // one single peak without neighbors isn't optimized
 									{
@@ -396,11 +391,11 @@ namespace OpenMS
 										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 											{
 												// there were some isotopic clustures in the last scan...
-												std::vector<double>::iterator it =
+												std::vector<DoubleReal>::iterator it =
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
 			  
-												double delta_mz = fabs(*it - curr_mz);
-												std::vector<double>::iterator itneu = iso_last_scan.begin();
+												DoubleReal delta_mz = fabs(*it - curr_mz);
+												std::vector<DoubleReal>::iterator itneu = iso_last_scan.begin();
 												//std::cout << delta_mz << " "<< tolerance_mz << std::endl;
 												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
 													{
@@ -411,9 +406,9 @@ namespace OpenMS
 // 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
 // #endif
 														IsotopeCluster new_cluster;
-														new_cluster.peaks_.charge_  = current_charge;
-														new_cluster.scans_.push_back( curr_scan );					
-														cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+														new_cluster.peaks.charge  = current_charge;
+														new_cluster.scans.push_back( curr_scan );					
+														cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
 													}
 												else
@@ -424,14 +419,14 @@ namespace OpenMS
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
-														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
-															 == cluster_iter->second.scans_.end())
+														if(find(cluster_iter->second.scans.begin(),cluster_iter->second.scans.end(),curr_scan)
+															 == cluster_iter->second.scans.end())
 															{
-																cluster_iter->second.scans_.push_back( curr_scan );
+																cluster_iter->second.scans.push_back( curr_scan );
 															}
 			      
 // 														//#ifdef DEBUG_2D
-// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks.size()
 // 																			<< " peaks retrieved." << std::endl;
 // 														//#endif
 													}
@@ -448,9 +443,9 @@ namespace OpenMS
 			  
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
-												new_cluster.peaks_.charge_  = current_charge;
-												new_cluster.scans_.push_back( curr_scan );					
-												cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+												new_cluster.peaks.charge  = current_charge;
+												new_cluster.scans.push_back( curr_scan );					
+												cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 
 											}
 		  
@@ -460,13 +455,13 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
 										++curr_peak;
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 										iso_curr_scan.push_back((peak_it+curr_peak)->getMZ());
 										clusters_curr_scan.push_back(cluster_iter);
 		      
@@ -479,7 +474,7 @@ namespace OpenMS
 										while (dist2nextpeak <= max_peak_distance_
 													 &&  curr_peak < (nr_peaks_in_scan-1) )
 											{
-												cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
+												cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
 												iso_curr_scan.push_back((peak_it+curr_peak+1)->getMZ());
 												clusters_curr_scan.push_back(cluster_iter);
 												//	std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
@@ -498,11 +493,11 @@ namespace OpenMS
 										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 											{
 												// there were some isotopic clusters in the last scan...
-												std::vector<double>::iterator it =
+												std::vector<DoubleReal>::iterator it =
 													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
 			  
-												double delta_mz = fabs(*it - curr_mz);
-												std::vector<double>::iterator itneu = iso_last_scan.begin();
+												DoubleReal delta_mz = fabs(*it - curr_mz);
+												std::vector<DoubleReal>::iterator itneu = iso_last_scan.begin();
 												//												std::cout << delta_mz << " "<< tolerance_mz << std::endl;
 												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
 													{
@@ -513,9 +508,9 @@ namespace OpenMS
 // 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
 // 														//#endif
 														IsotopeCluster new_cluster;
-														new_cluster.peaks_.charge_  = current_charge;
-														new_cluster.scans_.push_back( curr_scan );					
-														cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+														new_cluster.peaks.charge  = current_charge;
+														new_cluster.scans.push_back( curr_scan );					
+														cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
 													}
 												else
@@ -526,14 +521,14 @@ namespace OpenMS
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
-														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
-															 == cluster_iter->second.scans_.end())
+														if(find(cluster_iter->second.scans.begin(),cluster_iter->second.scans.end(),curr_scan)
+															 == cluster_iter->second.scans.end())
 															{
-																cluster_iter->second.scans_.push_back( curr_scan );
+																cluster_iter->second.scans.push_back( curr_scan );
 															}
 			      
 // 														//#ifdef DEBUG_2D
-// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks.size()
 // 																			<< " peaks retrieved." << std::endl;
 // 														//#endif
 													}
@@ -550,9 +545,9 @@ namespace OpenMS
 			  
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
-												new_cluster.peaks_.charge_  = current_charge;
-												new_cluster.scans_.push_back( curr_scan );					
-												cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+												new_cluster.peaks.charge  = current_charge;
+												new_cluster.scans.push_back( curr_scan );					
+												cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 
 											}
 		  
@@ -562,7 +557,7 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
@@ -590,24 +585,21 @@ namespace OpenMS
 																					InputSpectrumIterator& last,
 																					MSExperiment< OutputPeakType >& ms_exp)
   {
-
-		//#define DEBUG_2D
-    int counter =0;
-    //#endif
+    Int counter =0;
     // go through the clusters
-    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
+    for (std::multimap<DoubleReal, IsotopeCluster>::iterator it = iso_map_.begin();
          it != iso_map_.end();
          ++it)
 			{
 #ifdef DEBUG_2D
 				std::cout << "element: " << counter<< std::endl;
 				std::cout << "mz: "<< it->first << std::endl<<"rts: ";
-// 				for(unsigned int i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
+// 				for(Size i=0;i<it->second.scans.size();++i) std::cout << it->second.scans[i] << "\n";
 				std::cout<<std::endl<<"peaks: ";
-				IndexSet::const_iterator iter = it->second.peaks_.begin();
-				for(; iter != it->second.peaks_.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
+				IsotopeCluster::IndexSet::const_iterator iter = it->second.peaks.begin();
+				for(; iter != it->second.peaks.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
 				
-//for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
+//for(Size i=0;i<it->second.peaks.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cout << std::endl << std::endl;
 
 #endif
@@ -628,20 +620,19 @@ namespace OpenMS
 				d.picked_peaks = ms_exp;
 				d.raw_data_first =  first;
 
-				int nr_diff_peaks = matching_peaks_.size();
-				d.total_nr_peaks = it->second.peaks_.size();
+				Size nr_diff_peaks = matching_peaks_.size();
+				d.total_nr_peaks = it->second.peaks.size();
 
-				int nr_parameters = nr_diff_peaks*3 + d.total_nr_peaks;
+				Size nr_parameters = nr_diff_peaks*3 + d.total_nr_peaks;
 
 				gsl_vector *start_value=gsl_vector_alloc(nr_parameters);
 				gsl_vector_set_zero(start_value);
 
 				// initialize parameters for optimization
-				std::map<int, std::vector<PeakIndex> >::iterator m_peaks_it
-					= d.matching_peaks.begin();
-				double av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
-				int peak_counter = 0;
-				int diff_peak_counter =0;
+				std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = d.matching_peaks.begin();
+				DoubleReal av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
+				Int peak_counter = 0;
+				Int diff_peak_counter =0;
 				// go through the matching peaks
 				for(;m_peaks_it != d.matching_peaks.end();++m_peaks_it)
 					{
@@ -665,13 +656,13 @@ namespace OpenMS
 
 #ifdef DEBUG_2D
 				std::cout << "----------------------------\n\nstart_value: "<<std::endl;
-				for(unsigned int k=0;k<start_value->size;++k)
+				for(Size k=0;k<start_value->size;++k)
 					{
 						std::cout << gsl_vector_get(start_value,k)<<std::endl;
 					}
 #endif
-				int num_positions = 0;
-				for(unsigned int i=0; i<d.signal2D.size(); i+=2)
+				Int num_positions = 0;
+				for(Size i=0; i<d.signal2D.size(); i+=2)
 					{
 						num_positions += (d.signal2D[i+1].second - d.signal2D[i].second +1);
 #ifdef DEBUG_2D
@@ -685,11 +676,11 @@ namespace OpenMS
 				// The gsl algorithms require us to provide function pointers for the evaluation of
 				// the target function.
 				gsl_multifit_function_fdf fit_function;
-				fit_function.f   = (int (*)(const gsl_vector * x, void * params, gsl_vector * f))&OpenMS::TwoDOptimization::residual2D_;
-				fit_function.df  = (int (*)(const gsl_vector * x, void * params, gsl_matrix * J))&OpenMS::TwoDOptimization::jacobian2D_;
-				fit_function.fdf = (int (*)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))&OpenMS::TwoDOptimization::evaluate2D_;
+				fit_function.f   = (Int (*)(const gsl_vector * x, void * params, gsl_vector * f))&OpenMS::TwoDOptimization::residual2D_;
+				fit_function.df  = (Int (*)(const gsl_vector * x, void * params, gsl_matrix * J))&OpenMS::TwoDOptimization::jacobian2D_;
+				fit_function.fdf = (Int (*)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))&OpenMS::TwoDOptimization::evaluate2D_;
 				// dunno why, but gsl crashes when n is smaller than p!!!!!!!! ????
-				fit_function.n   = std::max(num_positions+1,(int)(nr_parameters));
+				fit_function.n   = std::max(num_positions+1,(Int)(nr_parameters));
 				fit_function.p   = nr_parameters;
 				fit_function.params = &d;
 #ifdef DEBUG_2D
@@ -699,7 +690,7 @@ namespace OpenMS
 				const gsl_multifit_fdfsolver_type *type = gsl_multifit_fdfsolver_lmsder;
 
 				gsl_multifit_fdfsolver *fit=gsl_multifit_fdfsolver_alloc(type,
-																																 std::max(num_positions+1,(int)(nr_parameters)),
+																																 std::max(num_positions+1,(Int)(nr_parameters)),
 																																 nr_parameters);
 
 				gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
@@ -711,8 +702,8 @@ namespace OpenMS
 				std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
 				// Iteration
-				int iteration = 0;
-				int status;
+				UInt iteration = 0;
+				Int status;
 
 				do
 					{
@@ -735,24 +726,24 @@ namespace OpenMS
 #ifdef DEBUG_2D
 				std::cout << "Finished! No. of iterations" << iteration << std::endl;
 				std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-				double chi = gsl_blas_dnrm2(fit->f);
+				DoubleReal chi = gsl_blas_dnrm2(fit->f);
 				std::cout << "After optimization: || f || = " << gsl_blas_dnrm2(fit->f) << std::endl;
 				std::cout << "chisq/dof = " << pow(chi, 2.0) / (num_positions - nr_parameters);
 
 
 				std::cout << "----------------------------------------------\n\nnachher"<<std::endl;
-				for(unsigned int k=0;k<fit->x->size;++k)
+				for(Size k=0;k<fit->x->size;++k)
 					{
 						std::cout << gsl_vector_get(fit->x,k)<<std::endl;
 					}
 #endif
-				int peak_idx =0;
-				std::map<int, std::vector<PeakIndex> >::iterator it
+				Int peak_idx =0;
+				std::map<Int, std::vector<PeakIndex> >::iterator it
 					=d.matching_peaks.begin();
 				for(; it != d.matching_peaks.end(); ++it)
 					{
-						int i = distance(d.matching_peaks.begin(),it);
-						for(unsigned int j=0;j<it->second.size();++j)
+						Int i = distance(d.matching_peaks.begin(),it);
+						for(Size j=0;j<it->second.size();++j)
 							{
 
 #ifdef DEBUG_2D
@@ -805,7 +796,7 @@ namespace OpenMS
 		typedef typename InputSpectrumType::value_type PeakType;
 		
 		
-    int counter =0;
+    Int counter =0;
 		TwoDOptimization::Data d;
     d.picked_peaks = ms_exp;
     d.raw_data_first =  first;
@@ -845,48 +836,47 @@ namespace OpenMS
 // 			}
 		//		std::cout << "---------------------------------------------------------------\n\n\n\n";
 		
-    unsigned int max_iteration;
+    UInt max_iteration;
     dv = param_.getValue("iterations");
     if (dv.isEmpty() || dv.toString() == "")
       max_iteration = 15;
     else
-      max_iteration = (unsigned int)dv;
+      max_iteration = (UInt)dv;
 
-    double eps_abs;
+    DoubleReal eps_abs;
     dv = param_.getValue("delta_abs_error");
     if (dv.isEmpty() || dv.toString() == "")
       eps_abs = 1e-04f;
     else
-      eps_abs = (double)dv;
+      eps_abs = (DoubleReal)dv;
 
-    double eps_rel;
+    DoubleReal eps_rel;
     dv = param_.getValue("delta_rel_error");
     if (dv.isEmpty() || dv.toString() == "")
       eps_rel = 1e-04f;
     else
-      eps_rel = (double)dv;
+      eps_rel = (DoubleReal)dv;
 
     std::vector<PeakShape> peak_shapes;
 
 
     // go through the clusters
-    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
+    for (std::multimap<DoubleReal, IsotopeCluster>::iterator it = iso_map_.begin();
          it != iso_map_.end();
          ++it)
 			{
 				d.iso_map_iter = it;
-				//#ifdef DEBUG_2D
+#ifdef DEBUG_2D
 				std::cerr << "element: " << counter<< std::endl;
 				std::cerr << "mz: "<< it->first <<std::endl<<"rts: ";
-				for(unsigned int i=0;i<it->second.scans_.size();++i) std::cerr << it->second.scans_[i] << "\n";
+				for(Size i=0;i<it->second.scans.size();++i) std::cerr << it->second.scans[i] << "\n";
 				std::cerr<<std::endl<<"peaks: ";
-				IndexSet::const_iterator iter = it->second.peaks_.begin();
-				for(; iter != it->second.peaks_.end(); ++iter)std::cerr << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
-				
-//for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
+				IsotopeCluster::IndexSet::const_iterator iter = it->second.peaks.begin();
+				for(; iter != it->second.peaks.end(); ++iter)std::cerr << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
+				//for(Size i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cerr << std::endl << std::endl;
 
-				//#endif
+#endif
 				// prepare for optimization:
 				// determine the matching peaks
 				// and the endpoints of each isotope pattern in the cluster
@@ -895,15 +885,15 @@ namespace OpenMS
 				
 				
 				
-				unsigned int idx = 0;
-				for(unsigned int i=0; i < d.signal2D.size()/2; ++i)
+				Size idx = 0;
+				for(Size i=0; i < d.signal2D.size()/2; ++i)
 					{
 						OptimizationFunctions::positions_.clear();
 						OptimizationFunctions::signal_.clear();
 
 						MSExperiment<Peak1D >::SpectrumType::const_iterator	ms_it =
 							(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i].second;
-						int size = distance(ms_it,(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i+1].second);
+						Int size = distance(ms_it,(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i+1].second);
 						OptimizationFunctions::positions_.reserve(size);
 						OptimizationFunctions::signal_.reserve(size);
 
@@ -915,23 +905,23 @@ namespace OpenMS
 							}
 
 
-						Idx pair;
-						pair.first =  d.iso_map_iter->second.peaks_.begin()->first + idx;
+						IsotopeCluster::IndexPair pair;
+						pair.first =  d.iso_map_iter->second.peaks.begin()->first + idx;
 
-						IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																														d.iso_map_iter->second.peaks_.end(),
-																														pair,IndexLess());
+						IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																																						d.iso_map_iter->second.peaks.end(),
+																																						pair,IndexLess());
 
 
 						// find the last entry with this rt-value
 						++pair.first;
-						IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																														 d.iso_map_iter->second.peaks_.end(),
-																														 pair,IndexLess());
+						IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																																						 d.iso_map_iter->second.peaks.end(),
+																																						 pair,IndexLess());
 
 						while(set_iter != set_iter2)
 							{
-								const UInt peak_index = set_iter->second;
+								const Size peak_index = set_iter->second;
 								const MSSpectrum<>& spec = ms_exp[set_iter->first];
 								PeakShape shape(spec[peak_index].getIntensity(),
 																spec[peak_index].getMZ(),
@@ -944,47 +934,47 @@ namespace OpenMS
 								peak_shapes.push_back(shape);
 								++set_iter;
 							}
-						//#ifdef DEBUG_2D
+#ifdef DEBUG_2D
 						std::cout << "rt "
 											<<(d.raw_data_first + d.signal2D[2*i].first)->getRT()
 											<<"\n";
-						//#endif
+#endif
 						OptimizePick opt(penalties,max_iteration,eps_abs,eps_rel);
-						//#ifdef DEBUG_2D
+#ifdef DEBUG_2D
 						std::cout << "vorher\n";
 
-						for(unsigned int p =0; p < peak_shapes.size();++p)
+						for(Size p =0; p < peak_shapes.size();++p)
 							{
 								std::cout << peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
 													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width  <<std::endl;
 							}
-						//#endif
+#endif
 						opt.optimize(peak_shapes);
-						//#ifdef DEBUG_2D
+#ifdef DEBUG_2D
 						std::cout << "nachher\n";
-						for(unsigned int p =0; p < peak_shapes.size();++p)
+						for(Size p =0; p < peak_shapes.size();++p)
 							{
 								std::cout << peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
 													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width  <<std::endl;
 							}
-						//#endif
+#endif
 						std::sort(peak_shapes.begin(),peak_shapes.end(),PeakShape::PositionLess());
-						pair.first =  d.iso_map_iter->second.peaks_.begin()->first + idx;
+						pair.first =  d.iso_map_iter->second.peaks.begin()->first + idx;
 
-						set_iter = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																	 d.iso_map_iter->second.peaks_.end(),
+						set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																	 d.iso_map_iter->second.peaks.end(),
 																	 pair,IndexLess());
-						unsigned int i=0;
-						while(i < peak_shapes.size())
+						Size p=0;
+						while(p < peak_shapes.size())
 							{
 								MSSpectrum<>& spec = ms_exp[set_iter->first];
-								spec[set_iter->second].setMZ(peak_shapes[i].mz_position);
-								spec[set_iter->second].setIntensity(peak_shapes[i].height);
-								spec.getMetaDataArrays()[3][set_iter->second] = peak_shapes[i].left_width;
-								spec.getMetaDataArrays()[4][set_iter->second] = peak_shapes[i].right_width;
+								spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
+								spec[set_iter->second].setIntensity(peak_shapes[p].height);
+								spec.getMetaDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
+								spec.getMetaDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
 
 								++set_iter;
-								++i;
+								++p;
 							}
 						++idx;
 						peak_shapes.clear();
@@ -998,38 +988,38 @@ namespace OpenMS
 	void TwoDOptimization::getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
 																						 InputSpectrumIterator& first,
 																						 InputSpectrumIterator& last,
-																						 unsigned int iso_map_idx,
-																						 double noise_level,
+																						 Size iso_map_idx,
+																						 DoubleReal noise_level,
 																						 TwoDOptimization::Data& d)
 	{
 		d.signal2D.clear();
 		typedef typename InputSpectrumIterator::value_type InputExperimentType;
 		typedef typename InputExperimentType::value_type InputPeakType;
-		typedef std::multimap<double,IsotopeCluster> MapType;
+		typedef std::multimap<DoubleReal,IsotopeCluster> MapType;
 
-		double rt, first_peak_mz, last_peak_mz;
+		DoubleReal rt, first_peak_mz, last_peak_mz;
 		
 		//MSSpectrum<InputPeakType> spec;
 		typename MSExperiment<InputPeakType>::SpectrumType spec;
 		InputPeakType peak;
 
 		MapType::iterator iso_map_iter = iso_map_.begin();
-		for(unsigned int i=0;i<iso_map_idx;++i)  ++iso_map_iter;
+		for(Size i=0;i<iso_map_idx;++i)  ++iso_map_iter;
 
 #ifdef DEBUG2D
-		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans_[0]].getRT()
-							<< "\trt end: "<<exp[iso_map_iter->second.scans_[iso_map_iter->second.scans_.size()-1]].getRT()
-							<< " \t"<<iso_map_iter->second.scans_.size()<<" scans"
+		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans[0]].getRT()
+							<< "\trt end: "<<exp[iso_map_iter->second.scans[iso_map_iter->second.scans.size()-1]].getRT()
+							<< " \t"<<iso_map_iter->second.scans.size()<<" scans"
 							<< std::endl;
 #endif
 		
 		// get left and right endpoint for all scans in the current cluster
-		for(unsigned int i=0; i< iso_map_iter->second.scans_.size();++i)
+		for(Size i=0; i< iso_map_iter->second.scans.size();++i)
 			{
 				typename MSExperiment<OutputPeakType>::iterator exp_it;
 	  
 				// first the right scan through binary search
-				rt = exp[iso_map_iter->second.scans_[i]].getRT();
+				rt = exp[iso_map_iter->second.scans[i]].getRT();
 				spec.setRT(rt);
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
 				//				if(iter->getRT() != rt) --iter;
@@ -1038,12 +1028,12 @@ namespace OpenMS
 				std::cout << exp_it->getRT() << " vs "<< iter->getRT()<<std::endl;
 #endif
 				// now the right mz
-				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
+				IsotopeCluster::IndexSet::const_iterator j=(iso_map_iter->second.peaks.begin());
 																		
-				Idx pair;
-				pair.first =  iso_map_iter->second.peaks_.begin()->first + i;
-				IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks_.begin(),
-																												iso_map_iter->second.peaks_.end(),
+				IsotopeCluster::IndexPair pair;
+				pair.first =  iso_map_iter->second.peaks.begin()->first + i;
+				IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
+																												iso_map_iter->second.peaks.end(),
 																												pair,IndexLess());
 				
 				// consider a bit more of the signal to the left
@@ -1051,8 +1041,8 @@ namespace OpenMS
 				
 				// find the last entry with this rt-value
 				++pair.first;
-				IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks_.begin(),
-																												 iso_map_iter->second.peaks_.end(),
+				IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
+																												 iso_map_iter->second.peaks.end(),
 																												 pair,IndexLess());
 				--set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
@@ -1065,7 +1055,7 @@ namespace OpenMS
 					{
 						--raw_data_iter;
 					}
-				double intensity = raw_data_iter->getIntensity();
+				DoubleReal intensity = raw_data_iter->getIntensity();
 				// while the intensity is falling go to the left
 				while(raw_data_iter != iter->begin() && (raw_data_iter-1)->getIntensity() < intensity &&
 							(raw_data_iter-1)->getIntensity() > noise_level)
@@ -1074,7 +1064,7 @@ namespace OpenMS
 						intensity = raw_data_iter->getIntensity();
 					}
 				++raw_data_iter;
-				Idx left,right;
+				IsotopeCluster::IndexPair left,right;
 				left.first = distance(first,iter);
 				left.second = raw_data_iter-iter->begin();
 #ifdef DEBUG2D

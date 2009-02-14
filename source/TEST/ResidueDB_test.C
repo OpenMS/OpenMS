@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,13 @@ START_SECTION((bool hasResidue(const String &name) const))
 	TEST_EQUAL(ptr->hasResidue("K"), true)
 END_SECTION
 
-START_SECTION(UInt getNumberOfResidues() const)
+START_SECTION(bool hasResidue(const Residue *residue) const)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("BLUBB")), false)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
+END_SECTION
+
+START_SECTION(Size getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues(), 21);
 END_SECTION
 
@@ -76,8 +82,8 @@ START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const St
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
 END_SECTION
-    
-START_SECTION(const std::set<const Residue*>& getResidues() const)
+
+START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set=ALL) const)
 	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
 	TEST_EQUAL(residues.size(), 21)
 	residues = ptr->getResidues(ResidueDB::NATURAL_20);
@@ -106,7 +112,7 @@ END_SECTION
 
 START_SECTION(ResidueIterator beginResidue())
 	ResidueDB::ResidueIterator it = ptr->beginResidue();
-	UInt count(0);
+	Size count(0);
 	while (it != ptr->endResidue())
 	{
 		++it;
@@ -123,7 +129,7 @@ END_SECTION
 START_SECTION(ResidueConstIterator beginResidue() const)
 	const ResidueDB* const_ptr = ptr;
 	ResidueDB::ResidueConstIterator it = const_ptr->beginResidue();
-	UInt count(0);
+	Size count(0);
 	while (it != const_ptr->endResidue())
 	{
 		++it;
@@ -136,9 +142,11 @@ START_SECTION(ResidueConstIterator endResidue() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifiedResidues() const)
+START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
-	const Residue* mod_res = ptr->getModifiedResidue("MOD:01214");
+	const Residue* mod_res = 0;
+	mod_res = ptr->getModifiedResidue("MOD:01214");
+	TEST_NOT_EQUAL(mod_res, 0)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION
 

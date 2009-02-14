@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -97,10 +97,10 @@ namespace OpenMS
     Map<String, double> mod_to_mass;
     mod_to_mass["Oxidation"] = 15.994915;
     mod_to_mass["Carbamidomethyl"] = 57.02146;
-    mod_to_mass["ICAT_light"] = 227.12;
-    mod_to_mass["ICAT_heavy"] = 236.12;
-    mod_to_mass["AB_old_ICATd0"] = 442.20;
-    mod_to_mass["AB_old_ICATd8"] = 450.20;
+    mod_to_mass["ICAT_light"] = 227.126991;
+    mod_to_mass["ICAT_heavy"] = 236.157185;
+    mod_to_mass["AB_old_ICATd0"] = 442.224991;
+    mod_to_mass["AB_old_ICATd8"] = 450.275205;
     mod_to_mass["Acetyl"] = 42.0106;
     mod_to_mass["Deamidation"] = 0.9840;
     mod_to_mass["Pyro-cmC"] = -17.026549;

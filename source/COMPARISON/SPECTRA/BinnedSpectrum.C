@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -62,17 +62,24 @@ namespace OpenMS
 	 	{
 		 	throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
-		this->bins_.clear();
+		bins_.clear();
 
 	 	//make all necessary bins accessible
-	 	bins_ = SparseVector<Real>((UInt)ceil(this->back().getMZ()/this->bin_size_) + bin_spread_ ,0,0);
+		this->sortByPosition();
+	 	bins_ = SparseVector<Real>((UInt)ceil(this->back().getMZ()/bin_size_) + bin_spread_ ,0,0);
 
 		//put all peaks into bins
 		UInt bin_number;
 		for (Size i = 0; i < this->size(); ++i)
 		{
 			//bin_number counted form 0 -> floor
-			bin_number = (UInt)floor(this->operator[](i).getMZ()/this->bin_size_);
+			bin_number = (UInt)floor(this->operator[](i).getMZ()/bin_size_);
+			//e.g. bin_size_ = 1.5: first bin covers range [0,1.5] so peak at 1.5 falls in first bin (index 0)
+
+			if(this->operator[](i).getMZ()/bin_size_ == (DoubleReal)bin_number)
+			{
+				--bin_number;
+			}
 
 			//add peak to corresponding bin
 			bins_[bin_number] = bins_.at(bin_number) + this->operator[](i).getIntensity();

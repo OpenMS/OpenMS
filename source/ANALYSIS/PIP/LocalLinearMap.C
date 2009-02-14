@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/ANALYSIS/PIP/LocalLinearMap.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -50,8 +51,8 @@ using namespace std;
     wout_ = vector< DoubleReal >(param_.xdim*param_.ydim);
 
 		// path to codefile + a_file 
-    codefile = OPENMS_DATA_PATH + codefile;
-    a_file = OPENMS_DATA_PATH + a_file;
+    codefile = File::find(codefile);
+    a_file = File::find(a_file);
 
     // read in file containing codebook vectors
     ifstream inputstream_c(codefile.c_str());
@@ -65,7 +66,7 @@ using namespace std;
 	  	{
 				istringstream linestream(line);
 				string proto;
-				while(getline(linestream, proto, '\t'))
+				while(getline(linestream, proto, ' '))
 		    {
 		    	stringstream(proto) >> pos;
 		    	i = (UInt)k/18;
@@ -96,7 +97,7 @@ using namespace std;
 	  	{
 				istringstream linestream(line);
 				string map;
-				while(getline(linestream, map, '\t'))
+				while(getline(linestream, map, ' '))
 				{
 					stringstream(map) >> pos;
 					i = (UInt)k/(19);
@@ -145,7 +146,7 @@ using namespace std;
   {
   	vector< DoubleReal > neighborhood(cord.rows());
 	    
-		for (Size i=0; i < cord.rows(); i++) 
+		for (Size i=0; i < cord.rows(); ++i) 
    	{
    		// get dist for code i to winner code on grid structure
 			DoubleReal dd = dist_(cord, cord, i, win);
@@ -161,7 +162,7 @@ using namespace std;
   {
     DoubleReal dd = 0.0;
     //get euclidean distance of instances a of u and b of v
-    for(Size i=0; i<u.cols(); i++)
+    for(Size i=0; i<u.cols(); ++i)
     {
 			dd += (u.getValue(a,i)-v.getValue(b,i))*(u.getValue(a,i)-v.getValue(b,i));
     }
@@ -169,26 +170,26 @@ using namespace std;
   }
   
   const Real normMeanFactors[18] = 
-	{
-	 0.5967742,    11.5440323,  0.4193548,   1.2177419, 11.9581452, 
-   1399.2211022, 0.1935484,   412.0838710, 0.1209677, 1358.0966317, 
-   160.5080645,  475.8736559, -14.4842204, 0.4892473, 1.6975806, 
-   3.0309624,    14.0243817,  0.3118280 
+	{ // hint: remove 'f' IFF this should ever be DoubleReal
+	 0.5967742f,    11.5440323f,  0.4193548f,   1.2177419f, 11.9581452f, 
+   1399.2211022f, 0.1935484f,   412.0838710f, 0.1209677f, 1358.0966317f, 
+   160.5080645f,  475.8736559f, -14.4842204f, 0.4892473f, 1.6975806f, 
+   3.0309624f,    14.0243817f,  0.3118280f
 	};
 	
 	
 	const Real normStdFactors[18] = 
-	{
-    0.5179165,  5.7367444,   0.6780753,     0.4962471, 5.1953755, 
-   51.6311526,  0.4527976,   205.0635677,   0.3727817, 571.4667323, 
-  208.2837647,  389.9339603, 18.0231208,    0.7647155, 10.0989402, 
-    1.4787198,  10.3548547,  0.5635562 
+	{ // hint: remove 'f' IFF this should ever be DoubleReal
+    0.5179165f,  5.7367444f,   0.6780753f,     0.4962471f, 5.1953755f, 
+   51.6311526f,  0.4527976f,   205.0635677f,   0.3727817f, 571.4667323f, 
+  208.2837647f,  389.9339603f, 18.0231208f,    0.7647155f, 10.0989402f, 
+    1.4787198f,  10.3548547f,  0.5635562f 
 	};
 	
 	//center and scale by variance
 	void LocalLinearMap::normalizeVector(vector<DoubleReal>& aaIndexVariables)
 	{
-		for(Size i=0; i<aaIndexVariables.size(); i++)
+		for(Size i=0; i<aaIndexVariables.size(); ++i)
 		{
 			//subtract precalculated mean of instances the model was trained on
 			aaIndexVariables[i] = aaIndexVariables[i] - normMeanFactors[i];

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -137,7 +137,8 @@ class TOPPITRAQAnalyzer
 			IdXMLFile f;
 			std::vector< ProteinIdentification > protein_ids;
 			std::vector< PeptideIdentification > peptide_ids;
-			f.load (idxml, protein_ids, peptide_ids);
+			String document_id;
+			f.load (idxml, protein_ids, peptide_ids, document_id);
 			itraq_quant.run(consensus_map_raw, peptide_ids, protein_ids, consensus_map_quant);
 		}
 		else

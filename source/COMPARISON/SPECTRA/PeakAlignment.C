@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 using namespace std;
 
@@ -87,9 +88,9 @@ namespace OpenMS
 			s2.sortByIntensity(true);
 
 			//heuristic filters (and shortcuts) if spec1 and spec2 have NOT at least one peak in the sets of |heuristic_level|-many highest peaks in common
-			for(PeakSpectrum::ConstIterator it_s1 = s1.begin(); UInt(it_s1-s1.begin())<heuristic_level&&it_s1!=s1.end();++it_s1)
+			for(PeakSpectrum::ConstIterator it_s1 = s1.begin(); Size(it_s1-s1.begin())<heuristic_level&&it_s1!=s1.end();++it_s1)
 			{
-				for(PeakSpectrum::ConstIterator it_s2 = s2.begin(); UInt(it_s2-s2.begin())<heuristic_level&&it_s2!=s2.end();++it_s2)
+				for(PeakSpectrum::ConstIterator it_s2 = s2.begin(); Size(it_s2-s2.begin())<heuristic_level&&it_s2!=s2.end();++it_s2)
 				{
 					// determine if it is a match, i.e. mutual peak at certain m/z with epsilon tolerance
 					if(fabs((*it_s2).getMZ() - (*it_s1).getMZ()) < epsilon)
@@ -156,7 +157,7 @@ namespace OpenMS
 		//only in case of only two equal peaks in the spectra sigma is 0
 
 
-		const double sigma((var==0)?FLT_MIN:sqrt(var));
+		const double sigma((var==0) ? numeric_limits<double>::min() : sqrt(var));
 
 			/* to manually retrace
 			cout << "peak standard deviation " << sigma << endl;
@@ -193,7 +194,7 @@ namespace OpenMS
 		*/
 
 		//get best overall score and return
-		double best_score(DBL_MIN);
+		double best_score(numeric_limits<double>::min());
 		for (Size i = 0; i < matrix.cols(); i++)
 		{
 			best_score = max( best_score , matrix.getValue(matrix.rows()-1, i) );
@@ -236,7 +237,7 @@ namespace OpenMS
 		return best_score_normalized;
 	}
 
-	vector< pair<UInt,UInt> > PeakAlignment::getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
+	vector< pair<Size, Size> > PeakAlignment::getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
 	{
 		const double epsilon = (double)param_.getValue("epsilon");
 
@@ -257,7 +258,7 @@ namespace OpenMS
 		// gives the direction of the matrix cell that originated the respective cell
 		// e.g. matrix(i+1,j+1) could have originated from matrix(i,j), matrix(i+1,j) or matrix(i,j+1)
 		// so traceback(i,j) represents matrix(i+1,j+1) and contains a "1"-from diagonal, a "0"-from left or a "2"-from above
-		Matrix<UInt> traceback	(spec1.size(), spec2.size());
+		Matrix<Size> traceback	(spec1.size(), spec2.size());
 
 		//get sigma - the standard deviation (sqrt of variance)
 		double mid(0);
@@ -351,12 +352,12 @@ namespace OpenMS
 			}
 		}
 		//return track from best alloverscore to 0,0
-		vector< pair<UInt,UInt> > ret_val;
-		pair<UInt,UInt> max_pair;
+		vector< pair<Size, Size> > ret_val;
+		pair<Size, Size> max_pair;
 
 		//get matrix coordinates from best alloverscore
-		UInt row_index(0), col_index(0);
-		double best_score(DBL_MIN);
+		Size row_index(0), col_index(0);
+		double best_score(numeric_limits<double>::min());
 		for (Size i = 0; i < matrix.cols(); i++)
 		{
 			if(best_score < matrix.getValue(matrix.rows()-1, i) )
@@ -383,7 +384,7 @@ namespace OpenMS
 			if( traceback.getValue(row_index-1,col_index-1) == 1 )
 			{
 				//register aligned peaks only
-				ret_val.insert(ret_val.begin(), pair<UInt,UInt>(row_index-1,col_index-1));
+				ret_val.insert(ret_val.begin(), pair<Size, Size>(row_index-1,col_index-1));
 				row_index = row_index-1;
 				col_index = col_index-1;
 			}

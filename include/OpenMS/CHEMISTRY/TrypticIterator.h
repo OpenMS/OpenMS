@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -93,7 +93,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	@brief setter for tolerance
 	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual void setTolerance (float)
+	virtual void setTolerance (DoubleReal)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -103,7 +103,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	@return tolerance
 	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual float getTolerance ()
+	virtual DoubleReal getTolerance ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -112,7 +112,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	@brief setter for spectrum
 	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual void setSpectrum (const std::vector<float> & )
+	virtual void setSpectrum (const std::vector<DoubleReal> & )
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -122,7 +122,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	@return the used spectrum
 	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual const std::vector<float> & getSpectrum ()
+	virtual const std::vector<DoubleReal> & getSpectrum ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};

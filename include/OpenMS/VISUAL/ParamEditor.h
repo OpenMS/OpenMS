@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,6 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
@@ -91,6 +90,8 @@ namespace OpenMS
 			private:
 				/// Not implemented
 				ParamEditorDelegate();
+				///used to modify value of output and input files( not for output and input lists)
+				mutable QString fileName_;
 		};
 		
 		/// QTreeWidget that emits a signal whenever a new row is selected
@@ -124,8 +125,6 @@ namespace OpenMS
 		- advanced mode: all parameters are displayed.
 		
 		@image html ParamEditor.png
-		
-		@todo Add input/output file dialogs (Hiwi)
 		
 		@ingroup Visual
 	*/

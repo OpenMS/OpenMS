@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -66,23 +66,23 @@ namespace OpenMS
 		
 		if (tag_ == "protein")
 		{
-			String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+			String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
  	 		actual_protein_hit_.setAccession(attribute_value);
 		}
 		else if (tag_ == "query")
 		{
-			actual_query_ = (String(sm_.convert(attributes.getValue(0u))).trim()).toInt();
+			actual_query_ = (String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim()).toInt();
 		}
 		else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide") 
 		{
 			if (tag_ == "peptide")
 			{
-				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
 		  	peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			else if (tag_ == "u_peptide" || tag_ == "q_peptide")
 			{
-				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
 	  		peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			if (peptide_identification_index_ > id_data_.size())
@@ -98,7 +98,6 @@ namespace OpenMS
  		 
  		if (tag_ == "protein")
  		{	
- 			// since Mascot uses SwissProt IDs we set this type here
 			protein_identification_.setScoreType("Mascot");
  			protein_identification_.insertHit(actual_protein_hit_);
  			actual_protein_hit_ = ProteinHit();
@@ -148,7 +147,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void MascotXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
 
 		if (tag_ == "NumQueries")
@@ -398,6 +397,26 @@ namespace OpenMS
 		else if (tag_ == "TAXONOMY")
 		{
 			search_parameters_.taxonomy = (((String) sm_.convert(chars)).trim());
+		}
+		else if (tag_ == "CHARGE")
+		{
+			search_parameters_.charges = (((String) sm_.convert(chars)).trim());
+		}
+		else if (tag_ == "PFA")
+		{
+			search_parameters_.missed_cleavages = ((String) sm_.convert(chars)).trim().toInt();
+		}	
+		else if (tag_ == "MASS")
+		{
+			String temp_string = (((String) sm_.convert(chars)).trim());
+			if (temp_string == "Monoisotopic")
+			{
+				search_parameters_.mass_type = ProteinIdentification::MONOISOTOPIC;
+			}
+			else if (temp_string == "Average")
+			{
+				search_parameters_.mass_type = ProteinIdentification::AVERAGE;
+			}
 		}
 		else if (tag_ == "MODS")
 		{

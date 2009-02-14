@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -93,17 +93,17 @@ START_SECTION((double operator()(const PeakSpectrum &spec) const ))
 }
 END_SECTION
 
-START_SECTION((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
+START_SECTION((vector< pair<Size,Size> > getAlignmentTraceback(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
 {
 	PeakAlignment pa;
 	PeakSpectrum s1, s2;
 	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
 	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
-	vector< pair<UInt,UInt> > result, tester;
+	vector< pair<Size,Size> > result, tester;
 	result = pa.getAlignmentTraceback(s1,s2);
 	for (Size i = 0; i < 127; ++i)
 	{
-		tester.push_back(pair<UInt,UInt>(i,i));
+		tester.push_back(pair<Size,Size>(i,i));
 	}
 	TEST_EQUAL(tester.size(),result.size())
 	for (Size i = 0; i < tester.size(); ++i)

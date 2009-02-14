@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -97,14 +97,14 @@ START_SECTION(void setTolerance(double t))
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
 END_SECTION
 
-START_SECTION(unsigned int getNumberOfModifications())
+START_SECTION(Size getNumberOfModifications())
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
 	sa->setNumberOfModifications(0);
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(unsigned int number_of_mods))
+START_SECTION(void setNumberOfModifications(Size number_of_mods))
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
@@ -126,13 +126,13 @@ END_SECTION
 START_SECTION(const std::vector<String>& getTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
@@ -140,32 +140,32 @@ END_SECTION
 
 START_SECTION(void setUseTags(bool use_tags))
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 END_SECTION
 
 START_SECTION(bool getUseTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 END_SECTION
 
 START_SECTION(bool open(const String &file_name))
@@ -208,7 +208,7 @@ START_SECTION(void printStatistic())
 	//only for internal use
 END_SECTION
 
-START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)))
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
@@ -229,11 +229,11 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	spec.push_back(245.2816);
 	spec.push_back(387.4392);
 	vector<double> specc(spec);
-	vector<vector<pair<pair<int, int>, double> > > res;
+	vector<vector<pair<pair<SignedSize, SignedSize>, double> > > res;
 	sa->findSpec(res, specc);
 	
 	TEST_EQUAL(res.size(),specc.size());
-	for (Size i = 0; i < res.size(); i++)
+	for (Size i = 0; i < res.size(); ++i)
 	{
 		TEST_EQUAL(res.at(i).size(), 1);
 	}
@@ -273,14 +273,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	res.clear();
 	sa->findSpec(res, specc_new);
 	//checking for doubled results;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
-			for (Size k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();++k)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
-				
+				TEST_EQUAL(res[i][j].first.first==res[i][k].first.first && res[i][j].first.second==res[i][k].first.second, false);
 			}
 		}
 	}
@@ -290,13 +289,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 		
 	// checking if the mass of the found candidates is correct
 	// checking if the next character is not a P
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			double m = 18;
-			for (Size k = 0; k < seq.length();k++)
+			for (Size k = 0; k < seq.length();++k)
 			{
 				m += masse[(int)seq[k]];
 			}
@@ -308,15 +307,15 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 		}
 	}
 	// getting all candidates with tags 
-	int number_of_tags=0;
+	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (Size k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();++k)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -356,8 +355,8 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 				}
 			}
 			//if (!has_tag) std::cout <<seq<<std::endl;
-			TEST_EQUAL(has_tag,1);
-			TEST_EQUAL(res.at(i).at(j).second,0);
+			TEST_EQUAL(has_tag, true);
+			TEST_EQUAL(res.at(i).at(j).second, 0);
 			
 			res_with_tags.push_back(seq);
 		}

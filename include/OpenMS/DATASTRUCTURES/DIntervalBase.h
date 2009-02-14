@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -69,10 +69,9 @@ namespace OpenMS
 					Creates an empty interval with corners at infinity.
 				*/
 				DIntervalBase()
-					: min_(PositionType::max),
-						max_(PositionType::min_negative )
+					: min_(PositionType::max()),
+						max_(PositionType::min_negative())
 				{
-					
 				}
 				
 				/// Copy constructor
@@ -80,7 +79,6 @@ namespace OpenMS
 					: min_(rhs.min_),
 						max_(rhs.max_)
 				{
-					
 				}
 				
 				/// Assignment operator
@@ -94,7 +92,6 @@ namespace OpenMS
 				/// Destructor
 				~DIntervalBase() 
 				{
-					
 				}
 		
 				/**
@@ -329,12 +326,11 @@ namespace OpenMS
 		
 			template <UInt D>
 			DIntervalBase<D> const DIntervalBase<D>::zero
-			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero,
-																		 DIntervalBase<D>::PositionType::zero );
+			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero(), DIntervalBase<D>::PositionType::zero());
 			
 			template <UInt D>
-			DIntervalBase<D> const DIntervalBase<D>::empty
-				= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max, DIntervalBase<D>::PositionType::min_negative));
+			DIntervalBase<D> const DIntervalBase<D>::empty 
+			= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max(), DIntervalBase<D>::PositionType::min_negative()));
 			
 			///Print the contents to a stream.
 			template <UInt D>

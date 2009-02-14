@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -75,19 +75,12 @@ namespace OpenMS
 			@brief Similarity pairwise score 
 			
 			This function return the similarity score of two Spectrums based on SteinScott.
-			
-			@param spec1  const PeakSpectrum Spectrum 1
-			@param spec2  const PeakSpectrum Spectrum 2 
-	   	@see SteinScottImproveScore()
 		*/
 		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 		/**
 			@brief Similarity pairwise score itself 
 			
 			This function return the similarity score of itself based on SteinScott.
-			
-			@param spec  const PeakSpectrum Spectrum 1
-		  @see SteinScottImproveScore()
 		*/
 		double operator () (const PeakSpectrum& spec) const;
 		static PeakSpectrumCompareFunctor* create()
