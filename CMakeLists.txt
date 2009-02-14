@@ -815,8 +815,8 @@ if(APPLE)
 	# install the documentation and the tutorials
 	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
   install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-  install(DIRECTORY doc/OpenMS_tutorial DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-  install(DIRECTORY doc/TOPP_tutorial   DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+  install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
+  install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
 
 
 	include(CPack)
@@ -863,8 +863,8 @@ if(NOT MSVC AND NOT APPLE)
 	## install the documentation and the tutorials
 	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
 	install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-	install(DIRECTORY doc/OpenMS_tutorial DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-	install(DIRECTORY doc/TOPP_tutorial   DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+	install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc REGEX)
+	install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc REGEX)
 
 	set(CPACK_GENERATOR "RPM")
 	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
