@@ -440,7 +440,7 @@ namespace OpenMS
 			//@}
 		
 			/// ostream iterator to write the residue to a stream
-			friend std::ostream& operator << (std::ostream& os, const Residue& residue);
+			friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Residue& residue);
 
 		protected:
 
@@ -503,7 +503,7 @@ namespace OpenMS
 	
 	};
 	
-	std::ostream& operator << (std::ostream& os, const Residue& residue);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Residue& residue);
 
 	/// returns the ion name given as a residue type
 	String getResidueTypeName(Residue::ResidueType res_type);

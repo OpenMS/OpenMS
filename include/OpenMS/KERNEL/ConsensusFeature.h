@@ -391,7 +391,7 @@ namespace OpenMS
 	};
 
 	///Print the contents of a ConsensusFeature to a stream
-	std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
 

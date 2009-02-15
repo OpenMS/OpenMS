@@ -215,7 +215,7 @@ namespace OpenMS
 	}
 	
   ///Print the contents of a FeatureHandle to a stream.
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons);
+  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const FeatureHandle& cons);
   	
 } // namespace OpenMS
 

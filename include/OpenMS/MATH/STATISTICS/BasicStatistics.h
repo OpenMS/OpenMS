@@ -236,7 +236,7 @@ namespace OpenMS
 
 			@relatesalso BasicStatistics
 			*/
-			friend std::ostream & operator << ( std::ostream & os, BasicStatistics & arg )
+			friend OPENMS_DLLAPI std::ostream & operator << ( std::ostream & os, BasicStatistics & arg )
 			{
 				os << "BasicStatistics:  mean=" << arg.mean() << "  variance=" << arg.variance() << "  sum=" << arg.sum();
 				return os;

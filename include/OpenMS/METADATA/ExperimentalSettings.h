@@ -169,7 +169,7 @@ namespace OpenMS
   };
 
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const ExperimentalSettings& exp);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ExperimentalSettings& exp);
 
 } // namespace OpenMS
 

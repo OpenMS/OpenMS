@@ -126,7 +126,7 @@ namespace OpenMS
 			//@}
 
 			/// writes the element to an output stream
-			friend std::ostream& operator << (std::ostream& os, const Element& element);
+			friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Element& element);
 
 		protected:
 
@@ -149,7 +149,7 @@ namespace OpenMS
 			IsotopeDistribution isotopes_;
 	};
 
-	std::ostream& operator << (std::ostream&, const Element&);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream&, const Element&);
 
 } // namespace OpenMS
 

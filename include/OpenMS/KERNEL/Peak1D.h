@@ -239,7 +239,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const Peak1D& point);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Peak1D& point);
 
 } // namespace OpenMS
 

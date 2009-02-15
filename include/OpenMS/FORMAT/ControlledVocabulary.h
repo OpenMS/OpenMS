@@ -45,7 +45,7 @@ namespace OpenMS
 	*/
 	class OPENMS_DLLAPI ControlledVocabulary
 	{
-		friend std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv);
+		friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv);
 			
 		public:
 			/// Representation of a CV term
@@ -197,7 +197,7 @@ namespace OpenMS
 	};
 	
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv);
 	
 	
 } // namespace OpenMS

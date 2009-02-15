@@ -145,7 +145,7 @@ namespace OpenMS
   };
 
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const SpectrumSettings& spec);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const SpectrumSettings& spec);
 
 } // namespace OpenMS
 

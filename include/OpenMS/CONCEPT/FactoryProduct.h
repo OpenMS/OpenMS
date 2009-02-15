@@ -72,7 +72,7 @@ namespace OpenMS
   };
 
 	/// Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const FactoryProduct& prod);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const FactoryProduct& prod);
 
 }
 #endif // OPENMS_CONCEPT_FACTORYPRODUCT_H

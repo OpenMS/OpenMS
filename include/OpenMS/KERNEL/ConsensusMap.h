@@ -433,7 +433,7 @@ namespace OpenMS
 	};
 
   ///Print the contents of a ConsensusMap to a stream.
-  std::ostream& operator << (std::ostream& os, const ConsensusMap& cons_map);
+  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ConsensusMap& cons_map);
 
 } // namespace OpenMS
 
