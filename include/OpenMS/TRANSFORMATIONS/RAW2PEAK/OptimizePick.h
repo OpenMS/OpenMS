@@ -60,7 +60,7 @@ namespace OpenMS
                         + penalty_lwidth * pow(p_width_l - old_width_l, 2)
                         + penalty_rwidth * pow(p_width_r - old_width_r, 2);
     */
-    struct PenaltyFactors
+    struct OPENMS_DLLAPI PenaltyFactors
     {
       PenaltyFactors() : pos(0), lWidth(0), rWidth(0) {}
       PenaltyFactors(const PenaltyFactors& p) : pos(p.pos), lWidth(p.lWidth), rWidth(p.rWidth) {}

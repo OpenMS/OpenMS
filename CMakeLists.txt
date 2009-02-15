@@ -418,7 +418,7 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_
 
 ## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 if (MINGW OR MSVC)
-	set(BUILD_SHARED_LIBS false)
+	set(BUILD_SHARED_LIBS true)
 else()
 	set(BUILD_SHARED_LIBS true)
 endif()
@@ -481,11 +481,8 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-if (NOT APPLE)
-	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
-else()
-	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-endif()
+target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 set(OPENMS_LIBRARIES OpenMS)

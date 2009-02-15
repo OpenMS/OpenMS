@@ -49,7 +49,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	template <typename Value>
-	class OPENMS_DLLAPI SparseVector
+	class SparseVector
 	{
 
 		public:

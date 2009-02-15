@@ -230,7 +230,7 @@ namespace OpenMS
 			//@}
 
 			/// writes the formula to a stream
-			friend std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
+			friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 			/** @name Iterators
 			*/
@@ -253,7 +253,7 @@ namespace OpenMS
 			const ElementDB* element_db_;
 	};
 
-	std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
+	OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
 #endif

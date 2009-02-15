@@ -89,7 +89,7 @@ namespace OpenMS
 			String concatenate(const String& glue="") const;
 
 			/// output stream operator
-			friend std::ostream& operator<<(std::ostream& os, const StringList& p);
+			friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const StringList& p);
 
 	};
 

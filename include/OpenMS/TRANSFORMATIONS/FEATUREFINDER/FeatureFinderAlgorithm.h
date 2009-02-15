@@ -37,7 +37,7 @@ namespace OpenMS
 	class FeatureFinder;
 	
 	/// Summary of fitting results
-	struct Summary
+	struct OPENMS_DLLAPI Summary
 	{
 		std::map<String,UInt> exception; //count exceptions
 		UInt no_exceptions;

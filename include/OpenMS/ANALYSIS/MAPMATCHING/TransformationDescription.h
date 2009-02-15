@@ -173,7 +173,7 @@ namespace OpenMS
 
 		(The derived classes are defined in TransformationDescription.C .)
 		*/
-		struct Trafo_
+		struct OPENMS_DLLAPI Trafo_
 		{
 			Trafo_(const TransformationDescription&) {}
 			virtual void operator ()(DoubleReal& value) const = 0;
@@ -212,7 +212,7 @@ namespace OpenMS
 		
 	};
 
-	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td);
+	OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, TransformationDescription const & td);
 	
 } // end of namespace OpenMS
 

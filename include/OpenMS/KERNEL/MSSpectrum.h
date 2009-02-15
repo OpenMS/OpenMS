@@ -55,7 +55,7 @@ namespace OpenMS
 		@ingroup Kernel
 	*/
 	template <typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
-	class OPENMS_DLLAPI MSSpectrum
+	class MSSpectrum
 		: public DSpectrum< PeakT >,
 			public SpectrumSettings,
 			public PersistentObject

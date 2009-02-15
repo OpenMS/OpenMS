@@ -559,7 +559,7 @@ namespace OpenMS
 	};
 
 	///Output of Param to a stream.
-	std::ostream& operator<< (std::ostream& os, const Param& param);
+	OPENMS_DLLAPI std::ostream& operator<< (std::ostream& os, const Param& param);
 
 
 } // namespace OpenMS

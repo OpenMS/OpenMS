@@ -40,7 +40,7 @@ namespace OpenMS
 
     It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
   */
-  struct PeakShape
+  struct OPENMS_DLLAPI PeakShape
   {
 	  /** 
 	    @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).

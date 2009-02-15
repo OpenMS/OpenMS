@@ -85,7 +85,7 @@ namespace OpenMS
 			
 			
 			/// output stream operator
-			friend std::ostream& operator<<(std::ostream& os, const IntList& p);
+			friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const IntList& p);
 			
 	};
 

@@ -40,7 +40,7 @@ namespace OpenMS
 	class FeatureFinder;
 	
 	/**@brief The purpose of this struct is to provide definitions of classes and typedefs which are used throughout all FeatureFinder classes.  */
-	struct FeatureFinderDefs 
+	struct OPENMS_DLLAPI FeatureFinderDefs 
 	{	
 		/// Index to peak consisting of two UInts (scan index / peak index)	
 		typedef IsotopeCluster::IndexPair IndexPair;
