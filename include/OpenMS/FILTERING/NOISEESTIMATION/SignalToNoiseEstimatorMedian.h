@@ -60,7 +60,7 @@ namespace OpenMS
   */
   
   template < typename Container = MSSpectrum< > >
-  class OPENMS_DLLAPI SignalToNoiseEstimatorMedian : public SignalToNoiseEstimator< Container >
+  class SignalToNoiseEstimatorMedian : public SignalToNoiseEstimator< Container >
   {
 
   public:

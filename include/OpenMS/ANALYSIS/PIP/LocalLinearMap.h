@@ -47,7 +47,7 @@ namespace OpenMS
 		codebook vectors and the linear mappings (codebooks.data, linearMapping.data)
 		This is the default model used by PeakIntensityPredictor.
   */	
-	class LocalLinearMap
+	class OPENMS_DLLAPI LocalLinearMap
 	{
 	
 		public:	  
@@ -59,7 +59,7 @@ namespace OpenMS
 	  		grid structure. Parameter radius gives the width of the Gaussian
 	  		neighborhood function.
   		*/	
-			struct LLMParam 
+			struct OPENMS_DLLAPI LLMParam 
 			{
 				UInt xdim; /**< size of first coordinate */
 				UInt ydim; /**< size of second coordinate */

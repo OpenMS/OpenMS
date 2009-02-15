@@ -41,7 +41,7 @@ namespace OpenMS
  		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
  		be given in the MetaInfoInterface as the values 'MZ' and 'RT'.
   */
-  class IDMapper
+  class OPENMS_DLLAPI IDMapper
   {
     public:
 

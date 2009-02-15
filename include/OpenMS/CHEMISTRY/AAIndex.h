@@ -60,7 +60,7 @@ namespace OpenMS
 		
 		@ingroup Chemistry
 	*/
-	class AAIndex
+	class OPENMS_DLLAPI AAIndex
 	{
 		public:
 			

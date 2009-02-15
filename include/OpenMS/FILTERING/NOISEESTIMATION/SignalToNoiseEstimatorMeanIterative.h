@@ -59,7 +59,7 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
   template < typename Container = MSSpectrum< > >
-  class OPENMS_DLLAPI SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator< Container >
+  class SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator< Container >
   {
 
     public:

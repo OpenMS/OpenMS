@@ -54,7 +54,7 @@ namespace OpenMS
 		
 		@ingroup Analysis 
   */
-	class PeakIntensityPredictor
+	class OPENMS_DLLAPI PeakIntensityPredictor
 	{
 		
 		public:

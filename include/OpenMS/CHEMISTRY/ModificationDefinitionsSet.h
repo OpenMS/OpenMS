@@ -41,7 +41,7 @@ namespace OpenMS
 			@brief Representation of a set of modification definitions
 
 			This class enhances the modification definitions as defined in the 
-			class OPENMS_DLLAPI ModificationDefinition into a set of definitions. This is also
+			class ModificationDefinition into a set of definitions. This is also
 			e.g. used as input parameters  in search engines.
 	*/
 	class OPENMS_DLLAPI ModificationDefinitionsSet

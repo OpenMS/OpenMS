@@ -64,7 +64,7 @@ namespace OpenMS
 	  public:
 
 			/// Parameter entry used to store the actual information inside of a Param entry
-			struct ParamEntry
+			struct OPENMS_DLLAPI ParamEntry
 			{
 				/// Default constructor
 				ParamEntry();
@@ -92,7 +92,7 @@ namespace OpenMS
 			};
 			
 			///Node inside a Param object which is used to build the internal tree
-			struct ParamNode
+			struct OPENMS_DLLAPI ParamNode
 			{
 				///Iterator for child nodes
 				typedef std::vector<ParamNode>::iterator NodeIterator;
@@ -157,7 +157,7 @@ namespace OpenMS
 			{
 				public:
 					/// Struct that captures information on entered / left nodes for ParamIterator
-					struct TraceInfo
+					struct OPENMS_DLLAPI TraceInfo
 					{
 						inline TraceInfo(const String& n, const String& d, bool o)
 							: name(n),
