@@ -1229,6 +1229,7 @@ namespace OpenMS
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
 		IntList tmp_list = getParamAsIntList_(name, (IntList)p.default_value);
+
 		Int tmp;
 		for(IntList::iterator it = tmp_list.begin(); it < tmp_list.end();++it)
 		{
@@ -1310,6 +1311,12 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
+			//if the parameter has the correct type (ini file) no conversion is necessary
+			if (tmp.valueType()==DataValue::INT_VALUE)
+			{
+				return (Int)tmp;
+			}
+			//for the command line a conversion is necessary
 			try
 			{
 				return tmp.toString().toInt();
@@ -1330,6 +1337,12 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
+			//if the parameter has the correct type (ini file) no conversion is necessary
+			if (tmp.valueType()==DataValue::DOUBLE_VALUE)
+			{
+				return (DoubleReal)tmp;
+			}
+			//for the command line a conversion is necessary
 			try
 			{
 				return tmp.toString().toDouble();
@@ -1363,6 +1376,12 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if(!tmp.isEmpty())
 		{
+			//if the parameter has the correct type (ini file) no conversion is necessary
+			if (tmp.valueType()==DataValue::INT_LIST)
+			{
+				return (IntList)tmp;
+			}
+			//for the command line a conversion is necessary
 			StringList sl = (StringList)tmp;
 			IntList il;
 			il.resize(sl.size());
@@ -1391,6 +1410,12 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if(!tmp.isEmpty())
 		{
+			//if the parameter has the correct type (ini file) no conversion is necessary
+			if (tmp.valueType()==DataValue::DOUBLE_LIST)
+			{
+				return (DoubleList)tmp;
+			}
+			//for the command line a conversion is necessary
 			StringList sl = (StringList)tmp;
 			DoubleList dl;
 			dl.resize(sl.size());
