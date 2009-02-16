@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -40,9 +40,9 @@ START_TEST(PeakIntensityPredictor, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.001)
 
-AASequence seq1("ALEGDEK");
-AASequence seq2("GTVVTGR");
-AASequence seq3("EHVLLAR");
+AASequence seq1("LTSEAR");
+AASequence seq2("AEAQIR");
+AASequence seq3("TLEDAR");
 
 vector<AASequence> vec;
 vec.push_back(seq1);
@@ -62,10 +62,11 @@ END_SECTION
 
 START_SECTION(DoubleReal predict(const AASequence& sequence))
 	PeakIntensityPredictor pip;
-	TEST_REAL_SIMILAR(pip.predict(seq1), -2.594)
-	TEST_REAL_SIMILAR(pip.predict(seq2), 2.0006)
-	TEST_REAL_SIMILAR(pip.predict(seq3), 2.0006)
+	TEST_REAL_SIMILAR(pip.predict(seq1), -0.531675)
+	TEST_REAL_SIMILAR(pip.predict(seq2), 0.0171194)
+	TEST_REAL_SIMILAR(pip.predict(seq3), -0.595362)
 END_SECTION
+
 
 START_SECTION(DoubleReal predict(const AASequence& sequence, std::vector<DoubleReal>& add_info))
 	PeakIntensityPredictor pip;
@@ -73,16 +74,16 @@ START_SECTION(DoubleReal predict(const AASequence& sequence, std::vector<DoubleR
 	pip.predict(seq1,add_info);
 	TEST_EQUAL(add_info.size(),3)
 	TEST_REAL_SIMILAR(add_info[0],0.0)
-	TEST_REAL_SIMILAR(add_info[1],0.0)
-	TEST_REAL_SIMILAR(add_info[2],3.75203467)
+	TEST_REAL_SIMILAR(add_info[1],1.0)
+	TEST_REAL_SIMILAR(add_info[2],2.04653)
 END_SECTION
 
 START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& sequences))
 	PeakIntensityPredictor pip;
 	vector<DoubleReal> ref = pip.predict(vec);
-	TEST_REAL_SIMILAR(ref[0], -2.594)
-	TEST_REAL_SIMILAR(ref[1], 2.0006)
-	TEST_REAL_SIMILAR(ref[2], 2.0006)
+	TEST_REAL_SIMILAR(ref[0], -0.531675)
+	TEST_REAL_SIMILAR(ref[1], 0.0171194)
+	TEST_REAL_SIMILAR(ref[2], -0.595362)
 END_SECTION
 
 START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& sequences, std::vector<std::vector<DoubleReal> >& add_info))
@@ -94,15 +95,17 @@ START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& seq
 	TEST_EQUAL(add_info[1].size(),3)
 	TEST_EQUAL(add_info[2].size(),3)
 	TEST_REAL_SIMILAR(add_info[0][0],0.0)
-	TEST_REAL_SIMILAR(add_info[0][1],0.0)
-	TEST_REAL_SIMILAR(add_info[0][2],3.75203467)
+	TEST_REAL_SIMILAR(add_info[0][1],1.0)
+	TEST_REAL_SIMILAR(add_info[0][2],2.04653)
 	TEST_REAL_SIMILAR(add_info[1][0],0.0)
-	TEST_REAL_SIMILAR(add_info[1][1],0.0)
-	TEST_REAL_SIMILAR(add_info[1][2],3.0929077)
+	TEST_REAL_SIMILAR(add_info[1][1],1.0)
+	TEST_REAL_SIMILAR(add_info[1][2],2.30648)
 	TEST_REAL_SIMILAR(add_info[2][0],0.0)
-	TEST_REAL_SIMILAR(add_info[2][1],0.0)
-	TEST_REAL_SIMILAR(add_info[2][2],3.4937575)
+	TEST_REAL_SIMILAR(add_info[2][1],1.0)
+	TEST_REAL_SIMILAR(add_info[2][2],2.24984)
 END_SECTION
 
+
 END_TEST
+
 
