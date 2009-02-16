@@ -213,7 +213,7 @@ namespace OpenMS
 			}
 			output_combo_->addItems(arg_list);
 			pos = arg_list.indexOf("out");
-			if (pos!=-1)
+			if (pos!=-1 && getTool()!="FileInfo")
 			{
 				output_combo_->setCurrentIndex(pos);
 			}
@@ -409,7 +409,7 @@ namespace OpenMS
 		}
 		output_combo_->addItems(arg_list);
 		pos = arg_list.indexOf("out");
-		if (pos!=-1)
+		if (pos!=-1 && getTool()!="FileInfo")
 		{
 			output_combo_->setCurrentIndex(pos);
 		}
