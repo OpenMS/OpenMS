@@ -481,8 +481,11 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-
+if (NOT APPLE AND NOT MSVC)
+	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES}) ## do not link OpenMS against QT on Linux
+else()
+	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+endif()
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 set(OPENMS_LIBRARIES OpenMS)
