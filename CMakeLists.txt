@@ -266,10 +266,12 @@ endif()
 ########################################################
 
 ## define some directories
-if (DO_INSTALL)
-	set(CF_OPENMS_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
-else()
+if (INSTALL_PREFIX STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
+	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
+else()
+	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")	
+	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 endif()
 
 set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
@@ -433,6 +435,10 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/config.h.in ${CONFIGURED_CONF
 ###    BUILD the lib																 ###
 ########################################################
 
+set(BUILD_TESTING ON CACHE INTERNAL "What the hell does this variable do?" FORCE)
+set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
+set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
@@ -456,7 +462,7 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 ENDMACRO (QT4_WRAP_UI_OWN)
 
 ## big include file for headers and C files, which fills the OpenMS_sources variable
-include (includes.cmake)
+include (cmake/includes.cmake)
 
 ## needed for MSVC to locate Boost-Libs (put this above ADD_LIBRARY() - otherwise it will not work)
 link_directories(${CONTRIB_LIB_DIR})
@@ -583,32 +589,38 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
 
 ##### Examples #####
-set(EXAMPLES_executables)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
-include(source/EXAMPLES/executables.cmake)
-foreach(i ${EXAMPLES_executables})
-  add_executable(${i} source/EXAMPLES/${i}.C)
-  target_link_libraries(${i} ${OPENMS_LIBRARIES})
-endforeach(i)
-add_custom_target(EXAMPLES)
-add_dependencies(EXAMPLES ${EXAMPLES_executables})
-
+if (PACKAGE_TYPE STREQUAL "none")
+	set(EXAMPLES_executables)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
+	include(source/EXAMPLES/executables.cmake)
+	foreach(i ${EXAMPLES_executables})
+	  add_executable(${i} source/EXAMPLES/${i}.C)
+	  target_link_libraries(${i} ${OPENMS_LIBRARIES})
+	endforeach(i)
+	add_custom_target(EXAMPLES)
+	add_dependencies(EXAMPLES ${EXAMPLES_executables})
+endif()
 
 ##### Tests #####
-enable_testing()
-INCLUDE(Dart)
-add_subdirectory(source/TEST)
+
+if (PACKAGE_TYPE STREQUAL "none")
+	enable_testing()
+	INCLUDE(Dart)
+	add_subdirectory(source/TEST)
+endif()
 
 ##### TOPPtests #####
-add_subdirectory(source/TEST/TOPP)
+if (PACKAGE_TYPE STREQUAL "none")
+	add_subdirectory(source/TEST/TOPP)
+endif()
 
 #### configs for external include files, e.g. to develop code with OpenMS
 #get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
 #set(OPENMS_INCLUDE_EXTERNAL ${PROJECT_BINARY_DIR}/include)
 
 configure_file(
-	"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake.in"
-	"${PROJECT_SOURCE_DIR}/OpenMSConfig.cmake"
+	"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
+	"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake"
 	@ONLY
 )
 
@@ -770,106 +782,32 @@ MESSAGE(STATUS "")
 ## TODO:
 ##  - this code breaks the windows cmake call (already code for win support added .. needs testing)
 
+#package type
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
 
-# general definitions
-set(CPACK_PACKAGE_NAME "OpenMS")
-set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-set(CPACK_PACKAGE_VERSION "1.3.0")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "3")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
-set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/OpenMSPackageDescriptionFile.cmake)
-set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceWelomeFile.txt)
-set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceReadme.txt)
+if (NOT PACKAGE_TYPE STREQUAL "none")
 
-set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
-
-# install routines for MacOSX
-if(APPLE)
-
-	set(CPACK_GENERATOR "PackageMaker")
+	# general definitions
+	set(CPACK_PACKAGE_NAME "OpenMS")
+	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+	set(CPACK_PACKAGE_VERSION "1.3.0")
+	set(CPACK_PACKAGE_VERSION_MAJOR "1")
+	set(CPACK_PACKAGE_VERSION_MINOR "3")
+	set(CPACK_PACKAGE_VERSION_PATCH "0")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
+	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelomeFile.txt)
+	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 	
-	# the OpenMS library
-	install (TARGETS OpenMS
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		COMPONENT library)
-
-	# the TOPP tools
-	foreach(TOPP_exe ${TOPP_executables})
-		install(TARGETS ${TOPP_exe}
-			RUNTIME DESTINATION bin
-			BUNDLE DESTINATION /Applications/
-			COMPONENT applications)
-	endforeach()
-	
-	# share dir
-	install(DIRECTORY share/
-		DESTINATION share
-		COMPONENT share
-		REGEX ".svn" EXCLUDE)
-
-	# install the documentation and the tutorials
-	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
-  install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-  install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
-  install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
-
-
-	include(CPack)
-
-endif()
-
-if(NOT MSVC AND NOT APPLE)
-	## variables we need to distinguish 32Bit/64Bit versions
-	set(OPENMS_LIB_INSTALL_PATH "lib")
-	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86")
-	if (OPENMS_64BIT_ARCHITECTURE)
-		set(OPENMS_LIB_INSTALL_PATH "lib64")
-		set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+	# install routines for MacOSX
+	if(PACKAGE_TYPE STREQUAL "dmg")
+		include(cmake/package_dmg.cmake)
 	endif()
 
-  ## CPack installation and packaging procedures
-  install(TARGETS OpenMS 
-    LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
-    ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
-    COMPONENT library)
+	if(PACKAGE_TYPE STREQUAL "rpm")
+		include(cmake/package_rpm.cmake)
+	endif()
 
-  ## install utils
-  foreach(util ${UTILS_executables})
-    install(TARGETS ${util}
-      RUNTIME DESTINATION bin
-      BUNDLE DESTINATION bin
-      COMPONENT applications)
-  endforeach()
-
-  ## install TOPP Tools
-  foreach(TOPP_exe ${TOPP_executables})
-    INSTALL(TARGETS ${TOPP_exe} 
-      RUNTIME DESTINATION bin
-      BUNDLE DESTINATION bin
-      COMPONENT applications)
-  endforeach()
-
-  ## install share
-  INSTALL(DIRECTORY share/
-    DESTINATION share
-    COMPONENT share
-    REGEX ".svn" EXCLUDE)
-
-	## install the documentation and the tutorials
-	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
-	install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
-	install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc)
-	install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
-
-	set(CPACK_GENERATOR "RPM")
-	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
-	set(CPACK_COMPONENTS_ALL applications library share)
-
-	## should be the last include
-	include(CPack)
 endif()
