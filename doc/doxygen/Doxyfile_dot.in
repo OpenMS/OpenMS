@@ -37,16 +37,16 @@ SHOW_USED_FILES        = YES
 
 SHOW_DIRECTORIES       = YES
 
-WARN_LOGFILE           = ./doxygen/doxygen-dot-error.log
+WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doc/doxygen/doxygen-dot-error.log
 
-INPUT                  = ../include/OpenMS/ \
-                         ../source/ \
-                         ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
-                         ./TOPP_tutorial/TOPP_Tutorial.doxygen \
-                         ./TOPP_tutorial/TOPPView_Tutorial.doxygen \
-                         ./doxygen/public/ \
-												 ./doxygen/internal/ \
-												 ./doxygen/install/
+INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
+                         @CF_OPENMS_SRC_PATH@/source/ \
+                         @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen \
+                         @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/TOPP_Tutorial.doxygen \
+                         @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/TOPPView_Tutorial.doxygen \
+                         @CF_OPENMS_SRC_PATH@/doc//doxygen/public/ \
+												 @CF_OPENMS_SRC_PATH@/doc//doxygen/internal/ \
+												 @CF_OPENMS_SRC_PATH@/doc//doxygen/install/
 
 FILE_PATTERNS          = *.C \
                          *.h \
@@ -54,7 +54,7 @@ FILE_PATTERNS          = *.C \
 
 RECURSIVE              = YES
 
-EXCLUDE                = ../source/TEST/
+EXCLUDE                = @CF_OPENMS_SRC_PATH@/source/TEST/
 
 EXCLUDE_SYMLINKS       = NO
 
@@ -86,24 +86,10 @@ IGNORE_PREFIX          =
 # configuration options related to the HTML output
 #---------------------------------------------------------------------------
 GENERATE_HTML          = YES
-#HTML_OUTPUT            = ./html
-#HTML_FILE_EXTENSION    = .html
 HTML_HEADER            =
-HTML_FOOTER            = ./doxygen/common/footer.html
-#HTML_HEADER            = ./doxygen/common/header.html
-#HTML_FOOTER            = ./doxygen/common/footer.html
-#HTML_STYLESHEET        = 
-#HTML_ALIGN_MEMBERS     = YES
-#GENERATE_HTMLHELP      = NO
-#CHM_FILE               = 
-#HHC_LOCATION           = 
-#GENERATE_CHI           = NO
-#BINARY_TOC             = NO
-#TOC_EXPAND             = NO
-#DISABLE_INDEX          = YES
-#ENUM_VALUES_PER_LINE   = 4
+HTML_FOOTER            = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/footer.html
 
-HTML_OUTPUT            = ./html-dot
+HTML_OUTPUT            = @CF_OPENMS_BIN_PATH@/doc/html-dot
 
 DISABLE_INDEX          = NO
 
@@ -169,14 +155,6 @@ MAN_LINKS              = NO
 #---------------------------------------------------------------------------
 GENERATE_XML           = NO
 
-XML_OUTPUT             = ./doxygen/xml_output
-
-XML_SCHEMA             = 
-
-XML_DTD                = 
-
-XML_PROGRAMLISTING     = NO
-
 #---------------------------------------------------------------------------
 # configuration options for the AutoGen Definitions output
 #---------------------------------------------------------------------------
@@ -186,12 +164,6 @@ GENERATE_AUTOGEN_DEF   = NO
 # configuration options related to the Perl module output
 #---------------------------------------------------------------------------
 GENERATE_PERLMOD       = NO
-
-PERLMOD_LATEX          = NO
-
-PERLMOD_PRETTY         = YES
-
-PERLMOD_MAKEVAR_PREFIX = 
 
 #---------------------------------------------------------------------------
 # Configuration options related to the preprocessor   
@@ -260,7 +232,7 @@ DIRECTORY_GRAPH        = YES
 
 DOT_IMAGE_FORMAT       = png
 
-DOT_PATH               = ./doxygen
+DOT_PATH               = @CF_OPENMS_SRC_PATH@/doc/doxygen
 
 DOTFILE_DIRS           = 
 

@@ -31,7 +31,7 @@
 \begin{titlepage}
 \vspace*{7cm}
 \begin{center}
-{\Large OpenMS Tutorial\\[1ex]\large Version: 1.3 }\\
+{\Large TOPP and TOPPView Tutorial\\[1ex]\large Version: @CF_PACKAGE_VERSION@ }\\
 \end{center}
 \end{titlepage}
 
@@ -41,52 +41,41 @@
 \tableofcontents
 \pagebreak
 
-\section{Introduction}
+\section{TOPP Tutorial}
+	
+	\input{TOPP_general}
+	\pagebreak
+	\input{TOPP_example_handling}
+	\pagebreak
+	\input{TOPP_example_signalprocessing}
+	\pagebreak
+	\input{TOPP_example_calibration}
+	\pagebreak
+	\input{TOPP_example_mapalignment}
+	\pagebreak
+	\input{TOPP_example_featuredetection}
+	\pagebreak
+	\input{TOPP_example_featuregrouping}
+	\pagebreak
+	\input{TOPP_example_id}
+	\pagebreak
+	\input{TOPP_example_ppp}
+	\pagebreak
+	\input{TOPP_example_export}
 
-	\input{tutorial_general}
+\section{TOPPView Tutorial}
+	
+	\input{TOPPView_introduction}
 	\pagebreak
-	\input{tutorial_structure}
+	\input{TOPPView_views}
 	\pagebreak
-	\input{tutorial_terms}
-
-
-\pagebreak
-\section{Basic classes and concepts}
-
-	\input{tutorial_concept}
+	\input{TOPPView_modes}
 	\pagebreak
-	\input{tutorial_datastructures}
+	\input{TOPPView_analysis}
 	\pagebreak
-	\input{tutorial_chemistry}
+	\input{TOPPView_editing}
 	\pagebreak
-	\input{tutorial_kernel}
-	\pagebreak
-	\input{tutorial_metadata}
-	\pagebreak
-	\input{tutorial_format}
-
-
-\pagebreak
-\section{Algorithms}
-
-	\input{tutorial_filtering}
-	\pagebreak
-	\input{tutorial_transformations}
-	\pagebreak
-	\input{tutorial_mapalignment}
-	\pagebreak
-	\input{tutorial_featuregrouping}
-
-\pagebreak
-\section{Misc}
-
-	\input{tutorial_visual}
-	\pagebreak
-	\input{tutorial_clustering}
-	\pagebreak
-	\input{tutorial_pip}
-	\pagebreak
-	\input{tutorial_howto}
+	\input{TOPPView_hotkeys}
 
 
 \end{document}

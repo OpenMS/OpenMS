@@ -4,7 +4,6 @@
 PROJECT("OpenMS")
 
 # TODO LIST:
-# - install with prefix (chris) => enable this in the test (marc)
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
 # - parallel build of test executables
 
@@ -94,10 +93,10 @@ Message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 
 ## default build type (for Makefile generators): Release
 set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")
-if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
 	set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
-elseif (OPENMS_BUILD_TYPE STREQUAL "Release")
+elseif ("${OPENMS_BUILD_TYPE}" STREQUAL "Release")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (optimization enabled)")
 	set(CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
 else()
@@ -106,7 +105,7 @@ endif()
 
 ## user OPENMS DEBUG flag
 set(OPENMS_ASSERTIONS OFF CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!")
-if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
 	set(OPENMS_ASSERTIONS ON CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 endif()
 Message(STATUS "OpenMS assertion mode: ${OPENMS_ASSERTIONS}")
@@ -115,7 +114,7 @@ Message(STATUS "OpenMS assertion mode: ${OPENMS_ASSERTIONS}")
 set(STL_DEBUG OFF CACHE BOOL "[GCC only] Enable STL-DEBUG mode (very slow).")
 if (STL_DEBUG)
   if (CMAKE_COMPILER_IS_GNUCXX)
-		if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+		if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
 			# add compiler flag
     	add_definitions(/D_GLIBCXX_DEBUG)
     	Message(STATUS "STL debug mode: ${STL_DEBUG}")
@@ -147,7 +146,7 @@ set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib pat
 
 #message("CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
 
-if (CONTRIB_CUSTOM_DIR STREQUAL "")
+if ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
 	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
   message(STATUS "If you want to set your own path to contrib use -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\"")
 else()
@@ -157,7 +156,7 @@ endif()
 
 FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.3.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
 
-if (CONTRIB_CONFIRM_DIR STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
+if ("${CONTRIB_CONFIRM_DIR}" STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")
 endif()
 
@@ -180,13 +179,13 @@ message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
 ## @param human_libname Name of the library (for display only) 
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	FIND_LIBRARY(${varname}_OPT NAMES ${libnames} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} library dir" NO_DEFAULT_PATH)
-	if (${varname}_OPT STREQUAL "${varname}_OPT-NOTFOUND")
+	if ("${varname}_OPT" STREQUAL "${varname}_OPT-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} library! Searched names are: [${libnames}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
 	else()
 		MESSAGE(STATUS "Found ${human_libname} library at: " ${${varname}_OPT})
 	endif()
 	FIND_LIBRARY(${varname}_DBG NAMES ${libnames_d} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} (Debug) library dir" NO_DEFAULT_PATH)
-	if (${varname}_DBG STREQUAL "${varname}_DBG-NOTFOUND")
+	if ("${varname}_DBG" STREQUAL "${varname}_DBG-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} (Debug) library! Searched names are: [${libnames}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
 	else()
 		MESSAGE(STATUS "Found ${human_libname} library at: " ${${varname}_DBG})
@@ -254,7 +253,7 @@ find_program(SVNVERSION_EXECUTABLE
              PATHS "c:/programme/subversion/bin" "c:/program files/subversion/bin"   ### additional search paths (along with $PATH)
              DOC "svnversion executable which helps in determining the svn revision when building TOPP tools")
 
-if (SVNVERSION_EXECUTABLE STREQUAL "SVNVERSION_EXECUTABLE-NOTFOUND")
+if ("${SVNVERSION_EXECUTABLE}" STREQUAL "SVNVERSION_EXECUTABLE-NOTFOUND")
 	message(STATUS "The programm svnversion could not be found. SVN-revision information will not be available! Add the location of svnversion(.exe) to your PATH environment variable if you require SVN-revision.")
 	set(OPENMS_HAS_SVNVERSION OFF CACHE INTERNAL "SVNVersion(.exe) present?")
 else()
@@ -266,7 +265,7 @@ endif()
 ########################################################
 
 ## define some directories
-if (INSTALL_PREFIX STREQUAL ".")
+if ("${INSTALL_PREFIX}" STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 else()
@@ -395,41 +394,21 @@ set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database pl
 
 
 ########################################################
-###    configure Doxyfile														 ###
+###    Documentation    														 ###
 ########################################################
 
-# CF_PACKAGE_VERSION ##(already defined above in manual section)
-
-set(CF_OPENMS_PATH ${PROJECT_BINARY_DIR})
-
-## replace any variables in Doxyfile.in with current values
-configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
-
-## TODO: test this -> when building documentation, set in environment using svnversion before calling doxygen
-#set(CF_PACKAGE_REVISION_FILE)
-#if (OPENMS_HAS_SVNVERSION)
-#
-#	set(svnversion_file_h ${PROJECT_SOURCE_DIR}/source/CONCEPT/openms_svnversion) # file with version number
-#
-#	## ensure that the file is always rebuild
-#  add_custom_target(svnversion_file_target ALL ${SVNVERSION_EXECUTABLE} -n ${PROJECT_SOURCE_DIR} > ${svnversion_file_h} COMMENT "Call svnversion in project directory to generate openms_svnversion.txt")
-#	set(CF_PACKAGE_REVISION_FILE ${svnversion_file_h})
-#	#file(READ ${svnversion_file_h} ENV_OPENMS_REVISION) # read revision from file
-#	#set($ENV{OPENMS_REVISION} ${ENV_OPENMS_REVISION}) # set environment variable e.g. for doxygen
-#endif()
-
-## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
-set(BUILD_SHARED_LIBS true)
-
-
-## replace any variables in config.h.in with current values
-set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
-configure_file(${PROJECT_SOURCE_DIR}/source/config/config.h.in ${CONFIGURED_CONFIG_H})
-
+include(cmake/doc.cmake)
 
 ########################################################
 ###    BUILD the lib																 ###
 ########################################################
+
+## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
+set(BUILD_SHARED_LIBS true)
+
+## replace any variables in config.h.in with current values
+set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
+configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/config.h.in ${CONFIGURED_CONFIG_H})
 
 set(BUILD_TESTING ON CACHE INTERNAL "What the hell does this variable do?" FORCE)
 set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
@@ -571,8 +550,7 @@ endforeach(i)
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
-
-##### Doc progs ######
+##### Doc progs ####
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
 foreach(i ${OpenMS_doc_executables})
@@ -585,7 +563,7 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
 
 ##### Examples #####
-if (PACKAGE_TYPE STREQUAL "none")
+if ("${PACKAGE_TYPE}" STREQUAL "none")
 	set(EXAMPLES_executables)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 	include(source/EXAMPLES/executables.cmake)
@@ -598,7 +576,7 @@ if (PACKAGE_TYPE STREQUAL "none")
 endif()
 
 ##### Tests #####
-if (PACKAGE_TYPE STREQUAL "none")
+if ("${PACKAGE_TYPE}" STREQUAL "none")
 	enable_testing()
 	INCLUDE(Dart)
 	if (MSVC) ## have CTest find the OpenMS DLL when executing the tests
@@ -608,9 +586,10 @@ add_subdirectory(source/TEST)
 endif()
 
 ##### TOPPtests #####
-if (PACKAGE_TYPE STREQUAL "none")
+if ("${PACKAGE_TYPE}" STREQUAL "none")
 	add_subdirectory(source/TEST/TOPP)
 endif()
+
 
 #### configs for external include files, e.g. to develop code with OpenMS
 #get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
@@ -665,6 +644,8 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
 										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
 										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    doc            builds the doxygen documentation and tutorials"
+										COMMAND ${CMAKE_COMMAND} -E echo "    tutorials      builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
@@ -783,7 +764,7 @@ MESSAGE(STATUS "")
 #package type
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
 
-if (NOT PACKAGE_TYPE STREQUAL "none")
+if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
 	# general definitions
 	set(CPACK_PACKAGE_NAME "OpenMS")
@@ -800,11 +781,11 @@ if (NOT PACKAGE_TYPE STREQUAL "none")
 	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 	
 	# install routines for MacOSX
-	if(PACKAGE_TYPE STREQUAL "dmg")
+	if("${PACKAGE_TYPE}" STREQUAL "dmg")
 		include(cmake/package_dmg.cmake)
 	endif()
 
-	if(PACKAGE_TYPE STREQUAL "rpm")
+	if("${PACKAGE_TYPE}" STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
 

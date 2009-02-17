@@ -41,7 +41,7 @@
 			<LI><B>I am new to %OpenMS. What should i do first?</B><BR>
 				<OL>
 					<LI> Check out the developement version of %OpenMS (see website).
-					<LI> (Linux) Build the internal documentation (use 'make idoc' instead of 'make doc' in <%OpenMS>/doc).
+					<LI> (Linux) Build the internal documentation (use 'make idoc' instead of 'make doc').
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
@@ -349,7 +349,7 @@ svn propset svn:eol-style native MyClass.C
 				@code
 @htmlinclude OpenMS_<class name>.parameters
 				@endcode
-				You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
+				You can test if everything worked by calling @a make @a paramdoc .
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>How is the command line documentation for TOPP tools created?</b><BR>
@@ -359,7 +359,7 @@ svn propset svn:eol-style native MyClass.C
 				@code
 @verbinclude TOPP_<tool name>.cli
 				@endcode
-				You can test if everything worked by calling @a make @a toppdoc in @a OpenMS/doc/.
+				You can test if everything worked by calling @a make @a paramdoc .
 				The comand line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>What are the important files for adding a new tutorial section?</b><BR>
