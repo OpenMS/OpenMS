@@ -33,7 +33,7 @@ set(CF_PACKAGE_VERSION "1.3" CACHE INTERNAL "OpenMS VERSION" FORCE)
 # quick manual for most commands: http://www.cmake.org/cmake/help/cmake2.6docs.html
 # useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 if (CMAKE_SIZEOF_VOID_P MATCHES "8")
