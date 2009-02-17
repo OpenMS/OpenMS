@@ -406,6 +406,9 @@ include(cmake/doc.cmake)
 ###    BUILD the lib																 ###
 ########################################################
 
+#package type
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
+
 ## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 set(BUILD_SHARED_LIBS true)
 
@@ -761,9 +764,6 @@ MESSAGE(STATUS "")
 ##### install/copy (cpack mainly) #####
 ## TODO:
 ##  - this code breaks the windows cmake call (already code for win support added .. needs testing)
-
-#package type
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
 
 if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
