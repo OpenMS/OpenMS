@@ -418,8 +418,8 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/config.h.in ${CONFIGURED_CON
 
 set(BUILD_TESTING ON CACHE INTERNAL "What the hell does this variable do?" FORCE)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 
 MACRO (QT4_WRAP_UI_OWN outfiles )
   QT4_EXTRACT_OPTIONS(ui_files ui_options ${ARGN})
@@ -449,7 +449,6 @@ link_directories(${CONTRIB_LIB_DIR})
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
-
 
 ## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
@@ -596,18 +595,17 @@ endif()
 
 
 #### configs for external include files, e.g. to develop code with OpenMS
-#get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
-#set(OPENMS_INCLUDE_EXTERNAL ${PROJECT_BINARY_DIR}/include)
+
 
 configure_file(
 	"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
-	"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake"
+	"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
 	@ONLY
 )
 
 include(CMakeExportBuildSettings)
-cmake_export_build_settings(${OpenMS_BINARY_DIR}/OpenMSBuildSettings.cmake)
-export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
+cmake_export_build_settings(${PROJECT_BINARY_DIR}/OpenMSBuildSettings.cmake)
+export_library_dependencies(${PROJECT_BINARY_DIR}/OpenMSLibraryDepends.cmake)
 ## TODO install these files to a specific location to have a standard way to be used with external code
 
 ##### targets list #####
