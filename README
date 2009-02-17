@@ -13,8 +13,7 @@ documentation (doc/index.html).
 
 If this is a development version obtained via SVN or as
 nightly snapshot, you need to build the documentation first.
-Please execute 'make help' in the doc/ folder for more information.
-
+The target 'doc' is used for this purpose.
 
 ------------------------------
 --       TOPP tools         --
