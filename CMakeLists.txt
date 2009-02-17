@@ -589,7 +589,7 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
 
 ##### Examples #####
-if (${PACKAGE_TYPE} STREQUAL "none")
+if (PACKAGE_TYPE STREQUAL "none")
 	set(EXAMPLES_executables)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 	include(source/EXAMPLES/executables.cmake)
@@ -603,14 +603,14 @@ endif()
 
 ##### Tests #####
 
-if (${PACKAGE_TYPE} STREQUAL "none")
+if (PACKAGE_TYPE STREQUAL "none")
 	enable_testing()
 	INCLUDE(Dart)
 	add_subdirectory(source/TEST)
 endif()
 
 ##### TOPPtests #####
-if (${PACKAGE_TYPE} STREQUAL "none")
+if (PACKAGE_TYPE STREQUAL "none")
 	add_subdirectory(source/TEST/TOPP)
 endif()
 
@@ -785,7 +785,7 @@ MESSAGE(STATUS "")
 #package type
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
 
-if (NOT ${PACKAGE_TYPE} STREQUAL "none")
+if (NOT PACKAGE_TYPE STREQUAL "none")
 
 	# general definitions
 	set(CPACK_PACKAGE_NAME "OpenMS")
@@ -802,11 +802,11 @@ if (NOT ${PACKAGE_TYPE} STREQUAL "none")
 	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 	
 	# install routines for MacOSX
-	if(${PACKAGE_TYPE} STREQUAL "dmg")
+	if(PACKAGE_TYPE STREQUAL "dmg")
 		include(cmake/package_dmg.cmake)
 	endif()
 
-	if(${PACKAGE_TYPE} STREQUAL "rpm")
+	if(PACKAGE_TYPE STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
 
