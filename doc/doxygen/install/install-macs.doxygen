@@ -86,8 +86,8 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
-      <td valign="top">CMAKE_INSTALL_PREFIX</td>
-      <td>(NOT SUPPORTED YET) the path where the library is installed.
+      <td valign="top">INSTALL_PREFIX</td>
+      <td>the path where the library is installed.
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
           Please use this option to point CMake to the location %OpenMS should
