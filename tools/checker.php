@@ -33,18 +33,13 @@
 	######################## helper functions ###############################
 	function printUsage()
 	{
-		print "Usage: checker.php <Absolute path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
+		print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
 		print "\n";
 		print "This script works only if an OpenMS copy is used, where\n";
 		print "- the internal documentation was built,\n";
 		print "- all tests were executed.\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
-		print "\n";
-		
-		print "Note:\n";
-		print "If the script does not have enough memory available, use:\n";
-		print "> php -d memory_limit=1000M checker.php\n";
 		print "\n";
 		print "tests:\n";
 		foreach ($GLOBALS["all_tests"] as $name => $desc)
@@ -119,9 +114,9 @@
 		if (beginsWith($argv[$i],"-"))
 		{
 			#no path given
-			if ($i==1)
+			if ($i<3)
 			{
-				print "\nError: No path given!\n\n";
+				print "\nError: No paths given!\n\n";
 				printUsage();
 				exit;
 			}
@@ -145,11 +140,21 @@
 	#remove slash from path
 	if (endsWith($argv[1],"/"))
 	{
-		$path = substr($argv[1],0,-1);
+		$src_path = substr($argv[1],0,-1);
 	}
 	else
 	{
-		$path = $argv[1];
+		$src_path = $argv[1];
+	}
+
+	#remove slash from path
+	if (endsWith($argv[2],"/"))
+	{
+		$bin_path = substr($argv[2],0,-1);
+	}
+	else
+	{
+		$bin_path = $argv[2];
 	}
 
 	#debug
@@ -214,8 +219,7 @@
 		{
 			print "Rebuilding doxygen XML output\n";
 		}
-		exec("cd $path/doc/doxygen/ && rm -rf html_output xml_output");
-		exec("cd $path/doc/ && make idoc");
+		exec("cd $bin_path && make idoc");
 		if ($debug>0)
 		{
 			print "Done\n";
@@ -226,26 +230,26 @@
 	
 	$abort = false;
 	$out = array();
-	exec("cd $path/doc/doxygen/xml_output/ && ls -a *.xml | wc -l",$out);
+	exec("cd $bin_path/doc/xml_output/ && ls -a *.xml | wc -l",$out);
 	if (trim($out[0]) < 100)
 	{
 		print "Error: For this script, doxygen XML output is needed!\n";
-		print "       Please execute 'make idoc' in '$path/doc/'.\n";
+		print "       Please execute 'make idoc' first!.\n";
 		$abort = true;
 	}
 	if (in_array("doxygen_errors",$tests))
 	{
-		if (!file_exists("$path/doc/doxygen/doxygen-error.log"))
+		if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
 		{
-			print "Error: For the 'doxygen_errors' test, the file '$path/doc/doxygen/doxygen-error.log' is needed!\n";
-			print "       Please execute 'make idoc' in '$path/doc/'.\n";
+			print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
+			print "       Please execute 'make idoc' first!'.\n";
 			$abort = true;
 		}
 	}
 	$test_log = array(); //Array from test name to warnings/errors
 	if (in_array("test_output",$tests) || in_array("topp_output",$tests))
 	{
-		if (!file_exists("$path/Testing/Temporary/LastTest.log"))
+		if (!file_exists("$bin_path/Testing/Temporary/LastTest.log"))
 		{
 			print "Error: For the tests 'test_output' and 'topp_output', the test log is needed!\n";
 			print "       Please execute 'make test'.\n";
@@ -254,7 +258,7 @@
 		else
 		{
 			$current_test_name = "";
-			$log_file = file("$path/Testing/Temporary/LastTest.log");
+			$log_file = file("$bin_path/Testing/Temporary/LastTest.log");
 			foreach ($log_file as $line)
 			{
 				if (ereg("[0-9]+/[0-9]+ Testing: (.*)",$line,$parts))
@@ -276,8 +280,8 @@
 	########################### MAINTAINERS ################################
 	
 	$files=array();
-	exec("cd $path && find include/OpenMS/ -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+	exec("cd $src_path && find include/OpenMS/ -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
+	exec("cd $src_path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 	
 	//look up Maintainer in first 40 lines of files
 	
@@ -288,7 +292,7 @@
 	foreach ($files as $f)
 	{
 		$maintainerline = array();
-		exec("cd $path && head -40 $f | grep Maintainer ", $maintainerline);
+		exec("cd $src_path && head -40 $f | grep Maintainer ", $maintainerline);
 		if (count($maintainerline) == 0)
 		{
 			if ($user=="all")
@@ -357,7 +361,7 @@
 	
 	########################### auxilary files #############################
 	$called_tests = array();
-	$makefile = file("$path/source/TEST/executables.cmake");
+	$makefile = file("$src_path/source/TEST/executables.cmake");
 	foreach($makefile as $line)
 	{
 		$line = trim($line);
@@ -378,7 +382,7 @@
 	if (in_array("doxygen_errors",$tests))
 	{
 		$doxygen_errors = array();
-		$errorfile = file("$path/doc/doxygen/doxygen-error.log");
+		$errorfile = file("$bin_path/doc/doxygen/doxygen-error.log");
 		foreach($errorfile as $line)
 		{
 			if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
@@ -419,7 +423,7 @@
 		$testname = "source/TEST/".$classname."_test.C";
 		
 		// file content
-		$file = file($path."/".$f);
+		$file = file($src_path."/".$f);
 		
 		######################### load class info ################################
 		$dont_load = array(
@@ -445,7 +449,7 @@
 
 		if (!endsWith($f,"_impl.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
 		{
-			$class_info = getClassInfo($path,$f,$debug);
+			$class_info = getClassInfo($bin_path,$f,$debug);
 		}
 		else
 		{
@@ -604,7 +608,7 @@
 					if (count($hits)==1)
 					{
 						//print "$f -> $hits[0]\n";
-						if (!file_exists($path."/".$hits[0]))
+						if (!file_exists($src_path."/".$hits[0]))
 						{
 							realOutput("Outdated test file '$f'",$user,$f);
 						}
@@ -613,7 +617,7 @@
 				//source file -> look for header
 				else if (endsWith($f,".C"))
 				{
-					if (!file_exists($path."/include/OpenMS/".substr($f,7,-2).".h"))
+					if (!file_exists($src_path."/include/OpenMS/".substr($f,7,-2).".h"))
 					{
 						realOutput("Outdated source file '$f'",$user,$f);
 					}
@@ -680,7 +684,7 @@
 			if (in_array($testname,$files))
 			{
  				#parse test
- 				$tmp = parseTestFile("$path/$testname");
+ 				$tmp = parseTestFile("$src_path/$testname");
  				$todo_tests = $tmp["todo"];
 				$tests2 = $tmp["tests"];
 								
@@ -812,7 +816,7 @@
 				if (in_array($testname,$files))
 				{
 					$out = array();
-					exec("svn proplist -v $path/$testname",$out);
+					exec("svn proplist -v $src_path/$testname",$out);
 					$kw = false;
 					foreach ($out as $line)
 					{
@@ -841,7 +845,7 @@
 				//check if defaults are set in .h file
 				$is_dph = false;
 				$output = array();
-				exec("grep -l defaults_.setValue $path/$f", $output);
+				exec("grep -l defaults_.setValue $src_path/$f", $output);
 				if ($output!=array())
 				{
 					$is_dph = true;
@@ -849,7 +853,7 @@
 				//check if defaults are set in .C file
 				else
 				{
-					$c_file = "$path/source/".substr($f,15,-2).".C";
+					$c_file = "$src_path/source/".substr($f,15,-2).".C";
 					if (file_exists($c_file))
 					{
 						exec("grep -l defaults_.setValue $c_file", $output);
@@ -863,7 +867,7 @@
 				if ($is_dph)
 				{
 					$output = array();
-					exec("grep -l OpenMS_".$classname.".parameters $path/$f", $output);
+					exec("grep -l OpenMS_".$classname.".parameters $src_path/$f", $output);
 					if ($output==array())
 					{
 						realOutput("Missing reference to parameters page in '$f' unless abstract base class",$user,$f);
@@ -877,7 +881,7 @@
 	################### doxygen errors in .doxygen-files  ##########################
 	if ($user == "all" && in_array("doxygen_errors",$tests) )
 	{
-		$file = file("$path/doc/doxygen/doxygen-error.log");
+		$file = file("$bin_path/doc/doxygen/doxygen-error.log");
 		foreach ($file as $line)
 		{
 			$line = trim($line);

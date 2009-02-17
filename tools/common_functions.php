@@ -189,7 +189,7 @@ function parseMaintainerLine($line)
 	
 	@return Returns the parses information
 */
-function getClassInfo($path,$header, $debug)
+function getClassInfo($bin_path,$header, $debug)
 {
 	$members = array(
 		"classname" => substr(basename($header),0,-2),
@@ -200,10 +200,10 @@ function getClassInfo($path,$header, $debug)
 		);
 
 	######################## needed stuff ###############################
-	if (!file_exists("$path/doc/doxygen/xml_output/"))
+	if (!file_exists("$bin_path/doc/xml_output/"))
 	{
-		print "Error: The directory '$path/doc/doxygen/xml_output/' is needed!\n";
-		print "       Please execute 'make idoc' in '$path/doc/'.\n";
+		print "Error: The directory '$bin_path/doc/xml_output/' is needed!\n";
+		print "       Please execute 'make idoc' first!\n";
 	}
 	
 	######################## load file ###############################
@@ -217,7 +217,7 @@ function getClassInfo($path,$header, $debug)
 	foreach ($paths as $p)
 	{
 		//find class
-		$tmp = "$path/doc/doxygen/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
+		$tmp = "$bin_path/doc/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
 		if (file_exists($tmp))
 		{
 			$class = simplexml_load_file($tmp);
@@ -227,7 +227,7 @@ function getClassInfo($path,$header, $debug)
 		//find struct
 		else
 		{
-			$tmp = "$path/doc/doxygen/xml_output/structOpenMS_1_1".$p.$members["classname"].".xml";
+			$tmp = "$bin_path/doc/xml_output/structOpenMS_1_1".$p.$members["classname"].".xml";
 			if (file_exists($tmp))
 			{
 				$class = simplexml_load_file($tmp);
