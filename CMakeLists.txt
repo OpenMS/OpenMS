@@ -49,6 +49,12 @@ endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long)
+	
+	## Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
+	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
+		add_definitions(-fmessage-length=0)
+	endif()
+
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
