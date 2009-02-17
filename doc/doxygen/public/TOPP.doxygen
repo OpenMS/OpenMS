@@ -78,6 +78,9 @@
 	- @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
  	- @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
 	- @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+	- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications. 	 
+	- @subpage TOPP_PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
+
 
 	<b>Peptide property prediction</b>
  	- @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
