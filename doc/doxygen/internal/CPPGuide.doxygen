@@ -116,6 +116,19 @@ class OPENMS_DLLAPI Myclass
 { ...
 @endcode
 
+It is enough to prefix the class with the macro (do not prefix the members or member functions).
+
+OPENMS_DLLAPI is also required for structs, global variables and global functions, as long as they are not templates.<br>
+Never prefix templates with OPENMS_DLLAPI!<br>
+The only exeption to this rule is when a template is fully specialized (i.e. it can be instanciated).
+
+A prominent global function is "operator <<", which is overloaded quite often for OpenMS classes.
+Unless it is templatized, prefix it with OPENMS_DLLAPI. If the operator is declared a friend of some class, also make sure the
+friend statement also contains the OPENMS_DLLAPI keyword. Otherwise you will get inconsistent DLL-linkage.
+
+If you forget the OPENMS_DLLAPI keyword, the DLL will have missing symbols and executables might not be able to link against it!
+
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Pointers versus references</H2>
 
 If you do not have really good reasons to do so, do not use pointers.

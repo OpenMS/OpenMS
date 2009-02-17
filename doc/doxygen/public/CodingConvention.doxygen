@@ -173,7 +173,7 @@ the test is compiles.
 Each %OpenMS class should provide the following interface:
 
 @code
-class Test
+class OPENMS_DLLAPI Test
 {
   public:
     
@@ -211,6 +211,7 @@ There are however circumstances that allow to omit these methods:
   Can be omitted when it will not be used anyway, e.g. for classes that represent an anlgorithm.
   In this case you should declare the assignment operator private!
 
+The OPENMS_DLLAPI macro on the first line is required for correctly building the DLL. The correct usage of this macro is explained in the OpenMS C++ guide!
 
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">General rules</H1>
