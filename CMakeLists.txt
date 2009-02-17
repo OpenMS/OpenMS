@@ -264,6 +264,9 @@ endif()
 ###    configure config.h														 ###
 ########################################################
 
+set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
+set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
+
 ## define some directories
 if ("${INSTALL_PREFIX}" STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
@@ -411,8 +414,6 @@ set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/config.h.in ${CONFIGURED_CONFIG_H})
 
 set(BUILD_TESTING ON CACHE INTERNAL "What the hell does this variable do?" FORCE)
-set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
-set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
