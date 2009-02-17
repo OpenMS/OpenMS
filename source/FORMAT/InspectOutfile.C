@@ -881,7 +881,7 @@ namespace OpenMS
 		source_database.close();
 		source_database.clear();
 		
-		// if no known start seperator is found
+		// if no known start separator is found
 		if (sequence_start_label.empty())
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "database has unknown file format (neither trie nor FASTA nor swissprot)" , source_database_filename);

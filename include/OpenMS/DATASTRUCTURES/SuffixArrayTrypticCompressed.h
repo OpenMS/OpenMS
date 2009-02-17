@@ -39,7 +39,7 @@ namespace OpenMS {
 	@brief Class that implements a suffix array for a String. It can be used to find peptide Candidates for a MS spectrum
 
 	This class implements a suffix array. It can just be used for finding peptide Candidates for a given MS Spectrum within a certain mass tolerance. The suffix array can be saved to disc for reused so it has to be build just once. The suffix array consits of a vector of pair of ints for every suffix, a vector of LCP values and a so called skip vector.
-	Only the sufices that are matching the function isDigestingEnd are created. Besides a suffix will not reach till the end of the string but till the next occurence of the seperator ($). So only the interessting sufices will be saved. This will reduce the used space.
+	Only the sufices that are matching the function isDigestingEnd are created. Besides a suffix will not reach till the end of the string but till the next occurence of the separator ($). So only the interessting sufices will be saved. This will reduce the used space.
 */
 
 class OPENMS_DLLAPI SuffixArrayTrypticCompressed : public SuffixArray {
@@ -171,7 +171,7 @@ protected:
 	/**
 	@brief gets the index of the next sperator for a given index
 	@param p const SignedSize describing a position in the string
-	@return SignedSize with the index of the next occurence of the sperator or -1 if there is no more seperator
+	@return SignedSize with the index of the next occurence of the sperator or -1 if there is no more separator
 	*/
 	SignedSize getNextSep_(const SignedSize p) const;
 

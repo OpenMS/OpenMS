@@ -105,7 +105,7 @@ struct FloatsWithTolLess : public binary_function<double , double, bool>
 };
 
 
-// gets the index of the next seperator character
+// gets the index of the next separator character
 SignedSize SuffixArrayTrypticCompressed::getNextSep_(const SignedSize p) const
 {
 	for (Size i = (p+1); i < s_.length();++i)
