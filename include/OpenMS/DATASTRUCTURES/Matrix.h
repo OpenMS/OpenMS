@@ -349,8 +349,7 @@ namespace OpenMS
 
 	}; // class Matrix
 
-	template<>
-	gsl_matrix* Matrix<double>::toGslMatrix();
+	template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
 	
 	/**@brief Print the contents to a stream.
 

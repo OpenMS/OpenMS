@@ -52,7 +52,7 @@ namespace OpenMS
   */
   
   template <typename ClusterPoint = DPosition<2> >
-  class OPENMS_DLLAPI HierarchicalClustering : public DefaultParamHandler
+  class HierarchicalClustering : public DefaultParamHandler
   {
     public:
     

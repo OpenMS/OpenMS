@@ -83,10 +83,10 @@ namespace OpenMS
     };
 
     /// Positions and intensity values of the raw data
-    extern std::vector<double> positions_;
-    extern std::vector<double> signal_;
+    extern OPENMS_DLLAPI std::vector<double> positions_;
+    extern OPENMS_DLLAPI std::vector<double> signal_;
     /// This container contains the peak shapes to be optimized
-    extern std::vector<PeakShape> peaks_;
+    extern OPENMS_DLLAPI std::vector<PeakShape> peaks_;
 
     /// Evaluation of the target function for nonlinear optimization.
     int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);

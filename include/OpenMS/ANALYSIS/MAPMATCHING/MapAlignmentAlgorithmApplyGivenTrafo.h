@@ -41,7 +41,7 @@ namespace OpenMS
 
 		@ingroup MapAlignment
 	*/
-	class MapAlignmentAlgorithmApplyGivenTrafo
+	class OPENMS_DLLAPI MapAlignmentAlgorithmApplyGivenTrafo
 		: public MapAlignmentAlgorithm
 	{
 	 public:

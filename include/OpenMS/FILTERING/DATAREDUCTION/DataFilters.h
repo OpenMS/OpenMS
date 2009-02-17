@@ -72,7 +72,7 @@ namespace OpenMS
 			};
 
 			///Representation of a peak/feature filter combining FilterType, FilterOperation and a value
-			struct DataFilter
+			struct OPENMS_DLLAPI DataFilter
 			{
 				///Default constructor
 				DataFilter()

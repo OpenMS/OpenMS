@@ -49,9 +49,9 @@ namespace OpenMS
 
   namespace OptimizationFunctions
   {
-    extern std::vector<PeakShape> peaks_DC_;
-    extern std::vector<DoubleReal> positions_DC_;
-    extern std::vector<DoubleReal> signal_DC_;
+    OPENMS_DLLAPI extern std::vector<PeakShape> peaks_DC_;
+    OPENMS_DLLAPI extern std::vector<DoubleReal> positions_DC_;
+    OPENMS_DLLAPI extern std::vector<DoubleReal> signal_DC_;
 
 		/**
 			 @brief Class for the penalty factors used during the optimization.
@@ -59,7 +59,7 @@ namespace OpenMS
 			 A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
 			 During the optimization negative heights may occur, they are penalised as well.
 		*/
-    struct PenaltyFactorsIntensity : public PenaltyFactors
+    struct OPENMS_DLLAPI PenaltyFactorsIntensity : public PenaltyFactors
     {
       PenaltyFactorsIntensity():PenaltyFactors(),height(0){}
       PenaltyFactorsIntensity(const PenaltyFactorsIntensity& p) : PenaltyFactors(p), height(p.height) {}

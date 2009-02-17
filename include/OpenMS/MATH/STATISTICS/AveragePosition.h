@@ -46,7 +46,7 @@ namespace OpenMS
 			 need something for your application field. (Clemens)
 		*/
 		template < UInt D >
-		class OPENMS_DLLAPI AveragePosition
+		class AveragePosition
 		{
 		 public:
 

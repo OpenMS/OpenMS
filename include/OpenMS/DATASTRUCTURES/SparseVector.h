@@ -456,7 +456,7 @@ namespace OpenMS
 			@brief class ValueProxy allows the SparseVector to differentiate between writing and reading, so zeros can be ignored
 			See "more effective c++" section 30
 		*/
-		class OPENMS_DLLAPI ValueProxy
+		class ValueProxy
 		{
 
 			public:
@@ -600,7 +600,7 @@ namespace OpenMS
 			@brief random access iterator for SparseVector
 			including the hop() function to jump to the next non-sparse element
 		*/
-		class OPENMS_DLLAPI SparseVectorIterator
+		class SparseVectorIterator
 		{
 			friend class SparseVector<Value>;
 			friend class SparseVectorConstIterator;
@@ -819,7 +819,7 @@ namespace OpenMS
 			@brief random access reverse iterator for SparseVector
 			including the hop() function to jump to the next non-sparse element
 		*/
-		class OPENMS_DLLAPI SparseVectorReverseIterator
+		class SparseVectorReverseIterator
 		{
 			friend class SparseVector<Value>;
 			friend class SparseVectorConstReverseIterator;
@@ -1034,7 +1034,7 @@ namespace OpenMS
 		};//end of class SparseVectorReverseIterator
 
 		/// const_iterator for SparseVector
-		class OPENMS_DLLAPI SparseVectorConstIterator
+		class SparseVectorConstIterator
 		{
 				friend class SparseVector<Value>;
 				friend class SparseVectorIterator;
@@ -1242,7 +1242,7 @@ namespace OpenMS
 		};	//end of class	SparseVectorConstIterator
 
 		/// const_reverse_iterator for SparseVector
-		class OPENMS_DLLAPI SparseVectorConstReverseIterator
+		class SparseVectorConstReverseIterator
 		{
 			friend class SparseVector<Value>;
 

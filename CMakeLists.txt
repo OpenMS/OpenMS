@@ -419,11 +419,7 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_
 #endif()
 
 ## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
-if (MINGW OR MSVC)
-	set(BUILD_SHARED_LIBS true)
-else()
-	set(BUILD_SHARED_LIBS true)
-endif()
+set(BUILD_SHARED_LIBS true)
 
 
 ## replace any variables in config.h.in with current values
@@ -602,11 +598,13 @@ if (PACKAGE_TYPE STREQUAL "none")
 endif()
 
 ##### Tests #####
-
 if (PACKAGE_TYPE STREQUAL "none")
 	enable_testing()
 	INCLUDE(Dart)
-	add_subdirectory(source/TEST)
+	if (MSVC) ## have CTest find the OpenMS DLL when executing the tests
+		SET (CTEST_ENVIRONMENT "PATH=${LIBRARY_OUTPUT_DIRECTORY};$ENV{PATH}")
+	endif()
+add_subdirectory(source/TEST)
 endif()
 
 ##### TOPPtests #####
