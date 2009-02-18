@@ -55,8 +55,6 @@ using namespace std;
  The primary goal of this tool is to create a readable format
  for Excel and OpenOffice.
 
- @todo Support consensusXML the same way as all other inputs - separator, first column indicator, no_ids flag (Andreas, Marc)
-
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_TextExporter.cli
  */
@@ -171,7 +169,7 @@ namespace OpenMS
         setValidFormats_("in", StringList::create(
           "featureXML,consensusXML,idXML"));
         registerOutputFile_("out", "<file>", "",
-          "Output file. Only used for FeatureXML and IdXML.", false);
+          "Output file. Mandatory for FeatureXML and IdXML.", false);
         registerStringOption_(
           "separator",
           "<sep>",
@@ -346,12 +344,6 @@ namespace OpenMS
         }
         else if ( in_type == FileTypes::CONSENSUSXML )
         {
-          //				if ( out != "" )
-          //				{
-          //					writeLog_("Option 'out' is not functional for Consensusxml.  Use the 'consensus_...' options instead.");
-          //					printUsage_();
-          //					return ILLEGAL_PARAMETERS;
-          //				}
 
           String consensus_centroids = getStringOption_("consensus_centroids");
           String consensus_elements = getStringOption_("consensus_elements");
@@ -544,6 +536,9 @@ namespace OpenMS
                 __PRETTY_FUNCTION__, out);
             }
 
+            outstr << "#  Consensus features extracted from " << in << " on "
+                << date_time_now << std::endl;
+
             std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
             std::vector<FeatureHandle> feature_handles;
@@ -554,18 +549,67 @@ namespace OpenMS
                 FeatureHandle::CoordinateType>::quiet_NaN());
             feature_handle_NaN.setIntensity(std::numeric_limits<
                 FeatureHandle::IntensityType>::quiet_NaN());
-            // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max());
+            feature_handle_NaN.setCharge(0); // just to be sure...
+            // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max()); // alternative ??
 
+            // Its hard to predict which meta keys will be used in file descriptions.
+            // So we assemble a list each time.  Using String, not UInt, for implicit sorting.
+            std::set<String> all_file_desc_meta_keys;
+            std::vector<UInt> tmp_meta_keys;
             for ( ConsensusMap::FileDescriptions::const_iterator fdit =
                 consensus_map.getFileDescriptions().begin(); fdit
                 != consensus_map.getFileDescriptions().end(); ++fdit )
             {
               map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
               map_num_to_map_id.push_back(fdit->first);
+              fdit->second.getKeys(tmp_meta_keys);
+              for ( std::vector<UInt>::const_iterator kit =
+                  tmp_meta_keys.begin(); kit != tmp_meta_keys.end(); ++kit )
+              {
+                all_file_desc_meta_keys.insert(
+                  MetaInfoInterface::metaRegistry().getName(*kit));
+              }
             }
 
-            outstr << "#  Consensus features extracted from " << in << " on "
-                << date_time_now << std::endl;
+            outstr << "#MAP" << sep << "id" << sep << "filename" << sep
+                << "label" << sep << "size";
+            for ( std::set<String>::const_iterator kit =
+                all_file_desc_meta_keys.begin(); kit
+                != all_file_desc_meta_keys.end(); ++kit )
+            {
+              outstr << sep << *kit;
+            }
+            outstr << std::endl;
+
+            // list of maps (intentionally at the beginning, contrary to order in consensusXML)
+            for ( ConsensusMap::FileDescriptions::const_iterator fdit =
+                consensus_map.getFileDescriptions().begin(); fdit
+                != consensus_map.getFileDescriptions().end(); ++fdit )
+            {
+              if ( no_ids )
+              {
+                outstr << "#";
+              }
+              outstr << "MAP" << sep << fdit->first << sep
+                  << ( fdit->second.filename.empty() ? "\"\""
+                      : fdit->second.filename ) << sep
+                  << ( fdit->second.label.empty() ? "\"\"" : fdit->second.label )
+                  << sep << fdit->second.size;
+              for ( std::set<String>::const_iterator kit =
+                  all_file_desc_meta_keys.begin(); kit
+                  != all_file_desc_meta_keys.end(); ++kit )
+              {
+                if ( fdit->second.metaValueExists(*kit) )
+                {
+                  outstr << sep << fdit->second.getMetaValue(*kit);
+                }
+                else
+                {
+                  outstr << sep << "\"\""; // default is "" - reasonable?
+                }
+              }
+              outstr << std::endl;
+            }
 
             // stores one consensus feature per line
             if ( no_ids )
@@ -583,6 +627,7 @@ namespace OpenMS
             }
             else
             {
+
               outstr << "#CONSENSUS" << sep << "rt_cf" << sep << "mz_cf" << sep
                   << "intensity_cf" << sep << "charge_cf";
               for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
@@ -593,10 +638,201 @@ namespace OpenMS
                     << map_id;
               }
               outstr << std::endl;
+
+              outstr << "#RUN" << sep << "RunID" << sep << "ScoreType" << sep
+                  << "ScoreDirection" << sep << "Date/Time" << sep
+                  << "SearchEngineVersion" << sep << "Parameters" << std::endl;
+
+              outstr << "#PROTEIN" << sep << "Score" << sep << "Rank" << sep
+                  << "Accession" << sep << "Sequence" << std::endl;
+
+              outstr << "#UNASSIGNEDPEPTIDE" << sep << "rt" << sep << "mz"
+                  << sep << "score" << sep << "rank" << sep << "sequence"
+                  << sep << "charge" << sep << "AA_before" << sep << "AA_after"
+                  << sep << "score_type" << sep << "search_identifier" <<
+              // not sure if accessions really make sense, but it's copy&paste code anyway and predicted_RT is sensible
+                  sep << "accessions" << sep << "predicted_RT" << std::endl;
+
+              // protein accessions, predicted_RT
+
               outstr << "#PEPTIDE" << sep << "rt" << sep << "mz" << sep
                   << "score" << sep << "rank" << sep << "sequence" << sep
                   << "charge" << sep << "AA_before" << sep << "AA_after" << sep
                   << "score_type" << sep << "search_identifier" << std::endl;
+
+            }
+
+            //  proteins and unassigned peptides
+            if ( !no_ids )
+            {
+              // proteins
+              {
+                for ( vector<ProteinIdentification>::const_iterator it =
+                    consensus_map.getProteinIdentifications().begin(); it
+                    != consensus_map.getProteinIdentifications().end(); ++it )
+                {
+                  String actual_id = it->getIdentifier();
+                  // protein id header
+                  outstr << "RUN" << sep << actual_id << sep
+                      << it->getScoreType() << sep;
+                  if ( it->isHigherScoreBetter() )
+                  {
+                    outstr << "higher-score-better" << sep;
+                  }
+                  else
+                  {
+                    outstr << "lower-score-better" << sep;
+                  }
+                  // using ISODate ensures that TOPP tests will run through regardless of locale setting
+                  outstr
+                      << it->getDateTime().toString(Qt::ISODate).toStdString()
+                      << sep << it->getSearchEngineVersion() << sep;
+
+                  // search parameters
+                  ProteinIdentification::SearchParameters sp =
+                      it->getSearchParameters();
+                  outstr << "db=" << sp.db << ", db_version=" << sp.db_version
+                      << ", taxonomy=" << sp.taxonomy << ", charges="
+                      << sp.charges << ", mass_type=";
+                  if ( sp.mass_type == ProteinIdentification::MONOISOTOPIC )
+                  {
+                    outstr << "monoisotopic";
+                  }
+                  else
+                  {
+                    outstr << "average";
+                  }
+                  outstr << ", fixed_modifications=";
+                  for ( vector<String>::const_iterator mit =
+                      sp.fixed_modifications.begin(); mit
+                      != sp.fixed_modifications.end(); ++mit )
+                  {
+                    if ( mit != sp.fixed_modifications.begin() )
+                    {
+                      outstr << ";";
+                    }
+                    outstr << *mit;
+                  }
+                  outstr << ", variable_modifications=";
+                  for ( vector<String>::const_iterator mit =
+                      sp.variable_modifications.begin(); mit
+                      != sp.variable_modifications.end(); ++mit )
+                  {
+                    if ( mit != sp.variable_modifications.begin() )
+                    {
+                      outstr << ";";
+                    }
+                    outstr << *mit;
+                  }
+                  outstr << ", enzyme=";
+                  switch ( sp.enzyme )
+                  {
+                    case ProteinIdentification::TRYPSIN:
+                      outstr << "Trypsin";
+                      break;
+                    case ProteinIdentification::PEPSIN_A:
+                      outstr << "PepsinA";
+                      break;
+                    case ProteinIdentification::PROTEASE_K:
+                      outstr << "ProteaseK";
+                      break;
+                    case ProteinIdentification::CHYMOTRYPSIN:
+                      outstr << "ChymoTrypsin";
+                      break;
+                    default:
+                      outstr << "unknown";
+                  }
+                  outstr << ", missed_cleavages=" << sp.missed_cleavages
+                      << ", peak_mass_tolerance=" << sp.peak_mass_tolerance
+                      << ", precursor_mass_tolerance="
+                      << sp.precursor_tolerance << endl;
+
+                  for ( vector<ProteinHit>::const_iterator pit =
+                      it->getHits().begin(); pit != it->getHits().end(); ++pit )
+                  {
+                    outstr << "PROTEIN" << sep << pit->getScore() << sep
+                        << pit->getRank() << sep << pit->getAccession() << sep
+                        << pit->getSequence() << endl;
+                  }
+                }
+              }
+
+              // unassigned peptides
+              {
+                for ( vector<PeptideIdentification>::const_iterator pit =
+                    consensus_map.getUnassignedPeptideIdentifications().begin(); pit
+                    != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit )
+                {
+                  for ( vector<PeptideHit>::const_iterator ppit =
+                      pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit )
+                  {
+                    outstr << "UNASSIGNEDPEPTIDE" << sep;
+                    if ( pit->metaValueExists("RT") )
+                    {
+                      outstr << (DoubleReal) pit->getMetaValue("RT") << sep;
+                    }
+                    else
+                    {
+                      outstr << "-1" << sep;
+                    }
+
+                    if ( pit->metaValueExists("MZ") )
+                    {
+                      outstr << (DoubleReal) pit->getMetaValue("MZ") << sep;
+                    }
+                    else
+                    {
+                      outstr << "-1" << sep;
+                    }
+                    outstr << ppit->getScore() << sep << ppit->getRank() << sep
+                        << ppit->getSequence() << sep << ppit->getCharge()
+                        << sep << ppit->getAABefore() << sep
+                        << ppit->getAAAfter() << sep << pit->getScoreType()
+                        << sep << pit->getIdentifier() << sep;
+
+                    for ( vector<String>::const_iterator ait =
+                        ppit->getProteinAccessions().begin(); ait
+                        != ppit->getProteinAccessions().end(); ++ait )
+                    {
+                      if ( ait != ppit->getProteinAccessions().begin() )
+                      {
+                        outstr << ";";
+                      }
+                      outstr << *ait;
+                    }
+                    if ( ppit->metaValueExists("predicted_RT") )
+                    {
+                      outstr << sep << ppit->getMetaValue("predicted_RT");
+                    }
+                    else
+                    {
+                      outstr << sep << "-1";
+                    }
+                    /* first_dim_... stuff not supported for now */
+                    //  if ( first_dim_rt )
+                    //  {
+                    //    if ( pit->metaValueExists("first_dim_rt") )
+                    //    {
+                    //      outstr << sep << pit->getMetaValue("first_dim_rt");
+                    //    }
+                    //    else
+                    //    {
+                    //      outstr << sep << "-1";
+                    //    }
+                    //    if ( ppit->metaValueExists("predicted_RT_first_dim") )
+                    //    {
+                    //      outstr << sep << ppit->getMetaValue(
+                    //        "predicted_RT_first_dim");
+                    //    }
+                    //    else
+                    //    {
+                    //      outstr << sep << "-1";
+                    //    }
+                    //  }
+                    outstr << std::endl;
+                  }
+                }
+              }
             }
 
             for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit
