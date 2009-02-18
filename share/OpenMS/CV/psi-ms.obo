@@ -3303,6 +3303,7 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000506
@@ -4039,6 +4040,7 @@ id: MS:1000618
 name: highest wavelength value
 def: "Highest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1000808 ! chromatogram attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 relationship: has_units UO:0000018 ! nanometer
 
@@ -4047,6 +4049,7 @@ id: MS:1000619
 name: lowest wavelength value
 def: "Lowest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1000808 ! chromatogram attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 relationship: has_units UO:0000018 ! nanometer
 
@@ -4119,7 +4122,8 @@ def: "Threshold below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
-relationship: has_units MS:1000132 ! percent of base peak 
+relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000630
@@ -4134,7 +4138,8 @@ def: "Threshold above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
-relationship: has_units MS:1000132 ! percent of base peak 
+relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000632
@@ -5084,7 +5089,8 @@ def: "Threshold at or below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
-relationship: has_units MS:1000132 ! percent of base peak 
+relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000788
@@ -5093,7 +5099,8 @@ def: "Threshold at or above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
-relationship: has_units MS:1000132 ! percent of base peak 
+relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000789
@@ -5252,16 +5259,14 @@ xref: value-type:xsd\:string "The allowed value-type for this CV term."
 [Term]
 id: MS:1000810
 name: mass chromatogram
-def: "A plot of the relative abundance of a beam or other collection of
-ions as a function of the retention time." [PSI:MS]
+def: "A plot of the relative abundance of a beam or other collection of ions as a function of the retention time." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000626 ! chromatogram type
 
 [Term]
 id: MS:1000811
 name: electromagnetic radiation chromatogram 
-def: "The measurement of electromagnetic properties as a function of the
-retention time." [PSI:MS]
+def: "The measurement of electromagnetic properties as a function of the retention time." [PSI:MS]
 synonym: "EMR radiation chromatogram" EXACT []
 is_a: MS:1000524 ! data file content
 is_a: MS:1000626 ! chromatogram type
@@ -5269,18 +5274,23 @@ is_a: MS:1000626 ! chromatogram type
 [Term]
 id: MS:1000812
 name: absorption chromatogram 
-def: "The measurement of light absorbed by the sample as a function of
-the retention time." [PSI:MS]
+def: "The measurement of light absorbed by the sample as a function of the retention time." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000811 ! electromagnetic radiation chromatogram 
 
 [Term]
 id: MS:1000813
 name: emission chromatogram  
-def: "The measurement of light emitted by the sample as a function of
-the retention time." [PSI:MS]
+def: "The measurement of light emitted by the sample as a function of the retention time." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000811 ! electromagnetic radiation chromatogram 
+
+[Term]
+id: MS:1000814
+name: counts per second
+def: "The number of counted events observed per second in one or a group of elements of a detector." [PSI:MS]
+is_a: MS:1000043 ! intensity unit
+
 
 [Typedef]
 id: has_units
