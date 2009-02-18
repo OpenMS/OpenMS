@@ -6,6 +6,9 @@ if (OPENMS_64BIT_ARCHITECTURE)
 	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
 endif()
 
+## increase this variable if the _PACKAGE_ changes
+set(CPACK_RPM_PACKAGE_RELEASE 1)
+
 ## CPack installation and packaging procedures
 install(TARGETS OpenMS 
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
@@ -41,7 +44,7 @@ install(FILES doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc
 install(FILES doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc)
 
 set(CPACK_GENERATOR "RPM")
-set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
+#set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
 set(CPACK_COMPONENTS_ALL applications library share)
 
 ## should be the last include
