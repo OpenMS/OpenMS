@@ -455,6 +455,13 @@ link_directories(${CONTRIB_LIB_DIR})
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
+if (MSVC) ## this must immediately follow 'ADD_LIBARY'!!!
+	## save the dll_library dir for later adaption of PATH when executing the tests
+	set(OPENMS_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+	## this is vulnerable to renaming of configuration and use of anything other than Debug or Release configuration in Visual Studio
+	set(OPENMS_DLL_PATH_EXTENSION ";${OPENMS_DLL_DIRECTORY};${OPENMS_DLL_DIRECTORY}/Release;${OPENMS_DLL_DIRECTORY}/Debug;")
+endif()
+
 
 ## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
@@ -589,7 +596,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	enable_testing()
 	INCLUDE(Dart)
 	if (MSVC) ## have CTest find the OpenMS DLL when executing the tests
-		SET (CTEST_ENVIRONMENT "PATH=${LIBRARY_OUTPUT_DIRECTORY};$ENV{PATH}")
+		SET (CTEST_ENVIRONMENT "PATH=${OPENMS_DLL_PATH_EXTENSION};$ENV{PATH}")
 	endif()
 add_subdirectory(source/TEST)
 endif()
