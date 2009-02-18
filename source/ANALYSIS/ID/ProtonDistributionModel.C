@@ -316,7 +316,7 @@ namespace OpenMS
 		return;
 	}
 	
-	void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence& peptide, int charge, Residue::ResidueType res_type)
+	void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence& peptide, int charge, Residue::ResidueType /*res_type*/)
 	{
 		//cerr << "void ProtonDistributionModel::calculateProtonDistributionGreater2_(" << peptide << ", " << charge << ", res_type=" << res_type << ")" << endl;
 		//double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");

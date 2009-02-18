@@ -1484,9 +1484,6 @@ namespace OpenMS
 			bb_sum = (double)param_.getValue("charge_directed_threshold");
 		}
     
-    double bb_avg = (bb_sum - bb_charges[0]) / (double)(bb_charges.size() - 1);
-
-
     // side-chain activiation
 		double side_chain_activation(param_.getValue("side_chain_activation"));
 		for (Size i = 0; i != peptide.size(); ++i)
