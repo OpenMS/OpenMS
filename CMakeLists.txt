@@ -791,4 +791,8 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 		include(cmake/package_rpm.cmake)
 	endif()
 
+	if("${PACKAGE_TYPE}" STREQUAL "deb")
+		include(cmake/package_deb.cmake)
+	endif()
+
 endif()
