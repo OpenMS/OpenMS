@@ -646,7 +646,7 @@ START_SECTION("TEST_REAL_SIMILAR()")
 }
 END_SECTION
 
-#if 0
+#if 1
 
 START_SECTION("TEST_STRING_SIMILAR")
 {
@@ -693,9 +693,13 @@ START_SECTION("TEST_STRING_SIMILAR")
 					const double nj = numbers[j];
 					const OpenMS::String& sj = number_strings[j];
 
-					// Bypass the macros to avoid lengthy output. These functions do the real job.
-					const bool ne = TEST::isRealSimilar(ni,nj);
-					const bool se = TEST::testStringSimilar(si,sj);
+          // Bypass the macros to avoid lengthy output. These functions do the real job.
+          bool save = TEST::test;
+          const bool ne = TEST::isRealSimilar(ni,nj);
+          TEST::testStringSimilar(__FILE__,__LINE__,si,"si",sj,"sj");
+          const bool se = TEST::this_test;
+          TEST::this_test = true;
+          TEST::test = save;
 
 					if ( se != ne || compare_always )
 					{
