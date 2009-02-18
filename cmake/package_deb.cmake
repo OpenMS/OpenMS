@@ -1,10 +1,5 @@
 ## variables we need to distinguish 32Bit/64Bit versions
-set(OPENMS_LIB_INSTALL_PATH "lib32")
-#set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386")
-if (OPENMS_64BIT_ARCHITECTURE)
-	set(OPENMS_LIB_INSTALL_PATH "lib")
-	#set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "x86_64")
-endif()
+set(OPENMS_LIB_INSTALL_PATH "lib")
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "bertsch@informatik.uni-tuebingen.de")
 

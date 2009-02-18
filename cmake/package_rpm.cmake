@@ -1,9 +1,7 @@
 ## variables we need to distinguish 32Bit/64Bit versions
 set(OPENMS_LIB_INSTALL_PATH "lib")
-#set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86")
 if (OPENMS_64BIT_ARCHITECTURE)
 	set(OPENMS_LIB_INSTALL_PATH "lib64")
-	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
 endif()
 
 ## increase this variable if the _PACKAGE_ changes
