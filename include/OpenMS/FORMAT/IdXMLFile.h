@@ -60,7 +60,20 @@ namespace OpenMS
 		
 			/// Constructor
 			IdXMLFile();
-			
+		
+
+
+			/**
+				@brief Loads the identifications of an IdXML file without identifier
+				
+				The information is read in and the information is stored in the
+				corresponding variables
+
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+
 			/**
 				@brief Loads the identifications of an IdXML file
 				
