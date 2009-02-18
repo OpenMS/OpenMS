@@ -793,5 +793,6 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	if("${PACKAGE_TYPE}" STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
-
+else()
+	CMAKE_EXPORT_BUILD_SETTINGS(cmake/OpenMSBuildSettings.cmake)
 endif()
