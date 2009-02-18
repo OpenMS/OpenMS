@@ -49,7 +49,8 @@ namespace OpenMS
 {
 
 	PILISNeutralLossModel::PILISNeutralLossModel()
-		: DefaultParamHandler("PILISNeutralLossModel")
+		: DefaultParamHandler("PILISNeutralLossModel"),
+			num_explicit_(0)
 	{	
 		defaults_.setValue("fragment_mass_tolerance", 0.4, "Peak mass tolerance of the product ions, used to identify the ions for training");
 		
@@ -78,7 +79,8 @@ namespace OpenMS
 
 	PILISNeutralLossModel::PILISNeutralLossModel(const PILISNeutralLossModel& model)
 		: DefaultParamHandler(model),
-			hmm_precursor_(model.hmm_precursor_)
+			hmm_precursor_(model.hmm_precursor_),
+			num_explicit_(model.num_explicit_)
 	{
 	}
 
@@ -88,6 +90,7 @@ namespace OpenMS
 		{
 			DefaultParamHandler::operator=(model);
 	    hmm_precursor_ = model.hmm_precursor_;
+			num_explicit_ = model.num_explicit_;
 		}
 		return *this;
 	}

@@ -73,14 +73,15 @@ namespace OpenMS
 	{	
 		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum");
 		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
-		defaults_.setValue("charge_remote_threshold", 0.1, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
-		defaults_.setValue("charge_directed_threshold", 0.1, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
+		defaults_.setValue("charge_remote_threshold", 0.3, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
+		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
 		defaults_.setValue("model_depth", 10, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
 		defaults_.setValue("fragment_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
 		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:09997"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
+		defaults_.setValue("min_enhancement_factor", 2.0, "Minimal factor for bxyz backbone cleavages.");
 						
 		defaults_.setValue("min_y_ion_intensity", 0.0, ".");
 		defaults_.setValue("min_b_ion_intensity", 0.0, ".");
@@ -88,7 +89,7 @@ namespace OpenMS
 		defaults_.setValue("min_y_loss_intensity", 0.0, ".");
 		defaults_.setValue("min_b_loss_intensity", 0.0, ".");
 
-		defaults_.setValue("side_chain_activation", 0.15, "Additional activation of proton sitting at side chain, especially important at lysin and histidine residues");
+		defaults_.setValue("side_chain_activation", 0.2, "Additional activation of proton sitting at side chain, especially important at lysin and histidine residues");
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
@@ -340,7 +341,6 @@ namespace OpenMS
 
 	void PILISModel::writeToFile(const String& filename)
 	{
-		
 		#ifdef SIM_DEBUG
 		cerr << "writing to file '" << file_name << "'" << endl;
 		#endif
@@ -373,7 +373,6 @@ namespace OpenMS
     out << "B2ION_LOSS_MODEL_CD_BEGIN" << endl;
     b2_ion_losses_cd_.getHMM().write(out);
     out << "B2ION_LOSS_MODEL_CD_END" << endl;
-
 
     out << "AION_LOSS_MODEL_CR_BEGIN" << endl;
     a_ion_losses_cr_.getHMM().write(out);
@@ -558,10 +557,12 @@ namespace OpenMS
       }
 
 			// end state is always needed
-			hmm_.setTrainingEmissionProbability("end"+pos_name, 1.0/(double(peptide.size() - 1)));
+			hmm_.setTrainingEmissionProbability("end"+pos_name, 0.5/(double(peptide.size() - 1)));
 			if (!is_charge_remote)
 			{
-				hmm_.setTrainingEmissionProbability("AA"+pos_name, sum_a_ints + sum_b_ints + sum_y_ints);
+				//hmm_.setTrainingEmissionProbability("AA"+pos_name, sum_a_ints + sum_b_ints + sum_y_ints);
+				hmm_.enableTransition("AA" + pos_name, aa1 + aa2 + "_bxyz" + pos_name);
+				hmm_.enableTransition("AA" + pos_name, aa1 + aa2 + "_axyz" + pos_name);
 
 				// now enable the states
 				hmm_.enableTransition("BB"+pos_name, "AA"+pos_name);
@@ -620,7 +621,8 @@ namespace OpenMS
 						suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
 					}
 
-					hmm_.setTrainingEmissionProbability("A"+pos_name, pre_emission_prob +  suf_emission_prob);
+					//hmm_.setTrainingEmissionProbability("A"+pos_name, pre_emission_prob +  suf_emission_prob);
+					hmm_.enableTransition("A" + pos_name, aa2 + "_" + String(*it) + pos_name);
 
 					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
 					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", String(*it) + "_" + pos_name + "-prefix-ions");
@@ -653,7 +655,8 @@ namespace OpenMS
 						suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
 					}
 
-					hmm_.setTrainingEmissionProbability("Ak-1", pre_emission_prob + suf_emission_prob);
+					//hmm_.setTrainingEmissionProbability("Ak-1", pre_emission_prob + suf_emission_prob);
+					hmm_.enableTransition("Ak-1", aa1 + "_bk-1");
 
 
 					hmm_.setTransitionProbability("bk-1", "bk-1_-prefix", 1.0);
@@ -685,7 +688,8 @@ namespace OpenMS
             suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
           }
 
-          hmm_.setTrainingEmissionProbability("Ak-2", pre_emission_prob + suf_emission_prob);
+          //hmm_.setTrainingEmissionProbability("Ak-2", pre_emission_prob + suf_emission_prob);
+					hmm_.enableTransition("Ak-2", aa1 + "_bk-2");
 
 
           hmm_.setTransitionProbability("bk-2", "bk-2_-prefix", 1.0);
@@ -722,7 +726,8 @@ namespace OpenMS
 						suf_emission_prob += y_sc_ints[z - 1] * sum_y[z];
 					}
 
-					hmm_.setTrainingEmissionProbability("ASC"+pos_name, pre_emission_prob + suf_emission_prob);
+					//hmm_.setTrainingEmissionProbability("ASC"+pos_name, pre_emission_prob + suf_emission_prob);
+					hmm_.enableTransition("ASC" + pos_name, aa2 + "_" + String(*it) + pos_name);
 
 					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
 					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-suffix", 1.0);
@@ -930,9 +935,9 @@ namespace OpenMS
 
 					hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
 					hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
-					hmm_.enableTransition("A"+pos_name, aa2+"_D"+pos_name);
-        	hmm_.enableTransition(aa2+"_D"+pos_name, "D"+pos_name);
-					hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
+					hmm_.enableTransition("A"+pos_name, aa2+"_" + String(*it) + pos_name);
+        	hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, String(*it) + pos_name);
+					hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, "end"+pos_name);
 				}
 			}
 
@@ -1024,6 +1029,9 @@ namespace OpenMS
 			vector<double> pre_path_intensities, suf_path_intensities;
 			pre_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-prefix-ions")]);
 			suf_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-suffix-ions")]);
+			#ifdef INIT_CHARGE_DEBUG
+			cerr << prefixes[i] << " - " << suffixes[i] << ": bxyz=" << pre_path_intensities.back() << "|" << suf_path_intensities.back() << " ";
+			#endif
 
 			const String cr_and_sc("DEHKR");
 			for (String::ConstIterator it = cr_and_sc.begin(); it != cr_and_sc.end(); ++it)
@@ -1032,41 +1040,26 @@ namespace OpenMS
 				{
 					pre_path_intensities.push_back(tmp[hmm_.getState(String(*it) + "_" + pos_names[i] + "-prefix-ions")]);
 					suf_path_intensities.push_back(tmp[hmm_.getState(String(*it) + "_" + pos_names[i] + "-suffix-ions")]);
+					#ifdef INIT_CHARGE_DEBUG
+					cerr << ": " << aa << "=" << pre_path_intensities.back() << "|" << suf_path_intensities.back() << " ";
+					#endif
 				}
 			}
 		
-			#ifdef INIT_CHARGE_DEBUG
-      cerr << prefixes[i] << " - " << suffixes[i] << ": bxyz=" << path_intensities[0] <<
-                                                     ", H=" << path_intensities[1] <<
-                                                     ", K=" << path_intensities[2] <<
-                                                     ", R=" << path_intensities[3] <<
-                                                     ", D=" << path_intensities[4] <<
-                                                     ", E=" << path_intensities[5];
-			#endif
-
-			/*
 			if (i == peptide.size() - 2)
 			{
-				path_intensities.push_back(tmp[hmm_.getState("bk-1_-ions")]);
-				#ifdef INIT_CHARGE_DEBUG
-				cerr << ", bk-1=" << path_intensities.back();
-				#endif
+				pre_path_intensities.push_back(tmp[hmm_.getState("bk-1_-prefix-ions")]);
+				suf_path_intensities.push_back(tmp[hmm_.getState("bk-1_-suffix-ions")]);
 			}
 			if (i == peptide.size() - 3)
 			{
-				path_intensities.push_back(tmp[hmm_.getState("bk-2_-ions")]);
-				#ifdef INIT_CHARGE_DEBUG
-				cerr << ", bk-2=" << path_intensities.back();
-				#endif
-			}*/
+				pre_path_intensities.push_back(tmp[hmm_.getState("bk-2_-prefix-ions")]);
+				suf_path_intensities.push_back(tmp[hmm_.getState("bk-2_-suffix-ions")]);
+			}
 
 			pre_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-prefix-ions")]);
 			suf_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-suffix-ions")]);
 
-			#ifdef INIT_CHARGE_DEBUG
-			cerr << ", axzy=" << path_intensities.back() << endl;
-			#endif
-	
 			vector<vector<vector<double> > > prefix_intensities, suffix_intensities;
 			prefix_intensities.push_back(all_b_ints);
 			suffix_intensities.push_back(all_y_ints);
@@ -1082,20 +1075,15 @@ namespace OpenMS
 				prefix_intensities.push_back(all_b_cr_ints);
 				suffix_intensities.push_back(all_y_cr_ints);	
 			}
-			prefix_intensities.push_back(all_a_ints);
-			suffix_intensities.push_back(all_ay_ints);
-/*
+
 			if (i == peptide.size() - 2 || i == peptide.size() - 3)
 			{
 				prefix_intensities.push_back(all_b_cr_ints);
-			}
-*/
-/*
-			if (i == peptide.size() - 2 || i == peptide.size() - 3)
-			{
 				suffix_intensities.push_back(all_y_cr_ints);
 			}
-*/
+
+			prefix_intensities.push_back(all_a_ints);
+			suffix_intensities.push_back(all_ay_ints);
 
 			for (Size int_it = 0; int_it != pre_path_intensities.size(); ++int_it)
 			{
@@ -1525,10 +1513,11 @@ namespace OpenMS
 		cerr << "bb_charges_median=" << bb_charges_median << endl;
 		#endif
 
+		double min_enhancement_factor = param_.getValue("min_enhancement_factor");
 		double blocker_sum(1.0);
 		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-			double bb_enhance_factor(max(1.0, sqrt(bb_charges[i+1] / bb_charges_median)));
+			double bb_enhance_factor(max(min_enhancement_factor, sqrt(bb_charges[i+1] / bb_charges_median)));
 			#ifdef INIT_CHARGE_DEBUG
 			cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
 			#endif

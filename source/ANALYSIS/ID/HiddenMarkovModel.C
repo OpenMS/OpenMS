@@ -181,7 +181,6 @@ namespace OpenMS
 		{
 			clear();
 			copy_(hmm);
-			pseudo_counts_ = hmm.pseudo_counts_;
 		}
 		return *this;
 	}

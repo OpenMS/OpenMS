@@ -27,6 +27,7 @@
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <gsl/gsl_randist.h>
 
 
@@ -37,6 +38,7 @@
 #define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol
 #define COULOMB_REPULSION2 (double)47.0 // new
 
+//#define CALC_CHARGE_STATES_DEBUG
 
 using namespace std;
 
@@ -1524,17 +1526,17 @@ namespace OpenMS
 				c_term_kapp = E_;
 
 				// calc the ratio
-				//n_term1 = n_term_kapp / (n_term_kapp + c_term_kapp);
-				//c_term1 = c_term_kapp / (n_term_kapp + c_term_kapp);
+				n_term1 = n_term_kapp / (n_term_kapp + c_term_kapp);
+				c_term1 = c_term_kapp / (n_term_kapp + c_term_kapp);
 				//
 				
-				double pa_n = log(n_term_kapp);
-				double pa_c = log(c_term_kapp);
+				//double pa_n = log(n_term_kapp);
+				//double pa_c = log(c_term_kapp);
 
-				double ratio_bx_yz = exp(pa_n - pa_c);
+				//double ratio_bx_yz = exp(pa_n - pa_c);
 
-				n_term1 = ratio_bx_yz/*ratio_bx_yz / (1.0 + ratio_bx_yz)*/;
-				c_term1 = 1.0 /*/ (ratio_bx_yz + 1.0)*/;
+				//n_term1 = ratio_bx_yz/*ratio_bx_yz / (1.0 + ratio_bx_yz)*/;
+				//c_term1 = 1.0 /*/ (ratio_bx_yz + 1.0)*/;
 
 				// of course ++ ions are not available
 				n_term2 = 0;
@@ -1621,10 +1623,10 @@ namespace OpenMS
 				{
 					c_term2 += bb_charge_[i] * p_c;
 					singly_charged += bb_charge_[i] * p_n;
-					if (sc_charge_[i - 1] != 0)
+					if (i < peptide.size() && sc_charge_[i] != 0)
 					{
-						c_term2 += sc_charge_[i - 1]  * p_c;
-						singly_charged += sc_charge_[i - 1] * p_n;
+						c_term2 += sc_charge_[i]  * p_c;
+						singly_charged += sc_charge_[i] * p_n;
 					}
 				}
 
@@ -1632,6 +1634,26 @@ namespace OpenMS
 				c_term1 = singly_charged;
 
 				//cerr << E_n_term_ << "\t" << E_c_term_ << "\t" << p_n << "\t" << p_c << "\t" << endl;
+
+
+				// calculate charge losses
+				double gb_n_term = AAIndex::calculateGB(n_term_ion);
+				double gb_c_term = AAIndex::calculateGB(c_term_ion);
+
+				double b(828.18); // kJ/mol
+
+				double gb_n_term_loss = exp(- (gb_n_term - b)/1000.0);
+				double gb_c_term_loss = exp(- (gb_c_term - b)/1000.0);
+
+#ifdef CALC_CHARGE_STATES_DEBUG
+				cerr << "Loss: N-term: " << gb_n_term << " -> " << gb_n_term_loss << ", C-term: " << gb_c_term << " -> " << gb_c_term_loss << endl;
+#endif
+
+				n_term1 += n_term2 * (1.0 - gb_n_term_loss);
+				n_term2 *= gb_n_term_loss;
+				c_term1 += c_term2 * (1.0 - gb_c_term_loss);
+				c_term2 *= gb_c_term_loss;
+
 
 				// TODO normalization correct?
 				double sum(0);
