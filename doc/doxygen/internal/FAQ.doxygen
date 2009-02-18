@@ -352,8 +352,8 @@ svn propset svn:eol-style native MyClass.C
 				You can test if everything worked by calling @a make @a paramdoc .
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
-	    <LI><b>How is the command line documentation for TOPP tools created?</b><BR>
-				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.C creates the comnmand line documentation
+	    <LI><b>How is the command line documentation for TOPP/UTILS tools created?</b><BR>
+				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.C creates the command line documentation
 				for all classes that are included in the static TOPPBase tools list.
 				It can be included into the documentation using the following doxygen command:
 				@code
@@ -395,67 +395,7 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
 
-			<LI><B>How is a major release done?</B>
-				<UL>
-					<LI> Create the new release package (see below)
-					<LI> Update the SourceForge files section:
-						<OL>
-							<LI> Upload to sourceforge, here with sftp (see http://alexandria.wiki.sourceforge.net/File+Release+System+-+Offering+Files+for+Download#howtoupload)
-							<UL>
-								<LI> <em>sftp &lt;login&gt;@@frs.sourceforge.net</em>
-								<LI> <em>cd uploads</em>
-								<LI> <em>put &lt;file&gt;</em>
-							</UL>
-							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
-							<LI> Go to @a File @a Releases
-							<LI> Now you can add your release
-						</OL>
-					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
-					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
-					<LI> Update the website (news, changelog, XML schema files)
-					<LI> Send a mail notification to the announcements mailing list and the general mailing list
-				</UL>
-
-				<LI><B>How is a new release package created?</B>
-				<OL>
-					<LI> Prepare the platform-independent sources release file:
-						<OL>
-							<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
-							<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
-							<LI> Update version number in <TT>doc/OpenMS_tutorial/refman_overwrite.tex</TT>
-							<LI> Update version number in <TT>doc/TOPP_tutorial/refman_overwrite.tex</TT>
-							<LI> Run cmake
-							<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled
-							<LI> Make sure that the UTILS in <TT>source/APPLICATIONS/UTILS/</TT> can be compiled
-							<LI> Commit the changes to the SVN repository
-							<LI> Build the documentation that is needed for the release
-								<OL>
-									<LI> Check out a fresh working copy of %OpenMS
-									<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>idoc</TT>!).
-									<LI> Build the tutorials <TT>make TOPP_tutorial OpenMS_tutorial</TT>.
-									<LI> Make sure that the Parameter documentation was created.
-									<LI> Make sure the include paths in the documentation are correct.
-								</OL>
-							<LI>(Linux) Prepare the contrib release file:
-								<OL>
-									<LI> Update Version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
-									<LI> Commit the changes to the SVN repository
-								</OL>
-							<LI> Run the script <TT>tools/make_dist.sh</TT> according to the help shown when executed.
-							<LI> Test installation of contrib and %OpenMS from release package
-						</OL>
-					<LI> Prepare the Windows installer file:
-						<OL>
-							<LI> Check out the Windows installer scripts from <TT>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer</TT>
-							<LI> Update directories and version number in <TT>win_installer/OpenMS_installer.nsi</TT>
-							<LI> Commit the changes to the SVN repository
-							<LI> Run the script <TT>OpenMS_installer.nsi</TT> using the NSIS compiler
-							<LI> Verify the Installer itself and TOPP within a fresh Virtual Machine (see <TT>win_installer/README</TT>)
-						</OL>
-				</OL>
-
 			<LI><B>What has each developer to do for a release?</B>
-
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
 				Keep in mind that missing documention scares off potential users!
@@ -470,8 +410,6 @@ svn propset svn:eol-style native MyClass.C
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
-							<LI> It may be necessary to increase the memory limit for PHP like in this example:  <code>php -d memory_limit=1000M checker.php $OPENMS -x > output_checker_allusers.txt</code>
-							<LI> Send feedback concerning the script to Marc
 						</UL>
           <LI> [TODO] Valgrind?
 					<LI> Documentation:
@@ -491,6 +429,66 @@ svn propset svn:eol-style native MyClass.C
 								</UL>
 						</UL>
 				</OL>
+
+			<LI><B>How is a major release done?</B>
+				<UL>
+					<LI> Create the binary/source release packages (see below)
+					<LI> Update the SourceForge files section:
+						<OL>
+							<LI> Upload to sourceforge, here with sftp (see http://alexandria.wiki.sourceforge.net/File+Release+System+-+Offering+Files+for+Download#howtoupload)
+							<UL>
+								<LI> <em>sftp &lt;login&gt;@@frs.sourceforge.net</em>
+								<LI> <em>cd uploads</em>
+								<LI> <em>put &lt;file&gt;</em>
+							</UL>
+							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
+							<LI> Go to @a File @a Releases
+							<LI> Now you can add the release packages
+						</OL>
+					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
+					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
+					<LI> Update the website (news, changelog, XML schema files)
+					<LI> Send a mail notification to the announcements mailing list and the general mailing list
+				</UL>
+
+				<LI><B>How is the platform-independent source release package created?</B>
+					<OL>
+						<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
+						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
+						<LI> Run cmake
+						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed
+						<LI> Commit the changes to the SVN repository
+						<LI> Build the documentation that is needed for the release
+							<OL>
+								<LI> Check out a fresh working copy of %OpenMS
+								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>idoc</TT>!).
+								<LI> Build the tutorials using <TT>make totorials</TT>.
+								<LI> Make sure that the Parameter documentation was created.
+								<LI> Make sure the include paths in the documentation are correct.
+							</OL>
+						<LI> Run the script <TT>tools/make_dist.sh</TT> according to the help shown when executed.
+						<LI> Test installation of contrib and %OpenMS from release package
+					</OL>
+				
+				<LI><B>How is the Windows binary release package created?</B>
+					<OL>
+						<LI> Check out the Windows installer scripts from <TT>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer</TT>
+						<LI> Update directories and version number in <TT>win_installer/OpenMS_installer.nsi</TT>
+						<LI> Commit the changes to the SVN repository
+						<LI> Run the script <TT>OpenMS_installer.nsi</TT> using the NSIS compiler
+						<LI> Verify the Installer itself and TOPP within a fresh Virtual Machine (see <TT>win_installer/README</TT>)
+					</OL>
+
+				<LI><B>How are the binary release packages for different Linux distributions created?</B>
+					<OL>
+						<LI> Check out the release branch and contrib
+						<LI> Build the contrib libraries
+						<LI> Configure %OpenMS using
+						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
+						<LI> Build the package using <tt>make package</tt>
+						<LI> Rename the package to this naming schema:
+								 @n OpenMS-&lt;version&gt;-&lt;package-nr&gt;_&lt;dist&gt;-&lt;dist-version&gt;_&lt;i386/AMD64&gt;.&lt;rpm/deb&gt;
+					</OL>
 
 		</UL>
 	<H2 style="border-top:2px solid grey;">Profiling and memory leaks</H2>
@@ -531,7 +529,7 @@ svn propset svn:eol-style native MyClass.C
 				</OL>
 
 		</UL>
-	<H2 style="border-top:2px solid grey;">TOPP</H2>
+	<H2 style="border-top:2px solid grey;">TOPP/UTILS</H2>
 		<UL>
 
 			<LI><B>How to create an icon file for a TOPP tool under Windows?</B>
