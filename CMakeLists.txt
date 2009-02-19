@@ -576,7 +576,7 @@ add_dependencies(doc_progs ${OpenMS_doc_executables})
 ##### Examples #####
 if ("${PACKAGE_TYPE}" STREQUAL "none")
 	set(EXAMPLES_executables)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 	include(source/EXAMPLES/executables.cmake)
 	foreach(i ${EXAMPLES_executables})
 	  add_executable(${i} source/EXAMPLES/${i}.C)
