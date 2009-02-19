@@ -177,7 +177,7 @@ namespace OpenMS
           "The used separator characters. If unset the 'tab' character is used.",
           false);
         registerFlag_("no_ids",
-          "Suppresses output of identification data for consensusXML and featureXML");
+          "Suppresses output of identification data.");
         addEmptyLine_();
 
         addText_("Options for IdXML files:");
