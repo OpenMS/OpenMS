@@ -456,12 +456,6 @@ link_directories(${CONTRIB_LIB_DIR})
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
-if (MSVC) ## this must immediately follow 'ADD_LIBARY'!!!
-	## save the dll_library dir for later adaption of PATH when executing the tests
-	set(OPENMS_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-	## this is vulnerable to renaming of configuration and use of anything other than Debug or Release configuration in Visual Studio
-	set(OPENMS_DLL_PATH_EXTENSION ";${OPENMS_DLL_DIRECTORY};${OPENMS_DLL_DIRECTORY}/Release;${OPENMS_DLL_DIRECTORY}/Debug;")
-endif()
 
 
 ## always create the svn version file before compiling OpenMS
@@ -596,10 +590,7 @@ endif()
 if ("${PACKAGE_TYPE}" STREQUAL "none")
 	enable_testing()
 	INCLUDE(Dart)
-	if (MSVC) ## have CTest find the OpenMS DLL when executing the tests
-		SET (CTEST_ENVIRONMENT "PATH=${OPENMS_DLL_PATH_EXTENSION};$ENV{PATH}")
-	endif()
-add_subdirectory(source/TEST)
+	add_subdirectory(source/TEST)
 endif()
 
 ##### TOPPtests #####
@@ -629,13 +620,15 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
-										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD      builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD      [Visual Studio only] builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]    [NMake only]         builds the OpenMS library, TOPP tools and UTILS tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
-										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS      executes OpenMS and TOPP tests"
-										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
+										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS      [Visual Studio only] executes OpenMS and TOPP tests (*)"
+										COMMAND ${CMAKE_COMMAND} -E echo "    test           [NMake only]         executes OpenMS and TOPP tests (*)"
+										COMMAND ${CMAKE_COMMAND} -E echo "                   *) make sure they are built using the TEST target"
 										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"

@@ -1,6 +1,7 @@
-##
+### Build rules for Class tests
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/source/TEST)
+## Warning: this needs to be the same as the TOPP tools dir (where the OpenMS.dll will be on windows) - otherwise the tests won't run!
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 include(executables.cmake)
 
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX)
@@ -151,5 +152,5 @@ endif()
 
 ### tests
 foreach(i ${TEST_executables})
-  add_test(${i} ${i})
+  add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
