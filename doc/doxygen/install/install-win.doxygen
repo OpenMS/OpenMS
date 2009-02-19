@@ -8,7 +8,7 @@
   This document addresses %OpenMS users and explains the
   installation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
 	encouraged to <b>download the windows binary installer</b>
-	(see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>),
+	(see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
 	instead of building %OpenMS from sources. For more information read the install instructions for the TOPP binaries.
 
   @warning Compilation of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
@@ -170,8 +170,8 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 		<br>
 		Assuming you have successfully installed the dependent libraries, you need to
 		get the %OpenMS source code. The latest stable version of %OpenMS
-		can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a>
-		section. For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+		can be found in the <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
+		For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 		<br>
 		<br>
 		After you got the source code open a VisualStudio Command line (see Start-Menu).

@@ -92,7 +92,7 @@
   @section install_linux_openms Installing OpenMS/TOPP
  
    You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
-  <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
+  <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
   For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
   If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above.

@@ -6,6 +6,7 @@ PROJECT("OpenMS")
 # TODO LIST:
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
 # - parallel build of test executables
+# - target to execute all EXAMPLES
 
 ########################################################
 ### entries meant to be configured using CMake cache ###

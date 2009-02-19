@@ -124,6 +124,8 @@ namespace OpenMS
 		- normal mode: only the main parameters are displayed, advanced parameters are hidden.
 		- advanced mode: all parameters are displayed.
 		
+		@todo Int/Double lists: When adding an invalid value is is reset to an empty string, which is also invalid. Set it to 0 instead. (Hiwi)
+		
 		@image html ParamEditor.png
 		
 		@ingroup Visual
