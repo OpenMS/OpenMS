@@ -228,7 +228,7 @@ class TOPPSILACAnalyzer
 {
 	public:
 		TOPPSILACAnalyzer()
-				: TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true,"0.6.2")
+				: TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true)
 		{
 		}
 
@@ -243,7 +243,7 @@ class TOPPSILACAnalyzer
 
 			registerFlag_("silac_debug","Enables writing of debug information",true);
 
-			registerDoubleOption_("mass_separation","<dist>",6.0202,"m/z gap between light and heavy isotopic envelopes, [Da]",false);
+			registerDoubleOption_("mass_separation","<dist>",6.0202,"mass gap between light and heavy isotopic envelopes, [Da]",false);
 			registerIntOption_("charge_min","<min>",2,"Charge state range begin",false);
 			setMinInt_("charge_min",1);
 			registerIntOption_("charge_max","<max>",3,"Charge state range end",false);
