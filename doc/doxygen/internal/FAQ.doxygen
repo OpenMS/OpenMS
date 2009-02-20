@@ -447,7 +447,7 @@ svn propset svn:eol-style native MyClass.C
 						</OL>
 					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
-					<LI> Update the website (news, changelog, XML schema files)
+					<LI> Update the website (news, changelog, XML schema files, tutorials)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
