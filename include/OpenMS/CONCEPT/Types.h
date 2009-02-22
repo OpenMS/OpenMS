@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -52,37 +52,37 @@ namespace OpenMS
 
 	/**
 		@brief Signed integer type (32bit)
-		
+
 		@ingroup Concept
   */
-  typedef OPENMS_INT32_TYPE Int32; 
+  typedef OPENMS_INT32_TYPE Int32;
 
 	/**
 		@brief Signed integer type (64bit)
-		
+
 		@ingroup Concept
   */
-  typedef OPENMS_INT64_TYPE Int64; 
+  typedef OPENMS_INT64_TYPE Int64;
 
 	/**
 		@brief Unsigned integer type (64bit)
-		
+
 		@ingroup Concept
   */
 	typedef OPENMS_UINT64_TYPE UInt64;
-	
-	/**	
+
+	/**
 		@brief Time type
-		
+
 		Use this type to represent a point in time (as a synonym for time_t).
-		
+
 		@ingroup Concept
 	*/
 	typedef time_t 	Time;
 
 	/**
 		@brief Unsigned integer type
-		
+
 		@ingroup Concept
   */
 	//typedef size_t UInt;
@@ -90,45 +90,45 @@ namespace OpenMS
 
 	/**
 		@brief Signed integer type
-		
+
 		@ingroup Concept
   */
 	//typedef OPENMS_SIZE_T_SIGNED Int;
 	typedef int Int;
 
-	/**	
+	/**
 		@brief Real type
-		
+
 		Use this type to represent standard floating point numbers.
-		
+
 		@ingroup Concept
 	*/
 	typedef float Real;
 
-	/**	
+	/**
 		@brief Double-precision real type
-		
+
 		Use this type to represent double precision floating point numbers.
-		
+
 		@ingroup Concept
 	*/
 	typedef double DoubleReal;
-	
 
-	/**	
+
+	/**
 		@brief Byte type
-		
+
 		Use this type to represent byte data (8 bit length). A Byte is always unsigned.
-		
+
 		@ingroup Concept
 	*/
 	typedef	OPENMS_BYTE_TYPE Byte;
-		
-	/**	
+
+	/**
 		@brief A unique object ID (as unsigned 64bit type).
-		
+
 		@see PersistentObject
-		
+
 		@ingroup Concept
 	*/
 	typedef OPENMS_UINT64_TYPE UID;
@@ -140,13 +140,13 @@ namespace OpenMS
 	*/
 	typedef size_t Size;
 
-	/** 
-	 	@brief Signed Size type e.g. used as pointer difference 
+	/**
+	 	@brief Signed Size type e.g. used as pointer difference
 
 		@ingroup Concept
 	*/
 	typedef ptrdiff_t SignedSize;
-  
+
 	enum ASCII
 	{
 		ASCII__BACKSPACE        = '\b',
@@ -192,11 +192,11 @@ namespace OpenMS
   DoubleReal d = NUMBER;
   std::cout.precision(writtenDigits<DoubleReal>()); // explicit template instantiation
   std::cout << writtenDigits<DoubleReal>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
-  
+
   Real r = NUMBER;
   std::cout.precision(writtenDigits(r)); // type deduced from argument
   std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
-  
+
   long double l = NUMBER;
   std::cout.precision(writtenDigits(1L); // argument is not used, but L suffix indicates a long double
   std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
@@ -222,13 +222,13 @@ namespace OpenMS
 	{
 		return std::numeric_limits<float>::digits10;
 	}
-	
+
 	/// Number of digits commonly used for writing a @c double (a.k.a. precision).
 	template <> inline Int writtenDigits <double> (const double & )
 	{
 		return std::numeric_limits<double>::digits10;
 	}
-	
+
 	/// We do not want to bother people who unintentionally provide an int argument to this.
 	template <> inline Int writtenDigits <int> (const int & )
 	{
@@ -267,7 +267,7 @@ namespace OpenMS
 	*/
 
 	/**@brief Number of digits commonly used for writing a @c long @c double (a.k.a. precision). ...
-	
+
   Note: On Microsoft platforms, the I/O sytem seems to treat @c long @c double
   just like @c double.  We observed that
 	<code>std::numeric_limits<long double>::digits10 == 18</code>
@@ -291,7 +291,7 @@ namespace OpenMS
 		// Self-explanatory compile time error!
 		return FloatingPointType::Sorry_but_writtenDigits_is_designed_to_work_for_floating_point_types_only;
 	}
-	
+
 	// Note: I once tried to move PrecisionWrapper to namespace Internal, but oops! operator <<  won't be found (through ADL?) anymore.
 	/// Wrapper class to implement output with appropriate precision.  See precisionWrapper().
 	template <typename FloatingPointType >
@@ -304,13 +304,13 @@ namespace OpenMS
 	 private:
 		PrecisionWrapper(); // intentionally not implemented
 	};
-  
+
 	/**@brief Wrapper function that sets the appropriate precision for output
 	temporarily.  The original precision is restored afterwards so that no side
 	effects remain.  This is a "make"-function that deduces the typename
 	FloatingPointType from its argument and returns a
 	PrecisionWrapper<FloatingPointType>.
-	
+
 	Example:
 	@code
 	std::cout
@@ -347,15 +347,22 @@ namespace OpenMS
 	template <typename FloatingPointType >
 	std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<FloatingPointType>& rhs)
 	{
-		const std::streamsize prec_save = os.precision();
-		os << std::setprecision(writtenDigits(FloatingPointType()));
-		os << rhs.ref_;
-		os << std::setprecision(prec_save);
-		return os;
+	  if ( isnan(rhs.ref_) )
+	  {
+	    // That's what Linux GCC uses, and gnuplot understands.
+	    // Windows would print stuff like 1.#QNAN which makes testing hard.
+	    return os << "nan";
+	  }
+	  else
+	  {
+	    const std::streamsize prec_save = os.precision();
+	    return os << std::setprecision(writtenDigits(FloatingPointType()))
+	    << rhs.ref_ << std::setprecision(prec_save);
+	  }
 	}
 
 	//@}
-	
+
 	/**
 	@brief Returns the @c Type as as std::string.
 
@@ -383,16 +390,16 @@ namespace OpenMS
 	unsigned int
 	double
 	float
-	
+
 	int
 	long unsigned int
-	
+
 	OpenMS::Peak1D
 	OpenMS::Peak1D
 	OpenMS::DPosition<1u>
 	double
 	float
-	
+
 	double ()(int, int*)
 	WOW<const char* const*** const&, 5>
 	Oink<double, 55, 666u, WOW>
@@ -416,7 +423,7 @@ namespace OpenMS
 		return pretty.substr(left, right-left);
 #endif
 	}
-	
+
 } // namespace OpenMS
 
 #endif // OPENMS_CONCEPT_TYPES_H

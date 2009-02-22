@@ -553,7 +553,7 @@ namespace OpenMS
             // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max()); // alternative ??
 
             // Its hard to predict which meta keys will be used in file descriptions.
-            // So we assemble a list each time.  Using String, not UInt, for implicit sorting.
+            // So we assemble a list each time.  Represent keys by String, not UInt, for implicit sorting.
             std::set<String> all_file_desc_meta_keys;
             std::vector<UInt> tmp_meta_keys;
             for ( ConsensusMap::FileDescriptions::const_iterator fdit =
