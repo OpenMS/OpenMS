@@ -127,9 +127,9 @@ START_SECTION(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 
 	//test for corrupt index
 	i = make_pair(5,0);
-	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
+	TEST_PRECONDITION(t.getNextMz(i));
 	i = make_pair(1,5);
-	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
+	TEST_PRECONDITION(t.getNextMz(i));
 END_SECTION
 
 START_SECTION(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
@@ -152,9 +152,9 @@ START_SECTION(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
 
 	//test for corrupt index
 	i = make_pair(5,0);
-	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
+	TEST_PRECONDITION(t.getPrevMz(i));
 	i = make_pair(1,5);
-	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
+	TEST_PRECONDITION(t.getPrevMz(i));
 END_SECTION
 
 START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
@@ -225,9 +225,9 @@ START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 #ifdef OPENMS_DEBUG
 	std::cout << "test for corrupt index" << std::endl;
 	i = make_pair(5,0);
-	TEST_EXCEPTION(Exception::Precondition, t.getNextRt(i));
+	TEST_PRECONDITION(t.getNextRt(i));
 	i = make_pair(1,5);
-	TEST_EXCEPTION(Exception::Precondition, t.getNextRt(i));
+	TEST_PRECONDITION(t.getNextRt(i));
 #endif
 END_SECTION
 
@@ -273,9 +273,9 @@ START_SECTION(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 #ifdef OPENMS_DEBUG
 	//test for corrupt index
 	i = make_pair(5,0);
-	TEST_EXCEPTION(Exception::Precondition, t.getPrevRt(i));
+	TEST_PRECONDITION(t.getPrevRt(i));
 	i = make_pair(1,5);
-	TEST_EXCEPTION(Exception::Precondition, t.getPrevRt(i));
+	TEST_PRECONDITION(t.getPrevRt(i));
 #endif
 END_SECTION
 

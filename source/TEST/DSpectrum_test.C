@@ -662,7 +662,7 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
 
 	//empty spectrum
 	DSpectrum<Peak1D> tmp2;
-	TEST_EXCEPTION(Exception::Precondition, tmp2.findNearest(427.3));
+	TEST_PRECONDITION(tmp2.findNearest(427.3));
 END_SECTION
 
 

@@ -922,27 +922,60 @@ int main(int argc, char **argv)																									\
 			case 0:																														\
 				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
-					"): no exception thrown!" << std::endl;									\
+					"): no exception thrown!" << std::endl;									      \
 				break;																													\
 			case 1:																														\
 				std__cout << " +  line " << TEST::test_line <<									\
-					":  TEST_EXCEPTION(" #exception_type "," #command								\
-					"): OK" << std::endl;																		\
+					":  TEST_EXCEPTION(" #exception_type "," #command							\
+					"): OK" << std::endl;																		      \
 				break;																													\
 			case 2:																														\
 				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
 					"): wrong exception thrown!  \""															\
-									<< TEST::exception_name << "\"" << std::endl;		\
+									<< TEST::exception_name << "\"" << std::endl;		      \
 				break;																													\
 			case 3:																														\
 				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
-					"): wrong exception thrown!" << std::endl;							\
+					"): wrong exception thrown!" << std::endl;							      \
 				break;																													\
 			}																																	\
 		}																																		\
 	}
+
+/** @brief Precondition test macro
+
+  This macro checks if a precondition violation is detected while executing the command,
+  similar to <code>TEST_EXCEPTION((Exception::Precondition,command)</code>.
+  However the test is executed only when the #OPENMS_PRECONDITION macros are active,
+  i.e., when compiling in Debug mode.  (See #Macros.h)
+
+ @param command any general C++ or OpenMS-specific command
+
+ */
+#ifdef OPENMS_ASSERTIONS
+#define TEST_PRECONDITION(command) TEST_EXCEPTION(Exception::Precondition,command);
+#else
+#define TEST_PRECONDITION(command) STATUS("TEST_PRECONDITION(" #command ")  -  skipped");
+#endif
+
+/** @brief Postcondition test macro
+
+  This macro checks if a postcondition violation is detected while executing the command,
+  similar to <code>TEST_EXCEPTION((Exception::Postcondition,command)</code>.
+  However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
+  i.e., when compiling in Debug mode.  (See #Macros.h)
+
+ @param command any general C++ or OpenMS-specific command
+
+ */
+#ifdef OPENMS_ASSERTIONS
+#define TEST_POSTCONDITION(command) TEST_EXCEPTION((Exception::Postcondition,command);
+#else
+#define TEST_POSTCONDITION(command) STATUS("TEST_POSTCONDITION(" #command ")  -  skipped");
+#endif
+
 
 /**	@brief Exception test macro (with test for exception message).
 

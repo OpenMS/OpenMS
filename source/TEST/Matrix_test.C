@@ -254,9 +254,9 @@ START_SECTION((bool operator==(Matrix const &rhs) const))
 	Matrix<int> mi3(5,4,6);
 	Matrix<int> mi4(4,4,6);
 	Matrix<int> mi5(5,5,6);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi3);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
+	TEST_PRECONDITION(mi1==mi3);
+	TEST_PRECONDITION(mi1==mi4);
+	TEST_PRECONDITION(mi1==mi5);
 }
 END_SECTION
 
@@ -275,9 +275,9 @@ START_SECTION((bool operator<(Matrix const &rhs) const))
 	Matrix<int> mi3(5,4,6);
 	Matrix<int> mi4(4,4,6);
 	Matrix<int> mi5(5,5,6);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi3);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
-	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
+	TEST_PRECONDITION(mi1==mi3);
+	TEST_PRECONDITION(mi1==mi4);
+	TEST_PRECONDITION(mi1==mi5);
 }
 END_SECTION
 

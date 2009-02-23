@@ -85,7 +85,7 @@ START_SECTION((QualityType getQuality(Size index) const ))
 	p.setQuality(0, 0.0);
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
-  TEST_EXCEPTION(Exception::Precondition, p.getQuality(10))
+  TEST_PRECONDITION(p.getQuality(10))
 END_SECTION
 
 START_SECTION((void setQuality(Size index, QualityType q)))
@@ -97,7 +97,7 @@ START_SECTION((void setQuality(Size index, QualityType q)))
 	p.setQuality(1, 0.0);
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	TEST_REAL_SIMILAR(p.getQuality(1), 0.0)
-  TEST_EXCEPTION(Exception::Precondition, p.setQuality(10,1.0))
+  TEST_PRECONDITION(p.setQuality(10,1.0))
 END_SECTION
 
 START_SECTION((const ModelDescription<2>& getModelDescription() const))

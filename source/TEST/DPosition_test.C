@@ -57,7 +57,7 @@ START_SECTION((CoordinateType operator[](Size index) const ))
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
   TEST_EQUAL(i[2], 0.0)
-  TEST_EXCEPTION(Exception::Precondition, i[3])
+  TEST_PRECONDITION(i[3])
 END_SECTION
 
 START_SECTION((CoordinateType& operator[](Size index)))
@@ -75,7 +75,7 @@ START_SECTION((CoordinateType& operator[](Size index)))
   TEST_REAL_SIMILAR(c_i[0], 1.0)
   TEST_REAL_SIMILAR(c_i[1], 2.0)
   TEST_REAL_SIMILAR(c_i[2], 3.0)
-  TEST_EXCEPTION(Exception::Precondition, i[3] = 4.0)
+  TEST_PRECONDITION(i[3] = 4.0)
 END_SECTION
 
 START_SECTION((DPosition(const DPosition& pos)))
