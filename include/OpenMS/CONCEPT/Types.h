@@ -32,6 +32,7 @@
 #include <limits>
 #include <cstddef> // for size_t
 #include <ctime>
+#include <cmath>
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -44,6 +45,53 @@
 // to define the portable integer types.
 #ifdef OPENMS_HAS_STDINT_H
 #include <stdint.h>
+#endif
+
+// Header <cmath> in Windows and MinGW32 lacks definition of isnan/isinf
+// In C <math.h> and (GNU-) C++ <cmath> these are implemented as macros.
+// To be honest, isnan is not yet included in <cmath> by the 2003 C++ standard.
+// C++0x will implement these as templates (so we will need to change this again ;-) )
+// (These remarks: Clemens, 2009-02-23)
+//template <class T> bool isfinite(T x);
+//template <class T> bool isinf(T x);
+//template <class T> bool isnan(T x);
+//template <class T> bool isnormal(T x);
+#ifndef isnan
+#define isnan(x) isnan__(x)
+static inline int
+isnan__( float x )
+{
+  return x != x;
+}
+static inline int
+isnan__( double x )
+{
+  return x != x;
+}
+static inline int
+isnan__( long double x )
+{
+  return x != x;
+}
+#endif
+
+#ifndef isinf
+#define isinf(x) isinf__(x)
+static inline int
+isinf__( float x )
+{
+  return isnan (x - x);
+}
+static inline int
+isinf__( double x )
+{
+  return isnan (x - x);
+}
+static inline int
+isinf__( long double x )
+{
+  return isnan (x - x);
+}
 #endif
 
 
@@ -345,9 +393,10 @@ namespace OpenMS
 
 	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
 	template <typename FloatingPointType >
-	std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<FloatingPointType>& rhs)
+	inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<FloatingPointType> &rhs)
 	{
-	  if ( isnan(rhs.ref_) )
+	  // Same test as used by isnan(), spelled out here to avoid issues during overload resolution.
+	  if ( rhs.ref_ != rhs.ref_ )
 	  {
 	    // That's what Linux GCC uses, and gnuplot understands.
 	    // Windows would print stuff like 1.#QNAN which makes testing hard.

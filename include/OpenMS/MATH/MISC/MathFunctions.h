@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -27,105 +27,88 @@
 #ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
 #define OPENMS_MATH_MISC_MATHFUNCTIONS_H
 
-#include <cmath> // which does not support round() in VS
 #include <OpenMS/CONCEPT/Types.h>
-// #include <iostream> // debugging
 
-// MinGW32 lacks proper definition of isnan/isinf
-#ifndef isnan
-          #define isnan(x) isnan__(x)
-          static inline int isnan__ (float       x) { return x != x; }
-          static inline int isnan__ (double      x) { return x != x; }
-          static inline int isnan__ (long double x) { return x != x; }
-          #endif
-          
-          #ifndef isinf
-          #define isinf(x) isinf__(x)
-          static inline int isinf__ (float       x) { return isnan (x - x); }
-          static inline int isinf__ (double      x) { return isnan (x - x); }
-          static inline int isinf__ (long double x) { return isnan (x - x); }
-          #endif
-
-namespace OpenMS 
+namespace OpenMS
 {
 	/**
 		@brief Math namespace.
-		
+
 		Contains mathemtical auxiliary functions.
-		
+
 		@ingroup Concept
 	*/
 	namespace Math
 	{
 		/**
 			@brief rounds @p x up to the next decimal power 10 ^ @p decPow
-			
+
 			@verbatim
 			e.g.: (123.0 , 1)  => 130
 			      (123.0 , 2)  => 200
 					  (0.123 ,-2)  => 0.13 ( 10^-2 = 0.01 )
 			@endverbatim
-			
+
 			@ingroup MathFunctionsMisc
 		*/
 		inline static double ceil_decimal(double x, int decPow)
 		{
 			return (ceil(x/pow(10.0,decPow)))*pow(10.0,decPow); // decimal shift right, ceiling, decimal shift left
 		}
-		
+
 		/**
 			@brief rounds @p x to the next decimal power 10 ^ @p decPow
-			
+
 			@verbatim
 			e.g.: (123.0 , 1)  => 120
 			      (123.0 , 2)  => 100
 			@endverbatim
-			
+
 			@ingroup MathFunctionsMisc
 		*/
-		inline static double round_decimal(double x, int decPow) 	
+		inline static double round_decimal(double x, int decPow)
 		{
 			if (x>0) return (floor(0.5+x/pow(10.0,decPow)))*pow(10.0,decPow);
 			return -((floor(0.5+fabs(x)/pow(10.0,decPow)))*pow(10.0,decPow));
 		}
-		
+
 		/**
 			@brief transforms point @p x of interval [left1,right1] into interval [left2,right2]
-			
+
 			@ingroup MathFunctionsMisc
 		*/
-		inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2) 
-		{ 
+		inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2)
+		{
 			return left2 + (x - left1) * (right2 - left2) / (right1 - left1);
 		}
-	
+
 		/**
 			@brief Transforms a number from linear to log10 scale. Avoids negative logarithms by adding 1.
-			
+
 			@param x The number to transform
-			
+
 			@ingroup MathFunctionsMisc
 		*/
 		inline double linear2log(double x)
 		{
 			return log10(x+1); //+1 to avoid negative logarithms
 		}
-		
+
 		/**
 			@brief Transforms a number from log10 to to linear scale. Subtracts the 1 added by linear2log(double)
-			
+
 			@param x The number to transform
-			
+
 			@ingroup MathFunctionsMisc
 		*/
 		inline double log2linear(double x)
 		{
 			return pow(10,x)-1;
 		}
-		
+
 		/**
 			@brief Returns true if the given interger is odd
-		
+
 			@ingroup MathFunctionsMisc
 		*/
 		inline bool isOdd(UInt x)
@@ -134,15 +117,15 @@ namespace OpenMS
 		}
 
 		template <typename T>
-		T round (T x) 
-		{ 
-			if (x >= 0.0) 
-			{ 
-				return floor(x+0.5); 
-			} 
-			else 
-			{ 
-				return ceil(x-0.5); 
+		T round (T x)
+		{
+			if (x >= 0.0)
+			{
+				return floor(x+0.5);
+			}
+			else
+			{
+				return ceil(x-0.5);
 			}
 		}
 

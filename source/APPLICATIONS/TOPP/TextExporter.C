@@ -848,7 +848,7 @@ namespace OpenMS
               outstr << precisionWrapper(cmit->getRT()) << sep
                   << precisionWrapper(cmit->getMZ()) << sep
                   << precisionWrapper(cmit->getIntensity()) << sep
-                  << precisionWrapper(cmit->getCharge());
+                  << cmit->getCharge();
               for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit
                   != cmit->end(); ++cfit )
               {
@@ -860,7 +860,7 @@ namespace OpenMS
                   feature_handles[fhindex].getRT()) << sep << precisionWrapper(
                   feature_handles[fhindex].getMZ()) << sep << precisionWrapper(
                   feature_handles[fhindex].getIntensity()) << sep
-                    << precisionWrapper(feature_handles[fhindex].getCharge());
+                    << feature_handles[fhindex].getCharge();
               }
               outstr << std::endl;
 
