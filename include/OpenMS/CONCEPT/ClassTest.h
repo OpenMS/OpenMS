@@ -33,13 +33,6 @@
 //-------------------------------------------------------------------------
 
 
-/** @brief This indicates that a class test is being compiled.
-
- Used e.g. in OPENMS_PRECONDITION and OPENMS_POSTCONDITION so that	we
- can	test *these* even if the global OPENMS_DEBUG macro is not set.
- */
-#define OPENMS_WITHIN_CLASSTEST 1
-
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.

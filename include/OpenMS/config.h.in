@@ -41,8 +41,14 @@
 
 // Here are some global configuration flags for OpenMS
 
-// OPENMS_DEBUG enables some debugging methods within some OpenMS classes
-#cmakedefine OPENMS_DEBUG
+// OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
+#ifdef OPENMS_COMPILER_MSVC
+#	ifndef NDEBUG // hopefully defined automatically by MS-compiler in Debug Mode
+#		define OPENMS_ASSERTIONS
+#	endif
+#else // linux & Co
+#cmakedefine OPENMS_ASSERTIONS
+#endif
 
 // The path to the directory where OpenMS data is installed
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"

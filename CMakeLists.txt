@@ -15,7 +15,6 @@ PROJECT("OpenMS")
 ########################################################
 # OPENMS_BUILD_MODE
 # CONTRIB_CUSTOM_DIR
-# OPENMS_DEBUG
 # STL_DEBUG
 # OPENMS_ENABLE_EXTERNALMEMORY
 # QT_DB_PLUGIN
@@ -103,19 +102,14 @@ set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")
 if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
 	set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+	set(OPENMS_ASSERTIONS 1 CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 elseif ("${OPENMS_BUILD_TYPE}" STREQUAL "Release")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (optimization enabled)")
 	set(CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+	set(OPENMS_ASSERTIONS 0 CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 else()
 	Message(FATAL_ERROR "OPENMS_BUILD_TYPE must be 'Debug' or 'Release'!")
 endif()
-
-## user OPENMS DEBUG flag
-set(OPENMS_ASSERTIONS OFF CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!")
-if ("${OPENMS_BUILD_TYPE}" STREQUAL "Debug")
-	set(OPENMS_ASSERTIONS ON CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
-endif()
-Message(STATUS "OpenMS assertion mode: ${OPENMS_ASSERTIONS}")
 
 ## STL-DEBUG (only for GCC and in debug mode)
 set(STL_DEBUG OFF CACHE BOOL "[GCC only] Enable STL-DEBUG mode (very slow).")

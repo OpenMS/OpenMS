@@ -49,7 +49,7 @@
 	@{
 */
 
-#if defined OPENMS_DEBUG || defined OPENMS_WITHIN_CLASSTEST
+#ifdef OPENMS_ASSERTIONS
 
 /**
 	@brief Precondition macro.
