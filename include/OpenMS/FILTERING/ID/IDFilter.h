@@ -175,7 +175,7 @@ namespace OpenMS
 			void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, ProteinIdentification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
-			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification);
+			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, const std::set<String>& peptides, PeptideIdentification& filtered_identification);
 																														
 		  /// only peptides having a length equal to or greater than 'length' will be kept
 		  void filterIdentificationsByLength(const PeptideIdentification& identification, Size length, PeptideIdentification& filtered_identification);

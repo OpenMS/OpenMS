@@ -422,7 +422,11 @@ class TOPPRTPredict
 							}
 							else
 							{
-								temp_point.first = identifications[i].getMetaValue("RT");
+								temp_point.first = 0;
+								if (identifications[i].metaValueExists("RT"))
+								{
+									temp_point.first = identifications[i].getMetaValue("RT");
+								}
 							}
 							if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 							{
@@ -445,7 +449,15 @@ class TOPPRTPredict
 									temp_peptide_hits[j].setMetaValue("predicted_RT_p_value",temp_p_value);
 								}
 								temp_peptide_hits[j].setMetaValue("predicted_RT",temp_rt);
-								performance_retention_times.push_back(identifications[i].getMetaValue("RT"));					
+
+								if (identifications[i].metaValueExists("RT"))
+								{
+									performance_retention_times.push_back(identifications[i].getMetaValue("RT"));
+								}
+								else
+								{
+									performance_retention_times.push_back(0);
+								}
 							}
 						}
 						identifications[i].setHits(temp_peptide_hits);				
@@ -491,8 +503,15 @@ class TOPPRTPredict
 								}
 							}
 						}
-						temp_identification.setMetaValue("MZ",identifications[i].getMetaValue("MZ"));
-						temp_identification.setMetaValue("RT",identifications[i].getMetaValue("RT"));
+
+						if (identifications[i].metaValueExists("MZ"))
+						{
+							temp_identification.setMetaValue("MZ",identifications[i].getMetaValue("MZ"));
+						}
+						if (identifications[i].metaValueExists("RT"))
+						{
+							temp_identification.setMetaValue("RT",identifications[i].getMetaValue("RT"));
+						}
 											
 						temp_identification = identifications[i];
 						temp_identification.setHits(hits_positive);

@@ -167,20 +167,20 @@ START_SECTION((void filterIdentificationsByLength(const PeptideIdentification &i
 	TEST_EQUAL(peptide_hits[3].getSequence() , "TGCDTWGQGTLVTVSSASTK")
 END_SECTION
 
-START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification)))
+START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::set<String> peptides, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
-	vector<String> peptides;
+	set<String> peptides;
 	
-	peptides.push_back("LHASGITVTEIPVTATNFK");
-	peptides.push_back("MRSLGYVAVISAVATDTDK");
-	peptides.push_back("EGASTDFAALRTFLAEDGK");
-	peptides.push_back("DLEPGTDYEVTVSTLFGR");
-	peptides.push_back("FINFGVNVEVLSRFQTK");
-	peptides.push_back("MSLLSNMISIVKVGYNAR");
-	peptides.push_back("THPYGHAIVAGIERYPSK");
-	peptides.push_back("AITSDFANQAKTVLQNFK");
+	peptides.insert("LHASGITVTEIPVTATNFK");
+	peptides.insert("MRSLGYVAVISAVATDTDK");
+	peptides.insert("EGASTDFAALRTFLAEDGK");
+	peptides.insert("DLEPGTDYEVTVSTLFGR");
+	peptides.insert("FINFGVNVEVLSRFQTK");
+	peptides.insert("MSLLSNMISIVKVGYNAR");
+	peptides.insert("THPYGHAIVAGIERYPSK");
+	peptides.insert("AITSDFANQAKTVLQNFK");
 
 	IDFilter().filterIdentificationsByExclusionPeptides(identification, peptides, identification2);
 	peptide_hits = identification2.getHits();

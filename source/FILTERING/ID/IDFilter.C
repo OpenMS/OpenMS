@@ -224,7 +224,7 @@ namespace OpenMS
 	}
 	
 	void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
-																													vector<String> 				peptides,
+																													const set<String>& 				peptides,
 																													PeptideIdentification& filtered_identification)
 	{
 		String protein_sequences;

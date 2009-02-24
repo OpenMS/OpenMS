@@ -170,7 +170,7 @@ class TOPPIDFilter
 		ProteinIdentification filtered_protein_identification;
 		vector<UInt> charges;
 		vector< FASTAFile::FASTAEntry > sequences;
-		vector<String> exclusion_peptides;
+		set<String> exclusion_peptides;
 		bool rt_filtering = false;
 		bool first_dim_rt = false;
 		DoubleReal p_value = 0.05;
@@ -223,7 +223,7 @@ class TOPPIDFilter
 						it != identifications_exclusion[i].getHits().end();
 						it++)
 				{
-					exclusion_peptides.push_back(it->getSequence().toString());
+					exclusion_peptides.insert(it->getSequence().toString());
 				}
 			} 
 		}												 
