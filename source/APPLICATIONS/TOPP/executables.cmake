@@ -45,6 +45,7 @@ SequestAdapter
 SpectraFilter
 TOFCalibration
 TOPPView
+TOPPAS
 TextExporter
 XTandemAdapter
 IDMapper

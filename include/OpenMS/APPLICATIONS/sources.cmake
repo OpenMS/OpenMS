@@ -5,6 +5,7 @@ set(directory include/OpenMS/APPLICATIONS)
 set(sources_list
 INIFileEditorWindow.h
 TOPPViewBase.h
+TOPPASBase.h
 )
 
 ### add path to the filenames
@@ -26,6 +27,7 @@ set(sources_list_h
 INIFileEditorWindow.h
 TOPPBase.h
 TOPPViewBase.h
+TOPPASBase.h
 )
 
 ### add path to the filenames

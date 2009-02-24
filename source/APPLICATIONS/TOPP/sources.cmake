@@ -45,6 +45,7 @@ SequestAdapter.C
 SpectraFilter.C
 TOFCalibration.C
 TOPPView.C
+TOPPAS.C
 TextExporter.C
 XTandemAdapter.C
 splash.C
