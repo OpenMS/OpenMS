@@ -77,8 +77,27 @@ namespace OpenMS
 			{
 				++id_it;
 			}
-		}         
-      
+		}
+
+		// argh!
+		// since Mascot xml 2.2 tends to repeat the first hit (yes it apears twice, we delete one of them)
+		for (vector<PeptideIdentification>::iterator it = id_data.begin(); it != id_data.end(); ++it)
+		{
+			peptide_hits = it->getHits();
+			// check if equal, except for rank
+			if (peptide_hits.size() > 1 &&
+					peptide_hits[0].getScore() == peptide_hits[1].getScore() &&
+					peptide_hits[0].getSequence() == peptide_hits[1].getSequence() &&
+					peptide_hits[0].getCharge() == peptide_hits[1].getCharge() &&
+					peptide_hits[0].getProteinAccessions() == peptide_hits[1].getProteinAccessions() &&
+					peptide_hits[0].getAABefore() == peptide_hits[1].getAABefore() &&
+					peptide_hits[0].getAAAfter() == peptide_hits[1].getAAAfter())
+			{
+				// erase first hit
+				peptide_hits.erase(peptide_hits.begin());
+				it->setHits(peptide_hits);
+			}
+		}
   }  					 
   					 
 } // namespace OpenMS
