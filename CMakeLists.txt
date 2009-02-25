@@ -58,7 +58,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
-	##don't warn about unchecked std::copy()
+	## disable dll-interface warning
+	add_definitions(/wd4251)
+	
+	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)
 
 	## disable min and max macros by default
