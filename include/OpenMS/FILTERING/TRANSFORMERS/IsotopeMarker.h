@@ -74,7 +74,7 @@ namespace OpenMS
     static PeakMarker* create() { return new IsotopeMarker();}
 
 		///
-		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)
+		template <typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)
 		{
 			double mzvariation = (double)param_.getValue("mz_variation");
     	double invariation = (double)param_.getValue("in_variation");

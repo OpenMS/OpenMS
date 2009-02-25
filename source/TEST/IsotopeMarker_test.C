@@ -69,7 +69,7 @@ START_SECTION((IsotopeMarker& operator=(const IsotopeMarker& source)))
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 END_SECTION
 
-START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
