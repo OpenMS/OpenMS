@@ -140,7 +140,7 @@ c_map[4].setMZ(5.1);
 START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_type& getFeature(const FeatureMapType &map) const ))
 {
   PeakIndex i;
-	TEST_PRECONDITION(i.getFeature(map))
+	TEST_PRECONDITION_VIOLATED(i.getFeature(map))
 	i.peak = 4;
 	TEST_REAL_SIMILAR(i.getFeature(map).getMZ(),5.0)
 	TEST_REAL_SIMILAR(i.getFeature(c_map).getMZ(),5.1)
@@ -148,7 +148,7 @@ START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_ty
 	TEST_REAL_SIMILAR(i.getFeature(map).getMZ(),1.0)
 	TEST_REAL_SIMILAR(i.getFeature(c_map).getMZ(),1.1)
 	i.peak = 5;
-	TEST_PRECONDITION(i.getFeature(map))
+	TEST_PRECONDITION_VIOLATED(i.getFeature(map))
 }
 END_SECTION
 
@@ -167,20 +167,20 @@ exp[2][2].setMZ(3.0);
 START_SECTION((template <typename PeakMapType> const PeakMapType::SpectrumType& getSpectrum(const PeakMapType &map) const ))
 {
   PeakIndex i;
-	TEST_PRECONDITION(i.getSpectrum(exp))
+	TEST_PRECONDITION_VIOLATED(i.getSpectrum(exp))
 	i.spectrum = 0;
 	TEST_REAL_SIMILAR(i.getSpectrum(exp).getRT(),1.0)
 	i.spectrum = 2;
 	TEST_REAL_SIMILAR(i.getSpectrum(exp).getRT(),3.0)
 	i.spectrum = 3;
-	TEST_PRECONDITION(i.getSpectrum(exp))
+	TEST_PRECONDITION_VIOLATED(i.getSpectrum(exp))
 }
 END_SECTION
 
 START_SECTION((template <typename PeakMapType> const PeakMapType::PeakType& getPeak(const PeakMapType &map) const ))
 {
   PeakIndex i;
-	TEST_PRECONDITION(i.getPeak(exp))
+	TEST_PRECONDITION_VIOLATED(i.getPeak(exp))
 	i.peak = 0;
 	i.spectrum = 0;
 	TEST_REAL_SIMILAR(i.getPeak(exp).getMZ(),0.0)
@@ -190,10 +190,10 @@ START_SECTION((template <typename PeakMapType> const PeakMapType::PeakType& getP
 	i.peak = 2;
 	TEST_REAL_SIMILAR(i.getPeak(exp).getMZ(),3.0)
 	i.peak = 16;
-	TEST_PRECONDITION(i.getPeak(exp))
+	TEST_PRECONDITION_VIOLATED(i.getPeak(exp))
 	i.peak = 0;
 	i.spectrum = 3;
-	TEST_PRECONDITION(i.getPeak(exp))
+	TEST_PRECONDITION_VIOLATED(i.getPeak(exp))
 }
 END_SECTION
 

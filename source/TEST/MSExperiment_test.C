@@ -254,7 +254,7 @@ START_SECTION((template<class Container> void set2DData(const Container& cont)))
 
 	//test precondition
 	input.push_back(p1);
-	TEST_PRECONDITION(exp.set2DData(input));
+	TEST_PRECONDITION_VIOLATED(exp.set2DData(input));
 
 END_SECTION
 
@@ -544,9 +544,9 @@ START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, Coordinat
 	it++;
 	TEST_EQUAL(it==exp.areaEndConst(),true);
 
-	TEST_PRECONDITION(exp.areaBeginConst(15,0,0,15));
-	TEST_PRECONDITION(exp.areaBeginConst(0,15,15,0));
-	TEST_PRECONDITION(exp.areaBeginConst(15,0,15,0));
+	TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,0,15));
+	TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(0,15,15,0));
+	TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,15,0));
 
 END_SECTION
 
@@ -588,9 +588,9 @@ START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_
 	it++;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 
-	TEST_PRECONDITION(exp.areaBegin(15,0,0,15));
-	TEST_PRECONDITION(exp.areaBegin(0,15,15,0));
-	TEST_PRECONDITION(exp.areaBegin(15,0,15,0));
+	TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,0,15));
+	TEST_PRECONDITION_VIOLATED(exp.areaBegin(0,15,15,0));
+	TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,15,0));
 
 END_SECTION
 

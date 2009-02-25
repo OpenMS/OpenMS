@@ -880,9 +880,9 @@ int main(int argc, char **argv)																									\
 
 /**	@brief Exception test macro.
 
- This macro checks if a given type of exception occured while executing the
+ This macro checks if a given type of exception occurred while executing the
  given command.  Example: #TEST_EXCEPTION(Exception::IndexOverflow,
- vector[-1]).  If no or a wrong exception occured, false is returned,
+ vector[-1]).  If no or a wrong exception occurred, false is returned,
  otherwise true.
 
  @param exception_type the exception-class
@@ -947,44 +947,46 @@ int main(int argc, char **argv)																									\
 /** @brief Precondition test macro
 
   This macro checks if a precondition violation is detected while executing the command,
-  similar to <code>TEST_EXCEPTION((Exception::Precondition,command)</code>.
+  similar to <code>TEST_EXCEPTION(Exception::Precondition,command)</code>.
   However the test is executed only when the #OPENMS_PRECONDITION macros are active,
   i.e., when compiling in Debug mode.  (See #Macros.h)
 
  @param command any general C++ or OpenMS-specific command
 
+  @hideinitializer
  */
 #ifdef OPENMS_ASSERTIONS
-#define TEST_PRECONDITION(command) TEST_EXCEPTION(Exception::Precondition,command);
+#define TEST_PRECONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Precondition,command);
 #else
-#define TEST_PRECONDITION(command) STATUS("TEST_PRECONDITION(" #command ")  -  skipped");
+#define TEST_PRECONDITION_VIOLATED(command) STATUS("TEST_PRECONDITION_VIOLATED(" #command ")  -  skipped");
 #endif
 
 /** @brief Postcondition test macro
 
   This macro checks if a postcondition violation is detected while executing the command,
-  similar to <code>TEST_EXCEPTION((Exception::Postcondition,command)</code>.
+  similar to <code>TEST_EXCEPTION(Exception::Postcondition,command)</code>.
   However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
   i.e., when compiling in Debug mode.  (See #Macros.h)
 
  @param command any general C++ or OpenMS-specific command
 
+  @hideinitializer
  */
 #ifdef OPENMS_ASSERTIONS
-#define TEST_POSTCONDITION(command) TEST_EXCEPTION((Exception::Postcondition,command);
+#define TEST_POSTCONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Postcondition,command);
 #else
-#define TEST_POSTCONDITION(command) STATUS("TEST_POSTCONDITION(" #command ")  -  skipped");
+#define TEST_POSTCONDITION_VIOLATED(command) STATUS("TEST_POSTCONDITION_VIOLATED(" #command ")  -  skipped");
 #endif
 
 
 /**	@brief Exception test macro (with test for exception message).
 
- This macro checks if a given type of exception occured while executing the
+ This macro checks if a given type of exception occurred while executing the
  given command and additionally tests for the message of the exception.
 
  Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow, vector[-1], "a null pointer was specified")
 
- If no, a wrong exception occured or a wrong message is returned, false is
+ If no, a wrong exception occurred or a wrong message is returned, false is
  returned, otherwise true.
 
  @param exception_type the exception-class
@@ -1071,8 +1073,8 @@ int main(int argc, char **argv)																									\
  filename string will contain the filename on completion of the macro.
 
  All temporary files are validated using the XML schema,if the type of file
- can be determined by FileHandler. Therefor for each file written in a test
- NEW_TMP_FILE should be called. Otherwise only the last writen file is checked.
+ can be determined by FileHandler. Therefore for each file written in a test
+ NEW_TMP_FILE should be called. Otherwise only the last written file is checked.
 
  @hideinitializer
  */

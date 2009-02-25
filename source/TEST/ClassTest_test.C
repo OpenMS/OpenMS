@@ -61,6 +61,22 @@ on the same line of code.  */
 		}																																		\
 	}
 
+// the only error here is that we do not follow the coding convention ;-)
+void
+throw_a_Precondition_Exception()
+{
+  throw OpenMS::Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__,
+    "intentional Exception::Preconditon raised by throw_a_Precondition_Exception()");
+}
+
+// the only error here is that we do not follow the coding convention ;-)
+void
+throw_a_Postcondition_Exception()
+{
+  throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, __PRETTY_FUNCTION__,
+    "intentional Exception::Postconditon raised by throw_a_Postcondition_Exception()");
+}
+
 
 START_TEST(ClassTest, "$Id$")
 
@@ -831,8 +847,28 @@ START_SECTION("TEST_REAL_SIMILAR : type checking")
 }
 END_SECTION
 
-
 #endif
+
+
+START_SECTION("TEST_PRECONDITION_VIOLATED")
+  // recommended usage, success
+  TEST_PRECONDITION_VIOLATED(throw_a_Precondition_Exception());
+  int this_was_evaluated = false;
+  // recommended usage, but failure will be signaled only when compiled in Debug mode.
+  TEST_PRECONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+  // wrong exception thrown, or none at all -> this will fail in Debug and Release mode.
+  TEST_PRECONDITION_VIOLATED(throw_a_Postcondition_Exception()); FAILURE_IS_SUCCESS;
+END_SECTION
+
+START_SECTION("TEST_POSTCONDITION_VIOLATED")
+  // recommended usage, success
+  TEST_POSTCONDITION_VIOLATED(throw_a_Postcondition_Exception());
+  int this_was_evaluated = false;
+  // recommended usage, but failure will be signaled only when compiled in Debug mode.
+  TEST_POSTCONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+  // wrong exception thrown, or none at all -> this will fail in Debug and Release mode.
+  TEST_POSTCONDITION_VIOLATED(throw_a_Precondition_Exception()); FAILURE_IS_SUCCESS;
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
