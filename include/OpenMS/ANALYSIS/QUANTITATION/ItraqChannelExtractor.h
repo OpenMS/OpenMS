@@ -42,6 +42,7 @@ namespace OpenMS
 		[experimental class]
 		This class supports 4 and 8 channel iTRAQ and will optionally do peak picking before the quantitation step.
 		Quantitation is done by adding all signals within a small delta around the expected m/z of each channel.
+		When all channels are found to be empty, the ConsensusFeature is not created.
 		No postprocessing is done here. Use ItraqQuantifier for that!
 	
 	*/

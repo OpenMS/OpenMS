@@ -102,7 +102,7 @@ namespace OpenMS
     	sum4+=temp;
     }
     double z=constant*(sum3*sum4);
-    UInt j_left(0);
+    Size j_left(0);
     for (Size i = 0; i != s1.size(); ++i)
     {
     	for (Size j = j_left; j != s2.size(); ++j)

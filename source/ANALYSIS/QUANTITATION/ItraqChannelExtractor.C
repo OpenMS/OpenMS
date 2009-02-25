@@ -197,16 +197,17 @@ namespace OpenMS
 			cf.setMZ(it->getPrecursorPeak().getMZ());
 			cf.setRT(it->getRT());
 
-			Peak2D channel_values;
-			channel_values.setRT(it->getRT());
+			Peak2D channel_value;
+			channel_value.setRT(it->getRT());
 			// for each each channel
 			Int index = 0;
+			Peak2D::IntensityType overall_intensity = 0;
 			for (ChannelMapType::const_iterator cm_it = channel_map_.begin(); cm_it!=channel_map_.end(); ++cm_it)
 			{
 				// set mz-position of channel
-				channel_values.setMZ(cm_it->second.center);
+				channel_value.setMZ(cm_it->second.center);
 				// reset intensity
-				channel_values.setIntensity(0);
+				channel_value.setIntensity(0);
 
 				//add up all signals
 				for (MSExperiment<>::SpectrumType::ConstIterator mz_it = 
@@ -215,15 +216,28 @@ namespace OpenMS
 						 ;	++mz_it
 				)
 				{
-					channel_values.setIntensity( channel_values.getIntensity() + mz_it->getIntensity());
+					channel_value.setIntensity( channel_value.getIntensity() + mz_it->getIntensity());
 				}
+				
+				overall_intensity += channel_value.getIntensity();
 
 				// add channel to ConsensusFeature
-				cf.insert (index++, element_index, channel_values);
+				cf.insert (index++, element_index, channel_value);
 
 			} // ! channel_iterator
 
-			consensus_map.push_back(cf);
+			
+			// check featureHandles are not empty
+			if (overall_intensity>0)
+			{
+				cf.setIntensity(overall_intensity);
+				consensus_map.push_back(cf);
+			}
+			else
+			{
+				std::cout << "iTRAQ: no information in Tandem-MS scan from RT: " << cf.getRT() << "MZ: " << cf.getMZ() << "\n";
+			}
+
 			// the tandem-scan in the order they appear in the experiment
 			++element_index;
 		} // ! Experiment iterator

@@ -109,7 +109,6 @@ namespace OpenMS
 		
 		// probe text font size with last axis labels  
 		QString probe = "";
-		int index = 0;
 		for (Size i=0; i<3; i++)
 		{
 			QString s;
@@ -120,7 +119,6 @@ namespace OpenMS
 			if (s.length() > probe.length())
 			{
 				probe = s;
-				index = i;
 			}
 		}
 	
