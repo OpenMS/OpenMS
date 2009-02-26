@@ -77,7 +77,7 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 	map<double, bool> marked;
 	e_ptr->apply(marked, spec);
 	
-	TEST_EQUAL(marked.size(), 0)
+	TEST_EQUAL(marked.size(), 51)
 
 	/// @todo Fix this (Andreas)
 	//e_ptr->getParameters().setValue("n", 10);
