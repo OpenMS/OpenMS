@@ -48,6 +48,11 @@
      </item>
      <item>
       <property name="text" >
+       <string>Size</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
        <string>Meta data</string>
       </property>
      </item>
