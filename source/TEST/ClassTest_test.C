@@ -781,6 +781,36 @@ START_SECTION("TEST_EXCEPTION_WITH_MESSAGE")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__), "a null pointer was specified")
 END_SECTION
 
+START_SECTION("TEST_PRECONDITION_VIOLATED")
+  // recommended usage, success
+  TEST_PRECONDITION_VIOLATED(throw_a_Precondition_Exception());
+  int this_was_evaluated = false;
+  // recommended usage, but failure will be signaled only when compiled in Debug mode.
+  TEST_PRECONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+  // wrong exception thrown, or none at all
+  TEST_PRECONDITION_VIOLATED(throw_a_Postcondition_Exception()); if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+
+#ifndef OPENMS_ASSERTIONS
+  NOT_TESTABLE; // just to avoid a warning message in Release mode - all test macros will expand empty.
+#endif
+
+  END_SECTION
+
+START_SECTION("TEST_POSTCONDITION_VIOLATED")
+  // recommended usage, success
+  TEST_POSTCONDITION_VIOLATED(throw_a_Postcondition_Exception());
+  int this_was_evaluated = false;
+  // recommended usage, but failure will be signaled only when compiled in Debug mode.
+  TEST_POSTCONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+  // wrong exception thrown, or none at all
+  TEST_POSTCONDITION_VIOLATED(throw_a_Precondition_Exception()); if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
+
+#ifndef OPENMS_ASSERTIONS
+  NOT_TESTABLE; // just to avoid a warning message in Release mode - all test macros will expand empty.
+#endif
+
+  END_SECTION
+
 START_SECTION("__PRETTY_FUNCTION__")
 	struct Dummy
 	{
@@ -848,27 +878,6 @@ START_SECTION("TEST_REAL_SIMILAR : type checking")
 END_SECTION
 
 #endif
-
-
-START_SECTION("TEST_PRECONDITION_VIOLATED")
-  // recommended usage, success
-  TEST_PRECONDITION_VIOLATED(throw_a_Precondition_Exception());
-  int this_was_evaluated = false;
-  // recommended usage, but failure will be signaled only when compiled in Debug mode.
-  TEST_PRECONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
-  // wrong exception thrown, or none at all -> this will fail in Debug and Release mode.
-  TEST_PRECONDITION_VIOLATED(throw_a_Postcondition_Exception()); FAILURE_IS_SUCCESS;
-END_SECTION
-
-START_SECTION("TEST_POSTCONDITION_VIOLATED")
-  // recommended usage, success
-  TEST_POSTCONDITION_VIOLATED(throw_a_Postcondition_Exception());
-  int this_was_evaluated = false;
-  // recommended usage, but failure will be signaled only when compiled in Debug mode.
-  TEST_POSTCONDITION_VIOLATED(this_was_evaluated = true);  if ( this_was_evaluated )  { FAILURE_IS_SUCCESS; }
-  // wrong exception thrown, or none at all -> this will fail in Debug and Release mode.
-  TEST_POSTCONDITION_VIOLATED(throw_a_Precondition_Exception()); FAILURE_IS_SUCCESS;
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
