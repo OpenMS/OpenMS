@@ -119,7 +119,7 @@ END_SECTION
 START_SECTION(void store(const String &, const RichPeakMap &) const)
 	MSPFile msp_file;
 	RichPeakMap exp;
-	TEST_EXCEPTION(Exception::NotImplemented, msp_file.store("this_file_will_never_be_created", exp))
+	// @todo write test for writing
 END_SECTION
 
 /////////////////////////////////////////////////////////////

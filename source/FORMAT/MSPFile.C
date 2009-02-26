@@ -44,10 +44,6 @@ namespace OpenMS
 		defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
 		defaults_.setValidStrings("parse_peakinfo", parse_strings);
 		defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-/*		vector<String> inst_strings;
-		inst_strings.push_back("");
-		inst_strings.push_back("it");
-		inst_strings.push_back("qtof");*/
 		defaults_.setValidStrings("instrument", StringList::create(",it,qtof,toftof"));
 
 		defaultsToParam_();
@@ -137,11 +133,16 @@ namespace OpenMS
 				continue;
       }
 
-			/*
       if (line.hasPrefix("MW:"))
       {
-        // skip that as it is not necessary and might not be available at all
-      }*/
+				vector<String> split;
+				line.split(' ', split);
+				if (split.size() == 2)
+				{
+					UInt charge = ids.back().getHits().begin()->getCharge();
+        	spec.getPrecursorPeak().setPosition((split[1].toDouble() + (double)charge * 1.00728) / (double)charge);
+				}
+      }
 
       if (line.hasPrefix("Comment:"))
       {
@@ -294,6 +295,42 @@ namespace OpenMS
     }
   }
 
+	void MSPFile::store(const String& filename, const RichPeakMap& exp) const
+	{
+		if (!File::writable(filename))
+		{
+			throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+
+		ofstream out(filename.c_str());
+
+		for (RichPeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+		{
+			if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
+			{
+				PeptideHit hit = *it->getPeptideIdentifications().begin()->getHits().begin();
+				out << "Name: " << hit.getSequence().toUnmodifiedString() << "/" << hit.getCharge() << endl;
+				out << "MW: " << hit.getSequence().getMonoWeight() << endl;
+				out << "Comment: Mods=0 Inst=it" << endl; // TODO write mods, instrument type protein ...
+				out << "Num peaks: " << it->size() << endl;
+				// TODO normalize to 10000
+				for (RichPeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
+				{
+					out << sit->getPosition()[0] << "\t" << sit->getIntensity() << "\t";
+					if (sit->metaValueExists("IonName"))
+					{
+						out << "\"" << sit->getMetaValue("IonName") << "\"";
+					}
+					else
+					{
+						out << "\"?\"";
+					}
+					out << endl;
+				}
+				out << endl;
+			}
+		}
+	}
 
 }// namespace OpenMS
 

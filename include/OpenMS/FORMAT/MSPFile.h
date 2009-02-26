@@ -82,10 +82,7 @@ namespace OpenMS
 
 				@throw UnableToCreateFile is thrown if the given file could not be created
 			*/
-			void store(const String& /*filename*/, const RichPeakMap& /*exp*/) const
-			{
-				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
+			void store(const String& filename, const RichPeakMap& exp) const;
 
 			protected:
 
