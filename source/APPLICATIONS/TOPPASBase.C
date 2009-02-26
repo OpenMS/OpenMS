@@ -28,6 +28,10 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h> 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -76,9 +80,9 @@ namespace OpenMS
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
     tab_bar_ = new EnhancedTabBar(dummy);
     tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
-    tab_bar_->addTab("dummy",4710);
+    tab_bar_->addTab("dummy",1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
-    tab_bar_->removeId(4710);
+    tab_bar_->removeId(1336);
     //connect slots and sigals for selecting spectra
     connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
@@ -94,7 +98,9 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
+    file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 
@@ -133,19 +139,74 @@ namespace OpenMS
     tool_bar_->show();
 
 		//################## Dock widgets #################
-    //layer window
-    QDockWidget* topp_tools_bar = new QDockWidget("Tools", this);
+    
+    //TOPP tools window
+    QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
     tools_tree_view_ = new QTreeWidget(topp_tools_bar);
     tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
+    tools_tree_view_->setColumnCount(2);
+  	QStringList header_labels;
+  	header_labels.append(QString("Tool"));
+  	header_labels.append(QString("Type"));
+  	tools_tree_view_->setHeaderLabels(header_labels);
     topp_tools_bar->setWidget(tools_tree_view_);
     
+    StringList tools_list = TOPPBase::getToolList();
+    QTreeWidgetItem* item;
+    QTreeWidgetItem* parent_item;
+    for (StringList::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    {
+    	item = new QTreeWidgetItem((QTreeWidget*)0);
+    	item->setText(0, it->toQString());
+    	tools_tree_view_->addTopLevelItem(item);
+   		parent_item = item;
+
+    	if (*it == "NoiseFilter")
+    	{
+    		item = new QTreeWidgetItem(parent_item);
+    		item->setText(1, "Savitzky-Golay");
+    		
+    		item = new QTreeWidgetItem(parent_item);
+    		item->setText(1, "Gaussian");
+    	}
+    	else if (*it == "FeatureFinder")
+			{
+				std::vector<String> type_list = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
+				for (Size i=0; i<type_list.size(); ++i)
+				{
+					item = new QTreeWidgetItem(parent_item);
+					item->setText(1, type_list[i].toQString());
+				}
+			}
+			else if (*it == "SpectraFilter")
+			{
+				std::vector<String> type_list = Factory<PreprocessingFunctor>::registeredProducts();
+				for (Size i=0; i<type_list.size(); ++i)
+				{
+					item = new QTreeWidgetItem(parent_item);
+					item->setText(1, type_list[i].toQString());		
+				}
+			}
+			else if (*it == "FeatureLinker")
+			{
+				std::vector<String> type_list = Factory<FeatureGroupingAlgorithm>::registeredProducts();
+				for (Size i=0; i<type_list.size(); ++i)
+				{
+					item = new QTreeWidgetItem(parent_item);
+					item->setText(1, type_list[i].toQString());		
+				}
+			}
+    }
+    
+    //Blocks window
     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
     addDockWidget(Qt::LeftDockWidgetArea, blocks_bar);
     blocks_list_ = new QListWidget(blocks_bar);
     blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
     blocks_bar->setWidget(blocks_list_);
 
+		//Misc window
 		QDockWidget* misc_bar = new QDockWidget("Misc", this);
     addDockWidget(Qt::LeftDockWidgetArea, misc_bar);
     misc_list_ = new QListWidget(misc_bar);
@@ -167,6 +228,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
 		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
 		defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
+		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
 		
   	defaultsToParam_();
 
@@ -194,12 +256,58 @@ namespace OpenMS
   {
 		
   }
+  
+  void TOPPASBase::newFileDialog()
+  {
+  	// **** test **** //
+  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
+  	showAsWindow_(tw, "New");
+  }
+	
+	void TOPPASBase::saveFileDialog()
+	{
+	
+	}
 	
 	void TOPPASBase::preferencesDialog()
   {
 		// do something...
 		savePreferences();
   }
+	
+	void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption)
+  {
+  	ws_->addWindow(tw);
+    connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
+    connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
+
+	  tw->setWindowTitle(caption.toQString());
+
+		//add tab with id
+  	static int window_counter = 1337;
+  	tw->window_id = window_counter++;
+
+    tab_bar_->addTab(caption.toQString(), tw->window_id);
+
+    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //- through the menu entry
+    //- through the tab bar
+    //- thourgh the MDI close button
+    connect(tw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+
+    tab_bar_->setCurrentId(tw->window_id);
+
+		//show first window maximized (only visible windows are in the list)
+		if (ws_->windowList().count()==0)
+		{
+			tw->showMaximized();
+		}
+		else
+		{
+			tw->show();
+		}
+  }
+
 	
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
@@ -219,19 +327,31 @@ namespace OpenMS
 		}
 	}
 	
-  QWidget* TOPPASBase::window_(int /*id*/) const
+  TOPPASWidget* TOPPASBase::window_(int id) const
   {
+		//cout << "Looking for tab with id: " << id << endl;
+  	QList<QWidget*> windows = ws_->windowList();
+		for(int i=0; i< windows.size(); ++i)
+		{
+			TOPPASWidget* window = qobject_cast<TOPPASWidget*>(windows.at(i));
+			//cout << "  Tab " << i << ": " << window->window_id << endl;
+			if (window->window_id == id)
+			{
+				return window;
+			}
+		}
 		return 0;
   }
   
-  QWidget*  TOPPASBase::activeWindow_() const
+  TOPPASWidget* TOPPASBase::activeWindow_() const
   {
-  	return 0;
+  	if (!ws_->activeWindow()) return 0;
+    return qobject_cast<TOPPASWidget*>(ws_->activeWindow());
   }
 
   void TOPPASBase::closeByTab(int id)
   {
-  	QWidget* window = window_(id);
+  	TOPPASWidget* window = window_(id);
   	if (window)
   	{
   		window->close();
@@ -241,7 +361,7 @@ namespace OpenMS
 
   void TOPPASBase::focusByTab(int id)
   {
-  	QWidget* window = window_(id);
+  	TOPPASWidget* window = window_(id);
   	if (window)
   	{
   		window->setFocus();
@@ -267,6 +387,11 @@ namespace OpenMS
     }
   }
 
+	void TOPPASBase::showCursorStatus(double /*x*/, double /*y*/)
+	{
+		// TODO
+	}
+
   void TOPPASBase::updateToolBar()
   {
     
@@ -276,8 +401,8 @@ namespace OpenMS
   {
   	if (w)
   	{
-  		//Int window_id = qobject_cast<SpectrumWidget*>(w)->window_id; TODO
-  		//tab_bar_->setCurrentId(window_id);
+  		Int window_id = qobject_cast<TOPPASWidget*>(w)->window_id;
+  		tab_bar_->setCurrentId(window_id);
   	}
   }
 

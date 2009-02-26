@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 
 //QT
 #include <QtGui/QMainWindow>
@@ -46,9 +47,7 @@ class QLabel;
 class QWidget;
 
 namespace OpenMS
-{
-	class EnhancedTabBar;
-	
+{	
   /**
   	@brief Main window of TOPPAS tool
   
@@ -80,6 +79,10 @@ namespace OpenMS
     	
     	/// shows the dialog for opening files
       void openFileDialog();
+      /// shows the dialog for creating a new file
+      void newFileDialog();
+      /// shows the dialog for saving the current file
+      void saveFileDialog();
       /// shows the preferences dialog
       void preferencesDialog();
     	/// changes the current path according to the currently active window/layer
@@ -99,6 +102,8 @@ namespace OpenMS
       	Otherwise the message is displayed for @p time ms.
       */
       void showStatusMessage(std::string msg, OpenMS::UInt time);
+      /// shows x,y coordinates in the status bar
+      void showCursorStatus(double x, double y);
       /// closes the active window
       void closeFile();
       /// updates the toolbar
@@ -117,6 +122,8 @@ namespace OpenMS
 		  
 		  /// enable/disable menu entries depending on the current state
     	void updateMenu();
+    	/// Shows the widget as window in the workspace
+    	void showAsWindow_(TOPPASWidget* sw, const String& caption);
 
     protected:
 
@@ -150,14 +157,14 @@ namespace OpenMS
 			//@}
       
       ///returns the window with id @p id
-      QWidget* window_(int id) const; // TODO something else than QWidget..
+      TOPPASWidget* window_(int id) const;
       
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
       
       ///returns a pointer to the active SpectrumWidget (0 if none is active)
-      QWidget*  activeWindow_() const; // TODO something else than QWidget..
+      TOPPASWidget* activeWindow_() const;
       
       ///@name reimplemented Qt events
       //@{
