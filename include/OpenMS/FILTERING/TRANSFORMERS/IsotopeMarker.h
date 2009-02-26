@@ -41,6 +41,8 @@ namespace OpenMS
   /**
 	  @brief IsotopeMarker marks peak pairs which could represent an ion and its isotope
 
+		@todo implement a real isotope marking here with isotopedistributions and fitting (Andreas)
+
 		@htmlinclude OpenMS_IsotopeMarker.parameters
 
 		@ingroup PeakMarker
