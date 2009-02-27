@@ -492,7 +492,7 @@ namespace OpenMS
 				{
 					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 				}
-				else if (type=="SRM")
+				else if (type=="SRM" || type == "MRM")
 				{
 					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
 				}
