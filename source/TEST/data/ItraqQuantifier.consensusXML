@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////raid/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/NIGHTLY/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.3" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2008-10-29T10:17:55" search_engine="InsPecT" search_engine_version="20080404">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="2" peak_mass_tolerance="0.5" >
@@ -87,40 +87,40 @@
 			</ProteinHit>
 			<ProteinHit id="PH_10" accession="Q9HPU8" score="0" sequence="MALTTWFWVGAVGMLAGTVLPIRDCIRHPSHRRYDLVLAGITGLAAIAYTTMGLGITATTVGDRTVYLARYIDWLVTTPLIVLYLAMLARPGHRTSAWLLAADVFVIAAGIAAALTTGVQRWLFFAVGAAGYAALLYGLLGTLPRALGDDPRVRSLFVTLRNITVVLWTLYPVVWLLSPAGIGILQTEMYTIVVVYLDFISKVAFVAFAVLGADAVSRLVAADAAAPATAEPTPDGD">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="4.60200977325439"/>
-				<userParam type="float" name="ratio_2" value="14.471284866333"/>
-				<userParam type="float" name="ratio_3" value="1.9562326669693"/>
+				<userParam type="float" name="ratio_1" value="4.60201025009155"/>
+				<userParam type="float" name="ratio_2" value="14.4712858200073"/>
+				<userParam type="float" name="ratio_3" value="1.95623278617859"/>
 				<userParam type="float" name="coverage" value="1.68776371308017"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_11" accession="Q9HMS3" score="0" sequence="MKTPFRDRVELFANKDVLKDHYEPEEIRERDEEIDQYANALQDVVDGWEPDNVFVYGKTGVGKTAVTRYMMDALEYEADDRDGVDSVTSVEVNCHHHPSSYQAAIALVNELRGDTDSDPLTTGLSTSDVLNALFDEIEAREGTVLIVLDEIDNLDDDDMLLYQLPRAKTNGNIEDSQVAVVGISNDYTFRNDLSPKVQDTLCEREIKFPPYDANELVTILDDRAERALSSGVLTGGVIPQCAALAARDRGSARQAIDLLRESVNVAIEDERETVTEDDVETAVRRVERGRIKDSIKDLTTHGQYVLLAVTQTAIADDTPVRAKELYEVYADIAAEYASDPLSQRSVHDHLNDLSMLGFLRQHDRNYGRGGGQFFEYELDVDATMVQEAIADADDATV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="4.60200977325439"/>
-				<userParam type="float" name="ratio_2" value="14.471284866333"/>
-				<userParam type="float" name="ratio_3" value="1.9562326669693"/>
+				<userParam type="float" name="ratio_1" value="4.60201025009155"/>
+				<userParam type="float" name="ratio_2" value="14.4712858200073"/>
+				<userParam type="float" name="ratio_3" value="1.95623278617859"/>
 				<userParam type="float" name="coverage" value="1.00755667506297"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_12" accession="Q9HN61" score="0" sequence="MDEPLWIDEHAPSLADLPQASVRDRLRDAVDEPVNLVVYGPSGAGKTAAVRALAAAAHDDPETDLVEVNVADVFGMTKTEISEDPRFASFIDAKRRRNSSKADLVNHVLKETASYSPVSGGYNTILLDNAEAIREDFQQALRRVMERHHEATQFIIATRQPSKLIPPIHSRCFPVSVRAPTDNEVVDVLREIVAAEGVDYEPDGLEFVAGYAEGDLREAVLGAQTTAEQEGEVTMNAAYEALQDVGSDAAVESMLDDAEAGAFTDARSTLDDLLVDEGMSGGEVLDDLLEVARSRYSGDDVAELYALAGDVEFDLTRGTSDRVQLGRLLAELGR">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="4.60200977325439"/>
-				<userParam type="float" name="ratio_2" value="14.471284866333"/>
-				<userParam type="float" name="ratio_3" value="1.9562326669693"/>
+				<userParam type="float" name="ratio_1" value="4.60201025009155"/>
+				<userParam type="float" name="ratio_2" value="14.4712858200073"/>
+				<userParam type="float" name="ratio_3" value="1.95623278617859"/>
 				<userParam type="float" name="coverage" value="1.19760479041916"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_13" accession="P16102" score="0" sequence="MTRVRVRGIYATALTQLLRNAGLDVVAASPPIRARFPDADLGAAEPHADIRMTPDRQGVGITAHGDDHARAVRAVVADLPRDTFVWPDPVPRGAVFDAAVDHTVGGGAILDLGDDREAYLPFGAVDDHVTDGDTLRVAIRDPAPPWHDDRPTATSTITVSGALASLDRGVDALVAGAATDRAELARATELLDPDIPDNWGVYWEYDGADASLDARGTALDTLAARADRLEATLADADGGDTPGLVAAPDTTLWAWFGRETRCALDDHRRTVAATMPGHHRIKAGSDAASDAVDFAEALGASVDEFPFGAVTDQFGPSVGASIEIQHGKPDGALISLGRGEVTDRSAENARITVEREMTGGGTYDALGVAREAGDTATTRFTEGNWWYPTVYRSEDGERKGTYLNVCTPVEVFPDAVRYVDLHVDVIKHADGAVEIVDREELQDCVADGLVSEELAEKALSVAERVQSAVAE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="4.60200977325439"/>
-				<userParam type="float" name="ratio_2" value="14.471284866333"/>
-				<userParam type="float" name="ratio_3" value="1.9562326669693"/>
+				<userParam type="float" name="ratio_1" value="4.60201025009155"/>
+				<userParam type="float" name="ratio_2" value="14.4712858200073"/>
+				<userParam type="float" name="ratio_3" value="1.95623278617859"/>
 				<userParam type="float" name="coverage" value="0.849256900212314"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_14" accession="Q9HRY2" score="0" sequence="MSEDFYDVLGVSRDATEDEIMQAYRDQVSEYHPDVSDDPDAEEKFKKIQKAKDVLTDEETRQQYDQLGHERFEEAEKRGATGNGGGGAGGMGGAGGPFGGGMGGGAGGGMGDIFEQFFGGAGGGGGRGRSGPEQGRDLRTDLTVTLSEAYRGVSKQVTVRRPESCADCGGSGYPEDADVRTCPQCDGQGVVTQVRQTPLGRVQQRQECSRCGGEGELHSETCSTCGGQGQTRERATLTVDIPEGIRTGQTLRMDGEGAPGEPGAPNGDLLVDVTVEEHPDFERDGDDLHHRHAVSFPQAVFGAEIEVPTLDGAATFDLDAGTQSGETFRLKGKGMPRLRRRGNGDLYVTVQVVTPESLSDEQRDALEQFAEAGGEEIDVEQGFFEKLKNSF">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="1.79028132992327"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -128,15 +128,15 @@
 			<ProteinHit id="PH_15" accession="Q9HRP1" score="0" sequence="MGITKQVSIRSDNFIPGHRVFDERPHILHVCDIKVNPEDNMWEFEYQKEKDEISSRHTKDVYLYMELDEKQHSKLTSFFLEEKPRDSSHSFHVDISGDIIQQVTKRPGAGTSDKEKNKYTPSPIRFEALSDRVVIETFAGDNPIIPYYEVTHHDTPQDRHNVSRIESFIQSMQDGGSTPGLEPLPTELVSELQSAEWGEEVRHHLHEGDECYRNSLLHPALSSYIHAIEWALISFLKEKEDVDIIQQEKNGDLYYFASGNSILGEVQDTGELSQKSISRIKSLNRAERRWMGHHKSGEATKEELDGMRARLTQILEELFGTDSARK">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="3.37423312883436"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
 			<ProteinHit id="PH_16" accession="Q9HPZ0" score="0" sequence="MTFPDTTAERAWTAAVGCVVVALVGGAVVFPDTVYGGFVWQYFWGPVVADAQGAHCAAWNGGAVELLATKGACAGAGGPVAYPGYTLVSEVGYAATLLGALVGVHFLLERLRIADSLALVYALTPFVLLGGVVRVVEDANNAAELFGTTGQPFLSYPANTLIISPVIYVVMFAVTLVAVVAAVAVARRTDAVETYHRPLAGIGCVLLAATLLGLGVLAASHDYITFIPVFTVLTLGGATVITAVTWAAARRWLPSVTSGTETVGAVVLWGHAIDGVANVVGLDWGAELGYPRGDLISKHPLNAYIVDATNAVLPQSVTHLIGDTWPFILLKVAAVLFVLSLFNEELRADAPRYTTLMLVAVLAVGLGPGTRDMIRATFGI">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="1.57894736842105"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -144,7 +144,7 @@
 			<ProteinHit id="PH_17" accession="Q9HQ62" score="0" sequence="MDVDDIHSIAVLGAGNMGHGIAEVAAMAGYTVRLRDISAELVQDGYDQIEWSLGKLAESDQLTEAAADAALDRISTHVEVSDAVDDVDVVIEAVPEKMEIKTDVYTEVEAHAPADAVFATNTSSLSITDLSEVTERPARFCGMHFFNPPVRMELVEVISGAHTDDAVLECIESLAADFGKTPVRVRKDSPGFVVNRILVPLLNEAAWLVHDDEATIAEVDSTTKYDMGLPMGAFELADQVGIDVSHDVLDYMQDVLGTAYEPCPVLVDHVEAGDLGRKSGAGFYDYGDDAAGADVPTDAIRADIADRLTAVMANEVAKLVGGGVADPAEIDEAVMLGAGYPEGPAKMADAAGITYLHETLVAAHEATGQARYEPADTLAEMAAAGESFHGRGDEDADGRREFDAVSVSVDGNVGHIELDRPHRMNTISGELLADLSDAIDVLGDDDDVRAVLLTGAGEKAFSAGADVTSMAGNADPVEAVELSRMGQQTFGKLEAADEPVVAAIDGYCLGGGMELATCADMRLASERSELGQPEHDLGLLPGWGGTQRLKHIVGEGRAKEIIFTADRFAPETLADYGFINEVVTTEAFEERAWELARDLAAGPPIAMKYTKRAMRAGRDDTDAGLEIEAQSFGQLMNTQDLMEGVSAFSADREPEFNGE">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="0.910470409711684"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -152,7 +152,7 @@
 			<ProteinHit id="PH_18" accession="Q9HS73" score="0" sequence="MDSIVQDAIDEAEESEDSASEPADVAGGGGDTVPTGTMTDNELEDVLQELQTNITVVGCGGAGSNTVDRMATEGIHGADLVAANTDVQHLVDIEADTKILMGQQKTKGRGAGSLPQVGEEAAIESQGEIRDSIAGSDMVFVTAGLGGGTGTGSAPVVAKAAREQGALTIAIVTTPFTAEGEVRRTNAEAGLERLRDVADTVIVVPNDRLLDSVGKLPVREAFKVSDEVLMRSVKGITELITKPGLVNLDFADVRTVMEKGGVAMIGLGEADSDAKAADSVQSALRSPLLDVDISSANSALVNVTGGPGMSIEEAEGVVEQLYDRIDPDARIIWGTSIDEQIQEEMRTMVVVTGVDSPQIYGRNEAAEGDGPAQESTPEPEPEPQAGSEIEDIDYVE">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="1.51515151515152"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -160,7 +160,7 @@
 			<ProteinHit id="PH_19" accession="Q9HQ20" score="0" sequence="MREASARAVAWSAAAGVLLVAVLLVSATIGPEPITLRTVAMAALTELAVPVGASVTMHTHAVPVVSGGLPWPALTIAYAAPLQFGVPETAQVIVGTIRLPRIVLGATVGASLAISGAVLQGFFRNPMADPSIVGVSSGAAVGAVAAITLPSVVVIGVQPAAFAGALIAAFTVYAIATKNGHTPTATLLLSGVAVQTLLGAVTSFLVVNSGREIRPAMYWLMGTLHGSRWHDVEAALPVVVVGSAVLLAYAREMNVLLAGEEDAHTLGVDVDRTKRLLLAVASVVTAAAVSFAGAIGFVGLIVPHAVRLVVGPDHRVLLPVSALTGGAFLVAADTVARATATEPPVGIITALIGAPFFLYLLRDREVRAL">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="1.6260162601626"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -168,7 +168,7 @@
 			<ProteinHit id="PH_20" accession="Q9HNW6" score="0" sequence="MSDADTAPDPSDIGETDAPPIEDAPYKIIFEANKCFGAGKCAAVSANWEMDIGTGLADPVAYFFDEDDLQHNIDAADACPAKKGDGVIHVVDRRSDEEIAPDPSGDGSLSVDW">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="5.30973451327434"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -176,7 +176,7 @@
 			<ProteinHit id="PH_21" accession="Q9HSP3" score="0" sequence="MLVAFGAGNTVGVSCYLFIDQSVVTPMIGASYVVAVVIALFLGAQSSGMLMVKFVTVSFLAIIAGSIEYVVRSLIGEFVEIIEPRPLV">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="6.81818181818182"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -184,14 +184,14 @@
 			<ProteinHit id="PH_22" accession="Q9HMY4" score="0" sequence="MLAVDPTGAIPRGDGAVVVVTSKTGVELAADSGWTPGGGRLAAIGPATADACREAGWTVDVVPEEYTSAGLVAALDGDIDGARVEVARSDHGSAVLTDGLAEAGAYVHETVLYALTRPAGAGDSTEIAAAGDLDAALFTSSLTVEHWLAAARERGIESAAREGLADATVGAIGPPTAETAADHGISVDVVPDDAGFEALARATIEDA">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.19539165496826"/>
-				<userParam type="float" name="ratio_2" value="14.3908758163452"/>
+				<userParam type="float" name="ratio_2" value="14.3908767700195"/>
 				<userParam type="float" name="ratio_3" value="1.55308520793915"/>
 				<userParam type="float" name="coverage" value="2.89855072463768"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_23" accession="Q9HMY1" score="0" sequence="MLYCSGGPGWHGDYDGNRARSGVQPRGSQPASTGAPGVRVILRSGQRRSGCTRATGRQDASIGLEPPTWGLAPSRAWRTRLRPTASHKPIPTIQNGPTGGRTRAVVRTDDGWTRRPPSTPKAGSHPPAGVLCAGGSDGHLQAGVQTTSMSDLTPEEFEEQKYVDYFPKLETAYKRAFDDMNGTYDRKLVHAIDQQVLSESEPFYEADSGFSVELPADPLDRLAGVQVDADHARDVIDEHTDRICVHLRDQFGIGGQADEKA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="0.106739111244678"/>
+				<userParam type="float" name="ratio_1" value="0.106739118695259"/>
 				<userParam type="float" name="ratio_2" value="24.1033134460449"/>
 				<userParam type="float" name="ratio_3" value="6.96027660369873"/>
 				<userParam type="float" name="coverage" value="1.53256704980843"/>
@@ -199,7 +199,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_24" accession="Q9HHP0" score="0" sequence="MRWRHPSALRKADERGRRTPCVVSATSLAVGRIALALLLVVLNGFFVAAEFAFVRLRSASVETLVQDGRRGATAVKEATDNLDDYLAVSQLGITIASLGLGWVGEPAVAVLVDPLLEPVLPAPVRHTVTVALGFGIVTLLHVVYGELAPKTIAIQRAERVALVVAPVMKLFYYVFLPGTILFNGIATRSVQLIGVSPETEGHDTHTEPEILSVLSEASAAGRISPAEVSMIEHVFSLDDTTVREIMRPRPDVTSVSADTPLPELRTMAASGEYTRYPVTEGPDDDVIGFVDVKDILRASDAIDESGDVTARELSRPVVVVPETLRVDELLAEFQAEHRQMAVVIDEWGAFEGLATIEDALEVIVGDIRDQFDLATHAQSIEPRDDGGYEVPGAVSITELNDHLGTDFENEAVETVAGLVVSRLGHAPTVGDRAVIDTHTFRVTGVDGARITSLTVTPDS">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="0.106739111244678"/>
+				<userParam type="float" name="ratio_1" value="0.106739118695259"/>
 				<userParam type="float" name="ratio_2" value="24.1033134460449"/>
 				<userParam type="float" name="ratio_3" value="6.96027660369873"/>
 				<userParam type="float" name="coverage" value="1.08932461873638"/>
@@ -207,7 +207,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_25" accession="Q9HSC1" score="0" sequence="MSTNTDDTTRTDGTFGDYGGQYVPEVLMPAVEELTDAYERYVLDNEDGFVDDFRQRIRSFGGRPTPLTHAPTLSQRHGVDVYLKREDLLHGGAHKLNNALGQVLLAKYMGKDRIVAETGAGQHGTATAMACAALEMPCEIYMGRTDVNRQRPNVFRMRLHDADVNPVTVGSGTLKEAINETMRDWATNVADTHYVIGSVVGPHPFPSMVRDFQAIISEELRAQSREQLGELPAAVIACAGGGSNTMGAFGAFVGSASLPGAPAGTHEPAPDVDLLAVEAGGSRLGVDDDAGYAPNSASLSTGTEGVLHGARTKLLQTETGQIVESHSVSAGLDYAGVGPELAHLVDTGRITPTNVDDDAALAAFHRLSRDEGVIPALETSHAVAALDQYDGDGPVVVNVSGRGDKDLDTVIEASAANDIDAAPDMEVFEQ">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="0.106739111244678"/>
+				<userParam type="float" name="ratio_1" value="0.106739118695259"/>
 				<userParam type="float" name="ratio_2" value="24.1033134460449"/>
 				<userParam type="float" name="ratio_3" value="6.96027660369873"/>
 				<userParam type="float" name="coverage" value="1.16279069767442"/>
@@ -225,7 +225,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="0.779727095516569"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -233,7 +233,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="0.694444444444444"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -241,15 +241,15 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="1.6260162601626"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_30" accession="Q9HN81" score="0" sequence="MDVAEVVPEFAEAFPFDEFNAMQREAVPALLESDANVVASAPTGSGKTALAELAICQTLADGGTALFVAPLRALTNEKEDEWERFEALGYSVYVVTGERDLNPRRAERADVLVMTPEKADSATRKHDSPRYAFVTDVECVVIDEVHLLDSETRGSVLEVVVSRLRRLCDPRVVALSATMPNIGDVADWLDATPDTTFEFDDDYRPVDLHAGVRTYDHGDNPFADKYRRLFTALDLAEPHLREDGQSLVFVASRQDTVQAAKKTRDEIAQRDIPVGSRGDYDFHTATEALDNETLRKSVLDGVAFHHAGLSTTDKSHVEQWFREGKIRVLFSTSTLAWGVNLPARCVVIRDTKLHDPLEGEVDMSPLDVLQMLGRAGRPGYDDVGYGWVVCDTSDADTYRTLLDEGHEIESRLDGNLAEHLNAEIAMGTIRDLGDVMAWLETTFYYQRAQSAPDAYEFSTLRDRVRATLDDLIDQGFVETDADLGLSATRLGVLASTYYLRLDTAREFRAVIDDAADDRAILRAVAAAGEFDSVSARHSEQDAIHTVLGHSGDEMADGSRKVYAILRASMRGAVPSELRSDAWVITQNALRLLAALGAFFDRYDDPMGANAAARLEARIDTGVPEAAVGLTAIEGVAAGRAHKLHDEGIDTPGDVRDAGVSGLVDAGLAPGVAESVHEQAAGLPAVAVDWGDFPDSVPAGDNDLREVTVRNHGGGANAGVTVTVNGVEMTTETSYLDGALSVPVGMFGAPDADTLTFEVTVAFAELPLPPVTETRTVDVV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.28369704749679"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
@@ -257,7 +257,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="2.63157894736842"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -265,7 +265,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="1.89873417721519"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -273,7 +273,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="0.87719298245614"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -281,7 +281,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="1.21951219512195"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -289,7 +289,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="1.50462079048157"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="3.41880341880342"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -297,7 +297,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="3.68330073356628"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="3.21602845191956"/>
+				<userParam type="float" name="ratio_3" value="3.21602869033813"/>
 				<userParam type="float" name="coverage" value="3.11418685121107"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
@@ -385,7 +385,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="7.26587724685669"/>
 				<userParam type="float" name="ratio_2" value="3.25180149078369"/>
-				<userParam type="float" name="ratio_3" value="6.02814292907715"/>
+				<userParam type="float" name="ratio_3" value="6.02814340591431"/>
 				<userParam type="float" name="coverage" value="0.896860986547085"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -393,7 +393,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="1.02040816326531"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -401,7 +401,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="1.70132325141777"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -409,7 +409,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="1.8970189701897"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -417,7 +417,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="2.59365994236311"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -425,7 +425,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="2.04081632653061"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -433,7 +433,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="2.84552845528455"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -441,7 +441,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="1.19940029985008"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -449,7 +449,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="8.86075949367089"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -457,7 +457,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="2.04081632653061"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -465,87 +465,87 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.26669597625732"/>
 				<userParam type="float" name="ratio_2" value="3.6476137638092"/>
-				<userParam type="float" name="ratio_3" value="3.40888214111328"/>
+				<userParam type="float" name="ratio_3" value="3.40888237953186"/>
 				<userParam type="float" name="coverage" value="3.7037037037037"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_58" accession="Q9HRV1" score="0" sequence="MAAFVRDYLEASVENETDGGRMRWYPWHSAEYRFTHIMNVVDIAERIAEATSANVDVVRVAALFHDIAKLEAEQDAHAEEGARIARKYLETHGQFPPSFVDQVAEAVSRHSYQGDLMDLPLEARCLVEADLLDKAGANGAALMLLRMGYEARTHVDAAEMIQRVLDRGEDAAERVESDAASSIAHRRLKRVRWLHDWLTSEVPAMNDTGY">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.9047619047619"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_59" accession="Q9HPH7" score="0" sequence="MTGTAPVSRRQYLGTAGAIIGTTAGCLTGADASIHVLAAGSLTSTIEDHIRPAFEDATDHTLRPEYHGSTTLLQLISDGTKHPDVAISADATLLRTRLFDAHADWALEFASNRLGICYVPSTPLGRRLAAGTPWWRAAVDAAPDTIAVSDPALDPLGYRTLMAFTLAATAHDAPDLRADLDPATVTKPSESQLLADVETGNHAAAVVYENMALDHDLPFLGFPDAYNFAAPERADHYASATYTTDDGTRIHGRPITYATTVLNDASNTAGGRAFVRFLAANPDMVRDAGLAVPESLPTHQGALPDALER">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.29449838187702"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_60" accession="Q9HNP3" score="0" sequence="MTVERVSAPTPAAFVDAANAAFRNGAVLSVQARCEVEYNGRTSGYLGDGDRLLVAKPDGTFLVHQPTGHKPVNWMPGGGTVEARTSQGDAVLLARRSNPTERVETRLHEVYGVTRFDAEDGATYEESGTEAEMHEYIEANPDALEAGLRIVEHERETKYGFIDFYAVDGDGTPVVIEVKRIQATLNHFDQLKRYVDRYAETNDDVRGMLVAPSASERVTRALRDNGLEFVALAEFGLDAKGATEAKLTDF">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.6"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_61" accession="Q9HRK0" score="0" sequence="MRGKRLVPVLVAGIAVLVAFVDPAAASSGYQSATEELIRNLNSQLVAAAITITLLVEGILVYTVWKFRNADEAKPTKENRRLEITWTVATAVVLLFVGVSAYSAMGTPYLLSSGDDVQAAMANEDSATVTVEGVQWYWNYDYAGSNVSMSSGAGNDTVVGNQPLVLPADTEVTIQTESNDVIHAFHAPELGLKMDALPGQQNHLVTNDLDEGTYQLYCAEFCGAGHSKMLSKIHVVDRDTYDAYINDPENVSVGA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.56862745098039"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_62" accession="Q9HHN4" score="0" sequence="MTVAVVRFGGSNCDRDAVRALAHLGVDAAVAWHDDGLPADTDGVVVPGGFSYGDYLRAGAMAAQSPVVAEVRALAADGVPVLGVCNGAQIGCEAGLAPGAFTTNASARFQCERVHLRVENATTPWTAAYSEGDVLEIPIAHGEGRFEIDDDAYADLVADDRVLFRYCNADGEVTEAANPNGSTGAVAGVTGDRDHVAVMMPHPERATLPALGATDGQGILGAFA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.78571428571429"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_63" accession="Q9HQ72" score="0" sequence="MSTQLQHARDGTVTDAMRRVADREGRDPEVVREAVADGHAVIPANHHHDALDPMIIGRDFATKVNANIGNSDTTGDIDDELEKLHTAVHYGADTVMDLSTGENLDGIRTANIDNSPVPVGTVPIYEAVTRVEDVTDITPDLLIDVVEKQAKQGVDYMTLHAGVLAEHLPLTDDRTTGIVSRGGSILSQWMTEHGEQNPLYTHYDELCEILQAHDVTISLGDGLRPGSVADASDDAQFAELDTLGELTRRAWDHGVQAMVEGPGHVPMDQIRANVDRQQEVCDGAPFYVLGPLVTDIAPGYDHITSAIGATEAARAGAAMLCYVTPKEHLGLPDAEDVRDGMAAYRIAAHAGDVAAGKPGARDWDDALSEARYNFDWNRQFDLALDPERAQAFHDQTLPGDNYKDARFCSMCGVDFCSMRIDQDARDAGDDADDMTELTTETDLSESAAAEVNRPPTGTHDAPAAEQAPSPGDDDDD">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="0.840336134453782"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_64" accession="Q9HRX0" score="0" sequence="MPMRRLDCGVLGPTPIDQLHIPDGTTVKEHDVVADSDVLIGAQSQLRLGVRGHNVVAGERVSVDGDIEAAGDCRLDMWCEVTGNVLVEGDAYVGERTHITERLVVGGDLDIGDDVDIEEGFEASGWIVIRNPMPTLTFFVMYLTHLLRLGEAEDAQELVEELAADSDRGPLTIPQSASVSDDAWRVSTPATIGDDCRLHGNIRATEIDVGRGNNVFGSLRAQNDVTVGAGTKIHGDVTTRNGSVHVQGDAVVLGDVSGHDVTIDEAADVDGVIRARGEMRVGSVADRDAE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="4.48275862068966"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
 			<ProteinHit id="PH_65" accession="Q9HRQ6" score="0" sequence="MGTRLETRSAQVGTVIDRLREQHPDPEISLRFSSRMELLVAVILSAQCTDERVNAETEHLFDTYETVADYANADEEALAAELNSITYYNSKAGYIKSAAQSILEDHDGAVPDTMSDLTDLSGVGRKTANVVLQHGHDLTQGIVVDTHVQRLSRRLGITEKKRPEAIETDLMPVVPEDHWKNYTHWLIAHGRETCTARNPDCGACVLADICPSSKTDHDIDLADGSEW">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="1.76211453744493"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_66" accession="O51967" score="0" sequence="MRRLTTLFPSEFLEEHAEELGVVERDRKLQIPAFVWAFVFGFAAGESRTLAGFRRCYNSTADETISPGGFYQRLTPTLAEYLRDLVEHGLDEVAVPNAVDADIDRFRDVMIADGTVLRLHEFLSDQFEARHEEQAGAKLHLLHNATEQTIERLDTANEKTHDSTLFKTGPWLENRLVLFDLAYFKYRRFALIDENDGYFVSRLKQNANPLITRELREWRGRAIPLEGKQLRAVLDDLDRKYIDVEVEVEFKRGPYNGTRSLDTKRFRVVGVRDEDADDYHLYMTNLVRKEFFPADLAQIYRCRWEVELLFRELKTQYNLDEFNTSDEHVVKILLYAALLSLLVSRDLLDLVTEQADDELVFPTERWAATFRSHAQLFLHKLGEYLGYSPPPLLERLTEDAQKIHKQRPILQETLATATQPRCES">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="0.943396226415094"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_67" accession="O52024" score="0" sequence="MRRLTTLFPSKFLEEHAEELGVVEREGKLQIPVLVWALVFGFAAGESRTLAGFRRCYNSTADETISPGGFYHRLTPTLAEYLRDLVEHGLDEVAVPDTVDADIDRFRDVMIADGTVLRLHEFLSDEFQARHEEQAGAKLHLLHNATDETIERIDVTDEKTHDSTLFKTGSWLQERLVLFDRAYFKYRRFALIDENDGYFVSRLKENANPLITEELREWRGRAIPLEGKQIHDVVDDISRKYIDVEVEAEFKRGQYEGTRSLDTKRFRVVGVRDSDADDYHLYITNLPRDEFFPEDLATLYRCRWEVETLFRELKTQYELDEFNTSDPDVVKILLYAALLSLLVSRELLDLVTEQADDEIVFPPERWAATFRSHAQLILQELGEYLGYSPPPLLERLIEDAQKIHQQRPILQETLATATQPRCES">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.00999927520752"/>
+				<userParam type="float" name="ratio_1" value="8.01000022888184"/>
 				<userParam type="float" name="ratio_2" value="5.47048091888428"/>
-				<userParam type="float" name="ratio_3" value="6.01907062530518"/>
+				<userParam type="float" name="ratio_3" value="6.01907110214233"/>
 				<userParam type="float" name="coverage" value="0.943396226415094"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -553,7 +553,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="2.33918128654971"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -561,7 +561,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="2.5974025974026"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -569,7 +569,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="1.06666666666667"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -577,7 +577,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="0.411946446961895"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -585,7 +585,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="1.03359173126615"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -593,7 +593,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="1.09409190371991"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -601,7 +601,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="0.741839762611276"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -609,7 +609,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="1.97044334975369"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -617,13 +617,13 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="1.82068860530853"/>
 				<userParam type="float" name="ratio_2" value="3.97170186042786"/>
-				<userParam type="float" name="ratio_3" value="0.386467903852463"/>
+				<userParam type="float" name="ratio_3" value="0.386467933654785"/>
 				<userParam type="float" name="coverage" value="0.730994152046784"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_77" accession="Q9HPE5" score="0" sequence="MGRDRARLAAALERGEQEGGSVEFKERFSRDIHLAEGRLESLTAQLRHRILSGDGEAEYVLGVTDDGGLAGVSQATFAETMDVLSLLADEAGAHIADVQTWGIDSVGDAPAGTDGIVGVATVQDGDGLAAGDDHIIVGTAGHVDHGKSTLVGSLVTGDADDGDGATRGFLDVQPHEVERGLSADLSYGVYGFDGDGPLRVRNPDRKDERAAVVEAADRVVSFVDTVGHEPWLSTTIRGLVGQKLDYGLLTVAADDGPTKTTREHMGVLLATELPTIVAVTKTDLVDDDRVAAVEREVEALLRRTERAPLPVARHGVDAAVDELGDGVVPIVRTSAVTGDGLAVLDELFARLPKTTAASGPFRMYVDRTYSVTGVGAVASGTVKSGTVEDGETLLLGPFPNGSFRTVEVRSIEMHYHRVDSAQAGRIVGIALKGVSEEAIERGMVLLPGDADPTPVRAFDAEVMVLNHPTRIDAGYEPVVHLETIGEAARFTPADGQLLPGDAGHTRVRFKFRPYLVEEGQRFVFREGSSKGVGTVTDVVE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="1.48148148148148"/>
@@ -631,7 +631,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_78" accession="Q9HPB1" score="0" sequence="MSSGQNSGGLMSSAGLVRYFDSEDSNALQIDPRSVVAVGAFFGLVVLLAQFFA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="13.2075471698113"/>
@@ -639,7 +639,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_79" accession="Q9HHV3" score="0" sequence="MTGVGAVADTPAAHAESATLHAFLNCYLRETDAGEVVSPRAVPDGVPAGAQRADRRVVRVPFPAQSTTVFAPLRYASATGRHLFAVPAYARPGVPDAPAGTPSPIDAAGVASLARRELALDGDDPTAGRDLLERVLASQTATERFVAARDTPRDHERLYDTTVSFRDAEQSLVYGHHMHPTPNSRTGIPPHEQSRYAPELRAGFQLRVFAADPALVETWAAGDASATEWLRSVVADATTVPPESEATLVPVHPWQADYLHAQPHVAAAIARDELRDLGAFGPTFYPTSSVRTLWSPDAPFMYKGSLAVEITNAERTNKRPELARGVAVSELLATGFGDAFADRFPAFSIIEDPAAITLTLGDGAESGFEAVLRENPFAGDDTDNVTPVAALCQDGLDGPARAARIVSRIATREGRTESAVAREWFEQYLAHTVRPVVWLYFQQGVGLEAHQQNTLVRLDDDGRPTAGFYRDNQGYYFPASQAADVDDWLPGVCERADTVCPDAIADERLRYYIVFNNAFGVVNALGAGGVVDERALLAVLRTELESLAEHEPADSTLVSALLTERRVPCKANLLTRFEERDELEADLETQSVYTAIENPLVTRVDTQ">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="1.15321252059308"/>
@@ -647,7 +647,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_80" accession="Q9HMU4" score="0" sequence="MTHATSATSDMVAAALDRALTDHEDDIDSDARDRILTEATRNAYDDATTDERYDALLGALTGRIDRHPAYKTVAGRVLRERLERRLVDDYDPATRDAATRQAFRDGIQRGLDADLLDERMGDYDLNRLADAITPARDDRLDYMAMDTLRQRYFLREPDADPFELPQPFWMRVAMGVALREDPADREEYAIEFYDALSTLRFVHSTPTLFHAGTTHAQLSSCYLTTVPDDLDGIFDAYKEHAKLSKWSGGLGNDWTPLRAAGSLIESTGVESTGTVPFLKISNDVTAAINRSGKRRGAAAAYLACWHLDFPAFCDLRRNTGDERRRTHDMNTAAWIPDLFMERVRADKQWTLFSPKETGDLYELYGSDFAERYREYEAMADDGDIQRFERVDATDLWRTMLTRLFETGHPWLTFKDPCNVRSPQDHAGTVRSSNLCTEITLNTSEEETAVCNLGSVNLARHLDDGDIDREQLSETVETAMRMLDNVVDLNFYPTENAERSNMRHRPVGLGVMGFHDALQQMRVPMASDDALDRADALQEYVAYHAIGASADLAAERGTYESYEGSKWDRDVFPQDTVDRLESERGREIPVPREERLDWSDVRQRVATHGMRNSNTMAVAPTATISTIAGTTPSIEPVYSNLYVKSNMSGDFTVVNDRLVADLEERDLWTEELRDKLTYHDGSVQELDAVPEDVQELYRTAFEIDPRHQLRLAARRGVWIDQSQSVNVFFPETDGSKLSEVYQTAWELGLKTTYYLRTLGASQIEKTTLDMDEYDDTQFRGDDDGEDADGDGDLPSVEDPTCEVCQ">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="0.995024875621891"/>
@@ -655,15 +655,15 @@
 			</ProteinHit>
 			<ProteinHit id="PH_81" accession="Q9HS16" score="0" sequence="MYGLLKSALFGLPPETTHEITTSALRVAQRVGAHRAYAKQFTVTDPRLSVDAFGQTFPNPVGMAAGFDKNAEIPRALAGLGFGHIEVGAVTAERQPGNDRPRLFRLPDDNALVNRMGFNNEGADTVGARLDAEPLPDVPVGVNIGKSKTTPLADAPDDYTYTFSRVGDAVDYVVVNVSSPNTPGLRELQGRDQLAAILEALQDAGASPLLVKLSPDLHQDAVADAVELANDLGLDGIVATNTTTERPESLSHPHAGEQGGLSGAPIRERATEQVRFVAERTDQPVVGVGGVATAEDAYEKIRAGASVVQLYTALVYEGPWVAKRINEGLVSLLERDGFDSVEDAVGADL">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="3.72492836676218"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
 			<ProteinHit id="PH_82" accession="O51993" score="0" sequence="MNSTRRWTSSATNCTKISRRTSAATPTTTTSVATSTAHPQAAKRSPTAASSSTAPFPACCTKKASRKPPFRTSILANCSFQQLSYHPIRMVLLRGSTTVHSDSGVHRGES">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="7.27272727272727"/>
@@ -671,7 +671,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_83" accession="Q9HSW6" score="0" sequence="MTDAAAVIERVRQRVDPTPAERRALAAAASRLTERAEAAIAELPVAADVVQVGSTARGTWVAGDRDIDLFVRFPSDLPREQLETYGTTVGAAVLPDGHEEYAEHPYVTGTFEGYAVDLVPCYDVAAATEIKSAVDRTPFHTTYLQEHLDDGLAADVRLCKQFLKGIGVYGSDLRTQGFSGYLCELLVVEYGGFEAMLAAIEDWQPPVVIDPAAHQQASFDDPLVVVDPTDPERNVAAVVSAANVATVQHHARRFRATPSEDAFTPASPAPLDAAALRSHIDRRDTTPLAVVLDAPDVVADQLYPQLYRSRDGVVRGLREHGFDVVRAAAWADERAVVFVELASAELPAVERHVGPPVSVGTHAERFYETYADDDGVYGPFVDDDGRYVVERDRDVRTAGGFARTELGTVALGARIESRVASGDYDVYVGDAVVEALLPEFESELAAYVDPKA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="1.32743362831858"/>
@@ -679,7 +679,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_84" accession="Q9HS41" score="0" sequence="MPPLQPAQRVAVLADSQNLYHSAQSVYSQNIDYAALLDKGVQDRELTRAIAYVIRAQSEDEDRFFDALRDIGFETKIKAIKTFGDGSKKADWDVGMSLDAVSLADHIDTIVLCTGDGDFSRLCRHLRHEGVRVEVMAFEESAATELVDAADSFVDLSERTETFLL">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="4.24242424242424"/>
@@ -687,7 +687,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_85" accession="Q9HNG5" score="0" sequence="MGLAEYFGFDDHDTDLRTELVAGLTTFLAMSYIVLVNPVVMTQRTTAGEVVKPGIALANYSHDQTVQMLAVVTLLASGVAMLVMAFYANRPFALAPGLGLNAFFAFTVVGTLGVPWQTALAAVFTEGLLFIVLTAVGAREYVITLFPEPVKLAVGTGIGLYLAIIGLEAMGIVVGDAGTILALGNLAQNPVAVVSILGLFFTIALHARGVTGSIVLGIIATAATGGVLTFAGVVDPGVLIGDFVRTGGIATQRLPHAQYDITPLVGAFLAGFQDIDAFSFALIVFTFFFVDFFDTAGTLVGVGQAGGFLNTDGNLPDADEPLMADAIGTTFGAIIGTSTVTTYIESATGVEEGGRTGMVALVVAVLFFLSLLVVPLAAAIPQYASHIALVVVALLMLANVTAIDWDDITHSIPAGLTIIVMPFTYSIAYGIAAGIVSYPVVKVATGDADEVAIGQWLLAAAFIVYFYVRTSGVLAAAV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="1.67364016736402"/>
@@ -695,7 +695,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_86" accession="Q9HS06" score="0" sequence="MSEDVDPQALQQDLDRIKDAMGIAERYESAPEQWLLFSVLVAAGSAVSQVLLFARAAGFWYPVVWVGLFGAGSLVLSRRYDYAFGPGHSEPNVGFQVLVVYFGSFAALSAVDPFLPELGYLADKALALGLVAVMLGLGYLVAGETLKAYRIRARDRYVLHGGGLLLVALGVAIPTVDVLHTWSYAAFGASYVVYAAASYLVLTRT">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.97960996627808"/>
+				<userParam type="float" name="ratio_1" value="3.97961020469666"/>
 				<userParam type="float" name="ratio_2" value="6.45899963378906"/>
 				<userParam type="float" name="ratio_3" value="3.19671225547791"/>
 				<userParam type="float" name="coverage" value="3.41463414634146"/>
@@ -752,88 +752,88 @@
 			<ProteinHit id="PH_93" accession="Q9HRD2" score="0" sequence="MELTGKRIVVTGGAGLVGSHAAGALAGDNDVLVADDLSKGSREAVPDGVEFRRRDMCDPDDVADVITPDVDIVFHFAAYTDTNYEQPRQLFEENGAMTYNVLERMAAVGVDRFAFTSSSTVYGEAPMPTPEDYAPLEPISVYGASKLADEGLISTYAHAHGITSWVYRFANIVGPRQRGTVVPDFIQKLRADPETLTILGDGRQEKSYLHVEDCVDAMTHVIEHAPSRPLNVFNLGTRTTTSVTAIADLVSDELGVDPAYEYTGGDRGWTGDVPRMRLSIEKLAALGWEPTRASDEAVRTAAAELAAELSGDEA">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.50921440124512"/>
-				<userParam type="float" name="ratio_2" value="2.69439005851746"/>
-				<userParam type="float" name="ratio_3" value="12.4795742034912"/>
+				<userParam type="float" name="ratio_2" value="2.69439029693604"/>
+				<userParam type="float" name="ratio_3" value="12.4795751571655"/>
 				<userParam type="float" name="coverage" value="1.91082802547771"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_94" accession="Q9HHJ3" score="0" sequence="MDPTMPRFPCSRASMMERSRKLSSSTTYSRKRSTASRPTPATTQPSTSSIAWKKTPASTSTHSPPTPSRQGRPSSANRNRSPSSTPALSRICKPRGSAIYMRLTTILTLSRMSIDSIQQRIPMTQTDAGWHHGWRRRSVSG">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.34763431549072"/>
+				<userParam type="float" name="ratio_1" value="3.3476345539093"/>
 				<userParam type="float" name="ratio_2" value="0.228418603539467"/>
-				<userParam type="float" name="ratio_3" value="5.84099102020264"/>
+				<userParam type="float" name="ratio_3" value="5.84099149703979"/>
 				<userParam type="float" name="coverage" value="2.83687943262411"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_95" accession="Q9HPA0" score="0" sequence="MDATVAVVHYPEGAGHATRMLAIARELQSRGATVEVAGGGPGERFAALLGYEEFVPTAVDFIGDYQGADGSLADVLTGSVPDAVRRVRDVARWLGRVDADCVVTDDMFASVAALLARVPQYVCTHNTPGYYDDRAERAGAALLTRQQVTASRTFFYPAVWPAQAGDPRGVERVPPLALDVPLDGAVPDVDVLVSPSTYSDDLGAVAGRLRERGRSVTVVGGDDWTTVRSMLPVLREASVVVCPGYSTVMEAAVAGTPCVVYPFTSEQRGVAEFLAAGDGFAVATTPDEAVAAVAQPPAAPSFPNGAPVVADRVMGDRAAWQKT">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="3.34763431549072"/>
+				<userParam type="float" name="ratio_1" value="3.3476345539093"/>
 				<userParam type="float" name="ratio_2" value="0.228418603539467"/>
-				<userParam type="float" name="ratio_3" value="5.84099102020264"/>
+				<userParam type="float" name="ratio_3" value="5.84099149703979"/>
 				<userParam type="float" name="coverage" value="1.23839009287926"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_96" accession="Q9HQ33" score="0" sequence="MKLHPLSVPVRALSRALGFGWAFLIGGAALSGGNAALTGVAVLGVMVAVVAVVAYEIAYYRRFDYELTEDSLDIASGVFSRREREIPLRRVQNVDVTRSLVARLLGLAVVDVETAGGGSTEASLRFVSREAAADLQADVRTRRTTPGDAADAATAATPDAGGADSESRSAADRAREPTPVGERGELLFALSNRDLLLYGLLSFNPRLFSGIIAVATVAAPSLGGRMAVPDVGMVVLVAGAVALALGVWLVSAAVRVVQFYGFRLRRVGGDLRYERGLFERRDGTIPLSKLQTVSVEDSVLMRRYGFASLAVETAGYAPGQSPSGGSEAAVPIAPRAAVFELAREIEPVADIDLSRPPERAQDRYVRRYALAGLGVVAAGALVSRLVVSFPWYALAVLVPLAVPAARRAHATRGVYSDSDHVVTQAGWWRRKTTVVPAHRVQTVLRKQTVFQRRWALTSVVIDTAGSRSLSGGGAVAIDRDGGDADALADDVVDCTLLSVGVRGDDTAAAGSAAD">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.16731517509728"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_97" accession="Q9HHS2" score="0" sequence="MRPPAPPTPMATTRIPPYSATTRKSTQERACATPPQSVGTRAFENAYRSPVPSAGMTELAGTVLAGDAFEPTRGRVVIDDGRIDAVEEDTHVDSEDIILPAFVNAHTHLGDSIAKEAAVGLSLDDAVAPPNSLKHRRLAAADDDDLVAAMRHTLTFMHQTGTVACLDFRESGRPGTEALRAAADTVDVTPFIFGSGDPDVLDIADGYGASGANDNDFADERAACTRRDAPFAIHAGEPDATDIHPALDLEPDLLVHMVHAEDTHLTRVADQSVPIAVCPRANTVLDVGDAPIPALLDHTTVALGTDNVMLNPPSMFREMATTAKRFDVSATDVLRMATTAGAEIAGLDCGVIEPGRRAALVVLDGDSHNLRNAVDPVQAVVRRATGLDVKRVLT">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.52284263959391"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_98" accession="Q9HR51" score="0" sequence="MSDDHGDDGGRVTAPMQEFSIGQVTNGLIVLLVGLAVAYAVPVVV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="13.3333333333333"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_99" accession="Q9HHI6" score="0" sequence="MLLEITRPVRREPTQATGGAQLQRAFQMPEFHPQPRERCERVDNQPTAVTGDVIALVGIRLRLDRTVDTDRMADPFVLSLGMGLASLGTGRGVEESTSVEFLAGPCRNVRLLPRHLAFSVAPVPTPARNEGYRAKRLV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="4.34782608695652"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_100" accession="Q9HPQ9" score="0" sequence="MVVTVRAPATSANLGSGFDVFGVALSKPADVVRVERADTTTITVTGAGAQYVPTDPQENTAGVVAAALDAPATIHINKGVRPSSGLGSSAASAAAATVALAELYDRPLDDDALVRAAAQGEAAASGVAHADNVAPAILGGFTIVREDGIEHVDASLALAVCLPETTVSTRDARGVVPESAAMEAVVSTVESAATLTLGMCENDPQRVGRGVEDALVTPARARLMDGYEAASAAARDAGATGVTISGSGPGVVAVCRRRDRKRVAAALVDGFDSAGVAASAYQTRIGDGATRLAADGDDRAP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.99335548172757"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_101" accession="Q9HSV7" score="0" sequence="MREIANWLVALIIGASFLTYSTLVPQIVGYLMTVAVIGVCLLWMAKSGTITSITTQPAALSLGFVAAVIFTHTLLNPEFQRFQRMLAFAFITPLLIFLIPPNTDLSAVFYRVSVFTSGLVILAIPTLFVGELAIGPLAISSWHTTTTLPVLGLEYPPLVSIFSNPNTLSFVCAISAISLLRQIEFDTVSRILFAINVGGLYLSGARASILAFLAAIALLTVYKVLGTWATVTSSIAGLCIVFALPVLAIWELVPINLAGRQDLWRASYYAFLEAPLYGHGPSNLGQVIAPYVEKTSRVGVGPHNSFIAIFLIGGVITGLAYLYFLFESFRVSACFLDEPNGIVIHLLLVATLIMAMFSGSTVFGLSTVSVVSALVAGYALSQVRTQTHFQS">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.53452685421995"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_102" accession="Q9HMG1" score="0" sequence="MTANTDASATRRLATLAAGSLLVVLAATLLQVSFGAYPIPIADAWHTVFDPEIWSSAGVWRAFLLGGQLPEWLSRRQVVVWNIRLPRILVGTLVGANLAVSGAIFQIVTRNELASPYILGVSNGAGMVVLLTLTLFSGLLPVMPLLAALGGAVAFLIVYAIAWKNGTNPVRLVLAGVVVSTVFGSVQRALFFFIDNLGVVMSAQTWLSGSLLGTDWAQVRIALPFTVLSLALAFLVTNELDVLLLGEETAESLGMPVEKVRFGVAGIAILSTAAAIAVAGLIGFVGLIVPHMVRNIVGNNTRDLLAGCVVLGPALLVGADVGARLALDPVQLPVGIITGLVGGPYFLYLMRRTENLGDI">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.67130919220056"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_103" accession="Q9HPB0" score="0" sequence="MSRANANRRRDLATIARDVGGLVLIAAGLMSASVLVAAGFQEWYAALGFLLAGGLSATVGGLARRRFADAPAPKMKHGMVIAAGGWFAIAVVGALPFLFTAWLTPPAAMARFVPTDATWTAVSVGNTTTLSSLAYFRQPLHALFESMSGWTGSGLTMAIHEPSLPRSIQWWRSLTQWVGGVGVVVLTVSILARPGSGSYALYRSEAREKKIHPSVVSTVRTVWKLVVGYTVVGVAVLFVAIRASDYGAALPVWDAAWQALNHTMTGLTTGGFSVTDNSIATYDAPVIEAALLPIMVAGAIAFPIHYRLLADRDHGVLRGDLQTRWLFVLLGGGVVVLAAQNVAAVPVTPDAVTQWTPAIGDVPVLSPAQADAARDATFQWVSALTCTGFQSAPIGNWIAGGKILVVGAMTIGGAAGSTVGGIKIIRAYTAVRGFIWQFSRVFLPSNAVVTARIDGRTLDRDAMEQEFSEAAIVALLWVVLLFATSLVLVNLAGPSFSYADALFEVASAQGNVGLSSGITGPDMSPIAEAMFLFNMWIGRLEIIPVLVFARAAISGLDP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="8.55311393737793"/>
+				<userParam type="float" name="ratio_1" value="8.55311489105225"/>
 				<userParam type="float" name="ratio_2" value="12.2854690551758"/>
-				<userParam type="float" name="ratio_3" value="7.00002479553223"/>
+				<userParam type="float" name="ratio_3" value="7.00002527236938"/>
 				<userParam type="float" name="coverage" value="1.0752688172043"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -841,7 +841,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="12.3287671232877"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -849,7 +849,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="6.91823899371069"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -857,7 +857,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="2.14285714285714"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -865,7 +865,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="2.0979020979021"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -873,7 +873,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="1.65562913907285"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -881,15 +881,15 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="2.76073619631902"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_110" accession="Q9HRD7" score="0" sequence="MSLAEYVDRAFEQPLAAAHASRYLLAAIESAGTREVVENGERAQRYRFFDDPHNDGEHAVLGNTATLNAFVDDVRAIAAGRGKAETILWFAGPTATGKSELKRCLINGLREFSKTDAGRRYTIEWNVSDADRGPGLTYGEEPVDREDDWYESPVQASPLSVFPTDVREDVLADVNDHREDADALRADADLPPFSREAYDHLEQQYRREGVADVFAAATDPKHLRVKNYVVERGQGIGVLHSEDAGSPKERLVGSWVAGLLGQLDSKGRKNPQAFSYDGVLSQGNGCLTIMEDASQHADLLQKLLNVPDERRVKLDKGIGMDLDTQLVVISNLDLEAQLNKHDDRQGFDPLKALKRRLSKHELGYLTSISLEAQLLRRELTGDAGVWTATDPEVLAERAAQPVTVSVRDDDGETERELAPHTIEAAALYSVVTRLDDDDHGDELSLVEKALLFDRGYVGSGEDRRDASEFDLADGADGANGIPVTYTRDVLADRLHADADRSHPDLAVERVITPGDVLSGMVDGLSSAPVFSDAERAEFNDRVAVVEAYIHDQQAEDVRDAVLAGEGASESAVEEYVDNVHAWATGDTVENARGEQAEPDALSMKLFETETLGRFDADTHYHGNDPTPAVETFREDTVMTAVTRHAWEHRDDEFHAHDVDLSTVPVLRDVLAGNDWDDVKRVHPEFDPTQWADPPEGTDTAAVKADAISFLVSERGYSRASAELASRSVISEVTDEWD">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="2.03527815468114"/>
 				<userParam type="int" name="hits" value="2"/>
 			</ProteinHit>
@@ -897,7 +897,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="5.91715976331361"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -905,7 +905,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="6.77427577972412"/>
 				<userParam type="float" name="ratio_2" value="6.53829383850098"/>
-				<userParam type="float" name="ratio_3" value="9.84475517272949"/>
+				<userParam type="float" name="ratio_3" value="9.84475612640381"/>
 				<userParam type="float" name="coverage" value="2.15827338129496"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -913,7 +913,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="8.01919364929199"/>
 				<userParam type="float" name="ratio_2" value="8.68335914611816"/>
-				<userParam type="float" name="ratio_3" value="4.79752826690674"/>
+				<userParam type="float" name="ratio_3" value="4.7975287437439"/>
 				<userParam type="float" name="coverage" value="0.845665961945032"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -921,7 +921,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="8.01919364929199"/>
 				<userParam type="float" name="ratio_2" value="8.68335914611816"/>
-				<userParam type="float" name="ratio_3" value="4.79752826690674"/>
+				<userParam type="float" name="ratio_3" value="4.7975287437439"/>
 				<userParam type="float" name="coverage" value="1.61290322580645"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -929,7 +929,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="8.01919364929199"/>
 				<userParam type="float" name="ratio_2" value="8.68335914611816"/>
-				<userParam type="float" name="ratio_3" value="4.79752826690674"/>
+				<userParam type="float" name="ratio_3" value="4.7975287437439"/>
 				<userParam type="float" name="coverage" value="1.3840830449827"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -1009,7 +1009,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.29772853851318"/>
 				<userParam type="float" name="ratio_2" value="7.82864236831665"/>
-				<userParam type="float" name="ratio_3" value="4.19813585281372"/>
+				<userParam type="float" name="ratio_3" value="4.19813632965088"/>
 				<userParam type="float" name="coverage" value="0.932400932400932"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -1017,7 +1017,7 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.29772853851318"/>
 				<userParam type="float" name="ratio_2" value="7.82864236831665"/>
-				<userParam type="float" name="ratio_3" value="4.19813585281372"/>
+				<userParam type="float" name="ratio_3" value="4.19813632965088"/>
 				<userParam type="float" name="coverage" value="0.647668393782383"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -1025,13 +1025,13 @@
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="5.29772853851318"/>
 				<userParam type="float" name="ratio_2" value="7.82864236831665"/>
-				<userParam type="float" name="ratio_3" value="4.19813585281372"/>
+				<userParam type="float" name="ratio_3" value="4.19813632965088"/>
 				<userParam type="float" name="coverage" value="0.728597449908925"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_128" accession="Q9HI03" score="0" sequence="MSIDQDAAARRIMDQFGEESRIPSLNIEEGDVGVLIAFPIVGLFVAGLTGIESLALPFVAGGFGFGVAIVYVSPDHLNAWTWTKDVYRYVKRPQITFSSPEEANSSTNETERNEGGLANYTPFKPDERTQDLTNIERAWPGAGAIQRADGTMEAFIEIDPDNMDFAMSDDWAQLQDAGEEFANKELDSELKLHATTRSFPVEQITETIEERLTDEDVTENPIFRELLEEYRETRPKEMRDRGIQQVRYYIGVQVSPIEVYDRFRDEGTPAEKLTQFPVIGFLFNPFVTRREDLTDVERRAQMFEKLDSRVNDVRSEFIQQASGWSARRLGTVELFVLNMDFWNGREHDYDEAERVVREQPIIGHSRREDAHDA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="1.60857908847185"/>
@@ -1039,7 +1039,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_129" accession="Q9HR84" score="0" sequence="MPHDRRSYLRTSSAVIASLLAASTPTSAADTPPEWDPDTVYTDGDKATFDGYVWEAKWWTKGDKPGADEWGPWTQRRPVDGSPGGPTAAFTVTDTTVEPGTAVTVDAGDTTGSVDSYEWAFGDGTTAAGVTASHTYDAAGEYTIELTVTTGDGTTDTATQQITATTSPGDDEFKVVGYYPSWKGTDDYDFYPADVPFDQVTDVLYAFLDVQPDGTVVLPDSDVDHESLLASFASLKQDRAADTRLKLSIGGWGLSPGFEDAAADQASRERFATTAVDLMRTYDFDGIDVDWEHPGPRRGKCECGSAQGPANHVALLETVRDRLNDAEVEDGRTYDLSVANGGSDWNAALINHREVAAVVDDIYMMAYDFTGVWHGTAGLNAPIYGTPPDYPPSGDAQQYTLETTLTIWKEQGYWVDWMEWEDHGDPVDDPGTLVLGMPFYGRGCNVENGIWDTFSLSEWQQGDPKYQNDVIPPGTWNDLRGPDDANTGAFDYGDLAANYEGADAWTKQRNEQGGVPYLWNDSEGVFISYDDPTSIAAKVELAVAEDLGGVMIWELSQDYDGTLLETINQHTP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="1.04895104895105"/>
@@ -1047,7 +1047,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_130" accession="Q9HSY5" score="0" sequence="MTLFDDDTVSLSTTESRVRCDLALPDADDSYQRQYLDSVEWSVTESTLTARDGEYFLHIGFRRSKTDTERNTAEDGTVLGVDLGIENLAVTSTAYFFSGRELAHDLREFEKVRAGLQQTGTRSAHRTLEQSSGRELRYVRDVLHQASNAIVDEALRYECDIIAFEDLTHIRERTGASWGHKWAFRTLYEQVAYKAEAEGISVKQVGSAYTSQRCAECGFTADENRPTRNDFQCGKCGAEANADYNAAKNIGLRYVRRGQQSSRRTGNSQLALQSGTVTPSDGFTAHPEGFEAEFMDKPHPPRARQRE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="1.95439739413681"/>
@@ -1055,7 +1055,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_131" accession="P57699" score="0" sequence="MASPPPIVEYAVFFTILAVLVFVAGEYLAWVYREQANSDHRPPGYLSWFERLDEIFTPIENGLYRLSGINPRREMTWKGYLKAVLVFNVCIWVLLFVVLMFQDALPMNFVGVGGESWDLAFHTASSFTSNTNQQHYSGETLSVFTHTFGIGIAMFLTPATGLALMPAFARAFTNKEDPRLGNFYENVVRGLVRFLLPISLLIAIILMAEGSVQTILGGQLTANTFTMGIQNIRIGPHAGIEAIKMFGTNGGGINAANAATAFENPTPLSNLVLTLAMPIGTFSAIYAWGAWVGNRSHGVAIVAAFFVIYMALTGVAVVGETGTNAGMVVTGNGLHVDQTVGNMEGKETRFGPTASAIWGLSTTGTTNGGVNSMHNSWTALGAFSLLFAFATNNISNGVGTGLLNILMFVILTAFIGALMIGRRPQYLGKKLEWQEMRYVFVVILVLPILVLIPQAAAVVYQGAIDSMNNPGFRGFSEVLYEFFSASANNGSGFEGLGDGTLFFNLVNGVQVLLARYVPITAQLAIAGYLANKKVSPESKGSLDTDTPAFVGLLIGVIIIVSALVFLPALVFGPIGELLSGGI">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="1.03092783505155"/>
@@ -1063,7 +1063,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_132" accession="P82854" score="0" sequence="MRVPAPELNGSSSSTELRRSVNSRMDSTRVRSPSRTIQLPTASVSPAHTRIQSIRVPSPRRSTATWSGVRLDATLSSRSRCEPVVFRLATAVIQHIPVGFPHYPSPLFSRDTTSNQSSRRSAVGEVVNASLCCRCAASHSSNRPYSVMVVMPAIAARRLIPIRGMSATVTITSA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="3.44827586206897"/>
@@ -1071,7 +1071,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_133" accession="Q9HSD3" score="0" sequence="MQDLEAELERARELDVATLADAIETIGFECTRCGACCKSEADDPHTATVFPDEVRDVQAAAGAETDRDWRDVARPMPYGLDEDGAGETFEWALQADSCGDCTFYREDDDGTGACSVHGSRPLICQTYPFSVALGGTSQPMGEAVDEAGMVRAHECEGLGRDISRADAEELAGALKARAIRELEEAIDVREAYAPANPEPGATVVHDSEGAKRPDGSAYPN">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="3.18181818181818"/>
@@ -1079,7 +1079,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_134" accession="Q9HRE2" score="0" sequence="MRDLSHALGSGEPYPGDPPAAVTPHATMAADGYRVSAVACSTHSGTHIDAPSHLLADGRSLDAFDVSAFRFDAHVVDCTGYGPEDAIPVDRVPALDDHDMVVFNTGTAADWGRPEYYEHPHLSVAAAERCADAGCAVAVDAPSVDPTRTAPAGESSDAAAYPAHRALLGAGALIVENVTNLDGLPERVPVQAYPLPVAADGAPARVIAAP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="3.33333333333333"/>
@@ -1087,7 +1087,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_135" accession="Q9HPR9" score="0" sequence="MELAVHDATEDGAGYATAASSWVVVEPEFVVDVTDIRSFVQCPRLYYLNKLSGLPLKYPVTKGTIVHEVFGDLLRGRDLEASVAQRVDEAGLELGLLGRSRAEVEADVRDNASAIEGWLQQGRLTDEDEWRSEYTLVSERFGIKGRCDAIRRGMPVELKTGKNTNREPRFHDKVQAACYALMLDEHGVPADTGTLLYTKNAAVDRSEASGDLSPAKEFSIGRGFLEFVVRERNHLAALEASDGPPTGYEADAKCDYCFEQDTCMVVSGRLDQESKAGRIGDPVPAEERAYFDELYDAIEAERGAIHDEYRKLWEQSPDERAADDRAVVGLSPAEQTELPDGRWRLTATRPGSAASKIREGDRVLASDGDPVAGRAEMARVERLDADRVEVTTDEPVSLCRLDVYPSELSVDRMLTALHDAVLKSDQRRTDLLFDRASPRFEGGDHDLIPNNDAQNAAVNRALNAEDFALVHGPPGTGKTYTIATLVQAFVARGDRVLVSAFTNRAVDNALDALRQQGHEDIVRVGTETGVRADMQDLRLDRSGDPGERAAALRSAPVVAATTATCGSRILRELEFDVVLVDEASQLTEPDTLAAINRGARFVLVGDHEQLPPVVRSGGRLSKSLFERLHETYPEASVMLDQQYRMSQRIQAFSSREFYDGQLRPASSEVAGQRLTDVGVDPGGAVHGGVTFYDVPGTDDAHVDPAEADRVADVVTAYVDAGLDPGEIGVIAPFRAQVAEIGRRTPAGVAVDTVDRFQGSSKEVIVVSFVARGTLEGPIFEDHRRVNVALSRAKKSLVLVGDERALRSEPLYDRMIDWADME">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="0.730816077953715"/>
@@ -1095,7 +1095,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_136" accession="Q9HSK5" score="0" sequence="MAGALPTKLPGCGRQSASRNGFSRATGIQGMDREAAVDRVEALLDTVIDEEMPVPVREVWAYGDVALGLDPVDRLDVYLTKDVLLRGDDADRADEFEREYGVAGVGKTVRASWADAHPEHVRANDSGHVAPERCLGAHLVGDDEPIHLEVCNAGFEDNVTQRLEGALATETYEHVLDPRGVCVYADGRRGTDAMAKLRAGELVFPTLAEALEMLGADEADAELAADAVDARRDRATGATVRGDVV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="2.44897959183673"/>
@@ -1103,7 +1103,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_137" accession="Q9HQM8" score="0" sequence="MSNETGYPHHKVRYSLRVLEEETLIEPSSQGAITTDRTHEFVEELDGKVDEIMDKMESMKIDAAAEAE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="6.16841554641724"/>
+				<userParam type="float" name="ratio_1" value="6.16841602325439"/>
 				<userParam type="float" name="ratio_2" value="6.93940114974976"/>
 				<userParam type="float" name="ratio_3" value="5.00705909729004"/>
 				<userParam type="float" name="coverage" value="10.2941176470588"/>
@@ -1112,7 +1112,7 @@
 			<ProteinHit id="PH_138" accession="Q9HMZ8" score="0" sequence="MARGSRGDGPLDPDIPAAVDDAFAFLFRNSTVNAVIAWLAVAVLGGVVLDSALDVDLRWLVFTGAVGVIVAVPPVVFRSWRTMLPWELLCVGLLPILVRGLFGGTVGTFAVYVSLAAVALVVVGELHTFTSLAVTHWFAAVLVVLVTLASGAVWAVFRWTADQHFGTAYLTTNHALMTEFVWVTLAGLAAGVLFALALRRRTRWLRRATSRVTER">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="3.25581395348837"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1120,7 +1120,7 @@
 			<ProteinHit id="PH_139" accession="Q9HRT5" score="0" sequence="MEFGVVARWWVFFGVLLVAGLPVASRLLPDAPDRGASVAMPLSLVVVTLATLWVGQVAYGQLVVGGVFVAVLAAAAWLARGGVEIPRKPLLEVVGVFTVAFVFLIVVRAWADGVQPAGGEQFLDFGLLQALDRAGQLPPRDMWFAGERVVYYYGGQLMASIGAHLTDTAPRFAYEPALAGVYAMGCTAAYGLASTIAAGNGGESRPVGVPTAIGGAGVALAVVVLATGVNWLVVAVPAAAAAVVVTRPRRVRAGVLGAFAFGFASNLGPVIRLLAARVDVVRAAVVAAGINADRRPAITPEAFDMWHASRFMETGLNEFPLFAYLNGDLHAHMVSVPVLFVAVAVGVAYYRTPARQRRRRWALLWGGFPVAGAAILTVNTWSLPTVFGVAALAVALADPAPATLLPTGVQRWTRRESAVGQSVQRVLLAVGVAAVGGVLAVVIAWPFVQNVLLAGASNQHLAVLPVPSQAGALVFVHGLFLAAFGAYFVSRVATSVAGWVVAAAAAGAAVAVAVAVGPVVGGVGITAVVLVGPVLGAAWWLRRRNAAGVECVLVAAGAGLVVLVEYVYLADAASYERFNTVFKVYAQVWALWSVAGGVALAGVSERRASTGGLGAVFVVGLVVAASVYGGLAVTTHAANADDASLDALEYAGNAHPGEAAAARWLGDRRRGTRIVAAPGVDPYTWQNPAASLSGVPTVAGWAHAANYHSQAAWEQRVDDIGVVYETTDAASRAAILEKYDVTYVWVGPVERARYEIPDLSADPGIEPVHRTPAVTIYRVTDDELVAPRSGPITVTTTPQAATATAPGAQTARSPARFVTVTSSASTAVTSSQWGTKLRFS">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="0.714285714285714"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1128,7 +1128,7 @@
 			<ProteinHit id="PH_140" accession="Q9HMR3" score="0" sequence="MATRDLRSDDPSTDPDADYDYTSDSVERPGLVDDLRERVDGDVRFDSYTRQLYATDASIYEALPVGVVFPTSTDDVAAVVSYCADRGIPVLPRGGGTSLAGQAVNEAVVLDFKHAMNGFVGFDPEAETARAQPGITLAALNDELAAHGLKYAPDPAWGDKSVLGGAIGNNSTGAHSLQYEKADGYLESAEVVLADGTVTTLGWVDTDDLDALADPDGDLEARIYADLRRLLDEEADRIRERFPDLKRNVSGYNYDRLLADAEAHGAVNAARLLAGSEGTLGIITEAEVSLEPVPAETAVAMLTYDDVRDAMQDVAPVLDHDPSAVEVMDDVFLDLARDTDEFADVVGLLPDGTDSTLLVEFYADSPAEARRRVADLLADRLPSATPAADPPGATTTDAPVHAVDALEAYDDDRQAHFWKMRKAGLPILLSRTSDEKHYPYIEDTAIPADHLPAFVADFQAILDDLDTVASYYAHAGPGVLHVRPLVTLADEAGVAKMAEIADRVTDLVVEYGGAVSGEHGDGRARSQWNRKFYGEDLWASFRRTKAAFDPDWILNPGPVCGDAAGEIDMTDHLRVAPDDEFDAGFDPALNWDTENGFRGMTELCHGCAGCTGHQDTTGGVMCPTYRAANEETLSTRGRANMLRSAMNGHLPADPLDDEFLTEVLDLCVGCKGCKLDCPSGVDMAKLKTEVKHASHQADGVGVLDRLFGHTEALFHLGSALAPVSNWATALPGAGALAEKTLGIAAERDLPTFRRESLRAWFDARGGSRVPEAAAEHTVLLAPDPYTNYSTVAVGKAAVRVLEAAGVHVALPDGVGTSGRPAYSRGLIDRTRRIARENVAALAPKVADGWDVVYVEPSDAVMVQDDYHDLLSSAPAASVAANTYGVCEYLDRHGLDAAAGFDADGESLAYHGHCHQKAQQRDHHAVGVLRRAGYEVDPLDSTCCGMAGSFGYEAEHYSMSQAIADILADQVADSDADTVTAPGSSCRSQLSERDDVDTDGAPPHPVQKLADAL">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="0.592885375494071"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1136,7 +1136,7 @@
 			<ProteinHit id="PH_141" accession="Q9HNX3" score="0" sequence="MPEGCRACLIAFLLPPVPFGGPKPFPGGDAEYCRMSDASDDRTRVEWREWGSDAFADARERGVPLLVSVVATWSESCRAMAQRTYAEPRIAANINDDFVPVRVNAARRPRVRERYNMGGFPSTVFVTPDGEHIAGATFLEPDGFRQVLQRVRETWDDAGADAGSVPRALSGGEPPAAPLSGDIEGLVAGQLADQYDSEHAGWGSSEKFPLPETVSFALKRDRDRALRTLDAIRRHLVGDDGGCFRFAHGRDWSDPQTERTLSVNAGMLAAFAHAYLTTGDDEYRGAATGVLDYLTETLWTGAAFGAGETPDGGVDDAAYADGNALAADALLSLAAYTGDDRATRYAERTLDYIADELLVDDTVRHYAGAAAPVGLLADRARVTGALTTAGQVLDPAYLEPARAVADRAIADLQDDTGAFVDGPETGAGLLDEPLRPIDDTAAMADALVDLSYLTGEARYRDAARDAIAAFAGAAERMGVQVAGYATAAARLSTRPLVIRVADDPGSELHRAALRMADHEKVVAVGVDGDPGTAWLDTADGDTDAVATPSALAALVADTAQ">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="1.07142857142857"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1144,7 +1144,7 @@
 			<ProteinHit id="PH_142" accession="Q9HS59" score="0" sequence="MAEEETTIEVSTADELITDDELQNKSKGQLIKNAGQFRDRRNELNQLASSRASERDDLNAKTREKVDEAQEHREKRDELNERVQEHKEIRNDLNADANELFDEVEQRKEDLELDEGKDLEQLKEEIEELEFKQQTEVLSTEDERELIEKIEGKREEYQDREEKLDQSGDLEGLVEEAESVRAEASKHHEKVTELADKAQEHHNQMIEAYREADDIRDEADEMHEDFVEAQEAADAHHEAFVEVQKRLRELDKQEEEEEKDKRAQEQEEAREEAEEIYERFKEGETLDTEDLRKLQKSGHL">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="2"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1152,7 +1152,7 @@
 			<ProteinHit id="PH_143" accession="Q9HNM7" score="0" sequence="MTDATTTDVLVLGSGIAGCGAALAAAREGASVLVATKAQQPADASTDWAQGGIATTRDDPESLKRDILAAGDGEADPEAVDALVGDAAAAVEDVLVDTLGVPFDGEEGFDYAREAAHSAARILHVDAATGHHILGPFLRHLDAHENVDMLEDAAALDLITDEGAVTGALLDRNPRTGDRAETGVPVFAGSTVLATGGIGDLYRRSTNPRGSTGDGVAMAALAGADVTDAEYVQFHPTAYDDADPFLVSEAVRGEGALLRNADGERFMPDYHEDAELAPRDVVARAVAAERDATGEVRLDVSPLAFAEEFPGLAEACADRGVDWETGIPVAPCEHFLCGGVAVDTVGRTSLDRLFAVGECARTGVHGANRLASTSLLEGLVWGLRAGETAAGDDRAPAPSEPPELRDRDPDLPDGFAAEKFRRLRRVMDEHVGLRRTGADLQRAQGVLRRLKGEVDSYARTRTSRDLYQLRNAAVVGLLIARAAGENPESAGCHHRSDEAAAEEAPDAGH">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="1.17878192534381"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1160,7 +1160,7 @@
 			<ProteinHit id="PH_144" accession="Q9HSN2" score="0" sequence="MSDDTEDDSGGESTADMEFGEQPAPLGVKVGSTRTVVAEDDADSPSVTQTLTCLATYDDALTGEEHVIYGAEAATEYPDRVRFMLRSGLPEDEETTGLAKRFFEEFASANGLDTDSVVVYAIPTIDNEAGLDRLAEIIEDGPVGERRIASYPESLCGAVPALGDGLDAIEDTFVAINMGSTNLEACAYRRGEQLAPFSTGAITGTEVDRRIANYVEEETQGRVNIDLTTAREYKEQHADFNDYEPFSDIIQQPGGGTYEFTIEDAVMDAVDEFVDAAVDEVANVFLPDLASDYVKIYQQALDNPIVLTGGMGCIPGIVSEFETRLGEEIDREVEATTADEPETAAARGAHRIAERLVDLGEY">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="1.65745856353591"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1168,7 +1168,7 @@
 			<ProteinHit id="PH_145" accession="Q9HNI7" score="0" sequence="MTVGAVLNAVPSGRTDNESDEETRAPPSEAPDVAALGAEVEALREDLDAKTVSRADLEAELKQYVRARQRRGKARGWGPYLVLLYGTVMTLGAFVSLSGGWAILAMIVVWLSTLGLYALMVVVGVGASALGAPGRLVDRVRSWRGP">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="2.98768663406372"/>
-				<userParam type="float" name="ratio_2" value="93.8636474609375"/>
+				<userParam type="float" name="ratio_2" value="93.863655090332"/>
 				<userParam type="float" name="ratio_3" value="7.09223318099976"/>
 				<userParam type="float" name="coverage" value="4.10958904109589"/>
 				<userParam type="int" name="hits" value="1"/>
@@ -1239,233 +1239,233 @@
 			</ProteinHit>
 			<ProteinHit id="PH_154" accession="Q9HMK2" score="0" sequence="MRVIRDAVLADGRVRDIRLDGERIDAVGTALDGELFVDANADYRVLPGMIDAHVHFRQPGFEHKETWASGSRSAAAGGVTTVVDQPNTAPPTVTGDAVDEKAAHAAADSVVDWGVNGGVTGEWDPASLFDRSLFALGEVFLADSTGDMGIDAALFRDACQRAASEDVVVTVHAEDADRFDTAAKSRSDADAWSAYRTPEAEAAAVERAVEVGTEAGATIHIAHTSTPEGVDAAAAGGATCEATPHHLFLSRDDLDDLGTFGRMNPPLRSDPRREALFERLADGRIDVVATDHAPHTRAEKAADIWDAPSGVPGVETALPLLLGAAHRGELSYERVRDVTAANPADVFGLERKGHIAAGRDADLVLVDPDDAREIHGDDLHSNCEWTPFEGHVGVFPAMTLVRGTTVWDGDTVSAFDGRNVRQ">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.4218009478673"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_155" accession="Q9HMG6" score="0" sequence="MELGVVGLGRMGRIVVDRCLDAGHDVVAFDIDATAREDAADAGATPADTLDALAAELGAEKRIWLMVPAGDPVDAALDELAPHLDSDDVVVDGGNSHFEDSTRRAEEHDFAYLDCGTSGGPAGAELGFSLMVGGPEWAYDDLVPVFDAVATGPDGHDRMGPAGAGHYVKMVHNGVEYALMQTYGEGFELLHEGRYDLDLEAVARTWNNGAVIRSWLLELCEEAFREEGSDLGTVADHVAGGSTGTWTVQEALEQEVPVPLVSQALSERFGSRSTGGDTGRFARRLANRLRYGFGRHEVARTGDDA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.9672131147541"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_156" accession="Q9HRD0" score="0" sequence="MRCAVWTMVHTRIGMSMPAGVVPVGELIFAHVFPVLAVSVTPRGAGGGSVNPSRVDSLTDLAYGVLIFAAVGLILRVGTKTGVAFGFGVLAAYVLHIAWKMARFDPEWMTRTVDETVTETVEESMDEAVEQTMGETVERTVDETVGETVEQTVDETVSETVEETVKESVESTVDETVGETVEQTVDETVSETVEETVKESVEETVDETVSETVEESVKQQVEESVNETVEETVEQTVKETVDERLAAADVQPGDDDEPGDDEDGAEP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="2.62172284644195"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_157" accession="Q9HN95" score="0" sequence="MVGDDGGTVNPDNPTAADNFRDPGVYQADDDSYDVYVEARQFAFSPGTSEPIRVPADTNVTFHVTSGDVTHGFELVGTNVNTMVIPGQVAQLTVNFDEARTHHIVCHEYCGPAHHAMEGSIEVVPQSEFTPPQQAAADQSEVTDT">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="4.13793103448276"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_158" accession="Q9HHJ1" score="0" sequence="MEDVFRTLGYENVRQAEKTADEGRDVIMEEVVDGTRRAIVVECKHTGTVGRPVVQKLHSAIATFDFDGPKRGMVVTTGRFTSPAQEYADRLQQNNDPHPIELLDGEDLREIADEIGLDLYNGRIEILCDETLRPYDPATDLDAPIQEAFHDIENIEAADLPTPHSAVTFRPVVAVTADTNAVFETSVGVIHRINDQTRFVAHAERGQPQVVDENVATLVTENLHATVVLDSEQLGEIFDEVEERRFGQTQTGYKEWTVERLQQHHTTTVTYTGDNNVTYNKTCEPNLSDISVQSIEPVFLPEVRQMTEIQEYTYPYEYYAAGPSRVTAEDGIHQCVYCDTSGVDETYTYCPNCGAIACSTHIKTERLEGEPICTGCAVTERFALKTKYFYDGQNLEAFREEYADMPLHEKTMENKWLAGGSVVATLLLVVGLLVIGGII">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.13895216400911"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_159" accession="Q9HST3" score="0" sequence="MTDDRRTAGFKQRTRVAEARERLLSAVDPLARTARVALGDADGRVLAADVEAPRAVPHYERAAMDGFAVRAADTFGAGDRSPVVLDVGTGSVGPGEAVRVHTGSELPAGADAVVMIEDAERRGDRVDVFAAAAGGANVAPIGEDVSDGQHLYDAGHRLRPSDLGLLKSAGVDAVAVYERPTVGVLPTGEELVAADPGPGEVVETNGGTVAQYVSRWGGVPTRRGVVTDDEAALRTAIREAVDSHDVVVTTGGSSVGARDHVPEVIADLGTVLVHGVALQPGHPVALCVVDDTPVVALPGYPVAAIVNAVQFLRPLLKAVGHAPATAHPTTDAVLARKIASEPGTRSFVRVTRHGDEDGRPTVTPTRAGGSGVLSSVALADGWVVVPEDCEGYDAGTTVAVEQWEWSA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.22850122850123"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_160" accession="Q9HS26" score="0" sequence="MDYTDPAVLTRLRRDLHGIPEPAWCEFQTTARVVDACEDIGVDTLHVGPQAVASDARMAVPDDDTLADWRATARDAGVDEALLDSMAGGHTGAIAVLDRGEGPTVGLRVDIDALHITESEADDHHPAAAGFRSEHDGCMHACGHDGHATIGVGVLAAVADSDFQGTLKVVFQPAEERAGGGKPIAESGHLDDVDYLYAVHLGLDHPTGEVVAGVDGFLAVSHLRADFTGTGAHAGSHPEDGRNAIQAMATAIQNLHAIPRHDGGATRVNAGRAGGGTAPNIVPDSAFLEGEVRGETTALMEYMKSHADRVVRSAAEMHDCTVETATEGQAPSAESDRELAACFGAVAADRAGVDSVLDSDALGGSEDATYLMRRVQNTGGMACYVCVGTDHPGGHHTPTFDVDEQSLRIGVGALTTAITRVAETRP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.17370892018779"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_161" accession="Q9HQI0" score="0" sequence="MPGGRATAAQPRTKRPLAWSPNRRRMHLSSARALLAEAERANERRMLVLAGDRAAGVRTADTLLDDLPIPLSETTLVATQDALACEHVPTRNADRLLGTTQRAVVIDLHEDCRPNALGRVVGAVDGGGLLVVLAPPLAEWPTRDGAFAAGLAVPPFDAADVTGRFRRRLADTMRAHPGIAIYDVDTDTLSDDGRTRPAPRLPDPDPDPQPTADVPAAAIDACVTPDQAAALASFAALRDPGHAVVADADRGRGKSSVAGLAAACLAAEGHDVLVTAPRRRNTTELFARAGALLADLGALASDGDTVETAAGGRIRFSKPPAAADLPGDPDAVFADEAAAIPVRLLESLLDCQRLAFTTTVHGYEGAGRGFDVRFRDRLADATQTVHETSLTDPIRYAGTDPIEPWAFRALLLGARPAVEPLVADATPDTAAYVALSGADLAADEHLLREAFGLLVSAHYRTEPNDLARLLDAPNLTMRALVADGHVASVALLAREGGLADDRRAAMYDGQRVKGNMIPDVLTSQLRDEAAATTVGYRVLRIATHPAVRSRGLGSRLLGELRAEFNGHADWLGVGYGATPALLSFWAANGYSTVHLSTTRNDTSGEYSAIMLDALSDAGRALHDRHAGWFADRIGGVLSDALRDLDADVARGALRACATTPSLALSERDWRTVAGAAHGPGMYSVDPRPFRRLAVHHLVAGDADLLSPDEQRLLVGALLQARPWDGLADDLGYHSASQAMRALGDALQALVAAHGTAAARAEVARFTED">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="0.651041666666667"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_162" accession="Q9HQP8" score="0" sequence="MSRWLPQDAVRSGIRNPTAIPKHIKRNVIDELRQQIRLGIATAALPNQADLLAELRRKDSFCLIVLDACRHDHLETLFPLFFEGRVKPTKTVATNTFEYLQYNWPETYAYPYVTAATPVTSEAFEFDGQDSGDGLPQEDLYAYYRGYTPINHFTDLVEVWRDSWDSELRVCPPEPTTRRAIARADDAARMVVHYFQPHAPFIGERRPDLSRERSTIHDENVKIDEDVWDAVKSGSISTSELGQYYSSNLRRVLAAVSKLVSQTQFDRYVLIGDHGEALGEYGGFAHSMDHPLVNKVPWAEVETTKDGCPSMWEYDAPTENETGTGTTRSRLKELGYIE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="2.67150640487671"/>
+				<userParam type="float" name="ratio_1" value="2.67150664329529"/>
 				<userParam type="float" name="ratio_2" value="7.4188404083252"/>
-				<userParam type="float" name="ratio_3" value="2.58934283256531"/>
+				<userParam type="float" name="ratio_3" value="2.58934307098389"/>
 				<userParam type="float" name="coverage" value="1.18343195266272"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_163" accession="Q9HQ22" score="0" sequence="MHRGRFATLVIVALAVTMTAPAGALAPQPPAQHADADRACSFPVTEPDASNTAITLDSEPERVVTLNPSAAQTMWELGDRDAVVGVSQFGTYLPTASQRTVVSGGQPSQTNVEAVVGLDPDLVLAPNTVRNTTVTRLRSAGITVFQFRAATSIDGVVEKTATIGRLTGNCAAAAATTAEMRDRVAAIADAVPDTDSARPRVYYHLGDGYTAGPNTFIGAAIEAAGGHNIAADVNTTSSYPQLSEEVIVSQDPDVVVTGVSADRLDATASALVAPSSVVRNTTAYATGNVVAVNTNHINQPAPRIVEPMARMANAFHNTTINTTLDAQPSATTTATSTAPPTDAADGTAPGFGVAAAVCALAGAALVARR">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="1.0840108401084"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_164" accession="Q9HNB8" score="0" sequence="MPDGDAPDVTPLYEAWSLHGADRYATGDLRARSRYLGLEHDDLRACLTQAADVVDVPAEDGRGTVVPLHAPDTPEPTDEYVVWDPDSDAVGYFDESFGISGAHSRVPLDDVVATAIAHRVRFWHPARAPGGDTDPDGPLAAATVPDGVPPTDPLAGRDRRAFFDTLRETVRGERAAERDQTRDAHADADLRRLVDEHAVDGPFVLVSTTAHSDRPADVRVQYAPDDGAPADIDLVAAFDLYPDNRVLVDAFHDALPFPARVASVDGPLVTLQPTWERVTDPEGVATTLADADPFWLRGLLNPVPYTRRLDAIDAVWETPAKRRLLTGQRPLSFSRPPNRRHADLALDDHQQRALAWAVAADDVACIHGPPGTGKTRTLAAVVAESVARGERVLVTAHSNQAVDTLLVGDSTLDAADDGSLHGVLGDDPTVDIARHGRHSRNRVVDDHYRQRGVDAADVVAATTNGAATFDQNAFDLAVVDEATQASRAATAIAVNAADTLVLAGDHRQLPPYGVREGGAGEMRPSLFETLIDRYGDDVAVLLARQYRMHDAIAGFPNEAFYGGRLETAAVAADRAVDGLPPVAVVDVAGQERRDERGASVRNAAEASVVADRVDTIRRAGVEPGDLGVIAAYSDHVSAIRGVLADRGLDRPALTVDTVDSFQGGERDAVVVSFARSNDAHDAGFLEHPAAGPRRLNVALTRARRHLSLVGDWATLTDPASHRSPAASCADVYADLYDTLADHADARLFNRR">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.532623169107856"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_165" accession="Q9HMM4" score="0" sequence="MRFTRLSLSNFKCYADAAVSLDPGVTVIHGLNGSGKSSLLDACFFALYGTTALDTTLADAVTIGAETAEIDLHFEHAGGDYHVHRRIRASGGRAQTAACVLETPTDRIDGVTDVEAHISGLLRMDAEAFVNCAYVRQGEVNKLINAAPSTRQDMIDALLQLGKLEEYRQRAGDARLGVEDVKSNVEGQLDRLADQIADKEAADPHDRLASHNTALAEVTADIEHFEAEREQARQTRDDAADVLERYEESRTALADVEETIADVREAVAEAERERETLADRVSDHRERASDLDDEAAALAADLGLDDPDAEDASAERDAVADQREAVAERVREVAPAVSRLTEQADSAADDAATLDERAETLREEAAALDAEADDAAAKRDDAAARIEALDADIEAAMAAFDDAPVAFGAAEAFLDDATAERDELRERVATLRADRQSAADRVAEAEALLDEGKCPECGQPVEGAPHVERVTDDRERVAELDAELADVEDELDAVAQRVDRGESLVAAEDRVDDLEQQRERAVERRDEQADIADAKRDQAAEKRDRAADLDAEAEDARADAAAKRDAADEKRETLAALNADQTALKERLDALADLVDRLEAAADAREAAQRLAEKRAALAAQNEQRRDRLSELRERKRTLDSEFDADRIETARADKDRAEDYLEQVEPKLQALREDRDDLQAKIGAAENAIAELESLREEHERVQSRHQDLQAVHDEVTALETMYGELRAELRQQNVSKLERLLNETFELVYQNDSYARIELSGEYELTVYQKDGEPLEPAQLSGGERALFNLSLRTAVYRLLAEGIEGDAPLPPLILDEPTVFLDSGHVSQLVELVESMRRLGVEQIVVVSHDDELVAAADDVVRVAKDATSNRSRVSTPEHI">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.453001132502831"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_166" accession="P84699" score="0" sequence="MEHLVDINDVESEEIEQLLDLAASMKENPGEFSGVMDNKSLVMLFAKPSTRTRLSFETGMTQLGGHGIFFEMGSSQLSRGEPISDVSQVMSRYEDAIMARLFEHDEMMELAENADVPVVNGLTDFLHPCQALTDMFTMQEKDRLDTLAFVGDGNNVAHSLMQASAKMGVDCRIATPEGMEPDEEIQDRVSDANVTVTNDPYEAVDGATAVYGDVFVSMGEEEQREEKLAEFDGFQIDQDLMDAARDDAIFMHCLPAHRGEEVTAEVADGPQSVIFDQAENRMHVQKAIVHTLVNQ">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="1.35593220338983"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_167" accession="Q9HN74" score="0" sequence="MTGDDADETHENVVPGSDEDLDTPDVRGYDFSGEFDFFELLDSYATTGFQASHLADAVDITREMREDDATIYLTLTSNIVSSGLREVVAHLVRENYVDVIITTSGSLTEDIIKTAKPFKMGEWDVDEAALREEGINRLGNIFVPSDRYVWLEEYLYDFFEEFFADQKVRTPTAFARELGATLDDEDSILKNAADNDIPVFCPALTDAEIGNFLYYYRQGYDSEVGIEILDDYDALIEEGLLADTTGLICVGAGVPKHHAIMTNLFRGGADYAVYISTGMEGDGSLSGAPPEEAVSWGKIKDEDAEPNYALIEAEATLVFPLLVAGAFENP">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="1.21212121212121"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_168" accession="Q9HN66" score="0" sequence="MTSDDTDDTAGADDVALDPWGSATISDYRALFDEFGIEAFEDVLDGVPTPHSLMRRAIIFGHRDYRRVAAAMRNDEPFAALSGFMPTGDPHIGHKMVFDELIWHQQQGGDAYALIADLEAHSARGLDWAEIDEHAEDYLLSLLALGFDADEGELYRQSTNRELQDLAFELGIEANTSEFEAIYGFGGDTDVSHMQSVVTQMADILYPQLDAPKPTVIPVGPDQDPHVRFARDLAERTRYFKVTEAFASVAFDDDERPLVRAAYDARSQYAADTDQPRCTEAADWLAAEPAAADGVDAATAESVVQKLENAGMEPLRPRVRFFDRQATDEAFTALIDEIAGEKRVFEGHVDAFELSAETARDLALAVEVDHGGYGFVPPSSVYHRFMTGLTGGKMSSSEPASHISLLDDPETGADKVAAATTGGRDTAAEQRERGGEPDDCPVYELYAYLLAGDDDALAEEVYAECANGDRLCGGCKEQAADLMAQFLETHQENREAARDVLAELDIDLDSARV">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.779727095516569"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_169" accession="O46708" score="0" sequence="MTDHCCKIGRTIATYDLGERAIEDGFDEELAARWVGDHGFPETATRPLTDWFNTELLKSVYDSHNRKAIDVHIQSEYDALQSDDAVTRGEIIDDLADDGIDGTELTTDFATRSTMYRHLTQCLGANKSKQRSNSDWESDKIEYARDTMRTNIEDVLQSLDRKGELPNGADATVRTQIILQCHVDGCSTQTRLSRARTRGFICRAHSDVA">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="1.91387559808612"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_170" accession="Q9HPP9" score="0" sequence="MFEKVLVANRGEIAVRVMRACDDLGVDTVAVYSDADAHAGHVRYADEAYNVGPARAADSYLDHDAIIDAATRAGADAIHPGYGFLAENAEFAGKVEDTDGVTWVGPSADSMRQLGEKTSARKTMREADVPIVPGTTDPVESVADIHEFGEEHGYPIAIKAEGGGGGRGMKIVRSADEAEDQLESAEREGEAYFDNANVYLERYLENPRHIEVQILADHHGNVRHLGERDCSLQRRHQKVIEEGPSPALTDELREEIGTAARRGADAAGYYNAGTFEFLVEEDTEREPGDLLGPETEFYFLEVNTRIQVEHTVTEALTGVDIVKWQLKIASDDELTFEQDDVALDGHAVEYRINAENAADDFAPATGGELETYDPPGGIGVRVDDGLRQGDDLVTDYDSMVAKLIVHGSDREECLARSRRALAEYDIEGIPTIIPFHRLMLTDDAFVGGTHTTKYLDRDIEESRISDAQAEWGTTTASESSADENVVERDFTVEVNGKRFEVNLEERGAAQFAAPEADTGGGGPPEPAGGADDGETVVEGDGETVTAEMQGTILDVAVSEGDAVDAGDVLVVLEAMKMENDVVASHGGTVTQVAVSEDDSVDMDDVLVVID">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.819672131147541"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_171" accession="Q9HP64" score="0" sequence="MVVALAVGLVAYRVTDRDAEDYYLAGRGLGTGVLLFTTFATLLSAFTFFAGPNIAYANGPEWILVMGLMDGVLFGLLWYVLGYRQWLLGKANGYVTLGEMLGDRFGSRGLRGLVAGVSIFWLFPYVMLQQIGAGEALVGLTGGAVPYWAGAGFITLFMVVYVAISGMRGVAWTDTLQGVFMLGITWVAFVWVAAEIAGTTGGLAGALPAEFRALGGGAYSPQWMLSQAIGIAVGVSMFPQVNQRFFVADSKRTLKRTFAIWPLLVVLLFVPAFLMGAWANGVGLPLPDGENIVPILLSEYTPGWFAALVVAGALAAMMSSSDSMLLSGSSYFTRDIYRPFVNADATARREDTLGRVGVAAFAVAAFGGSLLRPGSLLEVGSTAFGGFAQLAPPVALAMYWRRTTKAGMFAGVLGTQAFYLATVFGPPVTLAGVPIIASSYFGWFAQVVGLPLGVVLTVGVSAVTAPSDTENASAYVDALRAD">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.829875518672199"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_172" accession="Q9HMR1" score="0" sequence="MRVLVTDPIADAGLDRLRDAGHEVTTAYDATGDALLDAVSDAHALIVRSGTAVTDAVFEAAPDLVIVARAGIGVDNIDIDAATDHGVMVANAPAGNVRAAAEHTVALAFAAARSIPQAHARLDAGSWAKDDYLGTELSGKTLGVVGLGRVGQEVATRLDSLGMDLVAYDPYIGEDRAAQLGAELVDIETCVARADFLTIHVPLTDETDGLIGEAELARMDGGYVINVARGGVVDEDALADAAQDGVIAGAALDVFRTEPLPAASPLHDADSIITTPHLGASTKAAQENVATDTADQVVAALAGDPVVNALNAPSAERSAFDRIRPFVDLAETAGTVAAALFDPRIERVDVTYQGEVADEDVALVTAAAQQGAFAGLEWQVNAVNAPRVAEERGIAVTETKNHRSEAYQSLVSVTVGNGDAELTVSGTLFAGDDPRLVEIDGFRVEAAPNGHMLVARNHDTPGVIGFIGGVLGTAEVNIAGMFNAREARGGEALTVYNLDADVPARALDELAGDDRIVDVTSIELNGE">
 				<userParam type="float" name="ratio_0" value="1"/>
-				<userParam type="float" name="ratio_1" value="11.3486480712891"/>
+				<userParam type="float" name="ratio_1" value="11.3486490249634"/>
 				<userParam type="float" name="ratio_2" value="0"/>
-				<userParam type="float" name="ratio_3" value="5.63141822814941"/>
+				<userParam type="float" name="ratio_3" value="5.63141870498657"/>
 				<userParam type="float" name="coverage" value="0.94876660341556"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_173" accession="Q9HQB0" score="0" sequence="MDVYGLIGNPVGHSLSPPLHAAAYDECGLDARYVTFEPAPDDAAAAIRGAGALGVAGLNVTAPFKQSAASAVATDSMAARVGAVNTIDFSGAAPRGYNTDVAGVKRAFAHHDVSLSGAQAVVVGAGGAGRAAAFALADAGATVRIANRTRAAADELAADVGGTAVGLGDLPRSLADATVLVHATTVGMDDPDTSPVSADALHDDLAVLDAVYSPVETRLLRDAAAAGATTIDGAWMLLYQGAEAFERWTGLDAPVAAMRAALRARL">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="1.50375939849624"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_174" accession="Q9HQC7" score="0" sequence="MLSMPSFERKQNIFANKDALGESYQPNKIEERDDEIEKYMDALQPVIDGWEPNNIFVYGNTGVGKTAVTDHLLDQLQTDVEAYDDVTLSVIYLNCKTLSSSYQVAVELVNKLRRPGAEISSTGYPQQSVFKKLYQELEALGGTILIVLDEVDAIGDRDDLLYELPRARSQGNLEDAKVGIIGISNDYKFQEQLDPRVQDTLCERELQFPPYDALELANILDSRTDIAIADDSLAEGVTQHCAALAARDSGSARQALDLLRLAGELAENQDADAISTDHVEAARSELERERVEEGMRELTTHGRLTLLAVVSKAAKADTPSRTRAIYDEYASLCKSAANTDDPLKQRSVHNHLSDLHMLGILSKYENRSGSRGNYYSYELDVPFESAVDAMADVLMLDAEIEKMEGLASRNGVL">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.968523002421308"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_175" accession="Q9HRJ8" score="0" sequence="MATAASSITLTVLMGVLLVGVVAVLARLEDWRSYTPLSDVGGGLGERTGYTHEEKPGGIIRWFTTVDHKDIGILYGVYGTIAFAWGGVSVLLMRTELATSSETLISPSLYNGLLTSHGITMLFLFGTPMIAAFGNYFIPLLIDADDMAFPRINAIAFWLLPPGAILIWSGFLIPGIATAQTSWTMYTPLSLQMSSPAVDMMMLGLHLTGVSATMGAINFIATIFTERGEDVGWPDLDIFSWTMLTQSGLILFAFPLFGSALIMLLLDRNFGTTFFTVAGGDPIFWQHLFWFFGHPEVYVLVLPPMGIVSLILPKFSGRKLFGFKFVVYSTLAIGVLSFGVWAHHMFTTGIDPRIRSSFMAVSLAISIPSAVKVFNWITTMWNGKLRLTAPMLFCIGFVQNFIIGGVTGVFLAVIPIDLILHDTYYVVGHFHFIVYGAIGFALFAASYYWFPMVTGRMYQKRLAHAHFWTALVGSNATFLAMLWLGYGGMPRRYATYIPQFATAHRLATVGAFLIGVSTLIWLFNMATSWREGPRVDSTDPWDLEETDQFTNDWAWFRAKEETTVLPDGGDEAQSEADAVTDGGQPAADSDTES">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.505902192242833"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_176" accession="Q9HS45" score="0" sequence="MRYDEAANFLLDLRRYGPKPGTESTADLLASLGDPHQDGPDYVQIAGSNGKGSTARFTESILRAAGLDVGLYTSPHFDDVRERVTVNGRRMSKAALTTFIETITPYVTERAADGAAPTYFEVVTAMALWQFSRADVDVAVLEVGIGGRLDATSVVDPSASAVTSVTLEHTDVLGETIPEIARDKAHVAPAGDTPLVTATTDDALAAVRDHAGAVRTVGDTAGRDVTATYEGRTNHTEAAVSITGDDWSVATEIPLLGDHQAENAGVAAALARQTAGVDDDAIARGLRSAHWPGRFEVMGADPVVVLDGAHNPGACGAVAETVAEFDYDRLLTVFGAMHDKDHGAMAAALPTPDHVWACEPVPDRAEDADVLAAVFEDAGAGTVSVTRAVESAVADAIAEATADDLVLVAGSLFAVAEARTRWTRTFAETDVDSLDDARDALERAHVTPPGVWRMRGKGVHRVVKTRVQTRQAQYLKEELLSLGGECSVSGLNAQSGAMVDAVMMATMAQFKRLCEKLDGQPYGLSEVGADLRESLGIQAAPATHGYPWEGERTAVMGILNVTPDSFHDGGEYDALEDAVARAESMAENGVDVIDIGGESTRPGADAVSVADELDRVLPVIERISDLDVLLSVDTRKAEVARQALEAGADILNDVTGLDDPEMRFVAAEYDAPIVVMHSIDAPVDPDSDPDYDDVVDDVIAELTERVLLAEKAGVPRERIIVDPGLGFGKSAAEGFELLDRADEFHALGGPVLVGHSHKSMFGAVDRYPDEGGYATAAASALAADRGADIVRVHDVPENVAAVRVAEATRTGADAE">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.49079754601227"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_177" accession="Q9HS72" score="0" sequence="MTTAPAISSRLDDPESARETGRAKIDWAFEHMPILSALREEFDANQPLAGETIGMAMHVEAKTAALVETMADAGAEIAITGCNPLSTHDGVSAALDAHESITSYAERGAEGEAYYDAIDAVLAHEPTVTVDDGGDLVFRVHEDHPELIDTIIGGTEETTTGVHRLRAMDDDDALEYPVFAVNDTPMKRLFDNVHGTGESALANIAMTTNLSWAGKDVVVAGYGDCGRGVAKKAAGQNANVIVTEVEPRRALEAHMEGYDVMPMAEAAEVGDVFLTTTGNKNVITRAHFERMDDGVVLANAGHFDVEVNLDHLSELAVSEREAREGVREYELADGRRLNVLAEGRLVNLASPIGLGHPVGVMDQSFGVQAVCVRELVANREEYAAGVHNVPDELDIEIAEIKLAAEGVEYDALTDDQAEYMDSWQHGT">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.936768149882904"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_178" accession="Q9HQD7" score="0" sequence="MSIRSFAHRILRRALPGFVRRSYLAKFGVALLAVVVCISAAGGVMYLNTSEHLQQSSRTELKKAAELSSSAVDNWHDERTNNARMLAQYGVFDNDNATEVQQFFTDEQHHLPSDVRDIHYVSLTDARVITSTDAGLRNASFGSEAAPWSRQQLTPGDDGVFVSQPYVNDGITEVAYVARVSSTPGRRTAVVMTASLAAISSSFWDPTPHSFTQLVDGTGSVIADDSKRATRQPYVENATSPIVGARAVGFQPAAQAAKEMDQAHETAYAPVDGTPWVVTLHVPTSEAYGLASNMAENVLLILGIALAGLVFIALTLGRGTVRALNDLEAKAAALERGEYDTDLDVARVDELGRLFEAFASLRDTVQARIRDANEQQVDAEAARSEAEAAQADAEAAQAEAEAAREESEAQARRLETTAEAFSETMRAYAAGDLTVRLDADVEQAAMADIAAAFNEMAADMEATIADVVAFADEVATASTDASDSAAAVEQTGRDVSDAVGRIRDRAADQRDQLEAVASETDEMSATIEEVAASADQVAETSQRAAALGDDGQAAAQDAVAQLEEIEDETQAAATAVDDLEAKMSEIETIVAAITDIAEQTNMLALNANIEAARADQDGDGFAVVADEVKDLADESKASAAEIEALVAEVRAQTETSVAAMDRIQERVSDGVETVSETERSLSEIAGRIAEADTGVQEISNAMDDQAASVSDVTTAVGDVAALGEETATEAESTADAAAEQATTLSDVAAQTETLAEHAVALREHAAQFEVAADNEPGA">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.6426735218509"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_179" accession="Q9HMI4" score="0" sequence="MFKYAIVPYSRMSDDTVSRRGFLKAAGAATVVATSTAGCTDSGGGGDGGGDELVYSRGDHPQNYDPQQTTSGEVSKVTNQIFDTLIQFKPGTSGELTSGLADDWTLDGTTATLTLREDATFHSGADLTATDVKATIRRFIDDEYDYYLGSDRSGYASITFGDWVDSVEATGDYEVTIDLTQQYAPFLRNLAIFAAAILSRDQIESLGADAQPELGTDPVGTGPFEFDQLDNETQRVRLTAFDDYWGGAPSVSAVIFKTTGSNQTRAQGLINGDAHITDNLDAQSIQKVSSADSASVRQKNGINVGYMAFNHDRKPAFRDPLVKRAISMAINRDEIVDSIYQGFAASANQPLPPDVLGHNDDIDSYPHDPQQAESMLADAGVTDLSFELATFSNPRGYNPNPIQTATQVKSDLAEIGVDVEINQFSQFSAYLEYTYDGRHDACLSGWYTDNADPDNFMYVLLHPGTDIDDVPADQNYIAWEDKNNVSNVSAWVDTDYMEFVDKGQRTYDDAARQQYYHQASQIAHDQAPWVYLDYADLIRGVNEAVVAESYTPTSVGGPFLDRVELA">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="0.88339222614841"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_180" accession="Q9HPM5" score="0" sequence="MSSPPTSSAPLGDIEPAGSRQLGRRSSVCWTGDGVVAGLPDGTVVAFDGALDERWRNAGDDRGSVVALAPFAGGVVAGERGAAGEIRLHDGETGAVRWRYRAAGDIGRPQEDTRFFLPFVVDVATQAGGDRAFVAVRRYERGADGDRAFQSAVYAFEGDNTPAWRFRSDASPVSLAADGDRVAVAFNRCPGDQAAGVLVLDAATGTQRRRWDPTGGGDRRVGDVALTPRGVVAASHADYRGYCLDGDGVQWVVDLGRPVERGEQTVYAYPNHVHATGDSAVFVTGNTYPEDGRETDARHPTEHTAVGVGRDGGVAFTADVGGFAHEIAADGARVAVPVAQHFRERDPARHGVRVYDIAAGRVDAWRTPGVVTAAAVDGRTVAAVEEPVVYHDDGERRGTHRLHAGHV">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="1.22850122850123"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_181" accession="Q9HP07" score="0" sequence="MERKRAVRRVGALVLAANLALVAAKGAAWWATGSLAVGSEAINSLADVAYSLVVLGGLYLTTQPPDFKHPHGHERIEPFVSLVVALGVLAAGGAVLWQATTTVAAGDYGPTPGLPAVGVLVGTAVAKYALYRYVLGVAADHRSPALRATALDNRNDILTASAALVGVLGSATGYPVLDPLAAFVVAAGILHTGYEIVRDNVNYLVGAAPPADLREQILGRALDNPDVEGAHDVVAHYVGPEIDVSLHVEVEGEMTLHEAHDIETDLILDLESIPEVDDVFVHVDPKELGEWKDADTAPE">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="1.33779264214047"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
 			<ProteinHit id="PH_182" accession="Q9HMZ6" score="0" sequence="MQTETDGVELVGDQTVENIARAAVFAALTGAMAYVSFQNPVSPAPVTLQVLGVFLAGLYLGPVWGGASMVLYLIAGGVGAPVFAGGGSGLGTFVAPTGGYLLSYPFAAALTGLVAHGTTELADPRDVGVAKLVAAMVAATVVIYAAGTVGFAIVQRPSLAAAFAPSALVDAFLVAGAAFIPAEAFKIAAAIGITRSDQLNAA">
 				<userParam type="float" name="ratio_0" value="1"/>
 				<userParam type="float" name="ratio_1" value="4.05062580108643"/>
-				<userParam type="float" name="ratio_2" value="3.44960069656372"/>
-				<userParam type="float" name="ratio_3" value="4.01436614990234"/>
+				<userParam type="float" name="ratio_2" value="3.4496009349823"/>
+				<userParam type="float" name="ratio_3" value="4.0143666267395"/>
 				<userParam type="float" name="coverage" value="2.47524752475248"/>
 				<userParam type="int" name="hits" value="1"/>
 			</ProteinHit>
@@ -1503,7 +1503,7 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_0" quality="0">
-			<centroid rt="306.58" mz="405.85" it="0"/>
+			<centroid rt="306.58" mz="405.85" it="44"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="306.58" mz="114.1" it="1"/>
 				<element map="1" id="0" rt="306.58" mz="115.1" it="2.47708"/>
@@ -1534,7 +1534,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1" quality="0">
-			<centroid rt="306.58" mz="426.849" it="0"/>
+			<centroid rt="306.58" mz="426.849" it="6"/>
 			<groupedElementList>
 				<element map="0" id="1" rt="306.58" mz="114.1" it="1"/>
 				<element map="1" id="1" rt="306.58" mz="115.1" it="0.940119"/>
@@ -1543,7 +1543,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_2" quality="0">
-			<centroid rt="312.738" mz="506.815" it="0"/>
+			<centroid rt="312.738" mz="506.815" it="36"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="312.738" mz="114.1" it="1"/>
 				<element map="1" id="2" rt="312.738" mz="115.1" it="4.60201"/>
@@ -1562,7 +1562,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3" quality="0">
-			<centroid rt="312.738" mz="484.83" it="0"/>
+			<centroid rt="312.738" mz="484.83" it="38"/>
 			<groupedElementList>
 				<element map="0" id="3" rt="312.738" mz="114.1" it="1"/>
 				<element map="1" id="3" rt="312.738" mz="115.1" it="5.19539"/>
@@ -1593,7 +1593,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_4" quality="0">
-			<centroid rt="3112.53" mz="496.244" it="0"/>
+			<centroid rt="3112.53" mz="496.244" it="52"/>
 			<groupedElementList>
 				<element map="0" id="4" rt="3112.53" mz="114.1" it="1"/>
 				<element map="1" id="4" rt="3112.53" mz="115.1" it="0.106739"/>
@@ -1612,7 +1612,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_5" quality="0">
-			<centroid rt="3840.95" mz="430.212" it="0"/>
+			<centroid rt="3840.95" mz="430.212" it="32"/>
 			<groupedElementList>
 				<element map="0" id="5" rt="3840.95" mz="114.1" it="1"/>
 				<element map="1" id="5" rt="3840.95" mz="115.1" it="4.33679"/>
@@ -1621,7 +1621,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_6" quality="0">
-			<centroid rt="3849.22" mz="446.081" it="0"/>
+			<centroid rt="3849.22" mz="446.081" it="35"/>
 			<groupedElementList>
 				<element map="0" id="6" rt="3849.22" mz="114.1" it="1"/>
 				<element map="1" id="6" rt="3849.22" mz="115.1" it="3.6833"/>
@@ -1652,7 +1652,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_7" quality="0">
-			<centroid rt="3870.67" mz="453.233" it="0"/>
+			<centroid rt="3870.67" mz="453.233" it="56"/>
 			<groupedElementList>
 				<element map="0" id="7" rt="3870.67" mz="114.1" it="1"/>
 				<element map="1" id="7" rt="3870.67" mz="115.1" it="2.86649"/>
@@ -1661,7 +1661,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_8" quality="0">
-			<centroid rt="3880.9" mz="400.172" it="0"/>
+			<centroid rt="3880.9" mz="400.172" it="62"/>
 			<groupedElementList>
 				<element map="0" id="8" rt="3880.9" mz="114.1" it="1"/>
 				<element map="1" id="8" rt="3880.9" mz="115.1" it="6.83052"/>
@@ -1692,7 +1692,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_9" quality="0">
-			<centroid rt="3892.26" mz="526.264" it="0"/>
+			<centroid rt="3892.26" mz="526.264" it="41"/>
 			<groupedElementList>
 				<element map="0" id="9" rt="3892.26" mz="114.1" it="1"/>
 				<element map="1" id="9" rt="3892.26" mz="115.1" it="4.2667"/>
@@ -1723,7 +1723,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_10" quality="0">
-			<centroid rt="3892.26" mz="437.227" it="0"/>
+			<centroid rt="3892.26" mz="437.227" it="73"/>
 			<groupedElementList>
 				<element map="0" id="10" rt="3892.26" mz="114.1" it="1"/>
 				<element map="1" id="10" rt="3892.26" mz="115.1" it="7.26588"/>
@@ -1736,7 +1736,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_11" quality="0">
-			<centroid rt="3896.37" mz="416.173" it="0"/>
+			<centroid rt="3896.37" mz="416.173" it="68"/>
 			<groupedElementList>
 				<element map="0" id="11" rt="3896.37" mz="114.1" it="1"/>
 				<element map="1" id="11" rt="3896.37" mz="115.1" it="7.45762"/>
@@ -1745,7 +1745,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_12" quality="0">
-			<centroid rt="3900.47" mz="414.206" it="0"/>
+			<centroid rt="3900.47" mz="414.206" it="70"/>
 			<groupedElementList>
 				<element map="0" id="12" rt="3900.47" mz="114.1" it="1"/>
 				<element map="1" id="12" rt="3900.47" mz="115.1" it="8.01"/>
@@ -1776,7 +1776,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_13" quality="0">
-			<centroid rt="3903.97" mz="809.894" it="0"/>
+			<centroid rt="3903.97" mz="809.894" it="13"/>
 			<groupedElementList>
 				<element map="0" id="13" rt="3903.97" mz="114.1" it="1"/>
 				<element map="1" id="13" rt="3903.97" mz="115.1" it="1.82069"/>
@@ -1807,7 +1807,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_14" quality="0">
-			<centroid rt="3912.22" mz="523.229" it="0"/>
+			<centroid rt="3912.22" mz="523.229" it="38"/>
 			<groupedElementList>
 				<element map="0" id="14" rt="3912.22" mz="114.1" it="1"/>
 				<element map="1" id="14" rt="3912.22" mz="115.1" it="3.97961"/>
@@ -1838,7 +1838,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15" quality="0">
-			<centroid rt="3940.03" mz="569.239" it="0"/>
+			<centroid rt="3940.03" mz="569.239" it="53"/>
 			<groupedElementList>
 				<element map="0" id="15" rt="3940.03" mz="114.1" it="1"/>
 				<element map="1" id="15" rt="3940.03" mz="115.1" it="5.22753"/>
@@ -1861,7 +1861,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_16" quality="0">
-			<centroid rt="3945.15" mz="534.233" it="0"/>
+			<centroid rt="3945.15" mz="534.233" it="93"/>
 			<groupedElementList>
 				<element map="0" id="16" rt="3945.15" mz="114.1" it="1"/>
 				<element map="1" id="16" rt="3945.15" mz="115.1" it="6.50921"/>
@@ -1874,7 +1874,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_17" quality="0">
-			<centroid rt="3949.25" mz="583.243" it="0"/>
+			<centroid rt="3949.25" mz="583.243" it="48"/>
 			<groupedElementList>
 				<element map="0" id="17" rt="3949.25" mz="114.1" it="1"/>
 				<element map="1" id="17" rt="3949.25" mz="115.1" it="3.34763"/>
@@ -1889,12 +1889,12 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_18" quality="0">
-			<centroid rt="3954.38" mz="493.182" it="0"/>
+			<centroid rt="3954.38" mz="493.182" it="83"/>
 			<groupedElementList>
 				<element map="0" id="18" rt="3954.38" mz="114.1" it="1"/>
 				<element map="1" id="18" rt="3954.38" mz="115.1" it="8.55311"/>
 				<element map="2" id="18" rt="3954.38" mz="116.1" it="12.2855"/>
-				<element map="3" id="18" rt="3954.38" mz="117.1" it="7.00002"/>
+				<element map="3" id="18" rt="3954.38" mz="117.1" it="7.00003"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="493.182" RT="3954.38" >
 				<PeptideHit score="-0.857999980449677" sequence="AVPAAR" charge="1" aa_before="L" aa_after="R" protein_refs="PH_96">
@@ -1920,7 +1920,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_19" quality="0">
-			<centroid rt="3960.52" mz="479.241" it="0"/>
+			<centroid rt="3960.52" mz="479.241" it="85"/>
 			<groupedElementList>
 				<element map="0" id="19" rt="3960.52" mz="114.1" it="1"/>
 				<element map="1" id="19" rt="3960.52" mz="115.1" it="6.43348"/>
@@ -1929,7 +1929,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_20" quality="0">
-			<centroid rt="3965.65" mz="477.237" it="0"/>
+			<centroid rt="3965.65" mz="477.237" it="84"/>
 			<groupedElementList>
 				<element map="0" id="20" rt="3965.65" mz="114.1" it="1"/>
 				<element map="1" id="20" rt="3965.65" mz="115.1" it="6.77428"/>
@@ -1960,7 +1960,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_21" quality="0">
-			<centroid rt="3976.17" mz="430.225" it="0"/>
+			<centroid rt="3976.17" mz="430.225" it="64"/>
 			<groupedElementList>
 				<element map="0" id="21" rt="3976.17" mz="114.1" it="1"/>
 				<element map="1" id="21" rt="3976.17" mz="115.1" it="8.01919"/>
@@ -1977,7 +1977,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_22" quality="0">
-			<centroid rt="3984.41" mz="607.283" it="0"/>
+			<centroid rt="3984.41" mz="607.283" it="167"/>
 			<groupedElementList>
 				<element map="0" id="22" rt="3984.41" mz="114.1" it="1"/>
 				<element map="1" id="22" rt="3984.41" mz="115.1" it="11.5535"/>
@@ -2008,7 +2008,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_23" quality="0">
-			<centroid rt="4002.81" mz="662.305" it="0"/>
+			<centroid rt="4002.81" mz="662.305" it="45"/>
 			<groupedElementList>
 				<element map="0" id="23" rt="4002.81" mz="114.1" it="1"/>
 				<element map="1" id="23" rt="4002.81" mz="115.1" it="5.29773"/>
@@ -2025,7 +2025,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_24" quality="0">
-			<centroid rt="4046.77" mz="643.347" it="0"/>
+			<centroid rt="4046.77" mz="643.347" it="56"/>
 			<groupedElementList>
 				<element map="0" id="24" rt="4046.77" mz="114.1" it="1"/>
 				<element map="1" id="24" rt="4046.77" mz="115.1" it="6.16842"/>
@@ -2056,11 +2056,11 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_25" quality="0">
-			<centroid rt="4070.27" mz="624.347" it="0"/>
+			<centroid rt="4070.27" mz="624.347" it="92"/>
 			<groupedElementList>
 				<element map="0" id="25" rt="4070.27" mz="114.1" it="1"/>
 				<element map="1" id="25" rt="4070.27" mz="115.1" it="2.98769"/>
-				<element map="2" id="25" rt="4070.27" mz="116.1" it="93.8636"/>
+				<element map="2" id="25" rt="4070.27" mz="116.1" it="93.8637"/>
 				<element map="3" id="25" rt="4070.27" mz="117.1" it="7.09223"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="624.347" RT="4070.27" >
@@ -2087,7 +2087,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_26" quality="0">
-			<centroid rt="4073.35" mz="563.3" it="0"/>
+			<centroid rt="4073.35" mz="563.3" it="32"/>
 			<groupedElementList>
 				<element map="0" id="26" rt="4073.35" mz="114.1" it="1"/>
 				<element map="1" id="26" rt="4073.35" mz="115.1" it="2.81055"/>
@@ -2118,7 +2118,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_27" quality="0">
-			<centroid rt="4084.98" mz="428.222" it="0"/>
+			<centroid rt="4084.98" mz="428.222" it="33"/>
 			<groupedElementList>
 				<element map="0" id="27" rt="4084.98" mz="114.1" it="1"/>
 				<element map="1" id="27" rt="4084.98" mz="115.1" it="2.67151"/>
@@ -2149,7 +2149,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_28" quality="0">
-			<centroid rt="4088.05" mz="432.838" it="0"/>
+			<centroid rt="4088.05" mz="432.838" it="85"/>
 			<groupedElementList>
 				<element map="0" id="28" rt="4088.05" mz="114.1" it="1"/>
 				<element map="1" id="28" rt="4088.05" mz="115.1" it="14.1201"/>
@@ -2158,7 +2158,7 @@
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_29" quality="0">
-			<centroid rt="4101.48" mz="432.278" it="0"/>
+			<centroid rt="4101.48" mz="432.278" it="68"/>
 			<groupedElementList>
 				<element map="0" id="29" rt="4101.48" mz="114.1" it="1"/>
 				<element map="1" id="29" rt="4101.48" mz="115.1" it="11.3486"/>
@@ -2189,7 +2189,7 @@
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_30" quality="0">
-			<centroid rt="4149.49" mz="450.26" it="0"/>
+			<centroid rt="4149.49" mz="450.26" it="38"/>
 			<groupedElementList>
 				<element map="0" id="30" rt="4149.49" mz="114.1" it="1"/>
 				<element map="1" id="30" rt="4149.49" mz="115.1" it="4.05063"/>
