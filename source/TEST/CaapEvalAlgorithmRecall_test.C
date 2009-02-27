@@ -69,10 +69,10 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	DoubleReal out; 
 	
 	ConsensusXMLFile consensus_xml_file_in;
-	consensus_xml_file_in.load( "data/CaapEvalAlgorithm_in.consensusXML", in );
+	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_in.consensusXML"), in );
 		
 	ConsensusXMLFile consensus_xml_file_gt;
-	consensus_xml_file_gt.load( "data/CaapEvalAlgorithm_gt.consensusXML", gt );
+	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_gt.consensusXML"), gt );
 	
 	cae.evaluate(in, gt, out);
 
