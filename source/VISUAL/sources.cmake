@@ -30,6 +30,9 @@ SpectrumCanvas.C
 SpectrumWidget.C
 ListEditor.C
 TOPPASWidget.C
+TOPPASScene.C
+TOPPASVertex.C
+TOPPASEdge.C
 )
 
 ### add path to the filenames

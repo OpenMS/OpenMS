@@ -21,6 +21,7 @@ SpectrumCanvas.h
 SpectrumWidget.h
 ListEditor.h
 TOPPASWidget.h
+TOPPASScene.h
 )
 
 ### add path to the filenames
@@ -65,6 +66,9 @@ Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
 TOPPASWidget.h
+TOPPASScene.h
+TOPPASVertex.h
+TOPPASEdge.h
 )
 
 ### add path to the filenames

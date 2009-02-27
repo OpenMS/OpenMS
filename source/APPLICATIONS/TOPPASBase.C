@@ -153,6 +153,7 @@ namespace OpenMS
     topp_tools_bar->setWidget(tools_tree_view_);
     
     StringList tools_list = TOPPBase::getToolList();
+    sort(tools_list.begin(), tools_list.end());
     QTreeWidgetItem* item;
     QTreeWidgetItem* parent_item;
     for (StringList::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
