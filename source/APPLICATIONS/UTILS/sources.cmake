@@ -3,6 +3,7 @@ set(directory source/APPLICATIONS/UTILS)
 
 ### list all filenames of the directory here
 set(sources_list
+CaapConvert.C
 CAAP_groundtruth_to_consensusXML.C
 CVInspector.C
 Digestor.C

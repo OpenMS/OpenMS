@@ -26,6 +26,9 @@ BinnedSpectralContrastAngle_test.C
 BinnedSpectrumCompareFunctor_test.C
 BinnedSpectrum_test.C
 BinnedSumAgreeingIntensities_test.C
+CaapEvalAlgorithm_test.C
+CaapEvalAlgorithmPrecision_test.C
+CaapEvalAlgorithmRecall_test.C
 ClassTest_test.C
 ClusterAnalyzer_test.C
 ClusterFunctor_test.C

@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/TOPP)
 set(sources_list
 AdditiveSeries.C
 BaselineFilter.C
+CaapEval.C
 ConsensusID.C
 DBExporter.C
 DBImporter.C

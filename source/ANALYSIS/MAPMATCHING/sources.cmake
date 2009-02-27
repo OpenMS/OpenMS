@@ -6,6 +6,9 @@ set(sources_list
 BaseGroupFinder.C
 BaseSuperimposer.C
 DelaunayPairFinder.C
+CaapEvalAlgorithm.C
+CaapEvalAlgorithmPrecision.C
+CaapEvalAlgorithmRecall.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmLabeled.C
 FeatureGroupingAlgorithmUnlabeled.C

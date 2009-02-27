@@ -49,7 +49,7 @@
 
 int main( int argc, const char** argv )
 {
-	if ( argc != 4 && argc != 5 )
+	if ( argc != 3 && argc != 4 )
 	{
 		std::cout <<
 			"Usage:  " << argv[0] << " input output [-v]\n"

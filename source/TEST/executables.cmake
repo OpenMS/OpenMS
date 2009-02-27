@@ -290,6 +290,9 @@ set(analysis_executables_list
   IDMapper_test
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
+  CaapEvalAlgorithm_test
+  CaapEvalAlgorithmPrecision_test
+  CaapEvalAlgorithmRecall_test
 )
 
 set(applications_executables_list
