@@ -32,6 +32,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -260,9 +261,15 @@ namespace OpenMS
   
   void TOPPASBase::newFileDialog()
   {
-  	// **** test **** //
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
   	showAsWindow_(tw, "New");
+  	
+  	////////////////////////// TEST ///////////
+  	TOPPASVertex* v = new TOPPASVertex("SomeTOPPTool", TOPPASVertex::VT_TOOL);
+  	tw->getScene()->addItem(v);
+  	v->setPos(0,0);
+  	///////////////////////////////////////////
+  	
   }
 	
 	void TOPPASBase::saveFileDialog()

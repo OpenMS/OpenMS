@@ -29,6 +29,7 @@
 #define OPENMS_VISUAL_TOPPASWIDGET_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <QtGui/QGraphicsView>
 
@@ -43,22 +44,39 @@ namespace OpenMS
       Q_OBJECT
 
     public:
+    
       /// Default constructor
       TOPPASWidget(const Param& preferences, QWidget* parent = 0);
 
       /// Destructor
       virtual ~TOPPASWidget();
       
+      enum ActionMode
+      {
+      	AM_NEW_NODE,
+      	AM_NEW_EDGE,
+      	AM_MOVE
+      };
+      
       /// Widget id used as identifier
 			Int window_id;
+			
+			/// Returns the scene TODO (public..)
+			TOPPASScene* getScene();
 		
 		signals:
+		
 			/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
 			void sendStatusMessage(std::string, OpenMS::UInt);
 			/// Emitted when the cursor position changes (for displaying e.g. in status bar)
 			void sendCursorStatus(double x=0.0, double y=0.0);
 			/// Message about the destruction of this widget
 		  void aboutToBeDestroyed(int w_id);
+		
+		protected:
+		
+			/// The scene visualized by this widget
+			TOPPASScene* scene_;
   };
 }
 

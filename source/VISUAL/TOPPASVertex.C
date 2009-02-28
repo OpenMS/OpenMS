@@ -27,6 +27,9 @@
 // OpenMS
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
+// Qt
+#include <QtGui/QPainter>
+
 namespace OpenMS
 {
 	TOPPASVertex::TOPPASVertex(const String& name, VertexType type)
@@ -37,9 +40,27 @@ namespace OpenMS
 		// do more
 	}
 	
+	TOPPASVertex::~TOPPASVertex()
+	{
+	
+	}
+	
 	const String& TOPPASVertex::getName()
 	{
 		return name_;
+	}
+	
+	QRectF TOPPASVertex::boundingRect() const
+	{
+		return QRectF(-60,-40,120,80);
+	}
+	
+	void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+	{
+		painter->drawRoundRect(-60,-40,120,80);
+		
+		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
+		painter->drawText(-text_boundings.width()/2, text_boundings.height()/4, name_.toQString());
 	}
 
 	// here be some methods...

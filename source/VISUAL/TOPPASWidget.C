@@ -32,13 +32,21 @@ using namespace std;
 namespace OpenMS
 {
 	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* /*parent*/)
+		:	scene_(new TOPPASScene())
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
+		setScene(scene_);
 	}
 	
 	TOPPASWidget::~TOPPASWidget()
 	{
 		emit aboutToBeDestroyed(window_id);
 	}
+	
+	TOPPASScene* TOPPASWidget::getScene()
+	{
+		return scene_;
+	}
+	
 } //Namespace
 

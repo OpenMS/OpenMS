@@ -40,6 +40,15 @@ namespace OpenMS
 			
 			/// Constructor
 			TOPPASEdge(TOPPASVertex* from, TOPPASVertex* to);
+			
+			/// Destructor
+			virtual ~TOPPASEdge();
+			
+			/// Returns the bounding rectangle of this item
+			QRectF boundingRect() const;
+			
+			/// Paints the item
+			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 		
 		protected:
 		

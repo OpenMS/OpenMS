@@ -37,6 +37,21 @@ namespace OpenMS
 		// ...
 	}
 	
+	TOPPASEdge::~TOPPASEdge()
+	{
+	
+	}
+	
+	QRectF TOPPASEdge::boundingRect() const
+	{
+		return QRectF(/*...*/);
+	}
+	
+	void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+	{
+	
+	}
+	
 } //namespace
 
 

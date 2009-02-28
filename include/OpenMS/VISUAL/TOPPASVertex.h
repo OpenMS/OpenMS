@@ -48,8 +48,18 @@ namespace OpenMS
 			/// Constructor
 			TOPPASVertex(const String& name, VertexType type);
 			
+			/// Destructor
+			virtual ~TOPPASVertex();
+			
 			/// Returns the name of the tool
 			const String& getName();
+			
+			/// Returns the bounding rectangle of this item
+			QRectF boundingRect() const;
+			
+			/// Paints the item
+			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+
 			
 		protected:
 			

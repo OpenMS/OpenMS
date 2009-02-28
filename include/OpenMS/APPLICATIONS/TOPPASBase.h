@@ -64,7 +64,7 @@ namespace OpenMS
       ///Constructor
       TOPPASBase(QWidget* parent=0);
       ///Destructor
-      ~TOPPASBase();
+      virtual ~TOPPASBase();
 			
 			/**
       	@brief Loads the preferences from the filename given.
@@ -158,6 +158,7 @@ namespace OpenMS
       
       ///returns the window with id @p id
       TOPPASWidget* window_(int id) const;
+      
       
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
