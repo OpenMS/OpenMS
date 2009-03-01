@@ -124,7 +124,9 @@ namespace OpenMS
     	void updateMenu();
     	/// Shows the widget as window in the workspace
     	void showAsWindow_(TOPPASWidget* sw, const String& caption);
-
+			/// Inserts a new TOPP tool vertex in the current window
+			void insertNewVertex_(double x, double y);
+			
     protected:
 
 			/// Log output window

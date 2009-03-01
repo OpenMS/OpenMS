@@ -94,7 +94,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
 
     box_layout->addWidget(ws_);
-
+		
 		//################## MENUS #################
     // File menu
     QMenu* file = new QMenu("&File",this);
@@ -167,10 +167,10 @@ namespace OpenMS
     	if (*it == "NoiseFilter")
     	{
     		item = new QTreeWidgetItem(parent_item);
-    		item->setText(1, "Savitzky-Golay");
+    		item->setText(1, "sgolay");
     		
     		item = new QTreeWidgetItem(parent_item);
-    		item->setText(1, "Gaussian");
+    		item->setText(1, "gaussian");
     	}
     	else if (*it == "FeatureFinder")
 			{
@@ -200,6 +200,7 @@ namespace OpenMS
 				}
 			}
     }
+    tools_tree_view_->setDragEnabled(true);
     
     //Blocks window
     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
@@ -263,13 +264,6 @@ namespace OpenMS
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
   	showAsWindow_(tw, "New");
-  	
-  	////////////////////////// TEST ///////////
-  	TOPPASVertex* v = new TOPPASVertex("SomeTOPPTool", TOPPASVertex::VT_TOOL);
-  	tw->getScene()->addItem(v);
-  	v->setPos(0,0);
-  	///////////////////////////////////////////
-  	
   }
 	
 	void TOPPASBase::saveFileDialog()
@@ -288,7 +282,7 @@ namespace OpenMS
   	ws_->addWindow(tw);
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(tw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
-
+		connect(tw,SIGNAL(toolDroppedOnWidget(double,double)),this,SLOT(insertNewVertex_(double,double)));
 	  tw->setWindowTitle(caption.toQString());
 
 		//add tab with id
@@ -561,6 +555,35 @@ namespace OpenMS
 		//{
 		//	current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
 		//}
+	}
+	
+	void TOPPASBase::insertNewVertex_(double x, double y)
+	{
+		String tool_name;
+		String tool_type;
+		QTreeWidgetItem* current_tool = tools_tree_view_->currentItem();
+		
+		if (current_tool->childCount() > 0)
+		{
+			// tool has a type, but is selected itself (instead of type)
+			return;
+		}
+		if (current_tool->parent() != 0)
+		{
+			// selected item is a type
+			tool_type = String(current_tool->text(1));
+			tool_name = String(current_tool->parent()->text(0));
+		}
+		else
+		{
+			// normal tool which does not have type selected
+			tool_name = String(current_tool->text(0));
+			tool_type = "";
+		}
+		
+		TOPPASVertex* tv = new TOPPASVertex(tool_name, tool_type);
+		activeWindow_()->getScene()->addItem(tv);
+		tv->setPos(x,y);
 	}
 
 } //namespace OpenMS

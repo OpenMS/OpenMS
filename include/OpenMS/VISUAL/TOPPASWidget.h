@@ -53,7 +53,6 @@ namespace OpenMS
       
       enum ActionMode
       {
-      	AM_NEW_NODE,
       	AM_NEW_EDGE,
       	AM_MOVE
       };
@@ -72,11 +71,17 @@ namespace OpenMS
 			void sendCursorStatus(double x=0.0, double y=0.0);
 			/// Message about the destruction of this widget
 		  void aboutToBeDestroyed(int w_id);
+		  /// Emitted when a drop event occurs
+		  void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
 		
 		protected:
 		
 			/// The scene visualized by this widget
 			TOPPASScene* scene_;
+			
+			void dragEnterEvent(QDragEnterEvent* event);
+			void dragMoveEvent(QDragMoveEvent* event);
+			void dropEvent(QDropEvent* event);
   };
 }
 

@@ -32,12 +32,13 @@
 
 namespace OpenMS
 {
-	TOPPASVertex::TOPPASVertex(const String& name, VertexType type)
+	TOPPASVertex::TOPPASVertex(const String& name, const String& type, VertexType vt)
 		: QGraphicsItem(),
 			name_(name),
-			vertex_type_(type)
+			type_(type),
+			vertex_type_(vt)
 	{
-		// do more
+	
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -52,16 +53,24 @@ namespace OpenMS
 	
 	QRectF TOPPASVertex::boundingRect() const
 	{
-		return QRectF(-60,-40,120,80);
+		return QRectF(-70,-40,140,80);
 	}
 	
 	void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
-		painter->drawRoundRect(-60,-40,120,80);
-		
-		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
-		painter->drawText(-text_boundings.width()/2, text_boundings.height()/4, name_.toQString());
+		painter->drawRoundRect(-70,-40,140,80);
+		if (type_ == "")
+		{
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
+			painter->drawText(-text_boundings.width()/2, text_boundings.height()/4, name_.toQString());
+		}
+		else
+		{
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
+			painter->drawText(-text_boundings.width()/2, -text_boundings.height()/4, name_.toQString());
+			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
+			painter->drawText(-text_boundings.width()/2, +text_boundings.height()/1.5, type_.toQString());
+		}
 	}
 
-	// here be some methods...
 }

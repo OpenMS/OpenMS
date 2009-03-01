@@ -47,7 +47,7 @@ namespace OpenMS
 		return QRectF(/*...*/);
 	}
 	
-	void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+	void TOPPASEdge::paint(QPainter* /*painter*/, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
 	
 	}

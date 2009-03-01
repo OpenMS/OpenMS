@@ -46,7 +46,7 @@ namespace OpenMS
 			};
 			
 			/// Constructor
-			TOPPASVertex(const String& name, VertexType type);
+			TOPPASVertex(const String& name, const String& type = "", VertexType vt = VT_TOOL);
 			
 			/// Destructor
 			virtual ~TOPPASVertex();
@@ -65,7 +65,8 @@ namespace OpenMS
 			
 			/// The name of the tool
 			String name_;
-			
+			/// The type of the tool, or "" if it does not have a type
+			String type_;
 			/// The type of this vertex
 			VertexType vertex_type_;
 			

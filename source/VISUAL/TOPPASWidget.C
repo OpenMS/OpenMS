@@ -26,16 +26,27 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/TOPPASWidget.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
+
+
+// Qt
+#include <QtGui/QDragEnterEvent>
+#include <QtGui/QDragMoveEvent>
+#include <QtGui/QDropEvent>
+#include <QtCore/QMimeData>
 
 using namespace std;
 
 namespace OpenMS
 {
-	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* /*parent*/)
-		:	scene_(new TOPPASScene())
+	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent)
+		:	QGraphicsView(parent),
+			scene_(new TOPPASScene())
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
+		setRenderHint(QPainter::Antialiasing);
 		setScene(scene_);
+		setAcceptDrops(true);
 	}
 	
 	TOPPASWidget::~TOPPASWidget()
@@ -46,6 +57,24 @@ namespace OpenMS
 	TOPPASScene* TOPPASWidget::getScene()
 	{
 		return scene_;
+	}
+	
+	void TOPPASWidget::dragEnterEvent(QDragEnterEvent* event)
+	{
+		// TODO: test mime type
+		event->accept();
+	}
+	
+	void TOPPASWidget::dragMoveEvent(QDragMoveEvent* event)
+	{
+		// TODO: test mime type
+		event->accept();
+	}
+	
+	void TOPPASWidget::dropEvent(QDropEvent* event)
+	{
+		QPointF scene_pos = mapToScene(event->pos());
+		emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
 	}
 	
 } //Namespace

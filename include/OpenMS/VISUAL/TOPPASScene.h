@@ -54,6 +54,7 @@ namespace OpenMS
 		protected:
 		
 			String blabla_;
+
 	};
 
 }
