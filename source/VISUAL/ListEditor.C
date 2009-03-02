@@ -77,17 +77,18 @@ namespace OpenMS
 			}
 			else if(type_ == ListEditor::STRING && restrictions_ != "")
 			{
-					QComboBox* editor = new QComboBox(parent);
-					QStringList list;
-					list.append("");
-					list += restrictions_.toQString().split(",");
-					editor->addItems(list);	
-					return editor;
+				QComboBox* editor = new QComboBox(parent);
+				QStringList list;
+				list.append("");
+				list += restrictions_.toQString().split(",");
+				editor->addItems(list);	
+				return editor;
 			}
 			else
 			{
 				QLineEdit *editor = new QLineEdit(parent);
 				editor->setFocusPolicy(Qt::StrongFocus);
+
 				return editor;
 			}	
 		}
@@ -116,7 +117,14 @@ namespace OpenMS
 				}
 				else if(qobject_cast<QLineEdit*>(editor))
 				{
-					static_cast<QLineEdit*>(editor)->setText(str);
+					if(str == "" && (type_ == ListEditor::INT || type_ == ListEditor::FLOAT))
+					{
+						static_cast<QLineEdit*>(editor)->setText("0");
+					}
+					else
+					{
+						static_cast<QLineEdit*>(editor)->setText(str);
+					}
 				}
 			}
 		}
@@ -134,19 +142,20 @@ namespace OpenMS
 				else if(type_ == ListEditor::INPUT_FILE || type_ == ListEditor::OUTPUT_FILE)
 				{
 
-					//if(!file_name_.isNull())
-					//{
 						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());//file_name_;
 						file_name_ = "\0";
-					//}
-			//		else
-			//		{
-			//			new_value = present_value;
-			//		}
+
 				}
 				else
 				{
-					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+					if(static_cast<QLineEdit*>(editor)->text() == "" &&(type_ == ListEditor::INT || type_ == ListEditor::FLOAT))
+					{
+						new_value = QVariant("0");
+					}
+					else
+					{
+						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+					}
 				}
 				//check if it matches the restrictions or is empty
 				if (new_value.toString()!="")
@@ -164,6 +173,7 @@ namespace OpenMS
 								QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
 								new_value = present_value;
 							}
+
 							//restrictions
 							vector<String> parts;
 							if (restrictions_.split(' ',parts))
@@ -188,6 +198,7 @@ namespace OpenMS
 								QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
 								new_value = present_value;
 							}
+
 							//restrictions
 							vector<String> parts;
 							if (restrictions_.split(' ',parts))
