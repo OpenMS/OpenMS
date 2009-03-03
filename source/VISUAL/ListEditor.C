@@ -165,58 +165,60 @@ namespace OpenMS
 					{
 						//check if valid integer
 						case ListEditor::INT:
-						{
-							bool ok;
-							new_value.toString().toLong(&ok);
-							if (!ok)
 							{
-								QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
-								new_value = present_value;
-							}
+								bool ok;
+								new_value.toString().toLong(&ok);
+								if (!ok)
+								{
+									QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+									new_value = present_value;
+									if (new_value=="") new_value = 0;
+								}
 
-							//restrictions
-							vector<String> parts;
-							if (restrictions_.split(' ',parts))
-							{
-								if (parts[0]!="" && new_value.toInt()<parts[0].toInt())
+								//restrictions
+								vector<String> parts;
+								if (restrictions_.split(' ',parts))
 								{
-									restrictions_met = false;
-								}
-								if (parts[1]!="" && new_value.toInt()>parts[1].toInt())
-								{
-									restrictions_met = false;
+									if (parts[0]!="" && new_value.toInt()<parts[0].toInt())
+									{
+										restrictions_met = false;
+									}
+									if (parts[1]!="" && new_value.toInt()>parts[1].toInt())
+									{
+										restrictions_met = false;
+									}
 								}
 							}
-						}
-						break;
+							break;
 						case ListEditor::FLOAT: //check if valid float
-						{
-							bool ok;
-							new_value.toString().toDouble(&ok);
-							if (!ok)
 							{
-								QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
-								new_value = present_value;
-							}
+								bool ok;
+								new_value.toString().toDouble(&ok);
+								if (!ok)
+								{
+									QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
+									new_value = present_value;
+									if (new_value=="") new_value = 0;
+								}
 
-							//restrictions
-							vector<String> parts;
-							if (restrictions_.split(' ',parts))
-							{
-								if (parts[0]!="" && new_value.toDouble()<parts[0].toDouble())
+								//restrictions
+								vector<String> parts;
+								if (restrictions_.split(' ',parts))
 								{
-									restrictions_met = false;
-								}
-								if (parts[1]!="" && new_value.toDouble()>parts[1].toDouble())
-								{
-									restrictions_met = false;
+									if (parts[0]!="" && new_value.toDouble()<parts[0].toDouble())
+									{
+										restrictions_met = false;
+									}
+									if (parts[1]!="" && new_value.toDouble()>parts[1].toDouble())
+									{
+										restrictions_met = false;
+									}
 								}
 							}
-						}
-						break;
+							break;
 						default:
-						{
-						}
+							{
+							}
 					}	
 					if(!restrictions_met)
 					{
@@ -226,13 +228,12 @@ namespace OpenMS
 				}
 			}
 			
-
-				//check if modified
-				if(new_value!=present_value)
-				{
-					model->setData(index, new_value);
-					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
-				}
+			//check if modified
+			if(new_value!=present_value)
+			{
+				model->setData(index, new_value);
+				model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+			}
 		}
 		
 		 

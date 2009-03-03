@@ -2,6 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
@@ -335,43 +336,42 @@ namespace OpenMS
     connect(draw_group_1d_,SIGNAL(buttonClicked(int)),this,SLOT(setDrawMode1D(int)));
     tool_bar_->addSeparator();
 
-
-    link_box_ = new QComboBox(tool_bar_1d_);
-    link_box_->setToolTip("Linking spectra");
-    link_box_->setWhatsThis("Linking spectra<BR><BR>Use this combobox to link two 1D spectra."
-    												"Linked spectra zoom in/out together.");
-    tool_bar_1d_->addWidget(link_box_);
-    connect(link_box_,SIGNAL(activated(int)),this,SLOT(linkActiveTo(int)));
-
     //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
     dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show fragment scan precursors");
     dm_precursors_2d_->setCheckable(true);
-    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked");
+    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked.<BR>(Hotkey: 1)");
+		dm_precursors_2d_->setShortcut(Qt::Key_1);
+
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(toggleProjections()));
-    projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
+    projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
+		projections_2d_->setShortcut(Qt::Key_2);
 
     dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhull),"Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
-    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
+    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed.<BR>(Hotkey: 5)");
+		dm_hull_2d_->setShortcut(Qt::Key_5);
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_hulls_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
     dm_hulls_2d_->setCheckable(true);
-    dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.");
+    dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.<BR>(Hotkey: 6)");
+		dm_hulls_2d_->setShortcut(Qt::Key_6);
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature identifiers");
     dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.");
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.<BR>(Hotkey: 7)");
+		dm_numbers_2d_->setShortcut(Qt::Key_7);
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_elements_2d_ = tool_bar_2d_->addAction(QPixmap(elements),"Show consensus feature element positions");
     dm_elements_2d_->setCheckable(true);
-    dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.");
+    dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.<BR>(Hotkey: 9)");
+		dm_elements_2d_->setShortcut(Qt::Key_9);
     connect(dm_elements_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
 
@@ -1066,53 +1066,6 @@ namespace OpenMS
   	updateFilterBar();
   }
 
-  void TOPPViewBase::linkActiveTo(int index)
-  {
-  	Spectrum1DWidget* active = active1DWindow_();
-  	if (active==0) return;
-
-  	//cout << "linkActiveTo() active: " << active->window_id << endl;
-
-  	//remove link if present
-  	if (link_map_.find(active->window_id)!=link_map_.end())
-  	{
-  		SpectrumWidget* linked_to = window_(link_map_[active->window_id]);
-  		if (linked_to != 0)
-  		{
-  			//cout << "  disconnect signals to: " << linked_to->window_id << endl;
-	  		//disconnect outgoing signals
-	  		disconnect(active->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),linked_to->canvas(),SLOT(setVisibleArea(DRange<2>)));
-  			//disconnect incoming signals
-  			disconnect(linked_to->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),active->canvas(),SLOT(setVisibleArea(DRange<2>)));
-  			//erase entries in id map
-  			link_map_.erase(active->window_id);
-  			link_map_.erase(linked_to->window_id);
-  		}
-  		else
-  		{
-  			cout << "linkActiveTo() - disconnect: Error, could not find window with id '" << active->window_id << "'!" << endl;
-  		}
-  	}
-
-    if (link_box_->itemText(index)=="<unlinked>") return;
-
-    //link
-    SpectrumWidget* link_to = window_(link_box_->itemData(index).toInt());
-		if (link_to!=0)
-		{
-			//cout << "  connecting signals to: " << link_to->window_id << endl;
-		  connect(active->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),link_to->canvas(),SLOT(setVisibleArea(DRange<2>)));
-      connect(link_to->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),active->canvas(),SLOT(setVisibleArea(DRange<2>)));
-      //add entries to id map
-      link_map_[link_to->window_id]=active->window_id;
-      link_map_[active->window_id]=link_to->window_id;
-		}
-		else
-		{
-			cout << "linkActiveTo() - connect: Error, could not find window with id '" << link_box_->itemData(index).toInt() << "'!" << endl;
-		}
-  }
-
   void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
   {
     if (time==0)
@@ -1242,24 +1195,6 @@ namespace OpenMS
     {
       //draw mode
       draw_group_1d_->button(w1->canvas()->getDrawMode())->setChecked(true);
-
-      //update link selector
-      int item_index = -1;
-      link_box_->clear();
-      link_box_->insertItem(++item_index,"<unlinked>",0);
-      QWidgetList windows = ws_->windowList();
-      for ( int i = 0; i < windows.count(); ++i )
-      {
-        Spectrum1DWidget* window = qobject_cast<Spectrum1DWidget*>(windows.at(i));
-        if (window !=0 && window!=w)
-        {
-          link_box_->insertItem(++item_index,File::basename(window->windowTitle()).toQString(),window->window_id);
-        	if (link_map_.find(w1->window_id)!=link_map_.end() && link_map_[w1->window_id] == window->window_id)
-          {
-            link_box_->setCurrentIndex(item_index);
-          }
-        }
-      }
 
       //show/hide toolbars and buttons
       tool_bar_1d_->show();

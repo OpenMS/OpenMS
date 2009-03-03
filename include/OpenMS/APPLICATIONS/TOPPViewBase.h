@@ -171,8 +171,6 @@ namespace OpenMS
       void tileVertical();
       /// tile the open windows horizontally
       void tileHorizontal();
-      /// Links/unlinks two spectra (for zooming)
-      void linkActiveTo(int);
       /**
       	@brief Shows a status message in the status bar.
       	
@@ -336,7 +334,6 @@ namespace OpenMS
       //1D specific stuff
       QToolBar* tool_bar_1d_;
       QButtonGroup* draw_group_1d_;
-      QComboBox* link_box_;
       //2D specific stuff
       QToolBar* tool_bar_2d_;
       QAction* dm_precursors_2d_;
@@ -366,13 +363,6 @@ namespace OpenMS
       QLabel* rt_label_;
 			//@}
 			
-      /**
-        @brief Map that stores linked pairs of 1D windows.
-      	
-      	Each link is stored twice (both directions).
-      */
-      std::map<int,int> link_map_;
-
       /// @name Recent files
       //@{
       ///adds a Filename to the recent files
