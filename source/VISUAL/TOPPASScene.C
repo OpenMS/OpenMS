@@ -32,7 +32,6 @@ namespace OpenMS
 	TOPPASScene::TOPPASScene()
 		:	QGraphicsScene()
 	{
-		
 	}
 	
 	TOPPASScene::~TOPPASScene()

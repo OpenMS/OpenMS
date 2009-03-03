@@ -47,6 +47,7 @@ namespace OpenMS
 		setRenderHint(QPainter::Antialiasing);
 		setScene(scene_);
 		setAcceptDrops(true);
+		setDragMode(QGraphicsView::RubberBandDrag);
 	}
 	
 	TOPPASWidget::~TOPPASWidget()

@@ -29,6 +29,7 @@
 
 // Qt
 #include <QtGui/QPainter>
+#include <QtGui/QGraphicsSceneMouseEvent>
 
 namespace OpenMS
 {
@@ -38,7 +39,7 @@ namespace OpenMS
 			type_(type),
 			vertex_type_(vt)
 	{
-	
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -71,6 +72,18 @@ namespace OpenMS
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
 			painter->drawText(-text_boundings.width()/2, +text_boundings.height()/1.5, type_.toQString());
 		}
+	}
+	
+	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
+	{
+		last_mouse_pos_ = e->pos();
+	}
+	
+	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
+	{
+		QPointF delta = e->pos() - last_mouse_pos_;
+		moveBy(delta.x(), delta.y());
+		last_mouse_pos_ = e->pos();
 	}
 
 }

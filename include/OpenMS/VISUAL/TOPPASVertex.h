@@ -69,6 +69,14 @@ namespace OpenMS
 			String type_;
 			/// The type of this vertex
 			VertexType vertex_type_;
+			/// Position of last mouse click
+			QPointF last_mouse_pos_;
+			
+			///@name reimplemented Qt events
+      //@{
+			void mousePressEvent(QGraphicsSceneMouseEvent* e);
+      void mouseMoveEvent(QGraphicsSceneMouseEvent* e);
+			//@}
 			
 	};
 }
