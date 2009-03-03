@@ -13,6 +13,7 @@ HistView.C
 IDExtractor.C
 IdXMLInfo.C
 LabeledEval.C
+MapSimulator.C
 RTEvaluation.C
 SemanticValidator.C
 SequenceCoverageCalculator.C

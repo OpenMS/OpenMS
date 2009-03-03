@@ -12,6 +12,7 @@ HistView
 IDExtractor
 IdXMLInfo
 LabeledEval
+MapSimulator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator

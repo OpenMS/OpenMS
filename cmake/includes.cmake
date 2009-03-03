@@ -33,6 +33,7 @@ include(source/CHEMISTRY/sources.cmake)
 include(source/COMPARISON/CLUSTERING/sources.cmake)
 include(source/COMPARISON/SPECTRA/sources.cmake)
 include(source/DATASTRUCTURES/sources.cmake)
+include(source/SIMULATION/sources.cmake)
 
 ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
 include(include/OpenMS/VISUAL/UIC/sources.cmake)
@@ -81,6 +82,7 @@ include (include/OpenMS/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include (include/OpenMS/VISUAL/sources.cmake)
 include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)
 include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)
+include (include/OpenMS/SIMULATION/sources.cmake)
 
 ## merge all headers to sources (for source group view in VS)
 #add configured config.h to source group
