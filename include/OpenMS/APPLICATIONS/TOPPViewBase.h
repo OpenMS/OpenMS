@@ -110,7 +110,7 @@ namespace OpenMS
       	@param add_to_recent If the file should be added to the recent files after opening
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       */
-      void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption="", UInt window_id=0);
+      void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption="", UInt window_id=0, Size spectrum_id=0);
       /**
       	@brief Opens and displays a data from a database
       	
@@ -284,7 +284,7 @@ namespace OpenMS
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       */
-  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
+  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
   
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
@@ -390,6 +390,7 @@ namespace OpenMS
 				String file_name;
 				String layer_name;
 				UInt window_id;
+				Size spectrum_id;
 				QProcess* process;
 				bool visible;
 			} topp_;

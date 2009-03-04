@@ -1672,13 +1672,16 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum1DCanvas::activateSpectrum(Size index)
+	void Spectrum1DCanvas::activateSpectrum(Size index, bool repaint)
 	{
 		if (index < currentPeakData_().size())
 		{
 			getCurrentLayer_().current_spectrum = index;
-			update_buffer_ = true;
-			update_(__PRETTY_FUNCTION__);
+			if (repaint)
+			{
+				update_buffer_ = true;
+				update_(__PRETTY_FUNCTION__);
+			}
 		}
 	}
 	

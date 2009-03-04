@@ -701,12 +701,12 @@ namespace OpenMS
 			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.min()[1]);
 			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.max()[1]);
 			
-			//Exception for Spectrum1DCanvas, here we simply copy all spectra
+			//Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
 			bool is_1d = (getName()=="Spectrum1DCanvas");
 			if (is_1d)
 			{
-				begin = layer.peaks.begin();
-				end = layer.peaks.end();
+				begin = layer.peaks.begin() + layer.current_spectrum;
+				end = begin+1;
 			}
 
 			map.reserve(end-begin);

@@ -132,7 +132,7 @@ namespace OpenMS
 			DoubleReal getAlignmentScore();
 			
 			/// Sets current spectrum index of current layer to @p index
-			void activateSpectrum(Size index);
+			void activateSpectrum(Size index, bool repaint=true);
 			
 		public slots:
 			// Docu in base class

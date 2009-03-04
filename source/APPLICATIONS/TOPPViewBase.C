@@ -715,7 +715,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addDataFile(const String& filename,bool show_options, bool add_to_recent, String caption, UInt window_id)
+  void TOPPViewBase::addDataFile(const String& filename,bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     setCursor(Qt::WaitCursor);
 
@@ -798,7 +798,7 @@ namespace OpenMS
     {
     	abs_filename = "";
     }
-    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, false, show_options, abs_filename, caption, window_id);
+    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, false, show_options, abs_filename, caption, window_id, spectrum_id);
 
   	//add to recent file
   	if (add_to_recent) addRecentFile_(filename);
@@ -807,7 +807,7 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id)
+  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
   {
   	//initialize flags with defaults from the parameters
   	bool as_new_window = true;
@@ -921,7 +921,7 @@ namespace OpenMS
 	    {
 			  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
 	      //calculate noise
-	      if(use_mower && is_2D)
+	      if (use_mower && is_2D)
 	      {
 	        DoubleReal cutoff = estimateNoise_(open_window->canvas()->getCurrentLayer().peaks);
 					//create filter
@@ -933,6 +933,11 @@ namespace OpenMS
 					DataFilters filters;
 					filters.add(filter);
 					open_window->canvas()->setFilters(filters);
+	      }
+	      Spectrum1DWidget* open_1d_window = dynamic_cast<Spectrum1DWidget*>(open_window);
+	      if (open_1d_window)
+	      {
+	      	open_1d_window->canvas()->activateSpectrum(spectrum_id);
 	      }
 			}
 
@@ -2086,6 +2091,7 @@ namespace OpenMS
 		//Store data
 		topp_.layer_name = layer.name;
 		topp_.window_id = activeWindow_()->window_id;
+		topp_.spectrum_id = layer.current_spectrum;
 		if (layer.type==LayerData::DT_PEAK)
 		{
 			MzDataFile f;
@@ -2177,7 +2183,7 @@ namespace OpenMS
 			}
 			else
 			{
-				addDataFile(topp_.file_name+"_out",true,false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id);
+				addDataFile(topp_.file_name+"_out",true,false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
 			}
 		}
 
