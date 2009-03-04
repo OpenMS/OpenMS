@@ -896,6 +896,9 @@ namespace OpenMS
 		
 		///External context menu extension
 		QMenu* context_add_;
+		
+		///Flag that determines if timimg data is printed to the command line
+		bool show_timing_;
 
 	};
 }

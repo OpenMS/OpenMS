@@ -187,10 +187,6 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter& painter)
 	{
-#ifdef TIMING_TOPPVIEW
-		QTime timer;
-		timer.start();
-#endif
 		const LayerData& layer = getLayer(layer_index);
 		DoubleReal snap_factor = snap_factors_[layer_index];
 		percentage_factor_ = 1.0;
@@ -387,10 +383,6 @@ namespace OpenMS
 				}
 			}
 		}
-
-#ifdef TIMING_TOPPVIEW
-		cout << "paintDots_ took " << timer.elapsed() << " ms" << endl;
-#endif
 	}
 
 	void Spectrum2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter& painter)
@@ -953,13 +945,23 @@ namespace OpenMS
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
 	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " rt: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl;
 #endif
-#ifdef TIMING_TOPPVIEW
-		QTime timer;
- 		timer.start();
-#endif
-
+		
+		//timing
+		QTime overall_timer;
+		if (show_timing_)
+		{
+			overall_timer.start();
+			if (update_buffer_)
+			{
+				cout << "Updating buffer:" << endl;				
+			}
+			else
+			{
+				cout << "Copying buffer:" << endl;				
+			}
+		}
+		
 		QPainter painter;
-
 		if (update_buffer_)
 		{
 			update_buffer_ = false;
@@ -969,9 +971,16 @@ namespace OpenMS
 
 			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
 			painter.begin(&buffer_);
-
+			QTime layer_timer;
+			
 			for (Size i=0; i<getLayerCount(); i++)
 			{
+				//timing
+				if (show_timing_)
+				{
+					layer_timer.start();
+				}
+				
 				if (getLayer(i).visible)
 				{
 					if (getLayer(i).type==LayerData::DT_PEAK)
@@ -999,6 +1008,11 @@ namespace OpenMS
 						}
 						paintDots_(i, painter);
 					}
+				}
+				//timing
+				if (show_timing_)
+				{
+					cout << "  -layer " << i << " time: " << layer_timer.elapsed() << " ms" << endl;
 				}
 			}
 			paintGridLines_(painter);
@@ -1082,12 +1096,10 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
-#ifdef TIMING_TOPPVIEW
-		if (update_buffer_)
+		if (show_timing_)
 		{
-			cout << "2D PaintEvent took " << timer.elapsed() << " ms" << endl << endl;
+			cout << "  -overall time: " << overall_timer.elapsed() << " ms" << endl << endl;
 		}
-#endif
 	}
 
 	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)

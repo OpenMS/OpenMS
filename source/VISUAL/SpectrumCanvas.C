@@ -70,7 +70,8 @@ namespace OpenMS
 			snap_factors_(1,1.0),
 			rubber_band_(QRubberBand::Rectangle,this),
 			watcher_(0),
-			context_add_(0)
+			context_add_(0),
+			show_timing_(false)
 	{		
 		//Prevent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
@@ -658,6 +659,13 @@ namespace OpenMS
 		{
 			e->accept();
 			resetZoom();
+		}
+
+		// CTRL+ALT+T
+		if ((e->modifiers() & Qt::ControlModifier|Qt::AltModifier) && (e->key()==Qt::Key_T))
+		{
+			e->accept();
+			show_timing_ = !show_timing_;
 		}
 		
 		releaseKeyboard();// ensure that the key event is passed on to parent widget

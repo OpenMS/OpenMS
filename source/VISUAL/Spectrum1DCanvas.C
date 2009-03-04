@@ -663,10 +663,12 @@ namespace OpenMS
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
 	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " int: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl; 
 #endif
-#ifdef TIMING_TOPPVIEW
+		
 		QTime timer;
- 		timer.start();
-#endif
+		if (show_timing_)
+		{
+			timer.start();
+		}
 		
 		QPainter painter;
 		QPoint begin, end;
@@ -874,10 +876,10 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
-#ifdef TIMING_TOPPVIEW	
-		cout << "1D PaintEvent took " << timer.elapsed() << " ms" << endl;
-#endif	
-
+		if (show_timing_)
+		{
+			cout << "paint event took " << timer.elapsed() << " ms" << endl;
+		}
 	}
 	
 	void Spectrum1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
