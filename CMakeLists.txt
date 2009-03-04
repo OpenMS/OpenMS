@@ -103,6 +103,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 ## OpenMP
 find_package(OpenMP)
 
+if (OPENMP_FOUND)
+	add_definitions(${OpenMP_CXX_FLAGS})	
+endif()
 
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
