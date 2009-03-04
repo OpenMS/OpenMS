@@ -120,7 +120,7 @@ namespace OpenMS
             IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
             
             this->ff_->setLogType (ProgressLogger::CMD);
-            this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
+            this->ff_->startProgress (0, this->map_->size(), "analyzing spectra");  
 
             UInt RT_votes_cutoff = RT_votes_cutoff_;
             //Check for useless RT_votes_cutoff_ parameter
@@ -130,25 +130,10 @@ namespace OpenMS
             for (Size i=0, j=0; i<this->map_->size(); ++i)
             {	
               std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
-              std::cout << "Spectrum " << i << " (" << this->map_->at(i).getRT() << ") of " << this->map_->size()-1 << " ... " ; 
-              std::cout.flush();
-          
               iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
-              this->ff_->setProgress (++j);
-    
-              //std::cout << "transform ok ... "; std::cout.flush();
-          
               iwt.identifyCharges (pwts,  this->map_->at(i), i, ampl_cutoff_);
-              this->ff_->setProgress (++j);
-                        
-              //std::cout << "charge recognition ok ... "; std::cout.flush();
-              
               iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
               this->ff_->setProgress (++j);
-                      
-              //std::cout << "updated box states." << std::endl;
-
-              std::cout.flush();
             };
 
             this->ff_->endProgress();
@@ -174,7 +159,7 @@ namespace OpenMS
           UInt best_charge_index; CoordinateType c_mz;
           CoordinateType av_intens=0, av_mz=0;// begin_mz=0; 
           
-        	this->ff_->setLogType (ProgressLogger::CMD);
+          this->ff_->setLogType (ProgressLogger::CMD);
           this->ff_->startProgress (0, boxes.size(), "model fitting ...");  
 
         	UInt seeds = 0;
