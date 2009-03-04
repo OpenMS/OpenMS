@@ -45,7 +45,7 @@ namespace OpenMS
      subtracted from the data. If the input data is raw data peak picking is done first.
 
 	   @htmlinclude OpenMS_InternalCalibration.parameters
-	   
+
 	   @ingroup SignalProcessing
   */
   class OPENMS_DLLAPI InternalCalibration 
@@ -135,32 +135,25 @@ namespace OpenMS
 				// pick peaks (only in a certain distance to the reference masses)
 				PeakPickerCWT pp;
 				pp.setParameters(param_.copy("PeakPicker:",true));
-				typename MSExperiment<InputPeakType>::ConstIterator exp_iter = exp.begin();
-				typename MSExperiment<InputPeakType>::SpectrumType::ConstIterator spec_iter_l,spec_iter_r; 
-				for(;exp_iter != exp.end();++exp_iter)
+				for(typename MSExperiment<InputPeakType>::ConstIterator exp_iter = exp.begin();exp_iter != exp.end();++exp_iter)
 				{
-						MSSpectrum<> spec;
-						// pick region around each reference mass
-						std::vector<double>::iterator vec_iter = ref_masses.begin();
-						for(;vec_iter != ref_masses.end();++vec_iter)
-						{
-								MSSpectrum<> tmp_spec;		
-								// determine region
-								spec_iter_l =  (exp_iter->MZBegin(*vec_iter-window_length_));
-								// check borders (avoid )
-								spec_iter_r =  (exp_iter->MZBegin(*vec_iter+window_length_));
-								if((spec_iter_l >= exp_iter->end()) || (spec_iter_r >= exp_iter->end())) continue;
-
-								// pick region
-								pp.pick(spec_iter_l,spec_iter_r,tmp_spec);
-								typename MSSpectrum<>::Iterator spec_iter = tmp_spec.begin();
-								// store
-								for(;spec_iter != tmp_spec.end(); ++spec_iter)
-								{
-										spec.push_back(*spec_iter);
-								}
-						}
-						if(!spec.empty()) exp_peaks_.push_back(spec);
+					MSSpectrum<> spec;
+					// pick region around each reference mass
+					std::vector<double>::iterator vec_iter = ref_masses.begin();
+					for(;vec_iter != ref_masses.end();++vec_iter)
+					{
+						// determine region
+						MSSpectrum<>::const_iterator spec_iter_l =  (exp_iter->MZBegin(*vec_iter-window_length_));
+						// check borders (avoid )
+						MSSpectrum<>::const_iterator spec_iter_r =  (exp_iter->MZBegin(*vec_iter+window_length_));
+						if((spec_iter_l >= exp_iter->end()) || (spec_iter_r >= exp_iter->end())) continue;
+						
+						MSSpectrum<> raw_region, peak_region;
+						raw_region.insert(raw_region.end(),spec_iter_l,spec_iter_r);
+						pp.pick(raw_region,peak_region);
+						spec.insert(spec.end(),peak_region.begin(),peak_region.end());
+					}
+					if(!spec.empty()) exp_peaks_.push_back(spec);
 				}
 			}
 		

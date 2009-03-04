@@ -181,8 +181,8 @@ namespace OpenMS
 			
 		*/
 		template <typename InputSpectrumIterator,typename OutputPeakType>
-		void optimize(InputSpectrumIterator& first,
-									InputSpectrumIterator& last,
+		void optimize(InputSpectrumIterator first,
+									InputSpectrumIterator last,
 									MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
 
 
@@ -289,7 +289,7 @@ namespace OpenMS
 
 
 	template <typename InputSpectrumIterator,typename OutputPeakType>
-	void TwoDOptimization::optimize(InputSpectrumIterator& first, InputSpectrumIterator& last, MSExperiment< OutputPeakType >& ms_exp,bool real2D)
+	void TwoDOptimization::optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment< OutputPeakType >& ms_exp,bool real2D)
 	{
 		//#define DEBUG_2D
 		//check if the input maps have the same number of spectra
