@@ -12,9 +12,9 @@ instructions and other information can be found in the
 documentation (doc/index.html).
 
 If this is a development version obtained via SVN or as
-nightly snapshot, the documentation is not contained.
-Please refer to the OpenMS website for installation
-instructions then.
+nightly snapshot, the documentation is not contained in
+this package. Please refer to the OpenMS website for 
+installation instructions then.
 
 ------------------------------
 --       TOPP tools         --
