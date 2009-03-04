@@ -82,23 +82,17 @@ namespace OpenMS
       double rWidth;
     };
 
-    /// Positions and intensity values of the raw data
-    extern OPENMS_DLLAPI std::vector<double> positions_;
-    extern OPENMS_DLLAPI std::vector<double> signal_;
-    /// This container contains the peak shapes to be optimized
-    extern OPENMS_DLLAPI std::vector<PeakShape> peaks_;
-
     /// Evaluation of the target function for nonlinear optimization.
-    int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);
+    int residual(const gsl_vector* x, void* params , gsl_vector* f);
 
     /// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-    int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J);
+    int jacobian(const gsl_vector* x, void* params , gsl_matrix* J);
 
     /// Driver function for the evaluation of function and jacobian.
     int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
     
     /// Print all peak shapes 
-    void printSignal(const gsl_vector* x, float resolution = 0.25);
+			void printSignal(const gsl_vector* x, void* param,float resolution = 0.25);
   }
 
 
@@ -111,6 +105,19 @@ namespace OpenMS
   class OPENMS_DLLAPI OptimizePick
   {
   public:
+
+			struct Data
+			{
+					 /// Positions and intensity values of the raw data
+					std::vector<double> positions;
+					std::vector<double> signal;
+					/// This container contains the peak shapes to be optimized
+					std::vector<PeakShape> peaks;
+
+					OptimizationFunctions::PenaltyFactors penalties;
+
+			};
+
 
     /// Raw data vector type
     typedef std::vector<Peak1D> RawDataVector;
@@ -162,7 +169,7 @@ namespace OpenMS
     inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
 
     /// Start the optimization of the peak shapes peaks. The original peak shapes will be subsituted by the optimized peak shapes.
-    void optimize(std::vector<PeakShape>& peaks);
+    void optimize(std::vector<PeakShape>& peaks,Data& data);
 
   
   protected:
@@ -176,14 +183,14 @@ namespace OpenMS
     double eps_abs_;
     double eps_rel_;
 
-		 /** @brief Returns the squared pearson coefficient.
+// 		 /** @brief Returns the squared pearson coefficient.
 
-        Computes the correlation of the peak and the original data given by the peak enpoints.
-        If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
-    */
-    double correlate_(const PeakShape& peak,
-											double left_endpoint,
-											double right_endpoint);
+//         Computes the correlation of the peak and the original data given by the peak enpoints.
+//         If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+//     */
+//     double correlate_(const PeakShape& peak,
+// 											double left_endpoint,
+// 											double right_endpoint,Data& data);
 		
   };
 }

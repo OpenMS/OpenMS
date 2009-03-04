@@ -93,6 +93,7 @@ namespace OpenMS
     void pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level = 1);
 
     /** 
+
 			@brief Picks the peaks in an MSExperiment.
 			
 			Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment.

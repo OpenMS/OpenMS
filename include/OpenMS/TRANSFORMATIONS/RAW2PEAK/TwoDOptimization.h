@@ -882,25 +882,25 @@ namespace OpenMS
 				// and the endpoints of each isotope pattern in the cluster
 			
 				getRegionEndpoints_(ms_exp,first,last,counter,400,d);
-				
+				OptimizePick::Data data;
 				
 				
 				Size idx = 0;
 				for(Size i=0; i < d.signal2D.size()/2; ++i)
 					{
-						OptimizationFunctions::positions_.clear();
-						OptimizationFunctions::signal_.clear();
+						data.positions.clear();
+						data.signal.clear();
 
 						MSExperiment<Peak1D >::SpectrumType::const_iterator	ms_it =
 							(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i].second;
 						Int size = distance(ms_it,(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i+1].second);
-						OptimizationFunctions::positions_.reserve(size);
-						OptimizationFunctions::signal_.reserve(size);
+						data.positions.reserve(size);
+						data.signal.reserve(size);
 
 						while(ms_it != (d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i+1].second)
 							{
-								OptimizationFunctions::positions_.push_back(ms_it->getMZ());
-								OptimizationFunctions::signal_.push_back(ms_it->getIntensity());
+								data.positions.push_back(ms_it->getMZ());
+								data.signal.push_back(ms_it->getIntensity());
 								++ms_it;
 							}
 
@@ -949,7 +949,7 @@ namespace OpenMS
 													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width  <<std::endl;
 							}
 #endif
-						opt.optimize(peak_shapes);
+						opt.optimize(peak_shapes,data);
 #ifdef DEBUG_2D
 						std::cout << "nachher\n";
 						for(Size p =0; p < peak_shapes.size();++p)

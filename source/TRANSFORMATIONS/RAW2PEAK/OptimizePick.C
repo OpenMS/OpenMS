@@ -36,26 +36,25 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
 
-    // positions and signal values 
-    std::vector<PeakShape> peaks_;
-    std::vector<double> positions_;
-    std::vector<double> signal_;
 
 
     // Print the computed signal 
-    void printSignal(const gsl_vector* x, float resolution)
+			void printSignal(const gsl_vector* x,void* param, float resolution)
     {
+
+			std::vector<DoubleReal>& positions = static_cast<OptimizePick::Data*> (param) ->positions; 
+  		std::vector<PeakShape>& peaks = static_cast<OptimizePick::Data*> (param) ->peaks; 
       std::cout << "Printing Signal" << std::endl;
       if (resolution == 1.)
       {
         // iterate over all points of the signal 
-        for (size_t current_point = 0; current_point < positions_.size(); current_point++)
+        for (size_t current_point = 0; current_point < positions.size(); current_point++)
         {
           double computed_signal     = 0.;
-          double current_position    = positions_[current_point];
+          double current_position    = positions[current_point];
 
           // iterate over all peaks 
-          for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+          for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
           {
             // Store the current parameters for this peak 
             double p_height 		 = gsl_vector_get(x, 4*current_peak);
@@ -64,7 +63,7 @@ namespace OpenMS
                                  : gsl_vector_get(x, 4*current_peak + 2);
 
             // is it a Lorentz or a Sech - Peak? 
-            if (peaks_[current_peak].type == PeakShape::LORENTZ_PEAK)
+            if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
             {
               computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
             }
@@ -73,20 +72,20 @@ namespace OpenMS
               computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
             }
           }
-          std::cerr << positions_[current_point] << " " << computed_signal << std::endl;
+          std::cerr << positions[current_point] << " " << computed_signal << std::endl;
         }
       }
       else
       {
         // Compute step width 
-        float sw = (positions_[1] - positions_[0])/resolution;
-        for (int i=0; i<positions_.size() * resolution; i++)
+        float sw = (positions[1] - positions[0])/resolution;
+        for (int i=0; i<positions.size() * resolution; i++)
         {
           double computed_signal     = 0.;
-          double current_position    = positions_[0] + i*sw;
+          double current_position    = positions[0] + i*sw;
 
           // iterate over all peaks 
-          for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+          for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
           {
             // Store the current parameters for this peak 
             double p_height 		 = gsl_vector_get(x, 4*current_peak);
@@ -95,7 +94,7 @@ namespace OpenMS
                                  : gsl_vector_get(x, 4*current_peak + 2);
 
             // is it a Lorentz or a Sech - Peak? 
-            if (peaks_[current_peak].type == PeakShape::LORENTZ_PEAK)
+            if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
             {
               computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
             }
@@ -107,7 +106,7 @@ namespace OpenMS
 
           std::cerr.precision(writtenDigits<DoubleReal>());
 
-          std::cerr << positions_[0] + i*sw << " " << computed_signal << std::endl;
+          std::cerr << positions[0] + i*sw << " " << computed_signal << std::endl;
         }
       }
     }
@@ -127,16 +126,19 @@ namespace OpenMS
       // instead.
       // The vector f is supposed to contain the result when we return from this function.
       // Note: GSL wants the values for each data point i as one component of the results vector
-
+				std::vector<DoubleReal>& signal = static_cast<OptimizePick::Data*> (params) ->signal; 
+				std::vector<DoubleReal>& positions = static_cast<OptimizePick::Data*> (params) ->positions; 
+				std::vector<PeakShape>& peaks = static_cast<OptimizePick::Data*> (params) ->peaks; 
+        OptimizationFunctions::PenaltyFactors& penalties=static_cast<OptimizePick::Data*> (params) ->penalties;
       // iterate over all points of the signal 
-      for (size_t current_point = 0; current_point < positions_.size(); current_point++)
+      for (size_t current_point = 0; current_point < positions.size(); current_point++)
       {
         double computed_signal     = 0.;
-        double current_position    = positions_[current_point];
-        double experimental_signal = signal_[current_point];
+        double current_position    = positions[current_point];
+        double experimental_signal = signal[current_point];
 
         // iterate over all peaks 
-        for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+        for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           // Store the current parameters for this peak 
           double p_height 		 = gsl_vector_get(x, 4*current_peak);
@@ -145,7 +147,7 @@ namespace OpenMS
                                : gsl_vector_get(x, 4*current_peak + 2);
 
           // is it a Lorentz or a Sech - Peak? 
-          if (peaks_[current_peak].type == PeakShape::LORENTZ_PEAK)
+          if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
           {
             computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
           }
@@ -158,17 +160,17 @@ namespace OpenMS
       }
 
       double penalty = 0.;
-      struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
-      double penalty_pos    = penalties->pos;
-      double penalty_lwidth = penalties->lWidth;
-      double penalty_rwidth = penalties->rWidth;
+//      struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
+      double penalty_pos    = penalties.pos;
+      double penalty_lwidth = penalties.lWidth;
+      double penalty_rwidth = penalties.rWidth;
 
       // iterate over all peaks again to compute the penalties 
-      for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
-        double old_position = peaks_[current_peak].mz_position;
-        double old_width_l 	= peaks_[current_peak].left_width;
-        double old_width_r 	= peaks_[current_peak].right_width;
+        double old_position = peaks[current_peak].mz_position;
+        double old_width_l 	= peaks[current_peak].left_width;
+        double old_width_r 	= peaks[current_peak].right_width;
         double p_position   = gsl_vector_get(x, 4*current_peak + 3);
         double p_width_l 		= gsl_vector_get(x, 4*current_peak + 1);
         double p_width_r    = gsl_vector_get(x, 4*current_peak + 2);
@@ -179,7 +181,7 @@ namespace OpenMS
                      + penalty_rwidth * pow(p_width_r - old_width_r, 2);
       }
 
-      gsl_vector_set(f, positions_.size(), 100*penalty);
+      gsl_vector_set(f, positions.size(), 100*penalty);
 
       return GSL_SUCCESS;
     }
@@ -195,14 +197,17 @@ namespace OpenMS
       // Note: GSL expects the Jacobian as follows:
       // 	- each row corresponds to one data point
       // 	- each column corresponds to one parameter
-
+			//	std::vector<DoubleReal>& signal = static_cast<OptimizePick::Data*> (params) ->signal; 
+				std::vector<DoubleReal>& positions = static_cast<OptimizePick::Data*> (params) ->positions; 
+				std::vector<PeakShape>& peaks = static_cast<OptimizePick::Data*> (params) ->peaks; 
+        OptimizationFunctions::PenaltyFactors& penalties=static_cast<OptimizePick::Data*> (params) ->penalties;
       // iterate over all points of the signal 
-      for (size_t current_point = 0; current_point < positions_.size(); current_point++)
+      for (size_t current_point = 0; current_point < positions.size(); current_point++)
       {
-        double current_position    = positions_[current_point];
+        double current_position    = positions[current_point];
 
         // iterate over all peaks 
-        for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+        for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           // Store the current parameters for this peak 
           double p_height 		 = gsl_vector_get(x, 4*current_peak);
@@ -211,7 +216,7 @@ namespace OpenMS
                                : gsl_vector_get(x, 4*current_peak + 2);
 
           // is it a Lorentz or a Sech - Peak? 
-          if (peaks_[current_peak].type == PeakShape::LORENTZ_PEAK)
+          if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
           {
             double diff      = current_position - p_position;
             double denom_inv = 1./(1. + pow(p_width * diff, 2));
@@ -254,30 +259,30 @@ namespace OpenMS
       }
 
       // Now iterate over all peaks again to compute the penalties.
-      struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
-      for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
+//   struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
+      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
         double p_width_left = gsl_vector_get(x, 4*current_peak + 1);
         double p_width_right = gsl_vector_get(x, 4*current_peak + 2);
         double p_position   = gsl_vector_get(x, 4*current_peak + 3);
 
-        double old_width_left  = peaks_[current_peak].left_width;
-        double old_width_right = peaks_[current_peak].right_width;
-        double old_position    = peaks_[current_peak].mz_position;
+        double old_width_left  = peaks[current_peak].left_width;
+        double old_width_right = peaks[current_peak].right_width;
+        double old_position    = peaks[current_peak].mz_position;
 
 
-        double penalty_l = 2.*penalties->lWidth*(p_width_left - old_width_left);
-        double penalty_r = 2.*penalties->rWidth*(p_width_right - old_width_right);
+        double penalty_l = 2.*penalties.lWidth*(p_width_left - old_width_left);
+        double penalty_r = 2.*penalties.rWidth*(p_width_right - old_width_right);
         double penalty_p=0;
         if (fabs(p_position - old_position) < 0.2)
         {
-          penalty_p = 2.*penalties->pos*(p_position - old_position);
+          penalty_p = 2.*penalties.pos*(p_position - old_position);
         }
 
-        gsl_matrix_set(J, positions_.size(), 4*current_peak,   0.);
-        gsl_matrix_set(J, positions_.size(), 4*current_peak+1, 100*penalty_l);
-        gsl_matrix_set(J, positions_.size(), 4*current_peak+2, 100*penalty_r);
-        gsl_matrix_set(J, positions_.size(), 4*current_peak+3, 100*penalty_p);
+        gsl_matrix_set(J, positions.size(), 4*current_peak,   0.);
+        gsl_matrix_set(J, positions.size(), 4*current_peak+1, 100*penalty_l);
+        gsl_matrix_set(J, positions.size(), 4*current_peak+2, 100*penalty_r);
+        gsl_matrix_set(J, positions.size(), 4*current_peak+3, 100*penalty_p);
       }
 
       return GSL_SUCCESS;
@@ -321,31 +326,31 @@ namespace OpenMS
   OptimizePick::~OptimizePick()
   {}
 
-  void OptimizePick::optimize(std::vector<PeakShape>& peaks)
+void OptimizePick::optimize(std::vector<PeakShape>& peaks,Data& data)
   {
     if (peaks.size() == 0)
       return;
 
     int global_peak_number=0;
-    OptimizationFunctions::peaks_.assign(peaks.begin(),peaks.end());
+    data.peaks.assign(peaks.begin(),peaks.end());
 
-    gsl_vector *start_value=gsl_vector_alloc(4*OptimizationFunctions::peaks_.size());
+    gsl_vector *start_value=gsl_vector_alloc(4*data.peaks.size());
     // We have to initialize the parameters for the optimization
-    for (size_t i = 0; i < OptimizationFunctions::peaks_.size(); i++)
+    for (size_t i = 0; i < data.peaks.size(); i++)
     {
-      PeakShape current_peak = OptimizationFunctions::peaks_[i];
+      PeakShape current_peak = data.peaks[i];
       double h  = current_peak.height;
       double wl = current_peak.left_width;
       double wr = current_peak.right_width;
       double p  = current_peak.mz_position;
       if (isnan(wl))
       {
-        OptimizationFunctions::peaks_[i].left_width = 1;
+        data.peaks[i].left_width = 1;
         wl = 1.;
       }
       if (isnan(wr))
       {
-        OptimizationFunctions::peaks_[i].right_width = 1;
+        data.peaks[i].right_width = 1;
         wr = 1.;
       }
 
@@ -362,13 +367,15 @@ namespace OpenMS
     fit_function.f    	= OptimizationFunctions::residual;
     fit_function.df  	  = OptimizationFunctions::jacobian;
     fit_function.fdf		= OptimizationFunctions::evaluate;
-    fit_function.n			= std::max(OptimizationFunctions::positions_.size()+1,4*OptimizationFunctions::peaks_.size());
-    fit_function.p			= 4*OptimizationFunctions::peaks_.size();
-    fit_function.params = &penalties_;
+    fit_function.n			= std::max(data.positions.size()+1,4*data.peaks.size());
+    fit_function.p			= 4*data.peaks.size();
+//    fit_function.params = &penalties_;
+		data.penalties = penalties_;
+    fit_function.params = &data;
 
     const gsl_multifit_fdfsolver_type *type = gsl_multifit_fdfsolver_lmsder;
 
-    gsl_multifit_fdfsolver *fit=gsl_multifit_fdfsolver_alloc(type, std::max(OptimizationFunctions::positions_.size()+1, 4*OptimizationFunctions::peaks_.size()), 4*OptimizationFunctions::peaks_.size());
+    gsl_multifit_fdfsolver *fit=gsl_multifit_fdfsolver_alloc(type, std::max(data.positions.size()+1, 4*data.peaks.size()), 4*data.peaks.size());
 
     gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
 
@@ -386,7 +393,7 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
       std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-      std::cout << "Number of parms: " << OptimizationFunctions::peaks_.size() * 4 << std::endl;
+      std::cout << "Number of parms: " << data.peaks.size() * 4 << std::endl;
       std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
       if (isnan(gsl_blas_dnrm2(fit->dx)))
@@ -405,13 +412,13 @@ namespace OpenMS
     std::cout << "Finished!" << std::endl;
     std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
     double chi = gsl_blas_dnrm2(fit->f);
-    std::cout << "chisq/dof = " << pow(chi, 2.0) / (OptimizationFunctions::positions_.size() - 4*OptimizationFunctions::peaks_.size());
+    std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size() - 4*data.peaks.size());
 #endif
 
-    //		OptimizationFunctions::printSignal(fit->x, 5.);
+    //		OptimizationFunctions::printSignal(fit->x, 5.,param);
 
     // iterate over all peaks and store the optimized values in peaks 
-   for (size_t current_peak = 0; current_peak < OptimizationFunctions::peaks_.size(); current_peak++)
+   for (size_t current_peak = 0; current_peak <data.peaks.size(); current_peak++)
     {
       // Store the current parameters for this peak 
       peaks[global_peak_number+current_peak].height 		 = gsl_vector_get(fit->x, 4*current_peak);
@@ -440,71 +447,71 @@ namespace OpenMS
         peaks[global_peak_number+current_peak].area=area_left+area_right;
       }
     }
-    global_peak_number += OptimizationFunctions::peaks_.size();
+    global_peak_number += data.peaks.size();
 
     gsl_multifit_fdfsolver_free(fit);
     gsl_vector_free(start_value);
   }
 
 
-  double OptimizePick::correlate_(const PeakShape& peak,
-                                 double left_endpoint,
-                                 double right_endpoint)
-  {
-    double SSxx = 0., SSyy = 0., SSxy = 0.;
+  // double OptimizePick::correlate_(const PeakShape& peak,
+//                                  double left_endpoint,
+// 																	double right_endpoint,Data& data)
+//   {
+//     double SSxx = 0., SSyy = 0., SSxy = 0.;
 
-    // compute the averages
-    double data_average=0., fit_average=0.;
-    double data_sqr=0., fit_sqr=0.;
-    double cross=0.;
+//     // compute the averages
+//     double data_average=0., fit_average=0.;
+//     double data_sqr=0., fit_sqr=0.;
+//     double cross=0.;
 
-    int number_of_points = 0;
+//     int number_of_points = 0;
 
-    int first=0;
-    int last=OptimizationFunctions::positions_.size()-1;
+//     int first=0;
+//     int last=data.positions.size()-1;
 
-    // search for the left endpoint position
-    while (OptimizationFunctions::positions_[first] < left_endpoint)
-    {
-      ++first;
-    }
+//     // search for the left endpoint position
+//     while (data.positions[first] < left_endpoint)
+//     {
+//       ++first;
+//     }
 
-    // search for the right endpoint position
-    while (OptimizationFunctions::positions_[last] > right_endpoint)
-    {
-      --last;
-    }
+//     // search for the right endpoint position
+//     while (data.positions[last] > right_endpoint)
+//     {
+//       --last;
+//     }
 
 
-    // for separate overlapping peak correlate until the max position...
-    for (int i=first; i <= last; i++)
-    {
-      double data_val = OptimizationFunctions::signal_[i];
-      double peak_val = peak(OptimizationFunctions::positions_[i]);
+//     // for separate overlapping peak correlate until the max position...
+//     for (int i=first; i <= last; i++)
+//     {
+//       double data_val = data.signal[i];
+//       double peak_val = peak(data.positions[i]);
 
-      data_average += data_val;
-      fit_average  += peak_val;
+//       data_average += data_val;
+//       fit_average  += peak_val;
 
-      data_sqr += data_val * data_val;
-      fit_sqr  += peak_val * peak_val;
+//       data_sqr += data_val * data_val;
+//       fit_sqr  += peak_val * peak_val;
 
-      cross += data_val * peak_val;
+//       cross += data_val * peak_val;
 
-      number_of_points++;
-    }
+//       number_of_points++;
+//     }
 
-    if (number_of_points == 0)
-      return 0.;
+//     if (number_of_points == 0)
+//       return 0.;
 
-    data_average /= number_of_points;
-    fit_average  /= number_of_points;
+//     data_average /= number_of_points;
+//     fit_average  /= number_of_points;
 
-    SSxx = data_sqr - number_of_points * (data_average * data_average);
-    SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
-    SSxy = cross - number_of_points * (data_average * fit_average);
+//     SSxx = data_sqr - number_of_points * (data_average * data_average);
+//     SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
+//     SSxy = cross - number_of_points * (data_average * fit_average);
 
-    return (SSxy * SSxy) / (SSxx * SSyy);
-  }
+//     return (SSxy * SSxy) / (SSxx * SSyy);
+//   }
 
 }
 

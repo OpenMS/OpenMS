@@ -50,14 +50,13 @@ END_SECTION
 
 START_SECTION((OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_, const int max_iteration_, const double eps_abs_, const double eps_rel_ )))
   TOLERANCE_ABSOLUTE(0.0001)
-  struct OptimizationFunctions::PenaltyFactors penalties;
+	struct OptimizationFunctions::PenaltyFactors penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
   unsigned int number = 10;
   double abs_err = 0.01;
   double rel_err = 0.001;
-  
   OptimizePick opt_pick(penalties,number,abs_err,rel_err);
   TEST_REAL_SIMILAR(penalties.pos,opt_pick.getPenalties().pos)
   TEST_REAL_SIMILAR(penalties.lWidth,opt_pick.getPenalties().lWidth)
@@ -80,16 +79,16 @@ START_SECTION((void optimize(std::vector<PeakShape>& peaks)))
 	
   float origin = 499;
   float spacing = 0.1;
- 
-	OptimizationFunctions::positions_.resize(20);
-  OptimizationFunctions::signal_.resize(20);
+  OptimizePick::Data data;
+	data.positions.resize(20);
+  data.signal.resize(20);
   for (Size i = 0; i < 20 ;++i)
   {
-  	OptimizationFunctions::positions_[i] = origin +i*spacing;
-    OptimizationFunctions::signal_[i] = peak_shape(origin +i*spacing);
+  	data.positions[i] = origin +i*spacing;
+    data.signal[i] = peak_shape(origin +i*spacing);
    }
  	OptimizePick opt_pick;
- 	opt_pick.optimize(peak_shapes);
+  opt_pick.optimize(peak_shapes,data);
  	TEST_REAL_SIMILAR(peak_shape.mz_position,500)
  	TEST_REAL_SIMILAR(peak_shape.left_width,0.1)
  	TEST_REAL_SIMILAR(peak_shape.right_width,0.1)
@@ -188,8 +187,8 @@ END_SECTION
 
 START_SECTION((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties)))
   TOLERANCE_ABSOLUTE(0.0001)
-  struct OptimizationFunctions::PenaltyFactors penalties;
-  penalties.pos = 0;
+	struct OptimizationFunctions::PenaltyFactors penalties;
+	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
     
@@ -202,8 +201,8 @@ END_SECTION
 
 START_SECTION((struct OptimizationFunctions::PenaltyFactors& getPenalties() const ))
   TOLERANCE_ABSOLUTE(0.0001)
-  struct OptimizationFunctions::PenaltyFactors penalties;
-  penalties.pos = 0;
+	struct OptimizationFunctions::PenaltyFactors penalties;
+	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
     
@@ -216,8 +215,8 @@ END_SECTION
 
 START_SECTION((struct OptimizationFunctions::PenaltyFactors& getPenalties()))
   TOLERANCE_ABSOLUTE(0.0001)
-  struct OptimizationFunctions::PenaltyFactors penalties;
-  penalties.pos = 0;
+	struct OptimizationFunctions::PenaltyFactors penalties;
+	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
     
