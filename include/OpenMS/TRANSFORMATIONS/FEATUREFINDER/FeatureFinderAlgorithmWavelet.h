@@ -119,7 +119,6 @@ namespace OpenMS
             
             IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
             
-            this->ff_->setLogType (ProgressLogger::CMD);
             this->ff_->startProgress (0, this->map_->size(), "analyzing spectra");  
 
             UInt RT_votes_cutoff = RT_votes_cutoff_;
@@ -159,7 +158,6 @@ namespace OpenMS
           UInt best_charge_index; CoordinateType c_mz;
           CoordinateType av_intens=0, av_mz=0;// begin_mz=0; 
           
-          this->ff_->setLogType (ProgressLogger::CMD);
           this->ff_->startProgress (0, boxes.size(), "model fitting ...");  
 
         	UInt seeds = 0;

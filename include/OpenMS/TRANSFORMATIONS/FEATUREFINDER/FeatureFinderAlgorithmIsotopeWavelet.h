@@ -89,7 +89,6 @@ namespace OpenMS
 
 			IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
 		
-			Base::ff_->setLogType (ProgressLogger::CMD);
 			Base::ff_->startProgress (0, 3*Base::map_->size(), "analyzing spectra");  
 
 			UInt RT_votes_cutoff = RT_votes_cutoff_;

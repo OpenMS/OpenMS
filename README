@@ -12,8 +12,9 @@ instructions and other information can be found in the
 documentation (doc/index.html).
 
 If this is a development version obtained via SVN or as
-nightly snapshot, you need to build the documentation first.
-The target 'doc' is used for this purpose.
+nightly snapshot, the documentation is not contained.
+Please refer to the OpenMS website for installation
+instructions then.
 
 ------------------------------
 --       TOPP tools         --
