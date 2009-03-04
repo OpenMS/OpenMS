@@ -150,8 +150,8 @@ namespace OpenMS
     connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
 		//connect signals ans slots for drag-and-drop
-		connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*)),this,SLOT(copyLayer(const QMimeData*)));
-		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,int)),this,SLOT(copyLayer(const QMimeData*, int)));
+		connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*,QWidget*)),this,SLOT(copyLayer(const QMimeData*,QWidget*)));
+		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
@@ -404,6 +404,7 @@ namespace OpenMS
   	header_labels.append(QString("m/z"));
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar->setWidget(spectrum_selection_);
+    spectrum_selection_->setDragEnabled(true);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
     windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
@@ -2771,7 +2772,7 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::copyLayer(const QMimeData* /*data*/, int id)
+	void TOPPViewBase::copyLayer(const QMimeData* /*data*/, QWidget* source, int id)
 	{
 		//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
 		//decode data to get the row
@@ -2782,48 +2783,70 @@ namespace OpenMS
 
   	//set wait cursor
   	setCursor(Qt::WaitCursor);
-
-		//only the selected row can be dragged => the source layer is the selected layer
-		const LayerData& layer = activeCanvas_()->getCurrentLayer();
-
-		//copy the feature and peak data
-		FeatureMapType features = layer.features;
-		ExperimentType peaks = layer.peaks;
-		ConsensusMapType consensus = layer.consensus;
-
+		
 		//determine where to copy the data
 		UInt new_id = 0;
 		if (id!=-1) new_id = id;
-
-		//determine if the data is 2D data
-		bool is_2D = false;
-		bool is_feature = false;
-    if (layer.type==LayerData::DT_FEATURE)
-    {
-      is_2D = true;
-      is_feature = true;
-    }
-    else if (layer.type==LayerData::DT_CONSENSUS)
-    {
-      is_2D = true;
-      is_feature = true;
-    }
-    else
-    {
-    	UInt ms1_scans = 0;
-    	for (Size i=0; i<peaks.size();++i)
-    	{
-    		if (peaks[i].getMSLevel()==1) ++ms1_scans;
-    		if (ms1_scans>1)
-    		{
-    			is_2D = true;
-    			break;
-    		}
-    	}
-    }
-
-		//add the data
-		addData_(features, consensus, peaks, is_feature, is_2D, false, false, layer.filename, layer.name, new_id);
+		
+		if (source == layer_manager_)
+		{
+			//only the selected row can be dragged => the source layer is the selected layer
+			const LayerData& layer = activeCanvas_()->getCurrentLayer();
+	
+			//copy the feature and peak data
+			FeatureMapType features = layer.features;
+			ExperimentType peaks = layer.peaks;
+			ConsensusMapType consensus = layer.consensus;
+	
+			//determine if the data is 2D data
+			bool is_2D = false;
+			bool is_feature = false;
+			if (layer.type==LayerData::DT_FEATURE)
+			{
+				is_2D = true;
+				is_feature = true;
+			}
+			else if (layer.type==LayerData::DT_CONSENSUS)
+			{
+				is_2D = true;
+				is_feature = true;
+			}
+			else
+			{
+				UInt ms1_scans = 0;
+				for (Size i=0; i<peaks.size();++i)
+				{
+					if (peaks[i].getMSLevel()==1) ++ms1_scans;
+					if (ms1_scans>1)
+					{
+						is_2D = true;
+						break;
+					}
+				}
+			}
+			
+			//add the data
+			addData_(features, consensus, peaks, is_feature, is_2D, false, false, layer.filename, layer.name, new_id);
+		}
+		else if (source == spectrum_selection_)
+		{
+			const LayerData& layer = activeCanvas_()->getCurrentLayer();
+			QTreeWidgetItem* item = spectrum_selection_->currentItem();
+			if (item != 0)
+			{
+				Size index = (Size)(item->text(3).toInt());
+				const ExperimentType::SpectrumType spectrum = layer.peaks[index];
+				ExperimentType new_exp;
+				new_exp.push_back(spectrum);
+				FeatureMapType f_dummy;
+				ConsensusMapType c_dummy;
+				addData_(f_dummy,c_dummy,new_exp,false,false,false,false,layer.filename,layer.name,new_id);
+			}
+		}
+		else if (source == 0)
+		{
+			// drag source is external --> explorer/konqueror drag&drop handling here!
+		}
 
 		//reset cursor
   	setCursor(Qt::ArrowCursor);

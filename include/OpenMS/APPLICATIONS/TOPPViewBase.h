@@ -253,7 +253,7 @@ namespace OpenMS
       /// Opens a file from the recent files menu
       void openRecentFile();
 			/// Slot for drag-and-drop of layer manager to tabbar
-			void copyLayer(const QMimeData* data, int id=-1);
+			void copyLayer(const QMimeData* data, QWidget* source, int id=-1);
       //@}
       
       /** @name Toolbar slots

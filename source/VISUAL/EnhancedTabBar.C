@@ -61,11 +61,11 @@ namespace OpenMS
 		int tab = tabAt_(e->pos());
 		if (tab!=-1)
 		{
-			emit dropOnTab(e->mimeData(),tabData(tab).toInt());
+			emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
 		}
 		else
 		{
-		  emit dropOnWidget(e->mimeData());
+		  emit dropOnWidget(e->mimeData(), e->source());
 		}
 
 		e->acceptProposedAction();

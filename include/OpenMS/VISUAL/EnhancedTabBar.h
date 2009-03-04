@@ -73,9 +73,9 @@ namespace OpenMS
 			void aboutToCloseId(int id);
 
 			/// Signal that is emitted, when a drag-and-drop action ends on a tab
-			void dropOnTab(const QMimeData* data, int id);			
+			void dropOnTab(const QMimeData* data, QWidget* source, int id);			
 			/// Signal that is emitted, when a drag-and-drop action ends on the unused space on the right side of the tabs.
-			void dropOnWidget(const QMimeData* data);
+			void dropOnWidget(const QMimeData* data, QWidget* source);
 			
 		protected:
 			///@name Remplemented Qt events
