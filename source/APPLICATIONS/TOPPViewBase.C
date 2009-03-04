@@ -2772,7 +2772,7 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::copyLayer(const QMimeData* /*data*/, QWidget* source, int id)
+	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
 	{
 		//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
 		//decode data to get the row
@@ -2845,7 +2845,15 @@ namespace OpenMS
 		}
 		else if (source == 0)
 		{
-			// drag source is external --> explorer/konqueror drag&drop handling here!
+			// drag source is external
+			if (data->hasUrls())
+			{
+				QList<QUrl> urls = data->urls();
+				for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
+				{
+					addDataFile(it->toLocalFile(), true, false, "TODO", new_id);
+				}
+			}
 		}
 
 		//reset cursor
