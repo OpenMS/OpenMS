@@ -175,7 +175,8 @@ namespace OpenMS
 						 (
 							sign_of_symmetry_
 							-
-							erf(
+              boost::math::tr1::erf(
+							//erf(
 									tmp * factor3
 									+
 									summand

@@ -60,7 +60,7 @@ namespace OpenMS
 		<i>minimum peptide length</i> and <i>maximum number of missed cleavages</i>.
 	*/
 
-	class LCMSSample
+	class OPENMS_DLLAPI LCMSSample
 		: public DefaultParamHandler
 	{
 

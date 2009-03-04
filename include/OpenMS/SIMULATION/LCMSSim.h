@@ -77,7 +77,7 @@ namespace OpenMS{
 		@brief Simulation of a LC/MS experiment
 
 	*/
-	class LCMSSim
+	class OPENMS_DLLAPI LCMSSim
 		: public DefaultParamHandler, public ProgressLogger
 	{
 

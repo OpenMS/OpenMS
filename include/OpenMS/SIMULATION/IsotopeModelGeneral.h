@@ -47,7 +47,7 @@
 namespace OpenMS
 {
 
-  class IsotopeModelGeneral
+  class OPENMS_DLLAPI IsotopeModelGeneral
     : public IsotopeModel
   {
   public:

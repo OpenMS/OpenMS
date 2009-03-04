@@ -59,7 +59,7 @@
 namespace OpenMS
 {
 
-	class MixtureModel
+	class OPENMS_DLLAPI MixtureModel
   : public InterpolationModel
   {
 		public:
