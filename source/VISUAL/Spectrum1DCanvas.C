@@ -1679,6 +1679,7 @@ namespace OpenMS
 		if (index < currentPeakData_().size())
 		{
 			getCurrentLayer_().current_spectrum = index;
+			recalculateSnapFactor_();
 			if (repaint)
 			{
 				update_buffer_ = true;
