@@ -1777,6 +1777,7 @@ namespace OpenMS
     connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+    connect(sw,SIGNAL(dropReceived(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));			
 
   	Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
@@ -2851,7 +2852,7 @@ namespace OpenMS
 				QList<QUrl> urls = data->urls();
 				for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
 				{
-					addDataFile(it->toLocalFile(), true, false, "TODO", new_id);
+					addDataFile(it->toLocalFile(), false, true, "", new_id);
 				}
 			}
 		}

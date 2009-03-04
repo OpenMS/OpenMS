@@ -70,7 +70,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@improvement Support Drag&Drop of files from Explorer/Konqueror (HiWi)
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
   
     @ingroup TOPPView_elements

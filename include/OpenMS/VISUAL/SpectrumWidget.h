@@ -35,6 +35,7 @@
 class QGridLayout;
 class QScrollBar;
 class QCloseEvent;
+class QMimeData;
 
 namespace OpenMS
 {
@@ -133,6 +134,8 @@ namespace OpenMS
 		  void aboutToBeDestroyed(int window_id);
 		  /// Shows the main preferences dialog
 		  void openPreferences();
+		  /// Signal that is emitted, when a drag-and-drop action ends on this widget
+			void dropReceived(const QMimeData* data, QWidget* source, int id);			
 			  
 		public slots:
 			/// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
@@ -187,6 +190,13 @@ namespace OpenMS
 			virtual Math::Histogram<> createMetaDistribution_(const String& name) const = 0;
 			/// recalculates the Axis ticks
 			virtual void recalculateAxes_() = 0;
+			
+			///@name reimplemented Qt events
+      //@{
+     	void dragEnterEvent(QDragEnterEvent* event);
+			void dragMoveEvent(QDragMoveEvent* event);
+			void dropEvent(QDropEvent* event);
+			//@}
 			
 			/// Pointer to the canvas widget
 			SpectrumCanvas* canvas_;

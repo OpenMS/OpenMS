@@ -34,6 +34,7 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
+#include <QtCore/QMimeData>
 
 using namespace std;
 
@@ -52,8 +53,9 @@ namespace OpenMS
 
 		setMinimumSize(250,250);
 		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+		
+		setAcceptDrops(true);
 	}
-	
 	
 	void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas, UInt row, UInt col)
 	{
@@ -292,6 +294,28 @@ namespace OpenMS
 			}
 		}
 		e->accept();
+	}
+	
+	void SpectrumWidget::dragEnterEvent(QDragEnterEvent* event)
+	{
+		if (event->mimeData()->hasUrls())
+		{
+			event->accept();
+		}
+	}
+	
+	void SpectrumWidget::dragMoveEvent(QDragMoveEvent* event)
+	{
+		if (event->mimeData()->hasUrls())
+		{
+			event->accept();
+		}
+	}
+	
+	void SpectrumWidget::dropEvent(QDropEvent* event)
+	{
+		emit dropReceived(event->mimeData(), event->source(), window_id);
+		event->accept();
 	}
 
 } //namespace OpenMS
