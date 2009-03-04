@@ -109,15 +109,6 @@ namespace OpenMS
     /// The minimal full width at half maximum
     float fwhm_bound_;
 
-    /// Container the determined peak shapes
-    std::vector<PeakShape> peak_shapes_;
-
-    /// The continuous wavelet "transformer"
-    ContinuousWaveletTransformNumIntegration wt_;
-
-    /// The continuous wavelet "transformer" for the deconvolution
-    ContinuousWaveletTransformNumIntegration wtDC_;
-
     /// The search radius for the determination of a peak's maximum position
     UInt radius_;
 
@@ -229,7 +220,7 @@ namespace OpenMS
 			-	(2) analogous procedure to the right of x_r
 			.
     */
-    bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, Int distance_from_scan_border, Int& peak_left_index, Int& peak_right_index);
+    bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, Int distance_from_scan_border, Int& peak_left_index, Int& peak_right_index,ContinuousWaveletTransformNumIntegration& wt);
 
 
     /** 
@@ -252,7 +243,7 @@ namespace OpenMS
 			is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
 			lorentzian peak we have a peak bound in the wavelet transform. 
     */
-    void initializeWT_();
+    void initializeWT_(ContinuousWaveletTransformNumIntegration& wt);
 
 		/** @name Methods needed for separation of overlapping peaks
     */
@@ -264,7 +255,7 @@ namespace OpenMS
 			It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
 			Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
 		*/
-    bool deconvolutePeak_(PeakShape& shape);
+    bool deconvolutePeak_(PeakShape& shape,std::vector<PeakShape>& peak_shapes);
 
 		/// Determines the number of peaks in the given mass range using the cwt
     Int getNumberOfPeaks_(ConstPeakIterator first,ConstPeakIterator last, std::vector<double>& peak_values,

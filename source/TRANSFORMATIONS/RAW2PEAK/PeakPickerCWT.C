@@ -230,7 +230,9 @@ namespace OpenMS
 			{
 #ifdef DEBUG_PEAK_PICKING
 				std::cout << "Search for max pos in cwt " <<  noise_level_cwt <<std::endl;
+				std::cout << wt[i-1] <<"\t"<<  wt[i] <<"\t"<<  wt[i+1] <<"\n";
 #endif
+				
 				// Check for maximum in cwt at position i
 				if(((wt[i-1] - wt[i]  ) < 0)
 					 && ((wt[i] - wt[i+1]) > 0)
@@ -293,7 +295,7 @@ namespace OpenMS
                                         PeakArea_& area,
                                         Int distance_from_scan_border,
                                         Int& peak_left_index,
-                                        Int& peak_right_index)
+                                        Int& peak_right_index, ContinuousWaveletTransformNumIntegration& wt)
   {
     // the Maximum may neither be the first or last point in the signal
     if ((area.max <= first) || (area.max >= last-1))
@@ -309,7 +311,7 @@ namespace OpenMS
     Int stop;
     bool monoton;
 
-    Int zeros_left_index  = wt_.getLeftPaddingIndex();
+    Int zeros_left_index  = wt.getLeftPaddingIndex();
 
     // search for the left endpoint
     while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
@@ -364,7 +366,7 @@ namespace OpenMS
 							? (distance_from_scan_border + zeros_left_index) + 2
 							: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 						stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
-							?  (wt_.getSize() - 2)
+							?  (wt.getSize() - 2)
 							: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
@@ -372,14 +374,14 @@ namespace OpenMS
 #endif					
 						for (; start < stop; ++start)
 							{
-								if (   (wt_[start-1] - wt_[start]  )
-											 * (wt_[start]   - wt_[start+1]) < 0 )
+								if (   (wt[start-1] - wt[start]  )
+											 * (wt[start]   - wt[start+1]) < 0 )
 									{
 										// different slopes at the sides => stop here
 #ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt_.getSignal()[start-1].getMZ() 
-															<< " " <<  wt_.getSignal()[start].getMZ()
-															<< " " <<  wt_.getSignal()[start+1].getMZ() << std::endl;
+										std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
+															<< " " <<  wt.getSignal()[start].getMZ()
+															<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
 #endif            						
 										monoton=false;
 										break;
@@ -445,7 +447,7 @@ namespace OpenMS
 							? (distance_from_scan_border + zeros_left_index) + 2
 							: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 						stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
-							?  (wt_.getSize() - 2)
+							?  (wt.getSize() - 2)
 							: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
@@ -453,14 +455,14 @@ namespace OpenMS
 #endif					
 						for (; start < stop; ++start)
 							{
-								if (   (wt_[start-1] - wt_[start])
-											 * (wt_[start]  - wt_[start+1]) < 0 )
+								if (   (wt[start-1] - wt[start])
+											 * (wt[start]  - wt[start+1]) < 0 )
 									{
 										// different slopes at the sides => stop here
 #ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt_.getSignal()[start-1].getMZ() 
-															<< " " <<  wt_.getSignal()[start].getMZ()
-															<< " " <<  wt_.getSignal()[start+1].getMZ() << std::endl;
+										std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
+															<< " " <<  wt.getSignal()[start].getMZ()
+															<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
 #endif            						
 										monoton=false;
 										break;
@@ -547,13 +549,13 @@ namespace OpenMS
     return height/(1+pow(lambda*(x-pos),2));
   }
 
-  void PeakPickerCWT::initializeWT_()
+  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration& wt)
   {
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "PeakPickerCWT<D>::initialize_ peak_bound_" << peak_bound_ <<  std::endl;
 #endif
     //initialize wavelet transformer
-    wt_.init(scale_, (DoubleReal)param_.getValue("wavelet_transform:spacing"));
+    wt.init(scale_, (DoubleReal)param_.getValue("wavelet_transform:spacing"));
 
     //calculate peak bound in CWT
 
@@ -845,15 +847,16 @@ namespace OpenMS
 			}
   } 
 
-	bool PeakPickerCWT::deconvolutePeak_(PeakShape& shape)
+		bool PeakPickerCWT::deconvolutePeak_(PeakShape& shape,std::vector<PeakShape>& peak_shapes)
 	{
 		// scaling for charge one
 		float scaling_DC = (float) param_.getValue("deconvolution:scaling");
 		DoubleReal resolution = 10;
 		// init and calculate the transform of the signal in the convoluted region
 		// first take the scaling for charge 2
-		wtDC_.init(scaling_DC/2,  wt_.getSpacing());
-		wtDC_.transform(shape.getLeftEndpoint(),shape.getRightEndpoint(),resolution);
+    ContinuousWaveletTransformNumIntegration wtDC;
+		wtDC.init(scaling_DC/2,(DoubleReal)param_.getValue("wavelet_transform:spacing"));
+		wtDC.transform(shape.getLeftEndpoint(),shape.getRightEndpoint(),resolution);
 
 
 #ifdef DEBUG_DECONV
@@ -864,7 +867,7 @@ namespace OpenMS
 		Int charge=2;
 		std::vector<DoubleReal> peak_values,old_peak_values;
 		std::vector<PeakShape> peaks_DC;
-		Int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(),shape.getRightEndpoint(),peak_values,1,resolution,wtDC_);
+		Int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(),shape.getRightEndpoint(),peak_values,1,resolution,wtDC);
 		
 #ifdef DEBUG_PEAK_PICKING
 		std::cout << "Number of peaks: "<<peaks << std::endl;
@@ -968,7 +971,7 @@ namespace OpenMS
 				// add the new peaks
 				for (Size curr_peak=0;curr_peak<peaks_DC.size();++curr_peak)
 					{
-						peak_shapes_.push_back(peaks_DC[curr_peak]);
+						peak_shapes.push_back(peaks_DC[curr_peak]);
 					}
 				
 				OptimizationFunctions::peaks_DC_.clear();
@@ -1190,7 +1193,8 @@ namespace OpenMS
 		
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
-		output.reserve(input.size());
+		output.resize(input.size());
+		//TODO add OpenMP here
 
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
@@ -1200,9 +1204,8 @@ namespace OpenMS
 			std::cout << "PeakPicker: Picking Scan " << input[i].getRT()<< std::endl;
 #endif
 			// pick the peaks in scan i
-			MSSpectrum<> new_spectrum;
+			MSSpectrum<>& new_spectrum = output[i];
 			pick(input[i],new_spectrum,input[i].getMSLevel());
-
 			// if any peaks are found copy the spectrum settings
 			if (new_spectrum.size() > 0)
 			{
@@ -1216,8 +1219,8 @@ namespace OpenMS
 
 				// copy the spectrum settings
 				//static_cast<SpectrumSettings&>(spectrum) = spectrum[i];
-				
-				output.push_back(new_spectrum);
+		
+				//output.push_back(new_spectrum);
 			}
 			setProgress(i);
 		}
@@ -1240,16 +1243,18 @@ namespace OpenMS
 
 	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level)
 	{
-		if (peak_bound_cwt_==0.0 || peak_bound_ms2_level_cwt_==0.0)
-		{
-			initializeWT_();
-		}
+			/// The continuous wavelet "transformer"
+			ContinuousWaveletTransformNumIntegration wt;
+			
+     // now initialize every time as every spectrum is picked with its own cwt
+			initializeWT_(wt);
 
 		// nearly empty spectra shouldn't be picked
 		if(input.size()<2) return;
 
-		//clear the peak shapes vector
-		peak_shapes_.clear();
+		//create the peak shapes vector
+		std::vector<PeakShape> peak_shapes;
+
 		
 		//prepare the container
 		output.clear();
@@ -1296,7 +1301,8 @@ namespace OpenMS
 
 		// start the peak picking until no more maxima can be found in the wavelet transform
 		UInt number_of_peaks = 0;
-
+		
+   
 		do
 		{
 			number_of_peaks = 0;
@@ -1304,7 +1310,7 @@ namespace OpenMS
 
 			// compute the continious wavelet transform with resolution 1
 			DoubleReal resolution = 1;
-			wt_.transform(it_pick_begin, it_pick_end,resolution);
+			wt.transform(it_pick_begin, it_pick_end,resolution);
 			PeakArea_ area;
 			bool centroid_fit=false;
 			bool regular_endpoints=true;
@@ -1315,7 +1321,7 @@ namespace OpenMS
 			while ((distance(it_pick_begin, it_pick_end) > 3)
 						 && getMaxPosition_(it_pick_begin,
 																it_pick_end,
-																wt_,
+																wt,
 																area,
 																distance_from_scan_border,
 																ms_level,
@@ -1339,7 +1345,7 @@ namespace OpenMS
 																							area,
 																							distance_from_scan_border,
 																							peak_left_index,
-																							peak_right_index);
+																							peak_right_index,wt);
 
 				// compute the centroid position
 				getPeakCentroid_(area);
@@ -1365,7 +1371,7 @@ namespace OpenMS
 							 && (shape.getFWHM() >= fwhm_bound_))
 					{
 						shape.signal_to_noise = sne.getSignalToNoise(area.max);
-						peak_shapes_.push_back(shape);
+						peak_shapes.push_back(shape);
 						++number_of_peaks;
 					}
 
@@ -1389,17 +1395,17 @@ namespace OpenMS
 				it_pick_begin = area.right;
 				distance_from_scan_border = distance(raw_peak_array.begin(),it_pick_begin);
 
-			} //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt_, area, distance_from_scan_border, ms_level, direction))
+			} //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
 			it_pick_begin = raw_peak_array.begin();
 		}
 		while (number_of_peaks != 0);
 
 		// start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING
-		std::cout << "Try the optimization run... with " << peak_shapes_.size() << std::endl;
+		std::cout << "Try the optimization run... with " << peak_shapes.size() << std::endl;
 #endif
 
-		if (peak_shapes_.size() > 0)
+		if (peak_shapes.size() > 0)
 		{
 			// overlapping peaks are mostly broad or asymmetric
 			// we distinguish them from broad or asymmetric isotopic peaks 
@@ -1409,31 +1415,31 @@ namespace OpenMS
 			// adjacent peaks or if the peak has no near neighbors
 			// we assume a convolved peak pattern and start the deconvolution.
 			// sort the peaks according to their positions
-			sort(peak_shapes_.begin(), peak_shapes_.end(), PeakShape::PositionLess());
+			sort(peak_shapes.begin(), peak_shapes.end(), PeakShape::PositionLess());
 			std::vector<UInt> peaks_to_skip;
 			// search for broad or asymmetric peaks
-			UInt n = (UInt) peak_shapes_.size();
+			UInt n = (UInt) peak_shapes.size();
 			if( deconvolution_)
 			{
 				for (UInt i = 0; i < n; ++i)
 				{
-					if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
-							|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))
+					if ((peak_shapes[i].getFWHM() > fwhm_threshold) 
+							|| (peak_shapes[i].getSymmetricMeasure() < symm_threshold))
 					{
 #ifdef DEBUG_DECONV
-						std::cout << "check " << peak_shapes_[i].mz_position 
-											<< " with fwhm: " << peak_shapes_[i].getFWHM() 
-											<< " and " << peak_shapes_[i].left_width 
-											<< ' ' << peak_shapes_[i].right_width 
-											<< ' ' << peak_shapes_[i].getLeftEndpoint()->getMZ()
-											<< ' ' << peak_shapes_[i].getRightEndpoint()->getMZ()
+						std::cout << "check " << peak_shapes[i].mz_position 
+											<< " with fwhm: " << peak_shapes[i].getFWHM() 
+											<< " and " << peak_shapes[i].left_width 
+											<< ' ' << peak_shapes[i].right_width 
+											<< ' ' << peak_shapes[i].getLeftEndpoint()->getMZ()
+											<< ' ' << peak_shapes[i].getRightEndpoint()->getMZ()
 											<< std::endl;
 #endif
 						// this might be a convolved peak pattern
 						// and we check the distance to the neighboring peaks as well as their fwhm values:
 						//float max_distance = 1.1;
-						float dist_left = ((i > 0) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) : -1;
-						float dist_right = ((i < (n-1)) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) : -1;
+						float dist_left = ((i > 0) && (fabs(peak_shapes[i].mz_position-peak_shapes[i-1].mz_position) < 1.2)) ? fabs(peak_shapes[i].mz_position-peak_shapes[i-1].mz_position) : -1;
+						float dist_right = ((i < (n-1)) && (fabs(peak_shapes[i].mz_position-peak_shapes[i+1].mz_position) < 1.2)) ? fabs(peak_shapes[i].mz_position-peak_shapes[i+1].mz_position) : -1;
 				
 						// left and right neighbor
 						if ((dist_left > 0) && (dist_right > 0))
@@ -1446,9 +1452,9 @@ namespace OpenMS
 							if (ratio < 0.6)
 							{
 #ifdef DEBUG_DECONV
-								std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i+1].mz_position << std::endl;
+								std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes[i-1].mz_position << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-								if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+								if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 							}
 						}
 						// has only one or no neighbor peak
@@ -1465,23 +1471,23 @@ namespace OpenMS
 								if (dist_ok)
 								{
 #ifdef DEBUG_DECONV
-									std::cout << "left neighbor " << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i-1].getFWHM() << std::endl;
+									std::cout << "left neighbor " << peak_shapes[i-1].mz_position << ' ' << peak_shapes[i-1].getFWHM() << std::endl;
 #endif
 									// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
-									if ((peak_shapes_[i-1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+									if ((peak_shapes[i-1].getFWHM()/peak_shapes[i].getFWHM()) < 0.6)
 									{
 #ifdef DEBUG_DECONV
 										std::cout << " too small fwhm" << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 									}
 								}
 								else
 								{
 #ifdef DEBUG_DECONV
-									std::cout << "distance not ok" << dist_left << ' ' << peak_shapes_[i-1].mz_position << std::endl;
+									std::cout << "distance not ok" << dist_left << ' ' << peak_shapes[i-1].mz_position << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 								}
 							}
 							else
@@ -1497,23 +1503,23 @@ namespace OpenMS
 									if (dist_ok)
 									{
 #ifdef DEBUG_DECONV
-										std::cout << "right neighbor " << peak_shapes_[i+1].mz_position << ' ' << peak_shapes_[i+1].getFWHM() << std::endl;
+										std::cout << "right neighbor " << peak_shapes[i+1].mz_position << ' ' << peak_shapes[i+1].getFWHM() << std::endl;
 #endif
 										// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
-										if ((peak_shapes_[i+1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+										if ((peak_shapes[i+1].getFWHM()/peak_shapes[i].getFWHM()) < 0.6)
 										{
 #ifdef DEBUG_DECONV
 											std::cout << "too small fwhm"  << std::endl;
 #endif
-											if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+											if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 										}
 									}
 									else
 									{
 #ifdef DEBUG_DECONV
-										std::cout << "distance not ok" << dist_right << ' ' << peak_shapes_[i+1].mz_position << std::endl;
+										std::cout << "distance not ok" << dist_right << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 									}
 								}
 								// no neighbor
@@ -1522,7 +1528,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 									std::cout << "no neighbor" << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
 								} 
 							}
 						}
@@ -1531,27 +1537,27 @@ namespace OpenMS
 			}
 			
 			// write the picked peaks to the outputcontainer
-			for (Size i = 0; i < peak_shapes_.size(); ++i)
+			for (Size i = 0; i < peak_shapes.size(); ++i)
 			{
 				// put it out only if the peak was not deconvoluted
 				if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
 				{
 					//store output peak
 					Peak1D picked_peak;						
-					picked_peak.setIntensity(peak_shapes_[i].height);
-					picked_peak.setMZ(peak_shapes_[i].mz_position);
+					picked_peak.setIntensity(peak_shapes[i].height);
+					picked_peak.setMZ(peak_shapes[i].mz_position);
 					output.push_back(picked_peak);
 					//store meta data
-					output.getMetaDataArrays()[0].push_back(peak_shapes_[i].r_value);
-					output.getMetaDataArrays()[1].push_back(peak_shapes_[i].area);
-					output.getMetaDataArrays()[2].push_back(peak_shapes_[i].getFWHM());
-					output.getMetaDataArrays()[3].push_back(peak_shapes_[i].left_width);
-					output.getMetaDataArrays()[4].push_back(peak_shapes_[i].right_width);
-					output.getMetaDataArrays()[5].push_back(peak_shapes_[i].type);
-					output.getMetaDataArrays()[6].push_back(peak_shapes_[i].signal_to_noise);
+					output.getMetaDataArrays()[0].push_back(peak_shapes[i].r_value);
+					output.getMetaDataArrays()[1].push_back(peak_shapes[i].area);
+					output.getMetaDataArrays()[2].push_back(peak_shapes[i].getFWHM());
+					output.getMetaDataArrays()[3].push_back(peak_shapes[i].left_width);
+					output.getMetaDataArrays()[4].push_back(peak_shapes[i].right_width);
+					output.getMetaDataArrays()[5].push_back(peak_shapes[i].type);
+					output.getMetaDataArrays()[6].push_back(peak_shapes[i].signal_to_noise);
 				}
 			}
-		} // if (peak_shapes_.size() > 0)
+		} // if (peak_shapes.size() > 0)
 		
 		// set MS level of output container to match the input container
 		output.setMSLevel(ms_level);
