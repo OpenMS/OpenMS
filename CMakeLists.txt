@@ -200,7 +200,7 @@ ENDMACRO (OPENMS_CHECKLIB)
 
 #set which library extensions are preferred (we want static libraries)
 if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
 
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
