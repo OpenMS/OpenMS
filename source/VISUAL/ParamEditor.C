@@ -144,7 +144,14 @@ namespace OpenMS
 					}
 					else
 					{
-						static_cast<QLineEdit*>(editor)->setText(str);
+						if(str == "" && (dtype == "int" || dtype == "float"))
+						{
+							static_cast<QLineEdit*>(editor)->setText("0");
+						}
+						else
+						{
+							static_cast<QLineEdit*>(editor)->setText(str);
+						}
 					}
 				}
 				else		// ListEditor for lists 
@@ -198,11 +205,19 @@ namespace OpenMS
 				else if(qobject_cast<QLineEdit*>(editor))
 				{
 					QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
-					if(dtype =="output file" || "input file")
+					if(dtype =="output file" || dtype == "input file")// input/outut file 
 					{
 
 						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 						fileName_ = "\0";
+					}
+					else if(static_cast<QLineEdit*>(editor)->text() == "" &&(dtype == "int" || dtype == "float"))//numeric
+					{
+						new_value = QVariant("0");
+					}
+					else
+					{
+						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 					}
 				}
 				else
