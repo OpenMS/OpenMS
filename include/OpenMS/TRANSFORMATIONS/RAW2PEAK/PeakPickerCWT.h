@@ -67,15 +67,10 @@ namespace OpenMS
 			public ProgressLogger
   {
 	 public:
-
-    /// Raw data point type
-    typedef Peak1D PeakType;
-    /// Raw data container type using for the temporary storage of the input data
-    typedef std::vector<PeakType> RawDataArrayType;
     /// Raw data iterator type
-    typedef RawDataArrayType::iterator PeakIterator;
-    /// Position type
-    typedef DPosition<1> PositionType;
+    typedef MSSpectrum<>::iterator PeakIterator;
+    /// Const raw data iterator type
+    typedef MSSpectrum<>::const_iterator ConstPeakIterator;
 
     /// Constructor
     PeakPickerCWT();
@@ -165,7 +160,7 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI PeakArea_
     {
-      typedef std::vector<PeakType>::iterator PeakIterator;
+      typedef MSSpectrum<>::iterator PeakIterator;
 
 		 public:
       PeakArea_() : left(), max(), right(), left_behind_centroid()
@@ -272,7 +267,7 @@ namespace OpenMS
     bool deconvolutePeak_(PeakShape& shape);
 
 		/// Determines the number of peaks in the given mass range using the cwt
-    Int getNumberOfPeaks_(PeakIterator first,PeakIterator last, std::vector<double>& peak_values,
+    Int getNumberOfPeaks_(ConstPeakIterator first,ConstPeakIterator last, std::vector<double>& peak_values,
 													Int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		/// Estimate the charge state of the peaks

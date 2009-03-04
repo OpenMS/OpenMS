@@ -32,6 +32,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -64,10 +65,8 @@ namespace OpenMS
       UNDEFINED
     };
   
-		/// Raw data point type
-    typedef Peak1D PeakType;
 		/// Iterator to the raw data vector
-		typedef std::vector<Peak1D>::iterator PeakIterator;
+		typedef MSSpectrum<>::const_iterator PeakIterator;
 
     /// Default constructor
     PeakShape()
@@ -170,7 +169,7 @@ namespace OpenMS
     /// Right peak endpoint in the data
     PeakIterator right_endpoint_;
 		/// Needed for initialisation of endpoint iterators
-		std::vector<Peak1D> exp_;
+		MSSpectrum<> exp_;
 		/// flag if left endpoint iterator differs from default value
 		bool left_iterator_set_;
 		/// flag if left endpoint iterator differs from default value

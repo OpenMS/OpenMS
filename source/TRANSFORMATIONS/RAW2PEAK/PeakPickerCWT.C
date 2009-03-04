@@ -147,7 +147,7 @@ namespace OpenMS
 	  defaults_.setMinInt("deconvolution:fitting:max_iteration",1);
 
 		//this->subsections_.push_back("SignalToNoiseEstimationParameter");
-		SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne; // make sure this is the same as in pick()!
+		SignalToNoiseEstimatorMeanIterative< MSSpectrum<> > sne; // make sure this is the same as in pick()!
 		this->defaults_.insert ("SignalToNoiseEstimationParameter:", sne.getDefaults());
 		
 		defaultsToParam_();
@@ -302,7 +302,7 @@ namespace OpenMS
 			}
 
     PeakIterator it_help=area.max-1;
-    PositionType vec_pos;
+    DPosition<1> vec_pos;
     Int cwt_pos;
     Int ep_radius=2;
     Int start;
@@ -570,8 +570,10 @@ namespace OpenMS
     // positions -scale and +scale the peak value should correspond to the noise_level_
     //DoubleReal lambda = sqrt((-noise_level_*(-peak_bound_+noise_level_)))/(noise_level_*scale_);
 
-    RawDataArrayType lorentz_peak(n);
-    RawDataArrayType lorentz_peak2(n);
+    MSSpectrum<> lorentz_peak;
+		lorentz_peak.resize(n);
+    MSSpectrum<> lorentz_peak2;
+		lorentz_peak2.resize(n);
 
     // TODO: switch the type of the transform
 
@@ -1022,8 +1024,8 @@ namespace OpenMS
 		
 	}
 	
-	Int PeakPickerCWT::getNumberOfPeaks_(PeakIterator first,
-																			 PeakIterator last,
+	Int PeakPickerCWT::getNumberOfPeaks_(ConstPeakIterator first,
+																			 ConstPeakIterator last,
 																			 std::vector<DoubleReal>& peak_values,
 																			 Int direction,
 																			 DoubleReal resolution,
@@ -1271,24 +1273,13 @@ namespace OpenMS
 		std::vector<double> peak_endpoints;
 
 		// copy the raw data into a std::vector<Peak1D>
-		//  raw_peak_array_original is needed for the separation of overlapping peaks
-		RawDataArrayType raw_peak_array, raw_peak_array_original;
+		MSSpectrum<> raw_peak_array;
 		// signal to noise estimator
-		SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne;      
+		SignalToNoiseEstimatorMeanIterative< MSSpectrum<> > sne;      
 		Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
 		sne.setParameters(sne_param);
 		
-		raw_peak_array.resize(input.size());
-		raw_peak_array_original.resize(input.size());
-		
-		for (Size i = 0; i < input.size(); ++i)
-		{
-			PeakType raw_data_point;
-			raw_data_point.setIntensity(input[i].getIntensity());
-			raw_data_point.setPosition(input[i].getPosition());
-			raw_peak_array[i] = raw_data_point;
-			raw_peak_array_original[i] = raw_data_point;
-		}
+		raw_peak_array.insert(raw_peak_array.end(),input.begin(),input.end());
 
 		PeakIterator it_pick_begin = raw_peak_array.begin();
 		PeakIterator it_pick_end   = raw_peak_array.end();
@@ -1365,9 +1356,9 @@ namespace OpenMS
 #endif
 					// determine the best fitting lorezian or sech2 function
 					PeakShape shape = fitPeakShape_(area,centroid_fit);
-					shape.setLeftEndpoint( (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.left)));
-					shape.setRightEndpoint ( (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.right)));
-					if(shape.getRightEndpoint() == raw_peak_array_original.end()) shape.setRightEndpoint(raw_peak_array_original.end()-1); 
+					shape.setLeftEndpoint( (input.begin() + distance(raw_peak_array.begin(), area.left)));
+					shape.setRightEndpoint ( (input.begin() + distance(raw_peak_array.begin(), area.right)));
+					if(shape.getRightEndpoint() == input.end()) shape.setRightEndpoint(input.end()-1); 
 					// Use the centroid for Optimization
 					shape.mz_position=area.centroid_position[0];
 					if ( (shape.r_value > peak_corr_bound_)

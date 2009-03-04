@@ -214,10 +214,6 @@ namespace OpenMS
     int end_left_padding_;
     int begin_right_padding_;
 
-    /// Computes the interpolated value at position x (mz) given the iterator it_left, which points
-    /// to the left neighbour raw data point of x in the original data
-    double getInterpolatedValue_(double x, PeakConstIterator it_left);
-
 		template < typename InputPeakIterator >
 		double getInterpolatedValue_(double x, InputPeakIterator it_left)
 		{
