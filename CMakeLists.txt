@@ -81,6 +81,29 @@ else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
+
+##### Parallelization things
+#################################
+
+## cuda checking
+#include (cmake/FindCuda.cmake)
+
+## TBB
+#set(TBB_ARCHITECTURE "em64t")
+#set(TBB_COMPILER "gcc_cc4.3.2_libc2.8.90_kernel2.6.27")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+#find_package(TBB)
+
+#if (NOT TBB_FOUND)
+#	message(STATUS "TBB was not found")
+#else()
+#	# TODO set variables
+#endif()
+
+## OpenMP
+find_package(OpenMP)
+
+
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
 if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
@@ -453,7 +476,7 @@ link_directories(${CONTRIB_LIB_DIR})
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
-
+#CUDA_ADD_LIBRARY(OpenMS ${Cuda_sources})
 
 ## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
