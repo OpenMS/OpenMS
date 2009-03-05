@@ -40,7 +40,9 @@ namespace OpenMS
 			signal_to_noise(0),
 			type(type),
 			left_endpoint_(left),
-			right_endpoint_(right)
+			right_endpoint_(right),
+			left_iterator_set_(true),
+			right_iterator_set_(true)
   {
   }
 
@@ -52,7 +54,9 @@ PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_
       area(area),
       r_value(0),
 			signal_to_noise(0),
-			type(type)
+			type(type),
+			left_iterator_set_(false),
+			right_iterator_set_(false)
   {
 		left_endpoint_ = exp_.end();
 		right_endpoint_ = exp_.end();
