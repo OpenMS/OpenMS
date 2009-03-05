@@ -194,6 +194,9 @@ class TOPPFileFilter
 				return ILLEGAL_PARAMETERS;
 			}
 
+			//sort by RT and m/z
+ 			bool sort = getFlag_("sort");
+			writeDebug_(String("Sorting output data: ") + String(sort),3);
 
       if (in_type == FileTypes::MZDATA)
       {
@@ -242,9 +245,6 @@ class TOPPFileFilter
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
- 				//sort by RT and m/z
-   			bool sort = getFlag_("sort");
-  			writeDebug_(String("Sorting output data: ") + String(sort),3);
   			if (sort)
   			{
   				//if meta data arrays are present, remove them and warn
@@ -328,7 +328,10 @@ class TOPPFileFilter
         }
         map_sm.updateRanges();
 
-        //-------------------------------------------------------------
+				// sort if desired
+				if (sort) map_sm.sortByPosition();
+        
+				//-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
 
@@ -354,6 +357,9 @@ class TOPPFileFilter
         // calculations
         //-------------------------------------------------------------
         consensus_map.updateRanges();
+
+				// sort if desired
+				if (sort) consensus_map.sortByPosition();
 
         //-------------------------------------------------------------
         // writing output
