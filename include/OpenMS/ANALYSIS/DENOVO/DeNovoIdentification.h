@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H

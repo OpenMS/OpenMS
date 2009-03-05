@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>
