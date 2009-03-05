@@ -651,6 +651,8 @@ class TOPPSILACAnalyzer
 						cluster_point.setMetaValue("color",colors[it->cluster_id%colors.size()]);
 						all_cluster_points.push_back(cluster_point);
 					}
+					// required, as somehow the order of features on some datasets between Win & Linux is different and thus the TOPPtest might fail
+					all_cluster_points.sortByPosition();
 				}
 
 
