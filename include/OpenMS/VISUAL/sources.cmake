@@ -22,6 +22,7 @@ SpectrumWidget.h
 ListEditor.h
 TOPPASWidget.h
 TOPPASScene.h
+EnhancedWorkspace.h
 )
 
 ### add path to the filenames
@@ -69,6 +70,7 @@ TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h
 TOPPASEdge.h
+EnhancedWorkspace.h
 )
 
 ### add path to the filenames

@@ -32,6 +32,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 //STL
@@ -39,7 +40,6 @@
 
 //QT
 #include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
 #include <QtGui/QButtonGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>

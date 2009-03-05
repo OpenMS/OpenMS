@@ -136,7 +136,9 @@ namespace OpenMS
     setWindowIcon(QIcon(toppview));
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
-
+    //enable drag-and-drop
+    setAcceptDrops(true);
+    
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
     setCentralWidget(dummy);
@@ -154,7 +156,7 @@ namespace OpenMS
 		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));
 
     box_layout->addWidget(tab_bar_);
-    ws_=new QWorkspace(dummy);
+    ws_=new EnhancedWorkspace(dummy);
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
@@ -162,6 +164,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateCurrentPath()));
+    connect(ws_,SIGNAL(dropReceived(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));	
 
     box_layout->addWidget(ws_);
 

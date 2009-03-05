@@ -33,6 +33,7 @@ TOPPASWidget.C
 TOPPASScene.C
 TOPPASVertex.C
 TOPPASEdge.C
+EnhancedWorkspace.C
 )
 
 ### add path to the filenames
