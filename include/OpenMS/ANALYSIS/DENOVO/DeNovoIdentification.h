@@ -24,97 +24,52 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_DENOVOIONSCORING_H
-#define OPENMS_ANALYSIS_ID_DENOVOIONSCORING_H
+#ifndef OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H
+#define OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
 
 namespace OpenMS
 {
   /**
-    @brief Base class for ion scoring implementation for de novo algorithms
+    @brief Base class for de novo identification
 
 
     
 		@ingroup Analysis_DeNovo
   */
-  class OPENMS_DLLAPI DeNovoIonScoring
+  class OPENMS_DLLAPI DeNovoIdentification
   	: public DefaultParamHandler
   {
   	public:
-	
-			/** @brief IonScore 
-
-					IonScore describes the likelihood of position to be prefix residue masses (in case of 
-					an b-ion centric algorithm). 
-			*/
-			class IonScore
-			{
-        /// score 
-        double score;
-
-        /// position of the ion
-        double position;
-
-        /// index of peak in the spectrum, -1 if not in spectrum
-        SignedSize index;
-
-
-				IonScore()
-					: score(0),
-						position(0.0),
-						index(-1)
-				{
-				}
-
-				IonScore(const IonScore& rhs)
-					: score(rhs.score),
-						position(rhs.score),
-						index(rhs.index)
-				{
-				}
-
-				virtual ~IonScore()
-				{
-				}
-
-				IonScore& operator = (const IonScore& rhs)
-				{
-					if (this != &rhs)
-					{
-						score = rhs.score;
-						position = rhs.position;
-						index = rhs.index;
-					}
-					return *this;
-				}
-
-			};
-
-
+		
 			/** @name Constructors and destructors
 			*/
 			//@{
 	  	/// default constructor
-	  	DeNovoIonScoring();
+	  	DeNovoIdentification();
   	
 			/// destructor
-			virtual ~DeNovoIonScoring();
+			virtual ~DeNovoIdentification();
 
   		/// copy constructor
-  		DeNovoIonScoring(const DeNovoIonScoring& rhs);
+  		DeNovoIdentification(const DeNovoIdentification& rhs);
 			//@}
   		
 			/// assignment operator
-			DeNovoIonScoring& operator = (const DeNovoIonScoring& rhs);
+			DeNovoIdentification& operator = (const DeNovoIdentification& rhs);
 		
-			virtual void getIonScores(std::vector<IonScore>& ion_scores, const RichPeakSpectrum& spec) = 0;
+      /// performs an ProteinIdentification run on a RichPeakMap
+			virtual void getIdentifications(std::vector<PeptideIdentification>& ids, const RichPeakMap& exp) = 0;
 
-			virtual void getIonScores(std::vector<std::vector<IonScore> >& ion_scores, const RichPeakMap& exp) = 0; 
+			/// performs an ProteinIdentification run on a PeakSpectrum
+			virtual void getIdentification(PeptideIdentification& id, const RichPeakSpectrum& spectrum) = 0;
+
   };
  
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_DENOVOIONSCORING_H
+#endif // OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H

@@ -24,50 +24,20 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_DENOVOIONSCORING_H
-#define OPENMS_ANALYSIS_ID_DENOVOIONSCORING_H
+#include <OpenMS/ANALYSIS/DENOVO/DeNovoIdentification.h>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+using namespace std;
 
-namespace OpenMS
+namespace OpenMS 
 {
-  /**
-    @brief Base class for ion scoring implementation for de novo algorithms
+	DeNovoIdentification::DeNovoIdentification()
+		: DefaultParamHandler("DeNovoIdentification")
+	{		
+		  //defaults_.setValidStrings("q_value", StringList::create("true,false"));
+			//defaultsToParam_();
+	}
 
-
-    
-		@ingroup Analysis_DeNovo
-  */
-  class OPENMS_DLLAPI DeNovoPostScoring
-  	: public DefaultParamHandler
-  {
-  	public:
-		
-			/** @name Constructors and destructors
-			*/
-			//@{
-	  	/// default constructor
-	  	DeNovoPostScoring();
-  	
-			/// destructor
-			virtual ~DeNovoPostScoring();
-
-  		/// copy constructor
-  		DeNovoPostScoring(const DeNovoPostScoring& rhs);
-			//@}
-  		
-			/// assignment operator
-			DeNovoPostScoring& operator = (const DeNovoPostScoring& rhs);
-
-			virtual void apply(std::vector<PeptideIdentification>& identifications, const RichPeakMap& exp) = 0;
-
-			virtual void apply(PeptideIdentification& identification, const RichPeakSpectrum& spec) = 0;
-
-  };
- 
-} // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_ID_DENOVOPOSTSCORING_H
+	DeNovoIdentification::~DeNovoIdentification()
+	{
+	}
+}	

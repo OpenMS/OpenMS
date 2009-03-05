@@ -6,6 +6,7 @@ set(sources_list
 DeNovoIonScoring.C
 DeNovoAlgorithm.C
 DeNovoPostScoring.C
+DeNovoIdentification.C
 )
 
 ### add path to the filenames
