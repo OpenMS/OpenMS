@@ -45,8 +45,6 @@ namespace OpenMS
 		: DefaultParamHandler("PeakPickerCWT"),
 			radius_(0),
       scale_(0.0),
-      peak_bound_cwt_(0.0),
-      peak_bound_ms2_level_cwt_(0.0),
       peak_corr_bound_(0.0),
       noise_level_(0.0),
       optimization_(false)
@@ -197,6 +195,8 @@ namespace OpenMS
     PeakArea_& area,
     Int distance_from_scan_border,
     Int ms_level,
+		DoubleReal peak_bound_cwt,
+		DoubleReal peak_bound_ms2_level_cwt,
     Int direction)
   {
     // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1).
@@ -206,12 +206,12 @@ namespace OpenMS
     if (ms_level==1)
 			{
 				noise_level = peak_bound_;
-				noise_level_cwt = peak_bound_cwt_;
+				noise_level_cwt = peak_bound_cwt;
 			}
     else
 			{
 				noise_level = peak_bound_ms2_level_;
-				noise_level_cwt = peak_bound_ms2_level_cwt_;
+				noise_level_cwt = peak_bound_ms2_level_cwt;
 			}
 
     Int zeros_left_index  = wt.getLeftPaddingIndex();
@@ -549,7 +549,7 @@ namespace OpenMS
     return height/(1+pow(lambda*(x-pos),2));
   }
 
-  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration& wt)
+		void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration& wt,DoubleReal& peak_bound_cwt,DoubleReal& peak_bound_ms2_level_cwt)
   {
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "PeakPickerCWT<D>::initialize_ peak_bound_" << peak_bound_ <<  std::endl;
@@ -614,12 +614,12 @@ namespace OpenMS
 					}
 			}
 
-    peak_bound_cwt_ = peak_max;
-    peak_bound_ms2_level_cwt_ = peak_max2;
+    peak_bound_cwt = peak_max;
+    peak_bound_ms2_level_cwt = peak_max2;
 #ifdef DEBUG_PEAK_PICKING
 
-    std::cout << "PEAK BOUND IN CWT " << peak_bound_cwt_ << std::endl;
-    std::cout << "PEAK BOUND IN CWT (MS 2 Level)" << peak_bound_ms2_level_cwt_ << std::endl;
+    std::cout << "PEAK BOUND IN CWT " << peak_bound_cwt << std::endl;
+    std::cout << "PEAK BOUND IN CWT (MS 2 Level)" << peak_bound_ms2_level_cwt << std::endl;
 #endif
 
   }
@@ -847,7 +847,7 @@ namespace OpenMS
 			}
   } 
 
-		bool PeakPickerCWT::deconvolutePeak_(PeakShape& shape,std::vector<PeakShape>& peak_shapes)
+		bool PeakPickerCWT::deconvolutePeak_(PeakShape& shape,std::vector<PeakShape>& peak_shapes,DoubleReal peak_bound_cwt)
 	{
 		// scaling for charge one
 		float scaling_DC = (float) param_.getValue("deconvolution:scaling");
@@ -867,7 +867,7 @@ namespace OpenMS
 		Int charge=2;
 		std::vector<DoubleReal> peak_values,old_peak_values;
 		std::vector<PeakShape> peaks_DC;
-		Int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(),shape.getRightEndpoint(),peak_values,1,resolution,wtDC);
+		Int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(),shape.getRightEndpoint(),peak_values,1,resolution,wtDC,peak_bound_cwt);
 		
 #ifdef DEBUG_PEAK_PICKING
 		std::cout << "Number of peaks: "<<peaks << std::endl;
@@ -1032,13 +1032,14 @@ namespace OpenMS
 																			 std::vector<DoubleReal>& peak_values,
 																			 Int direction,
 																			 DoubleReal resolution,
-																			 ContinuousWaveletTransformNumIntegration& wt)
+																			 ContinuousWaveletTransformNumIntegration& wt,
+																			 DoubleReal peak_bound_cwt)
   {
     DoubleReal noise_level=0.;
     DoubleReal noise_level_cwt=0.;
     
 		noise_level = peak_bound_;
-		noise_level_cwt = peak_bound_cwt_;
+		noise_level_cwt = peak_bound_cwt;
     
 #ifdef DEBUG_DECONV
     std::cout<<"noise_level = "<<noise_level<<";\tnoise_level_cwt = "<<noise_level_cwt<<";\n";
@@ -1251,9 +1252,11 @@ namespace OpenMS
 	{
 			/// The continuous wavelet "transformer"
 			ContinuousWaveletTransformNumIntegration wt;
-			
+			/// The minimal height which defines a peak in the CWT (MS 1 level)
+			DoubleReal peak_bound_cwt = 0.0;
+			DoubleReal peak_bound_ms2_level_cwt = 0.0;
      // now initialize every time as every spectrum is picked with its own cwt
-			initializeWT_(wt);
+			initializeWT_(wt,peak_bound_cwt,peak_bound_ms2_level_cwt);
 
 		// nearly empty spectra shouldn't be picked
 		if(input.size()<2) return;
@@ -1330,7 +1333,7 @@ namespace OpenMS
 																wt,
 																area,
 																distance_from_scan_border,
-																ms_level,
+																ms_level,peak_bound_cwt,peak_bound_ms2_level_cwt,
 																direction))
 			{
 				// if the signal to noise ratio at the max position is too small
@@ -1460,7 +1463,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 								std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes[i-1].mz_position << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-								if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+								if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 							}
 						}
 						// has only one or no neighbor peak
@@ -1485,7 +1488,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 										std::cout << " too small fwhm" << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 									}
 								}
 								else
@@ -1493,7 +1496,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 									std::cout << "distance not ok" << dist_left << ' ' << peak_shapes[i-1].mz_position << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 								}
 							}
 							else
@@ -1517,7 +1520,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 											std::cout << "too small fwhm"  << std::endl;
 #endif
-											if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+											if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 										}
 									}
 									else
@@ -1525,7 +1528,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 										std::cout << "distance not ok" << dist_right << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 									}
 								}
 								// no neighbor
@@ -1534,7 +1537,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 									std::cout << "no neighbor" << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes[i],peak_shapes)) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
 								} 
 							}
 						}
