@@ -7,7 +7,9 @@ ContinuousWaveletTransform.C
 ContinuousWaveletTransformNumIntegration.C
 OptimizePeakDeconvolution.C
 OptimizePick.C
+PeakPicker.C
 PeakPickerCWT.C
+PeakPickerHiRes.C
 PeakShape.C
 TwoDOptimization.C
 )

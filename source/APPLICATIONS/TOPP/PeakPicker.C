@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
@@ -112,18 +112,21 @@ class TOPPPeakPicker
 		setValidFormats_("in",StringList::create("mzData"));
 		registerOutputFile_("out","<file>","","output peak file ");
 	  setValidFormats_("out",StringList::create("mzData"));
+		registerStringOption_("type","<name>","","peak detection algorithm type",true);
+		setValidStrings_("type", Factory<PeakPicker>::registeredProducts());
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
-		addEmptyLine_();
-  	addText_("This application implements an algorithm for peak picking as\n"
-				     "described in Lange et al. (2006) Proc. PSB-06. ");
   	registerSubsection_("algorithm","Algorithm parameters section");
   }
   
-  Param getSubsectionDefaults_(const String& /* section*/) const
-  {
-      return PeakPickerCWT().getDefaults();
-  }
+	Param getSubsectionDefaults_(const String& /*section*/) const
+	{
+		String type = getStringOption_("type");
+    PeakPicker* peak_picker = Factory<PeakPicker>::create(type);
+		Param param = peak_picker->getParameters();
+		delete peak_picker;
+		return param;
+	}
 
   ExitCodes main_(int , const char**)
   {
@@ -140,10 +143,11 @@ class TOPPPeakPicker
 		Param pepi_param = getParam_().copy("algorithm:",true);
 
 		
-		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
-    PeakPickerCWT peak_picker;
-    peak_picker.setLogType(log_type_);
-		peak_picker.setParameters(pepi_param);
+		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
+		String type = getStringOption_("type");
+    PeakPicker* peak_picker = Factory<PeakPicker>::create(type);
+    peak_picker->setLogType(log_type_);
+		peak_picker->setParameters(pepi_param);
 		
     //-------------------------------------------------------------
     // loading input
@@ -164,7 +168,7 @@ class TOPPPeakPicker
     //-------------------------------------------------------------
 
     MSExperiment<> ms_exp_peaks;
-    peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
+    peak_picker->pickExperiment(ms_exp_raw,ms_exp_peaks);
   
 		//-------------------------------------------------------------
 		// writing output
