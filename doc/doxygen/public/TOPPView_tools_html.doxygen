@@ -26,24 +26,15 @@
 
 /**
 	
-	@page TOPPTutorial TOPP tutorial
+	@page TOPPView_callingtools Calling TOPP tools from TOPPView tutorial
 	
-
-	This tutorial introduces you to TOPP and TOPPView. We start by describing the intent
-	and concept of TOPP compared to OpenMS. Then we introduce you to the handling
-	of TOPPView which is our central GUI. Apart from viewing data you are also able
-	to analyze it in TOPPView using selected TOPP tools. How do do this is explained
-	in the third part of the Tutorial. Finally we give a complete list and command line
-	interfaces for all TOPP tools contained in the release.
-	
-
-	
-	The subsections of the TOPP tutorial are:
-	- @subpage TOPP_concepts 
-	- @subpage TOPPView_interface
-	- @subpage TOPPView_callingtools
-	- @subpage TOPP_scripting
-	
-
-	
+	This tutorial illustrates how to interactively analyze protoemics data using TOPP tools from within  TOPPView. After going through the tutorials you should be able to perform
+	<ul>
+	<li>signal processing operations like baseline reduction or data smoothing </li>
+	<li>transforming raw MS data into peak lists</li>
+    <li>identifying and quantifying petides in twodimensional maps</li>
+    </ul>
+	- @subpage TOPPView_baseline_reduction
+	- @subpage TOPPView_smoothing
+	- @subpage TOPPView_peakpicking
 */
