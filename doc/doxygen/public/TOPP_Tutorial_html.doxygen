@@ -29,21 +29,22 @@
 	
 	@page TOPPTutorial TOPP tutorial
 	
-	This tutorial will give you a brief overview of the most important TOPP tools.
-	First, some basics that you will need for every TOPP tool are explained,
-	then several example pipelines are shown.
+
+	This tutorial introduces you to TOPP and TOPPView. We start by describing the intent
+	and concept of TOPP compared to OpenMS. Then we introduce you to the handling
+	of TOPPView which is our central GUI. Apart from viewing data you are also able
+	to analyze it in TOPPView using selected TOPP tools. How do do this is explained
+	in the third part of the Tutorial. Finally we give a complete list and command line
+	interfaces for all TOPP tools contained in the release.
+	
+
 	
 	The subsections of the TOPP tutorial are:
-	- @subpage TOPP_general
-	- @subpage TOPP_example_handling
-	- @subpage TOPP_example_signalprocessing
-	- @subpage TOPP_example_calibration
-	- @subpage TOPP_example_mapalignment
-	- @subpage TOPP_example_featuredetection
-	- @subpage TOPP_example_featuregrouping
-	- @subpage TOPP_example_id
-	- @subpage TOPP_example_ppp
-	- @subpage TOPP_example_export
+	- @subpage TOPP_concepts 
+	- @subpage TOPPView_interface
+	- @subpage TOPPView_callingtools
+	- @subpage TOPP_scripting
+	
 
 	
 */

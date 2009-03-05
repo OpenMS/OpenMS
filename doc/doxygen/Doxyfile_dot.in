@@ -44,6 +44,7 @@ INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
                          @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen \
                          @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/TOPP_Tutorial.doxygen \
                          @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/TOPPView_Tutorial.doxygen \
+                         @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/TOPPView_Tools_Tutorial.doxygen \
                          @CF_OPENMS_SRC_PATH@/doc//doxygen/public/ \
 												 @CF_OPENMS_SRC_PATH@/doc//doxygen/internal/ \
 												 @CF_OPENMS_SRC_PATH@/doc//doxygen/install/
