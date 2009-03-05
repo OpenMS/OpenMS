@@ -29,6 +29,7 @@
 
 /**
 	@page TOPPView_baseline_reduction Substracting a baseline from a spectrum
+	@todo Compose tutorial - video and text (Alexandra)
 	
 	
 */
@@ -37,11 +38,13 @@
 
 /**	
 	@page TOPPView_smoothing Smoothing raw data	
+	@todo Compose tutorial - video and text (Alexandra)
 */
 
 //##############################################################################
 
 /**	
 	@page TOPPView_peakpicking Picking peaks 
+	@todo Compose tutorial - video and text (Alexandra)
 */
 
