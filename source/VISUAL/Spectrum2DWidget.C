@@ -144,7 +144,15 @@ namespace OpenMS
 	
 	Histogram<> Spectrum2DWidget::createIntensityDistribution_() const
 	{
-		Histogram<> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
+		//initialize histogram
+		DoubleReal min = canvas_->getCurrentMinIntensity();
+		DoubleReal max = canvas_->getCurrentMaxIntensity();
+		if (min==max)
+		{
+			min-=0.01;
+			max+=0.01;
+		}
+		Histogram<> tmp(min,max,(max-min)/500.0);
 		
 		if (canvas_->getCurrentLayer().type==LayerData::DT_PEAK)
 		{

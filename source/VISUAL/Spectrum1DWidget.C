@@ -99,8 +99,16 @@ namespace OpenMS
 	
 	Histogram<> Spectrum1DWidget::createIntensityDistribution_() const
 	{
-		Histogram<> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
-	
+		//initialize histogram
+		DoubleReal min = canvas_->getCurrentMinIntensity();
+		DoubleReal max = canvas_->getCurrentMaxIntensity();
+		if (min==max)
+		{
+			min-=0.01;
+			max+=0.01;
+		}
+		Histogram<> tmp(min,max,(max-min)/500.0);
+		
 		for (ExperimentType::SpectrumType::ConstIterator it = canvas_->getCurrentLayer().peaks[0].begin(); it != canvas_->getCurrentLayer().peaks[0].end(); ++it)
 		{
 			tmp.inc(it->getIntensity());
