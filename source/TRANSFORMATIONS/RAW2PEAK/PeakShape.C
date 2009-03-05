@@ -169,12 +169,16 @@ PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_
   DoubleReal PeakShape::getFWHM() const
   {
     DoubleReal fwhm=0;
-
+		if(right_width == 0. || left_width == 0.)
+		{
+				return -1.;
+		}
+    
     switch (type)
     {
     case LORENTZ_PEAK:
       {
-        fwhm = 1/right_width;
+		    fwhm = 1/right_width;
         fwhm += 1/left_width;
       }
       break;
