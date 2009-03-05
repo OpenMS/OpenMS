@@ -32,6 +32,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 
 #define DEBUG_PEAK_PICKING
 #undef DEBUG_PEAK_PICKING
@@ -115,12 +116,14 @@ namespace OpenMS
     /// The dilation of the wavelet
     float scale_;
 
+
+//// members are modified: should be given to each function directly
     /// The minimal height which defines a peak in the CWT (MS 1 level)
     float peak_bound_cwt_;
 
     /// The minimal height which defines a peak in the CWT (MS 2 level)
     float peak_bound_ms2_level_cwt_;
-
+///////
     /// The threshold for correlation
     float peak_corr_bound_;
 
@@ -265,7 +268,7 @@ namespace OpenMS
     Int determineChargeState_(std::vector<double>& peak_values);
 
 		/// Add a peak
-    void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width);
+    void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width,OptimizePeakDeconvolution::Data& data);
 		//@}
   }
 		; // end PeakPickerCWT

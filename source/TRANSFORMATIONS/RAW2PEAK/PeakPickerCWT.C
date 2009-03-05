@@ -29,7 +29,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 
@@ -873,29 +872,29 @@ namespace OpenMS
 		std::cout << "Number of peaks: "<<peaks << std::endl;
 #endif
 		charge = 2;
-
+		OptimizePeakDeconvolution::Data data;
 		// one peak needn't be deconvoluted
 		if (peaks > 1 && charge >0)
 			{
 				
-				OptimizationFunctions::positions_DC_.clear();
-				OptimizationFunctions::signal_DC_.clear();
-				OptimizationFunctions::peaks_DC_.clear();
+				data.positions.clear();
+				data.signal.clear();
+				data.peaks.clear();
 
 				// enter zero-intensity at the left margin
-				OptimizationFunctions::positions_DC_.push_back((shape.getLeftEndpoint())->getMZ()-0.2);
-				OptimizationFunctions::signal_DC_.push_back(0);	
+				data.positions.push_back((shape.getLeftEndpoint())->getMZ()-0.2);
+				data.signal.push_back(0);	
 				
 				for (Size i = 0; shape.getLeftEndpoint()+i != shape.getRightEndpoint() ;++i)
 					{
-						OptimizationFunctions::positions_DC_.push_back((shape.getLeftEndpoint()+i)->getMZ());
-						OptimizationFunctions::signal_DC_.push_back((shape.getLeftEndpoint()+i)->getIntensity());	
+						data.positions.push_back((shape.getLeftEndpoint()+i)->getMZ());
+						data.signal.push_back((shape.getLeftEndpoint()+i)->getIntensity());	
 					}
-				OptimizationFunctions::positions_DC_.push_back((shape.getRightEndpoint())->getMZ());
-				OptimizationFunctions::signal_DC_.push_back((shape.getRightEndpoint())->getIntensity());	
+				data.positions.push_back((shape.getRightEndpoint())->getMZ());
+				data.signal.push_back((shape.getRightEndpoint())->getIntensity());	
 
-				OptimizationFunctions::positions_DC_.push_back((shape.getRightEndpoint())->getMZ()+0.2);
-				OptimizationFunctions::signal_DC_.push_back(0);	
+				data.positions.push_back((shape.getRightEndpoint())->getMZ()+0.2);
+				data.signal.push_back(0);	
 				
 				
 			
@@ -931,7 +930,7 @@ namespace OpenMS
 #endif
 						
 				
-				opt.optimize(peaks_DC,runs);
+				opt.optimize(peaks_DC,runs,data);
 				for(Int i=0;i < peaks;++i)
 					{
 						if (i < (peaks-1))
@@ -974,9 +973,9 @@ namespace OpenMS
 						peak_shapes.push_back(peaks_DC[curr_peak]);
 					}
 				
-				OptimizationFunctions::peaks_DC_.clear();
-				OptimizationFunctions::signal_DC_.clear();
-				OptimizationFunctions::positions_DC_.clear();
+				data.peaks.clear();
+				data.signal.clear();
+				data.positions.clear();
 				peaks_DC.clear();
 			}
 		else return false;
@@ -985,7 +984,7 @@ namespace OpenMS
 	}
 
 
-	void PeakPickerCWT::addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,DoubleReal left_width,DoubleReal right_width)
+		void PeakPickerCWT::addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,DoubleReal left_width,DoubleReal right_width,OptimizePeakDeconvolution::Data& data)
 	{
 		// just enter a peak using equally spaced peak positions
 
@@ -1002,22 +1001,22 @@ namespace OpenMS
 			{
 				peaks_DC[i].mz_position = area.left->getMZ() + dist/2 + i*dist;
 
-				std::vector<DoubleReal>::iterator it_help = lower_bound(OptimizationFunctions::positions_DC_.begin(),
-																														OptimizationFunctions::positions_DC_.end(),
+				std::vector<DoubleReal>::iterator it_help = lower_bound(data.positions.begin(),
+																														data.positions.end(),
 																														peaks_DC[i].mz_position);
-				if(it_help != OptimizationFunctions::positions_DC_.end())
+				if(it_help != data.positions.end())
 					{
 						peaks_DC[i].height =
-							OptimizationFunctions::signal_DC_[distance(OptimizationFunctions::positions_DC_.begin(),it_help)]/10;
+							data.signal[distance(data.positions.begin(),it_help)]/10;
 #ifdef DEBUG_DECONV
 						std::cout << "height "<<i<<"   "<<	peaks_DC[i].height<<"\t"
-											<<distance(OptimizationFunctions::positions_DC_.begin(),it_help)<<"\n";
+											<<distance(data.positions.begin(),it_help)<<"\n";
 #endif
 					}
 				else
 					{
 						peaks_DC[i].height =
-							OptimizationFunctions::signal_DC_[OptimizationFunctions::positions_DC_.size()-1];
+							data.signal[data.positions.size()-1];
 #ifdef DEBUG_DECONV
 						std::cout << "else height "<<i<<"   "<<	peaks_DC[i].height<<"\n";
 #endif
@@ -1194,10 +1193,16 @@ namespace OpenMS
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
 		output.resize(input.size());
+
 		//TODO add OpenMP here
 
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
+#ifdef _OPENMP
+		std::cout<<"hallo openmp"<<std::endl;
+#pragma omp parallel for
+		
+#endif
 		for (Size i = 0; i < input.size(); ++i)
 		{
 #ifdef DEBUG_PEAK_PICKING

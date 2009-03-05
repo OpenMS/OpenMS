@@ -38,18 +38,7 @@ namespace OpenMS
   const DoubleReal OptimizePeakDeconvolution::dist_ = 1.003;  
   namespace OptimizationFunctions
   {
-    Int charge;
-
-   
-    
-    std::vector<PeakShape> peaks_DC_;
-    std::vector<DoubleReal> positions_DC_;
-    std::vector<DoubleReal> signal_DC_;
-
-    
-    
-
-		// Evaluation of the target function for nonlinear optimization.
+  	// Evaluation of the target function for nonlinear optimization.
     Int residualDC(const gsl_vector* x, void* params , gsl_vector* f)
     {
       // According to the gsl conventions, x contains the parameters to be optimized.
@@ -60,21 +49,24 @@ namespace OpenMS
       // instead.
       // The vector f is supposed to contain the result when we return from this function.
       // Note: GSL wants the values for each data point i as one component of the results vector
-
-
+ 			std::vector<DoubleReal>& signal = static_cast<OptimizePeakDeconvolution::Data*> (params) ->signal; 
+			std::vector<DoubleReal>& positions = static_cast<OptimizePeakDeconvolution::Data*> (params) ->positions; 
+		  std::vector<PeakShape>& peaks = static_cast<OptimizePeakDeconvolution::Data*> (params) ->peaks; 
+      OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<OptimizePeakDeconvolution::Data*> (params) ->penalties;
+      Int charge = static_cast<OptimizePeakDeconvolution::Data*> (params) ->charge;
       DoubleReal leftwidth = gsl_vector_get(x,0);
       DoubleReal rightwidth = gsl_vector_get(x,1);
       //DoubleReal posP1 = gsl_vector_get(x,2);
       
       // iterate over all points of the signal
-      for (Size current_point = 0; current_point < positions_DC_.size(); current_point++)
+      for (Size current_point = 0; current_point < positions.size(); current_point++)
 				{
 					DoubleReal computed_signal     = 0.;
-					DoubleReal current_position    = positions_DC_[current_point];
-					DoubleReal experimental_signal = signal_DC_[current_point];	
+					DoubleReal current_position    = positions[current_point];
+					DoubleReal experimental_signal = signal[current_point];	
     
 					//iterate over all peaks
-					for (Size current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
+					for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
 						{
 							//Store the current parameters for this peak
 							DoubleReal p_height 	   = gsl_vector_get(x,2+ 2*current_peak);
@@ -82,7 +74,7 @@ namespace OpenMS
 							DoubleReal p_width  	   = (current_position <= p_position) ? leftwidth : rightwidth;
 
 							//is it a Lorentz or a Sech - Peak?
-							if (peaks_DC_[current_peak].type == PeakShape::LORENTZ_PEAK)
+							if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
 								{
 									computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
 								}
@@ -96,33 +88,33 @@ namespace OpenMS
 
       // penalties : especially negative heights have to be penalised
       DoubleReal penalty = 0.;
-      PenaltyFactorsIntensity* penalties = (PenaltyFactorsIntensity *)params;
-      DoubleReal penalty_pos    = penalties->pos;
-      DoubleReal penalty_lwidth = penalties->lWidth;
-      DoubleReal penalty_rwidth = penalties->rWidth;
-      DoubleReal penalty_intensity = penalties->height;
+
+      DoubleReal penalty_pos    = penalties.pos;
+      DoubleReal penalty_lwidth = penalties.lWidth;
+      DoubleReal penalty_rwidth = penalties.rWidth;
+      DoubleReal penalty_intensity = penalties.height;
 
 
       //iterate over all peaks again to compute the penalties
-      for (Size current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
+      for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       	{
  					DoubleReal p_position = gsl_vector_get(x, 2+2*current_peak+1);
-					if(current_peak < peaks_DC_.size()-1)
+					if(current_peak < peaks.size()-1)
 						{
 	      
 							DoubleReal next_p_position  = gsl_vector_get(x, 2+2*current_peak+3);
 							// if distance between peaks does not match the peptide mass rule
-							if( fabs(fabs(p_position - next_p_position) - 1.003/OptimizationFunctions::charge) > 0.05)
+							if( fabs(fabs(p_position - next_p_position) - 1.003/charge) > 0.05)
 								{
 									// penalize it
 									penalty +=  penalty_pos * 10000
-										* pow(fabs(fabs(p_position - next_p_position) - 1.003/OptimizationFunctions::charge),2);
+										* pow(fabs(fabs(p_position - next_p_position) - 1.003/charge),2);
 								}
 						}
-					DoubleReal old_position   = peaks_DC_[current_peak].mz_position;
-					DoubleReal old_width_l 	= peaks_DC_[current_peak].left_width;
-      	  DoubleReal old_width_r 	= peaks_DC_[current_peak].right_width;
-					DoubleReal old_height    = peaks_DC_[current_peak].height;
+					DoubleReal old_position   = peaks[current_peak].mz_position;
+					DoubleReal old_width_l 	= peaks[current_peak].left_width;
+      	  DoubleReal old_width_r 	= peaks[current_peak].right_width;
+					DoubleReal old_height    = peaks[current_peak].height;
 	  
 					DoubleReal p_width_l    = gsl_vector_get(x, 0);
       	  DoubleReal p_width_r    = gsl_vector_get(x, 1);
@@ -135,12 +127,12 @@ namespace OpenMS
 						}
 					if(p_width_l < 0 )
 						{
-							penalty += penalty_lwidth * peaks_DC_.size()*10000*pow(fabs(p_width_l - old_width_l),2);
+							penalty += penalty_lwidth * peaks.size()*10000*pow(fabs(p_width_l - old_width_l),2);
 						}
 					else if (p_width_l < 1.5 ) penalty += 10000*pow(fabs(p_width_l - old_width_l),2);
 					if(p_width_r < 0 )
 						{
-							penalty += penalty_rwidth *peaks_DC_.size()*10000*pow(fabs(p_width_r - old_width_r),2);
+							penalty += penalty_rwidth *peaks.size()*10000*pow(fabs(p_width_r - old_width_r),2);
 						}
 					else if (p_width_r < 1.5 ) penalty += 10000*pow(fabs(p_width_r - old_width_r),2);
 					if(fabs(old_position - p_position) > 0.5)
@@ -167,6 +159,10 @@ namespace OpenMS
       // 					- each row corresponds to one data point
       // 					- each column corresponds to one parameter
 
+			std::vector<DoubleReal>& positions = static_cast<OptimizePeakDeconvolution::Data*> (params) ->positions; 
+		  std::vector<PeakShape>& peaks = static_cast<OptimizePeakDeconvolution::Data*> (params) ->peaks; 
+      OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<OptimizePeakDeconvolution::Data*> (params) ->penalties;
+      Int charge = static_cast<OptimizePeakDeconvolution::Data*> (params) ->charge;
 
       DoubleReal leftwidth = gsl_vector_get(x,0);
       DoubleReal rightwidth = gsl_vector_get(x,1);
@@ -176,12 +172,12 @@ namespace OpenMS
     
       
       // iterate over all points of the signal
-      for (Size current_point = 0; current_point < positions_DC_.size(); current_point++)
+      for (Size current_point = 0; current_point < positions.size(); current_point++)
 				{
-					DoubleReal current_position    = positions_DC_[current_point];
+					DoubleReal current_position    = positions[current_point];
 
 					// iterate over all peaks
-					for (Size current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
+					for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
 						{
 
 	      
@@ -191,7 +187,7 @@ namespace OpenMS
 							DoubleReal p_width  	    = (current_position <= p_position) ? leftwidth : rightwidth;
 
 							//is it a Lorentz or a Sech - Peak?
-							if (peaks_DC_[current_peak].type == PeakShape::LORENTZ_PEAK)
+							if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
 								{
 									DoubleReal diff      = current_position - p_position;
 									DoubleReal denom_inv = 1./(1. + pow(p_width * diff, 2));
@@ -247,23 +243,23 @@ namespace OpenMS
       /** Now iterate over all peaks again to compute the
        *  penalties.
        */
-      PenaltyFactorsIntensity* penalties = (PenaltyFactorsIntensity *)params;
-      for (Size current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
+
+      for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       	{
 
 	  
 					DoubleReal penalty_p = 0;
 		 		 	DoubleReal p_position = gsl_vector_get(x, 2+2*current_peak+1);
-					if(current_peak < peaks_DC_.size()-1)
+					if(current_peak < peaks.size()-1)
 						{
 	      
 							DoubleReal next_p_position  = gsl_vector_get(x, 2+2*current_peak+3);
 							// if distance between peaks does not match the peptide mass rule
-							if( fabs(fabs(p_position - next_p_position) - 1.003/OptimizationFunctions::charge) > 0.05)
+							if( fabs(fabs(p_position - next_p_position) - 1.003/charge) > 0.05)
 								{
 									// penalize it
-									penalty_p += penalties->pos * 20000
-										* fabs(fabs(p_position - next_p_position) - 1.003/OptimizationFunctions::charge);
+									penalty_p += penalties.pos * 20000
+										* fabs(fabs(p_position - next_p_position) - 1.003/charge);
 		  
 								}
 						}
@@ -272,38 +268,38 @@ namespace OpenMS
       	  DoubleReal p_width_right = gsl_vector_get(x,1); 
 					DoubleReal p_height   = gsl_vector_get(x,2+2*current_peak);
 
-					DoubleReal old_position    = peaks_DC_[current_peak].mz_position;
-      	  DoubleReal old_width_left  = peaks_DC_[current_peak].left_width;
-      	  DoubleReal old_width_right = peaks_DC_[current_peak].right_width;
-					DoubleReal old_height      = peaks_DC_[current_peak].height;
+					DoubleReal old_position    = peaks[current_peak].mz_position;
+      	  DoubleReal old_width_left  = peaks[current_peak].left_width;
+      	  DoubleReal old_width_right = peaks[current_peak].right_width;
+					DoubleReal old_height      = peaks[current_peak].height;
 
 					DoubleReal penalty_h =0., penalty_l=0., penalty_r=0.;
 					if(p_height < 1)
 						{
-							penalty_h += 100000*2*penalties->height *(fabs(p_height) - fabs(old_height));
+							penalty_h += 100000*2*penalties.height *(fabs(p_height) - fabs(old_height));
 						}
 
 					if(p_width_left < 0 )
 						{
-							penalty_l += peaks_DC_.size()*2*penalties->lWidth*10000*(fabs(p_width_left - old_width_left));
+							penalty_l += peaks.size()*2*penalties.lWidth*10000*(fabs(p_width_left - old_width_left));
 						}
-					else if (p_width_left < 1.5 ) penalty_l += 2*penalties->lWidth*10000*pow(fabs(p_width_left - old_width_left),2);
+					else if (p_width_left < 1.5 ) penalty_l += 2*penalties.lWidth*10000*pow(fabs(p_width_left - old_width_left),2);
 					if(p_width_right < 0 )
 						{
-							penalty_r += peaks_DC_.size()*2*penalties->rWidth*10000*(fabs(p_width_right - old_width_right));
+							penalty_r += peaks.size()*2*penalties.rWidth*10000*(fabs(p_width_right - old_width_right));
 						}
-					else if (p_width_right < 1.5 ) penalty_r += 2*penalties->rWidth*10000*pow(fabs(p_width_right - old_width_right),2);
+					else if (p_width_right < 1.5 ) penalty_r += 2*penalties.rWidth*10000*pow(fabs(p_width_right - old_width_right),2);
 					if(fabs(old_position - p_position) > 0.5)
 						{
-							penalty_p += 10000*penalties->pos*2*fabs(old_position - p_position);
+							penalty_p += 10000*penalties.pos*2*fabs(old_position - p_position);
 						}
 	
 	  
 	  
-					gsl_matrix_set(J, positions_DC_.size(), 2+2*current_peak, 100*penalty_h);
-      	  gsl_matrix_set(J, positions_DC_.size(), 0, 100*penalty_l);
-					gsl_matrix_set(J, positions_DC_.size(), 1, 100*penalty_r);
-      	  gsl_matrix_set(J, positions_DC_.size(), 2+2*current_peak+1, 100*penalty_p);
+					gsl_matrix_set(J, positions.size(), 2+2*current_peak, 100*penalty_h);
+      	  gsl_matrix_set(J, positions.size(), 0, 100*penalty_l);
+					gsl_matrix_set(J, positions.size(), 1, 100*penalty_r);
+      	  gsl_matrix_set(J, positions.size(), 2+2*current_peak+1, 100*penalty_p);
       	}
 	
       return GSL_SUCCESS;
@@ -356,7 +352,7 @@ namespace OpenMS
 	
 	}
 
-	bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int failure)
+bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int failure, Data& data)
 	{
       
 		if (peaks.size() == 0)	return true;
@@ -374,9 +370,9 @@ namespace OpenMS
 				std::cout<<"\tpeaks[j].right_width:"<<peaks[j].right_width<<std::endl<<std::endl;
 			}
       
-		for(Size j=0;j<OptimizationFunctions::positions_DC_.size();++j)
+		for(Size j=0;j<data.positions.size();++j)
 			{
-				std::cout<<"positions_DC_["<<j<<"]="<<OptimizationFunctions::positions_DC_[j]<<std::endl;
+				std::cout<<"positions["<<j<<"]="<<data.positions[j]<<std::endl;
 			}
       
 #endif
@@ -391,7 +387,7 @@ namespace OpenMS
 		Int best_charge;
 		Size num_peaks;
 		Size best_num_peaks;
-		gsl_vector *best_result=gsl_vector_alloc((Int)(2+2*OptimizationFunctions::peaks_DC_.size()));;
+		gsl_vector *best_result=gsl_vector_alloc((Int)(2+2*data.peaks.size()));;
 
 
 		// try three different charge states : charge-1, charge, charge +1
@@ -409,40 +405,40 @@ namespace OpenMS
 			{
 
 
-				num_peaks = getNumberOfPeaks_(l, temp_shapes);
+					num_peaks = getNumberOfPeaks_(l, temp_shapes,data);
 #ifdef DEBUG_DECONV
 				std::cout<<"charge "<<l<<" #peaks "<<num_peaks<<"\tpeaks.size() "
-								 <<OptimizationFunctions::peaks_DC_.size()<<std::endl;
+								 <<data.peaks.size()<<std::endl;
 #endif
 				gsl_vector *start_value;
 				// the vector storing the start values for the parameters has to be filled
 				// differently depending on the usage of the peptide mass rule
-				start_value=gsl_vector_alloc(2+2*OptimizationFunctions::peaks_DC_.size());
-				for (Size i = 0; i < OptimizationFunctions::peaks_DC_.size(); i++)
+				start_value=gsl_vector_alloc(2+2*data.peaks.size());
+				for (Size i = 0; i < data.peaks.size(); i++)
 					{
-						gsl_vector_set(start_value, 2+2*i, OptimizationFunctions::peaks_DC_[i].height);
-						gsl_vector_set(start_value, 3+2*i, OptimizationFunctions::peaks_DC_[i].mz_position);
+						gsl_vector_set(start_value, 2+2*i, data.peaks[i].height);
+						gsl_vector_set(start_value, 3+2*i, data.peaks[i].mz_position);
 					}
 	    
 	  
 				// Initialize the parameters for the optimization 
 
 				// all peaks shall have the same width
-				DoubleReal wl = OptimizationFunctions::peaks_DC_[0].left_width;
-				DoubleReal wr = OptimizationFunctions::peaks_DC_[0].right_width;
+				DoubleReal wl = data.peaks[0].left_width;
+				DoubleReal wr = data.peaks[0].right_width;
 				if (isnan(wl))
 					{
-						for(Size i=0;i<OptimizationFunctions::peaks_DC_.size();++i)
+						for(Size i=0;i<data.peaks.size();++i)
 							{
-								OptimizationFunctions::peaks_DC_[i].left_width = 1;
+								data.peaks[i].left_width = 1;
 							}
 						wl = 1.;
 					}
 				if (isnan(wr))
 					{
-						for(Size i=0;i<OptimizationFunctions::peaks_DC_.size();++i)
+						for(Size i=0;i<data.peaks.size();++i)
 							{
-								OptimizationFunctions::peaks_DC_[i].right_width = 1;
+								data.peaks[i].right_width = 1;
 							}
 						wr = 1.;
 					}
@@ -459,25 +455,27 @@ namespace OpenMS
 				fit_function.df     = OptimizationFunctions::jacobianDC;
 				fit_function.fdf    = OptimizationFunctions::evaluateDC;
 	  
-				fit_function.n      = std::max(OptimizationFunctions::positions_DC_.size()+1,
-																			 2+2*OptimizationFunctions::peaks_DC_.size());
+				fit_function.n      = std::max(data.positions.size()+1,
+																			 2+2*data.peaks.size());
 	  
-				fit_function.p	  = 2+2*OptimizationFunctions::peaks_DC_.size();
-
-				fit_function.params = &penalties_;
+				fit_function.p	  = 2+2*data.peaks.size();
+				data.penalties = penalties_;
+//				fit_function.params = &penalties_;
+				data.charge = l;
+				fit_function.params = &data;
 #ifdef DEBUG_DECONV
 				std::cout<<"fit_function.p "<<fit_function.p<<"\t fit_function.n "<<fit_function.n<<std::endl;
-				std::cout<<"peaks.size() "<<OptimizationFunctions::peaks_DC_.size()<<std::endl;
+				std::cout<<"peaks.size() "<<data.peaks.size()<<std::endl;
 #endif
 				const gsl_multifit_fdfsolver_type *type = gsl_multifit_fdfsolver_lmsder;
 				gsl_multifit_fdfsolver *fit;
 				fit= gsl_multifit_fdfsolver_alloc(type,
-																					std::max(OptimizationFunctions::positions_DC_.size()+1,
-																									 2+2*OptimizationFunctions::peaks_DC_.size()),
-																					2+2*OptimizationFunctions::peaks_DC_.size());
+																					std::max(data.positions.size()+1,
+																									 2+2*data.peaks.size()),
+																					2+2*data.peaks.size());
 	  
 
-				OptimizationFunctions::charge = l;
+
 	  
 
 				gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
@@ -498,7 +496,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 						std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
 						std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-						std::cout << "Number of parms: " << OptimizationFunctions::peaks_DC_.size() + 3 << std::endl;
+						std::cout << "Number of parms: " << data.peaks.size() + 3 << std::endl;
 						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
 						if (isnan(gsl_blas_dnrm2(fit->dx)))
@@ -518,18 +516,18 @@ namespace OpenMS
 				std::cout << "Finished! Charge " << l << "\tIterations: "<<iteration<< std::endl;
 				std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 	  
-				std::cout << "chisq/dof = " << pow(chi, 2.0) / (OptimizationFunctions::positions_DC_.size()
-																												- (3+OptimizationFunctions::peaks_DC_.size()));
+				std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size()
+																												- (3+data.peaks.size()));
 				std::cout << "\nAfter optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
 				if((l == start_l) || (chi < min))
 					{
 						if(l!= start_l)  gsl_vector_free(best_result);
-						best_result=gsl_vector_alloc(2+2*OptimizationFunctions::peaks_DC_.size());
+						best_result=gsl_vector_alloc(2+2*data.peaks.size());
 						gsl_vector_memcpy(best_result,fit->x);
 						min = chi;
 						best_charge = l;
-						best_num_peaks = OptimizationFunctions::peaks_DC_.size();
+						best_num_peaks = data.peaks.size();
 					}
 				iteration = 0;
 
@@ -616,11 +614,11 @@ namespace OpenMS
     return true;
   }
 
-	Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes)
+		Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes, Data& data)
 	{
 		DoubleReal dist = dist_/charge;
 
-		OptimizationFunctions::peaks_DC_.clear();
+		data.peaks.clear();
       
 		Size shape=0;
 #ifdef DEBUG_DECONV
@@ -630,10 +628,10 @@ namespace OpenMS
 		// while the peak's position is smaller than the last considered position
 		// take the peak for optimization
 		while( (temp_shapes[0].mz_position + shape*dist <
-						OptimizationFunctions::positions_DC_[OptimizationFunctions::positions_DC_.size()-1]) &&
+						data.positions[data.positions.size()-1]) &&
 					 (shape < temp_shapes.size() ) )
 			{
-				OptimizationFunctions::peaks_DC_.push_back(temp_shapes[shape]);
+				data.peaks.push_back(temp_shapes[shape]);
 #ifdef DEBUG_DECONV
 				std::cout<<"temp_shapes[0].mz_position + p_index*dist = "<<temp_shapes[0].mz_position + shape*dist<<std::endl;
 #endif

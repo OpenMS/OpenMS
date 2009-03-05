@@ -59,7 +59,7 @@ START_SECTION((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolut
   
   OptimizePeakDeconvolution opt_deconv_copy;
   opt_deconv_copy = opt_deconv;
-  struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
+struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
  
   DoubleReal charge = opt_deconv_copy.getCharge();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
@@ -106,13 +106,13 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
 //  peak_shapes[1] = peak_shape;
   float origin = 499;
   float spacing = 0.1f;
- 
-	OptimizationFunctions::positions_DC_.resize(20);
-  OptimizationFunctions::signal_DC_.resize(20);
+  OptimizePeakDeconvolution::Data data;
+	data.positions.resize(20);
+  data.signal.resize(20);
   for (Size i = 0; i < 20 ;++i)
   {
-  	OptimizationFunctions::positions_DC_[i] = origin +i*spacing;
-    OptimizationFunctions::signal_DC_[i] = peak_shape(origin +i*spacing);
+  	data.positions[i] = origin +i*spacing;
+    data.signal[i] = peak_shape(origin +i*spacing);
    }
   String file = OPENMS_GET_TEST_DATA_PATH("OptimizePeakDeconvolution.ini");
   Param param;
@@ -121,7 +121,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
 
  	OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
- 	opt_deconv.optimize(peak_shapes,1);
+opt_deconv.optimize(peak_shapes,1,data);
  	TEST_REAL_SIMILAR(peak_shape.mz_position,500)
  	TEST_REAL_SIMILAR(peak_shape.left_width,2.5)
  	TEST_REAL_SIMILAR(peak_shape.right_width,2.5)

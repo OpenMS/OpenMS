@@ -49,9 +49,6 @@ namespace OpenMS
 
   namespace OptimizationFunctions
   {
-    OPENMS_DLLAPI extern std::vector<PeakShape> peaks_DC_;
-    OPENMS_DLLAPI extern std::vector<DoubleReal> positions_DC_;
-    OPENMS_DLLAPI extern std::vector<DoubleReal> signal_DC_;
 
 		/**
 			 @brief Class for the penalty factors used during the optimization.
@@ -104,6 +101,17 @@ namespace OpenMS
     typedef RawDataVector::iterator PeakIterator;
     //@}
 
+
+		struct Data
+		{  
+				std::vector<PeakShape> peaks;
+				std::vector<DoubleReal> positions;
+				std::vector<DoubleReal> signal;
+				OptimizationFunctions::PenaltyFactorsIntensity penalties;
+				Int charge;
+		};
+    
+    
 
     /** @name Constructors and Destructor
      */
@@ -158,7 +166,7 @@ namespace OpenMS
 
 
     /// Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
-    bool optimize(std::vector<PeakShape>& peaks,Int failure);
+    bool optimize(std::vector<PeakShape>& peaks,Int failure, Data& data);
 
   protected:
     // Penalty factors for some parameter in the optimization
@@ -171,7 +179,7 @@ namespace OpenMS
     static const DoubleReal dist_;
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
-    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes);
+    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes, Data& data);
 
     // After each iteration the fwhm of all peaks is checked whether it isn't too large
     bool checkFWHM_(std::vector<PeakShape>& peaks,gsl_multifit_fdfsolver *& fit);
