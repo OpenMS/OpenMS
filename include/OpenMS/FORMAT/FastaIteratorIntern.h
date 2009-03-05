@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_FASTAITERATORINTERN_H

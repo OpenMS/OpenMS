@@ -23,6 +23,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
+// $Authors: $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_VISUAL_LISTEDITOR_H
 #define OPENMS_VISUAL_LISTEDITOR_H

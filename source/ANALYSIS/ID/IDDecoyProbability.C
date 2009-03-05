@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch, Sven Nahnsen $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #include <boost/math/special_functions/gamma.hpp>

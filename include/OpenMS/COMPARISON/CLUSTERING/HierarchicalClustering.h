@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_HIERARCHICALCLUSTERING_H

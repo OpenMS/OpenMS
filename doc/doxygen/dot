@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # $Maintainer: Clemens Groepl $
+# $Authors: $
 
 # NOTE 1:
 # The following is a hack around the actual "dot" program

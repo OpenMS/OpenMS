@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H

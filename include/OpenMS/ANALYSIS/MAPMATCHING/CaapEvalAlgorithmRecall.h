@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Katharina Albers, Clemens Groepl $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHMRECALL_H

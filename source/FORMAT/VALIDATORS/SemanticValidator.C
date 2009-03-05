@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm, Andreas Bertsch $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>

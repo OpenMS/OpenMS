@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
+// $Authors: $
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>

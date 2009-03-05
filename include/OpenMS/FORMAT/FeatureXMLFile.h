@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm, Chris Bielow, Clemens Groepl $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_FEATUREXMLFILE_H

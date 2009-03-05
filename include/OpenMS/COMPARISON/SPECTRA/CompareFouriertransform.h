@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Vipul Patel $
+// $Authors: $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_COMPARISON_SPECTRA_COMPAREFOURIERTRANSFORM_H
 #define OPENMS_COMPARISON_SPECTRA_COMPAREFOURIERTRANSFORM_H

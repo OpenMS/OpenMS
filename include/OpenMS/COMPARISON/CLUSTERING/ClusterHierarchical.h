@@ -23,6 +23,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
+// $Authors: $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H

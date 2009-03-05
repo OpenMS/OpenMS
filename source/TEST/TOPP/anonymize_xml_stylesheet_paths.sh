@@ -22,6 +22,7 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Clemens Groepl $
+# $Authors: $
 # --------------------------------------------------------------------------
 
 # PURPOSE: This will change the path to xml stylesheets.  Thus you can see if

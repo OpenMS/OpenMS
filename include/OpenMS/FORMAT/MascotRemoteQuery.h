@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch, Daniel Jameson$
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H

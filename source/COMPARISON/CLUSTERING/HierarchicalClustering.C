@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
