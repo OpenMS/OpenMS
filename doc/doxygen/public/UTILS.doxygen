@@ -50,6 +50,7 @@
 	- @subpage SemanticValidator
 	- @subpage DecoyDatabase
 	- @subpage CaapConvert
+	- @subpage CaapEval
 	- @subpage IdXMLEvaluation
 
 */

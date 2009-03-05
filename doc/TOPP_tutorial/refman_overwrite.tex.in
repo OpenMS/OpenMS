@@ -41,7 +41,36 @@
 \tableofcontents
 \pagebreak
 
-\section{TOPP Tutorial}
+\section{TOPP and OpenMS}
+	
+	\input{TOPP_concepts}
+	\pagebreak
+
+\section{TOPPView main interface tutorial}
+	
+	\input{TOPPView_introduction}
+	\pagebreak
+	\input{TOPPView_views}
+	\pagebreak
+	\input{TOPPView_modes}
+	\pagebreak
+	\input{TOPPView_analysis}
+	\pagebreak
+	\input{TOPPView_editing}
+	\pagebreak
+	\input{TOPPView_hotkeys}
+	\pagebreak
+
+\section{Calling TOPP tools from TOPPView}
+	
+	\input{TOPPView_baseline_reduction}
+	\pagebreak
+	\input{TOPPView_smoothing}
+	\pagebreak
+	\input{TOPPView_peakpicking}
+	\pagebreak
+
+\section{Scripting with TOPP}
 	
 	\input{TOPP_general}
 	\pagebreak
@@ -62,20 +91,6 @@
 	\input{TOPP_example_ppp}
 	\pagebreak
 	\input{TOPP_example_export}
-
-\section{TOPPView Tutorial}
-	
-	\input{TOPPView_introduction}
-	\pagebreak
-	\input{TOPPView_views}
-	\pagebreak
-	\input{TOPPView_modes}
-	\pagebreak
-	\input{TOPPView_analysis}
-	\pagebreak
-	\input{TOPPView_editing}
-	\pagebreak
-	\input{TOPPView_hotkeys}
 
 
 \end{document}

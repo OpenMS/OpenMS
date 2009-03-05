@@ -22,22 +22,28 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
 // --------------------------------------------------------------------------
 
 /**
 	
-	@page TOPPViewTutorial TOPPView tutorial
+	@page TOPP_scripting Scripting with TOPP
 	
-	This tutorial illustrates the main features of TOPPView and shows its
-	basic use.
+	This tutorial will give you a brief overview of the most important TOPP tools.
+	First, some basics that you will need for every TOPP tool are explained,
+	then several example pipelines are shown.
 	
-	The subsections of the TOPPView tutorial are:
-	- @subpage TOPPView_introduction
-	- @subpage TOPPView_views
-	- @subpage TOPPView_modes
-	- @subpage TOPPView_analysis
-	- @subpage TOPPView_editing
-	- @subpage TOPPView_hotkeys
+	The subsections of the TOPP tutorial are:
 
+	- @subpage TOPP_general
+	- @subpage TOPP_example_handling
+	- @subpage TOPP_example_signalprocessing
+	- @subpage TOPP_example_calibration
+	- @subpage TOPP_example_mapalignment
+	- @subpage TOPP_example_featuredetection
+	- @subpage TOPP_example_featuregrouping
+	- @subpage TOPP_example_id
+	- @subpage TOPP_example_ppp
+	- @subpage TOPP_example_export
+
+	
 */

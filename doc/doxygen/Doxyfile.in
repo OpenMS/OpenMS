@@ -95,10 +95,8 @@ WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doc/doxygen/doxygen-error.log
 INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
                          @CF_OPENMS_SRC_PATH@/source/APPLICATIONS/TOPP/ \
                          @CF_OPENMS_SRC_PATH@/source/APPLICATIONS/UTILS/ \
-                         @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen \
-                         @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/TOPP_Tutorial.doxygen \
-                         @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/TOPPView_Tutorial.doxygen \
-                         @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/TOPPView_Tools_Tutorial.doxygen \
+                         @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/ \
+                         @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/ \
 												 @CF_OPENMS_SRC_PATH@/doc/doxygen/public/ \
 												 @CF_OPENMS_SRC_PATH@/doc/doxygen/internal/ \
 												 @CF_OPENMS_SRC_PATH@/doc/doxygen/install/

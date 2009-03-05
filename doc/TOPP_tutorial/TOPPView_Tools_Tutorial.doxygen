@@ -29,6 +29,11 @@
 
 /**
 	@page TOPPView_baseline_reduction Substracting a baseline from a spectrum
+	
+	@section toppview_tools_baseline Substracting a baseline from a spectrum
+	
+	bli bla bluff
+	
 	@todo Compose tutorial - video and text (Alexandra)
 	
 	
@@ -38,6 +43,11 @@
 
 /**	
 	@page TOPPView_smoothing Smoothing raw data	
+	
+	@section toppview_tools_smoothing Smoothing raw data	
+	
+	bli bla bluff
+	
 	@todo Compose tutorial - video and text (Alexandra)
 */
 
@@ -45,6 +55,11 @@
 
 /**	
 	@page TOPPView_peakpicking Picking peaks 
+
+	@section toppview_tools_pp Picking peaks 
+	
+	bli bla bluff
+	
 	@todo Compose tutorial - video and text (Alexandra)
 */
 
