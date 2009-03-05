@@ -293,7 +293,7 @@ namespace OpenMS
           while ( (*window_pos_borderleft).getMZ() <  (*window_pos_center).getMZ() - window_half_size )
           {
             //std::cout << "S: " << (*window_pos_borderleft).getMZ()  <<  " " << ( (*window_pos_center).getMZ() - window_half_size ) << "\n";
-            to_bin = (int) (((*window_pos_borderleft).getIntensity()) / bin_size);
+							to_bin = (int) ((std::max((*window_pos_borderleft).getIntensity(),0.0f)) / bin_size);
             if (to_bin < bin_count_)
             {
               --histogram[to_bin];
