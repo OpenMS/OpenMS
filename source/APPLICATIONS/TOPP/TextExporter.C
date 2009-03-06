@@ -616,7 +616,7 @@ namespace OpenMS
             if ( no_ids )
             {
               outstr << "#rt_cf" << sep << "mz_cf" << sep << "intensity_cf"
-                  << sep << "charge_cf";
+                  << sep << "charge_cf" << sep << "quality_cf";
               for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
               {
                 Size map_id = map_num_to_map_id[fhindex];
@@ -630,7 +630,7 @@ namespace OpenMS
             {
 
               outstr << "#CONSENSUS" << sep << "rt_cf" << sep << "mz_cf" << sep
-                  << "intensity_cf" << sep << "charge_cf";
+                  << "intensity_cf" << sep << "charge_cf" << sep << "quality_cf";
               for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
               {
                 Size map_id = map_num_to_map_id[fhindex];
@@ -849,7 +849,7 @@ namespace OpenMS
               outstr << precisionWrapper(cmit->getRT()) << sep
                   << precisionWrapper(cmit->getMZ()) << sep
                   << precisionWrapper(cmit->getIntensity()) << sep
-                  << cmit->getCharge();
+                  << cmit->getCharge() << sep << cmit->getQuality();
               for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit
                   != cmit->end(); ++cfit )
               {
