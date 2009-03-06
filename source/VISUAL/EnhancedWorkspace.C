@@ -47,14 +47,6 @@ namespace OpenMS
 	
 	void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent* event)
 	{
-		/////
-		QStringList f = event->mimeData()->formats();
-		for (QStringList::iterator it = f.begin(); it != f.end(); ++it)
-		{
-			std::cout << it->toLatin1().data() << std::endl;
-		}
-		/////
-		
 		if (event->mimeData()->hasUrls())
 		{
 			event->acceptProposedAction();
