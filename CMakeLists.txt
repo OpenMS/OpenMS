@@ -104,7 +104,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 find_package(OpenMP)
 
 if (OPENMP_FOUND)
-	add_definitions(${OpenMP_CXX_FLAGS})	
+	add_definitions(${OpenMP_CXX_FLAGS})
+	if (NOT MSVC)
+		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS})
+	endif()
 endif()
 
 ## platform dependent compiler flags:
@@ -496,15 +499,10 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-if (NOT APPLE AND NOT MSVC)
+if (NOT APPLE AND NOT MSVC) ##=Linux
 	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES}) ## do not link OpenMS against QT on Linux
-	if (OPENMP_FOUND AND CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS})
-		message(STATUS ${APPLE})
-	endif()
 else()
 	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-	set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS})
 endif()
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
@@ -602,7 +600,7 @@ foreach(i ${OpenMS_doc_executables})
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
 endforeach(i)
 add_custom_target(doc_progs)
-add_dependencies(doc_progs ${OpenMS_doc_executables})
+add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
 
 ##### Examples #####
 if ("${PACKAGE_TYPE}" STREQUAL "none")

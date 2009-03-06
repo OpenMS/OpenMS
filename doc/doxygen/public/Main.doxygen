@@ -102,7 +102,7 @@
 				<UL>
 					<LI style="margin-top: 3px;"> Stephan Aiche @n <i> Mac port</i>
 					<LI style="margin-top: 3px;"> Andreas Bertsch @n <i> protein/peptide identification</i>
-					<LI style="margin-top: 3px;"> Chris Bielow @n <i> external memory support, Windows port</i>
+					<LI style="margin-top: 3px;"> Chris Bielow @n <i> iTRAQ quantitation, decharging, Windows port</i>
 					<LI style="margin-top: 3px;"> Clemens Gr&ouml;pl @n <i> quantitation, map alignment</i>
 					<LI style="margin-top: 3px;"> Rene Hussong @n <i> signal processing, pattern recognition</i>
 					<LI style="margin-top: 3px;"> Eva Lange @n <i> signal processing, map alignment</i>
