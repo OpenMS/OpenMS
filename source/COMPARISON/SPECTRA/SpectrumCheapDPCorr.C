@@ -102,8 +102,8 @@ namespace OpenMS
     bool keeppeaks_ = (int)param_.getValue("keeppeaks");
     
     lastconsensus_ = PeakSpectrum();
-    lastconsensus_.getPrecursorPeak().setPosition((x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0]) / 2);
-    lastconsensus_.getPrecursorPeak().setCharge(x.getPrecursorPeak().getCharge());
+    lastconsensus_.getPrecursor().setPosition((x.getPrecursor().getPosition()[0] + y.getPrecursor().getPosition()[0]) / 2);
+    lastconsensus_.getPrecursor().setCharge(x.getPrecursor().getCharge());
 		peak_map_.clear();
     
     int xpos = 0;

@@ -296,9 +296,9 @@ class TOPPSequestAdapter
 				if ( (spectra_it->getMSLevel() == 2) && (!spectra_it->empty()) )
 				{
 					++msms_spectra;
-					if ( spectra_it->getPrecursorPeak().getCharge() )
+					if ( spectra_it->getPrecursor().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spectra_it->getPrecursorPeak().getCharge()) + ".dta_" + String( (dtas / max_dtas_per_run) );
+						filename = common_name + "." + String(scan_number) + "." + String(spectra_it->getPrecursor().getCharge()) + ".dta_" + String( (dtas / max_dtas_per_run) );
 						++dtas;
 						if ( make_dtas ) dtafile.store(filename, *spectra_it);
 						dta_filenames.push_back(filename);
@@ -314,7 +314,7 @@ class TOPPSequestAdapter
 							++dtas;
 							if ( make_dtas )
 							{
-								spectra_it->getPrecursorPeak().setCharge(*charges_it);
+								spectra_it->getPrecursor().setCharge(*charges_it);
 								dtafile.store(filename, *spectra_it);
 							}
 							dta_filenames.push_back(filename);
@@ -322,7 +322,7 @@ class TOPPSequestAdapter
 							filename.replace(filename.length() - 4, 4, ".out");
 							outfile_names_and_precursor_retention_times[filename] = spectra_it->getRT();
 						}
-						spectra_it->getPrecursorPeak().setCharge(0);
+						spectra_it->getPrecursor().setCharge(0);
 					}
 				}
 			}

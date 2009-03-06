@@ -540,7 +540,7 @@ namespace OpenMS
 				}
 				else if (parent_tag=="ionSelection")
 				{
-					spec_.getPrecursorPeak().setMetaValue(name, value);
+					spec_.getPrecursor().setMetaValue(name, value);
 				}
 				else if (parent_tag=="activation")
 				{
@@ -1172,8 +1172,7 @@ namespace OpenMS
 					writeUserParam_(os, spec.getInstrumentSettings(), 6);
 					os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 	
-					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
-					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
+					if (spec.getPrecursor() != Precursor() || spec.getPrecursor() != Precursor())
 					{
 						Int precursor_ms_level = spec.getMSLevel()-1;
 						SignedSize precursor_id = -1;
@@ -1184,9 +1183,9 @@ namespace OpenMS
 						os	<< "\t\t\t\t<precursorList count=\"1\">\n"
 								<< "\t\t\t\t\t<precursor msLevel=\"" << precursor_ms_level << "\" spectrumRef=\"" << precursor_id << "\">\n";
 						os << "\t\t\t\t\t\t<ionSelection>\n";
-						if (spec.getPrecursorPeak() != PrecursorPeak())
+						if (spec.getPrecursor() != Precursor())
 						{
-							const PrecursorPeak& peak = spec.getPrecursorPeak();
+							const Precursor& peak = spec.getPrecursor();
 							writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
 							writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
 							writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
@@ -1403,27 +1402,27 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000040") //m/z
 				{
-					spec_.getPrecursorPeak().getPosition()[0] = asDouble_(value);			
+					spec_.getPrecursor().getPosition()[0] = asDouble_(value);			
 				}
 				else if (accession=="PSI:1000041") //Charge
 				{
-					if (spec_.getPrecursorPeak().getCharge() != 0)
+					if (spec_.getPrecursor().getCharge() != 0)
 					{
 						warning(LOAD, String("Multiple precursor charges detected, expected only one! Ignoring this charge setting! accession=\"") + accession + "\", value=\"" + value + "\"");
-						spec_.getPrecursorPeak().setCharge(0);
+						spec_.getPrecursor().setCharge(0);
 					}
 					else
 					{
-						spec_.getPrecursorPeak().setCharge(asInt_(value));
+						spec_.getPrecursor().setCharge(asInt_(value));
 					}
 				}
 				else if (accession=="PSI:1000042") //Intensity
 				{
-					spec_.getPrecursorPeak().setIntensity(asDouble_(value));		
+					spec_.getPrecursor().setIntensity(asDouble_(value));		
 				}
 				else if (accession=="PSI:1000043") //Intensity unit (not really handled)
 				{
-					spec_.getPrecursorPeak().setMetaValue("#IntensityUnits", value);
+					spec_.getPrecursor().setMetaValue("#IntensityUnits", value);
 				}
 				else
 				{

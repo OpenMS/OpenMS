@@ -28,7 +28,7 @@
 	
 	@page TOPP_concepts TOPP and %OpenMS
 	
-	TOPP, The OpenMS Proteomics Pipeline provides 
+	TOPP, The %OpenMS Proteomics Pipeline provides 
 	a set of computational tools which can be easily combined 
 	into analysis pipelines even by non-experts and then be used 
 	in proteomics workflows. These applications range from use- 

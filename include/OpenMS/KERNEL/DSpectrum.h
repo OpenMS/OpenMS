@@ -28,7 +28,6 @@
 #ifndef OPENMS_KERNEL_DSPECTRUM_H
 #define OPENMS_KERNEL_DSPECTRUM_H
 
-#include <OpenMS/KERNEL/DRichPeak.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -40,109 +39,13 @@
 
 namespace OpenMS
 {
-
 	class Peak1D;
-
-	namespace Internal
-	{
-		/**
-			@brief Internal class used to store some information about
-			precursor ions.
-
-			This class is designed for limited use cases, such as storing
-			precursor information from DTA files. No data processing!
-		*/
-		template < UInt D >
-		class PrecursorPeak
-			: public DRichPeak<D>::Type
-		{
-
-			/// Base class (do not even think of using this outside the scope of this class)
-			typedef typename DRichPeak<D>::Type Base;
-
-		 public:
-
-			/// Dimensionality
-			enum
-				{
-					DIMENSION = D
-				};
-
-			/// Default constructor
-			PrecursorPeak()
-				: Base(),
-					charge_(0),
-					possible_charge_states_()
-			{
-			}
-
-			/// Copy constructor
-			PrecursorPeak(const PrecursorPeak& rhs)
-				: Base(rhs),
-					charge_(rhs.charge_),
-					possible_charge_states_(rhs.possible_charge_states_)
-			{
-			}
-
-			/// Assignment operator
-			PrecursorPeak & operator=(const PrecursorPeak& rhs)
-			{
-				Base::operator=(rhs);
-
-				charge_=rhs.charge_;
-				possible_charge_states_ = rhs.possible_charge_states_;
-
-				return *this;
-			}
-
-			/// Destructor
-			~PrecursorPeak()
-			{
-			}
-
-			/// Non-mutable access to the charge
-			Int const & getCharge() const
-			{
-				return charge_;
-			}
-
-			/// Mutable access to the charge
-			void setCharge( Int charge )
-			{
-				charge_ = charge;
-				return;
-			}
-
-			std::vector<Int>& getPossibleChargeStates()
-			{
-				return possible_charge_states_;
-			}
-
-			const std::vector<Int>& getPossibleChargeStates() const
-			{
-				return possible_charge_states_;
-			}
-
-			void setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
-			{
-				possible_charge_states_ = possible_charge_states;
-			}
-
-		 protected:
-
-			Int charge_;
-			std::vector<Int> possible_charge_states_;
-
-		};
-
-	} // namespace Internal
-
+	
 	/**
 		@brief Representation of a D-dimensional spectrum.
 
-		Some meta information about the spectrum (ms-level, precursor peak, ...) is
-		also stored. If you want to store more meta information
-		see the MSSpectrum and MSExperiment classes.
+		Some meta information about the spectrum (ms-level, retention time, ...) is
+		also stored. If you want to store more meta information see the MSSpectrum and MSExperiment classes.
 
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		intensity of the peaks is provided by RangeManager.
@@ -178,8 +81,6 @@ namespace OpenMS
 		};
 		/// Coordinate type
 		typedef typename PeakType::CoordinateType CoordinateType;
-		/// Precursor peak type
-		typedef Internal::PrecursorPeak<DIMENSION> PrecursorPeakType;
 		/// Rangemanger type
 		typedef RangeManager<DIMENSION> RangeManagerType;
 		/// MetaDataArrays type
@@ -206,7 +107,6 @@ namespace OpenMS
 			:	ContainerType(),
       	MetaInfoInterface(),
 				RangeManagerType(),
-				precursor_peak_(),
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				ms_level_(1),
 				name_(),
@@ -219,7 +119,6 @@ namespace OpenMS
       : ContainerType(alloc),
       	MetaInfoInterface(),
         RangeManagerType(),
-        precursor_peak_(),
         retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
         ms_level_(1),
         name_(),
@@ -232,7 +131,6 @@ namespace OpenMS
 			: ContainerType(rhs),
       	MetaInfoInterface(rhs),
 				RangeManagerType(rhs),
-				precursor_peak_(rhs.precursor_peak_),
 				retention_time_(rhs.retention_time_),
 				ms_level_(rhs.ms_level_),
 				name_(rhs.name_),
@@ -246,7 +144,6 @@ namespace OpenMS
       : ContainerType(rhs),
       	MetaInfoInterface(rhs),
         RangeManagerType(rhs),
-        precursor_peak_(rhs.precursor_peak_),
         retention_time_(rhs.retention_time_),
         ms_level_(rhs.ms_level_),
         name_(rhs.name_),
@@ -268,7 +165,6 @@ namespace OpenMS
 			ContainerType::operator=(rhs);
 			MetaInfoInterface::operator=(rhs);
 			RangeManagerType::operator=(rhs);
-			precursor_peak_ = rhs.precursor_peak_;
 			retention_time_ = rhs.retention_time_;
 			ms_level_ = rhs.ms_level_;
 			name_ = rhs.name_;
@@ -286,7 +182,6 @@ namespace OpenMS
 			ContainerType::operator=(rhs);
       MetaInfoInterface::operator=(rhs);
       RangeManagerType::operator=(rhs);
-      precursor_peak_ = rhs.precursor_peak_;
       retention_time_ = rhs.retention_time_;
       ms_level_ = rhs.ms_level_;
       name_ = rhs.name_;
@@ -302,7 +197,6 @@ namespace OpenMS
 				std::operator==(*this, rhs) &&
 				MetaInfoInterface::operator==(rhs) &&
 				RangeManagerType::operator==(rhs) &&
-				precursor_peak_ == rhs.precursor_peak_ &&
 				retention_time_ == rhs.retention_time_ &&
 				ms_level_ == rhs.ms_level_
 				;
@@ -324,24 +218,6 @@ namespace OpenMS
 
 		/**	@name Accessors for meta information*/
 		//@{
-		/// const accessor for the precorsor peak
-		const PrecursorPeakType& getPrecursorPeak() const
-		{
-			return precursor_peak_;
-		}
-
-		/// accessor for the precorsor peak
-		PrecursorPeakType& getPrecursorPeak()
-		{
-			return precursor_peak_;
-		}
-
-		/// sets the precursor peak
-		void setPrecursorPeak(const PrecursorPeakType& peak)
-		{
-			precursor_peak_ = peak;
-		}
-
 		/// returns the absolute retention time (unit is seconds)
 		CoordinateType getRT() const
 		{
@@ -594,10 +470,7 @@ namespace OpenMS
 		//@}
 
 	protected:
-
-		/// Precursor information
-		PrecursorPeakType precursor_peak_;
-
+		
 		/// retention time
 		CoordinateType retention_time_;
 

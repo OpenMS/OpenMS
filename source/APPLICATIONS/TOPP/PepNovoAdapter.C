@@ -171,9 +171,9 @@ class TOPPPepNovoAdapter
 				if ( (spec_it->getMSLevel() == 2) && (!spec_it->empty()) )
 				{
 					++msms_spectra;
-					if ( spec_it->getPrecursorPeak().getCharge() )
+					if ( spec_it->getPrecursor().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spec_it->getPrecursorPeak().getCharge()) + ".dta";
+						filename = common_name + "." + String(scan_number) + "." + String(spec_it->getPrecursor().getCharge()) + ".dta";
 						if ( make_dtas ) dtafile.store(filename, *spec_it);
 						dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
 					}
@@ -183,17 +183,17 @@ class TOPPPepNovoAdapter
 						{
 							filename = common_name + "." + String(scan_number) + "." + *i + ".dta";
 							// for PepNovo the precursor mass may not be less than the highest peak mass
-							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursorPeak().getPosition()[0] - 1.0) * (*i) +1.0) )
+							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursor().getPosition()[0] - 1.0) * (*i) +1.0) )
 							{
 								if ( make_dtas )
 								{
-									spec_it->getPrecursorPeak().setCharge(*i);
+									spec_it->getPrecursor().setCharge(*i);
 									dtafile.store(filename, *spec_it);
 								}
 								dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
 							}
 						}
-						spec_it->getPrecursorPeak().setCharge(0);
+						spec_it->getPrecursor().setCharge(0);
 					}
 				}
 			}

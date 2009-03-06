@@ -84,7 +84,7 @@ namespace OpenMS
     	result.push_back(cspec.getParentMass());
     	return result;
 */
-			return spectrum.getPrecursorPeak().getCharge();
+			return spectrum.getPrecursor().getCharge();
 		}
 
 		///

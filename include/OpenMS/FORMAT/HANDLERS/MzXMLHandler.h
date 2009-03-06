@@ -142,7 +142,6 @@ namespace OpenMS
         typedef MSSpectrum<PeakType, std::allocator<PeakType> > SpectrumType;        
         
 				typedef typename SpectrumType::Iterator  PeakIterator;
-				typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
 				
 				/// map pointer for reading
 				MapType* exp_;
@@ -384,17 +383,17 @@ namespace OpenMS
 			{
 				try
 				{
-					exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity_) );
+					exp_->back().getPrecursor().setIntensity( attributeAsDouble_(attributes, s_precursorintensity_) );
 				}
 				catch (Exception::ParseError& /*e*/)
 				{
 					error(LOAD, "Mandatory attribute precursorMz not found! Setting precursor intensity to 0 - trying to continue");
-					exp_->back().getPrecursorPeak().setIntensity(0.0);
+					exp_->back().getPrecursor().setIntensity(0.0);
 				}
 				
 				Int charge = 0;
 				optionalAttributeAsInt_(charge, attributes, s_precursorcharge_);
-				exp_->back().getPrecursorPeak().setCharge(charge);
+				exp_->back().getPrecursor().setCharge(charge);
 				
 				DoubleReal window = 0;
 				optionalAttributeAsDouble_(window, attributes, s_windowwideness_);
@@ -740,7 +739,7 @@ namespace OpenMS
 			}
 			else if (	open_tags_.back()=="precursorMz")
 			{
-				exp_->back().getPrecursorPeak().getPosition()[0] = asDouble_(transcoded_chars);
+				exp_->back().getPrecursor().getPosition()[0] = asDouble_(transcoded_chars);
 			}
 			else if (	open_tags_.back()=="comment")
 			{
@@ -1072,8 +1071,8 @@ namespace OpenMS
 				}
 				os << ">\n";
 	
-				const PrecursorPeakType& peak = spec.getPrecursorPeak();
-				if (peak!= PrecursorPeakType())
+				const Precursor& peak = spec.getPrecursor();
+				if (peak!= Precursor())
 				{
 					os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
 						 << peak.getIntensity();

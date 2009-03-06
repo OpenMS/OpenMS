@@ -76,7 +76,7 @@ namespace OpenMS
 				return 0;
 			}
 	    double tolerance = (double)param_.getValue("tolerance");
-	    double parentmass = spectrum.getPrecursorPeak().getPosition()[0];
+	    double parentmass = spectrum.getPrecursor().getPosition()[0];
 	    double result(0);
 		
 			spectrum.sortByPosition();

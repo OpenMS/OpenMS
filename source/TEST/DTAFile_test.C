@@ -30,8 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 ///////////////////////////
 
@@ -54,7 +53,7 @@ END_SECTION
 
 START_SECTION(template<typename SpectrumType> void load(const String& filename, SpectrumType& spectrum) )
 	TOLERANCE_ABSOLUTE(0.01)
-	DSpectrum<> s;
+	MSSpectrum<> s;
 	DTAFile f1;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist",s);)
@@ -62,11 +61,11 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s);
 	
 	TEST_EQUAL(s.size(), 25);
-	TEST_REAL_SIMILAR(s.getPrecursorPeak().getPosition()[0], 582.40666)
-	TEST_EQUAL(s.getPrecursorPeak().getCharge(), 3)
+	TEST_REAL_SIMILAR(s.getPrecursor().getPosition()[0], 582.40666)
+	TEST_EQUAL(s.getPrecursor().getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
-	DSpectrum<>::ConstIterator it(s.begin());
+	MSSpectrum<>::ConstIterator it(s.begin());
 	
 	TEST_REAL_SIMILAR(it->getPosition()[0], 139.42)
 	TEST_REAL_SIMILAR(it->getIntensity(), 318.52)
@@ -171,15 +170,15 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 	//TEST WITH Peak1D
 
-	DSpectrum<> s2;
+	MSSpectrum<> s2;
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s2);
 	
 	TEST_EQUAL(s2.size(), 25);
-	TEST_REAL_SIMILAR(s2.getPrecursorPeak().getPosition()[0], 582.4066)
-	TEST_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
+	TEST_REAL_SIMILAR(s2.getPrecursor().getPosition()[0], 582.4066)
+	TEST_EQUAL(s2.getPrecursor().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
-	DSpectrum<>::ConstIterator it2(s2.begin());
+	MSSpectrum<>::ConstIterator it2(s2.begin());
 	
 	TEST_REAL_SIMILAR(it2->getPosition()[0], 139.42)
 	TEST_REAL_SIMILAR(it2->getIntensity(), 318.52)
@@ -287,11 +286,11 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	NEW_TMP_FILE(filename);
 	
 	DTAFile dta;
-	DSpectrum<> spec, spec2;
-	DSpectrum<>::PeakType peak;
+	MSSpectrum<> spec, spec2;
+	MSSpectrum<>::PeakType peak;
 	
-	spec.getPrecursorPeak().getPosition()[0] = 582.40666;
-	spec.getPrecursorPeak().setCharge(3);
+	spec.getPrecursor().getPosition()[0] = 582.40666;
+	spec.getPrecursor().setCharge(3);
 	
 	peak.getPosition()[0] = 11.4;
 	peak.setIntensity(11.5);
@@ -310,12 +309,12 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	//load file
 	dta.load(filename,spec2);
 
-	TEST_REAL_SIMILAR(spec.getPrecursorPeak().getPosition()[0],582.40666)
-	TEST_EQUAL(spec.getPrecursorPeak().getCharge(),3)
+	TEST_REAL_SIMILAR(spec.getPrecursor().getPosition()[0],582.40666)
+	TEST_EQUAL(spec.getPrecursor().getCharge(),3)
 	
 	ABORT_IF(spec2.size() != 3)
 	
-	DSpectrum<>::ConstIterator it = spec2.begin();
+	MSSpectrum<>::ConstIterator it = spec2.begin();
 
 	TEST_REAL_SIMILAR(it->getPosition()[0], 11.4)
 	TEST_REAL_SIMILAR(it->getIntensity(), 11.5)
@@ -331,8 +330,8 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 
 	//TEST WITH std::vector and Peak1D
 	
-	DSpectrum<> raw_spec, raw_spec2;
-	DSpectrum<>::PeakType raw_peak;
+	MSSpectrum<> raw_spec, raw_spec2;
+	MSSpectrum<>::PeakType raw_peak;
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
@@ -353,7 +352,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	
 	ABORT_IF(raw_spec2.size() != 3)
 	
-	DSpectrum<>::ConstIterator it2 = raw_spec2.begin();
+	MSSpectrum<>::ConstIterator it2 = raw_spec2.begin();
 
 	TEST_REAL_SIMILAR(it2->getPosition()[0], 11.4)
 	TEST_REAL_SIMILAR(it2->getIntensity(), 11.5)

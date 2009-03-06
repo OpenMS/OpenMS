@@ -194,11 +194,11 @@ namespace OpenMS
 		scorer_param.setValue("epsilon",(DoubleReal)param_.getValue("peak_mass_tolerance"));
 		scorer_->setParameters(scorer_param);
 	
-		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
+		double pre_pos = spec_copy.getPrecursor().getPosition()[0];
 
     if (pre_pos < 200) // TODO
     {
-      cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec_copy.getPrecursorPeak().getCharge() << endl;
+      cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec_copy.getPrecursor().getCharge() << endl;
       return;
     }
 

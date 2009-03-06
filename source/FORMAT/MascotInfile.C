@@ -287,7 +287,7 @@ namespace OpenMS
 	{
 		String temp_string;
 		stringstream ss;
-		MSSpectrum<>::PrecursorPeakType precursor_peak;
+		Precursor precursor_peak;
 		DPosition< 1 >::CoordinateType precursor_position;
 		
 		fputs ("\n--",fp);
@@ -300,8 +300,8 @@ namespace OpenMS
 		{
 			MSSpectrum<> peaks = experiment[i];
 			peaks.sortByPosition();
-			precursor_peak = experiment[i].getPrecursorPeak();
-			precursor_position = experiment[i].getPrecursorPeak().getPosition()[0];
+			precursor_peak = experiment[i].getPrecursor();
+			precursor_position = experiment[i].getPrecursor().getPosition()[0];
 		
 			if (experiment[i].getMSLevel() == 0)
 			{
@@ -336,10 +336,10 @@ namespace OpenMS
 					ss << experiment[i].getRT();
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
 
-					if (experiment[i].getPrecursorPeak().getCharge() != 0)
+					if (experiment[i].getPrecursor().getCharge() != 0)
 					{
 						ss.str("");
-						if (experiment[i].getPrecursorPeak().getCharge() > 0)
+						if (experiment[i].getPrecursor().getCharge() > 0)
 						{
 							ss << "+";
 						}
@@ -347,7 +347,7 @@ namespace OpenMS
 						{
 							ss << "-";
 						}
-						ss << experiment[i].getPrecursorPeak().getCharge();
+						ss << experiment[i].getPrecursor().getCharge();
 						fputs(String("CHARGE=" + ss.str() + "\n").c_str(), fp);
 					}
 					fputs("\n",fp);

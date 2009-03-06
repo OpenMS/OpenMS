@@ -36,40 +36,43 @@ namespace OpenMS
 	const std::string Precursor::NamesOfEnergyUnits[] = {"Unknown","Electron volt","Precent"};
 
 	Precursor::Precursor():
-		MetaInfoInterface(),
+		RichPeak1D(),
 		activation_method_(ACTMETHNULL),
 		activation_energy_(0.0),
 		activation_energy_unit_(UNITSNULL),
-		window_size_(0.0)
+		window_size_(0.0),
+		charge_(0),
+		possible_charge_states_()
 	{
-		
 	}
 	
 	Precursor::Precursor(const Precursor& source):
-		MetaInfoInterface(source),
+		RichPeak1D(source),
 	  activation_method_(source.activation_method_),
 	  activation_energy_(source.activation_energy_),
 	  activation_energy_unit_(source.activation_energy_unit_),
-	  window_size_(source.window_size_)
+	  window_size_(source.window_size_),
+		charge_(source.charge_),
+		possible_charge_states_(source.possible_charge_states_)
 	{
-	  
 	}
 	
 	Precursor::~Precursor()
 	{
-	  
 	}
 	
 	Precursor& Precursor::operator = (const Precursor& source)
 	{
 	  if (&source == this) return *this;
 	  
-	  MetaInfoInterface::operator=(source);
+	  RichPeak1D::operator=(source);
 	  activation_method_ = source.activation_method_;
 	  activation_energy_ = source.activation_energy_;
 	  activation_energy_unit_ = source.activation_energy_unit_;
 	  window_size_ = source.window_size_;
-
+		charge_ = source.charge_;
+		possible_charge_states_ = source.possible_charge_states_;
+		
 	  return *this;
 	}
 
@@ -80,8 +83,11 @@ namespace OpenMS
 	    activation_energy_ == rhs.activation_energy_ &&
 	    activation_energy_unit_ == rhs.activation_energy_unit_ &&
 	    window_size_ == rhs.window_size_ &&
-  		MetaInfoInterface::operator==(rhs)
-  		;
+			charge_ == rhs.charge_ &&
+			possible_charge_states_ == rhs.possible_charge_states_ &&
+			RichPeak1D::operator==(rhs)
+ 
+ 		;
   }
   
   bool Precursor::operator!= (const Precursor& rhs) const
@@ -129,6 +135,32 @@ namespace OpenMS
 		window_size_ = size;
 	}
 
+	Int Precursor::getCharge() const
+	{
+		return charge_;
+	}
+
+	void Precursor::setCharge( Int charge )
+	{
+		charge_ = charge;
+		return;
+	}
+
+	std::vector<Int>& Precursor::getPossibleChargeStates()
+	{
+		return possible_charge_states_;
+	}
+
+	const std::vector<Int>& Precursor::getPossibleChargeStates() const
+	{
+		return possible_charge_states_;
+	}
+
+	void Precursor::setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
+	{
+		possible_charge_states_ = possible_charge_states;
+	}
+	
 }
 
 

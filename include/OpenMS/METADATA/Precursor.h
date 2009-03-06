@@ -28,21 +28,24 @@
 #ifndef OPENMS_METADATA_PRECURSOR_H
 #define OPENMS_METADATA_PRECURSOR_H
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 namespace OpenMS 
 {
 	/**
 		@brief Precursor meta information.
 		
 		This class stores precursor meta information, that is not already 
-		covered by DSpectrum::getPrecursorPeak().
+		covered by DSpectrum::getPrecursor().
 		
 		@ingroup Metadata
 	*/  
-  class OPENMS_DLLAPI Precursor: public MetaInfoInterface
+  class OPENMS_DLLAPI Precursor
+    : public RichPeak1D
   {
+    
     public:
-    	/// Method of activation
+    
+    /// Method of activation
       enum ActivationMethod
       {
       	ACTMETHNULL,	///< Unknown activation method
@@ -110,12 +113,27 @@ namespace OpenMS
       /// sets the window size
       void setWindowSize(DoubleReal size);
  
+       /// Non-mutable access to the charge
+      Int getCharge() const;
+      /// Mutable access to the charge
+      void setCharge( Int charge );
+      
+      ///Mutable access to possible charge states
+      std::vector<Int>& getPossibleChargeStates();
+      ///Non-mutable access to possible charge states
+      const std::vector<Int>& getPossibleChargeStates() const;
+      ///Sets the possible charge states
+      void setPossibleChargeStates(const std::vector<Int>& possible_charge_states);
+ 
     protected:
+      
       ActivationMethod activation_method_;
       DoubleReal activation_energy_;
       EnergyUnits activation_energy_unit_;
       DoubleReal window_size_;
-  };
+      Int charge_;
+      std::vector<Int> possible_charge_states_;
+    };
 } // namespace OpenMS
 
 #endif // OPENMS_METADATA_PRECURSOR_H

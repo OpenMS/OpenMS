@@ -105,13 +105,13 @@ namespace OpenMS
 					Int charge = strings[1].toInt();
 					if (charge != 0)
 					{
-						spectrum.getPrecursorPeak().setPosition( (mh_mass - 1.0) / charge + 1.0);
+						spectrum.getPrecursor().setPosition( (mh_mass - 1.0) / charge + 1.0);
 					}
 					else
 					{
-						spectrum.getPrecursorPeak().setPosition( mh_mass );
+						spectrum.getPrecursor().setPosition( mh_mass );
 					}
-					spectrum.getPrecursorPeak().setCharge(charge);
+					spectrum.getPrecursor().setCharge(charge);
 				}
 				catch(...)
 				{
@@ -174,19 +174,19 @@ namespace OpenMS
 				os.precision(writtenDigits<DoubleReal>());
 				
 				// Write mh+ mass
-				if (spectrum.getPrecursorPeak().getCharge()==0)
+				if (spectrum.getPrecursor().getCharge()==0)
 				{
 					//unknown charge
-					os << spectrum.getPrecursorPeak().getPosition()[0];
+					os << spectrum.getPrecursor().getPosition()[0];
 				}
 				else
 				{
 					//known charge
-					os << ((spectrum.getPrecursorPeak().getPosition()[0] - 1.0) * spectrum.getPrecursorPeak().getCharge() +1.0);
+					os << ((spectrum.getPrecursor().getPosition()[0] - 1.0) * spectrum.getPrecursor().getCharge() +1.0);
 				}
 				 
 				//charge
-				os << " " << spectrum.getPrecursorPeak().getCharge() << std::endl;
+				os << " " << spectrum.getPrecursor().getCharge() << std::endl;
 		
 				// Iterate over all peaks of the spectrum and
 				// write one line for each peak of the spectrum.

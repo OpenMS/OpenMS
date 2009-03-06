@@ -727,11 +727,11 @@ namespace OpenMS
 				spectrum.SpectrumSettings::operator=(*it);
 				spectrum.setRT(it->getRT());
 				spectrum.setMSLevel(it->getMSLevel());
-				spectrum.setPrecursorPeak(it->getPrecursorPeak());
+				spectrum.setPrecursor(it->getPrecursor());
 				//copy peak information
 				if (!is_1d && it->getMSLevel()>1) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
 				{
-					if (it->getPrecursorPeak().getMZ()>=area.min()[0] && it->getPrecursorPeak().getMZ()<= area.max()[0])
+					if (it->getPrecursor().getMZ()>=area.min()[0] && it->getPrecursor().getMZ()<= area.max()[0])
 					{
 						spectrum.insert(spectrum.begin(), it->begin(), it->end());
 					}

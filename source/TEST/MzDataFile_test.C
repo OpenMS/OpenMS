@@ -149,13 +149,13 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("Comment"),"Peak shape")
 
-	TEST_EQUAL(e[1].getPrecursorPeak().getPosition()[0], 1.2)
-	TEST_EQUAL(e[1].getPrecursorPeak().getCharge(), 2)
-	TEST_EQUAL(e[1].getPrecursorPeak().getIntensity(), 2.3f)
-	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("#IntensityUnits"),
+	TEST_EQUAL(e[1].getPrecursor().getPosition()[0], 1.2)
+	TEST_EQUAL(e[1].getPrecursor().getCharge(), 2)
+	TEST_EQUAL(e[1].getPrecursor().getIntensity(), 2.3f)
+	TEST_EQUAL(e[1].getPrecursor().getMetaValue("#IntensityUnits"),
 																														"NumberOfCounts")
-	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("IonSelectionComment"), "selected")
+	TEST_EQUAL(e[1].getPrecursor().getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e[1].getPrecursor().getMetaValue("IonSelectionComment"), "selected")
 	TEST_EQUAL(e[1].getPrecursor().getActivationMethod(), Precursor::CID)
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 3.4)
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::PERCENT)

@@ -545,7 +545,6 @@ namespace OpenMS
 			}
 			else if (tag=="selectedIon")
 			{
-				spec_.getPrecursorPeak() = typename SpectrumType::PrecursorPeakType();
 			}
 			else if (tag=="selectedIonList")
 			{
@@ -1062,19 +1061,19 @@ namespace OpenMS
 			{
 				if (accession=="MS:1000744") //selected ion m/z
 				{
-					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
+					spec_.getPrecursor().getPosition()[0] = value.toDouble();
 				}
 				else if (accession=="MS:1000041") //charge state
 				{
-					spec_.getPrecursorPeak().setCharge(value.toInt());
+					spec_.getPrecursor().setCharge(value.toInt());
 				}
 				else if (accession=="MS:1000042") //intensity
 				{
-					spec_.getPrecursorPeak().setIntensity(value.toDouble());
+					spec_.getPrecursor().setIntensity(value.toDouble());
 				}
 				else if (accession=="MS:1000633") //possible charge state
 				{
-					spec_.getPrecursorPeak().getPossibleChargeStates().push_back(value.toInt());
+					spec_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -3399,7 +3398,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				//precursor list
 				//--------------------------------------------------------------------------------------------
-				if (spec.getPrecursor() != Precursor() || spec.getPrecursorPeak() != typename SpectrumType::PrecursorPeakType())
+				if (spec.getPrecursor() != Precursor())
 				{
 					os	<< "				<precursorList count=\"1\">\n";
 					os	<< "					<precursor>\n";
@@ -3414,12 +3413,12 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "						<selectedIonList count=\"1\">\n";
 					os	<< "							<selectedIon>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\" />\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\" />\n";
-					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << spec.getPrecursor().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursor().getCharge() << "\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursor().getIntensity() << "\" />\n";
+					for (Size j=0; j<spec.getPrecursor().getPossibleChargeStates().size(); ++j)
 					{
-						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\" />\n";
+						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursor().getPossibleChargeStates()[j] << "\" />\n";
 					}
 					//userParam: no extra object for it => no user paramters
 					os	<< "							</selectedIon>\n";					

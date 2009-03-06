@@ -97,20 +97,20 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	//create experiment
 	MSExperiment<> experiment;
 	MSSpectrum<> spectrum;
-	DSpectrum<>::PrecursorPeakType peak;	
-	peak = spectrum.getPrecursorPeak();
+	Precursor peak;	
+	peak = spectrum.getPrecursor();
 	peak.setPosition(0);
 	spectrum.setRT(60);
 	experiment.push_back(spectrum);							
-	experiment[0].setPrecursorPeak(peak);
+	experiment[0].setPrecursor(peak);
 	peak.setPosition(20);
 	spectrum.setRT(181);
 	experiment.push_back(spectrum);							
-	experiment[1].setPrecursorPeak(peak);
+	experiment[1].setPrecursor(peak);
 	peak.setPosition(11);
 	spectrum.setRT(120.0001);
 	experiment.push_back(spectrum);							
-	experiment[2].setPrecursorPeak(peak);
+	experiment[2].setPrecursor(peak);
 	
 	//map
 	IDMapper().annotate(experiment, identifications, protein_identifications);

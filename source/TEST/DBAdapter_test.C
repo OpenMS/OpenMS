@@ -367,9 +367,9 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
-		spec.getPrecursorPeak().getPosition()[0] = 600.1;
-		spec.getPrecursorPeak().setIntensity(4711.0f);
-		spec.getPrecursorPeak().setCharge(2);
+		spec.getPrecursor().getPosition()[0] = 600.1;
+		spec.getPrecursor().setIntensity(4711.0f);
+		spec.getPrecursor().setCharge(2);
 		spec.getPrecursor().setMetaValue("icon",String("Precursor"));
 		spec.getPrecursor().setWindowSize(0.1456);
 		spec.setComment("bla");
@@ -649,9 +649,9 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
-			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
-			TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
+			TEST_EQUAL( itn->getPrecursor().getPosition()[0] , ito->getPrecursor().getPosition()[0] )
+			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
+			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
 			TEST_REAL_SIMILAR( itn->getPrecursor().getWindowSize() , 0.1456)
 	
@@ -782,9 +782,9 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
-			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
-			TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
+			TEST_EQUAL( itn->getPrecursor().getPosition()[0] , ito->getPrecursor().getPosition()[0] )
+			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
+			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )

@@ -1219,7 +1219,7 @@ namespace OpenMS
 				new_spectrum.setType(SpectrumSettings::PEAKS);
 
 				// copy the spectrum information
-				new_spectrum.setPrecursorPeak(input[i].getPrecursorPeak());
+				new_spectrum.setPrecursor(input[i].getPrecursor());
 				new_spectrum.setRT(input[i].getRT());
 				new_spectrum.setMSLevel(input[i].getMSLevel());
 				new_spectrum.getName() = input[i].getName();

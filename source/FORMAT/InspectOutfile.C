@@ -467,7 +467,7 @@ namespace OpenMS
 			
 			for ( vector< pair< UInt, UInt > >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i )
 			{
-				ids[pi_scan_i->first].setMetaValue("MZ", experiment[pi_scan_i->second - 1].getPrecursorPeak().getPosition()[0]);
+				ids[pi_scan_i->first].setMetaValue("MZ", experiment[pi_scan_i->second - 1].getPrecursor().getPosition()[0]);
 				ids[pi_scan_i->first].setMetaValue("RT", experiment[pi_scan_i->second - 1].getRT());
 			}
 		}

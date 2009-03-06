@@ -131,7 +131,6 @@ START_SECTION((DSpectrum(const DSpectrum& rhs)))
 	s.setMetaValue("label",5.0);
 	s.push_back(p);
 	s.push_back(p2);
-	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRT(7.0);
 	s.setName("bla");
@@ -140,7 +139,6 @@ START_SECTION((DSpectrum(const DSpectrum& rhs)))
 
 	TEST_REAL_SIMILAR(5.0 , (float)s2.getMetaValue("label"))
 	TEST_EQUAL(2 , s2.size())
-	TEST_REAL_SIMILAR(200.0 , s2.getPrecursorPeak().getIntensity())
 	TEST_REAL_SIMILAR(500.0 , s2.getMin()[0])
 	TEST_REAL_SIMILAR(1300.0 , s2.getMax()[0])
 	TEST_REAL_SIMILAR(0.0 , s2.getMinInt())
@@ -155,7 +153,6 @@ START_SECTION((DSpectrum& operator = (const DSpectrum& rhs)))
 	s.setMetaValue("label",5.0);
 	s.push_back(p);
 	s.push_back(p2);
-	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRT(7.0);
 	s.setName("bla");
@@ -165,7 +162,6 @@ START_SECTION((DSpectrum& operator = (const DSpectrum& rhs)))
 
 	TEST_REAL_SIMILAR(5.0 , (float)s2.getMetaValue("label"))
 	TEST_EQUAL(2 , s2.size())
-	TEST_REAL_SIMILAR(200.0 , s2.getPrecursorPeak().getIntensity())
 	TEST_REAL_SIMILAR(500.0 , s2.getMin()[0])
 	TEST_REAL_SIMILAR(1300.0 , s2.getMax()[0])
 	TEST_REAL_SIMILAR(0.0 , s2.getMinInt())
@@ -191,10 +187,6 @@ START_SECTION((bool operator == (const DSpectrum& rhs) const))
 	edit.push_back(DSpectrum1::ContainerType::value_type());
 	TEST_EQUAL(empty==edit, false);
 
-	edit = empty;
-	edit.getPrecursorPeak().setIntensity(5.5f);
-	TEST_EQUAL(empty==edit, false);
-
 	edit.setRT(5);
 	TEST_EQUAL(empty==edit, false);
 
@@ -204,10 +196,6 @@ START_SECTION((bool operator == (const DSpectrum& rhs) const))
 
 	edit = empty;
 	edit.setMSLevel(5);
-	TEST_EQUAL(empty==edit, false);
-
-	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
 	TEST_EQUAL(empty==edit, false);
 
 	//name is not checked => no change
@@ -237,10 +225,6 @@ START_SECTION((bool operator != (const DSpectrum& rhs) const))
 
 	edit = empty;
 	edit.setMSLevel(5);
-	TEST_EQUAL(empty!=edit, true);
-
-	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
 	TEST_EQUAL(empty!=edit, true);
 
 	edit.setMetaValue("label",String("DSpectrum"));
@@ -322,32 +306,6 @@ END_SECTION
 
 //*************************** Tests for Metadata ****************************************
 
-
-START_SECTION((PrecursorPeakType& getPrecursorPeak()))
-  DSpectrum1 sdi;
-  DSpectrum1::PrecursorPeakType p1;
-  DSpectrum1::PrecursorPeakType p2 = sdi.getPrecursorPeak();
-	TEST_EQUAL(p1==p2,true)
-  sdi.getPrecursorPeak().setPosition(177);
-	p2 = sdi.getPrecursorPeak();
-	TEST_REAL_SIMILAR(p2.getPosition()[0],177.)
-END_SECTION
-
-START_SECTION((const PrecursorPeakType& getPrecursorPeak() const))
-  DSpectrum1 sdi;
-  DSpectrum1::PrecursorPeakType p1;
-  DSpectrum1::PrecursorPeakType const p2= sdi.getPrecursorPeak();
-  TEST_EQUAL(p1==p2,true)
-END_SECTION
-
-START_SECTION((void setPrecursorPeak(const PrecursorPeakType& peak)))
-  DSpectrum1 sdi;
-	DSpectrum1::PrecursorPeakType	p;
-  p.setIntensity(47.11f);
-  sdi.setPrecursorPeak(p);
-  TEST_EQUAL(p==sdi.getPrecursorPeak(),true)
-  TEST_REAL_SIMILAR(sdi.getPrecursorPeak().getIntensity(),47.11)
-END_SECTION
 
 START_SECTION((CoordinateType getRT() const))
   DSpectrum1 sdi;

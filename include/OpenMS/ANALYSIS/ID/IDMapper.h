@@ -106,9 +106,9 @@ namespace OpenMS
 							//std::cout << "RT matching (scan/id) " << experiment_iterator->first << " / " << identifications_iterator->first << std::endl;	
 							
 							// testing whether the m/z fits
-							if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(map[experiment_iterator->second].getPrecursorPeak().getPosition()[0])) < mz_delta_)
+							if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(map[experiment_iterator->second].getPrecursor().getPosition()[0])) < mz_delta_)
 							{
-								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(map[experiment_iterator->second].getPrecursorPeak().getPosition()[0]) << " / " << (DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
+								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(map[experiment_iterator->second].getPrecursor().getPosition()[0]) << " / " << (DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
 								if (!(ids[identifications_iterator->second].empty()))
 								{
 									map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
