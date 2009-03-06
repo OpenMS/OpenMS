@@ -94,9 +94,6 @@
 #cmakedefine OPENMS_HAS_SYS_TIMES_H
 #cmakedefine OPENMS_HAS_SYS_TIME_H
 
-// use ExternalAllocator for MSExperiment as default (usually not recommended due to performance penalty)
-#cmakedefine OPENMS_ENABLE_EXTERNALMEMORY
-
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 

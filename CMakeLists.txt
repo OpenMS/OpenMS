@@ -16,7 +16,6 @@ PROJECT("OpenMS")
 # OPENMS_BUILD_MODE
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
-# OPENMS_ENABLE_EXTERNALMEMORY
 # QT_DB_PLUGIN
 
 ########################################################
@@ -104,7 +103,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 find_package(OpenMP)
 
 if (OPENMP_FOUND)
-	add_definitions(${OpenMP_CXX_FLAGS})
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") ## do NOT use add_definitions() here, because RC.exe on windows will fail
 	if (NOT MSVC)
 		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS})
 	endif()
@@ -240,12 +239,15 @@ OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;g
 
 OPENMS_CHECKLIB(CONTRIB_CGAL "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
 
-# TODO windoes????
-if (NOT MSVC AND USE_ANDIMS)
-	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib")
+if (MSVC AND OPENMP_FOUND)
+	#set(CONTRIB_OPENMP optimized "vcomp.lib" debug "vcompd.lib")
+endif()
 
-	OPENMS_CHECKLIB(CONTRIB_NETCDF_CPP "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF_c++")
-	OPENMS_CHECKLIB(CONTRIB_NETCDF_C "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF")
+if (NOT MSVC AND USE_ANDIMS)
+	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib.a" "ms10lib.a" "ms10lib")
+
+	OPENMS_CHECKLIB(CONTRIB_NETCDF_CPP "libnetcdf_c++.a" "libnetcdf_c++.a" "netCDF_c++")
+	OPENMS_CHECKLIB(CONTRIB_NETCDF_C "libnetcdf.a" "libnetcdf.a" "netCDF")
 	set(CONTRIB_NETCDF ${CONTRIB_NETCDF_CPP} ${CONTRIB_NETCDF_C})
 endif()
 
@@ -412,9 +414,6 @@ CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 
-## user flag
-set(OPENMS_ENABLE_EXTERNALMEMORY OFF CACHE BOOL "User switch to enable external memory support (if you run out of RAM+swap). Warning: performance penalty!")
-
 include(CheckFunctionExists)
 ## in MinGW we have the signal.h header, but no kill() as in Linux, so we need to check for the kill() function
 CHECK_FUNCTION_EXISTS("kill" OPENMS_HAS_KILL)
@@ -494,7 +493,7 @@ endif()
 
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_OPENMP} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
@@ -571,8 +570,9 @@ foreach(i ${TOPP_executables})
   else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
+	
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	if (OPENMP_FOUND AND CMAKE_COMPILER_IS_GNUCXX)
+	if (OPENMP_FOUND AND NOT MSVC)
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
 endforeach(i)
