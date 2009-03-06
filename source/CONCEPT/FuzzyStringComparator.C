@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -30,7 +30,7 @@
 
 namespace OpenMS
 {
-  
+
   FuzzyStringComparator::FuzzyStringComparator()
     :
     log_dest_(&std::cout),
@@ -50,7 +50,7 @@ namespace OpenMS
     letter_2_(0),
     is_number_2_(false),
     is_space_2_(false),
-    is_absdiff_small_(false), 
+    is_absdiff_small_(false),
     line_num_1_(0),
     line_num_2_(0),
     line_num_1_max_(-1),
@@ -68,7 +68,7 @@ namespace OpenMS
 	}
 
   FuzzyStringComparator::~FuzzyStringComparator(){}
-  
+
   void FuzzyStringComparator::reportFailure_( char const * const message ) const
   {
     // We neither want this entire method be non-const nor make
@@ -159,7 +159,7 @@ namespace OpenMS
 						)
 				{
 					*log_dest_ <<
-						prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) << 
+						prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) <<
 						std::setw(3) << std::right << wlcit->second << "x\n";
 				}
 			}
@@ -186,7 +186,7 @@ namespace OpenMS
     {
       throw FuzzyStringComparator::AbortComparison();
     }
- 
+
     return;
   } // reportFailure_()
 
@@ -228,7 +228,7 @@ namespace OpenMS
 							)
 					{
 						*log_dest_ <<
-							prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) << 
+							prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) <<
 							std::setw(3) << std::right << wlcit->second << "x\n";
 					}
 				}
@@ -256,16 +256,16 @@ namespace OpenMS
     }
     return;
   }
-  
+
   Int FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
   {
-		
+
 		for ( StringList::const_iterator slit = whitelist_.begin();
 					slit != whitelist_.end();
 					++slit
 				)
 		{
-			if ( line_str_1.find(*slit)!=std::string::npos && 
+			if ( line_str_1.find(*slit)!=std::string::npos &&
 					 line_str_2.find(*slit)!=std::string::npos
 				 )
 			{
@@ -364,7 +364,7 @@ namespace OpenMS
 						// the case distinction here because we want to record the relative
 						// error even in case of a successful comparison.
 						is_absdiff_small_ = ( absdiff <= absdiff_max_allowed_ );
-					
+
 						if ( !number_1_ )
 						{ // number_1_ is zero
 							if (!number_2_ )
@@ -453,7 +453,14 @@ namespace OpenMS
 							}
 							else
 							{
-								reportFailure_("input_1 is whitespace, but input_2 is not");
+                if ( letter_1_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
+                {
+                  reportFailure_("input_1 is carriage return, but input_2_ is not whitespace");
+                }
+                else
+                {
+                  reportFailure_("input_1 is whitespace, but input_2 is not");
+                }
 								continue;
 							}
 						}
@@ -461,7 +468,14 @@ namespace OpenMS
 						{ // input_1 is not whitespace
 							if ( is_space_2_ )
 							{
-								reportFailure_("input_1 is not whitespace, but input_2 is");
+							  if ( letter_2_ == ASCII__CARRIAGE_RETURN ) // should be 13 == ascii carriage return char
+							  {
+							    reportFailure_("input_1 is not whitespace, but input_2 is carriage return");
+							  }
+							  else
+                {
+							    reportFailure_("input_1 is not whitespace, but input_2 is");
+                }
 								continue;
 							}
 							else
@@ -544,9 +558,9 @@ namespace OpenMS
 			if ( !compareLines_(line_str_1, line_str_2) && verbose_level_ < 3 ) break;
 
     } // while ( input_1 || input_2 )
-		
+
 		reportSuccess_();
-		
+
 		return is_status_success_;
 
   } // compareStrings()
@@ -559,7 +573,7 @@ namespace OpenMS
     while ( input_1 || input_2 )
     {
 
-			// read the next line in both input streams, skipping over 
+			// read the next line in both input streams, skipping over
 			// - empty lines
 			// - lines consisting of whitespace only
 
@@ -585,7 +599,7 @@ namespace OpenMS
     } // while ( input_1 || input_2 )
 
 		reportSuccess_();
-    
+
     return is_status_success_;
 
   } // compareStreams()
@@ -601,7 +615,7 @@ namespace OpenMS
 			*log_dest_ << "Error: first and second input file have the same name.  That's cheating!\n";
 			return 2;
 		}
-    
+
 		std::ifstream  input_1_f;
 		input_1_f.open(input_1_name_.c_str());
 		if ( !input_1_f )
