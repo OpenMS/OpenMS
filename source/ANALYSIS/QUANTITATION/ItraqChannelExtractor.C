@@ -144,7 +144,7 @@ namespace OpenMS
 				{
 					// copying is important, because the peakpicker does not preserve precusor peak information etc
 					MSSpectrum <Peak1D> spectrum_picked(ms_exp_data[idx]);
-					peak_picker.pick(ms_exp_data[idx],spectrum_picked,2);
+					peak_picker.pick(ms_exp_data[idx],spectrum_picked);
 					ms_exp_MS2.push_back(spectrum_picked);
 				}
 			}

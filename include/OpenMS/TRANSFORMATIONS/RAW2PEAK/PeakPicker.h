@@ -65,14 +65,14 @@ namespace OpenMS
 	
 			The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
     */
-    virtual void pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level = 1);
+    virtual void pick(const MSSpectrum<>& /*input*/, MSSpectrum<>& /*output*/);
 		
     /** 
 				@brief Picks the peaks in an MSExperiment.
 			
 				Picks the peaks successively in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment. 
     */
-    virtual void pickExperiment(const MSExperiment<>& input, MSExperiment<>& output);
+    virtual void pickExperiment(const MSExperiment<>& /*input*/, MSExperiment<>& /*output*/);
 
 		
 		static void registerChildren();

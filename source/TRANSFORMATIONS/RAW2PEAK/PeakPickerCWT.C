@@ -933,7 +933,6 @@ namespace OpenMS
 				opt.setParameters(param_.copy("deconvolution:fitting:",true));
 				opt.setCharge(charge);
 				
-				
 #ifdef DEBUG_DECONV
 				std::cout<<"OptimizationType: Levenberg-Marquardt mit "<<peaks_DC.size()
 								 <<"peaks\n";
@@ -1217,7 +1216,7 @@ namespace OpenMS
 #endif
 			// pick the peaks in scan i
 			MSSpectrum<>& new_spectrum = output[i];
-			pick(input[i],new_spectrum,input[i].getMSLevel());
+			pick(input[i],new_spectrum);
 			// if any peaks are found copy the spectrum settings
 			if (new_spectrum.size() > 0)
 			{
@@ -1253,7 +1252,7 @@ namespace OpenMS
 		endProgress();
 	}
 
-	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level)
+	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
 	{
 			/// The continuous wavelet "transformer"
 			ContinuousWaveletTransformNumIntegration wt;
@@ -1338,7 +1337,7 @@ namespace OpenMS
 																wt,
 																area,
 																distance_from_scan_border,
-																ms_level,peak_bound_cwt,peak_bound_ms2_level_cwt,
+																input.getMSLevel(),peak_bound_cwt,peak_bound_ms2_level_cwt,
 																direction))
 			{
 				// if the signal to noise ratio at the max position is too small
@@ -1574,7 +1573,7 @@ namespace OpenMS
 		} // if (peak_shapes.size() > 0)
 		
 		// set MS level of output container to match the input container
-		output.setMSLevel(ms_level);
+		output.setMSLevel(input.getMSLevel());
 		
 	}
 	

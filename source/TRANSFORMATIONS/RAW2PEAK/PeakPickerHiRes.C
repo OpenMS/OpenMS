@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 	
-	void PeakPickerHiRes::pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level)
+	void PeakPickerHiRes::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
 	{
 	}
 	

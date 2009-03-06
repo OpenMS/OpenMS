@@ -53,7 +53,7 @@ END_SECTION
 MzDataFile mz_data_file;
 MSExperiment<Peak1D > exp_raw;
 mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT.mzData"),exp_raw);
-START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput, int ms_level = 1)))
+START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput)))
   MSSpectrum<> peaks;
   PeakPickerCWT pp;
     

@@ -85,9 +85,8 @@ namespace OpenMS
 	        
 			Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
 	
-			The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
     */
-    void pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level = 1);
+    void pick(const MSSpectrum<>& input, MSSpectrum<>& output);
 
     /** 
 

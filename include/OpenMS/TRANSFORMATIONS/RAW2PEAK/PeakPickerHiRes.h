@@ -57,7 +57,7 @@ namespace OpenMS
     /** 
 				@brief pick
     */
-    void pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level = 1);
+    void pick(const MSSpectrum<>& input, MSSpectrum<>& output);
 
 		
     /** 

@@ -50,12 +50,12 @@ namespace OpenMS
 	{
 	}
 	
-	void PeakPicker::pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level)
+	void PeakPicker::pick(const MSSpectrum<>& /*input*/, MSSpectrum<>& /*output*/)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
 	}
 
-	void PeakPicker::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
+	void PeakPicker::pickExperiment(const MSExperiment<>& /*input*/, MSExperiment<>& /*output*/)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
 	}
