@@ -136,7 +136,7 @@ namespace OpenMS
 							penalty += penalty_rwidth *peaks.size()*10000*pow(fabs(p_width_r - old_width_r),2);
 						}
 					else if (p_width_r < 1.5 ) penalty += 10000*pow(fabs(p_width_r - old_width_r),2);
-					if(fabs(old_position - p_position) > 0.5)
+					if(fabs(old_position - p_position) > 0.1)
 						{
 							penalty += 10000*penalty_pos*pow(fabs(old_position - p_position),2);
 						}
@@ -290,7 +290,7 @@ namespace OpenMS
 							penalty_r += peaks.size()*2*penalties.rWidth*10000*(fabs(p_width_right - old_width_right));
 						}
 					else if (p_width_right < 1.5 ) penalty_r += 2*penalties.rWidth*10000*pow(fabs(p_width_right - old_width_right),2);
-					if(fabs(old_position - p_position) > 0.5)
+					if(fabs(old_position - p_position) > 0.1)
 						{
 							penalty_p += 10000*penalties.pos*2*fabs(old_position - p_position);
 						}
@@ -353,7 +353,7 @@ namespace OpenMS
 	
 	}
 
-bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int failure, Data& data)
+bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks,  Data& data)
 	{
       
 		if (peaks.size() == 0)	return true;
@@ -474,7 +474,7 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int fail
 																					std::max(data.positions.size()+1,
 																									 2+2*data.peaks.size()),
 																					2+2*data.peaks.size());
-	  
+				
 
 
 	  
@@ -501,13 +501,29 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int fail
 						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
 						if (isnan(gsl_blas_dnrm2(fit->dx)))
+						{
+#ifdef DEBUG_DECONV
+								std::cout << "norm is not a number" << std::endl;
+#endif
 							break;
-				
+						}
 						status = gsl_multifit_test_delta(fit->dx, fit->x,(float)param_.getValue("eps_abs"),
 																						 (float)param_.getValue("eps_rel"));
+			
 						if (status != GSL_CONTINUE)
-							break;
-						if(!checkFWHM_(peaks,fit) && failure <1) return false;
+						{
+#ifdef DEBUG_DECONV
+								std::cout << "gsl status != GSL_CONTINUE"<<std::endl;
+#endif
+								break;
+						}
+				// 		if(!checkFWHM_(peaks,fit) && failure <1) 
+// 						{
+// #ifdef DEBUG_DECONV
+// 								std::cout << "fwhm differ"<<std::endl;
+// #endif
+// 								return false;
+// 						}
 					}
 				while (status == GSL_CONTINUE && iteration < (Int)param_.getValue("max_iteration"));
 
@@ -608,7 +624,9 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Int fail
 				p.left_width  = gsl_vector_get(fit->x, 0);
 				p.right_width = gsl_vector_get(fit->x, 1);
 				p.type        = peaks[current_peak].type;
-
+#ifdef DEBUG_DECONV
+				std::cout << "fwhm: "<<p.getFWHM() << " > "<<fwhm_threshold <<" ?"<< std::endl;
+#endif
 				if(p.getFWHM() > fwhm_threshold) return false;
       }
     

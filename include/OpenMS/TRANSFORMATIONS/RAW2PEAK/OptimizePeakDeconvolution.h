@@ -167,7 +167,7 @@ namespace OpenMS
 
 
     /// Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
-    bool optimize(std::vector<PeakShape>& peaks,Int failure, Data& data);
+    bool optimize(std::vector<PeakShape>& peaks,Data& data);
 
   protected:
     // Penalty factors for some parameter in the optimization

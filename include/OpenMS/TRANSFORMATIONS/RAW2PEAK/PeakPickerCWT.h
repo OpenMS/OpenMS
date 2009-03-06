@@ -36,9 +36,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 
-#define DEBUG_PEAK_PICKING
+//#define DEBUG_PEAK_PICKING
 #undef DEBUG_PEAK_PICKING
-//#undef DEBUG_DECONV
+//#define DEBUG_DECONV
 namespace OpenMS
 {
   /**

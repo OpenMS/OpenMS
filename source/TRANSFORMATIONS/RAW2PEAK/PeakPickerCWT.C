@@ -51,27 +51,28 @@ namespace OpenMS
   {
 		setName("PeakPickerCWT");
 		
-		defaults_.setValue("thresholds:signal_to_noise",1.0,"Minimal signal to noise ratio for a peak to be picked.");
-		defaults_.setMinFloat("thresholds:signal_to_noise",0.0);
-		defaults_.setValue("thresholds:peak_bound",10.0,"Minimal peak intensity.");
+		defaults_.setValue("signal_to_noise",1.0,"Minimal signal to noise ratio for a peak to be picked.");
+		defaults_.setMinFloat("signal_to_noise",0.0);
+		defaults_.setValue("thresholds:peak_bound",10.0,"Minimal peak intensity.",StringList::create("advanced"));
 		defaults_.setMinFloat("thresholds:peak_bound",0.0);
-  	defaults_.setValue("thresholds:peak_bound_ms2_level",10.0,"Minimal peak intensity for MS/MS peaks.");
+  	defaults_.setValue("thresholds:peak_bound_ms2_level",10.0,"Minimal peak intensity for MS/MS peaks.",StringList::create("advanced"));
 		defaults_.setMinFloat("thresholds:peak_bound_ms2_level",0.0);
-  	defaults_.setValue("thresholds:fwhm_bound",0.2,"Minimal peak width");
-		defaults_.setMinFloat("thresholds:fwhm_bound",0.0);
 		
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
   	defaults_.setValue("centroid_percentage",0.8,"Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. "\
-											 "If it is 1 the centroid position corresponds to the position of the highest intensity.");
+											 "If it is 1 the centroid position corresponds to the position of the highest intensity.",StringList::create("advanced"));
 		defaults_.setMinFloat("centroid_percentage",0.0);
 		defaults_.setMaxFloat("centroid_percentage",1.0);
   	defaults_.setValue("thresholds:correlation",0.5,"minimal correlation of a peak and the raw signal. "\
 											 "If a peak has a lower correlation it is skipped.", StringList::create("advanced"));
 		defaults_.setMinFloat("thresholds:correlation",0.0);
 		defaults_.setMaxFloat("thresholds:correlation",1.0);
-  	defaults_.setValue("wavelet_transform:scale",0.15,"Width of the used wavelet. "	\
-											 "Should correspond approx. to the fwhm of the peaks.");
-		defaults_.setMinFloat("wavelet_transform:scale",0.0);
+  	defaults_.setValue("peak_width",0.15,"Approximate fwhm of the peaks.");
+		defaults_.setMinFloat("peak_width",0.0);
+  	defaults_.setValue("fwhm_bound_factor",0.7,"Factor that calculates the minimal fwhm value from the peak_width.",StringList::create("advanced"));
+		defaults_.setMinFloat("fwhm_bound_factor",0.0);
+
+
   	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.", StringList::create("advanced"));
 		defaults_.setMinFloat("wavelet_transform:spacing",0.0);
   	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.", StringList::create("advanced"));
@@ -148,9 +149,16 @@ namespace OpenMS
 
 		//this->subsections_.push_back("SignalToNoiseEstimationParameter");
 		SignalToNoiseEstimatorMeanIterative< MSSpectrum<> > sne; // make sure this is the same as in pick()!
-		this->defaults_.insert ("SignalToNoiseEstimationParameter:", sne.getDefaults());
+		Param param_sne_defaults =	sne.getDefaults();
+		Param::ParamIterator param_it = param_sne_defaults.begin();
+		for(;param_it!=param_sne_defaults.end();++param_it)
+		{
+				if(!param_sne_defaults.hasTag(param_it.getName(),"advanced")) param_sne_defaults.addTag(param_it.getName(),"advanced");
+		}
+		this->defaults_.insert ("SignalToNoiseEstimationParameter:", param_sne_defaults);
 		
 		defaultsToParam_();
+		updateMembers_();
   }
 
   PeakPickerCWT::~PeakPickerCWT()
@@ -159,10 +167,11 @@ namespace OpenMS
 
   void PeakPickerCWT::updateMembers_()
   {
-		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
+		signal_to_noise_ = (float)param_.getValue("signal_to_noise");
 		peak_bound_ = (float)param_.getValue("thresholds:peak_bound");
 		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
-    fwhm_bound_ = (float)param_.getValue("thresholds:fwhm_bound");
+    scale_ = (float)param_.getValue("peak_width");
+    fwhm_bound_ = (float)param_.getValue("fwhm_bound_factor") * scale_;
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
     String opt = param_.getValue("optimization").toString();
     if (opt=="one_dimensional")
@@ -181,10 +190,9 @@ namespace OpenMS
 			two_d_optimization_ = false;
 		}
 
-    scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
     radius_ = (Int)param_.getValue("thresholds:search_radius");
-		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
+		signal_to_noise_ = (float)param_.getValue("signal_to_noise");
 
 		deconvolution_ = param_.getValue("deconvolution:deconvolution").toBool();
 	}
@@ -925,7 +933,6 @@ namespace OpenMS
 				opt.setParameters(param_.copy("deconvolution:fitting:",true));
 				opt.setCharge(charge);
 				
-				Int runs=0;
 				
 #ifdef DEBUG_DECONV
 				std::cout<<"OptimizationType: Levenberg-Marquardt mit "<<peaks_DC.size()
@@ -933,7 +940,7 @@ namespace OpenMS
 #endif
 						
 				
-				opt.optimize(peaks_DC,runs,data);
+				opt.optimize(peaks_DC,data);
 				for(Int i=0;i < peaks;++i)
 					{
 						if (i < (peaks-1))
@@ -1197,8 +1204,6 @@ namespace OpenMS
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
 		output.resize(input.size());
-
-		//TODO add OpenMP here
 
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");

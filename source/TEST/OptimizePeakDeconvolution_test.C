@@ -94,7 +94,7 @@ START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
 END_SECTION
 
 
-START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
+START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Data& data)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;
@@ -122,7 +122,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
 
  	OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
-opt_deconv.optimize(peak_shapes,1,data);
+opt_deconv.optimize(peak_shapes,data);
  	TEST_REAL_SIMILAR(peak_shape.mz_position,500)
  	TEST_REAL_SIMILAR(peak_shape.left_width,2.5)
  	TEST_REAL_SIMILAR(peak_shape.right_width,2.5)
