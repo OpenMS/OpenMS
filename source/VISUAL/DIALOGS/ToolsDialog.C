@@ -45,6 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 
 using namespace std;
 
@@ -234,7 +235,7 @@ namespace OpenMS
 		}
 
 		String tool = getTool();
-		if (tool!="NoiseFilter" && tool!="FeatureFinder" && tool!="SpectraFilter" && tool!="FeatureLinker")
+		if (tool!="NoiseFilter" && tool!="FeatureFinder" && tool!="SpectraFilter" && tool!="FeatureLinker" && tool!="PeakPicker")
 		{
 			setType_(-1);
 		}
@@ -287,6 +288,14 @@ namespace OpenMS
 		else if (tool=="FeatureLinker")
 		{
 			std::vector<String> list2 = Factory<FeatureGroupingAlgorithm>::registeredProducts();
+			for (Size i=0; i<list2.size(); ++i)
+			{
+				list << list2[i].toQString();			
+			}
+		}
+		else if (tool=="PeakPicker")
+		{
+			std::vector<String> list2 = Factory<PeakPicker>::registeredProducts();
 			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();			

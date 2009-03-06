@@ -27,6 +27,12 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_statistics.h>
+
 #include <vector>
 
 using namespace std;
@@ -48,12 +54,10 @@ namespace OpenMS
 	
 	void PeakPickerHiRes::pick(const MSSpectrum<>& input, MSSpectrum<>& output, Int ms_level)
 	{
-				
 	}
 	
 	void PeakPickerHiRes::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
 	{
-
 	}
 
 	void PeakPickerHiRes::updateMembers_()
