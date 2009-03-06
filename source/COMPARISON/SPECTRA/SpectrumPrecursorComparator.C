@@ -69,12 +69,12 @@ namespace OpenMS
     double score = 0;
     double window = (double)param_.getValue("window");
     
-    if (fabs (x.getPrecursor().getPosition()[0] - y.getPrecursor().getPosition()[0]) > window) 
+    if (fabs (x.getPrecursor().getMZ() - y.getPrecursor().getMZ()) > window) 
 		{
 			return 0;
 		}
     
-		score = window - fabs(x.getPrecursor().getPosition()[0] - y.getPrecursor().getPosition()[0]);
+		score = window - fabs(x.getPrecursor().getMZ() - y.getPrecursor().getMZ());
     return score;
   }
 

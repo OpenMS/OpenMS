@@ -248,7 +248,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	// second spectrum (MS/MS)
 	spec.clear();
 	spec.setRT(11.5);
-	spec.getPrecursor().getPosition()[0] = 11.4;
+	spec.getPrecursor().setMZ(11.4);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
 	spec.push_back(peak);
@@ -269,7 +269,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	// forth spectrum (MS/MS)
 	spec.clear();
 	spec.setRT(12.5);
-	spec.getPrecursor().getPosition()[0] = 21.4;
+	spec.getPrecursor().setMZ(21.4);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;
 	spec.push_back(peak);
@@ -292,7 +292,7 @@ START_SECTION(template <typename MapType> void load(const String &filename, MapT
 	infile.load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), experiment);
 	spectrum = experiment[0];
 	TEST_REAL_SIMILAR(spectrum.getRT(), 25.379)
-	TEST_REAL_SIMILAR(spectrum.getPrecursor().getPosition()[0], 1998) 
+	TEST_REAL_SIMILAR(spectrum.getPrecursor().getMZ(), 1998) 
 	TEST_EQUAL(spectrum.getMetaValue("TITLE"), "Testtitle");
 
 	TEST_REAL_SIMILAR(spectrum[0].getIntensity(), 1)

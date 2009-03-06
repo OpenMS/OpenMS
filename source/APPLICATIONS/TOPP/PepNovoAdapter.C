@@ -183,7 +183,7 @@ class TOPPPepNovoAdapter
 						{
 							filename = common_name + "." + String(scan_number) + "." + *i + ".dta";
 							// for PepNovo the precursor mass may not be less than the highest peak mass
-							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursor().getPosition()[0] - 1.0) * (*i) +1.0) )
+							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursor().getMZ() - 1.0) * (*i) +1.0) )
 							{
 								if ( make_dtas )
 								{

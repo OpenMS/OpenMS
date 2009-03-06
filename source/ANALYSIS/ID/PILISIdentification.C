@@ -194,7 +194,7 @@ namespace OpenMS
 		scorer_param.setValue("epsilon",(DoubleReal)param_.getValue("peak_mass_tolerance"));
 		scorer_->setParameters(scorer_param);
 	
-		double pre_pos = spec_copy.getPrecursor().getPosition()[0];
+		double pre_pos = spec_copy.getPrecursor().getMZ();
 
     if (pre_pos < 200) // TODO
     {

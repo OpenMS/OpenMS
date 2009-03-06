@@ -74,7 +74,7 @@ namespace OpenMS
 		
 		// shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
 	  	const Real delta = (Real)param_.getValue("precursor_mass_tolerance");
-	  	if(fabs(spec1.getPrecursor().getPosition()[0]-spec2.getPrecursor().getPosition()[0])>delta)
+	  	if(fabs(spec1.getPrecursor().getMZ()-spec2.getPrecursor().getMZ())>delta)
 	  	{
 	  		return 0;
 	  	}

@@ -180,7 +180,7 @@ class TOPPPILISIdentification
 			vector<double> pre_weights;
 			for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				double pre_weight(it->getPrecursor().getPosition()[0]);
+				double pre_weight(it->getPrecursor().getMZ());
 				for (Size z = min_charge; z <= max_charge; ++z)
 				{
 					pre_weights.push_back((pre_weight * (double)z) - (double)z);
@@ -238,7 +238,7 @@ class TOPPPILISIdentification
 				
 					for (Size z = min_charge; z <= max_charge; ++z)
 					{
-						double pre_weight = (it->getPrecursor().getPosition()[0]* (double)z) - (double)z;
+						double pre_weight = (it->getPrecursor().getMZ()* (double)z) - (double)z;
 						for (vector<pair<pair<String, String>, String> >::const_iterator cit = sorted_candidates[pre_weight].begin(); cit != sorted_candidates[pre_weight].end(); ++cit)
 						{
 							String seq = cit->first.second;
@@ -271,13 +271,13 @@ class TOPPPILISIdentification
 					PILIS_id.getIdentification(cand, id, *it);
 		
 					id.setMetaValue("RT", it->getRT());
-					id.setMetaValue("MZ", it->getPrecursor().getPosition()[0]);
+					id.setMetaValue("MZ", it->getPrecursor().getMZ());
 
 					ids.push_back(id);
 
 					if (id.getHits().size() != 0)
 					{
-						cerr << it->getPrecursor().getPosition()[0] << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
+						cerr << it->getPrecursor().getMZ() << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
 						writeDebug_(id.getHits().begin()->getSequence().toString() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);
 					}
 				}
@@ -330,7 +330,7 @@ class TOPPPILISIdentification
 				if (it->getMSLevel() == 2)
 				{
 					ids[count].setMetaValue("RT", it->getRT());
-					ids[count].setMetaValue("MZ", it->getPrecursor().getPosition()[0]);
+					ids[count].setMetaValue("MZ", it->getPrecursor().getMZ());
 
 					ids[count].setIdentifier(identifier);
 					ids[count++].setHigherScoreBetter(false);

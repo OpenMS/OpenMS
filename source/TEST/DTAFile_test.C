@@ -61,7 +61,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s);
 	
 	TEST_EQUAL(s.size(), 25);
-	TEST_REAL_SIMILAR(s.getPrecursor().getPosition()[0], 582.40666)
+	TEST_REAL_SIMILAR(s.getPrecursor().getMZ(), 582.40666)
 	TEST_EQUAL(s.getPrecursor().getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
@@ -174,7 +174,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s2);
 	
 	TEST_EQUAL(s2.size(), 25);
-	TEST_REAL_SIMILAR(s2.getPrecursor().getPosition()[0], 582.4066)
+	TEST_REAL_SIMILAR(s2.getPrecursor().getMZ(), 582.4066)
 	TEST_EQUAL(s2.getPrecursor().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
@@ -289,7 +289,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	MSSpectrum<> spec, spec2;
 	MSSpectrum<>::PeakType peak;
 	
-	spec.getPrecursor().getPosition()[0] = 582.40666;
+	spec.getPrecursor().setMZ(582.40666);
 	spec.getPrecursor().setCharge(3);
 	
 	peak.getPosition()[0] = 11.4;
@@ -309,7 +309,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	//load file
 	dta.load(filename,spec2);
 
-	TEST_REAL_SIMILAR(spec.getPrecursor().getPosition()[0],582.40666)
+	TEST_REAL_SIMILAR(spec.getPrecursor().getMZ(),582.40666)
 	TEST_EQUAL(spec.getPrecursor().getCharge(),3)
 	
 	ABORT_IF(spec2.size() != 3)

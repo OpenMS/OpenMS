@@ -81,7 +81,7 @@ namespace OpenMS
 			}
 
     	//get precursor peak position precursorpeak
-    	double pre_pos = spectrum.getPrecursor().getPosition()[0];
+    	double pre_pos = spectrum.getPrecursor().getMZ();
 		
 			if (pre_pos == 0)
 			{

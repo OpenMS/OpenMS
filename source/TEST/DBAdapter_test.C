@@ -367,7 +367,7 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
-		spec.getPrecursor().getPosition()[0] = 600.1;
+		spec.getPrecursor().setMZ(600.1);
 		spec.getPrecursor().setIntensity(4711.0f);
 		spec.getPrecursor().setCharge(2);
 		spec.getPrecursor().setMetaValue("icon",String("Precursor"));
@@ -649,7 +649,7 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursor().getPosition()[0] , ito->getPrecursor().getPosition()[0] )
+			TEST_EQUAL( itn->getPrecursor().getMZ() , ito->getPrecursor().getMZ() )
 			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
 			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
@@ -782,7 +782,7 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursor().getPosition()[0] , ito->getPrecursor().getPosition()[0] )
+			TEST_EQUAL( itn->getPrecursor().getMZ() , ito->getPrecursor().getMZ() )
 			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
 			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )

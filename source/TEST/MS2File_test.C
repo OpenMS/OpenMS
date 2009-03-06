@@ -74,8 +74,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
 
-	TEST_REAL_SIMILAR(exp[0].getPrecursor().getPosition()[0], 444.44)
-	TEST_REAL_SIMILAR(exp[1].getPrecursor().getPosition()[0], 555.555)
+	TEST_REAL_SIMILAR(exp[0].getPrecursor().getMZ(), 444.44)
+	TEST_REAL_SIMILAR(exp[1].getPrecursor().getMZ(), 555.555)
 
 END_SECTION
 

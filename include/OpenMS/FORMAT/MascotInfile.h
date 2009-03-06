@@ -93,7 +93,7 @@ namespace OpenMS
 						spectrum.push_back(p);
 					}
 					spectrum.setMSLevel(2);
-					spectrum.getPrecursor().setPosition(pre_mz);
+					spectrum.getPrecursor().setMZ(pre_mz);
 					spectrum.getPrecursor().setIntensity(pre_int);
 					spectrum.getPrecursor().setCharge(charge);
 					spectrum.setRT(rt);

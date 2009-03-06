@@ -1402,7 +1402,7 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000040") //m/z
 				{
-					spec_.getPrecursor().getPosition()[0] = asDouble_(value);			
+					spec_.getPrecursor().setMZ(asDouble_(value));			
 				}
 				else if (accession=="PSI:1000041") //Charge
 				{

@@ -105,11 +105,11 @@ namespace OpenMS
 					Int charge = strings[1].toInt();
 					if (charge != 0)
 					{
-						spectrum.getPrecursor().setPosition( (mh_mass - 1.0) / charge + 1.0);
+						spectrum.getPrecursor().setMZ( (mh_mass - 1.0) / charge + 1.0);
 					}
 					else
 					{
-						spectrum.getPrecursor().setPosition( mh_mass );
+						spectrum.getPrecursor().setMZ( mh_mass );
 					}
 					spectrum.getPrecursor().setCharge(charge);
 				}
@@ -177,12 +177,12 @@ namespace OpenMS
 				if (spectrum.getPrecursor().getCharge()==0)
 				{
 					//unknown charge
-					os << spectrum.getPrecursor().getPosition()[0];
+					os << spectrum.getPrecursor().getMZ();
 				}
 				else
 				{
 					//known charge
-					os << ((spectrum.getPrecursor().getPosition()[0] - 1.0) * spectrum.getPrecursor().getCharge() +1.0);
+					os << ((spectrum.getPrecursor().getMZ() - 1.0) * spectrum.getPrecursor().getCharge() +1.0);
 				}
 				 
 				//charge

@@ -1061,7 +1061,7 @@ namespace OpenMS
 			{
 				if (accession=="MS:1000744") //selected ion m/z
 				{
-					spec_.getPrecursor().getPosition()[0] = value.toDouble();
+					spec_.getPrecursor().setMZ(value.toDouble());
 				}
 				else if (accession=="MS:1000041") //charge state
 				{

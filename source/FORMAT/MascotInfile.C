@@ -301,7 +301,7 @@ namespace OpenMS
 			MSSpectrum<> peaks = experiment[i];
 			peaks.sortByPosition();
 			precursor_peak = experiment[i].getPrecursor();
-			precursor_position = experiment[i].getPrecursor().getPosition()[0];
+			precursor_position = experiment[i].getPrecursor().getMZ();
 		
 			if (experiment[i].getMSLevel() == 0)
 			{

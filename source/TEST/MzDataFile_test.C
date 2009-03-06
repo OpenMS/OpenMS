@@ -149,7 +149,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("Comment"),"Peak shape")
 
-	TEST_EQUAL(e[1].getPrecursor().getPosition()[0], 1.2)
+	TEST_EQUAL(e[1].getPrecursor().getMZ(), 1.2)
 	TEST_EQUAL(e[1].getPrecursor().getCharge(), 2)
 	TEST_EQUAL(e[1].getPrecursor().getIntensity(), 2.3f)
 	TEST_EQUAL(e[1].getPrecursor().getMetaValue("#IntensityUnits"),

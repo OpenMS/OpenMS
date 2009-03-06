@@ -76,7 +76,7 @@ namespace OpenMS
 		{
 			double bands = 10;
     	std::multimap<double, Size> band_intensity;
-    	double size = spectrum.getPrecursor().getPosition()[0];
+    	double size = spectrum.getPrecursor().getMZ();
     	Size j = 0;
     	for (Size i = 0; i < bands; ++i)
     	{

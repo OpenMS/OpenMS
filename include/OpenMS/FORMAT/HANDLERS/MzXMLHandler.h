@@ -739,7 +739,7 @@ namespace OpenMS
 			}
 			else if (	open_tags_.back()=="precursorMz")
 			{
-				exp_->back().getPrecursor().getPosition()[0] = asDouble_(transcoded_chars);
+				exp_->back().getPrecursor().setMZ(asDouble_(transcoded_chars));
 			}
 			else if (	open_tags_.back()=="comment")
 			{

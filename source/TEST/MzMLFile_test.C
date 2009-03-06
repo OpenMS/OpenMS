@@ -241,7 +241,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//precursor
 		TEST_REAL_SIMILAR(spec.getPrecursor().getIntensity(),120053)
 		TEST_EQUAL(spec.getPrecursor().getCharge(),2)
-		TEST_REAL_SIMILAR(spec.getPrecursor().getPosition()[0],5.55)
+		TEST_REAL_SIMILAR(spec.getPrecursor().getMZ(),5.55)
 		TEST_EQUAL(spec.getPrecursor().getActivationMethod(),Precursor::CID)
 		TEST_REAL_SIMILAR(spec.getPrecursor().getActivationEnergy(),35)
 		TEST_EQUAL(spec.getPrecursor().getPossibleChargeStates().size(),3)

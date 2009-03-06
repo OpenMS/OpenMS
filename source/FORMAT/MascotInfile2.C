@@ -228,7 +228,7 @@ namespace OpenMS
 	
 	void MascotInfile2::writeSpectrum_(ostream& os,	const PeakSpectrum& spec)
 	{
-		double mz(spec.getPrecursor().getPosition()[0]), rt(spec.getRT());
+		double mz(spec.getPrecursor().getMZ()), rt(spec.getRT());
 		int charge(spec.getPrecursor().getCharge());
 
 		if (mz == 0)
