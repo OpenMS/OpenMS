@@ -1203,11 +1203,9 @@ namespace OpenMS
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
 #ifdef _OPENMP
-		std::cout<<"hallo openmp"<<std::endl;
 #pragma omp parallel for
-		
 #endif
-		for (Size i = 0; i < input.size(); ++i)
+		for (SignedSize i = 0; i < (SignedSize)input.size(); ++i)
 		{
 #ifdef DEBUG_PEAK_PICKING
 			std::cout << "PeakPicker: Picking Scan " << input[i].getRT()<< std::endl;
