@@ -196,10 +196,10 @@ namespace OpenMS
 				fitter.setInitialParameters(result);
 				result = fitter.fit(points);
 				cout << "estimated optimal RT distance: " << result.x0 << endl;
-				cout << "estimated allowed deviation: " << result.sigma*3.0 << endl;
+				cout << "estimated allowed deviation: " << fabs(result.sigma)*3.0 << endl;
 				rt_pair_dist = result.x0;
-				rt_dev_low = result.sigma*3.0;
-				rt_dev_high = result.sigma*3.0;
+				rt_dev_low = fabs(result.sigma)*3.0;
+				rt_dev_high = fabs(result.sigma)*3.0;
 			}
 		}
 
