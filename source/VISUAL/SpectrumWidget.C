@@ -301,7 +301,7 @@ namespace OpenMS
 	{
 		if (event->mimeData()->hasUrls())
 		{
-			event->accept();
+			event->acceptProposedAction();
 		}
 	}
 	
@@ -309,14 +309,14 @@ namespace OpenMS
 	{
 		if (event->mimeData()->hasUrls())
 		{
-			event->accept();
+			event->acceptProposedAction();
 		}
 	}
 	
 	void SpectrumWidget::dropEvent(QDropEvent* event)
 	{
 		emit dropReceived(event->mimeData(), event->source(), window_id);
-		event->accept();
+		event->acceptProposedAction();
 	}
 
 } //namespace OpenMS

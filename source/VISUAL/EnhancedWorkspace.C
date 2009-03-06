@@ -30,6 +30,8 @@
 #include <QtGui/QDragMoveEvent>
 #include <QtGui/QDropEvent>
 
+#include <QtCore/QStringList>
+
 namespace OpenMS
 {	
 	
@@ -45,9 +47,17 @@ namespace OpenMS
 	
 	void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent* event)
 	{
+		/////
+		QStringList f = event->mimeData()->formats();
+		for (QStringList::iterator it = f.begin(); it != f.end(); ++it)
+		{
+			std::cout << it->toLatin1().data() << std::endl;
+		}
+		/////
+		
 		if (event->mimeData()->hasUrls())
 		{
-			event->accept();
+			event->acceptProposedAction();
 		}
 	}
 	
@@ -55,14 +65,14 @@ namespace OpenMS
 	{
 		if (event->mimeData()->hasUrls())
 		{
-			event->accept();
+			event->acceptProposedAction();
 		}
 	}
 	
 	void EnhancedWorkspace::dropEvent(QDropEvent* event)
 	{
 		emit dropReceived(event->mimeData(), event->source(), -1);
-		event->accept();
+		event->acceptProposedAction();
 	}
 	
 } //namespace
