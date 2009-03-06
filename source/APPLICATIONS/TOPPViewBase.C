@@ -397,9 +397,9 @@ namespace OpenMS
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
 
     //spectrum selection
-    QDockWidget* spectrum_bar = new QDockWidget("Spectra", this);
-    addDockWidget(Qt::RightDockWidgetArea, spectrum_bar);
-    spectrum_selection_ = new QTreeWidget(spectrum_bar);
+    spectrum_bar_ = new QDockWidget("Spectra", this);
+    addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);
+    spectrum_selection_ = new QTreeWidget(spectrum_bar_);
     spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
     spectrum_selection_->setColumnCount(3);
   	QStringList header_labels;
@@ -407,11 +407,11 @@ namespace OpenMS
   	header_labels.append(QString("RT"));
   	header_labels.append(QString("m/z"));
   	spectrum_selection_->setHeaderLabels(header_labels);
-    spectrum_bar->setWidget(spectrum_selection_);
+    spectrum_bar_->setWidget(spectrum_selection_);
     spectrum_selection_->setDragEnabled(true);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
-    windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
+    windows->addAction("&Show spectrum selection window",this,SLOT(showSpectrumBrowser()));
 
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
@@ -1310,6 +1310,13 @@ namespace OpenMS
 
   void TOPPViewBase::updateSpectrumBar()
   {
+  	if (!spectrum_selection_->isVisible())
+  	{
+  		return;
+  	}
+  	
+  	spectrum_selection_->blockSignals(true);
+  	
   	spectrum_selection_->clear();
   	
   	SpectrumCanvas* cc = activeCanvas_();
@@ -1319,7 +1326,6 @@ namespace OpenMS
   		return;
   	}
 
-  	spectrum_selection_->blockSignals(true);
   	const LayerData& cl = cc->getCurrentLayer();
   	QTreeWidgetItem* item = 0;
   	QTreeWidgetItem* selected_item = 0;
@@ -2915,6 +2921,12 @@ namespace OpenMS
 		{
 			current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
 		}
+	}
+	
+	void TOPPViewBase::showSpectrumBrowser()
+	{
+		spectrum_bar_->show();
+		updateSpectrumBar();
 	}
 
 } //namespace OpenMS

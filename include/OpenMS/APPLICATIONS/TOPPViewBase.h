@@ -241,6 +241,8 @@ namespace OpenMS
 			void rerunTOPPTool();
     	/// enabled/disabled menu entries depending on the current state
     	void updateMenu();
+    	/// shows the spectrum browser and updates it
+    	void showSpectrumBrowser();
       //@}
       
       /** @name Tabbar slots
@@ -315,6 +317,8 @@ namespace OpenMS
 
 			/// Spectrum selection widget
       QTreeWidget* spectrum_selection_;
+      /// Spectrum dock widget
+      QDockWidget* spectrum_bar_;
 
       ///@name Data filter widgets
       //@{
