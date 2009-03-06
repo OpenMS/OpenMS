@@ -34,17 +34,10 @@
 #include <OpenMS/FORMAT/PersistentObject.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
-#include <OpenMS/SYSTEM/ExternalAllocator.h>
 
 #include <vector>
 #include <algorithm>
 #include <limits>
-
-#ifdef OPENMS_ENABLE_EXTERNALMEMORY
-	#define OPENMS_DEFAULT_ALLOC ExternalAllocator<PeakT>
-#else
-	#define OPENMS_DEFAULT_ALLOC std::allocator<PeakT>
-#endif
 
 namespace OpenMS
 {
@@ -63,16 +56,16 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <typename PeakT = Peak1D, typename AllocT = OPENMS_DEFAULT_ALLOC >
+	template <typename PeakT = Peak1D>
 	class MSExperiment
-		:	public std::vector<MSSpectrum<PeakT, AllocT> >,
+		:	public std::vector<MSSpectrum<PeakT> >,
 			public RangeManager<2>,
 			public ExperimentalSettings,
 			public PersistentObject
 	{
 		public:
 			/// Spectrum Type
-			typedef MSSpectrum<PeakT, AllocT> SpectrumType;
+			typedef MSSpectrum<PeakT> SpectrumType;
 			/// STL base class type
 			typedef std::vector<SpectrumType> Base;
 			/// Mutable iterator
@@ -108,21 +101,10 @@ namespace OpenMS
 				ExperimentalSettings(),
 				PersistentObject(),
 				ms_levels_(),
-				total_size_(0),
-        alloc_()
+				total_size_(0)
 			{
 			}
 
-			MSExperiment(const AllocT& alloc) :
-			 	Base(),
-				RangeManagerType(),
-				ExperimentalSettings(),
-				PersistentObject(),
-				ms_levels_(),
-				total_size_(0),
-        alloc_(alloc)
-			{
-			}      
       
       /* allow templated ctors to access private members */
       //template < typename Ua, typename Ub > friend class MSExperiment;
@@ -130,13 +112,12 @@ namespace OpenMS
 			/// Copy constructor
       //template <class U2>
 			MSExperiment(const MSExperiment& source) :
-				std::vector<MSSpectrum<PeakT, AllocT> >(source),
+				std::vector<MSSpectrum<PeakT> >(source),
 				RangeManagerType(source),
 				ExperimentalSettings(source),
 				PersistentObject(source),
 				ms_levels_(source.ms_levels_),
-				total_size_(source.total_size_),
-        alloc_(source.alloc_) //keep the same alloc (and externalFile)
+				total_size_(source.total_size_)
 			{
 			}
 
@@ -160,33 +141,6 @@ namespace OpenMS
 				return *this;
 			}
 
-			// overridden base class members
-      
-      void push_back(const SpectrumType& spec)
-      {
-        push_back<>(spec);      
-      }
-      
-      /* see std::vector documentation */
-      // we will copy the data, but change the allocator
-      template <typename A>
-      void push_back(const MSSpectrum<PeakT, A>& spec)
-      {
-        // create new spectrum with local allocator and add it to our spectrum
-        Base::push_back(SpectrumType(spec));
-        
-        if (spec.size() != this->back().size())
-        {
-          std::cout << "ERROR in MSExperiment::push_back() : given size (" << spec.size() << ") <=> pushed size (" << this->back().size() << ")" << std::endl;
-        }
-      }      
-      
-      /// reimplement resize, so that new MSSpectra with our unique allocator are created
-      void resize(const typename Base::size_type& size)
-      {
-        Base::resize(size, alloc_);
-      }
-      
       /// Assignment operator
 			MSExperiment& operator= (const ExperimentalSettings& source)
 			{
@@ -591,13 +545,11 @@ namespace OpenMS
 	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points
 	    UInt64 total_size_;
-      /// allocator for MSSpectrum
-      AllocT alloc_;
 	};
 	
 	///Print the contents to a stream.
-	template <typename PeakT, typename AllocT>
-	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT, AllocT>& exp)
+	template <typename PeakT>
+	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT>& exp)
 	{
 	    os << "-- MSEXPERIMENT BEGIN --"<<std::endl;
 	
@@ -605,7 +557,7 @@ namespace OpenMS
 	    os <<static_cast<const ExperimentalSettings&>(exp);
 	
 	    //spectra
-	    for (typename MSExperiment<PeakT, AllocT>::const_iterator it=exp.begin(); it!=exp.end(); ++it)
+	    for (typename MSExperiment<PeakT>::const_iterator it=exp.begin(); it!=exp.end(); ++it)
 	    {
 	        os << *it;
 	    }

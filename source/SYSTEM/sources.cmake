@@ -3,11 +3,8 @@ set(directory source/SYSTEM)
 
 ### list all filenames of the directory here
 set(sources_list
-ExternalAllocator.C
-ExternalAllocatorUnique.C
 File.C
 FileWatcher.C
-ProcessResource.C
 StopWatch.C
 )
 

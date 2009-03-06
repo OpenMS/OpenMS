@@ -109,8 +109,8 @@ namespace OpenMS
 			}
 
 			/// Adds a peak spectrum
-			template <class PeakType, class AllocatorType>
-			void add(MSSpectrum<PeakType, AllocatorType>& spectrum)
+			template <class PeakType>
+			void add(MSSpectrum<PeakType>& spectrum)
 			{
 				//spectrum settings
 				add(static_cast<SpectrumSettings&>(spectrum));

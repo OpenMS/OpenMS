@@ -22,12 +22,8 @@ source_group("Source Files\\OpenMS\\SYSTEM" FILES ${mocced_sources})
 
 ### list all header files of the directory here
 set(sources_list_h
-ExternalAllocator.h
-ExternalAllocatorUnique.h
 File.h
 FileWatcher.h
-MemoryMap.h
-ProcessResource.h
 StopWatch.h
 )
 

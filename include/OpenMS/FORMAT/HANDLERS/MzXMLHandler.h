@@ -139,7 +139,7 @@ namespace OpenMS
         /// Peak type
         typedef typename MapType::PeakType PeakType;
         /// Spectrum type
-        typedef MSSpectrum<PeakType, std::allocator<PeakType> > SpectrumType;        
+        typedef MSSpectrum<PeakType> SpectrumType;        
         
 				typedef typename SpectrumType::Iterator  PeakIterator;
 				

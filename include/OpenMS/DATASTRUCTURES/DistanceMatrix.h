@@ -447,7 +447,7 @@ namespace OpenMS
 
 			@throw Exception::OutOfRange thrown if there is no element to access
 		*/
-		std::pair<UInt,UInt> getMinElementCoordinates() const
+		std::pair<SizeType,SizeType> getMinElementCoordinates() const
 		{
 			if ( dimensionsize_ == 0 )
 			{

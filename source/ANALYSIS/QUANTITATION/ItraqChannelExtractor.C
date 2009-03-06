@@ -236,7 +236,7 @@ namespace OpenMS
 			}
 			else
 			{
-				std::cout << "iTRAQ: no information in Tandem-MS scan from RT: " << cf.getRT() << "MZ: " << cf.getMZ() << "\n";
+				std::cout << "iTRAQ: skipping scan from RT " << cf.getRT() << " & MZ " << cf.getMZ() << "due to no iTRAQ information\n";
 			}
 
 			// the tandem-scan in the order they appear in the experiment

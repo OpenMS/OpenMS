@@ -297,7 +297,7 @@ namespace OpenMS
         // erase all elements from histogram that will leave the window on the LEFT side
         while ( (*window_pos_borderleft).getMZ() <  (*window_pos_center).getMZ() - window_half_size )
         {
-          to_bin = std::min((int) (((*window_pos_borderleft).getIntensity()) / bin_size), bin_count_minus_1);
+				to_bin = std::min((int) std::max((*window_pos_borderleft).getIntensity() / bin_size,0.0), bin_count_minus_1);
           --histogram[to_bin];
           --elements_in_window;
           ++window_pos_borderleft;
@@ -308,7 +308,7 @@ namespace OpenMS
                 &&((*window_pos_borderright).getMZ() <= (*window_pos_center).getMZ() + window_half_size ) )
         {
 					//std::cerr << (*window_pos_borderright).getIntensity() << " " << bin_size << " " << bin_count_minus_1 << std::endl;
-          to_bin = std::min((int) (((*window_pos_borderright).getIntensity()) / bin_size), bin_count_minus_1);
+          to_bin = std::min((int) std::max((*window_pos_borderleft).getIntensity() / bin_size,0.0), bin_count_minus_1);
           ++histogram[to_bin];
           ++elements_in_window;
           ++window_pos_borderright;

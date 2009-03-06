@@ -74,10 +74,6 @@ set(metadata_executables_list
 set(system_executables_list
 	StopWatch_test
   File_test
-  ProcessResource_test
-  ExternalAllocator_test
-  ExternalAllocatorUnique_test
-  MemoryMap_test
 )
 
 set(kernel_executables_list

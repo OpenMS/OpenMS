@@ -25,20 +25,21 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-
+#define ITRAQ_NAIVECORRECTION 1
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#ifdef ITRAQ_NAIVECORRECTION
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#else
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#endif
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #include <limits>
 
-#ifdef ITRAQ_NAIVECORRECTION
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
-#endif
 
 //#define ITRAQ_DEBUG 1
 
@@ -175,7 +176,13 @@ namespace OpenMS
 			std::cout << "channel_frequency matrix: \n" << channel_frequency << "\n" << std::endl;
 			#endif
 
-			#ifdef ITRAQ_NAIVECORRECTION
+#ifdef ITRAQ_NAIVECORRECTION
+			std::cout << "SOLVING isotope correction via Matrix\n";
+#else
+			std::cout << "SOLVING isotope correction via NNLS\n";
+#endif
+
+#ifdef ITRAQ_NAIVECORRECTION
 			// this solves the system naively
 			int gsl_status = 0;
 			gsl_matrix* gsl_m = channel_frequency.toGslMatrix();
@@ -189,10 +196,10 @@ namespace OpenMS
 			{
 				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
 			}
-			#endif
+#else
 			Matrix<double> m_b(CHANNEL_COUNT[itraq_type_], 1);
 			Matrix<double> m_x(CHANNEL_COUNT[itraq_type_], 1);
-			
+#endif
 			// correct all consensus elements
 			for (size_t i=0; i< consensus_map_out.size(); ++i)
 			{
@@ -217,8 +224,9 @@ namespace OpenMS
 					#ifdef ITRAQ_NAIVECORRECTION
 					// this is deprecated, but serves as quality measurement
 					gsl_vector_set (gsl_b, index, it_elements->getIntensity());
-					#endif
+					#else
 					m_b(index,0) = it_elements->getIntensity();
+					#endif
 				}
 
 				// solve
@@ -228,12 +236,13 @@ namespace OpenMS
 				{
 					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
 				}
-				#endif
+				#else
 				Int status = NonNegativeLeastSquaresSolver::solve(channel_frequency,m_b,m_x);
 				if (status!=NonNegativeLeastSquaresSolver::SOLVED)
 				{
 					throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Failed to find least-square fit!");
 				}
+				#endif
 
 				// write back the values to the map
 				for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[i].begin();
@@ -246,10 +255,11 @@ namespace OpenMS
 
 					#ifdef ITRAQ_NAIVECORRECTION
 					//this has become useless (even for comparison of methods)
-					//handle.setIntensity ( Peak2D::IntensityType(gsl_vector_get (gsl_x, index)) );
-					#endif
+					handle.setIntensity ( Peak2D::IntensityType(gsl_vector_get (gsl_x, index)) );
+					#else
 					handle.setIntensity ( Peak2D::IntensityType( m_x(index, 0)) );
-					
+					#endif
+
 					consensus_map_out[i].insert(handle);
 					
 					#ifdef ITRAQ_DEBUG
@@ -269,15 +279,13 @@ namespace OpenMS
 			#endif
 		} // ! isotope_correction
 
-
-		// ** NORMALIZATION ** //
-
-		// normalize median of channel-to-reference ratio to 1
+		// ** find reference channel ** //
 		Int reference_channel = Int(param_.getValue("channel_reference"));
 		#ifdef ITRAQ_DEBUG
 		std::cout << "reference_channel is: " << reference_channel  << std::endl;
 		#endif
 
+		// determine reference channel as vector index
 		Map <Size, Size> map_to_vectorindex;
 		Size ref_mapid = 0;
 		Size index = 0;
@@ -295,176 +303,180 @@ namespace OpenMS
 			map_to_vectorindex[file_it->first] = index;
 			++index;
 		}
-
-		if (channel_map_.has(reference_channel))
+		
+		// ** NORMALIZATION ** //
+		
+		// normalize median of channel-to-reference ratio to 1
+		if (String(param_.getValue("do_normalization")) == "true")
 		{
-			std::vector< std::vector<double> > peptide_ratios;
-			// this is a control (the normalization factors should be about the same)
-			std::vector< std::vector<double> > peptide_intensities;
-
-			// build mapping of map_index to ratio_array_index
-			peptide_ratios.resize(channel_map_.size());
-			peptide_intensities.resize(channel_map_.size());
-
-			//build up ratios for each peptide of non-reference channels
-			ConsensusFeature::HandleSetType::iterator ref_it;
-			Peak2D::IntensityType ref_intensity;
-			for (size_t i=0; i< consensus_map_out.size(); ++i)
+			if (channel_map_.has(reference_channel))
 			{
-				// find reference index (this is inefficient to do every time, 
-				// but the most robust against anyone who tries to change the internals of ConsensusFeature):
-				ref_it=consensus_map_out[i].end();
-				for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
-						 it_elements != consensus_map_out[i].end();
-						 ++it_elements)
+				std::vector< std::vector<double> > peptide_ratios;
+				// this is a control (the normalization factors should be about the same)
+				std::vector< std::vector<double> > peptide_intensities;
+
+				// build mapping of map_index to ratio_array_index
+				peptide_ratios.resize(channel_map_.size());
+				peptide_intensities.resize(channel_map_.size());
+
+				//build up ratios for each peptide of non-reference channels
+				ConsensusFeature::HandleSetType::iterator ref_it;
+				Peak2D::IntensityType ref_intensity;
+				for (size_t i=0; i< consensus_map_out.size(); ++i)
 				{
-					if ((Int) consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel)
+					// find reference index (this is inefficient to do every time, 
+					// but the most robust against anyone who tries to change the internals of ConsensusFeature):
+					ref_it=consensus_map_out[i].end();
+					for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
+							 it_elements != consensus_map_out[i].end();
+							 ++it_elements)
 					{
-						ref_it = it_elements;
-						break;
+						if ((Int) consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel)
+						{
+							ref_it = it_elements;
+							break;
+						}
+					}
+
+					// reference channel not found in this ConsensusFeature
+					if (ref_it==consensus_map_out[i].end())
+					{
+						std::cerr << "ItraqQuantifier::run() WARNING: ConsensusFeature " << i << " does not have a reference channel! Skipping" << std::endl;
+						continue;
+					}
+
+					ref_intensity = ref_it->getIntensity();
+
+					// now collect the ratios and intensities
+					for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
+							 it_elements != consensus_map_out[i].end();
+							 ++it_elements)
+					{
+						if (ref_intensity==0) //avoid nan's and inf's
+						{
+							if (it_elements->getIntensity()==0) // 0/0 will give 'nan'
+							{
+								//so leave it out completely (there is no information to be gained)
+							}
+							else	// x/0 is 'inf' but std::sort() has problems with that
+							{
+								peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
+							}
+						}
+						else // everything seems fine
+						{
+							peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+						}
+						
+						// control
+						peptide_intensities[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
+					}					
+				} // ! collect ratios
+
+				double max_deviation_from_control = 0;
+				// find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
+				for (Map <Size, Size>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
+				{
+					// sort vector (partial_sort might improve performance here)
+					std::sort(peptide_ratios[it_map->second].begin(), peptide_ratios[it_map->second].end());
+					// save median as first element 
+					peptide_ratios[it_map->second][0] = peptide_ratios[it_map->second][peptide_ratios[it_map->second].size()/2];
+
+					// sort control (intensities)
+					std::sort(peptide_intensities[it_map->second].begin(), peptide_intensities[it_map->second].end());
+					// find MEDIAN of control-method (intentities) for each channel
+					peptide_intensities[it_map->second][0] = peptide_intensities[it_map->second][peptide_intensities[it_map->second].size()/2] /
+																									 peptide_intensities[ref_mapid][peptide_intensities[ref_mapid].size()/2];
+					//#ifdef ITRAQ_DEBUG
+					std::cout << "iTRAQ-normalize:  map-id " << (it_map->first) << " has factor " << (peptide_ratios[it_map->second][0]) << " (control: " << (peptide_intensities[it_map->second][0]) << ")" << std::endl;
+					//#endif
+					double dev = (peptide_ratios[it_map->second][0]-peptide_intensities[it_map->second][0])/peptide_ratios[it_map->second][0];
+					if	(fabs(max_deviation_from_control) < fabs(dev))
+					{
+						max_deviation_from_control = dev;
 					}
 				}
 
-				// reference channel not found in this ConsensusFeature
-				if (ref_it==consensus_map_out[i].end())
-				{
-					std::cerr << "ItraqQuantifier::run() WARNING: ConsensusFeature " << i << " does not have a reference channel! Skipping" << std::endl;
-					continue;
-				}
+				std::cout << "iTRAQ-normalization: max ratio deviation of alternative method is " << (max_deviation_from_control*100) << "%\n";
 
-				ref_intensity = ref_it->getIntensity();
-
-				// now collect the ratios and intensities
-				for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
-						 it_elements != consensus_map_out[i].end();
-						 ++it_elements)
-				{
-					if (ref_intensity==0) //avoid nan's and inf's
-					{
-						if (it_elements->getIntensity()==0) // 0/0 will give 'nan'
-						{
-							//so leave it out completely (there is no information to be gained)
-						}
-						else	// x/0 is 'inf' but std::sort() has problems with that
-						{
-							peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
-						}
-					}
-					else // everything seems fine
-					{
-						peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
-					}
-					
-					// control
-					peptide_intensities[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
-				}					
-			} // ! collect ratios
-
-			double max_deviation_from_control = 0;
-			// find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-			for (Map <Size, Size>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
-			{
-				// sort vector (partial_sort might improve performance here)
-				std::sort(peptide_ratios[it_map->second].begin(), peptide_ratios[it_map->second].end());
-				// save median as first element 
-				peptide_ratios[it_map->second][0] = peptide_ratios[it_map->second][peptide_ratios[it_map->second].size()/2];
-
-				// sort control (intensities)
-				std::sort(peptide_intensities[it_map->second].begin(), peptide_intensities[it_map->second].end());
-				// find MEDIAN of control-method (intentities) for each channel
-				peptide_intensities[it_map->second][0] = peptide_intensities[it_map->second][peptide_intensities[it_map->second].size()/2] /
-																								 peptide_intensities[ref_mapid][peptide_intensities[ref_mapid].size()/2];
 				#ifdef ITRAQ_DEBUG
-					std::cout << "iTRAQ-normalize:  map-id " << (it_map->first) << " has factor " << (peptide_ratios[it_map->second][0]) << std::endl;
-					std::cout << "iTRAQ-normalize:  map-id " << (it_map->first) << " has factor " << (peptide_intensities[it_map->second][0]) << " (control)" << std::endl;
+				std::cout << "debug OUTPUT\n";
+				for (Size i = 1; i<peptide_ratios[0].size(); ++i)
+				{
+					if (i == peptide_intensities[0].size()/2)
+					{
+						std::cout << "++++++++++ median: \n";
+					}
+					for (Size j = 0; j<peptide_ratios.size(); ++j)
+					{
+						std::cout << peptide_ratios[j][i] << " ";
+					}
+					std::cout << " -- int -- ";
+					for (Size j = 0; j<peptide_intensities.size(); ++j)
+					{
+						std::cout << peptide_intensities[j][i] << " ";
+					}
+					if (i == peptide_intensities[0].size()/2)
+					{
+						std::cout << "\n----------- median: ";
+					}
+					std::cout << "\n";
+				}
 				#endif
-				double dev = (peptide_ratios[it_map->second][0]-peptide_intensities[it_map->second][0])/peptide_ratios[it_map->second][0];
-				if	(fabs(max_deviation_from_control) < fabs(dev))
-				{
-					max_deviation_from_control = dev;
-				}
-			}
 
-			std::cout << "iTRAQ-normalization: max ratio deviation of alternative method is " << (max_deviation_from_control*100) << "%\n";
-
-			#ifdef ITRAQ_DEBUG
-			std::cout << "debug OUTPUT\n";
-			for (Size i = 1; i<peptide_ratios[0].size(); ++i)
-			{
-				if (i == peptide_intensities[0].size()/2)
+				// adjust intensity ratios 
+				for (size_t i=0; i< consensus_map_out.size(); ++i)
 				{
-					std::cout << "++++++++++ median: \n";
-				}
-				for (Size j = 0; j<peptide_ratios.size(); ++j)
-				{
-					std::cout << peptide_ratios[j][i] << " ";
-				}
-				std::cout << " -- int -- ";
-				for (Size j = 0; j<peptide_intensities.size(); ++j)
-				{
-					std::cout << peptide_intensities[j][i] << " ";
-				}
-				if (i == peptide_intensities[0].size()/2)
-				{
-					std::cout << "\n----------- median: ";
-				}
-				std::cout << "\n";
-			}
-			#endif
-
-			// adjust intensity ratios 
-			for (size_t i=0; i< consensus_map_out.size(); ++i)
-			{
-				// find reference index (this is inefficient to do every time, 
-				// but the most robust against anyone who tries to change the internals of ConsensusFeature):
-				ref_it=consensus_map_out[i].end();
-				for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
-						 it_elements != consensus_map_out[i].end();
-						 ++it_elements)
-				{
-					if ((Int) consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel)
+					// find reference index (this is inefficient to do every time, 
+					// but the most robust against anyone who tries to change the internals of ConsensusFeature):
+					ref_it=consensus_map_out[i].end();
+					for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
+							 it_elements != consensus_map_out[i].end();
+							 ++it_elements)
 					{
-						ref_it = it_elements;
-						break;
+						if ((Int) consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel)
+						{
+							ref_it = it_elements;
+							break;
+						}
 					}
-				}
 
-				// reference channel not found in this ConsensusFeature
-				if (ref_it==consensus_map_out[i].end())
-				{
-					continue;
-				}
-
-				ref_intensity = ref_it->getIntensity();
-
-				// now adjust the ratios
-				ConsensusFeature cf = consensus_map_out[i];
-				cf.clear(); // delete its handles
-				for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
-						 it_elements != consensus_map_out[i].end();
-						 ++it_elements)
-				{
-					FeatureHandle hd = *it_elements;
-					if (it_elements == ref_it) 
+					// reference channel not found in this ConsensusFeature
+					if (ref_it==consensus_map_out[i].end())
 					{
-						hd.setIntensity(1);
+						continue;
 					}
-					else
-					{ // divide current intensity by normalization factor (which was stored at position 0)
-						hd.setIntensity(hd.getIntensity() / peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]][0]);
-					}
-					cf.insert(hd);
-				}					
-				// replace consensusFeature with updated intensity
-				consensus_map_out[i] = cf;
-			} // ! adjust ratios
 
-		} // ! ref_channel valid
-		else
-		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::run() Parameter 'channel_reference' does not name a valid channel!");
-		}
+					ref_intensity = ref_it->getIntensity();
 
+					// now adjust the ratios
+					ConsensusFeature cf = consensus_map_out[i];
+					cf.clear(); // delete its handles
+					for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
+							 it_elements != consensus_map_out[i].end();
+							 ++it_elements)
+					{
+						FeatureHandle hd = *it_elements;
+						if (it_elements == ref_it) 
+						{
+							hd.setIntensity(1);
+						}
+						else
+						{ // divide current intensity by normalization factor (which was stored at position 0)
+							hd.setIntensity(hd.getIntensity() / peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]][0]);
+						}
+						cf.insert(hd);
+					}					
+					// replace consensusFeature with updated intensity
+					consensus_map_out[i] = cf;
+				} // ! adjust ratios
+
+			} // ! ref_channel valid
+			else
+			{
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::run() Parameter 'channel_reference' does not name a valid channel!");
+			}
+		} // !do_normalization
 
 
 		// ** PEPTIDE PROTEIN MAPPING ** //
@@ -495,6 +507,9 @@ namespace OpenMS
 		defaults_.setValue("isotope_correction", "true", "enable isotope correction (highly recommended)", StringList::create("advanced")); 
 		defaults_.setValidStrings("isotope_correction", StringList::create("true,false"));
 
+		defaults_.setValue("do_normalization", "false", "normalize channels?", StringList::create("advanced")); 
+		defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
+
 		defaults_.setValue("isotope_correction_values", "", "override default values (see Documentation); use the following format: <channel>:<v1>/<v2>/<v3>/<v4> ; e.g. '114:0/0.3/4/0 , 116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
 
 		if (itraq_type_ == ItraqConstants::FOURPLEX)
@@ -509,6 +524,8 @@ namespace OpenMS
 			defaults_.setMinInt("channel_reference",113);
 			defaults_.setMaxInt("channel_reference",121);			
 		}			
+
+		
 
 		defaultsToParam_();
 	}

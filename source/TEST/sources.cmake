@@ -83,8 +83,6 @@ Exception_Base_test.C
 ExperimentalSettings_test.C
 ExtendedIsotopeFitter1D_test.C
 ExtendedIsotopeModel_test.C
-ExternalAllocatorUnique_test.C
-ExternalAllocator_test.C
 FASTAFile_test.C
 FactoryBase_test.C
 FactoryProduct_test.C
@@ -175,7 +173,6 @@ MassAnalyzer_test.C
 MathFunctions_test.C
 Matrix_test.C
 MaxLikeliFitter1D_test.C
-MemoryMap_test.C
 MetaInfoDescription_test.C
 MetaInfoInterface_test.C
 MetaInfoRegistry_test.C
@@ -234,7 +231,6 @@ PoseClusteringAffineSuperimposer_test.C
 PoseClusteringShiftSuperimposer_test.C
 Precursor_test.C
 PreprocessingFunctor_test.C
-ProcessResource_test.C
 ProductModel_test.C
 ProteinHit_test.C
 ProteinIdentification_test.C

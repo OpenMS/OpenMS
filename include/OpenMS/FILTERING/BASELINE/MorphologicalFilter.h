@@ -379,9 +379,9 @@ namespace OpenMS
 		MSExperiment.  The size of the structuring element is computed for each
 		spectrum individually, see #filterPeak1DRange() and #filterMSSpectrum().
 		*/
-		template <typename PeakType, typename AllocType>
+		template <typename PeakType>
 			void filterMSExperiment( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson,
-															 MSExperiment<PeakType, AllocType>& ms_exp
+															 MSExperiment<PeakType>& ms_exp
 														 )
 		{
 			startProgress(0,ms_exp.size(),"filtering baseline");

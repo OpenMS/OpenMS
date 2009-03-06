@@ -52,9 +52,9 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template < typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
+	template < typename PeakT = Peak1D >
 	class DSpectrum
-		: public std::vector<PeakT, AllocT>,
+		: public std::vector<PeakT>,
 			public MetaInfoInterface,
 			public RangeManager<PeakT::DIMENSION>
 	{
@@ -73,7 +73,7 @@ namespace OpenMS
 		/// Peak type
 		typedef PeakT PeakType;
 		/// Peak container type
-		typedef std::vector<PeakType, AllocT> ContainerType;
+		typedef std::vector<PeakType> ContainerType;
 		/// Dimensionality of the peaks
 		enum
 		{
@@ -114,18 +114,6 @@ namespace OpenMS
 		{
 		}
 
-    /// constructor with custom allocator
-    DSpectrum(const AllocT& alloc)
-      : ContainerType(alloc),
-      	MetaInfoInterface(),
-        RangeManagerType(),
-        retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
-        ms_level_(1),
-        name_(),
-        meta_data_arrays_()
-    {
-    }
-
 		/// Copy constructor
 		DSpectrum(const DSpectrum& rhs)
 			: ContainerType(rhs),
@@ -137,19 +125,6 @@ namespace OpenMS
 				meta_data_arrays_(rhs.meta_data_arrays_)
 		{
 		}
-
-    /// Copy constructor for different allocator
-    template < typename AllocT2>
-    DSpectrum(const DSpectrum<PeakType,AllocT2>& rhs)
-      : ContainerType(rhs),
-      	MetaInfoInterface(rhs),
-        RangeManagerType(rhs),
-        retention_time_(rhs.retention_time_),
-        ms_level_(rhs.ms_level_),
-        name_(rhs.name_),
-        meta_data_arrays_(rhs.meta_data_arrays_)
-    {
-    }
 
 		/// Destructor
 		inline ~DSpectrum()
@@ -172,23 +147,6 @@ namespace OpenMS
 
 			return *this;
 		}
-
-    /// Assignment operator for different allocator
-    template < typename AllocT2>
-    DSpectrum& operator = (const DSpectrum< PeakType, AllocT2 >& rhs)
-    {
-      if (this==&rhs) return *this;
-
-			ContainerType::operator=(rhs);
-      MetaInfoInterface::operator=(rhs);
-      RangeManagerType::operator=(rhs);
-      retention_time_ = rhs.retention_time_;
-      ms_level_ = rhs.ms_level_;
-      name_ = rhs.name_;
-      meta_data_arrays_ = rhs.meta_data_arrays_;
-
-      return *this;
-    }
 
 		/// Equality operator
 		bool operator == (const DSpectrum& rhs) const
@@ -485,14 +443,14 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <typename PeakT, typename AllocT>
-	std::ostream& operator << (std::ostream& os, const DSpectrum<PeakT,AllocT>& rhs)
+	template <typename PeakT>
+	std::ostream& operator << (std::ostream& os, const DSpectrum<PeakT>& rhs)
 	{
 		os << "-- DSpectrum BEGIN --"<<std::endl;
 		os << "MS-LEVEL:" <<rhs.getMSLevel() << std::endl;
 		os << "RT:" <<rhs.getRT() << std::endl;
 		os << "NAME:" <<rhs.getName() << std::endl;
-		for (typename DSpectrum<PeakT, AllocT>::const_iterator it = rhs.begin(); it!=rhs.end(); ++it)
+		for (typename DSpectrum<PeakT>::const_iterator it = rhs.begin(); it!=rhs.end(); ++it)
 		{
 			os << *it << std::endl;
 		}

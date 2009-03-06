@@ -1,13 +1,19 @@
 ------------------------------------------------------------------------------------------
-----                                  OpenMS 1.3.1                                    ----
+----                                  OpenMS 1.4                                      ----
 ------------------------------------------------------------------------------------------
 
 New features and improvements of TOPP:
 - TextExporter can now export peptide/protein information stored in consensusXML
 
+New features and improvements of OpenMS C++ library:
+- removed support for external Memory (use the 64bit builds if you want to process large datasets)
+
+
 Bug fixes:
 - [2645436]: TOPPView - Data Filter for "Size" not available
 - [2645510]: OpenMS - libOpenMS.so is built but linking fails (TOPP, tests) (on Debian "Lenny")
+- [2665055]: FileFilter ignores -sort option for FeatureXML and Consensus
+- [2659013]: windows contrib can fail when copying compiled libraries
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.3                                     ----

@@ -40,7 +40,6 @@
 // Includes in the C-file are ok...
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/SYSTEM/ProcessResource.h>
 
 #include <vector>
 #include <string>
@@ -398,29 +397,6 @@ int main(int argc, char **argv)																									\
 			"otherwise FAILED is printed.\n";																					\
 		return 1;																																		\
 	}																																							\
-																																								\
-	std__cout << "Version: " << TEST::version_string << std::endl;					  		\
-																																								\
-	const char * env_openms_testtimeout;																					\
-	env_openms_testtimeout = getenv ("OPENMS_TESTTIMEOUT");												\
-	int timeout = 300;																														\
-																																								\
-	if ( env_openms_testtimeout )																									\
-	{																																							\
-		try																																					\
-		{																																						\
-			timeout = boost::lexical_cast<int>(env_openms_testtimeout);								\
-		}																																						\
-		catch (boost::bad_lexical_cast&)																						\
-		{																																						\
-			std__cout <<																															\
-				"warning: Cannot parse enviroment variable OPENMS_TESTTIMEOUT="					\
-				<< env_openms_testtimeout <<																						\
-					" (conversion to number failed).  Using timeout: "										\
-				<< timeout << ".\n" << std::endl;																				\
-		}																																						\
-	}																																							\
-	OpenMS::ProcessResource::LimitCPUTime(timeout);																\
 																																								\
 	try {
 
