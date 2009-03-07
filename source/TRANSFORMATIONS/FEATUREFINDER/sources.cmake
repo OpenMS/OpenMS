@@ -48,19 +48,18 @@ endforeach(i)
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
+### source group definition
+source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
 
-set(sources_list
+set(sources_list_cu
 Featurebla.cu
 )
 
-set(sources)
+set(sources_cu)
 
-foreach(i ${sources_list})
-        list(APPEND sources ${directory}/${i})
+foreach(i ${sources_list_cu})
+        list(APPEND sources_cu ${directory}/${i})
 endforeach(i)
 
 ### 
-set(Cuda_sources ${Cuda_sources} ${sources})
-
-### source group definition
-source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
+set(Cuda_sources ${Cuda_sources} ${sources_cu})

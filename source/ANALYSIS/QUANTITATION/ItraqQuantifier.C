@@ -25,7 +25,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#define ITRAQ_NAIVECORRECTION 1
+
+//#define ITRAQ_NAIVECORRECTION 1
+
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>

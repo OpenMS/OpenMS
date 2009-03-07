@@ -33,6 +33,12 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 
+#ifdef _OPENMP 
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <omp.h>
+#endif
+#endif
+
 #include <cmath>
 #include <vector>
 #include <algorithm>

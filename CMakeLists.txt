@@ -239,10 +239,6 @@ OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;g
 
 OPENMS_CHECKLIB(CONTRIB_CGAL "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
 
-if (MSVC AND OPENMP_FOUND)
-	#set(CONTRIB_OPENMP optimized "vcomp.lib" debug "vcompd.lib")
-endif()
-
 if (NOT MSVC AND USE_ANDIMS)
 	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib.a" "ms10lib.a" "ms10lib")
 
@@ -493,7 +489,7 @@ endif()
 
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_OPENMP} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
