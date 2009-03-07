@@ -73,11 +73,14 @@ namespace OpenMS
 		PeakSpectrum s1(spec1), s2(spec2);
 
 		// shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
-			const double delta = (double)param_.getValue("precursor_mass_tolerance");
-			if(fabs(spec1.getPrecursor().getMZ()-spec2.getPrecursor().getMZ())>delta)
-			{
-				return 0;
-			}
+		DoubleReal pre_mz1 = 0.0;
+		if (!spec1.getPrecursors().empty()) pre_mz1 = spec1.getPrecursors()[0].getMZ();
+		DoubleReal pre_mz2 = 0.0;
+		if (!spec1.getPrecursors().empty()) pre_mz2 = spec2.getPrecursors()[0].getMZ();
+		if(fabs(pre_mz1-pre_mz2)>(double)param_.getValue("precursor_mass_tolerance"))
+		{
+			return 0;
+		}
 
 		// heuristic shortcut
 		const double epsilon = (double)param_.getValue("epsilon");

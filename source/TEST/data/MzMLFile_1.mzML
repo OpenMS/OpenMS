@@ -280,7 +280,7 @@
 		        </scanWindowList>
 	        </scan>
         </scanList>
-        <precursorList count="1">
+        <precursorList count="2">
           <precursor spectrumRef="index=0" sourceFileRef="sf_pr_0" >
           	<isolationWindow>
           		<cvParam cvRef="MS" accession="MS:1000794" name="isolation window lower limit" value="6.66"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -305,6 +305,21 @@
               <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
               <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="4.2" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
               <userParam name="acname" value="activation1"/>
+            </activation>
+          </precursor>
+          <precursor>
+            <selectedIonList count="1">
+              <selectedIon>
+                <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="6.55"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+                <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120054"/>
+                <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      					<userParam name="siname" value="selectedion2"/>
+              </selectedIon>
+            </selectedIonList>
+            <activation>
+              <cvParam cvRef="MS" accession="MS:1000598" name="electron transfer dissociation" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="36" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
+              <userParam name="acname" value="activation2"/>
             </activation>
           </precursor>
         </precursorList>

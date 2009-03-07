@@ -191,8 +191,9 @@ class TOPPFeatureFinderMRM
 	    	  	sit != exp.end();
 						++sit)
 			{
-	
-				Feature::CoordinateType mz_err = pow(10.0, 6.0) * (p_mz - sit->getPrecursor().getMZ()) / sit->getPrecursor().getMZ();
+				DoubleReal mz_pos = -0.0000001;
+				if (!sit->getPrecursors().empty()) mz_pos = sit->getPrecursors()[0].getMZ();
+				Feature::CoordinateType mz_err = pow(10.0, 6.0) * (p_mz - mz_pos) / mz_pos;
 				
 				if (sit->getMSLevel() == 2 && fabs(mz_err) <= prec_mz_tol) 
 				{			
@@ -206,7 +207,7 @@ class TOPPFeatureFinderMRM
 						if (fabs(mz_err) <= msms_mz_tol)
 						{				
 							int_sum += spit->getIntensity();			
-							points.push_back( DPosition<2>(sit->getRT(),sit->getPrecursor().getMZ()) );
+							points.push_back( DPosition<2>(sit->getRT(),mz_pos) );
 							if (dump_profile)
 							{
 								db_out << sit->getRT() << " " << 	spit->getIntensity() << endl;

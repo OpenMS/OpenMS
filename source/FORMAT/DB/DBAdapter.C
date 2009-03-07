@@ -69,7 +69,7 @@ What do we do in the current implementation?
 			storeFile_("META_MetaInfoDescription", parent_id, desc_it->second.getSourceFile());
 			storeMetaInfo_("META_MetaInfoDescription", parent_id, desc_it->second);
 	DATA_Precursor:		 if new_spectrum: INSERT, else UPDATE
-											storeMetaInfo_("DATA_Precursor",parent_id, exp_it->getPrecursor());
+											storeMetaInfo_("DATA_Precursor",parent_id, exp_it->getPrecursors()[0].);
 	DATA_Peak: delete Meta, DELETE ALL; INSERT ALL; storeMetaInfo_;
 	META_InstrumentSettings: if new_spectrum INSERT; else UPDATE;
 														storeMetaInfo_("META_InstrumentSettings", parent_id, exp_it->getInstrumentSettings());

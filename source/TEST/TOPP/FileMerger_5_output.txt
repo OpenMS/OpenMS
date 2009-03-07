@@ -39,8 +39,10 @@
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
 						</ionSelection>
 						<activation>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>
@@ -64,8 +66,10 @@
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
 						</ionSelection>
 						<activation>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>
@@ -89,8 +93,10 @@
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
 						</ionSelection>
 						<activation>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>

@@ -126,7 +126,8 @@ namespace OpenMS
 						{
 							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line '" + line  + "' should contain four values!", "");
 						}
-						spec.getPrecursor().setMZ(split[3].toDouble());
+						spec.getPrecursors().resize(1);
+						spec.getPrecursors()[0].setMZ(split[3].toDouble());
 						continue;
 					}
 

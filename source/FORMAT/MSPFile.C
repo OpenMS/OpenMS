@@ -141,7 +141,8 @@ namespace OpenMS
 				if (split.size() == 2)
 				{
 					UInt charge = ids.back().getHits().begin()->getCharge();
-        	spec.getPrecursor().setMZ((split[1].toDouble() + (double)charge * 1.00728) / (double)charge);
+					spec.getPrecursors().resize(1);
+        	spec.getPrecursors()[0].setMZ((split[1].toDouble() + (double)charge * 1.00728) / (double)charge);
 				}
       }
 

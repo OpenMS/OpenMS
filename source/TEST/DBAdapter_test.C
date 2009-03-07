@@ -367,11 +367,10 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
-		spec.getPrecursor().setMZ(600.1);
-		spec.getPrecursor().setIntensity(4711.0f);
-		spec.getPrecursor().setCharge(2);
-		spec.getPrecursor().setMetaValue("icon",String("Precursor"));
-		spec.getPrecursor().setWindowSize(0.1456);
+		spec.getPrecursors()[0].setMZ(600.1);
+		spec.getPrecursors()[0].setIntensity(4711.0f);
+		spec.getPrecursors()[0].setCharge(2);
+		spec.getPrecursors()[0].setMetaValue("icon",String("Precursor"));
 		spec.setComment("bla");
 
 		spec.getMetaDataArrays().clear();
@@ -649,11 +648,10 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursor().getMZ() , ito->getPrecursor().getMZ() )
-			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
-			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
-			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
-			TEST_REAL_SIMILAR( itn->getPrecursor().getWindowSize() , 0.1456)
+			TEST_EQUAL( itn->getPrecursors()[0].getMZ() , ito->getPrecursors()[0].getMZ() )
+			TEST_EQUAL( itn->getPrecursors()[0].getIntensity() , ito->getPrecursors()[0].getIntensity() )
+			TEST_EQUAL( itn->getPrecursors()[0].getCharge() , ito->getPrecursors()[0].getCharge() )
+			TEST_EQUAL( itn->getPrecursors()[0].getMetaValue("icon") , "Precursor" )
 	
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
@@ -743,7 +741,7 @@ END_SECTION
 			modified_spec.getMetaDataArrays().push_back(meta_data_array);
 			
 			// modify 2nd spectrum
-			exp_original[1].getPrecursor().setMetaValue("icon", String("NewPrecursor"));
+			exp_original[1].getPrecursors()[0].setMetaValue("icon", String("NewPrecursor"));
 	
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
@@ -782,10 +780,10 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursor().getMZ() , ito->getPrecursor().getMZ() )
-			TEST_EQUAL( itn->getPrecursor().getIntensity() , ito->getPrecursor().getIntensity() )
-			TEST_EQUAL( itn->getPrecursor().getCharge() , ito->getPrecursor().getCharge() )
-			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
+			TEST_EQUAL( itn->getPrecursors()[0].getMZ() , ito->getPrecursors()[0].getMZ() )
+			TEST_EQUAL( itn->getPrecursors()[0].getIntensity() , ito->getPrecursors()[0].getIntensity() )
+			TEST_EQUAL( itn->getPrecursors()[0].getCharge() , ito->getPrecursors()[0].getCharge() )
+			TEST_EQUAL( itn->getPrecursors()[0].getMetaValue("icon") , "NewPrecursor" )
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (Size i=0; i<3; ++i)

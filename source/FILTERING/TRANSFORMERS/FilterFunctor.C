@@ -33,7 +33,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakDensityFilter.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -70,6 +69,5 @@ namespace OpenMS
     Factory<FilterFunctor>::registerProduct(NeutralLossDiffFilter::getProductName(), &NeutralLossDiffFilter::create);
     Factory<FilterFunctor>::registerProduct(IsotopeDiffFilter::getProductName(), &IsotopeDiffFilter::create);
     Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
-    Factory<FilterFunctor>::registerProduct(PeakDensityFilter::getProductName(), &PeakDensityFilter::create);
 	}
 }

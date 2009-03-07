@@ -76,7 +76,8 @@ namespace OpenMS
 		{
 			double bands = 10;
     	std::multimap<double, Size> band_intensity;
-    	double size = spectrum.getPrecursor().getMZ();
+	    double parentmass = 0.0;
+			if (!spectrum.getPrecursors().empty()) parentmass = spectrum.getPrecursors()[0].getMZ();
     	Size j = 0;
     	for (Size i = 0; i < bands; ++i)
     	{
@@ -84,7 +85,7 @@ namespace OpenMS
 
       	//bern 2004 says to only check between 300 and size
       	//but that seems inappropriate for small peptides (smallest is ca 450)
-      	while (j < spectrum.size() && spectrum[j].getPosition()[0] < (size-300)/bands*(i+1) +300)
+      	while (j < spectrum.size() && spectrum[j].getPosition()[0] < (parentmass-300)/bands*(i+1) +300)
       	{
         	intensity += spectrum[j++].getIntensity();
       	}

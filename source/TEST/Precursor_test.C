@@ -71,41 +71,41 @@ START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
 END_SECTION
 
-START_SECTION((EnergyUnits getActivationEnergyUnit() const))
+START_SECTION((DoubleReal getIsolationWindowUpperBound() const ))
   Precursor tmp;
-  TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::UNITSNULL);
+  TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperBound(), 0);
 END_SECTION
 
-START_SECTION((void setActivationEnergyUnit(EnergyUnits activation_energy_unit)))
+START_SECTION((void setIsolationWindowUpperBound(DoubleReal bound)))
   Precursor tmp;
-  tmp.setActivationEnergyUnit(Precursor::EV);
-  TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::EV);
+  tmp.setIsolationWindowUpperBound(22.7);
+  TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperBound(), 22.7);
 END_SECTION
 
-START_SECTION((DoubleReal getWindowSize() const ))
+START_SECTION((DoubleReal getIsolationWindowLowerBound() const ))
   Precursor tmp;
-  TEST_REAL_SIMILAR(tmp.getWindowSize(), 0);
+  TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerBound(), 0);
 END_SECTION
 
-START_SECTION((void setWindowSize(DoubleReal size)))
+START_SECTION((void setIsolationWindowLowerBound(DoubleReal bound)))
   Precursor tmp;
-  tmp.setWindowSize(22.7);
-  TEST_REAL_SIMILAR(tmp.getWindowSize(), 22.7);
+  tmp.setIsolationWindowLowerBound(22.8);
+  TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerBound(), 22.8);
 END_SECTION
 
 START_SECTION((Precursor(const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
-	tmp.setActivationEnergyUnit(Precursor::EV);
-	tmp.setWindowSize(22.7);
+  tmp.setIsolationWindowUpperBound(22.7);
+  tmp.setIsolationWindowLowerBound(22.8);
 	tmp.setMetaValue("label",String("label"));
 	
 	Precursor tmp2(tmp);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
-	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
-	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperBound(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerBound(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 END_SECTION
 
@@ -113,8 +113,8 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
-	tmp.setActivationEnergyUnit(Precursor::EV);
-	tmp.setWindowSize(22.7);
+  tmp.setIsolationWindowUpperBound(22.7);
+  tmp.setIsolationWindowLowerBound(22.8);
 	tmp.setMetaValue("label",String("label"));
 	
 	//normal assignment
@@ -122,16 +122,16 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	tmp2 = tmp;
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
-	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
-	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperBound(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerBound(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 		
 	//assignment of empty object
 	tmp2 = Precursor();
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::ACTMETHNULL);
-	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::UNITSNULL);
-	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 0.0);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperBound(), 0.0);
+	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerBound(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
 END_SECTION
 
@@ -148,13 +148,13 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setActivationEnergyUnit(Precursor::EV);
+  tmp.setIsolationWindowUpperBound(22.7);
 	TEST_EQUAL(tmp==tmp2, false);
-	
+
 	tmp2 = tmp;
-	tmp.setWindowSize(22.7);
+  tmp.setIsolationWindowLowerBound(22.8);
 	TEST_EQUAL(tmp==tmp2, false);
-	
+
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp==tmp2, false);
@@ -172,14 +172,14 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	tmp.setActivationMethod(Precursor::CID);
 	TEST_EQUAL(tmp!=tmp2, true);
 	
-	tmp2 = tmp;
-	tmp.setActivationEnergyUnit(Precursor::EV);
+	tmp2 = tmp;	tmp2 = tmp;
+  tmp.setIsolationWindowUpperBound(22.7);
 	TEST_EQUAL(tmp!=tmp2, true);
-	
-	tmp2 = tmp;
-	tmp.setWindowSize(22.7);
+
+	tmp2 = tmp;	tmp2 = tmp;
+  tmp.setIsolationWindowLowerBound(22.8);
 	TEST_EQUAL(tmp!=tmp2, true);
-	
+
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp!=tmp2, true);

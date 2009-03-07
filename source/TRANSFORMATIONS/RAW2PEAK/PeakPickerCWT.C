@@ -1223,22 +1223,15 @@ namespace OpenMS
 			// pick the peaks in scan i
 			MSSpectrum<>& new_spectrum = output[i];
 			pick(input[i],new_spectrum);
-			// if any peaks are found copy the spectrum settings
-			if (new_spectrum.size() > 0)
-			{
-				new_spectrum.setType(SpectrumSettings::PEAKS);
 
-				// copy the spectrum information
-				new_spectrum.setPrecursor(input[i].getPrecursor());
-				new_spectrum.setRT(input[i].getRT());
-				new_spectrum.setMSLevel(input[i].getMSLevel());
-				new_spectrum.getName() = input[i].getName();
-
-				// copy the spectrum settings
-				//static_cast<SpectrumSettings&>(spectrum) = spectrum[i];
+			// copy the spectrum settings
+			new_spectrum.SpectrumSettings::operator=(input[i]);
+			new_spectrum.MetaInfoInterface::operator=(input[i]);
+			new_spectrum.setType(SpectrumSettings::PEAKS);
+			new_spectrum.setRT(input[i].getRT());
+			new_spectrum.setMSLevel(input[i].getMSLevel());
+			new_spectrum.getName() = input[i].getName();
 		
-				//output.push_back(new_spectrum);
-			}
 			setProgress(i);
 		}
 		// sort spectra

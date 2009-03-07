@@ -38,7 +38,9 @@
 		<scan num="12" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			<scan num="13" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
-				<precursorMz precursorIntensity="0">123.456</precursorMz>
+				<precursorMz precursorIntensity="100.0" precursorCharge="1" windowWideness="10">101.0</precursorMz>
+				<precursorMz precursorIntensity="200.0" precursorCharge="2" windowWideness="20">201.0</precursorMz>
+				<precursorMz precursorIntensity="300.0" precursorCharge="3" windowWideness="30">301.0</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			</scan>
 		</scan>

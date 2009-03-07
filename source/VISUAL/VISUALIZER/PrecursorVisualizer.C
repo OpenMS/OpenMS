@@ -49,8 +49,8 @@ namespace OpenMS
 		
 		addComboBox_(precursor_activation_method_, "Activation method");
 		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");
-		addComboBox_(precursor_energy_units_, "Energy unit");
-		addDoubleLineEdit_(precursor_window_size_, "Window size");	
+		addDoubleLineEdit_(precursor_window_low_, "Isolation window lower bound");
+		addDoubleLineEdit_(precursor_window_up_, "Isolation window upper bound");
 		
 		finishAdding_();
 	}
@@ -60,26 +60,24 @@ namespace OpenMS
 		if(! isEditable())
 		{
 			fillComboBox_(precursor_activation_method_,& temp_.NamesOfActivationMethod[temp_.getActivationMethod()] , 1);
-			fillComboBox_(precursor_energy_units_,& temp_.NamesOfEnergyUnits[temp_.getActivationEnergyUnit()] , 1);
 		}
 		else
 		{
 			fillComboBox_(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
-			fillComboBox_(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
 			precursor_activation_method_->setCurrentIndex(temp_.getActivationMethod()); 
-			precursor_energy_units_->setCurrentIndex(temp_.getActivationEnergyUnit()); 
 		}
 		
 		precursor_activation_energy_->setText(String( temp_.getActivationEnergy() ).c_str() );
-		precursor_window_size_->setText(String( temp_.getWindowSize() ).c_str() );		
+		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerBound() ).c_str() );
+		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperBound() ).c_str() );
 	}
 	
 	void PrecursorVisualizer::store()
 	{
 		ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
-		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());		
-		ptr_->setActivationEnergyUnit((Precursor::EnergyUnits)precursor_energy_units_->currentIndex());	
-		ptr_->setWindowSize(precursor_window_size_->text().toFloat());		
+		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());
+		ptr_->setIsolationWindowLowerBound(precursor_window_low_->text().toFloat());		
+		ptr_->setIsolationWindowUpperBound(precursor_window_up_->text().toFloat());		
 		
 		temp_=(*ptr_);
 	}

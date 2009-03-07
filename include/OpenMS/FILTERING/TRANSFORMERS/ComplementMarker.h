@@ -80,7 +80,8 @@ namespace OpenMS
 		
 			// how often a peak needs to be marked to be returned
     	double marks = (double)param_.getValue("marks");
-    	double parentmass = spectrum.getPrecursor().getMZ();
+	    double parentmass = 0.0;
+			if (!spectrum.getPrecursors().empty()) parentmass = spectrum.getPrecursors()[0].getMZ();
     	double tolerance = (double)param_.getValue("tolerance");
     	std::map<double, int> matching_b_y_ions;
 			

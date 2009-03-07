@@ -29,6 +29,7 @@
 #define OPENMS_FORMAT_DTAFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/Precursor.h>
 
 #include <fstream>
 #include <vector>
@@ -101,17 +102,19 @@ namespace OpenMS
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}
+					Precursor precursor;
 					double mh_mass = strings[0].toDouble();
 					Int charge = strings[1].toInt();
 					if (charge != 0)
 					{
-						spectrum.getPrecursor().setMZ( (mh_mass - 1.0) / charge + 1.0);
+						precursor.setMZ( (mh_mass - 1.0) / charge + 1.0);
 					}
 					else
 					{
-						spectrum.getPrecursor().setMZ( mh_mass );
+						precursor.setMZ( mh_mass );
 					}
-					spectrum.getPrecursor().setCharge(charge);
+					precursor.setCharge(charge);
+					spectrum.getPrecursors().push_back(precursor);
 				}
 				catch(...)
 				{
@@ -173,21 +176,29 @@ namespace OpenMS
 				}
 				os.precision(writtenDigits<DoubleReal>());
 				
-				// Write mh+ mass
-				if (spectrum.getPrecursor().getCharge()==0)
+				//write precursor information
+				Precursor precursor;
+				if (spectrum.getPrecursors().size()>0)
 				{
-					//unknown charge
-					os << spectrum.getPrecursor().getMZ();
+					precursor = spectrum.getPrecursors()[0];
 				}
+				if (spectrum.getPrecursors().size()>1)
+				{
+					std::cerr << "Warning: The spectrum written to the DTA file '" << filename << "' has more than one precursor. The first precursor is used!" << std::endl;
+				}
+				//unknown charge
+				if (precursor.getCharge()==0)
+				{
+					os << precursor.getMZ();
+				}
+				//known charge
 				else
 				{
-					//known charge
-					os << ((spectrum.getPrecursor().getMZ() - 1.0) * spectrum.getPrecursor().getCharge() +1.0);
+					os << ((precursor.getMZ() - 1.0) * precursor.getCharge() +1.0);
 				}
-				 
 				//charge
-				os << " " << spectrum.getPrecursor().getCharge() << std::endl;
-		
+				os << " " << precursor.getCharge() << std::endl;
+
 				// Iterate over all peaks of the spectrum and
 				// write one line for each peak of the spectrum.
 				typename SpectrumType::ConstIterator it(spectrum.begin());

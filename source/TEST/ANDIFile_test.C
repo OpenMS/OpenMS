@@ -117,10 +117,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_SIMILAR(e[0].getInstrumentSettings().getScanWindows()[0].begin, 0)
 	TEST_REAL_SIMILAR(e[0].getInstrumentSettings().getScanWindows()[0].end, 0)
-	TEST_EQUAL(e[0].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
-	TEST_EQUAL(e[0].getPrecursor().getActivationEnergy(), 0)
-	TEST_EQUAL(e[0].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
-	TEST_EQUAL(e[0].getPrecursor().getWindowSize(), 0)
+	TEST_EQUAL(e[0].getPrecursors().size(), 0)
 
 	//---------------------------------------------------------------------------
 	// RT = 120
@@ -131,10 +128,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].begin, 0)
 	TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].end, 0)
-	TEST_EQUAL(e[1].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
-	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 0)
-	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
-	TEST_EQUAL(e[1].getPrecursor().getWindowSize(), 0)
+	TEST_EQUAL(e[1].getPrecursors().size(), 0)
 
 	//---------------------------------------------------------------------------
 	// RT = 180
@@ -145,10 +139,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].begin, 0)
 	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].end, 0)
-	TEST_EQUAL(e[2].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
-	TEST_EQUAL(e[2].getPrecursor().getActivationEnergy(), 0)
-	TEST_EQUAL(e[2].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
-	TEST_EQUAL(e[2].getPrecursor().getWindowSize(), 0)
+	TEST_EQUAL(e[2].getPrecursors().size(), 0)
 
   //---------------------------------------------------------------------------
   // const vector<SourceFile>& getSourceFiles() const;

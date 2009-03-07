@@ -69,9 +69,11 @@ namespace OpenMS
   class DBConnection;
 
   /**
-  	@brief Main window of TOPPView tool
+    @brief Main window of TOPPView tool
 		
-    @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
+    @improvement Paint only highest point per pixel (Hiwi)
+    @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
+    @todo Add online-Tutorial (Marc)
   
     @ingroup TOPPView_elements
   */

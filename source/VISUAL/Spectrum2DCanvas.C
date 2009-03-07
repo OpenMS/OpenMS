@@ -293,12 +293,12 @@ namespace OpenMS
 						 ++i)
 				{
 					//this is an MS/MS scan
-					if (i->getMSLevel()==2)
+					if (i->getMSLevel()==2 && !i->getPrecursors().empty())
 					{
 						ExperimentType::ConstIterator prec=exp.getPrecursorSpectrum(i);
 						if (prec!=exp.end())
 						{
-							dataToWidget_(i->getPrecursor().getMZ(), prec->getRT(),pos);
+							dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(),pos);
 							painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
 							painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
 							painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
@@ -1480,7 +1480,8 @@ namespace OpenMS
 			bool item_added = false;
 			for (ExperimentType::ConstIterator it=getCurrentLayer().peaks.RTBegin(rt_max); it!=getCurrentLayer().peaks.RTEnd(rt_min); --it)
 			{
-				DoubleReal mz = it->getPrecursor().getMZ();
+				DoubleReal mz = 0.0;
+				if (!it->getPrecursors().empty()) mz = it->getPrecursors()[0].getMZ();
 				if (it->getMSLevel()>1 && mz>=mz_min && mz<=mz_max)
 				{
 					a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));

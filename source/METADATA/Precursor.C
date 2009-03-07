@@ -33,14 +33,13 @@ namespace OpenMS
 {
 
 	const std::string Precursor::NamesOfActivationMethod[] = {"Unknown","Collision-induced dissociation","Post-source decay","Plasma desorption","Surface-induced dissociation","Blackbody infrared radiative dissociation","Electron capture dissociation","Infrared multiphoton dissociation","Sustained off-resonance irradiation","High-energy collision-induced dissociation","Low-energy collision-induced dissociation","Photodissociation","Electron transfer dissociation","Pulsed q dissociation"};
-	const std::string Precursor::NamesOfEnergyUnits[] = {"Unknown","Electron volt","Precent"};
 
 	Precursor::Precursor():
 		RichPeak1D(),
 		activation_method_(ACTMETHNULL),
 		activation_energy_(0.0),
-		activation_energy_unit_(UNITSNULL),
-		window_size_(0.0),
+		window_low_(0.0),
+		window_up_(0.0),
 		charge_(0),
 		possible_charge_states_()
 	{
@@ -50,8 +49,8 @@ namespace OpenMS
 		RichPeak1D(source),
 	  activation_method_(source.activation_method_),
 	  activation_energy_(source.activation_energy_),
-	  activation_energy_unit_(source.activation_energy_unit_),
-	  window_size_(source.window_size_),
+	  window_low_(source.window_low_),
+	  window_up_(source.window_up_),
 		charge_(source.charge_),
 		possible_charge_states_(source.possible_charge_states_)
 	{
@@ -68,8 +67,8 @@ namespace OpenMS
 	  RichPeak1D::operator=(source);
 	  activation_method_ = source.activation_method_;
 	  activation_energy_ = source.activation_energy_;
-	  activation_energy_unit_ = source.activation_energy_unit_;
-	  window_size_ = source.window_size_;
+	  window_low_ = source.window_low_;
+	  window_up_ = source.window_up_;
 		charge_ = source.charge_;
 		possible_charge_states_ = source.possible_charge_states_;
 		
@@ -81,8 +80,8 @@ namespace OpenMS
   	return 
 	    activation_method_ == rhs.activation_method_ &&
 	    activation_energy_ == rhs.activation_energy_ &&
-	    activation_energy_unit_ == rhs.activation_energy_unit_ &&
-	    window_size_ == rhs.window_size_ &&
+	    window_low_ == rhs.window_low_ &&
+	    window_up_ == rhs.window_up_ &&
 			charge_ == rhs.charge_ &&
 			possible_charge_states_ == rhs.possible_charge_states_ &&
 			RichPeak1D::operator==(rhs)
@@ -115,24 +114,24 @@ namespace OpenMS
 	  activation_energy_ = activation_energy; 
 	}
 	
-	Precursor::EnergyUnits Precursor::getActivationEnergyUnit() const 
+	DoubleReal Precursor::getIsolationWindowLowerBound() const
 	{
-	  return activation_energy_unit_; 
+		return window_low_;
 	}
 	
-	void Precursor::setActivationEnergyUnit(Precursor::EnergyUnits activation_energy_unit)
+	void Precursor::setIsolationWindowLowerBound(DoubleReal bound)
 	{
-	  activation_energy_unit_ = activation_energy_unit; 
+		window_low_ = bound;
 	}
 	
-	DoubleReal Precursor::getWindowSize() const
+	DoubleReal Precursor::getIsolationWindowUpperBound() const
 	{
-		return window_size_;
+		return window_up_;
 	}
-	
-	void Precursor::setWindowSize(DoubleReal size)
+
+	void Precursor::setIsolationWindowUpperBound(DoubleReal bound)
 	{
-		window_size_ = size;
+		window_up_ = bound;
 	}
 
 	Int Precursor::getCharge() const

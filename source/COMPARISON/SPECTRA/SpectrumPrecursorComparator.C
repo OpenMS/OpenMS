@@ -66,16 +66,19 @@ namespace OpenMS
 
   double SpectrumPrecursorComparator::operator()(const PeakSpectrum& x, const PeakSpectrum& y)const
   {
-    double score = 0;
     double window = (double)param_.getValue("window");
     
-    if (fabs (x.getPrecursor().getMZ() - y.getPrecursor().getMZ()) > window) 
+    DoubleReal mz1 = 0.0;
+    if (!x.getPrecursors().empty()) mz1 = x.getPrecursors()[0].getMZ();
+    DoubleReal mz2 = 0.0;
+    if (!y.getPrecursors().empty()) mz2 = y.getPrecursors()[0].getMZ();
+    
+    if (fabs (mz1 - mz2) > window) 
 		{
 			return 0;
 		}
-    
-		score = window - fabs(x.getPrecursor().getMZ() - y.getPrecursor().getMZ());
-    return score;
+
+    return window - fabs(mz1 - mz2);
   }
 
 }

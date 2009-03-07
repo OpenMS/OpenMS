@@ -99,7 +99,7 @@ namespace OpenMS
 				// AnalyzerType
 				String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
 				// EnergyUnits
-				String(";eV;Percent").split(';',cv_terms_[15]);
+				// is no longer used cv_terms_[15] is empty now
 				// ScanMode
 				// is no longer used cv_terms_[16] is empty now
 				// Polarity
@@ -151,7 +151,7 @@ namespace OpenMS
 				// AnalyzerType
 				String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
 				// EnergyUnits
-				String(";eV;Percent").split(';',cv_terms_[15]);
+				// is no longer used cv_terms_[15] is empty now
 				// ScanMode
 				// is no longer used cv_terms_[16] is empty now
 				// Polarity
@@ -511,6 +511,10 @@ namespace OpenMS
 					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
 				}
 			}
+			else if (tag=="precursor")
+			{
+				spec_.getPrecursors().push_back(Precursor());
+			}
 			else if (tag=="cvParam")
 			{
 				String accession = attributeAsString_(attributes, s_accession);
@@ -540,11 +544,11 @@ namespace OpenMS
 				}
 				else if (parent_tag=="ionSelection")
 				{
-					spec_.getPrecursor().setMetaValue(name, value);
+					spec_.getPrecursors().back().setMetaValue(name, value);
 				}
 				else if (parent_tag=="activation")
 				{
-					spec_.getPrecursor().setMetaValue(name, value);
+					spec_.getPrecursors().back().setMetaValue(name, value);
 				}
 				else if (parent_tag=="supDataDesc")
 				{
@@ -1172,7 +1176,7 @@ namespace OpenMS
 					writeUserParam_(os, spec.getInstrumentSettings(), 6);
 					os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 	
-					if (spec.getPrecursor() != Precursor() || spec.getPrecursor() != Precursor())
+					if (spec.getPrecursors().size()!=0)
 					{
 						Int precursor_ms_level = spec.getMSLevel()-1;
 						SignedSize precursor_id = -1;
@@ -1180,34 +1184,32 @@ namespace OpenMS
 						{
 							precursor_id = level_id[precursor_ms_level];
 						}
-						os	<< "\t\t\t\t<precursorList count=\"1\">\n"
-								<< "\t\t\t\t\t<precursor msLevel=\"" << precursor_ms_level << "\" spectrumRef=\"" << precursor_id << "\">\n";
-						os << "\t\t\t\t\t\t<ionSelection>\n";
-						if (spec.getPrecursor() != Precursor())
+						os << "\t\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
+						for (Size i=0; i< spec.getPrecursors().size(); ++i)
 						{
-							const Precursor& peak = spec.getPrecursor();
-							writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
-							writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
-							writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
-							if (peak.metaValueExists("#IntensityUnits"))
+							const Precursor& precursor = spec.getPrecursors()[i];
+							os << "\t\t\t\t\t<precursor msLevel=\"" << precursor_ms_level << "\" spectrumRef=\"" << precursor_id << "\">\n";
+							os << "\t\t\t\t\t\t<ionSelection>\n";
+							if (precursor != Precursor())
 							{
-								writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")), "1000043", "IntensityUnits",7);
+								writeCVS_(os, precursor.getMZ(), "1000040", "MassToChargeRatio",7);
+								writeCVS_(os, precursor.getCharge(), "1000041", "ChargeState",7);
+								writeCVS_(os, precursor.getIntensity(), "1000042", "Intensity",7);
+								os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000043\" name=\"IntensityUnits\" value=\"NumberOfCounts\"/>\n";
+								writeUserParam_(os, precursor, 7);
 							}
-							writeUserParam_(os, peak, 7);
+							os << "\t\t\t\t\t\t</ionSelection>\n";
+							os << "\t\t\t\t\t\t<activation>\n";
+							if (precursor != Precursor())
+							{
+								writeCVS_(os, precursor.getActivationMethod(), 18, "1000044", "Method",7);
+								writeCVS_(os, precursor.getActivationEnergy(), "1000045", "CollisionEnergy",7);
+								os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000046\" name=\"EnergyUnits\" value=\"eV\"/>\n";
+							}
+							os << "\t\t\t\t\t\t</activation>\n";
+							os << "\t\t\t\t\t</precursor>\n";
 						}
-						os << "\t\t\t\t\t\t</ionSelection>\n";
-						os << "\t\t\t\t\t\t<activation>\n";
-						if (spec.getPrecursor() != Precursor())
-						{
-							const Precursor& prec = spec.getPrecursor();
-							writeCVS_(os, prec.getActivationMethod(), 18, "1000044", "Method",7);
-							writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
-							writeCVS_(os, prec.getActivationEnergyUnit(), 15,"1000046", "EnergyUnits",7);
-							writeUserParam_(os, prec,7);
-						}
-						os << "\t\t\t\t\t\t</activation>\n";
-						os << "\t\t\t\t\t</precursor>\n"
-							 << "\t\t\t\t</precursorList>\n";
+						os << "\t\t\t\t</precursorList>\n";
 					}
 					os << "\t\t\t</spectrumDesc>\n";
 	
@@ -1402,27 +1404,27 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000040") //m/z
 				{
-					spec_.getPrecursor().setMZ(asDouble_(value));			
+					spec_.getPrecursors().back().setMZ(asDouble_(value));			
 				}
 				else if (accession=="PSI:1000041") //Charge
 				{
-					if (spec_.getPrecursor().getCharge() != 0)
+					if (spec_.getPrecursors().back().getCharge() != 0)
 					{
-						warning(LOAD, String("Multiple precursor charges detected, expected only one! Ignoring this charge setting! accession=\"") + accession + "\", value=\"" + value + "\"");
-						spec_.getPrecursor().setCharge(0);
+						warning(LOAD, String("Multiple precursor charges detected, expected only one! Ignoring this charge settings! accession=\"") + accession + "\", value=\"" + value + "\"");
+						spec_.getPrecursors().back().setCharge(0);
 					}
 					else
 					{
-						spec_.getPrecursor().setCharge(asInt_(value));
+						spec_.getPrecursors().back().setCharge(asInt_(value));
 					}
 				}
 				else if (accession=="PSI:1000042") //Intensity
 				{
-					spec_.getPrecursor().setIntensity(asDouble_(value));		
+					spec_.getPrecursors().back().setIntensity(asDouble_(value));		
 				}
-				else if (accession=="PSI:1000043") //Intensity unit (not really handled)
+				else if (accession=="PSI:1000043") //Intensity unit
 				{
-					spec_.getPrecursor().setMetaValue("#IntensityUnits", value);
+					//ignored
 				}
 				else
 				{
@@ -1433,15 +1435,15 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000044") //Method
 				{
-					spec_.getPrecursor().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(18, value,"activation method"));
+					spec_.getPrecursors().back().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(18, value,"activation method"));
 				}
 				else if (accession=="PSI:1000045") //Energy
 				{
-					spec_.getPrecursor().setActivationEnergy( asDouble_(value) );
+					spec_.getPrecursors().back().setActivationEnergy( asDouble_(value) );
 				}
 				else if (accession=="PSI:1000046") //Energy unit
 				{
-					spec_.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)cvStringToEnum_(15, value, "energy unit"));
+					//ignored - we assume electronvolt
 				}
 				else 
 				{

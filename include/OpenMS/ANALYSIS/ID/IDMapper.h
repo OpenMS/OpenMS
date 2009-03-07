@@ -103,15 +103,15 @@ namespace OpenMS
 						// testing whether the retention times are within the precision threshold
 						if (fabs(experiment_iterator->first - identifications_iterator->first) < rt_delta_)
 						{
-							//std::cout << "RT matching (scan/id) " << experiment_iterator->first << " / " << identifications_iterator->first << std::endl;	
-							
 							// testing whether the m/z fits
-							if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(map[experiment_iterator->second].getPrecursor().getMZ())) < mz_delta_)
+							if (!map[experiment_iterator->second].getPrecursors().empty())
 							{
-								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(map[experiment_iterator->second].getPrecursor().getMZ()) << " / " << (DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
-								if (!(ids[identifications_iterator->second].empty()))
+								if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_delta_)
 								{
-									map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
+									if (!(ids[identifications_iterator->second].empty()))
+									{
+										map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
+									}
 								}
 							}
 						}

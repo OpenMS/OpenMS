@@ -207,12 +207,10 @@ PILISScoring_test.C
 PTMXMLFile_test.C
 Param_test_1.C
 Param_test_2.C
-ParentFilter_test.C
 ParentPeakMower_test.C
 Peak1D_test.C
 Peak2D_test.C
 PeakAlignment_test.C
-PeakDensityFilter_test.C
 PeakFileOptions_test.C
 PeakIndex_test.C
 PeakMarker_test.C

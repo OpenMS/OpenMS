@@ -197,7 +197,7 @@ namespace OpenMS
 	                spectrum.setType(SpectrumSettings::RAWDATA);
 	
 	                // copy the spectrum information
-	                spectrum.getPrecursor() = input_it->getPrecursor();
+	                spectrum.setPrecursors(input_it->getPrecursors());
 	                spectrum.setRT(input_it->getRT());
 	                spectrum.setMSLevel(input_it->getMSLevel());
 	                spectrum.getName() = input_it->getName();

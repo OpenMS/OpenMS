@@ -43,7 +43,9 @@ namespace OpenMS
 		@brief Mascot input file adapter.
 		
 		Creates a file that can be used for Mascot search from a peak list or a whole experiment.
-  	  	
+	
+		@todo Write test! (Andreas)
+	
   	@ingroup FileIO
 	*/
   class OPENMS_DLLAPI MascotInfile2
@@ -97,9 +99,10 @@ namespace OpenMS
 						spectrum.push_back(p);
 					}
 					spectrum.setMSLevel(2);
-					spectrum.getPrecursor().setMZ(pre_mz);
-					spectrum.getPrecursor().setIntensity(pre_int);
-					spectrum.getPrecursor().setCharge(charge);
+					spectrum.getPrecursors().resize(1);
+					spectrum.getPrecursors()[0].setMZ(pre_mz);
+					spectrum.getPrecursors()[0].setIntensity(pre_int);
+					spectrum.getPrecursors()[0].setCharge(charge);
 					spectrum.setRT(rt);
 					if (title != "")
 					{

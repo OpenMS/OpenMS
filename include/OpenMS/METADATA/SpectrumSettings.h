@@ -49,7 +49,9 @@ namespace OpenMS
 		Precursor info should only be used if this spectrum is a tandem-MS spectrum.
 		The precursor spectrum is the first spectrum before this spectrum, that has a lower MS-level than
 		the current spectrum.
-		
+	
+    @todo add product list class, DB access and visualization (Marc)
+  
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI SpectrumSettings 
@@ -120,11 +122,11 @@ namespace OpenMS
       void setSourceFile(const SourceFile& source_file);
 			
 			/// returns a const reference to the precursor
-      const Precursor& getPrecursor() const;
+      const std::vector<Precursor>& getPrecursors() const;
       /// returns a mutable reference to the precursor
-      Precursor& getPrecursor();
-      /// sets the precursor
-      void setPrecursor(const Precursor& precursor);
+      std::vector<Precursor>& getPrecursors();
+      /// adds the precursor
+      void setPrecursors(const std::vector<Precursor>& precursors);
 			
       /// returns a const reference to the PeptideIdentification vector
 	    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;	    	
@@ -141,7 +143,7 @@ namespace OpenMS
       InstrumentSettings instrument_settings_;
       SourceFile source_file_;
       AcquisitionInfo acquisition_info_;
-      Precursor precursor_;
+      std::vector<Precursor> precursors_;
 	    std::vector<PeptideIdentification> identification_;
   };
 

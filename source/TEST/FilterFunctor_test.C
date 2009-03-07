@@ -74,9 +74,6 @@ START_SECTION(static void registerChildren())
 	TEST_EQUAL(ff->getName(), "IsotopeDiffFilter")
 	ff = Factory<FilterFunctor>::create("TICFilter");
 	TEST_EQUAL(ff->getName(), "TICFilter")
-	ff = Factory<FilterFunctor>::create("PeakDensityFilter");
-	TEST_EQUAL(ff->getName(), "PeakDensityFilter")
-
 END_SECTION
 
 START_SECTION(template<typename SpectrumType> double apply(SpectrumType&))

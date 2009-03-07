@@ -195,8 +195,15 @@ namespace OpenMS
 		{
 			// store RT&MZ of parent ion as centroid of ConsensusFeature
 			ConsensusFeature cf;
-			cf.setMZ(it->getPrecursor().getMZ());
 			cf.setRT(it->getRT());
+			if (it->getPrecursors().size()==1)
+			{
+				cf.setMZ(it->getPrecursors()[0].getMZ());
+			}
+			else
+			{
+				//TODO meckern?
+			}
 
 			Peak2D channel_value;
 			channel_value.setRT(it->getRT());

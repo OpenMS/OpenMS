@@ -104,10 +104,12 @@
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="445.34"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
 							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="120053"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
 						</ionSelection>
 						<activation>
 							<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="CID"/>
 							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="35"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>

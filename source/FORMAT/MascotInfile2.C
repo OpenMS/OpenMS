@@ -228,8 +228,17 @@ namespace OpenMS
 	
 	void MascotInfile2::writeSpectrum_(ostream& os,	const PeakSpectrum& spec)
 	{
-		double mz(spec.getPrecursor().getMZ()), rt(spec.getRT());
-		int charge(spec.getPrecursor().getCharge());
+		Precursor precursor;
+		if (spec.getPrecursors().size()>0)
+		{
+			precursor = spec.getPrecursors()[0];
+		}
+		if (spec.getPrecursors().size()>1)
+		{
+			std::cerr << "Warning: The spectrum written to Mascot file has more than one precursor. The first precursor is used!" << std::endl;
+		}
+		double mz(precursor.getMZ()), rt(spec.getRT());
+		int charge(precursor.getCharge());
 
 		if (mz == 0)
 		{

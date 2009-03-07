@@ -88,6 +88,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"mzXML");
 
   //---------------------------------------------------------------------------
+	// actual peak data
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
   // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
@@ -131,7 +132,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::SCAN_NUMBER)
 
 	//---------------------------------------------------------------------------
-  // const vector<SourceFile>& getSourceFiles() const;
+  // source file
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSourceFiles().size(),2)
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
@@ -146,7 +147,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 
 	//---------------------------------------------------------------------------
-  // const vector<DataProcessing>& getDataProcessing() const;
+  // data processing
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getDataProcessing().size(),2)
 
@@ -170,7 +171,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 
 	//---------------------------------------------------------------------------
-  // const Instrument& getInstrument() const;
+  // instrument
   //---------------------------------------------------------------------------
 	const Instrument& inst = e.getInstrument();
 	TEST_EQUAL(inst.getVendor(), "MS-Vendor")
@@ -208,7 +209,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getSoftware().getVersion(),"3.0")
 
   //---------------------------------------------------------------------------
-	// vector<ContactPerson>& getContacts()
+	// contact persons
   //---------------------------------------------------------------------------
 	const vector<ContactPerson>& contacts = e.getContacts();
 	TEST_EQUAL(contacts.size(),1)
@@ -220,7 +221,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(contacts[0].getContactInfo(),"")
 
   //---------------------------------------------------------------------------
-	// const Sample& getSample()
+	// sample
   //---------------------------------------------------------------------------
 	TEST_EQUAL(e.getSample().getName(), "")
 	TEST_EQUAL(e.getSample().getNumber(), "")
@@ -228,7 +229,33 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
  	TEST_EQUAL(e.getSample().getMass(), 0.0f)
 	TEST_EQUAL(e.getSample().getVolume(), 0.0f)
 	TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
+	
+	//---------------------------------------------------------------------------
+	// precursors
+	//---------------------------------------------------------------------------
+	TEST_EQUAL(e[0].getPrecursors().size(),0)
+	TEST_EQUAL(e[1].getPrecursors().size(),0)
+	TEST_EQUAL(e[2].getPrecursors().size(),0)
+	TEST_EQUAL(e[3].getPrecursors().size(),3)
+	
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getMZ(),101.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIntensity(),100.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowLowerBound(),96.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowUpperBound(),106.0)
+	TEST_EQUAL(e[3].getPrecursors()[0].getCharge(),1)
+	
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getMZ(),201.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIntensity(),200.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowLowerBound(),191.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowUpperBound(),211.0)
+	TEST_EQUAL(e[3].getPrecursors()[1].getCharge(),2)
 
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getMZ(),301.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIntensity(),300.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowLowerBound(),286.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowUpperBound(),316.0)
+	TEST_EQUAL(e[3].getPrecursors()[2].getCharge(),3)
+	
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 
 	//load a second time to make sure everything is re-initialized correctly

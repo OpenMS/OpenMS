@@ -72,7 +72,7 @@ START_SECTION((BinnedSpectrum(const BinnedSpectrum &source)))
   BinnedSpectrum copy(*bs1);
   TEST_EQUAL(copy.getName(), bs1->getName());
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
-  TEST_EQUAL((UInt)copy.getPrecursor().getMZ(),(UInt)bs1->getPrecursor().getMZ());
+  TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
 }
 END_SECTION
 
@@ -82,7 +82,7 @@ START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
   bs1 = new BinnedSpectrum(1.5,2,s1);
   TEST_EQUAL(copy.getName(), bs1->getName());
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
-  TEST_EQUAL((UInt)copy.getPrecursor().getMZ(),(UInt)bs1->getPrecursor().getMZ());
+  TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
 }
 END_SECTION
 
@@ -90,7 +90,7 @@ START_SECTION((BinnedSpectrum& operator=(const PeakSpectrum &source)))
 {
   bs1 = new BinnedSpectrum();
   *bs1 = s1;
-  TEST_EQUAL(bs1->getPrecursor().getMZ(),s1.getPrecursor().getMZ());
+  TEST_EQUAL(bs1->getPrecursors()[0].getMZ(),s1.getPrecursors()[0].getMZ());
   bs1->setBinSize(1.5);
   bs1->setBinSpread(2);
 }

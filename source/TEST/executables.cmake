@@ -190,7 +190,6 @@ set(filtering_executables_list
   IntensityBalanceFilter_test
   IsotopeDiffFilter_test
   NeutralLossDiffFilter_test
-  PeakDensityFilter_test
   TICFilter_test
   PeakMarker_test
   ComplementMarker_test
@@ -201,7 +200,6 @@ set(filtering_executables_list
   InternalCalibration_test
   IDFilter_test
   TOFCalibration_test
-  ParentFilter_test
   BernNorm_test
   DataFilters_test
 )

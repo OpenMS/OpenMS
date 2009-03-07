@@ -49,6 +49,9 @@ namespace OpenMS
 		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
 		
+		@bug Make update of spectrum bar faster (Johannes)
+		@bug Make sure the right spectrum is selected when applying TOPP tools - wait for next Qt release (Johannes)
+		
 		@ingroup SpectrumWidgets
 	*/
 	class OPENMS_DLLAPI Spectrum1DCanvas 

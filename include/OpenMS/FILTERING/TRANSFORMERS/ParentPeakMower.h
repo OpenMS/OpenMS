@@ -81,7 +81,8 @@ namespace OpenMS
 			}
 
     	//get precursor peak position precursorpeak
-    	double pre_pos = spectrum.getPrecursor().getMZ();
+	    double pre_pos = 0.0;
+			if (!spectrum.getPrecursors().empty()) pre_pos = spectrum.getPrecursors()[0].getMZ();
 		
 			if (pre_pos == 0)
 			{
@@ -89,7 +90,7 @@ namespace OpenMS
 				return;
 			}
 
-			UInt pre_charge = spectrum.getPrecursor().getCharge();
+			UInt pre_charge = spectrum.getPrecursors()[0].getCharge();
 			if (pre_charge == 0)
 			{
 				UInt default_charge = (unsigned int)param_.getValue("default_charge");

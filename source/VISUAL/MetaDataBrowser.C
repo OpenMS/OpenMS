@@ -912,7 +912,10 @@ namespace OpenMS
 		visualizeAll_(meta.getPeptideIdentifications(), item);
 
 		//check for Precursor
-		visualize_(meta.getPrecursor(), item);
+		for(Size i=0; i<meta.getPrecursors().size(); ++i)
+		{
+			visualize_(meta.getPrecursors()[i], item);
+		}
 
 		//check for AcquisitionInfo
 		visualize_(meta.getAcquisitionInfo(), item);

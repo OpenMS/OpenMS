@@ -663,7 +663,7 @@ namespace OpenMS
 		}
 
 		// CTRL+ALT+T
-		if ((e->modifiers() & Qt::ControlModifier|Qt::AltModifier) && (e->key()==Qt::Key_T))
+		if ((e->modifiers() & (Qt::ControlModifier|Qt::AltModifier)) && (e->key()==Qt::Key_T))
 		{
 			e->accept();
 			show_timing_ = !show_timing_;
@@ -727,11 +727,11 @@ namespace OpenMS
 				spectrum.SpectrumSettings::operator=(*it);
 				spectrum.setRT(it->getRT());
 				spectrum.setMSLevel(it->getMSLevel());
-				spectrum.setPrecursor(it->getPrecursor());
+				spectrum.setPrecursors(it->getPrecursors());
 				//copy peak information
 				if (!is_1d && it->getMSLevel()>1) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
 				{
-					if (it->getPrecursor().getMZ()>=area.min()[0] && it->getPrecursor().getMZ()<= area.max()[0])
+					if (it->getPrecursors()[0].getMZ()>=area.min()[0] && it->getPrecursors()[0].getMZ()<= area.max()[0])
 					{
 						spectrum.insert(spectrum.begin(), it->begin(), it->end());
 					}

@@ -1394,7 +1394,9 @@ namespace OpenMS
 
 				item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
-				item->setText(2, QString::number(cl.peaks[i].getPrecursor().getMZ()));
+				DoubleReal mz_pos = 0.0;
+				if (!cl.peaks[i].getPrecursors().empty()) mz_pos = cl.peaks[i].getPrecursors()[0].getMZ();
+				item->setText(2, QString::number(mz_pos));
 				item->setText(3, QString::number(i));
 
 				if (i == cl.current_spectrum)
@@ -1413,7 +1415,9 @@ namespace OpenMS
 					item = new QTreeWidgetItem((QTreeWidget*)0);
 					item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
 					item->setText(1, QString::number(cl.peaks[i].getRT()));
-					item->setText(2, QString::number(cl.peaks[i].getPrecursor().getMZ()));
+					DoubleReal mz_pos = 0.0;
+					if (!cl.peaks[i].getPrecursors().empty()) mz_pos = cl.peaks[i].getPrecursors()[0].getMZ();
+					item->setText(2, QString::number(mz_pos));
 					item->setText(3, QString::number(i));
 					spectrum_selection_->addTopLevelItem(item);
 					if (i == cl.current_spectrum)

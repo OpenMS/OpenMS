@@ -204,6 +204,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=0")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
+		//precursors
+		TEST_EQUAL(spec.getPrecursors().size(),0)
 	}
 
 	//-------------------------- spectrum 1 --------------------------
@@ -238,18 +240,25 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getMetaDataArrays()[0].size(),10)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[1].getName(),"user-defined name")
 		TEST_EQUAL(spec.getMetaDataArrays()[1].size(),10)
-		//precursor
-		TEST_REAL_SIMILAR(spec.getPrecursor().getIntensity(),120053)
-		TEST_EQUAL(spec.getPrecursor().getCharge(),2)
-		TEST_REAL_SIMILAR(spec.getPrecursor().getMZ(),5.55)
-		TEST_EQUAL(spec.getPrecursor().getActivationMethod(),Precursor::CID)
-		TEST_REAL_SIMILAR(spec.getPrecursor().getActivationEnergy(),35)
-		TEST_EQUAL(spec.getPrecursor().getPossibleChargeStates().size(),3)
-		TEST_EQUAL(spec.getPrecursor().getPossibleChargeStates()[0],1)
-		TEST_EQUAL(spec.getPrecursor().getPossibleChargeStates()[1],3)
-		TEST_EQUAL(spec.getPrecursor().getPossibleChargeStates()[2],4)
-		//TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_name"),"pr.dta")
-		//TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_path"),"file:///F:/data/Exp03")
+		//precursors
+		TEST_EQUAL(spec.getPrecursors().size(),2)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIntensity(),120053)
+		TEST_EQUAL(spec.getPrecursors()[0].getCharge(),2)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
+		TEST_EQUAL(spec.getPrecursors()[0].getActivationMethod(),Precursor::CID)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[0].getActivationEnergy(),35)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowLowerBound(),6.66)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowUpperBound(),7.77)
+		TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates().size(),3)
+		TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[0],1)
+		TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[1],3)
+		TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),120054)
+		TEST_EQUAL(spec.getPrecursors()[1].getCharge(),3)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),6.55)
+		TEST_EQUAL(spec.getPrecursors()[1].getActivationMethod(),Precursor::ETD)
+		TEST_REAL_SIMILAR(spec.getPrecursors()[1].getActivationEnergy(),36)
+		TEST_EQUAL(spec.getPrecursors()[1].getPossibleChargeStates().size(),0)
 		//source file
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
@@ -290,6 +299,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=2")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M2")
+		//precursors
+		TEST_EQUAL(spec.getPrecursors().size(),0)
 	}
 
 	//-------------------------- spectrum 3 (no peaks) --------------------------
@@ -313,6 +324,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=3")
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
+		//precursors
+		TEST_EQUAL(spec.getPrecursors().size(),0)
 	}
 
 	//-------------------------- userParam --------------------------
@@ -370,11 +383,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
 	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
 	//precursor
-	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("iwname").toString(),"isolationwindow1")
-	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("product iwname").toString(),"isolationwindow2")
-	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("siname").toString(),"selectedion1")
-	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("acname").toString(),"activation1")
-
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("iwname").toString(),"isolationwindow1")
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("siname").toString(),"selectedion1")
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("acname").toString(),"activation1")
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[1].getMetaValue("siname").toString(),"selectedion2")
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[1].getMetaValue("acname").toString(),"activation2")		
 	//-------------------------- cvParam (but no member => meta data)--------------------------
 	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
@@ -397,12 +410,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("scan rate"),17.17)
 	//spectrum 2
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation window lower limit"),"6.66")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation window upper limit"),"7.77")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window lower limit"),"8.88")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window upper limit"),"9.99")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision gas"), "Argon")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("buffer gas"), "Krypton")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("collision gas"), "Argon")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("buffer gas"), "Krypton")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("source_file_name"),"pr.dta")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp03")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 

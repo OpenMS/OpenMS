@@ -284,7 +284,9 @@ class TOPPXTandemAdapter
 				if (id <= exp.size())
 				{
 					it->setMetaValue("RT", exp[id - 1].getRT());
-					it->setMetaValue("MZ", exp[id - 1].getPrecursor().getMZ());
+					DoubleReal pre_mz = 0.0;
+					if (!exp[id - 1].getPrecursors().empty()) pre_mz = exp[id - 1].getPrecursors()[0].getMZ();
+					it->setMetaValue("MZ", pre_mz);
 					it->removeMetaValue("spectrum_id");
 				}
 			}

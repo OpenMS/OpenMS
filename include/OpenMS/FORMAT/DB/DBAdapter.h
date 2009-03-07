@@ -51,7 +51,7 @@ namespace OpenMS
     It can be used to create objects from the DB or store them in the DB.
 		
 		@todo Check if METADATA implementation is complete - all members and MetaInfoInterface (HiWi)
-		
+		@todo Check Precursor implementation, it has changed (Hiwi)
     @ingroup DatabaseIO
   */
  
@@ -679,24 +679,20 @@ namespace OpenMS
 					end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
 				}
 				//Intensity
-				query << "Intensity='" << exp_it->getPrecursor().getIntensity() << "'";
+				query << "Intensity='" << exp_it->getPrecursors()[0].getIntensity() << "'";
 				//mz
-				query << ",mz='" << exp_it->getPrecursor().getMZ() << "'";
+				query << ",mz='" << exp_it->getPrecursors()[0].getMZ() << "'";
 				//charge
-				query << ",Charge='" << exp_it->getPrecursor().getCharge() << "'";
+				query << ",Charge='" << exp_it->getPrecursors()[0].getCharge() << "'";
 				//activation method
-				query << ",ActivationMethod=" << (1u+exp_it->getPrecursor().getActivationMethod());		
-				//activation energy unit
-				query << ",ActivationEnergyUnit=" << (1u+exp_it->getPrecursor().getActivationEnergyUnit());		
+				query << ",ActivationMethod=" << (1u+exp_it->getPrecursors()[0].getActivationMethod());		
 				//activation energy
-				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy() << "'";
-				//window size
-				query << ",WindowSize='" << exp_it->getPrecursor().getWindowSize() << "'";
+				query << ",ActivationEnergy='" << exp_it->getPrecursors()[0].getActivationEnergy() << "'";
 				
 				query << end;
 				result = db_con_.executeQuery(query.str());
 				if (new_entry) parent_id = db_con_.getAutoId();
-				storeMetaInfo_("DATA_Precursor",parent_id, exp_it->getPrecursor());
+				storeMetaInfo_("DATA_Precursor",parent_id, exp_it->getPrecursors()[0]);
 				//TODO store persistence ID => Precusor class a persistent object
 			}
 			
@@ -1349,17 +1345,15 @@ namespace OpenMS
 		if(spec.getMSLevel()>1)
 		{
 			query.str("");
-			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,WindowSize,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
+			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergy,WindowSize,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
 			result = db_con_.executeQuery(query.str());
 			result.first();
-			spec.getPrecursor().setMZ(result.value(0).toDouble());
-			spec.getPrecursor().setIntensity(result.value(1).toDouble());
-			spec.getPrecursor().setCharge(result.value(2).toInt());
-			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).toInt()));
-			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(result.value(4).toInt()));
-			spec.getPrecursor().setActivationEnergy(result.value(5).toDouble());
-			spec.getPrecursor().setWindowSize(result.value(6).toDouble());
-			loadMetaInfo_(result.value(7).toInt(),spec.getPrecursor());
+			spec.getPrecursors()[0].setMZ(result.value(0).toDouble());
+			spec.getPrecursors()[0].setIntensity(result.value(1).toDouble());
+			spec.getPrecursors()[0].setCharge(result.value(2).toInt());
+			spec.getPrecursors()[0].setActivationMethod((Precursor::ActivationMethod)(result.value(3).toInt()));
+			spec.getPrecursors()[0].setActivationEnergy(result.value(5).toDouble());
+			loadMetaInfo_(result.value(7).toInt(),spec.getPrecursors()[0]);
 		}
 		
 		// Peaks/MetaDataArrays

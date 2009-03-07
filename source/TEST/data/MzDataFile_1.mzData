@@ -270,7 +270,7 @@
 						<userParam name="SpecComment" value="Spectrum 2"/>
 					</spectrumInstrument>
 				</spectrumSettings>
-				<precursorList count="1">
+				<precursorList count="2">
 					<precursor msLevel="2" spectrumRef="1">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="1.2"/>
@@ -283,9 +283,23 @@
 						<activation>
 							<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="CID"/>
 							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="3.4"/>
-							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="Percent"/>
-							<userParam name="URL" value="www.open-ms.de"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 							<userParam name="ActivationComment" value="active"/>
+						</activation>
+					</precursor>
+					<precursor msLevel="2" spectrumRef="1">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="2.2"/>
+							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="3.3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
+							<userParam name="IonSelectionComment" value="selected2"/>
+						</ionSelection>
+						<activation>
+							<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="SID"/>
+							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="4.4"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
+							<userParam name="ActivationComment" value="active2"/>
 						</activation>
 					</precursor>
 				</precursorList>

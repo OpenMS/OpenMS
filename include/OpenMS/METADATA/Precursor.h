@@ -34,8 +34,12 @@ namespace OpenMS
 	/**
 		@brief Precursor meta information.
 		
-		This class stores precursor meta information, that is not already 
-		covered by DSpectrum::getPrecursor().
+		This class contains precursor information:
+    - isolation window
+    - activation
+    - selected ion (m/z, intensity, charge, possible charge states)
+  
+    @todo Update DB and visualization (Marc)
 		
 		@ingroup Metadata
 	*/  
@@ -66,17 +70,6 @@ namespace OpenMS
       };
 			/// Names of activation methods
 			static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
-
-      /// Energy unit
-      enum EnergyUnits
-      {
-      	UNITSNULL,	///< Unknown energy unit
-      	EV,					///< Electron volt
-      	PERCENT,		///< Percent
-      	SIZE_OF_ENERGYUNITS
-      };
-			/// Names of energy units
-			static const std::string NamesOfEnergyUnits[SIZE_OF_ENERGYUNITS];
       
       /// Constructor
       Precursor();
@@ -98,22 +91,22 @@ namespace OpenMS
       /// sets the activation method
       void setActivationMethod(ActivationMethod activation_method);
 			
-			/// returns the activation energy
+			/// returns the activation energy (in electronvolt)
       DoubleReal getActivationEnergy() const;
-      /// sets the activation energy
+      /// sets the activation energy (in electronvolt)
       void setActivationEnergy(DoubleReal activation_energy);
-			
-			/// return the actication energy unit
-      EnergyUnits getActivationEnergyUnit() const;
-      /// sets the activation energy unit
-      void setActivationEnergyUnit(EnergyUnits activation_energy_unit);
       
-      /// returns the window size
-      DoubleReal getWindowSize() const;
-      /// sets the window size
-      void setWindowSize(DoubleReal size);
- 
-       /// Non-mutable access to the charge
+      /// returns the lower bound of the isolation window
+      DoubleReal getIsolationWindowLowerBound() const;
+      /// sets the lower bound of the isolation window
+      void setIsolationWindowLowerBound(DoubleReal bound);
+      
+      /// returns the upper bound of the isolation window
+      DoubleReal getIsolationWindowUpperBound() const;
+      /// sets the upper bound of the isolation window
+      void setIsolationWindowUpperBound(DoubleReal bound);
+      
+      /// Non-mutable access to the charge
       Int getCharge() const;
       /// Mutable access to the charge
       void setCharge( Int charge );
@@ -129,8 +122,8 @@ namespace OpenMS
       
       ActivationMethod activation_method_;
       DoubleReal activation_energy_;
-      EnergyUnits activation_energy_unit_;
-      DoubleReal window_size_;
+      DoubleReal window_low_;
+      DoubleReal window_up_;
       Int charge_;
       std::vector<Int> possible_charge_states_;
     };

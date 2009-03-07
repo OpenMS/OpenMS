@@ -66,9 +66,9 @@ namespace OpenMS
 			///@name Edit fields and buttons
 	    //@{
 			QComboBox* precursor_activation_method_;
-			QComboBox* precursor_energy_units_;
 			QLineEdit* precursor_activation_energy_;
-			QLineEdit* precursor_window_size_;
+			QLineEdit* precursor_window_up_;
+			QLineEdit* precursor_window_low_;
 			//@}
 			
 			//Docu in base class

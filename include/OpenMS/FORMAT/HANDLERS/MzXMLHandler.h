@@ -207,7 +207,6 @@ namespace OpenMS
 	  		static const XMLCh* s_polarity_;
 	  		static const XMLCh* s_scantype_;
 	  		static const XMLCh* s_retentiontime_;
-	  		static const XMLCh* s_collisionenergy_;
 	  		static const XMLCh* s_startmz_;
 	  		static const XMLCh* s_endmz_;
 	  		static const XMLCh* s_first_;
@@ -247,7 +246,6 @@ namespace OpenMS
 		      s_polarity_ = xercesc::XMLString::transcode("polarity");
 		      s_scantype_ = xercesc::XMLString::transcode("scanType");
 		      s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
-		      s_collisionenergy_ = xercesc::XMLString::transcode("collisionEnergy");
 		      s_startmz_ = xercesc::XMLString::transcode("startMz");
 		      s_endmz_ = xercesc::XMLString::transcode("endMz");
 		      s_first_ = xercesc::XMLString::transcode("first");
@@ -291,7 +289,6 @@ namespace OpenMS
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_polarity_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_scantype_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_retentiontime_ = 0;
-  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_collisionenergy_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_startmz_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_endmz_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_first_ = 0;
@@ -381,23 +378,29 @@ namespace OpenMS
 			}
 			else if (tag=="precursorMz")
 			{
+				//add new precursor
+				exp_->back().getPrecursors().push_back(Precursor());
+				//intensity
 				try
 				{
-					exp_->back().getPrecursor().setIntensity( attributeAsDouble_(attributes, s_precursorintensity_) );
+					exp_->back().getPrecursors().back().setIntensity( attributeAsDouble_(attributes, s_precursorintensity_) );
 				}
 				catch (Exception::ParseError& /*e*/)
 				{
-					error(LOAD, "Mandatory attribute precursorMz not found! Setting precursor intensity to 0 - trying to continue");
-					exp_->back().getPrecursor().setIntensity(0.0);
+					error(LOAD, "Mandatory attribute 'precursorIntensity' of tag 'precursorMz' not found! Setting precursor intensity to zero!");
 				}
-				
+				//charge
 				Int charge = 0;
-				optionalAttributeAsInt_(charge, attributes, s_precursorcharge_);
-				exp_->back().getPrecursor().setCharge(charge);
-				
-				DoubleReal window = 0;
-				optionalAttributeAsDouble_(window, attributes, s_windowwideness_);
-				exp_->back().getPrecursor().setWindowSize(window);
+				if (optionalAttributeAsInt_(charge, attributes, s_precursorcharge_))
+				{
+					exp_->back().getPrecursors().back().setCharge(charge);
+				}
+				//window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
+				DoubleReal window = 0.0;
+				if(optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
+				{
+					exp_->back().getPrecursors().back().setIsolationWindowLowerBound(window);
+				}
 			}
 			else if (tag=="scan")
 			{
@@ -454,7 +457,7 @@ namespace OpenMS
 				peak_count_ = attributeAsInt_(attributes, s_peakscount_);
 				exp_->back().reserve(peak_count_);
 				
-				//centroided, chargeDeconvoluted, deisotoped are ignored
+				//centroided, chargeDeconvoluted, deisotoped, collisionEnergy are ignored
 
 				//other optional attributes
 				InstrumentSettings::ScanWindow window;
@@ -464,10 +467,6 @@ namespace OpenMS
 				{
 					exp_->back().getInstrumentSettings().getScanWindows().push_back(window);
 				}
-				
-				DoubleReal tmp = 0.0;
-				optionalAttributeAsDouble_(tmp, attributes, s_collisionenergy_);
-				exp_->back().getPrecursor().setActivationEnergy(tmp);
 				
 				String polarity = "any";
 				optionalAttributeAsString_(polarity, attributes, s_polarity_);
@@ -739,7 +738,16 @@ namespace OpenMS
 			}
 			else if (	open_tags_.back()=="precursorMz")
 			{
-				exp_->back().getPrecursor().setMZ(asDouble_(transcoded_chars));
+				DoubleReal mz_pos = asDouble_(transcoded_chars);
+				//precursor m/z
+				exp_->back().getPrecursors().back().setMZ(mz_pos);
+				//update window bounds - center them around the m/z pos
+				DoubleReal window_width = exp_->back().getPrecursors().back().getIsolationWindowLowerBound();
+				if (window_width!=0.0)
+				{
+					exp_->back().getPrecursors().back().setIsolationWindowLowerBound(mz_pos - 0.5*window_width);
+					exp_->back().getPrecursors().back().setIsolationWindowUpperBound(mz_pos + 0.5*window_width);
+				}
 			}
 			else if (	open_tags_.back()=="comment")
 			{
@@ -1071,13 +1079,18 @@ namespace OpenMS
 				}
 				os << ">\n";
 	
-				const Precursor& peak = spec.getPrecursor();
-				if (peak!= Precursor())
+				
+				for (Size i=0; i<spec.getPrecursors().size(); ++i)
 				{
-					os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
-						 << peak.getIntensity();
-					if (peak.getCharge()!=0) os << "\" precursorCharge=\"" << peak.getCharge();
-					os << "\">" << peak.getPosition()[0] << "</precursorMz>\n";
+					const Precursor& precursor = spec.getPrecursors()[i];
+					//intensity
+					os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\"" << precursor.getIntensity();
+					//charge
+					if (precursor.getCharge()!=0) os << "\" precursorCharge=\"" << precursor.getCharge();
+					//window size
+					if (precursor.getIsolationWindowLowerBound()!=precursor.getIsolationWindowUpperBound()) os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperBound()-precursor.getIsolationWindowLowerBound());
+					//m/z
+					os << "\">" << precursor.getMZ() << "</precursorMz>\n";
 				}
 	
 				if (spec.size() > 0)

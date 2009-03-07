@@ -2,18 +2,28 @@
 ----                                  OpenMS 1.4                                      ----
 ------------------------------------------------------------------------------------------
 
-New features and improvements of TOPP:
-- TextExporter can now export peptide/protein information stored in consensusXML
+Main improvements of TOPPView:
+- Drag-and-drop is now supported from the layer bar, spectrum bar and for files from the operating system
 
-New features and improvements of OpenMS C++ library:
+Main improvements of TOPP:
+- TextExporter can now export peptide/protein information stored in consensusXML
+- PeakPicker has less parameters
+
+Main improvements of OpenMS C++ library:
 - removed support for external Memory (use the 64bit builds if you want to process large datasets)
 
+Detailed list of changes to specific OpenMS classes:
+- SpectrumSettings: several precursor peaks are now supported
+- Precursor: complete rewrite for better support of mzData, mzXML and mzML
+- PeakPickerCWT: cleaned up interface (defined in PeakPicker base class), improved parameters
+- LabeledPairFinder: estimated negative sigma values are now treated as positive values
 
 Bug fixes:
 - [2645436]: TOPPView - Data Filter for "Size" not available
 - [2645510]: OpenMS - libOpenMS.so is built but linking fails (TOPP, tests) (on Debian "Lenny")
 - [2665055]: FileFilter ignores -sort option for FeatureXML and Consensus
 - [2659013]: windows contrib can fail when copying compiled libraries
+- [2606068]: TOPP tools with list parameters do not work with INI files
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.3                                     ----

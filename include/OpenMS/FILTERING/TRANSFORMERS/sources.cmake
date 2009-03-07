@@ -17,9 +17,7 @@ NLargest.h
 NeutralLossDiffFilter.h
 NeutralLossMarker.h
 Normalizer.h
-ParentFilter.h
 ParentPeakMower.h
-PeakDensityFilter.h
 PeakMarker.h
 PreprocessingFunctor.h
 Scaler.h

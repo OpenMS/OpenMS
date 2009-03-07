@@ -82,10 +82,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
 	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"mzData");
 
-//---------------------------------------------------------------------------
-  // 60 : (120,100)
-  // 120: (110,100) (120,200) (130,100)
-  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//---------------------------------------------------------------------------
+	// ms-level, RT, native ID
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
 	TEST_EQUAL(e[0].getMSLevel(), 1)
@@ -99,7 +97,10 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(e[2].getNativeID(),"spectrum=12")
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
 	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::SPECTRUM_IDENTIFIER)
-
+	  
+	//---------------------------------------------------------------------------
+	//meta data array meta data
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getNameOfFile(),"area.raw")
 	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getPathToFile(),"/share/data/")
 	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getFileType(),"aux")
@@ -148,20 +149,33 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("Comment"),"Peak shape")
+	  
+	//---------------------------------------------------------------------------
+	//precursors  
+	//---------------------------------------------------------------------------
+	TEST_EQUAL(e[0].getPrecursors().size(),0)
+	TEST_EQUAL(e[1].getPrecursors().size(),2)
+	TEST_EQUAL(e[2].getPrecursors().size(),0)
+	
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getMZ(), 1.2)
+	TEST_EQUAL(e[1].getPrecursors()[0].getCharge(), 2)
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getIntensity(), 2.3f)
+	TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("IonSelectionComment"), "selected")
+	TEST_EQUAL(e[1].getPrecursors()[0].getActivationMethod(), Precursor::CID)
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getActivationEnergy(), 3.4)
+	TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("ActivationComment"), "active")
 
-	TEST_EQUAL(e[1].getPrecursor().getMZ(), 1.2)
-	TEST_EQUAL(e[1].getPrecursor().getCharge(), 2)
-	TEST_EQUAL(e[1].getPrecursor().getIntensity(), 2.3f)
-	TEST_EQUAL(e[1].getPrecursor().getMetaValue("#IntensityUnits"),
-																														"NumberOfCounts")
-	TEST_EQUAL(e[1].getPrecursor().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e[1].getPrecursor().getMetaValue("IonSelectionComment"), "selected")
-	TEST_EQUAL(e[1].getPrecursor().getActivationMethod(), Precursor::CID)
-	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 3.4)
-	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::PERCENT)
-	TEST_EQUAL(e[1].getPrecursor().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e[1].getPrecursor().getMetaValue("ActivationComment"), "active")
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getMZ(), 2.2)
+	TEST_EQUAL(e[1].getPrecursors()[1].getCharge(), 3)
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getIntensity(), 3.3f)
+	TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("IonSelectionComment"), "selected2")
+	TEST_EQUAL(e[1].getPrecursors()[1].getActivationMethod(), Precursor::SID)
+	TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getActivationEnergy(), 4.4)
+	TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("ActivationComment"), "active2")
 
+	//---------------------------------------------------------------------------
+	//instrument settings  
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[0].getInstrumentSettings().getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getInstrumentSettings().getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[2].getInstrumentSettings().metaValueExists("URL"), false)
@@ -181,9 +195,10 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].begin, 100)
 	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].end, 140)
-
-
-
+  
+	//---------------------------------------------------------------------------
+	//acquisition  
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[0].getAcquisitionInfo().size(), 0)
   ABORT_IF(e[0].getAcquisitionInfo().size()!=0);
 	TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
@@ -203,19 +218,26 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getType(), SpectrumSettings::PEAKS)
 	TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
 	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
-
+	
+	//---------------------------------------------------------------------------
+	// actual peak data:
+	// 60 : (120,100)
+  // 120: (110,100) (120,200) (130,100)
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//
+	// meta data array values:
+	// 0) r_value
+	// 1) area
+	// 2) FWHM
+	// 3) left_width
+	// 4) right_width
+	// 5) charge
+	// 5) type
+	// 6) signal_to_noise
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
-
-//	0) r_value
-//  1) area
-//  2) FWHM
-//  3) left_width
-//  4) right_width
-//  5) charge
-//  5) type
-//  6) signal_to_noise
 
 	TEST_REAL_SIMILAR(e[0][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(e[0][0].getIntensity(), 100)
@@ -317,12 +339,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][4], 100)
 
   //---------------------------------------------------------------------------
-  // accessionNumber
+  // accession number
   //---------------------------------------------------------------------------
 	TEST_EQUAL(e.getIdentifier(),"lsid");
 
   //---------------------------------------------------------------------------
-  // const vector<SourceFile>& getSourceFiles() const;
+  // source file
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSourceFiles().size(),1)
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
@@ -332,7 +354,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN);
 
   //---------------------------------------------------------------------------
-  // const std::vector<ContactPerson>& getContacts() const;
+  // conteact list
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getContacts().size(), 2);
   ABORT_IF(e.getContacts().size()!=2);
@@ -346,7 +368,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 
   //---------------------------------------------------------------------------
-  // const DataProcessing& getDataProcessing() const;
+  // data processing
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getDataProcessing().size(), 1)
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
@@ -358,7 +380,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
 
   //---------------------------------------------------------------------------
-  // const Instrument& getInstrument() const;
+  // instrument
   //---------------------------------------------------------------------------
 	const Instrument& inst = e.getInstrument();
   TEST_EQUAL(inst.getName(), "MS-Instrument")
@@ -416,7 +438,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getMassAnalyzers()[1].getMetaValue("AnalyzerComment"), "Analyzer 2")
 
   //---------------------------------------------------------------------------
-	// const Sample& getSample()
+	// sample
   //---------------------------------------------------------------------------
 	TEST_EQUAL(e.getSample().getName(), "MS-Sample")
 	TEST_EQUAL(e.getSample().getNumber(), "0-815")

@@ -42,7 +42,7 @@ namespace OpenMS
 		instrument_settings_(),
 		source_file_(),
 		acquisition_info_(),
-		precursor_(),
+		precursors_(),
 		identification_()
 	{
 	}
@@ -54,7 +54,7 @@ namespace OpenMS
 	  instrument_settings_(source.instrument_settings_),
 	  source_file_(source.source_file_),
 	  acquisition_info_(source.acquisition_info_),
-	  precursor_(source.precursor_),
+	  precursors_(source.precursors_),
 	  identification_(source.identification_)
 	{
 	  
@@ -75,7 +75,7 @@ namespace OpenMS
     instrument_settings_ = source.instrument_settings_;
     acquisition_info_ = source.acquisition_info_;
     source_file_ = source.source_file_;
-    precursor_ = source.precursor_;
+    precursors_ = source.precursors_;
     identification_ = source.identification_;
 	  
 	  return *this;
@@ -90,7 +90,7 @@ namespace OpenMS
 	    instrument_settings_ == rhs.instrument_settings_ &&
 	    acquisition_info_ == rhs.acquisition_info_ &&
 		  source_file_ == rhs.source_file_ &&
-	    precursor_ == rhs.precursor_ &&
+	    precursors_ == rhs.precursors_ &&
 	    identification_ == rhs.identification_
   		;
   }
@@ -165,19 +165,19 @@ namespace OpenMS
 	  source_file_ = source_file; 
 	}
 	
-	const Precursor& SpectrumSettings::getPrecursor() const 
+	const vector<Precursor>& SpectrumSettings::getPrecursors() const 
 	{
-	  return precursor_; 
+	  return precursors_; 
 	}
 	
-	Precursor&  SpectrumSettings::getPrecursor()
+	vector<Precursor>&  SpectrumSettings::getPrecursors()
 	{
-	  return precursor_; 
+	  return precursors_; 
 	}
 	
-	void SpectrumSettings::setPrecursor(const Precursor& precursor)
+	void SpectrumSettings::setPrecursors(const vector<Precursor>& precursors)
 	{
-	  precursor_ = precursor; 
+	  precursors_ = precursors; 
 	}
 	
 	std::ostream& operator << (std::ostream& os, const SpectrumSettings& /*spec*/)

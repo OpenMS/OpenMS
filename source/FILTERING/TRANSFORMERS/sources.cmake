@@ -17,9 +17,7 @@ NLargest.C
 NeutralLossDiffFilter.C
 NeutralLossMarker.C
 Normalizer.C
-ParentFilter.C
 ParentPeakMower.C
-PeakDensityFilter.C
 PeakMarker.C
 PreprocessingFunctor.C
 Scaler.C

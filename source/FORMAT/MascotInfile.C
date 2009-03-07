@@ -287,8 +287,6 @@ namespace OpenMS
 	{
 		String temp_string;
 		stringstream ss;
-		Precursor precursor_peak;
-		DPosition< 1 >::CoordinateType precursor_position;
 		
 		fputs ("\n--",fp);
 		fputs (boundary_.c_str(),fp);
@@ -300,9 +298,16 @@ namespace OpenMS
 		{
 			MSSpectrum<> peaks = experiment[i];
 			peaks.sortByPosition();
-			precursor_peak = experiment[i].getPrecursor();
-			precursor_position = experiment[i].getPrecursor().getMZ();
-		
+			Precursor precursor_peak;
+			if (experiment[i].getPrecursors().size()>0)
+			{
+				precursor_peak = experiment[i].getPrecursors()[0];
+			}
+			if (experiment[i].getPrecursors().size()>1)
+			{
+				std::cerr << "Warning: The spectrum written to the Mascot file '" << filename << "' has more than one precursor. The first precursor is used!" << std::endl;
+			}
+				
 			if (experiment[i].getMSLevel() == 0)
 			{
 				cout << "MascotInfile: MSLevel is set to 0, ignoring this spectrum!" << endl;
@@ -310,25 +315,21 @@ namespace OpenMS
 			
 			if (experiment[i].getMSLevel() == 2)
 			{
-				if (precursor_position == 0)
+				if (precursor_peak.getMZ() == 0)
 				{
-					//retention time
-					ss.str("");
-					ss << experiment[i].getRT();
-					cout << "No precursor m/z information for spectrum with rt: " 
-						<< ss.str() << " present" << endl;
+					cerr << "Warning: No precursor m/z information for spectrum with rt: " << experiment[i].getRT() << " present" << endl;
 				}
 				else
 				{
 					fputs ("\nBEGIN IONS\n",fp);
 
 					ss.str("");
-					ss << precursor_position << "_" << experiment[i].getRT();
+					ss << precursor_peak.getMZ() << "_" << experiment[i].getRT();
 					fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
 
 					//precursor data (includes mz and retention time)
 					ss.str("");
-					ss << precursor_position;
+					ss << precursor_peak.getMZ();
 					fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
 			
 					//retention time
@@ -336,10 +337,10 @@ namespace OpenMS
 					ss << experiment[i].getRT();
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
 
-					if (experiment[i].getPrecursor().getCharge() != 0)
+					if (precursor_peak.getCharge() != 0)
 					{
 						ss.str("");
-						if (experiment[i].getPrecursor().getCharge() > 0)
+						if (precursor_peak.getCharge() > 0)
 						{
 							ss << "+";
 						}
@@ -347,7 +348,7 @@ namespace OpenMS
 						{
 							ss << "-";
 						}
-						ss << experiment[i].getPrecursor().getCharge();
+						ss << precursor_peak.getCharge();
 						fputs(String("CHARGE=" + ss.str() + "\n").c_str(), fp);
 					}
 					fputs("\n",fp);

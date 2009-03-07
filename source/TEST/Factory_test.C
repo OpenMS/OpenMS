@@ -65,7 +65,7 @@ END_SECTION
 
 START_SECTION(static std::vector<String> registeredProducts())
 	vector<String> list = Factory<FilterFunctor>::registeredProducts();
-	TEST_EQUAL(list.size(),7)
+	TEST_EQUAL(list.size(),6)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

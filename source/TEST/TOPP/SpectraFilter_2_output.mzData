@@ -160,10 +160,7 @@
 						<activation>
 							<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="CID"/>
 							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="3.4"/>
-							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="Percent"/>
-							<userParam name="URL" value="www.open-ms.de"/>
-							<userParam name="IonSelectionComment" value="selected"/>
-							<userParam name="ActivationComment" value="active"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>
