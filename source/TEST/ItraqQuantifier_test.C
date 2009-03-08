@@ -93,6 +93,9 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.idXML"), protein_ids, peptide_ids, document_id);
 	
 	ItraqQuantifier iq;
+	Param p;
+	p.setValue("do_normalization", "true");
+	iq.setParameters(p);
 	iq.run(cm_in, peptide_ids, protein_ids, cm_out);
 
 	String cm_file_out;// = OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML");
