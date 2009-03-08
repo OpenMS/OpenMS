@@ -71,9 +71,9 @@ namespace OpenMS
   /**
     @brief Main window of TOPPView tool
 		
-    @improvement Paint only highest point per pixel (Hiwi)
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
-    @todo Add online-Tutorial (Marc)
+    @todo Paint only highest point per pixel (Marc)
+    @todo Add realtime-Tutorial (Marc)
   
     @ingroup TOPPView_elements
   */

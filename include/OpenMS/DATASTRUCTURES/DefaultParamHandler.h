@@ -78,6 +78,8 @@ namespace OpenMS
 		Flags (boolean parameters) are not supported directly. It's best to implement them as a
 		string parameter with valid strings 'true' and 'false'.
 		
+		@todo Add support for instrument defaults (Marc)
+		
 		@ingroup Datastructures
 	*/
 	class OPENMS_DLLAPI DefaultParamHandler
