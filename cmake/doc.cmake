@@ -4,7 +4,7 @@ set(CF_OPENMS_BIN_PATH ${PROJECT_BINARY_DIR})
 set(CF_OPENMS_SRC_PATH ${PROJECT_SOURCE_DIR})
 
 find_package(Doxygen)
-find_package(Latex)
+find_package(LATEX)
 
 if (DOXYGEN_FOUND)
 	configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
@@ -191,3 +191,4 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 else()
 	Message(STATUS "Doxygen and Latex not found. Disabling 'tutorials' target!")
 endif()
+
