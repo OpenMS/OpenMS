@@ -24,7 +24,6 @@
 // $Maintainer: Eva Lange $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 

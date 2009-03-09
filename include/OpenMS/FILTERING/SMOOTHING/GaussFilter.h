@@ -38,7 +38,7 @@
 namespace OpenMS
 {
   /**
-    @brief This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform raw data.
+    @brief This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data.
    
     Gaussian filters are important in many signal processing,
     image processing, and communication applications. These filters are characterized by narrow bandwidths,
@@ -53,10 +53,6 @@ namespace OpenMS
     @note The wider the kernel width the smoother the signal (the more detail information get lost!).
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
-
-    @note The input and output data of this algorithm should consist of type Peak1D or a derived class.
-          Normally it is applied to MSExperiment and MSSpectrum instances.
-
 		 
 		@htmlinclude OpenMS_GaussFilter.parameters
     
@@ -93,80 +89,56 @@ namespace OpenMS
       }
 
       /** 
-      	@brief Applies the convolution with the filter coefficients to an given iterator range.
+      	@brief Smoothes an MSSpectrum containing profile data.
 
-	      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
-	      resulting data to the smoothed_data_container.
+        Convolutes the filter and the profile data and writes the result back to the spectrum.
 	      
 	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
-      template <typename InputPeakIterator, typename OutputPeakContainer  >
-      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
+      template <typename PeakType>
+      void filter(MSSpectrum<PeakType>& spectrum)
       {
-        smoothed_data_container.resize(distance(first,last));
+        // make sure the right data type is set
+        spectrum.setType(SpectrumSettings::RAWDATA);        
+        //create container for output peaks
+        std::vector<DoubleReal> output(spectrum.size());
 
 				bool use_ppm_tolerance(param_.getValue("use_ppm_tolerance").toBool());
 				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));				
 
-#ifdef DEBUG_FILTERING
-        std::cout << "KernelWidth: " << 8*sigma_ << std::endl;
-        std::cout << "Spacing: " << spacing_ << std::endl;
-#endif
-
-        InputPeakIterator help = first;
-        typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
-        UInt non_zero_signal_count = 0;
-        while (help != last)
+        bool found_signal = false;
+        for (Size p=0; p<spectrum.size(); ++p)
         {
+        	// if ppm tolerance is used, calculate a reasonable width value for this m/z
 					if (use_ppm_tolerance)
           {
-						// calculate a reasonable width value for this m/z
-						param_.setValue("gaussian_width", help->getMZ() * ppm_tolerance * 10e-6);
+						param_.setValue("gaussian_width", spectrum[p].getMZ() * ppm_tolerance * 10e-6);
             updateMembers_();
           }
 
-          out_it->setPosition(help->getMZ());
-          DoubleReal act_int = integrate_(help,first,last);
-          if (fabs(act_int) > 0)
-          {
-            ++non_zero_signal_count;
-          }
-          out_it->setIntensity(std::max(act_int, 0.0));
-
-          ++out_it;
-          ++help;
+          DoubleReal new_int = integrate_(spectrum.begin()+p,spectrum.begin(),spectrum.end());
+          std::cout << "I: " << spectrum[p].getIntensity() << " => " << new_int << std::endl;
+          output[p] = std::max(new_int, 0.0);
+          if (fabs(new_int) > 0) found_signal = true;
         }
-                
+                     
         // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception. 
         // This is the case if the gaussian filter is smaller than the spacing of raw data
-        if (non_zero_signal_count == 0 && distance(first,last)>=3)
+        if (!found_signal && spectrum.size()>=3)
         { 
           throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
-        } 
+        }
 
+				// copy the new data into the spectrum
+        for (Size p=0; p<spectrum.size(); ++p)
+        {
+        	spectrum[p].setIntensity(output[p]);
+				}
       }
 
 
       /** 
-      	@brief Convolutes the filter coefficients and the input raw data.
-
-        Convolutes the filter and the raw data in the input_peak_container and writes the
-        resulting data to the smoothed_data_container.
-	      
-	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
-      */
-      template <typename InputPeakContainer, typename OutputPeakContainer >
-      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
-      {
-      	// copy the spectrum settings
-      	static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
-        smoothed_data_container.setType(SpectrumSettings::RAWDATA);
-        filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
-      }
-
-
-      /** 
-      	@brief Convenience method that removed the noise from an MSExperiment containing raw data.
+      	@brief Smoothes an MSExperiment containing profile data.
       */
       template <typename PeakType>
       void filterExperiment(MSExperiment<PeakType>& map)
@@ -174,15 +146,14 @@ namespace OpenMS
         startProgress(0,map.size(),"smoothing data");
         for (Size i = 0; i < map.size(); ++i)
         {
-          typename MSExperiment<PeakType>::SpectrumType spectrum;
-          filter(map[i],spectrum);
-          map[i].swap(spectrum);
+          filter(map[i]);
           setProgress(i);
         }
         endProgress();
       }
 
     protected:
+    
 			///Coefficients
 			std::vector<DoubleReal> coeffs_;
       /// The standard derivation  \f$ \sigma \f$.
@@ -193,18 +164,18 @@ namespace OpenMS
      	// Docu in base class
       virtual void updateMembers_() 
       {
-        sigma_ = (DoubleReal)param_.getValue("gaussian_width") / 8.;
-				int number_of_points_right = (int)(ceil(4*sigma_ / spacing_))+1;
+        sigma_ = (DoubleReal)param_.getValue("gaussian_width") / 8.0;
+				Size number_of_points_right = (Size)(ceil(4*sigma_ / spacing_))+1;
 		    coeffs_.resize(number_of_points_right);
 		    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI));
 		
-		    for (int i=1; i < number_of_points_right; i++)
+		    for (Size i=1; i < number_of_points_right; i++)
 		    {
 		    	coeffs_[i] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI)) * exp(-((i*spacing_)*(i*spacing_)) / (2 * sigma_ * sigma_));
 		    }
 #ifdef DEBUG_FILTERING
 		    std::cout << "Coeffs: " << std::endl;
-		    for (int i=0; i < number_of_points_right; i++)
+		    for (Size i=0; i < number_of_points_right; i++)
 		    {
 		        std::cout << i*spacing_ << ' ' << coeffs_[i] << std::endl;
 		    }
