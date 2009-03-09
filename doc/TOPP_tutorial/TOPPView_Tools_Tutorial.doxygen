@@ -32,7 +32,21 @@
 	
 	@section toppview_tools_baseline Substracting a baseline from a spectrum
 	
-	bli bla bluff
+	Load the spectrum in TOPPView. The BaselineFilter can be called via the Tools-menu
+	(@a Tools > @a Apply @a TOPP @a tool), then select BaselineFilter as TOPPtool (red rectangle).
+	One can choose between different types of filters (green rectangle),
+	the one mainly used is TopHat. The other important parameter is the
+	length of the structuring element (blue rectangle). The default value is 3 Thomson.
+
+	@image html TOPPView_tools_baseline.png
+	@image latex TOPPView_tools_baseline.png "" width=14cm
+
+	The following image shows a part of the spectrum after baseline filtering as green line,
+	the original raw data is shown by the blue line.
+	
+	@image html TOPPView_tools_baseline_filtered.png
+	@image latex TOPPView_tools_baseline_filtered.png "" width=14cm
+	
 	
 	@todo Compose tutorial - video and text (Alexandra)
 	
@@ -45,8 +59,24 @@
 	@page TOPPView_smoothing Smoothing raw data	
 	
 	@section toppview_tools_smoothing Smoothing raw data	
+
+	To smooth your raw data call the NoiseFilter via the Tools-menu,
+	(@a Tools > @a Apply @a TOPP @a tool), then select NoiseFilter as TOPPtool (green rectangle).
+	Afterwards select the NoiseFilter type (red rectangle). You can choose between Savitzky-Golay and
+	Gaussian. The parameters for the filter type can be adapted (blue rectangle).
+	For the Savitzky-Golay filter you can set the frame length and the order of the polynomial that is fitted.
+	For the Gaussian filter the gaussian width and the ppm tolerance for a flexible gaussian width
+	depending on the m/z value can be adapted.
 	
-	bli bla bluff
+	@image html TOPPView_tools_noisefilter.png
+	@image latex TOPPView_tools_noisefilter.png "" width=14cm
+
+	The following image shows a part of the spectrum after smoothing as green line with the unsmoothed
+	data in blue.
+		
+	@image html TOPPView_tools_noisefilter_filtered.png
+	@image latex TOPPView_tools_noisefilter_filtered.png "" width=14cm
+	
 	
 	@todo Compose tutorial - video and text (Alexandra)
 */
@@ -58,7 +88,26 @@
 
 	@section toppview_tools_pp Picking peaks 
 	
-	bli bla bluff
+	If you have low resolution data you may consider to smooth your data first(@ref TOPPView_smoothing) and subtract
+	the baseline (@ref TOPPView_baseline_reduction) before peak picking.
+
+	
+	@image html TOPPView_tools_pp_peakwidth.png
+	@image latex TOPPView_tools_pp_peakwidth.png "" width=14cm
+
+	
+	One of the main parameters for our PeakPicker is the peak width. If you don't know the
+	approximate fwhm of your peaks you may use the measuring tool (@ref TOPPView_views_use).
+	Then call the PeakPicker (@a Tools > @a Apply @a TOPP @a tool), then select the PeakPicker (green rectangle).
+	Select as type wavelet (red rectangle), afterwards you can adapt the parameters (blue rectangle).
+	Enter as peak_width the average peak width you have determined with the measuring tool (pink rectangle).
+	Additionally you can set the minimal signal to noise ratio for a peak to be picked. 
+
+
+	@image html TOPPView_tools_pp_picked.png
+	@image latex TOPPView_tools_pp_picked.png "" width=14cm
+
+	The image above shows a part of the spectrum with the picked peaks shown in red.
 	
 	@todo Compose tutorial - video and text (Alexandra)
 */
