@@ -101,8 +101,14 @@ void someFunction(LargeObject& obj)
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">What does this OPENMS_DLLAPI in class headers do?!</H2>
 
-OPENMS_DLLAPI is a preprocessor macro and ensures that Visual Studio exports this class into the DLL when building the DLL
+OPENMS_DLLAPI is a preprocessor macro and ensures that Visual Studio exports
+this class into the DLL when building the DLL
 or references the DLL when building an executable.
+
+The OPENMS_DLLAPI macro is defined empty on other platforms,
+but it might still confuse the syntax parsing of your text editor or IDE.
+If you are using the Eclipse Platform, you can fix this at:
+Project->Properties->C/C++ Include Paths and Symbols.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">When do I use OPENMS_DLLAPI?!</H2>
 
@@ -121,7 +127,7 @@ It is enough to prefix the class with the macro (do not prefix the members or me
 
 OPENMS_DLLAPI is also required for structs, global variables and global functions, as long as they are not templates.<br>
 Never prefix templates with OPENMS_DLLAPI!<br>
-The only exeption to this rule is when a template is fully specialized (i.e. it can be instanciated).
+The only exeption to this rule is when a template is fully specialized (i.e. it can be instantiated).
 
 A prominent global function is "operator <<", which is overloaded quite often for OpenMS classes.
 Unless it is templatized, prefix it with OPENMS_DLLAPI. If the operator is declared a friend of some class, also make sure the
