@@ -84,23 +84,28 @@ endif()
 ##### Parallelization things
 #################################
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+
 ## cuda checking
-#include (cmake/FindCuda.cmake)
+set(ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
+if (ENABLE_CUDA)
+	find_package(Cuda)
+endif()
 
 ## TBB
-#set(TBB_ARCHITECTURE "em64t")
-#set(TBB_COMPILER "gcc_cc4.3.2_libc2.8.90_kernel2.6.27")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-#find_package(TBB)
+set(ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be enabled.")
+set(TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
+set(TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
 
-#if (NOT TBB_FOUND)
-#	message(STATUS "TBB was not found")
-#else()
-#	# TODO set variables
-#endif()
+if (ENABLE_TBB)
+	find_package(TBB)
+endif()
 
 ## OpenMP
-find_package(OpenMP)
+set(ENABLE_OPENMP ON CACHE BOOL "Should OpenMP support be enabled")
+if (ENABLE_OPENMP)
+	find_package(OpenMP)
+endif()
 
 if (OPENMP_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") ## do NOT use add_definitions() here, because RC.exe on windows will fail
