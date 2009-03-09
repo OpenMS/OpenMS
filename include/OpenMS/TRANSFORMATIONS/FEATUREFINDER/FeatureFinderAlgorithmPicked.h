@@ -1251,7 +1251,7 @@ namespace OpenMS
 
 			static const String getProductName()
 			{
-				return "picked_peak";
+				return "centroided";
 			}
 	
 		protected:

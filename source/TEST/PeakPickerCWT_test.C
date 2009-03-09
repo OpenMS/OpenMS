@@ -50,29 +50,50 @@ START_SECTION((virtual ~PeakPickerCWT()))
   delete ptr;
 END_SECTION
 
+//load input and output data
 MzDataFile mz_data_file;
-MSExperiment<Peak1D > exp_raw;
-mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT.mzData"),exp_raw);
-START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput)))
-  MSSpectrum<> peaks;
+MSExperiment<Peak1D > input, output;
+mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT.mzData"),input);
+mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_output.mzData"),output);
+//set data type (this is not stored correctly in mzData)
+for (Size s=0; s<output.size(); ++s)
+{
+  output[s].setType(SpectrumSettings::PEAKS);
+}
+
+//set up PeakPicker
   PeakPickerCWT pp;
-    
-  pp.pick(exp_raw[0],peaks);
+  Param param;
+  param.setValue("thresholds:peak_bound",1500.0);
+  pp.setParameters(param);   
+
+START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput)))
+  MSSpectrum<> spec;
+  pp.pick(input[0],spec);
+  
+  TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)
+  for (Size p=0; p<spec.size(); ++p)
+  {
+    TEST_REAL_SIMILAR(spec[p].getMZ(), output[0][p].getMZ())
+    TEST_REAL_SIMILAR(spec[p].getIntensity(), output[0][p].getIntensity())
+  }
 END_SECTION
 
-Param param;
-param.setValue("thresholds:peak_bound",1500.0);
 
 START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
-  MSExperiment<> peaks;
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-   
-  pp.pickExperiment(exp_raw,peaks);
-  TEST_EQUAL(peaks.size() == exp_raw.size(), true)
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
-  ExperimentalSettings e = peaks;
-  TEST_EQUAL(e == exp_raw, true)
+  MSExperiment<> exp;
+  pp.pickExperiment(input,exp);
+
+  TEST_EQUAL(exp.ExperimentalSettings::operator==(input), true)
+  for (Size s=0; s<exp.size(); ++s)
+  {
+    TEST_EQUAL(exp[s].SpectrumSettings::operator==(output[s]), true)
+    for (Size p=0; p<exp[s].size(); ++p)
+    {
+      TEST_REAL_SIMILAR(exp[s][p].getMZ(), output[s][p].getMZ())
+      TEST_REAL_SIMILAR(exp[s][p].getIntensity(), output[s][p].getIntensity())
+    }
+  }
 END_SECTION
 
 /////////////////////////////////////////////////////////////

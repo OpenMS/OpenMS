@@ -66,7 +66,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 END_SECTION
 
 START_SECTION((static const String getProductName()))
-	TEST_EQUAL(FFPP::getProductName(),"picked_peak")
+	TEST_EQUAL(FFPP::getProductName(),"centroided")
 END_SECTION
 
 START_SECTION((virtual void run()))

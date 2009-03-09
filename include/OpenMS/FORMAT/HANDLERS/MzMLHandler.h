@@ -214,6 +214,9 @@ namespace OpenMS
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
 			
+			///Count of selected ions
+			UInt selected_ion_count_;
+			
 			/// Fills the current spectrum with peaks and meta data
 			void fillData_();			
 
@@ -535,13 +538,20 @@ namespace OpenMS
 				{
 					spec_.getPrecursors().back().setMetaValue("external_spectrum_id",external_spectrum_id);
 				}
+				//reset selected ion count
+				selected_ion_count_ = 0;
+			}
+			else if (tag=="selectedIon")
+			{
+				//increase selected ion count
+				++selected_ion_count_;
 			}
 			else if (tag=="selectedIonList")
 			{
 				//Warn if more than one selected ion is present
 				if (attributeAsInt_(attributes, s_count)>1)
 				{
-					warning(LOAD, "OpenMS can only handle one selection ion per precursor! Only the last ion is loaded!");
+					warning(LOAD, "OpenMS can currently handle only one selection ion per precursor! Only the first ion is loaded!");
 				}
 			}
 			else if (tag=="scanWindow")
@@ -1049,6 +1059,9 @@ namespace OpenMS
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
 			{
+				//parse only the first selected ion
+				if (selected_ion_count_>1) return;
+				
 				if (accession=="MS:1000744") //selected ion m/z
 				{
 					spec_.getPrecursors().back().setMZ(value.toDouble());
@@ -2174,6 +2187,9 @@ namespace OpenMS
 			}
 			else if (parent_tag=="selectedIon")
 			{
+				//parse only the first selected ion
+				if (selected_ion_count_>1) return;
+
 				//We don't have this as a separate location => store it in the precursor
 				spec_.getPrecursors().back().setMetaValue(name,data_value);
 			}
@@ -2191,7 +2207,6 @@ namespace OpenMS
 				//currently ignored
 			}
 			else warning(LOAD, String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
-			
 		}
 	
 		template <typename MapType>

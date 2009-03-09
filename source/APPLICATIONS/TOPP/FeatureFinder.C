@@ -65,7 +65,7 @@ using namespace std;
 	different instrument types. @n These parameters are not valid for all instruments of that type,
 	but can be used as a starting point for finding suitable parameters.
 
-	<b>'picked_peak' algorithm</b>:
+	<b>'centroided' algorithm</b>:
 	<table>
 		<tr>
 			<td>&nbsp;</td>
@@ -89,7 +89,7 @@ using namespace std;
 		</tr>
 	</table>
 	
-	For the @em picked_peak algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
+	For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
 	
 	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 

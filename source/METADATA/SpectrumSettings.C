@@ -35,34 +35,32 @@ namespace OpenMS
 
 	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown","Peak data","Raw data"};
 
-	SpectrumSettings::SpectrumSettings():
-		type_(UNKNOWN),
-		native_id_(),
-		comment_(),
-		instrument_settings_(),
-		source_file_(),
-		acquisition_info_(),
-		precursors_(),
-		identification_()
+	SpectrumSettings::SpectrumSettings()
+		: type_(UNKNOWN),
+			native_id_(),
+			comment_(),
+			instrument_settings_(),
+			source_file_(),
+			acquisition_info_(),
+			precursors_(),
+			identification_()
 	{
 	}
 
-	SpectrumSettings::SpectrumSettings(const SpectrumSettings& source):
-		type_(source.type_),
-		native_id_(source.native_id_),
-	  comment_(source.comment_),
-	  instrument_settings_(source.instrument_settings_),
-	  source_file_(source.source_file_),
-	  acquisition_info_(source.acquisition_info_),
-	  precursors_(source.precursors_),
-	  identification_(source.identification_)
+	SpectrumSettings::SpectrumSettings(const SpectrumSettings& source)
+		: type_(source.type_),
+			native_id_(source.native_id_),
+			comment_(source.comment_),
+			instrument_settings_(source.instrument_settings_),
+			source_file_(source.source_file_),
+			acquisition_info_(source.acquisition_info_),
+			precursors_(source.precursors_),
+			identification_(source.identification_)
 	{
-	  
 	}
 	
 	SpectrumSettings::~SpectrumSettings()
-	{
-	  
+	{	  
 	}
 	
 	SpectrumSettings& SpectrumSettings::operator = (const SpectrumSettings& source)

@@ -33,12 +33,18 @@ namespace OpenMS
 {
 
 	DocumentIdentifier::DocumentIdentifier()
+		: id_(),
+			file_path_(),
+			file_type_(FileTypes::UNKNOWN)
 	{
 	}
 
 	DocumentIdentifier::DocumentIdentifier(const DocumentIdentifier& source)
-		: id_(source.id_),file_path_(source.file_path_),file_type_(source.file_type_)
-	{}
+		: id_(source.id_),
+	    file_path_(source.file_path_),
+			file_type_(source.file_type_)
+	{
+	}
 
 	DocumentIdentifier& DocumentIdentifier::operator=(const DocumentIdentifier& source)
 	{
@@ -55,7 +61,8 @@ namespace OpenMS
 	}
 
 	DocumentIdentifier::~DocumentIdentifier()
-	{}
+	{
+	}
 
 	void DocumentIdentifier::setIdentifier(const String& id)
 	{

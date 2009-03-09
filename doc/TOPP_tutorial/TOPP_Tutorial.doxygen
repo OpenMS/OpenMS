@@ -444,7 +444,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+		<TD> <b>Algorithm:</b> centroided &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
 	</TR>
 	<TR>
 		<TD>

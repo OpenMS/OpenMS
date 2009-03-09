@@ -24,7 +24,6 @@
 // $Maintainer: Eva Lange $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
@@ -1217,25 +1216,10 @@ namespace OpenMS
 #endif
 		for (SignedSize i = 0; i < (SignedSize)input.size(); ++i)
 		{
-#ifdef DEBUG_PEAK_PICKING
-			std::cout << "PeakPicker: Picking Scan " << input[i].getRT()<< std::endl;
-#endif
 			// pick the peaks in scan i
-			MSSpectrum<>& new_spectrum = output[i];
-			pick(input[i],new_spectrum);
-
-			// copy the spectrum settings
-			new_spectrum.SpectrumSettings::operator=(input[i]);
-			new_spectrum.MetaInfoInterface::operator=(input[i]);
-			new_spectrum.setType(SpectrumSettings::PEAKS);
-			new_spectrum.setRT(input[i].getRT());
-			new_spectrum.setMSLevel(input[i].getMSLevel());
-			new_spectrum.getName() = input[i].getName();
-		
+			pick(input[i],output[i]);
 			setProgress(i);
 		}
-		// sort spectra
-		output.sortSpectra(true);
 		
 		//optimize peak positions
 		if(two_d_optimization_ || optimization_)
@@ -1244,7 +1228,7 @@ namespace OpenMS
 			my_2d.setParameters(param_.copy("optimization:",true));
 			my_2d.optimize(input.begin(),input.end(),output,two_d_optimization_);
 
-			// sort spectra
+			//sort spectra TODO: is this necessary?
 			output.sortSpectra(true);
 		}
 		
@@ -1253,24 +1237,29 @@ namespace OpenMS
 
 	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
 	{
-			/// The continuous wavelet "transformer"
-			ContinuousWaveletTransformNumIntegration wt;
-			/// The minimal height which defines a peak in the CWT (MS 1 level)
-			DoubleReal peak_bound_cwt = 0.0;
-			DoubleReal peak_bound_ms2_level_cwt = 0.0;
-     // now initialize every time as every spectrum is picked with its own cwt
-			initializeWT_(wt,peak_bound_cwt,peak_bound_ms2_level_cwt);
+		/// The continuous wavelet "transformer"
+		ContinuousWaveletTransformNumIntegration wt;
+		/// The minimal height which defines a peak in the CWT (MS 1 level)
+		DoubleReal peak_bound_cwt = 0.0;
+		DoubleReal peak_bound_ms2_level_cwt = 0.0;
+		// now initialize every time as every spectrum is picked with its own cwt
+		initializeWT_(wt,peak_bound_cwt,peak_bound_ms2_level_cwt);
 
 		// nearly empty spectra shouldn't be picked
 		if(input.size()<2) return;
 
 		//create the peak shapes vector
 		std::vector<PeakShape> peak_shapes;
-
 		
-		//prepare the container
+		// copy the spectrum meta data
 		output.clear();
-		static_cast<SpectrumSettings&>(output) = input;
+		output.SpectrumSettings::operator=(input);
+		output.MetaInfoInterface::operator=(input);
+		output.setRT(input.getRT());
+		output.setMSLevel(input.getMSLevel());
+		output.setName(input.getName());
+		//make sure the data type is set correctly
+		output.setType(SpectrumSettings::PEAKS);
 		//set up meta data arrays
 		output.getMetaDataArrays().clear();
 		output.getMetaDataArrays().resize(7);
@@ -1428,7 +1417,7 @@ namespace OpenMS
 			// we assume a convolved peak pattern and start the deconvolution.
 			// sort the peaks according to their positions
 			sort(peak_shapes.begin(), peak_shapes.end(), PeakShape::PositionLess());
-			std::vector<UInt> peaks_to_skip;
+			std::set<UInt> peaks_to_skip;
 			// search for broad or asymmetric peaks
 			UInt n = (UInt) peak_shapes.size();
 			if( deconvolution_)
@@ -1466,7 +1455,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 								std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes[i-1].mz_position << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-								if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+								if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 							}
 						}
 						// has only one or no neighbor peak
@@ -1491,7 +1480,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 										std::cout << " too small fwhm" << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 									}
 								}
 								else
@@ -1499,7 +1488,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 									std::cout << "distance not ok" << dist_left << ' ' << peak_shapes[i-1].mz_position << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 								}
 							}
 							else
@@ -1523,7 +1512,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 											std::cout << "too small fwhm"  << std::endl;
 #endif
-											if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+											if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 										}
 									}
 									else
@@ -1531,7 +1520,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 										std::cout << "distance not ok" << dist_right << ' ' << peak_shapes[i+1].mz_position << std::endl;
 #endif
-										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+										if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 									}
 								}
 								// no neighbor
@@ -1540,7 +1529,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
 									std::cout << "no neighbor" << std::endl;
 #endif
-									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.push_back(i);
+									if(deconvolutePeak_(peak_shapes[i],peak_shapes,peak_bound_cwt)) peaks_to_skip.insert(i);
 								} 
 							}
 						}
@@ -1548,14 +1537,25 @@ namespace OpenMS
 				}
 			}
 			
-			// write the picked peaks to the outputcontainer
+			//reserve space in the output container
+			Size number_of_peaks = peak_shapes.size()-peaks_to_skip.size();
+			output.reserve(number_of_peaks);
+			output.getMetaDataArrays()[0].reserve(number_of_peaks);
+			output.getMetaDataArrays()[1].reserve(number_of_peaks);
+			output.getMetaDataArrays()[2].reserve(number_of_peaks);
+			output.getMetaDataArrays()[3].reserve(number_of_peaks);
+			output.getMetaDataArrays()[4].reserve(number_of_peaks);
+			output.getMetaDataArrays()[5].reserve(number_of_peaks);
+			output.getMetaDataArrays()[6].reserve(number_of_peaks);
+			
+			// write the picked peaks to the output container
 			for (Size i = 0; i < peak_shapes.size(); ++i)
 			{
 				// put it out only if the peak was not deconvoluted
-				if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
+				if(peaks_to_skip.find(i) == peaks_to_skip.end() )
 				{
 					//store output peak
-					Peak1D picked_peak;						
+					Peak1D picked_peak;
 					picked_peak.setIntensity(peak_shapes[i].height);
 					picked_peak.setMZ(peak_shapes[i].mz_position);
 					output.push_back(picked_peak);
@@ -1569,11 +1569,7 @@ namespace OpenMS
 					output.getMetaDataArrays()[6].push_back(peak_shapes[i].signal_to_noise);
 				}
 			}
-		} // if (peak_shapes.size() > 0)
-		
-		// set MS level of output container to match the input container
-		output.setMSLevel(input.getMSLevel());
-		
+		} // if (peak_shapes.size() > 0)		
 	}
 	
 }

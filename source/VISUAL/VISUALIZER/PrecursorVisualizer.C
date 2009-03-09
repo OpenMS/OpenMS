@@ -46,17 +46,29 @@ namespace OpenMS
 		addLabel_("Modify processing method information.");	
 		
 		addSeparator_();  
-		
-		addComboBox_(precursor_activation_method_, "Activation method");
-		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");
+
+		addDoubleLineEdit_(precursor_mz_, "m/z");
+		addDoubleLineEdit_(precursor_int_, "intensity");
+		addIntLineEdit_(precursor_charge_, "charge");
+
 		addDoubleLineEdit_(precursor_window_low_, "Isolation window lower bound");
 		addDoubleLineEdit_(precursor_window_up_, "Isolation window upper bound");
-		
+			
+		addComboBox_(precursor_activation_method_, "Activation method");
+		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");
+
 		finishAdding_();
 	}
 	
 	void PrecursorVisualizer::update_()
-	{		
+	{
+		precursor_mz_->setText(String( temp_.getMZ() ).c_str() );
+		precursor_int_->setText(String( temp_.getIntensity() ).c_str() );
+		precursor_charge_->setText(String( temp_.getCharge() ).c_str() );
+		
+		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerBound() ).c_str() );
+		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperBound() ).c_str() );
+		
 		if(! isEditable())
 		{
 			fillComboBox_(precursor_activation_method_,& temp_.NamesOfActivationMethod[temp_.getActivationMethod()] , 1);
@@ -66,18 +78,20 @@ namespace OpenMS
 			fillComboBox_(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
 			precursor_activation_method_->setCurrentIndex(temp_.getActivationMethod()); 
 		}
-		
 		precursor_activation_energy_->setText(String( temp_.getActivationEnergy() ).c_str() );
-		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerBound() ).c_str() );
-		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperBound() ).c_str() );
 	}
 	
 	void PrecursorVisualizer::store()
 	{
-		ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
-		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());
+		ptr_->setMZ(precursor_mz_->text().toFloat());
+		ptr_->setIntensity(precursor_int_->text().toFloat());
+		ptr_->setCharge(precursor_charge_->text().toInt());
+		
 		ptr_->setIsolationWindowLowerBound(precursor_window_low_->text().toFloat());		
 		ptr_->setIsolationWindowUpperBound(precursor_window_up_->text().toFloat());		
+
+		ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
+		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());
 		
 		temp_=(*ptr_);
 	}

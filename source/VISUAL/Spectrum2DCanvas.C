@@ -1478,7 +1478,7 @@ namespace OpenMS
 			DoubleReal mz_min = min(p1[0],p2[0]);
 			DoubleReal mz_max = max(p1[0],p2[0]);
 			bool item_added = false;
-			for (ExperimentType::ConstIterator it=getCurrentLayer().peaks.RTBegin(rt_max); it!=getCurrentLayer().peaks.RTEnd(rt_min); --it)
+			for (ExperimentType::ConstIterator it=getCurrentLayer().peaks.RTBegin(rt_min); it!=getCurrentLayer().peaks.RTEnd(rt_max); ++it)
 			{
 				DoubleReal mz = 0.0;
 				if (!it->getPrecursors().empty()) mz = it->getPrecursors()[0].getMZ();

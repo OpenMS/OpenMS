@@ -705,6 +705,9 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 

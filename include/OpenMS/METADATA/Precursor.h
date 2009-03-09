@@ -39,8 +39,6 @@ namespace OpenMS
     - activation
     - selected ion (m/z, intensity, charge, possible charge states)
   
-    @todo Update DB and visualization (Marc)
-		
 		@ingroup Metadata
 	*/  
   class OPENMS_DLLAPI Precursor
