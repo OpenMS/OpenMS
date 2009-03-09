@@ -1211,6 +1211,7 @@ namespace OpenMS
 
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
+		Size progress = 0;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -1218,7 +1219,11 @@ namespace OpenMS
 		{
 			// pick the peaks in scan i
 			pick(input[i],output[i]);
-			setProgress(i);
+
+#pragma omp critical (PeakPickerCWT_PickExperiment)
+			{
+				setProgress(++progress); //do not use 'i' here, as each thread will be assigned different blocks
+			}
 		}
 		
 		//optimize peak positions
