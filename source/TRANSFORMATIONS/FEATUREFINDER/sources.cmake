@@ -19,6 +19,7 @@ FeatureFinderAlgorithmSimple.C
 FeatureFinderAlgorithmSimplest.C
 FeatureFinderAlgorithmWatershed.C
 FeatureFinderAlgorithmWavelet.C
+FeatureFinderAlgorithmMRM.C
 Fitter1D.C
 GaussFitter1D.C
 GaussModel.C

@@ -41,6 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 // #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWatershed.h>
 // #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmComposite.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
 namespace OpenMS
 {
@@ -80,7 +81,9 @@ namespace OpenMS
 		//	 FeatureFinderAlgorithmWatershed<PeakType,FeatureType>::getProductName(),
 		//	 &FeatureFinderAlgorithmWatershed<PeakType,FeatureType>::create
 		//	);
-		
+	
+    Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct(FeatureFinderAlgorithmMRM<PeakType,FeatureType>::getProductName(), &FeatureFinderAlgorithmMRM<PeakType, FeatureType>::create);
+	
     // Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 		// 	(
 		// 	 FeatureFinderAlgorithmComposite<PeakType,FeatureType>::getProductName(),

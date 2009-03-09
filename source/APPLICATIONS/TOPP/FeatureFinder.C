@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -151,14 +152,41 @@ class TOPPFeatureFinder
 		MSExperiment<Peak1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
-		//prevent loading of fragment spectra
 		PeakFileOptions options;
-		options.setMSLevels(vector<Int>(1,1));
-		f.getOptions() = options;
+
+		if (type != "MRM")
+		{
+			//prevent loading of fragment spectra
+			options.setMSLevels(vector<Int>(1,1));
+			f.getOptions() = options;
+		}
 		f.load(in,exp);
 
+		//prevent loading of everthing except MRM MS/MS spectra
+		if (type == "MRM")
+		{
+			PeakMap exp2;
+			for (Size i = 0; i != exp.size(); ++i)
+			{
+				if (exp[i].getInstrumentSettings().getScanMode() == InstrumentSettings::SRM)
+				{
+					exp2.push_back(exp[i]);
+				}
+			}
+			exp = exp2;
+		}
+
 		exp.updateRanges();
+
+		#ifdef _OPENMP
+		#pragma omp parallel for
+		#endif
+		for (SignedSize i = 0; i < (SignedSize)exp.size(); ++i)
+		{
+			cerr << "i=" << i  << endl;
+		}
 		
+
 		//ouput data
 		FeatureMap<> features;
 
