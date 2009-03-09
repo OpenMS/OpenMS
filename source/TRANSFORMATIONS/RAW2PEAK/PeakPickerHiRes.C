@@ -40,10 +40,9 @@ using namespace std;
 namespace OpenMS
 {
   PeakPickerHiRes::PeakPickerHiRes()
-		: PeakPicker()
+		: DefaultParamHandler("PeakPickerHiRes"),
+			ProgressLogger()
   {
-		setName("PeakPickerHiRes");
-
 
 		defaultsToParam_();
   }
@@ -51,14 +50,6 @@ namespace OpenMS
   PeakPickerHiRes::~PeakPickerHiRes()
   {
   }
-	
-	void PeakPickerHiRes::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
-	{
-	}
-	
-	void PeakPickerHiRes::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
-	{
-	}
 
 	void PeakPickerHiRes::updateMembers_()
 	{

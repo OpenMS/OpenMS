@@ -45,7 +45,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 
 using namespace std;
 
@@ -295,7 +294,7 @@ namespace OpenMS
 		}
 		else if (tool=="PeakPicker")
 		{
-			std::vector<String> list2 = Factory<PeakPicker>::registeredProducts();
+			StringList list2 = StringList::create("wavelet,righ_res");
 			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();			

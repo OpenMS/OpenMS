@@ -95,6 +95,7 @@ class TOPPNoiseFilter
     {
 			String type = getStringOption_("type");
 			Param tmp;
+			
 			if (type == "sgolay")
       {
         tmp = SavitzkyGolayFilter().getDefaults();

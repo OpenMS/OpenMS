@@ -56,11 +56,9 @@ param.setValue("polynomial_order",2);
 param.setValue("frame_length",3);
 
 START_SECTION((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
-  MSSpectrum<Peak1D> raw;
-  raw.resize(5);
-  MSSpectrum<Peak1D> filtered;
-
-  MSSpectrum<Peak1D>::Iterator it = raw.begin();
+  MSSpectrum<Peak1D> spectrum;
+  spectrum.resize(5);
+  MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
   	it->setIntensity(0.0f);
@@ -72,8 +70,9 @@ START_SECTION((template <typename InputPeakIterator, typename OutputPeakContaine
 
   SavitzkyGolayFilter sgolay;
 	sgolay.setParameters(param);
-  sgolay.filter(raw.begin(),raw.end(),filtered);
-  it=filtered.begin();
+  sgolay.filter(spectrum);
+  
+  it=spectrum.begin();
   TEST_REAL_SIMILAR(it->getIntensity(),0.0)
   ++it;
   TEST_REAL_SIMILAR(it->getIntensity(),0.0)
@@ -91,10 +90,10 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 	param.setValue("frame_length",4);
 
-	MSExperiment<Peak1D> exp;
+	MSExperiment<RichPeak1D> exp;
   exp.resize(4);
   
-  Peak1D p;
+  RichPeak1D p;
   for (int i=0; i<9; ++i)
   {
   	p.setIntensity(0.0f);

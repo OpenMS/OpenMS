@@ -15,7 +15,9 @@ Main improvements of OpenMS C++ library:
 Detailed list of changes to specific OpenMS classes:
 - SpectrumSettings: several precursor peaks are now supported
 - Precursor: complete rewrite for better support of mzData, mzXML and mzML
-- PeakPickerCWT: cleaned up interface (defined in PeakPicker base class), improved parameters
+- PeakPickerCWT: cleaned up interface, improved meta data handling, improved parameters
+- GaussFilter: cleaned up interface, improved meta data handling
+- SavitzkyGolayFilter: cleaned up interface, improved meta data handling
 - LabeledPairFinder: estimated negative sigma values are now treated as positive values
 
 Bug fixes:

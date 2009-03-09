@@ -86,13 +86,10 @@ namespace OpenMS
     Note that the solution of a least-squares problem directly from the normal equations is faster than the singular value
     decomposition but rather susceptible to roundoff error!
    
-    @note This filter works only for uniform raw data!
+    @note This filter works only for uniform profile data!
           A polynom order of 4 is recommended.
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
-          of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
-    
-    @note The input and output data of this algorithm should consist of type Peak1D or a derived class.
-          Normally it is applied to MSExperiment and MSSpectrum instances.
+          of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the profile data.
     
 		@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
     
@@ -107,29 +104,24 @@ namespace OpenMS
       SavitzkyGolayFilter();
 
       /// Destructor
-      virtual ~SavitzkyGolayFilter()
-      {
-      }
+      virtual ~SavitzkyGolayFilter();
 
       /** 
-      	@brief Applies the convolution with the filter coefficients to an given iterator range.
-
-        Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
-        resulting data to the smoothed_data_container.
+      	@brief Removed the noise from an MSSpectrum containing profile data.
       */
-      template < typename InputPeakIterator, typename OutputPeakContainer  >
-      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
+      template <typename PeakType>
+      void filter(MSSpectrum<PeakType>& spectrum)
       {
-        UInt n = distance(first,last);
+        UInt n = spectrum.size();
         
-        smoothed_data_container.resize(n);
+        typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
+        typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+        
+        //copy the data AND META DATA to the output container
+        MSSpectrum<PeakType> output = spectrum;
         
         if (frame_size_ > n)
         {
-          for (Size i = 0; i < n; ++i)
-          {
-            smoothed_data_container[i] = *first;
-          }
           return;
         }
 
@@ -138,9 +130,9 @@ namespace OpenMS
         int mid=(frame_size_/2);
         double help;
 
-        InputPeakIterator it_forward;
-        InputPeakIterator it_help;
-        typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
+        typename MSSpectrum<PeakType>::iterator it_forward;
+        typename MSSpectrum<PeakType>::iterator it_help;
+        typename MSSpectrum<PeakType>::iterator out_it = output.begin();
 
         // compute the transient on
         for (i=0; i <= mid; ++i)
@@ -198,26 +190,12 @@ namespace OpenMS
           ++out_it;
           ++first;
         }
-      }
-
-
-      /** 
-      	@brief Convolutes the filter coefficients and the input raw data.
-
-				Convolutes the filter and the raw data in the input_peak_container and writes the
-				resulting data to the smoothed_data_container.
-      */
-      template <typename InputPeakContainer, typename OutputPeakContainer >
-      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
-      {
-        // copy the spectrum settings
-        static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
-        smoothed_data_container.setType(SpectrumSettings::RAWDATA);
-        filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
+        
+        spectrum = output;
       }
 
       /** 
-      	@brief Convenience method that removed the noise from an MSExperiment containing raw data.
+      	@brief Removed the noise from an MSExperiment containing profile data.
       */
       template <typename PeakType>
       void filterExperiment(MSExperiment<PeakType>& map)
@@ -225,9 +203,7 @@ namespace OpenMS
         startProgress(0,map.size(),"smoothing data");
         for (Size i = 0; i < map.size(); ++i)
         {
-          typename MSExperiment<PeakType>::SpectrumType spectrum;
-          filter(map[i],spectrum);
-          map[i].swap(spectrum);
+          filter(map[i]);
           setProgress(i);
         }
         endProgress();

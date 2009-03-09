@@ -21,14 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: EK $
+// $Maintainer: Erhan Kenar $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHPP_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHPP_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -45,7 +44,8 @@ namespace OpenMS
 		@ingroup PeakPicking
   */
   class OPENMS_DLLAPI PeakPickerHiRes
-		: public PeakPicker
+		: public DefaultParamHandler,
+			public ProgressLogger
   {
 	 public:
     /// Constructor
@@ -55,35 +55,26 @@ namespace OpenMS
     virtual ~PeakPickerHiRes();
 
     /** 
-				@brief pick
+			@brief pick
     */
-    void pick(const MSSpectrum<>& input, MSSpectrum<>& output);
+    template <typename PeakType>
+    void pick(const MSSpectrum<PeakType>& /*input*/, MSSpectrum<PeakType>& /*output*/)
+    {
+    }
 
 		
     /** 
-				@brief 
+			@brief 
     */
-    void pickExperiment(const MSExperiment<>& input, MSExperiment<>& output);
-
-		
-		/// Creates a new instance of this class (for Factory)
-		static PeakPicker* create()
-		{
-			return new PeakPickerHiRes();
-		}
-			
-		/// Returns the product name (for the Factory)
-		static String getProductName()
-		{
-			return "high_res";
-		}
-
+    template <typename PeakType>
+    void pickExperiment(const MSExperiment<PeakType>& /*input*/, MSExperiment<PeakType>& /*output*/)
+    {
+    }
 		
 	 protected:
+	 	//docu in base class
 		void updateMembers_();
 
-    /// Initializes the members and parses the parameter object
-    // void init_();
   }; // end PeakPickerHiRes
 
 

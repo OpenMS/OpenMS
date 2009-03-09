@@ -29,7 +29,6 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -66,7 +65,8 @@ namespace OpenMS
 		@ingroup PeakPicking
   */
   class OPENMS_DLLAPI PeakPickerCWT
-		: public PeakPicker
+		: public DefaultParamHandler,
+			public ProgressLogger
   {
 	 public:
     /// Raw data iterator type
@@ -84,32 +84,16 @@ namespace OpenMS
 			@brief Applies the peak picking algorithm to a single spectrum.
 	        
 			Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
-	
     */
     void pick(const MSSpectrum<>& input, MSSpectrum<>& output);
 
     /** 
-
 			@brief Picks the peaks in an MSExperiment.
 			
 			Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment.
     */
     void pickExperiment(const MSExperiment<>& input, MSExperiment<>& output);
 
-		
-		/// Creates a new instance of this class (for Factory)
-		static PeakPicker* create()
-		{
-			return new PeakPickerCWT();
-		}
-			
-		/// Returns the product name (for the Factory)
-		static String getProductName()
-		{
-			return "wavelet";
-		}
-
-		
 	 protected:
 
     /// Threshold for the peak height in the MS 1 level

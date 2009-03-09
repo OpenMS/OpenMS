@@ -24,7 +24,6 @@
 // $Maintainer: Eva Lange $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -41,7 +40,12 @@ namespace OpenMS
     
     defaultsToParam_();
   }
-	
+
+
+   SavitzkyGolayFilter::~SavitzkyGolayFilter()
+  {
+  }
+
 	void SavitzkyGolayFilter::updateMembers_()
 	{
     frame_size_ = (UInt)param_.getValue("frame_length"); 

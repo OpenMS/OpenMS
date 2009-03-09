@@ -47,15 +47,14 @@ using namespace std;
 namespace OpenMS
 {
   PeakPickerCWT::PeakPickerCWT()
-		: PeakPicker(),
+		: DefaultParamHandler("PeakPickerCWT"),
+			ProgressLogger(),
 			radius_(0),
       scale_(0.0),
       peak_corr_bound_(0.0),
       noise_level_(0.0),
       optimization_(false)
   {
-		setName("PeakPickerCWT");
-		
 		defaults_.setValue("signal_to_noise",1.0,"Minimal signal to noise ratio for a peak to be picked.");
 		defaults_.setMinFloat("signal_to_noise",0.0);
 		defaults_.setValue("thresholds:peak_bound",10.0,"Minimal peak intensity.",StringList::create("advanced"));
@@ -163,7 +162,7 @@ namespace OpenMS
 		this->defaults_.insert ("SignalToNoiseEstimationParameter:", param_sne_defaults);
 		
 		defaultsToParam_();
-		updateMembers_();
+		updateMembers_(); //TODO remove
   }
 
   PeakPickerCWT::~PeakPickerCWT()

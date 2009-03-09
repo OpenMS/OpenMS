@@ -52,7 +52,7 @@ END_SECTION
 
 //load input and output data
 MzDataFile mz_data_file;
-MSExperiment<Peak1D > input, output;
+MSExperiment<Peak1D> input, output;
 mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT.mzData"),input);
 mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_output.mzData"),output);
 //set data type (this is not stored correctly in mzData)

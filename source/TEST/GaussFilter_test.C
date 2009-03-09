@@ -51,7 +51,7 @@ START_SECTION((virtual ~GaussFilter()))
     delete dgauss_ptr;
 END_SECTION
 
-START_SECTION(( template <typename PeakType> void filter(MSSpectrum<PeakType> spectrum)))
+START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
   MSSpectrum<Peak1D> spectrum;
 	spectrum.resize(5);
 
@@ -85,10 +85,10 @@ START_SECTION(( template <typename PeakType> void filter(MSSpectrum<PeakType> sp
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
-	MSExperiment<Peak1D> exp;
+	MSExperiment<RichPeak1D> exp;
   exp.resize(4);
   
-  Peak1D p;
+  RichPeak1D p;
   for (Size i=0; i<9; ++i)
   {
   	p.setIntensity(0.0f);

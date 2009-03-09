@@ -66,27 +66,10 @@ namespace OpenMS
   {
     public:
       /// Constructor
-      inline GaussFilter()
-      : ProgressLogger(),
-        DefaultParamHandler("GaussFilter"),
-				coeffs_(),
-        sigma_(0.1),
-        spacing_(0.01) // this number just describes the sampling of the gauss 
-      {
-      	//Parameter settings
-      	defaults_.setValue("gaussian_width",0.2,
-														"Use a gaussian filter kernel which has approximately the same width as your mass peaks."
-      											"This width corresponds to 8 times sigma of the gaussian.");
-				defaults_.setValue("ppm_tolerance", 10.0 , "specification of the peak width, which is dependent of the m/z value. \nThe higher the value, the wider the peak and therefore the wider the gaussian.");
-				defaults_.setValue("use_ppm_tolerance", "false", "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew, so this is much slower.");
-				defaults_.setValidStrings("use_ppm_tolerance", StringList::create("true,false"));
-        defaultsToParam_();
-      }
+      GaussFilter();
 
       /// Destructor
-      virtual ~GaussFilter()
-      {
-      }
+      virtual ~GaussFilter();
 
       /** 
       	@brief Smoothes an MSSpectrum containing profile data.
@@ -117,7 +100,6 @@ namespace OpenMS
           }
 
           DoubleReal new_int = integrate_(spectrum.begin()+p,spectrum.begin(),spectrum.end());
-          std::cout << "I: " << spectrum[p].getIntensity() << " => " << new_int << std::endl;
           output[p] = std::max(new_int, 0.0);
           if (fabs(new_int) > 0) found_signal = true;
         }
@@ -162,25 +144,7 @@ namespace OpenMS
       DoubleReal spacing_;
      	
      	// Docu in base class
-      virtual void updateMembers_() 
-      {
-        sigma_ = (DoubleReal)param_.getValue("gaussian_width") / 8.0;
-				Size number_of_points_right = (Size)(ceil(4*sigma_ / spacing_))+1;
-		    coeffs_.resize(number_of_points_right);
-		    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI));
-		
-		    for (Size i=1; i < number_of_points_right; i++)
-		    {
-		    	coeffs_[i] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI)) * exp(-((i*spacing_)*(i*spacing_)) / (2 * sigma_ * sigma_));
-		    }
-#ifdef DEBUG_FILTERING
-		    std::cout << "Coeffs: " << std::endl;
-		    for (Size i=0; i < number_of_points_right; i++)
-		    {
-		        std::cout << i*spacing_ << ' ' << coeffs_[i] << std::endl;
-		    }
-#endif
-      }
+      virtual void updateMembers_();
 
       /// Computes the convolution of the raw data at position x and the gaussian kernel
       template < typename InputPeakIterator >

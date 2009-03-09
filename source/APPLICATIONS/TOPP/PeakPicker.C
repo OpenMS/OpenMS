@@ -26,7 +26,8 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
@@ -113,7 +114,7 @@ class TOPPPeakPicker
 		registerOutputFile_("out","<file>","","output peak file ");
 	  setValidFormats_("out",StringList::create("mzData"));
 		registerStringOption_("type","<name>","","peak detection algorithm type",true);
-		setValidStrings_("type", Factory<PeakPicker>::registeredProducts());
+		setValidStrings_("type", StringList::create("wavelet,high_res"));
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
   	registerSubsection_("algorithm","Algorithm parameters section");
@@ -122,10 +123,18 @@ class TOPPPeakPicker
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
-    PeakPicker* peak_picker = Factory<PeakPicker>::create(type);
-		Param param = peak_picker->getParameters();
-		delete peak_picker;
-		return param;
+		Param tmp;
+		
+		if (type == "wavelet")
+    {
+      tmp = PeakPickerCWT().getDefaults();
+    }
+    else if (type == "high_res")
+    {
+      tmp = PeakPickerHiRes().getDefaults();
+    }
+
+    return tmp;
 	}
 
   ExitCodes main_(int , const char**)
@@ -137,18 +146,7 @@ class TOPPPeakPicker
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    //-------------------------------------------------------------
-    // Init peak picker
-    //-------------------------------------------------------------
-		Param pepi_param = getParam_().copy("algorithm:",true);
-
-		
-		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
-		String type = getStringOption_("type");
-    PeakPicker* peak_picker = Factory<PeakPicker>::create(type);
-    peak_picker->setLogType(log_type_);
-		peak_picker->setParameters(pepi_param);
-		
+    
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -164,16 +162,36 @@ class TOPPPeakPicker
 		}
 		
     //-------------------------------------------------------------
-    // pick
+    // init output
     //-------------------------------------------------------------
 
     MSExperiment<> ms_exp_peaks;
-    peak_picker->pickExperiment(ms_exp_raw,ms_exp_peaks);
-  
+
+    //-------------------------------------------------------------
+    // pick
+    //-------------------------------------------------------------
+		Param pepi_param = getParam_().copy("algorithm:",true);		
+		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
+		
+		String type = getStringOption_("type");
+    if (type == "wavelet")
+    {	
+    	PeakPickerCWT pp;
+      pp.setLogType(log_type_);
+			pp.setParameters(pepi_param);
+			pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
+    }
+    else if (type == "gaussian")
+    {	
+    	PeakPickerHiRes pp;
+      pp.setLogType(log_type_);
+			pp.setParameters(pepi_param);
+			pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
+    }
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-
 		mz_data_file.store(out,ms_exp_peaks);
 		
 		return EXECUTION_OK;
