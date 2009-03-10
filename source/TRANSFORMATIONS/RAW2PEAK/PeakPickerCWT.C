@@ -1219,7 +1219,9 @@ namespace OpenMS
 			// pick the peaks in scan i
 			pick(input[i],output[i]);
 
+#ifdef _OPENMP
 #pragma omp critical (PeakPickerCWT_PickExperiment)
+#endif
 			{
 				setProgress(++progress); //do not use 'i' here, as each thread will be assigned different blocks
 			}
