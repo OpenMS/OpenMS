@@ -13,7 +13,6 @@ DTAExtractor
 Decharger
 FalseDiscoveryRate
 FeatureFinder
-FeatureFinderMRM
 FeatureLinker
 FileConverter
 FileFilter

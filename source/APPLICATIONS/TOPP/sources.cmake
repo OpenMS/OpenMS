@@ -13,7 +13,6 @@ DTAExtractor.C
 Decharger.C
 FalseDiscoveryRate.C
 FeatureFinder.C
-FeatureFinderMRM.C
 FeatureLinker.C
 FileConverter.C
 FileFilter.C

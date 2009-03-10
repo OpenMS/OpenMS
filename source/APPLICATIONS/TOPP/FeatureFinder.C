@@ -149,7 +149,7 @@ class TOPPFeatureFinder
 		ff.setLogType(log_type_);
 		
 		//reading input data
-		MSExperiment<Peak1D> exp;
+		PeakMap exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
 		PeakFileOptions options;
@@ -175,17 +175,10 @@ class TOPPFeatureFinder
 			}
 			exp = exp2;
 		}
-
-		exp.updateRanges();
-
-		#ifdef _OPENMP
-		#pragma omp parallel for
-		#endif
-		for (SignedSize i = 0; i < (SignedSize)exp.size(); ++i)
+		else
 		{
-			cerr << "i=" << i  << endl;
+			exp.updateRanges();
 		}
-		
 
 		//ouput data
 		FeatureMap<> features;

@@ -1,22 +1,60 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<featureList count="1">
+	<featureList count="3">
 		<feature id="f_0">
-			<position dim="0">3696.2716</position>
-			<position dim="1">461.743</position>
-			<intensity>17508440</intensity>
+			<position dim="0">1623.68755681818</position>
+			<position dim="1">656.356</position>
+			<intensity>3.3892e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">1.21201</hposition>
-					<hposition dim="1">461.74301</hposition>
+					<hposition dim="0">1592.59</hposition>
+					<hposition dim="1">656.356</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">6841.8398</hposition>
-					<hposition dim="1">461.74301</hposition>
+					<hposition dim="0">1656.64</hposition>
+					<hposition dim="1">656.356</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">2165.87950310559</position>
+			<position dim="1">722.403</position>
+			<intensity>1.50286e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2139.18</hposition>
+					<hposition dim="1">722.403</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2195.14</hposition>
+					<hposition dim="1">722.403</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">2310.60907590759</position>
+			<position dim="1">600.33</position>
+			<intensity>2.93928e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2284.01</hposition>
+					<hposition dim="1">600.33</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2339.97</hposition>
+					<hposition dim="1">600.33</hposition>
 				</hullpoint>
 			</convexhull>
 		</feature>

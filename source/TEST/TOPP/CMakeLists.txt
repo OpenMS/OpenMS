@@ -356,11 +356,8 @@ add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -whitelist "SILACAnalyzer_2_input.m
 
 
 ### FeatureFinderMRM tests
-add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
+add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinder -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
 add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -in1 FeatureFinderMRM.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML)
-add_test("TOPP_FeatureFinderMRM_2" ${TOPP_BIN_PATH}/FeatureFinderMRM -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -d -out FeatureFinderMRM.tmp)
-add_test("TOPP_FeatureFinderMRM_2_out1" ${DIFF} -in1 FeatureFinderMRM.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML)
-add_test("TOPP_FeatureFinderMRM_2_out2" ${DIFF} -in1 precursor_461.743 -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_2_output.txt)
 
 ### FeatureLinker tests
 add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)

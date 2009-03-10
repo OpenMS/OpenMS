@@ -48,13 +48,13 @@ namespace OpenMS
 		// check input
 		{	
 			// We need updated ranges => check number of peaks
-			if (input_map.getSize()==0)
+			if (algorithm_name != "MRM" && input_map.getSize()==0)
 			{
 				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder needs updated ranges on input map. Aborting.");
 			}
 
 			// We need MS1 data only => check levels
-			if ( input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1 )
+			if (algorithm_name != "MRM" && (input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1 ))
 			{
 				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting.");
 			}
@@ -88,8 +88,7 @@ namespace OpenMS
 		// do the work
 		if (algorithm_name!="none")
 		{
-			FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm =
-				Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
+			FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
 			algorithm->setParameters(param);
 			algorithm->setData(input_map,features,*this);
 			algorithm->run();
