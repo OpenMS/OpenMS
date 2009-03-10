@@ -59,7 +59,10 @@ using namespace std;
 		- filter by scan mode of the spectra
   - featureXML
     - filter by feature charge
+    - filter by feature size (number of subordinate features)
     - filter by overall feature quality
+	- consensusXML
+		- filter by size (number of elements in consensus features)
 
 	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
 	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
@@ -112,7 +115,11 @@ class TOPPFileFilter
 
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+      registerStringOption_("size","[min]:[max]",":","size range to extract", false);
       registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
+
+			addText_("consensus feature data options:");
+      registerStringOption_("size","[min]:[max]",":","size range to extract", false);
 
 			addEmptyLine_();
 			addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
@@ -153,12 +160,12 @@ class TOPPFileFilter
       FileTypes::Type out_type = in_type;
 
 			//ranges
-			String mz, rt, it, charge, q;
+			String mz, rt, it, charge, size, q;
 			IntList levels;
-			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, q_l, q_u;
+			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, size_l, size_u, q_l, q_u;
 			//initialize ranges
-			mz_l = rt_l = it_l = charge_l = q_l = -1 * numeric_limits<double>::max();
-			mz_u = rt_u = it_u = charge_u = q_u = numeric_limits<double>::max();
+			mz_l = rt_l = it_l = charge_l = size_l = q_l = -1 * numeric_limits<double>::max();
+			mz_u = rt_u = it_u = charge_u = size_u = q_u = numeric_limits<double>::max();
 
 			rt = getStringOption_("rt");
 			mz = getStringOption_("mz");
@@ -166,6 +173,7 @@ class TOPPFileFilter
 			levels = getIntList_("level");
 			sn = getDoubleOption_("sn");
 			charge = getStringOption_("charge");
+			size = getStringOption_("size");
       q = getStringOption_("q");
 
 			//convert bounds to numbers
@@ -179,7 +187,9 @@ class TOPPFileFilter
 				parseRange_(it,it_l,it_u);
         //charge (features only)
         parseRange_(charge,charge_l,charge_u);
-        //charge (features only)
+        //size (features and consensus features only)
+        parseRange_(size,size_l,size_u);
+        //overall quality (features only)
         parseRange_(q,q_l,q_u);
 			}
 			catch(Exception::ConversionError&)
@@ -309,7 +319,7 @@ class TOPPFileFilter
         //.. but delete feature information
         map_sm.clear();
 
-        bool rt_ok, mz_ok, int_ok, charge_ok, q_ok;
+        bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok;
 
         // only keep charge ch_l:ch_u   (WARNING: featurefiles without charge information have charge=0, see Ctor of KERNEL/Feature.h)
         for (uint i = 0; i<feature_map.size(); ++i)
@@ -318,12 +328,13 @@ class TOPPFileFilter
           if (f.getOptions().getMZRange().encloses(DPosition<1>(feature_map[i].getMZ()))) { mz_ok = true; } else {mz_ok = false;}
           if (f.getOptions().getIntensityRange().encloses(DPosition<1>(feature_map[i].getIntensity()))) { int_ok = true; } else {int_ok = false;}
           if ((charge_l <= feature_map[i].getCharge()) && (feature_map[i].getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
+          if ((size_l <= feature_map[i].getSubordinates().size()) && (feature_map[i].getSubordinates().size() <= size_u)) { size_ok = true; } else { size_ok = false;}
           if ((q_l <= feature_map[i].getOverallQuality()) && (feature_map[i].getOverallQuality() <= q_u)) { q_ok = true; } else {q_ok = false;}
 
           //std::cout << feature_map[i].getRT() << " " << feature_map[i].getMZ() << " " << feature_map[i].getIntensity() << " " << feature_map[i].getCharge() << " "<< feature_map[i].getOverallQuality() << " ";
-          if (rt_ok == true && mz_ok == true && int_ok == true && charge_ok == true && q_ok == true)
+          if (rt_ok == true && mz_ok == true && int_ok == true && charge_ok == true && size_ok == true && q_ok == true)
           {
-            //std::cout << rt_ok << mz_ok << int_ok << charge_ok << "\n";
+            //std::cout << rt_ok << mz_ok << int_ok << charge_ok << size_ok << q_ok << "\n";
             map_sm.push_back (feature_map[i]);
           }//else {std::cout << "\n";}
         }
@@ -354,10 +365,26 @@ class TOPPFileFilter
         f.load(in,consensus_map);
 
 
+        // copy all properties
+        ConsensusMap consensus_map_filtered = consensus_map;
+        //.. but delete feature information
+        consensus_map_filtered.clear();
+
+				for ( ConsensusMap::const_iterator citer = consensus_map.begin();
+							citer != consensus_map.end();
+							++citer
+						)
+				{
+					if ( citer->size() >= size_l && citer->size() <= size_u )
+					{
+						consensus_map_filtered.push_back(*citer);
+					}
+				}
+
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
-        consensus_map.updateRanges();
+        consensus_map_filtered.updateRanges();
 
 				// sort if desired
 				if (sort) consensus_map.sortByPosition();
@@ -366,7 +393,7 @@ class TOPPFileFilter
         // writing output
         //-------------------------------------------------------------
 
-        f.store(out,consensus_map);
+        f.store(out,consensus_map_filtered);
       }
       else
       {
