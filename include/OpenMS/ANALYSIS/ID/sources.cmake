@@ -13,6 +13,7 @@ PILISModel.h
 PILISModelGenerator.h
 PILISNeutralLossModel.h
 PILISScoring.h
+PILISCrossValidation.h
 ProtonDistributionModel.h
 PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h

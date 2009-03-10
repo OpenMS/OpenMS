@@ -13,6 +13,7 @@ PILISModel.C
 PILISModelGenerator.C
 PILISNeutralLossModel.C
 PILISScoring.C
+PILISCrossValidation.C
 ProtonDistributionModel.C
 PrecursorIonSelectionPreprocessing.C
 PrecursorIonSelection.C
