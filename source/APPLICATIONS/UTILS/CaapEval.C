@@ -38,7 +38,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-@page UTIL_CaapEval CaapEval
+@page CaapEval CaapEval
 	
 @brief Evaluate alignment results against ground truth
 

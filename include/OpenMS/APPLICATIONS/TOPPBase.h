@@ -141,7 +141,7 @@ namespace OpenMS
 			/// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
 			static StringList getToolList()
 			{
-				return StringList::create("AdditiveSeries,BaselineFilter,ConsensusID,DBExporter,DBImporter,DTAExtractor,Decharger,FalseDiscoveryRate,FeatureFinder,FeatureFinderMRM,FeatureLinker,FileConverter,FileFilter,FileInfo,FileMerger,IDDecoyProbability,IDFilter,IDMapper,IDMerger,IDRTCalibration,ITRAQAnalyzer,InspectAdapter,InternalCalibration,MapAligner,MapNormalizer,MascotAdapter,MascotAdapterOnline,NoiseFilter,OMSSAAdapter,PILISIdentification,PILISModel,PTModel,PTPredict,PeakPicker,PepNovoAdapter,RTModel,RTPredict,Resampler,SILACAnalyzer,SequestAdapter,SpectraFilter,TOFCalibration,TextExporter,XTandemAdapter,PrecursorIonSelector");
+				return StringList::create("AdditiveSeries,BaselineFilter,ConsensusID,DBExporter,DBImporter,DTAExtractor,Decharger,FalseDiscoveryRate,FeatureFinder,FeatureLinker,FileConverter,FileFilter,FileInfo,FileMerger,IDDecoyProbability,IDFilter,IDMapper,IDMerger,IDRTCalibration,ITRAQAnalyzer,InspectAdapter,InternalCalibration,MapAligner,MapNormalizer,MascotAdapter,MascotAdapterOnline,NoiseFilter,OMSSAAdapter,PILISIdentification,PILISModel,PTModel,PTPredict,PeakPicker,PepNovoAdapter,RTModel,RTPredict,Resampler,SILACAnalyzer,SequestAdapter,SpectraFilter,TOFCalibration,TextExporter,XTandemAdapter,PrecursorIonSelector");
 			}
 			
       ///Stuct that captures all information of a parameter

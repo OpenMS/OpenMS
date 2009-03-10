@@ -4,6 +4,7 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(executables_list
 CaapConvert
+CaapEval
 CVInspector
 Digestor
 FFEval

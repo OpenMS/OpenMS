@@ -5,7 +5,6 @@ set(directory source/APPLICATIONS/TOPP)
 set(executables_list
 AdditiveSeries
 BaselineFilter
-CaapEval
 ConsensusID
 DBExporter
 DBImporter

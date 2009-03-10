@@ -58,7 +58,6 @@
 
   <b>Quantitation</b>
  	- @subpage TOPP_FeatureFinder - Detects two-dimensional features in LC-MS data.
- 	- @subpage TOPP_FeatureFinderMRM - Quantitates peptides based on multiple reaction monitoring.
 	- @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
 	- @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
 	- @subpage TOPP_FeatureLinker - Groups corresponding features in one map or across maps.

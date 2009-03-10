@@ -11,7 +11,6 @@ Int main()
 {
   PeakSpectrum spec_raw;
   PeakSpectrum spec_resampled;
-  PeakSpectrum spec_filtered;
   
   DTAFile dta_file;
   dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta",spec_raw);
@@ -27,7 +26,7 @@ Int main()
   param_sg.setValue("frame_length",21);
   param_sg.setValue("polynomial_order",3);
   sg.setParameters(param_sg);
-  sg.filter(spec_resampled,spec_filtered);
+  sg.filter(spec_resampled);
  
   return 0;
 } //end of main

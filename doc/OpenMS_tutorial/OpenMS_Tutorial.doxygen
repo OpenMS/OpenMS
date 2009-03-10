@@ -730,7 +730,7 @@ The @a TopHatFilter removes signal structures in the raw data which are broader 
 The following example (Tutorial_MorphologicalFilter.C) shows how to instantiate a tophat filter, set the length of the
 structuring element and remove the base line in a raw LC-MS map.
 
-@dontinclude Tutorial_TopHatFilter.C
+@dontinclude Tutorial_MorphologicalFilter.C
   @skip main
   @until end of main
 
