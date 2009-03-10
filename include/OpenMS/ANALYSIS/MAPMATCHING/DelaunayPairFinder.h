@@ -37,19 +37,19 @@ namespace OpenMS
 
 	  It offers a method to determine element pairs across two element maps.
 	  The corresponding features must be aligned, but may have small position deviations.
-				     
+
 	  To speed up the search for element pairs an consensus elements, the %DelaunayPairFinder
-	  uses the CGAL delaunay triangulation for the nearest neighbour search.
-		
+	  uses the CGAL Delaunay triangulation for the nearest neighbor search.
+
 	  @htmlinclude OpenMS_DelaunayPairFinder.parameters
-	
+
 	  @ingroup FeatureGrouping
   */
-  class OPENMS_DLLAPI DelaunayPairFinder 
+  class OPENMS_DLLAPI DelaunayPairFinder
   	: public BaseGroupFinder
   {
    public:
-		///Base class		
+		///Base class
     typedef BaseGroupFinder Base;
 
     /// Constructor
@@ -74,24 +74,24 @@ namespace OpenMS
 
 		/**
 			@brief Run the algorithm
-			
+
 			@note Exactly two @em input maps must be provided.
-			
+
 			@exception Exception::IllegalArgument is thrown if the input data is not valid.
 		*/
     void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
    protected:
-		
+
 		///@name Internal helper classes and enums
 		//@{
 		struct Point;
 		class GeometricTraits;
 		struct PointArray2;
-		enum { MODEL_=0, SCENE_=1 };		
+		enum { MODEL_=0, SCENE_=1 };
 		enum { RT = Peak2D::RT, MZ = Peak2D::MZ };
 		//@}
-		
+
 		///Calculates the squared distance between two-dimensional points
 		inline DoubleReal squaredDistance_( DoubleReal x1, DoubleReal y1, DoubleReal x2, DoubleReal y2 ) const
 		{
@@ -101,7 +101,7 @@ namespace OpenMS
 			tmpy *= tmpy;
 			return tmpx + tmpy;
 		}
-		
+
 		//docu in base class
 		virtual void updateMembers_();
 
@@ -113,7 +113,7 @@ namespace OpenMS
 
 		/// Upper bound for squaredDistance_()
 		DoubleReal max_squared_distance_;
-		
+
 		/// The distance of the second nearest neighbor must be this factor larger
     DoubleReal second_nearest_gap_;
 

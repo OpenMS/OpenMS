@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
 namespace OpenMS
 {
@@ -35,7 +35,7 @@ namespace OpenMS
 		: FeatureGroupingAlgorithm()
 	{
 		setName("FeatureGroupingAlgorithmUnlabeled");
-		defaults_.insert("",DelaunayPairFinder().getParameters());
+		defaults_.insert("",StablePairFinder().getParameters());
 		defaultsToParam_();
 	}
 
@@ -46,11 +46,14 @@ namespace OpenMS
 	void FeatureGroupingAlgorithmUnlabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)
 	{
 		// check that the number of maps is ok
-		if (maps.size()<2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"At least two maps must be given!");
-		
+		if (maps.size()<2)
+		{
+		  throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"At least two maps must be given!");
+		}
+
 		// define reference map (the one with most peaks)
 		Size reference_map_index = 0;
-		Size max_count = 0;		
+		Size max_count = 0;
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
@@ -64,7 +67,7 @@ namespace OpenMS
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
 		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0] );
-  	
+
 		// loop over all other maps, extend the groups
 		ConsensusMap result;
 		for (Size i = 0; i < maps.size(); ++i)
@@ -73,17 +76,29 @@ namespace OpenMS
 			{
 				ConsensusMap::convert( i, maps[i], input[1] );
 				// compute the consensus of the reference map and map i
-				DelaunayPairFinder pair_finder;
+				StablePairFinder pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
 				pair_finder.run(input,result);
 				input[0].swap(result);
 			}
 		}
-		
-		//replace result with temporary map
+
+		// replace result with temporary map
 		out.swap(input[0]);
-		//overwrite input maps (they habe been deleted while swapping)
+		// copy back the input maps (they have been deleted while swapping)
 		out.getFileDescriptions() = input[0].getFileDescriptions();
+
+
+    // canonical ordering for checking the results, and the ids have no real meaning anyway
+#if 1 // the way this was done in DelaunayPairFinder and StablePairFinder
+    out.sortByMZ();
+#else
+    out.sortByQuality();
+    out.sortByMaps();
+    out.sortBySize();
+#endif
+
+		return;
 	}
 
 } // namespace OpenMS

@@ -352,13 +352,14 @@ namespace OpenMS
 		//@}
 
 		/**
-		@brief Computes a consensus position and intensity and assigns them to this consensus feature.
+       @brief Computes and updates the consensus position, intensity, and charge.
 
-		The position and intensity of the contained feature handles is simply averaged and assigned to
-		this consensus feature.
+       The position and intensity of the contained feature handles is averaged.
+       The most frequent charge state wins, while the tie breaking prefers
+       smaller (absolute) charges.
 
-		@note This method has to be called explicitly, after adding all feature handles.
-		*/
+       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
+       */
 		void computeConsensus();
 
 		/// returns a const reference to the PeptideIdentification vector

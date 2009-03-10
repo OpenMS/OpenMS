@@ -32,19 +32,43 @@ namespace OpenMS
 
   void ConsensusFeature::computeConsensus()
   {
-  	//compute the average position and intensity
+  	// for computing average position and intensity
   	DoubleReal rt=0.0;
   	DoubleReal mz=0.0;
-  	DoubleReal inte=0.0;
+  	DoubleReal intensity=0.0;
+
+  	// The most frequent charge state wins.  Tie breaking prefers smaller charge.
+  	std::map<Int,UInt> charge_occ;
+  	Int charge_most_frequent = 0;
+  	UInt charge_most_frequent_occ = 0;
+
     for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
     {
     	rt += it->getRT();
     	mz += it->getMZ();
-    	inte += it->getIntensity();
+    	intensity += it->getIntensity();
+    	const Int it_charge = it->getCharge();
+    	const UInt it_charge_occ = ++charge_occ[it_charge];
+    	if ( it_charge_occ > charge_most_frequent_occ )
+    	{
+    	  charge_most_frequent_occ = it_charge_occ;
+        charge_most_frequent = it_charge;
+    	}
+    	else
+    	{
+        if ( it_charge_occ >= charge_most_frequent_occ && abs(it_charge) < abs(charge_most_frequent) )
+        {
+          charge_most_frequent = it_charge;
+        }
+    	}
     }
+
+    // compute the average position and intensity
     setRT(rt / size());
     setMZ(mz / size());
-    setIntensity(inte / size());
+    setIntensity(intensity / size());
+    setCharge(charge_most_frequent);
+    return;
   }
 
   std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons)
@@ -75,4 +99,4 @@ namespace OpenMS
 
     return os;
   }
-} 
+}

@@ -20,6 +20,7 @@ MapAlignmentAlgorithmApplyGivenTrafo.C
 PoseClusteringAffineSuperimposer.C
 PoseClusteringShiftSuperimposer.C
 SimplePairFinder.C
+StablePairFinder.C
 TransformationDescription.C
 )
 

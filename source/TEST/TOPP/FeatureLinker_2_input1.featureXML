@@ -97,7 +97,7 @@
 			<quality dim="0">95</quality>
 			<quality dim="1">183</quality>
 			<overallquality>0</overallquality>
-			<charge>2</charge>
+			<charge>1</charge>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">478.468</hposition>

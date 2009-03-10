@@ -266,6 +266,7 @@ SpectrumCheapDPCorr_test.C
 SpectrumPrecursorComparator_test.C
 SpectrumSettings_test.C
 SqrtMower_test.C
+StablePairFinder_test.C
 StandardTypes_test.C
 StatisticFunctions_test.C
 SteinScottImproveScore_test.C

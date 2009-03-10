@@ -267,6 +267,7 @@ set(analysis_executables_list
   BaseGroupFinder_test
   DelaunayPairFinder_test
   SimplePairFinder_test
+  StablePairFinder_test
   BaseSuperimposer_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test

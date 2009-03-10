@@ -29,6 +29,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
 #include <set>
 
@@ -49,12 +50,12 @@ namespace OpenMS
     Factory< BaseGroupFinder>::registerProduct(SimplePairFinder::   getProductName(), &SimplePairFinder::   create);
     Factory< BaseGroupFinder>::registerProduct(DelaunayPairFinder:: getProductName(), &DelaunayPairFinder:: create);
     Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::  getProductName(), &LabeledPairFinder::  create);
+    Factory< BaseGroupFinder>::registerProduct(StablePairFinder::   getProductName(), &StablePairFinder::   create);
   }
 
 	void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
 	{
 		std::set<UInt> used_ids;
-		
 		for (Size i=0; i< maps.size(); ++i)
 		{
 			const ConsensusMap& map = maps[i];
@@ -72,4 +73,4 @@ namespace OpenMS
 		}
 	}
 
-} 
+}

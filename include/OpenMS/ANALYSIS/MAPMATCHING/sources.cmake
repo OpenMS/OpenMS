@@ -20,6 +20,7 @@ MapAlignmentAlgorithmApplyGivenTrafo.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 SimplePairFinder.h
+StablePairFinder.h
 TransformationDescription.h
 )
 

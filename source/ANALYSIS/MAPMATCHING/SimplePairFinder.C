@@ -34,7 +34,7 @@ namespace OpenMS
   {
   	//set the name for DefaultParamHandler error messages
 		setName(getProductName());
-		
+
 		defaults_.setValue("similarity:diff_intercept:RT",1.0,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).",StringList::create("advanced"));
     defaults_.setValue("similarity:diff_intercept:MZ",0.1,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).",StringList::create("advanced"));
     defaults_.setValue("similarity:diff_exponent:RT",2.0,"This parameter is important for small differences (for more details see the similarity measurement).",StringList::create("advanced"));
@@ -48,7 +48,7 @@ namespace OpenMS
   {
   	if (input_maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly two input maps required");
 		checkIds_(input_maps);
-		
+
     // progress dots
     Int progress_dots = 0;
 		if (this->param_.exists("debug::progress_dots"))
@@ -108,7 +108,7 @@ namespace OpenMS
 			}
 			best_companion_quality_1[fi1] = best_quality;
     }
-						
+
     // And if both like each other, they become a pair.
     // element_pairs_->clear();
 		for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
@@ -131,6 +131,7 @@ namespace OpenMS
 				}
 			}
     }
+		return;
   }
 
   void SimplePairFinder::updateMembers_()
@@ -177,4 +178,4 @@ namespace OpenMS
     return intensity_ratio / position_difference[Peak2D::RT] / position_difference[Peak2D::MZ];
   }
 
-} 
+}
