@@ -17,11 +17,6 @@
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<userParam name="name" value="sourcefile1"/>
       </sourceFile>
-      <sourceFile id="sf2" name="tiny2.RAW" location="file:///F:/data/Exp02">
-        <cvParam cvRef="MS" accession="MS:1000565" name="Micromass PKL file" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000568" name="MD5" value="71be39fb2700ab2f3c8b2234b91274968b6899b2"/>
-				<userParam name="name" value="sourcefile2"/>
-      </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
         <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
@@ -142,15 +137,11 @@
     </dataProcessing>
   </dataProcessingList>
   
-  <run id="Exp01" defaultInstrumentConfigurationRef="LCQDeca" sampleRef="sample1" startTimeStamp="2007-06-27T15:23:45.00035">
+  <run id="Exp01" defaultSourceFileRef="sf1" defaultInstrumentConfigurationRef="LCQDeca" sampleRef="sample1" startTimeStamp="2007-06-27T15:23:45.00035">
   	<userParam name="int" type="xsd:integer" value="5"/>
   	<userParam name="string" value="bla"/>
   	<userParam name="flag"/>
   	<userParam name="float" type="xsd:float" value="5.11"/>
-    <sourceFileRefList count="2">
-      <sourceFileRef ref="sf1"/>
-      <sourceFileRef ref="sf2"/>
-    </sourceFileRefList>
     
     <spectrumList count="4" defaultDataProcessingRef="pwizconversion">
 

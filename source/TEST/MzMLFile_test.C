@@ -104,17 +104,12 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
 	TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
 	//source files
-	TEST_EQUAL(exp.getSourceFiles().size(),2);
+	TEST_EQUAL(exp.getSourceFiles().size(),1);
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
 	TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW file")
-	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getNameOfFile(),"tiny2.RAW")
-	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getPathToFile(),"file:///F:/data/Exp02")
-	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b2")
-	TEST_EQUAL(exp.getSourceFiles()[1].getChecksumType(),SourceFile::MD5)
-	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getFileType(),"Micromass PKL file")
 	//sample
 	TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
 	TEST_REAL_SIMILAR(exp.getSample().getMass(),11.7)
@@ -377,7 +372,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
 	//source file
 	TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
-	TEST_STRING_EQUAL((String)exp.getSourceFiles()[1].getMetaValue("name"),"sourcefile2")
 	TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
 	//data processing
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
@@ -461,7 +455,7 @@ START_SECTION([EXTRA] load only meta data)
 	TEST_EQUAL(exp.size(),0)
 	TEST_EQUAL(exp.getIdentifier(),"document_accession");
 	TEST_EQUAL(exp.getContacts().size(),2)
-	TEST_EQUAL(exp.getSourceFiles().size(),2);
+	TEST_EQUAL(exp.getSourceFiles().size(),1);
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 	TEST_EQUAL(exp.getDataProcessing().size(),2)
 END_SECTION

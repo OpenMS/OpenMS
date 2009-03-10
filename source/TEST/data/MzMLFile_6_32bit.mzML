@@ -137,15 +137,12 @@
 		</dataProcessing>
 	</dataProcessingList>
 	
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45">
+	<run id="ru_0" defaultSourceFileRef="sf1" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45">
 		<userParam name="int" type="xsd:integer" value="5"/>
 		<userParam name="string" type="xsd:string" value="bla"/>
 		<userParam name="flag" type="xsd:string" value=""/>
 		<userParam name="float" type="xsd:double" value="5.11"/>
-		<sourceFileRefList count="2">
-			<sourceFileRef ref="sf_ru_0"/>
-			<sourceFileRef ref="sf_ru_1"/>
-		</sourceFileRefList>
+
 		<spectrumList count="4" defaultDataProcessingRef="dp_0">
 			<spectrum id="index=0" index="0" defaultArrayLength="15">
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>

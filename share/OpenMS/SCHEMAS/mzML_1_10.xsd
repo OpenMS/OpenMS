@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="Windows-1252"?>
+<!-- Created with Liquid XML Studio 1.0.8.0 (http://www.liquid-technologies.com) -->
 <xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" 
 		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
 		   targetNamespace="http://psi.hupo.org/ms/mzml" 
@@ -339,17 +340,17 @@
       <xs:documentation>List with the different components used in the mass spectrometer. At least one source, one mass analyzer and one detector need to be specified.</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element maxOccurs="unbounded" name="source" type="dx:ComponentType">
+      <xs:element maxOccurs="unbounded" name="source" type="dx:SourceComponentType">
         <xs:annotation>
           <xs:documentation>A source component.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element maxOccurs="unbounded" name="analyzer" type="dx:ComponentType">
+      <xs:element maxOccurs="unbounded" name="analyzer" type="dx:AnalyzerComponentType">
         <xs:annotation>
           <xs:documentation>A mass analyzer (or mass filter) component.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element maxOccurs="unbounded" name="detector" type="dx:ComponentType">
+      <xs:element maxOccurs="unbounded" name="detector" type="dx:DetectorComponentType">
         <xs:annotation>
           <xs:documentation>A detector component.</xs:documentation>
         </xs:annotation>
@@ -531,11 +532,6 @@
     <xs:complexContent mixed="false">
       <xs:extension base="dx:ParamGroupType">
         <xs:sequence>
-          <xs:element minOccurs="0" name="sourceFileRefList" type="dx:SourceFileRefListType">
-            <xs:annotation>
-              <xs:documentation>Container for a list of source file references.</xs:documentation>
-            </xs:annotation>
-          </xs:element>
           <xs:element name="spectrumList" type="dx:SpectrumListType">
             <xs:annotation>
               <xs:documentation>All mass spectra and the acquisitions underlying them are described and attached here. Subsidiary data arrays are also both described and attached here.</xs:documentation>
@@ -554,7 +550,12 @@
         </xs:attribute>
         <xs:attribute name="defaultInstrumentConfigurationRef" type="xs:IDREF" use="required">
           <xs:annotation>
-            <xs:documentation>This attribute can optionally reference the 'id' of the default instrument configuration. If an acquisition does not reference an instrument configuration, it implicitly refers to this configuration.</xs:documentation>
+            <xs:documentation>This attribute must reference the 'id' of the default instrument configuration. If a scan does not reference an instrument configuration, it implicitly refers to this configuration.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="defaultSourceFileRef" type="xs:IDREF" use="optional">
+          <xs:annotation>
+            <xs:documentation>This attribute can optionally reference the 'id' of the default source file. If a spectrum or scan does not reference a source file and this attribute is set, then it implicitly refers to this source file.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="sampleRef" type="xs:IDREF" use="optional">
@@ -663,13 +664,13 @@
     <xs:sequence>
       <xs:element maxOccurs="unbounded" name="scanWindow" type="dx:ScanWindowType">
         <xs:annotation>
-          <xs:documentation>Definition of a selection window.</xs:documentation>
+          <xs:documentation>Definition of a scan window.</xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
     <xs:attribute name="count" type="xs:int" use="required">
       <xs:annotation>
-        <xs:documentation>The number of selection windows defined in this list.</xs:documentation>
+        <xs:documentation>The number of scan windows defined in this list.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
@@ -677,14 +678,14 @@
     <xs:sequence>
       <xs:element minOccurs="2" maxOccurs="unbounded" name="cvParam" type="dx:CVParamType">
         <xs:annotation>
-          <xs:documentation>Two or more CV parameters defining the selection window.</xs:documentation>
+          <xs:documentation>Two or more CV parameters defining the scan window.</xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ScanListType">
     <xs:annotation>
-      <xs:documentation>List and descriptions of acquisitions .</xs:documentation>
+      <xs:documentation>List and descriptions of scans .</xs:documentation>
     </xs:annotation>
     <xs:complexContent mixed="false">
       <xs:extension base="dx:ParamGroupType">
@@ -693,7 +694,7 @@
         </xs:sequence>
         <xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
           <xs:annotation>
-            <xs:documentation>the number of acquisitions defined in this mzML file.</xs:documentation>
+            <xs:documentation>the number of scans defined in this list.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
       </xs:extension>
@@ -708,7 +709,7 @@
         <xs:sequence>
           <xs:element minOccurs="0" name="scanWindowList" type="dx:ScanWindowListType">
             <xs:annotation>
-              <xs:documentation>Container for a list of select windows.</xs:documentation>
+              <xs:documentation>Container for a list of scan windows.</xs:documentation>
             </xs:annotation>
           </xs:element>
         </xs:sequence>

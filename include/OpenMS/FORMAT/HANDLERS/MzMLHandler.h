@@ -294,6 +294,7 @@ namespace OpenMS
 			static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
 			static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
 			static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
+			static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -444,10 +445,6 @@ namespace OpenMS
 			{
 				exp_->getContacts().push_back(ContactPerson());
 			}
-			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
-			{
-				exp_->getSourceFiles().push_back(source_files_[ attributeAsString_(attributes, s_ref)]);
-			}
 			else if (tag=="sample")
 			{
 				current_id_ = attributeAsString_(attributes, s_id);
@@ -473,6 +470,12 @@ namespace OpenMS
 				if (optionalAttributeAsString_(start_time, attributes, s_start_time_stamp))
 				{
 					exp_->setDateTime(asDateTime_(start_time));
+				}
+				//defaultSourceFileRef
+				String default_source_file_ref;
+				if(optionalAttributeAsString_(default_source_file_ref, attributes, s_default_source_file_ref))
+				{
+					exp_->getSourceFiles().push_back(source_files_[default_source_file_ref]);
 				}
 			}
 			else if (tag=="software")
@@ -2436,19 +2439,23 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// source file list
 			//--------------------------------------------------------------------------------------------
-			if (exp.getSourceFiles().size()!=0)
+			//find out how many spectra source files need to be written
+			UInt sf_sp_count=0;
+			for (Size i=0; i<exp.size(); ++i)
 			{
-				//find out how many spectra source files need to be written
-				UInt sf_sp_count=0;
-				for (Size i=0; i<exp.size(); ++i)
-				{
-					if (exp[i].getSourceFile()!=SourceFile()) ++sf_sp_count;
-				}
+				if (exp[i].getSourceFile()!=SourceFile()) ++sf_sp_count;
+			}
+			if (exp.getSourceFiles().size()>0 || sf_sp_count>0)
+			{
 				os	<< "		<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
-				//write source files of run
-				for (Size i=0; i<exp.getSourceFiles().size(); ++i)
+				//write source file of run
+				if (exp.getSourceFiles().size()>0)
 				{
-					writeSourceFile_(os, String("sf_ru_")+i, exp.getSourceFiles()[i]);
+					writeSourceFile_(os, String("sf_ru_0"), exp.getSourceFiles()[0]);
+				}
+				if (exp.getSourceFiles().size()>1)
+				{
+					warning(STORE, "The MzML format can store only one source file per run. Only the first one is stored!");
 				}
 				//write source files of spectra
 				for (Size i=0; i<exp.size(); ++i)
@@ -3220,19 +3227,13 @@ namespace OpenMS
 			{
 				os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ','T') << "\"";
 			}
+			if (exp.getSourceFiles().size()>0)
+			{
+				os << " defaultSourceFileRef=\"sf_ru_0\"";
+			}
 			os  << ">\n";
 			
 			writeUserParam_(os, exp, 2);
-			
-			if (exp.getSourceFiles().size()!=0)
-			{
-				os	<< "		<sourceFileRefList count=\"" << exp.getSourceFiles().size() << "\">\n";
-				for (Size i=0; i<exp.getSourceFiles().size(); ++i)
-				{
-					os	<< "			<sourceFileRef ref=\"sf_ru_" << i << "\" />\n";
-				}
-				os	<< "		</sourceFileRefList>\n";
-			}
 
 			os	<< "		<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_ru_0\">\n"; 
 			//--------------------------------------------------------------------------------------------
