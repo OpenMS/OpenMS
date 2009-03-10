@@ -73,7 +73,6 @@ namespace OpenMS
 		    }
 
 				map.reset();
-				map.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
 				//set DocumentIdentifier
 				map.setLoadedFileType(filename);

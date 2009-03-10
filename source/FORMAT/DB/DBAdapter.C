@@ -306,7 +306,7 @@ namespace OpenMS
 		file.setPathToFile(result.value(1).toString());
 		file.setFileSize(result.value(2).toDouble());
 		file.setFileType(result.value(3).toString());
-		file.setChecksum(result.value(4).toString(), SourceFile::UNKNOWN);
+		file.setChecksum(result.value(4).toString(), SourceFile::UNKNOWN_CHECKSUM);
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)

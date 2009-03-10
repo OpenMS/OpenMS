@@ -44,14 +44,34 @@ namespace OpenMS
     	///Type of the checksum
     	enum ChecksumType
     	{
-    		UNKNOWN, ///< Unknown checksum type
+    		UNKNOWN_CHECKSUM, ///< Unknown checksum type
     		SHA1, 	 ///< Secure Hash Algorithm-1
     		MD5,		 ///< Message-Digest algorithm 5
     		SIZE_OF_CHECKSUMTYPE
     	};
 			/// Names of checksum types
 			static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
-				
+
+    	///Native ID type
+    	enum NativeIDType
+    	{
+    		UNKNOWN_NATIVEID,			///< Unknown native ID type
+    		THERMO,								///< controller=xsd:nonNegativeInteger scan=xsd:positiveInteger
+    		WATERS,								///< function=xsd:positiveInteger process=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger
+    		WIFF,									///< sample=xsd:nonNegativeInteger period=xsd:nonNegativeInteger cycle=xsd:nonNegativeInteger experiment=xsd:nonNegativeInteger
+    		BRUKER_AGILENT,				///< scan=xsd:nonNegativeInteger
+    		BRUKER_BAF,						///< scan=xsd:nonNegativeInteger
+    		BRUKER_FID,						///< file=xsd:IDREF
+    		BRUKER_U2,            ///< declaration=xsd:nonNegativeInteger collection=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger
+    		MULTIPLE_PEAK_LISTS,	///< index=xsd:nonNegativeInteger @n Used for conversion of peak list files with multiple spectra, i.e. MGF, PKL, merged DTA files. Index is the spectrum number in the file, starting from 0.
+    		SINGLE_PEAK_LIST,			///< file=xsd:IDREF @n The nativeID must be the same as the source file ID. Used for conversion of peak list files with one spectrum per file, typically folder of PKL or DTAs, each sourceFileRef is different.
+    		SCAN_NUMBER,					///< scan=xsd:nonNegativeInteger @n Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
+    		SPECTRUM_IDENTIFIER,	///< spectrum=xsd:nonNegativeInteger @n Used for conversion from mzData. The spectrum id attribute is referenced.
+    		SIZE_OF_NATIVEIDTYPE
+    	};
+			/// Names of native ID types
+			static const std::string NamesOfNativeIDType[SIZE_OF_NATIVEIDTYPE];
+
     	/// Constructor
       SourceFile();
       /// Copy constructor
@@ -93,6 +113,11 @@ namespace OpenMS
       /// returns the checksum type
       ChecksumType getChecksumType() const;
 
+			/// Returns the native ID type of the spectra
+  		NativeIDType getNativeIDType() const;
+			/// Sets the native ID type of the spectra
+  		void setNativeIDType(NativeIDType type);
+
     protected:
 			String name_of_file_;
 			String path_to_file_;
@@ -100,6 +125,7 @@ namespace OpenMS
 			String file_type_;
 			String checksum_;
 			ChecksumType checksum_type_;
+    	NativeIDType native_id_type_;
   };
 } // namespace OpenMS
 

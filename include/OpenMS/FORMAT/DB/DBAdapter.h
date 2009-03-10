@@ -50,8 +50,8 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
 		
-		@todo Check if METADATA implementation is complete - all members and MetaInfoInterface (HiWi)
 		@todo Check Precursor implementation, it has changed (Hiwi)
+		@todo NativeIDType was moved from ExperimentalSettings to SourceFile (Hiwi)
     @ingroup DatabaseIO
   */
  

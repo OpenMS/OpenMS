@@ -100,7 +100,7 @@ END_SECTION
 
 START_SECTION(ChecksumType getChecksumType() const)
   SourceFile tmp;
-  TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN);
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
 END_SECTION
 
 START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
@@ -110,6 +110,16 @@ START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
 END_SECTION
 
+START_SECTION((NativeIDType getNativeIDType() const))
+	SourceFile tmp;
+	TEST_EQUAL(tmp.getNativeIDType(), SourceFile::UNKNOWN_NATIVEID);
+END_SECTION
+
+START_SECTION((void 	setNativeIDType(NativeIDType type)))
+  SourceFile tmp;
+  tmp.setNativeIDType(SourceFile::THERMO);
+  TEST_EQUAL(tmp.getNativeIDType(), SourceFile::THERMO);
+END_SECTION
 
 START_SECTION((SourceFile(const SourceFile& source)))
 	SourceFile tmp;
@@ -152,7 +162,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
 	TEST_EQUAL(tmp2.getChecksum(),"");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
 	TEST_EQUAL(tmp2.metaValueExists("bla"), false);
 END_SECTION
 
@@ -194,7 +204,7 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN_CHECKSUM);
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;

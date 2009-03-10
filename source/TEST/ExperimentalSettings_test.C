@@ -90,17 +90,6 @@ START_SECTION((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
 
-START_SECTION((NativeIDType getNativeIDType() const))
-	ExperimentalSettings tmp;
-	TEST_EQUAL(tmp.getNativeIDType(), ExperimentalSettings::UNKNOWN);
-END_SECTION
-
-START_SECTION((void 	setNativeIDType(NativeIDType type)))
-  ExperimentalSettings tmp;
-  tmp.setNativeIDType(ExperimentalSettings::THERMO);
-  TEST_EQUAL(tmp.getNativeIDType(), ExperimentalSettings::THERMO);
-END_SECTION
-
 START_SECTION((void setContacts(const std::vector<ContactPerson>& contacts)))
   ExperimentalSettings tmp;
   std::vector<ContactPerson> dummy;

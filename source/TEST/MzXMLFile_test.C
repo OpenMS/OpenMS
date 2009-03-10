@@ -129,7 +129,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getMetaValue("URL1"), "www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaValue("URL2"), "www.uni-tuebingen.de")
 	TEST_EQUAL(e[0].getComment(), "Scan Comment")
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::SCAN_NUMBER)
 
 	//---------------------------------------------------------------------------
   // source file

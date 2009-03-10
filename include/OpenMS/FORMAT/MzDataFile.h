@@ -71,7 +71,6 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
-				map.setNativeIDType(ExperimentalSettings::SPECTRUM_IDENTIFIER);
 
 				//set DocumentIdentifier
 				map.setLoadedFileType(filename);

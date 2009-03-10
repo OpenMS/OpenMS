@@ -229,9 +229,6 @@ class TOPPFileMerger
 			}
 		}
 
-		//set native ID type
-		out.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
-
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------

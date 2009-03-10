@@ -7,12 +7,12 @@ Main improvements of TOPPView:
 
 Main improvements of TOPP:
 - TextExporter can now export peptide/protein information stored in consensusXML
-- PeakPicker has less parameters
-- PeakPicker can now be used with multiple threads
+- PeakPicker: reduced the number of parameters, added parallization support
+- FeatureFinder: added new MRM algorithm and removed the tool 'FeatureFinderMRM'
 
 Main improvements of OpenMS C++ library:
 - removed support for external Memory (use the 64bit builds if you want to process large datasets)
-- OpenMS now support three kinds of parallization architectures
+- added suuport for three kinds of parallization architectures
 	- OpenMP 
 	- Intel Threading Building Blocks
 	- Nvidia Cuda
@@ -20,11 +20,13 @@ Main improvements of OpenMS C++ library:
 Detailed list of changes to specific OpenMS classes:
 - SpectrumSettings: several precursor peaks are now supported
 - Precursor: complete rewrite for better support of mzData, mzXML and mzML
-- PeakPickerCWT: cleaned up interface, improved meta data handling, improved parameters
+- PeakPickerCWT: cleaned up interface, improved meta data handling, improved parameters, added parallization support
 - GaussFilter: cleaned up interface, improved meta data handling
 - SavitzkyGolayFilter: cleaned up interface, improved meta data handling
 - LabeledPairFinder: estimated negative sigma values are now treated as positive values
-- FeatureFinder: Supports now a new algorithm 'MRM' for MRM feature detection; replaces FeatureFinderMRM
+- FeatureFinder: added new algorithm 'MRM' for MRM feature detection; replaces FeatureFinderMRM
+- ExperimentalSettings: remove native ID type (for mzML support)
+- SourceFile: added native ID type (for mzML support)
 
 Bug fixes:
 - [2645436]: TOPPView - Data Filter for "Size" not available

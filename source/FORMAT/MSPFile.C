@@ -82,7 +82,6 @@ namespace OpenMS
     }
 
 		exp.reset();
-		exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
 		//set DocumentIdentifier
 		exp.setLoadedFileType(filename);

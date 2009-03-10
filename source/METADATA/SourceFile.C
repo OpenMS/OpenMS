@@ -35,6 +35,8 @@ namespace OpenMS
 {
 	const std::string SourceFile::NamesOfChecksumType[] = {"Unknown","SHA-1","MD5"};
 
+	const std::string SourceFile::NamesOfNativeIDType[] = {"Unknown","Thermo","Waters","WIFF","Bruker/Agilent","Bruker BAF","Bruker FID","Bruker U2","multiple peak lists","single peak list","scan number","spectrum identifier"};
+
 	SourceFile::SourceFile()
 		: MetaInfoInterface(),
 		  name_of_file_(),
@@ -42,7 +44,8 @@ namespace OpenMS
 			file_size_(),
 		  file_type_(),
 		  checksum_(),
-		  checksum_type_()
+		  checksum_type_(),
+    	native_id_type_(UNKNOWN_NATIVEID)
 	{
 	  
 	}
@@ -54,7 +57,8 @@ namespace OpenMS
 			file_size_(source.file_size_),
 		  file_type_(source.file_type_),
 		  checksum_(source.checksum_),
-		  checksum_type_(source.checksum_type_)
+		  checksum_type_(source.checksum_type_),
+		  native_id_type_(source.native_id_type_)
 	{
 	}
 	
@@ -73,6 +77,7 @@ namespace OpenMS
 	  file_type_ = source.file_type_;
 	  checksum_ = source.checksum_;
 	  checksum_type_ = source.checksum_type_;
+	  native_id_type_ = source.native_id_type_;
 	  
 	  return *this;
 	}
@@ -86,7 +91,8 @@ namespace OpenMS
 		  file_size_ == rhs.file_size_ &&
 	    file_type_ == rhs.file_type_ &&
 	    checksum_ == rhs.checksum_ &&
-	  	checksum_type_ == rhs.checksum_type_;
+	  	checksum_type_ == rhs.checksum_type_ &&
+	  	native_id_type_ == rhs.native_id_type_
 			;
 	}
 	
@@ -151,6 +157,17 @@ namespace OpenMS
 		checksum_ = checksum;
 		checksum_type_ = type;
 	}
+
+  SourceFile::NativeIDType SourceFile::getNativeIDType() const
+	{
+		return native_id_type_;
+	}
 	
+  void SourceFile::setNativeIDType(SourceFile::NativeIDType type)
+	{
+		native_id_type_ = type;
+	}
+
+
 }
 

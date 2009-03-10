@@ -72,7 +72,6 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
-				map.setNativeIDType(ExperimentalSettings::SCAN_NUMBER);
 
 				//set DocumentIdentifier
 				map.setLoadedFileType(filename);

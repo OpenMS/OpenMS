@@ -96,7 +96,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(e[1].getNativeID(),"spectrum=11")
 	TEST_STRING_EQUAL(e[2].getNativeID(),"spectrum=12")
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::SPECTRUM_IDENTIFIER)
 	  
 	//---------------------------------------------------------------------------
 	//meta data array meta data
@@ -351,7 +350,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN);
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
 
   //---------------------------------------------------------------------------
   // conteact list

@@ -9,22 +9,12 @@
 	<fileDescription>
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
-      <cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" value=""/>
 		</fileContent>
-		<sourceFileList count="3">
-			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
-				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file"/>
-				<userParam name="name" type="xsd:string" value="sourcefile1"/>
-			</sourceFile>
-			<sourceFile id="sf_ru_1" name="tiny2.RAW" location="file:///F:/data/Exp02">
-				<cvParam cvRef="MS" accession="MS:1000568" name="MD5" value="71be39fb2700ab2f3c8b2234b91274968b6899b2"/>
-				<cvParam cvRef="MS" accession="MS:1000565" name="Micromass PKL file"/>
-				<userParam name="name" type="xsd:string" value="sourcefile2"/>
-			</sourceFile>
+		<sourceFileList count="1">
 			<sourceFile id="sf_sp_1" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file"/>
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 				<userParam name="name" type="xsd:string" value="sourcefile4"/>
 			</sourceFile>
 		</sourceFileList>
@@ -137,7 +127,7 @@
 		</dataProcessing>
 	</dataProcessingList>
 	
-	<run id="ru_0" defaultSourceFileRef="sf1" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45">
 		<userParam name="int" type="xsd:integer" value="5"/>
 		<userParam name="string" type="xsd:string" value="bla"/>
 		<userParam name="flag" type="xsd:string" value=""/>

@@ -80,7 +80,6 @@ namespace OpenMS
 				}
 
 				exp.reset();
-				exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
 				std::ifstream is(filename.c_str());
 				std::vector<std::pair<double, double> > spec;

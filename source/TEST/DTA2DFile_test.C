@@ -91,7 +91,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.size(), 9);
 	ABORT_IF(e.size() != 9)
 
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_STRING_EQUAL(e[0].getNativeID(),"index=0")
 	TEST_STRING_EQUAL(e[1].getNativeID(),"index=1")
 	TEST_STRING_EQUAL(e[2].getNativeID(),"index=2")
@@ -432,7 +431,6 @@ START_SECTION(([EXTRA] load with RT range))
 	file.getOptions().setRTRange(makeRange(4711.15, 4711.45));
 	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 3)
 
 	TEST_REAL_SIMILAR(e[0].getRT(), 4711.2)
@@ -461,7 +459,6 @@ START_SECTION(([EXTRA] load with MZ range))
 	file.getOptions().setMZRange(makeRange(150, 220));
 	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 5)
 
 	TEST_REAL_SIMILAR(e[0].getRT(), 4711.5)
@@ -500,7 +497,6 @@ START_SECTION(([EXTRA] load with intensity range))
 	file.getOptions().setIntensityRange(makeRange(30000, 70000));
 	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
-	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 5)
 
 	TEST_REAL_SIMILAR(e[0].getRT(), 4711.1)

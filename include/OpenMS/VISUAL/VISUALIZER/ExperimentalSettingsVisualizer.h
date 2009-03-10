@@ -64,9 +64,7 @@ namespace OpenMS
 			///Undo the changes made in the GUI.
 			void undo_();
 	
-		protected:  
-		  /// Native ID type of the spectra
-		  QComboBox* native_id_type_;
+		protected:
 			/// The date of this experiment
 			QLineEdit* datetime_;		
 			/// The comment to this experiment

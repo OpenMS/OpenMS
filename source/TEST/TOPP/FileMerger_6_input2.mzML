@@ -9,20 +9,22 @@
   <fileDescription>
     <fileContent>
       <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" value=""/>
     </fileContent>
-    <sourceFileList count="2">
+    <sourceFileList count="3">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file"/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+     		<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
       </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file"/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
       </sourceFile>
       <sourceFile id="sf_spectrum_2" name="tiny1.dta" location="file:///F:/data/Exp01">
         <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
       </sourceFile>
     </sourceFileList>
     <contact>
