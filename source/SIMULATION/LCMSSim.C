@@ -40,6 +40,7 @@ namespace OpenMS{
 
   LCMSSim::LCMSSim()
   : DefaultParamHandler("LCMSSim"),
+  	ProgressLogger(),
     sample_(), RTModelFile_(), exp_(), gradientTime_(0.0), rt_sampling_(0.0),
     msAccuracy_(0), msBinSize_(0.0), mzMeanError_(0), mzStdDevError_(0), intMeanError_(0), 
     intStdDevError_(0), maxMapMZ_(0.0), minMapMZ_(0.0), mean_scaling_(0.0), ion_count_(0),
@@ -104,7 +105,8 @@ namespace OpenMS{
   }
 
   LCMSSim::LCMSSim(const LCMSSim& source)
-    : DefaultParamHandler(source)
+    : DefaultParamHandler(source),
+  		ProgressLogger(source)
   {
     setParameters( source.getParameters() );
     updateMembers_();
