@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string ExperimentalSettings::NamesOfNativeIDType[] = {"Unknown","Thermo","Waters","WIFF","Bruker/Agilent","Bruker BAF","Bruker FID","multiple peak lists","single peak list","scan number","spectrum identifier"};
+	const std::string ExperimentalSettings::NamesOfNativeIDType[] = {"Unknown","Thermo","Waters","WIFF","Bruker/Agilent","Bruker BAF","Bruker FID","Bruker U2","multiple peak lists","single peak list","scan number","spectrum identifier"};
 
 
 	ExperimentalSettings::ExperimentalSettings():

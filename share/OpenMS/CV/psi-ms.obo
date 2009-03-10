@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.16.0
-remark: release date: 2009-02-13
+remark: version: 1.18.1
+remark: release date: 2009-03-10
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -2068,6 +2068,7 @@ name: electric field strength
 def: "The magnitude of the force per unit charge at a given point in space." [PSI:MS]
 is_a: MS:1000487 ! ion optics attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units UO:0000268 ! volt per meter
 
 [Term]
 id: MS:1000309
@@ -3434,8 +3435,8 @@ relationship: part_of MS:1000442 ! spectrum
 
 [Term]
 id: MS:1000526
-name: MassLynx raw format
-def: "MassLynx raw file format, which is actually a directory/folder containing several files for each ms run." [PSI:MS]
+name: Waters DAT file
+def: "Waters DAT file format, storing a single function recorded by the instrument in a Waters RAW directory." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
@@ -3662,38 +3663,38 @@ relationship: part_of MS:1000577 ! data file
 
 [Term]
 id: MS:1000562
-name: wiff file
-def: "Applied Biosystems wiff file format." [PSI:MS]
+name: ABI WIFF file
+def: "Applied Biosystems WIFF file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000563
-name: Xcalibur RAW file
-def: "Thermo Finnigan RAW file format." [PSI:MS]
+name: Thermo RAW file
+def: "Thermo Scientific RAW file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000564
-name: mzData file
+name: PSI mzData file
 def: "Proteomics Standards Inititative mzData file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000565
-name: pkl file
-def: "Micromass pkl file format." [PSI:MS]
+name: Micromass PKL file
+def: "Micromass PKL file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000566
-name: mzXML file
+name: ISB mzXML file
 def: "Institute of Systems Biology mzXML file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000567
-name: yep file
-def: "Bruker yep file format." [PSI:MS]
+name: Bruker/Agilent YEP file
+def: "Bruker/Agilent YEP file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
@@ -4004,8 +4005,8 @@ is_a: MS:1000602 ! Shimadzu Biotech instrument model
 
 [Term]
 id: MS:1000613
-name: dta file
-def: "Peak list file format that should be better defined FIXME." [PSI:MS]
+name: DTA file
+def: "Sequest DTA file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
@@ -4037,8 +4038,8 @@ relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000618
-name: highest wavelength value
-def: "Highest wavelength value observed in the uv/vis spectrum." [PSI:MS]
+name: highest observed wavelength
+def: "Highest wavelength observed in an EMR spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 is_a: MS:1000808 ! chromatogram attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -4046,8 +4047,8 @@ relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000619
-name: lowest wavelength value
-def: "Lowest wavelength value observed in the uv/vis spectrum." [PSI:MS]
+name: lowest observed wavelength
+def: "Lowest wavelength observed in an EMR spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 is_a: MS:1000808 ! chromatogram attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -5291,6 +5292,73 @@ name: counts per second
 def: "The number of counted events observed per second in one or a group of elements of a detector." [PSI:MS]
 is_a: MS:1000043 ! intensity unit
 
+[Term]
+id: MS:1000815
+name: Bruker BAF file
+def: "Bruker BAF raw file format." [PSI:MS]
+is_a: MS:1000560 ! source file type
+
+[Term]
+id: MS:1000816
+name: Bruker U2 file
+def: "Bruker HyStar U2 file format." [PSI:MS]
+is_a: MS:1000560 ! source file type
+
+[Term]
+id: MS:1000817
+name: HyStar
+def: "Bruker software for hyphenated experiments." [PSI:MS]
+is_a: MS:1000692 ! Bruker software
+
+[Term]
+id: MS:1000818
+name: Acquity UPLC PDA
+def: "Acquity UPLC Photodiode Array Detector." [PSI:MS]
+is_a: MS:1000126 ! Waters instrument model
+
+[Term]
+id: MS:1000819
+name: Acquity UPLC FLR
+def: "Acquity UPLC Fluorescence Detector." [PSI:MS]
+is_a: MS:1000126 ! Waters instrument model
+
+[Term]
+id: MS:1000820
+name: flow rate array
+def: "A data array of flow rate measurements." [PSI:MS]
+is_a: MS:1000513 ! binary data array (needs a unit, but must get it added to unit.obo first)
+
+[Term]
+id: MS:1000821
+name: pressure array
+def: "A data array of pressure measurements." [PSI:MS]
+is_a: MS:1000513 ! binary data array
+relationship: has_units UO:0000110 ! pascal
+
+[Term]
+id: MS:1000822
+name: temperature array
+def: "A data array of temperature measurements." [PSI:MS]
+is_a: MS:1000513 ! binary data array
+relationship: has_units UO:0000012 ! kelvin
+
+[Term]
+id: MS:1000823
+name: Bruker U2 nativeID format
+def: "declaration=xsd:nonNegativeInteger collection=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000824
+name: no nativeID format
+def: "No nativeID format indicates that the file tagged with this term does not contain spectra that can have a nativeID format." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000825
+name: Bruker FID file
+def: "Bruker FID file format." [PSI:MS]
+is_a: MS:1000560 ! source file type
 
 [Typedef]
 id: has_units

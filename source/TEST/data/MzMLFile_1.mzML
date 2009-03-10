@@ -16,31 +16,31 @@
     
     <sourceFileList count="6">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<userParam name="name" value="sourcefile1"/>
       </sourceFile>
       <sourceFile id="sf2" name="tiny2.RAW" location="file:///F:/data/Exp02">
-        <cvParam cvRef="MS" accession="MS:1000565" name="pkl file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000565" name="Micromass PKL file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000568" name="MD5" value="71be39fb2700ab2f3c8b2234b91274968b6899b2"/>
 				<userParam name="name" value="sourcefile2"/>
       </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<userParam name="name" value="sourcefile3"/>
       </sourceFile>
       <sourceFile id="sf_spectrum_2" name="tiny1.dta" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<userParam name="name" value="sourcefile4"/>
       </sourceFile>
       <sourceFile id="sf_ac_0" name="ac.dta" location="file:///F:/data/Exp02">
-        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1"/>
       </sourceFile>
       <sourceFile id="sf_pr_0" name="pr.dta" location="file:///F:/data/Exp03">
-        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1"/>
       </sourceFile>
     </sourceFileList>
@@ -194,8 +194,8 @@
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000619" name="lowest wavelength value" value="500.39" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
-        <cvParam cvRef="MS" accession="MS:1000618" name="highest wavelength value" value="795.56" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
+        <cvParam cvRef="MS" accession="MS:1000619" name="lowest observed wavelength" value="500.39" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
+        <cvParam cvRef="MS" accession="MS:1000618" name="highest observed wavelength" value="795.56" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>

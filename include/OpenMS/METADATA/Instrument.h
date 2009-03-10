@@ -71,11 +71,9 @@ namespace OpenMS
 				TIME_LAG_FOCUSING, 				///< time lag focusing
 				REFLECTRON, 							///< reflectron
 				EINZEL_LENS,							///< einzel lens
-				ELECTRIC_FIELD_STRENGTH, 	///< electric field strength
 				FIRST_STABILITY_REGION, 	///< first stability region
 				FRINGING_FIELD, 					///< fringing field
 				KINETIC_ENERGY_ANALYZER, 	///< kinetic energy analyzer
-				SPACE_CHARGE_EFFECT, 			///< space charge effect
 				STATIC_FIELD,							///< static field
 	    	SIZE_OF_IONOPTICSTYPE
 	    };

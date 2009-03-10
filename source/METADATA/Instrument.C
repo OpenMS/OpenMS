@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMS
 {
 
-const std::string Instrument::NamesOfIonOpticsType[] = {"Unknown","magnetic deflection","delayed extraction","collision quadrupole","selected ion flow tube","time lag focusing","reflectron","einzel lens","electric field strength","first stability region","fringing field","kinetic energy analyzer","space charge effect","static field"};
+const std::string Instrument::NamesOfIonOpticsType[] = {"Unknown","magnetic deflection","delayed extraction","collision quadrupole","selected ion flow tube","time lag focusing","reflectron","einzel lens","first stability region","fringing field","kinetic energy analyzer","static field"};
 
 	Instrument::Instrument():
 		MetaInfoInterface(),

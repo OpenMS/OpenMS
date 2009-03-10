@@ -13,15 +13,15 @@
     </fileContent>
     <sourceFileList count="2">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
       <sourceFile id="sf_spectrum_2" name="tiny1.dta" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
     </sourceFileList>

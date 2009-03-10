@@ -866,7 +866,6 @@ namespace OpenMS
 					}
 					else if (cv_.isChildOf(accession,"MS:1000513")) //other array names as string
 					{
-						
 						data_.back().name = cv_.getTerm(accession).name;
 					}
 					//MS:1000572 ! binary data compression type
@@ -992,15 +991,15 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("lowest observed m/z",value.toDouble()); 
 				}
-				else if (accession=="MS:1000618") //highest wavelength value
+				else if (accession=="MS:1000618") //highest observed wavelength
 				{
 					//No member => meta data
-					spec_.setMetaValue("highest wavelength value",value.toDouble()); 
+					spec_.setMetaValue("highest observed wavelength",value.toDouble()); 
 				}
-				else if (accession=="MS:1000619") //lowest wavelength value
+				else if (accession=="MS:1000619") //lowest observed wavelength
 				{
 					//No member => meta data
-					spec_.setMetaValue("lowest wavelength value",value.toDouble()); 
+					spec_.setMetaValue("lowest observed wavelength",value.toDouble()); 
 				}
 				else if (accession=="MS:1000796") //spectrum title
 				{
@@ -1396,7 +1395,7 @@ namespace OpenMS
 			else if (parent_tag=="instrumentConfiguration")
 			{
 				//instrument model
-				if (cv_.isChildOf(accession,"MS:1000031")) //instrument name in value
+				if (cv_.isChildOf(accession,"MS:1000031")) //instrument name as string
 				{
 					instruments_[current_id_].setName(cv_.getTerm(accession).name);
 				}
@@ -2075,6 +2074,14 @@ namespace OpenMS
 				{
 					exp_->setNativeIDType(ExperimentalSettings::SPECTRUM_IDENTIFIER);
 				}
+				else if (accession=="MS:1000823") // Bruker U2 nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::BRUKER_U2);
+				}
+				else if (accession=="MS:1000824") //no nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::UNKNOWN);
+				}
 				else if (cv_.isChildOf(accession,"MS:1000524")) //data file content
 				{
 					//ignored
@@ -2292,7 +2299,7 @@ namespace OpenMS
 			}
 			else //FORCED
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"mzData file\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"PSI mzData file\" />\n";
 			}
 			writeUserParam_(os, source_file, 4);
 			os	<< "			</sourceFile>\n";
@@ -2416,9 +2423,13 @@ namespace OpenMS
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
 			}
-			else //FORCED
+			else if (exp.getNativeIDType()==ExperimentalSettings::BRUKER_U2)
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000774\" name=\"multiple peak list nativeID format\" />\n";
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000823\" name=\"Bruker U2 nativeID format\" />\n";
+			}
+			else
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000824\" name=\"no nativeID format\" />\n";
 			}
 
 			os	<< "		</fileContent>\n";
@@ -2593,10 +2604,6 @@ namespace OpenMS
 			{
 				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000307\" name=\"einzel lens\" />\n";
 			}
-			else if (in.getIonOptics()==Instrument::ELECTRIC_FIELD_STRENGTH)
-			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000308\" name=\"electric field strength\" />\n";
-			}
 			else if (in.getIonOptics()==Instrument::FIRST_STABILITY_REGION)
 			{
 				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000309\" name=\"first stability region\" />\n";
@@ -2608,10 +2615,6 @@ namespace OpenMS
 			else if (in.getIonOptics()==Instrument::KINETIC_ENERGY_ANALYZER)
 			{
 				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000311\" name=\"kinetic energy analyzer\" />\n";
-			}
-			else if (in.getIonOptics()==Instrument::SPACE_CHARGE_EFFECT)
-			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000319\" name=\"space charge effect\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::STATIC_FIELD)
 			{
