@@ -92,6 +92,10 @@ if (ENABLE_CUDA)
 	find_package(Cuda)
 endif()
 
+if (CUDA_FOUND)
+	INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIR})
+endif()
+
 ## TBB
 set(ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be enabled.")
 set(TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
@@ -99,6 +103,10 @@ set(TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries direct
 
 if (ENABLE_TBB)
 	find_package(TBB)
+endif()
+
+if (TBB_FOUND)
+	INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIR})
 endif()
 
 ## OpenMP
@@ -495,6 +503,13 @@ endif()
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
+if (TBB_FOUND)
+	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${TBB_LIBRARIES})
+endif()
+if (CUDA_FOUND)
+	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${CUDA_LIBRARIES})
+endif()
+
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
