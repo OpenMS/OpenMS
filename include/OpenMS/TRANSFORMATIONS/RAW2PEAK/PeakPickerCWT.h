@@ -94,6 +94,11 @@ namespace OpenMS
     */
     void pickExperiment(const MSExperiment<>& input, MSExperiment<>& output);
 
+		/**
+			 @brief Estimates average peak width that can then be used for peak picking.
+
+		 */
+		DoubleReal estimatePeakWidth(const MSExperiment<>& input);
 	 protected:
 
     /// Threshold for the peak height in the MS 1 level

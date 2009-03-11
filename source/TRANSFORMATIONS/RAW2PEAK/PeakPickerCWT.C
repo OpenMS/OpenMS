@@ -31,6 +31,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
 #ifdef _OPENMP 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -73,6 +74,12 @@ namespace OpenMS
 		defaults_.setMaxFloat("thresholds:correlation",1.0);
   	defaults_.setValue("peak_width",0.15,"Approximate fwhm of the peaks.");
 		defaults_.setMinFloat("peak_width",0.0);
+//		defaults_.setValue("estimate_peak_width","false","Flag if the average peak width shall be estimated. Attention: when this flag is set, the peak_width is ignored.");
+		std::vector<String> valid_opts;
+		//	valid_opts.push_back("true");
+		//valid_opts.push_back("false");
+		//defaults_.setValidStrings("estimate_peak_width",valid_opts);
+
   	defaults_.setValue("fwhm_bound_factor",0.7,"Factor that calculates the minimal fwhm value from the peak_width.",StringList::create("advanced"));
 		defaults_.setMinFloat("fwhm_bound_factor",0.0);
 
@@ -87,7 +94,7 @@ namespace OpenMS
 		//Optimization parameters
   	defaults_.setValue("optimization","no","If the peak parameters position, intensity and left/right width"\
 											 "shall be optimized set optimization to one_dimensional or two_dimensional.", StringList::create("advanced"));
-		std::vector<String> valid_opts;
+		valid_opts.clear();
 		valid_opts.push_back("no");
 		valid_opts.push_back("one_dimensional");
 		valid_opts.push_back("two_dimensional");
@@ -1201,6 +1208,12 @@ namespace OpenMS
 
 	void PeakPickerCWT::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
 	{
+			// if estimatePeakWidth-flag is set estimate it
+			if(param_.getValue("estimate_peak_width")=="true") 
+			{
+					param_.setValue("peak_width",estimatePeakWidth(input));
+			}
+
 		//clear output container
 		output.clear();
 		
@@ -1577,5 +1590,51 @@ namespace OpenMS
 			}
 		} // if (peak_shapes.size() > 0)		
 	}
+
+
+		DoubleReal PeakPickerCWT::estimatePeakWidth(const MSExperiment<>& input)
+		{
+				// the peak widths that are tested
+				DoubleList widths = DoubleList::create("0.5,0.4,0.3,0.25,0.1,0.05,0.025,0.001");
+
+				// determine spectrum used for estimation
+				// used the one with the highest tic
+				TICFilter tic_filter;
+				DoubleReal max_tic = 0.;
+				Size index = 0;
+				for(Size s = 0; s < input.size(); ++s)
+				{
+						DoubleReal tmp_tic = tic_filter.apply(input[s]);
+						if(tmp_tic > max_tic)
+						{
+								max_tic = tmp_tic;
+								index = s;
+						}
+				}
+				std::cout << "max_tic " << max_tic << "\tindex "<<index << "\trt "<<input[index].getRT()<< std::endl;
+				// now pick this spectrum with the different peak widths
+				MSExperiment<> exp;
+				for(Size w = 0; w < widths.size(); ++w)
+				{
+						MSSpectrum<> spec;
+						param_.setValue("peak_width",widths[w]);
+						fwhm_bound_ = widths[w] *(DoubleReal) param_.getValue("fwhm_bound_factor");
+						std::cout << "peak_width "<<param_.getValue("peak_width")<<"\tfwhm_bound_ "<<fwhm_bound_<<"\t";;
+						pick(input[index],spec);
+						std::cout << spec.size() << std::endl;
+						exp.push_back(spec);
+				}
+				
+				
+		// 		// 
+// 				for(Size s = 0 ; s < exp.size(); ++s)
+// 				{
+// 						std::cout << widths[s] << "\t" << exp[s].size() << std::endl;
+// 				}
+
+				return 0.0;
+		}
 	
 }
+
+
