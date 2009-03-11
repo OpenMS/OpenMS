@@ -8,16 +8,16 @@ using namespace std;
 
 Int main()
 {
-	
-	MzXMLFile mzxml;
-	MzDataFile mzdata;
+  
+  MzXMLFile mzxml;
+  MzDataFile mzdata;
 
-	// temporary data storage
-	MSExperiment<Peak1D> map;
+  // temporary data storage
+  MSExperiment<Peak1D> map;
 
-	// convert MzXML to MzData
-	mzxml.load("data/Tutorial_FileIO.mzXML",map);
-	mzdata.store("output/Tutorial_FileIO.mzData",map);
-	
+  // convert MzXML to MzData
+  mzxml.load("data/Tutorial_FileIO.mzXML",map);
+  mzdata.store("output/Tutorial_FileIO.mzData",map);
+  
   return 0;
 } //end of main

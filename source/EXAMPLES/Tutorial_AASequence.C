@@ -6,15 +6,15 @@ using namespace std;
 
 Int main()
 {
-	AASequence seq("DFPIANGER");
+  AASequence seq("DFPIANGER");
 
-	AASequence prefix(seq.getPrefix(4));
-	AASequence suffix(seq.getSuffix(5));
+  AASequence prefix(seq.getPrefix(4));
+  AASequence suffix(seq.getSuffix(5));
 
-	cout 	<< seq << " "
-				<< prefix << " "
-				<< suffix << " " 
-				<< seq.getAverageWeight() << endl;
-					
+  cout   << seq << " "
+        << prefix << " "
+        << suffix << " " 
+        << seq.getAverageWeight() << endl;
+          
   return 0;
 } //end of main

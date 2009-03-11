@@ -13,7 +13,7 @@ Int main()
   {
     std::cout << "min " << i << ": "<< range.min()[i] << std::endl;
     std::cout << "max " << i << ": "<< range.max()[i] << std::endl;
-  }	
+  }  
 
   return 0;
 } //end of main

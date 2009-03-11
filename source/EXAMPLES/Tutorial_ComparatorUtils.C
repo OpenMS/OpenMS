@@ -87,15 +87,15 @@ Int main()
 
   std::cout << "Sorted using lexicographic order: 1. reversed LessByInt, 2. LessByReal, 3. LessByString" << std::endl;
   std::sort(vec.begin(),vec.end(),
-	    OpenMS::lexicographicComparator
-	    ( OpenMS::lexicographicComparator
-	      (
-	       OpenMS::reverseComparator(LessByInt()),
-	       LessByReal()
-	      ),
-	      LessByString()
-	    )
-	   );
+      OpenMS::lexicographicComparator
+      ( OpenMS::lexicographicComparator
+        (
+         OpenMS::reverseComparator(LessByInt()),
+         LessByReal()
+        ),
+        LessByString()
+      )
+     );
   vec.print();
 
   // vector of pointers into vec

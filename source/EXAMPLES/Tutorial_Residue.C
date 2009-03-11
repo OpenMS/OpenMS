@@ -7,14 +7,14 @@ using namespace std;
 
 Int main()
 {
-	const ResidueDB* res_db = ResidueDB::getInstance();
+  const ResidueDB* res_db = ResidueDB::getInstance();
 
-	Residue lys = *res_db->getResidue("Lysine"); // .getResidue("K") would also be ok
+  Residue lys = *res_db->getResidue("Lysine"); // .getResidue("K") would also be ok
 
-	cout 	<< lys.getName() << " " 
-				<< lys.getThreeLetterCode() << " " 
-				<< lys.getOneLetterCode() << " "
-				<< lys.getAverageWeight() << endl;
+  cout   << lys.getName() << " " 
+        << lys.getThreeLetterCode() << " " 
+        << lys.getOneLetterCode() << " "
+        << lys.getAverageWeight() << endl;
 
   return 0;
 } //end of main

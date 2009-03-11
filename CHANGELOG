@@ -23,6 +23,8 @@ Detailed list of changes to specific OpenMS classes:
 - PeakPickerCWT: cleaned up interface, improved meta data handling, improved parameters, added parallization support
 - GaussFilter: cleaned up interface, improved meta data handling
 - SavitzkyGolayFilter: cleaned up interface, improved meta data handling
+- MorphologicalFilter: cleaned up interface
+- LinearResampler: cleaned up interface
 - LabeledPairFinder: estimated negative sigma values are now treated as positive values
 - FeatureFinder: added new algorithm 'MRM' for MRM feature detection; replaces FeatureFinderMRM
 - ExperimentalSettings: remove native ID type (for mzML support)

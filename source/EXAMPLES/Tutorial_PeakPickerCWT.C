@@ -25,9 +25,9 @@ Int main()
   exp_picked.updateRanges();
   
   cout << "Scale of the wavelet: " << (DoubleReal)param.getValue("wavelet_transform:scale")
-  		 << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("thresholds:fwhm_bound")
-  		 << "\nMinimal intensity of a mass spectrometric peak " << (DoubleReal)param.getValue("thresholds:peak_bound")
-  		 << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
+       << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("thresholds:fwhm_bound")
+       << "\nMinimal intensity of a mass spectrometric peak " << (DoubleReal)param.getValue("thresholds:peak_bound")
+       << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
 
   return 0;
 } //end of main

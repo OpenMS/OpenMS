@@ -8,8 +8,8 @@ using namespace std;
 
 Int main()
 {
-	vector<FeatureMap<> > maps;
-	maps.resize(2);
+  vector<FeatureMap<> > maps;
+  maps.resize(2);
 
   FeatureXMLFile xml_file;
   xml_file.load("data/Tutorial_MapAlignment_1.featureXML",maps[0]);

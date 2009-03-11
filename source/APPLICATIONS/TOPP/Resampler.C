@@ -242,12 +242,11 @@ class TOPPResampler
 			resampler_param.setValue("spacing",sampling_rate);
 			lin_resampler.setParameters(resampler_param);
 	
-      // resample and filter every scan
+      // resample every scan
       for (Size i = 0; i < exp.size(); ++i)
       {
-      	MSExperiment<>::SpectrumType resampled_spectrum;
-        lin_resampler.raster(exp[i],resampled_spectrum);
-        exp[i].swap(resampled_spectrum);
+        lin_resampler.raster(exp[i]);
+        //clear meta data because they are no longer meaningful
         exp[i].getMetaDataArrays().clear();
       }
 			MzDataFile f;

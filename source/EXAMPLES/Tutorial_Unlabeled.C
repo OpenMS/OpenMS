@@ -9,8 +9,8 @@ using namespace std;
 
 Int main()
 {
-	vector<FeatureMap<> > maps;
-	maps.resize(2);
+  vector<FeatureMap<> > maps;
+  maps.resize(2);
 
   FeatureXMLFile feature_file;
   feature_file.load("data/Tutorial_Unlabeled_1.featureXML",maps[0]);
@@ -18,9 +18,9 @@ Int main()
 
   ConsensusMap out;
   out.getFileDescriptions()[0].filename = "data/Tutorial_Unlabeled_1.featureXML";
-	out.getFileDescriptions()[0].size = maps[0].size();
+  out.getFileDescriptions()[0].size = maps[0].size();
   out.getFileDescriptions()[1].filename = "data/Tutorial_Unlabeled_2.featureXML";
-	out.getFileDescriptions()[1].size = maps[1].size();
+  out.getFileDescriptions()[1].size = maps[1].size();
 
   FeatureGroupingAlgorithmUnlabeled algorithm;
   // ... set parameters

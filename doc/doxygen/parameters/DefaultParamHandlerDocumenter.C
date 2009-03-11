@@ -28,11 +28,10 @@
 #include <fstream>
 #include <QtGui/QApplication>
 
-// Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-//#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
+#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -53,6 +52,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
@@ -96,13 +96,12 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-
-// Documentation is in .h files:
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
@@ -316,7 +315,7 @@ int main (int argc , char** argv)
 	DOCME(NeutralLossMarker);
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
-	//DOCME(PILISScoring);
+	DOCME(PILISScoring);
 	//DOCME(PILISModel);
 	//DOCME(PILISNeutralLossModel);
 	//DOCME(PILISModelGenerator);
@@ -326,9 +325,10 @@ int main (int argc , char** argv)
 	DOCME(PeakPickerCWT);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);
-	//DOCME(ProtonDistributionModel);
+	DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
+	DOCME(StablePairFinder);
 	DOCME(SpectrumAlignment);
 	DOCME(SpectrumAlignmentScore);
 	DOCME(SpectrumCheapDPCorr);
@@ -343,7 +343,8 @@ int main (int argc , char** argv)
 	DOCME(CompareFouriertransform);
 	DOCME(PrecursorIonSelection);
 	DOCME(PrecursorIonSelectionPreprocessing);
-
+	DOCME(MorphologicalFilter);
+	
 	//////////////////////////////////
 	// More complicated cases
 	//////////////////////////////////

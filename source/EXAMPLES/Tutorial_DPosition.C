@@ -12,7 +12,7 @@ Int main()
   for (Size i = 0; i < DPosition<2>::DIMENSION; ++i)
   {
     std::cout << "Dimension " << i << ": "<< pos[i] << std::endl;
-  }	
+  }  
 
   return 0;
 } //end of main

@@ -51,13 +51,7 @@ START_SECTION((~LinearResampler()))
   delete lr_ptr;
 END_SECTION
 
-Param param;
-param.setValue("spacing",0.5);
-
-START_SECTION((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< Peak1D > raw;
-  raw.resize(1);
-  MSExperiment< Peak1D > resampled;
+START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spectrum)))
   MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
@@ -70,58 +64,23 @@ START_SECTION((template<typename InputSpectrumIterator, typename OutputPeakType 
   spec[3].setIntensity(2.0f);
   spec[4].setMZ(1.8);
   spec[4].setIntensity(1.0f);
-  raw[0] = spec;
 
-  LinearResampler lr;
+	LinearResampler lr;
+	Param param;
+	param.setValue("spacing",0.5);
   lr.setParameters(param);
-  lr.rasterExperiment(raw.begin(),raw.end(),resampled);
+  lr.raster(spec);
 
-  double sum = 0.;
-  MSExperiment< Peak1D >::SpectrumType::const_iterator it = resampled[0].begin();
-  while(it != resampled[0].end())
+  DoubleReal sum = 0.0;
+	for (Size i=0; i<spec.size(); ++i)
   {
-    sum += it->getIntensity();
-    ++it;
+    sum += spec[i].getIntensity();
   }
-
   TEST_REAL_SIMILAR(sum, 20);
 END_SECTION
 
-START_SECTION((template<typename InputPeakType, typename OutputPeakType > void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< Peak1D > raw;
-  raw.resize(1);
-  MSExperiment< Peak1D > resampled;
-  MSSpectrum< Peak1D > spec;
-  spec.resize(5);
-  spec[0].setMZ(0);
-  spec[0].setIntensity(3.0f);
-  spec[1].setMZ(0.5);
-  spec[1].setIntensity(6.0f);
-  spec[2].setMZ(1.);
-  spec[2].setIntensity(8.0f);
-  spec[3].setMZ(1.6);
-  spec[3].setIntensity(2.0f);
-  spec[4].setMZ(1.8);
-  spec[4].setIntensity(1.0f);
-  raw[0] = spec;
-
-  LinearResampler lr;
-  lr.setParameters(param);
-  lr.rasterExperiment(raw,resampled);
-
-  double sum = 0.;
-  MSExperiment< Peak1D >::SpectrumType::const_iterator it = resampled[0].begin();
-  while(it != resampled[0].end())
-  {
-    sum += it->getIntensity();
-    ++it;
-  }
-
-  TEST_REAL_SIMILAR(sum, 20);
-END_SECTION
-
-START_SECTION((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
-  MSSpectrum< Peak1D > spec;
+START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
+  MSSpectrum< RichPeak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -134,50 +93,27 @@ START_SECTION((template< typename InputPeakIterator, typename OutputPeakContaine
   spec[4].setMZ(1.8);
   spec[4].setIntensity(1.0f);
 
-  LinearResampler lr;
-  lr.setParameters(param);
-  MSSpectrum< Peak1D > spec_resampled;
-  lr.raster(spec.begin(),spec.end(),spec_resampled);
-
-  double sum = 0.;
-  MSSpectrum< Peak1D >::const_iterator it = spec_resampled.begin();
-  while(it != spec_resampled.end())
-  {
-    sum += it->getIntensity();
-    ++it;
-  }
-
-  TEST_REAL_SIMILAR(sum, 20);
-END_SECTION
-
-START_SECTION((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
-  MSSpectrum< Peak1D > spec;
-  spec.resize(5);
-  spec[0].setMZ(0);
-  spec[0].setIntensity(3.0f);
-  spec[1].setMZ(0.5);
-  spec[1].setIntensity(6.0f);
-  spec[2].setMZ(1.);
-  spec[2].setIntensity(8.0f);
-  spec[3].setMZ(1.6);
-  spec[3].setIntensity(2.0f);
-  spec[4].setMZ(1.8);
-  spec[4].setIntensity(1.0f);
+  MSExperiment< RichPeak1D > exp;
+  exp.push_back(spec);
+  exp.push_back(spec);
 
   LinearResampler lr;
+  Param param;
+	param.setValue("spacing",0.5);
   lr.setParameters(param);
-  MSSpectrum< Peak1D > spec_resampled;
-  lr.raster(spec,spec_resampled);
+  lr.rasterExperiment(exp);
 
-  double sum = 0.;
-  MSSpectrum< Peak1D >::const_iterator it = spec_resampled.begin();
-  while(it != spec_resampled.end())
+
+	for (Size s=0; s<exp.size(); ++s)
   {
-    sum += it->getIntensity();
-    ++it;
-  }
+	  DoubleReal sum = 0.0;
+		for (Size i=0; i<exp[s].size(); ++i)
+	  {
+	    sum += exp[s][i].getIntensity();
+	  }
+	  TEST_REAL_SIMILAR(sum, 20);
+	}
 
-  TEST_REAL_SIMILAR(sum, 20);
 END_SECTION
 
 

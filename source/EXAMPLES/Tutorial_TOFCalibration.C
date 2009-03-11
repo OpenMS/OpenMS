@@ -19,9 +19,9 @@ Int main()
   TextFile ref_file;
   ref_file.load("data/Tutorial_TOFCalibration_masses.txt",true);
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-	{
-		ref_masses.push_back(atof(iter->c_str()));
-	}
+  {
+    ref_masses.push_back(atof(iter->c_str()));
+  }
 
   std::vector<DoubleReal> ml1;
   ml1.push_back(418327.924993827);

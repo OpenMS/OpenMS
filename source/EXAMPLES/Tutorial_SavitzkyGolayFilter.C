@@ -9,24 +9,23 @@ using namespace std;
 
 Int main()
 {
-  PeakSpectrum spec_raw;
-  PeakSpectrum spec_resampled;
+  PeakSpectrum spectrum;
   
   DTAFile dta_file;
-  dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta",spec_raw);
+  dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta",spectrum);
   
   LinearResampler lr;
   Param param_lr;
   param_lr.setValue("spacing",0.01);
   lr.setParameters(param_lr);
-  lr.raster(spec_raw,spec_resampled);
+  lr.raster(spectrum);
 
   SavitzkyGolayFilter sg;
   Param param_sg;
   param_sg.setValue("frame_length",21);
   param_sg.setValue("polynomial_order",3);
   sg.setParameters(param_sg);
-  sg.filter(spec_resampled);
+  sg.filter(spectrum);
  
   return 0;
 } //end of main
