@@ -1104,7 +1104,7 @@ int main(int argc, char **argv)																									\
 #define STATUS(message)																			\
 	{																													\
 		TEST::initialNewline();																	\
-		std__cout << " -  line " <<  __LINE__ << ": status:  "	\
+		std__cout << "    line " <<  __LINE__ << ": status:  "	\
 							<< message << std::endl;											\
 	}
 

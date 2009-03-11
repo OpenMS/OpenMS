@@ -119,72 +119,32 @@ namespace OpenMS
 
 	*/
 	class OPENMS_DLLAPI MorphologicalFilter
-		:	public ProgressLogger
+		:	public ProgressLogger,
+			public DefaultParamHandler
 	{
 	public:
 
 		/// Constructor
-		MorphologicalFilter ()
+		MorphologicalFilter()
+			: ProgressLogger(),
+				DefaultParamHandler("MorphologicalFilter"),
+				struct_size_in_datapoints_(0)
 		{
+			//structuring element
+			defaults_.setValue("struc_elem_length",3.0,"Length of the structuring element. This should be wider than the expected peak width.");
+			defaults_.setValue("struc_elem_unit","Thomson","The unit of the 'struct_elem_length'.");
+			defaults_.setValidStrings("struc_elem_unit",StringList::create("Thomson,DataPoints"));
+			//methods
+			defaults_.setValue("method","tophat","Method to use. If you are not sure what to use, use 'tophat'.");
+			defaults_.setValidStrings("method", StringList::create("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
+
+			defaultsToParam_();
 		}
 
 		/// Destructor
 		virtual ~MorphologicalFilter()
 		{
 		}
-
-		///@name Available methods
-		//@{
-
-		/** @brief List of available morphological filtering methods
-
-		@note This list has to be in sync with #method_names.
-		*/
-		enum Method
-		{
-			IDENTITY, ///< identity, uses std::copy algorithm
-			EROSION, ///< erosion
-			DILATION, ///< dilation
-			OPENING, ///<  opening, i.e., erosion followed by dilation
-			CLOSING, ///< closing, i.e., dilation followed by erosion
-			GRADIENT, ///< gradient, i.e., dilation minus erosion
-			TOPHAT, ///< "white" top hat, i.e., signal minus opening
-			BOTHAT, ///< "black" top hat, i.e., signal minus closing
-			EROSION_SIMPLE, ///< erosion, simple implementation
-			DILATION_SIMPLE, ///< dilation, simple implementation
-			NUMBER_OF_METHODS
-			/**< @brief What the name says.  This enum value must be the last one.
-			The list of enumerated values must be a consecutive range starting from
-			0.
-			*/
-		};
-
-		/**@brief List of names of available morphological filtering methods.
-		These are: "identity", "erosion", "dilation", "opening", "closing", "gradient",
-		"tophat", "bothat", "erosion_simple", "dilation_simple".
-
-		@note This list has to be in sync with enum #Method.
-		*/
-		static const char* method_names[MorphologicalFilter::NUMBER_OF_METHODS] ;
-
-		/**@brief Convert a method name to its corresponding enum value.
-
-		@param rhs a method name written in characters, e.g. "erosion", see #method_names.
-		@return the corresponding enum value, e.g. EROSION, see #Method.
-
-		@exception Exception::IllegalArgument The given argument does not name a method.
-		*/
-		static Method method( const std::string &rhs )
-		{
-			Method result = (Method)( std::find( method_names, method_names + NUMBER_OF_METHODS, rhs) - method_names );
-			if ( result == NUMBER_OF_METHODS )
-			{
-				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,rhs);
-			}
-			return result;
-		}
-
-		//@}
 
 		/** @brief Applies the morphological filtering operation to an iterator
 		range. Input and output range must be valid, i.e. allocated before.
@@ -199,204 +159,157 @@ namespace OpenMS
 		@exception Exception::IllegalArgument The given method is not one of the values defined in #Method.
 		*/
 		template < typename InputIterator, typename OutputIterator >
-			void filterRange( Method method, Int struc_size_in_datapoints,
-												InputIterator input_begin, InputIterator input_end, OutputIterator output_begin
-											)
+		void filterRange(InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)
 		{
-			typedef typename InputIterator::value_type ValueType;
 			// the buffer is static only to avoid reallocation
-			static std::vector<ValueType> buffer;
+			static std::vector< typename InputIterator::value_type > buffer;
 			const UInt size = input_end - input_begin;
-			switch ( method )
+			
+			//determine the struct size in data points if not already set
+			if (struct_size_in_datapoints_==0)
 			{
-			case IDENTITY:
-				std::copy(input_begin,input_end,output_begin);
-				break;
-			case EROSION:
-				applyErosion_(struc_size_in_datapoints,input_begin,input_end,output_begin);
-				break;
-			case DILATION:
-				applyDilation_(struc_size_in_datapoints,input_begin,input_end,output_begin);
-				break;
-			case OPENING:
-				{
-					if ( buffer.size() < size ) buffer.resize(size);
-					applyErosion_(struc_size_in_datapoints,input_begin,input_end,buffer.begin());
-					applyDilation_(struc_size_in_datapoints,buffer.begin(),buffer.begin()+size,output_begin);
-				}
-				break;
-			case CLOSING:
-				{
-					if ( buffer.size() < size ) buffer.resize(size);
- 					applyDilation_(struc_size_in_datapoints,input_begin,input_end,buffer.begin());
-					applyErosion_(struc_size_in_datapoints,buffer.begin(),buffer.begin()+size,output_begin);
-				}
-				break;
-			case GRADIENT:
-				{
-					if ( buffer.size() < size ) buffer.resize(size);
-					applyErosion_(struc_size_in_datapoints,input_begin,input_end,buffer.begin());
-					applyDilation_(struc_size_in_datapoints,input_begin,input_end,output_begin);
-					for ( UInt i = 0; i < size; ++i ) output_begin[i] -= buffer[i];
-				}
-				break;
-			case TOPHAT:
-				{
-					if ( buffer.size() < size ) buffer.resize(size);
-					applyErosion_(struc_size_in_datapoints,input_begin,input_end,buffer.begin());
-					applyDilation_(struc_size_in_datapoints,buffer.begin(),buffer.begin()+size,output_begin);
-					for ( UInt i = 0; i < size; ++i ) output_begin[i] = input_begin[i] - output_begin[i];
-				}
-				break;
-			case BOTHAT:
-				{
-					if ( buffer.size() < size ) buffer.resize(size);
- 					applyDilation_(struc_size_in_datapoints,input_begin,input_end,buffer.begin());
-					applyErosion_(struc_size_in_datapoints,buffer.begin(),buffer.begin()+size,output_begin);
-					for ( UInt i = 0; i < size; ++i ) output_begin[i] = input_begin[i] - output_begin[i];
-				}
-				break;
-			case EROSION_SIMPLE:
-				applyErosionSimple_(struc_size_in_datapoints,input_begin,input_end,output_begin);
-				break;
-			case DILATION_SIMPLE:
-				applyDilationSimple_(struc_size_in_datapoints,input_begin,input_end,output_begin);
-				break;
-			default:
-				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(method));
-				break;
+				struct_size_in_datapoints_ = (UInt)(DoubleReal)param_.getValue("struc_elem_length");
 			}
-			return;
+			
+			//apply the filtering
+			String method = param_.getValue("method");			
+			if (method=="identity")
+			{
+					std::copy(input_begin,input_end,output_begin);
+			}
+			else if (method=="erosion")
+			{
+				applyErosion_(struct_size_in_datapoints_,input_begin,input_end,output_begin);
+			}
+			else if (method=="dilation")
+			{
+				applyDilation_(struct_size_in_datapoints_,input_begin,input_end,output_begin);
+			}
+			else if (method=="opening")
+			{
+				if ( buffer.size() < size ) buffer.resize(size);
+				applyErosion_(struct_size_in_datapoints_,input_begin,input_end,buffer.begin());
+				applyDilation_(struct_size_in_datapoints_,buffer.begin(),buffer.begin()+size,output_begin);
+			}
+			else if (method=="closing")
+			{
+				if ( buffer.size() < size ) buffer.resize(size);
+				applyDilation_(struct_size_in_datapoints_,input_begin,input_end,buffer.begin());
+				applyErosion_(struct_size_in_datapoints_,buffer.begin(),buffer.begin()+size,output_begin);
+			}
+			else if (method=="gradient")
+			{
+				if ( buffer.size() < size ) buffer.resize(size);
+				applyErosion_(struct_size_in_datapoints_,input_begin,input_end,buffer.begin());
+				applyDilation_(struct_size_in_datapoints_,input_begin,input_end,output_begin);
+				for ( UInt i = 0; i < size; ++i ) output_begin[i] -= buffer[i];
+			}
+			else if (method=="tophat")
+			{
+				if ( buffer.size() < size ) buffer.resize(size);
+				applyErosion_(struct_size_in_datapoints_,input_begin,input_end,buffer.begin());
+				applyDilation_(struct_size_in_datapoints_,buffer.begin(),buffer.begin()+size,output_begin);
+				for ( UInt i = 0; i < size; ++i ) output_begin[i] = input_begin[i] - output_begin[i];
+			}
+			else if (method=="bothat")
+			{
+				if ( buffer.size() < size ) buffer.resize(size);
+				applyDilation_(struct_size_in_datapoints_,input_begin,input_end,buffer.begin());
+				applyErosion_(struct_size_in_datapoints_,buffer.begin(),buffer.begin()+size,output_begin);
+				for ( UInt i = 0; i < size; ++i ) output_begin[i] = input_begin[i] - output_begin[i];
+			}
+			else if (method=="erosion_simple")
+			{
+				applyErosionSimple_(struct_size_in_datapoints_,input_begin,input_end,output_begin);
+			}
+			else if (method=="dilation_simple")
+			{
+				applyDilationSimple_(struct_size_in_datapoints_,input_begin,input_end,output_begin);
+			}
+			
+			struct_size_in_datapoints_ = 0;
 		}
 
-		/** @brief Applies the morphological filtering operation to a range of
-		Peak1D.  The filter is applied to the intensities; the positions are
-		copied.  Input and output range must be valid, i.e. allocated before.
-		InputIterator must be a random access iterator type.
 
-		@param method specifies the morphological filtering operation to be
-		applied, see #Method, #method_names, and #method()
+		/**
+			@brief Applies the morphological filtering operation to an MSSpectrum.
 
-		@param struc_size specifies the size of the 'structuring element'.  This
-		can be given in Thomson or by the number of data points, see
-		#is_struc_size_in_thomson.
-
-		@param is_struc_size_in_thomson If true, then struc_size is interpreted as
-		the width of the structuring element in units of Thomson.  If false, then
-		struc_size is taken as the width of the 'structuring elemement' in units
-		of data points.  (Further details are given below.)
-
-		@param input_begin the begin of the input range
-
-		@param input_end  the end of the input range
-
-		@param output_begin the begin of the output range
-
-		If is_struc_size_in_thomson is true, then the number of data points for
-		the structuring element is computed as follows:
-		<ul>
-		<li>The data points are assumed to be uniformly spaced.  We compute the
-		average spacing from the position of the first and the last peak and the
-		total number of peaks in the input range.</li>
-		<li>The number of data points in the structuring element is computed
-		from struc_size and the average spacing, and rounded up to an odd
-		number.</li>
-		</ul>
-
-		For uniformly spaced data you can compute the number of data points in the
-		structuring element as follows:
-		@code
-		UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
-		if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
-		@endcode
-
-		@exception Exception::IllegalArgument The given method is not one of the
-		values defined in #Method.
-
+			If the size of the structuring element is given in 'Thomson', the number of data points for
+			the structuring element is computed as follows:
+			<ul>
+				<li>The data points are assumed to be uniformly spaced.  We compute the
+					average spacing from the position of the first and the last peak and the
+					total number of peaks in the input range.
+				<li>The number of data points in the structuring element is computed
+					from struc_size and the average spacing, and rounded up to an odd
+					number.
+			</ul>
 		*/
-		template < typename InputIterator, typename OutputIterator >
-			void filterPeak1DRange( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson,
-															InputIterator input_begin, InputIterator input_end, OutputIterator output_begin
-														)
+		template <typename PeakType>
+		void filter(MSSpectrum<PeakType>& spectrum)
 		{
-			if ( input_end - input_begin <= 1 ) return;
-			UInt struc_size_in_datapoints;
-			if ( is_struc_size_in_thomson )
+			//make sure the right peak type is set
+			spectrum.setType(SpectrumSettings::RAWDATA);
+			
+			//Abort if there is nothing to do
+			if ( spectrum.size() <= 1 ) return;
+
+			//Determine structuring element size in datapoints (depending on the unit)
+			if ( (String)(param_.getValue("struc_elem_unit"))=="Thomson" )
 			{
-				struc_size_in_datapoints =
+				struct_size_in_datapoints_ =
 					UInt (
 								ceil (
-											struc_size
+											(DoubleReal)(param_.getValue("struc_elem_length"))
 											*
-											DoubleReal( (input_end-input_begin) - 1 )
+											DoubleReal( spectrum.size() - 1 )
 											/
-											( (input_end+(-1))->getPos() - input_begin->getPos() )
+											( spectrum.back().getMZ() - spectrum.begin()->getMZ() )
 										 )
 							 );
-				// the number has to be odd
-				if ( ! Math::isOdd(struc_size_in_datapoints) ) ++struc_size_in_datapoints;
 			}
 			else
 			{
-				struc_size_in_datapoints = UInt(struc_size);
+				struct_size_in_datapoints_ = (UInt)(DoubleReal)param_.getValue("struc_elem_length");
 			}
-			filterRange( method, struc_size_in_datapoints,
-									 Internal::intensityIteratorWrapper(input_begin),
-									 Internal::intensityIteratorWrapper(input_end),
-									 Internal::intensityIteratorWrapper(output_begin)
+			//make it odd (needed for the algorithm)
+			if ( ! Math::isOdd(struct_size_in_datapoints_) ) ++struct_size_in_datapoints_;
+			
+			//apply the filtering and overwrite the input data
+			std::vector<DoubleReal> output(spectrum.size());
+			filterRange( Internal::intensityIteratorWrapper(spectrum.begin()),
+									 Internal::intensityIteratorWrapper(spectrum.end()),
+									 output.begin()
 								 );
-			for ( ; input_begin != input_end; ++input_begin, ++output_begin )
+			
+			//overwrite output with data
+			for (Size i=0; i<spectrum.size(); ++i)
 			{
-				output_begin->setPos(input_begin->getPos());
+				spectrum[i].setIntensity(output[i]);
 			}
-			return;
-		}
-
-		/** @brief Applies the morphological filtering operation to a spectrum.
-
-		This is designed for spectra of type #MSSpectrum which contain peaks of
-		type #Peak1D.  (But it may work for other types as well).  The
-		SpectrumSettings are copied.
-		*/
-		template <typename InputPeakContainer, typename OutputPeakContainer >
-			void filterMSSpectrum( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson,
-														 const InputPeakContainer& input_peak_container, OutputPeakContainer& output_peak_container
-													 )
-		{
-			static_cast<SpectrumSettings&>(output_peak_container) = input_peak_container;
-			output_peak_container.setType(SpectrumSettings::RAWDATA);
-			output_peak_container.resize(input_peak_container.size());
-			filterPeak1DRange( method, struc_size, is_struc_size_in_thomson,
-												 input_peak_container.begin(),
-												 input_peak_container.end(),
-												 output_peak_container.begin()
-											 );
-			return;
 		}
 
 
-		/** @brief Applies the morphological filtering operation to an
-		MSExperiment.  The size of the structuring element is computed for each
-		spectrum individually, see #filterPeak1DRange() and #filterMSSpectrum().
+		/**
+			@brief Applies the morphological filtering operation to an MSExperiment.
+			
+			The size of the structuring element is computed for each spectrum individually, if it is given in 'Thomson'.
+			See the filtering method for MSSpectrum for details.
 		*/
 		template <typename PeakType>
-			void filterMSExperiment( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson,
-															 MSExperiment<PeakType>& ms_exp
-														 )
+		void filterExperiment(MSExperiment<PeakType>& exp)
 		{
-			startProgress(0,ms_exp.size(),"filtering baseline");
-			for ( UInt i = 0; i < ms_exp.size(); ++i )
+			startProgress(0,exp.size(),"filtering baseline");
+			for ( UInt i = 0; i < exp.size(); ++i )
 			{
-				typename MSExperiment<PeakType>::SpectrumType spectrum;
-				filterMSSpectrum( method, struc_size, is_struc_size_in_thomson, ms_exp[i], spectrum );
-				ms_exp[i].swap(spectrum);
+				filter(exp[i]);
 				setProgress(i);
 			}
 			endProgress();
-			return;
 		}
-
-	protected:
+		
+		///Member for struct size in data points
+		UInt struct_size_in_datapoints_;
 
 		/** @brief Applies erosion.  This implementation uses van Herk's method.
 		Only 3 min/max comparisons are required per data point, independent of
@@ -633,6 +546,11 @@ namespace OpenMS
 			}
 			return;
 		}
+
+	private:
+		
+		/// copy constructor not implemented
+		MorphologicalFilter(const MorphologicalFilter& source);
 
 	};
 

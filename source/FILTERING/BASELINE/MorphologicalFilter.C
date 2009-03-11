@@ -30,19 +30,5 @@
 
 namespace OpenMS
 {
-	// Note: this list has to be kept in sync with enum MorphologicalFilter::Method
-	const char* MorphologicalFilter::method_names[MorphologicalFilter::NUMBER_OF_METHODS] =
-		{
-			"identity",
-			"erosion",
-			"dilation",
-			"opening",
-			"closing",
-			"gradient",
-			"tophat",
-			"bothat",
-			"erosion_simple",
-			"dilation_simple"
-		};
 
 }

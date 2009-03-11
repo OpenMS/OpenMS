@@ -42,7 +42,7 @@
 			<LI><B>I am new to %OpenMS. What should i do first?</B><BR>
 				<OL>
 					<LI> Check out the developement version of %OpenMS (see website).
-					<LI> (Linux) Build the internal documentation (use 'make idoc' instead of 'make doc').
+					<LI> (Linux) Build the internal documentation (use 'make doc_internal' instead of 'make doc').
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
@@ -462,7 +462,7 @@ svn propset svn:eol-style native MyClass.C
 						<LI> Build the documentation that is needed for the release
 							<OL>
 								<LI> Check out a fresh working copy of %OpenMS
-								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>idoc</TT>!).
+								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>doc_internal</TT>!).
 								<LI> Build the tutorials using <TT>make totorials</TT>.
 								<LI> Make sure that the Parameter documentation was created.
 								<LI> Make sure the include paths in the documentation are correct.

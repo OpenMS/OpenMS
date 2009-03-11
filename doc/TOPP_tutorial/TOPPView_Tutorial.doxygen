@@ -379,6 +379,12 @@
 			<TR> <TD>F4</TD> <TD>Rerun TOPP tool</TD> </TR>
 			<TR> <TD>CTRL+M</TD> <TD>Show layer meta information</TD> </TR>
 			<TR> <TD>CTRL+I</TD> <TD>Annotate with identification results</TD> </TR>
+			<TR> <TD>1</TD> <TD>Show precursor peaks (2D peak layer)</TD> </TR>
+			<TR> <TD>2</TD> <TD>Show projections (2D peak layer)</TD> </TR>
+			<TR> <TD>5</TD> <TD>Show overall convex hull (2D feature layer)</TD> </TR>
+			<TR> <TD>6</TD> <TD>Show adll convex hulls (2D feature layer)</TD> </TR>
+			<TR> <TD>7</TD> <TD>Show numbers and labels (2D feature layer)</TD> </TR>
+			<TR> <TD>9</TD> <TD>Show consensus elements (2D consensus layer)</TD> </TR>
 
 			<TR> <TD colspan=2><B>Help</B></TD> </TR>
 			<TR> <TD>F1</TD> <TD>Show TOPPView online tutorial</TD> </TR>

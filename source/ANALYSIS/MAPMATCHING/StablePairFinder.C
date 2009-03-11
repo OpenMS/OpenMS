@@ -31,8 +31,6 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
-#define Debug_StablePairFinder 1
-
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else

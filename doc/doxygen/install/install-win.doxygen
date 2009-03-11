@@ -217,7 +217,7 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 
 	This section is voluntary. If you can live with the online documentation, you do not need to build your own.
 	
-	In order to build the class documentation (doc & doc_idoc targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
+	In order to build the class documentation (doc & doc_internal targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
 
   <OL>
     <LI> Doxygen (version 1.5.8 is tested, others might work as well)

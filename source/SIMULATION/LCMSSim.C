@@ -1017,7 +1017,7 @@ namespace OpenMS{
         
         // rt error is independent of charge state
         // rt error is only modeled if we have a rt model
-        CoordinateType rt_error;
+        CoordinateType rt_error = 0.0;
         if (RTModelFile_ != "none")
         { 
            rt_error = gsl_ran_gaussian(rand_gen_, rt_shift_stddev) + rt_shift_mean;

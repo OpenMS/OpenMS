@@ -79,11 +79,11 @@ class TOPPBaselineFilter
 			setValidFormats_("in",StringList::create("mzData"));
 			registerOutputFile_("out","<file>","","output raw data file ");
 	  	setValidFormats_("out",StringList::create("mzData"));
-      registerDoubleOption_("struc_elem_length","<size>",3,"Length of the structuring element in Th.",false);
-      registerStringOption_("struc_elem_unit","<unit>","Thomson","The 'unit' of struc_elem_length",false);
+      registerDoubleOption_("struc_elem_length","<size>",3,"Length of the structuring element.",false);
+      registerStringOption_("struc_elem_unit","<unit>","Thomson","Unit of 'struc_elem_length' parameter.",false);
 			setValidStrings_("struc_elem_unit",StringList::create("Thomson,DataPoints"));
-      registerStringOption_("method","<string>",MorphologicalFilter::method_names[MorphologicalFilter::TOPHAT],"The name of the morphological filter to be applied",false);
-			setValidStrings_("method",StringList::create(MorphologicalFilter::method_names, MorphologicalFilter::NUMBER_OF_METHODS));
+      registerStringOption_("method","<string>","tophat","The name of the morphological filter to be applied. If you are unsure, use the default.",false);
+			setValidStrings_("method",StringList::create("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on roughly uniform data (to generate equally-spaced data you can use the Resampler tool!)");
 	}
@@ -116,11 +116,14 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		MorphologicalFilter morph_filter;
     morph_filter.setLogType(log_type_);
-    DoubleReal const  struc_elem_length = getDoubleOption_("struc_elem_length");
-		MorphologicalFilter::Method const  method = MorphologicalFilter::method(getStringOption_("method"));
-		bool const is_struc_size_in_thomson = getStringOption_("struc_elem_unit") == "Thomson";
-
-		morph_filter.filterMSExperiment( method, struc_elem_length, is_struc_size_in_thomson, ms_exp );
+    
+    Param parameters;
+    parameters.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
+    parameters.setValue("struc_elem_unit",getStringOption_("struc_elem_unit"));
+    parameters.setValue("method",getStringOption_("method"));
+    
+    morph_filter.setParameters(parameters);
+		morph_filter.filterExperiment( ms_exp );
 
 		//-------------------------------------------------------------
 		// writing output

@@ -220,7 +220,7 @@
 		{
 			print "Rebuilding doxygen XML output\n";
 		}
-		exec("cd $bin_path && make idoc");
+		exec("cd $bin_path && make doc_internal");
 		if ($debug>0)
 		{
 			print "Done\n";
@@ -235,7 +235,7 @@
 	if (trim($out[0]) < 100)
 	{
 		print "Error: For this script, doxygen XML output is needed!\n";
-		print "       Please execute 'make idoc' first!.\n";
+		print "       Please execute 'make doc_internal' first!.\n";
 		$abort = true;
 	}
 	if (in_array("doxygen_errors",$tests))
@@ -243,7 +243,7 @@
 		if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
 		{
 			print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
-			print "       Please execute 'make idoc' first!'.\n";
+			print "       Please execute 'make doc_internal' first!'.\n";
 			$abort = true;
 		}
 	}

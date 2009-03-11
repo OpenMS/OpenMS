@@ -239,23 +239,12 @@ START_SECTION((virtual ~MorphologicalFilter()))
 }
 END_SECTION
 
-START_SECTION((static Method method(const std::string &rhs)))
-{
-	TEST_EQUAL(MorphologicalFilter::method("erosion"),MorphologicalFilter::EROSION);
-	TEST_EQUAL(MorphologicalFilter::method("closing"),MorphologicalFilter::CLOSING);
-	TEST_EQUAL(MorphologicalFilter::method("tophat"),MorphologicalFilter::TOPHAT);
-	TEST_EXCEPTION(Exception::IllegalArgument,MorphologicalFilter::method("what?"));
-}
-END_SECTION
-
 typedef SimpleTopHat<Peak1D::IntensityType> STHF;
 std::vector<Peak1D::IntensityType> inputf;
 inputf.reserve(data_size);
 for ( UInt i = 0; i != data_size; ++i ) inputf.push_back(data[i]);
 
-#if 0
-
-START_SECTION((template < typename InputIterator, typename OutputIterator > void filterRange( Method method, Int struc_size_in_datapoints, InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)))
+START_SECTION((template < typename InputIterator, typename OutputIterator > void filterRange( InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)))
 {
 
 	// This test uses increasing and decreasing sequences of numbers.  This way
@@ -292,8 +281,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				mf.filterRange( MorphologicalFilter::EROSION, struc_length,
-												 intensityIteratorWrapper(raw.begin()),
+				
+				Param parameters;
+				parameters.setValue("method","erosion");
+				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				mf.setParameters(parameters);
+				
+				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
 											 );
@@ -314,8 +308,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				mf.filterRange( MorphologicalFilter::DILATION, struc_length,
-												 intensityIteratorWrapper(raw.begin()),
+				
+				Param parameters;
+				parameters.setValue("method","dilation");
+				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				mf.setParameters(parameters);
+				
+				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
 											 );
@@ -361,8 +360,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				mf.filterRange( MorphologicalFilter::EROSION, struc_length,
-												 intensityIteratorWrapper(raw.begin()),
+
+				Param parameters;
+				parameters.setValue("method","erosion");
+				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				mf.setParameters(parameters);
+
+				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
 											 );
@@ -383,8 +387,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				mf.filterRange( MorphologicalFilter::DILATION, struc_length,
-												 intensityIteratorWrapper(raw.begin()),
+
+				Param parameters;
+				parameters.setValue("method","dilation");
+				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				mf.setParameters(parameters);
+				
+				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
 											 );
@@ -405,7 +414,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 }
 END_SECTION
 
-START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterator > void filterRange( Method method, Int struc_size_in_datapoints, InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)))
+START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterator > void filterRange( InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)))
 {
 	using Internal::intensityIteratorWrapper;
  	std::vector<Peak1D> raw;
@@ -435,8 +444,13 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_1.clear();
 			simple_filtered_1.resize(data_size);
-			mf.filterRange( MorphologicalFilter::EROSION, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			Param parameters;
+			parameters.setValue("method","erosion");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+				
+			mf.filterRange( intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -452,8 +466,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_1.clear();
 			simple_filtered_1.resize(data_size);
-			mf.filterRange( MorphologicalFilter::EROSION_SIMPLE, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","erosion_simple");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -468,8 +486,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_2.clear();
 			simple_filtered_2.resize(data_size);
-			mf.filterRange( MorphologicalFilter::OPENING, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","opening");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -484,8 +506,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_3.clear();
 			simple_filtered_3.resize(data_size);
-			mf.filterRange( MorphologicalFilter::TOPHAT, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","tophat");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -502,8 +528,13 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_1.clear();
 			simple_filtered_1.resize(data_size);
-			mf.filterRange( MorphologicalFilter::DILATION, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			Param parameters;
+			parameters.setValue("method","dilation");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -518,8 +549,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_1.clear();
 			simple_filtered_1.resize(data_size);
-			mf.filterRange( MorphologicalFilter::DILATION_SIMPLE, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","dilation_simple");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -534,8 +569,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_2.clear();
 			simple_filtered_2.resize(data_size);
-			mf.filterRange( MorphologicalFilter::CLOSING, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","closing");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+			
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -550,8 +589,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			filtered.resize(data_size);
 			simple_filtered_3.clear();
 			simple_filtered_3.resize(data_size);
-			mf.filterRange( MorphologicalFilter::BOTHAT, struc_length,
-											 intensityIteratorWrapper(raw.begin()),
+
+			parameters.setValue("method","bothat");
+			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			mf.setParameters(parameters);
+			
+			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
 										 );
@@ -566,9 +609,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 }
 END_SECTION
 
-#endif
-
-START_SECTION((template < typename InputIterator, typename OutputIterator > void filterPeak1DRange( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)))
+START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
 {
  	MSSpectrum<Peak1D> raw;
 	Peak1D peak;
@@ -579,14 +620,18 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 		peak.setPos( DoubleReal(i) * spacing );
 		raw.push_back(peak);
 	}
-	MSSpectrum<Peak1D> filtered;
-	filtered.resize(raw.size());
   MorphologicalFilter mf;
 	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
 	{
-		mf.filterPeak1DRange( MorphologicalFilter::DILATION, struc_size, true,
-													 raw.begin(), raw.end(), filtered.begin()
-												 );
+		MSSpectrum<Peak1D> filtered(raw);
+		
+		Param parameters;
+		parameters.setValue("method","dilation");
+		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
+		parameters.setValue("struc_elem_unit","Thomson");
+		mf.setParameters(parameters);
+		
+		mf.filter(filtered);
 		UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
 		if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
 		STH::dilation( input, dilation, struc_size_datapoints );
@@ -600,39 +645,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 }   
 END_SECTION
 
-START_SECTION((template <typename InputPeakContainer, typename OutputPeakContainer > void filterMSSpectrum( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, const InputPeakContainer& input_peak_container, OutputPeakContainer& output_peak_container)))
-{
- 	MSSpectrum<Peak1D> raw;
-	raw.setComment("Let's see if this comment is copied by the filter.");
-	Peak1D peak;
-	DoubleReal spacing = 0.25;
-	for ( UInt i = 0; i < data_size; ++i )
-	{
-		peak.setIntensity(data[i]);
-		peak.setPos( DoubleReal(i) * spacing );
-		raw.push_back(peak);
-	}
-	MSSpectrum<Peak1D> filtered;
-  MorphologicalFilter mf;
-	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
-	{
-		mf.filterMSSpectrum( MorphologicalFilter::DILATION, struc_size, true, raw, filtered);
-		UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
-		if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
-		STH::dilation( input, dilation, struc_size_datapoints );
-		STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
- 		for ( UInt i = 0; i != data_size; ++i )
-		{
-			STATUS("i: " << i);
-			TEST_REAL_SIMILAR(filtered[i].getIntensity(),dilation[i]);
-		}
-	}
-	TEST_STRING_EQUAL(filtered.getComment(),"Let's see if this comment is copied by the filter.");
-
-}   
-END_SECTION
-
-START_SECTION((template <typename PeakType , typename AllocType > void filterMSExperiment(Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, MSExperiment< PeakType, AllocType > &ms_exp)))
+START_SECTION((template <typename PeakType , typename AllocType > void filterExperiment(MSExperiment< PeakType, AllocType > &ms_exp)))
 {
  	MSSpectrum<Peak1D> raw;
 	raw.setComment("Let's see if this comment is copied by the filter.");
@@ -651,7 +664,15 @@ START_SECTION((template <typename PeakType , typename AllocType > void filterMSE
 		mse_raw.push_back(raw);
 		mse_raw.push_back(raw);
 		mse_raw.push_back(raw);
-		mf.filterMSExperiment( MorphologicalFilter::DILATION, struc_size, true, mse_raw );
+
+		Param parameters;
+		parameters.setValue("method","dilation");
+		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
+		parameters.setValue("struc_elem_unit","Thomson");
+		
+		mf.setParameters(parameters);
+
+		mf.filterExperiment( mse_raw );
 		TEST_EQUAL(mse_raw.size(),3);
 		UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
 		if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
