@@ -22,12 +22,12 @@ if (DOXYGEN_FOUND)
 
 	#######################################################################
 	##param_doc target
-	add_custom_target(param_doc
+	add_custom_target(doc_param_internal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation";
 										COMMAND ${CMAKE_COMMAND} -E echo "";
-										COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server is required for this step!";
+										COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and (Linux only:) a running X-server is required for this step!";
 										COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails the rest of the documentation is created nevertheless.";
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
@@ -48,9 +48,9 @@ if (DOXYGEN_FOUND)
 											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(OutDir)/TOPPDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/TOPPDocumenter.exe
 											VERBATIM)
 		add_dependencies(doc_prepare doc_progs)
-		add_dependencies(param_doc doc_prepare)
+		add_dependencies(doc_param_internal doc_prepare)
 	else()
-		add_dependencies(param_doc doc_progs)
+		add_dependencies(doc_param_internal doc_progs)
 	endif()
 
 	#######################################################################
@@ -70,11 +70,11 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
-	add_dependencies(doc param_doc)
+	add_dependencies(doc doc_param_internal)
 
 	#######################################################################
 	## idoc target
-	add_custom_target(idoc
+	add_custom_target(doc_idoc
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating intenal html documentation";
@@ -90,11 +90,11 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
-	add_dependencies(idoc param_doc)
+	add_dependencies(doc_idoc doc_param_internal)
 	
 	#######################################################################
 	## noclassdoc target
-	add_custom_target(noclassdoc
+	add_custom_target(doc_noclassdoc
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation";
@@ -109,11 +109,11 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
-	add_dependencies(noclassdoc param_doc)
+	add_dependencies(doc_noclassdoc doc_param_internal)
 
 	#######################################################################
 	## nodoc target
-	add_custom_target(nodoc
+	add_custom_target(doc_nodoc
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP/UTILS documentation";
@@ -132,7 +132,7 @@ if (DOXYGEN_FOUND)
 	if (DOXYGEN_DOT_FOUND)
 		#######################################################################
 		## dotdoc target
-		add_custom_target(dotdoc
+		add_custom_target(doc_dotdoc
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 											COMMAND ${CMAKE_COMMAND} -E echo "Creating DOT html documentation";
@@ -148,7 +148,7 @@ if (DOXYGEN_FOUND)
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMENT "Build the doxygen documentation"
 											VERBATIM)
-		add_dependencies(dotdoc param_doc)
+		add_dependencies(doc_dotdoc doc_param_internal)
 	else()
 		Message(STATUS "DOT not found. Disabling target 'dotdoc'!")
 	endif()
@@ -160,7 +160,7 @@ endif()
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 	#######################################################################
 	# tutorials target
-	add_custom_target(tutorials
+	add_custom_target(doc_tutorials
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating OpenMS pdf tutorial";
@@ -168,7 +168,10 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/OpenMS_tutorial/latex_output
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/ doxygen Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy doc/OpenMS_tutorial/refman_overwrite.tex doc/OpenMS_tutorial/latex_output/refman.tex
-										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/ make
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/	pdflatex refman.tex
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/	makeindex refman.idx
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/	pdflatex refman.tex
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/OpenMS_tutorial/latex_output/	pdflatex refman.tex
 										COMMAND ${CMAKE_COMMAND} -E copy doc/OpenMS_tutorial/latex_output/refman.pdf doc/OpenMS_tutorial.pdf
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"; 
@@ -180,7 +183,10 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/TOPP_tutorial/latex_output
 										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/ doxygen Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy doc/TOPP_tutorial/refman_overwrite.tex doc/TOPP_tutorial/latex_output/refman.tex
-										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/ make
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/	pdflatex refman.tex
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/	makeindex refman.idx
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/	pdflatex refman.tex
+										COMMAND ${CMAKE_COMMAND} -E chdir doc/TOPP_tutorial/latex_output/	pdflatex refman.tex
 										COMMAND ${CMAKE_COMMAND} -E copy doc/TOPP_tutorial/latex_output/refman.pdf doc/TOPP_tutorial.pdf
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"; 
@@ -189,6 +195,6 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 										COMMENT "Build the OpenMS/TOPP pdf tutorial"
 										VERBATIM)
 else()
-	Message(STATUS "Doxygen and Latex not found. Disabling 'tutorials' target!")
+	Message(STATUS "Doxygen or Latex missing. Disabling 'tutorials' target!")
 endif()
 

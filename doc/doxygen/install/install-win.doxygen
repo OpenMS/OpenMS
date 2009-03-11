@@ -122,8 +122,6 @@
 			<li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
 		</ul>
 
-=======		@subsection install_win_contrib Contrib installation
-
   @b Download:
 
   The contrib package is contained in the %OpenMS release package.
@@ -219,7 +217,7 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 
 	This section is voluntary. If you can live with the online documentation, you do not need to build your own.
 	
-	In order to build the class documentation, TOPP tutorials and more, you will need to install three programs:
+	In order to build the class documentation (doc & doc_idoc targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
 
   <OL>
     <LI> Doxygen (version 1.5.8 is tested, others might work as well)
@@ -243,7 +241,7 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
 				<UL>
 					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-					<LI> the installer should add dot.exe to the Windows PATH Environment
+					<LI> the installer should have added dot.exe to the Windows PATH Environment (please recheck)
 				</UL>
 
 

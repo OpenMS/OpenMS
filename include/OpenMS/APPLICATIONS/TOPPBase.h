@@ -93,9 +93,9 @@ namespace OpenMS
 
   	If you want to create a new TOPP tool, please take care of the following:
   	- derive a new class from this class
-  	- impelment the registerOptionsAndFlags_ and main_ methods
+  	- implement the registerOptionsAndFlags_ and main_ methods
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
-  	- hide the derived class in the OpenMS documentation by using doxygen codition macros.
+  	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
     @todo Add 'threads' parameter (Marc, Andreas)
   */
