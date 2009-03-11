@@ -15,7 +15,7 @@
     
         <!-- file content -->
         <CvMappingRule id="filecontent_must" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MUST"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
         <CvMappingRule id="filecontent_may" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000525" useTerm="false" termName="spectrum representation" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>

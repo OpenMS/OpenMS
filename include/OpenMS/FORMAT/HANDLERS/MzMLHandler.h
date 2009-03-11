@@ -2380,51 +2380,51 @@ namespace OpenMS
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::SIM))
+			if (file_content.has(InstrumentSettings::SIM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::SRM))
+			if (file_content.has(InstrumentSettings::SRM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::CRM))
+			if (file_content.has(InstrumentSettings::CRM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::PRECURSOR))
+			if (file_content.has(InstrumentSettings::PRECURSOR))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::CNG))
+			if (file_content.has(InstrumentSettings::CNG))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::CNL))
+			if (file_content.has(InstrumentSettings::CNL))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::EMR))
+			if (file_content.has(InstrumentSettings::EMR))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::EMISSION))
+			if (file_content.has(InstrumentSettings::EMISSION))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::ABSORBTION))
+			if (file_content.has(InstrumentSettings::ABSORBTION))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::EMC))
+			if (file_content.has(InstrumentSettings::EMC))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::TDF))
+			if (file_content.has(InstrumentSettings::TDF))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
 			}
-			else
+			if (file_content.has(InstrumentSettings::UNKNOWN) || file_content.empty())
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 			}
