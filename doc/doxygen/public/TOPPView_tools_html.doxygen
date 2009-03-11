@@ -28,11 +28,11 @@
 	
 	@page TOPPView_callingtools Calling TOPP tools from TOPPView tutorial
 	
-	This tutorial illustrates how to interactively analyze protoemics data using TOPP tools from within  TOPPView. After going through the tutorials you should be able to perform
+	This tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within  TOPPView. After going through the tutorials you should be able to perform
 	<ul>
 	<li>signal processing operations like baseline reduction or data smoothing </li>
 	<li>transforming raw MS data into peak lists</li>
-    <li>identifying and quantifying petides in twodimensional maps</li>
+    <li>identifying and quantifying peptides in twodimensional maps</li>
     </ul>
 	- @subpage TOPPView_baseline_reduction
 	- @subpage TOPPView_smoothing
