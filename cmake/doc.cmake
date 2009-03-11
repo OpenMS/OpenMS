@@ -74,7 +74,7 @@ if (DOXYGEN_FOUND)
 
 	#######################################################################
 	## idoc target
-	add_custom_target(doc_idoc
+	add_custom_target(doc_internal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating intenal html documentation";
@@ -90,11 +90,11 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
-	add_dependencies(doc_idoc doc_param_internal)
+	add_dependencies(doc_internal doc_param_internal)
 	
 	#######################################################################
 	## noclassdoc target
-	add_custom_target(doc_noclassdoc
+	add_custom_target(doc_noclass
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation";
@@ -109,11 +109,11 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
-	add_dependencies(doc_noclassdoc doc_param_internal)
+	add_dependencies(doc_noclass doc_param_internal)
 
 	#######################################################################
 	## nodoc target
-	add_custom_target(doc_nodoc
+	add_custom_target(doc_minimal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP/UTILS documentation";
@@ -132,7 +132,7 @@ if (DOXYGEN_FOUND)
 	if (DOXYGEN_DOT_FOUND)
 		#######################################################################
 		## dotdoc target
-		add_custom_target(doc_dotdoc
+		add_custom_target(doc_dot
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 											COMMAND ${CMAKE_COMMAND} -E echo "Creating DOT html documentation";
@@ -148,7 +148,7 @@ if (DOXYGEN_FOUND)
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMENT "Build the doxygen documentation"
 											VERBATIM)
-		add_dependencies(doc_dotdoc doc_param_internal)
+		add_dependencies(doc_dot doc_param_internal)
 	else()
 		Message(STATUS "DOT not found. Disabling target 'dotdoc'!")
 	endif()
