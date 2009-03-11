@@ -294,7 +294,7 @@ namespace OpenMS
 		}
 		else if (tool=="PeakPicker")
 		{
-			StringList list2 = StringList::create("wavelet,righ_res");
+			StringList list2 = StringList::create("wavelet,high_res");
 			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();			
