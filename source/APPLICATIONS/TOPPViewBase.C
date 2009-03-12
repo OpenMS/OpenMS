@@ -174,6 +174,7 @@ namespace OpenMS
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
     file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Open example file",this,SLOT(openExampleDialog()));
     file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
@@ -1964,7 +1965,7 @@ namespace OpenMS
 		}
 	}
 
-  QStringList TOPPViewBase::getFileList_()
+  QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
 		String filter_all = "readable files (*.dta *.dta2d";
 		String filter_single = "dta files (*.dta);;dta2d files (*.dta2d)";
@@ -1974,13 +1975,27 @@ namespace OpenMS
 #endif
 		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML);;" ;
 		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;all files (*)";
-
-	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", current_path_.toQString(), (filter_all+ filter_single).toQString());
+		
+		QString open_path = current_path_.toQString();
+		if (path_overwrite!="")
+		{
+			open_path = path_overwrite.toQString();;
+		}
+	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", open_path, (filter_all+ filter_single).toQString());
   }
 
   void TOPPViewBase::openFileDialog()
   {
 	 	QStringList files = getFileList_();
+		for(QStringList::iterator it=files.begin();it!=files.end();it++)
+		{
+			addDataFile(*it,true,true);
+		}
+  }
+
+  void TOPPViewBase::openExampleDialog()
+  {
+	 	QStringList files = getFileList_(String(OPENMS_DATA_PATH) + "/examples/");
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
 			addDataFile(*it,true,true);

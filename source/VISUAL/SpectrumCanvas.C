@@ -729,7 +729,7 @@ namespace OpenMS
 				spectrum.setMSLevel(it->getMSLevel());
 				spectrum.setPrecursors(it->getPrecursors());
 				//copy peak information
-				if (!is_1d && it->getMSLevel()>1) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+				if (!is_1d && it->getMSLevel()>1 && !it->getPrecursors().empty()) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
 				{
 					if (it->getPrecursors()[0].getMZ()>=area.min()[0] && it->getPrecursors()[0].getMZ()<= area.max()[0])
 					{

@@ -75,7 +75,6 @@ namespace OpenMS
     @improvement Paint only highest point per pixel (Marc)
     @todo Add realtime-Tutorial (Marc)
     @todo Add "load instrument defaults" button to tools dialog (Marc)
-    @todo Add "open example file" menu entry (Marc)
   
     @ingroup TOPPView_elements
   */
@@ -147,9 +146,11 @@ namespace OpenMS
       void updateCurrentPath();
       /// shows the URL stored in the data of the sender QAction
       void showURL();
-      /// shows the dialog for opening files
+      /// shows the file dialog for opening files
       void openFileDialog();
-      /// shows the dialog for opening files
+      /// shows the file dialog for opening example files
+      void openExampleDialog();
+      /// shows the DB dialog for opening files
       void openDatabaseDialog();
       /// shows the goto dialog
       void gotoDialog();
@@ -294,8 +295,10 @@ namespace OpenMS
   
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
-    	/// Shows a dialog where the user can select files
-    	QStringList getFileList_();
+    	/**
+    		@brief Shows a dialog where the user can select files
+    	*/
+    	QStringList getFileList_(const String& path_overwrite = "");
     	
       ///Returns the parameters for a SpectrumCanvas of dimension @p dim 
       Param getSpectrumParameters_(UInt dim);
