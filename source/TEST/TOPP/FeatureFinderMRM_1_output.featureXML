@@ -19,6 +19,7 @@
 					<hposition dim="1">656.356</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="float" name="MZ" value="443.707"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">2165.87950310559</position>
@@ -38,6 +39,7 @@
 					<hposition dim="1">722.403</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="float" name="MZ" value="461.743"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">2310.60907590759</position>
@@ -57,6 +59,7 @@
 					<hposition dim="1">600.33</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="float" name="MZ" value="554.256"/>
 		</feature>
 	</featureList>
 </featureMap>

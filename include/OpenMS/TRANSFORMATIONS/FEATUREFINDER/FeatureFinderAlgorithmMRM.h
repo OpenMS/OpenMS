@@ -196,6 +196,7 @@ namespace OpenMS
 								f.setMZ((double)it2->first / binning_factor);
 								f.setIntensity(intensity_sum);
 								f.getConvexHulls().push_back(hull_points);
+								f.setMetaValue("MZ", (double)it1->first / binning_factor);
 								features_->push_back(f);
 							}
 						}
