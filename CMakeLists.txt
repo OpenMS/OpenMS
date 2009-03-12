@@ -617,6 +617,7 @@ foreach(i ${OpenMS_doc_executables})
 endforeach(i)
 add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
+add_dependencies(doc_progs ${OpenMS_doc_executables} UTILS)
 
 ##### Examples #####
 if ("${PACKAGE_TYPE}" STREQUAL "none")

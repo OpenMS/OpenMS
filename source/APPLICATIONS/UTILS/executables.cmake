@@ -11,7 +11,6 @@ FFEval
 FuzzyDiff
 HistView
 IDExtractor
-IdXMLInfo
 LabeledEval
 MapSimulator
 RTEvaluation
@@ -19,6 +18,7 @@ SemanticValidator
 SequenceCoverageCalculator
 XMLValidator
 IdXMLEvaluation
+DecoyDatabase
 )
 
 ### pass source file list to the upper instance

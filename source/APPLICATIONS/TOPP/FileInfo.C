@@ -70,6 +70,14 @@ using namespace std;
 
 namespace OpenMS
 {
+	//helper struct for identification data
+	struct IdData
+	{
+		String identifier;
+		vector<ProteinIdentification> proteins;
+		vector<PeptideIdentification> peptides;
+	};
+	
 	/// A little helper class to gather (and dump) some statistics from a std::vector<double>.  Uses statistical functions implemented in GSL.
 	struct SomeStatistics
 	{
@@ -91,6 +99,7 @@ namespace OpenMS
 		}
 		double mean, variance, min, lowerq, median, upperq, max;
 	};
+	
 	/// Write SomeStatistics to a stream.
 	static ostream& operator << (ostream& os, const SomeStatistics& rhs)
 	{
@@ -120,7 +129,7 @@ class TOPPFileInfo
 	virtual void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML"));
 		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
@@ -165,6 +174,7 @@ class TOPPFileInfo
 		MSExperiment<Peak1D> exp;
 		FeatureMap<> feat;
 		ConsensusMap cons;
+		IdData id_data;
 
 		//-------------------------------------------------------------
 		// validation
@@ -246,21 +256,21 @@ class TOPPFileInfo
 			return EXECUTION_OK;
 		}
 
+		//-------------------------------------------------------------
+		// content statistics
+		//-------------------------------------------------------------
 		Map<String,int> meta_names;
-		//-------------------------------------------------------------
-		// Features
-		//-------------------------------------------------------------
-		if (in_type==FileTypes::FEATUREXML)
+		if (in_type==FileTypes::FEATUREXML) //features
 		{
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
 
 			os << "Number of features: " << feat.size() << endl
-					 << endl
-					 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
-					 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
-					 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
-					 << endl;
+				 << endl
+				 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
+				 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
+				 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
+				 << endl;
 
 			//Charge distribution
 			Map<UInt,UInt> charges;
@@ -275,10 +285,7 @@ class TOPPFileInfo
 				os << "charge " << it->first << ": " << it->second << endl;
 			}
 		}
-		//-------------------------------------------------------------
-		// Consensus features
-		//-------------------------------------------------------------
-		else if (in_type==FileTypes::CONSENSUSXML)
+		else if (in_type==FileTypes::CONSENSUSXML) //consensus features
 		{
 			ConsensusXMLFile().load(in,cons);
 			cons.updateRanges();
@@ -322,10 +329,59 @@ class TOPPFileInfo
 				}
 			}
 		}
-		//-------------------------------------------------------------
-		// Peaks
-		//-------------------------------------------------------------
-		else
+		else if (in_type==FileTypes::IDXML) //identifications
+		{
+
+			UInt spectrum_count = 0;
+			UInt peptide_hit_count = 0;
+			UInt runs_count = 0;
+			UInt protein_hit_count = 0;
+			vector<String> peptides;
+			vector<String> proteins;
+			
+			// reading input
+			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+						
+			// calculations
+			for (Size i = 0; i < id_data.peptides.size(); ++i)
+			{
+				if (!id_data.peptides[i].empty())
+				{
+					++spectrum_count;
+					peptide_hit_count += id_data.peptides[i].getHits().size();
+					const vector<PeptideHit>& temp_hits = id_data.peptides[i].getHits();
+					for (Size j = 0; j < temp_hits.size(); ++j)
+					{
+						if (find(peptides.begin(), peptides.end(), temp_hits[j].getSequence().toString()) == peptides.end())
+						{
+							peptides.push_back(temp_hits[j].getSequence().toString());
+						}
+					}
+				}
+			} 
+			for (Size i = 0; i < id_data.proteins.size(); ++i)
+			{
+				++runs_count;
+				protein_hit_count += id_data.proteins[i].getHits().size();
+				const vector<ProteinHit>& temp_hits = id_data.proteins[i].getHits();
+				for (Size j = 0; j < temp_hits.size(); ++j)
+				{
+					if (find(proteins.begin(), proteins.end(), temp_hits[j].getAccession()) == proteins.end())
+					{
+						proteins.push_back(temp_hits[j].getAccession());
+					}
+				}
+			}
+			
+			cout << "Number of runs: " << runs_count << endl;
+			cout << "Number of protein hits: " << protein_hit_count << endl;
+			cout << "Number of unique protein hits: " << proteins.size() << endl;
+			cout << endl;
+			cout << "Number of spectra: " << spectrum_count << endl;
+			cout << "Number of peptide hits: " << peptide_hit_count << endl;
+			cout << "Number of unique peptide hits: " << peptides.size() << endl;
+		}
+		else //peaks
 		{
 			if (! fh.loadExperiment(in,exp,in_type,log_type_) )
 			{
@@ -511,7 +567,9 @@ class TOPPFileInfo
 			}
 		}
 
-		// '-m' show meta info
+		//-------------------------------------------------------------
+		// meta information
+		//-------------------------------------------------------------
 		if (getFlag_("m"))
 		{
 			//basic info
@@ -521,13 +579,15 @@ class TOPPFileInfo
 
 			if (in_type==FileTypes::FEATUREXML) //features
 			{
-				os << "Document id       : " << feat.getIdentifier() << endl
-						 << endl;
+				os << "Document id       : " << feat.getIdentifier() << endl << endl;
 			}
 			else if (in_type==FileTypes::CONSENSUSXML) //consensus features
 			{
-				os << "Document id       : " << cons.getIdentifier() << endl
-						 << endl;
+				os << "Document id       : " << cons.getIdentifier() << endl << endl;
+			}
+			else if (in_type==FileTypes::IDXML) //identifications
+			{
+				os << "Document id       : " << id_data.identifier << endl << endl;
 			}
 			else //peaks
 			{
@@ -716,6 +776,10 @@ class TOPPFileInfo
 				os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):\n" << some_statistics(it_aad_by_elems) << std::endl;
 				os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):\n" << some_statistics(it_aad_by_cfs) << std::endl;
 
+			}
+			else if (in_type==FileTypes::IDXML) //identifications
+			{
+				//TODO
 			}
 			else //peaks
 			{

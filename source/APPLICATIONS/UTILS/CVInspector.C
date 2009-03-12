@@ -47,7 +47,7 @@ using namespace std;
 	
 	This tool is used to validate the correct use of mapping files and CV files.
 	
-	TIt can also generate a HTML page
+	It can also generate a HTML representation of mapping file and CV.
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_CVInspector.cli

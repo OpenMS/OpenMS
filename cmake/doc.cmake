@@ -21,7 +21,7 @@ if (DOXYGEN_FOUND)
 
 
 	#######################################################################
-	##param_doc target
+	##doc_param_internal target
 	add_custom_target(doc_param_internal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -73,7 +73,7 @@ if (DOXYGEN_FOUND)
 	add_dependencies(doc doc_param_internal)
 
 	#######################################################################
-	## idoc target
+	## doc_internal target
 	add_custom_target(doc_internal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -93,7 +93,7 @@ if (DOXYGEN_FOUND)
 	add_dependencies(doc_internal doc_param_internal)
 	
 	#######################################################################
-	## noclassdoc target
+	## doc_noclass target
 	add_custom_target(doc_noclass
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -112,7 +112,7 @@ if (DOXYGEN_FOUND)
 	add_dependencies(doc_noclass doc_param_internal)
 
 	#######################################################################
-	## nodoc target
+	## doc_minimal target
 	add_custom_target(doc_minimal
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -131,7 +131,7 @@ if (DOXYGEN_FOUND)
 
 	if (DOXYGEN_DOT_FOUND)
 		#######################################################################
-		## dotdoc target
+		## doc_dot target
 		add_custom_target(doc_dot
 											COMMAND ${CMAKE_COMMAND} -E echo ""
 											COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -150,7 +150,7 @@ if (DOXYGEN_FOUND)
 											VERBATIM)
 		add_dependencies(doc_dot doc_param_internal)
 	else()
-		Message(STATUS "DOT not found. Disabling target 'dotdoc'!")
+		Message(STATUS "DOT not found. Disabling target 'doc_dot'!")
 	endif()
 
 else()
@@ -159,7 +159,7 @@ endif()
 									
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 	#######################################################################
-	# tutorials target
+	# doc_tutorials target
 	add_custom_target(doc_tutorials
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";

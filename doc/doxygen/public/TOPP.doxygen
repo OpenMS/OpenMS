@@ -36,15 +36,15 @@
  	The TOPP tools are divided into several subgroups:
  	
   <b>File Handling</b>
+  - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.
+  - @subpage TOPP_FileConverter - Converts between different MS file formats.
+  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
+  - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
+  - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
+	- @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_DBExporter - Exports data from an %OpenMS database to a file.
   - @subpage TOPP_DBImporter - Imports data to an %OpenMS database.
-  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
-  - @subpage TOPP_FileConverter - Converts between different MS file formats.
-  - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
-  - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.
-  - @subpage TOPP_FileMerger - Merges several MS files into one file.
-	- @subpage TOPP_TextExporter - Exports various XML formats to a text file.
 
   <b>Signal processing and preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.

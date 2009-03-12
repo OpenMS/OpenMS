@@ -51,7 +51,7 @@ int main (int , char** )
 	}
 	
 	//UTILS
-	tools = StringList::create("CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,IdXMLInfo,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation");
+	tools = StringList::create("DecoyDatabase,CaapEval,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation");
 	for (Size i=0; i<tools.size(); ++i)
 	{
 		//start process

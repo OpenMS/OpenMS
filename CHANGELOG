@@ -9,6 +9,7 @@ Main improvements of TOPP:
 - TextExporter can now export peptide/protein information stored in consensusXML
 - PeakPicker: reduced the number of parameters, added parallization support
 - FeatureFinder: added new MRM algorithm and removed the tool 'FeatureFinderMRM'
+- FileInfo: added support for idXML
 
 Main improvements of OpenMS C++ library:
 - removed support for external Memory (use the 64bit builds if you want to process large datasets)

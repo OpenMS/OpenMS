@@ -34,23 +34,31 @@
 
 	The %OpenMS UTILS are created by calling 'make UTILS' in in the %OpenMS source directory.
 	Just as the TOPP tools, they are copied to the %OpenMS bin folder.
+ 	
+ 	The UTILS tools are divided into several subgroups:
+ 	
 
-	Currently the following tools are available:	
-  - @subpage XMLValidator
-	- @subpage Digestor
+  <b>File handling</b>
   - @subpage FuzzyDiff
+  - @subpage XMLValidator
+	- @subpage SemanticValidator
+  - @subpage CVInspector
+  
+  <b>Algorithm evaluation</b>
   - @subpage FFEval
   - @subpage LabeledEval
-  - @subpage HistView
-  - @subpage IdXMLInfo
-  - @subpage CVInspector
-  - @subpage RTEvaluation
-	- @subpage SequenceCoverageCalculator 
-  - @subpage IDExtractor
-	- @subpage SemanticValidator
-	- @subpage DecoyDatabase
 	- @subpage CaapConvert
 	- @subpage CaapEval
+  - @subpage RTEvaluation
 	- @subpage IdXMLEvaluation
+  
+  <b>Peptide identification</b>
+	- @subpage Digestor
+	- @subpage DecoyDatabase
+	- @subpage SequenceCoverageCalculator
+  - @subpage IDExtractor
+	
+	<b>Misc</b>
+  - @subpage HistView
 
 */

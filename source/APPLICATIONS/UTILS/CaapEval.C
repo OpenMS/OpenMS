@@ -38,27 +38,27 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-@page CaapEval CaapEval
+	@page CaapEval CaapEval
+		
+	@brief Evaluate alignment results against ground truth
 	
-@brief Evaluate alignment results against ground truth
-
-This tool implements the evaluation measures from our paper 
-"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",
-Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.
-doi:10.1186/1471-2105-9-375.
-
-			"  input    is a ground truth file as described on the CAAP web page\n"
-			"  output   is the result in consensusXML format as described in the OpenMS docu.\n"
-			"  [supply optional third argument -v for verbose output]\n"
-			"\n"
-			"See the paper:\n"
-			"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
-			"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
-			"BMC Bioinformatics 2008, 9:375.\n"
-			"doi:10.1186/1471-2105-9-375\n"
-
-<B>The command line parameters of this tool are:</B>
-@verbinclude UTIL_CaapEval.cli
+	This tool implements the evaluation measures from our paper 
+	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",
+	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.
+	doi:10.1186/1471-2105-9-375.
+	
+				"  input    is a ground truth file as described on the CAAP web page\n"
+				"  output   is the result in consensusXML format as described in the OpenMS docu.\n"
+				"  [supply optional third argument -v for verbose output]\n"
+				"\n"
+				"See the paper:\n"
+				"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
+				"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
+				"BMC Bioinformatics 2008, 9:375.\n"
+				"doi:10.1186/1471-2105-9-375\n"
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_CaapEval.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -70,7 +70,7 @@ class TOPPCaapEval
 
 public:
 	TOPPCaapEval()
-		: TOPPBase("CAAP_eval","Evaluate alignment results against ground truth.")
+		: TOPPBase("CAAP_eval","Evaluate alignment results against ground truth.", false)
 	{
 	}
 

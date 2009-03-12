@@ -4,14 +4,13 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(sources_list
 CaapConvert.C
-CAAP_groundtruth_to_consensusXML.C
+CaapEval.C
 CVInspector.C
 Digestor.C
 FFEval.C
 FuzzyDiff.C
 HistView.C
 IDExtractor.C
-IdXMLInfo.C
 LabeledEval.C
 MapSimulator.C
 RTEvaluation.C
