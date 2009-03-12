@@ -41,7 +41,7 @@ using namespace std;
 /**
 	@page TOPP_PeakPicker PeakPicker
 	
-	@brief A tool for peak detection in raw data
+	@brief A tool for peak detection in profile data
 	
 	Executes the peak picking algorithm as described by Lange et al. (2006) Proc. PSB-06.
 	
@@ -52,7 +52,7 @@ using namespace std;
 	to resolve highly convoluted and asymmetric signals.
 	The method uses the multiscale nature of spectrometric data by
 	first detecting the mass peaks in the wavelet-transformed signal
-	before a given asymmetric peak function is fitted to the raw data.
+	before a given asymmetric peak function is fitted to the profile data.
 	In case of low-resoluted data, an optional step for the separation of
 	overlapping peaks can be added.
 	In an optional third stage, the resulting fit can be further improved using
@@ -109,7 +109,7 @@ class TOPPPeakPicker
 
   void registerOptionsAndFlags_()
   {
-  	registerInputFile_("in","<file>","","input raw data file ");
+  	registerInputFile_("in","<file>","","input profile data file ");
 		setValidFormats_("in",StringList::create("mzData"));
 		registerOutputFile_("out","<file>","","output peak file ");
 	  setValidFormats_("out",StringList::create("mzData"));
@@ -155,10 +155,10 @@ class TOPPPeakPicker
     MSExperiment<Peak1D > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
 		
-		//check for peak type (raw data required)
+		//check for peak type (profile data required)
 		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
 		{
-			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
+			writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
 		}
 		
     //-------------------------------------------------------------

@@ -43,7 +43,6 @@ include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake)
 
 
 ## not part of the actual sources for the lib
-include(source/APPLICATIONS/TOPP/sources.cmake)
 include(source/EXAMPLES/sources.cmake)
 include(source/TEST/sources.cmake)
 

@@ -46,6 +46,7 @@ TOFCalibration
 TOPPView
 TOPPAS
 TextExporter
+TextImporter
 XTandemAdapter
 IDMapper
 IDRTCalibration
