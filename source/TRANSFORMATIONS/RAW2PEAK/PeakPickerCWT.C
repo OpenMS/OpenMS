@@ -1208,11 +1208,11 @@ namespace OpenMS
 
 	void PeakPickerCWT::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
 	{
-			// if estimatePeakWidth-flag is set estimate it
-			if(param_.getValue("estimate_peak_width")=="true") 
-			{
-					param_.setValue("peak_width",estimatePeakWidth(input));
-			}
+// 			// if estimatePeakWidth-flag is set estimate it
+// 			if(param_.getValue("estimate_peak_width")=="true") 
+// 			{
+// 					param_.setValue("peak_width",estimatePeakWidth(input));
+// 			}
 
 		//clear output container
 		output.clear();
