@@ -86,8 +86,9 @@ START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< In
   ref_masses.push_back(2465.19833942);
 	
   Param param;
+	param.setValue("PeakPicker:peak_width",0.15);
   param.setValue("PeakPicker:thresholds:peak_bound",800.0);
-  param.setValue("PeakPicker:thresholds:fwhm_bound",0.0);
+  param.setValue("PeakPicker:fwhm_bound_factor",0.0);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
 //  param.setValue("PeakPicker:centroid_percentage",0.6);
   ptr->setParameters(param);
@@ -95,9 +96,10 @@ START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< In
 	
   PeakPickerCWT pp;
   Param pp_param;
-  pp_param.setValue("thresholds:correlation",0.0);
+	param.setValue("peak_width",0.15);
+	pp_param.setValue("thresholds:correlation",0.0);
   pp_param.setValue("thresholds:peak_bound",800.0);
-  pp_param.setValue("thresholds:fwhm_bound",0.0);
+  pp_param.setValue("fwhm_bound_factor",0.0);
   pp.setParameters(pp_param);
   pp.pickExperiment(exp,exp_peaks);
   Peak1D peak;
@@ -186,6 +188,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 
