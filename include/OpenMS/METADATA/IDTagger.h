@@ -52,16 +52,6 @@ namespace OpenMS
       IDTagger();
 		
 			/**
-				@brief Return the file used as ID pool
-
-				The default ID pool file is in /share/OpenMS/IDPool/IDPool.txt
-				A custom file can be set by assigning the environment
-				variable OPENMS_IDPOOL_FILE to an @b existing file name.
-
-			*/
-			String getPoolFile() const;
-
-			/**
 				@brief retrieve an ID from the pool
 
 				Uses boost filelocks to savely retrieve an ID from an ID pool.
@@ -90,7 +80,19 @@ namespace OpenMS
       bool operator == (const IDTagger& source) const;
       /// Equality operator
       bool operator != (const IDTagger& source) const;
-			
+
+
+			/**
+				@brief Return the file used as ID pool
+
+				The default ID pool file is in /share/OpenMS/IDPool/IDPool.txt
+				A custom file can be set by setIDPoolFile()
+			*/
+			String getPoolFile() const;
+
+			/// Set the file used as ID pool
+			void setPoolFile(String& file);
+
 			/**
 				@brief Tags any structure which is derived from DocumentIdentifier with a unique tag
 			
@@ -115,6 +117,9 @@ namespace OpenMS
     protected:
 			/// name of the calling TOPP tool
 			String toolname_;
+
+			/// location of the ID pool
+			String pool_file_;
   };
  
 } // namespace OpenMS

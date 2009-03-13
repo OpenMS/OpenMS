@@ -41,12 +41,15 @@ using namespace std;
 namespace OpenMS 
 {
   IDTagger::IDTagger(String toolname): 
-    toolname_(toolname)
+    toolname_(toolname),
+		pool_file_()
   {
+		pool_file_ = String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
   }
   
   IDTagger::IDTagger(const IDTagger& source):
-    toolname_(source.toolname_)
+    toolname_(source.toolname_),
+	  pool_file_(source.pool_file_)
   {
   }
    
@@ -58,12 +61,14 @@ namespace OpenMS
   {
     if (source == *this) return *this;
 		toolname_ = source.toolname_;
+		pool_file_ = source.pool_file_;
     return *this;
   }
 
   bool IDTagger::operator == (const IDTagger& rhs) const
   {
-    return ( toolname_ == rhs.toolname_ );
+    return ( (toolname_ == rhs.toolname_)
+					&& (pool_file_ == rhs.pool_file_));
   }
 
   bool IDTagger::operator != (const IDTagger& rhs) const
@@ -73,23 +78,18 @@ namespace OpenMS
 
 	String IDTagger::getPoolFile() const
 	{
-		char * id_file_env;
-		id_file_env = getenv ("OPENMS_IDPOOL_FILE");
-		if (id_file_env!=NULL) 
-		{
-			return String(id_file_env);
-		}
-		else
-		{
-			return String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
-		}
+		return pool_file_;
+	}
+
+	void IDTagger::setPoolFile(String& file)
+	{
+		pool_file_ = file;
 	}
 
 	bool IDTagger::getID_(String& id, Int& free, bool idcount_only) const
 	{
 		free = 0;
 
-		// use environment filename as POOL or fall back to default
 		String IDPool_file = getPoolFile();
 		String IDPool_file_tmp = String(IDPool_file) + String(".tmp");
 		// create PoolFile if non-existant

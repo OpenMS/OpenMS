@@ -87,6 +87,8 @@ START_SECTION((bool operator==(const IDTagger &source) const ))
   IDTagger tagme("SomeTOPPTool");
 	IDTagger tagme2 = tagme;
 	TEST_EQUAL(tagme==tagme2, true)
+	IDTagger tagme3(tagme);
+	TEST_EQUAL(tagme==tagme3, true)
 }
 END_SECTION
 
@@ -107,16 +109,11 @@ outfile.close();
 
 START_SECTION((bool tag(DocumentIdentifier &map) const ))
 {
-	String setvarcmd = String("OPENMS_IDPOOL_FILE=") + tmp_pool;
-	std::cout << "Environment " << setvarcmd << "\n";
-	int stat = putenv(setvarcmd.c_str());
-	if (stat!=0)
-	{
-	 cout<<"failed to define environment variable"<<endl; 
-	}
-  DocumentIdentifier myD;
+	DocumentIdentifier myD;
 	myD.setIdentifier("");
 	IDTagger tagme("SomeTOPPTool");
+	//use custom pool file
+	tagme.setPoolFile(tmp_pool);
 	Int cnt(0);
 	tagme.countFreeIDs(cnt);
 	TEST_EQUAL(cnt, 4);

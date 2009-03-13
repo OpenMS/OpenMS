@@ -131,11 +131,11 @@ namespace OpenMS
       	@param description Short description of the tool (one line).
       	@param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
       	                If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-				@param IDtag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
-							 In this case you cannot use the -IDtag flag when calling the TOPP tool (exception will be thrown)
+				@param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
+							 In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
       	@param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
       */
-      TOPPBase(const String& name, const String& description, bool official=true, bool IDtag_support=false, const String& version="");
+      TOPPBase(const String& name, const String& description, bool official=true, bool id_tag_support=false, const String& version="");
 
       /// Destructor
       virtual ~TOPPBase();
@@ -258,7 +258,7 @@ namespace OpenMS
       String const tool_description_;
 
 			/// Tool indicates it supports assignment of unique DocumentID from IDPool
-			bool IDtag_support_;
+			bool id_tag_support_;
 
 			/// Instance of IDTagger, which can be accessed using getIDTagger_()
 			IDTagger id_tagger_;
