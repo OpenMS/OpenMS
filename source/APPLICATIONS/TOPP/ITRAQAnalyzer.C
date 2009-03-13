@@ -151,7 +151,15 @@ class TOPPITRAQAnalyzer
 		// assign unique ID to output file:
 		if (!getIDTagger_().tag(consensus_map_raw))
 		{
-			writeLog_("ITRAQAnalyzer: Unable to aquire DocumentID for output file! Operation will continue, but the DocumentID is most likely invalid!");
+			Int cnt(0);
+			if (getIDTagger_().countFreeIDs(cnt))
+			{
+				writeLog_(String("ITRAQAnalyzer: Unable to aquire DocumentID for output file! Operation will continue, but the DocumentID is most likely invalid! (remaining free IDs: ") + String(cnt) + String(")"));
+			}
+			else
+			{
+				writeLog_("ITRAQAnalyzer: Unable to aquire DocumentID for output file! Operation will continue, but the DocumentID is most likely invalid! (& unable to lookup remaining ID count)");
+			}
 		}
 
 		//-------------------------------------------------------------

@@ -126,6 +126,15 @@ START_SECTION((bool tag(DocumentIdentifier &map) const ))
 	TEST_EQUAL(myD.getIdentifier(), "IDNew");
 	tagme.countFreeIDs(cnt);
 	TEST_EQUAL(cnt, 2);
+	// 2 left
+	TEST_EQUAL(tagme.tag(myD), true);
+	// 1 left
+	TEST_EQUAL(tagme.tag(myD), true);
+	//0 left, expect it to go wrong
+	TEST_EQUAL(tagme.tag(myD), false);
+	// confirm 0 left
+	TEST_EQUAL(tagme.countFreeIDs(cnt), true);
+	TEST_EQUAL(cnt, 0);
 }
 END_SECTION
 

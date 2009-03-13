@@ -133,7 +133,6 @@ namespace OpenMS
     {
       getline (in,line);
 			if (line.length()==0) continue;
-			std::cout << "Read: " << line << "\n";
 			++free;
 			if (free==1) id = line;// pull out first ID
 			if (!idcount_only)
@@ -161,10 +160,10 @@ namespace OpenMS
 		  char time_buffer [80];
 			time ( &rawtime );
 			strftime (time_buffer,80,"%x %X", localtime ( &rawtime ) );
-			outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
+			if (free==0) outfile << time_buffer << " :: " << toolname_ << " unsuccessfully requested ID (pool is empty!)\n";
+			else outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
 			outfile.close();
 		}
-
 
 		// release lock file
 		flock.unlock();
@@ -175,25 +174,35 @@ namespace OpenMS
 	bool IDTagger::tag(DocumentIdentifier& map) const
 	{
 		String id="";Int free(0);
-		if (getID_(id, free, false))
-		{		
-			map.setIdentifier(id);
-			return true;
-		}
-		else
+		try
 		{
-			map.setIdentifier("InvalidID");
-			return false;
+			if (getID_(id, free, false))
+			{	
+				if (free>0)
+				{
+					map.setIdentifier(id);
+					return true;
+				}
+			}
 		}
+		catch(...) {}
+
+		map.setIdentifier("InvalidID");
+		return false;
 	}
 
 	bool IDTagger::countFreeIDs(Int& free) const
 	{
 		String id="";
-		if (getID_(id, free, true))
-		{		
-			return true;
+		try
+		{
+			if (getID_(id, free, true))
+			{		
+				return true;
+			}
 		}
+		catch(...) {}
+
 		return false;
 	}
 

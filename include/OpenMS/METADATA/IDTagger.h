@@ -51,7 +51,18 @@ namespace OpenMS
 			/// Constructor (declared away)
       IDTagger();
 		
-			/// retrieve an ID from the pool
+			/**
+				@brief retrieve an ID from the pool
+
+				Uses boost filelocks to savely retrieve an ID from an ID pool.
+				
+				@param id Unique identifier returned from ID pool
+				@param free Number of available identifiers in ID pool (before this query)
+				@param idcount_only Only count available identifiers, do NOT retrieve one 
+							 (the id string will nevertheless be filled)
+
+				Return true if all file operations could be executed successfully (this does not imply there was an ID left over - check free>0)
+			*/
 			bool getID_(String& id, Int& free, bool idcount_only) const;
 
 		public:
@@ -73,14 +84,20 @@ namespace OpenMS
 			/**
 				@brief Tags any structure which is derived from DocumentIdentifier with a unique tag
 			
-				@exception Exception::DepletedIDPool is thrown if the ID pool is empty
+				Tags any structure which is derived from DocumentIdentifier with a unique tag
+				Returns true if ID could be assigned, false otherwise
+
+				@param map Some class (derived from a DocumentIdentifier class) which needs a unique id
 			*/
 			bool tag(DocumentIdentifier& map) const;
 			
 			/**
 				@brief return the number of available IDs in the pool.
 
-				Returns 0 if pool is depleted or not available and a positive integer otherwise.
+				Retrieve the number of available IDs in the pool.
+				Returns true of count was successfull, false otherwise (locking error, file creation error ...)
+				
+				@param free Number of available identifiers. You should worry if it's 0!
 			*/
 			bool countFreeIDs(Int& free) const;
 
