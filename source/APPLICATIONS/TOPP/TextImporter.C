@@ -131,7 +131,9 @@ namespace OpenMS
 					}
 					
 					//convert coordinate columns to doubles
-					DoubleReal rt, mz, it;
+					DoubleReal rt = 0.0;
+					DoubleReal mz = 0.0;
+					DoubleReal it = 0.0;
 					try
 					{
 						rt = parts[0].toDouble();

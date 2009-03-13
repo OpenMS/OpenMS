@@ -72,7 +72,6 @@ namespace OpenMS
     @brief Main window of TOPPView tool
 		
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
-    @improvement Paint only highest point per pixel (Marc)
     @todo Add realtime-Tutorial (Marc)
     @todo Add "load instrument defaults" button to tools dialog (Marc)
   

@@ -45,7 +45,7 @@ namespace OpenMS
 
 		The input maps are transformed and the transformation description is returned.
 
-		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Marc, Clemens)
+		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Clemens)
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithm
 		: public FactoryProduct,
