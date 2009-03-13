@@ -216,25 +216,32 @@ namespace OpenMS
 
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
+			//renaming some values for readability
+			DoubleReal rt_min = visible_area_.min()[1];
+			DoubleReal rt_max = visible_area_.max()[1];
+			DoubleReal mz_min = visible_area_.min()[0];
+			DoubleReal mz_max = visible_area_.max()[0];
+			
+			//determine if we want to draw dots or crosses
 			//determine number of MS1 scans
 			UInt scans = 0;
-			ExperimentType::ConstIterator it = layer.peaks.RTBegin(visible_area_.min()[1]);
-			while (it != layer.peaks.RTEnd(visible_area_.max()[1]))
+			ExperimentType::ConstIterator it = layer.peaks.RTBegin(rt_min);
+			while (it != layer.peaks.RTEnd(rt_max))
 			{
 				if (it->getMSLevel()==1) ++scans;
 				++it;
 			}
 			//determine number of shown peaks
 			Int peaks = 0;
-			it = layer.peaks.RTBegin(visible_area_.min()[1]) + scans/2;
+			it = layer.peaks.RTBegin(rt_min) + scans/2;
 			while (it!=layer.peaks.end() && it->getMSLevel()!=1)
 			{
 				++it;
 			}
 			if (it!=layer.peaks.end())
 			{
-				ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
-				while (it2!=it->MZEnd(visible_area_.max()[0]))
+				ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min);
+				while (it2!=it->MZEnd(mz_max))
 				{
 					if (layer.filters.passes(*it,it2-it->begin())) ++peaks;
 					++it2;
@@ -251,47 +258,59 @@ namespace OpenMS
 				if (peaks>0.5*height() || scans>0.5*width()) dots=true;
 			}
 			
-			//~ //calculate pixel size
-			//~ DoubleReal rt_step_width = (visible_area_.max()[1] - visible_area_.min()[1]) / 
-			
-			//~ for (Size r=0; r<image_width; ++r)
-			//~ {
-				//~ //
-				//~ DoubleReal rt_min = 
-				
-				//~ for (Size c=0; c<image_height; ++c)
-				//~ {
-					
-				//~ }
-			//~ }
-			
-			
-			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
-					 i != layer.peaks.areaEndConst();
-					 ++i)
+			//determine number of pixels for each dimension
+			Int rt_pixel_count = image_height;
+			Int mz_pixel_count = image_width;
+			if(!isMzToXAxis())
 			{
-				PeakIndex pi = i.getPeakIndex();
-				if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+				rt_pixel_count = image_width;
+				mz_pixel_count = image_height;
+			}
+			
+			//calculate pixel size in data coordinates
+			DoubleReal rt_step_size = (rt_max - rt_min) / rt_pixel_count;
+			DoubleReal mz_step_size = (mz_max - mz_min) / mz_pixel_count;
+			
+			//main loop over all pixels
+			for (Int rt=0; rt<rt_pixel_count; ++rt) // RT dimension
+			{
+				DoubleReal rt_start = rt_min + rt_step_size * rt; //m/z dimension
+				for (Int mz=0; mz<mz_pixel_count; ++mz)
 				{
-					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
-					QPoint pos;
-					dataToWidget_(i->getMZ(), i.getRT(),pos);
-					if (dots)
+					//find data maximum
+					DoubleReal max = -1.0;
+					DoubleReal mz_start = mz_min + mz_step_size * mz;
+					for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(rt_start, rt_start + rt_step_size, mz_start, mz_start + mz_step_size);
+							 i != layer.peaks.areaEndConst();
+							 ++i)
 					{
-						if (pos.x()<image_width && pos.y()<image_height)
+						PeakIndex pi = i.getPeakIndex();
+						if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 						{
-							buffer_.setPixel(pos.x(),pos.y(), color);
+							if (i->getIntensity() > max)
+							{
+								max = i->getIntensity();
+							}
 						}
 					}
-					else
+					
+					//draw to buffer
+					if (max>0.0)
 					{
-						if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
+						QPoint pos;
+						dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
+						if (dots && pos.y()<image_height && pos.x()<image_width)
 						{
-							buffer_.setPixel(pos.x()   ,pos.y()   ,color);
-							buffer_.setPixel(pos.x()-1 ,pos.y()   ,color);
-							buffer_.setPixel(pos.x()+1 ,pos.y()   ,color);
-							buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
-							buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
+							buffer_.setPixel(pos.x() , pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
+						}
+						else if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
+						{
+							QRgb color = heightColor_(max, layer.gradient, snap_factor).rgb();
+							buffer_.setPixel(pos.x() ,pos.y() ,color);
+							buffer_.setPixel(pos.x()-1 ,pos.y() ,color);
+							buffer_.setPixel(pos.x()+1 ,pos.y() ,color);
+							buffer_.setPixel(pos.x() ,pos.y()-1 ,color);
+							buffer_.setPixel(pos.x() ,pos.y()+1 ,color);
 						}
 					}
 				}
