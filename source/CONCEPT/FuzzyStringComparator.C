@@ -145,7 +145,7 @@ namespace OpenMS
 				*log_dest_ <<
 					prefix << '\n' <<
 					prefix << "  whitelist cases:\n";
-				UInt length = 0;
+				Size length = 0;
 				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
 							wlcit != whitelist_cases_.end();
 							++wlcit
@@ -214,7 +214,7 @@ namespace OpenMS
 					*log_dest_ <<
 						prefix << '\n' <<
 						prefix << "  whitelist cases:\n";
-					UInt length = 0;
+					Size length = 0;
 					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
 								wlcit != whitelist_cases_.end();
 								++wlcit

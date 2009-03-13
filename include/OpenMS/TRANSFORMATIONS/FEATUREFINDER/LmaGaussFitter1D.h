@@ -32,79 +32,79 @@
 
 namespace OpenMS
 {
-    /** 
+    /**
       @brief Gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
-                 
-      @htmlinclude OpenMS_LmaGaussFitter1D.parameters                 
+
+      @htmlinclude OpenMS_LmaGaussFitter1D.parameters
     */
-    class OPENMS_DLLAPI LmaGaussFitter1D 
+    class OPENMS_DLLAPI LmaGaussFitter1D
     : public LevMarqFitter1D
     {
         public:
-            
+
             /// Default constructor
-            LmaGaussFitter1D(); 
+            LmaGaussFitter1D();
 
             /// copy constructor
             LmaGaussFitter1D(const LmaGaussFitter1D& source);
-            
+
             /// destructor
             virtual ~LmaGaussFitter1D();
-            
+
             /// assignment operator
             virtual LmaGaussFitter1D& operator = (const LmaGaussFitter1D& source);
-            
+
             /// create new LmaGaussFitter1D object (function needed by Factory)
             static Fitter1D* create()
             {
                 return new LmaGaussFitter1D();
             }
-            
+
             /// name of the model (needed by Factory)
             static const String getProductName()
             {
                 return "LmaGaussFitter1D";
             }
-              
+
             /// return interpolation model
             QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
-            
+
 	     protected:
-         
+
           /// Helper struct (contains the size of an area and a raw data container)
           struct Data
           {
             typedef Peak1D PeakType;
             typedef std::vector<PeakType > RawDataArrayType;
-                
-            UInt n;
+
+         Size n;
             RawDataArrayType set;
           };
-             
+
           /// Compute start parameter
           void setInitialParameters_(const RawDataArrayType& set);
-    
+
           /// Evaluation of the target function for nonlinear optimization
           static Int residual_(const gsl_vector* x, void* params, gsl_vector* f);
-        
+
           /// Compute the Jacobian matrix, where each row of the matrix corresponds to a point in the data
           static Int jacobian_(const gsl_vector* x, void* params, gsl_matrix* J);
-        
+
           /// Driver function for the evaluation of function and jacobian
           static Int evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
-        
-          /** Diplay the intermediate state of the solution. The solver state contains 
-              the vector s->x which is the current position, and the vector s->f with 
+
+          /** Diplay the intermediate state of the solution. The solver state contains
+              the vector s->x which is the current position, and the vector s->f with
               corresponding function values */
-          void printState_(Int iter, gsl_multifit_fdfsolver * s);  
-           
+          void printState_(Int iter, gsl_multifit_fdfsolver * s);
+
           /// parameter of gauss function: standard deviation
           CoordinateType standard_deviation_;
           /// parameter of gauss function: scale factor
           CoordinateType scale_factor_;
           /// parameter of gauss function: expected value
-          CoordinateType expected_value_;	
-       
+          CoordinateType expected_value_;
+
           void updateMembers_();
     };
 

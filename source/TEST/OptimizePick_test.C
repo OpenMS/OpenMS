@@ -77,9 +77,9 @@ START_SECTION((void optimize(std::vector<PeakShape>& peaks)))
   peak_shape.height = 400;
   peak_shape.type = PeakShape::LORENTZ_PEAK;
   peak_shapes[0] = peak_shape;
-	
-  float origin = 499;
-  float spacing = 0.1;
+
+  float origin = 499.f;
+  float spacing = 0.1f;
   OptimizePick::Data data;
 	data.positions.resize(20);
   data.signal.resize(20);
@@ -100,10 +100,10 @@ END_SECTION
 START_SECTION((void setMaxAbsError(double eps_abs)))
   TOLERANCE_ABSOLUTE(0.0001)
   double abs_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxAbsError(abs_err);
-    
+
  	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
 END_SECTION
 
@@ -111,80 +111,80 @@ END_SECTION
 START_SECTION((DoubleReal getMaxAbsError() const))
   TOLERANCE_ABSOLUTE(0.0001)
   double abs_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxAbsError(abs_err);
-    
+
  	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
 END_SECTION
 
 START_SECTION((double& getMaxAbsError()))
   TOLERANCE_ABSOLUTE(0.0001)
   double abs_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxAbsError(abs_err);
-    
+
  	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
 END_SECTION
-	
+
 START_SECTION((void setMaxRelError(double eps_rel)))
   TOLERANCE_ABSOLUTE(0.0001)
   double rel_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxRelError(rel_err);
-    
+
  	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
 
 START_SECTION((DoubleReal getMaxRelError() const))
   TOLERANCE_ABSOLUTE(0.0001)
   double rel_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxRelError(rel_err);
-    
+
  	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
 
 START_SECTION((double& getMaxRelError()))
   TOLERANCE_ABSOLUTE(0.0001)
   double rel_err = 0.01;
-   
+
   OptimizePick opt_pick;
   opt_pick.setMaxRelError(rel_err);
-    
+
  	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
-	
+
 START_SECTION((void setNumberIterations(const int max_iteration)))
   unsigned int number = 20;
-   
+
   OptimizePick opt_pick;
   opt_pick.setNumberIterations(number);
-    
+
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
 END_SECTION
 
 START_SECTION((unsigned int& getNumberIterations()))
   unsigned int number = 20;
-   
+
   OptimizePick opt_pick;
   opt_pick.setNumberIterations(number);
-    
+
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
 END_SECTION
 
-	
+
 START_SECTION((UInt getNumberIterations() const))
   unsigned int number = 20;
-   
+
   OptimizePick opt_pick;
   opt_pick.setNumberIterations(number);
-    
+
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
-END_SECTION	
+END_SECTION
 
 START_SECTION((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties)))
   TOLERANCE_ABSOLUTE(0.0001)
@@ -192,7 +192,7 @@ START_SECTION((void setPenalties(const struct OptimizationFunctions::PenaltyFact
 	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
-    
+
   OptimizePick opt_pick;
   opt_pick.setPenalties(penalties);
   TEST_REAL_SIMILAR(penalties.pos,opt_pick.getPenalties().pos)
@@ -206,7 +206,7 @@ START_SECTION((struct OptimizationFunctions::PenaltyFactors& getPenalties() cons
 	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
-    
+
   OptimizePick opt_pick;
   opt_pick.setPenalties(penalties);
   TEST_REAL_SIMILAR(penalties.pos,opt_pick.getPenalties().pos)
@@ -220,7 +220,7 @@ START_SECTION((struct OptimizationFunctions::PenaltyFactors& getPenalties()))
 	penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;
-    
+
   OptimizePick opt_pick;
   opt_pick.setPenalties(penalties);
   TEST_REAL_SIMILAR(penalties.pos,opt_pick.getPenalties().pos)
@@ -228,7 +228,7 @@ START_SECTION((struct OptimizationFunctions::PenaltyFactors& getPenalties()))
   TEST_REAL_SIMILAR(penalties.rWidth,opt_pick.getPenalties().rWidth)
 END_SECTION
 
-	
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

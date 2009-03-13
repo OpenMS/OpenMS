@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -99,8 +99,8 @@ END_SECTION
 
 START_SECTION(DoubleList(const std::vector<Real>& rhs))
 	std::vector<Real> list;
-	list.push_back(1.234);
-	list.push_back(2.345);
+	list.push_back(1.234f);
+	list.push_back(2.345f);
 	DoubleList list2(list);
 	TEST_EQUAL(list2.size(),2);
 	TEST_REAL_SIMILAR(list2[0],1.234);
@@ -131,8 +131,8 @@ END_SECTION
 
 START_SECTION(DoubleList& operator=(const std::vector<Real>& rhs))
 	std::vector<Real> list;
-	list.push_back(1.22);
-	list.push_back(3.67);
+	list.push_back(1.22f);
+	list.push_back(3.67f);
 	DoubleList list2;
 	list2 = list;
 	TEST_EQUAL(list2.size(),2);
@@ -154,7 +154,7 @@ START_SECTION(bool contains(DoubleReal s) const)
 	DoubleList list = DoubleList::create("1.2,3.4");
 	TEST_EQUAL(list.contains(1.2),true)
 	TEST_EQUAL(list.contains(3.4),true)
-	TEST_EQUAL(list.contains(4.2),false)	
+	TEST_EQUAL(list.contains(4.2),false)
 	TEST_EQUAL(list.contains(2),false)
 	TEST_EQUAL(list.contains(0),false)
 END_SECTION

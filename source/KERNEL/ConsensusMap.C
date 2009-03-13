@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -31,23 +31,23 @@ using namespace std;
 
 namespace OpenMS
 {
-	
+
 	bool ConsensusMap::isValid(String& error_message) const
-	{	
+	{
 		//store the size of the input files
-		Map<UInt,UInt> map_sizes;
+		Map<Size,Size> map_sizes;
 		for (FileDescriptions::const_iterator it=file_description_.begin(); it!=file_description_.end(); ++it)
     {
     	if (it->second.size==0)
     	{
-    		map_sizes[it->first] = numeric_limits<UInt>::max();
+    		map_sizes[it->first] = numeric_limits<Size>::max();
 			}
 			else
 			{
     		map_sizes[it->first] = it->second.size;
 			}
 		}
-		
+
 		//actual check
 		for (Size i = 0; i < size(); ++i)
     {
@@ -75,9 +75,9 @@ namespace OpenMS
   {
 		for (ConsensusMap::FileDescriptions::const_iterator it=cons_map.getFileDescriptions().begin(); it!=cons_map.getFileDescriptions().end(); ++it)
     {
-    	os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl; 
+    	os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl;
     }
-    
+
     for (Size i = 0; i < cons_map.size(); ++i)
     {
       os << cons_map[i] << endl;
@@ -90,7 +90,7 @@ namespace OpenMS
 	{
 		clearRanges();
 		updateRanges_(begin(),end());
-		
+
 		//enlarge the range by the internal points of each feature
 		for (Size i=0; i<size(); ++i)
 		{
@@ -99,8 +99,8 @@ namespace OpenMS
 				DoubleReal rt = it->getRT();
 				DoubleReal mz = it->getMZ();
 				DoubleReal intensity = it->getIntensity();
-				
-				//update RT 
+
+				//update RT
 				if (rt < pos_range_.min()[Peak2D::RT])
 				{
 					pos_range_.setMinX(rt);

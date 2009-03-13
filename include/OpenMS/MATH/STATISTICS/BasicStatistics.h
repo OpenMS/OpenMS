@@ -43,7 +43,7 @@ namespace OpenMS
 		/**
 			 @brief Calculates some basic statistical parameters of a distribution:
 			 sum, mean, variance, and provides the normal approximation.
-			 
+
 			 The intended usage is as follows:
 			 - <i>create</i> an instance
 			 - <i>set</i> the basic statistical parameters by either
@@ -55,7 +55,7 @@ namespace OpenMS
 					- obtain samples from a normal approximation with these parameters
 					- whatever member function you might want to add to this class ;-)
 			 .
-			 
+
 			 @ingroup Math
 		*/
 		template < typename RealT = DoubleReal >
@@ -178,7 +178,7 @@ namespace OpenMS
 				 multiplied by sqrt( 2 * pi ).  This saves a division operation compared
 				 to normalDensity()
 			*/
-			RealType normalDensity_sqrt2pi ( RealType coordinate ) const 
+			RealType normalDensity_sqrt2pi ( RealType coordinate ) const
 			{
 				coordinate -= mean();
 				coordinate *= coordinate;
@@ -191,7 +191,7 @@ namespace OpenMS
 			/**@brief See normalDensity_sqrt2pi().  Returns the density of the normal
 				 distribution at point.
 			*/
-			inline RealType normalDensity ( RealType const coordinate ) const 
+			inline RealType normalDensity ( RealType const coordinate ) const
 			{
 				return normalDensity_sqrt2pi ( coordinate ) / sqrt2pi() ;
 			}
@@ -267,11 +267,11 @@ namespace OpenMS
 
 				// precondition size == probability.size() is guaranteed by wrappers.
 				for ( i = 0; i < size; ++i ) {
-					gaussSum += normalDensity_sqrt2pi ( i );
+					gaussSum += normalDensity_sqrt2pi ( RealType(i) );
 				}
 
 				for ( i = 0; i < size; ++i ) {
-					probability [ i ] = normalDensity_sqrt2pi ( i ) / gaussSum * sum();
+					probability [ i ] = normalDensity_sqrt2pi ( RealType(i) ) / gaussSum * sum();
 				}
 				return;
 			}

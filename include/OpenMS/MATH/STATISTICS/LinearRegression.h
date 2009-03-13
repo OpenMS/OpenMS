@@ -43,20 +43,20 @@ namespace OpenMS
   {
     /**
 			@brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
-	            
+
 			It capsulates the GSL methods for a weighted and an unweighted linear regression.
-	      
+
 			Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
-			- squared pearson coefficient      
-			- value of the t-distribution     
+			- squared pearson coefficient
+			- value of the t-distribution
 			- standard deviation of the residuals
-			- standard error of the slope  
+			- standard error of the slope
 			- intercept with the x-axis (useful for additive series experiments)
-			- lower border of confidence interval 
+			- lower border of confidence interval
 			- higher border of confidence interval
-			- chi squared value     
+			- chi squared value
 			- x mean
-			
+
 			@ingroup Math
     */
     class OPENMS_DLLAPI LinearRegression
@@ -86,17 +86,17 @@ namespace OpenMS
 			}
 
 			/**
-				@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+				@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
 				of the model \f$ Y = c_0 + c_1 X \f$ for the dataset \f$ (x, y) \f$.
-	                    
+
 				The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
 				and the corresponding y-values start at position y_begin.
-	                  
-	
+
+
 				For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
+				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
 				containing the true value of the parameter.
-				
+
 				@return If an error occured during the fit.
 
 				@exception Exception::UnableToFit is thrown if fitting cannot be performed
@@ -105,16 +105,16 @@ namespace OpenMS
 			void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);
 
 			/**
-				@brief This function computes the best-fit linear regression coefficient \f$ (c_0) \f$ 
+				@brief This function computes the best-fit linear regression coefficient \f$ (c_0) \f$
 				of the model \f$ Y = c_1 X \f$ for the dataset \f$ (x, y) \f$.
-	                    
+
 				The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
 				and the corresponding y-values start at position y_begin.
-	
+
 				For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
+				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
 				containing the true value of the parameter.
-				
+
 				@return If an error occured during the fit.
 
 				@exception Exception::UnableToFit is thrown if fitting cannot be performed
@@ -123,17 +123,17 @@ namespace OpenMS
 			void computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);
 
 			/**
-				@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+				@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
 				of the model \f$ Y = c_0 + c_1 X \f$ for the weighted dataset \f$ (x, y) \f$.
-	                    
+
 				The values in x-dimension of the dataset \f$ (x, y) \f$ are given by the iterator range [x_begin,x_end)
-				and the corresponding y-values start at position y_begin. They will be weighted by the 
+				and the corresponding y-values start at position y_begin. They will be weighted by the
 				values starting at w_begin.
-	
+
 				For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
+				For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
 				containing the true value of the parameter.
-				
+
 				@return If an error occured during the fit.
 
 				@exception Exception::UnableToFit is thrown if fitting cannot be performed
@@ -158,7 +158,7 @@ namespace OpenMS
 			DoubleReal getRSquared() const;
 			/// Non-mutable access to the standard deviation of the residuals
 			DoubleReal getStandDevRes() const;
-			/// Non-mutable access to the residual mean 
+			/// Non-mutable access to the residual mean
 			DoubleReal getMeanRes() const;
 			/// Non-mutable access to the standard error of the slope
 			DoubleReal getStandErrSlope() const;
@@ -205,7 +205,7 @@ namespace OpenMS
 			/// Copy the distance(x_begin,x_end) elements starting at  x_begin, y_begin and w_begin into the arrays x_array, y_array and w_array
    	  template <typename Iterator>
 			void iteratorRange3Arrays_ (Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double* x_array, double* y_array, double* w_array);
-		
+
 		private:
 
 			/// Not implemented
@@ -217,7 +217,7 @@ namespace OpenMS
     template <typename Iterator>
     void LinearRegression::computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)
     {
-      int N=distance(x_begin,x_end);
+      int N = int(distance(x_begin,x_end));
 
       double* X = new double[N];
       double* Y = new double[N];
@@ -237,7 +237,7 @@ namespace OpenMS
 
       delete [] X;
       delete [] Y;
-      
+
 			if (error)
 			{
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-LinearRegression","Could not fit a linear model to the data");
@@ -247,7 +247,7 @@ namespace OpenMS
     template <typename Iterator>
     void LinearRegression::computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)
     {
-      int N=distance(x_begin,x_end);
+      int N = int(distance(x_begin,x_end));
 
       double* X = new double[N];
       double* Y = new double[N];
@@ -260,15 +260,15 @@ namespace OpenMS
       // and the value of Chi squared, the covariances of the intercept and the slope
       int error = gsl_fit_mul(X,1,Y,1,N,&slope_, &cov, &chi_squared_);
 			intercept_ = 0.0;
-			
+
       if (!error)
       {
         computeGoodness_(X,Y,N,confidence_interval_P);
       }
-			
+
       delete [] X;
       delete [] Y;
-			
+
 			if (error)
 			{
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-LinearRegression","Could not fit a linear model to the data");
@@ -278,7 +278,7 @@ namespace OpenMS
     template <typename Iterator>
     void LinearRegression::computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)
     {
-      int N=distance(x_begin,x_end);
+      int N = int(distance(x_begin,x_end));
 
       double* X = new double[N];
       double* Y = new double[N];

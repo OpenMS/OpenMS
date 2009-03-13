@@ -139,13 +139,13 @@ END_SECTION
 
 START_SECTION([EXTRA](IntensityType& getIntensity()))
 	Feature p;
-	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
+	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
 	p.setIntensity(123.456);
-	TEST_REAL_SIMILAR(p.getIntensity(), 123.456)
+	TEST_REAL_SIMILAR(p.getIntensity(), 123.456f)
 	p.setIntensity(-0.12345);
-	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345)
+	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345f)
 	p.setIntensity(0.0f);
-	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
+	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
 END_SECTION
 
 START_SECTION([EXTRA](PositionType& getPosition()))
@@ -205,7 +205,7 @@ END_SECTION
 START_SECTION((ConvexHull2D& getConvexHull() const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
-	
+
 	//check if the bounding box is ok
 	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
 	TEST_REAL_SIMILAR(bb.min()[0],0.5)
@@ -273,7 +273,7 @@ START_SECTION((Feature(const Feature &feature)))
   p.setModelDescription(desc);
   p.setConvexHulls(hulls);
 	p.getConvexHull(); //this precalculates the overall convex hull
-	
+
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
 

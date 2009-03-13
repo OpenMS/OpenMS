@@ -27,10 +27,10 @@
 // Author:  Ole Schulz-Trieglaff
 
 // General ideas:
-//   * aggresivly split the run method into several sub-units 
+//   * aggresivly split the run method into several sub-units
 //   * move as many parts as possible into separate classes
 //     so we can reuse it for e.g. MALDI-MS Sim
-// 
+//
 
 #include <OpenMS/SIMULATION/LCMSSim.h>
 
@@ -42,7 +42,7 @@ namespace OpenMS{
   : DefaultParamHandler("LCMSSim"),
   	ProgressLogger(),
     sample_(), RTModelFile_(), exp_(), gradientTime_(0.0), rt_sampling_(0.0),
-    msAccuracy_(0), msBinSize_(0.0), mzMeanError_(0), mzStdDevError_(0), intMeanError_(0), 
+    msAccuracy_(0), msBinSize_(0.0), mzMeanError_(0), mzStdDevError_(0), intMeanError_(0),
     intStdDevError_(0), maxMapMZ_(0.0), minMapMZ_(0.0), mean_scaling_(0.0), ion_count_(0),
     allowedMods_(), current_feature_(), features_(),distortion_(0.0),symmetry_up_(-100.0),symmetry_down_(100.0),
     changed_scans_(), allow_overlaps_(1)
@@ -51,7 +51,7 @@ namespace OpenMS{
     // Column settings
     defaults_.setValue("total_gradient_time",2000.0,"the duration (in seconds) of the gradient");
     defaults_.setValue("rt_sampling",2.0,"Time interval [s] between consecutive scans");
-    
+
     // MS instrument settings
     defaults_.setValue("ion_model",1,"Ionization model (0=SIMPLE, 1=ESI)");
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
@@ -60,9 +60,9 @@ namespace OpenMS{
 
     defaults_.setValue("mz_upperlimit",2500.0,"Upper m/z detecter limit.");
     defaults_.setValue("mz_lowerlimit",200.0,"Lower m/z detecter limit.");
-    
+
     defaults_.setValue("allow_overlaps",1,"Disables simulation of overlapping signals.");
-    
+
     // noise params
     // m/z error
     defaults_.setValue("mz_error_mean",0.0,"Average systematic m/z error (Da)");
@@ -75,28 +75,28 @@ namespace OpenMS{
     defaults_.setValue("noise_int_mean",50.0,"Shot noise intensity mean.");
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
-    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");			
+    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");
     // contaminants
     defaults_.setValue("perc_contaminants",10.0,"Percentage of chemical contaminants");
     // posttranslational modifications
     defaults_.setValue("ptms_on",0,"Modeling of posttranslational modifications (0 = disabled) ");
-    // baseline	
+    // baseline
     defaults_.setValue("baseline_scaling",0.0,"Scale of baseline (zero disables baseline simulation)");
     // column condition
     defaults_.setValue("column_condition","medium","LC condition: good | medium | poor");
 
     // random seed (advanced paramter?)
     defaults_.setValue("random_seed",0,"Number used to initialize the random number generator, for reproducible results (0 = automatic)" /*,true*/);
-    
-    defaultsToParam_();	
-    
+
+    defaultsToParam_();
+
     // initialize random generator
     gsl_rng_default_seed = time(0);
     rand_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
-    
+
     // read chemical modifications
     readFromModFile_();
-    
+
   }
 
   LCMSSim::~LCMSSim()
@@ -115,7 +115,7 @@ namespace OpenMS{
   LCMSSim& LCMSSim::operator = (const LCMSSim& source)
   {
     if (&source == this) return *this;
-    
+
     setParameters( source.getParameters() );
     updateMembers_();
 
@@ -137,7 +137,7 @@ namespace OpenMS{
     vector<String> parts(5);
     String line;
     char delimiter = ' ';
-    
+
     while (getline(in,line,'\n'))
     {
       line.trim();
@@ -153,18 +153,18 @@ namespace OpenMS{
       {
         delimiter = ' ';
       }
-      
+
       line.split(delimiter,parts);
-    
+
       String res = parts[1];
       vector<String> residues;
       res.split(',',residues);
-      
+
       PTM ptm;
       ptm.name_         = parts[0];
       ptm.abundance_ = parts[2].toDouble();
-      ptm.formula_      = parts[3];		
-      
+      ptm.formula_      = parts[3];
+
       // positive or negative shift?
       if (parts[4] == "+")
       {
@@ -177,7 +177,7 @@ namespace OpenMS{
 
       for (UInt i=0;i<residues.size();++i)
       {
-        allowedMods_.insert(make_pair(residues[i],ptm));		
+        allowedMods_.insert(make_pair(residues[i],ptm));
       }
     }
   }
@@ -196,25 +196,25 @@ namespace OpenMS{
     vector<String> strings(2);
     String line;
     char delimiter = '\t'; // Metabolite names can contain spaces, so we only allow tab-separation'
-    
+
     while (getline(in,line,'\n'))
     {
       line.trim();
 
-      if ( line.empty() ||  line.hasPrefix("#") ) 
+      if ( line.empty() ||  line.hasPrefix("#") )
       {
         continue;
       }
-      
+
       line.split(delimiter,strings);
-    
+
       if (strings.size() != 2)
       {
         cout << "Parse error in " << line << endl;
         continue;
       }
 
-      try 
+      try
       {
         vef.push_back(EmpiricalFormula(strings[1]));
       }
@@ -231,55 +231,55 @@ namespace OpenMS{
   {
     if (RTModelFile_ == "none")
     {
-      // User didn't set a RT model file, so we assume he/she doesn't 
+      // User didn't set a RT model file, so we assume he/she doesn't
       // want RT prediction at all. All peptides are going to elute
       // in the middile of the map.
       CoordinateType mid_rt = 0.5;
-      
+
       cout << "RT prediction disabled." << endl;
       cout << "All peptides eluting at: " << mid_rt << endl;
-          
-      for (PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin(); 
+
+      for (PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin();
             seq_it != sample_.getPeptideSequences().end();
             ++seq_it)
       {
         rtTable.insert( make_pair(mid_rt, seq_it) );
       }
-      
+
       return;
     }
     else if(RTModelFile_ == "1D")
     {
       CoordinateType no_rt = 0.0;
-      
+
       cout << "LC step was disabled." << endl;
       cout << "All peptides eluting at instantly " << endl;
-          
-      for (PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin(); 
+
+      for (PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin();
             seq_it != sample_.getPeptideSequences().end();
             ++seq_it)
       {
         rtTable.insert( make_pair(no_rt, seq_it) );
       }
-      
-      return;  
+
+      return;
     }
 
 
-    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY"; 
+    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
     LibSVMEncoder encoder;
     vector<DoubleReal> predicted_retention_times;
-    
+
     svm_problem* training_data = NULL;
     svm_problem* prediction_data = NULL;
-    
+
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
-    
+
     cout << "Predicting RT..    " << endl;
-    
+
     // not that elegant...
     vector< String > peptidesVector;
 
@@ -289,91 +289,91 @@ namespace OpenMS{
     {
       peptidesVector.push_back(seq_it->first);
     }
-    
-    svm.loadModel(RTModelFile_); 
-    
+
+    svm.loadModel(RTModelFile_);
+
      // load additional parameters
     if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
     {
       String add_paramfile = RTModelFile_ + "_additional_parameters";
-      if (! File::readable( add_paramfile ) ) 
+      if (! File::readable( add_paramfile ) )
       {
         cout << "SVM parameter file " << add_paramfile << " not found or not readable" << endl;
         cout << "Aborting RT prediction!" << endl;
         //TODO where is the "return;" ?
         //TODO why is rtTable not filled with default values first?! (empty rtTable leads to empty map?! -->  see LCMSSim::run())
       }
-      
+
       Param additional_parameters;
       additional_parameters.load(add_paramfile);
-      
+
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
           && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
       {
          cout << "No border length defined in additional parameters file. Aborting RT prediction!" << endl;
-         return;                      
+         return;
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
           && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
       {
         cout << "No k-mer length defined in additional parameters file. Aborting RT prediction!" << endl;
-        return;                      
+        return;
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
-     
+
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
           && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
       {
         cout << "No sigma defined in additional parameters file. Aborting RT prediction!" << endl;
-        return;                      
+        return;
       }
-    
+
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
-    }               
-    
+    }
+
     svm.setParameter(BORDER_LENGTH, (Int) border_length);
     svm.setParameter(SIGMA, sigma);
-    
-    // Encoding test data   
+
+    // Encoding test data
     vector<DoubleReal> rts;
     rts.resize(peptidesVector.size(), 0);
-    prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, rts, k_mer_length, allowed_amino_acid_characters, border_length);              
-    
-    // loading training data 
+    prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, rts, k_mer_length, allowed_amino_acid_characters, border_length);
+
+    // loading training data
     String sample_file = RTModelFile_ + "_samples";
-    if (! File::readable( sample_file ) ) 
+    if (! File::readable( sample_file ) )
     {
       cout << "SVM sample file " << sample_file << " not found or not readable" << endl;
       cout << "Aborting RT prediction!" << endl;
     }
     training_data = encoder.loadLibSVMProblem(sample_file);
-    
+
     svm.setTrainingSample(training_data);
     svm.predict(prediction_data, predicted_retention_times);
-    
+
     cout << "Done." << endl;
     delete training_data;
     delete prediction_data;
-    
+
     // Create the retention time table:
     // RT : pointer to peptide sequence : rel. abundance
     for (UInt i = 0; i < peptidesVector.size(); i++)
     {
       PeptideSequences::const_iterator pit = sample_.getPeptideSequences().find( peptidesVector[i] );
-      
+
       // check for rt outlier and rectify
       if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
       else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
-      
+
       rtTable.insert( make_pair( predicted_retention_times[i], pit ) );
     }
-    
+
   #ifdef DEBUG_SIM
     cout << "---------------------------------------------------------" << endl;
     cout << "Content of retention time table:" << endl;
-    for (RTTable::const_iterator rtTableRow = rtTable.begin(); 
-          rtTableRow != rtTable.end(); 
+    for (RTTable::const_iterator rtTableRow = rtTable.begin();
+          rtTableRow != rtTable.end();
           ++rtTableRow)
     {
       cout << rtTableRow->first << ", ";
@@ -390,24 +390,24 @@ namespace OpenMS{
     for (Size i=0;i<aas.size();++i)
     {
       range = allowedMods_.equal_range( aas[i].getOneLetterCode() );
-      
+
       for (ModTableIterator it = range.first; it != range.second; ++it)
       {
         double res = gsl_ran_flat(rand_gen_,0.0,1.0);
-        
+
         if (res < it->second.abundance_)
         {
           // determine direction of shift (pos or negative)
-          if (it->second.shift_) 
+          if (it->second.shift_)
             ef += it->second.formula_;
           else
             ef -= it->second.formula_;
-            
+
           return it->second.abundance_;
         }
-        
+
       }
-      
+
     }
 
     return 0.0;
@@ -436,17 +436,17 @@ namespace OpenMS{
       elutionmodel->setParameters(p);
       elutionmodel->setScalingFactor(scale);
 
-      //---------------------------------------------------------------------- 
-      
+      //----------------------------------------------------------------------
+
       // So far we had randomness in the parameters of the EMG.  Now let us add
       // some random ups and downs within the elution profile.
-      
+
       // Hack away constness :-P   We know what we want.
       ElutionModel::ContainerType &data = const_cast<ElutionModel::ContainerType &>(elutionmodel->getInterpolation().getData());
-      
+
       // Member distortion_ is the logarithm of the maximal factor which can be applied to
       // each point. But note that elution profile is smoothed again afterward.
-      
+
       // first and last entry shall not be changed
       for ( UInt i = 1; i < data.size() - 1; ++i )
       {
@@ -481,14 +481,14 @@ namespace OpenMS{
         }
 
       }
-      pm.setModel(0,elutionmodel);		
+      pm.setModel(0,elutionmodel);
   }
 
   void LCMSSim::addBaseline_()
   {
     double scale = param_.getValue("baseline_scaling");
     if (scale == 0.0) return;
-    
+
     for (UInt i=0;i<exp_.size();++i)
     {
       for (UInt j=0;j<exp_[i].size();++j)
@@ -522,27 +522,27 @@ namespace OpenMS{
   }
 
 
-  void LCMSSim::samplePeptideModel_(const ProductModel<2>& pm, 
+  void LCMSSim::samplePeptideModel_(const ProductModel<2>& pm,
                                                           const CoordinateType mz_start,  const CoordinateType mz_end,
                                                           CoordinateType rt_start,  CoordinateType rt_end )
   {
       // start and end points of the sampling are entirely arbitrary
       // and should be modified at some point
 
-    // (cg) commented this out since it cuts off fronted elution profiles!! 
+    // (cg) commented this out since it cuts off fronted elution profiles!!
     // (ost) Why should this happen ?
-      if (rt_start <=0) rt_start = 0; 
-      
+      if (rt_start <=0) rt_start = 0;
+
       LCMSmap::iterator exp_iter = exp_.RTBegin(rt_start);
-      
+
       IntensityType intensity_sum = 0.0;
       vector< DPosition<2> > points;
-    
+
       #ifdef DEBUG_SIM
       cout << "Sampling at: " << mz_start << " " << mz_end << " ";
       cout << rt_start << " " << rt_end << endl;
       #endif
-        
+
       /// TODO: think of better error checking
       if(exp_iter == exp_.end() )
       {
@@ -551,22 +551,22 @@ namespace OpenMS{
       }
 
       PointType point;
-      
+
       Int start_scan = -5;
       Int end_scan  = -5;
-      
+
       //UInt it = 0;
       //UInt pit = 0;
-          
+
       for (CoordinateType rt = rt_start; rt < rt_end && exp_iter != exp_.end(); rt += rt_sampling_, ++exp_iter)
       {
         for (CoordinateType mz = mz_start; mz < mz_end; mz += msBinSize_)
         {
           //++it;
-          
+
           point.setMZ(mz);
-          point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) ); 
-                  
+          point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
+
           if ( point.getIntensity() > 10.0)
           {
             if (start_scan == -5)
@@ -574,24 +574,24 @@ namespace OpenMS{
               start_scan = exp_iter - exp_.begin();
               //cout << "start_scan: " << start_scan << endl;
             }
-            
+
             if (! changed_scans_.at( exp_iter - exp_.begin() ) )
             {
               changed_scans_.at( exp_iter - exp_.begin() )  = true;
-            }								
+            }
             //++pit;
-            
+
             // add m/z and itensity error (both Gaussian distributed)
             double it_err  = gsl_ran_gaussian(rand_gen_, (point.getIntensity() * intStdDevError_ ) ) + intMeanError_ ;
-            
+
             // this is a quick fix only, should be improved to prevent simulation of negative intensities
             if (it_err < 0.0) it_err = fabs(it_err);
-            
-            point.setIntensity( point.getIntensity( ) + it_err ); 
-            
+
+            point.setIntensity( point.getIntensity( ) + it_err );
+
             double mz_err = gsl_ran_gaussian(rand_gen_, mzStdDevError_) + mzMeanError_;
             point.setMZ( point.getMZ() + mz_err );
-            
+
             intensity_sum += point.getIntensity();
             points.push_back( DPosition<2>( rt, mz) );		// store position
             exp_iter->push_back(point);
@@ -602,7 +602,7 @@ namespace OpenMS{
           }
         }
       }
-      
+
       //cout << "End of sampling: " << it << " vs " << pit << endl;
 
       // do not set this here, because it might include low intensity points and is inconsistent with the convex hull
@@ -610,12 +610,12 @@ namespace OpenMS{
 
 
       //cout << "end_scan: " << end_scan << endl;
-      
+
       // This is a clear misuse of the Feature data structure
       // but at this point, we shouldn't care  ;-)
       current_feature_.setQuality(0,start_scan);
       current_feature_.setQuality(1,end_scan);
-      
+
       current_feature_.setIntensity(intensity_sum);
       // store convex hull
       current_feature_.getConvexHulls().clear();
@@ -634,78 +634,78 @@ namespace OpenMS{
 
     UInt num = (UInt) ceil(perc_contaminants * sample_.getPeptideSequences().size() / 100.0);
     if (num == 0) return;
-    
+
     cout << "Adding contaminations." << endl;
     vector<EmpiricalFormula> vef;
-    
+
     readFromContaminationFile_(vef);
-    
+
     ProductModel<2> pm;
-    
+
     Param p1;
-    Param p2;	
-    
+    Param p2;
+
     IsotopeModelGeneral* mz_model = 0;
     GaussModel* gauss2 = 0;
 
     mean_scaling_ /= ion_count_;
     mean_scaling_ *= 100.0;
-      
+
     if (mean_scaling_ <= noise_it_mean)
     {
       mean_scaling_ = 2 * noise_it_mean;
     }
-    
-    cout << "Adding " << perc_contaminants << " % contaminants = "  << num << endl; 
+
+    cout << "Adding " << perc_contaminants << " % contaminants = "  << num << endl;
     cout << "Intensity scaling: " << mean_scaling_ << endl;
-    
+
     for (UInt i=0;i<num;++i)
     {
       // Choose a contaminant at random
       UInt c_num = (UInt) gsl_ran_flat(rand_gen_, 0, vef.size());
-        
+
       CoordinateType mass = vef[c_num].getMonoWeight();
       if (mass > maxMapMZ_ || mass < minMapMZ_) continue;
-      
+
       // determine rt at random for non-peptdic contaminants (in a reasable range)
-      CoordinateType rt = gsl_ran_flat(rand_gen_, 0, gradientTime_);			
+      CoordinateType rt = gsl_ran_flat(rand_gen_, 0, gradientTime_);
       rt = rt - 400.0 > 0 ? rt : (rt + abs(rt - 400.0) + 50.0);
-      
+
       #ifdef DEBUG_SIM
       cout << "Inserting contaminant at mz " << mass << " and rt " << rt << endl;
       #endif
-      
+
       p1.setValue("interpolation_step",0.0005);
       p1.setValue("statistics:mean",vef[c_num].getAverageWeight()); //  mass
       p1.setValue("isotope:stdev",peak_std_);
       p1.setValue("charge",1);
-      
-      mz_model = new IsotopeModelGeneral();	
+
+      mz_model = new IsotopeModelGeneral();
       mz_model->setParameters(p1);
       mz_model->setSamples(vef[c_num]);
 
       p2.setValue("bounding_box:min",rt-800);
       p2.setValue("bounding_box:max",rt+800);
       p2.setValue("statistics:variance",100.0);
-      p2.setValue("statistics:mean",rt);	
-      gauss2 = new GaussModel();		
+      p2.setValue("statistics:mean",rt);
+      gauss2 = new GaussModel();
       gauss2->setParameters(p2);
       gauss2->setSamples();
-        
+
       pm.setModel(1,mz_model).setModel(0,gauss2);
       pm.setScale(mean_scaling_);
-      
+
       current_feature_.setMZ(mass);
       current_feature_.setRT(rt);
       current_feature_.setCharge(1);
-      
-      samplePeptideModel_(pm, (mass-2.0),(mass+5.0), (rt-200),(rt+500) );		
-      
+
+      samplePeptideModel_(pm, (mass-2.0),(mass+5.0), (rt-200),(rt+500) );
+
       if (current_feature_.getConvexHulls().begin()->getPoints().size() > 0)
       {
         current_feature_.setMetaValue("formula",vef[c_num].getString() );
         contaminants_.push_back(current_feature_);
-      }		
+      }
     }
 
   }
@@ -715,26 +715,26 @@ namespace OpenMS{
 #ifdef DEBUG_SIM
     cout << "Removing duplicates points in changed ....  " << flush;
 #endif
-    
+
     CoordinateType diff_mz = 0.0;
     PointType p;
     bool change = false;
-    
+
     for(UInt i=0;i<exp_.size();++i)
     {
-      // skip tiny or unchanged scans 
+      // skip tiny or unchanged scans
       if (exp_[i].size() <= 50 || ! changed_scans_.at(i) ) continue;
 
       // copy Spectrum and clear Peaks
       LCMSmap::SpectrumType cont = exp_[i];
       cont.clear();
 
-      exp_[i].sortByPosition();		
-      
+      exp_[i].sortByPosition();
+
       for (UInt j=0;j< (exp_[i].size() - 1);++j)
       {
           diff_mz = fabs(exp_[i][ (j+1) ].getMZ() - exp_[i][j].getMZ());
-          
+
           if (diff_mz < msBinSize_)
           {
             change = true;
@@ -742,28 +742,28 @@ namespace OpenMS{
             CoordinateType it1 = exp_[i][ (j+1) ].getIntensity();
             CoordinateType it2 = exp_[i][ (j) ].getIntensity();
             CoordinateType it =  it1 + it2;
-            p.setIntensity( it );	
-                      
+            p.setIntensity( it );
+
             // keep m/z of point with higher intensity
             CoordinateType mz1 = exp_[i][ (j+1) ].getMZ();
             CoordinateType mz2 = exp_[i][ (j) ].getMZ();
             CoordinateType mz = it1 > it2 ? mz1 : mz2;
-            p.setMZ( mz );					
+            p.setMZ( mz );
             cont.push_back(p);
-            
+
             ++j;
           }
           else
           {
-            cont.push_back( exp_[i][j] );					
+            cont.push_back( exp_[i][j] );
           }
         }
-        
+
       // reset flag
       changed_scans_.at(i) = false;
-      
+
       // don't forget the last point
-      if (!change) cont.push_back( exp_[i][ (exp_[i].size() - 1) ] );		
+      if (!change) cont.push_back( exp_[i][ (exp_[i].size() - 1) ] );
       exp_[i] = cont;
     }
 
@@ -777,26 +777,26 @@ namespace OpenMS{
 #ifdef DEBUG_SIM
     cout << "Removing all duplicate points....  " << flush;
 #endif
-    
+
     CoordinateType diff_mz = 0.0;
     PointType p;
-    
+
     UInt count = 0;
     bool change = false;
-    
+
     for(UInt i=0;i<exp_.size();++i)
     {
       exp_[i].sortByPosition();
       if (exp_[i].size() <= 2) continue;
-      
-      // copy Spectrum and remove Peaks .. 
+
+      // copy Spectrum and remove Peaks ..
       LCMSmap::SpectrumType cont = exp_[i];
       cont.clear();
 
       for (UInt j=0;j< (exp_[i].size() - 1);++j)
       {
           diff_mz = fabs(exp_[i][ (j+1) ].getMZ() - exp_[i][j].getMZ());
-          
+
           if (diff_mz < msBinSize_)
           {
             change = true;
@@ -804,25 +804,25 @@ namespace OpenMS{
             CoordinateType it1 = exp_[i][ (j+1) ].getIntensity();
             CoordinateType it2 = exp_[i][ (j) ].getIntensity();
             CoordinateType it =  it1 + it2;
-            p.setIntensity( it );	
-            
+            p.setIntensity( it );
+
             // keep m/z of point with higher intensity
             CoordinateType mz1 = exp_[i][ (j+1) ].getMZ();
             CoordinateType mz2 = exp_[i][ (j) ].getMZ();
             CoordinateType mz =  it1 > it2 ? mz1 : mz2;
             p.setMZ( mz );
             cont.push_back(p);
-            
+
             ++j;
             ++count;
           }
           else
           {
-            cont.push_back( exp_[i][j] );					
+            cont.push_back( exp_[i][j] );
           }
       }
       // don't forget the last one
-      if (!change) cont.push_back( exp_[i][ (exp_[i].size() - 1) ] );		
+      if (!change) cont.push_back( exp_[i][ (exp_[i].size() - 1) ] );
       exp_[i] = cont;
     }
 
@@ -830,14 +830,14 @@ namespace OpenMS{
     cout << "Done " << endl;
     cout << "Count: " << count << endl;
 #endif
-    
+
     return count;
   }
 
 
   void LCMSSim::insertPeptideIon_(const EmpiricalFormula& ef, const CoordinateType rt, const ChargeType c, const double ab)
   {
-    
+
     //TODO somewhere in here we could generate Tandem-MS scans:
     // what do we need for that?
     // - parent RT&mz
@@ -849,73 +849,73 @@ namespace OpenMS{
     //
     // TODO: define Interface
     // TODO: add parameters to this class to handle Tandem spectrum properties and labelling methods
-    
-    
+
+
     ProductModel<2> pm;
     Param p1;
 
     IntensityType scale = ab *1500; // was: 3000
     mean_scaling_ += scale;
-    ++ion_count_;  
-    
+    ++ion_count_;
+
     //TODO use H+ weight instead of 1*c ?
     CoordinateType mz = ( (ef.getMonoWeight() + c) / c) ;
 
     // TODO: this should not be necessary, check...
-    allow_overlaps_ = (unsigned int) param_.getValue("allow_overlaps");	
-    if ( (allow_overlaps_ == 0) && checkForOverlaps_( DPosition<2>(mz,rt) ) ) 
-    { 
-      return;	
+    allow_overlaps_ = (unsigned int) param_.getValue("allow_overlaps");
+    if ( (allow_overlaps_ == 0) && checkForOverlaps_( DPosition<2>(mz,rt) ) )
+    {
+      return;
     }
-    // don't show ions with m/z higher than the MS detection limit 
+    // don't show ions with m/z higher than the MS detection limit
     if (mz > maxMapMZ_ || mz < minMapMZ_) return;
 
 #ifdef DEBUG_SIM
-    cout << "Inserting ion with charge: " << c << " m/z " << mz << " rt " << rt << " rel. abundance " << ab;	
+    cout << "Inserting ion with charge: " << c << " m/z " << mz << " rt " << rt << " rel. abundance " << ab;
     cout << " mass: " << ef.getMonoWeight() << endl;
 #endif
-                  
+
     current_feature_.setMZ(mz);
     current_feature_.setRT(rt);
     current_feature_.setCharge(c);
-    
-    //TODO use H+ weight instead of 1*c ?			
+
+    //TODO use H+ weight instead of 1*c ?
     p1.setValue("statistics:mean",((ef.getAverageWeight()+c)/c));
     p1.setValue("interpolation_step",0.001);
     p1.setValue("isotope:stdev",peak_std_);
     p1.setValue("charge",(int) c);
-          
+
     IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
     isomodel->setSamples(ef);
     isomodel->setParameters(p1);
 
-    chooseElutionProfile_(pm,rt,scale);						
-    pm.setModel(1,isomodel); 	
+    chooseElutionProfile_(pm,rt,scale);
+    pm.setModel(1,isomodel);
     pm.setScale(scale);
-        
+
     // add peptide to global MS map
     // TODO: use flexible boundaries for rt/mz depending on abundance/charge?
-    samplePeptideModel_(pm, (mz-2.5),(mz+5.0), (rt-160.0),(rt+280.0));		
+    samplePeptideModel_(pm, (mz-2.5),(mz+5.0), (rt-160.0),(rt+280.0));
     if (current_feature_.getConvexHulls().begin()->getPoints().size() > 0)
     {
       features_.push_back(current_feature_);
-    }		
-    
+    }
+
     // deletion of 1D models is done in destructor of productmodel, not necessary here
-    //delete isomodel;				
+    //delete isomodel;
 
   }
 
   void LCMSSim::run()
   {
     cout << "Running simulation....  " << flush;
-    
+
     // Predict retention times
     RTTable rtTable;
     predictRT_(rtTable);
-    
+
     IonizationType MStype;
-    
+
     UInt m = param_.getValue("ion_model");
     switch (m)
     {
@@ -931,74 +931,74 @@ namespace OpenMS{
       num_scans += 400;	// add some noise scans
     }
     exp_.resize(num_scans);
-    
+
     double scan_rt = rt_sampling_;
     for (UInt i=0; i<exp_.size(); ++i)
     {
       /// add some noise to retention times
       double n = gsl_ran_gaussian(rand_gen_, 0.05);
       exp_[i].setRT(scan_rt + n);
-      scan_rt += rt_sampling_;	
+      scan_rt += rt_sampling_;
     }
-    
+
     changed_scans_.resize(num_scans,false);
-      
+
     CoordinateType rt  = 0.0;
     CoordinateType ab  = 0.0;
-      
+
     // rt error
     CoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
-    CoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");		
-    
+    CoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");
+
     // Do we model modifications (yes/no) ?
     UInt ptms_on = (UInt)	param_.getValue("ptms_on");
 
     setLogType(CMD);
     startProgress(0, rtTable.size() , "simulation");
     UInt c = 0;
-    
+
     // To convert AASequence to String
     stringstream str;
     // The peptde
     AASequence aas;
     // Relative ion abundances per charge state
-    vector<double> charges;						
-    
+    vector<double> charges;
+
     EmpiricalFormula ef;
     EmpiricalFormula ef_mod;
-      
-    for (RTTable::iterator cit = rtTable.begin();  
-          cit != rtTable.end(); 
+
+    for (RTTable::iterator cit = rtTable.begin();
+          cit != rtTable.end();
           ++cit)
-      {	
+      {
         aas = ( (cit->second)->first );
         ab =  (cit->second)->second;								// peptide abundance
         rt = 400.0 + cit->first * gradientTime_; 		// rescale retention time
-                  
+
         // class AASequence does not have toString() method
         str << aas;
         // peptide sequence as string
         String aaseq_str = str.str();
         str.str("");
-            
+
         setProgress(++c);
-        
-        if (c > 200 && (c % 20 == 0)) 
-        {	
+
+        if (c > 200 && (c % 20 == 0))
+        {
           removeDuplicatePoints_();
-        }						
-        
+        }
+
         switch (MStype)
         {
           case SIMPLE:
               // just one charge state (for debugging)
             charges.resize(2,1.0);
             break;
-          
+
           case ESI:
-            // we assume that the charge state for a peptide follows a Binomial distribution 
+            // we assume that the charge state for a peptide follows a Binomial distribution
             // TODO: think of better model
-            UInt bas_c = countBasicResidues_(aas);			
+            UInt bas_c = countBasicResidues_(aas);
             charges.resize((bas_c+1),0);
             for (UInt i = 0; i<ab;++i)
             {
@@ -1011,65 +1011,65 @@ namespace OpenMS{
             }
             break;
         }
-        
-        // create LC-MS signal for each peptide ion			
+
+        // create LC-MS signal for each peptide ion
         // starting at c=1 (c=0 wouldnt show up in a spectrum)
-        
+
         // rt error is independent of charge state
         // rt error is only modeled if we have a rt model
         CoordinateType rt_error = 0.0;
         if (RTModelFile_ != "none")
-        { 
+        {
            rt_error = gsl_ran_gaussian(rand_gen_, rt_shift_stddev) + rt_shift_mean;
         }
         for (UInt c=1;c<charges.size();++c)
         {
           if (charges[c] == 0) continue;
-                
+
           // normalize relative ion abundances
-          //charges[c] /= ab;					
+          //charges[c] /= ab;
           ef = aas.getFormula();
-        
+
           // retrieve abundance of modified peptide and create a second ion
           ef_mod = ef;
           double ab_mod = sampleModifications_(aas,ef_mod);
-                
+
           if (ab_mod != 0.0 && ptms_on)
           {
 #ifdef DEBUG_SIM
-            cout << "Creating modified ion ! abundance : " << ab_mod;		
-            cout << "charge : " << c << endl;	
-#endif	
+            cout << "Creating modified ion ! abundance : " << ab_mod;
+            cout << "charge : " << c << endl;
+#endif
             current_feature_.setMetaValue("sequence",aaseq_str);
             insertPeptideIon_(ef_mod,( rt+rt_error),c,(charges[c]*ab_mod));
             // set number of remaining "normal" instances
-            charges[c] *= (1-ab_mod); 
+            charges[c] *= (1-ab_mod);
           }
 #ifdef DEBUG_SIM
-          cout << "Creating ion ! abundance : " << charges[c] << endl;		
+          cout << "Creating ion ! abundance : " << charges[c] << endl;
           cout << "charge : " << c << endl;
-#endif	
+#endif
           current_feature_.setMetaValue("sequence",aaseq_str);
           insertPeptideIon_(ef,(rt+rt_error),c,charges[c]);
         }
-        charges.clear();		
+        charges.clear();
       }
-      
-      endProgress(); 
-      
+
+      endProgress();
+
       addContaminants_();
       addShotNoise_();
-          
+
       UInt count = 0;
       do
       {
         count = removeAllDuplicatePoints_();
       } while (count != 0);
-    
-      addBaseline_();		
-      
+
+      addBaseline_();
+
       //cout << "Done." << endl;
-          
+
   } // end of run()
 
 
@@ -1077,63 +1077,63 @@ namespace OpenMS{
   {
     // we model the amount of (background) noise as Poisson process
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
-    // distribution. Noise intensity is assumed to be Gaussian-distributed. 
-    
+    // distribution. Noise intensity is assumed to be Gaussian-distributed.
+
     double rate       = param_.getValue("noise_rate");
     double it_mean = param_.getValue("noise_int_mean");
-    
+
     const UInt num_intervals = 100;
     CoordinateType interval_size = (maxMapMZ_ - minMapMZ_) / num_intervals;
     PointType point;
 
-    cout << "Adding shot noise to spectra...." << endl; 
+    cout << "Adding shot noise to spectra...." << endl;
     cout << "Interval size: "  << interval_size << " poisson rate: " << rate << endl;
-    
+
     for (UInt i=0;i<exp_.size();++i)
     {
-      
+
       for (UInt j=0;j<num_intervals;++j)
       {
         UInt counts = gsl_ran_poisson ( rand_gen_, rate);
         CoordinateType mz_lw = j * interval_size + minMapMZ_;
         CoordinateType mz_up = (j+1) * interval_size + minMapMZ_;
-        
+
         for (UInt c=0; c<counts;++c)
         {
-            CoordinateType mz  = gsl_ran_flat(rand_gen_, mz_lw, mz_up );	
+            CoordinateType mz  = gsl_ran_flat(rand_gen_, mz_lw, mz_up );
             CoordinateType it = gsl_ran_exponential(rand_gen_,it_mean);
             point.setIntensity(it);
             point.setMZ(mz);
             exp_[i].push_back(point);
         }
-          
-      } 
+
+      }
     } // end of each scan
-    
+
     exp_.updateRanges();
-    
+
   }
 
   // Export spectrum as MzData file
-  void LCMSSim::exportMzData(const String& filename) 
+  void LCMSSim::exportMzData(const String& filename)
   {
     MzDataFile().store(filename, exp_);
   }
 
-  void LCMSSim::exportFeatureMap(const String& filename) 
+  void LCMSSim::exportFeatureMap(const String& filename)
   {
     // write peptide lists
-    
-    UInt i = filename.rfind(".");
+
+    Size i = filename.rfind(".");
     String xml_out = filename;
     String txt_out = filename;
     xml_out.replace(i,xml_out.size(),"_feature_list.featureXML");
     txt_out.replace(i,txt_out.size(),"_feature_list.txt");
 
     FeatureXMLFile().store(xml_out, features_);
-    
+
     // text output
-    ofstream out( txt_out.c_str() );	
+    ofstream out( txt_out.c_str() );
     // write header
     DateTime dt;
     String t; String d;
@@ -1141,7 +1141,7 @@ namespace OpenMS{
     t = dt.getTime();
     d = dt.getDate();
     out << "# " << d << " " << t << endl;
-    
+
     for (FeatureMap< >::const_iterator citer = features_.begin();
           citer != features_.end();
           ++citer)
@@ -1156,7 +1156,7 @@ namespace OpenMS{
       out << endl;
     }
     out.close();
-    
+
     if (contaminants_.size() > 0)
     {
       // write metabolite lists
@@ -1166,12 +1166,12 @@ namespace OpenMS{
       txt_out.replace(i,txt_out.size(),"_contaminant_list.txt");
 
       FeatureXMLFile().store(xml_out, contaminants_);
-    
+
       // text output
-      out.open( txt_out.c_str() );	
+      out.open( txt_out.c_str() );
       // write header
       out << "# " << d << " " << t << endl;
-    
+
       for (FeatureMap< >::const_iterator citer = contaminants_.begin();
             citer != contaminants_.end();
             ++citer)
@@ -1197,22 +1197,22 @@ namespace OpenMS{
       double tmp    =  param_.getValue("peak_fwhm");
       peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
       msBinSize_      = param_.getValue("mz_sampling");
-      
+
       maxMapMZ_    = param_.getValue("mz_upperlimit");
       minMapMZ_     = param_.getValue("mz_lowerlimit");
-      
+
       mzMeanError_   = param_.getValue("mz_error_mean");
       mzStdDevError_ = param_.getValue("mz_error_stddev");
 
       intMeanError_   = param_.getValue("int_error_mean");
       intStdDevError_ = param_.getValue("int_error_stddev");
-        
+
       String s             = param_.getValue("column_condition");
-      
+
       allow_overlaps_ = (unsigned int) param_.getValue("allow_overlaps");
-          
+
       if (s  == "poor")
-      {	
+      {
         distortion_ = 2.0;
         symmetry_down_ = -100;
         symmetry_up_ = +100;
@@ -1225,16 +1225,16 @@ namespace OpenMS{
       }
       else	// default is "good"
       {
-        distortion_ = 0.0;	
+        distortion_ = 0.0;
         symmetry_down_ = -15;
         symmetry_up_     = +15;
       }
       unsigned random_seed = (unsigned) param_.getValue("random_seed");
-      
+
       #ifdef DEBUG_SIM
       std::cout << "random_seed: " << random_seed << std::endl;
       #endif
-      
+
       if ( random_seed != 0 )
       {
         gsl_rng_set(rand_gen_,random_seed);
@@ -1251,12 +1251,12 @@ namespace OpenMS{
     {
       double mz_dist = fabs(cit->getMZ() - pos[1]);
       double rt_dist = fabs(cit->getRT() - pos[0]);
-      
+
       if (mz_dist < 6.0 && rt_dist < 350.0 )
-        return true;		
-      
+        return true;
+
     }
-    
+
     return false;
   }
 
@@ -1266,7 +1266,7 @@ namespace OpenMS{
     tmp.push_back("good");
     tmp.push_back("medium");
     tmp.push_back("poor");
-    return tmp;	
+    return tmp;
   }
 
   void LCMSSim::setRTModelFile(String RTModelFile)

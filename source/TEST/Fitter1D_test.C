@@ -71,9 +71,6 @@ class TestModel : public Fitter1D
 
   QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
   {
-    UInt N = 0;
-    N = range.size();
-
     DoubleReal center = 0.0;
     center = model->getCenter();
 

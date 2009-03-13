@@ -115,14 +115,14 @@ namespace OpenMS
 		}
 
 		// "stretch" the averagine isotope distribution
-		UInt isotopes_exact_size = isotopes_exact.size();
-		isotopes_exact.resize(UInt( (isotopes_exact_size-1)
+		Size isotopes_exact_size = isotopes_exact.size();
+		isotopes_exact.resize(Size( (isotopes_exact_size-1)
 																*isotope_distance_/interpolation_step_+1.6)); // round up a bit more
 
-		for ( UInt i = isotopes_exact_size-1; i; --i )
+		for ( Size i = isotopes_exact_size-1; i; --i )
 			// we don't need to move the 0-th entry
 		{
-			isotopes_exact [UInt(CoordinateType(i)*
+			isotopes_exact [Size(CoordinateType(i)*
 													 isotope_distance_/interpolation_step_/charge_+0.5)]
 				=	isotopes_exact [ i ];
 			isotopes_exact [ i ] = 0;

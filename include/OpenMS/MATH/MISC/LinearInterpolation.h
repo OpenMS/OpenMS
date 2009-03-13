@@ -113,7 +113,7 @@ namespace OpenMS
 			{
 				if (&arg == this)
 					return *this;
-				
+
 				scale_   = arg.scale_;
 				offset_  = arg.offset_;
 				inside_  = arg.inside_;
@@ -132,7 +132,7 @@ namespace OpenMS
 			//@{
 
 			/// Returns the interpolated value.
-			ValueType value ( KeyType arg_pos ) const 
+			ValueType value ( KeyType arg_pos ) const
 			{
 
 				typedef typename container_type::difference_type DiffType;
@@ -182,7 +182,7 @@ namespace OpenMS
 			/**@brief Performs linear resampling.  The arg_value is split up and
 			added to the data points around arg_pos.
 			*/
-			void addValue ( KeyType arg_pos, ValueType arg_value ) 
+			void addValue ( KeyType arg_pos, ValueType arg_value )
 			{
 
 				typedef typename container_type::difference_type DiffType;
@@ -236,14 +236,14 @@ namespace OpenMS
 
 			Please drop me (= the maintainer) a message if you are using this.
 			*/
-			ValueType derivative ( KeyType arg_pos ) const 
+			ValueType derivative ( KeyType arg_pos ) const
 			{
 
 				// apply the key transformation
 				KeyType const pos = key2index(arg_pos);
 
-				int const size_ = data_.size();
-				int const left = int(pos+0.5); // rounds towards zero
+				SignedSize const size_ = data_.size();
+				SignedSize const left = int(pos+0.5); // rounds towards zero
 
 				if ( left < 0 ) // quite small
 				{
@@ -305,13 +305,13 @@ namespace OpenMS
 			//@{
 
 			/// Returns the internal random access container from which interpolated values are being sampled.
-			ContainerType & getData () 
+			ContainerType & getData ()
 			{
 				return data_;
 			}
 
 			/// Returns the internal random access container from which interpolated values are being sampled.
-			ContainerType const & getData () const 
+			ContainerType const & getData () const
 			{
 				return data_;
 			}
@@ -322,14 +322,14 @@ namespace OpenMS
 			SourceContainer must be assignable to ContainerType.
 			*/
 			template < typename SourceContainer >
-			void setData ( SourceContainer const & data ) 
+			void setData ( SourceContainer const & data )
 			{
 				data_ = data;
 			}
 
 
 			/// Returns \c true if getData() is empty.
-			bool empty () const 
+			bool empty () const
 			{
 				return data_.empty();
 			}
@@ -342,7 +342,7 @@ namespace OpenMS
 			//@{
 
 			/// The transformation from "outside" to "inside" coordinates.
-			KeyType key2index ( KeyType pos ) const 
+			KeyType key2index ( KeyType pos ) const
 			{
 				if ( scale_ )
 				{
@@ -357,7 +357,7 @@ namespace OpenMS
 			}
 
 			/// The transformation from "inside" to "outside" coordinates.
-			KeyType index2key ( KeyType pos ) const 
+			KeyType index2key ( KeyType pos ) const
 			{
 				pos *= scale_;
 				pos += offset_;
@@ -365,7 +365,7 @@ namespace OpenMS
 			}
 
 			/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
-			KeyType const & getScale () const 
+			KeyType const & getScale () const
 			{
 				return scale_;
 			}
@@ -375,13 +375,13 @@ namespace OpenMS
 			<b>Note:</b> Using this invalidates the inside and outside reference
 			points.
 			*/
-			void setScale ( KeyType const & scale ) 
+			void setScale ( KeyType const & scale )
 			{
 				scale_ = scale;
 			}
 
 			/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
-			KeyType const & getOffset () const 
+			KeyType const & getOffset () const
 			{
 				return offset_;
 			}
@@ -392,7 +392,7 @@ namespace OpenMS
 			<b>Note:</b> Using this invalidates the inside and outside reference
 			points.
 			*/
-			void setOffset ( KeyType const & offset ) 
+			void setOffset ( KeyType const & offset )
 			{
 				offset_ = offset;
 			}
@@ -440,27 +440,27 @@ namespace OpenMS
 			}
 
 			/// Accessor.  See setMapping().
-			KeyType const & getInsideReferencePoint () const 
+			KeyType const & getInsideReferencePoint () const
 			{
 				return inside_;
 			}
 
 			/// Accessor.  See setMapping().
-			KeyType const & getOutsideReferencePoint () const 
+			KeyType const & getOutsideReferencePoint () const
 			{
 				return outside_;
 			}
 
 			/// Lower boundary of the support, in "outside" coordinates.
-			KeyType supportMin() const 
+			KeyType supportMin() const
 			{
-				return index2key ( empty() ? 0 : -1 );
+				return index2key ( KeyType( empty() ? 0 : -1 ) );
 			}
 
 			/// Upper boundary of the support, in "outside" coordinates.
-			KeyType supportMax() const 
+			KeyType supportMax() const
 			{
-				return index2key ( data_.size() );
+				return index2key ( KeyType( data_.size() ) );
 			}
 
 			//@}

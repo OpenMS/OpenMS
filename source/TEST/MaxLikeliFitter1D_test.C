@@ -71,22 +71,16 @@ class TestModel : public MaxLikeliFitter1D
      MaxLikeliFitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*& model)
   {
-    UInt N = 0;
-    N = range.size();
-
     DoubleReal center = 0.0;
     center = model->getCenter();
 
     return 1.0;
   }
 
-  QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
+  QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& /*set*/ , const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
   {
-    UInt N = 0;
-    N = set.size();
-
     DoubleReal center = 0.0;
     center = model->getCenter();
 

@@ -110,7 +110,7 @@ START_SECTION((BasicStatistics()))
 
 	float fvector_coord[195];
 
-	for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
+	for ( int i = 0; i < 195; fvector_coord[i] = 1000.f - i, ++i ) ;
 
 	BasicStatistics < double > stats2;
 	stats2.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
@@ -199,7 +199,7 @@ START_SECTION((template <typename ProbabilityIterator, typename CoordinateIterat
 	TEST_REAL_SIMILAR( stats.variance(), 0. );
 
 	float fvector_coord[195];
-	for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
+	for ( int i = 0; i < 195; fvector_coord[i] = 1000.f - i, ++i ) ;
 
 	stats.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 

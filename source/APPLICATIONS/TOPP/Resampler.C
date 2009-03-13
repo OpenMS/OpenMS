@@ -45,12 +45,12 @@ using namespace std;
 
 /**
 	@page TOPP_Resampler Resampler
-	
+
 	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
-	
+
 	When writing an mzData file, all spectra are resampled with a new sampling
 	rate.  The number of spectra does not change.
-	
+
 	When writing an image, the input is first resampled into a matrix using
 	bilinear forward resampling.  Then the content of the matrix is written to
 	a PNG file.  The output has a uniform spacing in both dimensions regardless
@@ -85,7 +85,7 @@ class TOPPResampler
 		addText_("Parameters affecting the MzData file:");
 		registerDoubleOption_("sampling_rate", "<rate>", 0.1, "New sampling rate in m/z dimension", false);
 		setMinFloat_("sampling_rate",0.0);
-		
+
 		addEmptyLine_();
 		addText_("Parameters affecting the PNG file:");
 		registerIntOption_("width", "<number>", 1000, "Number of pixels in m/z dimension.\nIf 0, for one pixel per Th.", false);
@@ -113,15 +113,15 @@ class TOPPResampler
 		MzDataFile f;
 		f.setLogType(log_type_);
 		f.load(in, exp);
-		
+
 		//----------------------------------------------------------------
 		// PNG image
 		//----------------------------------------------------------------
 		if (getFlag_("image"))
 		{
 			exp.updateRanges(1);
-	    
-			Int rows = getIntOption_("height");
+
+			SignedSize rows = getIntOption_("height");
 	    if (rows == 0)
 	    {
 	      rows = exp.size();
@@ -131,8 +131,8 @@ class TOPPResampler
 				writeLog_("Error: Zero rows is not possible.");
 				return ILLEGAL_PARAMETERS;
 			}
-	
-			Int cols = getIntOption_("width");
+
+	    SignedSize cols = getIntOption_("width");
 	    if (cols == 0)
 	    {
 	      cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
@@ -142,7 +142,7 @@ class TOPPResampler
 				writeLog_("Error: Zero columns is not possible.");
 				return ILLEGAL_PARAMETERS;
 			}
-			
+
 			//----------------------------------------------------------------
 			//Do the actual resampling
 			BilinearInterpolation<DoubleReal, DoubleReal> bilip;
@@ -151,7 +151,7 @@ class TOPPResampler
 			{
 				bilip.setMapping_0( 0, exp.getMaxRT(), rows-1, exp.getMinRT() ); // scans run bottom-up
 				bilip.setMapping_1( 0, exp.getMinMZ(), cols-1, exp.getMaxMZ() ); // peaks run left-right
-		
+
 				for ( MSExperiment<>::Iterator spec_iter = exp.begin(); spec_iter != exp.end(); ++spec_iter)
 				{
 					if (spec_iter->getMSLevel()!=1) continue;
@@ -162,10 +162,10 @@ class TOPPResampler
 				}
 			}
 			else // transpose
-			{ 
+			{
 				bilip.setMapping_0( 0, exp.getMaxMZ(), rows-1, exp.getMinMZ() ); // spectra run bottom-up
 				bilip.setMapping_1( 0, exp.getMinRT(), cols-1, exp.getMaxRT() ); // scans run left-right
-	
+
 				for ( MSExperiment<>::Iterator spec_iter = exp.begin(); spec_iter != exp.end(); ++spec_iter )
 				{
 					if (spec_iter->getMSLevel()!=1) continue;
@@ -175,7 +175,7 @@ class TOPPResampler
 					}
 				}
 			}
-			
+
 			//----------------------------------------------------------------
 			//create and store image
 			UInt scans = bilip.getData().sizePair().first;
@@ -191,10 +191,10 @@ class TOPPResampler
 			{
 				gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
 			}
-			      
+
       bool use_log = getFlag_("log_intensity");
       writeDebug_("log_intensity: " + String(use_log), 1);
-			
+
       QImage image(peaks, scans, QImage::Format_RGB32);
 			DoubleReal factor = getDoubleOption_("maxintensity");
 			if ( factor == 0 )
@@ -204,7 +204,7 @@ class TOPPResampler
       // logarithmize maxintensity as well
       if (use_log)
       {
-        factor = std::log(factor); 
+        factor = std::log(factor);
       }
 			factor /= 100.0;
       // apply logarithm to intensities
@@ -236,12 +236,12 @@ class TOPPResampler
 		else
 		{
 			DoubleReal sampling_rate = getDoubleOption_("sampling_rate");
-			
+
 			LinearResampler lin_resampler;
 			Param resampler_param;
 			resampler_param.setValue("spacing",sampling_rate);
 			lin_resampler.setParameters(resampler_param);
-	
+
       // resample every scan
       for (Size i = 0; i < exp.size(); ++i)
       {
@@ -253,7 +253,7 @@ class TOPPResampler
 			f.setLogType(log_type_);
 			f.store(out, exp);
 		}
-		
+
 		return EXECUTION_OK;
 	}
 

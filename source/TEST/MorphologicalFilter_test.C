@@ -43,7 +43,7 @@ namespace OpenMS
 	{
 		static void erosion( const std::vector<ValueT> & input, std::vector<ValueT> & output, const UInt struc_elem_length )
 		{
-			const Int size = input.size();
+			const Int size = Int(input.size());
 			const Int struc_elem_half = struc_elem_length / 2; // yes integer division
 			output.clear();
 			output.resize(size);
@@ -63,7 +63,7 @@ namespace OpenMS
 
 		static void dilation( const std::vector<ValueT> & input, std::vector<ValueT> & output, const UInt struc_elem_length )
 		{
-			const Int size = input.size();
+      const Int size = Int(input.size());
 			const Int struc_elem_half = struc_elem_length / 2; // yes integer division
 			output.clear();
 			output.resize(size);
@@ -83,7 +83,7 @@ namespace OpenMS
 
 		static void gradient( const std::vector<ValueT> & input, std::vector<ValueT> & output, const UInt struc_elem_length )
 		{
-			const Int size = input.size();
+      const Int size = Int(input.size());
 			output.clear();
 			output.resize(size);
 			std::vector<ValueT> dilation;
@@ -99,7 +99,7 @@ namespace OpenMS
 
 		static void tophat( const std::vector<ValueT> & input, std::vector<ValueT> & output, const UInt struc_elem_length )
 		{
-			const Int size = input.size();
+      const Int size = Int(input.size());
 			std::vector<ValueT> opening;
 			erosion(input,output,struc_elem_length);
 			dilation(output,opening,struc_elem_length);
@@ -112,7 +112,7 @@ namespace OpenMS
 
 		static void bothat( const std::vector<ValueT> & input, std::vector<ValueT> & output, const UInt struc_elem_length )
 		{
-			const Int size = input.size();
+      const Int size = Int(input.size());
 			std::vector<ValueT> closing;
 			dilation(input,output,struc_elem_length);
 			erosion(output,closing,struc_elem_length);
@@ -281,12 +281,12 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				
+
 				Param parameters;
 				parameters.setValue("method","erosion");
 				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 				mf.setParameters(parameters);
-				
+
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
@@ -308,12 +308,12 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				filtered.resize(data_size);
 				simple_filtered_1.clear();
 				simple_filtered_1.resize(data_size);
-				
+
 				Param parameters;
 				parameters.setValue("method","dilation");
 				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 				mf.setParameters(parameters);
-				
+
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
@@ -392,7 +392,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				parameters.setValue("method","dilation");
 				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 				mf.setParameters(parameters);
-				
+
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
 												 intensityIteratorWrapper(filtered.begin())
@@ -449,7 +449,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			parameters.setValue("method","erosion");
 			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 			mf.setParameters(parameters);
-				
+
 			mf.filterRange( intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
@@ -573,7 +573,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			parameters.setValue("method","closing");
 			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 			mf.setParameters(parameters);
-			
+
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
@@ -593,7 +593,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			parameters.setValue("method","bothat");
 			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
 			mf.setParameters(parameters);
-			
+
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
 											 intensityIteratorWrapper(filtered.begin())
@@ -624,13 +624,13 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
 	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
 	{
 		MSSpectrum<Peak1D> filtered(raw);
-		
+
 		Param parameters;
 		parameters.setValue("method","dilation");
 		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
 		parameters.setValue("struc_elem_unit","Thomson");
 		mf.setParameters(parameters);
-		
+
 		mf.filter(filtered);
 		UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
 		if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
@@ -642,7 +642,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
 			TEST_REAL_SIMILAR(filtered[i].getIntensity(),dilation[i]);
 		}
 	}
-}   
+}
 END_SECTION
 
 START_SECTION((template <typename PeakType , typename AllocType > void filterExperiment(MSExperiment< PeakType, AllocType > &ms_exp)))
@@ -669,7 +669,7 @@ START_SECTION((template <typename PeakType , typename AllocType > void filterExp
 		parameters.setValue("method","dilation");
 		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
 		parameters.setValue("struc_elem_unit","Thomson");
-		
+
 		mf.setParameters(parameters);
 
 		mf.filterExperiment( mse_raw );
@@ -689,7 +689,7 @@ START_SECTION((template <typename PeakType , typename AllocType > void filterExp
 		}
 	}
 
-}   
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

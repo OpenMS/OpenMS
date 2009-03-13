@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -159,26 +159,26 @@ namespace OpenMS
 	void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
 	{
 		const ElementDB* db = ElementDB::getInstance();
-			
+
 		vector<String> names;
 		names.push_back("C");
 		names.push_back("H");
 		names.push_back("N");
 		names.push_back("O");
 		names.push_back("S");
-		
-		//Averagine element count divided by averagine weight 
+
+		//Averagine element count divided by averagine weight
 		vector<DoubleReal> factors;
 		factors.push_back(4.9384/111.1254);
 		factors.push_back(7.7583/111.1254);
 		factors.push_back(1.3577/111.1254);
 		factors.push_back(1.4773/111.1254);
 		factors.push_back(0.0417/111.1254);
-		
+
 		//initialize distribution
 		distribution_.clear();
 		distribution_.push_back(make_pair(0u,1.0));
-		
+
 		for (Size i = 0; i != names.size(); ++i)
 		{
 			ContainerType single, conv_dist;
@@ -209,14 +209,14 @@ namespace OpenMS
 			result.clear();
 			return;
 		}
-		
+
 		ContainerType::size_type r_max = left.size() + right.size() - 1;
-		
+
 		if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
 		{
 			r_max = (ContainerType::size_type)max_isotope_;
 		}
-		
+
 		result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
@@ -225,9 +225,9 @@ namespace OpenMS
 
 		// we loop backwards because then the small products tend to come first
 		// (for better numerics)
-		for (int i = left.size() - 1; i >= 0; --i)
+		for (SignedSize i = left.size() - 1; i >= 0; --i)
 		{
-			for (int j = min((int)(r_max - i), (int)right.size()) - 1; j >= 0; --j)
+			for (SignedSize j = min<SignedSize>(r_max - i, right.size()) - 1; j >= 0; --j)
 			{
 				result[i+j].second += left[i].second * right[j].second;
 			}
@@ -236,8 +236,8 @@ namespace OpenMS
 
 	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
 	{
-		/*	
-		// my code 
+		/*
+		// my code
 		ContainerType tmp, tmp_result;
 		tmp.push_back(make_pair<Size, double>(0, 1));
 		for (Size i=0; i!=n; ++i)
@@ -248,24 +248,24 @@ namespace OpenMS
 		swap(tmp, result);
 		*/
 
-		
+
 		// Clemens' code begin
-		if (n == 1) 
-		{ 
-			result = input; 
-			return; 
+		if (n == 1)
+		{
+			result = input;
+			return;
 		}
 
     // find binary logarithm of n
     Size log2n = 0;
-    for (; (1U << log2n) < n; ++log2n) ;
+    for (; (Size(1) << log2n) < n; ++log2n) ;
 
 	  // get started
     if (n & 1)
 		{
     	result = input;
 		}
-    else 
+    else
 		{
       result.clear();
       result.push_back(make_pair<Size, double>(0, 1.0));
@@ -279,14 +279,14 @@ namespace OpenMS
     convolveSquare_(convolution_power, input);
     for (Size i = 1; ; ++i)
     {
-      if (n & (1 << i))
+      if (n & (Size(1) << i))
       {
         convolve_(intermediate, result, convolution_power);
         swap(intermediate, result);
       }
       // check the loop condition
       if (i >= log2n) break;
-			
+
       // prepare next round
       convolveSquare_(intermediate, convolution_power);
       swap(intermediate, convolution_power);
@@ -298,7 +298,7 @@ namespace OpenMS
   {
 	  result.clear();
    	ContainerType::size_type r_max = 2 * input.size() - 1;
-		
+
 		if ((ContainerType::size_type)max_isotope_ != 0 && (ContainerType::size_type)(max_isotope_ + 1) < r_max)
 		{
 			r_max = (ContainerType::size_type)(max_isotope_ + 1);
@@ -312,14 +312,14 @@ namespace OpenMS
 
     // we loop backwards because then the small products tend to come first
     // (for better numerics)
-    for (int i = input.size() - 1; i >= 0; --i) 
+    for (SignedSize i = input.size() - 1; i >= 0; --i)
 		{
-      for (int j = min((int)(r_max - i), (int)input.size()) - 1; j >= 0; --j) 
+      for (SignedSize j = min<SignedSize>(r_max - i, input.size()) - 1; j >= 0; --j)
 			{
         result[i+j].second += input[i].second * input[j].second;
       }
     }
-		
+
     return;
   }
 
@@ -335,7 +335,7 @@ namespace OpenMS
 				sum += it->second;
 			}
 			sum += distribution_.begin()->second;
-			
+
 			for (Iterator it = distribution_.begin(); it != distribution_.end(); ++it)
 			{
 				it->second /= sum;
@@ -343,11 +343,11 @@ namespace OpenMS
 		}
 		return;
 	}
-	
+
 	void IsotopeDistribution::trimRight(DoubleReal cutoff)
 	{
 		ContainerType::reverse_iterator riter = distribution_.rbegin();
-			
+
 		// loop from right to left until an entry is larger than the cutoff
 		for ( ; riter != distribution_.rend(); riter++ )
 		{
@@ -355,7 +355,7 @@ namespace OpenMS
 		}
 		// trim the container
 		distribution_.resize( riter.base() - distribution_.begin() );
-	}	
+	}
 
 	void IsotopeDistribution::trimLeft(DoubleReal cutoff)
 	{

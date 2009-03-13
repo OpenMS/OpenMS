@@ -180,7 +180,7 @@ namespace OpenMS
 			}
 			// print fitting summary
 			{
-				UInt size = this->features_->size();
+				Size size = this->features_->size();
 				std::cout << size << " features were found. " << std::endl;
 
 				// compute corr_mean

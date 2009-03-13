@@ -85,7 +85,7 @@ namespace OpenMS
 			/**@brief Constructors and destructor.
 			*/
 			//@{
-			
+
 			/// Default constructor
 			BilinearInterpolation ()
 				: scale_0_   (1),
@@ -147,13 +147,12 @@ namespace OpenMS
 				KeyType const pos_0 = key2index_0( arg_pos_0 );
 				KeyType const pos_1 = key2index_1( arg_pos_1 );
 
-
 				// ???? should use modf() here!
 
-				int const size_0 = data_.rows();
-				int const lower_0 = int( pos_0 ); // this rounds towards zero
-				int const size_1 = data_.cols();
-				int const lower_1 = int( pos_1 ); // this rounds towards zero
+				SignedSize const size_0 = data_.rows();
+				SignedSize const lower_0 = SignedSize( pos_0 ); // this rounds towards zero
+				SignedSize const size_1 = data_.cols();
+				SignedSize const lower_1 = SignedSize( pos_1 ); // this rounds towards zero
 
 				// small pos_0
 				if ( pos_0 <= 0 )
@@ -193,7 +192,7 @@ namespace OpenMS
 
 						// mediumm pos_1
 						KeyType const factor_1 = pos_1 - KeyType( lower_1 );
-						KeyType const factor_1_complement = 1. - factor_1;
+						KeyType const factor_1_complement = KeyType(1.) - factor_1;
 						return
 							(
 							 data_ ( 0, lower_1 + 1 ) * factor_1 +
@@ -240,7 +239,7 @@ namespace OpenMS
 
 						// mediumm pos_1
 						KeyType const factor_1 = pos_1 - KeyType( lower_1 );
-						KeyType const factor_1_complement = 1. - factor_1;
+						KeyType const factor_1_complement = KeyType(1.) - factor_1;
 						return
 							(
 							 data_ ( lower_0, lower_1 + 1 ) * factor_1 +
@@ -253,7 +252,7 @@ namespace OpenMS
 				// medium pos_0
 				{
 					KeyType const factor_0 = pos_0 - KeyType( lower_0 );
-					KeyType const factor_0_complement = 1. - factor_0;
+					KeyType const factor_0_complement = KeyType(1.) - factor_0;
 
 					// small pos_1
 					if ( pos_1 <= 0 )
@@ -293,7 +292,7 @@ namespace OpenMS
 						}
 					}
 					KeyType const factor_1 = pos_1 - KeyType( lower_1 );
-					KeyType const factor_1_complement = 1. - factor_1;
+					KeyType const factor_1_complement = KeyType(1.) - factor_1;
 
 					// medium pos_0 and medium pos_1 --> "within" the matrix
 					return
@@ -375,9 +374,9 @@ namespace OpenMS
 							else
 							{
 								// medium pos_1
-								KeyType const tmp_prod = arg_value * ( 1 + frac_0 );
+								KeyType const tmp_prod = KeyType( arg_value * ( 1. + frac_0 ) );
 								data_ ( 0, lower_1 + 1 ) += tmp_prod * frac_1;
-								data_ ( 0, lower_1 ) += tmp_prod * ( 1 - frac_1 );
+								data_ ( 0, lower_1 ) += tmp_prod * ( 1. - frac_1 );
 								return ;
 							}
 						}
@@ -395,7 +394,7 @@ namespace OpenMS
 						else // lower_0 == back_0
 						{
 
-							KeyType const tmp_prod = arg_value * ( 1 - frac_0 );
+							KeyType const tmp_prod = KeyType( arg_value * ( 1. - frac_0 ) );
 
 							// apply key transformation _1
 							KeyType const pos_1 = key2index_1( arg_pos_1 );
@@ -462,7 +461,7 @@ namespace OpenMS
 							}
 							else
 							{ // lower_1 == 0
-								KeyType const tmp_prod = arg_value * ( 1 + frac_1 );
+								KeyType const tmp_prod = KeyType( arg_value * ( 1 + frac_1 ) );
 								data_( lower_0 + 1, 0 ) += tmp_prod * frac_0;
 								data_( lower_0, 0 ) += tmp_prod * ( 1 - frac_0 );
 								return ;
@@ -480,7 +479,7 @@ namespace OpenMS
 								}
 								else // lower_1 == back_1
 								{
-									KeyType const tmp_prod = arg_value * ( 1 - frac_1 );
+									KeyType const tmp_prod = KeyType( arg_value * ( 1 - frac_1 ) );
 									data_ ( lower_0 + 1, lower_1 ) += tmp_prod * frac_0;
 									data_ ( lower_0, lower_1 ) += tmp_prod * ( 1 - frac_0 );
 									return ;
@@ -491,10 +490,10 @@ namespace OpenMS
 								// Medium pos_1 !
 
 								// medium pos_0 and medium pos_1 --> "within" the matrix
-								KeyType tmp_prod = arg_value * frac_0;
+								KeyType tmp_prod = KeyType( arg_value * frac_0 );
 								data_( lower_0 + 1, lower_1 + 1 ) += tmp_prod * frac_1;
 								data_( lower_0 + 1, lower_1 ) += tmp_prod * ( 1 - frac_1 );
-								tmp_prod = arg_value * ( 1 - frac_0 );
+								tmp_prod = KeyType( arg_value * ( 1 - frac_0 ) );
 								data_( lower_0, lower_1 + 1 ) += tmp_prod * frac_1;
 								data_( lower_0, lower_1 ) += tmp_prod * ( 1 - frac_1 );
 								return ;
@@ -773,25 +772,25 @@ namespace OpenMS
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin_0() const
 			{
-				return index2key_0 ( empty() ? 0 : -1 );
+				return index2key_0 ( empty() ? 0. : -1. );
 			}
 
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin_1() const
 			{
-				return index2key_1 ( empty() ? 0 : -1 );
+				return index2key_1 ( empty() ? 0. : -1. );
 			}
 
 			/// Upper boundary of the support, in "outside" coordinates.
 			KeyType supportMax_0() const
 			{
-				return index2key_0 ( data_.rows() );
+				return index2key_0 ( KeyType( data_.rows() ) );
 			}
 
 			/// Upper boundary of the support, in "outside" coordinates.
 			KeyType supportMax_1() const
 			{
-				return index2key_1 ( data_.cols() );
+				return index2key_1 ( KeyType( data_.cols() ) );
 			}
 
 			//@}

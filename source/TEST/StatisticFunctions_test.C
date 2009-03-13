@@ -111,11 +111,11 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	numbers2[3] = 1.0;
 	numbers1[4] = 3.2;
 	numbers2[4] = 4.0;
-	
+
 	result = Math::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
 	TEST_REAL_SIMILAR(result, 0.897811);
-	
-// ************ TEST for nan *****************	
+
+// ************ TEST for nan *****************
 	std::vector<Real> vv1,vv2;
 	vv1.push_back(1);
 	vv1.push_back(1);
@@ -128,12 +128,12 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	vv2.push_back(3);
 	vv2.push_back(4);
 	vv2.push_back(5);
-	
+
 	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
 	if (isnan(result) ) result = -1.0;
 
 	TEST_REAL_SIMILAR(result, -1.0);
-// ************ TEST for nan *****************	
+// ************ TEST for nan *****************
 
 	std::vector<Real> v1,v2;
 	v1.push_back(1);
@@ -267,12 +267,12 @@ START_SECTION([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
   numbers1[3] = 1.7;
   numbers1[4] = 3.2;
   numbers1[5] = 2.2;
-  
+
   TEST_REAL_SIMILAR(numbers1[0], 1.4);
   TEST_REAL_SIMILAR(numbers1[5], 2.2);
-  
+
   Math::computeRank(numbers1);
-  
+
   TEST_REAL_SIMILAR(numbers1[0], 0);
   TEST_REAL_SIMILAR(numbers1[1], 1);
   TEST_REAL_SIMILAR(numbers1[2], 2);
@@ -280,8 +280,8 @@ START_SECTION([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
   TEST_REAL_SIMILAR(numbers1[4], 4);
   TEST_REAL_SIMILAR(numbers1[5], 5);
 }
-END_SECTION        
-    
+END_SECTION
+
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
@@ -300,11 +300,11 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
   numbers2[4] = 4.0;
   numbers1[5] = 2.2;
   numbers2[5] = 3.0;
-  
+
   result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-  TEST_REAL_SIMILAR(result, 0.953125);
+  TEST_REAL_SIMILAR(result, 0.957142857142857);
 }
-END_SECTION    
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

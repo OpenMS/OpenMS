@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -33,7 +33,7 @@
 #include <set>
 
 namespace OpenMS
-{	
+{
 	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
   struct OPENMS_DLLAPI IsotopeCluster
   {
@@ -41,9 +41,9 @@ namespace OpenMS
   	typedef std::pair<Size,Size> IndexPair;
 		/// A set of index pairs, usually referring to an MSExperiment.
 		typedef std::set<IndexPair> IndexSet;
-		
+
 		///index set with associated charge estimate
-		struct ChargedIndexSet 
+		struct ChargedIndexSet
 			: public IndexSet
 		{
 			ChargedIndexSet()
@@ -51,17 +51,17 @@ namespace OpenMS
 			{
 			}
 			/// charge estimate (convention: zero means "no charge estimate")
-			Size charge;			
+			Int charge;
 		};
-		  	
+
     IsotopeCluster()
-      : peaks(), 
+      : peaks(),
       	scans()
     {
     }
     /// peaks in this cluster
     ChargedIndexSet peaks;
-    
+
     /// the scans of this cluster
     std::vector<Size> scans;
   };

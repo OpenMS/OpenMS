@@ -39,9 +39,11 @@ namespace OpenMS
 	/**
 	@brief Base class for all classes that want to report their progess.
 
-	Per default the progress log is disabled. Use setLogType to enable it
+	Per default the progress log is disabled. Use setLogType to enable it.
 
 	Use startProgress, setProgress and endProgress for the actual logging.
+
+  Note: Progress is measured in 'int', just as Qt does.
 
 	@note All methods are const, so it can be used through a const reference or in const methods as well!
 	*/
@@ -79,22 +81,22 @@ namespace OpenMS
 
 		@note Make sure to call setLogType first!
 		*/
-		void startProgress(Size begin, Size end, const String& label) const;
+		void startProgress(int begin, int end, const String& label) const;
 
 		/// Sets the current progress
-		void setProgress(Size value) const;
+		void setProgress(int value) const;
 
 		/// Ends the progress display
 		void endProgress() const;
 
 	 protected:
 		mutable LogType type_;
-		mutable Size begin_;
-		mutable Size end_;
-		mutable Size value_;
+		mutable int begin_;
+		mutable int end_;
+		mutable int value_;
 		mutable QProgressDialog* dlg_;
 		mutable StopWatch stop_watch_;
-		static Size recursion_depth_;
+		static int recursion_depth_;
 	};
 
 } // namespace OpenMS

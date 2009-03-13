@@ -55,7 +55,7 @@ namespace OpenMS
 
 	void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
 	{
-		std::set<UInt> used_ids;
+		std::set<Size> used_ids;
 		for (Size i=0; i< maps.size(); ++i)
 		{
 			const ConsensusMap& map = maps[i];

@@ -28,7 +28,7 @@
 ///////////////////////////
 
 // This one is going to be tested.
-// 
+//
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 
 ///////////////////////////
@@ -64,7 +64,7 @@ namespace OpenMS
       71.72692, 52.76207, 15.71214, 116.18279, 75.74875, 115.52147, 91.14405,
       127.02429, 95.27849, 67.42286, 20.34733, 102.67339, 93.84615, 128.95366,
       69.28015, 138.62953, 94.72963, 129.24376, 66.28535, 27.90273, 58.98529,
-      29.84631, 47.59564, 118.73823, 77.77458, 72.75859, 18.41622  
+      29.84631, 47.59564, 118.73823, 77.77458, 72.75859, 18.41622
     };
 
   size_t num_numbers = sizeof (dvector_data) / sizeof (*dvector_data);
@@ -115,13 +115,13 @@ START_SECTION((template <typename ProbabilityIterator, typename CoordinateIterat
 
 	// set the beginning of coordinates
 	float fvector_coord[90];
-	for ( int i = 0; i < 90; fvector_coord[i] = 1000 - i, ++i ) ;
+	for ( int i = 0; i < 90; fvector_coord[i] = 1000.f - i, ++i ) ;
 
-	// set basic statistics 	
+	// set basic statistics
 	BasicStatistics < double > stats2;
 	stats2.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
-	TEST_EQUAL(num_numbers,90);	
+	TEST_EQUAL(num_numbers,90);
 	TOLERANCE_ABSOLUTE(0.1);
 	STATUS( stats2 );
 
@@ -161,7 +161,7 @@ START_SECTION([EXTRA](template <typename ProbabilityIterator, typename Coordinat
 	AsymmetricStatistics < double > asy;
 
 	double vector_coord[] = { 0, 1, 2, 3, 4,    5, 6, 7, 8, 9 };
-	
+
 	{
 		double vector_data[]  = { 0, 0, 0, 2, 997,  0, 1, 0, 0, 0 };
 		TEST_EQUAL( sizeof (vector_data) / sizeof (*vector_data),  sizeof (vector_coord) / sizeof (*vector_coord));

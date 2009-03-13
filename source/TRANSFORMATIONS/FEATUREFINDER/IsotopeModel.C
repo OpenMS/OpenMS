@@ -137,7 +137,7 @@ namespace OpenMS
 		isotopes_exact.resize(size_t( (isotopes_exact_size-1)
 																	*isotope_distance_/interpolation_step_+1.6)); // round up a bit more
 
-		for ( UInt i = isotopes_exact_size-1; i; --i )
+		for ( Size i = isotopes_exact_size-1; i; --i )
 			// we don't need to move the 0-th entry
 		{
 			isotopes_exact [size_t(CoordinateType(i)*

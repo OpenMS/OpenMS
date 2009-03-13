@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -37,7 +37,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	Size ProgressLogger::recursion_depth_ = 0;
+	int ProgressLogger::recursion_depth_ = 0;
 
 	ProgressLogger::ProgressLogger()
 		:	type_(NONE),
@@ -53,19 +53,19 @@ namespace OpenMS
 	{
 		delete(dlg_);
 	}
-	
+
 	void ProgressLogger::setLogType(LogType type) const
 	{
 		type_ = type;
 	}
-	
+
 	ProgressLogger::LogType ProgressLogger::getLogType() const
 	{
 		return type_;
 	}
 
 
-	void ProgressLogger::startProgress(Size begin, Size end, const String& label) const
+	void ProgressLogger::startProgress(int begin, int end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
 		switch (type_)
@@ -93,9 +93,9 @@ namespace OpenMS
 		++recursion_depth_;
 		return;
 	}
-	
-	void ProgressLogger::setProgress(Size value) const
-	{		
+
+	void ProgressLogger::setProgress(int value) const
+	{
 		switch (type_)
 		{
 			case CMD:
@@ -105,7 +105,7 @@ namespace OpenMS
 				}
 				else if (value<begin_ || value >end_)
 				{
-					cout << "ProgressLogger: Invalid progress value '" << value 
+					cout << "ProgressLogger: Invalid progress value '" << value
 							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
 				else
@@ -121,19 +121,19 @@ namespace OpenMS
 				}
 				else if (value<begin_ || value >end_)
 				{
-					cout << "ProgressLogger: Invalid progress value '" << value 
+					cout << "ProgressLogger: Invalid progress value '" << value
 							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
 				else
 				{
 					dlg_->setValue(value);
-				}	
+				}
 				break;
 			case NONE:
 				break;
-		};	
+		};
 	}
-	
+
 	void ProgressLogger::endProgress() const
 	{
 		if (recursion_depth_) --recursion_depth_;
@@ -156,7 +156,7 @@ namespace OpenMS
 				break;
 			case NONE:
 				break;
-		};	
+		};
 	}
 
 }//namespace OpenMS

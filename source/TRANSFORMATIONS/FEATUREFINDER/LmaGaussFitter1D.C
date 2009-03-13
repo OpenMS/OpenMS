@@ -60,19 +60,19 @@ namespace OpenMS
 
         return *this;
     }
-		
+
     Int LmaGaussFitter1D::residual_(const gsl_vector* x, void* params, gsl_vector* f)
     {
-        UInt n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
+        Size n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
         RawDataArrayType set = static_cast<LmaGaussFitter1D::Data*> (params) ->set;
-                
+
         CoordinateType normal_s = gsl_vector_get( x, 0 );
         CoordinateType normal_m = gsl_vector_get( x, 1 );
         CoordinateType normal_scale = gsl_vector_get( x, 2 );
 
         CoordinateType Yi = 0.0;
 
-        for ( UInt i = 0; i < n; i++ )
+        for ( Size i = 0; i < n; i++ )
         {
           CoordinateType t = set[i].getPos();
 
@@ -83,40 +83,40 @@ namespace OpenMS
 
       return GSL_SUCCESS;
     }
-              
+
     Int LmaGaussFitter1D::jacobian_(const gsl_vector* x, void* params, gsl_matrix* J)
     {
-        UInt n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
+        Size n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
         RawDataArrayType set = static_cast<LmaGaussFitter1D::Data*> (params) ->set;
-                
+
         CoordinateType normal_s = gsl_vector_get( x, 0 );
         CoordinateType normal_m = gsl_vector_get( x, 1 );
         CoordinateType normal_scale = gsl_vector_get( x, 2 );
 
         CoordinateType derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
 
-        for ( UInt i = 0; i < n; i++ )
+        for ( Size i = 0; i < n; i++ )
         {
           CoordinateType t = set[i].getPos();
-						
+
           // f'(normal_s)
           derivative_normal_s = -( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
 
 	  			// f'(normal_m)
           derivative_normal_m = ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-          					
+
           // f'(normal_scale)
           derivative_normal_scale = ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
-          					
+
           // set the jacobian matrix of the normal distribution
           gsl_matrix_set( J, i, 0, derivative_normal_s );
           gsl_matrix_set( J, i, 1, derivative_normal_m );
           gsl_matrix_set( J, i, 2, derivative_normal_scale );
         }
-  
+
         return GSL_SUCCESS;
     }
-    
+
     Int LmaGaussFitter1D::evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
     {
       LmaGaussFitter1D::residual_( x, params, f );
@@ -124,7 +124,7 @@ namespace OpenMS
 
       return GSL_SUCCESS;
     }
-    
+
     void LmaGaussFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
     {
       printf ( "in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
@@ -138,7 +138,7 @@ namespace OpenMS
     {
         // Calculate bounding box
         min_ = max_ = set[0].getPos();
-        for ( UInt pos=1; pos < set.size(); ++pos)
+        for ( Size pos=1; pos < set.size(); ++pos)
         {
           CoordinateType tmp = set[pos].getPos();
           if ( min_ > tmp ) min_ = tmp;
@@ -156,27 +156,27 @@ namespace OpenMS
         LmaGaussFitter1D::Data d;
         d.n= set.size();
         d.set = set;
-        
+
          // Compute start parameter
         setInitialParameters_(set);
 
-        // Optimize parameter with Levenberg-Marquardt algorithm (GLS)   
-        CoordinateType x_init[ 3 ] = { standard_deviation_, expected_value_, scale_factor_ };             
+        // Optimize parameter with Levenberg-Marquardt algorithm (GLS)
+        CoordinateType x_init[ 3 ] = { standard_deviation_, expected_value_, scale_factor_ };
         if ( symmetric_ == false )
         {
           optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
         }
-        
+
         // Set optimized parameter
         standard_deviation_ = x_init[0];
         expected_value_ = x_init[1];
         scale_factor_ = x_init[2];
-        
-#ifdef DEBUG_FEATUREFINDER                
+
+#ifdef DEBUG_FEATUREFINDER
         if ( getGslStatus_() != "success" )
         {
           std::cout << "status: " << getGslStatus_() << std::endl;
-        } 
+        }
 #endif
         // build model
         model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("LmaGaussModel"));
@@ -191,25 +191,25 @@ namespace OpenMS
         tmp.setValue( "lma:standard_deviation", standard_deviation_ );
         tmp.setValue( "lma:expected_value", expected_value_ );
         model->setParameters( tmp );
-        
+
         // calculate pearson correlation
      		std::vector<Real> real_data;
         real_data.reserve(set.size());
         std::vector<Real> model_data;
         model_data.reserve(set.size());
-              
+
         for (Size i=0; i < set.size(); ++i)
         {
            real_data.push_back(set[i].getIntensity());
            model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );
         }
-             
+
         QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
         if (isnan(correlation)) correlation = -1.0;
-        
+
         return correlation;
     }
-    
+
     void LmaGaussFitter1D::setInitialParameters_(const RawDataArrayType& set)
     {
       // sum over all intensities
@@ -219,31 +219,31 @@ namespace OpenMS
       // calculate the median
       Int median = 0;
       Real count = 0.0;
-      for ( UInt i = 0; i < set.size(); ++i )
+      for ( Size i = 0; i < set.size(); ++i )
       {
         count += set[i].getIntensity();
         if ( count <= sum * 0.5 ) median = i;
       }
- 
+
       CoordinateType sumS = 0.0;
-      for ( UInt i = 0; i < set.size(); ++i )
+      for ( Size i = 0; i < set.size(); ++i )
       {
         sumS += pow( ( set[i].getPos() - set[median].getPos() ), 2 );
       }
-      	
+
       // calculate the stardard deviation
       standard_deviation_ = sqrt( sumS / ( set.size() - 1 ) );
-			
+
       // set expeceted value
       expected_value_ = set[median].getPos();
-      
+
       // scaling factor of the peak
       scale_factor_ = set[median].getIntensity();
-      
+
       // default is an asymmetric peak
       symmetric_ = false;
     }
-    
+
     void LmaGaussFitter1D::updateMembers_()
     {
         LevMarqFitter1D::updateMembers_();

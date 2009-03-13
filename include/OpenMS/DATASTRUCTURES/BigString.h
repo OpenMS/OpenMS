@@ -40,34 +40,34 @@ namespace OpenMS {
 
 Concatenates the strings given as FASTAEntry separating them with a unique character and storing the headers of FASTAEntry as well as the position of separator characters. So a substring can be accessed easily and the corresponding header can be found fast by using bineary search.
 */
-class OPENMS_DLLAPI BigString 
+class OPENMS_DLLAPI BigString
 {
 
 	public:
-	
+
 	typedef std::pair<String,String> FASTAEntry;
 
 	/**
 	@brief constructor
-	*/	
+	*/
 	BigString ();
-	
+
 	/**
 	@brief copy constructor
-	*/	
+	*/
 	BigString (const BigString & bs);
 
 	/**
 	@brief desctructor
 	*/
 	virtual ~BigString ();
-	
+
 	/**
 	@brief add new string to bigString
 	@param new_entry FASTAEntry to be added to big_string
 	*/
 	void add (FASTAEntry const & new_entry);
-	
+
 	/**
 	@brief setter for separator character by default $
 	@param sep separator character
@@ -84,13 +84,13 @@ class OPENMS_DLLAPI BigString
 	@brief returns the number of strings
 	@return int with number of strings
 	*/
-	unsigned int size ();
+	Size size ();
 
 	/**
 	@brief length of bigString
 	@return int with length of the created bigString
 	*/
-	unsigned int length ();
+	Size length ();
 
 	/**
 	@brief getPeptide from start position with given length this includes FASTAHeader
@@ -100,41 +100,41 @@ class OPENMS_DLLAPI BigString
 	@return FASTAEntry describing the protein
 	@throw InvalidValue if a peptide is part of two different fasta entrys
 	*/
-	void getPeptide (FASTAEntry& entry, unsigned int start, unsigned int length);
+	void getPeptide (FASTAEntry& entry, Size start, Size length);
 
 	/**
 	@brief returns bigString
 	@return const reference to bigString
 	*/
 	const String & getBigString () const;
-	
+
 	protected:
 
 	/**
 	@brief private function to implement binary search
-	@param index 
+	@param index
 	@param start start index
 	@param end end inxed
 	@return int with index
 	*/
-	unsigned int getIndex_ (unsigned int index, unsigned int start, unsigned int end);
+	Size getIndex_ (Size index, Size start, Size end);
 
 	/**
 	@brief retrieves index of inserted protein by bigStringPosition
 	@param index
 	@return int with index
 	*/
-	unsigned int getIndex_ (unsigned int index);
-	
+	Size getIndex_ (Size index);
+
 	String big_string_; ///< concatenated String
-	
+
 	char separator_; ///< separator sign
-	
-	unsigned int count_; ///< number of Strings added to big_string
-	
-	unsigned int len_; ///< length of the big_string
-	
-	std::vector<unsigned int> sep_indices_; ///< indices of separators
+
+	Size count_; ///< number of Strings added to big_string
+
+	Size len_; ///< length of the big_string
+
+	std::vector<Size> sep_indices_; ///< indices of separators
 
 	std::vector<String> FASTA_header_; ///< vector with headers of FASTAEntry
 

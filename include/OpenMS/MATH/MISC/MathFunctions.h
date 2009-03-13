@@ -120,13 +120,13 @@ namespace OpenMS
 		template <typename T>
 		T round (T x)
 		{
-			if (x >= 0.0)
+			if (x >= T(0))
 			{
-				return floor(x+0.5);
+				return T(floor(x+T(0.5)));
 			}
 			else
 			{
-				return ceil(x-0.5);
+				return T(ceil(x-T(0.5)));
 			}
 		}
 

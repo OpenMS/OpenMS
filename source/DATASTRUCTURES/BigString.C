@@ -78,19 +78,19 @@ char BigString::getSeparator ()
 	return (separator_);
 }
 
-unsigned int BigString::size ()
+Size BigString::size ()
 {
 	return (count_);
 }
 
-unsigned int BigString::length ()
+Size BigString::length ()
 {
 	return (len_);
 }
 
-void BigString::getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length)
+void BigString::getPeptide(FASTAEntry& entry, Size start, Size length)
 {
-	unsigned int index_start = getIndex_(start);
+	Size index_start = getIndex_(start);
 	if (index_start != getIndex_(start + length))
 	{
 		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries","");
@@ -105,7 +105,7 @@ const String& BigString::getBigString() const
 	return big_string_;
 }
 
-unsigned int BigString::getIndex_(unsigned int index, unsigned int start, unsigned int end)
+Size BigString::getIndex_(Size index, Size start, Size end)
 {
 	if (end - start <= 1)
 	{
@@ -118,7 +118,7 @@ unsigned int BigString::getIndex_(unsigned int index, unsigned int start, unsign
 			return start + 1;
 		}
 	}
-	unsigned int half =(unsigned int) ((end-start)/2)+start;
+	Size half =(Size) ((end-start)/2)+start;
 
 	if (index > sep_indices_[half])
 	{
@@ -134,7 +134,7 @@ unsigned int BigString::getIndex_(unsigned int index, unsigned int start, unsign
 	}
 }
 
-unsigned int BigString::getIndex_(unsigned int index)
+Size BigString::getIndex_(Size index)
 {
 	return getIndex_(index, 0, sep_indices_.size());
 }

@@ -217,7 +217,7 @@ namespace OpenMS
 			Base::resize(rows_*cols_, value);
 		}
 
-		void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())
+		void resize(std::pair<Size,Size> const & size_pair, value_type value = value_type())
 		{
 			rows_ = size_pair.first;
 			cols_ = size_pair.second;
@@ -225,20 +225,20 @@ namespace OpenMS
 		}
 
 		/// Number of rows
-		SizeType rows() const 
+		SizeType rows() const
 		{
 			return rows_;
 		}
 
 		/// Number of columns
-		SizeType cols() const 
+		SizeType cols() const
 		{
 			return cols_;
 		}
 
-		std::pair<UInt,UInt> sizePair() const
+		std::pair<Size,Size> sizePair() const
 		{
-			return std::pair<UInt,UInt>(rows_,cols_);
+			return std::pair<Size,Size>(rows_,cols_);
 		}
 
 		/**@brief Calculate the index into the underlying vector from row and
@@ -258,7 +258,7 @@ namespace OpenMS
 			 vector.  Note that Matrix uses the (row,column) lexicographic ordering
 			 for indexing.
 		*/
-		std::pair<UInt,UInt> const indexPair(UInt index) const
+		std::pair<Size,Size> const indexPair(Size index) const
 		{
 #ifdef OPENMS_DEBUG
 			if ( index >= size() ) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,size()-1);
@@ -327,7 +327,7 @@ namespace OpenMS
 				for (SizeType j=0; j<cols_; ++j)
 				{
 					setValue(i,j,matrix[i][j]);
-				}	
+				}
 			}
 		}
 
@@ -337,7 +337,7 @@ namespace OpenMS
 		 *	@note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
 		 */
 		gsl_matrix* toGslMatrix();
-		
+
 	protected:
 
 		///@name Data members
@@ -351,7 +351,7 @@ namespace OpenMS
 	}; // class Matrix
 
 	template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
-	
+
 	/**@brief Print the contents to a stream.
 
 	@relatesalso Matrix

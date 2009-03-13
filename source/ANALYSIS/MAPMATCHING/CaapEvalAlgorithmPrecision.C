@@ -60,15 +60,15 @@ namespace OpenMS
 
 		ConsensusMap cons_map_tool = consensus_map_in; //krrrr!
 
-		std::vector<UInt> gt_subtend_tilde_tool;	//holds the numerators of the sum
-		std::vector<UInt> tilde_tool;			//holds the denominators of the sum
+		std::vector<Size> gt_subtend_tilde_tool;	//holds the numerators of the sum
+		std::vector<Size> tilde_tool;			//holds the denominators of the sum
 
-		UInt gt_subtend_tilde_tool_i = 0;	//filling material for the vectors
-		UInt tilde_tool_i = 0;
+		Size gt_subtend_tilde_tool_i = 0;	//filling material for the vectors
+		Size tilde_tool_i = 0;
 
-		UInt cons_tool_size = 0;		//size  of the actual consensus feature of the tool
-		UInt gt_i_subtend_tool_j = 0;	//size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
-		
+		Size cons_tool_size = 0;		//size  of the actual consensus feature of the tool
+		Size gt_i_subtend_tool_j = 0;	//size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
+
 		DoubleReal precision = 0;	//holds the output
 		DoubleReal fraction = 0;	//intermediate step: the fraction
 		DoubleReal sum = 0;		//intermediate step: the sum
@@ -82,13 +82,13 @@ namespace OpenMS
 			//for every i = 1, ..., N:
 			gt_subtend_tilde_tool_i = 0;
 			tilde_tool_i = 0;
-			
+
 			//loop over all consensus features of the tool's consensus map
 			for (Size j = 0; j < cons_map_tool.size(); ++j)
 			{
-				ConsensusFeature& tool_elem = cons_map_tool[j];	
+				ConsensusFeature& tool_elem = cons_map_tool[j];
 				gt_i_subtend_tool_j = 0;
-			
+
 				//loop over all features in the ith consensus feature of the gt
 				for (HandleIterator gt_it = gt_elem.begin(); gt_it != gt_elem.end(); ++gt_it)
 				{
@@ -98,13 +98,13 @@ namespace OpenMS
 					for (HandleIterator tool_it = tool_elem.begin(); tool_it != tool_elem.end(); ++tool_it)
 					{
 						//++cons_tool_size;
-					
+
 						if (isSameHandle(*tool_it, *gt_it))
 						{
 							++gt_i_subtend_tool_j;
 						}
 					}
-				
+
 				}
 				if((cons_tool_size >= 2) && (gt_i_subtend_tool_j > 0))
 				{
@@ -119,7 +119,7 @@ namespace OpenMS
 		for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k) //sollte man überprüfen, dass die vektoren und N gleich groß sind?
 		{
 			fraction = 0;
-			
+
 			if (gt_subtend_tilde_tool[k] != 0)
 			{
 				fraction = DoubleReal(gt_subtend_tilde_tool[k]) / DoubleReal(tilde_tool[k]);

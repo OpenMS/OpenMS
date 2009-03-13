@@ -39,7 +39,7 @@ namespace OpenMS
 {
   /**
     @brief This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data.
-   
+
     Gaussian filters are important in many signal processing,
     image processing, and communication applications. These filters are characterized by narrow bandwidths,
     sharp cutoffs, and low passband ripple. A key feature of Gaussian filters is that the Fourier transform of a
@@ -49,18 +49,18 @@ namespace OpenMS
     \f[ \emph{coeff}(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{\frac{-x^2}{2\sigma^2}} \f]
     where \f$ x=[-\frac{frameSize}{2},...,\frac{frameSize}{2}] \f$ represents the window area and \f$ \sigma \f$
     is the standard derivation.
-   
+
     @note The wider the kernel width the smoother the signal (the more detail information get lost!).
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
-		 
+
 		@htmlinclude OpenMS_GaussFilter.parameters
-    
+
     @ingroup SignalProcessing
   */
 //#define DEBUG_FILTERING
 
-  class OPENMS_DLLAPI GaussFilter 
+  class OPENMS_DLLAPI GaussFilter
   	: public ProgressLogger,
   		public DefaultParamHandler
   {
@@ -71,23 +71,23 @@ namespace OpenMS
       /// Destructor
       virtual ~GaussFilter();
 
-      /** 
+      /**
       	@brief Smoothes an MSSpectrum containing profile data.
 
         Convolutes the filter and the profile data and writes the result back to the spectrum.
-	      
+
 	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
       template <typename PeakType>
       void filter(MSSpectrum<PeakType>& spectrum)
       {
         // make sure the right data type is set
-        spectrum.setType(SpectrumSettings::RAWDATA);        
+        spectrum.setType(SpectrumSettings::RAWDATA);
         //create container for output peaks
         std::vector<DoubleReal> output(spectrum.size());
 
 				bool use_ppm_tolerance(param_.getValue("use_ppm_tolerance").toBool());
-				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));				
+				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));
 
         bool found_signal = false;
         for (Size p=0; p<spectrum.size(); ++p)
@@ -103,12 +103,12 @@ namespace OpenMS
           output[p] = std::max(new_int, 0.0);
           if (fabs(new_int) > 0) found_signal = true;
         }
-                     
-        // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception. 
+
+        // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
         // This is the case if the gaussian filter is smaller than the spacing of raw data
         if (!found_signal && spectrum.size()>=3)
-        { 
-          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
+        {
+          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");
         }
 
 				// copy the new data into the spectrum
@@ -119,7 +119,7 @@ namespace OpenMS
       }
 
 
-      /** 
+      /**
       	@brief Smoothes an MSExperiment containing profile data.
       */
       template <typename PeakType>
@@ -135,14 +135,14 @@ namespace OpenMS
       }
 
     protected:
-    
+
 			///Coefficients
 			std::vector<DoubleReal> coeffs_;
       /// The standard derivation  \f$ \sigma \f$.
       DoubleReal sigma_;
       /// The spacing of the pre-tabulated kernel coefficients
       DoubleReal spacing_;
-     	
+
      	// Docu in base class
       virtual void updateMembers_();
 
@@ -212,7 +212,7 @@ namespace OpenMS
           left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
-          for (int j=0; ((j<3) && (distance(first,help-j) >= 0)); ++j)
+          for (UInt j=0; ((j<3) && (distance(first,help-j) >= 0)); ++j)
           {
             if (((left_position-j)*spacing_ <= distance_in_gaussian) && ((left_position-j+1)*spacing_ >= distance_in_gaussian))
             {

@@ -497,12 +497,12 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 
 	for ( int i = -50; i <= 100; ++i )
 	{
-		float p = i / 10.;
+		float p = i / 10.f;
 		verbose(STATUS(i));
 
 		for ( int j = -50; j <= 100; ++j )
 		{
-			float q = j / 10.;
+			float q = j / 10.f;
 			verbose(STATUS("i: " << i));
 			verbose(STATUS("j: " << j));
 
@@ -582,12 +582,12 @@ START_SECTION((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 
 	for ( int i = -50; i <= 100; ++i )
 	{
-		float p = i / 10.;
+		float p = i / 10.f;
 		verbose(STATUS(i));
 
 		for ( int j = -50; j <= 100; ++j )
 		{
-			float q = j / 10.;
+			float q = j / 10.f;
 			verbose(STATUS("i: " << i));
 			verbose(STATUS("j: " << j));
 

@@ -36,13 +36,13 @@
 
 namespace OpenMS
 {
-	/** 
+	/**
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
     SimpleSeeder, SimpleExtender, ModelFitter (using BiGaussModel in RT dimension and IsotopeModel (charge does not equal zero) or GaussModel in dimension of mz).
 
     @htmlinclude OpenMS_FeatureFinderAlgorithmSimplest.parameters
-	
+
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmSimplest :
@@ -50,8 +50,8 @@ namespace OpenMS
 		public FeatureFinderDefs
 	{
 
-		public:	  	
-			/// default constructor 
+		public:
+			/// default constructor
 			FeatureFinderAlgorithmSimplest() :
 				FeatureFinderAlgorithm<PeakType,FeatureType>()
 			{
@@ -74,7 +74,7 @@ namespace OpenMS
 				ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
 				tmp.insert("fitter:", fitter.getParameters());
 				tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
-				
+
 				return tmp;
 			}
 
@@ -94,7 +94,7 @@ namespace OpenMS
         params.setDefaults(this->getParameters().copy("fitter:",true));
         params.setValue("fit_algorithm", "simplest");
         fitter.setParameters(params);
-		
+
 				/// Summary of fitting results
 				Summary summary;
 
@@ -102,16 +102,16 @@ namespace OpenMS
 				{
 					for(;;)
 					{
-#ifdef DEBUG_FEATUREFINDER					
+#ifdef DEBUG_FEATUREFINDER
 						std::cout << "===============================" << std::endl;
 						std::cout << "### Seeder (seed # " << ++seed_nr << ")..." << std::endl;
-#endif 						
+#endif
 						IndexPair seed = seeder.nextSeed();
 
 #ifdef DEBUG_FEATUREFINDER
             std::cout << "seed ... " << seed.first << " - " << seed.second << std::endl;
 						std::cout << "### Extender..." << std::endl;
-#endif   
+#endif
 						ChargedIndexSet index_set;
 						index_set.insert(seed);
 						ChargedIndexSet region;
@@ -119,7 +119,7 @@ namespace OpenMS
 
 #ifdef DEBUG_FEATUREFINDER
 						std::cout << "### ModelFitter..." << std::endl;
-#endif   						
+#endif
 						try
 						{
 							this->features_->push_back(fitter.fit(region));
@@ -162,7 +162,7 @@ namespace OpenMS
 							{
 								this->ff_->getPeakFlag(*it) = UNUSED;
 							}
-							
+
 							// gather information for fitting summary
 							{
 								++summary.no_exceptions;
@@ -176,7 +176,7 @@ namespace OpenMS
 				}
 				// print fitting summary
 				{
-					UInt size = this->features_->size();
+					Size size = this->features_->size();
 					std::cout << size << " features were found. " << std::endl;
 
 					// compute corr_mean
@@ -231,7 +231,7 @@ namespace OpenMS
 			/// Not implemented
 			FeatureFinderAlgorithmSimplest(const FeatureFinderAlgorithmSimplest&);
 
-	}; // FeatureFinderAlgorithmSimplest 
+	}; // FeatureFinderAlgorithmSimplest
 
 } // namespace OpenMS
 
