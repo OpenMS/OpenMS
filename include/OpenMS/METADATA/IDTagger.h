@@ -52,6 +52,16 @@ namespace OpenMS
       IDTagger();
 		
 			/**
+				@brief Return the file used as ID pool
+
+				The default ID pool file is in /share/OpenMS/IDPool/IDPool.txt
+				A custom file can be set by assigning the environment
+				variable OPENMS_IDPOOL_FILE to an @b existing file name.
+
+			*/
+			String getPoolFile() const;
+
+			/**
 				@brief retrieve an ID from the pool
 
 				Uses boost filelocks to savely retrieve an ID from an ID pool.
@@ -85,9 +95,10 @@ namespace OpenMS
 				@brief Tags any structure which is derived from DocumentIdentifier with a unique tag
 			
 				Tags any structure which is derived from DocumentIdentifier with a unique tag
-				Returns true if ID could be assigned, false otherwise
+				Returns true if ID could be assigned, otherwise an Exception::DepletedIDPool is thrown
 
 				@param map Some class (derived from a DocumentIdentifier class) which needs a unique id
+				@exception Exception::DepletedIDPool when no identifier (for whatever reason) could be aquired
 			*/
 			bool tag(DocumentIdentifier& map) const;
 			

@@ -89,11 +89,14 @@
 		</table>
 
   @subsection install_qt QT installation
-    QT comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Trolltech website
+		
+		We require Qt version 4.3 or higher.
+	
+    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Trolltech website
     <OL>
       <LI>non-commercial:
         <OL>
-          <LI>download QT source (Qt for Open Source C++ development on Windows - http://trolltech.com/downloads/opensource/appdev/windows-cpp)
+          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://trolltech.com/downloads/opensource/appdev/windows-cpp)
           <LI>extract zip file
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>

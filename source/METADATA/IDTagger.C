@@ -71,16 +71,26 @@ namespace OpenMS
     return !(operator == (rhs));
   }
 
+	String IDTagger::getPoolFile() const
+	{
+		char * id_file_env;
+		id_file_env = getenv ("OPENMS_IDPOOL_FILE");
+		if (id_file_env!=NULL) 
+		{
+			return String(id_file_env);
+		}
+		else
+		{
+			return String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
+		}
+	}
+
 	bool IDTagger::getID_(String& id, Int& free, bool idcount_only) const
 	{
 		free = 0;
 
 		// use environment filename as POOL or fall back to default
-		String IDPool_file("");
-		char * id_file_env;
-		id_file_env = getenv ("OPENMS_IDPOOL_FILE");
-		if (id_file_env!=NULL) IDPool_file = String(id_file_env);
-		else IDPool_file = String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
+		String IDPool_file = getPoolFile();
 		String IDPool_file_tmp = String(IDPool_file) + String(".tmp");
 		// create PoolFile if non-existant
 		if (!File::exists(IDPool_file)) 
@@ -188,7 +198,12 @@ namespace OpenMS
 		catch(...) {}
 
 		map.setIdentifier("InvalidID");
-		return false;
+
+		String msg;
+		if (free==0) msg = String("Tool ")+toolname_+String(" requested identifier from depleted ID pool '") + getPoolFile() + String("'");
+		else msg = String("Tool ")+toolname_+String(" requested identifier from unaccessible ID pool '") + getPoolFile() + String("'. There should be ") + String(free) + String(" identifiers available!");
+
+		throw Exception::DepletedIDPool(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDTagger", msg);
 	}
 
 	bool IDTagger::countFreeIDs(Int& free) const
