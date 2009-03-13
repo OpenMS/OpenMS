@@ -111,13 +111,13 @@ namespace OpenMS
 				//@{
 				
 				/// Accessor to minimum position
-				PositionType const & min() const
+				inline PositionType const & min() const
 				{
 					return min_;
 				}
 		
 				/// Accessor to maximum position
-				PositionType const & max() const
+				inline PositionType const & max() const
 				{
 					return max_;
 				}
@@ -230,25 +230,25 @@ namespace OpenMS
 				//@{
 		
 				/// Accessor for min_ coordinate minimum
-		    CoordinateType minX() const
+		    inline CoordinateType minX() const
 		    {
 		      return min_[0];  
 		    }
 				
 				/// Accessor for max_ coordinate minimum
-		    CoordinateType minY() const
+		    inline CoordinateType minY() const
 		    {
 					return min_[1];
 		    }
 		
 				/// Accessor for min_ coordinate maximum
-				CoordinateType maxX() const
+				inline CoordinateType maxX() const
 		    {
 		      return max_[0];
 		    }
 		
 				/// Accessor for max_ coordinate maximum
-				CoordinateType maxY() const
+				inline CoordinateType maxY() const
 		    {
 					return max_[1];
 		    }	
@@ -282,13 +282,13 @@ namespace OpenMS
 		    }
 		
 				/// Returns the width of the area i.e. the difference of dimension zero (X).
-				CoordinateType width() const
+				inline CoordinateType width() const
 				{
 					return max_[0] - min_[0];
 				}
 				
 				/// Returns the height of the area i.e. the difference of dimension one (Y).
-				CoordinateType height() const
+				inline CoordinateType height() const
 				{
 					return max_[1] - min_[1];
 				}

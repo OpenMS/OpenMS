@@ -211,7 +211,6 @@ namespace OpenMS
 		painter.setPen(Qt::black);
 
 		//temporary variables
-		QPoint pos;
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
 
@@ -251,9 +250,22 @@ namespace OpenMS
 			{
 				if (peaks>0.5*height() || scans>0.5*width()) dots=true;
 			}
-			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
-			//cout << "width: " << width() << "  height: " << height() << endl;
-
+			
+			//~ //calculate pixel size
+			//~ DoubleReal rt_step_width = (visible_area_.max()[1] - visible_area_.min()[1]) / 
+			
+			//~ for (Size r=0; r<image_width; ++r)
+			//~ {
+				//~ //
+				//~ DoubleReal rt_min = 
+				
+				//~ for (Size c=0; c<image_height; ++c)
+				//~ {
+					
+				//~ }
+			//~ }
+			
+			
 			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
 					 i != layer.peaks.areaEndConst();
 					 ++i)
@@ -262,6 +274,7 @@ namespace OpenMS
 				if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 				{
 					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
+					QPoint pos;
 					dataToWidget_(i->getMZ(), i.getRT(),pos);
 					if (dots)
 					{
@@ -298,6 +311,7 @@ namespace OpenMS
 						ExperimentType::ConstIterator prec=exp.getPrecursorSpectrum(i);
 						if (prec!=exp.end())
 						{
+							QPoint pos;
 							dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(),pos);
 							painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
 							painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
@@ -333,6 +347,7 @@ namespace OpenMS
 						color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 					}
 					//paint
+					QPoint pos;
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 					{
@@ -372,6 +387,7 @@ namespace OpenMS
 					//determine color
 					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 					//paint
+					QPoint pos;
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 					{

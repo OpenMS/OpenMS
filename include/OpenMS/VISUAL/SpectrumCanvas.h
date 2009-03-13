@@ -343,7 +343,10 @@ namespace OpenMS
 		virtual void setFilters(const DataFilters& filters);
 		
 		/// Returns the mapping of m/z to axes
-		bool isMzToXAxis();
+		inline bool isMzToXAxis()
+		{ 
+			return mz_to_x_axis_; 
+		}
 		
 		/// Sets the mapping of m/z to axes
 		void mzToXAxis(bool mz_to_x_axis);
@@ -782,13 +785,13 @@ namespace OpenMS
 		{
 			if (!isMzToXAxis())
 			{
-				point.setX( static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * width()));
-				point.setY(height() - static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * height()));
+				point.setX( int((y - visible_area_.minY()) / visible_area_.height() * width()));
+				point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
 			}
 			else
 			{
-				point.setX( static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * width()));
-				point.setY( height() - static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * height()));
+				point.setX( int((x - visible_area_.minX()) / visible_area_.width() * width()));
+				point.setY( height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
 			}
 		}
 		

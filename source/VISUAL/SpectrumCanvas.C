@@ -150,11 +150,6 @@ namespace OpenMS
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
-
-	bool SpectrumCanvas::isMzToXAxis() 
-	{ 
-		return mz_to_x_axis_; 
-	}
 	
 	void SpectrumCanvas::mzToXAxis(bool mz_to_x_axis)
 	{
