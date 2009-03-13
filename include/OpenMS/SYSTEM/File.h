@@ -102,52 +102,6 @@ namespace OpenMS
 			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();
 
-			/**
-				@brief Creates a sparse file @p filename of size @p filesize bytes
-				
-      	Creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
-      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
-			*/
-      static bool createSparseFile(const String& filename, const Int64& filesize);
-
-      /**
-				@brief Extends a sparse file with handle @p hFile to size @p filesize bytes
-			
-				Extends a sparse* file with handle @p hFile (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
-      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
-			*/
-			#ifdef OPENMS_WINDOWSPLATFORM
-			static bool extendSparseFile(const HANDLE& hFile, const Int64& filesize);
-			#else
-			static bool extendSparseFile(const int& hFile, const Int64& filesize);
-			#endif
-						    
-			/**
-				@brief get a handle to a sparse file @p filename with size @p filesize to used for swap
-				
-				The file can be created (@p create) if necessary
-				  
-      	@return handle to a file (which is created if necessary)
-      	
-				@throws Exception::UnableToCreateFile or Exception::FileNotFound on failure to acquire the handle (to make cross platform error handling easy)
-      	
-				@note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
-			*/
-      #ifdef OPENMS_WINDOWSPLATFORM
-      static HANDLE getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create);
-      #else
-      static    int getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create);
-      #endif
-  	
-			/**
-				@brief close handle to a swap file
-			*/
-      #ifdef OPENMS_WINDOWSPLATFORM
-      static void closeSwapFileHandle(const HANDLE & f_handle);
-      #else
-      static void closeSwapFileHandle(const int & f_handle);
-      #endif
-    
 	};
 
 }

@@ -52,7 +52,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-<? print date("Y"); ?> -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-<?php print date("Y"); ?> -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -76,32 +76,32 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/<? print $class; ?>.h>
+#include <OpenMS/TODO/<?php print $class; ?>.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(<? print $class; ?>, "$Id$")
+START_TEST(<?php print $class; ?>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-<? print $class; ?>* ptr = 0;
-START_SECTION(<? print $class; ?>())
+<?php print $class; ?>* ptr = 0;
+START_SECTION(<?php print $class; ?>())
 {
-	ptr = new <? print $class; ?>();
+	ptr = new <?php print $class; ?>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(~<? print $class; ?>())
+START_SECTION(~<?php print $class; ?>())
 {
 	delete ptr;
 }
 END_SECTION
 
-<?
+<?php
 foreach ($class_info["public-long"] as $c)
 {
 	if (trim($c) != $class_info["classname"]."()")

@@ -46,13 +46,13 @@ namespace OpenMS
   {
     namespace ClassTest
     {
-      void
+      void OPENMS_DLLAPI
       testStringSimilar( const char * file, int line,
                          const std::string & string_1,
                          const char * string_1_stringified,
                          const std::string & string_2,
                          const char * string_2_stringified );
-      bool
+      bool OPENMS_DLLAPI
       isFileSimilar( const std::string &, const std::string & );
     }
   }
@@ -65,7 +65,7 @@ namespace OpenMS
   class OPENMS_DLLAPI FuzzyStringComparator
   {
 
-      friend void
+      friend void OPENMS_DLLAPI
           Internal::ClassTest::testStringSimilar(
                                                   const char * file,
                                                   int line,
@@ -73,7 +73,7 @@ namespace OpenMS
                                                   const char * string_1_stringified,
                                                   const std::string & string_2,
                                                   const char * string_2_stringified );
-      friend bool
+      friend bool OPENMS_DLLAPI
       Internal::ClassTest::isFileSimilar( const std::string &,
                                           const std::string & );
 

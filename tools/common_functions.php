@@ -204,7 +204,7 @@ function getClassInfo($bin_path,$header, $debug)
 	if (!file_exists("$bin_path/doc/xml_output/"))
 	{
 		print "Error: The directory '$bin_path/doc/xml_output/' is needed!\n";
-		print "       Please execute 'make idoc' first!\n";
+		print "       Please execute 'make doc_internal' first!\n";
 	}
 	
 	######################## load file ###############################
