@@ -27,12 +27,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_statistics.h>
-
 #include <vector>
 
 using namespace std;
@@ -43,8 +37,18 @@ namespace OpenMS
 		: DefaultParamHandler("PeakPickerHiRes"),
 			ProgressLogger()
   {
+		// set default parameter values
+		defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked.");
+		defaults_.setMinFloat("signal_to_noise", 0.0);
+		
+		// parameters for SNTestimator config ...
 
+		// write defaults into Param object param_
 		defaultsToParam_();
+
+		
+		// initialize class members
+		signalToNoise_ = param_.getValue("signal_to_noise");
   }
 
   PeakPickerHiRes::~PeakPickerHiRes()

@@ -181,7 +181,7 @@ class TOPPPeakPicker
 			pp.setParameters(pepi_param);
 			pp.pickExperiment(ms_exp_raw,ms_exp_peaks);
     }
-    else if (type == "gaussian")
+    else if (type == "high_res")
     {	
     	PeakPickerHiRes pp;
       pp.setLogType(log_type_);
