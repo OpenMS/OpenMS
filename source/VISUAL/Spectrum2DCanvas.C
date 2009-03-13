@@ -284,10 +284,10 @@ namespace OpenMS
 							 i != layer.peaks.areaEndConst();
 							 ++i)
 					{
-						PeakIndex pi = i.getPeakIndex();
-						if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+						if (i->getIntensity() > max)
 						{
-							if (i->getIntensity() > max)
+							PeakIndex pi = i.getPeakIndex();
+							if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 							{
 								max = i->getIntensity();
 							}

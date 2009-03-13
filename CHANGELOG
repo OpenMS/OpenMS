@@ -10,6 +10,9 @@ Main improvements of TOPP:
 - PeakPicker: reduced the number of parameters, added parallization support
 - FeatureFinder: added new MRM algorithm and removed the tool 'FeatureFinderMRM'
 - FileInfo: added support for idXML
+- TOPPView:
+  - improved visualization of very high-resolution data
+	- improved painting speed of 2D view
 
 Main improvements of OpenMS C++ library:
 - removed support for external Memory (use the 64bit builds if you want to process large datasets)
