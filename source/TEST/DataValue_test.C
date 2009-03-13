@@ -76,17 +76,43 @@ START_SECTION((DataValue(float)))
 	TEST_REAL_SIMILAR((DoubleReal)d, 3.0);
 END_SECTION
 
-START_SECTION((DataValue(Int)))
-	Int n = -3000;
+
+START_SECTION((DataValue(short int)))
+	short int n = -3000;
 	DataValue d(n);
-	TEST_EQUAL((Int)d, -3000)
+	TEST_EQUAL((short int)d, -3000)
 END_SECTION
 
-START_SECTION((DataValue(UInt)))
-	UInt n = 3000u;
+START_SECTION((DataValue(unsigned short int)))
+	unsigned short int n = 3000u;
 	DataValue d(n);
-	TEST_EQUAL((UInt)d, 3000u)
+	TEST_EQUAL((unsigned short)d, 3000u)
 END_SECTION
+
+START_SECTION((DataValue(int)))
+  int n = -3000;
+  DataValue d(n);
+  TEST_EQUAL((int)d, -3000)
+END_SECTION
+
+START_SECTION((DataValue(unsigned int)))
+  unsigned int n = 3000u;
+  DataValue d(n);
+  TEST_EQUAL((unsigned int)d, 3000u)
+END_SECTION
+
+START_SECTION((DataValue(long int)))
+  long int n = -3000;
+  DataValue d(n);
+  TEST_EQUAL((long int)d, -3000)
+END_SECTION
+
+START_SECTION((DataValue(unsigned long int)))
+  unsigned long int n = 3000u;
+  DataValue d(n);
+  TEST_EQUAL((unsigned long int)d, 3000u)
+END_SECTION
+
 
 START_SECTION((DataValue(const char*)))
 	const char* s = "test char";

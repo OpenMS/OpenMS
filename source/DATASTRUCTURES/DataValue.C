@@ -84,12 +84,32 @@ namespace OpenMS
 		data_.dou_ = p;
 	}
 	
-	DataValue::DataValue(Int p) : value_type_(INT_VALUE)
+	DataValue::DataValue(short int p) : value_type_(INT_VALUE)
 	{
 		data_.int_ = p;
 	}
 
-	DataValue::DataValue(UInt p) : value_type_(INT_VALUE)
+	DataValue::DataValue(unsigned short int p) : value_type_(INT_VALUE)
+	{
+		data_.int_ = p;
+	}
+
+  DataValue::DataValue(int p) : value_type_(INT_VALUE)
+  {
+    data_.int_ = p;
+  }
+
+  DataValue::DataValue(unsigned int p) : value_type_(INT_VALUE)
+  {
+    data_.int_ = p;
+  }
+
+  DataValue::DataValue(long int p) : value_type_(INT_VALUE)
+  {
+    data_.int_ = p;
+  }
+
+  DataValue::DataValue(unsigned long int p) : value_type_(INT_VALUE)
 	{
 		data_.int_ = p;
 	}
@@ -236,11 +256,10 @@ namespace OpenMS
 		{
 		  return float(data_.int_);
 		}
-
 		return data_.dou_; 
 	}
 	
-	DataValue::operator Int() const
+	DataValue::operator short int() const
 	{
 		if (value_type_ != INT_VALUE)	
 		{
@@ -249,7 +268,51 @@ namespace OpenMS
 		return data_.int_;
 	}
 
-	DataValue::operator UInt() const
+	DataValue::operator unsigned short int() const
+	{
+		if (value_type_ != INT_VALUE)
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
+		}
+		if (data_.int_ < 0.0)
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+		}
+		return abs(data_.int_);
+	}
+
+  DataValue::operator int() const
+  {
+    if (value_type_ != INT_VALUE)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+    }
+    return data_.int_;
+  }
+
+  DataValue::operator unsigned int() const
+  {
+    if (value_type_ != INT_VALUE)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
+    }
+    if (data_.int_ < 0.0)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+    }
+    return abs(data_.int_);
+  }
+
+  DataValue::operator long int() const
+  {
+    if (value_type_ != INT_VALUE)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+    }
+    return data_.int_;
+  }
+
+  DataValue::operator unsigned long int() const
 	{
 		if (value_type_ != INT_VALUE)	
 		{

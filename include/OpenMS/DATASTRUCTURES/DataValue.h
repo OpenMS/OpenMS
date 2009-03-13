@@ -87,10 +87,18 @@ namespace OpenMS
 			DataValue(double);
 			/// specific constructor for float values (note: the implementation uses DoubleReal)
 			DataValue(float);
-			/// specific constructor for integer values
-			DataValue(Int);
-			/// specific constructor for unsigned integer values
-			DataValue(UInt);
+			/// specific constructor for short int values (note: the implementation uses Int)
+			DataValue(short int);
+			/// specific constructor for unsigned short int values (note: the implementation uses Int)
+			DataValue(unsigned short int);
+      /// specific constructor for int values (note: the implementation uses Int)
+      DataValue(int);
+      /// specific constructor for unsigned int values (note: the implementation uses Int)
+      DataValue(unsigned nt);
+      /// specific constructor for long int values (note: the implementation uses Int)
+      DataValue(long int);
+      /// specific constructor for unsigned long int values (note: the implementation uses Int)
+      DataValue(unsigned long nt);
 			/// copy constructor
 			DataValue(const DataValue&);
 			/// destructor
@@ -150,17 +158,53 @@ namespace OpenMS
 			*/
 			operator float() const;
 			/**
+        @brief conversion operator to short int
+
+        Note: The implementation uses typedef Int.
+
+        @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      */
+      operator short int () const;
+      /**
+        @brief conversion operator to unsigned short int
+
+        Note: The implementation uses typedef Int.
+
+        @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      */
+      operator unsigned short int () const;
+      /**
 				@brief conversion operator to int
+
+        Note: The implementation uses typedef Int.
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
-			operator Int() const;
+      operator int () const;
 			/**
 				@brief conversion operator to unsigned int
 
+        Note: The implementation uses typedef Int.
+
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
-			operator UInt() const;
+      operator unsigned int () const;
+			/**
+				@brief conversion operator to long int
+
+        Note: The implementation uses typedef Int.
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator long int () const;
+			/**
+				@brief conversion operator to unsigned long int
+
+        Note: The implementation uses typedef Int.
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator unsigned long int () const;
 			/**
 				@brief Convert DataValues to char*
 
