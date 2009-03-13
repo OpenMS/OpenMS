@@ -28,20 +28,22 @@
 #ifndef OPENMS_APPLICATIONS_TOPPBASE_H
 #define OPENMS_APPLICATIONS_TOPPBASE_H
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/IntList.h>
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/METADATA/IDTagger.h>
 
 #include <iostream>
 #include <fstream>
 #include <limits>
 class QStringList;
+
 
 namespace OpenMS
 {
@@ -129,9 +131,11 @@ namespace OpenMS
       	@param description Short description of the tool (one line).
       	@param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
       	                If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+				@param IDtag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
+							 In this case you cannot use the -IDtag flag when calling the TOPP tool (exception will be thrown)
       	@param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
       */
-      TOPPBase(const String& name, const String& description, bool official=true, const String& version="");
+      TOPPBase(const String& name, const String& description, bool official=true, bool IDtag_support=false, const String& version="");
 
       /// Destructor
       virtual ~TOPPBase();
@@ -252,6 +256,12 @@ namespace OpenMS
 
       /// Tool description. This is assigned once and for all in the constructor.
       String const tool_description_;
+
+			/// Tool indicates it supports assignment of unique DocumentID from IDPool
+			bool IDtag_support_;
+
+			/// Instance of IDTagger, which can be accessed using getIDTagger_()
+			IDTagger id_tagger_;
 
       ///Instance number
       Int const instance_number_;
@@ -818,6 +828,9 @@ namespace OpenMS
         addDataProcessing_(map, actions);
       }
       
+			/// get IDTagger to assign DocumentIDs to maps
+			const IDTagger& getIDTagger_() const;
+
   };
 
 } // namespace OpenMS

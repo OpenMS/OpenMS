@@ -62,7 +62,7 @@ class TOPPITRAQAnalyzer
 {
  public:
 	TOPPITRAQAnalyzer()
-		: TOPPBase("ITRAQAnalyzer","\nWARNING: EXPERIMENTAL\n\n Calculates iTRAQ quantitative values for peptides or proteins (when idXML available)")
+		: TOPPBase("ITRAQAnalyzer","\nWARNING: EXPERIMENTAL\n\n Calculates iTRAQ quantitative values for peptides or proteins (when idXML available)", true, true)
 	{
 	}
 
@@ -147,6 +147,13 @@ class TOPPITRAQAnalyzer
 			itraq_quant.run(consensus_map_raw, consensus_map_quant);
 		}
 		
+
+		// assign unique ID to output file:
+		if (!getIDTagger_().tag(consensus_map_raw))
+		{
+			writeLog_("ITRAQAnalyzer: Unable to aquire DocumentID for output file! Operation will continue, but the DocumentID is most likely invalid!");
+		}
+
 		//-------------------------------------------------------------
 		// writing output 
 		//-------------------------------------------------------------

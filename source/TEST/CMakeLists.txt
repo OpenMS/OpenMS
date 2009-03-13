@@ -125,22 +125,6 @@ add_custom_target(TRANSFORMATIONS_TEST)
 add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
 
 
-### collect test executables
-set(TEST_executables
-		${concept_executables_list}
-		${system_executables_list}
-		${datastructures_executables_list}
-		${kernel_executables_list}
-		${metadata_executables_list}
-		${visual_executables_list}
-		${format_executables_list}
-		${math_executables_list}
-		${filtering_executables_list}
-		${comparison_executables_list}
-		${chemistry_executables_list}
-		${analysis_executables_list}
-		${applications_executables_list}
-		${transformations_executables_list})
 
 ### TEST target
 add_custom_target(TEST)

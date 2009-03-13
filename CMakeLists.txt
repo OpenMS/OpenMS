@@ -60,6 +60,9 @@ elseif (MSVC)
 	## disable dll-interface warning
 	add_definitions(/wd4251)
 	
+	## disable deprecated functions warning (e.g. for POSIX functions)
+	add_definitions(/wd4996)
+	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)
 

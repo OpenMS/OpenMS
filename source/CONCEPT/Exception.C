@@ -342,7 +342,11 @@ namespace OpenMS
 	  		: BaseException(file, line, function, name, message)
 			{
 			}
-		
+
+  		DepletedIDPool::DepletedIDPool(const char* file, int line, const char* function, const string& name , const string& message) throw()
+	  		: BaseException(file, line, function, name, message)
+			{
+			}
 		
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 

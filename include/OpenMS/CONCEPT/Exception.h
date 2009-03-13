@@ -659,7 +659,21 @@ namespace OpenMS
 		public:
 			UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
 		};
-		
+
+		/**	
+			@brief Exception used if no more unique document ID's can be drawn from ID pool.
+				
+			The ID pool of OpenMS is either depleted or not existant.
+				
+			@ingroup Exceptions
+		*/			
+		class OPENMS_DLLAPI DepletedIDPool
+			: public BaseException
+		{
+		public:
+			DepletedIDPool(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
+		};
+
 
 		/**
 			@brief OpenMS global exception handler

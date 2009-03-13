@@ -44,6 +44,7 @@ set(metadata_executables_list
   MetaInfoInterface_test
   IonSource_test
   IonDetector_test
+	IDTagger_test
   MassAnalyzer_test
   Instrument_test
   ProteinHit_test
@@ -339,3 +340,27 @@ set(transformations_executables_list
   TwoDOptimization_test
 )
 
+### collect test executables
+set(TEST_executables
+		${concept_executables_list}
+		${system_executables_list}
+		${datastructures_executables_list}
+		${kernel_executables_list}
+		${metadata_executables_list}
+		${visual_executables_list}
+		${format_executables_list}
+		${math_executables_list}
+		${filtering_executables_list}
+		${comparison_executables_list}
+		${chemistry_executables_list}
+		${analysis_executables_list}
+		${applications_executables_list}
+		${transformations_executables_list})
+		
+
+### add filenames to Visual Studio solution tree
+set(sources_VS)
+foreach(i ${TEST_executables})
+	list(APPEND sources_VS "${i}.C")
+endforeach(i)
+source_group("" FILES ${sources_VS})

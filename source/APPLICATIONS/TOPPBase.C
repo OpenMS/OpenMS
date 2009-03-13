@@ -40,12 +40,14 @@ namespace OpenMS
 {
 	using namespace Exception;
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const String& version)
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool IDtag_support, const String& version)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
 			instance_number_(-1),
 			debug_level_(-1),
 			version_(version),
+			IDtag_support_(IDtag_support),
+			id_tagger_(tool_name),
 			log_type_(ProgressLogger::NONE)
 	{
 		// if version is empty, use the OpenMS/TOPP version and date/time
@@ -98,6 +100,7 @@ namespace OpenMS
 		registerStringOption_("write_ini","<file>","","Writes an example configuration file",false);
 		registerStringOption_("write_wsdl","<file>","","Writes an example WSDL file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
+		registerFlag_("id_tag","Assign DocumentID's for all generated output files [not supported by all TOPP tools]");
 		registerFlag_("-help","Shows this help");
 
 		// prepare options and flags for command line parsing
@@ -415,6 +418,34 @@ namespace OpenMS
 			{
 				log_type_ = ProgressLogger::CMD;
 			}
+
+			//-------------------------------------------------------------
+			//document ID tagging
+			//-------------------------------------------------------------
+			if(getFlag_("id_tag") && !IDtag_support_)
+			{
+				std::cerr << "This TOPP tool does not support the -id_tag option (yet). Ignoring option...\n";
+			}
+			else if (getFlag_("id_tag") && IDtag_support_)
+			{
+				//check if there are enough IDs in the pool (we require at least one and warn below 5) 
+				Int id_count(0);
+				if (!id_tagger_.countFreeIDs(id_count))
+				{
+					writeLog_("Error: Unable to query ID pool! Ending programm (no computation was performed)!");
+					return INTERNAL_ERROR;
+				}
+				if (id_count == 0)
+				{
+					writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending programm (no computation was performed)!");
+					return INTERNAL_ERROR;
+				}
+				else if (id_count <= 5)
+				{
+					writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
+				}
+			}
+
 
 			//----------------------------------------------------------
 			//main
@@ -1787,6 +1818,20 @@ namespace OpenMS
 		if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
 
 		return tmp;
+	}
+
+
+	const IDTagger& TOPPBase::getIDTagger_() const
+	{
+		if (IDtag_support_)
+		{
+			return id_tagger_;
+		}
+		else
+		{
+			writeLog_(String("Error: Message to maintainer - You created your TOPP tool without IDtag_support (see TOPPBase constructor), but nevertheless use getIDTagger_()! Please decide for IDsupport on or off consistently!"));
+			exit(INTERNAL_ERROR);
+		}
 	}
 
 } // namespace OpenMS

@@ -1,0 +1,201 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+// 
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/METADATA/IDTagger.h>
+#include <QDir>
+#include <boost/interprocess/sync/file_lock.hpp>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <exception>
+#include <cstdio>
+#include <ctime>
+
+using namespace std;
+
+namespace OpenMS 
+{
+  IDTagger::IDTagger(String toolname): 
+    toolname_(toolname)
+  {
+  }
+  
+  IDTagger::IDTagger(const IDTagger& source):
+    toolname_(source.toolname_)
+  {
+  }
+   
+  IDTagger::~IDTagger()
+  {
+  }
+  
+  IDTagger& IDTagger::operator = (const IDTagger& source)
+  {
+    if (source == *this) return *this;
+		toolname_ = source.toolname_;
+    return *this;
+  }
+
+  bool IDTagger::operator == (const IDTagger& rhs) const
+  {
+    return ( toolname_ == rhs.toolname_ );
+  }
+
+  bool IDTagger::operator != (const IDTagger& rhs) const
+  {
+    return !(operator == (rhs));
+  }
+
+	bool IDTagger::getID_(String& id, Int& free, bool idcount_only) const
+	{
+		free = 0;
+
+		// use environment filename as POOL or fall back to default
+		String IDPool_file("");
+		char * id_file_env;
+		id_file_env = getenv ("OPENMS_IDPOOL_FILE");
+		if (id_file_env!=NULL) IDPool_file = String(id_file_env);
+		else IDPool_file = String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
+		String IDPool_file_tmp = String(IDPool_file) + String(".tmp");
+		// create PoolFile if non-existant
+		if (!File::exists(IDPool_file)) 
+		{
+			ofstream out(IDPool_file.c_str());
+			out.close();
+		}
+
+		// open input file
+		ifstream in(IDPool_file.c_str());
+		if( !in.is_open())
+		{
+			std::cerr << "IDTagger::getID_() " << IDPool_file << " file failed to open.\n";
+			return false;
+		}
+	
+		// CREATE lock file!
+		// Hint: we create an independent lock file, because to remove one ID the pool is copied to another file 
+		//       which overwrites the original pool file. Additonally we want to atomically write to a log file.
+		//       So locking the pool file itself is a really bad idea!
+		String tmp_lock_file = String(IDPool_file + String(".lck"));
+		if (!File::exists(tmp_lock_file)) 
+		{
+			ofstream out(tmp_lock_file.c_str());
+			out.close();
+		}
+		boost::interprocess::file_lock flock(tmp_lock_file.c_str());
+
+		// this might thow an exception!
+		try {	flock.lock();} catch (exception /*e*/) {return false;}
+		// we have the lock!
+
+		// now open temp output file
+		ofstream out;
+		if (!idcount_only) 
+		{
+			out.open(IDPool_file_tmp.c_str(), ios::out | ios::trunc);
+			if( !out.is_open())
+			{
+				std::cerr << "IDTagger::getID_() " << IDPool_file_tmp << " file failed to open for writing.\n";
+				flock.unlock();
+				in.close();
+				return false;
+			}
+		}
+
+		// copy the ID pool, but excise the first ID
+		string line;
+		while (! in.eof() )
+    {
+      getline (in,line);
+			if (line.length()==0) continue;
+			std::cout << "Read: " << line << "\n";
+			++free;
+			if (free==1) id = line;// pull out first ID
+			if (!idcount_only)
+			{
+				if (free!=1) // delete first line
+				{
+					out << line << "\n";
+				}
+			}
+		}
+		in.close();
+		if (!idcount_only) 
+		{
+			out.close();    
+			// delete the original file
+			remove(IDPool_file.c_str());
+			// rename old to new
+			rename(IDPool_file_tmp.c_str(),IDPool_file.c_str());
+
+			// write ID to log file
+			String logging_file = String(IDPool_file + String(".log"));
+			ofstream outfile;
+			outfile.open (logging_file.c_str(), ofstream::out | ofstream::app);
+			time_t rawtime;
+		  char time_buffer [80];
+			time ( &rawtime );
+			strftime (time_buffer,80,"%x %X", localtime ( &rawtime ) );
+			outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
+			outfile.close();
+		}
+
+
+		// release lock file
+		flock.unlock();
+
+		return true;
+	}
+
+	bool IDTagger::tag(DocumentIdentifier& map) const
+	{
+		String id="";Int free(0);
+		if (getID_(id, free, false))
+		{		
+			map.setIdentifier(id);
+			return true;
+		}
+		else
+		{
+			map.setIdentifier("InvalidID");
+			return false;
+		}
+	}
+
+	bool IDTagger::countFreeIDs(Int& free) const
+	{
+		String id="";
+		if (getID_(id, free, true))
+		{		
+			return true;
+		}
+		return false;
+	}
+
+} // namespace OpenMS
+
