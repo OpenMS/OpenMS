@@ -129,7 +129,7 @@ if (DOXYGEN_FOUND)
 										COMMENT "Build the doxygen documentation"
 										VERBATIM)
 
-	if (DOXYGEN_DOT_FOUND)
+	if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
 		#######################################################################
 		## doc_dot target
 		add_custom_target(doc_dot
