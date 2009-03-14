@@ -91,7 +91,7 @@ namespace OpenMS
 			String getPoolFile() const;
 
 			/// Set the file used as ID pool
-			void setPoolFile(String& file);
+			void setPoolFile(const String& file);
 
 			/**
 				@brief Tags any structure which is derived from DocumentIdentifier with a unique tag

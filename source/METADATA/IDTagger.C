@@ -81,7 +81,7 @@ namespace OpenMS
 		return pool_file_;
 	}
 
-	void IDTagger::setPoolFile(String& file)
+	void IDTagger::setPoolFile(const String& file)
 	{
 		pool_file_ = file;
 	}

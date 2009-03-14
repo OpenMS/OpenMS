@@ -43,11 +43,11 @@ namespace OpenMS
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, const String& version)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
+			id_tag_support_(id_tag_support),
+			id_tagger_(tool_name),
 			instance_number_(-1),
 			debug_level_(-1),
 			version_(version),
-			id_tag_support_(id_tag_support),
-			id_tagger_(tool_name),
 			log_type_(ProgressLogger::NONE)
 	{
 		// if version is empty, use the OpenMS/TOPP version and date/time
