@@ -189,6 +189,8 @@ namespace OpenMS
 	void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter& painter)
 	{
 		const LayerData& layer = getLayer(layer_index);
+		
+		//update factors (snap and percentage)
 		DoubleReal snap_factor = snap_factors_[layer_index];
 		percentage_factor_ = 1.0;
 		if (intensity_mode_ == IM_PERCENTAGE)
@@ -217,47 +219,12 @@ namespace OpenMS
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
 			//renaming some values for readability
+			const ExperimentType& map = layer.peaks;
 			DoubleReal rt_min = visible_area_.min()[1];
 			DoubleReal rt_max = visible_area_.max()[1];
 			DoubleReal mz_min = visible_area_.min()[0];
 			DoubleReal mz_max = visible_area_.max()[0];
-			
-			//determine if we want to draw dots or crosses
-			//determine number of MS1 scans
-			UInt scans = 0;
-			ExperimentType::ConstIterator it = layer.peaks.RTBegin(rt_min);
-			while (it != layer.peaks.RTEnd(rt_max))
-			{
-				if (it->getMSLevel()==1) ++scans;
-				++it;
-			}
-			//determine number of shown peaks
-			Int peaks = 0;
-			it = layer.peaks.RTBegin(rt_min) + scans/2;
-			while (it!=layer.peaks.end() && it->getMSLevel()!=1)
-			{
-				++it;
-			}
-			if (it!=layer.peaks.end())
-			{
-				ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min);
-				while (it2!=it->MZEnd(mz_max))
-				{
-					if (layer.filters.passes(*it,it2-it->begin())) ++peaks;
-					++it2;
-				}
-			}
-			//paint dots if too many peaks are shown, crosses otherwise
-			bool dots = false;
-			if(isMzToXAxis())
-			{
-				if (peaks>0.5*width() || scans>0.5*height()) dots=true;
-			}
-			else
-			{
-				if (peaks>0.5*height() || scans>0.5*width()) dots=true;
-			}
-			
+
 			//determine number of pixels for each dimension
 			Int rt_pixel_count = image_height;
 			Int mz_pixel_count = image_width;
@@ -267,45 +234,120 @@ namespace OpenMS
 				mz_pixel_count = image_height;
 			}
 			
-			//calculate pixel size in data coordinates
-			DoubleReal rt_step_size = (rt_max - rt_min) / rt_pixel_count;
-			DoubleReal mz_step_size = (mz_max - mz_min) / mz_pixel_count;
-			
-			//main loop over all pixels
-			for (Int rt=0; rt<rt_pixel_count; ++rt) // RT dimension
+			//-----------------------------------------------------------------------------------------------
+			//determine if we want to draw dots or crosses (this also influences the way the data is painted)
+			//determine number of shown scans
+			UInt scans = 0;
+			for (ExperimentType::ConstIterator it = map.RTBegin(rt_min); it!=map.RTEnd(rt_max); ++it)
 			{
-				DoubleReal rt_start = rt_min + rt_step_size * rt; //m/z dimension
-				for (Int mz=0; mz<mz_pixel_count; ++mz)
+				if (it->getMSLevel()==1) ++scans;
+			}
+			//estimate the number of shown peaks from the central MS1 scan of the RT range
+			Int peaks = 0;
+			{
+				ExperimentType::ConstIterator it = map.RTBegin(rt_min) + scans/2;
+				while (it!=map.end() && it->getMSLevel()!=1)
 				{
-					//find data maximum
-					DoubleReal max = -1.0;
-					DoubleReal mz_start = mz_min + mz_step_size * mz;
-					for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(rt_start, rt_start + rt_step_size, mz_start, mz_start + mz_step_size);
-							 i != layer.peaks.areaEndConst();
-							 ++i)
+					++it;
+				}
+				if (it!=map.end())
+				{
+					for  (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2!=it->MZEnd(mz_max); ++it2)
 					{
-						if (i->getIntensity() > max)
+						if (layer.filters.passes(*it,it2-it->begin())) ++peaks;
+					}
+				}
+			}
+			
+			//-----------------------------------------------------------------------------------------------
+			//paint dots (many data points): we paint the maximum shown intensity per pixel
+			if (peaks*scans>0.5*mz_pixel_count*rt_pixel_count)
+			{
+				//calculate pixel size in data coordinates
+				DoubleReal rt_step_size = (rt_max - rt_min) / rt_pixel_count;
+				DoubleReal mz_step_size = (mz_max - mz_min) / mz_pixel_count;
+				
+				//iterate over all pixels (RT dimension)
+				Size scan_index = 0;
+				for (Int rt=0; rt<rt_pixel_count; ++rt)
+				{
+					DoubleReal rt_start = rt_min + rt_step_size * rt; 
+					DoubleReal rt_end = rt_start + rt_step_size; 
+					//cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
+					
+					//determine the relevant spectra and reserve an array for the peak indices
+					vector<Size> scan_indices, peak_indices;
+					for (Size i=scan_index; i<map.size(); ++i)
+					{
+						if (map[i].getRT()>=rt_end)
 						{
-							PeakIndex pi = i.getPeakIndex();
-							if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+							scan_index = i; //store last scan index for next RT pixel
+							break;
+						}
+						if (map[i].getMSLevel()==1 && map[i].size()>0)
+						{
+							scan_indices.push_back(scan_index);
+							peak_indices.push_back(0);
+						}
+						//set the scan index past the end. Otherwise the last scan will be repeated for all following RTs
+						if (i==map.size()-1) scan_index=i+1;
+					}
+					//cout << "  scans: " << scan_indices.size() << endl;
+
+					if (scan_indices.size()==0) continue;
+					
+					//iterate over all pixels (m/z dimension)
+					for (Int mz=0; mz<mz_pixel_count; ++mz)
+					{
+						DoubleReal mz_start = mz_min + mz_step_size * mz;
+						DoubleReal mz_end = mz_start + mz_step_size; 
+						
+						//iterate over all relevant peaks in all relevant scans
+						DoubleReal max = -1.0;
+						for (Size i=0; i<scan_indices.size(); ++i)
+						{
+							Size s = scan_indices[i];
+							Size p = peak_indices[i];
+							for(; p<map[s].size(); ++p)
 							{
-								max = i->getIntensity();
+								if (map[s][p].getMZ()>=mz_end) break;
+								if (map[s][p].getIntensity() > max && layer.filters.passes(map[s],p))
+								{
+									max = map[s][p].getIntensity();
+								}
+							}
+							peak_indices[i] = p; //store last peak index for next m/z pixel
+						}
+						
+						//draw to buffer
+						if (max>=0.0)
+						{
+							QPoint pos;
+							dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
+							if (pos.y()<image_height && pos.x()<image_width)
+							{
+								buffer_.setPixel(pos.x() , pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
 							}
 						}
 					}
-					
-					//draw to buffer
-					if (max>0.0)
+				}
+			}
+			//-----------------------------------------------------------------------------------------------
+			//paint crosses (few data points): we paint the data on the screen
+			else
+			{
+				for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min,rt_max,mz_min,mz_max);
+						 i != map.areaEndConst();
+						 ++i)
+				{
+					PeakIndex pi = i.getPeakIndex();
+					if (layer.filters.passes(map[pi.spectrum],pi.peak))
 					{
 						QPoint pos;
-						dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
-						if (dots && pos.y()<image_height && pos.x()<image_width)
+						dataToWidget_(i->getMZ(), i.getRT(), pos);
+						if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 						{
-							buffer_.setPixel(pos.x() , pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
-						}
-						else if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
-						{
-							QRgb color = heightColor_(max, layer.gradient, snap_factor).rgb();
+							QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 							buffer_.setPixel(pos.x() ,pos.y() ,color);
 							buffer_.setPixel(pos.x()-1 ,pos.y() ,color);
 							buffer_.setPixel(pos.x()+1 ,pos.y() ,color);
@@ -316,19 +358,19 @@ namespace OpenMS
 				}
 			}
 
+			//-----------------------------------------------------------------
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
-				const ExperimentType& exp = layer.peaks;
-				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]);
-						 i != exp.RTEnd(visible_area_.max()[1]);
+				for (ExperimentType::ConstIterator i = map.RTBegin(visible_area_.min()[1]);
+						 i != map.RTEnd(visible_area_.max()[1]);
 						 ++i)
 				{
 					//this is an MS/MS scan
 					if (i->getMSLevel()==2 && !i->getPrecursors().empty())
 					{
-						ExperimentType::ConstIterator prec=exp.getPrecursorSpectrum(i);
-						if (prec!=exp.end())
+						ExperimentType::ConstIterator prec=map.getPrecursorSpectrum(i);
+						if (prec!=map.end())
 						{
 							QPoint pos;
 							dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(),pos);
