@@ -62,6 +62,10 @@ elseif (MSVC)
 	
 	## disable deprecated functions warning (e.g. for POSIX functions)
 	add_definitions(/wd4996)
+
+	## disable explicit template instantiation request for partially defined classes
+	add_definitions(/wd4661)
+
 	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)

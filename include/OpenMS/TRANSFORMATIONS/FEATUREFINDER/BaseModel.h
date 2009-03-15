@@ -31,16 +31,6 @@
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
-// For principal reasons, we cannot avoid implementing the registerChildren
-// method in a separate file (BaseModel_impl.h) after the derived classes have
-// been defined.  MS compilers will however throw a warning at level 1 for
-// this.  Let's ignore it.
-
-#ifdef _MSC_VER // disable warning C4661: 'void OpenMS::BaseModel<D>::registerChildren(void)' : no suitable definition provided for explicit template instantiation request 
-#	pragma warning( push ) // save warning state
-#	pragma warning( disable : 4661 )
-#endif
-
 namespace OpenMS
 {
 
@@ -164,10 +154,5 @@ namespace OpenMS
 		}
   };
 }
-
-#ifdef _MSC_VER
-#	pragma warning( pop )  // restore old warning state
-#endif
-
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
