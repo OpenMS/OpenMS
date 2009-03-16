@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
+// $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
