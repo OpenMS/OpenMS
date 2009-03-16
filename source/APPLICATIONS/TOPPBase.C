@@ -100,7 +100,13 @@ namespace OpenMS
 		registerStringOption_("write_ini","<file>","","Writes an example configuration file",false);
 		registerStringOption_("write_wsdl","<file>","","Writes an example WSDL file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
-		registerStringOption_("id_pool","<file>",id_tagger_.getPoolFile(),"ID pool file to DocumentID's for all generated output files [not supported by all TOPP tools]",false);
+		if (id_tag_support_)
+		{
+			registerStringOption_("id_pool","<file>",
+														"",
+														String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")"
+														,false);
+		}
 		registerFlag_("-help","Shows this help");
 
 		// prepare options and flags for command line parsing
@@ -422,15 +428,10 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			//document ID tagging
 			//-------------------------------------------------------------
-			if(setByUser_("id_pool") && !id_tag_support_)
-			{
-				writeLog_("Error: id_pool argument was set but TOPP tool does not support it! Ending programm (no computation was performed)!");
-				return INTERNAL_ERROR;
-			}
-			else if (setByUser_("id_pool") && id_tag_support_)
+			if (getStringOption_("id_pool").length()>0)
 			{
 				// set custom pool file if given
-				if (getStringOption_("id_pool").length()>0) id_tagger_.setPoolFile(getStringOption_("id_pool"));
+				if (!(getStringOption_("id_pool")==String("main"))) id_tagger_.setPoolFile(getStringOption_("id_pool"));
 
 				//check if there are enough IDs in the pool (we require at least one and warn below 5) 
 				Int id_count(0);
@@ -1827,20 +1828,12 @@ namespace OpenMS
 
 	const IDTagger& TOPPBase::getIDTagger_() const
 	{
-		if (id_tag_support_ && setByUser_("id_pool"))
+		if (!setByUser_("id_pool"))
 		{
-			return id_tagger_;
-		}
-		else if (!id_tag_support_)
-		{
-			writeLog_(String("Error: Message to maintainer - You created your TOPP tool without id_tag_support (see TOPPBase constructor), but nevertheless use getIDTagger_()! Please decide for IDsupport on or off consistently!"));
+			writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool class without the user actually requesting it (-id_pool is not set)!"));
 			exit(INTERNAL_ERROR);
 		}
-		else //if (!setByUser_("id_pool"))
-		{
-			writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool without the user actually requesting it (-id_pool is not set)!"));
-			exit(INTERNAL_ERROR);
-		}
+		return id_tagger_;
 	}
 
 } // namespace OpenMS
