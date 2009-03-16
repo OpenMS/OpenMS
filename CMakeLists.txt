@@ -546,15 +546,15 @@ foreach(i ${TOPP_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
   elseif(APPLE AND EXISTS ${resource_dir}) 
+    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)         
     ## transform TOPPView and INIFileEditor to real Mac OS X applications
-		set(MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
-	  set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
-	  set(MACOSX_BUNDLE_VERSION "1.3")
-	  set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
-	  set(MACOSX_BUNDLE_ICON_FILE "${i}.icns")
-	  set(MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
-	  set(MACOSX_BUNDLE_BUNDLE_NAME "${i}")
-    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
+		set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.3")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
+	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
 
     ## Need to copy the icon file and the custom Info.plist
     ## if version info changes, please update also the 
