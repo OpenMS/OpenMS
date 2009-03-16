@@ -45,13 +45,7 @@
 			  is present in the folder. If it is not, you have properly forgotten to execute '<i>make install</i>'.
 			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/source/TEST/ClassTest_test</i>'
 
-			<LI><B>(Windows) When executing the tests manually within the explorer, the test will not start.</B>
-			The problem is that each executable needs the OpenMS.dll, which resides in another directory (namely OpenMS/bin or OpenMS/bin/Debug or OpenMS/bin/Release - depending on your settings).
-			To make the executable aware of the DLL you can just copy it to the executable's directory or extend your PATH to contain the DLL directory. For the latter solution, be aware that you will
-			run into trouble when running multiple OpenMS on the same machine!
-			
-			The reason CTest can execute the tests correctly is that it sets it PATH correctly (see "CTEST_ENVIRONMENT" in CMakeLists.txt)
-			
+		
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">TOPP</H2>

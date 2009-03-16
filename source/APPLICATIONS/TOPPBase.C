@@ -1827,7 +1827,12 @@ namespace OpenMS
 
 	const IDTagger& TOPPBase::getIDTagger_() const
 	{
-		if (!setByUser_("id_pool"))
+		if (!id_tag_support_)
+		{
+			writeLog_(String("Error: Message to maintainer - You created your TOPP tool without id_tag_support and query the ID Pool class! Decide what you want!"));
+			exit(INTERNAL_ERROR);
+		}
+		else if (id_tag_support_ && getStringOption_("id_pool").length()==0)
 		{
 			writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool class without the user actually requesting it (-id_pool is not set)!"));
 			exit(INTERNAL_ERROR);
