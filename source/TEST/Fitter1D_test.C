@@ -69,7 +69,7 @@ class TestModel : public Fitter1D
     Fitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*& model)
   {
     DoubleReal center = 0.0;
     center = model->getCenter();

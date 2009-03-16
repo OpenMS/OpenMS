@@ -28,13 +28,9 @@
 #ifndef OPENMS_CONCEPT_CONSTANTS_H
 #define OPENMS_CONCEPT_CONSTANTS_H
 /**	
-	@brief Main OpenMS namespace.
+	@brief Main %OpenMS namespace.
 		
-	In this namespace all the main OpenMS classes are located.
-	<BR>
-	See Constants
-	<BR>
-	See Exception
+	In this namespace all the main %OpenMS classes are located.
 */
 namespace OpenMS 
 {

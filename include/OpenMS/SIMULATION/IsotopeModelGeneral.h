@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff
 
 #ifndef OPENMS_SIMULATION_ISOTOPEMODELGENERAL_H
 #define OPENMS_SIMULATION_ISOTOPEMODELGENERAL_H
@@ -36,18 +35,17 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 
 #include <numeric> // accumulate
-/**
- @brief A "general" isotope model which derives from class OpenMS::IsotopeModel.
-
- In contrast to the feature detection algorithm in OpenMS (from which we borrow this class),
- we don't need to calculate an average isotope distribution for a given mass but have an empirical formula
- and need its exact distribution.
-
- */
 
 namespace OpenMS
 {
 
+	/**
+ 		@brief A "general" isotope model which derives from class OpenMS::IsotopeModel.
+
+		In contrast to the feature detection algorithm in OpenMS (from which we borrow this class),
+		we don't need to calculate an average isotope distribution for a given mass but have an empirical formula
+		and need its exact distribution.
+ 	*/
   class OPENMS_DLLAPI IsotopeModelGeneral
     : public IsotopeModel
   {

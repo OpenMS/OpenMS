@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
-// Author:  Clemens Groepl 
 
 #include <numeric>
 #include <math.h>

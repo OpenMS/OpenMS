@@ -22,10 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff
-
 #ifndef OPENMS_SIMULATION_MIXTUREMODEL_H
 #define OPENMS_SIMULATION_MIXTUREMODEL_H
 
@@ -33,6 +31,9 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <numeric>
+
+namespace OpenMS
+{
 
   /** @brief A mixture model consisting of two Gaussian distributions.
 
@@ -53,13 +54,7 @@
 			<tr><td>statistics: mean1, mean2, variance1, variance2</td>
 					<td>means and variances  of the mixture</td></tr>
 		</table>
-
-
 	*/
-
-namespace OpenMS
-{
-
 	class OPENMS_DLLAPI MixtureModel
   : public InterpolationModel
   {

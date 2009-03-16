@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Ole Schulz-Trieglaff, Alexander Haupt$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff, Alexander Haupt
 
 
 #include <OpenMS/SIMULATION/LCMSSample.h>

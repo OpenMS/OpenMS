@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff
 
 // General ideas:
 //   * aggresivly split the run method into several sub-units

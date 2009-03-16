@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
-// Author:  Clemens Groepl
 
 #ifndef OPENMS_SIMULATION_ELUTIONMODEL_H
 #define OPENMS_SIMULATION_ELUTIONMODEL_H

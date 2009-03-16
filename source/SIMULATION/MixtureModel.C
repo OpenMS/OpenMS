@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors:  Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff
 
 #include <OpenMS/SIMULATION/MixtureModel.h>
 

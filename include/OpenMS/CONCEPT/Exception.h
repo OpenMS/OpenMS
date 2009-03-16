@@ -48,7 +48,7 @@ namespace OpenMS
 
 
 	/** 
-		@brief Exception namespace
+		@brief %Exception namespace
 		
 		@ingroup Concept
 	 */

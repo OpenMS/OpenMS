@@ -68,7 +68,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    /// Auxiliary class for class tests
+    /// Namspace for class tests
     namespace ClassTest
     {
 

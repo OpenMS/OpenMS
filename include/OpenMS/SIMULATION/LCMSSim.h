@@ -22,9 +22,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: $
+// $Authors: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
-// Author:  Ole Schulz-Trieglaff
 
 #ifndef OPENMS_SIMULATION_LCMSSIM_H
 #define OPENMS_SIMULATION_LCMSSIM_H

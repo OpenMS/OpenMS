@@ -33,7 +33,7 @@
 namespace OpenMS
 {
 	/**
-		@brief Math namespace.
+		@brief %Math namespace.
 
 		Contains mathemtical auxiliary functions.
 
