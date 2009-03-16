@@ -42,11 +42,6 @@ include(include/OpenMS/VISUAL/UIC/sources.cmake)
 include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake)
 
 
-## not part of the actual sources for the lib
-include(source/EXAMPLES/sources.cmake)
-include(source/TEST/sources.cmake)
-
-
 set(OpenMS_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 include (include/OpenMS/ANALYSIS/DECHARGING/sources.cmake)

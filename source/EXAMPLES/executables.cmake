@@ -36,12 +36,12 @@ Tutorial_ListEditor
 Tutorial_PeakIntensityPredictor
 )
 
-### add path to the filenames
-#set(executables)
-#foreach(i ${executables_list})
-#	list(APPEND executables ${directory}/${i})
-#endforeach(i)
-
 ### pass source file list to the upper instance
 set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
+### add filenames to Visual Studio solution tree
+set(sources_VS)
+foreach(i ${executables_list})
+	list(APPEND sources_VS "${i}.C")
+endforeach(i)
+source_group("EXAMPLES" FILES ${sources_VS})
