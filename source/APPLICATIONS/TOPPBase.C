@@ -428,7 +428,7 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			//document ID tagging
 			//-------------------------------------------------------------
-			if (getStringOption_("id_pool").length()>0)
+			if (id_tag_support_ && getStringOption_("id_pool").length()>0)
 			{
 				// set custom pool file if given
 				if (!(getStringOption_("id_pool")==String("main"))) id_tagger_.setPoolFile(getStringOption_("id_pool"));
@@ -450,7 +450,6 @@ namespace OpenMS
 					writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
 				}
 			}
-
 
 			//----------------------------------------------------------
 			//main
