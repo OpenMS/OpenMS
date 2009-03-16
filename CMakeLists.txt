@@ -546,50 +546,19 @@ foreach(i ${TOPP_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
   elseif(APPLE AND EXISTS ${resource_dir}) 
-    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)         
-    ## transform TOPPView and INIFileEditor to real Mac OS X applications
-		set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.3")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
-	  set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
+    set_source_files_properties(${resource_dir}/${i}.icns 
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION Resources)
 
-    ## Need to copy the icon file and the custom Info.plist
-    ## if version info changes, please update also the 
-    ## info.plist file located in APPLICATIONS/TOPP/{i}-resources/
-    if(${CMAKE_GENERATOR} MATCHES "Xcode") 
-      ## since Xcode builds several configurations (Debug;Release)
-      ## we need a special handling for the postbuild actions
-      ADD_CUSTOM_COMMAND(
-        TARGET ${i}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
-        #COMMAND ${CMAKE_COMMAND} -E copy
-        #${resource_dir}Info.plist
-        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${resource_dir}${i}.icns
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
-        )
-    else()
-      ADD_CUSTOM_COMMAND(
-        TARGET ${i}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
-        #COMMAND ${CMAKE_COMMAND} -E copy
-        #${resource_dir}Info.plist
-        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${resource_dir}${i}.icns
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-        )
-    endif()
+    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C ${resource_dir}/${i}.icns)         
+    ## transform TOPPView and INIFileEditor to real Mac OS X applications
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.3")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
   else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
