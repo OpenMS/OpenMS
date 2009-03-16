@@ -149,7 +149,7 @@ class TOPPITRAQAnalyzer
 		
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
-		if (setByUser_("id_pool")) getIDTagger_().tag(consensus_map_raw);
+		if (getStringOption_("id_pool").trim().length()>0) getIDTagger_().tag(consensus_map_raw);
 
 		//-------------------------------------------------------------
 		// writing output 
