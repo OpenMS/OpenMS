@@ -64,14 +64,14 @@ namespace OpenMS
 		if (type_ == "")
 		{
 			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
-			painter->drawText(-text_boundings.width()/2, text_boundings.height()/4, name_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), name_.toQString());
 		}
 		else
 		{
 			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
-			painter->drawText(-text_boundings.width()/2, -text_boundings.height()/4, name_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), -(int)(text_boundings.height()/4.0), name_.toQString());
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
-			painter->drawText(-text_boundings.width()/2, +text_boundings.height()/1.5, type_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.5), type_.toQString());
 		}
 	}
 	
