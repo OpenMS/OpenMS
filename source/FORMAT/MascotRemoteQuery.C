@@ -64,6 +64,10 @@ namespace OpenMS
 		defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
 		defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
 
+		// Mascot specific options
+		defaults_.setValue("query_master", "false", "If this option is set to true, query peptides will be returned with non-truncated lists, however, protein references of peptides will not be correct.", StringList::create("advanced"));
+		defaults_.setValidStrings("query_master", StringList::create("true,false"));
+
 		defaultsToParam_();
 	}
 
@@ -165,7 +169,7 @@ void MascotRemoteQuery::login()
 	
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << ">>>> Header to send: " << endl;
-	cerr << header->toString().toStdString() << endl;
+	cerr << header.toString().toStdString() << endl;
 	cerr << "ended" << endl;
 #endif
 
@@ -252,14 +256,30 @@ void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 }
 
 
-void MascotRemoteQuery::httpDataReadProgress(int /*bytes_read*/, int /*bytes_total*/)
+void MascotRemoteQuery::httpDataReadProgress(int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+bytes_read
+#endif
+, int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+bytes_total
+#endif
+)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << endl;
 #endif
 }
 
-void MascotRemoteQuery::httpDataSendProgress(int /*bytes_sent*/, int /*bytes_total*/)
+void MascotRemoteQuery::httpDataSendProgress(int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+bytes_sent
+#endif
+, int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+bytes_total
+#endif
+)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << endl;
@@ -268,14 +288,23 @@ void MascotRemoteQuery::httpDataSendProgress(int /*bytes_sent*/, int /*bytes_tot
 
 
 
-void MascotRemoteQuery::httpRequestStarted(int /*requestId*/)
+void MascotRemoteQuery::httpRequestStarted(int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+requestId
+#endif
+)
+
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cout<<"Request started: "<<requestId<<endl;
 #endif
 }
 
-void MascotRemoteQuery::httpStateChanged(int /*state*/)
+void MascotRemoteQuery::httpStateChanged(int 
+#ifdef MASCOTREMOTEQUERY_DEBUG
+state
+#endif
+)
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cout<<"State change: "<<state<<endl;
@@ -319,7 +348,7 @@ void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_h
 		cookie_.append(mascot_user_ID);
 		
 #ifdef MASCOTREMOTEQUERY_DEBUG
-cout<<"Cookie created:"<<cookie_->toStdString()<<endl;
+cout<<"Cookie created:"<<cookie_.toStdString()<<endl;
 #endif
 	}
 }	
@@ -374,8 +403,17 @@ void MascotRemoteQuery::httpDone(bool error)
 #ifdef MASCOTREMOTEQUERY_DEBUG
 			cerr << "Results path to export: " << results_path_.toStdString() << endl;
 #endif
-			results_path_.append("&_sigthreshold=0&query_master=1&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_query=1&pep_rank=1&_sigthreshold=0.05&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&prot_thresh=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1");
+			results_path_.append("&_sigthreshold=0&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&prot_thresh=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
 		
+		if (param_.getValue("query_master").toBool())
+		{
+			results_path_.append("&query_master=1");
+		}
+		else
+		{
+			results_path_.append("&query_master=0");
+		}
+
 		//Finished search, fire off results retrieval
 		emit queryDone();
 		
