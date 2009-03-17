@@ -66,7 +66,7 @@ namespace OpenMS
     inline Point(const Base& cgal_point) : Base(cgal_point), element(0), key(0) {}
 
     /// Ctor from coordinates, element, and key
-    inline Point(double hx, double hy, const ConsensusFeature& element, Size key) : Base(hx,hy), element(&element), key(key) {}
+    inline Point(double hx, double hy, const ConsensusFeature& element, SignedSize key) : Base(hx,hy), element(&element), key(key) {}
 
     /// Ctor from coordinates
     inline Point(double hx, double hy) : Base(hx,hy), element(0), key(0) {}
