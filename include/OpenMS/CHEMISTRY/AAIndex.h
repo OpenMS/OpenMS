@@ -1097,6 +1097,8 @@ namespace OpenMS
 					default:			
 						throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Unkown amino acid one-letter-code",String(aa));
 				}
+				
+				return 0.0; //this should never be reached, but is necessary to suppress compiler warngins on older compilers
 			}
 		
 		
@@ -1178,6 +1180,8 @@ namespace OpenMS
 						throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Unkown amino acid one-letter-code",String(aa));
 	
 				}
+				
+				return 0.0; //this should never be reached, but is necessary to suppress compiler warngins on older compilers
 			}
 		
 			/**
@@ -1257,6 +1261,8 @@ namespace OpenMS
 					default:		
 						throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Unkown amino acid one-letter-code",String(aa));
 				}
+
+				return 0.0; //this should never be reached, but is necessary to suppress compiler warngins on older compilers
 			}
 		
 		private:

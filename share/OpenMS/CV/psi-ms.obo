@@ -4130,7 +4130,6 @@ relationship: has_units MS:1000814 ! counts per second
 id: MS:1000630
 name: data processing parameter
 def: "Data processing parameter used in the data processing performed on the data file." [PSI:MS]
-is_a: MS:1000452 ! data transformation
 
 [Term]
 id: MS:1000631

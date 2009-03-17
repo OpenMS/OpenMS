@@ -88,7 +88,7 @@ namespace OpenMS
 				void setValueAttribute(const String& value);
 
 				/**
-					@brief Set if CV term value types shoulf be check (enabled by default)
+					@brief Set if CV term value types should be check (enabled by default)
 					
 					If set to true, the xsd value types are checked, and errors are given in the cases
 				 		- CVTerm needs value but has none
@@ -98,7 +98,7 @@ namespace OpenMS
 				void setCheckTermValueTypes(bool check);
 
 				/** 
-					@brief Set if CV termunits shoulf be check (disabled by default)
+					@brief Set if CV term units should be check (disabled by default)
 					
 					If set to true additional checks for CVTerms are performed:
 				 		- CVTerm that must have a unit, but has none

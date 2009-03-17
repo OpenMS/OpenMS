@@ -114,6 +114,7 @@ namespace OpenMS
 		*/
 		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
 		{
+			//determine file type
 			FileTypes::Type type;
 			if (force_type != FileTypes::UNKNOWN)
 			{
@@ -201,8 +202,10 @@ namespace OpenMS
 						return true;
 					}
 				default:
-					return false;
+					break;
 			}
+			
+			return false;
 		}
 
 		/**
@@ -216,6 +219,7 @@ namespace OpenMS
 		*/
 		template <class FeatureType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
 		{
+			//determine file type
 			FileTypes::Type type;
 			if (force_type != FileTypes::UNKNOWN)
 			{
@@ -234,15 +238,13 @@ namespace OpenMS
 			}
 
 			//load right file
-			switch(type)
+			if (type==FileTypes::FEATUREXML)
 			{
-				case FileTypes::FEATUREXML:
-					FeatureXMLFile().load(filename,map);
-					return true;
-					break;
-				default:
-					return false;
+				FeatureXMLFile().load(filename,map);
+				return true;
 			}
+			
+			return false;
 		}
 
 		private:
