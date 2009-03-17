@@ -269,7 +269,7 @@ class TOPPXTandemAdapter
 			XTandemXMLFile tandem_output;
 			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
-			vector<String> files;
+			StringList files;
 			File::fileList("/tmp", unique_name + "_tandem_output_file*.xml", files);
 			if (files.size() != 1)
 			{

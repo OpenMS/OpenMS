@@ -121,7 +121,7 @@ namespace OpenMS
 		return tmp;
 	}
 
-	String File::find(const String& filename, vector<String> directories)
+	String File::find(const String& filename, StringList directories)
 	{
 		String filename_new = filename;
 		
@@ -138,7 +138,7 @@ namespace OpenMS
 		String path = File::path(filename);
 		if (path!="")
 		{
-			for (vector<String>::iterator it=directories.begin(); it!=directories.end(); ++it)
+			for (StringList::iterator it=directories.begin(); it!=directories.end(); ++it)
 			{
 				it->ensureLastChar('/');
 				*it += path;
@@ -147,7 +147,7 @@ namespace OpenMS
 		}
 		
 		//look up file
-		for (vector<String>::const_iterator it=directories.begin(); it!=directories.end(); ++it)
+		for (StringList::const_iterator it=directories.begin(); it!=directories.end(); ++it)
 		{
 			String loc = *it;
 			loc.ensureLastChar('/');
@@ -166,7 +166,7 @@ namespace OpenMS
 		return "";
 	}
 	
-	bool File::fileList(const String& dir, const String& file_pattern, vector<String>& output)
+	bool File::fileList(const String& dir, const String& file_pattern, StringList& output)
 	{
 		QDir d(dir.c_str(), file_pattern.c_str(), QDir::Name, QDir::Files);
 		QStringList list = d.entryList();

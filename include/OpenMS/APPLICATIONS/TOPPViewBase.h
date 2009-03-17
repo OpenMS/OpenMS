@@ -274,6 +274,9 @@ namespace OpenMS
 		
 			/// Appends process output to log window
 			void updateProcessLog();
+      
+      /// Shows the tutorial browser
+      void showTutorial();
 		
     protected:
   		/**

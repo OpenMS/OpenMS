@@ -256,8 +256,9 @@ class TOPPPepNovoAdapter
 			vector<String>
 				substrings,
 				substrings2,
-				spectra,
-				models;
+				spectra;
+			
+			StringList models;
 
 			FileHandler fh;
 			FileTypes::Type type;
@@ -345,7 +346,7 @@ class TOPPPepNovoAdapter
 				model_directory.ensureLastChar('/');
 				if ( File::fileList(model_directory, String("*_config.txt"), models) )
 				{
-					for ( vector< String >::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
+					for ( StringList::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
 					{
 						model_it->erase(model_it->length() - strlen("_config.txt"));
 					}
@@ -357,7 +358,7 @@ class TOPPPepNovoAdapter
 				else
 				{
 					cout << "Available Models:" << endl;
-					for ( vector< String >::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
+					for ( StringList::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
 					{
 						cout << *model_it << endl;
 					}
@@ -575,7 +576,7 @@ class TOPPPepNovoAdapter
 				model_directory.ensureLastChar('/');
 				if ( File::fileList(model_directory, String("*_config.txt"), models) )
 				{
-					for ( vector< String >::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
+					for ( StringList::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
 					{
 						models_it->erase(models_it->length() - strlen("_config.txt"));
 					}
@@ -597,7 +598,7 @@ class TOPPPepNovoAdapter
 					{
 						writeLog_("No model file given. Aborting!");
 						writeLog_("Available Models:");
-						for ( vector< String >::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
+						for ( StringList::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
 						{
 							writeLog_(*models_it);
 						}

@@ -34,6 +34,7 @@ Detailed list of changes to specific OpenMS classes:
 - FeatureFinder: added new algorithm 'MRM' for MRM feature detection; replaces FeatureFinderMRM
 - ExperimentalSettings: remove native ID type (for mzML support)
 - SourceFile: added native ID type (for mzML support)
+- File: replaced vector<String> by StringList in all methods
 
 Bug fixes:
 - [2645436]: TOPPView - Data Filter for "Size" not available

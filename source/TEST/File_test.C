@@ -79,7 +79,7 @@ START_SECTION((static bool writable(const String &file)))
 	TEST_EQUAL(File::writable(filename), true)
 END_SECTION
 
-START_SECTION((static String find(const String &filename, std::vector< String > directories=std::vector< String >())))
+START_SECTION((static String find(const String &filename, StringList=StringList())))
 	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
 
 	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
@@ -97,8 +97,8 @@ START_SECTION((static String basename(const String &file)))
 	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
 END_SECTION
 
-START_SECTION((static bool fileList(const String &dir, const String &file_pattern, std::vector< String > &output)))
-	vector<String> vec;
+START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output)))
+	StringList vec;
 	TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""),"*.bliblaluff",vec),false);
 END_SECTION
 
@@ -106,7 +106,7 @@ START_SECTION((static String getUniqueName()))
 	String unique_name = File::getUniqueName();
 	
 	// test if the string consists of three parts
-	vector<String> split;
+	StringList split;
 	unique_name.split('_', split);
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 END_SECTION

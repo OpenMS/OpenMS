@@ -3,6 +3,7 @@ set(directory include/OpenMS/VISUAL/DIALOGS)
 
 ### list all MOC filenames of the directory here
 set(sources_list
+DemoDialog.h
 DBOpenDialog.h
 DataFilterDialog.h
 FeatureEditDialog.h
@@ -37,6 +38,7 @@ source_group("Source Files\\OpenMS\\VISUAL\\DIALOGS" FILES ${mocced_sources})
 
 ### list all header files of the directory here
 set(sources_list_h
+DemoDialog.h
 DBOpenDialog.h
 DataFilterDialog.h
 FeatureEditDialog.h

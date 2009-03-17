@@ -65,6 +65,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/VISUAL/DIALOGS/DemoDialog.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -240,8 +241,7 @@ namespace OpenMS
 		help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");
+		action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 
@@ -531,6 +531,25 @@ namespace OpenMS
 														action->data().toString() +
 														tr("\n\nPossible reason: security settings or misconfigured Operating System"));
 		}
+	}
+
+	void TOPPViewBase::showTutorial()
+	{
+		//create dialog
+		DemoDialog* dlg = new DemoDialog(this);
+		dlg->setTitle("TOPPView tutorial");
+		
+		//create file list
+		StringList pages;
+		File::fileList(String(OPENMS_DATA_PATH) + "/tutorial/","*.html",pages);
+		for (Size i=0; i<pages.size(); ++i)
+		{
+			pages[i] = String(OPENMS_DATA_PATH) + "/tutorial/" + pages[i];
+		}
+		dlg->setPages(pages);
+		
+		//show dialog		
+		dlg->show();
 	}
 
   void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)

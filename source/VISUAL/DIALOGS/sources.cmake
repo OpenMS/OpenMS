@@ -3,6 +3,7 @@ set(directory source/VISUAL/DIALOGS)
 
 ### list all filenames of the directory here
 set(sources_list
+DemoDialog.C
 DBOpenDialog.C
 DataFilterDialog.C
 FeatureEditDialog.C

@@ -29,8 +29,7 @@
 #ifndef OPENMS_SYSTEM_FILE_H
 #define OPENMS_SYSTEM_FILE_H
 
-#include <vector>
-#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/config.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM  
@@ -90,14 +89,14 @@ namespace OpenMS
 				
 				@exception FileNotFound is thrown, if the file is not found
 			*/
-			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
+			static String find(const String& filename, StringList directories = StringList());
 			
 			/**
 				@brief Retrieves a list of files matching @p file_pattern in directory @p dir
 				
 				@return true => there are matching files
 			*/
-			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
+			static bool fileList(const String& dir, const String& file_pattern, StringList& output);
 
 			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();

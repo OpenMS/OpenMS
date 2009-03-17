@@ -399,7 +399,7 @@ class TOPPSequestAdapter
 			vector<PeptideIdentification> peptide_identifications;
 			vector<ProteinIdentification> pis;
 			ProteinIdentification protein_identification;
-			vector<String> out_files;
+			StringList out_files;
 
 			// the outfile-names and their retention_times
 			map< String, Real > outfile_names_and_precursor_retention_times;
@@ -1201,7 +1201,7 @@ class TOPPSequestAdapter
 				if ( exit_code == EXECUTION_OK )
 				{
 					vector< pair < String, vector< Real > > > filenames_and_pvalues;
-					for ( vector< String >::iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
+					for ( StringList::iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
 					{
 						filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector< Real >()));
 					}
@@ -1259,7 +1259,7 @@ class TOPPSequestAdapter
 					if ( !keep_out_files )
 					{
 						writeLog_("removing out files");
-						for ( vector<String>::const_iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
+						for ( StringList::const_iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
 						{
 							if ( !File::remove(out_directory + *out_files_it) )
 							{
