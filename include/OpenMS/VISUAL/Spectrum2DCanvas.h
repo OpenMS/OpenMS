@@ -112,6 +112,11 @@ namespace OpenMS
       	@see projection_rt_
       */
       void updateProjections();
+
+  	protected slots:
+  		
+			/// Reacts on changed layer paramters
+			void currentLayerParamtersChanged_();
       
     protected:
       // Docu in base class
@@ -197,8 +202,6 @@ namespace OpenMS
       virtual void intensityModeChange_();
       // DOcu in base class
       virtual void recalculateSnapFactor_();
-			// Docu in base class
-			virtual void currentLayerParamtersChanged_();
       /// recalculates the dot gradient of a layer
       void recalculateDotGradient_(Size layer);
 

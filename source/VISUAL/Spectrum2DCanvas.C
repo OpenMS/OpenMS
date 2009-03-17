@@ -87,11 +87,13 @@ namespace OpenMS
 		{
 			mzToXAxis(false);
 		}
+		
+		//connect preferences change to the right slot
+		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
 	}
 
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
-		//cout << "DEST Spectrum2DCanvas" << endl;
 	}
 
 	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
@@ -261,7 +263,7 @@ namespace OpenMS
 			
 			//-----------------------------------------------------------------------------------------------
 			//paint dots (many data points): we paint the maximum shown intensity per pixel
-			if (peaks*scans>0.5*mz_pixel_count*rt_pixel_count)
+			if (peaks*scans>0.25*mz_pixel_count*rt_pixel_count)
 			{
 				//calculate pixel size in data coordinates
 				DoubleReal rt_step_size = (rt_max - rt_min) / rt_pixel_count;
@@ -1805,7 +1807,7 @@ namespace OpenMS
 			}
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 
-			currentLayerParamtersChanged_();
+		  emit preferencesChange();
 		}
 	}
 

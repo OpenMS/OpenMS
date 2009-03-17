@@ -152,7 +152,12 @@ namespace OpenMS
 			void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 			// Docu in base class
 			virtual void horizontalScrollBarChange(int value);
-		
+
+  	protected slots:
+  		
+			/// Reacts on changed layer paramters
+			void currentLayerParamtersChanged_();
+
 		protected:
 			// Docu in base class
 			bool finishAdding_();
@@ -181,8 +186,6 @@ namespace OpenMS
 				@param add_to_stack If the new area is to add to the zoom_stack_
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false);
-			// Docu in base class
-			virtual void currentLayerParamtersChanged_();
 			// Docu in base class
 			virtual void recalculateSnapFactor_();
 			// Docu in base class

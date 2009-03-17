@@ -1287,12 +1287,15 @@ namespace OpenMS
 
   void TOPPViewBase::updateLayerBar()
   {
+  	//reset
 		layer_manager_->clear();
     SpectrumCanvas* cc = activeCanvas_();
-    if (cc == 0)
-    {
-      return;
-    }
+    if (cc == 0) return;
+		
+		//determine if this is a 1D view (for text color)
+		bool is_1d_view = false;
+		if (dynamic_cast<Spectrum1DCanvas*>(cc)) is_1d_view = true;
+		
 		layer_manager_->blockSignals(true);
 		QListWidgetItem* item = 0;
 		QString name;
@@ -1307,6 +1310,12 @@ namespace OpenMS
 				name += " [flipped]";
 			}
 			item->setText(name);
+			if (is_1d_view)
+			{
+				QPixmap icon(7,7);
+				icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
+				item->setIcon(icon);
+			}
     	if (layer.visible)
     	{
     		item->setCheckState(Qt::Checked);
@@ -1805,6 +1814,7 @@ namespace OpenMS
   void TOPPViewBase::showAsWindow_(SpectrumWidget* sw, const String& caption)
   {
   	ws_->addWindow(sw);
+    connect(sw->canvas(),SIGNAL(preferencesChange()),this,SLOT(updateLayerBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateCurrentPath()));

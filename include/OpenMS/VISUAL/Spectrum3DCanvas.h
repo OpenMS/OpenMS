@@ -101,13 +101,15 @@ namespace OpenMS
 	    // Docu in base class
 	    void removeLayer(Size layer_index);
   	
+  	protected slots:
+  		
+			/// Reacts on changed layer paramters
+			void currentLayerParamtersChanged_();
+  	
   	protected:
 			
 			// Docu in base class
 	    bool finishAdding_();
-	    
-			// Docu in base class
-			virtual void currentLayerParamtersChanged_();
 			
   		// Reimplementation in order to update the OpenGL widget
   		virtual void update_(const char* caller_name);

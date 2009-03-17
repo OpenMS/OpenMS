@@ -71,11 +71,13 @@ namespace OpenMS
 		setFocusProxy(openglcanvas_);
 		connect(this,SIGNAL(actionModeChange()),openglcanvas_,SLOT(actionModeChange()));
 		legend_shown_ = true;
+
+		//connect preferences change to the right slot
+		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
 	}
 		
 	Spectrum3DCanvas::~Spectrum3DCanvas()
 	{
-	
 	}
 	
 	void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
@@ -223,7 +225,7 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
 			param_.setValue("on_file_change", on_file_change->currentText());
 			
-			currentLayerParamtersChanged_();
+		  emit preferencesChange();
 		}
 	}
 	

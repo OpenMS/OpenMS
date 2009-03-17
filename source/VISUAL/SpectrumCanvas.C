@@ -515,10 +515,6 @@ namespace OpenMS
 		update();
 	}
 	
-	void SpectrumCanvas::currentLayerParamtersChanged_()
-	{
-	}
-
 	void SpectrumCanvas::fileChanged_(const String& filename)
   {
 		//look up all layers that contain data of the file

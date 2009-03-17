@@ -476,7 +476,7 @@ namespace OpenMS
 		inline void setCurrentLayerParameters(const Param& param) 
 		{ 
 		  getCurrentLayer_().param = param;
-		  currentLayerParamtersChanged_();
+		  emit preferencesChange();
 		}
 
 		/**
@@ -634,6 +634,9 @@ namespace OpenMS
 		/// Emitted when the action mode changes
 		void actionModeChange();
 		
+		/// Emitted when the layer preferences have changed
+		void preferencesChange();
+		
 	protected slots:
 	
 		///Slot that is used to track file changes in order to update the data
@@ -677,13 +680,6 @@ namespace OpenMS
 		void enterEvent(QEvent* e);
 		//@}
 		
-		/**
-			@brief Change of layer parameters
-			
-			This method is called whenever the parameters of the current layer change. Reimplement if you need to react on such changes.
-		*/
-		virtual void currentLayerParamtersChanged_();
-
 		///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
 		

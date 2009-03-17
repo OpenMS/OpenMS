@@ -79,9 +79,15 @@ namespace OpenMS
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
+		
+		//connect preferences change to the right slot
+		connect(this,SIGNAL(preferencesChange()),this,SLOT(currentLayerParamtersChanged_()));
 	}
-	
-	//change the current layer
+
+	Spectrum1DCanvas::~Spectrum1DCanvas()
+	{
+	}
+
 	void Spectrum1DCanvas::activateLayer(Size layer_index)
 	{
 		if (layer_index >= getLayerCount() || layer_index==current_layer_)
@@ -1002,12 +1008,6 @@ namespace OpenMS
 		}
 	}
 	
-	// Destructor
-	Spectrum1DCanvas::~Spectrum1DCanvas()
-	{
-		
-	}
-	
 	bool Spectrum1DCanvas::finishAdding_()
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
@@ -1157,7 +1157,7 @@ namespace OpenMS
 			param_.setValue("highlighted_peak_color",selected_color->getColor().name());
 			param_.setValue("on_file_change", on_file_change->currentText());
 			
-			currentLayerParamtersChanged_();
+		  emit preferencesChange();
 		}
 	}
 
