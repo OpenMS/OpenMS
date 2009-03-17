@@ -41,9 +41,8 @@
 			
 			Please check the LD_LIBRARY_PATH environment variable:
 			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
-			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> 
-			  is present in the folder. If it is not, you have properly forgotten to execute '<i>make install</i>'.
-			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/source/TEST/ClassTest_test</i>'
+			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> is present.
+			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
 
 		
 		</UL>
@@ -58,9 +57,9 @@
 			Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
 			
 			Either of the following actions should fix your problem:
-			- Use the configure option <i>--prefix=...</i> to set the installtion directory.
-			  Run '<i>make lib install</i>' again.
-			- Execute <i>configure</i> in the new location and run '<i>make lib install</i>' again.
+			- Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installtion directory.
+			  Run '<i>make %OpenMS TOPP UTILS</i>' again.
+			- Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
 			- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
 
 
