@@ -29,8 +29,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransformFilter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletPushingFilter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletParallelFor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -41,6 +40,7 @@
 #ifdef OPENMS_HAS_TBB_H
 #include <tbb/task_scheduler_init.h>
 #include <tbb/pipeline.h>
+#include <tbb/parallel_for.h>
 #endif
 
 
@@ -60,10 +60,26 @@ namespace OpenMS
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet : public FeatureFinderAlgorithm<PeakType, FeatureType> 
 	{
-		friend class IsotopeWaveletTransformFilter<PeakType, FeatureType>;
-		friend class IsotopeWaveletPushingFilter<PeakType, FeatureType>;
+		friend class IsotopeWaveletParallelFor<PeakType, FeatureType>;
 
 	 public:
+			
+			class Triple
+			{
+				public:
+
+					Triple ()
+						: first_(0), second_(0), third_(0)
+					{
+					};
+
+					Triple (const UInt first, const UInt second, const UInt third)
+						: first_(first), second_(second), third_(third)
+					{
+					}; 				
+	
+					UInt first_, second_, third_;
+			};
 
 		typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
@@ -108,7 +124,7 @@ namespace OpenMS
 		/** @brief The working horse of this class. */
 		void run ()
 		{
-				clock_t start=clock(), end;
+				time_t start=time(NULL), end;
 				DoubleReal max_mz = this->map_->getMax()[1];
 				DoubleReal min_mz = this->map_->getMin()[1];
 					
@@ -123,11 +139,6 @@ namespace OpenMS
 					};
 				#endif
 			
-				IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
-
-				this->ff_->setLogType (ProgressLogger::CMD);
-				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
-
 			//Check for useless RT_votes_cutoff_ parameter
 				if (RT_votes_cutoff_ > this->map_->size())
 				{
@@ -137,32 +148,44 @@ namespace OpenMS
 				{
 					real_RT_votes_cutoff_ = RT_votes_cutoff_;
 				};
-
+					
+				this->ff_->setLogType (ProgressLogger::CMD);
 				progress_counter_ = 0;
 			
 				#ifdef OPENMS_HAS_TBB_H
 					if (use_tbb_ > 0)
 					{
-						tbb::task_scheduler_init init;
-						tbb::pipeline pipeline;
-						IsotopeWaveletTransformFilter<PeakType, FeatureType> trans_filter (iwt, this);
-						pipeline.add_filter (trans_filter);
-						IsotopeWaveletPushingFilter<PeakType, FeatureType> pushing_filter (iwt, this);
-						pipeline.add_filter (pushing_filter);
-						pipeline.run (use_tbb_);
-						pipeline.clear();
+						this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
+						tbb::task_scheduler_init init (use_tbb_);
+						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (use_tbb_); 
+						for (Int t=0; t<use_tbb_; ++t)
+						{
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, 0.2, max_size, this->map_->size());
+						};
+
+						static tbb::affinity_partitioner ap;
+						tbb::parallel_for(tbb::blocked_range<size_t>(0, use_tbb_, 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
+					
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+							std::cout << "Final mapping."; std::cout.flush();
+						#endif
+						*this->features_ = iwts[0]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
 					};
 				#endif
 
 				if (use_tbb_ < 0)
 				{
+					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size, this->map_->size());
+				
+					this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
+			
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
 						const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
 
 						if (c_ref.size() <= 1) //unable to do transform anything
 						{					
-							this->ff_->setProgress (progress_counter_+=3);
+							this->ff_->setProgress (progress_counter_+=2);
 							continue;
 						};
 
@@ -221,8 +244,9 @@ namespace OpenMS
 						else
 						{
 							#ifdef OPENMS_HAS_CUDA
+								cudaSetDevice(use_cuda_);
 								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
-								if (iwt.initializeCudaScan ((*this->map_)[i], use_cuda_) == Constants::CUDA_INIT_SUCCESS)
+								if (iwt.initializeCudaScan ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
 								{
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
@@ -234,7 +258,7 @@ namespace OpenMS
 											std::ofstream ofile (stream.str().c_str());
 											for (UInt k=0; k < c_trans.size(); ++k)
 											{
-												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << "\t" << c_ref[k].getMZ() << "\t" << c_ref[k].getIntensity() << std::endl;
+												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << "\t" << c_ref[k].getIntensity() << std::endl;
 											};
 											ofile.close();
 										#endif					
@@ -252,11 +276,11 @@ namespace OpenMS
 										this->ff_->setProgress (++progress_counter_);	
 									};
 									iwt.finalizeCudaScan();
-								#else
-									std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
-									std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
-								#endif
-							};
+								};
+							#else
+								std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
+								std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
+							#endif
 						};
 		
 						iwt.updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
@@ -266,6 +290,16 @@ namespace OpenMS
 
 						std::cout.flush();
 					};
+
+					this->ff_->endProgress();
+
+					//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
+					iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_);
+									
+					#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+			std::cout << "Final mapping."; std::cout.flush();
+					#endif
+					*this->features_ = iwt.mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
 				}
 				else
 				{
@@ -274,21 +308,10 @@ namespace OpenMS
 						std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-debug\" resp. \"--enable-tbb-release\"." << std::endl; 
 					#endif
 				};
-				this->ff_->endProgress();
+				
+				end=time(NULL);
 
-			//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
-				iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_); 
-
-				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-			std::cout << "Final mapping."; std::cout.flush();
-#endif
-	
-				*this->features_ = iwt.mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_);
-
-#endif
-				end=clock();
-
-				std::cout << "Running time in seconds: " << (end-start)/(float)(CLOCKS_PER_SEC) << std::endl; 
+				std::cout << "Running time in seconds: " << difftime(end, start) << std::endl; 
 		}
 
 		static const String getProductName()
@@ -321,7 +344,15 @@ namespace OpenMS
 			UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
 			Int use_cmarr_, use_cuda_, use_tbb_;
-			Int progress_counter_;			
+			#ifdef OPENMS_HAS_TBB_H
+				tbb::atomic<int> progress_counter_;			
+			#else
+				Int progress_counter_;
+			#endif
+
+			#ifdef OPENMS_HAS_TBB_H
+				tbb::concurrent_queue<Triple> map_index_queue_;
+			#endif
 
 		void updateMembers_() 
 		{

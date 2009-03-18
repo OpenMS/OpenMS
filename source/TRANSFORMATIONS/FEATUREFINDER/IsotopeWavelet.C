@@ -57,8 +57,10 @@ namespace OpenMS
 
 	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) 
 	{
-		delete (me_); //either me_ is NULL or is already instantiated
-		me_ = new IsotopeWavelet (max_m, max_charge);
+		if (me_ == NULL)
+		{	
+			me_ = new IsotopeWavelet (max_m, max_charge);
+		};
 		
 		return (me_);
 	}
