@@ -37,67 +37,9 @@
 using namespace OpenMS;
 using namespace std;
 
+//Classes completely redesigned
+//Test will follow soon
 
 START_TEST(IsotopeWaveletTransform, "$Id$")
-
-
-MSExperiment<> map;
-MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test_2.mzData"), map);
-map.updateRanges();
-IsotopeWaveletTransform<Peak1D>* trans = 0;
-START_SECTION(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge))
-	trans = new IsotopeWaveletTransform<Peak1D> (map.getMinMZ(), map.getMaxMZ(), 1);
-	TEST_NOT_EQUAL(trans, 0)
-END_SECTION
-
-
-START_SECTION((virtual std::multimap<DoubleReal, Box> getClosedBoxes()))
-	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
-END_SECTION
-
-//Checks for old implementation, have to be replaced for next release
-START_SECTION((virtual void getTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)))
-	trans->getTransforms (map[0], pwts, 1, 1);
-	TEST_NOT_EQUAL (trans, 0)
-END_SECTION
-
-
-START_SECTION((virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff=0)))
-	trans->identifyCharges (pwts, map[0], 0, 5);
-	TEST_NOT_EQUAL (trans, 0)
-END_SECTION
-	
-
-START_SECTION((void updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff)))
-	trans->updateBoxStates(map, 0, 0, 0);
-	trans->updateBoxStates(map, numeric_limits<int>::max(), 0, 0);
-	TEST_NOT_EQUAL (trans, 0)
-END_SECTION
-
-
-START_SECTION((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff)))
-	FeatureMap<Feature> features = trans->mapSeeds2Features (map, 1, 0);
-	FeatureMap<Feature>::iterator iter;
-	std::ifstream ifile (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform.out"));
-	DoubleReal tmp;
-	TOLERANCE_ABSOLUTE (1e-1);
-	for (iter=features.begin(); iter!=features.end(); ++iter)
-	{
-		ifile >> tmp;
-		TEST_REAL_SIMILAR (iter->getMZ(), tmp);
-	}
-	ifile.close();
-END_SECTION
-
-
-START_SECTION(UInt getPeakCutOff(const DoubleReal mass, const UInt z))
-	TEST_EQUAL(trans->getPeakCutOff(2000, 1), 4)
-END_SECTION
-
-
-START_SECTION((virtual ~IsotopeWaveletTransform ()))
-	delete(trans);
-END_SECTION
-
 
 END_TEST

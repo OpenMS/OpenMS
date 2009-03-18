@@ -93,7 +93,7 @@ namespace OpenMS
 		inv_table_steps_ = 1./table_steps_;
 		gamma_table_max_index_ = -1;
 		exp_table_max_index_ = -1;
-	}; 	
+	} 	
 
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
@@ -114,7 +114,6 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
-		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
 		DoubleReal help ((tz1-1)*Constants::WAVELET_PERIODICITY/(TWOPI));
 		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
 		
@@ -144,7 +143,7 @@ namespace OpenMS
 		return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz) 
 				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz)))); 
-	};
+	}
 
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mass, const UInt z)
 	{ 
@@ -152,14 +151,14 @@ namespace OpenMS
 		return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
 				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
-	};	
+	}	
 	
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mz)
 	{ 
 		return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
 				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
-	};
+	}
 
 		
 	float IsotopeWavelet::myPow (float a, float b) 		
@@ -206,7 +205,7 @@ namespace OpenMS
 		query += table_steps_; 
 		while (query <= up_to)
 		{
-			gamma_table_.push_back (lgamma(query));
+			gamma_table_.push_back (boost::math::lgamma(query));
 			query += table_steps_;	
 		};	
 		gamma_table_max_index_ = gamma_table_.size();

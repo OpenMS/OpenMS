@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletParallelFor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -70,7 +69,7 @@ namespace OpenMS
 		/** @brief Default Constructor */
 		FeatureFinderAlgorithmIsotopeWavelet() 
 		{ 
-				this->defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
+				this->defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.");
 				this->defaults_.setMinInt ("max_charge", 1);
 
 				this->defaults_.setValue ("intensity_threshold", 2., "The final threshold t' is build upon the formula: t' = av+t*sd," 
@@ -79,7 +78,7 @@ namespace OpenMS
 																	"If you set intensity_threshold=-1, t' will be zero.\n");
 				
 				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
-																	"potential peptide masses are checked for plausibility.", true); 
+																	"potential peptide masses are checked for plausibility."); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
 				#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
@@ -88,12 +87,12 @@ namespace OpenMS
 				#endif
 
 				this->defaults_.setValue ("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
-																	"subsequent scans where a pattern must occur to be considered as a feature.", true);
+																	"subsequent scans where a pattern must occur to be considered as a feature.");
 				this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
 				this->defaults_.setValue ("sweep_line:rt_interleave", 2, "Defines the maximum number of "
-																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", true);
+																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.");
 				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
-				this->defaults_.setValue ("experimental:use_cmarr", 0, "Experimental, do not use this feature at the moment!", true);
+				this->defaults_.setValue ("experimental:use_cmarr", 0, "Experimental, do not use this feature at the moment!");
 				this->defaultsToParam_();
 		}
 
@@ -194,21 +193,6 @@ namespace OpenMS
 							continue;
 						};
 
-						if (use_cmarr_ > 0)
-						{
-							if (iwt.estimateCMarrWidth (c_ref))
-							{
-								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-									std::cout << "Sigma estimation for coupled Marr wavelet successful: " << iwt.getSigma() << std::endl; 	
-								#endif
-							}
-							else
-							{
-								std::cout << "Note: Sigma estimation for coupled Marr wavelet failed.\n";
-								std::cout << "Note: Estimating sigma via the average sampling rate: " << iwt.getSigma() << std::endl; 
-							};
-						};
-
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "Spectrum " << i+1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... " ; 
 							std::cout.flush();
@@ -239,7 +223,7 @@ namespace OpenMS
 								#endif							
 								this->ff_->setProgress (++progress_counter_);
 
-								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
+								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_);
 						
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "charge recognition O.K. ... "; std::cout.flush();
@@ -274,7 +258,7 @@ namespace OpenMS
 										#endif
 										this->ff_->setProgress (++progress_counter_);
 
-										iwt.identifyChargeCuda (c_trans, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
+										iwt.identifyChargeCuda (c_trans, i, c, intensity_threshold_, check_PPMs_);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
@@ -346,60 +330,56 @@ namespace OpenMS
 		typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
 
 		UInt max_charge_; ///<The maximal charge state we will consider
-			DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
-			UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
+		DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
+		UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
-			Int use_cmarr_;
-			String use_gpus_;
-			bool use_tbb_, use_cuda_, check_PPMs_;
-			std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
+		String use_gpus_;
+		bool use_tbb_, use_cuda_, check_PPMs_;
+		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 			
-			#ifdef OPENMS_HAS_TBB_H
-				tbb::atomic<int> progress_counter_;		
-				Int device_num_, gpu_to_exclude_;	
-			#else
-				Int progress_counter_;
-			#endif
+		#ifdef OPENMS_HAS_TBB_H
+			tbb::atomic<int> progress_counter_;		
+			Int device_num_, gpu_to_exclude_;	
+		#else
+			Int progress_counter_;
+		#endif
 
 		void updateMembers_() 
 		{
-				max_charge_ = this->param_.getValue ("max_charge");
-				intensity_threshold_ = this->param_.getValue ("intensity_threshold");
-				RT_votes_cutoff_ = this->param_.getValue ("sweep_line:rt_votes_cutoff");
-				RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
+			max_charge_ = this->param_.getValue ("max_charge");
+			intensity_threshold_ = this->param_.getValue ("intensity_threshold");
+			RT_votes_cutoff_ = this->param_.getValue ("sweep_line:rt_votes_cutoff");
+			RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
-				use_cmarr_ = this->param_.getValue ("experimental:use_cmarr");
-				check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
-				#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
-					use_gpus_ = this->param_.getValue ("parallel:use_gpus");
-					std::vector<String> tokens; 
-					if (!use_gpus_.split(',', tokens))	
-					{
-						tokens.push_back(use_gpus_);
-					};			
-
+			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
+			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
+				use_gpus_ = this->param_.getValue ("parallel:use_gpus");
+				std::vector<String> tokens; 
+				if (!use_gpus_.split(',', tokens))	
+				{
+					tokens.push_back(use_gpus_);
+				};			
 					//Attention: updateMembers_ can be called several times!
-					gpu_ids_.clear();
-					if (tokens[0].trim().toInt() == -1) //no parallelization
-					{
-						use_cuda_ = false;
-						use_tbb_ = false;
-						return;
-					};
-
-					gpu_ids_.push_back(tokens[0].trim().toInt());
-					use_cuda_ = true;
+				gpu_ids_.clear();
+				if (tokens[0].trim().toInt() == -1) //no parallelization
+				{
+					use_cuda_ = false;
 					use_tbb_ = false;
-					for (UInt i=1; i<tokens.size(); ++i)
-					{
-						gpu_ids_.push_back(tokens[i].trim().toInt());
-						use_tbb_ = true;
-					};
+					return;
+				};
+				gpu_ids_.push_back(tokens[0].trim().toInt());
+				use_cuda_ = true;
+				use_tbb_ = false;
+				for (UInt i=1; i<tokens.size(); ++i)
+				{
+					gpu_ids_.push_back(tokens[i].trim().toInt());
+					use_tbb_ = true;
+				};
 			
-				#else
-					use_cuda_ = false;	
-					use_tbb_ = false;
-				#endif
+			#else
+				use_cuda_ = false;	
+				use_tbb_ = false;
+			#endif
 		}
 	};
 

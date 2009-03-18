@@ -34,8 +34,6 @@
 #define NULL 0
 #endif
 
-//#define DINGSBUMS
-
 
 namespace OpenMS
 {
@@ -74,21 +72,6 @@ namespace OpenMS
 							continue;
 						};
 				
-						if (ff_->use_cmarr_)
-						{
-							if (c_iwt->estimateCMarrWidth (c_ref))
-							{
-								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-									std::cout << "Sigma estimation for coupled Marr wavelet successful: " << c_iwt->getSigma() << std::endl; 	
-								#endif
-							}
-							else
-							{
-								std::cout << "Note: Sigma estimation for coupled Marr wavelet failed.\n";
-								std::cout << "Note: Estimating sigma via the average sampling rate: " << c_iwt->getSigma() << std::endl; 
-							};
-						};
-
 						typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&c_ref);
 						if (c_iwt->initializeScanCuda (c_ref) == Constants::CUDA_INIT_SUCCESS)
 						{
@@ -112,7 +95,7 @@ namespace OpenMS
 								#endif
 								ff_->ff_->setProgress (++ff_->progress_counter_);
 
-								c_iwt->identifyChargeCuda (c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_, ff_->use_cmarr_);
+								c_iwt->identifyChargeCuda (c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_);
 
 								#ifdef DINGSBUMS
 									std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();

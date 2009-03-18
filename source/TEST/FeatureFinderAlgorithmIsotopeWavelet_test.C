@@ -54,9 +54,9 @@ START_SECTION(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
 END_SECTION
 
-START_SECTION([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
-	FeatureFinderAlgorithmIsotopeWavelet<RichPeak1D,Feature> ffa;
-END_SECTION
+//START_SECTION([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
+//	FeatureFinderAlgorithmIsotopeWavelet<RichPeak1D,Feature> ffa;
+//END_SECTION
 
 START_SECTION(virtual void run())
 	//is tested in TOPP test
