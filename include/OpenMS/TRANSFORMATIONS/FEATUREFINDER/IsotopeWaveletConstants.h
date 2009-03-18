@@ -93,9 +93,9 @@ namespace OpenMS
 		const int CUDA_INIT_FAIL = -1; 
 
 		const int CUDA_BLOCKS_PER_GRID_MAX = 65535;
-		const int CUDA_BLOCK_SIZE_MAX = 256;
+		const int CUDA_BLOCK_SIZE_MAX = 256;//limited due to the shared memory
 		const int CUDA_EXTENDED_BLOCK_SIZE_MAX = 2039;
-		const int CUDA_TEXTURE_THREAD_LIMIT = 448;//limited due to the number of used registers
+		const int CUDA_TEXTURE_THREAD_LIMIT = 384;//limited due to the number of used registers
 
 		const int CUDA_ELEMENTS_SORT = 512;
 		const int CUDA_THREADS_SORT =  (CUDA_ELEMENTS_SORT >> 2);

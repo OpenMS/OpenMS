@@ -147,9 +147,6 @@ namespace OpenMS
 			return;
 
 		float value = 0, boundary = getMzPeakCutOffAtMonoPos(signal_pos_block[my_local_pos], charge)/charge;
-		//float c_diff = signal_pos_block[my_local_pos-from_max_to_left] - signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
-		//float old = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[my_local_pos-from_max_to_left]*charge)*signal_int_block[my_local_pos-from_max_to_left] : 0, current;
-	
 		float old=0, c_diff, current, old_pos = (my_local_pos-from_max_to_left-1) > 0 ? signal_pos_block[my_local_pos-from_max_to_left-1] 
 			: signal_pos_block[my_local_pos-from_max_to_left]-(signal_pos[size-1]-signal_pos[size-2]); //i.e. min_spacing
 
@@ -184,20 +181,26 @@ namespace OpenMS
 		const unsigned int charge, const int size)
 	{
 		int my_data_pos  = from_max_to_left    +  blockIdx.x*blockDim.x + threadIdx.x;
-		float value = 0, boundary = getMzPeakCutOffAtMonoPos(tex1Dfetch(pos_tex, my_data_pos), charge)/charge;
 
-		float c_diff = tex1Dfetch(pos_tex, my_data_pos-from_max_to_left) - tex1Dfetch(pos_tex, my_data_pos)+Constants::IW_QUARTER_NEUTRON_MASS/charge;
-		float old = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., tex1Dfetch(pos_tex, my_data_pos-from_max_to_left)*charge)*tex1Dfetch(int_tex, my_data_pos-from_max_to_left) : 0, current;
-		for (int current_conv_pos = my_data_pos-from_max_to_left+1; 
+		if (my_data_pos - from_max_to_left >= size)
+			return;
+
+		float value = 0, boundary = getMzPeakCutOffAtMonoPos(tex1Dfetch(pos_tex, my_data_pos), charge)/charge;
+		float old=0, c_diff, current, old_pos = (my_data_pos-from_max_to_left-1) > 0 ? tex1Dfetch(pos_tex, my_data_pos-from_max_to_left-1) 
+				: tex1Dfetch(pos_tex,my_data_pos-from_max_to_left)-(tex1Dfetch(pos_tex, size-1)-tex1Dfetch(pos_tex, size-2)); //i.e. min_spacing
+
+		for (int current_conv_pos = my_data_pos-from_max_to_left; 
 						current_conv_pos < my_data_pos+from_max_to_right; 
 							++current_conv_pos)
 		{
-			c_diff =  tex1Dfetch(pos_tex, current_conv_pos)- tex1Dfetch(pos_tex, my_data_pos)+Constants::IW_QUARTER_NEUTRON_MASS/charge;
+			c_diff =  tex1Dfetch(pos_tex, current_conv_pos)- tex1Dfetch(pos_tex, my_data_pos)+Constants::IW_QUARTER_NEUTRON_MASS/(float)charge;
 
 			//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
 			current = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., tex1Dfetch(pos_tex, current_conv_pos)*charge)*tex1Dfetch(int_tex, current_conv_pos) : 0;
-			value += 0.5*(current + old)*(tex1Dfetch(pos_tex, current_conv_pos)-tex1Dfetch(pos_tex, current_conv_pos-1));
+			value += 0.5*(current + old)*(tex1Dfetch(pos_tex, current_conv_pos)-old_pos);
+			
 			old = current;
+			old_pos = tex1Dfetch(pos_tex, current_conv_pos);
 		};
 
 		result[my_data_pos] = value;
@@ -248,19 +251,18 @@ namespace OpenMS
 		else
 		{
 			dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
-      dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
+			dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
 			cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 			cudaBindTexture(0, pos_tex, positions_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 
 			ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
 			cudaThreadSynchronize();
-			checkCUDAError("ConvolutionIsotopeWaveletKernel");
+			checkCUDAError("ConvolutionIsotopeWaveletKernelTexture");
 			deriveOnDevice (result_dev, positions_dev, fwd2, size);
 			
 			cudaUnbindTexture(int_tex);
 			cudaUnbindTexture(pos_tex);
 		};
-
 	}
 
 
