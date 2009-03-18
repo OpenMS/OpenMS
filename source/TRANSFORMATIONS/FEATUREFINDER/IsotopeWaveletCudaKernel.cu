@@ -27,6 +27,7 @@
 
 //**************************
 //Uses the sorting code provided by Alan Kaatz
+//http://courses.ece.uiuc.edu/ece498/al1/mps/MP5-TopWinners/kaatz/MP5-parallel_sort.zip
 //**************************
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>

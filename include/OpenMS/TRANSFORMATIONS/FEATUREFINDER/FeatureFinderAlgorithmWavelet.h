@@ -83,11 +83,10 @@ namespace OpenMS
             {
               Param tmp;
 
-              tmp.setValue("max_charge", 2, "The maximal charge state to be considered.");
-              tmp.setValue("intensity_threshold", 1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.");
+              tmp.setValue("max_charge", 1, "The maximal charge state to be considered.", false);
+              tmp.setValue("intensity_threshold", 2.0, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.");
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.");
-              tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", StringList::create("advanced"));
               tmp.setValue("charge_threshold", 0.1, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", StringList::create("advanced"));
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
@@ -130,7 +129,7 @@ namespace OpenMS
             for (Size i=0, j=0; i<this->map_->size(); ++i)
             {
               std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
-              iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
+              iwt.getTransforms (this->map_->at(i), pwts, max_charge_);
               iwt.identifyCharges (pwts,  this->map_->at(i), i, ampl_cutoff_);
               iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
               this->ff_->setProgress (++j);
@@ -443,8 +442,6 @@ namespace OpenMS
         UInt RT_votes_cutoff_;
         /// The numer of scans we allow to be missed within RT_votes_cutoff_
         UInt RT_interleave_;
-        /// Negative or positive charged
-        Int mode_;
         /// Charge threshold (in percent)
         CoordinateType charge_threshold_;
 
@@ -454,7 +451,6 @@ namespace OpenMS
           ampl_cutoff_ = this->param_.getValue ("intensity_threshold");
           RT_votes_cutoff_ = this->param_.getValue ("rt_votes_cutoff");
           RT_interleave_ = this->param_.getValue ("rt_interleave");
-          mode_ = this->param_.getValue ("recording_mode");
           IsotopeWavelet::setMaxCharge(max_charge_);
           charge_threshold_ = this->param_.getValue ("charge_threshold");
         }

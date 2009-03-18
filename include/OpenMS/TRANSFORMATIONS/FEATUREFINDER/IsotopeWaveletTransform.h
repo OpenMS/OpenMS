@@ -29,7 +29,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgMzFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -39,6 +38,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_statistics_double.h>
@@ -124,33 +124,20 @@ namespace OpenMS
  				* @param scan The MS scan you wish to transform.
  				* @param transforms A vector (with indices running from 0 to @p max_charge-1) of MS spectra (each of the size of @p scan).
  				* The code will NOT check the allocated memory (the sizes) for @p transforms and its entries.
- 				* @param max_charge The maximal charge state that is considered.
- 				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
+ 				* @param max_charge The maximal charge state that is considered. */
 			virtual void getTransforms (const MSSpectrum<PeakType>& scan,
-				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode);
+				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge);
 
 	
 			#ifdef OPENMS_HAS_CUDA
-				/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
-					* 
-					* The function computes the isotope wavelet transformed versions of @p scan. 
-					* The transform is determined for several charge states (up to charge @p max_charge) at the same time.
-					* Hence, the user has to ensure that the size of @p transforms equals to @p max_charge and that each spectrum in 
-					* @p transforms has the same length as @p scan.
-					*
-					* @param scan The MS scan you wish to transform.
-					* @param transforms A vector (with indices running from 0 to @p max_charge-1) of MS spectra (each of the size of @p scan).
-					* The code will NOT check the allocated memory (the sizes) for @p transforms and its entries.  
-					* @param max_charge The maximal charge state that is considered.
-					* @param mode The recording mode of the mass spectrometer (+1 or -1). */
 				virtual void getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c);
 				
-				virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
+				virtual int initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
 				
 				virtual void finalizeCudaScan ();
 			
 				virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
-					const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false)
+					const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false);
 	
 				virtual int cudaSort (MSSpectrum<PeakType>& sorted);
 			#endif	
@@ -218,7 +205,7 @@ namespace OpenMS
 			};
 
 
-			std::vector<DoubleReal> getErrorProneScans () const
+			/*std::vector<DoubleReal> getErrorProneScans () const
 			{
 				return (error_prone_scans_);
 			};	
@@ -226,7 +213,7 @@ namespace OpenMS
 			void clearErrorProneScans () 
 			{
 				error_prone_scans_.clear();
-			};  
+			};*/  
 
 			inline DoubleReal getSigma () const
 			{
@@ -258,9 +245,9 @@ namespace OpenMS
  				*	@param mz_index The start index of @p scan for which the wavelet should be adapted.
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
- 				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
+ 				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern. */
 			inline void sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
-				const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode);
+				const UInt mz_index, const DoubleReal offset, const UInt charge);
 			
 			inline void sampleTheCMarrWavelet_ (const MSSpectrum<PeakType>& scan, const Int wavelet_length, const Int mz_index, const UInt charge);	
 			
@@ -436,8 +423,7 @@ namespace OpenMS
 			gsl_spline* spline_;
 			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_, sigma_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
-			#ifdef DEBUG_FEATUREFINDER
-			std::vector<DoubleReal> error_prone_scans_;
+			//std::vector<DoubleReal> error_prone_scans_;
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
 			Int num_elements_;
@@ -625,7 +611,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransforms (const MSSpectrum<PeakType>& scan,
-		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)
+		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge) 
 	{
 		UInt scan_size = scan.size(), wavelet_length=0, old_length=0, peak_cutoff=0;
 		DoubleReal mz_cutoff=0;
@@ -727,11 +713,10 @@ namespace OpenMS
 					
 				wavelet_length = distance (wave_start, wave_end);
 				
-				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > mz_cutoff+Constants::IW_NEUTRON_MASS/c_charge))
+				if (wavelet_length >= scan_size || wavelet_length <=1 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > mz_cutoff+Constants::IW_NEUTRON_MASS/c_charge))
 				{			
 					sums=-1;
-					#ifdef DEBUG_FEATUREFINDER
-					if (error_prone_scans_.empty())
+					/*if (error_prone_scans_.empty())
 					{
 						std::cout << "pushing to error_prone_scans_ a " << i << std::endl;
 						std::cout << "wavelet length: " << wavelet_length << "\t scan_size: " << scan_size << std::endl; 
@@ -744,7 +729,7 @@ namespace OpenMS
 							std::cout << "pushing to error_prone_scans_ b " << i << std::endl;
 							error_prone_scans_.push_back(i);
 						}
-					};
+					};*/
 				}
 				else
 				{
@@ -765,7 +750,7 @@ namespace OpenMS
 					memset(&(c_spacings_[0]), 0, sizeof(DoubleReal)*c_spacings_.size());
 
 					//Sampling the wavelet
-					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
+					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge);
 
 					k=0; sums=0;
 					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
@@ -782,9 +767,6 @@ namespace OpenMS
 					else
 					{
 						sums = chordTrapezoidRule_ (xs_, prod_);
-					
-						/*for (UInt k=0; k<wavelet_length; ++k)
-						{
 							sums += prod_[k];
 						};*/
 
@@ -822,7 +804,7 @@ namespace OpenMS
 						continue;
 					}
 
-					PeakType c_peak2 (transforms[c][multiple_s[c]]);
+					PeakType& c_peak2 (transforms[c][multiple_s[c]]);
 					DoubleReal x1 = c_peak2.getMZ();
 					DoubleReal y1 = c_peak2.getIntensity();
 					DoubleReal x2 = c_peak1.getMZ();
@@ -870,7 +852,7 @@ namespace OpenMS
 		}
 
 		template <typename PeakType>
-		void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
+		int IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
 		{
 			(cudaSetDevice (cudaDevice));
 			cudaDeviceProp prop;
@@ -905,21 +887,32 @@ namespace OpenMS
 					min_spacing_ = c_spacing;
 				};	
 			};
+			if (min_spacing_ == INT_MAX) //spectrum consists of a single data point
+			{
+				return (Constants::CUDA_INIT_FAIL);
+			};
+			
 
 			//std::cout << "max_cutoff: " << max_cutoff_ << std::endl;
 			//std::cout << "min_spacing_: " << min_spacing_ << "\t max_peaks_per_pattern: " << max_peaks_per_pattern_ << std::endl;	
 			UInt wavelet_length = (UInt) ceil(max_peaks_per_pattern_/(min_spacing_));
+
+			if (wavelet_length > scan_size || wavelet_length == 1) //==1, because of 'ceil'
+			{
+				return (Constants::CUDA_INIT_FAIL);
+			}; 
+
 			UInt max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
 			from_max_to_left_ = max_index;
 			from_max_to_right_ = wavelet_length-1-from_max_to_left_;
 
-			Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX - (wavelet_length-1);
+			//Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX - (wavelet_length-1);
 		
 			//Warum setzen wir die Problemgroesse nicht einfach auf 512?????????????????????????????????????????????????????
-			if (problem_size <= 0)
-			{
-				problem_size = Constants::CUDA_BLOCK_SIZE_MAX;
-			};
+			//if (problem_size <= 0)
+			//{
+				Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX;
+			//};
 			to_load_ = problem_size + from_max_to_left_ + from_max_to_right_;	
 			
 			data_length_ = pre_intensities.size(); // number of original data points
@@ -1015,6 +1008,8 @@ namespace OpenMS
 			memset (&zeros_[0], 0., overall_size_*sizeof(float)); 
 
 			(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+		
+			return (Constants::CUDA_INIT_SUCCESS);
 		}
 
 		template <typename PeakType>
@@ -1024,6 +1019,7 @@ namespace OpenMS
 			(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
 			(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
 			
+			//std::cout << from_max_to_left_ << "\t" << from_max_to_right_ << "\t" << to_load_ << "\t" << to_compute_ << "\t" << data_length_ << std::endl;
 			getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
 				c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);
 		
@@ -1069,6 +1065,12 @@ namespace OpenMS
 			DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
 						
 			Int gpu_index = cudaSort (c_sorted_candidate_), c_index;
+			if (gpu_index < 0) //the transform produced non-exploitable data
+			{
+				return;
+			};
+	
+
 			std::vector<UInt> processed (data_length_, 0);
 			if (ampl_cutoff < 0)
 			{
@@ -1085,6 +1087,8 @@ namespace OpenMS
 		
 			(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
 		
+			//std::cout << "num_of_scores: " << num_of_scores << "\t" << c+1 << "\t" << gpu_index << std::endl;
+
 			scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
 				c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_, min_spacing_);
 			
@@ -1343,12 +1347,10 @@ namespace OpenMS
 		UInt peak_cutoff=0;
 		UInt cands_size=candidates.size();
 		UInt signal_size=candidates[0].size(); 
-		typename DPeakConstReferenceArray<MSSpectrum<PeakType> >::iterator iter;
+		typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
 		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
 	 	UInt MZ_start, MZ_end;
-			
-
 		
 		//For all charges do ...
 		for (Size c=0; c<cands_size; ++c)
@@ -1367,9 +1369,8 @@ namespace OpenMS
 				};
 			};
 
-
 			//DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (candidates[c].begin(), candidates[c].end());
-			DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
+			ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
 
 			//Sort the transform in descending order according to the intensities present in the transform
 			c_sorted_candidate_.sortByIntensity();
@@ -1502,10 +1503,13 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
-		const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode)
+		const UInt mz_index, const DoubleReal offset, const UInt charge)
 	{
 		UInt scan_size = scan.size();
-		DoubleReal c_pos=scan[mz_index].getMZ(), lambda=IsotopeWavelet::getLambdaQ(c_pos*charge-mode*charge*PROTON_MASS);
+		//Usually we should compute something like: c_pos*charge-mode*charge*PROTON_MASS, 
+		//where mode denotes the recording mode +1, -1
+		//normally this has only a tiny effect on lambda
+		DoubleReal c_pos=scan[mz_index].getMZ(), lambda=IsotopeWavelet::getLambdaQ(c_pos*charge);
 
 		if (mz_index+wavelet_length >= scan_size)
 		{
@@ -1534,7 +1538,7 @@ namespace OpenMS
 			{
 				tz1=cum_spacing*charge+1;
 				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
-				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
+				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
 				cum_spacing += c_spacings_[j];
 			}
 		}
@@ -1544,7 +1548,7 @@ namespace OpenMS
 			{
 				tz1=cum_spacing*charge+1;
 				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
-				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
+				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
 				cum_spacing += c_spacings_[j];
 			};
 		};
@@ -1876,10 +1880,9 @@ namespace OpenMS
 		DoubleReal final_percent = fabs(c_score-c_theo_score)/(2.*(c_score+c_theo_score))*100;
 	
 		//#ifdef DEBUG_FEATUREFINDER	
-			std::ofstream ofile_score ("scores.dat", ios::app);
-			std::ofstream ofile_check_score ("check_scores.dat", ios::app);
+			std::ofstream ofile_score ("scores.dat", std::ios::app);
+			std::ofstream ofile_check_score ("check_scores.dat", std::ios::app);
 			ofile_score << seed_mz << "\t" << c_theo_score << "\t" << c_score << "\t" << final_percent << "\t" << pearson << std::endl;
-
 			ofile_score.close();
 			ofile_check_score.close();
 		//#endif

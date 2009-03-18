@@ -191,6 +191,7 @@ namespace OpenMS
 		{
 			sine_table_.push_back (sin(query));
 			query += table_steps_;
+		};
 	}
 											
 
