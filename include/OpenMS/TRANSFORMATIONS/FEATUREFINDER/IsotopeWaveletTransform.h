@@ -1115,11 +1115,6 @@ namespace OpenMS
 				//iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
 				iter_end = ref.MZEnd(seed_mz+((peak_cutoff-1+0.75)*Constants::IW_NEUTRON_MASS)/(c+1.));
 			
-				if (trunc(seed_mz) == 530 && c==1)
-				{
-					std::cout << "cutoff: " << peak_cutoff << "\t" << iter_start->getMZ() << "\t" << iter_end->getMZ()<< std::endl;
-				};
-	
 				if (iter_end == ref.end())
 				{
 					--iter_end;

@@ -230,15 +230,15 @@ namespace OpenMS
 	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
 		const int charge, const int to_load, const int to_compute, const float peak_cutoff_intercept, const float peak_cutoff_slope, const int size, float* fwd2) 
 	{
-		//if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
-		//{	
+		if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
+		{	
 			ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, peak_cutoff_intercept, peak_cutoff_slope, size);
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernel");
 			deriveOnDevice (result_dev, positions_dev, fwd2, size);
-		//}
-		//else
-		//{
+		}
+		else
+		{
 			/*dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
       dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
 			cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
@@ -251,8 +251,7 @@ namespace OpenMS
 
 			cudaUnbindTexture(int_tex);
 			cudaUnbindTexture(pos_tex);*/
-		//};
-
+		};
 	}
 
 
