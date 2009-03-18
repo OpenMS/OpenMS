@@ -216,17 +216,6 @@ namespace OpenMS
 		};
 	}
 
-	/*__global__ void getDerivatives (float* spec, float* spec_pos, float* fwd, const int size)
-	{
-		int i = threadIdx.x + blockIdx.x * blockDim.x;
-	
-		if (i+1>=size)
-		{
-			return;
-		};
-	
-		fwd[i] = (spec[i+1]-spec[i])/(spec_pos[i+1]-spec_pos[i]);
-	}*/
 
 	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size)
 	{
@@ -241,24 +230,28 @@ namespace OpenMS
 	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
 		const int charge, const int to_load, const int to_compute, const float peak_cutoff_intercept, const float peak_cutoff_slope, const int size, float* fwd2) 
 	{
-		ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, peak_cutoff_intercept, peak_cutoff_slope, size);
-		cudaThreadSynchronize();
-		checkCUDAError("ConvolutionIsotopeWaveletKernel");
-		deriveOnDevice (result_dev, positions_dev, fwd2, size);
+		if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
+		{	
+			ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, peak_cutoff_intercept, peak_cutoff_slope, size);
+			cudaThreadSynchronize();
+			checkCUDAError("ConvolutionIsotopeWaveletKernel");
+			deriveOnDevice (result_dev, positions_dev, fwd2, size);
+		}
+		else
+		{
+			dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
+      dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
+			cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
+			cudaBindTexture(0, pos_tex, positions_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 
-		/*dimBlock = dim3(448);
-		dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
-	
-		cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
-		cudaBindTexture(0, pos_tex, positions_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
+			ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, peak_cutoff_intercept, peak_cutoff_slope, size);
+			cudaThreadSynchronize();
+			checkCUDAError("ConvolutionIsotopeWaveletKernel");
+			deriveOnDevice (result_dev, positions_dev, fwd2, size);
 
-		ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, peak_cutoff_intercept, peak_cutoff_slope, size);
-		cudaThreadSynchronize();
-		checkCUDAError("ConvolutionIsotopeWaveletKernel");
-		deriveOnDevice (result_dev, positions_dev, fwd2, size);
-
-		cudaUnbindTexture(int_tex);
-		cudaUnbindTexture(pos_tex);*/
+			cudaUnbindTexture(int_tex);
+			cudaUnbindTexture(pos_tex);
+		};
 
 	}
 
@@ -1072,7 +1065,7 @@ namespace OpenMS
 
 	
 	void scoreOnDevice (int* sorted_positions_indices, float* trans_intensities, float* pos, float* scores, 
-		const int c, const int num_of_scores, const int overall_size, const float peak_cutoff_intercept, const float peak_cutoff_slope, const unsigned int max_peak_cutoff, float min_spacing)
+		const int c, const int num_of_scores, const int overall_size, const float peak_cutoff_intercept, const float peak_cutoff_slope, const unsigned int max_peak_cutoff)
 	{
 		int theo_block_dim = 4*(max_peak_cutoff-1)-1; //the number of scoring points per candidates, due to numerical reasons we increse max_peak_cutoff by one
 		dim3 blockDim (theo_block_dim); //the number of scoring points per candidates

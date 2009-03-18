@@ -1090,7 +1090,7 @@ namespace OpenMS
 			//std::cout << "num_of_scores: " << num_of_scores << "\t" << c+1 << "\t" << gpu_index << std::endl;
 
 			scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
-				c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_, min_spacing_);
+				c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_);
 			
 			(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
 

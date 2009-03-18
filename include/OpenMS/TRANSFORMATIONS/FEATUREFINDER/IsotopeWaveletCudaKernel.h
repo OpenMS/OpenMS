@@ -50,7 +50,7 @@ namespace OpenMS
 	int sortOnDevice(float *array, int* pos_indices, int numElements, int padding);
 
 	void scoreOnDevice (int* sorted_positions_indices, float* trans_intensities,  float* pos, float* scores, 
-		const int c, const int num_of_scores, const int overall_size, const float peak_cutoff_intercept, const float peak_cutoff_slope, const unsigned int max_peak_cutoff, float min_spacing);
+		const int c, const int num_of_scores, const int overall_size, const float peak_cutoff_intercept, const float peak_cutoff_slope, const unsigned int max_peak_cutoff);
 
 	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size);
 
