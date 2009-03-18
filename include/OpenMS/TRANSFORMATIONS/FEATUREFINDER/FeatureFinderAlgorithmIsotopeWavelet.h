@@ -34,6 +34,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <iostream>
 #include <time.h>
 				
@@ -117,7 +118,6 @@ namespace OpenMS
 		/** @brief The working horse of this class. */
 		void run ()
 		{
-				time_t start=time(NULL), end;
 				DoubleReal max_mz = this->map_->getMax()[1];
 				DoubleReal min_mz = this->map_->getMin()[1];
 					
@@ -145,25 +145,110 @@ namespace OpenMS
 				this->ff_->setLogType (ProgressLogger::CMD);
 				progress_counter_ = 0;
 				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");
+			
+
+				/*IsotopeWaveletTransform<PeakType> muff (min_mz, max_mz, max_charge_, 0.2, max_size);
+				std::stringstream resample_stream;
+				resample_stream << "finaleval_" << this->RT_votes_cutoff_ << ".mzData\0";    
+				MSExperiment<PeakType> new_map; UInt c_size; DoubleReal c_range, c_space, q_mz;
+				for (UInt i=0; i<this->map_->size(); ++i)
+				{
+					c_size = (*this->map_)[i].size();
+					c_range = (*this->map_)[i][c_size-1].getMZ() - (*this->map_)[i].begin()->getMZ();
+					c_space = c_range / (DoubleReal)this->RT_votes_cutoff_;
+					MSSpectrum<PeakType> spec;
+					spec.setRT((*this->map_)[i].getRT());
+					spec.push_back((*this->map_)[i][0]);
+					q_mz = (*this->map_)[i][0].getMZ(); 
+					for (UInt j=1; j<this->RT_votes_cutoff_-1; ++j)
+					{
+						q_mz += c_space;
+						typename MSSpectrum<PeakType>::const_iterator iter2 ((*this->map_)[i].MZBegin(q_mz)), iter1, iter3;
+						if (iter2+1 == (*this->map_)[i].end())
+						{
+							--iter2;
+						};
+						iter1 = iter2-1;
+						iter3 = iter2+1;
+						
+						std::vector<DoubleReal> x, y;
+						x.push_back (iter1->getMZ());
+						x.push_back (iter2->getMZ());
+						x.push_back (iter3->getMZ());
+										
+						y.push_back (iter1->getIntensity());
+						y.push_back (iter2->getIntensity());
+						y.push_back (iter3->getIntensity());
+
+						//std::cout << x[0] << " " << x[1] << " " << x[2] << "\t\t" << q_mz << "\t\t" << y[0] << " " << y[1] << " " << y[2] << "\t";
+	
+						PeakType peak; peak.setMZ (q_mz);
+						//std::cout << ::std::setprecision(8) << std::fixed << "searching: " << q_mz << "got: " << *iter << std::endl;
+						//--iter;
+						//peak.setIntensity (muff.getLinearInterpolation(iter->getMZ(), iter->getIntensity(), q_mz , (iter+1)->getMZ(), (iter+1)->getIntensity())); 
+						DoubleReal fit = muff.getCubicInterpolatedValue(x, q_mz , y);
+						//std::cout << fit << std::endl;
+						peak.setIntensity (fit); 
+						spec.push_back(peak);
+					};
+					spec.push_back((*this->map_)[i][c_size-1]);
+					new_map.push_back(spec);
+				};
+
+				MzDataFile file; file.store(resample_stream.str(), new_map);
+
+				exit(-1);*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				time_t start=time(NULL), end;	
 				
 				#ifdef OPENMS_HAS_TBB_H
 					if (use_tbb_)
 					{
-						tbb::task_scheduler_init init (gpu_ids_.size());
-						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (gpu_ids_.size()); 
-						for (UInt t=0; t<gpu_ids_.size(); ++t)
+						UInt num_gpus = this->gpu_ids_.size();
+						tbb::task_scheduler_init init (num_gpus);
+						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (num_gpus); 
+						for (UInt t=0; t<num_gpus; ++t)
 						{
 							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, 0.2, max_size);
 						};
 
 						static tbb::affinity_partitioner ap;
 						//The parallel execution over all available GPU devices
-						tbb::parallel_for(tbb::blocked_range<size_t>(0, gpu_ids_.size(), 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
-					
+						tbb::parallel_for(tbb::blocked_range<size_t>(0, num_gpus, 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
+						
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+							std::cout << "Merging."; std::cout.flush();
+						#endif
+
+						UInt block_size = (int)(this->map_->size() / num_gpus); 
+						for (UInt t=1; t<num_gpus; ++t)
+						{
+							std::cout << "Cutindex: " << t*block_size << "\t" << (*this->map_)[t*block_size].getRT() <<  std::endl;
+							iwts[0]->mergeFeatures (*this->map_, iwts[t], t*block_size, RT_interleave_, RT_votes_cutoff_);	
+						};
+
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "Final mapping."; std::cout.flush();
 						#endif
-						*this->features_ = iwts[gpu_ids_.size()-1]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+						*this->features_ = iwts[0]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+						
+						for (UInt t=0; t<num_gpus; ++t)
+						{
+							delete (iwts[t]);							
+						};
 					};
 				#else
 					if (use_tbb_)
@@ -367,6 +452,9 @@ namespace OpenMS
 					#ifdef OPENMS_HAS_TBB_H 
 						use_tbb_ = ( (String)(this->param_.getValue("tbb:use_tbb"))=="true" );
 						gpu_to_exclude_ = this->param_.getValue ("tbb:exclude_id");				
+						
+						//Attention: updateMembers_ can be called several times!
+						gpu_ids_.clear();
 						for (Int i=0; i<device_num_; ++i)
 						{
 							if (i == gpu_to_exclude_)

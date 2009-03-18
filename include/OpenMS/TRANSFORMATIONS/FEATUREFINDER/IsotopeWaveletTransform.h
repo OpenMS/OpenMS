@@ -307,7 +307,11 @@ namespace OpenMS
  				* @param RT_interleave See the IsotopeWaveletFF class.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */
 			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
-				const UInt RT_votes_cutoff) ;
+				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
+
+		
+			void mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt cut_index, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
  				* @param map The original map containing the data set to be analyzed.
@@ -340,6 +344,8 @@ namespace OpenMS
 				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
 			};
 
+			DoubleReal getCubicInterpolatedValue (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y); 
+		
 			inline DoubleReal getSigma () const
 			{
 				return (sigma_);
@@ -510,7 +516,7 @@ namespace OpenMS
 
 
 			//internally used data structures for the sweep line algorithm
-			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
+			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_, end_boxes_, front_boxes_;	//DoubleReal = average m/z position
 			std::vector<std::multimap<DoubleReal, Box> >* tmp_boxes_; //for each charge we need a separate container
 
 			gsl_interp_accel* acc_;
@@ -655,8 +661,18 @@ namespace OpenMS
 	
 		delete (tmp_boxes_);
 	}
+	
 
-			
+	template <typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicInterpolatedValue (const std::vector<DoubleReal>& x, 
+		const DoubleReal xi, const std::vector<DoubleReal>& y) 
+	{
+		gsl_spline_init (spline_, &x[0], &y[0], x.size());
+		DoubleReal yi = gsl_spline_eval (spline_, xi, acc_);
+		return (yi);	
+	}
+	
+		
 	template <typename PeakType>
  	bool IsotopeWaveletTransform<PeakType>::estimateCMarrWidth (const MSSpectrum<PeakType>& scan)
 	{
@@ -1256,6 +1272,171 @@ namespace OpenMS
 		clusterSeeds_(candidates, ref, scan_index, c, check_PPMs, use_cmarr);
 	}
 
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt cut_index, const UInt RT_interleave, const UInt RT_votes_cutoff)
+	{
+		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
+
+		//First of all do the trivial part of the merge
+		for (end_iter=later_iwt->closed_boxes_.begin(); end_iter!=later_iwt->closed_boxes_.end(); ++end_iter)
+		{
+			closed_boxes_.insert (*end_iter);
+		};
+
+			typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
+			typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
+			
+			typename std::multimap<UInt, BoxElement>::iterator biter;
+
+			DoubleReal best_dist, c_dist; UInt c;
+			//Now, try to find matching boxes for the rest
+			for (front_iter=front_container.begin(); front_iter != front_container.end(); )
+			{
+				best_match = end_container.end(); best_dist = INT_MAX;
+				//This is everything else than efficient, but both containers should be very small in size
+				for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+				{
+					c=0;
+					for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
+					{
+						c=std::max (c, biter->second.c);
+					}; 
+					c_dist = fabs(end_iter->first - front_iter->first); 
+					if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
+					{
+						std::cout << (front_iter->second.begin())->first << "\t" <<
+							(--(end_iter->second.end()))->first << std::endl;
+						if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
+						//otherwise, there are too many blank scans in between
+						{	
+							best_match = end_iter;
+							best_dist = c_dist;
+						};
+					};
+				};
+				if (best_match == end_container.end()) //No matching pair found
+				{
+					if (front_iter->second.size() >= RT_votes_cutoff)
+					{
+						std::cout << "insert without match: " << front_iter->first << "\t" << front_iter->second.size() << std::endl;
+						for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
+							std::cout << "charges: " << biter->second.c << "\t" << biter->second.mz << std::endl;
+						closed_boxes_.insert (*front_iter);
+					};
+					++front_iter;
+				}		
+				else //That's the funny part
+				{
+					std::cout << "merging: " << front_iter->first << "\t" << best_match->first << std::endl;
+
+					front_iter->second.insert (best_match->second.begin(), best_match->second.end());
+					Box replacement (front_iter->second);	
+
+					//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+					DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
+					c_mz /= ((DoubleReal) front_iter->second.size());		
+
+					help_iter = front_iter;
+					++help_iter;
+					std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
+					closed_boxes_.insert (help3);				
+					front_container.erase (front_iter);
+					end_container.erase (best_match);
+					front_iter = help_iter;
+				};
+			};
+
+			//Merge the rest in end_container
+			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+			{
+				if (end_iter->second.size() >= RT_votes_cutoff)
+				{
+					std::cout << "inserting the rest: " << end_iter->first << "\t" << end_iter->second.size() << std::endl;
+					closed_boxes_.insert (*end_iter);
+				};
+			};
+	
+
+		/*typename std::multimap<DoubleReal, Box>::const_iterator iter, iter2;
+		typename std::multimap<DoubleReal, Box>::iterator my_iter, start_iter;
+		typename Box::const_iterator iter_b;
+
+		for (iter=later_iwt->closed_boxes_.begin(); iter!=later_iwt->closed_boxes_.end(); ++iter)
+		{
+			closed_boxes_.insert (*iter);
+		};
+
+		bool unmatched=true; start_iter=end_boundary_boxes_.begin(); UInt c;
+		for (iter=later_iwt->front_boundary_boxes_.begin(); iter != later_iwt->front_boundary_boxes_.end(); )
+		{
+			unmatched=true;
+			while (start_iter != end_boundary_boxes_.end() && start_iter->first < iter->first - Constants::IW_HALF_NEUTRON_MASS)
+			{
+				if (start_iter->second.size() >= RT_votes_cutoff)
+				{
+					std::cout << "pre-insert: " << start_iter->first << std::endl; 
+					closed_boxes_.insert (*start_iter);
+					//extendBox_ (map, start_iter->second);
+				};
+				++start_iter;
+			};
+
+			for (my_iter=start_iter; my_iter != end_boundary_boxes_.end(); ++my_iter)
+			{
+				c = iter->second.begin()->second.c;
+				if (c != my_iter->second.begin()->second.c)
+				{
+					std::cout << "charge mismatch: " << "\t" << iter->first << "\t" << start_iter->first << std::endl;
+					if (start_iter->second.size() >= RT_votes_cutoff)
+					{
+						std::cout << "nevertheless-insert: " << start_iter->first << std::endl; 
+						closed_boxes_.insert (*start_iter);
+						//extendBox_ (map, start_iter->second);
+						++start_iter;
+					};
+					break;
+				}
+				else
+				{
+					if (fabs(my_iter->first - iter->first) < Constants::IW_HALF_NEUTRON_MASS/(c+1.0))
+					{
+						std::cout << "merging: " << iter->first << " " << iter->second.size() << " with " << start_iter->first << " " << start_iter->second.size()<< std::endl;
+		
+						my_iter->second.insert (iter->second.begin(), iter->second.end());
+
+						//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
+						Box replacement (my_iter->second);	
+
+						//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+						//Also note that we already inserted the new entry, leading to size-1.
+						DoubleReal c_mz = my_iter->first * (my_iter->second.size()-iter->second.size()) + iter->first;	
+						c_mz /= ((DoubleReal) my_iter->second.size());		
+
+						++start_iter; ++iter;
+						std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
+						closed_boxes_.insert (help3);				
+						//extendBox_ (map, help3->second);
+						unmatched=false;
+						break;
+					};
+				};	
+			};
+
+			if (unmatched)
+			{
+				if (iter->second.size() >= RT_votes_cutoff)
+				{
+					std::cout << "inserting unmatched: " << iter->first << "\t" << iter->second.size() << std::endl;
+					closed_boxes_.insert (*iter);
+					//extendBox_ (map, iter->second);
+				};
+				++iter;
+			};
+		};
+		//later_iwt->front_boundary_boxes_.clear();
+		//end_boundary_boxes_.clear();*/
+	};
 
 
 	template <typename PeakType>
@@ -2034,9 +2215,19 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
-		const UInt RT_votes_cutoff)
+		const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter, iter2;
+
+		if ((Int)scan_index == end_bound && end_bound != (Int)map.size()-1)
+		{
+			for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); ++iter)
+			{
+				end_boxes_.insert (*iter);
+			};
+			open_boxes_.clear();
+			return;
+		};
 
 		for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); )
 		{
@@ -2045,6 +2236,16 @@ namespace OpenMS
 			UInt lastScan = (--(iter->second.end()))->first;
 			if (scan_index - lastScan > RT_interleave) //I.e. close the box!
 			{
+				if (iter->second.begin()->first -front_bound <= RT_interleave && front_bound > 0)
+				{
+					iter2=iter;
+					++iter2;
+					front_boxes_.insert (*iter);
+					open_boxes_.erase (iter);
+					iter=iter2;
+					continue;
+				};
+
 				iter2 = iter;
 				++iter2;
 				//Please do **NOT** simplify the upcoming lines.
@@ -2052,7 +2253,7 @@ namespace OpenMS
 				//by push2Box which might be called by extendBox_.
 				if (iter->second.size() >= RT_votes_cutoff)
 				{
-					extendBox_ (map, iter->second);
+					//extendBox_ (map, iter->second);
 					iter = iter2;
 					closed_boxes_.insert (*(--iter));
 				}
@@ -2064,7 +2265,6 @@ namespace OpenMS
 				++iter;
 			};
 		};
-
 	}
 
 
@@ -2308,6 +2508,7 @@ namespace OpenMS
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
 		{
+			std::cout << "map: " << iter->first << std::endl;
 			Box& c_box = iter->second;
 			std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
 
@@ -2333,8 +2534,11 @@ namespace OpenMS
 			//Pattern found in too few RT scan
 			if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= map.size())
 			{
+				//std::cout << charge_binary_votes[best_charge_index] << "\t" << best_charge_index << std::endl;
 				continue;
 			}
+
+			std::cout << charge_binary_votes[best_charge_index] << "\t" << best_charge_index << std::endl;
 
 			c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
@@ -2372,7 +2576,7 @@ namespace OpenMS
 			c_feature.setMZ (av_mz);
 			c_feature.setIntensity (av_intens);
 			c_feature.setRT (av_RT);
-			c_feature.setQuality (1, av_score);
+			c_feature.setQuality (0, av_score);
 			feature_map.push_back (c_feature);
 		};
 

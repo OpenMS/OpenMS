@@ -122,7 +122,7 @@ namespace OpenMS
 							c_iwt->finalizeScanCuda();
 						};
 						
-						c_iwt->updateBoxStates(*ff_->map_, i, ff_->RT_interleave_, ff_->real_RT_votes_cutoff_);
+						c_iwt->updateBoxStates(*ff_->map_, i, ff_->RT_interleave_, ff_->real_RT_votes_cutoff_, from, up_to-1);
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "updated box states." << std::endl;
 						#endif
