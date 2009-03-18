@@ -85,6 +85,7 @@
 #include <QtGui/QPainter>
 #include <QtCore/QDir>
 #include <QtCore/QDate>
+#include <QtCore/QTime>
 #include <QtGui/QWhatsThis>
 #include <QtGui/QInputDialog>
 #include <QtGui/QTextEdit>
@@ -1358,7 +1359,8 @@ namespace OpenMS
   	const LayerData& cl = cc->getCurrentLayer();
   	QTreeWidgetItem* item = 0;
   	QTreeWidgetItem* selected_item = 0;
-
+		QList<QTreeWidgetItem*> toplevel_items;
+		
   	if(cl.type == LayerData::DT_PEAK)
   	{
   		std::vector<QTreeWidgetItem*> parent_stack;
@@ -1418,7 +1420,7 @@ namespace OpenMS
 				parent_stack.back() = item;
 				if (parent_stack.size() == 1)
 				{
-					spectrum_selection_->addTopLevelItem(item);
+					toplevel_items.push_back(item);
 				}
 
 				item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
@@ -1434,10 +1436,16 @@ namespace OpenMS
 					selected_item = item;
 				}
 			}
-			if (fail)
+			
+			if (!fail)
+			{
+				spectrum_selection_->addTopLevelItems(toplevel_items);
+			}
+			else
 			{
 				// generate flat list instead
 				spectrum_selection_->clear();
+				toplevel_items.clear();
 				selected_item = 0;
 				for (Size i = 0; i < cl.peaks.size(); ++i)
 				{
@@ -1448,13 +1456,14 @@ namespace OpenMS
 					if (!cl.peaks[i].getPrecursors().empty()) mz_pos = cl.peaks[i].getPrecursors()[0].getMZ();
 					item->setText(2, QString::number(mz_pos));
 					item->setText(3, QString::number(i));
-					spectrum_selection_->addTopLevelItem(item);
+					toplevel_items.push_back(item);
 					if (i == cl.current_spectrum)
 					{
 						item->setSelected(true);
 						selected_item = item;
 					}
 				}
+				spectrum_selection_->addTopLevelItems(toplevel_items);
 			}
 			if (selected_item)
 			{
