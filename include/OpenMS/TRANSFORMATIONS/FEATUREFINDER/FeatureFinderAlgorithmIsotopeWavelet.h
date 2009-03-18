@@ -293,13 +293,14 @@ namespace OpenMS
 						
 						if (use_cuda_ < 0)
 						{	
+							iwt.initializeScan ((*this->map_)[i]);
 							for (UInt c=0; c<max_charge_; ++c)
 							{
 								MSSpectrum<PeakType> c_trans (c_ref);
 								
 								iwt.getTransform (c_trans, c_ref, c);
 								
-								//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::stringstream stream;
 									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
@@ -308,19 +309,19 @@ namespace OpenMS
 										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
 									};
 									ofile.close();
-								//#endif
+								#endif
 
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "transform O.K. ... "; std::cout.flush();
 								#endif							
-								//this->ff_->setProgress (++progress_counter_);
+								this->ff_->setProgress (++progress_counter_);
 
 								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
 						
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "charge recognition O.K. ... "; std::cout.flush();
 								#endif
-								//this->ff_->setProgress (++progress_counter_);
+								this->ff_->setProgress (++progress_counter_);
 							};
 						}	
 						else
@@ -334,7 +335,7 @@ namespace OpenMS
 									{	
 										iwt.getTransformCuda (c_trans, c);
 
-										//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::stringstream stream;
 											stream << "gpu_" << (*this->map_)[i].getRT() << "_" << c+1 << ".trans\0"; 
 											std::ofstream ofile (stream.str().c_str());
@@ -343,19 +344,19 @@ namespace OpenMS
 												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << "\t" << c_trans.getMZ(k) << "\t" << c_ref[k].getIntensity() << std::endl;
 											};
 											ofile.close();
-										//#endif					
+										#endif					
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
 										#endif
-										//this->ff_->setProgress (++progress_counter_);
+										this->ff_->setProgress (++progress_counter_);
 
 										iwt.identifyChargeCuda (c_trans, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
 										#endif					
-										//this->ff_->setProgress (++progress_counter_);	
+										this->ff_->setProgress (++progress_counter_);	
 									};
 									iwt.finalizeScanCuda();
 								};
