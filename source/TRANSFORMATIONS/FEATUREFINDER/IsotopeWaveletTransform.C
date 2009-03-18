@@ -5,5 +5,5 @@ namespace OpenMS
 bool myCudaComparator (const cudaHelp& a, const cudaHelp& b)
 {
 	return (a.intens < b.intens);
-};
-};
+}
+}

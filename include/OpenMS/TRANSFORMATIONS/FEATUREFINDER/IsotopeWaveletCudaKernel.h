@@ -35,7 +35,7 @@
 #include <string>
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <cutil.h>
+//#include <cutil.h>
 
 
 #ifndef LAMBDA_Q_0

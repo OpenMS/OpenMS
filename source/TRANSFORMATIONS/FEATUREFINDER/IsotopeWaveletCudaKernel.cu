@@ -969,7 +969,8 @@ namespace OpenMS
 				peak_cutoff_intercept, peak_cutoff_slope);		
 		};
 		
-		CUDA_SAFE_CALL(cudaThreadSynchronize());
+//		CUDA_SAFE_CALL(cudaThreadSynchronize());
+		cudaThreadSynchronize();
 		checkCUDAError("scoreOnDevice");
 		
 		cudaUnbindTexture (trans_intensities_tex);

@@ -74,6 +74,10 @@
 #define REGISTERS_IN_USE 13
 #endif
 
+// we are not yet sure if we really want to drag in cutil.h and the CUDA_SAFE_CALL definitions...
+#ifndef CUDA_SAFE_CALL
+#define CUDA_SAFE_CALL(call) call;
+#endif
 
 namespace OpenMS
 {
@@ -872,7 +876,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		CUDA_SAFE_CALL(cudaFree(cuda_device_trans_intens_sorted_));
 		CUDA_SAFE_CALL(cudaFree(cuda_device_posindices_sorted_));
 		CUDA_SAFE_CALL(cudaFree(cuda_device_scores_));
-	};
+	}
 	
 
 	template <typename PeakType>
@@ -1032,10 +1036,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		c_sorted_candidate_.resize (dev_num_elements_);
 
 		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
-	};
-
-
-
+	}
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
@@ -1094,7 +1095,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 	
 		return (index);
-	};
+	}
 
 
 	template <typename PeakType>
@@ -1255,7 +1256,6 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 		return;
 	}
-
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
