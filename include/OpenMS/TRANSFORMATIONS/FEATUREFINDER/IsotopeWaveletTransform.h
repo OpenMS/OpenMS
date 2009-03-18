@@ -29,7 +29,11 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgMzFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -43,6 +47,8 @@
 #include <fstream>
 #include <iomanip>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
+
 #ifndef DEFAULT_NUM_OF_INTERPOLATION_POINTS
 #define DEFAULT_NUM_OF_INTERPOLATION_POINTS 3
 #endif
@@ -51,9 +57,41 @@
 #define EPSILON_ION_COUNTS 0
 #endif
 
+#ifndef MARR_CUTOFF
+#define MARR_CUTOFF 4.
+#endif
+
+#ifndef PEPTIDE_MASS_RULE_FACTOR
+#define PEPTIDE_MASS_RULE_FACTOR 0.000507
+#define PEPTIDE_MASS_RULE_BOUND (1./PEPTIDE_MASS_RULE_FACTOR)
+#define THEO_PPM_BOUND 200
+#endif
+
+#ifndef CUDA_PARAMETERS
+#define CUDA_PARAMETERS
+#define BLOCK_SIZE_MAX 512
+#define BLOCK_MULTIPLE 64
+#define REGISTERS_IN_USE 13
+#endif
+
 
 namespace OpenMS
 {
+
+	class cudaHelp
+	{
+		public:
+			float getMZ()
+			{ return mz; }
+			float getIntensity()
+			{ return intens; }
+		
+			float mz;
+			float intens;
+			float score;
+	};	
+
+
 	/** @brief A class implementing the isotope wavelet transform.
  		* If you just want to find features using the isotope wavelet, take a look at the IsotopeWaveletFF class. Usually, you only
  		* have to consider the class at hand if you plan to change the basic implementation of the transform.
@@ -85,11 +123,14 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) ;
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const DoubleReal sigma=0.2, const UInt max_scan_size=0) ;
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () ;
+	
 
+			virtual bool estimateCMarrWidth (const MSSpectrum<PeakType>& scan);
+	
 			/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
  				*
  				* The function computes the isotope wavelet transformed versions of @p scan.
@@ -103,7 +144,32 @@ namespace OpenMS
  				* @param max_charge The maximal charge state that is considered.
  				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
 			virtual void getTransforms (const MSSpectrum<PeakType>& scan,
-				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode) ;
+				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode);
+
+	
+			/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
+ 				* 
+ 				* The function computes the isotope wavelet transformed versions of @p scan. 
+ 				* The transform is determined for several charge states (up to charge @p max_charge) at the same time.
+ 				* Hence, the user has to ensure that the size of @p transforms equals to @p max_charge and that each spectrum in 
+ 				* @p transforms has the same length as @p scan.
+ 				*
+ 				* @param scan The MS scan you wish to transform.
+ 				* @param transforms A vector (with indices running from 0 to @p max_charge-1) of MS spectra (each of the size of @p scan).
+ 				* The code will NOT check the allocated memory (the sizes) for @p transforms and its entries.  
+ 				* @param max_charge The maximal charge state that is considered.
+ 				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
+			virtual void getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c);
+			
+			virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice, const UInt peakCutoff, const UInt maxCharge); 
+			
+			virtual void finalizeCudaScan ();
+			
+			virtual int cudaSort (MSSpectrum<PeakType>& sorted);
+			
+
+			virtual void getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
+				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge);
 
 
 			/** @brief Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
@@ -123,8 +189,10 @@ namespace OpenMS
  				* indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the
  				* average intensity in the wavelet transform. */
 			virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
-				const MSSpectrum<PeakType>& ref, const Size scan_index, const DoubleReal ampl_cutoff=0) ;
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;
 
+			virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;		
 
 			/** @brief A function keeping track of currently open and closed sweep line boxes.
  				* This function is used by the isotope wavelet feature finder and must be called for each processed scan.
@@ -158,17 +226,26 @@ namespace OpenMS
 				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z));
 			};
 
-			#ifdef DEBUG_FEATUREFINDER
-				std::vector<DoubleReal> getErrorProneScans () const
-				{
-					return (error_prone_scans_);
-				};
 
-				void clearErrorProneScans ()
-				{
-					error_prone_scans_.clear();
-				};
-			#endif
+			std::vector<DoubleReal> getErrorProneScans () const
+			{
+				return (error_prone_scans_);
+			};	
+
+			void clearErrorProneScans () 
+			{
+				error_prone_scans_.clear();
+			};  
+
+			inline DoubleReal getSigma () const
+			{
+				return (sigma_);
+			};
+
+			inline void setSigma (const DoubleReal sigma)
+			{
+				sigma_ = sigma;
+			};
 
 
 		protected:
@@ -191,8 +268,11 @@ namespace OpenMS
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
  				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
-			void sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length,
+			inline void sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 				const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode);
+			
+			inline void sampleTheCMarrWavelet_ (const MSSpectrum<PeakType>& scan, const Int wavelet_length, const Int mz_index, const UInt charge);	
+			
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score
  				* @param candidate A isotope wavelet transformed spectrum.
@@ -202,7 +282,19 @@ namespace OpenMS
  				* @param intens The intensity of the transform at @p seed_mz.
  				* @param ampl_cutoff The threshold. */
 			virtual DoubleReal scoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff,
-				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff=0) ;
+				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;
+
+
+			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
+ 				* @param candidate A isotope wavelet transformed spectrum.
+ 				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
+				* @param seed_mz The predicted position of the monoisotopic peak.
+ 				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined. 
+ 				* @param intens The intensity of the transform at @p seed_mz.
+ 				* @param ampl_cutoff The threshold. */
+			//virtual DoubleReal cudaScoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
+				//const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;
+
 
 			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
  				* (in comparison to the averagine model)
@@ -211,8 +303,11 @@ namespace OpenMS
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state of the candidate.
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-			virtual void checkPosition_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz,
-				const UInt c, const Size scan_index) ;
+			virtual bool checkPosition_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
+				const UInt c, const UInt scan_index, const bool use_cmarr) ;
+			
+
+			virtual std::pair<DoubleReal, DoubleReal> correctMZ_ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) ;
 
 
 			/** @brief Computes the average intensity (neglecting negative values) of @p scan. */
@@ -220,6 +315,13 @@ namespace OpenMS
 
 			/** @brief Computes the standard deviation (neglecting negative values) of the intensity of @p scan. */
 			inline DoubleReal getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) ;
+
+			/** @brief Computes the average intensity (neglecting negative values) of @p scan. */
+			inline DoubleReal getPointerAvIntens_ (const MSSpectrum<PeakType*>& scan) ; 		
+			
+			/** @brief Computes the standard deviation (neglecting negative values) of the intensity of @p scan. */
+			inline DoubleReal getPointerSdIntens_ (const MSSpectrum<PeakType*>& scan, const DoubleReal mean) ;
+
 
 			/** @brief A wrapper function to the GSL interpolation routine. */
 			DoubleReal getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y) ;
@@ -266,7 +368,7 @@ namespace OpenMS
  				* @param scan	The scan we are interested in.
  				* @param start_index An optional starting position (index) w.r.t. @p scan.
  				* @param end_index An optional final position (index) w.r.t. @p scan.*/
-			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index=0, Int end_index=-1) ;
+			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan);//, Int start_index=0, Int end_index=-1) ;
 
 
 			/** @brief The trapezoid rule for integration.
@@ -299,10 +401,40 @@ namespace OpenMS
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map).
  				* @param max_charge The maximal charge state we will consider. */
 			void clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates,
-				const MSSpectrum<PeakType>& ref, const Size scan_index, const UInt max_charge) ;
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge, const bool use_cmarr) ;
+
+			void clusterCudaSeeds_ (const MSSpectrum<PeakType>& candidates, 
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool use_cmarr) ;
+
 
 
 			void extendBox_ (const MSExperiment<PeakType>& map, const Box box);
+
+			inline DoubleReal peptideMassRule (const DoubleReal c_mass) const
+			{
+				DoubleReal correction_fac = c_mass / PEPTIDE_MASS_RULE_BOUND;
+				DoubleReal old_frac_mass = c_mass - trunc(c_mass);
+				DoubleReal new_mass = trunc(c_mass)* (1.+PEPTIDE_MASS_RULE_FACTOR)-trunc(correction_fac);
+				DoubleReal new_frac_mass = new_mass - trunc(new_mass);
+				
+				if (new_frac_mass-old_frac_mass > 0.5)
+				{
+					new_mass -= 1.;
+				}			
+
+				if (new_frac_mass-old_frac_mass < -0.5)
+				{
+					new_mass += 1.;
+				}			
+
+				return (new_mass);
+			};
+
+			inline DoubleReal getPPMs (const DoubleReal mass_a, const DoubleReal mass_b) const
+			{
+				return (fabs(mass_a-mass_b)/(0.5*(mass_a+mass_b))*1e6);
+			};
+
 
 			//internally used data structures for the sweep line algorithm
 			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
@@ -310,22 +442,55 @@ namespace OpenMS
 
 			gsl_interp_accel* acc_;
 			gsl_spline* spline_;
-			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_;
+			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_, sigma_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
 			#ifdef DEBUG_FEATUREFINDER
-				std::vector<DoubleReal> error_prone_scans_;
-			#endif
+			std::vector<DoubleReal> error_prone_scans_;
+			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
+
+			void* cuda_device_intens_;
+			void* cuda_device_pos_;
+			void* cuda_device_trans_intens_;
+			void* cuda_device_posindices_sorted_;
+			void* cuda_device_trans_intens_sorted_;
+			void* cuda_device_scores_;	
+			std::vector<float> cuda_positions_, cuda_intensities_;
+			Int num_elements_, dev_num_elements_;
+			UInt max_cutoff_;
+			UInt max_scan_size_, largest_array_size_;
+			std::vector<int> indices_;
+			float *h_data_;		
+			int *h_pos_;	
+			dim3 dimGrid_, dimBlock_;
+			UInt overall_size_, from_max_to_left_, from_max_to_right_, block_size_, data_length_;
+			MSSpectrum<PeakType> c_sorted_candidate_;
 	};
 
+bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
-
-
-	template <typename PeakType>
-	bool comparator (const PeakType& a, const PeakType& b)
+	template <typename PeakType>	
+	bool intensityComparator (const PeakType& a, const PeakType& b)
 	{
 		return (a.getIntensity() > b.getIntensity());
-	}
+	}		
 
+	template <typename PeakType>	
+	bool intensityAscendingComparator (const PeakType& a, const PeakType& b)
+	{
+		return (a.getIntensity() < b.getIntensity());
+	}			
+
+	template <typename PeakType>
+	bool intensityPointerComparator (PeakType* a, PeakType* b)
+	{
+		return (a->getIntensity() > b->getIntensity());
+	}			
+
+	template <typename PeakType>	
+	bool positionComparator (const PeakType& a, const PeakType& b)
+	{
+		return (a.getMZ() < b.getMZ());
+	}		
 
 	template <typename PeakType>
 	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform ()
@@ -334,22 +499,58 @@ namespace OpenMS
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (1);
 		av_MZ_spacing_=1;
+		num_elements_ = 0;
+		dev_num_elements_ = 0;
+		max_scan_size_ = 0;
+		largest_array_size_ = 0;
+		max_cutoff_ = 3;
+		h_data_ = NULL;
+		h_pos_ = NULL;
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge)
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, 
+		const DoubleReal sigma, const UInt max_scan_size) 
 	{
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
-		IsotopeWavelet::init (max_mz, max_charge);
+		IsotopeWavelet::init (max_mz, max_charge);				
+		CoupledMarrWavelet::init (max_mz, max_charge, sigma);
 		av_MZ_spacing_=1;
 		estimatePeakCutOffs_ (min_mz, max_mz, max_charge);
-		UInt max_cutoff (getPeakCutOff(max_mz, max_charge));
-		psi_.reserve (max_cutoff); //The wavelet
-		prod_.reserve (max_cutoff);
-		xs_.reserve (max_cutoff);
+		max_cutoff_ =  (getPeakCutOff(max_mz, max_charge));
+	
+		if (max_scan_size > 0) //only important for the GPU
+		{ 
+			max_scan_size_ = max_scan_size;
+			largest_array_size_ =  pow(2, ceil(log(max_scan_size + BLOCK_SIZE_MAX)/log(2.0)));
+			//std::cout << "largest_array_size: " << max_scan_size << "\t" << largest_array_size_ << std::endl;
+		
+			/*****************************/
+			//Auf den Heap legen?
+			//***************************/
 
+			cuda_positions_.reserve(largest_array_size_);
+		  cuda_intensities_.reserve(largest_array_size_);	
+			indices_.resize (largest_array_size_);
+			for (UInt q=0; q<largest_array_size_; ++q)
+				indices_[q] = q; 
+
+			h_data_ = (float*) malloc (largest_array_size_*sizeof(float));		
+			h_pos_ = (int*) malloc (largest_array_size_*sizeof(int)); 	
+		}
+		else // CPU mode
+		{
+			largest_array_size_ = 0;		
+			h_data_ = NULL;
+			h_pos_ = NULL; 
+			psi_.reserve (max_cutoff_); //The wavelet
+			prod_.reserve (max_cutoff_); 
+			xs_.reserve (max_cutoff_);
+			interpol_xs_.resize(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+			interpol_ys_.resize(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+		};
 	}
 
 
@@ -358,8 +559,76 @@ namespace OpenMS
 	{
 		gsl_interp_accel_free (acc_);
 		gsl_spline_free (spline_);
+		if (h_data_ != NULL) free (h_data_);
+		if (h_pos_ != NULL) free (h_pos_);
 		delete (tmp_boxes_);
 	}
+
+			
+	template <typename PeakType>
+ 	bool IsotopeWaveletTransform<PeakType>::estimateCMarrWidth (const MSSpectrum<PeakType>& scan)
+	{
+		typename MSSpectrum<PeakType>::const_iterator max_iter, l_bound, r_bound;
+		MSSpectrum<PeakType> help;
+		help.assign (scan.begin(), scan.end());
+		sort (help.begin(), help.end(), intensityComparator<PeakType>);	
+
+		UInt trials=0; sigma_ = -1;	
+		DoubleReal c_sigma=0, success=0;
+		for (max_iter=help.begin(); max_iter != help.end(); ++max_iter, ++trials)
+		{
+			if (trials >= 10)
+			{
+				if (success < 5)
+				{
+					av_MZ_spacing_ = getAvMZSpacing_(scan);
+					sigma_ = 3*av_MZ_spacing_;
+					return (false);
+				}
+				else
+				{
+					sigma_ = c_sigma/success;
+					return (true);
+				};
+			};
+		
+			InterpolationModel* model = NULL;
+			Fitter1D* fitter = EmgMzFitter1D::create();
+			Param params;
+			DPeakArray<PeakType> range;	MSSpectrum<PeakType> s_range;
+			l_bound = scan.MZBegin(max_iter->getMZ()-QUARTER_NEUTRON_MASS);
+			r_bound = scan.MZBegin(max_iter->getMZ()+QUARTER_NEUTRON_MASS);
+			range.assign (l_bound, r_bound); s_range.assign (l_bound, r_bound);
+			av_MZ_spacing_ = getAvMZSpacing_(scan);
+			params.setValue ("interpolation_step", av_MZ_spacing_);
+			params.setValue ("max_iteration", 30);
+			params.setValue ("tolerance_stdev_bounding_box", 0.);
+			
+			fitter->setParameters (params);
+			if (fitter->fit1d (range, model) > 0.8)
+			{
+				//std::cout << "success" << std::endl;
+				model = reinterpret_cast<EmgModel*> (model);
+				params = model->getParameters();
+
+				DoubleReal width = params.getValue ("emg:width");
+				DoubleReal alpha = params.getValue ("emg:symmetry");
+		
+				//This due to Cai et al.: "Statistical Moment Analysis and Deconvolution of Overlapping Chromatographic Peaks". 
+				//Chromatographia Vol. 31, No. 11/12, 1991.
+				c_sigma += sqrt(width*width+alpha*alpha);
+				//std::cout << max_iter->getMZ() << "\t" << sqrt(width*width+alpha*alpha) << std::endl;
+				++success;
+			}
+			/*else
+			{
+				std::cout << "failed" << std::endl;
+			};*/
+		};
+
+		return (false);
+	}
+
 
 
 	template <typename PeakType>
@@ -367,7 +636,8 @@ namespace OpenMS
 		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)
 	{
 		UInt scan_size = scan.size(), wavelet_length=0, old_length=0, peak_cutoff=0;
-		av_MZ_spacing_ = getAvMZSpacing_(scan);
+		DoubleReal mz_cutoff=0;
+		av_MZ_spacing_ = getAvMZSpacing_(scan); 
 
 		DoubleReal cum_spacing, c_spacing, //Helping variables
 			max_w_monoi_intens=QUARTER_NEUTRON_MASS, //The position of the monoisotopic peak within the coordinate sys. of the wavelet
@@ -381,7 +651,7 @@ namespace OpenMS
 
 		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
 		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than
-		//0.25*NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position,
+		//QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
 		//causing the upcoming code to crash since suddenly some m/z positions will occur twice. The interval of multiple
 		//occurring points is stored by multiple_s and implicitly by i.
 		std::vector<int> multiple_s (max_charge,-1);
@@ -432,7 +702,7 @@ namespace OpenMS
 				{
 					max_position_scan = scan[i+j].getMZ();
 				};
-				//max_position_scan = scan[(i+j)%scan_size].getMZ();
+
 				if (max_position_scan == last_max_position_scan[c]) //Uuups, multiple times the same m/z coordinate
 				{
 					if (multiple_s[c] < 0) //This is the first entry where this artifact occurred
@@ -454,32 +724,34 @@ namespace OpenMS
 						repair=true; //We cannot do this now. Just after the transform at the actual point is completed.
 					};
 				};
-
+	
 				last_max_position_scan[c] = max_position_scan;
 				cum_spacing = align_offset;
 
 				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
+				mz_cutoff = peak_cutoff*NEUTRON_MASS;
 				wave_start = scan.begin()+i;
-				wave_end = scan.MZBegin(scan[i].getMZ()+peak_cutoff);
-
+				wave_end = scan.MZBegin(scan[i].getMZ()+mz_cutoff);
+					
 				wavelet_length = distance (wave_start, wave_end);
-
-				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > peak_cutoff+NEUTRON_MASS/c_charge))
-				{
+				
+				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > mz_cutoff+NEUTRON_MASS/c_charge))
+				{			
 					sums=-1;
 					#ifdef DEBUG_FEATUREFINDER
-						if (error_prone_scans_.empty())
+					if (error_prone_scans_.empty())
+					{
+						std::cout << "pushing to error_prone_scans_ a " << i << std::endl;
+						error_prone_scans_.push_back(i);
+					}
+					else
+					{
+						if (*(--error_prone_scans_.end()) != i)
 						{
+							std::cout << "pushing to error_prone_scans_ b " << i << std::endl;
 							error_prone_scans_.push_back(i);
 						}
-						else
-						{
-							if (*(--error_prone_scans_.end()) != i)
-							{
-								error_prone_scans_.push_back(i);
-							}
-						};
-					#endif
+					};	
 				}
 				else
 				{
@@ -500,10 +772,10 @@ namespace OpenMS
 					memset(&(c_spacings_[0]), 0, sizeof(DoubleReal)*c_spacings_.size());
 
 					//Sampling the wavelet
-					sampleTheIsotopeWavelet_ (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
-					k=0;
+					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
 
-					for (Size j=i; j<scan_size && k<wavelet_length; ++j, ++k)
+					k=0; sums=0;
+					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
 					{
 						prod_[k] = scan[j].getIntensity()*psi_[k];
 						xs_[k] = scan[j].getMZ();
@@ -516,7 +788,13 @@ namespace OpenMS
 					}
 					else
 					{
-						sums = chordTrapezoidRule_ (xs_, prod_);
+						//sums = chordTrapezoidRule_ (xs_, prod_);
+					
+						for (UInt k=0; k<wavelet_length; ++k)
+						{
+							sums += prod_[k];
+						};
+
 					};
 				}
 				//Store the current convolution result
@@ -525,8 +803,12 @@ namespace OpenMS
 				c_peak1.setMZ(max_position_scan);
 				transforms[c][i] = c_peak1;
 
+				//std::cout << "Setting" << i << "\t\t" << transforms[c][i] << std::endl;
+
 				if (repair)
-				{
+				{	
+					//std::cout << "repair" << std::endl;
+	
 					UInt noi2interpol = i - multiple_s[c]; //NOT +1
 
 					//The special case if we are the boundary (exactly the last point in the spectrum)
@@ -562,16 +844,16 @@ namespace OpenMS
 					last_max_position_scan[c] = max_position_scan; //Reset
 					multiple_s[c]=-1; //Reset
 					repair=false;
-				}
+				}					
 			}
 		}
 
 		#ifdef DEBUG_FEATUREFINDER
 			for (c=0; c<max_charge; ++c)
 			{
-				std::stringstream name; name << "trans_" << scan.getRT() << "_" << c+1 << ".dat\0";
+				std::stringstream name; name << "trans_isowave_" << scan.getRT() << "_" << c+1 << ".dat\0"; 
 				std::ofstream ofile (name.str().c_str());
-				for (Size i=0; i<transforms[c].size(); ++i)
+				for (UInt i=0; i<transforms[c].size(); ++i)
 					ofile << transforms[c][i].getMZ() << "\t" <<  transforms[c][i].getIntensity() << std::endl;
 				ofile.close();
 			};
@@ -580,26 +862,423 @@ namespace OpenMS
 		return;
 	}
 
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::finalizeCudaScan ()
+	{			
+		CUDA_SAFE_CALL(cudaFree(cuda_device_pos_));	
+		CUDA_SAFE_CALL(cudaFree(cuda_device_intens_));		
+		CUDA_SAFE_CALL(cudaFree(cuda_device_trans_intens_));
+		CUDA_SAFE_CALL(cudaFree(cuda_device_trans_intens_sorted_));
+		CUDA_SAFE_CALL(cudaFree(cuda_device_posindices_sorted_));
+		CUDA_SAFE_CALL(cudaFree(cuda_device_scores_));
+	};
+	
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice, const UInt peakCutoff, const UInt maxCharge) 
+	{
+		CUDA_SAFE_CALL(cudaSetDevice (cudaDevice));
+		cudaDeviceProp prop;
+		CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, cudaDevice));
+		
+		UInt scan_size = scan.size();		
+
+		std::vector<float> pre_positions (scan_size), pre_intensities (scan_size);
+		for (UInt i=0; i<scan_size; ++i)
+		{
+			pre_positions[i] = scan[i].getMZ();
+			pre_intensities[i] = scan[i].getIntensity();
+		};
+	
+
+		//Determining the minimal spacing
+		float c_spacing, min_spacing=INT_MAX;
+		for (UInt i=0; i<scan_size-1; ++i)
+		{
+			c_spacing = pre_positions[i+1]-pre_positions[i];
+			if (c_spacing < min_spacing)
+			{
+				min_spacing = c_spacing;
+			};	
+		};
+	
+		UInt wavelet_length = (UInt) ceil(max_cutoff_/(maxCharge*min_spacing));
+		UInt max_index = (UInt) (QUARTER_NEUTRON_MASS/min_spacing);
+		from_max_to_left_ = max_index;
+		from_max_to_right_ = wavelet_length-1-from_max_to_left_;
+
+		UInt problem_size = BLOCK_SIZE_MAX - (wavelet_length-1);
+		UInt optimized_problem_size = ((int)(problem_size/BLOCK_MULTIPLE))*BLOCK_MULTIPLE;
+		block_size_ = BLOCK_SIZE_MAX;
+		if (optimized_problem_size > 0)
+		{
+			block_size_ = BLOCK_SIZE_MAX - (problem_size-optimized_problem_size);
+			problem_size = optimized_problem_size;
+		};
+
+		if (wavelet_length >= block_size_)
+		{
+			std::cout << "FATAL: wavelet to large for block size" << std::endl;
+			exit(-1);
+		};
+
+		Int available_registers = (int)trunc(prop.regsPerBlock / (ceil(problem_size/32.0)*32));
+		if (available_registers < REGISTERS_IN_USE)
+		{
+			std::cout << "Too many threads per block. Remedy: Increase the peak_cutoff parameters and therefore the support of the wavelet or compile with maxrregcount option." << std::endl;
+			exit(-1); 
+		};
+
+		//std::cout << "problem size: " << problem_size << "\t" << from_max_to_left_ << "\t" << from_max_to_right_ << "\t" << wavelet_length << std::endl; 
+
+		data_length_ = pre_intensities.size(); // number of original data points
+		UInt missing_points = problem_size - (data_length_ % problem_size);
+		overall_size_ = wavelet_length-1+data_length_+missing_points;
+
+		//std::cout << "overall_size_: " << overall_size_ << std::endl;
+
+
+		num_elements_ = overall_size_;
+		dev_num_elements_ = 1; Int tmp = overall_size_ >> 1;
+
+    // Get power of 2 elements, pad with negative infinity
+    while (tmp) {
+        dev_num_elements_ <<= 1;
+        tmp >>= 1;
+    }
+
+    if (num_elements_ > dev_num_elements_)
+        dev_num_elements_ <<= 1;
+
+    if (dev_num_elements_ < MIN_SORT_SIZE)
+        dev_num_elements_ = MIN_SORT_SIZE;
+
+		overall_size_ = dev_num_elements_;
+		//std::cout << "overall size: " << overall_size_ << std::endl;
+
+
+
+		cuda_intensities_.resize (overall_size_, 0); cuda_positions_.resize (overall_size_, 0);
+		// pad the values to the left; the positions should not matter if the values are zero
+		float first_pos = pre_positions[0];
+		for (UInt i=0; i<from_max_to_left_; ++i)
+		{
+			cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing;
+		}
+
+		for (UInt i=0; i<data_length_; ++i)
+		{
+			cuda_positions_[from_max_to_left_+i] = pre_positions[i];
+			cuda_intensities_[from_max_to_left_+i] = pre_intensities[i];
+		};
+		
+		float last_pos = pre_positions[pre_positions.size()-1];
+		for (UInt i=0; i<missing_points + from_max_to_right_ + dev_num_elements_ - num_elements_; ++i)
+		{
+			cuda_positions_[from_max_to_left_+data_length_+i] = last_pos + (i+1)*min_spacing;
+		}
+
+
+		//std::cout << "largest mz: " << cuda_positions_[overall_size_-1] << std::endl;
+		max_cutoff_ =  getPeakCutOff(cuda_positions_[overall_size_-1], maxCharge);
+		//std::cout << "new max_cutoff : " << max_cutoff_ << std::endl;
+
+		#ifdef DEBUG_FEATUREFINDER				
+		std::stringstream name; name << "test_" << scan.getRT() << ".out\0"; 
+			std::fstream outfile(name.str().c_str(), std::ios::out);
+			for (size_t i=0; i<overall_size_; ++i)
+				outfile << cuda_positions_[i] << " " << cuda_intensities_[i] << std::endl;
+			outfile.close();
+		#endif
+
+		dimBlock_ = dim3 (problem_size);
+		/////das ceil und den cast koennen wir uns vermutlich sparen, oder? data_length_ und problem_size sind beide int und
+		/////eigentlich sollte die Devision aufgehen, oder?
+		
+
+
+
+		//dimGrid_ = dim3 ((size_t)ceil(overall_size_/(float)problem_size)-1);
+		dimGrid_ = dim3 ((size_t)ceil((overall_size_-(dev_num_elements_ - num_elements_))/(float)problem_size)-1);
+
+
+
+
+		//we need the minus one, since we added artificially size of 'wavelet_length' data points
+		//std::cout << dimGrid_.x << "\t" << dimGrid_.y << "\t" << dimGrid_.z << "\t" << (size_t)ceil(overall_size_/(float)problem_size-1) << std::endl;
+
+		// pull the data to the device
+		/////sollen wir daraus nicht einfach vektoren machen?
+
+		//std::cout << "Overall Block size: " << block_size_ << "\t Number of threads per block: " << problem_size << "\t Number of Blocks: " << dimGrid_.x << std::endl;
+
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
+
+
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+
+		// the result on the device
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
+	
+		std::vector<float> rotz (overall_size_, 0);
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_, &rotz[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+
+		c_sorted_candidate_.resize (dev_num_elements_);
+
+		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+	};
+
+
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
+	{
+		std::vector<float> rotz (overall_size_, 0);
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_, &rotz[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+		
+		std::vector<float> result(overall_size_, 0);
+		
+		//std::cout << "moep: " << dimGrid_.x << "\t" << dimBlock_.x << "\t" << overall_size_ << "\t" << c+1 << std::endl; 
+
+		getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
+			c+1, block_size_, peak_cutoff_intercept_, peak_cutoff_slope_);
+	
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+		CUDA_SAFE_CALL(cudaThreadSynchronize());	
+
+		CUDA_SAFE_CALL(cudaMemcpy(&(result[0]), cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToHost));
+
+		for (UInt i=from_max_to_left_; i<from_max_to_left_+data_length_; ++i)
+		{
+			c_trans[i-from_max_to_left_].setIntensity (result[i]); 
+		};
+	}
+
+
+	template <typename PeakType>
+	int IsotopeWaveletTransform<PeakType>::cudaSort (MSSpectrum<PeakType>& sorted)
+	{
+		//std::cout << "SORTIERE ............................................................." << std::endl;
+
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], dev_num_elements_*sizeof(int), cudaMemcpyHostToDevice));
+		int index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, dev_num_elements_, 0);
+		CUDA_SAFE_CALL(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_, sizeof(float) * dev_num_elements_, cudaMemcpyDeviceToHost));
+		CUDA_SAFE_CALL(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_, sizeof(int) * dev_num_elements_, cudaMemcpyDeviceToHost));
+
+
+		/*std::ofstream ofile ("vieb");
+		for (Int i=0; i<dev_num_elements_; ++i)
+		{
+			ofile << h_data_[i] << "\t" << h_pos_[i] << "\t" << cuda_positions_[h_pos_[i]] << std::endl;
+		};
+		ofile.close();*/
+
+		//cudaFree(cuda_device_trans_intens_sorted_);
+		for (Int i=0; i<dev_num_elements_; ++i)
+		{
+			//if (i < dev_num_elements_-num_elements_)
+				//cout << "Omitting: " << cuda_positions_[h_pos_[i]] << "\t" << h_data_[i] << std::endl;
+			//std::cout << dev_num_elements_ << std::endl;
+			//std::cout << "i:" << i << "\t" << h_data_[i] << std::endl;
+			sorted[i].setIntensity (h_data_[i]);
+			//std::cout << "i: " << i << "\t" << h_pos_[i] << std::endl;
+			//std::cout << "i: " << i << "\t" << h_pos_[i] << "\n"; //<< cuda_positions_[h_pos_[i]] << std::endl;
+			sorted[i].setMZ (cuda_positions_[h_pos_[i]]);
+		};
+	
+		return (index);
+	};
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
+		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge) 
+	{
+		UInt scan_size = scan.size(), wavelet_length=0, new_length=0, old_length=0, peak_cutoff=0, c_mz_index=0;
+		av_MZ_spacing_ = getAvMZSpacing_(scan);
+		
+		DoubleReal cum_spacing, //Helping variables
+			max_w_monoi_intens=0, //The position of the monoisotopic peak within the coordinate sys. of the wavelet 
+			sums=0, //Helping variables
+			max_position_scan=0, //The position of the data point (within the scan) we want to align with
+			align_offset; //Correction term; shifts the wavelet to get the desired alignment
+		UInt c=0, k=0;
+		DoubleReal c_charge; //DoubleReal, since we will oven divide by c_charge 
+		typename MSSpectrum<PeakType>::const_iterator tmp_iter;
+
+		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
+		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than 
+		//QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
+		//causing the upcoming code to crash since suddenly some m/z positions will occur twice. The interval of multiple 
+		//occurring points is stored by multiple_s and implicitly by i.
+		std::vector<int> multiple_s (max_charge, -1);
+		std::vector<DoubleReal> last_max_position_scan (max_charge, -1);
+				
+		//Determine the wavelet_length in advance since it is not depending on the m/z position
+		//(as it is for the isotope wavelet)
+		wavelet_length = (UInt) floor(MARR_CUTOFF*CoupledMarrWavelet::getSigma()/av_MZ_spacing_);
+	
+		if (wavelet_length > scan_size || wavelet_length <= 0)
+		{		
+			std::cerr << "Unable to sample an appropriate wavelet." << std::endl;
+			std::cerr << "This is most probably no bug, since: cutoff=" << MARR_CUTOFF*CoupledMarrWavelet::getSigma()
+				<< " and av m/z spacing=" << av_MZ_spacing_ << std::endl;
+			std::cerr << "@Rene: replace this error message by some error handling stuff!" << std::endl;
+			std::cerr << "Returning." << std::endl;
+			return;
+		};
+					
+		new_length = 2*wavelet_length+1;
+		if (wavelet_length != old_length)
+		{
+			psi_.resize (new_length, 0);
+			prod_.resize (new_length, 0);
+			xs_.resize (new_length, 0);
+			c_mzs_.resize (new_length+1, 0);
+			c_spacings_.resize (new_length, 0);
+			old_length = new_length;
+		};
+
+		
+		//std::cout << "WARNING: THIS TRANSFORM ONLY WORKS FOR CHARGE 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;	
+		for (UInt i=0; i<wavelet_length; ++i)
+		{	
+			transforms[0][i].setIntensity(0);
+		};
+
+		//Starting convolution
+		for (UInt i=wavelet_length; i<scan_size; ++i)
+		{
+			//Now, let's sample the wavelets
+			for (c=0; c<max_charge; ++c)
+			{	
+				c_charge=c+1;
+				cum_spacing=0;				
+				max_w_monoi_intens=i; //This is the position of the monoisotopic peak (centered)
+				//Here, the position is equal to the i					
+				align_offset = 0;
+		
+
+				//The upcoming variable holds the position of the spectrum that is aligned with the monoisotopic 
+				//maximum of the wavelet. We do not add the overall correction term for the left shift at this point, 
+				//since we will get trouble by the NEUTRON_MASS and the resulting numerical instabilities. 
+				//We will add this correcting term at the end of the whole processing.
+				//std::cout << "Setting max postion to: " << scan[i].getMZ() << "\t" << j << std::endl;
+				max_position_scan = scan[i].getMZ();
+				cum_spacing = align_offset;
+				
+				sums=0;
+				std::vector<std::pair<UInt, DoubleReal> > weights = IsotopeWavelet::getAveragine (scan[i].getMZ(), &peak_cutoff);
+				std::vector<DoubleReal> helpv;
+				for (UInt r=0; r<weights.size(); ++r)
+				{		
+					helpv.push_back(weights[r].second);
+				};
+
+				//std::stringstream name; name << "cmarr_wavelet_" << scan[i].getMZ() << "_" << c+1 << ".dat\0"; 
+				//std::ofstream ofile (name.str().c_str());
+				for (UInt r=0; r<peak_cutoff; ++r)
+				{
+					tmp_iter = scan.MZBegin(scan[i].getMZ()+r*NEUTRON_MASS/c_charge);
+					if (tmp_iter == scan.end())
+					{
+						break;
+					};
+
+					//c_mz_index = distance(scan.begin(), tmp_iter);
+					c_mz_index = distance(scan.begin()+i, tmp_iter);
+
+					//Sampling the wavelet 
+					sampleTheCMarrWavelet_ (scan, wavelet_length, c_mz_index+i, (UInt) c_charge);
+
+					k=0;
+					//std::cout << wavelet_length << "\t" << i << "\t" << c_mz_index << "\t" << r << std::endl;
+					//std::cout << "j: " << i+c_mz_index-wavelet_length << "\t" << scan_size << "\t" << new_length << std::endl;
+					for (UInt j=i+c_mz_index-wavelet_length; j<scan_size && k<new_length; ++j, ++k)
+					{
+						//ofile << scan[j].getMZ() << "\t" <<  helpv[r]*psi_[k] << std::endl;
+						prod_[k] = helpv[r]*scan[j].getIntensity()*psi_[k];
+						xs_[k] = scan[j].getMZ();
+					};
+
+					if (k< new_length) // I.e. we have an overlapping wavelet
+					{
+						sums = 0;
+						if (i==0)
+						{
+							std::cout << "ARGS: overlapping wavelet and i-1 is 0 !!!!!!!! r: " << r << std::endl;
+							std::cout << c_mz_index << "\t" << wavelet_length << std::endl;
+							std::cout << k << "\t" << new_length << std::endl;
+						}
+						max_position_scan = transforms[c][i-1].getMZ()+av_MZ_spacing_;
+						break;
+					}
+					else
+					{
+						//sums += chordTrapezoidRule_ (xs_, prod_);
+						for (UInt k=0; k<prod_.size(); ++k)
+						{
+							sums += prod_[k];
+						};
+					};
+				};
+
+				//ofile.close();
+
+				//Store the current convolution result
+				PeakType& c_peak1 (transforms[c][i]);
+				c_peak1.setIntensity(sums);
+				c_peak1.setMZ(max_position_scan);
+				transforms[c][i].setIntensity(sums);
+				//std::cout << "Positions: " << scan[i].getMZ() << " " << max_position_scan << std::endl;
+				transforms[c][i].setMZ(max_position_scan);	
+			}
+		}
+
+		#ifdef DEBUG_FEATUREFINDER
+			for (c=0; c<max_charge; ++c)
+			{
+				std::stringstream name; name << "trans_cmarr_" << scan.getRT() << "_" << scan.begin()->getMZ() <<  "_" << c+1 << "_s" << CoupledMarrWavelet::getSigma() << ".dat\0"; 
+				std::ofstream ofile (name.str().c_str());
+				for (UInt i=0; i<transforms[c].size(); ++i)
+					ofile << transforms[c][i].getMZ() << "\t" <<  transforms[c][i].getIntensity() << std::endl;
+				ofile.close();
+			};
+		#endif
+
+		return;
+	}
+
+
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
-		const MSSpectrum<PeakType>& ref, const Size scan_index, const DoubleReal ampl_cutoff)
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr)
 	{
 		UInt peak_cutoff=0;
 		UInt cands_size=candidates.size();
-		UInt signal_size=candidates[0].size(), i_iter;
-		typename MSSpectrum<PeakType>::iterator iter, bound_iter;
+		UInt signal_size=candidates[0].size(); 
+		typename DPeakConstReferenceArray<MSSpectrum<PeakType> >::iterator iter, bound_iter;
 		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter, iter2;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
 	 	UInt help_dist, MZ_start, MZ_end;
-
+			
 		//For all charges do ...
 		for (Size c=0; c<cands_size; ++c)
 		{
-			MSSpectrum<PeakType> c_sorted_candidate (candidates[c]);
-			std::vector<DoubleReal> processed (signal_size, 0);
-
+			DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (candidates[c].begin(), candidates[c].end());
+			
 			//Sort the transform in descending order according to the intensities present in the transform
-			sort (c_sorted_candidate.begin(), c_sorted_candidate.end(), comparator<PeakType>);
+			c_sorted_candidate_.sortByIntensity();
+			//sort (c_sorted_candidate_.begin(), c_sorted_candidate_.end(), intensityComparator<PeakType>);
+
+			std::vector<DoubleReal> processed (signal_size, 0);
 
 			if (ampl_cutoff < 0)
 			{
@@ -607,30 +1286,29 @@ namespace OpenMS
 			}
 			else
 			{
-				c_av_intens = getAvIntens_ (c_sorted_candidate);
-				c_sd_intens = getSdIntens_ (c_sorted_candidate, c_av_intens);
+				c_av_intens = getAvIntens_ (candidates[c]);
+				c_sd_intens = getSdIntens_ (candidates[c], c_av_intens);
 				threshold=ampl_cutoff*c_sd_intens + c_av_intens;
 			};
 
 			//Eliminate uninteresting regions
-			for (bound_iter=c_sorted_candidate.begin(); bound_iter != c_sorted_candidate.end(); ++bound_iter)
+			for (bound_iter=c_sorted_candidate_.begin(); bound_iter != c_sorted_candidate_.end(); ++bound_iter)
 			{
-				if (bound_iter->getIntensity() < 0)
+				if (bound_iter->getIntensity() > 0)
 				{
 					break;
 				};
 			};
-
-			i_iter=0;
-			for (iter=c_sorted_candidate.begin(); iter != bound_iter; ++iter, ++i_iter)
+			
+			for (iter=c_sorted_candidate_.end()-1; iter != bound_iter; --iter)
 			{
 				seed_mz=iter->getMZ();
 				if ((help_iter = candidates[c].MZBegin(seed_mz)) == candidates[c].end()) //might be caused due to numerical effects (only at the end of a spectrum), do not remove this
 				{
 					continue;
 				};
-				if (processed[distance(candidates[c].begin(), candidates[c].MZBegin(seed_mz))] > iter->getIntensity())
-				{
+				if (processed[distance(candidates[c].begin(), help_iter)] > iter->getIntensity())
+				{ 	
 					continue;
 				};
 
@@ -641,7 +1319,12 @@ namespace OpenMS
 				//any significant point is found
 				iter_start = candidates[c].MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
 				iter_end = candidates[c].MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
+				if (iter_end == candidates[c].end())
+				{
+					--iter_end;
+				};
 
+		
 				for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
 				{
 					help_dist = distance(candidates[c].begin(), iter_p);
@@ -674,20 +1357,159 @@ namespace OpenMS
 							break;
 						};
 
-						if (fabs(iter2->getMZ()-seed_mz) > (abs(h)-0.5)*NEUTRON_MASS/(c+1.))
+						if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
+						//In the other case, we are too close to the peak, leading to incorrect derivatives.
 						{
-							typename MSSpectrum<PeakType>::const_iterator iter3 (candidates[c].MZBegin(help_mz));
-							if (iter3 != candidates[c].end())
+							if (iter2 != candidates[c].end())
 							{
-								push2TmpBox_ (iter3->getMZ(), scan_index, c, 0, iter3->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
+								push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
 							}
 						}
 					}
-				}
-			}
-		}
 
-		clusterSeeds_(candidates, ref, scan_index, candidates.size());
+		clusterSeeds_(candidates, ref, scan_index, candidates.size(), use_cmarr);
+	}
+
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr)
+	{
+		UInt peak_cutoff=0; 	
+		typename MSSpectrum<PeakType>::iterator iter, bound_iter;
+		
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter, iter2;
+		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
+	 	UInt MZ_start, MZ_end, help_dist;
+					
+		int gpu_index = cudaSort (c_sorted_candidate_);
+		std::vector<DoubleReal> processed (candidates.size(), 0);
+		if (ampl_cutoff < 0)
+		{
+			threshold=EPSILON_ION_COUNTS;
+		}
+		else
+		{				
+			c_av_intens = getAvIntens_ (c_sorted_candidate_);
+			c_sd_intens = getSdIntens_ (c_sorted_candidate_, c_av_intens);
+			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+		};		
+	
+		Int num_of_scores = overall_size_-gpu_index;
+		std::vector<float> scores (num_of_scores, 0);	
+		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_scores_, &scores[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
+	
+		scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
+			c, num_of_scores, dev_num_elements_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_);
+		
+		CUDA_SAFE_CALL(cudaMemcpy(&scores[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
+
+		
+
+		std::vector<DoubleReal> bwd_diffs(candidates.size(), 0), fwd_diffs(candidates.size(), 0);
+		bwd_diffs[0]=0;
+		for (UInt i=1; i<candidates.size(); ++i)
+		{
+			bwd_diffs[i] = (candidates[i].getIntensity()-candidates[i-1].getIntensity())/(candidates[i].getMZ()-candidates[i-1].getMZ());
+		};		
+		if (candidates.size() >= 1) fwd_diffs[candidates.size()-1]=0;
+		for (UInt i=0; i<candidates.size()-1; ++i)
+		{					
+			fwd_diffs[i] = (candidates[i+1].getIntensity()-candidates[i].getIntensity())/(candidates[i+1].getMZ()-candidates[i].getMZ());
+		};
+
+
+		std::vector<float>::iterator score_iter = scores.end()-1;
+		Int index, c_index;
+		for (c_index = overall_size_-1; c_index >= gpu_index; --c_index, --score_iter)
+		{				
+			seed_mz = c_sorted_candidate_[c_index].getMZ();
+
+			if ((help_iter = candidates.MZBegin(seed_mz)) == candidates.end()) //might be caused due to numerical effects (only at the end of a spectrum), do not remove this
+			{
+				continue;
+			};
+			
+			if (processed[distance(candidates.begin(), help_iter)] > c_sorted_candidate_[c_index].getIntensity())
+			{ 	
+				continue;
+			};
+
+			index = distance(candidates.begin(), candidates.MZBegin(seed_mz));
+			if (bwd_diffs[index]<=0 || fwd_diffs[index]>=0)
+			{
+				continue;
+			};
+
+			peak_cutoff = getPeakCutOff (seed_mz, c+1);
+			//Mark the region as processed
+			//Do not move this further down, since we have to mark this as processed in any case, 
+			//even when score <=0; otherwise we would look around the maximum's position unless 
+			//any significant point is found
+			iter_start = candidates.MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
+			iter_end = candidates.MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
+			if (iter_end == candidates.end())
+			{
+				--iter_end;
+			};
+		
+			for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
+				{
+					help_dist = distance(candidates.begin(), iter_p);
+
+					if ( processed[help_dist] >=  c_sorted_candidate_[c_index].getIntensity())
+					{				
+	
+					}
+					else
+					{
+						if (processed[help_dist] != 0)
+						{
+							std::cout << "Doch!!!!!" << std::endl;
+						};
+						processed[help_dist] =   c_sorted_candidate_[c_index].getIntensity();
+					};
+				};			
+
+			c_score = *score_iter;
+			if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
+			{
+				continue;
+			};
+
+			MZ_start = distance (candidates.begin(), iter_start);
+			MZ_end = distance (candidates.begin(), iter_end);
+
+			//Push the seed into its corresponding box (or create a new one, if necessary)
+			//Do ***NOT*** move this further down!
+			//push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+			push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+
+			for (Int h=-2; h<=2; ++h)
+			{
+				if (h!=0)
+				{
+					help_mz = seed_mz + h*NEUTRON_MASS/(c+1.);
+					iter2 = candidates.MZBegin (help_mz);
+					if (iter2 == candidates.end())
+					{
+						break;
+					};
+
+					if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
+					//In the other case, we are too close to the peak, leading to incorrect derivatives.
+					{
+						if (iter2 != candidates.end())
+						{
+							push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+						};
+					};
+				};
+			};
+		};
+	
+		clusterCudaSeeds_(candidates, ref, scan_index, c, use_cmarr);
 	}
 
 
@@ -697,8 +1519,8 @@ namespace OpenMS
 	{
 		std::vector<DoubleReal> x, y;
 		UInt peak_cutoff=0;
-		for (DoubleReal i=min_mz; i<max_mz*max_charge; i+=100)
-		{
+		DoubleReal step = 100.0;
+		while (x.size() < 3) //otherwise: no fit possible.
 			IsotopeWavelet::getAveragine (i, &peak_cutoff);
 			x.push_back (i);
 			y.push_back (peak_cutoff);
@@ -714,6 +1536,7 @@ namespace OpenMS
 				x.push_back (i);
 				y.push_back (peak_cutoff);
 			};
+			step /= 2.0;
 		};
 
 		Math::LinearRegression regress;
@@ -722,8 +1545,9 @@ namespace OpenMS
 		peak_cutoff_slope_ = regress.getSlope();
 	}
 
+
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length,
+	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 		const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode)
 	{
 		UInt scan_size = scan.size();
@@ -752,29 +1576,31 @@ namespace OpenMS
 
 		if ( ceil(max_tz1*inv_table_steps) < IsotopeWavelet::getGammaTableMaxIndex() &&  ceil(lambda*inv_table_steps) < IsotopeWavelet::getExpTableMaxIndex())
 		{
-			for (Size j=0; j<wavelet_length; ++j)
+			for (UInt j=0; j<wavelet_length; ++j)
 			{
 				tz1=cum_spacing*charge+1;
-				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
 				cum_spacing += c_spacings_[j];
 			}
 		}
 		else
 		{
-			for (Size j=0; j<wavelet_length; ++j)
+			for (UInt j=0; j<wavelet_length; ++j)
 			{
 				tz1=cum_spacing*charge+1;
-				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
+				//psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
+				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExact (lambda, tz1) : 0;
 				cum_spacing += c_spacings_[j];
 			};
 		};
 
 		#ifdef DEBUG_FEATUREFINDER
-			if (trunc(c_mzs_[0]) == 680 || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1700 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
+			if (trunc(c_mzs_[0]) == 680 || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1808 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
 			{
 				std::stringstream stream; stream << "wavelet_" << c_mzs_[0] << "_" << charge << ".dat\0";
 				std::ofstream ofile (stream.str().c_str());
-				for (Size i=0; i<wavelet_length; ++i)
+				for (UInt i=0; i<wavelet_length; ++i)
 				{
 					ofile << scan[mz_index+i].getMZ() << "\t" << psi_[i] << std::endl;
 				}
@@ -785,48 +1611,150 @@ namespace OpenMS
 	}
 
 
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::sampleTheCMarrWavelet_ (const MSSpectrum<PeakType>& scan, const Int wavelet_length, 
+		const Int mz_index, const UInt charge)
+	{
+		Int scan_size = scan.size();
+
+		if (mz_index+wavelet_length >= scan_size || mz_index-wavelet_length<=0)
+		{
+			psi_ = std::vector<double> (2*wavelet_length+1, 0);
+			return;
+		}
+
+		c_mzs_[wavelet_length] = scan[mz_index].getMZ();
+		for (Int j=0; j<wavelet_length; ++j) //right side
+		{		
+			c_mzs_[wavelet_length+j+1] = scan[mz_index+j+1].getMZ();
+
+			//std::cout << "Spacings R: " <<  c_mzs_[wavelet_length+j] << "\t" << c_mzs_[wavelet_length+j+1] << 
+			//	"\t" << c_mzs_[wavelet_length+j+1]-c_mzs_[wavelet_length+j] << std::endl;
+
+			c_spacings_[wavelet_length+j] = c_mzs_[wavelet_length+j+1]-c_mzs_[wavelet_length+j];
+			c_spacings_[wavelet_length+j] = (c_spacings_[wavelet_length+j] > 0) ? c_spacings_[wavelet_length+j] : av_MZ_spacing_;
+		}
+
+		c_mzs_[0] = scan[mz_index-wavelet_length].getMZ();
+		for (Int j=0; j<wavelet_length; ++j) //left side
+		{
+			c_mzs_[j+1] = scan[mz_index-wavelet_length+j+1].getMZ();
+
+			//std::cout << "Spacings L: " <<  c_mzs_[j] << "\t" << c_mzs_[j+1] <<  "\t" << c_mzs_[j+1]-c_mzs_[j] <<std::endl;
+
+
+			c_spacings_[j] = c_mzs_[j+1]-c_mzs_[j];
+			c_spacings_[j] = (c_spacings_[j] > 0) ? c_spacings_[j] : av_MZ_spacing_;
+		}
+
+
+		//std::cout << "wavelet_length: " << wavelet_length << "\t" << scan[mz_index].getMZ() << "\t" << scan[mz_index-wavelet_length].getMZ() << std::endl;
+		DoubleReal cum_spacing=scan[mz_index-wavelet_length].getMZ()-scan[mz_index].getMZ();
+		//Building up (sampling) the wavelet
+		DoubleReal t2z2, t;
+		Int j=0;
+		for (; j<2*wavelet_length+1; ++j)
+		{
+			t=cum_spacing;
+			t2z2 = pow(cum_spacing*charge,2);
+			//std::cout << ::std::setprecision(8) << std::fixed << cum_spacing << "\t" << cum_spacing+scan[mz_index].getMZ() << "\t" << c_spacings_[j] << std::endl;
+			psi_[j] = CoupledMarrWavelet::getValueByMass (t2z2, charge);
+			//std::cout << "\t" << psi_[j] << std::endl;
+			cum_spacing += c_spacings_[j];
+		}
+
+
+		#ifdef DEBUG_FEATUREFINDER
+			std::stringstream stream; stream << "cmarr_wavelet_" << scan[mz_index].getMZ() << "_" << charge << ".dat\0"; 
+			std::ofstream ofile (stream.str().c_str());
+			for (Int i=0; i<2*wavelet_length+1; ++i)
+			{
+				ofile << scan[mz_index+i-wavelet_length].getMZ() << "\t" << psi_[i] << std::endl;
+			}
+			ofile.close();
+		#endif
+	}
+
+
+	
 	template<typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const MSSpectrum<PeakType>& candidate,
 		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff)
 	{
-		DoubleReal c_score=0, c_check_point=-1, c_val;
-		std::pair<int, int> c_between_left, c_between_right;
-		typename MSSpectrum<PeakType>::const_iterator c_left_iter, c_right_iter, c_iter;
+		DoubleReal c_score=0, /*c_check_point=-1,*/ c_val;
+		typename MSSpectrum<PeakType>::const_iterator /*c_left_iter, c_right_iter, */c_left_iter2, c_right_iter2;
+		Int signal_size = candidate.size();
 
-		DoubleReal leftBound, rightBound;
 		//p_h_ind indicates if we are looking for a whole or a peak
 		Int p_h_ind=1, end=4*(peak_cutoff-1) -1; //4 times and not 2 times, since we move by 0.5 m/z entities
 
-		std::vector<DoubleReal> xvec, yvec, weights;
-		std::vector<DoubleReal> xs (DEFAULT_NUM_OF_INTERPOLATION_POINTS), ys(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
-		UInt i=0;
-
-		for (Int v=1; v<end; ++v, ++p_h_ind)
+		std::vector<DoubleReal> positions (end);
+		for (Int i=0; i<end; ++i)
 		{
-			c_check_point = seed_mz-((peak_cutoff-1)*NEUTRON_MASS-v*0.5*NEUTRON_MASS)/((DoubleReal)c+1);
+			positions[i] =  seed_mz-((peak_cutoff-1)*NEUTRON_MASS-(i+1)*HALF_NEUTRON_MASS)/((DoubleReal)c+1);
+		};
 
-			leftBound = c_check_point;
-			rightBound = c_check_point;
+		Int start_index = distance(candidate.begin(), candidate.MZBegin (positions[0]))-1;
+		if (start_index < -1)
+		{
+			std::cout << "Uppps, this case should never happen: negativ start_index in scoreThis (on CPU)." << std::endl;
+			return (0);
+		};
 
-			c_left_iter = candidate.MZBegin (c_check_point);
-			c_right_iter = c_left_iter;
+		//std::cout << start_index << "\t" << distance(candidate.begin(), candidate.MZBegin (positions[0])) -1 << std::endl;
+		//std::cout << "********************" << std::endl;
 
-			//ugly, but the only way to check it I guess
-			if (c_left_iter == candidate.begin()) continue;
-			--c_left_iter;
-			if (c_right_iter == candidate.end()) continue;
-			if (++c_right_iter == candidate.end()) continue;
+		//bool broken=false;
+		for (Int v=1; v<=end; ++v, ++p_h_ind)
+		{		
+			//c_left_iter = candidate.MZBegin (c_check_point); 			
 
-			for (c_iter=c_left_iter, i=0; c_iter!=c_right_iter; ++c_iter, ++i)
+			do 
 			{
-				xs[i] = c_iter->getMZ();
-				ys[i] = c_iter->getIntensity();
-			}
-			xs[i] = c_iter->getMZ();
-			ys[i] = c_iter->getIntensity();
+				if (start_index < signal_size-1) ++start_index;
+				else return (0);
+			} while (candidate[start_index].getMZ() < positions[v-1]);
+			
+			//std::cout << v << "\t" << c_check_point << "\t" << positions[v-1] << "\t\t" << *c_left_iter << "\t\t" << candidate[start_index] << std::endl;
+			c_left_iter2 = candidate.begin()+start_index;
 
-			c_val = getCubicInterpolatedValue_ (xs, c_check_point, ys);
+			/*if (c_left_iter == candidate.begin()) continue;
+			if (c_left_iter == candidate.end()) return(0);		
+			while (c_left_iter->getMZ() > c_check_point)
+			{
+				if (--c_left_iter == candidate.begin() && c_left_iter->getMZ() > c_check_point)
+				{
+					broken=true;
+					break;
+				};
+			};
+			if (broken)
+			{
+				broken=false;	
+				continue;
+			};*/
+			
+			--c_left_iter2;	
+			c_right_iter2 = c_left_iter2+1;
 
+			//c_right_iter = c_left_iter+1;
+			//if (c_right_iter == candidate.end()) continue;
+
+			//if (c_left_iter != c_left_iter2 || c_right_iter != c_right_iter2)
+				//std::cout <<  ::std::setprecision(8) << std::fixed << *c_left_iter << "\t" << *c_left_iter2 << "\t\t\t\t" << *c_right_iter << "\t" << *c_right_iter2 << std::endl;
+
+			//linear interpolation
+			//c_val = c_left_iter->getIntensity() + (c_right_iter->getIntensity() - c_left_iter->getIntensity())/(c_right_iter->getMZ() - c_left_iter->getMZ()) * (c_check_point-c_left_iter->getMZ()); 	
+			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
+			//std::cout << "lin: " << c_left_iter->getMZ() << "\t" << c_check_point << " " << c_val << "\t" << c_right_iter->getMZ() << std::endl;		
+			
+
+			//DoubleReal c_check_point = seed_mz-((peak_cutoff-1)*NEUTRON_MASS-v*HALF_NEUTRON_MASS)/((DoubleReal)c+1);	
+			//std::cout << "CPU Score: " << seed_mz << "\t" << "\t" << c_check_point << "\t" << c_right_iter2->getMZ() << "\t" << c_left_iter2->getMZ() << "\t" <<  c_right_iter2->getIntensity() << "\t" <<  c_left_iter2->getIntensity() << std::endl;
+			
+
+			//std::cout <<  ::std::setprecision(8) << std::fixed << "Candidate: " << seed_mz << "\t" << positions[v-1]  << "\t\t\t" << c_val << std::endl;		
+			
 			if (p_h_ind%2 == 1) //I.e. a whole
 			{
 				c_score -= c_val;
@@ -834,14 +1762,15 @@ namespace OpenMS
 			else
 			{
 				c_score +=c_val;
-			};
-		};
+			};	
 
-		#ifdef DEBUG_FEATUREFINDER
+			start_index = distance(candidate.begin(), c_left_iter2);
+		};
+	
+		#ifdef DEBUG_FEATUREFINDER	
 			std::ofstream ofile_score ("scores.dat", ios::app);
 			std::ofstream ofile_check_score ("check_scores.dat", ios::app);
 			ofile_score << c_check_point << "\t" << c_score << std::endl;
-			ofile_check_score << c_check_point << "\t" << c_check_score << std::endl;
 			ofile_score.close();
 			ofile_check_score.close();
 		#endif
@@ -855,19 +1784,94 @@ namespace OpenMS
 	}
 
 
-	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index, Int end_index)
+	/*template<typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::cudaScoreThis_ (const MSSpectrum<PeakType>& candidate, 
+		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) 
 	{
+		DoubleReal c_score=0, c_check_point=-1, c_val;
+		std::pair<int, int> c_between_left, c_between_right;
+		typename MSSpectrum<PeakType>::const_iterator c_left_iter, c_right_iter, c_iter;
+
+		DoubleReal leftBound, rightBound;
+		//p_h_ind indicates if we are looking for a whole or a peak
+		Int p_h_ind=1, end=4*(peak_cutoff-1) -1; //4 times and not 2 times, since we move by 0.5 m/z entities
+
+		UInt i=0; bool broken=false; DoubleReal dist, lambda, y1, y2, help;
+		for (Int v=1; v<end; ++v, ++p_h_ind)
+		{
+			c_check_point = seed_mz-((peak_cutoff-1)*NEUTRON_MASS-v*HALF_NEUTRON_MASS)/((DoubleReal)c+1);
+
+			leftBound = c_check_point;
+			rightBound = c_check_point;
+
+			c_left_iter = candidate.MZBegin (c_check_point); 			
+			//ugly, but the only way to check it I guess
+			if (c_left_iter == candidate.begin()) continue;
+			if ( c_left_iter == candidate.end()) return(0);		
+			while (c_left_iter->getMZ() > c_check_point)
+			{
+				if (--c_left_iter == candidate.begin() && c_left_iter->getMZ() > c_check_point)
+				{
+					broken=true;
+					break;
+				};
+			};
+			if (broken)
+			{
+				broken=false;	
+				continue;
+			};
+
+			c_right_iter = c_left_iter+1;
+			if (c_right_iter == candidate.end()) continue;
+
+			//linear interpolation
+			c_val = c_left_iter->getIntensity() + (c_right_iter->getIntensity() - c_left_iter->getIntensity())/(c_right_iter->getMZ() - c_left_iter->getMZ()) * (c_check_point-c_left_iter->getMZ()); 		
+			
+			if (p_h_ind%2 == 1) //I.e. a whole
+			{
+				c_score -= c_val;
+			}
+			else
+			{
+				c_score +=c_val;
+			};
+		};
+	
+		#ifdef DEBUG_FEATUREFINDER
+			std::ofstream ofile_score ("scores.dat", ios::app);
+			std::ofstream ofile_check_score ("check_scores.dat", ios::app);
+			ofile_score << c_check_point << "\t" << c_score << std::endl;
+			ofile_score.close();
+			ofile_check_score.close();
+		#endif
+
+		if (c_score <= ampl_cutoff+intens)
+		{
+			return(0);
+		};
+
+		return (c_score);
+	}*/
+
+
+	template <typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_ (const MSSpectrum<PeakType>& scan)//, Int start_index, Int end_index) 
+	{
+		std::vector<DoubleReal> diffs (scan.size()-1, 0);
+		for (UInt i=0; i<scan.size()-1; ++i)
+		{
+			 diffs[i]= scan[i+1].getMZ() - scan[i].getMZ();
+		};
+
+		sort(diffs.begin(), diffs.end());
 		DoubleReal av_MZ_spacing=0;
-		if (end_index < 0)
+		for (UInt i=0; i<diffs.size()/2; ++i)
 		{
-			end_index = scan.size();
+			av_MZ_spacing += diffs[i];
 		};
-		for (Int i=start_index; i<end_index-1; ++i)
-		{
-			 av_MZ_spacing += scan[i+1].getMZ() - scan[i].getMZ();
-		};
-		return (av_MZ_spacing / (DoubleReal) (end_index-1-start_index));
+
+		return (av_MZ_spacing / (diffs.size()/2));
 	}
 
 
@@ -886,6 +1890,20 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::getPointerAvIntens_ (const MSSpectrum<PeakType*>& scan) 
+	{ 
+		DoubleReal av_intens=0;
+		for (UInt i=0; i<scan.size(); ++i)
+		{
+			if (scan[i]->getIntensity() >= 0)
+			{
+				av_intens += scan[i]->getIntensity();
+			}
+		};
+		return (av_intens / (double)scan.size());
+	}
+	
+	template <typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean)
 	{
 		DoubleReal res=0, intens;
@@ -899,7 +1917,21 @@ namespace OpenMS
 		};
 		return (sqrt(res/(double)(scan.size()-1)));
 	}
-
+	
+	template <typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::getPointerSdIntens_ (const MSSpectrum<PeakType*>& scan, const DoubleReal mean) 
+	{
+		DoubleReal res=0, intens;
+		for (UInt i=0; i<scan.size(); ++i)
+		{		
+			if (scan[i]->getIntensity() >= 0)
+			{
+				intens = scan[i]->getIntensity();
+				res += (intens-mean)*(intens-mean);
+			};
+		};
+		return (sqrt(res/(double)(scan.size()-1)));
+	}
 
 	template <typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x,
@@ -969,7 +2001,7 @@ namespace OpenMS
 			//then the lower bound for the new mz value is box.end and this would usually force a new entry
 			if (!open_boxes_.empty())
 			{
-				if (fabs((--lower_iter)->first - mz) < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) //matching box
+				if (fabs((--lower_iter)->first - mz) < HALF_NEUTRON_MASS/(/*charge+*/1.0)) //matching box
 				{
 					create_new_box=false;
 					insert_iter = lower_iter;
@@ -982,7 +2014,7 @@ namespace OpenMS
 		}
 		else
 		{
-			if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) //Found matching Box
+			if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < HALF_NEUTRON_MASS/(/*charge+*/1.0)) //Found matching Box
 			{
 				insert_iter = lower_iter;
 				create_new_box=false;
@@ -1001,10 +2033,10 @@ namespace OpenMS
 			//Figure out which entry is closer to m/z
 			DoubleReal dist_lower = fabs(lower_iter->first - mz);
 			DoubleReal dist_upper = fabs(upper_iter->first - mz);
-			dist_lower = (dist_lower < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) ? dist_lower : INT_MAX;
-			dist_upper = (dist_upper < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) ? dist_upper : INT_MAX;
+			dist_lower = (dist_lower < HALF_NEUTRON_MASS/(/*charge+*/1.0)) ? dist_lower : INT_MAX;
+			dist_upper = (dist_upper < HALF_NEUTRON_MASS/(/*charge+*/1.0)) ? dist_upper : INT_MAX;
 
-			if (dist_lower>=0.5*NEUTRON_MASS/(/*charge+*/1.0) && dist_upper>=0.5*NEUTRON_MASS/(/*charge+*/1.0)) // they are both too far away
+			if (dist_lower>=HALF_NEUTRON_MASS/(/*charge+*/1.0) && dist_upper>=HALF_NEUTRON_MASS/(/*charge+*/1.0)) // they are both too far away
 			{
 				create_new_box=true;
 			}
@@ -1083,7 +2115,7 @@ namespace OpenMS
 			if (mz != lower_iter->first && lower_iter != tmp_box.begin())
 			{
 				--lower_iter;
-			};
+			};			
 		};
 
 		typename std::multimap<DoubleReal, Box>::iterator insert_iter;
@@ -1095,7 +2127,7 @@ namespace OpenMS
 			//then the lower bound for the new mz value is box.end and this would usually force a new entry
 			if (!tmp_box.empty())
 			{
-				if (fabs((--lower_iter)->first - mz) < 0.5*NEUTRON_MASS) //matching box
+				if (fabs((--lower_iter)->first - mz) < HALF_NEUTRON_MASS) //matching box
 				{
 					create_new_box=false;
 					insert_iter = lower_iter;
@@ -1108,7 +2140,7 @@ namespace OpenMS
 		}
 		else
 		{
-			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < 0.5*NEUTRON_MASS) //Found matching Box
+			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < HALF_NEUTRON_MASS) //Found matching Box
 			{
 				insert_iter = lower_iter;
 				create_new_box=false;
@@ -1125,10 +2157,10 @@ namespace OpenMS
 			//Figure out which entry is closer to m/z
 			DoubleReal dist_lower = fabs(lower_iter->first - mz);
 			DoubleReal dist_upper = fabs(upper_iter->first - mz);
-			dist_lower = (dist_lower < 0.5*NEUTRON_MASS/(charge+1.0)) ? dist_lower : INT_MAX;
-			dist_upper = (dist_upper < 0.5*NEUTRON_MASS/(charge+1.0)) ? dist_upper : INT_MAX;
+			dist_lower = (dist_lower < HALF_NEUTRON_MASS/(charge+1.0)) ? dist_lower : INT_MAX;
+			dist_upper = (dist_upper < HALF_NEUTRON_MASS/(charge+1.0)) ? dist_upper : INT_MAX;
 
-			if (dist_lower>=0.5*NEUTRON_MASS/(charge+1.0) && dist_upper>=0.5*NEUTRON_MASS/(charge+1.0)) // they are both too far away
+			if (dist_lower>=HALF_NEUTRON_MASS/(charge+1.0) && dist_upper>=HALF_NEUTRON_MASS/(charge+1.0)) // they are both too far away
 			{
 				create_new_box=true;
 			}
@@ -1290,8 +2322,10 @@ namespace OpenMS
 		UInt pre_index =  box.begin()->second.RT_index-1;
 		typename MSSpectrum<PeakType>::const_iterator c_iter =	map[pre_index].MZBegin(av_mz);
 		DoubleReal pre_elution=0;
+		
 		DoubleReal mz_start = map[pre_index+1][box.begin()->second.MZ_begin].getMZ();
 		DoubleReal mz_end = map[pre_index+1][box.begin()->second.MZ_end].getMZ();
+		
 		typename MSSpectrum<PeakType>::const_iterator mz_start_iter = map[pre_index].MZBegin(mz_start), mz_end_iter = map[pre_index].MZBegin(mz_end);
 		for (typename MSSpectrum<PeakType>::const_iterator mz_iter=mz_start_iter; mz_iter != mz_end_iter; ++mz_iter)
 		{
@@ -1329,11 +2363,10 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates,
-		const MSSpectrum<PeakType>& ref,  const Size scan_index, const UInt max_charge)
+		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt max_charge, const bool use_cmarr) 
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
-		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
 		UInt num_o_feature, l_mz, r_mz;
 
@@ -1344,8 +2377,6 @@ namespace OpenMS
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 			{
 				Box& c_box = iter->second;
-				std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
-
 				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
 				//Now, let's get the RT boundaries for the box
 				for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
@@ -1387,12 +2418,7 @@ namespace OpenMS
 			};
 
 			//Computing the derivatives
-			std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0); //, c_diffs (num_o_feature);
-			/*c_diffs[0]=0; if (num_o_feature >= 1) c_diffs[num_o_feature-1]=0;
-			for (Size i=1; i<num_o_feature-1; ++i)
-			{
-				c_diffs[i] = (final_box[i+1].max_intens-final_box[i-1].max_intens)/(final_box[i+1].mz-final_box[i+1].mz);
-			};*/
+			std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0);
 
 			bwd_diffs[0]=0;
 			for (Size i=1; i<num_o_feature; ++i)
@@ -1408,7 +2434,7 @@ namespace OpenMS
 
 			#ifdef DEBUG_FEATUREFINDER
 				std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
-				for (Size i=0; i<num_o_feature; ++i)
+				for (UInt i=0; i<num_o_feature; ++i)
 				{
 					ofile_fwd << final_box[i].mz << "\t" << fwd_diffs[i] << std::endl;
 					ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
@@ -1427,13 +2453,118 @@ namespace OpenMS
 
 				if (bwd_diffs[i]>0 && fwd_diffs[i]<0) //at the moment we will only use the forward and the backward differences
 				{
-					checkPosition_ (candidates[c], ref, final_box[i].mz, final_box[i].c, scan_index);
+					checkPosition_ (candidates[c], ref, final_box[i].mz, final_box[i].c, scan_index, use_cmarr);	
 					continue;
 				};
 			};
 			tmp_boxes_->at(c).clear();
 		};
 	}
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::clusterCudaSeeds_ (const MSSpectrum<PeakType>& candidates, 
+		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt c, const bool use_cmarr) 
+	{
+		//std::cout << "entering clusterCudaSeeds" << std::endl;
+		typename std::map<DoubleReal, Box>::iterator iter;
+		typename Box::iterator box_iter;
+		std::vector<BoxElement> final_box;
+	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
+		UInt num_o_feature, l_mz, r_mz;
+
+		typename std::pair<DoubleReal, DoubleReal> c_extend;
+		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
+		{	
+			Box& c_box = iter->second;
+			av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
+			//Now, let's get the RT boundaries for the box
+			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
+			{
+				c_mz = box_iter->second.mz;
+				c_RT = box_iter->second.RT;
+				av_score += box_iter->second.score;
+				av_intens += box_iter->second.intens;
+				av_mz += c_mz*box_iter->second.intens;
+
+				if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
+				if (r_mz < box_iter->second.MZ_end) r_mz=box_iter->second.MZ_end;
+
+				++count;
+			};
+
+			av_max_intens = c_box.begin()->second.max_intens;
+			av_intens /= count; 
+			//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
+			av_mz /= count*av_intens;
+			av_score /= count;
+			av_RT = c_box.begin()->second.RT;
+
+			BoxElement c_box_element;
+			c_box_element.mz = av_mz;
+			c_box_element.c = c;
+			c_box_element.score = av_score;
+			c_box_element.intens = av_intens;
+			c_box_element.max_intens = av_max_intens;
+			c_box_element.RT=av_RT;
+			final_box.push_back(c_box_element);
+		};	
+
+		num_o_feature = final_box.size();
+		if (num_o_feature == 0)
+		{
+			tmp_boxes_->at(c).clear();
+			//std::cout << "Leaving through 1" << std::endl;
+			return;
+		};
+
+		//Computing the derivatives
+		std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0);
+
+		bwd_diffs[0]=0;
+		for (UInt i=1; i<num_o_feature; ++i)
+		{
+			bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
+		};		
+
+		if (num_o_feature >= 1) fwd_diffs[num_o_feature-1]=0;
+		for (UInt i=0; i<num_o_feature-1; ++i)
+		{					
+			fwd_diffs[i] = (final_box[i+1].max_intens-final_box[i].max_intens)/(final_box[i+1].mz-final_box[i].mz);
+		};
+
+		#ifdef DEBUG_FEATUREFINDER
+			std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
+			for (UInt i=0; i<num_o_feature; ++i)
+			{
+				ofile_fwd << final_box[i].mz << "\t" << fwd_diffs[i] << std::endl;
+				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
+			};
+			ofile_bwd.close(); ofile_fwd.close();
+		#endif
+			
+		//std::cout << "Still doing something" << std::endl;
+		for (UInt i=0; i<num_o_feature; ++i)
+		{	
+			while (i<num_o_feature-1)
+			{
+				if(final_box[i].score>0) //this has been an helping point
+					break;
+				++i;
+			};
+
+			if (bwd_diffs[i]>0 && fwd_diffs[i]<0) //at the moment we will only use the forward and the backward differences
+			{
+				checkPosition_ (candidates, ref, final_box[i].mz, final_box[i].c, scan_index, use_cmarr);	
+				continue;
+			};
+		};
+
+		tmp_boxes_->at(c).clear();
+
+		//std::cout << "Leaving through 2" << std::endl;
+	}
+
 
 
 	template <typename PeakType>
@@ -1523,59 +2654,217 @@ namespace OpenMS
 	}
 
 
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::checkPosition_ (const MSSpectrum<PeakType>& candidate,
-		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const Size scan_index)
-	{
-		typename MSSpectrum<PeakType>::const_iterator right_cutoff, seed, iter, pre_iter, post_iter;
-		UInt peak_cutoff;
-		peak_cutoff = getPeakCutOff (seed_mz, (UInt) c+1);
 
-		right_cutoff = candidate.MZBegin(seed_mz+(peak_cutoff-1)*NEUTRON_MASS/(c+1.));
-		pre_iter = candidate.MZBegin(seed_mz-NEUTRON_MASS/(c+1.));
-		seed = candidate.MZBegin(seed_mz);
-		post_iter = candidate.MZBegin(seed_mz+NEUTRON_MASS/(c+1.));
-		iter=seed;
+	template <typename PeakType>
+	bool IsotopeWaveletTransform<PeakType>::checkPosition_ (const MSSpectrum<PeakType>& candidate,
+		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool use_cmarr)
+	{
+		typename MSSpectrum<PeakType>::const_iterator iter; 
+		UInt peak_cutoff;
+		peak_cutoff = getPeakCutOff (seed_mz, c+1);
+
+		iter = candidate.MZBegin(seed_mz);
 		//we can ignore those cases
-		if (iter==candidate.begin() || iter==candidate.end() || pre_iter==candidate.begin() || post_iter == candidate.end())
+		if (iter==candidate.begin() || iter==candidate.end()) 
 		{
-			return;
+			return (false);
 		};
 
-		DoubleReal normal = pre_iter->getIntensity() / post_iter->getIntensity();
-		DoubleReal pre = pre_iter->getIntensity() / iter->getIntensity();
-
-		if (fabs(1-pre) <= fabs(1-normal)) //okay, let's move this peak by 1 Da to the left ...
+		std::pair<DoubleReal, DoubleReal> reals;
+		//Correct the position
+		if (use_cmarr)
 		{
-			//... but first check if the signal might be caused by an overlapping effect
-			if ((candidate.MZBegin(pre_iter->getMZ()-NEUTRON_MASS/(c+1.)))->getIntensity() < pre_iter->getIntensity())
+			reals = correctMZ_ (ref, iter->getMZ(), c);
+		}
+		else
+		{
+			reals = std::pair<DoubleReal, DoubleReal> (seed_mz, ref.MZBegin(seed_mz)->getIntensity()); 
+		};
+		DoubleReal real_mz = reals.first, real_intens = reals.second;		
+
+		if (real_mz <= 0 || real_intens <= 0)
+		{
+			return (false);
+		};
+		
+		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
+		if (c_score <= 0)
+		{
+			return (false);
+		};
+
+		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-QUARTER_NEUTRON_MASS/(c+1.));		
+		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_mz+(peak_cutoff)*NEUTRON_MASS/(c+1.));
+		if (real_r_MZ_iter == ref.end())
+		{
+			--real_r_MZ_iter;
+		};
+	
+
+		UInt real_mz_begin = distance (ref.begin(), real_l_MZ_iter);
+		UInt real_mz_end = distance (ref.begin(), real_r_MZ_iter);
+
+		push2Box_ (real_mz, scan_index, c, c_score, real_intens, ref.getRT(), real_mz_begin, real_mz_end);
+		return (true);
+	}
+
+
+	template <typename PeakType>
+	std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::correctMZ_ (const MSSpectrum<PeakType>& ref, DoubleReal c_mz, const DoubleReal c)
+	{
+		UInt peak_cutoff = getPeakCutOff (c_mz, 1);
+
+		typename MSSpectrum<PeakType>::const_iterator liter = ref.MZBegin(c_mz-(peak_cutoff+1)*NEUTRON_MASS);
+		typename MSSpectrum<PeakType>::const_iterator riter = ref.MZBegin(c_mz+(2*peak_cutoff+1)*NEUTRON_MASS);
+		
+		//Coarse structured coupled Marr wavelet
+		MSSpectrum<PeakType> spec;
+		spec.assign (liter, riter);
+		CoupledMarrWavelet::setSigma(QUARTER_NEUTRON_MASS);
+		std::vector<MSSpectrum<PeakType> > pwts (1, spec);	
+		this->getCMarrTransforms (spec, pwts, 1);
+		MSSpectrum<PeakType> c_spec = pwts[0];
+
+		DoubleReal max=INT_MIN;
+		typename MSSpectrum<PeakType>::const_iterator s_iter, max_iter;
+		for (s_iter=c_spec.begin(); s_iter!=c_spec.end(); ++s_iter)
+		{
+			if (s_iter->getMZ() < c_mz - 1.5*NEUTRON_MASS)
 			{
-				//okay, these hard coded values should be checked again, but they definitely cover the *first* critical range
-				if (seed_mz > 1500 && seed_mz < 2500)
-				{
-					iter = candidate.MZBegin(iter->getMZ()-NEUTRON_MASS/(c+1.));
-				};
+				continue;
+			};
+
+			if (s_iter->getMZ() > c_mz + 1.5*NEUTRON_MASS)
+			{
+				break;
+			};
+
+			if(s_iter->getIntensity() > max)
+			{	
+				max = s_iter->getIntensity();
+				max_iter = s_iter;
 			};
 		};
 
-		if (iter->getIntensity() < 1)
-		{
-			return;
+		if (max == INT_MIN)
+		{	
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << QUARTER_NEUTRON_MASS << ")> rejected: no peak found" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
 		};
 
-		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, iter->getMZ(), c, iter->getIntensity(), 0);
+		DoubleReal ppms = getPPMs(peptideMassRule(c_mz), max_iter->getMZ());
+		if (ppms >= THEO_PPM_BOUND)
+		{
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << QUARTER_NEUTRON_MASS << ")> rejected: ppm too large \t" << ppms << " (rule: " << peptideMassRule(c_mz) << " got: " << max_iter->getMZ() << ")" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
+		}
 
-		//Correct the position
-		DoubleReal real_MZ = iter->getMZ();
-		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_MZ-QUARTER_NEUTRON_MASS/(c+1.));
-		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_MZ+(peak_cutoff-1)*NEUTRON_MASS/(c+1.));
 
-		UInt real_MZ_begin = distance (ref.begin(), real_l_MZ_iter);
-		UInt real_MZ_end = distance (ref.begin(), real_r_MZ_iter);
+		//Check for non-interleaving pattern overlap to the left (this is the by far easiest case to detect)
+		/*typename MSSpectrum<PeakType>::const_iterator off1_r_iter = c_spec.MZBegin(max_iter->getMZ()+NEUTRON_MASS);
+		typename MSSpectrum<PeakType>::const_iterator off1_l_iter = c_spec.MZBegin(max_iter->getMZ()-NEUTRON_MASS);
 
-		push2Box_ (real_MZ, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), real_MZ_begin, real_MZ_end);
+		if (off1_r_iter != c_spec.end() && off1_l_iter != c_spec.end())
+		{
+			DoubleReal perc_exp = fabs(off1_l_iter->getIntensity()-off1_r_iter->getIntensity())/(0.5*(off1_l_iter->getIntensity()+off1_r_iter->getIntensity()));
+			if (perc_exp > 0.1)
+			{
+				std::cout << "potential overlap \t" << perc_exp << "\t(" << c_mz << ") ... ";
+				typename MSSpectrum<PeakType>::const_iterator off2_l_iter = c_spec.MZBegin(max_iter->getMZ()-2*NEUTRON_MASS);
+				std::cout << "mzs: " << *off2_l_iter << "\t" << *off1_r_iter << std::endl;
+				DoubleReal perc = fabs(off2_l_iter->getIntensity()-off1_r_iter->getIntensity())/(0.5*(off2_l_iter->getIntensity()+off1_r_iter->getIntensity()));
+				if (perc_exp > perc)
+				{
+					std::cout << "yes " << perc << std::endl; 	
+					
+					typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()-QUARTER_NEUTRON_MASS/(c+1.));		
+					typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()+getPeakCutOff(off1_l_iter->getMZ(), c+1)*NEUTRON_MASS/(c+1.));
+
+					UInt real_mz_begin = distance (ref.begin(), real_l_MZ_iter);
+					UInt real_mz_end = distance (ref.begin(), real_r_MZ_iter);
+
+					push2Box_ (off1_l_iter->getMZ(), 0, c, 2000, off1_l_iter->getIntensity(), ref.getRT(), real_mz_begin, real_mz_end);
+				}
+				else
+				{
+					std::cout << "no " << perc << std::endl;
+				};
+			};
+		};*/
+
+
+		//Fine structured coupled Marr wavelet
+		spec.assign (liter, riter);
+		CoupledMarrWavelet::setSigma(sigma_);
+		pwts = std::vector<MSSpectrum<PeakType> > (1, spec);	
+		this->getCMarrTransforms (spec, pwts, 1);
+		c_spec = pwts[0];		
+	
+		std::vector<DoubleReal> bwd_diffs (pwts[0].size(), 0);
+		for (UInt i=1; i<pwts[0].size(); ++i)
+		{
+			bwd_diffs[i] = (pwts[0][i].getIntensity()-pwts[0][i-1].getIntensity())/(pwts[0][i].getMZ()-pwts[0][i-1].getMZ());
+		};
+
+		std::vector<UInt> max_indices; // if entry i, then the max should be apparent by i+0.5 index
+		for (UInt i=1; i<pwts[0].size()-1; ++i)
+		{		
+			if (pwts[0][i].getMZ() < c_mz - QUARTER_NEUTRON_MASS)
+			{
+				continue;
+			};
+
+			if (pwts[0][i].getMZ() > c_mz) //+ QUARTER_NEUTRON_MASS)
+			{
+				break;
+			};
+
+			if (bwd_diffs[i] > 0 && bwd_diffs[i+1] < 0 && pwts[0][i].getIntensity() > 0)
+			{
+				max_indices.push_back (i);
+			};
+		};
+
+		if (max_indices.empty())
+		{
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << sigma_ << ")> rejected: no peak found" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
+		};
+
+		Int min_index = INT_MAX; DoubleReal min_ppm = INT_MAX;
+		
+		std::vector<DoubleReal> dist_to_theo_mz (max_indices.size());
+		for (UInt i=0; i<max_indices.size(); ++i)
+		{
+			dist_to_theo_mz[i] = getPPMs(peptideMassRule(c_mz),  pwts[0][max_indices[i]].getMZ());
+			if (dist_to_theo_mz[i] < min_ppm)
+			{
+				min_ppm = dist_to_theo_mz[i];
+				min_index = i;
+			};
+		};
+
+		if (pwts[0][max_indices[min_index]].getIntensity() <= 0)
+		{
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << sigma_ << "))> rejected: picked negative peak" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
+		};
+
+		if (min_ppm >= THEO_PPM_BOUND)
+		{			
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << sigma_ << ")> rejected: ppm too large \t" << min_ppm << " (rule: " 
+				<< peptideMassRule(c_mz) << " got: " << pwts[0][max_indices[min_index]].getMZ() << ")" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
+		};
+
+		std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << sigma_ << ")> ACCEPT \t" << min_ppm << " (rule: " 
+			<< peptideMassRule(c_mz) << " got: " << pwts[0][max_indices[min_index]].getMZ() << ")" << std::endl;
+
+		c_mz=pwts[0][max_indices[min_index]].getMZ();
+
+		return (std::pair<DoubleReal, DoubleReal> (c_mz, ref.MZBegin(c_mz)->getIntensity()));
+	
 	}
-
 
 } //namespace
 
