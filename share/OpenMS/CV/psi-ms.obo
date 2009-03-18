@@ -123,8 +123,8 @@ relationship: has_units MS:1000807 ! Th/s
 
 [Term]
 id: MS:1000016
-name: scan time
-def: "The time that an analyzer started a scan, relative to the start of the run." [PSI:MS]
+name: scan start time
+def: "The time that an analyzer started a scan, relative to the start of the MS run." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 relationship: has_units UO:0000010 ! second
@@ -3387,21 +3387,23 @@ is_a: MS:1000513 ! binary data array
 [Term]
 id: MS:1000518
 name: binary data type
-def: "Binary Data type. 16-bit integer, 32-bit integer, 32-bit float 64-bit integer 64-bit float." [PSI:MS]
+def: "Encoding of type binary data, e.g. 64-bit float." [PSI:MS]
 relationship: part_of MS:1000442 ! spectrum
 relationship: part_of MS:1000625 ! chromatogram
 
 [Term]
 id: MS:1000519
 name: 32-bit integer
-def: "Signed 32-bit integer." [PSI:MS]
+def: "OBSOLETE Signed 32-bit integer." [PSI:MS]
 is_a: MS:1000518 ! binary data type
+is_obsolete: true
 
 [Term]
 id: MS:1000520
 name: 16-bit float
-def: "Signed 16-bit float." [PSI:MS]
+def: "OBSOLETE Signed 16-bit float." [PSI:MS]
 is_a: MS:1000518 ! binary data type
+is_obsolete: true
 
 [Term]
 id: MS:1000521
@@ -3412,8 +3414,9 @@ is_a: MS:1000518 ! binary data type
 [Term]
 id: MS:1000522
 name: 64-bit integer
-def: "Signed 64-bit integer." [PSI:MS]
+def: "OBSOLETE Signed 64-bit integer." [PSI:MS]
 is_a: MS:1000518 ! binary data type
+is_obsolete: true
 
 [Term]
 id: MS:1000523
@@ -5358,6 +5361,15 @@ id: MS:1000825
 name: Bruker FID file
 def: "Bruker FID file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
+
+[Term]
+id: MS:1000826
+name: elution time
+def: "The time of elution from a chromatographic column, relative to the start of the chromatography." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Typedef]
 id: has_units

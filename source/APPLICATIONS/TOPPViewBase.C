@@ -541,7 +541,7 @@ namespace OpenMS
 		
 		//create file list
 		StringList pages;
-		File::fileList(String(OPENMS_DATA_PATH) + "/tutorial/","*.html",pages);
+		File::fileList(String(OPENMS_DATA_PATH) + "/tutorial/","TOPPView_tutorial_*.html",pages);
 		for (Size i=0; i<pages.size(); ++i)
 		{
 			pages[i] = String(OPENMS_DATA_PATH) + "/tutorial/" + pages[i];
@@ -1310,7 +1310,7 @@ namespace OpenMS
 				name += " [flipped]";
 			}
 			item->setText(name);
-			if (is_1d_view)
+			if (is_1d_view && cc->getLayerCount()>1)
 			{
 				QPixmap icon(7,7);
 				icon.fill(QColor(layer.param.getValue("peak_color").toQString()));

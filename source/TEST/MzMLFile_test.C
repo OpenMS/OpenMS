@@ -386,6 +386,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 	//spectrum 1
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("elution time (seconds)"),55.11)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest observed m/z"),400.39)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest observed m/z"),1795.56)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest observed wavelength"),500.39)

@@ -48,8 +48,6 @@ namespace OpenMS
 
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
-		@todo Implement Base64 integers, 16 bit (Hiwi)
-		
 		@todo Implement zlib support (Hiwi)
 		
 		@todo Implement chromatograms (Hiwi)

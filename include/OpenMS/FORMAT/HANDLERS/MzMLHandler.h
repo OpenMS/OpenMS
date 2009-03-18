@@ -580,6 +580,13 @@ namespace OpenMS
 				logger_.setProgress(++scan_count);
 				data_.clear();
 				default_array_length_ = 0;
+				
+				//catch errors stemming from confusion about elution time and retention time
+				if (exp_->back().getRT()==-1.0 && exp_->back().metaValueExists("elution time (seconds)"))
+				{
+					exp_->back().setRT(exp_->back().getMetaValue("elution time (seconds)"));
+				}
+				
 			}
 			else if(equal_(qname,s_spectrum_list))
 			{
@@ -841,21 +848,9 @@ namespace OpenMS
 					{
 						data_.back().precision = "64";
 					}
-					else if (accession=="MS:1000522") //64-bit integer
-					{
-						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-					}
 					else if (accession=="MS:1000521") //32-bit float
 					{
 						data_.back().precision = "32";
-					}
-					else if (accession=="MS:1000519") //32-bit integer
-					{
-						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-					}
-					else if (accession=="MS:1000520") //16-bit float
-					{
-						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					}
 					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
@@ -1214,7 +1209,7 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("scan rate",value.toDouble());
 				}
-				else if (accession=="MS:1000016")//scan time
+				else if (accession=="MS:1000016")//scan start time
 				{
 					if (unit_accession=="UO:0000031") //minutes
 					{
@@ -1224,10 +1219,20 @@ namespace OpenMS
 					{
 						spec_.setRT(value.toDouble());
 					}
-						
 					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 					{
 						skip_spectrum_=true;
+					}
+				}
+				else if (accession=="MS:1000826")//elution time
+				{
+					if (unit_accession=="UO:0000031") //minutes
+					{
+						spec_.setMetaValue("elution time (seconds)", 60.0*value.toDouble());
+					}
+					else //seconds
+					{
+						spec_.setMetaValue("elution time (seconds)", value.toDouble());
 					}
 				}
 				else if (accession=="MS:1000512")//filter string
@@ -3354,7 +3359,7 @@ namespace OpenMS
 					os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
 					if (j==0)
 					{
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 					}
 					writeUserParam_(os, ac, 6);
 					//scan windows
@@ -3375,7 +3380,7 @@ namespace OpenMS
 				if (spec.getAcquisitionInfo().size()==0)
 				{
 					os	<< "					<scan externalSpectrumID=\"0\">\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 				
 					//scan windows
 					if (spec.getInstrumentSettings().getScanWindows().size()!=0)

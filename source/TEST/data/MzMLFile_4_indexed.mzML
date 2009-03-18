@@ -177,7 +177,7 @@
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
           	<userParam name="name" value="acquisition_list"/>
           	<scan externalSpectrumID="4711">
-		          <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+		          <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 		          <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
 		          <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
               <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.3"/>
@@ -222,7 +222,7 @@
 					<scanList count="1">
 						<cvParam cvRef="MS" accession="MS:1000571" name="sum of spectra"/>
 						<scan externalSpectrumID="1">
-							<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+							<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 							<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
 							<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 							<cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.1"/>
@@ -300,7 +300,7 @@
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
           	<userParam name="name" value="acquisition_list"/>
           	<scan externalSpectrumID="4711">
-		          <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+		          <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 		          <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
 		          <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
         			<userParam name="name" value="acquisition1"/>
@@ -335,7 +335,7 @@
 					<scanList count="1">
 						<cvParam cvRef="MS" accession="MS:1000571" name="sum of spectra"/>
 						<scan externalSpectrumID="1">
-							<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+							<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 						</scan>
 					</scanList>
 	      </spectrum>
