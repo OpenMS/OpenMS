@@ -92,6 +92,7 @@ if (TBB_INCLUDE_DIR)
 							CMAKE_FLAGS "-DLINK_LIBRARIES:STRING=${_TBB_LIB_NAME};${_TBB_LIB_MALLOC_NAME}")
 			
 			if (TBB_COMPILE_SUCCESS_LIBRARIES)
+				set (TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
 				message (STATUS "Intel Threading Building Block libraries found in "${TBB_LIBRARY_DIR})
 				set (TBB_FOUND "YES")
 			endif()

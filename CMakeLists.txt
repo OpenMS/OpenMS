@@ -48,8 +48,12 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long)
-	
+	if (ENABLE_CUDA)
+		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long) # necessary since CUDA contains non-pedantic code
+	else()
+		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long --pedantic)
+	endif()
+
 	## Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
 	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
 		add_definitions(-fmessage-length=0)
@@ -107,8 +111,8 @@ endif()
 
 if (FOUND_CUDART) #CUDART and not CUDA!!!
 	add_definitions(/DOPENMS_HAS_CUDA)
-	MESSAGE (STATUS "Using ${FOUND_CUDA_NVCC_INCLUDE} as header directory for CUDA") #Not CUDA_INCLUDE_DIR
-	MESSAGE (STATUS "Found CUDA lib in ${FOUND_CUDART}") 
+	MESSAGE (STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
+	MESSAGE (STATUS "Found CUDA library at: ${FOUND_CUDART}") 
 	INCLUDE_DIRECTORIES(${FOUND_CUDA_NVCC_INCLUDE})
   set (CUDA_NVCC_INCLUDE_ARGS ${CUDA_NVCC_INCLUDE_ARGS} -I ${PROJECT_BINARY_DIR}/include/)
 endif()
@@ -507,10 +511,11 @@ link_directories(${CONTRIB_LIB_DIR})
 
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
-ADD_LIBRARY(OpenMS ${OpenMS_sources})
-#if (ENABLE_CUDA)
-	CUDA_ADD_LIBRARY(OpenMS ${Cuda_sources})
-#endif()
+if (FOUND_CUDART)
+	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
+else()
+	ADD_LIBRARY(OpenMS ${OpenMS_sources})
+endif()
 
 ## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)
@@ -521,13 +526,10 @@ if (OPENMS_HAS_SVNVERSION)
 endif()
 
 
-## all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
+## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
 if (TBB_FOUND)
 	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${TBB_LIBRARIES})
-endif()
-if (CUDA_FOUND)
-	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${CUDA_LIBRARIES})
 endif()
 
 if (MSVC)

@@ -104,7 +104,7 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/CudaDependency.cmake)
 
 # Parse CUDA build type.
 IF (NOT CUDA_BUILD_TYPE)
-  SET(CUDA_BUILD_TYPE "Emulation" CACHE STRING "Cuda build type: Emulation or Device")
+  SET(CUDA_BUILD_TYPE "Device" CACHE STRING "Cuda build type: Emulation or Device")
 ENDIF(NOT CUDA_BUILD_TYPE)
 
 # Emulation if the card isn't present.
@@ -334,10 +334,10 @@ MACRO(CUDA_add_custom_commands cuda_target)
     IF(${file} MATCHES ".*\\.cu$")
     
     # Add a custom target to generate a c file.
-    SET(generated_file  "${CMAKE_BINARY_DIR}/src/cuda/${file}_${cuda_target}_generated.cpp")
+    SET(generated_file  "${CMAKE_BINARY_DIR}/${file}_${cuda_target}_generated.cpp")
     SET(generated_target "${file}_target")
     
-    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cuda)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
     SET(source_file ${CMAKE_CURRENT_SOURCE_DIR}/${file})
 
@@ -455,7 +455,7 @@ MACRO(CUDA_ADD_LIBRARY cuda_target)
 
   # Create custom commands and targets for each file.
   CUDA_add_custom_commands( ${cuda_target} ${ARGN} )  
-  
+
   # Add the library.
 	ADD_LIBRARY(${cuda_target}
 		  ${target_srcs}
