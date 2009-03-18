@@ -233,17 +233,15 @@ namespace OpenMS
 							std::cout << "Merging."; std::cout.flush();
 						#endif
 
-						UInt block_size = (int)(this->map_->size() / num_gpus); 
 						for (UInt t=1; t<num_gpus; ++t)
 						{
-							std::cout << "Cutindex: " << t*block_size << "\t" << (*this->map_)[t*block_size].getRT() <<  std::endl;
-							iwts[0]->mergeFeatures (*this->map_, iwts[t], t*block_size, RT_interleave_, RT_votes_cutoff_);	
+							iwts[0]->mergeFeatures (*this->map_, iwts[t], RT_interleave_, RT_votes_cutoff_);	
 						};
 
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "Final mapping."; std::cout.flush();
 						#endif
-						*this->features_ = iwts[0]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+						*this->features_ = iwts[0]->mapSeeds2Features (*this->map_, real_RT_votes_cutoff_); 
 						
 						for (UInt t=0; t<num_gpus; ++t)
 						{
@@ -383,7 +381,7 @@ namespace OpenMS
 					#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 			std::cout << "Final mapping."; std::cout.flush();
 					#endif
-					*this->features_ = iwt.mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+					*this->features_ = iwt.mapSeeds2Features (*this->map_, real_RT_votes_cutoff_); 
 				}
 				else
 				{

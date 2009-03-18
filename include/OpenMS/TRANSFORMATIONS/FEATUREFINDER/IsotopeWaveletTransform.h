@@ -235,8 +235,7 @@ namespace OpenMS
 			virtual void getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
 
 	
-			virtual void getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
-				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge);
+			virtual void getCMarrTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms);
 
 
 			/** @brief Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
@@ -310,14 +309,14 @@ namespace OpenMS
 				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
 		
-			void mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt cut_index, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+			void mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
  				* @param map The original map containing the data set to be analyzed.
  				* @param max_charge The maximal charge state under consideration.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) ;
+			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff) ;
 
 			/** @brief Returns the closed boxes. */
 			virtual std::multimap<DoubleReal, Box> getClosedBoxes ()
@@ -464,16 +463,14 @@ namespace OpenMS
 			/** @brief Clusters the seeds stored by push2TmpBox_.
  				* @param candidates A isotope wavelet transformed spectrum.
  				* @param ref The corresponding original spectrum (w.r.t. @p candidates).
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map).
- 				* @param max_charge The maximal charge state  we will consider. */
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */ 
 			void clusterSeeds_ (const TransSpectrum& candidates, const MSSpectrum<PeakType>& ref, 
 				const UInt scan_index, const UInt c, const bool check_PPMs, const bool use_cmarr) ;
 		
 			/** @brief Clusters the seeds stored by push2TmpBox_.
  				* @param candidates A isotope wavelet transformed spectrum. 
  				* @param ref The corresponding original spectrum (w.r.t. @p candidates). 
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
- 				* @param max_charge The maximal charge state  we will consider. */
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */ 
 			virtual void clusterSeeds_ (const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, 
 				const UInt scan_index, const UInt c, const bool check_PPMs, const bool use_cmarr) ;
 
@@ -1274,7 +1271,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt cut_index, const UInt RT_interleave, const UInt RT_votes_cutoff)
+	void IsotopeWaveletTransform<PeakType>::mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
@@ -1284,164 +1281,87 @@ namespace OpenMS
 			closed_boxes_.insert (*end_iter);
 		};
 
-			typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
-			typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
-			
-			typename std::multimap<UInt, BoxElement>::iterator biter;
+		typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
+		typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
+		
+		typename std::multimap<UInt, BoxElement>::iterator biter;
 
-			DoubleReal best_dist, c_dist; UInt c;
-			//Now, try to find matching boxes for the rest
-			for (front_iter=front_container.begin(); front_iter != front_container.end(); )
-			{
-				best_match = end_container.end(); best_dist = INT_MAX;
-				//This is everything else than efficient, but both containers should be very small in size
-				for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
-				{
-					c=0;
-					for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
-					{
-						c=std::max (c, biter->second.c);
-					}; 
-					c_dist = fabs(end_iter->first - front_iter->first); 
-					if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
-					{
-						std::cout << (front_iter->second.begin())->first << "\t" <<
-							(--(end_iter->second.end()))->first << std::endl;
-						if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
-						//otherwise, there are too many blank scans in between
-						{	
-							best_match = end_iter;
-							best_dist = c_dist;
-						};
-					};
-				};
-				if (best_match == end_container.end()) //No matching pair found
-				{
-					if (front_iter->second.size() >= RT_votes_cutoff)
-					{
-						std::cout << "insert without match: " << front_iter->first << "\t" << front_iter->second.size() << std::endl;
-						for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
-							std::cout << "charges: " << biter->second.c << "\t" << biter->second.mz << std::endl;
-						closed_boxes_.insert (*front_iter);
-					};
-					++front_iter;
-				}		
-				else //That's the funny part
-				{
-					std::cout << "merging: " << front_iter->first << "\t" << best_match->first << std::endl;
-
-					front_iter->second.insert (best_match->second.begin(), best_match->second.end());
-					Box replacement (front_iter->second);	
-
-					//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
-					DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
-					c_mz /= ((DoubleReal) front_iter->second.size());		
-
-					help_iter = front_iter;
-					++help_iter;
-					std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
-					closed_boxes_.insert (help3);				
-					front_container.erase (front_iter);
-					end_container.erase (best_match);
-					front_iter = help_iter;
-				};
-			};
-
-			//Merge the rest in end_container
+		DoubleReal best_dist, c_dist; UInt c;
+		//Now, try to find matching boxes for the rest
+		for (front_iter=front_container.begin(); front_iter != front_container.end(); )
+		{
+			best_match = end_container.end(); best_dist = INT_MAX;
+			//This is everything else than efficient, but both containers should be very small in size
 			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
 			{
-				if (end_iter->second.size() >= RT_votes_cutoff)
+				c=0;
+				for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
 				{
-					std::cout << "inserting the rest: " << end_iter->first << "\t" << end_iter->second.size() << std::endl;
-					closed_boxes_.insert (*end_iter);
+					c=std::max (c, biter->second.c);
+				}; 
+				c_dist = fabs(end_iter->first - front_iter->first); 
+				if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
+				{
+					//std::cout << (front_iter->second.begin())->first << "\t" <<
+					//	(--(end_iter->second.end()))->first << std::endl;
+					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
+					//otherwise, there are too many blank scans in between
+					{	
+						best_match = end_iter;
+						best_dist = c_dist;
+					};
 				};
 			};
-	
+			if (best_match == end_container.end()) //No matching pair found
+			{
+				if (front_iter->second.size() >= RT_votes_cutoff)
+				{
+					//std::cout << "insert without match: " << front_iter->first << "\t" << front_iter->second.size() << std::endl;
+					//for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
+						//std::cout << "charges: " << biter->second.c << "\t" << biter->second.mz << std::endl;
+					closed_boxes_.insert (*front_iter);
+					//extendBox_ (map, front_iter->second);
+				};
+				++front_iter;
+			}		
+			else //That's the funny part
+			{
+				//std::cout << "merging: " << front_iter->first << "\t" << best_match->first << std::endl;
 
-		/*typename std::multimap<DoubleReal, Box>::const_iterator iter, iter2;
-		typename std::multimap<DoubleReal, Box>::iterator my_iter, start_iter;
-		typename Box::const_iterator iter_b;
+				front_iter->second.insert (best_match->second.begin(), best_match->second.end());
+				Box replacement (front_iter->second);	
 
-		for (iter=later_iwt->closed_boxes_.begin(); iter!=later_iwt->closed_boxes_.end(); ++iter)
-		{
-			closed_boxes_.insert (*iter);
+				//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+				DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
+				c_mz /= ((DoubleReal) front_iter->second.size());		
+
+				help_iter = front_iter;
+				++help_iter;
+				std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
+				closed_boxes_.insert (help3);
+				//extendBox_ (map, help3.second);				
+				front_container.erase (front_iter);
+				end_container.erase (best_match);
+				front_iter = help_iter;
+			};
 		};
 
-		bool unmatched=true; start_iter=end_boundary_boxes_.begin(); UInt c;
-		for (iter=later_iwt->front_boundary_boxes_.begin(); iter != later_iwt->front_boundary_boxes_.end(); )
+		//Merge the rest in end_container
+		for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
 		{
-			unmatched=true;
-			while (start_iter != end_boundary_boxes_.end() && start_iter->first < iter->first - Constants::IW_HALF_NEUTRON_MASS)
+			if (end_iter->second.size() >= RT_votes_cutoff)
 			{
-				if (start_iter->second.size() >= RT_votes_cutoff)
-				{
-					std::cout << "pre-insert: " << start_iter->first << std::endl; 
-					closed_boxes_.insert (*start_iter);
-					//extendBox_ (map, start_iter->second);
-				};
-				++start_iter;
-			};
-
-			for (my_iter=start_iter; my_iter != end_boundary_boxes_.end(); ++my_iter)
-			{
-				c = iter->second.begin()->second.c;
-				if (c != my_iter->second.begin()->second.c)
-				{
-					std::cout << "charge mismatch: " << "\t" << iter->first << "\t" << start_iter->first << std::endl;
-					if (start_iter->second.size() >= RT_votes_cutoff)
-					{
-						std::cout << "nevertheless-insert: " << start_iter->first << std::endl; 
-						closed_boxes_.insert (*start_iter);
-						//extendBox_ (map, start_iter->second);
-						++start_iter;
-					};
-					break;
-				}
-				else
-				{
-					if (fabs(my_iter->first - iter->first) < Constants::IW_HALF_NEUTRON_MASS/(c+1.0))
-					{
-						std::cout << "merging: " << iter->first << " " << iter->second.size() << " with " << start_iter->first << " " << start_iter->second.size()<< std::endl;
-		
-						my_iter->second.insert (iter->second.begin(), iter->second.end());
-
-						//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
-						Box replacement (my_iter->second);	
-
-						//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
-						//Also note that we already inserted the new entry, leading to size-1.
-						DoubleReal c_mz = my_iter->first * (my_iter->second.size()-iter->second.size()) + iter->first;	
-						c_mz /= ((DoubleReal) my_iter->second.size());		
-
-						++start_iter; ++iter;
-						std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
-						closed_boxes_.insert (help3);				
-						//extendBox_ (map, help3->second);
-						unmatched=false;
-						break;
-					};
-				};	
-			};
-
-			if (unmatched)
-			{
-				if (iter->second.size() >= RT_votes_cutoff)
-				{
-					std::cout << "inserting unmatched: " << iter->first << "\t" << iter->second.size() << std::endl;
-					closed_boxes_.insert (*iter);
-					//extendBox_ (map, iter->second);
-				};
-				++iter;
+				//std::cout << "inserting the rest: " << end_iter->first << "\t" << end_iter->second.size() << std::endl;
+				closed_boxes_.insert (*end_iter);
+				//extendBox_ (map, end_iter->second);
 			};
 		};
-		//later_iwt->front_boundary_boxes_.clear();
-		//end_boundary_boxes_.clear();*/
 	};
 
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
-		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge) 
+		std::vector<MSSpectrum<PeakType> > &transforms) 
 	{
 		UInt scan_size = scan.size(), wavelet_length=0, new_length=0, old_length=0, peak_cutoff=0, c_mz_index=0;
 		av_MZ_spacing_ = getAvMZSpacing_(scan);
@@ -1460,8 +1380,8 @@ namespace OpenMS
 		//Constants::IW_QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
 		//causing the upcoming code to crash since suddenly some m/z positions will occur twice. The interval of multiple 
 		//occurring points is stored by multiple_s and implicitly by i.
-		std::vector<int> multiple_s (max_charge, -1);
-		std::vector<DoubleReal> last_max_position_scan (max_charge, -1);
+		std::vector<int> multiple_s (max_charge_, -1);
+		std::vector<DoubleReal> last_max_position_scan (max_charge_, -1);
 				
 		//Determine the wavelet_length in advance since it is not depending on the m/z position
 		//(as it is for the isotope wavelet)
@@ -1499,7 +1419,7 @@ namespace OpenMS
 		for (UInt i=wavelet_length; i<scan_size; ++i)
 		{
 			//Now, let's sample the wavelets
-			for (c=0; c<max_charge; ++c)
+			for (c=0; c<max_charge_; ++c)
 			{	
 				c_charge=c+1;
 				cum_spacing=0;				
@@ -1585,7 +1505,7 @@ namespace OpenMS
 		}
 
 		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-			for (c=0; c<max_charge; ++c)
+			for (c=0; c<max_charge_; ++c)
 			{
 				std::stringstream name; name << "trans_cmarr_" << scan.getRT() << "_" << scan.begin()->getMZ() <<  "_" << c+1 << "_s" << CoupledMarrWavelet::getSigma() << ".dat\0"; 
 				std::ofstream ofile (name.str().c_str());
@@ -2495,8 +2415,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features
-		(const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff)
+	FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff) 
 	{
 		FeatureMap<Feature> feature_map;
 		typename std::multimap<DoubleReal, Box>::iterator iter;
@@ -2508,9 +2427,8 @@ namespace OpenMS
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
 		{
-			std::cout << "map: " << iter->first << std::endl;
 			Box& c_box = iter->second;
-			std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
+			std::vector<DoubleReal> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
 
 			//Let's first determine the charge
 			//Therefor, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
@@ -2522,7 +2440,7 @@ namespace OpenMS
 
 			//... determining the best fitting charge
 			best_charge_index=0; best_charge_score=0;
-			for (Size i=0; i<max_charge; ++i)
+			for (UInt i=0; i<max_charge_; ++i)
 			{
 				if (charge_votes[i] > best_charge_score)
 				{
@@ -2534,11 +2452,8 @@ namespace OpenMS
 			//Pattern found in too few RT scan
 			if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= map.size())
 			{
-				//std::cout << charge_binary_votes[best_charge_index] << "\t" << best_charge_index << std::endl;
 				continue;
-			}
-
-			std::cout << charge_binary_votes[best_charge_index] << "\t" << best_charge_index << std::endl;
+			};
 
 			c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
@@ -2727,7 +2642,7 @@ namespace OpenMS
 		spec.assign (liter, riter);
 		CoupledMarrWavelet::setSigma(Constants::IW_QUARTER_NEUTRON_MASS);
 		std::vector<MSSpectrum<PeakType> > pwts (1, spec);	
-		this->getCMarrTransforms (spec, pwts, 1);
+		this->getCMarrTransforms (spec, pwts);
 		MSSpectrum<PeakType> c_spec = pwts[0];
 
 		DoubleReal max=INT_MIN;
@@ -2769,7 +2684,7 @@ namespace OpenMS
 		spec.assign (liter, riter);
 		CoupledMarrWavelet::setSigma(sigma_);
 		pwts = std::vector<MSSpectrum<PeakType> > (1, spec);	
-		this->getCMarrTransforms (spec, pwts, 1);
+		this->getCMarrTransforms (spec, pwts);
 		c_spec = pwts[0];		
 	
 		std::vector<DoubleReal> bwd_diffs (pwts[0].size(), 0);
