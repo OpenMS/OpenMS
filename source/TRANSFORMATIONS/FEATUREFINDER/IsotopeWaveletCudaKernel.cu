@@ -67,7 +67,7 @@ namespace OpenMS
 		float fac (-(Constants::LAMBDA_L_0 + Constants::LAMBDA_L_1*mz));
 
 		fac += (tz1-1)*__log2f(-fac)*Constants::ONEOLOG2E - lgammaf(tz1);
-		
+			
 		return (__sinf((tz1-1)*Constants::WAVELET_PERIODICITY) * __expf(fac));
 	}
 
@@ -147,27 +147,33 @@ namespace OpenMS
 			return;
 
 		float value = 0, boundary = getMzPeakCutOffAtMonoPos(signal_pos_block[my_local_pos], charge)/charge;
-		float c_diff = signal_pos_block[my_local_pos-from_max_to_left] - signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
-		float old = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[my_local_pos-from_max_to_left]*charge)*signal_int_block[my_local_pos-from_max_to_left] : 0, current;
-		for (int current_conv_pos = my_local_pos-from_max_to_left+1; 
+		//float c_diff = signal_pos_block[my_local_pos-from_max_to_left] - signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
+		//float old = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[my_local_pos-from_max_to_left]*charge)*signal_int_block[my_local_pos-from_max_to_left] : 0, current;
+	
+		float old=0, c_diff, current, old_pos = (my_local_pos-from_max_to_left-1) > 0 ? signal_pos_block[my_local_pos-from_max_to_left-1] 
+			: signal_pos_block[my_local_pos-from_max_to_left]-(signal_pos[size-1]-signal_pos[size-2]); //i.e. min_spacing
+
+
+		for (int current_conv_pos = my_local_pos-from_max_to_left; 
 						current_conv_pos < my_local_pos+from_max_to_right; 
 							++current_conv_pos)
 		{
-			c_diff = signal_pos_block[current_conv_pos]-signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
+			c_diff = signal_pos_block[current_conv_pos]-signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/(float)charge;
 
 			//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
 			current = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[current_conv_pos]*charge)*signal_int_block[current_conv_pos] : 0;
 			
-			value += 0.5*(current + old)*(signal_pos_block[current_conv_pos]-signal_pos_block[current_conv_pos-1]);
+			value += 0.5*(current + old)*(signal_pos_block[current_conv_pos]-old_pos);
 			
 			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				if (trunc(signal_pos_block[my_local_pos]*100) == 94144)
+				if (trunc(signal_pos_block[my_local_pos]) == 556 && charge == 2)
 				{
-					printf ("%i \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, signal_pos_block[current_conv_pos], current, old, c_diff, signal_int_block[current_conv_pos]);
+					printf ("%i \t %f \t %f  \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, signal_pos_block[current_conv_pos], c_diff, current, old, c_diff, signal_int_block[current_conv_pos], boundary);
 				};
 			#endif
 
 			old = current;
+			old_pos = signal_pos_block[current_conv_pos];
 		};
 		
 		result[my_data_pos] = value;
@@ -202,8 +208,9 @@ namespace OpenMS
 	{
 		int i = threadIdx.x + blockIdx.x * blockDim.x;
 	
-		if (i+2>=size)
+		if ((i+2>=size && i<size) || i==0)
 		{
+			fwd2[i] = 0;
 			return;
 		};
 	
@@ -248,7 +255,8 @@ namespace OpenMS
 			ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernel");
-
+			deriveOnDevice (result_dev, positions_dev, fwd2, size);
+			
 			cudaUnbindTexture(int_tex);
 			cudaUnbindTexture(pos_tex);
 		};
@@ -941,14 +949,20 @@ namespace OpenMS
 				while (l_index < overall_size && tex1Dfetch(pos_tex, l_index++) < my_mz) 
 				{ 
 				};
-				l_index -= 2;
+				if (l_index<overall_size)
+				{
+					l_index -= 2;
+				};
 			}
 			else
 			{
 				while (l_index >= 0 && tex1Dfetch(pos_tex,l_index--) > my_mz) 
 				{							
 				};
-				++l_index;					
+				if (l_index >=0)
+				{
+					++l_index;
+				};					
 			};
 
 			if (l_index >=0  && l_index+1 < overall_size)
@@ -960,7 +974,7 @@ namespace OpenMS
 			}
 			else
 			{
-				c_scores[v]=0;
+				c_scores[v]=INT_MIN;
 			};
 		};
 
@@ -971,13 +985,20 @@ namespace OpenMS
 		if (v==0)
 		{
 			float final_score = 0;
-			int minus = -1;
+			int minus = -1, i;
 			//int minus = 1;
-			for (int i=0; i<optimal_block_dim; ++i)
+			for (i=0; i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
 			{
 				final_score += minus*c_scores[i];
 				minus *=-1;
 			};
+
+			if (i<optimal_block_dim)
+			{
+				scores[blockIdx.x+write_offset] = 0;
+				return;
+			};
+
 			scores[blockIdx.x+write_offset] = final_score;			
 			//printf ("blockid: %i\t%i\n", blockIdx.x, write_offset);
 			//printf("final_score: %f\t\t%f\n", seed_mz, final_score);
