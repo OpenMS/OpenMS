@@ -32,7 +32,10 @@
 	
 	@section toppview_tools_baseline Substracting a baseline from a spectrum
 	
-	Load the spectrum in TOPPView. The BaselineFilter can be called via the Tools-menu
+	First we load the spectrum to be analyzed in TOPPView. If you want to
+	test the described tools, you can open the tutorial data via the File-menu
+	(@a File > @a Open @a example @a file, then select @a peakpicker_tutorial_1.mzData).
+	The BaselineFilter can be called via the Tools-menu
 	(@a Tools > @a Apply @a TOPP @a tool), then select BaselineFilter as TOPPtool (red rectangle).
 	One can choose between different types of filters (green rectangle),
 	the one mainly used is TopHat. The other important parameter is the
