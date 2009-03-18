@@ -29,18 +29,19 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletParallelFor.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <iostream>
 #include <time.h>
+#include <algorithm>
 				
-#ifdef OPENMS_HAS_TBB_H
-#include <tbb/task_scheduler_init.h>
-#include <tbb/pipeline.h>
-#include <tbb/parallel_for.h>
+#ifdef OPENMS_HAS_TBB
+	#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletParallelFor.h>
+	#include <tbb/task_scheduler_init.h>
+	#include <tbb/pipeline.h>
+	#include <tbb/parallel_for.h>
 #endif
 
 
@@ -60,7 +61,9 @@ namespace OpenMS
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet : public FeatureFinderAlgorithm<PeakType, FeatureType> 
 	{
-		friend class IsotopeWaveletParallelFor<PeakType, FeatureType>;
+		#ifdef OPENMS_HAS_TBB
+			friend class IsotopeWaveletParallelFor<PeakType, FeatureType>;
+		#endif
 
 	 public:
 			
@@ -81,7 +84,8 @@ namespace OpenMS
 																	"potential peptide masses are checked for plausibility."); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
-				#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
+
+				#if (defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB))
 					this->defaults_.setValue ("parallel:use_gpus", "-1", "A comma-separated list of IDs corresponding to the GPU devices to use.\n"
 																		"'-1' disables parallelization (CUDA/TBB) at all.\n");
 				#endif
@@ -92,7 +96,6 @@ namespace OpenMS
 				this->defaults_.setValue ("sweep_line:rt_interleave", 2, "Defines the maximum number of "
 																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.");
 				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
-				this->defaults_.setValue ("experimental:use_cmarr", 0, "Experimental, do not use this feature at the moment!");
 				this->defaultsToParam_();
 		}
 
@@ -109,7 +112,7 @@ namespace OpenMS
 				DoubleReal max_mz = this->map_->getMax()[1];
 				DoubleReal min_mz = this->map_->getMin()[1];
 					
-				UInt max_size=0;
+				size_t max_size=0;
 				#ifdef OPENMS_HAS_CUDA 
 					if (use_cuda_) //some preprocessing necessary for the GPU computation
 					{
@@ -120,7 +123,7 @@ namespace OpenMS
 					};
 				#endif
 			
-			//Check for useless RT_votes_cutoff_ parameter
+				//Check for useless RT_votes_cutoff_ parameter
 				if (RT_votes_cutoff_ > this->map_->size())
 				{
 					real_RT_votes_cutoff_ = 0;
@@ -136,7 +139,7 @@ namespace OpenMS
 			
 				time_t start=time(NULL), end;	
 				
-				#ifdef OPENMS_HAS_TBB_H
+				#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
 					if (use_tbb_)
 					{
 						UInt num_gpus = this->gpu_ids_.size();
@@ -144,7 +147,7 @@ namespace OpenMS
 						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (num_gpus); 
 						for (UInt t=0; t<num_gpus; ++t)
 						{
-							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, 0.2, max_size);
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size);
 						};
 
 						static tbb::affinity_partitioner ap;
@@ -181,7 +184,7 @@ namespace OpenMS
 
 				if (!use_tbb_)
 				{
-					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
+					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, max_size);
 				
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
@@ -293,9 +296,9 @@ namespace OpenMS
 				}
 				else
 				{
-					#ifndef OPENMS_HAS_TBB_H
+					#ifndef OPENMS_HAS_TBB
 						std::cerr << "Error: You requested multi-threaded computation via threading building blocks, but OpenMS has not been configured for TBB usage." << std::endl;
-						std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-debug\" resp. \"--enable-tbb-release\"." << std::endl; 
+						std::cerr << "Error: You need to rebuild OpenMS with -DENABLE_TBB=ON." << std::endl; 
 					#endif
 				};
 				
@@ -337,7 +340,7 @@ namespace OpenMS
 		bool use_tbb_, use_cuda_, check_PPMs_;
 		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 			
-		#ifdef OPENMS_HAS_TBB_H
+		#if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
 			tbb::atomic<int> progress_counter_;		
 			Int device_num_, gpu_to_exclude_;	
 		#else
@@ -352,7 +355,7 @@ namespace OpenMS
 			RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
 			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
-			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
+			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)
 				use_gpus_ = this->param_.getValue ("parallel:use_gpus");
 				std::vector<String> tokens; 
 				if (!use_gpus_.split(',', tokens))	

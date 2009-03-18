@@ -48,7 +48,8 @@
 #include <iomanip>
 
 #ifdef OPENMS_HAS_CUDA
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
+	#include <cuda.h>
+	#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
 #endif
 
 // we are not yet sure if we really want to drag in cutil.h and the CUDA_SAFE_CALL definitions...
@@ -217,7 +218,7 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const DoubleReal sigma=0.2, const UInt max_scan_size=0);
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0);
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () ;
@@ -401,7 +402,7 @@ namespace OpenMS
 			virtual bool checkPositionForPlausibility_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const UInt scan_index, const bool check_PPMs) ;
 			
-			virtual std::pair<DoubleReal, DoubleReal> checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) ;
+			virtual std::pair<DoubleReal, DoubleReal> checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz) ;
 
 
 			/** @brief Computes the average (transformed) intensity (neglecting negative values) of @p scan. */
@@ -525,7 +526,7 @@ namespace OpenMS
 			#ifdef OPENMS_HAS_CUDA
 				float *h_data_;		
 				int *h_pos_;
-				UInt largest_array_size_, overall_size_, block_size_, data_length_, to_load_, to_compute_;;
+				UInt largest_array_size_, overall_size_, block_size_, data_length_, to_load_, to_compute_;
 				Int num_elements_;
 				void* cuda_device_intens_;
 				void* cuda_device_pos_;
@@ -585,8 +586,7 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, 
-		const DoubleReal sigma, const UInt max_scan_size) 
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size) 
 	{
 		max_charge_ = max_charge;
 		acc_ = gsl_interp_accel_alloc ();
@@ -2169,7 +2169,7 @@ namespace OpenMS
 		//Check and/or correct the position
 		if (check_PPMs)
 		{
-			reals = checkPPMTheoModel_ (ref, iter->getMZ(), c);
+			reals = checkPPMTheoModel_ (ref, iter->getMZ());
 		}
 		else
 		{
@@ -2226,7 +2226,7 @@ namespace OpenMS
 		//Correct the position
 		if (check_PPMs)
 		{
-			reals = checkPPMTheoModel_ (ref, iter->getMZ(), c);
+			reals = checkPPMTheoModel_ (ref, iter->getMZ());
 		}
 		else
 		{
@@ -2265,7 +2265,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, DoubleReal c_mz, const DoubleReal c)
+	std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, DoubleReal c_mz)
 	{
 		UInt peak_cutoff = IsotopeWavelet::getNumPeakCutOff (c_mz, 1);
 

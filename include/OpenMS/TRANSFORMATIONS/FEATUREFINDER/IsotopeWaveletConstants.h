@@ -36,9 +36,9 @@ namespace OpenMS
 
 		//the following case should never happen (due to configure)
 		//but just to be sure ...
-		#ifdef OPENMS_HAS_TBB_H
+		#ifdef OPENMS_HAS_TBB
 			#ifndef OPENMS_HAS_CUDA //the use threading building blocks requires a working GPU device
-				#undef OPENMS_HAS_TBB_H
+				#undef OPENMS_HAS_TBB
 			#endif
 		#endif 
 
