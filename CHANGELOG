@@ -42,6 +42,7 @@ Bug fixes:
 - [2665055]: FileFilter ignores -sort option for FeatureXML and Consensus
 - [2659013]: windows contrib can fail when copying compiled libraries
 - [2606068]: TOPP tools with list parameters do not work with INI files
+- [2690367]: Protein references missing on peptide identifications
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.3                                     ----
