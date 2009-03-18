@@ -962,142 +962,6 @@ namespace OpenMS
 
 
 		template <typename PeakType>
-		void IsotopeWaveletTransform<PeakType>::identifyCharge (const MSSpectrum<PeakType>& candidates,
-			const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs, const bool use_cmarr)
-		{
-			UInt scan_size=candidates.size(); 
-			typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
-			typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
-			DoubleReal mz_cutoff, seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
-			UInt MZ_start, MZ_end;
-			
-			MSSpectrum<PeakType> diffed (candidates);
-			diffed[0].setIntensity(0); diffed[scan_size-1].setIntensity(0);
-
-			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				std::stringstream stream;
-				stream << "diffed_" << ref.getRT() << "_" << c+1 << ".trans\0"; 
-				std::ofstream ofile (stream.str().c_str());
-			#endif
-
-			for (unsigned int i=0; i<scan_size-2; ++i)
-			{
-				share = diffed[i+1].getIntensity(), share_pos = diffed[i+1].getMZ();
-				bwd = (share-diffed[i].getIntensity())/(share_pos-diffed[i].getMZ());
-				fwd = (diffed[i+2].getIntensity()-share)/(diffed[i+2].getMZ()-share_pos);
-				if (bwd<0 || fwd>0)
-				{
-					diffed[i+1].setIntensity(0);
-				};
-				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-					ofile << diffed[i].getMZ() << "\t" <<  diffed[i].getIntensity() << std::endl;
-				#endif
-			};
-			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				ofile.close();
-			#endif
-
-			ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
-
-			//Sort the transform in descending order according to the intensities present in the transform 	
-			c_sorted_candidate_.sortByIntensity();
-
-			std::vector<UInt> processed (scan_size, 0);
-
-			if (ampl_cutoff < 0)
-			{
-				threshold=0;
-			}
-			else
-			{				
-				c_av_intens = getAvIntens_ (candidates);
-				c_sd_intens = getSdIntens_ (candidates, c_av_intens);
-				threshold=ampl_cutoff*c_sd_intens + c_av_intens;
-			};		
-				
-			for (iter=c_sorted_candidate_.end()-1; iter != c_sorted_candidate_.begin(); --iter)
-			{					
-				if (iter->getIntensity() <= 0)
-				{
-					break;
-				};
-		
-				seed_mz = iter->getMZ();
-				seed_iter = ref.MZBegin(seed_mz);
-
-				if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)])
-				{
-					continue;
-				};
-				 
-				mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (seed_mz, c+1.);
-				//Mark the region as processed
-				//Do not move this further down, since we have to mark this as processed in any case, 
-				//even when score <=0; otherwise we would look around the maximum's position unless 
-				//any significant point is found
-				iter_start = ref.MZBegin(ref.begin(), seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.), seed_iter);
-				iter_end = ref.MZEnd(seed_iter, seed_mz+mz_cutoff/(c+1.), ref.end());
-				if (iter_end == ref.end())
-				{
-					--iter_end;
-				};
-								
-				MZ_start = distance (ref.begin(), iter_start);
-				MZ_end = distance (ref.begin(), iter_end);
-		
-				memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
-
-				c_score = scoreThis_ (candidates, IsotopeWavelet::getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, iter->getIntensity(), threshold);
-
-				if (c_score <= 0)
-				{
-					continue;
-				};
-
-			
-				//Push the seed into its corresponding box (or create a new one, if necessary)
-				//Do ***NOT*** move this further down!
-				
-				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), MZ_start, MZ_end);
-
-				help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
-				iter2 = candidates.MZBegin (help_mz);
-				if (iter2 == candidates.end() || iter2 == candidates.begin())
-				{
-					continue;
-				};
-
-				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
-				//In the other case, we are too close to the peak, leading to incorrect derivatives.
-				{
-					if (iter2 != candidates.end())
-					{
-						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
-					};
-				};
-			
-				help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
-				iter2 = candidates.MZBegin (help_mz);
-				if (iter2 == candidates.end()|| iter2 == candidates.begin())
-				{
-					continue;
-				};
-
-				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
-				//In the other case, we are too close to the peak, leading to incorrect derivatives.
-				{
-					if (iter2 != candidates.end())
-					{
-						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
-					};
-				};
-			};	
-
-			clusterSeeds_(candidates, ref, scan_index, c, check_PPMs, use_cmarr);
-		}
-
-
-		template <typename PeakType>
 		void IsotopeWaveletTransform<PeakType>::identifyChargeCuda (const TransSpectrum& candidates,
 			const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs, const bool use_cmarr)
 		{
@@ -1133,12 +997,23 @@ namespace OpenMS
 				c, num_of_scores, overall_size_, max_num_peaks_per_pattern_);
 			
 			(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
-
+	
 			std::vector<float>::iterator score_iter;
+			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+				std::stringstream stream;
+				stream << "sorts_gpu_" << candidates.getRT() << "_" << c+1 << ".trans\0"; 
+				std::ofstream ofile (stream.str().c_str());
+				for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
+				{
+					ofile << c_sorted_candidate_[c_index].getMZ() << "\t" << c_sorted_candidate_[c_index].getIntensity() << std::endl;
+				};
+				ofile.close();
+			#endif
+
 			for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
 			{				
 				seed_mz = c_sorted_candidate_[c_index].getMZ();
-				
+			
 				//We can replace the following two lines ...
 				//seed_iter = ref.MZBegin(seed_mz);
 				//index = distance(ref.begin(), seed_iter);
@@ -1233,6 +1108,154 @@ namespace OpenMS
 			clusterSeeds_(candidates, ref, scan_index, c, check_PPMs, use_cmarr);
 		}
 	#endif
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::identifyCharge (const MSSpectrum<PeakType>& candidates,
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs, const bool use_cmarr)
+	{
+		UInt scan_size=candidates.size(); 
+		typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+		DoubleReal mz_cutoff, seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
+		UInt MZ_start, MZ_end;
+		
+		MSSpectrum<PeakType> diffed (candidates);
+		diffed[0].setIntensity(0); diffed[scan_size-1].setIntensity(0);
+
+		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+			std::stringstream stream;
+			stream << "diffed_" << ref.getRT() << "_" << c+1 << ".trans\0"; 
+			std::ofstream ofile (stream.str().c_str());
+		#endif
+
+		for (UInt i=0; i<scan_size-2; ++i)
+		{
+			share = candidates[i+1].getIntensity(), share_pos = candidates[i+1].getMZ();
+			bwd = (share-candidates[i].getIntensity())/(share_pos-candidates[i].getMZ());
+			fwd = (candidates[i+2].getIntensity()-share)/(candidates[i+2].getMZ()-share_pos);
+			if (!(bwd>=0 && fwd<=0))
+			{
+				diffed[i+1].setIntensity(0);
+			};
+			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+				ofile << diffed[i+1].getMZ() << "\t" <<  diffed[i+1].getIntensity() << std::endl;
+			#endif
+		};
+		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+			ofile.close();
+		#endif
+
+		ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
+
+		//Sort the transform in descending order according to the intensities present in the transform 	
+		c_sorted_candidate_.sortByIntensity();
+	
+		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+			std::stringstream stream2;
+			stream2 << "sorts_cpu_" << candidates.getRT() << "_" << c+1 << ".trans\0"; 
+			std::ofstream ofile2 (stream2.str().c_str());
+			for (iter=c_sorted_candidate_.end()-1; iter != c_sorted_candidate_.begin(); --iter)
+			{
+				ofile2 << iter->getMZ() << "\t" << iter->getIntensity() << std::endl;
+			};
+			ofile2.close();
+		#endif
+
+		std::vector<UInt> processed (scan_size, 0);
+
+		if (ampl_cutoff < 0)
+		{
+			threshold=0;
+		}
+		else
+		{				
+			c_av_intens = getAvIntens_ (candidates);
+			c_sd_intens = getSdIntens_ (candidates, c_av_intens);
+			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+		};		
+			
+		for (iter=c_sorted_candidate_.end()-1; iter != c_sorted_candidate_.begin(); --iter)
+		{					
+			if (iter->getIntensity() <= 0)
+			{
+				break;
+			};
+	
+			seed_mz = iter->getMZ();
+			seed_iter = ref.MZBegin(seed_mz);
+
+			if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)])
+			{
+				continue;
+			};
+			 
+			mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (seed_mz, c+1.);
+			//Mark the region as processed
+			//Do not move this further down, since we have to mark this as processed in any case, 
+			//even when score <=0; otherwise we would look around the maximum's position unless 
+			//any significant point is found
+			iter_start = ref.MZBegin(ref.begin(), seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.), seed_iter);
+			iter_end = ref.MZEnd(seed_iter, seed_mz+mz_cutoff/(c+1.), ref.end());
+			if (iter_end == ref.end())
+			{
+				--iter_end;
+			};
+							
+			MZ_start = distance (ref.begin(), iter_start);
+			MZ_end = distance (ref.begin(), iter_end);
+	
+			memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
+
+			c_score = scoreThis_ (candidates, IsotopeWavelet::getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, iter->getIntensity(), threshold);
+
+			if (c_score <= 0)
+			{
+				continue;
+			};
+
+		
+			//Push the seed into its corresponding box (or create a new one, if necessary)
+			//Do ***NOT*** move this further down!
+			
+			push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), MZ_start, MZ_end);
+
+			help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+			if (iter2 == candidates.end() || iter2 == candidates.begin())
+			{
+				continue;
+			};
+
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+				};
+			};
+		
+			help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+			if (iter2 == candidates.end()|| iter2 == candidates.begin())
+			{
+				continue;
+			};
+
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+				};
+			};
+		};	
+
+		clusterSeeds_(candidates, ref, scan_index, c, check_PPMs, use_cmarr);
+	}
+
 
 
 	template <typename PeakType>
