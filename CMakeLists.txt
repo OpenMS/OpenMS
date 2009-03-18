@@ -17,6 +17,7 @@ PROJECT("OpenMS")
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
 # QT_DB_PLUGIN
+# CUDA_BUILD_TYPE
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -47,7 +48,7 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long)
+	add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long)
 	
 	## Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
 	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
@@ -95,12 +96,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 ## cuda checking
 set(ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
+set(CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
 if (ENABLE_CUDA)
+	MESSAGE(STATUS "NVIDIA CUDA: ${CUDA_BUILD_TYPE} mode")
 	find_package(Cuda)
+else()
+  MESSAGE(STATUS "NVIDIA CUDA: ${ENABLE_CUDA}")
 endif()
 
-if (CUDA_FOUND)
-	INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIR})
+
+if (FOUND_CUDART) #CUDART and not CUDA!!!
+	add_definitions(/DOPENMS_HAS_CUDA)
+	MESSAGE (STATUS "Using ${FOUND_CUDA_NVCC_INCLUDE} as header directory for CUDA") #Not CUDA_INCLUDE_DIR
+	MESSAGE (STATUS "Found CUDA lib in ${FOUND_CUDART}") 
+	INCLUDE_DIRECTORIES(${FOUND_CUDA_NVCC_INCLUDE})
+  set (CUDA_NVCC_INCLUDE_ARGS ${CUDA_NVCC_INCLUDE_ARGS} -I ${PROJECT_BINARY_DIR}/include/)
 endif()
 
 ## TBB
@@ -114,6 +124,7 @@ endif()
 
 if (TBB_FOUND)
 	INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIR})
+	add_definitions(/DOPENMS_HAS_TBB)
 endif()
 
 ## OpenMP
@@ -497,7 +508,9 @@ link_directories(${CONTRIB_LIB_DIR})
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
-#CUDA_ADD_LIBRARY(OpenMS ${Cuda_sources})
+#if (ENABLE_CUDA)
+	CUDA_ADD_LIBRARY(OpenMS ${Cuda_sources})
+#endif()
 
 ## always create the svn version file before compiling OpenMS
 if (OPENMS_HAS_SVNVERSION)

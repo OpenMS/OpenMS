@@ -409,7 +409,7 @@ MACRO(CUDA_add_custom_commands cuda_target)
       ARGS 
       -D input_file="${NVCC_generated_dependency_file}"
       -D output_file="${cmake_dependency_file}"
-      -P "${CMAKE_SOURCE_DIR}cmake/make2cmake.cmake"
+      -P "${CMAKE_SOURCE_DIR}/cmake/make2cmake.cmake"
       MAIN_DEPENDENCY ${NVCC_generated_dependency_file}
       COMMENT "Converting NVCC dependency to CMake (${cmake_dependency_file})"
     )
@@ -457,10 +457,10 @@ MACRO(CUDA_ADD_LIBRARY cuda_target)
   CUDA_add_custom_commands( ${cuda_target} ${ARGN} )  
   
   # Add the library.
-  ADD_LIBRARY(${cuda_target}
-    ${target_srcs}
-    ${cuda_cu_sources}
-    )
+	ADD_LIBRARY(${cuda_target}
+		  ${target_srcs}
+	  	${cuda_cu_sources}
+	  )
 
   TARGET_LINK_LIBRARIES(${cuda_target}
     ${CUDA_TARGET_LINK}

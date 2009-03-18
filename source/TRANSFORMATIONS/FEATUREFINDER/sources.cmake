@@ -53,11 +53,10 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
 
 set(sources_list_cu
-Featurebla.cu
+IsotopeWaveletCudaKernel.cu
 )
 
 set(sources_cu)
-
 foreach(i ${sources_list_cu})
         list(APPEND sources_cu ${directory}/${i})
 endforeach(i)
