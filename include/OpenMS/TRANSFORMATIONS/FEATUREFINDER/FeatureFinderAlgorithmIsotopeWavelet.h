@@ -78,31 +78,22 @@ namespace OpenMS
 																	"and sd the standard deviation of the transform. "
 																	"If you set intensity_threshold=-1, t' will be zero.\n");
 				
-				this->defaults_.setValue ("check_ppm", "false", "Enables/disable a ppm test vs. the averagine model.", true); 
+				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
+																	"potential peptide masses are checked for plausibility.", true); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
-				#ifdef OPENMS_HAS_CUDA
-					device_num_=0; cudaGetDeviceCount(&device_num_);
-					this->defaults_.setValue ("cuda:use_cuda", 1, "Enables/disables computation on CUDA GPUs.\n"
-																		"The number indicates the ID of the GPU to use.'-1' disables CUDA at all.\n"
-																		"If you plan to use several GPUs simultaneously, just use a non-negative number for this flag.", false);
-					#ifdef OPENMS_HAS_TBB_H
-						this->defaults_.setValue ("tbb:use_tbb", "true", "Enables/disables computation on several GPUs via Intel TBBs.", true);
-						this->defaults_.setValidStrings("tbb:use_tbb",StringList::create("true,false"));
-						this->defaults_.setValue ("tbb:exclude_id", -1, "Disables computation on GPU device with corresponding ID."
-																			"Hence, you are able to exclude your 'normal' graphic card from the computation, while all other GPU devices"
-																			"will be in use.\nIf you want to include all devices set this entry to -1." , true);
-						this->defaults_.setMinInt ("tbb:exclude_id", -1);
-					#endif						
+				#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
+					this->defaults_.setValue ("parallel:use_gpus", "-1", "A comma-separated list of IDs corresponding to the GPU devices to use.\n"
+																		"'-1' disables parallelization (CUDA/TBB) at all.\n");
 				#endif
 
-				this->defaults_.setValue ("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It determines the minimum number of"
-																	"subsequent scans a pattern must occur to be considered as a feature.", true);
-				this->defaults_.setMinInt("rt_votes_cutoff", 0);
-				this->defaults_.setValue ("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of"
-																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing.\nThere is usually no reason to change the default value.", true);
-				this->defaults_.setMinInt ("rt_interleave", 0);
-				this->defaults_.setValue ("use_cmarr", 0, "Experimental, do not enable this feature at the moment!", true);
+				this->defaults_.setValue ("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
+																	"subsequent scans where a pattern must occur to be considered as a feature.", true);
+				this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
+				this->defaults_.setValue ("sweep_line:rt_interleave", 2, "Defines the maximum number of "
+																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", true);
+				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
+				this->defaults_.setValue ("experimental:use_cmarr", 0, "Experimental, do not use this feature at the moment!", true);
 				this->defaultsToParam_();
 		}
 
@@ -121,7 +112,7 @@ namespace OpenMS
 					
 				UInt max_size=0;
 				#ifdef OPENMS_HAS_CUDA 
-					if (use_cuda_ >= 0 || use_tbb_) //some preprocessing necessary for the GPU computation
+					if (use_cuda_) //some preprocessing necessary for the GPU computation
 					{
 						for (UInt i=0; i<this->map_->size(); ++i)
 						{
@@ -223,7 +214,7 @@ namespace OpenMS
 							std::cout.flush();
 						#endif
 						
-						if (use_cuda_ < 0)
+						if (!use_cuda_)
 						{	
 							iwt.initializeScan ((*this->map_)[i]);
 							for (UInt c=0; c<max_charge_; ++c)
@@ -259,7 +250,7 @@ namespace OpenMS
 						else
 						{
 							#ifdef OPENMS_HAS_CUDA
-								cudaSetDevice(use_cuda_);
+								cudaSetDevice(gpu_ids_[0]);
 								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
 								if (iwt.initializeScanCuda ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
 								{
@@ -358,8 +349,9 @@ namespace OpenMS
 			DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
 			UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
-			Int use_cmarr_, use_cuda_;
-			bool use_tbb_, check_PPMs_;
+			Int use_cmarr_;
+			String use_gpus_;
+			bool use_tbb_, use_cuda_, check_PPMs_;
 			std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 			
 			#ifdef OPENMS_HAS_TBB_H
@@ -373,32 +365,40 @@ namespace OpenMS
 		{
 				max_charge_ = this->param_.getValue ("max_charge");
 				intensity_threshold_ = this->param_.getValue ("intensity_threshold");
-				RT_votes_cutoff_ = this->param_.getValue ("rt_votes_cutoff");
-				RT_interleave_ = this->param_.getValue ("rt_interleave");
+				RT_votes_cutoff_ = this->param_.getValue ("sweep_line:rt_votes_cutoff");
+				RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
-				use_cmarr_ = this->param_.getValue ("use_cmarr");
+				use_cmarr_ = this->param_.getValue ("experimental:use_cmarr");
 				check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
-				#ifdef OPENMS_HAS_CUDA 
-					use_cuda_ = this->param_.getValue ("cuda:use_cuda");
-					#ifdef OPENMS_HAS_TBB_H 
-						use_tbb_ = ( (String)(this->param_.getValue("tbb:use_tbb"))=="true" );
-						gpu_to_exclude_ = this->param_.getValue ("tbb:exclude_id");				
-						
-						//Attention: updateMembers_ can be called several times!
-						gpu_ids_.clear();
-						for (Int i=0; i<device_num_; ++i)
-						{
-							if (i == gpu_to_exclude_)
-							{
-								continue;
-							};
-							gpu_ids_.push_back(i);
-						};
-					#else
+				#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB_H)
+					use_gpus_ = this->param_.getValue ("parallel:use_gpus");
+					std::vector<String> tokens; 
+					if (!use_gpus_.split(',', tokens))	
+					{
+						tokens.push_back(use_gpus_);
+					};			
+
+					//Attention: updateMembers_ can be called several times!
+					gpu_ids_.clear();
+					if (tokens[0].trim().toInt() == -1) //no parallelization
+					{
+						use_cuda_ = false;
 						use_tbb_ = false;
-					#endif	
+						return;
+					};
+
+					gpu_ids_.push_back(tokens[0].trim().toInt());
+					use_cuda_ = true;
+					use_tbb_ = false;
+					for (UInt i=1; i<tokens.size(); ++i)
+					{
+						gpu_ids_.push_back(tokens[i].trim().toInt());
+						use_tbb_ = true;
+					};
+			
 				#else
-					use_cuda_ = -1;
+					use_cuda_ = false;	
+					use_tbb_ = false;
 				#endif
 		}
 	};
