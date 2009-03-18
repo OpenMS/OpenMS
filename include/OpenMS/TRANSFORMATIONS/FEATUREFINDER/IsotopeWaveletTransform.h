@@ -2374,7 +2374,14 @@ namespace OpenMS
 
 		std::pair<DoubleReal, DoubleReal> reals;
 		//Check and/or correct the position
-		reals = checkPPMTheoModel_ (ref, iter->getMZ(), c, use_cmarr);
+		if (check_PPMs)
+		{
+			reals = checkPPMTheoModel_ (ref, iter->getMZ(), c, use_cmarr);
+		}
+		else
+		{
+			reals = std::pair<DoubleReal, DoubleReal> (seed_mz, ref.MZBegin(seed_mz)->getIntensity()); 
+		};
 		DoubleReal real_mz = reals.first, real_intens = reals.second;		
 
 		if (real_mz <= 0 || real_intens <= 0)

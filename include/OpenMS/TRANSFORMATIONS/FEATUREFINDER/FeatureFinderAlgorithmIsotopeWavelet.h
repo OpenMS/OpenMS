@@ -77,7 +77,7 @@ namespace OpenMS
 																	"and sd the standard deviation of the transform. "
 																	"If you set intensity_threshold=-1, t' will be zero.\n");
 				
-				this->defaults_.setValue ("check_ppm", "true", "Enables/disable a ppm test vs. the averagine model."); 
+				this->defaults_.setValue ("check_ppm", "false", "Enables/disable a ppm test vs. the averagine model.", true); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
 				#ifdef OPENMS_HAS_CUDA
