@@ -109,7 +109,7 @@ else()
 endif()
 
 
-if (FOUND_CUDART) #CUDART and not CUDA!!!
+if (FOUND_CUDART AND ENABLE_CUDA) #CUDART and not CUDA!!!
 	add_definitions(/DOPENMS_HAS_CUDA)
 	MESSAGE (STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
 	MESSAGE (STATUS "Found CUDA library at: ${FOUND_CUDART}") 
@@ -122,6 +122,8 @@ set(ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be
 set(TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
 set(TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
 
+
+MESSAGE(STATUS "Intel TBB: ${ENABLE_TBB}")
 if (ENABLE_TBB)
 	find_package(TBB)
 endif()
@@ -511,7 +513,7 @@ link_directories(${CONTRIB_LIB_DIR})
 
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
-if (FOUND_CUDART)
+if (FOUND_CUDART AND ENABLE_CUDA) # we need both conditions due to possible present cached entries
 	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
 else()
 	ADD_LIBRARY(OpenMS ${OpenMS_sources})
