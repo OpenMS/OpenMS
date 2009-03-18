@@ -766,7 +766,7 @@ namespace OpenMS
 				c_diff = c_mz + origin;
 
 				//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
-				current = c_diff > 0 && c_diff <= boundary ? IsotopeWavelet:: getValueByLambdaExact (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
+				current = c_diff > 0 && c_diff <= boundary ? IsotopeWavelet:: getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
 				
 				value += 0.5*(current + old)*(c_mz-old_pos);
 				

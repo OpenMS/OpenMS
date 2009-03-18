@@ -79,9 +79,21 @@ namespace OpenMS
 	
 	IsotopeWavelet::~IsotopeWavelet () 
 	{ 
-		delete (me_);	
 	}
-		
+	
+	void IsotopeWavelet::destroy () 
+	{
+		delete (me_);
+		me_ = NULL;
+		max_charge_ = 1;
+		gamma_table_.clear();
+		exp_table_.clear();
+		sine_table_.clear();
+		table_steps_ = 0.0001;
+		inv_table_steps_ = 1./table_steps_;
+		gamma_table_max_index_ = -1;
+		exp_table_max_index_ = -1;
+	}; 	
 
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{

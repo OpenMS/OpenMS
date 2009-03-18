@@ -53,9 +53,10 @@ namespace OpenMS
 				{
 					return (me_);
 				}
-				
-				/** @brief Destructor. */
-				virtual ~IsotopeWavelet () ;
+
+				/** Deletes the singleton instance. */
+				static void destroy ();	
+
 
 				/** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
 					* Please use @see sampleTheWavelet instead.			 
@@ -187,6 +188,10 @@ namespace OpenMS
  					* @param max_m The maximal deconvoluted mass that occurs in the current data set. 
  					* @param max_charge The maximal charge state we would like to analyze. */
 				IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) ;
+
+
+				/** @brief Destructor. */
+				virtual ~IsotopeWavelet () ;
 				
 
 				/** @brief Should be called once before values are drawn from the isotope wavelet function.

@@ -27,6 +27,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 
 using namespace OpenMS;
@@ -102,7 +103,7 @@ START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const Doubl
 	TOLERANCE_ABSOLUTE (1e-4)
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
-		v=iw->getValueByMass (HALF_NEUTRON_MASS/(c+1.), 1000, c+1, 1);
+		v=iw->getValueByMass (Constants::IW_HALF_NEUTRON_MASS/(c+1.), 1000, c+1, 1);
 		TEST_REAL_SIMILAR(v, 0)
 	};
 END_SECTION
@@ -110,7 +111,7 @@ END_SECTION
 START_SECTION((static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1))) 
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
-		v=iw->getValueByLambda (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
+		v=iw->getValueByLambda (iw->getLambdaQ(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);
 		TOLERANCE_ABSOLUTE (1e-4)
 		TEST_REAL_SIMILAR(v, 0)
 	};
@@ -119,7 +120,7 @@ END_SECTION
 START_SECTION((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1))) 
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
-		v=iw->getValueByLambdaExtrapol (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
+		v=iw->getValueByLambdaExtrapol (iw->getLambdaQ(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);
 		TOLERANCE_ABSOLUTE (1e-4)
 		TEST_REAL_SIMILAR(v, 0)
 	};
@@ -132,7 +133,6 @@ END_SECTION
 
 
 START_SECTION((virtual ~IsotopeWavelet()))
-	delete (iw);
 	TEST_EQUAL (IsotopeWavelet::getInstance(), 0)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 1)
 END_SECTION

@@ -55,7 +55,7 @@ START_SECTION((virtual std::multimap<DoubleReal, Box> getClosedBoxes()))
 	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
 END_SECTION
 
-std::vector<MSSpectrum<> > pwts (1, map[0]);
+//Checks for old implementation, have to be replaced for next release
 START_SECTION((virtual void getTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)))
 	trans->getTransforms (map[0], pwts, 1, 1);
 	TEST_NOT_EQUAL (trans, 0)
