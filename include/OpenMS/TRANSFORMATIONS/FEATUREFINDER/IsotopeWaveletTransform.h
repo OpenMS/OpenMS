@@ -130,26 +130,31 @@ namespace OpenMS
 				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode);
 
 	
-			/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
- 				* 
- 				* The function computes the isotope wavelet transformed versions of @p scan. 
- 				* The transform is determined for several charge states (up to charge @p max_charge) at the same time.
- 				* Hence, the user has to ensure that the size of @p transforms equals to @p max_charge and that each spectrum in 
- 				* @p transforms has the same length as @p scan.
- 				*
- 				* @param scan The MS scan you wish to transform.
- 				* @param transforms A vector (with indices running from 0 to @p max_charge-1) of MS spectra (each of the size of @p scan).
- 				* The code will NOT check the allocated memory (the sizes) for @p transforms and its entries.  
- 				* @param max_charge The maximal charge state that is considered.
- 				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
-			virtual void getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c);
+			#ifdef OPENMS_HAS_CUDA
+				/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
+					* 
+					* The function computes the isotope wavelet transformed versions of @p scan. 
+					* The transform is determined for several charge states (up to charge @p max_charge) at the same time.
+					* Hence, the user has to ensure that the size of @p transforms equals to @p max_charge and that each spectrum in 
+					* @p transforms has the same length as @p scan.
+					*
+					* @param scan The MS scan you wish to transform.
+					* @param transforms A vector (with indices running from 0 to @p max_charge-1) of MS spectra (each of the size of @p scan).
+					* The code will NOT check the allocated memory (the sizes) for @p transforms and its entries.  
+					* @param max_charge The maximal charge state that is considered.
+					* @param mode The recording mode of the mass spectrometer (+1 or -1). */
+				virtual void getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c);
+				
+				virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
+				
+				virtual void finalizeCudaScan ();
 			
-			virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
-			
-			virtual void finalizeCudaScan ();
-			
-			virtual int cudaSort (MSSpectrum<PeakType>& sorted);
-			
+				virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
+					const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false)
+	
+				virtual int cudaSort (MSSpectrum<PeakType>& sorted);
+			#endif	
+
 
 			virtual void getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
 				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge);
@@ -173,9 +178,6 @@ namespace OpenMS
  				* average intensity in the wavelet transform. */
 			virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;
-
-			virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
-				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;		
 
 			/** @brief A function keeping track of currently open and closed sweep line boxes.
  				* This function is used by the isotope wavelet feature finder and must be called for each processed scan.
@@ -438,25 +440,29 @@ namespace OpenMS
 			std::vector<DoubleReal> error_prone_scans_;
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
-			void* cuda_device_intens_;
-			void* cuda_device_pos_;
-			void* cuda_device_trans_intens_;
-			void* cuda_device_fwd2_;
-			void* cuda_device_posindices_sorted_;
-			void* cuda_device_trans_intens_sorted_;
-			void* cuda_device_scores_;	
-			std::vector<float> cuda_positions_, cuda_intensities_;
 			Int num_elements_;
 			UInt max_cutoff_, max_peaks_per_pattern_;
 			UInt max_scan_size_, largest_array_size_;
 			std::vector<int> indices_;
 			float *h_data_;		
 			int *h_pos_;	
-			dim3 dimGrid_, dimBlock_;
+			
 			UInt overall_size_, from_max_to_left_, from_max_to_right_, block_size_, data_length_, to_load_, to_compute_;
 			MSSpectrum<PeakType> c_sorted_candidate_;
 			DoubleReal min_spacing_;
 			std::vector<float> scores_, zeros_;	
+
+			#ifdef OPENMS_HAS_CUDA
+				void* cuda_device_intens_;
+				void* cuda_device_pos_;
+				void* cuda_device_trans_intens_;
+				void* cuda_device_fwd2_;
+				void* cuda_device_posindices_sorted_;
+				void* cuda_device_trans_intens_sorted_;
+				void* cuda_device_scores_;	
+				std::vector<float> cuda_positions_, cuda_intensities_;
+				dim3 dimGrid_, dimBlock_;
+			#endif
 	};
 
 	bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
@@ -513,8 +519,8 @@ namespace OpenMS
 		estimatePeakCutOffs_ (min_mz, max_mz, max_charge);
 		max_cutoff_ =  (getPeakCutOff(max_mz, max_charge));
 		max_peaks_per_pattern_=  (getPeakCutOff(max_mz, 1.));
-		if (max_scan_size > 0) //only important for the GPU
-		{ 
+		
+		#ifdef OPENMS_HAS_CUDA //if (max_scan_size > 0) //only important for the GPU
 			max_scan_size_ = max_scan_size;
 			largest_array_size_ =  pow(2, ceil(log(max_scan_size +  Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)/log(2.0)));
 			//std::cout << "largest_array_size: " << max_scan_size << "\t" << largest_array_size_ << std::endl;
@@ -527,9 +533,7 @@ namespace OpenMS
 
 			h_data_ = (float*) malloc (largest_array_size_*sizeof(float));		
 			h_pos_ = (int*) malloc (largest_array_size_*sizeof(int)); 	
-		}
-		else // CPU mode
-		{
+		#else
 			largest_array_size_ = 0;		
 			h_data_ = NULL;
 			h_pos_ = NULL; 
@@ -538,7 +542,7 @@ namespace OpenMS
 			xs_.reserve (max_peaks_per_pattern_);
 			interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 			interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
-		};
+		#endif
 	}
 
 
@@ -852,207 +856,325 @@ namespace OpenMS
 	}
 
 
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::finalizeCudaScan ()
-	{			
-		(cudaFree(cuda_device_pos_));	
-		(cudaFree(cuda_device_intens_));		
-		(cudaFree(cuda_device_trans_intens_));
-		(cudaFree(cuda_device_fwd2_));
-		(cudaFree(cuda_device_trans_intens_sorted_));
-		(cudaFree(cuda_device_posindices_sorted_));
-		(cudaFree(cuda_device_scores_));
-	}
-	
+	#ifdef OPENMS_HAS_CUDA
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::finalizeCudaScan ()
+		{			
+			(cudaFree(cuda_device_pos_));	
+			(cudaFree(cuda_device_intens_));		
+			(cudaFree(cuda_device_trans_intens_));
+			(cudaFree(cuda_device_fwd2_));
+			(cudaFree(cuda_device_trans_intens_sorted_));
+			(cudaFree(cuda_device_posindices_sorted_));
+			(cudaFree(cuda_device_scores_));
+		}
 
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
-	{
-		(cudaSetDevice (cudaDevice));
-		cudaDeviceProp prop;
-		(cudaGetDeviceProperties(&prop, cudaDevice));
-		
-		UInt scan_size = scan.size();		
-
-		std::vector<float> pre_positions (scan_size), pre_intensities (scan_size);
-		for (UInt i=0; i<scan_size; ++i)
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
 		{
-			pre_positions[i] = scan[i].getMZ();
-			pre_intensities[i] = scan[i].getIntensity();
-		};
+			(cudaSetDevice (cudaDevice));
+			cudaDeviceProp prop;
+			(cudaGetDeviceProperties(&prop, cudaDevice));
 			
-		/*(cudaMalloc(&cuda_device_pos_, scan_size*sizeof(float)));
-		(cudaMemcpy(cuda_device_pos_, &(pre_positions[0]), scan_size*sizeof(float), cudaMemcpyHostToDevice));
+			UInt scan_size = scan.size();		
 
-		int max_wavelet_length = getMaxWaveletLength ((float*) cuda_device_pos_, scan_size, max_peaks_per_pattern_*Constants::IW_NEUTRON_MASS);
-		//std::cout << "max_wavelet_length: " << max_wavelet_length << std::endl;
-		
-		cudaFree (cuda_device_pos_);*/
-
-
-		//Determining the minimal spacing
-		float c_spacing;
-		min_spacing_=INT_MAX;
-		for (UInt i=0; i<scan_size-1; ++i)
-		{
-			c_spacing = pre_positions[i+1]-pre_positions[i];
-			if (c_spacing < min_spacing_)
+			std::vector<float> pre_positions (scan_size), pre_intensities (scan_size);
+			for (UInt i=0; i<scan_size; ++i)
 			{
-				min_spacing_ = c_spacing;
-			};	
-		};
+				pre_positions[i] = scan[i].getMZ();
+				pre_intensities[i] = scan[i].getIntensity();
+			};
+				
+			/*(cudaMalloc(&cuda_device_pos_, scan_size*sizeof(float)));
+			(cudaMemcpy(cuda_device_pos_, &(pre_positions[0]), scan_size*sizeof(float), cudaMemcpyHostToDevice));
 
-		//std::cout << "max_cutoff: " << max_cutoff_ << std::endl;
-		//std::cout << "min_spacing_: " << min_spacing_ << "\t max_peaks_per_pattern: " << max_peaks_per_pattern_ << std::endl;	
-		UInt wavelet_length = (UInt) ceil(max_peaks_per_pattern_/(min_spacing_));
-		UInt max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
-		from_max_to_left_ = max_index;
-		from_max_to_right_ = wavelet_length-1-from_max_to_left_;
+			int max_wavelet_length = getMaxWaveletLength ((float*) cuda_device_pos_, scan_size, max_peaks_per_pattern_*Constants::IW_NEUTRON_MASS);
+			//std::cout << "max_wavelet_length: " << max_wavelet_length << std::endl;
+			
+			cudaFree (cuda_device_pos_);*/
 
-		Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX - (wavelet_length-1);
-	
-		//Warum setzen wir die Problemgroesse nicht einfach auf 512?????????????????????????????????????????????????????
-		if (problem_size <= 0)
-		{
-			problem_size = Constants::CUDA_BLOCK_SIZE_MAX;
-		};
-		to_load_ = problem_size + from_max_to_left_ + from_max_to_right_;	
+
+			//Determining the minimal spacing
+			float c_spacing;
+			min_spacing_=INT_MAX;
+			for (UInt i=0; i<scan_size-1; ++i)
+			{
+				c_spacing = pre_positions[i+1]-pre_positions[i];
+				if (c_spacing < min_spacing_)
+				{
+					min_spacing_ = c_spacing;
+				};	
+			};
+
+			//std::cout << "max_cutoff: " << max_cutoff_ << std::endl;
+			//std::cout << "min_spacing_: " << min_spacing_ << "\t max_peaks_per_pattern: " << max_peaks_per_pattern_ << std::endl;	
+			UInt wavelet_length = (UInt) ceil(max_peaks_per_pattern_/(min_spacing_));
+			UInt max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
+			from_max_to_left_ = max_index;
+			from_max_to_right_ = wavelet_length-1-from_max_to_left_;
+
+			Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX - (wavelet_length-1);
 		
-		data_length_ = pre_intensities.size(); // number of original data points
-		//std::cout << "problem_size: " << problem_size << "\t" << (data_length_ % problem_size) << std::endl; 
-		UInt missing_points = problem_size - (data_length_ % problem_size);
-		overall_size_ = wavelet_length-1+data_length_+missing_points;
-		//std::cout << "overall_size_: " << overall_size_ << "\t" << wavelet_length << "\t" << data_length_ << "\t" << missing_points << std::endl;
+			//Warum setzen wir die Problemgroesse nicht einfach auf 512?????????????????????????????????????????????????????
+			if (problem_size <= 0)
+			{
+				problem_size = Constants::CUDA_BLOCK_SIZE_MAX;
+			};
+			to_load_ = problem_size + from_max_to_left_ + from_max_to_right_;	
+			
+			data_length_ = pre_intensities.size(); // number of original data points
+			//std::cout << "problem_size: " << problem_size << "\t" << (data_length_ % problem_size) << std::endl; 
+			UInt missing_points = problem_size - (data_length_ % problem_size);
+			overall_size_ = wavelet_length-1+data_length_+missing_points;
+			//std::cout << "overall_size_: " << overall_size_ << "\t" << wavelet_length << "\t" << data_length_ << "\t" << missing_points << std::endl;
 
-		//to_load_ += missing_points;
+			//to_load_ += missing_points;
 
-		num_elements_ = overall_size_;
-		Int dev_num_elements = 1, tmp = overall_size_ >> 1;
+			num_elements_ = overall_size_;
+			Int dev_num_elements = 1, tmp = overall_size_ >> 1;
 
-    //Get power of 2 elements (necessary for the sorting algorithm)
-    while (tmp) 
+			//Get power of 2 elements (necessary for the sorting algorithm)
+			while (tmp) 
+			{
+					dev_num_elements <<= 1;
+					tmp >>= 1;
+			};
+
+			if (num_elements_ > dev_num_elements)
+			{
+				dev_num_elements <<= 1;
+			};
+
+			if (dev_num_elements < Constants::CUDA_MIN_SORT_SIZE)
+			{
+				dev_num_elements = Constants::CUDA_MIN_SORT_SIZE;
+			};
+
+			overall_size_ = dev_num_elements;
+
+			//std::cout << "overall_size: " << overall_size_ << "\t from_max_to_left_: " << from_max_to_left_ << "\t from_max_to_right_: " << from_max_to_right_ << "\t data_length_: " << data_length_ 
+			//	<< "\t dev_num_elements-num_elements_: " << dev_num_elements-num_elements_ << std::endl;
+
+
+			cuda_intensities_.resize (overall_size_, 0); cuda_positions_.resize (overall_size_, 0);
+			//Pad the values to the left; the positions should not matter if the values are zero
+			float first_pos = pre_positions[0];
+			for (UInt i=0; i<from_max_to_left_; ++i)
+			{
+				cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing_;
+			};
+
+			for (UInt i=0; i<data_length_; ++i)
+			{
+				cuda_positions_[from_max_to_left_+i] = pre_positions[i];
+				cuda_intensities_[from_max_to_left_+i] = pre_intensities[i];
+			};
+			
+			float last_pos = pre_positions[pre_positions.size()-1];
+			for (UInt i=0; i<missing_points + from_max_to_right_ + dev_num_elements - num_elements_; ++i)
+			{
+				cuda_positions_[from_max_to_left_+data_length_+i] = last_pos + (i+1)*min_spacing_;
+			};
+
+			#ifdef DEBUG_FEATUREFINDER				
+			std::stringstream name; name << "cuda_input_" << scan.getRT() << ".out\0"; 
+				std::fstream outfile(name.str().c_str(), std::ios::out);
+				for (size_t i=0; i<overall_size_; ++i)
+					outfile << cuda_positions_[i] << " " << cuda_intensities_[i] << std::endl;
+				outfile.close();
+			#endif
+
+			
+			dimBlock_ = dim3 (Constants::CUDA_BLOCK_SIZE_MAX);
+			to_compute_ = problem_size;
+
+			//std::cout << "BlockSize: " << dimBlock_.x << "\t to load: " << to_load_  << "\t to compute: " << to_compute_ << std::endl; 
+
+			//dimGrid_ = dim3 ((size_t)ceil(overall_size_/(float)problem_size)-1);
+			//dimGrid_ = dim3 ((size_t)ceil((overall_size_-(dev_num_elements - num_elements_))/(float)problem_size));
+			dimGrid_ = dim3 ((data_length_+missing_points)/problem_size);
+			//std::cout << "griddim: " << dimGrid_.x << "\t blockdim: " << dimBlock_.x <<  std::endl;
+
+			(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
+
+			(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+
+			(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+
+			(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
+			
+			(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
+
+			(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
+
+			c_sorted_candidate_.resize (overall_size_);
+			scores_.resize(data_length_);
+			zeros_.resize(overall_size_);
+			memset (&zeros_[0], 0., overall_size_*sizeof(float)); 
+
+			(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+		}
+
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
 		{
-        dev_num_elements <<= 1;
-        tmp >>= 1;
-    };
-
-    if (num_elements_ > dev_num_elements)
-    {
-	    dev_num_elements <<= 1;
-		};
-
-    if (dev_num_elements < Constants::CUDA_MIN_SORT_SIZE)
-    {
-	    dev_num_elements = Constants::CUDA_MIN_SORT_SIZE;
-		};
-
-		overall_size_ = dev_num_elements;
-
-		//std::cout << "overall_size: " << overall_size_ << "\t from_max_to_left_: " << from_max_to_left_ << "\t from_max_to_right_: " << from_max_to_right_ << "\t data_length_: " << data_length_ 
-		//	<< "\t dev_num_elements-num_elements_: " << dev_num_elements-num_elements_ << std::endl;
-
-
-		cuda_intensities_.resize (overall_size_, 0); cuda_positions_.resize (overall_size_, 0);
-		//Pad the values to the left; the positions should not matter if the values are zero
-		float first_pos = pre_positions[0];
-		for (UInt i=0; i<from_max_to_left_; ++i)
-		{
-			cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing_;
-		};
-
-		for (UInt i=0; i<data_length_; ++i)
-		{
-			cuda_positions_[from_max_to_left_+i] = pre_positions[i];
-			cuda_intensities_[from_max_to_left_+i] = pre_intensities[i];
-		};
+			std::vector<float> res (overall_size_, 0);
+			(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+			(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+			
+			getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
+				c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);
 		
-		float last_pos = pre_positions[pre_positions.size()-1];
-		for (UInt i=0; i<missing_points + from_max_to_right_ + dev_num_elements - num_elements_; ++i)
+			//(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+			(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_fwd2_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+			(cudaThreadSynchronize());	
+
+			(cudaMemcpy(&(res[0]), (float*)cuda_device_trans_intens_+from_max_to_left_, data_length_*sizeof(float), cudaMemcpyDeviceToHost));
+			
+			for (UInt i=0; i<data_length_; ++i)
+			{
+				c_trans[i].setIntensity (res[i]);
+			};
+		}
+
+
+		template <typename PeakType>
+		int IsotopeWaveletTransform<PeakType>::cudaSort (MSSpectrum<PeakType>& sorted)
 		{
-			cuda_positions_[from_max_to_left_+data_length_+i] = last_pos + (i+1)*min_spacing_;
-		};
 
-		#ifdef DEBUG_FEATUREFINDER				
-		std::stringstream name; name << "cuda_input_" << scan.getRT() << ".out\0"; 
-			std::fstream outfile(name.str().c_str(), std::ios::out);
-			for (size_t i=0; i<overall_size_; ++i)
-				outfile << cuda_positions_[i] << " " << cuda_intensities_[i] << std::endl;
-			outfile.close();
-		#endif
+			(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], overall_size_*sizeof(int), cudaMemcpyHostToDevice));
+			Int gpu_index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, overall_size_, 0);
+			(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_+gpu_index, sizeof(float) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
+			(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_+gpu_index, sizeof(int) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
 
+			for (UInt i=0; i<(overall_size_-gpu_index); ++i)
+			{
+				sorted[i].setIntensity (h_data_[i]);
+				sorted[i].setMZ (cuda_positions_[h_pos_[i]]);
+			};
 		
-		dimBlock_ = dim3 (Constants::CUDA_BLOCK_SIZE_MAX);
-		to_compute_ = problem_size;
+			return (gpu_index);
+		}
 
-		//std::cout << "BlockSize: " << dimBlock_.x << "\t to load: " << to_load_  << "\t to compute: " << to_compute_ << std::endl; 
 
-		//dimGrid_ = dim3 ((size_t)ceil(overall_size_/(float)problem_size)-1);
-		//dimGrid_ = dim3 ((size_t)ceil((overall_size_-(dev_num_elements - num_elements_))/(float)problem_size));
-		dimGrid_ = dim3 ((data_length_+missing_points)/problem_size);
-		//std::cout << "griddim: " << dimGrid_.x << "\t blockdim: " << dimBlock_.x <<  std::endl;
-
-		(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
-
-		(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
-		(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
-		(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
-		(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
-		(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
-		
-		(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
-
-		(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
-
-		c_sorted_candidate_.resize (overall_size_);
-		scores_.resize(data_length_);
-		zeros_.resize(overall_size_);
-		memset (&zeros_[0], 0., overall_size_*sizeof(float)); 
-
-		(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
-	}
-
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
-	{
-		std::vector<float> res (overall_size_, 0);
-		(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
-		(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
-		
-		getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
-			c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);
-	
-		//(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
-		(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_fwd2_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
-		(cudaThreadSynchronize());	
-
-		(cudaMemcpy(&(res[0]), (float*)cuda_device_trans_intens_+from_max_to_left_, data_length_*sizeof(float), cudaMemcpyDeviceToHost));
-		
-		for (UInt i=0; i<data_length_; ++i)
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
+			const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr)
 		{
-			c_trans[i].setIntensity (res[i]);
-		};
-	}
+			UInt peak_cutoff, index, MZ_start, MZ_end;
+			typename MSSpectrum<PeakType>::iterator iter, bound_iter;
+			typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, iter2, seed_iter;
+			DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
+						
+			Int gpu_index = cudaSort (c_sorted_candidate_), c_index;
+			std::vector<UInt> processed (data_length_, 0);
+			if (ampl_cutoff < 0)
+			{
+				threshold=0;
+			}
+			else
+			{			
+				c_av_intens = getAvIntens_ (candidates);
+				c_sd_intens = getSdIntens_ (candidates, c_av_intens);
+				threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+			};		
+		
+			Int num_of_scores = overall_size_-gpu_index;
+		
+			(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
+		
+			scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
+				c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_, min_spacing_);
+			
+			(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
+
+			std::vector<float>::iterator score_iter;
+			for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
+			{				
+				seed_mz = c_sorted_candidate_[c_index].getMZ();
+				seed_iter = ref.MZBegin(seed_mz);
+				index = distance(ref.begin(), seed_iter);
+
+				if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)] || index <= 0)
+				{
+					continue;
+				};
+				
+				peak_cutoff = getPeakCutOff (seed_mz, c+1);
+				//Mark the region as processed
+				//Do not move this further down, since we have to mark this as processed in any case, 
+				//even when score <=0; otherwise we would look around the maximum's position unless 
+				//any significant point is found
+				iter_start =ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+
+				if (iter_end == ref.end())
+				{
+					--iter_end;
+				};
+			
+				MZ_start = distance (ref.begin(), iter_start);
+				MZ_end = distance (ref.begin(), iter_end);
+
+				memset(&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
+
+				c_score = *score_iter;
+				if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
+				{
+					continue;
+				};
 
 
-	template <typename PeakType>
-	int IsotopeWaveletTransform<PeakType>::cudaSort (MSSpectrum<PeakType>& sorted)
-	{
+				//Push the seed into its corresponding box (or create a new one, if necessary)
+				//Do ***NOT*** move this further down!
+				push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
+					
 
-		(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], overall_size_*sizeof(int), cudaMemcpyHostToDevice));
-		Int gpu_index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, overall_size_, 0);
-		(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_+gpu_index, sizeof(float) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
-		(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_+gpu_index, sizeof(int) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
+				//Push neighboring peaks to compute finally a derivative over the isotope pattern envelope				
+				help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+				iter2 = candidates.MZBegin (help_mz);
 
-		for (UInt i=0; i<(overall_size_-gpu_index); ++i)
-		{
-			sorted[i].setIntensity (h_data_[i]);
-			sorted[i].setMZ (cuda_positions_[h_pos_[i]]);
-		};
-	
-		return (gpu_index);
-	}
+				if (iter2 == candidates.end() || iter2 == candidates.begin())
+				{
+					continue;
+				};
+
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates.end())
+					{
+						//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+						push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), candidates.getRT(), MZ_start, MZ_end);
+					};
+				};
+
+
+				help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
+				iter2 = candidates.MZBegin (help_mz);
+
+				if (iter2 == candidates.end() || iter2 == candidates.begin())
+				{
+					continue;
+				};
+
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates.end())
+					{
+						//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+						push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation((iter2-1), help_mz, (iter2)), candidates.getRT(), MZ_start, MZ_end);
+					};
+				};
+			};
+			
+			clusterCudaSeeds_(candidates, ref, scan_index, c, use_cmarr);
+		}
+	#endif
+
 
 
 	template <typename PeakType>
@@ -1345,126 +1467,7 @@ namespace OpenMS
 		clusterSeeds_(candidates, ref, scan_index, candidates.size(), use_cmarr);
 	}
 
-
-
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
-		const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr)
-	{
-		UInt peak_cutoff, index, MZ_start, MZ_end;
-		typename MSSpectrum<PeakType>::iterator iter, bound_iter;
-		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, iter2, seed_iter;
-		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
-					
-		Int gpu_index = cudaSort (c_sorted_candidate_), c_index;
-		std::vector<UInt> processed (data_length_, 0);
-		if (ampl_cutoff < 0)
-		{
-			threshold=0;
-		}
-		else
-		{			
-			c_av_intens = getAvIntens_ (candidates);
-			c_sd_intens = getSdIntens_ (candidates, c_av_intens);
-			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
-		};		
 	
-		Int num_of_scores = overall_size_-gpu_index;
-	
-		(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
-	
-		scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
-			c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_, min_spacing_);
-		
-		(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
-
-		std::vector<float>::iterator score_iter;
-		for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
-		{				
-			seed_mz = c_sorted_candidate_[c_index].getMZ();
-			seed_iter = ref.MZBegin(seed_mz);
-			index = distance(ref.begin(), seed_iter);
-
-			if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)] || index <= 0)
-			{
-				continue;
-			};
-			
-			peak_cutoff = getPeakCutOff (seed_mz, c+1);
-			//Mark the region as processed
-			//Do not move this further down, since we have to mark this as processed in any case, 
-			//even when score <=0; otherwise we would look around the maximum's position unless 
-			//any significant point is found
-			iter_start =ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
-			iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
-
-			if (iter_end == ref.end())
-			{
-				--iter_end;
-			};
-		
-			MZ_start = distance (ref.begin(), iter_start);
-			MZ_end = distance (ref.begin(), iter_end);
-
-			memset(&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
-
-			c_score = *score_iter;
-			if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
-			{
-				continue;
-			};
-
-
-			//Push the seed into its corresponding box (or create a new one, if necessary)
-			//Do ***NOT*** move this further down!
-			push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
-				
-
-			//Push neighboring peaks to compute finally a derivative over the isotope pattern envelope				
-			help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
-			iter2 = candidates.MZBegin (help_mz);
-
-			if (iter2 == candidates.end() || iter2 == candidates.begin())
-			{
-				continue;
-			};
-
-			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
-			//In the other case, we are too close to the peak, leading to incorrect derivatives.
-			{
-				if (iter2 != candidates.end())
-				{
-					//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
-					push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), candidates.getRT(), MZ_start, MZ_end);
-				};
-			};
-
-
-			help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
-			iter2 = candidates.MZBegin (help_mz);
-
-			if (iter2 == candidates.end() || iter2 == candidates.begin())
-			{
-				continue;
-			};
-
-			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
-			//In the other case, we are too close to the peak, leading to incorrect derivatives.
-			{
-				if (iter2 != candidates.end())
-				{
-					//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
-					push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation((iter2-1), help_mz, (iter2)), candidates.getRT(), MZ_start, MZ_end);
-				};
-			};
-		};
-		
-		clusterCudaSeeds_(candidates, ref, scan_index, c, use_cmarr);
-	
-	}
-
-
-
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge)
 	{

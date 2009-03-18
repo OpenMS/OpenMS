@@ -107,8 +107,8 @@ namespace OpenMS
 				
 				IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
 	
-				//this->ff_->setLogType (ProgressLogger::CMD);
-				//this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
+				this->ff_->setLogType (ProgressLogger::CMD);
+				this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
 
 			UInt RT_votes_cutoff = RT_votes_cutoff_;
 			//Check for useless RT_votes_cutoff_ parameter
@@ -158,7 +158,7 @@ namespace OpenMS
 							};
 						//#endif
 					
-						//this->ff_->setProgress (++j);
+						this->ff_->setProgress (++j);
 
 						#ifdef OPENMS_DEBUG
 							std::cout << "transform O.K. ... "; std::cout.flush();
@@ -173,49 +173,54 @@ namespace OpenMS
 					}	
 					else
 					{
-						MSSpectrum<PeakType> c_trans (this->map_->at(i));
-						iwt.initializeCudaScan (this->map_->at(i), use_cuda_);
-						for (UInt c=0; c<max_charge_; ++c)
-						{	
-							iwt.getCudaTransforms (c_trans, c);
+						#ifdef OPENMS_HAS_CUDA
+							MSSpectrum<PeakType> c_trans (this->map_->at(i));
+							iwt.initializeCudaScan (this->map_->at(i), use_cuda_);
+							for (UInt c=0; c<max_charge_; ++c)
+							{	
+								iwt.getCudaTransforms (c_trans, c);
 
 
-							#ifdef DEBUG_FEATUREFINDER
-								std::stringstream stream;
-								stream << "cuda_" << this->map_->at(i).getRT() << "_" << c+1 << ".trans\0"; 
-								std::ofstream ofile (stream.str().c_str());
-								for (UInt k=0; k < c_trans.size(); ++k)
-								{
-									ofile << c_trans[k].getMZ() << "\t" <<  c_trans[k].getIntensity() << std::endl;
-								};
-								ofile.close();
-							#endif					
+								#ifdef DEBUG_FEATUREFINDER
+									std::stringstream stream;
+									stream << "cuda_" << this->map_->at(i).getRT() << "_" << c+1 << ".trans\0"; 
+									std::ofstream ofile (stream.str().c_str());
+									for (UInt k=0; k < c_trans.size(); ++k)
+									{
+										ofile << c_trans[k].getMZ() << "\t" <<  c_trans[k].getIntensity() << std::endl;
+									};
+									ofile.close();
+								#endif					
 
-							#ifdef OPENMS_DEBUG
-								std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
-							#endif
-					
-								
-							iwt.identifyCudaCharges (c_trans, this->map_->at(i), i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
+								#ifdef OPENMS_DEBUG
+									std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
+								#endif
+						
+									
+								iwt.identifyCudaCharges (c_trans, this->map_->at(i), i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
 
-							#ifdef OPENMS_DEBUG
-								std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
-							#endif						
+								#ifdef OPENMS_DEBUG
+									std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
+								#endif						
 
-						};
-						iwt.finalizeCudaScan();
-						//this->ff_->setProgress (j+=2);
+							};
+							iwt.finalizeCudaScan();
+							this->ff_->setProgress (j+=2);
+						#else
+							std::cerr << "You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
+							std::cerr << "You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
+						#endif
 					};
 	
 					iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
-					//this->ff_->setProgress (++j);
+					this->ff_->setProgress (++j);
 				std::cout << "updated box states." << std::endl;
 #endif
 
 				std::cout.flush();
 			};
 
-				//this->ff_->endProgress();
+				this->ff_->endProgress();
 
 			//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
 				iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 
