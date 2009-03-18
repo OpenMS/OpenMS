@@ -87,13 +87,13 @@ namespace OpenMS
 																		"If you plan to use several GPUs simultaneously, just use a non-negative number for this flag.", false);
 					this->defaults_.setMaxInt ("cuda:use_cuda", device_num_); 
 					#ifdef OPENMS_HAS_TBB_H
-						this->defaults_.setValue ("cuda:use_tbb", "true", "Enables/disables computation on several GPUs via Intel TBBs.", true);
-						this->defaults_.setValidStrings("cuda:use_tbb",StringList::create("true,false"));
-						this->defaults_.setValue ("cuda:tbb:exclude_id", -1, "Disables computation on GPU device with corresponding ID."
+						this->defaults_.setValue ("tbb:use_tbb", "true", "Enables/disables computation on several GPUs via Intel TBBs.", true);
+						this->defaults_.setValidStrings("tbb:use_tbb",StringList::create("true,false"));
+						this->defaults_.setValue ("tbb:exclude_id", -1, "Disables computation on GPU device with corresponding ID."
 																			"Hence, you are able to exclude your 'normal' graphic card from the computation, while all other GPU devices"
 																			"will be in use.\nIf you want to include all devices set this entry to -1." , true);
-						this->defaults_.setMinInt ("cuda:tbb:exclude_id", -1);
-						this->defaults_.setMaxInt ("cuda:tbb:exclude_id", device_num_);	
+						this->defaults_.setMinInt ("tbb:exclude_id", -1);
+						this->defaults_.setMaxInt ("tbb:exclude_id", device_num_);	
 					#endif						
 				#endif
 
@@ -123,7 +123,7 @@ namespace OpenMS
 					
 				UInt max_size=0;
 				#ifdef OPENMS_HAS_CUDA 
-					if (use_cuda_ >= 0) //some preprocessing necessary for the GPU computation
+					if (use_cuda_ >= 0 || use_tbb_) //some preprocessing necessary for the GPU computation
 					{
 						for (UInt i=0; i<this->map_->size(); ++i)
 						{
@@ -365,8 +365,8 @@ namespace OpenMS
 				#ifdef OPENMS_HAS_CUDA 
 					use_cuda_ = this->param_.getValue ("cuda:use_cuda");
 					#ifdef OPENMS_HAS_TBB_H 
-						use_tbb_ = ( (String)(this->param_.getValue("cuda:use_tbb"))=="true" );
-						gpu_to_exclude_ = this->param_.getValue ("cuda:tbb:exclude_id");				
+						use_tbb_ = ( (String)(this->param_.getValue("tbb:use_tbb"))=="true" );
+						gpu_to_exclude_ = this->param_.getValue ("tbb:exclude_id");				
 						for (Int i=0; i<device_num_; ++i)
 						{
 							if (i == gpu_to_exclude_)
