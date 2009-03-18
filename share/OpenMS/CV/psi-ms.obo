@@ -3387,7 +3387,7 @@ is_a: MS:1000513 ! binary data array
 [Term]
 id: MS:1000518
 name: binary data type
-def: "Encoding of type binary data, e.g. 64-bit float." [PSI:MS]
+def: "Encoding type of binary data, e.g. 64-bit float." [PSI:MS]
 relationship: part_of MS:1000442 ! spectrum
 relationship: part_of MS:1000625 ! chromatogram
 

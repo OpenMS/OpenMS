@@ -44,6 +44,7 @@
 //TODO:
 // - product list
 // - scanSettingsList
+// - scanWindow userParam, referencableParamGroups
 //
 //MISSING:
 // - multiple 'dissociation methods' per precursor
