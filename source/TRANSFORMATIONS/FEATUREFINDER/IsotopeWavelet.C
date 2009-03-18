@@ -36,6 +36,10 @@
 #define ONEOLOG2E 0.6931471806 
 #endif
 
+#ifndef TWOPI
+#define TWOPI 6.283185307
+#endif
+
 namespace OpenMS
 {
 	//internally used variables / defaults
@@ -43,7 +47,8 @@ namespace OpenMS
 	UInt IsotopeWavelet::max_charge_ = 1;
 	std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
 	std::vector<DoubleReal> IsotopeWavelet::exp_table_;
-	DoubleReal IsotopeWavelet::table_steps_ = 0.001;
+	std::vector<DoubleReal> IsotopeWavelet::sine_table_;
+	DoubleReal IsotopeWavelet::table_steps_ = 0.0001;
 	DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
 	IsotopeDistribution IsotopeWavelet::averagine_;
 	Int IsotopeWavelet::gamma_table_max_index_ = -1;
@@ -71,32 +76,39 @@ namespace OpenMS
 	}
 	
 	IsotopeWavelet::~IsotopeWavelet () 
-	{ 	
-		max_charge_ = 1;
-		table_steps_ = 0.001;
-		inv_table_steps_ = 1./table_steps_;
-		me_ = NULL;
+	{ 
+		delete (me_);	
 	}
 		
 
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		DoubleReal tz = tz1-1;
-		DoubleReal fi_lgamma (gamma_table_ [(int)(tz1*inv_table_steps_)]);
+		DoubleReal tz (tz1-1);
+		DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
 		
+		DoubleReal help (tz*WAVELET_PERIODICITY/(TWOPI));
+		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
+
 		DoubleReal fac (-lambda + tz*myLog2_(lambda)*ONEOLOG2E - fi_lgamma);
 
-		return (sin(tz*WAVELET_PERIODICITY) * exp(fac));
+		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
 	
 
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
+		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
+		DoubleReal help ((tz1-1)*WAVELET_PERIODICITY/(TWOPI));
+		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
 		
-		return (sin((tz1-1)*WAVELET_PERIODICITY) * exp(fac));
+		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
-
+	
+	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
+	{
+		return (sin(2*M_PI*(tz1-1)/NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));
+	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 
 	{
@@ -111,7 +123,7 @@ namespace OpenMS
 	float IsotopeWavelet::myPow (float a, float b) 		
 	{	
 		float help (b*myLog2_(a));
-		return ( (help<127) ? myPow2_(help) : pow(2, help) ); 
+		return ( (help>0 && help<127) ? myPow2_(help) : pow(2, help) ); 
 	}
 
 
@@ -160,7 +172,7 @@ namespace OpenMS
 			//std::cout << log(1./tgamma(query)) << "\t" << -lgamma(query) << std::endl;
 
 			//gamma_table_.push_back(1./tgamma(query));
-			gamma_table_.push_back (boost::math::lgamma(query));
+			gamma_table_.push_back (lgamma(query));
 			query += table_steps_;	
 		};	
 		gamma_table_max_index_ = gamma_table_.size();
@@ -173,6 +185,12 @@ namespace OpenMS
 			query += table_steps_;	
 		};
 		exp_table_max_index_ = exp_table_.size();
+
+		query=0;
+		while (query < 2*M_PI)
+		{
+			sine_table_.push_back (sin(query));
+			query += table_steps_;
 	}
 											
 

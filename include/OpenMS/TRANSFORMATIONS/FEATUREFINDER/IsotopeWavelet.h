@@ -30,30 +30,29 @@
 
 
 #ifndef NEUTRON_MASS
-#define NEUTRON_MASS 1.00866491578 
-#define HALF_NEUTRON_MASS 0.5043325
-#define QUARTER_NEUTRON_MASS 0.252166228
-#define WAVELET_PERIODICITY 6.229209734
+#define NEUTRON_MASS 1.00866491578f 
+#define HALF_NEUTRON_MASS 0.5043325f
+#define QUARTER_NEUTRON_MASS 0.252166228f
+#define WAVELET_PERIODICITY 6.229209734f
 #endif
 
 #ifndef PROTON_MASS
-#define PROTON_MASS 1.00727646688
+#define PROTON_MASS 1.00727646688f
 #endif
 
 #ifndef LAMBDA_L_0
 //Linear Fit (standard)
-#define LAMBDA_L_0 -0.472998839574110749e-1
-#define LAMBDA_L_1 0.743579753540513913e-3
+#define LAMBDA_L_0 -0.472998839574110749e-1f
+#define LAMBDA_L_1 0.743579753540513913e-3f
 #endif
 
 #ifndef LAMBDA_Q_0
 //Quadratic Fit (maybe a overkill, since the dependency looks quite linear, at least in moderate mass ranges)
-#define LAMBDA_Q_0 -0.137152573151174711
-#define LAMBDA_Q_1 0.851289601785403817e-3
-#define LAMBDA_Q_2 -0.2834469691e-7
+#define LAMBDA_Q_0 -0.137152573151174711f
+#define LAMBDA_Q_1 0.851289601785403817e-3f
+#define LAMBDA_Q_2 -0.2834469691e-7f
 #endif
 
-#ifndef OPENMS_64BIT_ARCHITECTURE	
 #ifndef SHIFT_PARAMETERS
 //Internal parameters used for fast computation of the power function
 //Please do not modify
@@ -62,7 +61,6 @@
 #define SHIFT23_00 (1.0/(1<<23))
 #define LOG_CONST 0.346607f;
 #define POW_CONST 0.33971f;
-#endif
 #endif
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -133,6 +131,10 @@ namespace OpenMS
 					* @param lambda The mass-parameter lambda.
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
 				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) ;
+
+
+				static DoubleReal getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) ; 
+				
 
 				/** @brief Returns the largest charge state we will consider. */
 				static UInt getMaxCharge () 
@@ -268,12 +270,14 @@ namespace OpenMS
 				/** Internal table for the precomputed values of the exponential function. */ 
 				static std::vector<DoubleReal> exp_table_;
 
+				/** Internal table for the precomputed values of the exponential function. */ 
+				static std::vector<DoubleReal> sine_table_;				
+
 				/** Internally used averagine model. */
 				static IsotopeDistribution averagine_;
 
-				/** The largest possible indices for the corresponding tables. */
-				static Int gamma_table_max_index_;
-				static Int exp_table_max_index_;
+				static Int gamma_table_max_index_, exp_table_max_index_;
+
 	};
 
 } //namespace
