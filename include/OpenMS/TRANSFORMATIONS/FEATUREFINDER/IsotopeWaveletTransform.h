@@ -97,7 +97,6 @@ namespace OpenMS
 				UInt c; //<Note, this is not the charge (it is charge-1!!!)
 				DoubleReal score;
 				DoubleReal intens;
-				DoubleReal max_intens;
 				DoubleReal RT; //<The elution time (not the scan index)
 				UInt RT_index;
 				UInt MZ_begin; //<Index
@@ -173,7 +172,9 @@ namespace OpenMS
 				virtual int initializeCuda (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
 				
 				virtual void finalizeCudaScan ();
-			
+						
+				virtual void finalizeCuda ();
+				
 				virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
 					const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false);
 	
@@ -944,6 +945,35 @@ namespace OpenMS
 			(cudaFree(cuda_device_posindices_sorted_));
 			(cudaFree(cuda_device_scores_));
 		}
+		
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::finalizeCuda ()
+		{				
+			(cudaFree(cuda_device_pos_));	
+			(cudaFree(cuda_device_intens_));		
+			(cudaFree(cuda_device_trans_intens_));
+			(cudaFree(cuda_device_fwd2_));
+			(cudaFree(cuda_device_trans_intens_sorted_));
+			(cudaFree(cuda_device_posindices_sorted_));
+			(cudaFree(cuda_device_scores_));		
+		}
+		
+		template <typename PeakType>
+		int IsotopeWaveletTransform<PeakType>::initializeCuda (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
+		{
+			(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
+			(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+			(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+			(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
+			(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
+			(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
+
+			(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+		
+			return (Constants::CUDA_INIT_SUCCESS);
+		}		
 
 		template <typename PeakType>
 		int IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
@@ -1103,31 +1133,12 @@ namespace OpenMS
 
 
 		template <typename PeakType>
-		int IsotopeWaveletTransform<PeakType>::initializeCuda (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
-		{
-			(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
-			(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
-			(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-			(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
-			(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-			(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
-			(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
-			(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
-
-			(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
-		
-			return (Constants::CUDA_INIT_SUCCESS);
-		}
-
-
-
-		template <typename PeakType>
 		void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
 		{
 			cudaThreadSynchronize();
 			checkCUDAError("7");
 			std::vector<float> res (overall_size_, 0);
-			
+		
 			(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
 			cudaThreadSynchronize();
 			checkCUDAError("8");
@@ -2537,22 +2548,6 @@ namespace OpenMS
 		if (create_new_box == false)
 		{
 			double max=intens;
-			typename Box::iterator box_iter;
-			for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-			{
-				if (box_iter->second.max_intens > max)
-				{
-					max=box_iter->second.max_intens;
-				};
-			};
-			if (max==intens)
-			{
-				for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-				{
-					box_iter->second.max_intens=intens;
-				};
-			};
-			element.max_intens=max;
 
 			std::pair<UInt, BoxElement> help2 (scan, element);
 			insert_iter->second.insert (help2);
@@ -2572,7 +2567,6 @@ namespace OpenMS
 		}
 		else
 		{
-			element.max_intens=intens;
 			std::pair<UInt, BoxElement> help2 (scan, element);
 			std::multimap<UInt, BoxElement> help3;
 			help3.insert (help2);
@@ -2659,16 +2653,6 @@ namespace OpenMS
 
 		if (create_new_box == false)
 		{
-			double max=intens;
-			typename Box::iterator box_iter;
-			for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-				if (box_iter->second.max_intens > max)
-					max=box_iter->second.max_intens;
-			if (max==intens)
-			for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-				box_iter->second.max_intens=intens;
-			element.max_intens=max;
-
 			std::pair<UInt, BoxElement> help2 (scan, element);
 			insert_iter->second.insert (help2);
 
@@ -2687,7 +2671,6 @@ namespace OpenMS
 		}
 		else
 		{
-			element.max_intens=intens;
 			std::pair<UInt, BoxElement> help2 (scan, element);
 			std::multimap<UInt, BoxElement> help3;
 			help3.insert (help2);
@@ -2777,16 +2760,6 @@ namespace OpenMS
 			
 			if (create_new_box == false)
 			{			
-				double max=push_element.intens_;
-				typename Box::iterator box_iter;
-				for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-					if (box_iter->second.max_intens > max)
-						max=box_iter->second.max_intens;
-				if (max==push_element.intens_)
-				for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
-					box_iter->second.max_intens=push_element.intens_;
-				element.max_intens=max;			
-				
 				std::pair<UInt, BoxElement> help2 (push_element.scan_, element);
 				insert_iter->second.insert (help2);	
 
@@ -2805,7 +2778,6 @@ namespace OpenMS
 			}
 			else
 			{			
-				element.max_intens=push_element.intens_;			
 				std::pair<UInt, BoxElement> help2 (push_element.scan_, element);
 				std::multimap<UInt, BoxElement> help3;
 				help3.insert (help2);
@@ -2969,7 +2941,7 @@ namespace OpenMS
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
-	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, av_abs_intens;
+	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, av_abs_intens;
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
@@ -2979,7 +2951,7 @@ namespace OpenMS
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 			{
 				Box& c_box = iter->second;
-				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0, av_abs_intens=0;
+				av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0, av_abs_intens=0;
 				//Now, let's get the RT boundaries for the box
 				for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 				{
@@ -3001,7 +2973,6 @@ namespace OpenMS
 					continue;
 				};
 
-				av_max_intens = c_box.begin()->second.max_intens;
 				av_intens /= count;
 				//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
 				av_mz /= av_abs_intens;
@@ -3013,7 +2984,6 @@ namespace OpenMS
 				c_box_element.c = c;
 				c_box_element.score = av_score;
 				c_box_element.intens = av_intens;
-				c_box_element.max_intens = av_max_intens;
 				c_box_element.RT=av_RT;
 				final_box.push_back(c_box_element);
 			};
@@ -3031,7 +3001,7 @@ namespace OpenMS
 			bwd_diffs[0]=0;
 			for (Size i=1; i<num_o_feature; ++i)
 			{
-				bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
+				bwd_diffs[i] = (final_box[i].intens-final_box[i-1].intens)/(final_box[i].mz-final_box[i-1].mz);
 			};
 
 			#ifdef DEBUG_FEATUREFINDER
@@ -3071,7 +3041,7 @@ namespace OpenMS
 		typename std::map<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
-	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
+	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
@@ -3080,7 +3050,7 @@ namespace OpenMS
 			//std::cout << "*************" << std::endl;
 			
 			Box& c_box = iter->second;
-			av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
+			av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
 			//Now, let's get the RT boundaries for the box
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
@@ -3113,7 +3083,6 @@ namespace OpenMS
 				continue;
 			};
 
-			av_max_intens = c_box.begin()->second.max_intens;
 			av_intens /= count;		
 			av_score /= count; 
 			//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
@@ -3127,7 +3096,6 @@ namespace OpenMS
 			c_box_element.c = c;
 			c_box_element.score = av_score;
 			c_box_element.intens = av_intens;
-			c_box_element.max_intens = av_max_intens;
 			c_box_element.RT=av_RT;
 			final_box.push_back(c_box_element);
 		};	
@@ -3145,7 +3113,7 @@ namespace OpenMS
 		bwd_diffs[0]=0;
 		for (UInt i=1; i<num_o_feature; ++i)
 		{
-			bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
+			bwd_diffs[i] = (final_box[i].intens-final_box[i-1].intens)/(final_box[i].mz-final_box[i-1].mz);
 		};		
 
 		#ifdef DEBUG_FEATUREFINDER
@@ -3192,7 +3160,7 @@ namespace OpenMS
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		UInt best_charge_index; DoubleReal best_charge_score, c_mz, c_RT; UInt c_charge;
-		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, av_max_intens=0; DoubleReal mz_cutoff;
+		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, mz_cutoff;
 		ConvexHull2D c_conv_hull;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
@@ -3228,7 +3196,7 @@ namespace OpenMS
 
 			c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
-			av_intens=0, av_score=0, av_mz=0, av_RT=0, av_max_intens=0;
+			av_intens=0, av_score=0, av_mz=0, av_RT=0;
 			//Now, let's get the RT boundaries for the box
 			std::vector<DPosition<2> > point_set;
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
@@ -3243,7 +3211,6 @@ namespace OpenMS
 				point_set.push_back (DPosition<2> (c_RT, c_mz + mz_cutoff/(DoubleReal)c_charge)); 
 				if (best_charge_index == box_iter->second.c)
 				{
-					av_max_intens += box_iter->second.max_intens;
 					av_score += box_iter->second.score;
 					av_intens += box_iter->second.intens;
 					av_mz += c_mz*box_iter->second.intens;
@@ -3251,7 +3218,6 @@ namespace OpenMS
 				av_RT += c_RT;
 			};
 			av_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
-			av_max_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
 
 			av_mz /= av_intens*(DoubleReal)charge_binary_votes[best_charge_index];
 			av_score /= (DoubleReal)charge_binary_votes[best_charge_index];
@@ -3262,7 +3228,7 @@ namespace OpenMS
 			c_feature.setCharge (c_charge);
 			c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
 			c_feature.setMZ (av_mz);
-			c_feature.setIntensity (av_max_intens);
+			c_feature.setIntensity (av_intens);
 			c_feature.setRT (av_RT);
 			c_feature.setQuality (1, av_score);
 			feature_map.push_back (c_feature);
