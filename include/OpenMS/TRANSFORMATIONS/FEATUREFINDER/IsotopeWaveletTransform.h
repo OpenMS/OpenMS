@@ -30,8 +30,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgMzFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -47,32 +45,10 @@
 #include <fstream>
 #include <iomanip>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
-
-#ifndef DEFAULT_NUM_OF_INTERPOLATION_POINTS
-#define DEFAULT_NUM_OF_INTERPOLATION_POINTS 3
-#endif
-
-#ifndef EPSILON_ION_COUNTS
-#define EPSILON_ION_COUNTS 0
-#endif
-
-#ifndef MARR_CUTOFF
-#define MARR_CUTOFF 4.
-#endif
-
-#ifndef PEPTIDE_MASS_RULE_FACTOR
-#define PEPTIDE_MASS_RULE_FACTOR 0.000507
-#define PEPTIDE_MASS_RULE_BOUND (1./PEPTIDE_MASS_RULE_FACTOR)
-#define THEO_PPM_BOUND 200
-#endif
-
-#ifndef CUDA_PARAMETERS
-#define CUDA_PARAMETERS
-#define BLOCK_SIZE_MAX 512
-#define BLOCK_MULTIPLE 64
-#define REGISTERS_IN_USE 13
-#endif
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 
 // we are not yet sure if we really want to drag in cutil.h and the CUDA_SAFE_CALL definitions...
 #ifndef CUDA_SAFE_CALL
@@ -165,7 +141,7 @@ namespace OpenMS
  				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
 			virtual void getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c);
 			
-			virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice, const UInt peakCutoff, const UInt maxCharge); 
+			virtual void initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
 			
 			virtual void finalizeCudaScan ();
 			
@@ -219,6 +195,12 @@ namespace OpenMS
 			/** @brief Returns the closed boxes. */
 			virtual std::multimap<DoubleReal, Box> getClosedBoxes ()
 				{ return (closed_boxes_); };
+
+
+			inline DoubleReal getLinearInterpolation (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
+			{
+				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
+			};
 
 
 			/** @brief Estimates the number of peaks of an isotopic pattern at mass @p mass and charge state @p z.
@@ -287,7 +269,8 @@ namespace OpenMS
  				* @param ampl_cutoff The threshold. */
 			virtual DoubleReal scoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff,
 				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;
-
+			virtual DoubleReal scoreThisAlternative_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
+				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
  				* @param candidate A isotope wavelet transformed spectrum.
@@ -345,7 +328,7 @@ namespace OpenMS
  				* @param rt The retention time of the scan (similar to @p scan, but here: no index, but the real value).
  				* @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan.
  				* @param MZ_end The end index (w.r.t. the monoisotopic position!) of the pattern (m/z) w.r.t. the current scan. */
-			virtual void push2Box_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score,
+			virtual void push2Box_ (const DoubleReal mz, const UInt scan, UInt c, const DoubleReal score, 
 				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) ;
 
 			/** @brief Essentially the same function as @see push2Box_.
@@ -390,7 +373,7 @@ namespace OpenMS
  				*	@param y The function values. */
 			inline DoubleReal chordTrapezoidRule_ (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y)
 			{
-				DoubleReal res=0;
+				DoubleReal res=(x[1]-x[0])*(y[0]);
 				for (Size i=0; i<x.size()-1; ++i)
 				{
 					res += (x[i+1]-x[i])*(y[i+1]+y[i]);
@@ -416,9 +399,9 @@ namespace OpenMS
 
 			inline DoubleReal peptideMassRule (const DoubleReal c_mass) const
 			{
-				DoubleReal correction_fac = c_mass / PEPTIDE_MASS_RULE_BOUND;
+				DoubleReal correction_fac = c_mass / Constants::PEPTIDE_MASS_RULE_BOUND;
 				DoubleReal old_frac_mass = c_mass - trunc(c_mass);
-				DoubleReal new_mass = trunc(c_mass)* (1.+PEPTIDE_MASS_RULE_FACTOR)-trunc(correction_fac);
+				DoubleReal new_mass = trunc(c_mass)* (1.+Constants::PEPTIDE_MASS_RULE_FACTOR)-trunc(correction_fac);
 				DoubleReal new_frac_mass = new_mass - trunc(new_mass);
 				
 				if (new_frac_mass-old_frac_mass > 0.5)
@@ -455,22 +438,25 @@ namespace OpenMS
 			void* cuda_device_intens_;
 			void* cuda_device_pos_;
 			void* cuda_device_trans_intens_;
+			void* cuda_device_fwd2_;
 			void* cuda_device_posindices_sorted_;
 			void* cuda_device_trans_intens_sorted_;
 			void* cuda_device_scores_;	
 			std::vector<float> cuda_positions_, cuda_intensities_;
-			Int num_elements_, dev_num_elements_;
-			UInt max_cutoff_;
+			Int num_elements_;
+			UInt max_cutoff_, max_peaks_per_pattern_;
 			UInt max_scan_size_, largest_array_size_;
 			std::vector<int> indices_;
 			float *h_data_;		
 			int *h_pos_;	
 			dim3 dimGrid_, dimBlock_;
-			UInt overall_size_, from_max_to_left_, from_max_to_right_, block_size_, data_length_;
+			UInt overall_size_, from_max_to_left_, from_max_to_right_, block_size_, data_length_, to_load_, to_compute_;
 			MSSpectrum<PeakType> c_sorted_candidate_;
+			DoubleReal min_spacing_;
+			std::vector<float> scores_, zeros_;	
 	};
 
-bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
+	bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 	template <typename PeakType>	
 	bool intensityComparator (const PeakType& a, const PeakType& b)
@@ -500,14 +486,13 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform ()
 	{
 		acc_ = gsl_interp_accel_alloc ();
-		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+		spline_ = gsl_spline_alloc (gsl_interp_cspline, Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (1);
 		av_MZ_spacing_=1;
 		num_elements_ = 0;
-		dev_num_elements_ = 0;
 		max_scan_size_ = 0;
 		largest_array_size_ = 0;
-		max_cutoff_ = 3;
+		max_cutoff_ = 3, max_peaks_per_pattern_ = 3;
 		h_data_ = NULL;
 		h_pos_ = NULL;
 	}
@@ -517,24 +502,20 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		const DoubleReal sigma, const UInt max_scan_size) 
 	{
 		acc_ = gsl_interp_accel_alloc ();
-		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+		spline_ = gsl_spline_alloc (gsl_interp_cspline, Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
 		IsotopeWavelet::init (max_mz, max_charge);				
 		CoupledMarrWavelet::init (max_mz, max_charge, sigma);
 		av_MZ_spacing_=1;
 		estimatePeakCutOffs_ (min_mz, max_mz, max_charge);
 		max_cutoff_ =  (getPeakCutOff(max_mz, max_charge));
-	
+		max_peaks_per_pattern_=  (getPeakCutOff(max_mz, 1.));
 		if (max_scan_size > 0) //only important for the GPU
 		{ 
 			max_scan_size_ = max_scan_size;
-			largest_array_size_ =  pow(2, ceil(log(max_scan_size + BLOCK_SIZE_MAX)/log(2.0)));
+			largest_array_size_ =  pow(2, ceil(log(max_scan_size +  Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)/log(2.0)));
 			//std::cout << "largest_array_size: " << max_scan_size << "\t" << largest_array_size_ << std::endl;
 		
-			/*****************************/
-			//Auf den Heap legen?
-			//***************************/
-
 			cuda_positions_.reserve(largest_array_size_);
 		  cuda_intensities_.reserve(largest_array_size_);	
 			indices_.resize (largest_array_size_);
@@ -549,11 +530,11 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			largest_array_size_ = 0;		
 			h_data_ = NULL;
 			h_pos_ = NULL; 
-			psi_.reserve (max_cutoff_); //The wavelet
-			prod_.reserve (max_cutoff_); 
-			xs_.reserve (max_cutoff_);
-			interpol_xs_.resize(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
-			interpol_ys_.resize(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+			psi_.reserve (max_peaks_per_pattern_); //The wavelet
+			prod_.reserve (max_peaks_per_pattern_); 
+			xs_.reserve (max_peaks_per_pattern_);
+			interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+			interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 		};
 	}
 
@@ -600,8 +581,8 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			Fitter1D* fitter = EmgMzFitter1D::create();
 			Param params;
 			DPeakArray<PeakType> range;	MSSpectrum<PeakType> s_range;
-			l_bound = scan.MZBegin(max_iter->getMZ()-QUARTER_NEUTRON_MASS);
-			r_bound = scan.MZBegin(max_iter->getMZ()+QUARTER_NEUTRON_MASS);
+			l_bound = scan.MZBegin(max_iter->getMZ()-Constants::IW_QUARTER_NEUTRON_MASS);
+			r_bound = scan.MZBegin(max_iter->getMZ()+Constants::IW_QUARTER_NEUTRON_MASS);
 			range.assign (l_bound, r_bound); s_range.assign (l_bound, r_bound);
 			av_MZ_spacing_ = getAvMZSpacing_(scan);
 			params.setValue ("interpolation_step", av_MZ_spacing_);
@@ -644,7 +625,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		av_MZ_spacing_ = getAvMZSpacing_(scan); 
 
 		DoubleReal cum_spacing, c_spacing, //Helping variables
-			max_w_monoi_intens=QUARTER_NEUTRON_MASS, //The position of the monoisotopic peak within the coordinate sys. of the wavelet
+			max_w_monoi_intens=Constants::IW_QUARTER_NEUTRON_MASS, //The position of the monoisotopic peak within the coordinate sys. of the wavelet 
 			sums=0, //Helping variables
 			max_position_scan=0, //The position of the data point (within the scan) we want to align with
 			align_offset, //Correction term; shifts the wavelet to get the desired alignment
@@ -655,7 +636,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
 		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than
-		//QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
+		//Constants::IW_QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
 		//causing the upcoming code to crash since suddenly some m/z positions will occur twice. The interval of multiple
 		//occurring points is stored by multiple_s and implicitly by i.
 		std::vector<int> multiple_s (max_charge,-1);
@@ -670,7 +651,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			{
 				c_charge=c+1;
 				cum_spacing=0;
-				max_w_monoi_intens=QUARTER_NEUTRON_MASS/c_charge; //This is the position of the monoisotopic peak (centered)
+				max_w_monoi_intens=Constants::IW_QUARTER_NEUTRON_MASS/c_charge; //This is the position of the monoisotopic peak (centered)
 
 				//Align the maximum monoisotopic peak of the wavelet with some scan point. This is step is critical, since
 				//otherwise we might - especially in the case of badly resolved data - miss patterns, since scan maxima and
@@ -696,7 +677,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 				//The upcoming variable holds the position of the spectrum that is aligned with the monoisotopic
 				//maximum of the wavelet. We do not add the overall correction term for the left shift at this point,
-				//since we will get trouble by the NEUTRON_MASS and the resulting numerical instabilities.
+				//since we will get trouble by the Constants::IW_NEUTRON_MASS and the resulting numerical instabilities. 
 				//We will add this correcting term at the end of the whole processing.
 				if (i+j >= scan_size)
 				{
@@ -733,19 +714,20 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				cum_spacing = align_offset;
 
 				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
-				mz_cutoff = peak_cutoff*NEUTRON_MASS;
+				mz_cutoff = peak_cutoff*Constants::IW_NEUTRON_MASS;
 				wave_start = scan.begin()+i;
 				wave_end = scan.MZBegin(scan[i].getMZ()+mz_cutoff);
 					
 				wavelet_length = distance (wave_start, wave_end);
 				
-				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > mz_cutoff+NEUTRON_MASS/c_charge))
+				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > mz_cutoff+Constants::IW_NEUTRON_MASS/c_charge))
 				{			
 					sums=-1;
 					#ifdef DEBUG_FEATUREFINDER
 					if (error_prone_scans_.empty())
 					{
 						std::cout << "pushing to error_prone_scans_ a " << i << std::endl;
+						std::cout << "wavelet length: " << wavelet_length << "\t scan_size: " << scan_size << std::endl; 
 						error_prone_scans_.push_back(i);
 					}
 					else
@@ -755,7 +737,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 							std::cout << "pushing to error_prone_scans_ b " << i << std::endl;
 							error_prone_scans_.push_back(i);
 						}
-					};	
+					};
 				}
 				else
 				{
@@ -792,12 +774,12 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 					}
 					else
 					{
-						//sums = chordTrapezoidRule_ (xs_, prod_);
+						sums = chordTrapezoidRule_ (xs_, prod_);
 					
-						for (UInt k=0; k<wavelet_length; ++k)
+						/*for (UInt k=0; k<wavelet_length; ++k)
 						{
 							sums += prod_[k];
-						};
+						};*/
 
 					};
 				}
@@ -870,21 +852,21 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::finalizeCudaScan ()
 	{			
-		CUDA_SAFE_CALL(cudaFree(cuda_device_pos_));	
-		CUDA_SAFE_CALL(cudaFree(cuda_device_intens_));		
-		CUDA_SAFE_CALL(cudaFree(cuda_device_trans_intens_));
-		CUDA_SAFE_CALL(cudaFree(cuda_device_trans_intens_sorted_));
-		CUDA_SAFE_CALL(cudaFree(cuda_device_posindices_sorted_));
-		CUDA_SAFE_CALL(cudaFree(cuda_device_scores_));
-	}
+		(cudaFree(cuda_device_pos_));	
+		(cudaFree(cuda_device_intens_));		
+		(cudaFree(cuda_device_trans_intens_));
+		(cudaFree(cuda_device_fwd2_));
+		(cudaFree(cuda_device_trans_intens_sorted_));
+		(cudaFree(cuda_device_posindices_sorted_));
+		(cudaFree(cuda_device_scores_));
 	
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice, const UInt peakCutoff, const UInt maxCharge) 
+	void IsotopeWaveletTransform<PeakType>::initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
 	{
-		CUDA_SAFE_CALL(cudaSetDevice (cudaDevice));
+		(cudaSetDevice (cudaDevice));
 		cudaDeviceProp prop;
-		CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, cudaDevice));
+		(cudaGetDeviceProperties(&prop, cudaDevice));
 		
 		UInt scan_size = scan.size();		
 
@@ -894,82 +876,85 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			pre_positions[i] = scan[i].getMZ();
 			pre_intensities[i] = scan[i].getIntensity();
 		};
-	
+			
+		/*(cudaMalloc(&cuda_device_pos_, scan_size*sizeof(float)));
+		(cudaMemcpy(cuda_device_pos_, &(pre_positions[0]), scan_size*sizeof(float), cudaMemcpyHostToDevice));
+
+		int max_wavelet_length = getMaxWaveletLength ((float*) cuda_device_pos_, scan_size, max_peaks_per_pattern_*Constants::IW_NEUTRON_MASS);
+		//std::cout << "max_wavelet_length: " << max_wavelet_length << std::endl;
+		
+		cudaFree (cuda_device_pos_);*/
+
 
 		//Determining the minimal spacing
-		float c_spacing, min_spacing=INT_MAX;
+		float c_spacing;
+		min_spacing_=INT_MAX;
 		for (UInt i=0; i<scan_size-1; ++i)
 		{
 			c_spacing = pre_positions[i+1]-pre_positions[i];
-			if (c_spacing < min_spacing)
+			if (c_spacing < min_spacing_)
 			{
-				min_spacing = c_spacing;
+				min_spacing_ = c_spacing;
 			};	
 		};
-	
-		UInt wavelet_length = (UInt) ceil(max_cutoff_/(maxCharge*min_spacing));
-		UInt max_index = (UInt) (QUARTER_NEUTRON_MASS/min_spacing);
+
+		//std::cout << "max_cutoff: " << max_cutoff_ << std::endl;
+		//std::cout << "min_spacing_: " << min_spacing_ << "\t max_peaks_per_pattern: " << max_peaks_per_pattern_ << std::endl;	
+		UInt wavelet_length = (UInt) ceil(max_peaks_per_pattern_/(min_spacing_));
+		UInt max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
 		from_max_to_left_ = max_index;
 		from_max_to_right_ = wavelet_length-1-from_max_to_left_;
 
-		UInt problem_size = BLOCK_SIZE_MAX - (wavelet_length-1);
-		UInt optimized_problem_size = ((int)(problem_size/BLOCK_MULTIPLE))*BLOCK_MULTIPLE;
-		block_size_ = BLOCK_SIZE_MAX;
-		if (optimized_problem_size > 0)
+		Int problem_size = Constants::CUDA_BLOCK_SIZE_MAX - (wavelet_length-1);
+	
+		//Warum setzen wir die Problemgroesse nicht einfach auf 512?????????????????????????????????????????????????????
+		if (problem_size <= 0)
 		{
-			block_size_ = BLOCK_SIZE_MAX - (problem_size-optimized_problem_size);
-			problem_size = optimized_problem_size;
+			problem_size = Constants::CUDA_BLOCK_SIZE_MAX;
 		};
-
-		if (wavelet_length >= block_size_)
-		{
-			std::cout << "FATAL: wavelet to large for block size" << std::endl;
-			exit(-1);
-		};
-
-		Int available_registers = (int)trunc(prop.regsPerBlock / (ceil(problem_size/32.0)*32));
-		if (available_registers < REGISTERS_IN_USE)
-		{
-			std::cout << "Too many threads per block. Remedy: Increase the peak_cutoff parameters and therefore the support of the wavelet or compile with maxrregcount option." << std::endl;
-			exit(-1); 
-		};
-
-		//std::cout << "problem size: " << problem_size << "\t" << from_max_to_left_ << "\t" << from_max_to_right_ << "\t" << wavelet_length << std::endl; 
-
+		to_load_ = problem_size + from_max_to_left_ + from_max_to_right_;	
+		
 		data_length_ = pre_intensities.size(); // number of original data points
+		//std::cout << "problem_size: " << problem_size << "\t" << (data_length_ % problem_size) << std::endl; 
 		UInt missing_points = problem_size - (data_length_ % problem_size);
 		overall_size_ = wavelet_length-1+data_length_+missing_points;
+		//std::cout << "overall_size_: " << overall_size_ << "\t" << wavelet_length << "\t" << data_length_ << "\t" << missing_points << std::endl;
 
-		//std::cout << "overall_size_: " << overall_size_ << std::endl;
-
+		//to_load_ += missing_points;
 
 		num_elements_ = overall_size_;
-		dev_num_elements_ = 1; Int tmp = overall_size_ >> 1;
+		Int dev_num_elements = 1, tmp = overall_size_ >> 1;
 
-    // Get power of 2 elements, pad with negative infinity
-    while (tmp) {
-        dev_num_elements_ <<= 1;
+    //Get power of 2 elements (necessary for the sorting algorithm)
+    while (tmp) 
+		{
+        dev_num_elements <<= 1;
         tmp >>= 1;
-    }
+    };
 
-    if (num_elements_ > dev_num_elements_)
-        dev_num_elements_ <<= 1;
+    if (num_elements_ > dev_num_elements)
+    {
+	    dev_num_elements <<= 1;
+		};
 
-    if (dev_num_elements_ < MIN_SORT_SIZE)
-        dev_num_elements_ = MIN_SORT_SIZE;
+    if (dev_num_elements < Constants::CUDA_MIN_SORT_SIZE)
+    {
+	    dev_num_elements = Constants::CUDA_MIN_SORT_SIZE;
+		};
 
-		overall_size_ = dev_num_elements_;
-		//std::cout << "overall size: " << overall_size_ << std::endl;
+		overall_size_ = dev_num_elements;
 
+		//std::cout << "overall_size: " << overall_size_ << "\t from_max_to_left_: " << from_max_to_left_ << "\t from_max_to_right_: " << from_max_to_right_ << "\t data_length_: " << data_length_ 
+		//	<< "\t dev_num_elements-num_elements_: " << dev_num_elements-num_elements_ << std::endl;
 
 
 		cuda_intensities_.resize (overall_size_, 0); cuda_positions_.resize (overall_size_, 0);
-		// pad the values to the left; the positions should not matter if the values are zero
+		//Pad the values to the left; the positions should not matter if the values are zero
 		float first_pos = pre_positions[0];
 		for (UInt i=0; i<from_max_to_left_; ++i)
 		{
-			cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing;
-		}
+			cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing_;
+		};
 
 		for (UInt i=0; i<data_length_; ++i)
 		{
@@ -978,87 +963,71 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 		
 		float last_pos = pre_positions[pre_positions.size()-1];
-		for (UInt i=0; i<missing_points + from_max_to_right_ + dev_num_elements_ - num_elements_; ++i)
+		for (UInt i=0; i<missing_points + from_max_to_right_ + dev_num_elements - num_elements_; ++i)
 		{
-			cuda_positions_[from_max_to_left_+data_length_+i] = last_pos + (i+1)*min_spacing;
-		}
-
-
-		//std::cout << "largest mz: " << cuda_positions_[overall_size_-1] << std::endl;
-		max_cutoff_ =  getPeakCutOff(cuda_positions_[overall_size_-1], maxCharge);
-		//std::cout << "new max_cutoff : " << max_cutoff_ << std::endl;
+			cuda_positions_[from_max_to_left_+data_length_+i] = last_pos + (i+1)*min_spacing_;
+		};
 
 		#ifdef DEBUG_FEATUREFINDER				
-		std::stringstream name; name << "test_" << scan.getRT() << ".out\0"; 
+		std::stringstream name; name << "cuda_input_" << scan.getRT() << ".out\0"; 
 			std::fstream outfile(name.str().c_str(), std::ios::out);
 			for (size_t i=0; i<overall_size_; ++i)
 				outfile << cuda_positions_[i] << " " << cuda_intensities_[i] << std::endl;
 			outfile.close();
 		#endif
 
-		dimBlock_ = dim3 (problem_size);
-		/////das ceil und den cast koennen wir uns vermutlich sparen, oder? data_length_ und problem_size sind beide int und
-		/////eigentlich sollte die Devision aufgehen, oder?
 		
+		dimBlock_ = dim3 (Constants::CUDA_BLOCK_SIZE_MAX);
+		to_compute_ = problem_size;
 
-
+		//std::cout << "BlockSize: " << dimBlock_.x << "\t to load: " << to_load_  << "\t to compute: " << to_compute_ << std::endl; 
 
 		//dimGrid_ = dim3 ((size_t)ceil(overall_size_/(float)problem_size)-1);
-		dimGrid_ = dim3 ((size_t)ceil((overall_size_-(dev_num_elements_ - num_elements_))/(float)problem_size)-1);
+		//dimGrid_ = dim3 ((size_t)ceil((overall_size_-(dev_num_elements - num_elements_))/(float)problem_size));
+		dimGrid_ = dim3 ((data_length_+missing_points)/problem_size);
+		//std::cout << "griddim: " << dimGrid_.x << "\t blockdim: " << dimBlock_.x <<  std::endl;
 
+		(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
 
+		(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
+		(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
 
+		(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
+		(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
 
-		//we need the minus one, since we added artificially size of 'wavelet_length' data points
-		//std::cout << dimGrid_.x << "\t" << dimGrid_.y << "\t" << dimGrid_.z << "\t" << (size_t)ceil(overall_size_/(float)problem_size-1) << std::endl;
+		(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
+		
+		(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
 
-		// pull the data to the device
-		/////sollen wir daraus nicht einfach vektoren machen?
+		(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
 
-		//std::cout << "Overall Block size: " << block_size_ << "\t Number of threads per block: " << problem_size << "\t Number of Blocks: " << dimGrid_.x << std::endl;
+		c_sorted_candidate_.resize (overall_size_);
+		scores_.resize(data_length_);
+		zeros_.resize(overall_size_);
+		memset (&zeros_[0], 0., overall_size_*sizeof(float)); 
 
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
-
-
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
-		// the result on the device
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
-	
-		std::vector<float> rotz (overall_size_, 0);
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_, &rotz[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
-		c_sorted_candidate_.resize (dev_num_elements_);
-
-		CUDA_SAFE_CALL(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+		(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
 	}
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
 	{
-		std::vector<float> rotz (overall_size_, 0);
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_, &rotz[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+		std::vector<float> res (overall_size_, 0);
+		(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+		(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
 		
-		std::vector<float> result(overall_size_, 0);
-		
-		//std::cout << "moep: " << dimGrid_.x << "\t" << dimBlock_.x << "\t" << overall_size_ << "\t" << c+1 << std::endl; 
-
 		getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
-			c+1, block_size_, peak_cutoff_intercept_, peak_cutoff_slope_);
+			c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);
 	
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
-		CUDA_SAFE_CALL(cudaThreadSynchronize());	
+		//(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+		(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_fwd2_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+		(cudaThreadSynchronize());	
 
-		CUDA_SAFE_CALL(cudaMemcpy(&(result[0]), cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToHost));
-
-		for (UInt i=from_max_to_left_; i<from_max_to_left_+data_length_; ++i)
+		(cudaMemcpy(&(res[0]), (float*)cuda_device_trans_intens_+from_max_to_left_, data_length_*sizeof(float), cudaMemcpyDeviceToHost));
+		
+		for (UInt i=0; i<data_length_; ++i)
 		{
-			c_trans[i-from_max_to_left_].setIntensity (result[i]); 
+			c_trans[i].setIntensity (res[i]);
 		};
 	}
 
@@ -1066,35 +1035,19 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	template <typename PeakType>
 	int IsotopeWaveletTransform<PeakType>::cudaSort (MSSpectrum<PeakType>& sorted)
 	{
-		//std::cout << "SORTIERE ............................................................." << std::endl;
 
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], dev_num_elements_*sizeof(int), cudaMemcpyHostToDevice));
-		int index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, dev_num_elements_, 0);
-		CUDA_SAFE_CALL(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_, sizeof(float) * dev_num_elements_, cudaMemcpyDeviceToHost));
-		CUDA_SAFE_CALL(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_, sizeof(int) * dev_num_elements_, cudaMemcpyDeviceToHost));
+		(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], overall_size_*sizeof(int), cudaMemcpyHostToDevice));
+		Int gpu_index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, overall_size_, 0);
+		(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_+gpu_index, sizeof(float) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
+		(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_+gpu_index, sizeof(int) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
 
-
-		/*std::ofstream ofile ("vieb");
-		for (Int i=0; i<dev_num_elements_; ++i)
+		for (UInt i=0; i<(overall_size_-gpu_index); ++i)
 		{
-			ofile << h_data_[i] << "\t" << h_pos_[i] << "\t" << cuda_positions_[h_pos_[i]] << std::endl;
-		};
-		ofile.close();*/
-
-		//cudaFree(cuda_device_trans_intens_sorted_);
-		for (Int i=0; i<dev_num_elements_; ++i)
-		{
-			//if (i < dev_num_elements_-num_elements_)
-				//cout << "Omitting: " << cuda_positions_[h_pos_[i]] << "\t" << h_data_[i] << std::endl;
-			//std::cout << dev_num_elements_ << std::endl;
-			//std::cout << "i:" << i << "\t" << h_data_[i] << std::endl;
 			sorted[i].setIntensity (h_data_[i]);
-			//std::cout << "i: " << i << "\t" << h_pos_[i] << std::endl;
-			//std::cout << "i: " << i << "\t" << h_pos_[i] << "\n"; //<< cuda_positions_[h_pos_[i]] << std::endl;
 			sorted[i].setMZ (cuda_positions_[h_pos_[i]]);
 		};
 	
-		return (index);
+		return (gpu_index);
 	}
 
 
@@ -1116,7 +1069,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
 		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than 
-		//QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
+		//Constants::IW_QUARTER_NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
 		//causing the upcoming code to crash since suddenly some m/z positions will occur twice. The interval of multiple 
 		//occurring points is stored by multiple_s and implicitly by i.
 		std::vector<int> multiple_s (max_charge, -1);
@@ -1124,12 +1077,12 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				
 		//Determine the wavelet_length in advance since it is not depending on the m/z position
 		//(as it is for the isotope wavelet)
-		wavelet_length = (UInt) floor(MARR_CUTOFF*CoupledMarrWavelet::getSigma()/av_MZ_spacing_);
+		wavelet_length = (UInt) floor(Constants::MARR_WAVELET_CUTOFF*CoupledMarrWavelet::getSigma()/av_MZ_spacing_);
 	
 		if (wavelet_length > scan_size || wavelet_length <= 0)
 		{		
 			std::cerr << "Unable to sample an appropriate wavelet." << std::endl;
-			std::cerr << "This is most probably no bug, since: cutoff=" << MARR_CUTOFF*CoupledMarrWavelet::getSigma()
+			std::cerr << "This is most probably no bug, since: cutoff=" << Constants::MARR_WAVELET_CUTOFF*CoupledMarrWavelet::getSigma()
 				<< " and av m/z spacing=" << av_MZ_spacing_ << std::endl;
 			std::cerr << "@Rene: replace this error message by some error handling stuff!" << std::endl;
 			std::cerr << "Returning." << std::endl;
@@ -1169,7 +1122,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 				//The upcoming variable holds the position of the spectrum that is aligned with the monoisotopic 
 				//maximum of the wavelet. We do not add the overall correction term for the left shift at this point, 
-				//since we will get trouble by the NEUTRON_MASS and the resulting numerical instabilities. 
+				//since we will get trouble by the Constants::IW_NEUTRON_MASS and the resulting numerical instabilities. 
 				//We will add this correcting term at the end of the whole processing.
 				//std::cout << "Setting max postion to: " << scan[i].getMZ() << "\t" << j << std::endl;
 				max_position_scan = scan[i].getMZ();
@@ -1187,7 +1140,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				//std::ofstream ofile (name.str().c_str());
 				for (UInt r=0; r<peak_cutoff; ++r)
 				{
-					tmp_iter = scan.MZBegin(scan[i].getMZ()+r*NEUTRON_MASS/c_charge);
+					tmp_iter = scan.MZBegin(scan[i].getMZ()+r*Constants::IW_NEUTRON_MASS/c_charge);
 					if (tmp_iter == scan.end())
 					{
 						break;
@@ -1264,25 +1217,43 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		UInt peak_cutoff=0;
 		UInt cands_size=candidates.size();
 		UInt signal_size=candidates[0].size(); 
-		typename DPeakConstReferenceArray<MSSpectrum<PeakType> >::iterator iter, bound_iter;
-		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter, iter2;
-		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
-	 	UInt help_dist, MZ_start, MZ_end;
+		typename DPeakConstReferenceArray<MSSpectrum<PeakType> >::iterator iter;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
+	 	UInt MZ_start, MZ_end;
 			
+
+		
 		//For all charges do ...
 		for (Size c=0; c<cands_size; ++c)
 		{
-			DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (candidates[c].begin(), candidates[c].end());
-			
+
+			MSSpectrum<PeakType> diffed (candidates[c]);
+			diffed[0].setIntensity(0); diffed[signal_size-1].setIntensity(0);
+			for (unsigned int i=0; i<signal_size-2; ++i)
+			{
+				share = diffed[i+1].getIntensity(), share_pos = diffed[i+1].getMZ();
+				bwd = (share-diffed[i].getIntensity())/(share_pos-diffed[i].getMZ());
+				fwd = (diffed[i+2].getIntensity()-share)/(diffed[i+2].getMZ()-share_pos);
+				if (bwd<0 || fwd>0)
+				{
+					diffed[i+1].setIntensity(0);
+				};
+			};
+
+
+			//DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (candidates[c].begin(), candidates[c].end());
+			DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
+
 			//Sort the transform in descending order according to the intensities present in the transform
 			c_sorted_candidate_.sortByIntensity();
 			//sort (c_sorted_candidate_.begin(), c_sorted_candidate_.end(), intensityComparator<PeakType>);
 
-			std::vector<DoubleReal> processed (signal_size, 0);
+			std::vector<UInt> processed (signal_size, 0);
 
 			if (ampl_cutoff < 0)
 			{
-				threshold=EPSILON_ION_COUNTS;
+				threshold=0;
 			}
 			else
 			{
@@ -1291,46 +1262,37 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				threshold=ampl_cutoff*c_sd_intens + c_av_intens;
 			};
 
-			//Eliminate uninteresting regions
-			for (bound_iter=c_sorted_candidate_.begin(); bound_iter != c_sorted_candidate_.end(); ++bound_iter)
-			{
-				if (bound_iter->getIntensity() > 0)
+			for (iter=c_sorted_candidate_.end()-1; iter != c_sorted_candidate_.begin(); --iter)
+			{					
+				if (iter->getIntensity() <= 0)
 				{
 					break;
 				};
-			};
-			
-			for (iter=c_sorted_candidate_.end()-1; iter != bound_iter; --iter)
-			{
-				seed_mz=iter->getMZ();
-				if ((help_iter = candidates[c].MZBegin(seed_mz)) == candidates[c].end()) //might be caused due to numerical effects (only at the end of a spectrum), do not remove this
+		
+				seed_mz = iter->getMZ();
+				seed_iter = ref.MZBegin(seed_mz);
+
+				if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)])
 				{
 					continue;
 				};
-				if (processed[distance(candidates[c].begin(), help_iter)] > iter->getIntensity())
-				{ 	
-					continue;
-				};
-
+				 
 				peak_cutoff = getPeakCutOff (seed_mz, c+1);
 				//Mark the region as processed
 				//Do not move this further down, since we have to mark this as processed in any case,
 				//even when score <=0; otherwise we would look around the maximum's position unless
 				//any significant point is found
-				iter_start = candidates[c].MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
-				iter_end = candidates[c].MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
-				if (iter_end == candidates[c].end())
+				iter_start = ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				if (iter_end == ref.end())
 				{
 					--iter_end;
 				};
-
+								
+				MZ_start = distance (ref.begin(), iter_start);
+				MZ_end = distance (ref.begin(), iter_end);
 		
-				for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
-				{
-					help_dist = distance(candidates[c].begin(), iter_p);
-					processed[help_dist] = processed[help_dist] >= iter->getIntensity() ?  processed[help_dist] : iter->getIntensity();
-				};
-
+				memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
 
 				c_score = scoreThis_ (candidates[c], peak_cutoff, seed_mz, c, iter->getIntensity(), threshold);
 
@@ -1340,32 +1302,41 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				};
 
 
-				MZ_start = distance (candidates[c].begin(), iter_start);
-				MZ_end = distance (candidates[c].begin(), iter_end);
-
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
-				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
-				for (Int h=-2; h<=2; ++h)
+				
+				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), MZ_start, MZ_end);
+	
+				help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+				iter2 = candidates[c].MZBegin (help_mz);
+				if (iter2 == candidates[c].end() || iter2 == candidates[c].begin())
 				{
-					if (h!=0)
-					{
-						help_mz = seed_mz + h*NEUTRON_MASS/(c+1.);
-						iter2 = candidates[c].MZBegin (help_mz);
-						if (iter2 == candidates[c].end())
-						{
-							break;
-						};
+					continue;
+				};
 
-						if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
-						//In the other case, we are too close to the peak, leading to incorrect derivatives.
-						{
-							if (iter2 != candidates[c].end())
-							{
-								push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
-							}
-						}
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates[c].end())
+					{
+						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+					};
+				};
+			
+				help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
 					}
+				iter2 = candidates[c].MZBegin (help_mz);
+				if (iter2 == candidates[c].end()|| iter2 == candidates[c].begin())
+				{
+					continue;
+				};
+
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates[c].end())
+					{
+						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 
 		clusterSeeds_(candidates, ref, scan_index, candidates.size(), use_cmarr);
 	}
@@ -1376,101 +1347,62 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	void IsotopeWaveletTransform<PeakType>::identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
 		const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr)
 	{
-		UInt peak_cutoff=0; 	
+		UInt peak_cutoff, index, MZ_start, MZ_end;
 		typename MSSpectrum<PeakType>::iterator iter, bound_iter;
-		
-		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter, iter2;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, iter2, seed_iter;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
-	 	UInt MZ_start, MZ_end, help_dist;
 					
-		int gpu_index = cudaSort (c_sorted_candidate_);
-		std::vector<DoubleReal> processed (candidates.size(), 0);
+		Int gpu_index = cudaSort (c_sorted_candidate_), c_index;
+		std::vector<UInt> processed (data_length_, 0);
 		if (ampl_cutoff < 0)
 		{
-			threshold=EPSILON_ION_COUNTS;
+			threshold=0;
 		}
 		else
-		{				
-			c_av_intens = getAvIntens_ (c_sorted_candidate_);
-			c_sd_intens = getSdIntens_ (c_sorted_candidate_, c_av_intens);
+		{			
+			c_av_intens = getAvIntens_ (candidates);
+			c_sd_intens = getSdIntens_ (candidates, c_av_intens);
 			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
 		};		
 	
 		Int num_of_scores = overall_size_-gpu_index;
-		std::vector<float> scores (num_of_scores, 0);	
-		CUDA_SAFE_CALL(cudaMemcpy(cuda_device_scores_, &scores[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
+	
+		(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
 	
 		scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
-			c, num_of_scores, dev_num_elements_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_);
+			c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_cutoff_, min_spacing_);
 		
-		CUDA_SAFE_CALL(cudaMemcpy(&scores[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
+		(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
 
-		
-
-		std::vector<DoubleReal> bwd_diffs(candidates.size(), 0), fwd_diffs(candidates.size(), 0);
-		bwd_diffs[0]=0;
-		for (UInt i=1; i<candidates.size(); ++i)
-		{
-			bwd_diffs[i] = (candidates[i].getIntensity()-candidates[i-1].getIntensity())/(candidates[i].getMZ()-candidates[i-1].getMZ());
-		};		
-		if (candidates.size() >= 1) fwd_diffs[candidates.size()-1]=0;
-		for (UInt i=0; i<candidates.size()-1; ++i)
-		{					
-			fwd_diffs[i] = (candidates[i+1].getIntensity()-candidates[i].getIntensity())/(candidates[i+1].getMZ()-candidates[i].getMZ());
-		};
-
-
-		std::vector<float>::iterator score_iter = scores.end()-1;
-		Int index, c_index;
-		for (c_index = overall_size_-1; c_index >= gpu_index; --c_index, --score_iter)
+		std::vector<float>::iterator score_iter;
+		for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
 		{				
 			seed_mz = c_sorted_candidate_[c_index].getMZ();
+			seed_iter = ref.MZBegin(seed_mz);
+			index = distance(ref.begin(), seed_iter);
 
-			if ((help_iter = candidates.MZBegin(seed_mz)) == candidates.end()) //might be caused due to numerical effects (only at the end of a spectrum), do not remove this
+			if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)] || index <= 0)
 			{
 				continue;
 			};
 			
-			if (processed[distance(candidates.begin(), help_iter)] > c_sorted_candidate_[c_index].getIntensity())
-			{ 	
-				continue;
-			};
-
-			index = distance(candidates.begin(), candidates.MZBegin(seed_mz));
-			if (bwd_diffs[index]<=0 || fwd_diffs[index]>=0)
-			{
-				continue;
-			};
-
 			peak_cutoff = getPeakCutOff (seed_mz, c+1);
 			//Mark the region as processed
 			//Do not move this further down, since we have to mark this as processed in any case, 
 			//even when score <=0; otherwise we would look around the maximum's position unless 
 			//any significant point is found
-			iter_start = candidates.MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
-			iter_end = candidates.MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
-			if (iter_end == candidates.end())
+			iter_start =ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+			iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+
+			if (iter_end == ref.end())
 			{
 				--iter_end;
 			};
 		
-			for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
-				{
-					help_dist = distance(candidates.begin(), iter_p);
+			MZ_start = distance (ref.begin(), iter_start);
+			MZ_end = distance (ref.begin(), iter_end);
 
-					if ( processed[help_dist] >=  c_sorted_candidate_[c_index].getIntensity())
-					{				
-	
-					}
-					else
-					{
-						if (processed[help_dist] != 0)
-						{
-							std::cout << "Doch!!!!!" << std::endl;
-						};
-						processed[help_dist] =   c_sorted_candidate_[c_index].getIntensity();
-					};
-				};			
+			memset(&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
 
 			c_score = *score_iter;
 			if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
@@ -1478,38 +1410,53 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				continue;
 			};
 
-			MZ_start = distance (candidates.begin(), iter_start);
-			MZ_end = distance (candidates.begin(), iter_end);
 
 			//Push the seed into its corresponding box (or create a new one, if necessary)
 			//Do ***NOT*** move this further down!
-			//push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
-			push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+			push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
+				
 
-			for (Int h=-2; h<=2; ++h)
+			//Push neighboring peaks to compute finally a derivative over the isotope pattern envelope				
+			help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+
+			if (iter2 == candidates.end() || iter2 == candidates.begin())
 			{
-				if (h!=0)
-				{
-					help_mz = seed_mz + h*NEUTRON_MASS/(c+1.);
-					iter2 = candidates.MZBegin (help_mz);
-					if (iter2 == candidates.end())
-					{
-						break;
-					};
+				continue;
+			};
 
-					if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
-					//In the other case, we are too close to the peak, leading to incorrect derivatives.
-					{
-						if (iter2 != candidates.end())
-						{
-							push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
-						};
-					};
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), candidates.getRT(), MZ_start, MZ_end);
+				};
+			};
+
+
+			help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+
+			if (iter2 == candidates.end() || iter2 == candidates.begin())
+			{
+				continue;
+			};
+
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation((iter2-1), help_mz, (iter2)), candidates.getRT(), MZ_start, MZ_end);
 				};
 			};
 		};
-	
+		
 		clusterCudaSeeds_(candidates, ref, scan_index, c, use_cmarr);
+	
 	}
 
 
@@ -1596,7 +1543,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 
 		#ifdef DEBUG_FEATUREFINDER
-			if (trunc(c_mzs_[0]) == 680 || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1808 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
+			if (trunc(c_mzs_[0]) == 573)// || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1808 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
 			{
 				std::stringstream stream; stream << "wavelet_" << c_mzs_[0] << "_" << charge << ".dat\0";
 				std::ofstream ofile (stream.str().c_str());
@@ -1681,8 +1628,8 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const MSSpectrum<PeakType>& candidate,
 		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff)
 	{
-		DoubleReal c_score=0, /*c_check_point=-1,*/ c_val;
-		typename MSSpectrum<PeakType>::const_iterator /*c_left_iter, c_right_iter, */c_left_iter2, c_right_iter2;
+		DoubleReal c_score=0, c_val;
+		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
 		Int signal_size = candidate.size();
 
 		//p_h_ind indicates if we are looking for a whole or a peak
@@ -1691,69 +1638,23 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		std::vector<DoubleReal> positions (end);
 		for (Int i=0; i<end; ++i)
 		{
-			positions[i] =  seed_mz-((peak_cutoff-1)*NEUTRON_MASS-(i+1)*HALF_NEUTRON_MASS)/((DoubleReal)c+1);
+			positions[i] =  seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(i+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1);
 		};
 
 		Int start_index = distance(candidate.begin(), candidate.MZBegin (positions[0]))-1;
-		if (start_index < -1)
-		{
-			std::cout << "Uppps, this case should never happen: negativ start_index in scoreThis (on CPU)." << std::endl;
-			return (0);
-		};
-
-		//std::cout << start_index << "\t" << distance(candidate.begin(), candidate.MZBegin (positions[0])) -1 << std::endl;
-		//std::cout << "********************" << std::endl;
-
-		//bool broken=false;
 		for (Int v=1; v<=end; ++v, ++p_h_ind)
 		{		
-			//c_left_iter = candidate.MZBegin (c_check_point); 			
-
 			do 
 			{
 				if (start_index < signal_size-1) ++start_index;
 				else return (0);
 			} while (candidate[start_index].getMZ() < positions[v-1]);
 			
-			//std::cout << v << "\t" << c_check_point << "\t" << positions[v-1] << "\t\t" << *c_left_iter << "\t\t" << candidate[start_index] << std::endl;
 			c_left_iter2 = candidate.begin()+start_index;
-
-			/*if (c_left_iter == candidate.begin()) continue;
-			if (c_left_iter == candidate.end()) return(0);		
-			while (c_left_iter->getMZ() > c_check_point)
-			{
-				if (--c_left_iter == candidate.begin() && c_left_iter->getMZ() > c_check_point)
-				{
-					broken=true;
-					break;
-				};
-			};
-			if (broken)
-			{
-				broken=false;	
-				continue;
-			};*/
-			
 			--c_left_iter2;	
 			c_right_iter2 = c_left_iter2+1;
 
-			//c_right_iter = c_left_iter+1;
-			//if (c_right_iter == candidate.end()) continue;
-
-			//if (c_left_iter != c_left_iter2 || c_right_iter != c_right_iter2)
-				//std::cout <<  ::std::setprecision(8) << std::fixed << *c_left_iter << "\t" << *c_left_iter2 << "\t\t\t\t" << *c_right_iter << "\t" << *c_right_iter2 << std::endl;
-
-			//linear interpolation
-			//c_val = c_left_iter->getIntensity() + (c_right_iter->getIntensity() - c_left_iter->getIntensity())/(c_right_iter->getMZ() - c_left_iter->getMZ()) * (c_check_point-c_left_iter->getMZ()); 	
 			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
-			//std::cout << "lin: " << c_left_iter->getMZ() << "\t" << c_check_point << " " << c_val << "\t" << c_right_iter->getMZ() << std::endl;		
-			
-
-			//DoubleReal c_check_point = seed_mz-((peak_cutoff-1)*NEUTRON_MASS-v*HALF_NEUTRON_MASS)/((DoubleReal)c+1);	
-			//std::cout << "CPU Score: " << seed_mz << "\t" << "\t" << c_check_point << "\t" << c_right_iter2->getMZ() << "\t" << c_left_iter2->getMZ() << "\t" <<  c_right_iter2->getIntensity() << "\t" <<  c_left_iter2->getIntensity() << std::endl;
-			
-
-			//std::cout <<  ::std::setprecision(8) << std::fixed << "Candidate: " << seed_mz << "\t" << positions[v-1]  << "\t\t\t" << c_val << std::endl;		
 			
 			if (p_h_ind%2 == 1) //I.e. a whole
 			{
@@ -1784,6 +1685,212 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	}
 
 
+	template<typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThisAlternative_ (const MSSpectrum<PeakType>& candidate, 
+		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) 
+	{
+		const UInt c_check_point = 1606, c_check_charge = 1; 
+
+		IsotopeDistribution::ContainerType heights = IsotopeWavelet::getAveragine (seed_mz*(c+1.), NULL);
+		DoubleReal max=0;
+		for (unsigned int i=0; i<heights.size(); ++i)
+		{
+			max = std::max (heights[i].second, max);
+		};
+		for (unsigned int i=0; i<heights.size(); ++i)
+		{
+			heights[i].second /= max/intens;
+		};
+
+		std::vector<DoubleReal> theo_conv (4*peak_cutoff-2), pos(4*peak_cutoff-2), real_conv; DoubleReal c_val, c_pos, c_tz, lambda = IsotopeWavelet::getLambdaQ(seed_mz*(c+1));
+	
+		for (unsigned int i=0; i<peak_cutoff; ++i) //wavelet
+		{
+			c_val = 0;
+			c_pos = seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(i)*Constants::IW_NEUTRON_MASS)/((DoubleReal)c+1);
+			pos[i*2+1] = c_pos;
+			for (unsigned int j=0; j<=i; ++j) //pattern
+			{
+				c_tz = Constants::IW_QUARTER_NEUTRON_MASS+(peak_cutoff-1-(i-j))*Constants::IW_NEUTRON_MASS;
+				if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+					std::cout << ::std::setprecision(8) << std::fixed << j << "\t" << c_tz << "\t\t" << heights[j].second << "\t" 
+						<< (c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0) << std::endl;
+				c_val += heights[j].second*(c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0);
+			};
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+			{
+				std::cout << "***\t" << c_pos << "\t" << c_val << std::endl;
+			};	
+
+			theo_conv[i*2+1] = c_val;
+		};
+		for (unsigned int i=0; i<peak_cutoff; ++i) //wavelet
+		{
+			c_val = 0;
+			c_pos = seed_mz-((peak_cutoff-0.5)*Constants::IW_NEUTRON_MASS-(i)*Constants::IW_NEUTRON_MASS)/((DoubleReal)c+1);
+			pos[i*2] = c_pos;
+			for (unsigned int j=0; j<=i; ++j) //pattern
+			{
+				c_tz = Constants::IW_HALF_NEUTRON_MASS+Constants::IW_QUARTER_NEUTRON_MASS+(peak_cutoff-1-(i-j))*Constants::IW_NEUTRON_MASS;
+				if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+					std::cout << ::std::setprecision(8) << std::fixed << j << "\t" << c_tz << "\t\t" << heights[j].second << "\t" 
+						<< (c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0) << std::endl;
+				c_val += heights[j].second*(c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0);
+			};
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+			{
+				std::cout << "***\t" << c_pos << "\t" << c_val << std::endl;
+			};	
+
+			theo_conv[i*2] = c_val;
+		};
+
+		for (unsigned int j=1; j<peak_cutoff; ++j) //pattern
+		{
+			c_val = 0;
+			c_pos = seed_mz+(j*Constants::IW_NEUTRON_MASS)/((DoubleReal)c+1);
+			pos[2*peak_cutoff+(j-1)*2+1] = c_pos;
+			for (unsigned int i=0; i<peak_cutoff-j; ++i) //wavelet
+			{
+				c_tz = Constants::IW_QUARTER_NEUTRON_MASS+(i)*Constants::IW_NEUTRON_MASS;
+				if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+					std::cout << ::std::setprecision(8) << std::fixed << j+i << "\t" << c_tz << "\t\t" << heights[j+i].second << "\t"
+						<<  (c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0) << std::endl;
+				c_val += heights[j+i].second*(c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0);
+			};
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+			{
+				std::cout <<  "***\t" << c_pos << "\t" << c_val << std::endl;
+			};	
+			theo_conv[2*peak_cutoff+(j-1)*2+1] = c_val;
+		};
+
+		for (unsigned int j=1; j<peak_cutoff; ++j) //pattern
+		{
+			c_val = 0;
+			c_pos = seed_mz+(-Constants::IW_HALF_NEUTRON_MASS+j*Constants::IW_NEUTRON_MASS)/((DoubleReal)c+1);
+			pos[2*peak_cutoff+(j-1)*2] = c_pos;
+			for (unsigned int i=0; i<peak_cutoff-j; ++i) //wavelet
+			{
+				c_tz = Constants::IW_HALF_NEUTRON_MASS+Constants::IW_QUARTER_NEUTRON_MASS+(i)*Constants::IW_NEUTRON_MASS;
+				if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+					std::cout << ::std::setprecision(8) << std::fixed << j+i << "\t" << c_tz << "\t\t" << heights[j+i].second << "\t"
+						<<  (c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0) << std::endl;
+				c_val += heights[j+i].second*(c_tz > 0 ? IsotopeWavelet::getValueByLambdaExact (lambda, c_tz+1) : 0);
+			};
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+			{
+				std::cout <<  "***\t" << c_pos << "\t" << c_val << std::endl;
+			};	
+			theo_conv[2*peak_cutoff+(j-1)*2] = c_val;
+		};
+
+		std::stringstream stream; stream << "score_" << seed_mz << "_" << c+1 << "\0";
+		std::ofstream ofile (stream.str().c_str());
+		for (unsigned int i=0; i<theo_conv.size(); ++i)
+		{
+			ofile << pos[i] << "\t" << theo_conv[i] << std::endl;
+		};
+		ofile.close();
+
+		DoubleReal c_theo_score=0, c_score=0;
+
+		for (unsigned int i=0; i<theo_conv.size(); ++i)
+		{
+			c_theo_score += fabs(theo_conv[i]);
+		};
+
+
+
+		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
+		Int signal_size = candidate.size();
+
+		//p_h_ind indicates if we are looking for a whole or a peak
+		Int p_h_ind=1, end=4*(peak_cutoff)-2; //4 times and not 2 times, since we move by 0.5 m/z entities
+
+		std::vector<DoubleReal> positions (end);
+		for (Int i=0; i<end; ++i)
+		{
+			positions[i] =  seed_mz-((peak_cutoff)*Constants::IW_NEUTRON_MASS-(i+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1);
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+			{
+				std::cout << positions[i] << std::endl;
+			};	
+		};
+
+		Int start_index = distance(candidate.begin(), candidate.MZBegin (positions[0]))-1;
+		for (Int v=1; v<=end; ++v, ++p_h_ind)
+		{		
+			do 
+			{
+				if (start_index < signal_size-1) ++start_index;
+				else return (0);
+			} while (candidate[start_index].getMZ() < positions[v-1]);
+			
+			c_left_iter2 = candidate.begin()+start_index;
+			--c_left_iter2;	
+			c_right_iter2 = c_left_iter2+1;
+
+			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
+			
+			if (p_h_ind%2 == 1) //I.e. a whole
+			{
+				c_score -= c_val;
+				real_conv.push_back(c_val);
+			}
+			else
+			{
+				c_score +=c_val;
+				real_conv.push_back(c_val);
+			};	
+
+			start_index = distance(candidate.begin(), c_left_iter2);
+		};
+
+		if (c_score <= 0 || c_theo_score <= 0)
+		{
+			return (0);
+		};
+
+		DoubleReal pearson=0, sum_x=0, sum_y=0, sum_x2=0, sum_y2=0, sum_xy=0;
+		for (unsigned int i=0; i< theo_conv.size(); ++i)
+		{	
+			if (trunc(seed_mz) == c_check_point && c+1 ==c_check_charge)
+				std::cout << "corr: " <<  pos[i] << "\t" << theo_conv[i] << "\t" << real_conv[i] << std::endl;
+			sum_xy += theo_conv[i]*real_conv[i];
+			sum_x += theo_conv[i];
+			sum_y += real_conv[i];
+			sum_x2 += theo_conv[i]*theo_conv[i];
+			sum_y2 += real_conv[i]*real_conv[i];
+		};
+
+		pearson = ( theo_conv.size() * sum_xy - sum_x*sum_y ) / (sqrt(theo_conv.size()*sum_x2 - sum_x*sum_x) * sqrt(theo_conv.size()*sum_y2 - sum_y*sum_y));
+
+		DoubleReal final_percent = fabs(c_score-c_theo_score)/(2.*(c_score+c_theo_score))*100;
+	
+		//#ifdef DEBUG_FEATUREFINDER	
+			std::ofstream ofile_score ("scores.dat", ios::app);
+			std::ofstream ofile_check_score ("check_scores.dat", ios::app);
+			ofile_score << seed_mz << "\t" << c_theo_score << "\t" << c_score << "\t" << final_percent << "\t" << pearson << std::endl;
+
+			ofile_score.close();
+			ofile_check_score.close();
+		//#endif
+
+		if (pearson < ampl_cutoff)
+		{
+			return (0);
+		};
+
+		/*if (c_score <= ampl_cutoff+intens)
+		{
+			return(0);
+		};*/
+
+		return (c_score);
+	}
+
+
 	/*template<typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::cudaScoreThis_ (const MSSpectrum<PeakType>& candidate, 
 		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) 
@@ -1799,7 +1906,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		UInt i=0; bool broken=false; DoubleReal dist, lambda, y1, y2, help;
 		for (Int v=1; v<end; ++v, ++p_h_ind)
 		{
-			c_check_point = seed_mz-((peak_cutoff-1)*NEUTRON_MASS-v*HALF_NEUTRON_MASS)/((DoubleReal)c+1);
+			c_check_point = seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-v*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1);
 
 			leftBound = c_check_point;
 			rightBound = c_check_point;
@@ -1968,17 +2075,11 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::push2Box_ (const DoubleReal mz, const UInt scan, UInt charge,
+	void IsotopeWaveletTransform<PeakType>::push2Box_ (const DoubleReal mz, const UInt scan, UInt c, 
 		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end)
 	{
-		if (intens <= 0)
-		{
-			#ifdef DEBUG_FEATUREFINDER
-				std::cout << "Warning: detected candidate with zero ion counts at m/z: " << mz << std::endl;
-			#endif
-			return;
-		};
-
+		//std::cout << "in final push2Box: " << mz << std::endl;
+	
 		typename std::multimap<DoubleReal, Box>::iterator upper_iter = open_boxes_.upper_bound(mz);
 		typename std::multimap<DoubleReal, Box>::iterator lower_iter;
 
@@ -2001,7 +2102,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			//then the lower bound for the new mz value is box.end and this would usually force a new entry
 			if (!open_boxes_.empty())
 			{
-				if (fabs((--lower_iter)->first - mz) < HALF_NEUTRON_MASS/(/*charge+*/1.0)) //matching box
+				if (fabs((--lower_iter)->first - mz) < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) //matching box
 				{
 					create_new_box=false;
 					insert_iter = lower_iter;
@@ -2014,7 +2115,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		}
 		else
 		{
-			if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < HALF_NEUTRON_MASS/(/*charge+*/1.0)) //Found matching Box
+			if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) //Found matching Box
 			{
 				insert_iter = lower_iter;
 				create_new_box=false;
@@ -2033,10 +2134,10 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			//Figure out which entry is closer to m/z
 			DoubleReal dist_lower = fabs(lower_iter->first - mz);
 			DoubleReal dist_upper = fabs(upper_iter->first - mz);
-			dist_lower = (dist_lower < HALF_NEUTRON_MASS/(/*charge+*/1.0)) ? dist_lower : INT_MAX;
-			dist_upper = (dist_upper < HALF_NEUTRON_MASS/(/*charge+*/1.0)) ? dist_upper : INT_MAX;
+			dist_lower = (dist_lower < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) ? dist_lower : INT_MAX;
+			dist_upper = (dist_upper < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) ? dist_upper : INT_MAX;
 
-			if (dist_lower>=HALF_NEUTRON_MASS/(/*charge+*/1.0) && dist_upper>=HALF_NEUTRON_MASS/(/*charge+*/1.0)) // they are both too far away
+			if (dist_lower>=Constants::IW_HALF_NEUTRON_MASS/(c+1.0) && dist_upper>=Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) // they are both too far away
 			{
 				create_new_box=true;
 			}
@@ -2048,7 +2149,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 
 		BoxElement element;
-		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
+		element.c = c; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
 		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end;
 
 
@@ -2101,12 +2202,12 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge,
+	void IsotopeWaveletTransform<PeakType>::push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt c, 
 		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end)
 	{
-		std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(charge));
-		typename std::multimap<DoubleReal, Box>::iterator upper_iter = tmp_box.upper_bound(mz);
-		typename std::multimap<DoubleReal, Box>::iterator lower_iter;
+		//std::cout << "Pushing to tmp box: " << mz << "\t scan " << scan+1 << "\t charge " << c+1 << "\t score " << score << std::endl;
+
+		std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(c));
 
 		lower_iter = tmp_box.lower_bound(mz);
 		if (lower_iter != tmp_box.end())
@@ -2127,7 +2228,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			//then the lower bound for the new mz value is box.end and this would usually force a new entry
 			if (!tmp_box.empty())
 			{
-				if (fabs((--lower_iter)->first - mz) < HALF_NEUTRON_MASS) //matching box
+				if (fabs((--lower_iter)->first - mz) < Constants::IW_HALF_NEUTRON_MASS/(c+1.)) //matching box
 				{
 					create_new_box=false;
 					insert_iter = lower_iter;
@@ -2140,7 +2241,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		}
 		else
 		{
-			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < HALF_NEUTRON_MASS) //Found matching Box
+			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < Constants::IW_HALF_NEUTRON_MASS/(c+1.)) //Found matching Box
 			{
 				insert_iter = lower_iter;
 				create_new_box=false;
@@ -2157,10 +2258,10 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			//Figure out which entry is closer to m/z
 			DoubleReal dist_lower = fabs(lower_iter->first - mz);
 			DoubleReal dist_upper = fabs(upper_iter->first - mz);
-			dist_lower = (dist_lower < HALF_NEUTRON_MASS/(charge+1.0)) ? dist_lower : INT_MAX;
-			dist_upper = (dist_upper < HALF_NEUTRON_MASS/(charge+1.0)) ? dist_upper : INT_MAX;
+			dist_lower = (dist_lower < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) ? dist_lower : INT_MAX;
+			dist_upper = (dist_upper < Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) ? dist_upper : INT_MAX;
 
-			if (dist_lower>=HALF_NEUTRON_MASS/(charge+1.0) && dist_upper>=HALF_NEUTRON_MASS/(charge+1.0)) // they are both too far away
+			if (dist_lower>=Constants::IW_HALF_NEUTRON_MASS/(c+1.0) && dist_upper>=Constants::IW_HALF_NEUTRON_MASS/(c+1.0)) // they are both too far away
 			{
 				create_new_box=true;
 			}
@@ -2172,7 +2273,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 
 		BoxElement element;
-		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
+		element.c = c; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
 		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end;
 
 		if (create_new_box == false)
@@ -2209,6 +2310,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			std::pair<UInt, BoxElement> help2 (scan, element);
 			std::multimap<UInt, BoxElement> help3;
 			help3.insert (help2);
+
 			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help4 (mz, help3);
 			tmp_box.insert (help4);
 		};
@@ -2367,7 +2469,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
-	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
+	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, av_abs_intens;
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
@@ -2377,7 +2479,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 			{
 				Box& c_box = iter->second;
-				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
+				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0, av_abs_intens=0;
 				//Now, let's get the RT boundaries for the box
 				for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 				{
@@ -2385,6 +2487,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 					c_RT = box_iter->second.RT;
 					av_score += box_iter->second.score;
 					av_intens += box_iter->second.intens;
+					av_abs_intens += fabs(box_iter->second.intens);
 					av_mz += c_mz*box_iter->second.intens;
 
 					if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
@@ -2393,10 +2496,15 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 					++count;
 				};
 
+				if (count == 0)
+				{
+					continue;
+				};
+
 				av_max_intens = c_box.begin()->second.max_intens;
 				av_intens /= count;
 				//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
-				av_mz /= count*av_intens;
+				av_mz /= av_abs_intens;
 				av_score /= count;
 				av_RT = c_box.begin()->second.RT;
 
@@ -2405,6 +2513,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				c_box_element.c = c;
 				c_box_element.score = av_score;
 				c_box_element.intens = av_intens;
+				av_abs_intens += fabs(box_iter->second.intens);
 				c_box_element.max_intens = av_max_intens;
 				c_box_element.RT=av_RT;
 				final_box.push_back(c_box_element);
@@ -2417,8 +2526,8 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				return;
 			};
 
-			//Computing the derivatives
-			std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0);
+			//Computing the derivative
+			std::vector<DoubleReal> bwd_diffs(num_o_feature, 0);
 
 			bwd_diffs[0]=0;
 			for (Size i=1; i<num_o_feature; ++i)
@@ -2426,23 +2535,16 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
 			};
 
-			if (num_o_feature >= 1) fwd_diffs[num_o_feature-1]=0;
-			for (Size i=0; i<num_o_feature-1; ++i)
-			{
-				fwd_diffs[i] = (final_box[i+1].max_intens-final_box[i].max_intens)/(final_box[i+1].mz-final_box[i].mz);
-			};
-
 			#ifdef DEBUG_FEATUREFINDER
-				std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
+				std::ofstream ofile_bwd ("bwd.dat");
 				for (UInt i=0; i<num_o_feature; ++i)
 				{
-					ofile_fwd << final_box[i].mz << "\t" << fwd_diffs[i] << std::endl;
 					ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
 				};
-				ofile_bwd.close(); ofile_fwd.close();
+				ofile_bwd.close();
 			#endif
 
-			for (Size i=0; i<num_o_feature; ++i)
+			for (UInt i=0; i<num_o_feature-1; ++i)
 			{
 				while (i<num_o_feature-1)
 				{
@@ -2451,7 +2553,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 					++i;
 				};
 
-				if (bwd_diffs[i]>0 && fwd_diffs[i]<0) //at the moment we will only use the forward and the backward differences
+				if (bwd_diffs[i]>0 && bwd_diffs[i+1]<0)
 				{
 					checkPosition_ (candidates[c], ref, final_box[i].mz, final_box[i].c, scan_index, use_cmarr);	
 					continue;
@@ -2470,22 +2572,36 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		typename std::map<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
-	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
+	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 		{	
+			//std::cout << "*************" << std::endl;
+			
 			Box& c_box = iter->second;
-			av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
+			av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
 			//Now, let's get the RT boundaries for the box
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
+				//std::cout << "in clustering: " << box_iter->second.mz	<< "\t" << box_iter->second.RT << "\t" <<  box_iter->second.intens << std::endl;	
+	
+				//Do not use this code!
+				//In the case of a very low-resolved spectrum the use of additional points improves 
+				//the estimated position of the isotope pattern and hence eases to track its
+				//retention profile.
+				/*if (box_iter->second.score == 0)
+				{
+					continue;
+				};*/
+
 				c_mz = box_iter->second.mz;
 				c_RT = box_iter->second.RT;
 				av_score += box_iter->second.score;
 				av_intens += box_iter->second.intens;
-				av_mz += c_mz*box_iter->second.intens;
+				av_abs_intens += fabs(box_iter->second.intens);
+				av_mz += c_mz*fabs(box_iter->second.intens);
 
 				if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
 				if (r_mz < box_iter->second.MZ_end) r_mz=box_iter->second.MZ_end;
@@ -2493,11 +2609,18 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 				++count;
 			};
 
+			if (count == 0)
+			{	
+				continue;
+			};
+
 			av_max_intens = c_box.begin()->second.max_intens;
-			av_intens /= count; 
+			av_intens /= count;		
+			av_score /= count; 
 			//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
-			av_mz /= count*av_intens;
-			av_score /= count;
+			av_mz /= av_abs_intens;
+			//std::cout << "av_mz is now: " << av_mz << std::endl;
+
 			av_RT = c_box.begin()->second.RT;
 
 			BoxElement c_box_element;
@@ -2514,12 +2637,11 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		if (num_o_feature == 0)
 		{
 			tmp_boxes_->at(c).clear();
-			//std::cout << "Leaving through 1" << std::endl;
 			return;
 		};
 
 		//Computing the derivatives
-		std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0);
+		std::vector<DoubleReal> bwd_diffs(num_o_feature, 0);
 
 		bwd_diffs[0]=0;
 		for (UInt i=1; i<num_o_feature; ++i)
@@ -2527,24 +2649,18 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
 		};		
 
-		if (num_o_feature >= 1) fwd_diffs[num_o_feature-1]=0;
-		for (UInt i=0; i<num_o_feature-1; ++i)
-		{					
-			fwd_diffs[i] = (final_box[i+1].max_intens-final_box[i].max_intens)/(final_box[i+1].mz-final_box[i].mz);
-		};
-
 		#ifdef DEBUG_FEATUREFINDER
-			std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
+			std::ofstream ofile_bwd ("bwd.dat");
 			for (UInt i=0; i<num_o_feature; ++i)
 			{
-				ofile_fwd << final_box[i].mz << "\t" << fwd_diffs[i] << std::endl;
 				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
 			};
-			ofile_bwd.close(); ofile_fwd.close();
+			ofile_bwd.close();
 		#endif
 			
-		//std::cout << "Still doing something" << std::endl;
-		for (UInt i=0; i<num_o_feature; ++i)
+
+		//std::cout << "av_mz before loop: " << av_mz << std::endl;
+		for (UInt i=0; i<num_o_feature-1; ++i)
 		{	
 			while (i<num_o_feature-1)
 			{
@@ -2552,17 +2668,19 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 					break;
 				++i;
 			};
+			
+			//std::cout << "Before dev check: " << final_box[i].mz << std::endl;
 
-			if (bwd_diffs[i]>0 && fwd_diffs[i]<0) //at the moment we will only use the forward and the backward differences
-			{
+			if (bwd_diffs[i]>0 && bwd_diffs[i+1]<0)
+			{					
+				//std::cout << "Passing to check box: " << final_box[i].mz << std::endl;
+
 				checkPosition_ (candidates, ref, final_box[i].mz, final_box[i].c, scan_index, use_cmarr);	
 				continue;
 			};
 		};
 
 		tmp_boxes_->at(c).clear();
-
-		//std::cout << "Leaving through 2" << std::endl;
 	}
 
 
@@ -2621,8 +2739,8 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 				peak_cutoff = getPeakCutOff (c_mz, c_charge);
 
-				point_set.push_back (DPosition<2> (c_RT, c_mz - QUARTER_NEUTRON_MASS/(DoubleReal)c_charge));
-				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge));
+				point_set.push_back (DPosition<2> (c_RT, c_mz - Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
+				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*Constants::IW_NEUTRON_MASS)/(DoubleReal)c_charge)); 
 				if (best_charge_index == box_iter->second.c)
 				{
 					av_max_intens += box_iter->second.max_intens;
@@ -2688,13 +2806,15 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		};
 		
 		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
+		//DoubleReal c_score = scoreThisAlternative_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
+
 		if (c_score <= 0)
 		{
 			return (false);
 		};
 
-		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-QUARTER_NEUTRON_MASS/(c+1.));		
-		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_mz+(peak_cutoff)*NEUTRON_MASS/(c+1.));
+		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));		
+		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_mz+(peak_cutoff)*Constants::IW_NEUTRON_MASS/(c+1.));
 		if (real_r_MZ_iter == ref.end())
 		{
 			--real_r_MZ_iter;
@@ -2714,13 +2834,13 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 	{
 		UInt peak_cutoff = getPeakCutOff (c_mz, 1);
 
-		typename MSSpectrum<PeakType>::const_iterator liter = ref.MZBegin(c_mz-(peak_cutoff+1)*NEUTRON_MASS);
-		typename MSSpectrum<PeakType>::const_iterator riter = ref.MZBegin(c_mz+(2*peak_cutoff+1)*NEUTRON_MASS);
+		typename MSSpectrum<PeakType>::const_iterator liter = ref.MZBegin(c_mz-(peak_cutoff+1)*Constants::IW_NEUTRON_MASS);
+		typename MSSpectrum<PeakType>::const_iterator riter = ref.MZBegin(c_mz+(2*peak_cutoff+1)*Constants::IW_NEUTRON_MASS);
 		
 		//Coarse structured coupled Marr wavelet
 		MSSpectrum<PeakType> spec;
 		spec.assign (liter, riter);
-		CoupledMarrWavelet::setSigma(QUARTER_NEUTRON_MASS);
+		CoupledMarrWavelet::setSigma(Constants::IW_QUARTER_NEUTRON_MASS);
 		std::vector<MSSpectrum<PeakType> > pwts (1, spec);	
 		this->getCMarrTransforms (spec, pwts, 1);
 		MSSpectrum<PeakType> c_spec = pwts[0];
@@ -2729,12 +2849,12 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		typename MSSpectrum<PeakType>::const_iterator s_iter, max_iter;
 		for (s_iter=c_spec.begin(); s_iter!=c_spec.end(); ++s_iter)
 		{
-			if (s_iter->getMZ() < c_mz - 1.5*NEUTRON_MASS)
+			if (s_iter->getMZ() < c_mz - 1.5*Constants::IW_NEUTRON_MASS)
 			{
 				continue;
 			};
 
-			if (s_iter->getMZ() > c_mz + 1.5*NEUTRON_MASS)
+			if (s_iter->getMZ() > c_mz + 1.5*Constants::IW_NEUTRON_MASS)
 			{
 				break;
 			};
@@ -2748,21 +2868,27 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
 		if (max == INT_MIN)
 		{	
-			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << QUARTER_NEUTRON_MASS << ")> rejected: no peak found" << std::endl;
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << Constants::IW_QUARTER_NEUTRON_MASS << ")> rejected: no peak found" << std::endl;
 			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
 		};
 
 		DoubleReal ppms = getPPMs(peptideMassRule(c_mz), max_iter->getMZ());
+		if (ppms >= Constants::PEPTIDE_MASS_RULE_THEO_PPM_BOUND)
+		{
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << Constants::IW_QUARTER_NEUTRON_MASS << ")> rejected: ppm too large \t" << ppms << " (rule: " << peptideMassRule(c_mz) << " got: " << max_iter->getMZ() << ")" << std::endl;
+			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
+		};
+		
+		/*DoubleReal ppms = getPPMs(peptideMassRule(c_mz), c_mz);
 		if (ppms >= THEO_PPM_BOUND)
 		{
-			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << QUARTER_NEUTRON_MASS << ")> rejected: ppm too large \t" << ppms << " (rule: " << peptideMassRule(c_mz) << " got: " << max_iter->getMZ() << ")" << std::endl;
+			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << Constants::IW_QUARTER_NEUTRON_MASS << ")> rejected: ppm too large \t" << ppms << " (rule: " << peptideMassRule(c_mz) << " got: " << max_iter->getMZ() << ")" << std::endl;
 			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
-		}
-
+		};*/
 
 		//Check for non-interleaving pattern overlap to the left (this is the by far easiest case to detect)
-		/*typename MSSpectrum<PeakType>::const_iterator off1_r_iter = c_spec.MZBegin(max_iter->getMZ()+NEUTRON_MASS);
-		typename MSSpectrum<PeakType>::const_iterator off1_l_iter = c_spec.MZBegin(max_iter->getMZ()-NEUTRON_MASS);
+		/*typename MSSpectrum<PeakType>::const_iterator off1_r_iter = c_spec.MZBegin(max_iter->getMZ()+Constants::IW_NEUTRON_MASS);
+		typename MSSpectrum<PeakType>::const_iterator off1_l_iter = c_spec.MZBegin(max_iter->getMZ()-Constants::IW_NEUTRON_MASS);
 
 		if (off1_r_iter != c_spec.end() && off1_l_iter != c_spec.end())
 		{
@@ -2770,15 +2896,15 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			if (perc_exp > 0.1)
 			{
 				std::cout << "potential overlap \t" << perc_exp << "\t(" << c_mz << ") ... ";
-				typename MSSpectrum<PeakType>::const_iterator off2_l_iter = c_spec.MZBegin(max_iter->getMZ()-2*NEUTRON_MASS);
+				typename MSSpectrum<PeakType>::const_iterator off2_l_iter = c_spec.MZBegin(max_iter->getMZ()-2*Constants::IW_NEUTRON_MASS);
 				std::cout << "mzs: " << *off2_l_iter << "\t" << *off1_r_iter << std::endl;
 				DoubleReal perc = fabs(off2_l_iter->getIntensity()-off1_r_iter->getIntensity())/(0.5*(off2_l_iter->getIntensity()+off1_r_iter->getIntensity()));
 				if (perc_exp > perc)
 				{
 					std::cout << "yes " << perc << std::endl; 	
 					
-					typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()-QUARTER_NEUTRON_MASS/(c+1.));		
-					typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()+getPeakCutOff(off1_l_iter->getMZ(), c+1)*NEUTRON_MASS/(c+1.));
+					typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()-QUARTER_Constants::IW_NEUTRON_MASS/(c+1.));		
+					typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(off1_l_iter->getMZ()+getPeakCutOff(off1_l_iter->getMZ(), c+1)*Constants::IW_NEUTRON_MASS/(c+1.));
 
 					UInt real_mz_begin = distance (ref.begin(), real_l_MZ_iter);
 					UInt real_mz_end = distance (ref.begin(), real_r_MZ_iter);
@@ -2809,12 +2935,12 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 		std::vector<UInt> max_indices; // if entry i, then the max should be apparent by i+0.5 index
 		for (UInt i=1; i<pwts[0].size()-1; ++i)
 		{		
-			if (pwts[0][i].getMZ() < c_mz - QUARTER_NEUTRON_MASS)
+			if (pwts[0][i].getMZ() < c_mz - Constants::IW_QUARTER_NEUTRON_MASS)
 			{
 				continue;
 			};
 
-			if (pwts[0][i].getMZ() > c_mz) //+ QUARTER_NEUTRON_MASS)
+			if (pwts[0][i].getMZ() > c_mz)
 			{
 				break;
 			};
@@ -2850,7 +2976,7 @@ bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
 		};
 
-		if (min_ppm >= THEO_PPM_BOUND)
+		if (min_ppm >= Constants::PEPTIDE_MASS_RULE_THEO_PPM_BOUND)
 		{			
 			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << sigma_ << ")> rejected: ppm too large \t" << min_ppm << " (rule: " 
 				<< peptideMassRule(c_mz) << " got: " << pwts[0][max_indices[min_index]].getMZ() << ")" << std::endl;

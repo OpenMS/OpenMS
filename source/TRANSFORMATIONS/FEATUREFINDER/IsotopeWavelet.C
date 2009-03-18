@@ -86,7 +86,7 @@ namespace OpenMS
 		DoubleReal tz (tz1-1);
 		DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
 		
-		DoubleReal help (tz*WAVELET_PERIODICITY/(TWOPI));
+		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
 		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
 
 		DoubleReal fac (-lambda + tz*myLog2_(lambda)*ONEOLOG2E - fi_lgamma);
@@ -99,7 +99,7 @@ namespace OpenMS
 	{
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
-		DoubleReal help ((tz1-1)*WAVELET_PERIODICITY/(TWOPI));
+		DoubleReal help ((tz1-1)*Constants::WAVELET_PERIODICITY/(TWOPI));
 		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
 		
 		return (sine_table_[(Int)(sine_index)] * exp(fac));
@@ -107,17 +107,17 @@ namespace OpenMS
 	
 	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		return (sin(2*M_PI*(tz1-1)/NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));
+		return (sin(2*M_PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));
 	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 
 	{
-		return (LAMBDA_L_0 + LAMBDA_L_1*m);
+		return (Constants::LAMBDA_L_0 + Constants::LAMBDA_L_1*m);
 	}
 				
 	DoubleReal IsotopeWavelet::getLambdaQ (const DoubleReal m) 
 	{
-		return (LAMBDA_Q_0 + LAMBDA_Q_1*m + LAMBDA_Q_2*m*m);
+		return (Constants::LAMBDA_Q_0 + Constants::LAMBDA_Q_1*m + Constants::LAMBDA_Q_2*m*m);
 	}
 			
 	float IsotopeWavelet::myPow (float a, float b) 		
@@ -132,9 +132,9 @@ namespace OpenMS
 	float IsotopeWavelet::myPow2_ (float i) 		
 	{	
 		float y=i-(int)i;
-		y=(y-y*y)*POW_CONST;
+		y=(y-y*y)*Constants::POW_CONST;
 		float x=i+127-y;
-		x*=SHIFT23;
+		x*=Constants::SHIFT23;
 		fi_ z;
 		z.i=(Int) x;
 		return (z.f);
@@ -146,10 +146,10 @@ namespace OpenMS
 		fi_ x;
 		x.f=i;
 		float x2 =x.i;
-		x2*= SHIFT23_00;
+		x2*= Constants::SHIFT23_00;
 		x2-=127; 
 		float y=x2-(int)x2;
-		y=(y-y*y)*LOG_CONST;
+		y=(y-y*y)*Constants::LOG_CONST;
 		return (x2+y);
 	}
 
@@ -159,7 +159,7 @@ namespace OpenMS
 		IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
 		++peak_cutoff; //just to be sure, since getPeakCutOff (see IsotopeWaveletTransform.h) can return slightly different values 
 		//This would be the theoretically justified way to estimate the boundary ...
-		//UInt up_to = (UInt) ceil(max_charge_ * (peak_cutoff+QUARTER_NEUTRON_MASS) + 1);
+		//UInt up_to = (UInt) ceil(max_charge_ * (peak_cutoff+IW_QUARTER_NEUTRON_MASS) + 1);
 		//... but in practise, it pays off to sample some points more.
 		UInt up_to=2*(peak_cutoff*max_charge_+1);
 		gamma_table_.clear();

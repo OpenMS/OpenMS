@@ -107,8 +107,8 @@ namespace OpenMS
 				
 				IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
 	
-				this->ff_->setLogType (ProgressLogger::CMD);
-				this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
+				//this->ff_->setLogType (ProgressLogger::CMD);
+				//this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
 
 			UInt RT_votes_cutoff = RT_votes_cutoff_;
 			//Check for useless RT_votes_cutoff_ parameter
@@ -133,10 +133,10 @@ namespace OpenMS
 						};
 					};
 
-					//#ifdef OPENMS_DEBUG
+					#ifdef OPENMS_DEBUG
 						std::cout << "Spectrum " << i+1 << " (" << this->map_->at(i).getRT() << ") of " << this->map_->size() << " ... " ; 
 				std::cout.flush();
-					//#endif
+					#endif
 				
 
 					if (use_cuda_ < 0)
@@ -158,14 +158,14 @@ namespace OpenMS
 							};
 						//#endif
 					
-						this->ff_->setProgress (++j);
+						//this->ff_->setProgress (++j);
 
 						#ifdef OPENMS_DEBUG
 							std::cout << "transform O.K. ... "; std::cout.flush();
 						#endif
 					
 						iwt.identifyCharges (pwts,  this->map_->at(i), i, intensity_threshold_, (use_cmarr_>0) ? true : false);
-						this->ff_->setProgress (++j);
+						//this->ff_->setProgress (++j);
 
 						#ifdef OPENMS_DEBUG
 							std::cout << "charge recognition O.K. ... "; std::cout.flush();
@@ -174,7 +174,7 @@ namespace OpenMS
 					else
 					{
 						MSSpectrum<PeakType> c_trans (this->map_->at(i));
-						iwt.initializeCudaScan (this->map_->at(i), use_cuda_ , 4, max_charge_);
+						iwt.initializeCudaScan (this->map_->at(i), use_cuda_);
 						for (UInt c=0; c<max_charge_; ++c)
 						{	
 							iwt.getCudaTransforms (c_trans, c);
@@ -204,18 +204,18 @@ namespace OpenMS
 
 						};
 						iwt.finalizeCudaScan();
-						this->ff_->setProgress (j+=2);
+						//this->ff_->setProgress (j+=2);
 					};
 	
 					iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
-					this->ff_->setProgress (++j);
+					//this->ff_->setProgress (++j);
 				std::cout << "updated box states." << std::endl;
 #endif
 
 				std::cout.flush();
 			};
 
-				this->ff_->endProgress();
+				//this->ff_->endProgress();
 
 			//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
 				iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 

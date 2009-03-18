@@ -28,41 +28,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_H
 
-
-#ifndef NEUTRON_MASS
-#define NEUTRON_MASS 1.00866491578f 
-#define HALF_NEUTRON_MASS 0.5043325f
-#define QUARTER_NEUTRON_MASS 0.252166228f
-#define WAVELET_PERIODICITY 6.229209734f
-#endif
-
-#ifndef PROTON_MASS
-#define PROTON_MASS 1.00727646688f
-#endif
-
-#ifndef LAMBDA_L_0
-//Linear Fit (standard)
-#define LAMBDA_L_0 -0.472998839574110749e-1f
-#define LAMBDA_L_1 0.743579753540513913e-3f
-#endif
-
-#ifndef LAMBDA_Q_0
-//Quadratic Fit (maybe a overkill, since the dependency looks quite linear, at least in moderate mass ranges)
-#define LAMBDA_Q_0 -0.137152573151174711f
-#define LAMBDA_Q_1 0.851289601785403817e-3f
-#define LAMBDA_Q_2 -0.2834469691e-7f
-#endif
-
-#ifndef SHIFT_PARAMETERS
-//Internal parameters used for fast computation of the power function
-//Please do not modify
-#define SHIFT_PARAMETERS
-#define SHIFT23 (1<<23)
-#define SHIFT23_00 (1.0/(1<<23))
-#define LOG_CONST 0.346607f;
-#define POW_CONST 0.33971f;
-#endif
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
@@ -105,7 +71,7 @@ namespace OpenMS
 					* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
 				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) 
 				{			
-					return (getValueByLambda (getLambdaQ(m*z-z*mode*PROTON_MASS), t*z+1));
+					return (getValueByLambda (getLambdaQ(m*z-z*mode*Constants::IW_PROTON_MASS), t*z+1));
 				}
 	
 				/** @brief Returns the value of the isotope wavelet at position @p t via a fast table lookup. 
