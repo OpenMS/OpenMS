@@ -86,7 +86,6 @@ namespace OpenMS
 					this->defaults_.setValue ("cuda:use_cuda", 1, "Enables/disables computation on CUDA GPUs.\n"
 																		"The number indicates the ID of the GPU to use.'-1' disables CUDA at all.\n"
 																		"If you plan to use several GPUs simultaneously, just use a non-negative number for this flag.", false);
-					this->defaults_.setMaxInt ("cuda:use_cuda", device_num_); 
 					#ifdef OPENMS_HAS_TBB_H
 						this->defaults_.setValue ("tbb:use_tbb", "true", "Enables/disables computation on several GPUs via Intel TBBs.", true);
 						this->defaults_.setValidStrings("tbb:use_tbb",StringList::create("true,false"));
@@ -94,7 +93,6 @@ namespace OpenMS
 																			"Hence, you are able to exclude your 'normal' graphic card from the computation, while all other GPU devices"
 																			"will be in use.\nIf you want to include all devices set this entry to -1." , true);
 						this->defaults_.setMinInt ("tbb:exclude_id", -1);
-						this->defaults_.setMaxInt ("tbb:exclude_id", device_num_);	
 					#endif						
 				#endif
 
@@ -146,72 +144,6 @@ namespace OpenMS
 				progress_counter_ = 0;
 				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");
 			
-
-				/*IsotopeWaveletTransform<PeakType> muff (min_mz, max_mz, max_charge_, 0.2, max_size);
-				std::stringstream resample_stream;
-				resample_stream << "finaleval_" << this->RT_votes_cutoff_ << ".mzData\0";    
-				MSExperiment<PeakType> new_map; UInt c_size; DoubleReal c_range, c_space, q_mz;
-				for (UInt i=0; i<this->map_->size(); ++i)
-				{
-					c_size = (*this->map_)[i].size();
-					c_range = (*this->map_)[i][c_size-1].getMZ() - (*this->map_)[i].begin()->getMZ();
-					c_space = c_range / (DoubleReal)this->RT_votes_cutoff_;
-					MSSpectrum<PeakType> spec;
-					spec.setRT((*this->map_)[i].getRT());
-					spec.push_back((*this->map_)[i][0]);
-					q_mz = (*this->map_)[i][0].getMZ(); 
-					for (UInt j=1; j<this->RT_votes_cutoff_-1; ++j)
-					{
-						q_mz += c_space;
-						typename MSSpectrum<PeakType>::const_iterator iter2 ((*this->map_)[i].MZBegin(q_mz)), iter1, iter3;
-						if (iter2+1 == (*this->map_)[i].end())
-						{
-							--iter2;
-						};
-						iter1 = iter2-1;
-						iter3 = iter2+1;
-						
-						std::vector<DoubleReal> x, y;
-						x.push_back (iter1->getMZ());
-						x.push_back (iter2->getMZ());
-						x.push_back (iter3->getMZ());
-										
-						y.push_back (iter1->getIntensity());
-						y.push_back (iter2->getIntensity());
-						y.push_back (iter3->getIntensity());
-
-						//std::cout << x[0] << " " << x[1] << " " << x[2] << "\t\t" << q_mz << "\t\t" << y[0] << " " << y[1] << " " << y[2] << "\t";
-	
-						PeakType peak; peak.setMZ (q_mz);
-						//std::cout << ::std::setprecision(8) << std::fixed << "searching: " << q_mz << "got: " << *iter << std::endl;
-						//--iter;
-						//peak.setIntensity (muff.getLinearInterpolation(iter->getMZ(), iter->getIntensity(), q_mz , (iter+1)->getMZ(), (iter+1)->getIntensity())); 
-						DoubleReal fit = muff.getCubicInterpolatedValue(x, q_mz , y);
-						//std::cout << fit << std::endl;
-						peak.setIntensity (fit); 
-						spec.push_back(peak);
-					};
-					spec.push_back((*this->map_)[i][c_size-1]);
-					new_map.push_back(spec);
-				};
-
-				MzDataFile file; file.store(resample_stream.str(), new_map);
-
-				exit(-1);*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 				time_t start=time(NULL), end;	
 				
 				#ifdef OPENMS_HAS_TBB_H
