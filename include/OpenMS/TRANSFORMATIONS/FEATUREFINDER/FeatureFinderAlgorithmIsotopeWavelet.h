@@ -122,9 +122,11 @@ namespace OpenMS
 						};
 					};
 				#endif
-				
+			
+				std::cout << "schnock" << std::endl;	
 				IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
-	
+				std::cout << "bock" << std::endl;	
+
 				this->ff_->setLogType (ProgressLogger::CMD);
 				this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
 
@@ -162,7 +164,7 @@ namespace OpenMS
 						
 						if (use_cmarr_ > 0)
 						{
-							if (iwt.estimateCMarrWidth (this->map_->at(i)))
+							if (iwt.estimateCMarrWidth ((*this->map_)[i]))
 							{
 								std::cout << "Sigma estimation for coupled Marr wavelet successful: " << iwt.getSigma() << std::endl; 
 							}
@@ -173,12 +175,12 @@ namespace OpenMS
 							};
 						};
 
-						#ifdef OPENMS_DEBUG
-							std::cout << "Spectrum " << i+1 << " (" << this->map_->at(i).getRT() << ") of " << this->map_->size() << " ... " ; 
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+							std::cout << "Spectrum " << i+1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... " ; 
 							std::cout.flush();
 						#endif
 						
-						if (this->map_->at(i).size() <= 1) //unable to do transform anything
+						if ((*this->map_)[i].size() <= 1) //unable to do transform anything
 						{					
 							this->ff_->setProgress (progress_counter_+=3);
 							continue;
@@ -187,65 +189,65 @@ namespace OpenMS
 	 
 						if (use_cuda_ < 0)
 						{	
-							std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
-							iwt.getTransforms (this->map_->at(i), pwts, max_charge_);
 			
-							#ifdef DEBUG_FEATUREFINDER
-								for (UInt c=0; c<max_charge_; ++c)
-								{
+							MSExperiment<PeakType>* this_map (const_cast<MSExperiment<PeakType>*>(this->map_));
+							for (UInt c=0; c<max_charge_; ++c)
+							{
+								iwt.getTransform ((*this_map)[i], c);
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									typename MSSpectrum<PeakType>::MetaDataArrays& trans_intensities ((*this_map)[i].getMetaDataArrays());
 									std::stringstream stream;
-									stream << "org_" << this->map_->at(i).getRT() << "_" << c+1 << ".trans\0"; 
+									stream << "cpu_" << (*this_map)[i].getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
-									for (UInt k=0; k < pwts[c].size(); ++k)
+									for (UInt k=0; k < (*this_map)[i].size(); ++k)
 									{
-										ofile << pwts[c][k] << std::endl;
+										ofile << (*this_map)[i][k].getMZ() << "\t" << trans_intensities[k][0] << "\t" << (*this->map_)[i][k].getIntensity() << std::endl;
 									};
 									ofile.close();
-								};
-							#endif
+								#endif
+							};
 						
 							this->ff_->setProgress (++progress_counter_);
 
-							#ifdef OPENMS_DEBUG
+							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 								std::cout << "transform O.K. ... "; std::cout.flush();
 							#endif
 						
-							iwt.identifyCharges (pwts,  this->map_->at(i), i, intensity_threshold_, (use_cmarr_>0) ? true : false);
+							//iwt.identifyCharge (pwts,  (*this->map_)[i], i, intensity_threshold_, (use_cmarr_>0) ? true : false);
 							this->ff_->setProgress (++progress_counter_);
 
-							#ifdef OPENMS_DEBUG
+							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 								std::cout << "charge recognition O.K. ... "; std::cout.flush();
 							#endif
 						}	
 						else
 						{
 							#ifdef OPENMS_HAS_CUDA
-								MSSpectrum<PeakType> c_trans (this->map_->at(i));
-								if (iwt.initializeCudaScan (this->map_->at(i), use_cuda_) == Constants::CUDA_INIT_SUCCESS)
+								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
+								if (iwt.initializeCudaScan ((*this->map_)[i], use_cuda_) == Constants::CUDA_INIT_SUCCESS)
 								{
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
 										iwt.getCudaTransforms (c_trans, c);
 
-
-										#ifdef DEBUG_FEATUREFINDER
+										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::stringstream stream;
-											stream << "cuda_" << this->map_->at(i).getRT() << "_" << c+1 << ".trans\0"; 
+											stream << "gpu_" << (*this->map_)[i].getRT() << "_" << c+1 << ".trans\0"; 
 											std::ofstream ofile (stream.str().c_str());
 											for (UInt k=0; k < c_trans.size(); ++k)
 											{
-												ofile << c_trans[k].getMZ() << "\t" <<  c_trans[k].getIntensity() << std::endl;
+												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << std::endl;
 											};
 											ofile.close();
 										#endif					
 
-										#ifdef OPENMS_DEBUG
+										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
 										#endif
 											
-										iwt.identifyCudaCharges (c_trans, this->map_->at(i), i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
+										iwt.identifyCudaCharges (c_trans, (*this->map_)[i], i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
 
-										#ifdef OPENMS_DEBUG
+										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
 										#endif						
 									};
@@ -260,7 +262,7 @@ namespace OpenMS
 		
 						iwt.updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
 						this->ff_->setProgress (++progress_counter_);
-						#ifdef OPENMS_DEBUG
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "updated box states." << std::endl;
 						#endif
 
@@ -279,27 +281,13 @@ namespace OpenMS
 			//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
 				iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_); 
 
-#ifdef DEBUG_FEATUREFINDER
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 			std::cout << "Final mapping."; std::cout.flush();
 #endif
 	
 				*this->features_ = iwt.mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_);
 
-				/*std::vector<DoubleReal> error_prone_scans = iwt.getErrorProneScans();
-			if (!error_prone_scans.empty())
-			{
-				std::cerr << "Warning: some of your scans triggered errors while passing the isotope wavelet transform (IWT)." << std::endl;
-				std::cerr << "Please remember that the IWT is only suited for MS and not for MS/MS scans. Hence you should always exclude tandem MS signals from the IWT." << std::endl;
-				std::cerr << "Another reason might be a very bad resolution of your scan, s.t. the wavelet is unable to adapt its own spacing in a still reasonable manner." << std::endl;
-				std::cerr << "The problematic scans are: " << std::endl;
-				for (Size i=0; i<error_prone_scans.size(); ++i)
-				{
-					std::cerr << error_prone_scans[i] << "\t"; 
-				};
-				std::cerr << std::endl;
-				};*/
 #endif
-
 				end=clock();
 
 				std::cout << "Running time in seconds: " << (end-start)/(float)(CLOCKS_PER_SEC) << std::endl; 

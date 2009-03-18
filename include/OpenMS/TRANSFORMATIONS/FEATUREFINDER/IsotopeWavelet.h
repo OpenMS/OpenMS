@@ -172,6 +172,24 @@ namespace OpenMS
 				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
 					* @note Please, do not modify this function. */
 				static float myPow (float a, float b) ;		
+			
+				static UInt getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
+				{ 
+					DoubleReal mz=mass*z;
+					//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)
+					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz)); 
+				};
+	
+				static UInt getNumPeakCutOff (const DoubleReal mass, const UInt z)
+				{ 
+					DoubleReal mz=mass*z;
+					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
+				};	
+				
+				static UInt getNumPeakCutOff (const DoubleReal mz)
+				{ 
+					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
+				};	
 
 
 		protected:

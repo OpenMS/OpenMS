@@ -122,7 +122,7 @@ namespace OpenMS
 			return;
 		
 
-		float value = signal_pos_block[my_local_pos], boundary=(int)ceil((Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*value+Constants::CUTOFF_FIT99_2*value*value)/charge);
+		float value = signal_pos_block[my_local_pos]*charge, boundary=(int)ceil((Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*value+Constants::CUTOFF_FIT99_2*value*value)/charge);
 		value=0;
 
 		float c_diff = signal_pos_block[my_local_pos-from_max_to_left] - signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
@@ -899,7 +899,7 @@ namespace OpenMS
 			seed_mz = tex1Dfetch(pos_tex, ref_index);
 			peak_cutoff = (int) ceil(peak_cutoff_intercept+peak_cutoff_slope*seed_mz*(c+1)-Constants::IW_QUARTER_NEUTRON_MASS);	
 			optimal_block_dim = 4*(peak_cutoff-1) -1;
-			optimal_block_dim = 2*(peak_cutoff-1);
+			//optimal_block_dim = 2*(peak_cutoff-1);
 		};
 
 		__syncthreads();

@@ -32,6 +32,5 @@
 
 # USAGE: anonymize_xml_stylesheet_paths file1 file2 file3
 
-# NOTE: This will create a backup, BUT: Use at your own risk!
 
 sed -i.sed_backup.`date +%Y%m%d%H%M%S` 's:xml-stylesheet\ type=\"text/xsl\"\ href=\"file\://.*/\(.*\)\":xml-stylesheet\ type=\"text/xsl\"\ href=\"file\:///some/path/to/\1:' $*

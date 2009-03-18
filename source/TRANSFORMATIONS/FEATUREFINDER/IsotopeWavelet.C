@@ -84,7 +84,9 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal tz (tz1-1);
-		DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
+		DoubleReal fi_lgamma (gamma_table_.at((Int)(tz1*inv_table_steps_)));
+
+		//DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
 		
 		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
 		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
@@ -155,13 +157,10 @@ namespace OpenMS
 
 	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) 
 	{
-		UInt peak_cutoff;
-		IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
-		++peak_cutoff; //just to be sure, since getPeakCutOff (see IsotopeWaveletTransform.h) can return slightly different values 
-		//This would be the theoretically justified way to estimate the boundary ...
-		//UInt up_to = (UInt) ceil(max_charge_ * (peak_cutoff+IW_QUARTER_NEUTRON_MASS) + 1);
-		//... but in practise, it pays off to sample some points more.
-		UInt up_to=2*(peak_cutoff*max_charge_+1);
+		std::cout << max_m << "\t" << max_charge_ << std::endl; 
+		UInt peak_cutoff = getNumPeakCutOff(max_m, max_charge_);
+		std::cout << "peak_cutoff " << peak_cutoff << std::endl;
+		UInt up_to = peak_cutoff*max_charge_+1;
 		gamma_table_.clear();
 		exp_table_.clear();
 		DoubleReal query=0;
@@ -169,9 +168,6 @@ namespace OpenMS
 		query += table_steps_; 
 		while (query <= up_to)
 		{
-			//std::cout << log(1./tgamma(query)) << "\t" << -lgamma(query) << std::endl;
-
-			//gamma_table_.push_back(1./tgamma(query));
 			gamma_table_.push_back (lgamma(query));
 			query += table_steps_;	
 		};	
@@ -204,14 +200,6 @@ namespace OpenMS
 		
 		if (size != NULL)
 		{
-			/*UInt count=help.size();
-			for (iter=help.end()-1; iter!=help.begin(); --iter, --count)
-			{	
-				//maybe we should provide some interface to that constant, although its range is rather limited and
-				//its influence within this range is negligible.
-				if (iter->second >= 0.05)
-					break;
-			};*/
 			*size = (int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mass+Constants::CUTOFF_FIT99_2*mass*mass-Constants::IW_QUARTER_NEUTRON_MASS);
 		}; 
 
