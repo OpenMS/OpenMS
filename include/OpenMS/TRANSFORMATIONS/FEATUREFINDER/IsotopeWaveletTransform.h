@@ -35,6 +35,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <cmath>
 #include <gsl/gsl_spline.h>
@@ -45,10 +48,10 @@
 #include <fstream>
 #include <iomanip>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
+#ifdef OPENMS_HAS_CUDA
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/CoupledMarrWavelet.h>
+#endif
+
 
 // we are not yet sure if we really want to drag in cutil.h and the CUDA_SAFE_CALL definitions...
 #ifndef CUDA_SAFE_CALL
