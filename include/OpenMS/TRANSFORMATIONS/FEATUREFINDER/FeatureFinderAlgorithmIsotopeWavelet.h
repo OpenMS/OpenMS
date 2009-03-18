@@ -64,52 +64,45 @@ namespace OpenMS
 
 	 public:
 			
-			class Triple
-			{
-				public:
-
-					Triple ()
-						: first_(0), second_(0), third_(0)
-					{
-					};
-
-					Triple (const UInt first, const UInt second, const UInt third)
-						: first_(first), second_(second), third_(third)
-					{
-					}; 				
-	
-					UInt first_, second_, third_;
-			};
-
 		typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
 		/** @brief Default Constructor */
 		FeatureFinderAlgorithmIsotopeWavelet() 
 		{ 
-				#ifdef OPENMS_HAS_CUDA
-					this->defaults_.setValue ("use_cuda", -1, "Negative, if the computations should be performed on the CPU.\n" 
-																		"For evaluation on GPUs, enter the corresponding device ID.\n"
-																		"Note: if you enable simultaneously threading building blocks, only the transform will be computed on the GPU.", false);
-				#endif
-				#ifdef OPENMS_HAS_TBB_H
-					this->defaults_.setValue ("use_tbb", -1, "Negative, if the CPU computations should be performed on a single kernel.\n" 
-																		"For multi-threaded computation via Intel's Threading Building Blocks (TBBs) enter the maximum number of transforms\n"
-																		"that can simultaneously be on flight.\n"
-																		"Note: if you enable simultaneously the GPU device, only the scoring function will computed via TBBs.", false);
-				#endif
 				this->defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
-				this->defaults_.setValue ("intensity_threshold", 2., "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
-																	"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
-																	"and sd the standard deviation of the transform.\n"
-																	"If you set intensity_threshold=-1, t' will be zero.\n"
-																	"For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold\n"
-																	"around 0..1 and increase if necessary.", false);
+				this->defaults_.setMinInt ("max_charge", 1);
 
+				this->defaults_.setValue ("intensity_threshold", 2., "The final threshold t' is build upon the formula: t' = av+t*sd," 
+																	"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal" 
+																	"and sd the standard deviation of the transform. "
+																	"If you set intensity_threshold=-1, t' will be zero.\n");
+				
+				this->defaults_.setValue ("check_ppm", "true", "Enables/disable a ppm test vs. the averagine model."); 
+				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
-				this->defaults_.setValue ("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
+				#ifdef OPENMS_HAS_CUDA
+					device_num_=0; cudaGetDeviceCount(&device_num_);
+					this->defaults_.setValue ("cuda:use_cuda", 1, "Enables/disables computation on CUDA GPUs.\n"
+																		"The number indicates the ID of the GPU to use.'-1' disables CUDA at all.\n"
+																		"If you plan to use several GPUs simultaneously, just use a non-negative number for this flag.", false);
+					this->defaults_.setMaxInt ("cuda:use_cuda", device_num_); 
+					#ifdef OPENMS_HAS_TBB_H
+						this->defaults_.setValue ("cuda:use_tbb", "true", "Enables/disables computation on several GPUs via Intel TBBs.", true);
+						this->defaults_.setValidStrings("cuda:use_tbb",StringList::create("true,false"));
+						this->defaults_.setValue ("cuda:tbb:exclude_id", -1, "Disables computation on GPU device with corresponding ID."
+																			"Hence, you are able to exclude your 'normal' graphic card from the computation, while all other GPU devices"
+																			"will be in use.\nIf you want to include all devices set this entry to -1." , true);
+						this->defaults_.setMinInt ("cuda:tbb:exclude_id", -1);
+						this->defaults_.setMaxInt ("cuda:tbb:exclude_id", device_num_);	
+					#endif						
+				#endif
+
+				this->defaults_.setValue ("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It determines the minimum number of"
 																	"subsequent scans a pattern must occur to be considered as a feature.", true);
-				this->defaults_.setValue ("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
-																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing.\n There is usually not reason to change the default value", true);
+				this->defaults_.setMinInt("rt_votes_cutoff", 0);
+				this->defaults_.setValue ("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of"
+																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing.\nThere is usually no reason to change the default value.", true);
+				this->defaults_.setMinInt ("rt_interleave", 0);
 				this->defaults_.setValue ("use_cmarr", 0, "Experimental, do not enable this feature at the moment!", true);
 				this->defaultsToParam_();
 		}
@@ -130,7 +123,7 @@ namespace OpenMS
 					
 				UInt max_size=0;
 				#ifdef OPENMS_HAS_CUDA 
-					if (use_cuda_ >=0) //some preprocessing necessary for the GPU computation
+					if (use_cuda_ >= 0) //some preprocessing necessary for the GPU computation
 					{
 						for (UInt i=0; i<this->map_->size(); ++i)
 						{
@@ -151,34 +144,40 @@ namespace OpenMS
 					
 				this->ff_->setLogType (ProgressLogger::CMD);
 				progress_counter_ = 0;
-			
+				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");
+				
 				#ifdef OPENMS_HAS_TBB_H
-					if (use_tbb_ > 0)
+					if (use_tbb_)
 					{
-						this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
-						tbb::task_scheduler_init init (use_tbb_);
-						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (use_tbb_); 
-						for (Int t=0; t<use_tbb_; ++t)
+						tbb::task_scheduler_init init (gpu_ids_.size());
+						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (gpu_ids_.size()); 
+						for (UInt t=0; t<gpu_ids_.size(); ++t)
 						{
-							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, 0.2, max_size, this->map_->size());
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, 0.2, max_size);
 						};
 
 						static tbb::affinity_partitioner ap;
-						tbb::parallel_for(tbb::blocked_range<size_t>(0, use_tbb_, 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
+						//The parallel execution over all available GPU devices
+						tbb::parallel_for(tbb::blocked_range<size_t>(0, gpu_ids_.size(), 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
 					
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "Final mapping."; std::cout.flush();
 						#endif
-						*this->features_ = iwts[0]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+						*this->features_ = iwts[gpu_ids_.size()-1]->mapSeeds2Features (*this->map_, max_charge_, real_RT_votes_cutoff_); 
+					};
+				#else
+					if (use_tbb_)
+					{
+						std::cerr << "Error: You requested computation via TBB, but OpenMS has not been configured for TBB usage." << std::endl;
+						std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-release\" or \"--enable-tbb-debug\"." << std::endl;
+						std::cerr << "Error: Please note that the multithreaded FeatureFinder needs necessarily the CUDA libary, which must be enabled with \"--enable-cuda\"." << std::endl; 
 					};
 				#endif
 
-				if (use_tbb_ < 0)
+				if (!use_tbb_)
 				{
-					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size, this->map_->size());
+					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
 				
-					this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
-			
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
 						const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
@@ -233,7 +232,7 @@ namespace OpenMS
 								#endif							
 								this->ff_->setProgress (++progress_counter_);
 
-								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
+								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
 						
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "charge recognition O.K. ... "; std::cout.flush();
@@ -246,11 +245,11 @@ namespace OpenMS
 							#ifdef OPENMS_HAS_CUDA
 								cudaSetDevice(use_cuda_);
 								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
-								if (iwt.initializeCudaScan ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
+								if (iwt.initializeScanCuda ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
 								{
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
-										iwt.getCudaTransforms (c_trans, c);
+										iwt.getTransformCuda (c_trans, c);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::stringstream stream;
@@ -268,14 +267,14 @@ namespace OpenMS
 										#endif
 										this->ff_->setProgress (++progress_counter_);
 
-										iwt.identifyCudaCharges (c_trans, (*this->map_)[i], i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
+										iwt.identifyChargeCuda (c_trans, i, c, intensity_threshold_, check_PPMs_, use_cmarr_);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
 										#endif					
 										this->ff_->setProgress (++progress_counter_);	
 									};
-									iwt.finalizeCudaScan();
+									iwt.finalizeScanCuda();
 								};
 							#else
 								std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
@@ -343,15 +342,15 @@ namespace OpenMS
 			DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
 			UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
-			Int use_cmarr_, use_cuda_, use_tbb_;
+			Int use_cmarr_, use_cuda_;
+			bool use_tbb_, check_PPMs_;
+			std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
+			
 			#ifdef OPENMS_HAS_TBB_H
-				tbb::atomic<int> progress_counter_;			
+				tbb::atomic<int> progress_counter_;		
+				Int device_num_, gpu_to_exclude_;	
 			#else
 				Int progress_counter_;
-			#endif
-
-			#ifdef OPENMS_HAS_TBB_H
-				tbb::concurrent_queue<Triple> map_index_queue_;
 			#endif
 
 		void updateMembers_() 
@@ -362,15 +361,25 @@ namespace OpenMS
 				RT_interleave_ = this->param_.getValue ("rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
 				use_cmarr_ = this->param_.getValue ("use_cmarr");
+				check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
 				#ifdef OPENMS_HAS_CUDA 
-					use_cuda_ = this->param_.getValue ("use_cuda");
+					use_cuda_ = this->param_.getValue ("cuda:use_cuda");
+					#ifdef OPENMS_HAS_TBB_H 
+						use_tbb_ = ( (String)(this->param_.getValue("cuda:use_tbb"))=="true" );
+						gpu_to_exclude_ = this->param_.getValue ("cuda:tbb:exclude_id");				
+						for (Int i=0; i<device_num_; ++i)
+						{
+							if (i == gpu_to_exclude_)
+							{
+								continue;
+							};
+							gpu_ids_.push_back(i);
+						};
+					#else
+						use_tbb_ = false;
+					#endif	
 				#else
 					use_cuda_ = -1;
-				#endif
-				#ifdef OPENMS_HAS_TBB_H 
-					use_tbb_ = this->param_.getValue ("use_tbb");
-				#else
-					use_tbb_ = -1;
 				#endif
 		}
 	};

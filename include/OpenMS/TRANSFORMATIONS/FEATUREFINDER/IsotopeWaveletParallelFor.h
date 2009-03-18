@@ -56,25 +56,13 @@ namespace OpenMS
 			{
 				for (size_t t=r.begin(); t!=r.end(); ++t) //this will be essentially one iteratoin
 				{
-					cudaSetDevice(t);
+					cudaSetDevice(ff_->gpu_ids_[t]);
 					IsotopeWaveletTransform<PeakType>* c_iwt = iwts_[t];
 
-					/*div_t help = div((int)ff_->map_->size(), (int)iwts_.size());
-					UInt block_size = help.quot; UInt additional= rint(help.rem*ff_->map_->size());
+					UInt num_gpus = ff_->gpu_ids_.size();
+					UInt block_size = (int)(ff_->map_->size() / num_gpus); UInt additional= ff_->map_->size()-num_gpus*block_size;
 					UInt from = t*block_size;
-					UInt up_to = (t>=iwts_.size()-1) ? from+block_size+additional : from+block_size;*/
-					DoubleReal gpu0_fac = 0.145, gpu1_fac=0.855;
-					UInt from, up_to;
-					if (t==0)
-					{
-						from = 0;
-						up_to = trunc(gpu0_fac*ff_->map_->size());
-					}
-					else
-					{
-						from = trunc(gpu0_fac*ff_->map_->size())+1;
-						up_to = ff_->map_->size();
-					};
+					UInt up_to = (t>=num_gpus-1) ? from+block_size+additional : from+block_size;
 					
 					for (UInt i=from; i<up_to; ++i)
 					{
@@ -85,13 +73,28 @@ namespace OpenMS
 							ff_->ff_->setProgress (ff_->progress_counter_+=2);
 							continue;
 						};
+				
+						if (ff_->use_cmarr_)
+						{
+							if (c_iwt->estimateCMarrWidth (c_ref))
+							{
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "Sigma estimation for coupled Marr wavelet successful: " << c_iwt->getSigma() << std::endl; 	
+								#endif
+							}
+							else
+							{
+								std::cout << "Note: Sigma estimation for coupled Marr wavelet failed.\n";
+								std::cout << "Note: Estimating sigma via the average sampling rate: " << c_iwt->getSigma() << std::endl; 
+							};
+						};
 
 						typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&c_ref);
-						if (c_iwt->initializeCudaScan (c_ref) == Constants::CUDA_INIT_SUCCESS)
+						if (c_iwt->initializeScanCuda (c_ref) == Constants::CUDA_INIT_SUCCESS)
 						{
 							for (UInt c=0; c<ff_->max_charge_; ++c)
 							{
-								c_iwt->getCudaTransforms (c_trans, c);
+								c_iwt->getTransformCuda (c_trans, c);
 
 								#ifdef DINGSBUMS
 									std::stringstream stream;
@@ -109,14 +112,14 @@ namespace OpenMS
 								#endif
 								ff_->ff_->setProgress (++ff_->progress_counter_);
 
-								c_iwt->identifyCudaCharges (c_trans, c_ref, i, c, ff_->intensity_threshold_, (ff_->use_cmarr_>0) ? true : false);
+								c_iwt->identifyChargeCuda (c_trans, i, c, ff_->intensity_threshold_, ff_->check_PPMs_, ff_->use_cmarr_);
 
 								#ifdef DINGSBUMS
 									std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
 								#endif					
 								ff_->ff_->setProgress (++ff_->progress_counter_);	
 							};
-							c_iwt->finalizeCudaScan();
+							c_iwt->finalizeScanCuda();
 						};
 						
 						c_iwt->updateBoxStates(*ff_->map_, i, ff_->RT_interleave_, ff_->real_RT_votes_cutoff_);
