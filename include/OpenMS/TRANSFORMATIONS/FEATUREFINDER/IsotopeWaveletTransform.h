@@ -859,6 +859,7 @@ namespace OpenMS
 		(cudaFree(cuda_device_trans_intens_sorted_));
 		(cudaFree(cuda_device_posindices_sorted_));
 		(cudaFree(cuda_device_scores_));
+	}
 	
 
 	template <typename PeakType>
