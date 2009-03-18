@@ -158,7 +158,7 @@ namespace OpenMS
 
 						for (UInt t=1; t<num_gpus; ++t)
 						{
-							iwts[0]->mergeFeatures (*this->map_, iwts[t], RT_interleave_, RT_votes_cutoff_);	
+							iwts[0]->mergeFeatures (iwts[t], RT_interleave_, RT_votes_cutoff_);	
 						};
 
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET

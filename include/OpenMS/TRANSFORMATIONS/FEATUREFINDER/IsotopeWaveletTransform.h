@@ -310,7 +310,7 @@ namespace OpenMS
 				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
 		
-			void mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -1270,7 +1270,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (const MSExperiment<PeakType>& map, IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
+	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
