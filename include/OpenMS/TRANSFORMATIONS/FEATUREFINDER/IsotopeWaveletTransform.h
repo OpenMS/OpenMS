@@ -707,7 +707,7 @@ namespace OpenMS
 				cum_spacing = align_offset;
 
 				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
-				mz_cutoff = peak_cutoff*Constants::IW_NEUTRON_MASS;
+				mz_cutoff = (peak_cutoff-1+0.75)*Constants::IW_NEUTRON_MASS;
 				wave_start = scan.begin()+i;
 				wave_end = scan.MZBegin(scan[i].getMZ()+mz_cutoff);
 					
@@ -1112,8 +1112,14 @@ namespace OpenMS
 				//even when score <=0; otherwise we would look around the maximum's position unless 
 				//any significant point is found
 				iter_start =ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
-				iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
-
+				//iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				iter_end = ref.MZEnd(seed_mz+((peak_cutoff-1+0.75)*Constants::IW_NEUTRON_MASS)/(c+1.));
+			
+				if (trunc(seed_mz) == 530 && c==1)
+				{
+					std::cout << "cutoff: " << peak_cutoff << "\t" << iter_start->getMZ() << "\t" << iter_end->getMZ()<< std::endl;
+				};
+	
 				if (iter_end == ref.end())
 				{
 					--iter_end;
@@ -1268,7 +1274,7 @@ namespace OpenMS
 
 				//std::stringstream name; name << "cmarr_wavelet_" << scan[i].getMZ() << "_" << c+1 << ".dat\0"; 
 				//std::ofstream ofile (name.str().c_str());
-				for (UInt r=0; r<peak_cutoff; ++r)
+				for (UInt r=0; r<peak_cutoff-1; ++r)
 				{
 					tmp_iter = scan.MZBegin(scan[i].getMZ()+r*Constants::IW_NEUTRON_MASS/c_charge);
 					if (tmp_iter == scan.end())
@@ -1410,7 +1416,7 @@ namespace OpenMS
 				//even when score <=0; otherwise we would look around the maximum's position unless
 				//any significant point is found
 				iter_start = ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
-				iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1+0.75)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
 				if (iter_end == ref.end())
 				{
 					--iter_end;
@@ -2348,7 +2354,7 @@ namespace OpenMS
 				//by push2Box which might be called by extendBox_.
 				if (iter->second.size() >= RT_votes_cutoff)
 				{
-					extendBox_ (map, iter->second);
+					//extendBox_ (map, iter->second);
 					iter = iter2;
 					closed_boxes_.insert (*(--iter));
 				}
@@ -2750,7 +2756,8 @@ namespace OpenMS
 				peak_cutoff = getPeakCutOff (c_mz, c_charge);
 
 				point_set.push_back (DPosition<2> (c_RT, c_mz - Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
-				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*Constants::IW_NEUTRON_MASS)/(DoubleReal)c_charge)); 
+				//-1 since we are already at the first peak and +0.75, since this includes the last peak of the wavelet as a whole
+				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff-1+0.75)*Constants::IW_NEUTRON_MASS)/(DoubleReal)c_charge)); 
 				if (best_charge_index == box_iter->second.c)
 				{
 					av_max_intens += box_iter->second.max_intens;
@@ -2824,7 +2831,7 @@ namespace OpenMS
 		};
 
 		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));		
-		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_mz+(peak_cutoff)*Constants::IW_NEUTRON_MASS/(c+1.));
+		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_mz+(peak_cutoff-1+0.75)*Constants::IW_NEUTRON_MASS/(c+1.));
 		if (real_r_MZ_iter == ref.end())
 		{
 			--real_r_MZ_iter;

@@ -121,7 +121,7 @@ namespace OpenMS
 		if (threadIdx.x >= to_compute || 	my_data_pos - from_max_to_left >= size)
 			return;
 
-		float value = 0, boundary=(ceil(peak_cutoff_intercept+peak_cutoff_slope*charge*signal_pos_block[my_local_pos])*Constants::IW_NEUTRON_MASS)/charge, c_diff;
+		float value = 0, boundary=((ceil(peak_cutoff_intercept+peak_cutoff_slope*charge*signal_pos_block[my_local_pos])-1+0.75)*Constants::IW_NEUTRON_MASS)/charge, c_diff;
 		c_diff = signal_pos_block[my_local_pos-from_max_to_left]-signal_pos_block[my_local_pos]+Constants::IW_QUARTER_NEUTRON_MASS/charge;
 		float old = c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[my_local_pos-from_max_to_left]*charge)*signal_int_block[my_local_pos-from_max_to_left] : 0, current;
 		for (int current_conv_pos = my_local_pos-from_max_to_left+1; 
@@ -173,7 +173,7 @@ namespace OpenMS
 		};*/
 
 		//float value = 0, boundary=(ceil(peak_cutoff_intercept+peak_cutoff_slope*charge*signal_pos_block[my_local_pos])*Constants::IW_NEUTRON_MASS)/charge, c_diff;
-		float value = 0, boundary=(ceil(peak_cutoff_intercept+peak_cutoff_slope*charge*tex1Dfetch(pos_tex, my_data_pos))*Constants::IW_NEUTRON_MASS)/charge, c_diff;
+		float value = 0, boundary=(ceil(peak_cutoff_intercept+peak_cutoff_slope*charge*tex1Dfetch(pos_tex, my_data_pos))*Constants::IW_NEUTRON_MASS-1+0.75)/charge, c_diff;
 
 		//c_diff = tex1Dfetch(pos_tex, my_local_pos-from_max_to_left) - tex1Dfetch(pos_tex, my_local_pos)+Constants::IW_QUARTER_NEUTRON_MASS/charge;
 		c_diff = tex1Dfetch(pos_tex, my_data_pos-from_max_to_left) - tex1Dfetch(pos_tex, my_data_pos)+Constants::IW_QUARTER_NEUTRON_MASS/charge;
@@ -230,16 +230,16 @@ namespace OpenMS
 	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
 		const int charge, const int to_load, const int to_compute, const float peak_cutoff_intercept, const float peak_cutoff_slope, const int size, float* fwd2) 
 	{
-		if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
-		{	
+		//if (to_load < Constants::CUDA_EXTENDED_BLOCK_SIZE_MAX)
+		//{	
 			ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, peak_cutoff_intercept, peak_cutoff_slope, size);
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernel");
 			deriveOnDevice (result_dev, positions_dev, fwd2, size);
-		}
-		else
-		{
-			dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
+		//}
+		//else
+		//{
+			/*dimBlock = dim3(Constants::CUDA_TEXTURE_THREAD_LIMIT);
       dimGrid = dim3((int)ceil(size/(float)dimBlock.x));
 			cudaBindTexture(0, int_tex, intensities_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
 			cudaBindTexture(0, pos_tex, positions_dev, (size+from_max_to_left+from_max_to_right)*sizeof(float));
@@ -250,8 +250,8 @@ namespace OpenMS
 			deriveOnDevice (result_dev, positions_dev, fwd2, size);
 
 			cudaUnbindTexture(int_tex);
-			cudaUnbindTexture(pos_tex);
-		};
+			cudaUnbindTexture(pos_tex);*/
+		//};
 
 	}
 
@@ -1005,15 +1005,17 @@ namespace OpenMS
 		if (v==0)
 		{	
 			seed_mz = tex1Dfetch(pos_tex, ref_index);
-			peak_cutoff = (int) ceil(peak_cutoff_intercept+peak_cutoff_slope*seed_mz*(c+1));	
-			optimal_block_dim = 4*(peak_cutoff-1) -1;
+			peak_cutoff = (int) ceil(peak_cutoff_intercept+peak_cutoff_slope*seed_mz*(c+1)-Constants::IW_QUARTER_NEUTRON_MASS);	
+			//optimal_block_dim = 4*(peak_cutoff-1) -1;
+			optimal_block_dim = 2*(peak_cutoff-1);
 		};
 
 		__syncthreads();
 		if (v < optimal_block_dim)
 		{
 			float my_mz, l_pos, l_intens; int l_index;
-			my_mz = seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(v+1)*Constants::IW_HALF_NEUTRON_MASS)/((float)(c+1));
+			//my_mz = seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(v+1)*Constants::IW_HALF_NEUTRON_MASS)/((float)(c+1));
+			my_mz = seed_mz+v*Constants::IW_HALF_NEUTRON_MASS/((float)(c+1));
 
 			l_index = ref_index;
 			if (my_mz > seed_mz)
@@ -1051,7 +1053,8 @@ namespace OpenMS
 		if (v==0)
 		{
 			float final_score = 0;
-			int minus = -1;
+			//int minus = -1;
+			int minus = 1;
 			for (int i=0; i<optimal_block_dim; ++i)
 			{
 				final_score += minus*c_scores[i];

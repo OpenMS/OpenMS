@@ -34,6 +34,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <iostream>
+#include <time.h>
 
 
 namespace OpenMS
@@ -89,6 +90,7 @@ namespace OpenMS
 		/** @brief The working horse of this class. */
 		void run ()
 		{
+				clock_t start=clock(), end;
 				DoubleReal max_mz = this->map_->getMax()[1];
 				DoubleReal min_mz = this->map_->getMin()[1];
 					
@@ -252,6 +254,9 @@ namespace OpenMS
 				};*/
 #endif
 
+				end=clock();
+
+				std::cout << "Running time in seconds: " << (end-start)/(float)(CLOCKS_PER_SEC) << std::endl; 
 		}
 
 		static const String getProductName()

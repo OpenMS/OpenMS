@@ -197,21 +197,22 @@ namespace OpenMS
 
 	const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine (const DoubleReal mass, UInt* size) 
 	{
+	
 		averagine_.estimateFromPeptideWeight (mass);
 		IsotopeDistribution::ContainerType help (averagine_.getContainer());	
 		IsotopeDistribution::ContainerType::iterator iter;
 		
 		if (size != NULL)
 		{
-			UInt count=help.size();
+			/*UInt count=help.size();
 			for (iter=help.end()-1; iter!=help.begin(); --iter, --count)
 			{	
 				//maybe we should provide some interface to that constant, although its range is rather limited and
 				//its influence within this range is negligible.
 				if (iter->second >= 0.05)
 					break;
-			};
-			*size=count;
+			};*/
+			*size = (int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mass+Constants::CUTOFF_FIT99_2*mass*mass-Constants::IW_QUARTER_NEUTRON_MASS);
 		}; 
 
 		return (averagine_.getContainer());
@@ -226,8 +227,9 @@ namespace OpenMS
 		averagine_.estimateFromPeptideWeight (max_deconv_mz);
 		//maybe we should provide some interface to that constant, although its range is rather limited and
 		//its influence within this range is negligible.
-		averagine_.trimRight (0.05); 
-		averagine_.setMaxIsotope (averagine_.getContainer().size());
+		//averagine_.trimRight (0.05); 
+		Int max_isotope = (int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*max_deconv_mz+Constants::CUTOFF_FIT99_2*max_deconv_mz*max_deconv_mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		averagine_.setMaxIsotope (max_isotope-1);
 	}
 
 
