@@ -739,17 +739,20 @@ namespace OpenMS
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
 	{
-		Int spec_size = c_ref.size(), from_max_to_left (from_max_to_left_), from_max_to_right (from_max_to_right_);
+		Int spec_size = c_ref.size(), from_max_to_left (from_max_to_left_), from_max_to_right (from_max_to_right_), loop_break;
 		UInt charge = c+1;
-		DoubleReal value, boundary, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda;
+		DoubleReal value, boundary, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;
 
 		for(Int my_local_pos=0; my_local_pos<spec_size; ++my_local_pos)
 		{
 			value=0; boundary = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge)/charge;
 			old=0; old_pos=(my_local_pos-from_max_to_left-1>=0) ? c_ref[my_local_pos-from_max_to_left-1].getMZ() : c_ref[0].getMZ()-min_spacing_;
 			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge);
-
-			for (Int current_conv_pos = my_local_pos-from_max_to_left; current_conv_pos < my_local_pos+from_max_to_right; ++current_conv_pos)
+			loop_break = my_local_pos+from_max_to_right;
+			
+			origin = -my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
+			
+			for (Int current_conv_pos = my_local_pos-from_max_to_left; current_conv_pos < loop_break; ++current_conv_pos)
 			{
 				if (current_conv_pos<0)
 				{
@@ -761,12 +764,13 @@ namespace OpenMS
 					break;
 				};
 
-				c_diff = c_ref[current_conv_pos].getMZ()-my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
+				c_mz = c_ref[current_conv_pos].getMZ();
+				c_diff = c_mz + origin;
 
 				//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
 				current = c_diff > 0 && c_diff <= boundary ? IsotopeWavelet:: getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
 				
-				value += 0.5*(current + old)*(c_ref[current_conv_pos].getMZ()-old_pos);
+				value += 0.5*(current + old)*(c_mz-old_pos);
 				
 				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 					if (trunc(c_ref[my_local_pos].getMZ()) == 556 && charge==2)
@@ -776,7 +780,7 @@ namespace OpenMS
 				#endif
 
 				old = current;
-				old_pos = c_ref[current_conv_pos].getMZ();
+				old_pos = c_mz;
 			};	
 
 			c_trans[my_local_pos].setIntensity (value);
