@@ -52,6 +52,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletCudaKernel.h>
 #endif
 
+#ifdef OPENMS_HAS_TBB_H
+#include <tbb/concurrent_queue.h>
+#endif
 
 // we are not yet sure if we really want to drag in cutil.h and the CUDA_SAFE_CALL definitions...
 #ifndef CUDA_SAFE_CALL
@@ -84,6 +87,9 @@ namespace OpenMS
 	{
 		public:
 
+
+			///////////////////////////////////////////////////////////////////////In diesem struct muessen ueberall noch _ hin!!!!!!!!!!!!!!
+
 			/** @brief Internally used data structure. */
 			struct BoxElement
 			{
@@ -99,6 +105,36 @@ namespace OpenMS
 			};
 
 			typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
+
+
+			class PushElement 
+			{
+				public:
+
+					PushElement()
+						: mz_(-1), scan_(-1), c_(-1), score_(-1), intens_(-1), rt_(-1), MZ_begin_(-1), MZ_end_(-1), end_of_scan_ (-1), trans_(NULL)
+					{
+					};
+
+					PushElement (const DoubleReal mz, const UInt scan, UInt c, const DoubleReal score, 
+						const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end, const MSSpectrum<PeakType>& trans, bool end_of_scan=false)
+						: mz_(mz), scan_(scan), c_(c), score_(score), intens_(intens), rt_(rt), MZ_begin_(MZ_begin), MZ_end_(MZ_end), end_of_scan_ (end_of_scan)
+					{
+						trans_ = const_cast<MSSpectrum<PeakType>*	> (&trans);
+					};
+
+					DoubleReal mz_;
+					UInt scan_;
+					UInt c_;
+					DoubleReal score_; 
+					DoubleReal intens_;
+					DoubleReal rt_; 
+					UInt MZ_begin_;
+					UInt MZ_end_;
+				
+					bool end_of_scan_;
+					MSSpectrum<PeakType>*	trans_;			
+			};
 
 
 			/** @brief Constructor.
@@ -134,6 +170,8 @@ namespace OpenMS
 				
 				virtual int initializeCudaScan (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
 				
+				virtual int initializeCuda (const MSSpectrum<PeakType>& scan, const UInt cudaDevice); 
+				
 				virtual void finalizeCudaScan ();
 			
 				virtual void identifyCudaCharges (const MSSpectrum<PeakType>& candidates,
@@ -142,6 +180,10 @@ namespace OpenMS
 				virtual int cudaSort (MSSpectrum<PeakType>& sorted);
 			#endif	
 
+			#ifdef OPENMS_HAS_TBB_H
+				virtual void identifyTbbCharges (const MSSpectrum<PeakType>& candidates,
+					const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr=false);
+			#endif
 
 			virtual void getCMarrTransforms (const MSSpectrum<PeakType>& scan, 
 				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge);
@@ -165,7 +207,11 @@ namespace OpenMS
  				* average intensity in the wavelet transform. */
 			virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;
-
+					
+			virtual void identifyCharge (const MSSpectrum<PeakType>& candidates, const UInt c, 
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr=false) ;	
+			
+			
 			/** @brief A function keeping track of currently open and closed sweep line boxes.
  				* This function is used by the isotope wavelet feature finder and must be called for each processed scan.
  				* @param map The original map containing the data set to be analyzed.
@@ -209,7 +255,12 @@ namespace OpenMS
 				DoubleReal mz=mass*z;
 				return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
 			};	
-
+			
+			inline UInt getNumPeakCutOff (const DoubleReal mz)
+			{ 
+				return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
+			};	
+			
 			inline UInt getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
 			{ 
 				DoubleReal mz=mass*z;
@@ -236,6 +287,25 @@ namespace OpenMS
 			{
 				sigma_ = sigma;
 			};
+
+			#ifdef OPENMS_HAS_TBB_H
+				static tbb::concurrent_queue<PushElement>* getPushQueue ()
+				{
+					return (&push_queue_);
+				};
+				
+				inline void pushStopElement (const UInt scan, UInt c, const MSSpectrum<PeakType>& trans)
+				{
+					push_queue_.push (PushElement(-1, scan, c, -1, -1, -1, -1, -1, trans, true));
+				};
+
+				virtual void push2TmpBox (const IsotopeWaveletTransform<PeakType>::PushElement push_element);
+
+				virtual void clusterTbbSeeds_ (const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool use_cmarr)
+				{
+					clusterCudaSeeds_ (candidates, ref, scan_index, c, use_cmarr);
+				};
+			#endif	
 
 
 		protected:
@@ -353,7 +423,6 @@ namespace OpenMS
 			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score,
 				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) ;
 
-
 			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index.
  				*
  				* @param scan	The scan we are interested in.
@@ -447,7 +516,7 @@ namespace OpenMS
 			UInt overall_size_, from_max_to_left_, from_max_to_right_, block_size_, data_length_, to_load_, to_compute_;
 			MSSpectrum<PeakType> c_sorted_candidate_;
 			DoubleReal min_spacing_, max_mz_cutoff_;
-			std::vector<float> scores_, zeros_;	
+			std::vector<float> scores_, zeros_;	//hier muessen bestimmt noch einige sachen ins ifdef
 
 			#ifdef OPENMS_HAS_CUDA
 				void* cuda_device_intens_;
@@ -460,7 +529,19 @@ namespace OpenMS
 				std::vector<float> cuda_positions_, cuda_intensities_;
 				dim3 dimGrid_, dimBlock_;
 			#endif
+
+			#ifdef OPENMS_HAS_TBB_H
+				static tbb::concurrent_queue<PushElement> push_queue_;
+			#endif
 	};
+		
+
+
+	#ifdef OPENMS_HAS_TBB_H
+		template <typename PeakType>
+		tbb::concurrent_queue<typename IsotopeWaveletTransform<PeakType>::PushElement> IsotopeWaveletTransform<PeakType>::push_queue_;
+	#endif
+	
 
 	bool myCudaComparator (const cudaHelp& a, const cudaHelp& b);
 
@@ -1002,17 +1083,12 @@ namespace OpenMS
 			//std::cout << "griddim: " << dimGrid_.x << "\t blockdim: " << dimBlock_.x <<  std::endl;
 
 			(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
-
 			(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
 			(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
 			(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
 			(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
-
 			(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
-			
 			(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
-
 			(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
 
 			c_sorted_candidate_.resize (overall_size_);
@@ -1025,22 +1101,53 @@ namespace OpenMS
 			return (Constants::CUDA_INIT_SUCCESS);
 		}
 
+
+		template <typename PeakType>
+		int IsotopeWaveletTransform<PeakType>::initializeCuda (const MSSpectrum<PeakType>& scan, const UInt cudaDevice) 
+		{
+			(cudaMalloc(&cuda_device_posindices_sorted_, overall_size_*sizeof(int)));
+			(cudaMalloc(&cuda_device_pos_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_pos_, &(cuda_positions_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+			(cudaMalloc(&cuda_device_intens_, overall_size_*sizeof(float)));
+			(cudaMemcpy(cuda_device_intens_, &(cuda_intensities_[0]), overall_size_*sizeof(float), cudaMemcpyHostToDevice));
+			(cudaMalloc(&cuda_device_trans_intens_, overall_size_*sizeof(float)));
+			(cudaMalloc(&cuda_device_fwd2_, overall_size_*sizeof(float)));
+			(cudaMalloc(&cuda_device_trans_intens_sorted_, overall_size_*sizeof(float)));
+
+			(cudaMalloc(&cuda_device_scores_, overall_size_*sizeof(float)));
+		
+			return (Constants::CUDA_INIT_SUCCESS);
+		}
+
+
+
 		template <typename PeakType>
 		void IsotopeWaveletTransform<PeakType>::getCudaTransforms (MSSpectrum<PeakType> &c_trans, const UInt c) 
 		{
+			cudaThreadSynchronize();
+			checkCUDAError("7");
 			std::vector<float> res (overall_size_, 0);
-			(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
-			(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
 			
-			//std::cout << from_max_to_left_ << "\t" << from_max_to_right_ << "\t" << to_load_ << "\t" << to_compute_ << "\t" << data_length_ << std::endl;
+			(cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));	
+			cudaThreadSynchronize();
+			checkCUDAError("8");
+			
+			(cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_*sizeof(float), cudaMemcpyHostToDevice));				
+			cudaThreadSynchronize();
+			checkCUDAError("9");
 			getExternalCudaTransforms (dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_, 
-				c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);
-		
-			//(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_trans_intens_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
+				c+1, to_load_, to_compute_, peak_cutoff_intercept_, peak_cutoff_slope_, data_length_, (float*)cuda_device_fwd2_);			
+			
+			(cudaThreadSynchronize());	
+			checkCUDAError("10");
+
 			(cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_fwd2_, overall_size_*sizeof(float), cudaMemcpyDeviceToDevice));
 			(cudaThreadSynchronize());	
+			checkCUDAError("11");
 
 			(cudaMemcpy(&(res[0]), (float*)cuda_device_trans_intens_+from_max_to_left_, data_length_*sizeof(float), cudaMemcpyDeviceToHost));
+			(cudaThreadSynchronize());	
+			checkCUDAError("12");
 			
 			for (UInt i=0; i<data_length_; ++i)
 			{
@@ -1144,7 +1251,6 @@ namespace OpenMS
 					continue;
 				};
 
-
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
 				push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
@@ -1193,6 +1299,131 @@ namespace OpenMS
 		}
 	#endif
 
+
+	#ifdef OPENMS_HAS_TBB_H
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::identifyTbbCharges (const MSSpectrum<PeakType>& candidates,
+			const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool use_cmarr)
+		{
+			UInt index, MZ_start, MZ_end;
+			typename MSSpectrum<PeakType>::iterator iter, bound_iter;
+			typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, iter2, seed_iter;
+			DoubleReal mz_cutoff, seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
+						
+			Int gpu_index = cudaSort (c_sorted_candidate_), c_index;
+			if (gpu_index < 0) //the transform produced non-exploitable data
+			{
+				return;
+			};
+	
+
+			std::vector<UInt> processed (data_length_, 0);
+			if (ampl_cutoff < 0)
+			{
+				threshold=0;
+			}
+			else
+			{			
+				c_av_intens = getAvIntens_ (candidates);
+				c_sd_intens = getSdIntens_ (candidates, c_av_intens);
+				threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+			};		
+		
+			Int num_of_scores = overall_size_-gpu_index;
+		
+			(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
+		
+			//std::cout << "num_of_scores: " << num_of_scores << "\t" << c+1 << "\t" << gpu_index << std::endl;
+
+			scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
+				c, num_of_scores, overall_size_, peak_cutoff_intercept_, peak_cutoff_slope_, max_num_peaks_per_pattern_);
+			
+			(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
+
+			std::vector<float>::iterator score_iter;
+			for (c_index = overall_size_-gpu_index-1, score_iter = scores_.begin()+num_of_scores-1; c_index >= 0; --c_index, --score_iter)
+			{				
+				seed_mz = c_sorted_candidate_[c_index].getMZ();
+				seed_iter = ref.MZBegin(seed_mz);
+				index = distance(ref.begin(), seed_iter);
+
+				if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)] || index <= 0)
+				{
+					continue;
+				};
+				
+				mz_cutoff = getMzPeakCutOffAtMonoPos(seed_mz, (UInt) c+1);//;getPeakCutOff (seed_mz, c+1);
+				//Mark the region as processed
+				//Do not move this further down, since we have to mark this as processed in any case, 
+				//even when score <=0; otherwise we would look around the maximum's position unless 
+				//any significant point is found
+				iter_start =ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				//iter_end = ref.MZEnd(seed_mz+(peak_cutoff-1)-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+				iter_end = ref.MZEnd(seed_mz+mz_cutoff/(c+1.));
+			
+				if (iter_end == ref.end())
+				{
+					--iter_end;
+				};
+			
+				MZ_start = distance (ref.begin(), iter_start);
+				MZ_end = distance (ref.begin(), iter_end);
+
+				memset(&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
+
+				c_score = *score_iter;
+				if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
+				{
+					continue;
+				};
+
+				//Push the seed into its corresponding box (or create a new one, if necessary)
+				//Do ***NOT*** move this further down!
+				//push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
+				push_queue_.push (PushElement(seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end, candidates));
+
+				//Push neighboring peaks to compute finally a derivative over the isotope pattern envelope				
+				help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+				iter2 = candidates.MZBegin (help_mz);
+
+				if (iter2 == candidates.end() || iter2 == candidates.begin())
+				{
+					continue;
+				};
+
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates.end())
+					{
+						//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+						//push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), candidates.getRT(), MZ_start, MZ_end);
+						push_queue_.push (PushElement(help_mz, scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), candidates.getRT(), MZ_start, MZ_end, candidates));
+					};
+				};
+
+
+				help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
+				iter2 = candidates.MZBegin (help_mz);
+
+				if (iter2 == candidates.end() || iter2 == candidates.begin())
+				{
+					continue;
+				};
+
+				if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+				//In the other case, we are too close to the peak, leading to incorrect derivatives.
+				{
+					if (iter2 != candidates.end())
+					{
+						//push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, iter2->getIntensity(), candidates.getRT(), MZ_start, MZ_end);
+						//push2TmpBox_ (help_mz, scan_index, c, 0, getLinearInterpolation((iter2-1), help_mz, (iter2)), candidates.getRT(), MZ_start, MZ_end);
+						push_queue_.push (PushElement(help_mz, scan_index, c, 0, getLinearInterpolation((iter2-1), help_mz, (iter2)), candidates.getRT(), MZ_start, MZ_end, candidates));
+					};
+				};
+			};
+		}
+	#endif	
 
 
 	template <typename PeakType>
@@ -1433,7 +1664,7 @@ namespace OpenMS
 		
 				memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
 
-				c_score = scoreThis_ (candidates[c], getNumPeakCutOff(seed_mz, c+1.), seed_mz, c, iter->getIntensity(), threshold);
+				c_score = scoreThis_ (candidates[c], getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, iter->getIntensity(), threshold);
 
 				if (c_score <= 0)
 				{
@@ -1478,6 +1709,131 @@ namespace OpenMS
 						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 
 		clusterSeeds_(candidates, ref, scan_index, candidates.size(), use_cmarr);
+	}
+
+
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::identifyCharge (const MSSpectrum<PeakType>& candidates, const UInt c, 
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff, const bool use_cmarr)
+	{
+		UInt signal_size=candidates.size(); 
+		typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+		DoubleReal mz_cutoff, seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
+	 	UInt MZ_start, MZ_end;
+		
+		MSSpectrum<PeakType> diffed (candidates);
+		diffed[0].setIntensity(0); diffed[signal_size-1].setIntensity(0);
+		for (unsigned int i=0; i<signal_size-2; ++i)
+		{
+			share = diffed[i+1].getIntensity(), share_pos = diffed[i+1].getMZ();
+			bwd = (share-diffed[i].getIntensity())/(share_pos-diffed[i].getMZ());
+			fwd = (diffed[i+2].getIntensity()-share)/(diffed[i+2].getMZ()-share_pos);
+			if (bwd<0 || fwd>0)
+			{
+				diffed[i+1].setIntensity(0);
+			};
+		};
+
+		//DPeakConstReferenceArray<MSSpectrum<PeakType> > c_sorted_candidate_ (candidates[c].begin(), candidates[c].end());
+		ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_ (diffed.begin(), diffed.end());
+
+		//Sort the transform in descending order according to the intensities present in the transform 	
+		c_sorted_candidate_.sortByIntensity();
+		//sort (c_sorted_candidate_.begin(), c_sorted_candidate_.end(), intensityComparator<PeakType>);
+
+		std::vector<UInt> processed (signal_size, 0);
+
+		if (ampl_cutoff < 0)
+		{
+			threshold=0;
+		}
+		else
+		{				
+			c_av_intens = getAvIntens_ (candidates);
+			c_sd_intens = getSdIntens_ (candidates, c_av_intens);
+			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+		};		
+			
+		for (iter=c_sorted_candidate_.end()-1; iter != c_sorted_candidate_.begin(); --iter)
+		{					
+			if (iter->getIntensity() <= 0)
+			{
+				break;
+			};
+	
+			seed_mz = iter->getMZ();
+			seed_iter = ref.MZBegin(seed_mz);
+
+			if (seed_iter == ref.end() || processed[distance(ref.begin(), seed_iter)])
+			{
+				continue;
+			};
+			 
+			mz_cutoff = getMzPeakCutOffAtMonoPos (seed_mz, c+1.);
+			//Mark the region as processed
+			//Do not move this further down, since we have to mark this as processed in any case, 
+			//even when score <=0; otherwise we would look around the maximum's position unless 
+			//any significant point is found
+			iter_start = ref.MZBegin(seed_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));
+			iter_end = ref.MZEnd(seed_mz+mz_cutoff/(c+1.));
+			if (iter_end == ref.end())
+			{
+				--iter_end;
+			};
+							
+			MZ_start = distance (ref.begin(), iter_start);
+			MZ_end = distance (ref.begin(), iter_end);
+	
+			memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
+
+			c_score = scoreThis_ (candidates, getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, iter->getIntensity(), threshold);
+
+			if (c_score <= 0)
+			{
+				continue;
+			};
+
+		
+			//Push the seed into its corresponding box (or create a new one, if necessary)
+			//Do ***NOT*** move this further down!
+			
+			push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), MZ_start, MZ_end);
+
+			help_mz = seed_mz - Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+			if (iter2 == candidates.end() || iter2 == candidates.begin())
+			{
+				continue;
+			};
+
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+				};
+			};
+		
+			help_mz = seed_mz + Constants::IW_NEUTRON_MASS/(c+1.);
+			iter2 = candidates.MZBegin (help_mz);
+			if (iter2 == candidates.end()|| iter2 == candidates.begin())
+			{
+				continue;
+			};
+
+			if (fabs(iter2->getMZ()-seed_mz) > 0.5*Constants::IW_NEUTRON_MASS/(c+1.))
+			//In the other case, we are too close to the peak, leading to incorrect derivatives.
+			{
+				if (iter2 != candidates.end())
+				{
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+				};
+			};
+		};	
+		
+		clusterCudaSeeds_(candidates, ref, scan_index, c, use_cmarr);
 	}
 
 	
@@ -1673,8 +2029,12 @@ namespace OpenMS
 				else return (0);
 			} while (candidate[start_index].getMZ() < positions[v-1]);
 			
-			c_left_iter2 = candidate.begin()+start_index;
-			--c_left_iter2;	
+			if (start_index <= 0) //unable to interpolate
+			{
+				return (0);
+			};
+
+			c_left_iter2 = candidate.begin()+start_index-1;
 			c_right_iter2 = c_left_iter2+1;
 
 			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
@@ -1889,15 +2249,14 @@ namespace OpenMS
 
 		pearson = ( theo_conv.size() * sum_xy - sum_x*sum_y ) / (sqrt(theo_conv.size()*sum_x2 - sum_x*sum_x) * sqrt(theo_conv.size()*sum_y2 - sum_y*sum_y));
 
-		DoubleReal final_percent = fabs(c_score-c_theo_score)/(2.*(c_score+c_theo_score))*100;
-	
-		//#ifdef DEBUG_FEATUREFINDER	
+		#ifdef DEBUG_FEATUREFINDER	
+			DoubleReal final_percent = fabs(c_score-c_theo_score)/(2.*(c_score+c_theo_score))*100;
 			std::ofstream ofile_score ("scores.dat", std::ios::app);
 			std::ofstream ofile_check_score ("check_scores.dat", std::ios::app);
 			ofile_score << seed_mz << "\t" << c_theo_score << "\t" << c_score << "\t" << final_percent << "\t" << pearson << std::endl;
 			ofile_score.close();
 			ofile_check_score.close();
-		//#endif
+		#endif
 
 		if (pearson < ampl_cutoff)
 		{
@@ -2339,6 +2698,125 @@ namespace OpenMS
 	}
 
 
+	#ifdef OPENMS_HAS_TBB_H
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::push2TmpBox (const IsotopeWaveletTransform<PeakType>::PushElement push_element) 
+		{
+			//std::cout << "Pushing to tmp box: " << push_element.mz_ << "\t scan " << push_element.scan_+1 << "\t charge " << push_element.c_+1 << "\t score " << push_element.score_ << std::endl;
+
+			std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(push_element.c_));
+			typename std::map<DoubleReal, Box>::iterator upper_iter = tmp_box.upper_bound(push_element.mz_);
+			typename std::map<DoubleReal, Box>::iterator lower_iter; 
+		
+			lower_iter = tmp_box.lower_bound(push_element.mz_);
+			if (lower_iter != tmp_box.end())
+			{
+				//Ugly, but necessary due to the implementation of STL lower_bound
+				if (push_element.mz_ != lower_iter->first && lower_iter != tmp_box.begin())
+				{
+					--lower_iter;
+				};			
+			};
+			
+			typename std::multimap<DoubleReal, Box>::iterator insert_iter;
+			bool create_new_box=true;
+			if (lower_iter == tmp_box.end()) //I.e. there is no tmp Box for that mz position
+			{
+				//There is another special case to be considered here:
+				//Assume that the current box contains only a single element that is (slightly) smaller than the new mz value, 
+				//then the lower bound for the new mz value is box.end and this would usually force a new entry
+				if (!tmp_box.empty())
+				{
+					if (fabs((--lower_iter)->first - push_element.mz_) < Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.)) //matching box
+					{
+						create_new_box=false;
+						insert_iter = lower_iter;
+					};
+				}
+				else
+				{
+					create_new_box=true;
+				}
+			}
+			else
+			{
+				if (upper_iter == tmp_box.end() && fabs(lower_iter->first - push_element.mz_) < Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.)) //Found matching Box
+				{
+					insert_iter = lower_iter;
+					create_new_box=false;
+				}
+				else
+				{
+					create_new_box=true;
+				};
+			};
+
+		
+			if (upper_iter != tmp_box.end() && lower_iter != tmp_box.end())
+			{	
+				//Figure out which entry is closer to m/z
+				DoubleReal dist_lower = fabs(lower_iter->first - push_element.mz_);
+				DoubleReal dist_upper = fabs(upper_iter->first - push_element.mz_);
+				dist_lower = (dist_lower < Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.0)) ? dist_lower : INT_MAX;
+				dist_upper = (dist_upper < Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.0)) ? dist_upper : INT_MAX;
+
+				if (dist_lower>=Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.0) && dist_upper>=Constants::IW_HALF_NEUTRON_MASS/(push_element.c_+1.0)) // they are both too far away
+				{
+					create_new_box=true;
+				}
+				else
+				{
+					insert_iter = (dist_lower < dist_upper) ? lower_iter : upper_iter;	
+					create_new_box=false;
+				};
+			}; 
+
+			BoxElement element; 
+			element.c = push_element.c_; element.mz = push_element.mz_; element.score = push_element.score_; element.RT = push_element.rt_; element.intens=push_element.intens_;
+			element.RT_index = push_element.scan_; element.MZ_begin = push_element.MZ_begin_; element.MZ_end = push_element.MZ_end_; 
+			
+			if (create_new_box == false)
+			{			
+				double max=push_element.intens_;
+				typename Box::iterator box_iter;
+				for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
+					if (box_iter->second.max_intens > max)
+						max=box_iter->second.max_intens;
+				if (max==push_element.intens_)
+				for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
+					box_iter->second.max_intens=push_element.intens_;
+				element.max_intens=max;			
+				
+				std::pair<UInt, BoxElement> help2 (push_element.scan_, element);
+				insert_iter->second.insert (help2);	
+
+				//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
+				Box replacement (insert_iter->second);	
+
+				//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+				//Also note that we already inserted the new entry, leading to size-1.
+				DoubleReal c_mz = insert_iter->first * (insert_iter->second.size()-1) + push_element.mz_;	
+				c_mz /= ((DoubleReal) insert_iter->second.size());		
+
+				//Now let's remove the old and insert the new one
+				tmp_box.erase (insert_iter);	
+				std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);	
+				tmp_box.insert (help3);				
+			}
+			else
+			{			
+				element.max_intens=push_element.intens_;			
+				std::pair<UInt, BoxElement> help2 (push_element.scan_, element);
+				std::multimap<UInt, BoxElement> help3;
+				help3.insert (help2);
+
+				std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help4 (push_element.mz_, help3);
+				tmp_box.insert (help4);
+			};	
+		}
+	#endif
+
+
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
@@ -2535,7 +3013,6 @@ namespace OpenMS
 				c_box_element.c = c;
 				c_box_element.score = av_score;
 				c_box_element.intens = av_intens;
-				av_abs_intens += fabs(box_iter->second.intens);
 				c_box_element.max_intens = av_max_intens;
 				c_box_element.RT=av_RT;
 				final_box.push_back(c_box_element);
@@ -2568,7 +3045,7 @@ namespace OpenMS
 
 			for (UInt i=0; i<num_o_feature-1; ++i)
 			{
-				while (i<num_o_feature-1)
+				while (i<num_o_feature-2)
 				{
 					if(final_box[i].score>0) //this has been an helping point
 						break;
@@ -2684,7 +3161,7 @@ namespace OpenMS
 		//std::cout << "av_mz before loop: " << av_mz << std::endl;
 		for (UInt i=0; i<num_o_feature-1; ++i)
 		{	
-			while (i<num_o_feature-1)
+			while (i<num_o_feature-2)
 			{
 				if(final_box[i].score>0) //this has been an helping point
 					break;
