@@ -40,10 +40,7 @@ namespace OpenMS
 	 * 	Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet. Proceedings of the 3rd international 
 	 * 	Symposium in Computational Life Sciences (Complife07). American Institute of Physics (AIP) Proceedings (2007).
 	 *
-	 * 	@note This class features a singleton design pattern.
-	 *
-	 * 	@todo Tests for negative mode (Rene)
-	*/
+	 * 	@note This class features a singleton design pattern. */
 	class OPENMS_DLLAPI IsotopeWavelet
 	{
 		public:
@@ -71,7 +68,7 @@ namespace OpenMS
 					* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
 				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) 
 				{			
-					return (getValueByLambda (getLambdaQ(m*z-z*mode*Constants::IW_PROTON_MASS), t*z+1));
+					return (getValueByLambda (getLambdaL(m*z-z*mode*Constants::IW_PROTON_MASS), t*z+1));
 				}
 	
 				/** @brief Returns the value of the isotope wavelet at position @p t via a fast table lookup. 
@@ -140,12 +137,10 @@ namespace OpenMS
 				}
 
 
-				/** @brief Returns the mass-parameter lambda (linear fit). 
-					* @note The only possibility to switch between @see getLambdaL and @see getLambdaQ is pure hardcoding. */
+				/** @brief Returns the mass-parameter lambda (linear fit). */ 
 				static DoubleReal getLambdaL (const DoubleReal m) ;
 
-				/** @brief Returns the mass-parameter lambda (quadratic fit). 
-					* @note The only possibility to switch between getLambdaL and getLambdaQ is pure hardcoding. */
+				/** @brief Returns the mass-parameter lambda (quadratic fit).*/ 
 				static DoubleReal getLambdaQ (const DoubleReal m) ;		
 
 
@@ -173,23 +168,11 @@ namespace OpenMS
 					* @note Please, do not modify this function. */
 				static float myPow (float a, float b) ;		
 			
-				static UInt getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
-				{ 
-					DoubleReal mz=mass*z;
-					//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)
-					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz)); 
-				};
+				static UInt getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z);
 	
-				static UInt getNumPeakCutOff (const DoubleReal mass, const UInt z)
-				{ 
-					DoubleReal mz=mass*z;
-					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
-				};	
+				static UInt getNumPeakCutOff (const DoubleReal mass, const UInt z);
 				
-				static UInt getNumPeakCutOff (const DoubleReal mz)
-				{ 
-					return ((int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mz+Constants::CUTOFF_FIT99_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)); 
-				};	
+				static UInt getNumPeakCutOff (const DoubleReal mz);
 
 
 		protected:

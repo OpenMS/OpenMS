@@ -113,13 +113,13 @@ namespace OpenMS
             //Find seeds with IsotopeWavelet
            	//Seeding strategy ...
 						//---------------------------------------------------------------------------
-
             CoordinateType max_mz = this->map_->getMax()[1];
             CoordinateType min_mz = this->map_->getMin()[1];
 
             IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
 
             this->ff_->startProgress (0, this->map_->size(), "analyzing spectra");
+            this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
 
             UInt RT_votes_cutoff = RT_votes_cutoff_;
             //Check for useless RT_votes_cutoff_ parameter
@@ -128,14 +128,37 @@ namespace OpenMS
 
             for (Size i=0, j=0; i<this->map_->size(); ++i)
             {
-              std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
-              iwt.getTransforms (this->map_->at(i), pwts, max_charge_);
-              iwt.identifyCharges (pwts,  this->map_->at(i), i, ampl_cutoff_);
-              iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
-              this->ff_->setProgress (++j);
-            };
+              const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
+							for (UInt c=0; c<max_charge_; ++c)
+							{
+								MSSpectrum<PeakType> c_trans (c_ref);
+								
+								iwt.getTransform (c_trans, c_ref, c);
+								
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::stringstream stream;
+									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
+									std::ofstream ofile (stream.str().c_str());
+									for (UInt k=0; k < c_ref.size(); ++k)
+									{
+										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" c_ref[k].getMZ() << "\t" << c_ref[k].getIntensity() << std::endl;
+									};
+									ofile.close();
+								#endif
 
-            this->ff_->endProgress();
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "transform O.K. ... "; std::cout.flush();
+								#endif							
+								this->ff_->setProgress (++j);
+
+								iwt.identifyCharge (c_trans, c_ref, i, c, ampl_cutoff_, false);
+						
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "charge recognition O.K. ... "; std::cout.flush();
+								#endif
+								this->ff_->setProgress (++j);
+							};
+            };
 
             //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_
             iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff);

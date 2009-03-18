@@ -367,6 +367,17 @@ namespace OpenMS
 			return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 		}
 		/**
+			 @brief Binary search for peak range begin
+
+			 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+		*/
+		Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)
+		{
+			PeakType p;
+			p.setPosition(mz);
+			return lower_bound(begin, end, p, typename PeakType::PositionLess());
+		}
+		/**
 			 @brief Binary search for peak range end (returns the past-the-end iterator)
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
@@ -376,7 +387,19 @@ namespace OpenMS
 			PeakType p;
 			p.setPosition(mz);
 			return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+		}		
+		/**
+			 @brief Binary search for peak range end (returns the past-the-end iterator)
+
+			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
+		*/
+		Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)
+		{
+			PeakType p;
+			p.setPosition(mz);
+			return upper_bound(begin, end, p, typename PeakType::PositionLess());
 		}
+
 		/**
 			 @brief Binary search for peak range begin
 
@@ -389,6 +412,17 @@ namespace OpenMS
 			return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 		}
 		/**
+			 @brief Binary search for peak range begin
+
+			 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+		*/
+		ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const
+		{
+			PeakType p;
+			p.setPosition(mz);
+			return lower_bound(begin, end, p, typename PeakType::PositionLess());
+		}
+		/**
 			 @brief Binary search for peak range end (returns the past-the-end iterator)
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
@@ -398,7 +432,19 @@ namespace OpenMS
 			PeakType p;
 			p.setPosition(mz);
 			return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+		}		
+		/**
+			 @brief Binary search for peak range end (returns the past-the-end iterator)
+
+			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
+		*/
+		ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const
+		{
+			PeakType p;
+			p.setPosition(mz);
+			return upper_bound(begin, end, p, typename PeakType::PositionLess());
 		}
+
 		//@}
 
 

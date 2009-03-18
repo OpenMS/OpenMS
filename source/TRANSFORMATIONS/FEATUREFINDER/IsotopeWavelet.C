@@ -84,12 +84,12 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal tz (tz1-1);
-		DoubleReal fi_lgamma (gamma_table_.at((Int)(tz1*inv_table_steps_)));
+		//DoubleReal fi_lgamma (gamma_table_.at((Int)(tz1*inv_table_steps_)));
 
-		//DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
+		DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
 		
 		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
-		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
+		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
 
 		DoubleReal fac (-lambda + tz*myLog2_(lambda)*ONEOLOG2E - fi_lgamma);
 
@@ -102,7 +102,7 @@ namespace OpenMS
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
 		DoubleReal help ((tz1-1)*Constants::WAVELET_PERIODICITY/(TWOPI));
-		DoubleReal sine_index ((help-(trunc)(help))*TWOPI*inv_table_steps_);
+		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
 		
 		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
@@ -121,7 +121,33 @@ namespace OpenMS
 	{
 		return (Constants::LAMBDA_Q_0 + Constants::LAMBDA_Q_1*m + Constants::LAMBDA_Q_2*m*m);
 	}
-			
+	
+
+	UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
+	{ 
+		const DoubleReal mz (mass*z);
+		//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)
+		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz) 
+				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz)))); 
+	};
+
+	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mass, const UInt z)
+	{ 
+		const DoubleReal mz (mass*z);
+		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
+				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
+	};	
+	
+	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mz)
+	{ 
+		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
+				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
+	};
+
+		
 	float IsotopeWavelet::myPow (float a, float b) 		
 	{	
 		float help (b*myLog2_(a));
@@ -157,9 +183,7 @@ namespace OpenMS
 
 	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) 
 	{
-		std::cout << max_m << "\t" << max_charge_ << std::endl; 
 		UInt peak_cutoff = getNumPeakCutOff(max_m, max_charge_);
-		std::cout << "peak_cutoff " << peak_cutoff << std::endl;
 		UInt up_to = peak_cutoff*max_charge_+1;
 		gamma_table_.clear();
 		exp_table_.clear();
@@ -200,7 +224,7 @@ namespace OpenMS
 		
 		if (size != NULL)
 		{
-			*size = (int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*mass+Constants::CUTOFF_FIT99_2*mass*mass-Constants::IW_QUARTER_NEUTRON_MASS);
+			*size = getNumPeakCutOff(mass);
 		}; 
 
 		return (averagine_.getContainer());
@@ -213,10 +237,7 @@ namespace OpenMS
 		averagine_.setMaxIsotope(UInt(max_deconv_mz/100.+10.)); // expect less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
 		// averagine_.setMaxIsotope (INT_MAX); // old version INT_MAX is C not C++, should use #include <limits> anyway
 		averagine_.estimateFromPeptideWeight (max_deconv_mz);
-		//maybe we should provide some interface to that constant, although its range is rather limited and
-		//its influence within this range is negligible.
-		//averagine_.trimRight (0.05); 
-		Int max_isotope = (int) ceil(Constants::CUTOFF_FIT99_0+Constants::CUTOFF_FIT99_1*max_deconv_mz+Constants::CUTOFF_FIT99_2*max_deconv_mz*max_deconv_mz-Constants::IW_QUARTER_NEUTRON_MASS);
+		Int max_isotope = getNumPeakCutOff(max_deconv_mz);
 		averagine_.setMaxIsotope (max_isotope-1);
 	}
 

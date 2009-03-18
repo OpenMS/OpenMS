@@ -43,12 +43,12 @@ namespace OpenMS
 	int checkCUDAError(const char *msg);
 
 	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
-		const int charge, const int to_load, const int to_compute, const float peak_cutoff_intercept, const float peak_cutoff_slope, const int size, float* fwd2);
+		const int charge, const int to_load, const int to_compute, const int size, float* fwd2);
 	
 	int sortOnDevice(float *array, int* pos_indices, int numElements, int padding);
 
 	void scoreOnDevice (int* sorted_positions_indices, float* trans_intensities,  float* pos, float* scores, 
-		const int c, const int num_of_scores, const int overall_size, const float peak_cutoff_intercept, const float peak_cutoff_slope, const unsigned int max_peak_cutoff);
+		const int c, const int num_of_scores, const int overall_size, const unsigned int max_peak_cutoff);
 
 	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size);
 }

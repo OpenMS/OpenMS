@@ -123,14 +123,11 @@ namespace OpenMS
 					};
 				#endif
 			
-				std::cout << "schnock" << std::endl;	
 				IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, 0.2, max_size);
-				std::cout << "bock" << std::endl;	
 
 				this->ff_->setLogType (ProgressLogger::CMD);
-				this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
+				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");  
 
-			UInt RT_votes_cutoff = RT_votes_cutoff_;
 			//Check for useless RT_votes_cutoff_ parameter
 				if (RT_votes_cutoff_ > this->map_->size())
 				{
@@ -161,17 +158,26 @@ namespace OpenMS
 				{
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
-						
+						const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
+
+						if (c_ref.size() <= 1) //unable to do transform anything
+						{					
+							this->ff_->setProgress (progress_counter_+=3);
+							continue;
+						};
+
 						if (use_cmarr_ > 0)
 						{
-							if (iwt.estimateCMarrWidth ((*this->map_)[i]))
+							if (iwt.estimateCMarrWidth (c_ref))
 							{
-								std::cout << "Sigma estimation for coupled Marr wavelet successful: " << iwt.getSigma() << std::endl; 
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "Sigma estimation for coupled Marr wavelet successful: " << iwt.getSigma() << std::endl; 	
+								#endif
 							}
 							else
 							{
-								std::cout << "Sigma estimation for coupled Marr wavelet failed.\n";
-								std::cout << "Estimating sigma via the average sampling rate: " << iwt.getSigma() << std::endl; 
+								std::cout << "Note: Sigma estimation for coupled Marr wavelet failed.\n";
+								std::cout << "Note: Estimating sigma via the average sampling rate: " << iwt.getSigma() << std::endl; 
 							};
 						};
 
@@ -180,45 +186,37 @@ namespace OpenMS
 							std::cout.flush();
 						#endif
 						
-						if ((*this->map_)[i].size() <= 1) //unable to do transform anything
-						{					
-							this->ff_->setProgress (progress_counter_+=3);
-							continue;
-						};
-
-	 
 						if (use_cuda_ < 0)
 						{	
-			
-							MSExperiment<PeakType>* this_map (const_cast<MSExperiment<PeakType>*>(this->map_));
 							for (UInt c=0; c<max_charge_; ++c)
 							{
-								iwt.getTransform ((*this_map)[i], c);
+								MSSpectrum<PeakType> c_trans (c_ref);
+								
+								iwt.getTransform (c_trans, c_ref, c);
+								
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-									typename MSSpectrum<PeakType>::MetaDataArrays& trans_intensities ((*this_map)[i].getMetaDataArrays());
 									std::stringstream stream;
-									stream << "cpu_" << (*this_map)[i].getRT() << "_" << c+1 << ".trans\0"; 
+									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
-									for (UInt k=0; k < (*this_map)[i].size(); ++k)
+									for (UInt k=0; k < c_ref.size(); ++k)
 									{
-										ofile << (*this_map)[i][k].getMZ() << "\t" << trans_intensities[k][0] << "\t" << (*this->map_)[i][k].getIntensity() << std::endl;
+										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getMZ() << "\t" << c_ref[k].getIntensity() << std::endl;
 									};
 									ofile.close();
 								#endif
+
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "transform O.K. ... "; std::cout.flush();
+								#endif							
+								this->ff_->setProgress (++progress_counter_);
+
+								iwt.identifyCharge (c_trans, c_ref, i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
+						
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+									std::cout << "charge recognition O.K. ... "; std::cout.flush();
+								#endif
+								this->ff_->setProgress (++progress_counter_);
 							};
-						
-							this->ff_->setProgress (++progress_counter_);
-
-							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-								std::cout << "transform O.K. ... "; std::cout.flush();
-							#endif
-						
-							//iwt.identifyCharge (pwts,  (*this->map_)[i], i, intensity_threshold_, (use_cmarr_>0) ? true : false);
-							this->ff_->setProgress (++progress_counter_);
-
-							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-								std::cout << "charge recognition O.K. ... "; std::cout.flush();
-							#endif
 						}	
 						else
 						{
@@ -236,7 +234,7 @@ namespace OpenMS
 											std::ofstream ofile (stream.str().c_str());
 											for (UInt k=0; k < c_trans.size(); ++k)
 											{
-												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << std::endl;
+												ofile << c_trans.getMZ(k) << "\t" <<  c_trans.getTransIntensity(k) << "\t" << c_ref[k].getMZ() << "\t" << c_ref[k].getIntensity() << std::endl;
 											};
 											ofile.close();
 										#endif					
@@ -244,24 +242,24 @@ namespace OpenMS
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda transform for charge " << c+1 << "  O.K. ... "; std::cout.flush();
 										#endif
-											
+										this->ff_->setProgress (++progress_counter_);
+
 										iwt.identifyCudaCharges (c_trans, (*this->map_)[i], i, c, intensity_threshold_, (use_cmarr_>0) ? true : false);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
-										#endif						
+										#endif					
+										this->ff_->setProgress (++progress_counter_);	
 									};
 									iwt.finalizeCudaScan();
-									this->ff_->setProgress (progress_counter_+=2);
 								#else
-									std::cerr << "You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
-									std::cerr << "You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
+									std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
+									std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl; 
 								#endif
 							};
 						};
 		
 						iwt.updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
-						this->ff_->setProgress (++progress_counter_);
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "updated box states." << std::endl;
 						#endif
@@ -272,8 +270,8 @@ namespace OpenMS
 				else
 				{
 					#ifndef OPENMS_HAS_TBB_H
-						std::cerr << "You requested multi-threaded computation via threading building blocks, but OpenMS has not been configured for TBB usage." << std::endl;
-						std::cerr << "You need to rebuild OpenMS using the configure flag \"--enable-tbb-debug\" resp. \"--enable-tbb-release\"." << std::endl; 
+						std::cerr << "Error: You requested multi-threaded computation via threading building blocks, but OpenMS has not been configured for TBB usage." << std::endl;
+						std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-debug\" resp. \"--enable-tbb-release\"." << std::endl; 
 					#endif
 				};
 				this->ff_->endProgress();
