@@ -264,7 +264,6 @@
  		<UL>
 	  	<LI><b>1D:</b>
 	  		@n Switching between raw data and peak mode.
-	  		@n Linking spectra to make them scroll and zoom together.
 	    <LI><b>2D (peaks):</b>
 	    	@n MS/MS precursor peaks can be highlighted.
 	    	@n Projections to m/z and RT axis can be shown.
@@ -272,6 +271,8 @@
 	    	@n Overall convex hull of the features can be displayed.
 	    	@n Convex hulls of mass traces can be displayed (if available).
 	    	@n A feature identifier, consisting of the feature index and an )optional lable can be displayed.
+	    <LI><b>2D (consensus):</b> 
+	    	@n The elements of a consensus feature can be displayed.
 	    <LI><b>3D:</b>
 	    	@n Currently there are no options for 3D view.
 		</UL>

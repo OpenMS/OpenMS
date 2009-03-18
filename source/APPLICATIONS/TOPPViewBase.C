@@ -175,8 +175,8 @@ namespace OpenMS
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
     file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-    file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
-    file->addAction("&Open example file",this,SLOT(openExampleDialog()));
+    file->addAction("Open from &database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
+    file->addAction("Open &example file",this,SLOT(openExampleDialog()));
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 

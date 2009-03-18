@@ -614,8 +614,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	In a typical setting one would first pick the TOF-data, then perform the TOFCalibration and then the InternalCalibration:
 	@code
 	PeakPicker -in raw_tof.mzData -out picked_tof.mzData -ini pp.ini
-	TOFCalibration -in picked_tof.mzData -out picked.mzData -ext_calibrants ext_cal.mzData -ref_masses ext_cal_masses -tof_const tof_conv_consts -peak_data
-	InternalCalibration -in picked.mzData -out picked_calibrated.mzData -ref_masses internal_calibrant_masses -peak_data
+	TOFCalibration -in picked_tof.mzData -out picked.mzData -ext_calibrants ext_cal.mzData
+	               -ref_masses ext_cal_masses
+	               -tof_const tof_conv_consts -peak_data
+	InternalCalibration -in picked.mzData -out picked_calibrated.mzData
+	                    -ref_masses internal_calibrant_masses -peak_data
 	@endcode
 
 */

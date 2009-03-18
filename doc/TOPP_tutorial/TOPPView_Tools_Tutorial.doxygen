@@ -30,8 +30,6 @@
 /**
 	@page TOPPView_baseline_reduction Substracting a baseline from a spectrum
 	
-	@section toppview_tools_baseline Substracting a baseline from a spectrum
-	
 	First we load the spectrum to be analyzed in TOPPView. If you want to
 	test the described tools, you can open the tutorial data via the File-menu
 	(@a File > @a Open @a example @a file, then select @a peakpicker_tutorial_1.mzData).
@@ -62,8 +60,6 @@
 /**	
 	@page TOPPView_smoothing Smoothing raw data	
 	
-	@section toppview_tools_smoothing Smoothing raw data	
-
 	To smooth your raw data call the NoiseFilter via the Tools-menu,
 	(@a Tools > @a Apply @a TOPP @a tool), then select NoiseFilter as TOPPtool (green rectangle).
 	Afterwards select the NoiseFilter type (red rectangle). You can choose between Savitzky-Golay and
@@ -90,8 +86,6 @@
 /**	
 	@page TOPPView_peakpicking Picking peaks 
 
-	@section toppview_tools_pp Picking peaks 
-	
 	If you have low resolution data you may consider to smooth your data first(@ref TOPPView_smoothing) and subtract
 	the baseline (@ref TOPPView_baseline_reduction) before peak picking.
 
@@ -115,5 +109,39 @@
 	
 	
 	@todo Compose tutorial - video and text (Alexandra)
+*/
+
+//##############################################################################
+
+/**	
+	@page TOPPView_feature_detection_centroided Feature detection on centroided data 
+
+	To quantify peptide features, TOPP offers the @b FeatureFinder tool. In this section the @b centroided algorithm is
+	used, which works on centroided data only. There are other FeatureFinder algorithms for profile data.
+	
+	For this example the file @a LCMS-centroided.mzData from the examples data is used (@a File > @a Open @a example @a data).
+	In order to adapt the algorithm to our data, some parameters have to be set.
+	
+	@b Intensity
+	@n The algorithm estimates the significance of peak intensities in a local environment. Therefore, the HPLC-MS map is
+	divided into n times n regions. Set the @a intensity:bins parameter to 10 if you are working on a whole map. If you are 
+	working on a small region only, you should set it to 1.
+	
+	@b Mass @b trace
+	@n For the mass traces, you have to define the number of adjacent spectra in which a mass has to occur (@a mass_trace:min_spectra).
+	In oder to compensate for peak picking errors, missing peaks can be allowed (@a mass_trace:max_missing) and a tolerated mass deviation
+	must be set (@a mass_trace:mz_tolerance).
+	
+	@b Isotope @b pattern
+	@n The expected isotopic intensity pattern is estimated from an averagene amino acid composition.
+	The algorithm searches all charge states in a defined range (@a isotopic_pattern:change_min to @a isotopic_pattern:change_max).
+	Just as for mass traces, a tolerated mass deviation between isotopic peaks has to be set (@a isotopic_pattern:mz_tolerance).
+	
+	The image shows the centroided peak data and the found peptide features. The used parameters can be found in the TOPP tools dialog.
+	
+	@image html TOPPView_tools_ff_centroided.png
+	@image latex TOPPView_tools_ff_centroided.png "" width=14cm
+
+
 */
 

@@ -26,7 +26,7 @@
 
 /**
 	
-	@page TOPPView_callingtools Calling TOPP tools from TOPPView tutorial
+	@page TOPPView_callingtools Calling TOPP tools from TOPPView
 	
 	This tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within  TOPPView. After going through the tutorials you should be able to perform
 	<ul>
@@ -37,4 +37,5 @@
 	- @subpage TOPPView_baseline_reduction
 	- @subpage TOPPView_smoothing
 	- @subpage TOPPView_peakpicking
+	- @subpage TOPPView_feature_detection_centroided
 */

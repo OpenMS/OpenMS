@@ -56,7 +56,7 @@ namespace OpenMS
     @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
 		@improvement RT model with tailing/fronting (Marc)
-		@improvement More general MZ model - e.g. based on co-elution or with sulphur-averagenes (Marc)
+		@improvement More general MZ model - e.g. based on co-elution or with sulphur-averagines (Marc)
 		
 		@ingroup FeatureFinder
 	*/
@@ -341,15 +341,15 @@ namespace OpenMS
 				defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
 				defaults_.setValidStrings("debug",StringList::create("true,false"));
 				//intensity
-				defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
+				defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.");
 				defaults_.setMinInt("intensity:bins",1);
 				defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
 				//mass trace search parameters
 				defaults_.setValue("mass_trace:mz_tolerance",0.03,"m/z difference tolerance of peaks belonging to the same mass trace.\n This value must be smaller than that 1/charge_high!");
 				defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
-				defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
+				defaults_.setValue("mass_trace:min_spectra",10,"Number of spectra the have to show the same peak mass for a mass trace.");
 				defaults_.setMinInt("mass_trace:min_spectra",1);
-				defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
+				defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
 				defaults_.setMinInt("mass_trace:max_missing",0);
 				defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", StringList::create("advanced"));
 				defaults_.setMinFloat("mass_trace:slope_bound",0.0);
@@ -730,7 +730,7 @@ namespace OpenMS
 						}
 						
 						//----------------------------------------------------------------
-						//Find best fitting isotope pattern for this charge (using averagene)
+						//Find best fitting isotope pattern for this charge (using averagine)
 						IsotopePattern best_pattern(0);
 						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 						if (isotope_fit_quality<min_isotope_fit_)
