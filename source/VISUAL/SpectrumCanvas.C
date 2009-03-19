@@ -40,11 +40,6 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
 
-//Icons
-#include "../VISUAL/ICONS/cursor_measure.xpm"
-#include "../VISUAL/ICONS/cursor_zoom.xpm"
-#include "../VISUAL/ICONS/cursor_move.xpm"
-
 #include <iostream>
 
 using namespace std;
@@ -839,13 +834,13 @@ namespace OpenMS
 		switch(action_mode_)
 		{
 			case AM_TRANSLATE:
-				setCursor(QCursor(QPixmap(cursor_move),0,0));
+				setCursor(QCursor(QPixmap(":/cursor_move.png"),0,0));
 				break;
 			case AM_ZOOM:
-				setCursor(QCursor(QPixmap(cursor_zoom),0,0));
+				setCursor(QCursor(QPixmap(":/cursor_zoom.png"),0,0));
 				break;
 			case AM_MEASURE:
-				setCursor(QCursor(QPixmap(cursor_measure),0,0));
+				setCursor(QCursor(QPixmap(":/cursor_measure.png"),0,0));
 				break;
 		}
 	}

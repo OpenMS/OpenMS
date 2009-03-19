@@ -34,9 +34,6 @@
 #include <QtGui/QStyleFactory>
 #include <QtGui/QSplashScreen>
 
-// include the splashscreen graphics
-#include "../../VISUAL/ICONS/TOPPAS_Splashscreen.xpm"
-
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
@@ -122,7 +119,7 @@ int main( int argc, const char** argv )
 	  mw->show();
 
 		// Create the splashscreen that is displayed while the application loads
-		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(toppas_splash),Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"),Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
 		splash_screen->show();
 		splash_screen->showMessage("Loading parameters");
 		QApplication::processEvents();

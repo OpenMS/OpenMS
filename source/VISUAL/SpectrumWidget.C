@@ -194,7 +194,7 @@ namespace OpenMS
 	
 	void SpectrumWidget::saveAsImage()
 	{
-		QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.xpm *.jpg)");
+		QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.jpg *.gif)");
 		bool x_visible = x_scrollbar_->isVisible();
 		bool y_visible = y_scrollbar_->isVisible();
 		x_scrollbar_->hide();

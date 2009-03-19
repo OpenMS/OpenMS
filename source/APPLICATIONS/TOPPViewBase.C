@@ -95,32 +95,6 @@
 #include <QtCore/QUrl>
 #include <QtGui/QSplashScreen>
 
-//intensity modes
-#include "../VISUAL/ICONS/lin.xpm"
-#include "../VISUAL/ICONS/percentage.xpm"
-#include "../VISUAL/ICONS/snap.xpm"
-
-//common
-#include "../VISUAL/ICONS/reset_zoom.xpm"
-#include "../VISUAL/ICONS/tile_horizontal.xpm"
-#include "../VISUAL/ICONS/tile_vertical.xpm"
-
-//1d
-#include "../VISUAL/ICONS/lines.xpm"
-#include "../VISUAL/ICONS/peaks.xpm"
-
-//2d
-#include "../VISUAL/ICONS/precursors.xpm"
-#include "../VISUAL/ICONS/projections.xpm"
-#include "../VISUAL/ICONS/convexhull.xpm"
-#include "../VISUAL/ICONS/convexhulls.xpm"
-#include "../VISUAL/ICONS/numbers.xpm"
-#include "../VISUAL/ICONS/elements.xpm"
-
-//misc
-#include "../VISUAL/ICONS/TOPPView.xpm"
-#include "../VISUAL/ICONS/Oesterberg.xpm"
-
 #include <algorithm>
 #include <utility>
 
@@ -136,7 +110,7 @@ namespace OpenMS
       DefaultParamHandler("TOPPViewBase")
   {
   	setWindowTitle("TOPPView");
-    setWindowIcon(QIcon(toppview));
+    setWindowIcon(QIcon(":/TOPPView.png"));
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
     //enable drag-and-drop
@@ -231,8 +205,8 @@ namespace OpenMS
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade",this->ws_,SLOT(cascade()));
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
-    windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
-    windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_horizontal.png"),"Tile &vertical",this,SLOT(tileHorizontal()));
+    windows->addAction(QIcon(":/tile_vertical.png"),"Tile &horizontal",this,SLOT(tileVertical()));
 		windows->addSeparator();
 
 		//Help menu
@@ -275,7 +249,7 @@ namespace OpenMS
     intensity_group_->setExclusive(true);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(lin));
+    b->setIcon(QIcon(":/lin.png"));
     b->setToolTip("Intensity: Normal");
     b->setShortcut(Qt::Key_N);
     b->setCheckable(true);
@@ -284,7 +258,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(percentage));
+    b->setIcon(QIcon(":/percentage.png"));
     b->setToolTip("Intensity: Percentage");
     b->setShortcut(Qt::Key_P);
     b->setCheckable(true);
@@ -296,7 +270,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(snap));
+    b->setIcon(QIcon(":/snap.png"));
     b->setToolTip("Intensity: Snap to maximum displayed intensity");
     b->setShortcut(Qt::Key_S);
     b->setCheckable(true);
@@ -309,7 +283,7 @@ namespace OpenMS
     tool_bar_->addSeparator();
 
     //common buttons
-    QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
+    QAction* reset_zoom_button = tool_bar_->addAction(QIcon(":/reset_zoom.png"), "Reset Zoom", this, SLOT(resetZoom()));
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible and resets the zoom history.<BR>(Hotkey: Backspace)");
 
     tool_bar_->show();
@@ -322,7 +296,7 @@ namespace OpenMS
     draw_group_1d_->setExclusive(true);
 
     b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(peaks));
+    b->setIcon(QIcon(":/peaks.png"));
     b->setToolTip("Peak mode");
     b->setShortcut(Qt::Key_I);
     b->setCheckable(true);
@@ -331,7 +305,7 @@ namespace OpenMS
 		tool_bar_1d_->addWidget(b);
 
     b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(lines));
+    b->setIcon(QIcon(":/lines.png"));
     b->setToolTip("Raw data mode");
     b->setShortcut(Qt::Key_R);
     b->setCheckable(true);
@@ -345,36 +319,36 @@ namespace OpenMS
     //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
-    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show fragment scan precursors");
+    dm_precursors_2d_ = tool_bar_2d_->addAction(QIcon(":/precursors.png"),"Show fragment scan precursors");
     dm_precursors_2d_->setCheckable(true);
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked.<BR>(Hotkey: 1)");
 		dm_precursors_2d_->setShortcut(Qt::Key_1);
 
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(toggleProjections()));
+    projections_2d_ = tool_bar_2d_->addAction(QIcon(":/projections.png"), "Show Projections" ,this, SLOT(toggleProjections()));
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
 		projections_2d_->setShortcut(Qt::Key_2);
 
-    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhull),"Show feature convex hull");
+    dm_hull_2d_ = tool_bar_2d_->addAction(QIcon(":/convexhull.png"),"Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
     dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed.<BR>(Hotkey: 5)");
 		dm_hull_2d_->setShortcut(Qt::Key_5);
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_hulls_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
+    dm_hulls_2d_ = tool_bar_2d_->addAction(QIcon(":/convexhulls.png"),"Show feature convex hulls");
     dm_hulls_2d_->setCheckable(true);
     dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.<BR>(Hotkey: 6)");
 		dm_hulls_2d_->setShortcut(Qt::Key_6);
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature identifiers");
+    dm_numbers_2d_ = tool_bar_2d_->addAction(QIcon(":/numbers.png"),"Show feature identifiers");
     dm_numbers_2d_->setCheckable(true);
     dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.<BR>(Hotkey: 7)");
 		dm_numbers_2d_->setShortcut(Qt::Key_7);
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_elements_2d_ = tool_bar_2d_->addAction(QPixmap(elements),"Show consensus feature element positions");
+    dm_elements_2d_ = tool_bar_2d_->addAction(QIcon(":/elements.png"),"Show consensus feature element positions");
     dm_elements_2d_->setCheckable(true);
     dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.<BR>(Hotkey: 9)");
 		dm_elements_2d_->setShortcut(Qt::Key_9);
@@ -2505,8 +2479,7 @@ namespace OpenMS
 
 		//image
 		QLabel* label = new QLabel(dlg);
-		QPixmap image(Oesterberg);
-		label->setPixmap(image);
+		label->setPixmap(QPixmap(":/TOPPView_about.png"));
 		grid->addWidget(label,0,0);
 
 		//text
