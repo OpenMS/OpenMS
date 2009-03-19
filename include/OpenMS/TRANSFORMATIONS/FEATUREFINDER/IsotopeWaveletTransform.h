@@ -1414,7 +1414,7 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const MSSpectrum<PeakType>& candidate, 
 		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt c, const bool check_PPMs) 
 	{
-		typename std::map<DoubleReal, Box>::iterator iter;
+		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
@@ -1597,10 +1597,9 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::push2Box_ (const DoubleReal mz, const UInt scan, UInt c, 
 		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end)
 	{
-		typename std::multimap<DoubleReal, Box>::iterator upper_iter = open_boxes_.upper_bound(mz);
-		typename std::multimap<DoubleReal, Box>::iterator lower_iter;
+		typename std::multimap<DoubleReal, Box>::iterator upper_iter (open_boxes_.upper_bound(mz));
+		typename std::multimap<DoubleReal, Box>::iterator lower_iter ( open_boxes_.lower_bound(mz));
 
-		lower_iter = open_boxes_.lower_bound(mz);
 		if (lower_iter != open_boxes_.end())
 		{
 			//Ugly, but necessary due to the implementation of STL lower_bound
@@ -1704,8 +1703,8 @@ namespace OpenMS
 		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end)
 	{
 		std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(c));
-		typename std::map<DoubleReal, Box>::iterator upper_iter (tmp_box.upper_bound(mz));
-		typename std::map<DoubleReal, Box>::iterator lower_iter (tmp_box.lower_bound(mz)); 
+		typename std::multimap<DoubleReal, Box>::iterator upper_iter (tmp_box.upper_bound(mz));
+		typename std::multimap<DoubleReal, Box>::iterator lower_iter (tmp_box.lower_bound(mz)); 
 	
 		if (lower_iter != tmp_box.end())
 		{
@@ -1971,7 +1970,7 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const TransSpectrum& candidates, 
 		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt c, const bool check_PPMs) 
 	{
-		typename std::map<DoubleReal, Box>::iterator iter;
+		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
