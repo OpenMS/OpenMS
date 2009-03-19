@@ -134,7 +134,6 @@ END_SECTION
 
 START_SECTION((virtual ~IsotopeWavelet()))
 	TEST_EQUAL (IsotopeWavelet::getInstance(), 0)
-	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 1)
 END_SECTION
 
 
