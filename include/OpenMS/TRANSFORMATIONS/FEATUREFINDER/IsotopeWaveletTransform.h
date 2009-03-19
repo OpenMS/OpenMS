@@ -619,18 +619,20 @@ namespace OpenMS
 			{			
 				h_data_ = NULL;
 				h_pos_ = NULL;
-				Int size_estimate =  (Int)ceil(max_scan_size/(max_mz-min_mz));
-				psi_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS); //The wavelet
-				prod_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS); 
-				xs_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS);
+				Int size_estimate ((Int)ceil(max_scan_size/(max_mz-min_mz)));
+				Int to_reserve  ((Int)ceil(size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS));
+				psi_.reserve (to_reserve); //The wavelet
+				prod_.reserve (to_reserve); 
+				xs_.reserve (to_reserve);
 				interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 				interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 			}
 		#else
-			Int size_estimate =  (Int)ceil(max_scan_size/(max_mz-min_mz));
-			psi_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS); //The wavelet
-			prod_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS); 
-			xs_.reserve (size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS);
+			Int size_estimate ((Int)ceil(max_scan_size/(max_mz-min_mz)));
+			Int to_reserve  ((Int)ceil(size_estimate*max_num_peaks_per_pattern_*Constants::IW_NEUTRON_MASS));
+			psi_.reserve (to_reserve); //The wavelet
+			prod_.reserve (to_reserve); 
+			xs_.reserve (to_reserve);
 			interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 			interpol_ys_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
 		#endif
@@ -1128,7 +1130,7 @@ namespace OpenMS
 				continue;
 			};
 			 
-			mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (seed_mz, c+1.);
+			mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (seed_mz, c+1);
 			//Mark the region as processed
 			//Do not move this further down, since we have to mark this as processed in any case, 
 			//even when score <=0; otherwise we would look around the maximum's position unless 
@@ -2190,7 +2192,7 @@ namespace OpenMS
 			return (false);
 		};
 
-		DoubleReal mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (real_mz, c+1.);
+		DoubleReal mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (real_mz, c+1);
 		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));		
 		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz+mz_cutoff/(c+1.), ref.end());
 		if (real_r_MZ_iter == ref.end())
@@ -2247,7 +2249,7 @@ namespace OpenMS
 			return (false);
 		};
 
-		DoubleReal mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (real_mz, c+1.);
+		DoubleReal mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos (real_mz, c+1);
 		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz-Constants::IW_QUARTER_NEUTRON_MASS/(c+1.));		
 		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz+mz_cutoff/(c+1.), ref.end());
 		if (real_r_MZ_iter == ref.end())
