@@ -27,7 +27,7 @@
 
 /**
 
-	@page OpenMSTutorial %OpenMS tutorial
+	@page OpenMS_tutorial %OpenMS tutorial
 
 	First, we give a small introduction to this tutorial and %OpenMS:
 	- @subpage tutorial_general

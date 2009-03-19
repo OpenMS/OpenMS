@@ -26,7 +26,7 @@
 
 /**
 	
-	@page TOPPTutorial TOPP tutorial
+	@page TOPP_tutorial TOPP tutorial
 	
 
 	This tutorial introduces you to TOPP and TOPPView. We start by describing the intent
@@ -36,14 +36,45 @@
 	in the third part of the Tutorial. Finally we give a complete list and command line
 	interfaces for all TOPP tools contained in the release.
 	
+	<b>Concepts</b>
+		
+		This part of the tutorial explains the intent of @subpage TOPP_concepts .
 
+	<b>TOPPView main interface</b>
 	
-	The subsections of the TOPP tutorial are:
-	- @subpage TOPP_concepts 
-	- @subpage TOPPView_interface
-	- @subpage TOPPView_callingtools
-	- @subpage TOPP_scripting
+		This part of the tutorial illustrates the main features of TOPPView and shows its basic use. 
+		
+		- @subpage TOPPView_introduction
+		- @subpage TOPPView_views
+		- @subpage TOPPView_modes
+		- @subpage TOPPView_analysis
+		- @subpage TOPPView_editing
+		- @subpage TOPPView_hotkeys
+
+	<b>Calling TOPP tools from TOPPView</b>
 	
+		This part of the tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within TOPPView.
+		
+		- @subpage TOPPView_baseline_reduction
+		- @subpage TOPPView_smoothing
+		- @subpage TOPPView_peakpicking
+		- @subpage TOPPView_feature_detection_centroided
+
+	<b>Scripting with TOPP</b>
+	
+		This part of the tutorial will give you a detailled overview of the most important TOPP tools.
+		First, some basics that you will need for every TOPP tool are explained, then several example pipelines are shown.
+		
+		- @subpage TOPP_general
+		- @subpage TOPP_example_handling
+		- @subpage TOPP_example_signalprocessing
+		- @subpage TOPP_example_calibration
+		- @subpage TOPP_example_mapalignment
+		- @subpage TOPP_example_featuredetection
+		- @subpage TOPP_example_featuregrouping
+		- @subpage TOPP_example_id
+		- @subpage TOPP_example_ppp
+		- @subpage TOPP_example_export
 
 	
 */

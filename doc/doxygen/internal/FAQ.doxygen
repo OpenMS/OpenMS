@@ -367,20 +367,13 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>What are the important files for adding a new tutorial section?</b><BR>
 		    %OpenMS tutorial:
-		    <BR>%OpenMS/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen
 		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex
 		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen
 
-				TOPP tutorial:
-		    <BR>%OpenMS/doc/TOPP_tutorial/TOPP_Tutorial.doxygen
+				TOPP and TOPPView tutorial:
 		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
 		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen
 
-				TOPPView tutorial:
-		    <BR>%OpenMS/doc/TOPP_tutorial/TOPPView_Tutorial.doxygen
-		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
-		    <BR>%OpenMS/doc/doxygen/public/TOPPView_Tutorial_html.doxygen
-		
 		</UL>
 	<H2 style="border-top:2px solid grey;">Bug fixes</H2>
 		<UL>

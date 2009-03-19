@@ -41,12 +41,12 @@
 \tableofcontents
 \pagebreak
 
-\section{TOPP and OpenMS}
+\section{Concepts}
 	
 	\input{TOPP_concepts}
 	\pagebreak
 
-\section{TOPPView main interface tutorial}
+\section{TOPPView main interface}
 	
 	\input{TOPPView_introduction}
 	\pagebreak
@@ -68,6 +68,8 @@
 	\input{TOPPView_smoothing}
 	\pagebreak
 	\input{TOPPView_peakpicking}
+	\pagebreak
+	\input{TOPPView_feature_detection_centroided}
 	\pagebreak
 
 \section{Scripting with TOPP}
