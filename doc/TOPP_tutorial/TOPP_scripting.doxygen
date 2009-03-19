@@ -276,7 +276,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		identification for a HPLC-MS\\MS experiment.
 
 		%OpenMS offers adapters for the following commercial and free peptide identification engines:
-		Sequest, Mascot, OMSSA and Inspect.@n
+		Sequest, Mascot, OMSSA, PepNovo, XTandem and Inspect.@n
 		The adapters allow setting the input parameters and data for the identification
 		engine and return the result in the %OpenMS idXML format.
 
