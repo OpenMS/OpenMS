@@ -35,7 +35,7 @@
 # CUDA_BIN_PATH before running cmake (e.g. CUDA_BIN_PATH=/usr/local/cuda1.0 
 # instead of the default /usr/local/cuda).
 #
-# Set CUDA_BUILD_TYPE to "Device" or "Emulation" mode.
+# Set MT_CUDA_BUILD_TYPE to "Device" or "Emulation" mode.
 # _DEVICEEMU is defined in "Emulation" mode.
 #
 # Set CUDA_BUILD_CUBIN to "ON" or "OFF" to enable and extra compilation pass
@@ -103,18 +103,18 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/CudaDependency.cmake)
 ###############################################################################
 
 # Parse CUDA build type.
-IF (NOT CUDA_BUILD_TYPE)
-  SET(CUDA_BUILD_TYPE "Device" CACHE STRING "Cuda build type: Emulation or Device")
-ENDIF(NOT CUDA_BUILD_TYPE)
+IF (NOT MT_CUDA_BUILD_TYPE)
+  SET(MT_CUDA_BUILD_TYPE "Device" CACHE STRING "Cuda build type: Emulation or Device")
+ENDIF(NOT MT_CUDA_BUILD_TYPE)
 
 # Emulation if the card isn't present.
-IF (CUDA_BUILD_TYPE MATCHES "Emulation")
+IF (MT_CUDA_BUILD_TYPE MATCHES "Emulation")
   # Emulation.
   SET(nvcc_flags --device-emulation -D_DEVICEEMU -g)
-ELSE(CUDA_BUILD_TYPE MATCHES "Emulation")
+ELSE(MT_CUDA_BUILD_TYPE MATCHES "Emulation")
   # Device present.
   SET(nvcc_flags "")
-ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
+ENDIF(MT_CUDA_BUILD_TYPE MATCHES "Emulation")
 
 SET(CUDA_BUILD_CUBIN TRUE CACHE BOOL "Generate and parse .cubin files in Device mode.")
 SET(CUDA_NVCC_FLAGS "" CACHE STRING "Semi-colon delimit multiple arguments.")
@@ -290,13 +290,13 @@ FIND_LIBRARY(FOUND_CUBLAS
   DOC "\"cublas\" library"
   )
 
-IF (CUDA_BUILD_TYPE MATCHES "Emulation")
+IF (MT_CUDA_BUILD_TYPE MATCHES "Emulation")
   SET(CUFFT_TARGET_LINK  ${FOUND_CUFFTEMU})
   SET(CUBLAS_TARGET_LINK ${FOUND_CUBLASEMU})
-ELSE(CUDA_BUILD_TYPE MATCHES "Emulation")
+ELSE(MT_CUDA_BUILD_TYPE MATCHES "Emulation")
   SET(CUFFT_TARGET_LINK  ${FOUND_CUFFT})
   SET(CUBLAS_TARGET_LINK ${FOUND_CUBLAS})
-ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
+ENDIF(MT_CUDA_BUILD_TYPE MATCHES "Emulation")
 
 
 
@@ -350,7 +350,7 @@ MACRO(CUDA_add_custom_commands cuda_target)
 
 
 	# Build the NVCC made dependency file
-  IF (CUDA_BUILD_TYPE MATCHES "Device" AND CUDA_BUILD_CUBIN)
+  IF (MT_CUDA_BUILD_TYPE MATCHES "Device" AND CUDA_BUILD_CUBIN)
     SET(NVCC_generated_cubin_file "${generated_file}.NVCC-cubin.txt")
 	  ADD_CUSTOM_COMMAND(
 
@@ -378,12 +378,12 @@ MACRO(CUDA_add_custom_commands cuda_target)
 
 
 
-	    COMMENT "Building (${CUDA_BUILD_TYPE}) NVCC -cubin File: ${NVCC_generated_cubin_file}\n"
+	    COMMENT "Building (${MT_CUDA_BUILD_TYPE}) NVCC -cubin File: ${NVCC_generated_cubin_file}\n"
       )
-  ELSE (CUDA_BUILD_TYPE MATCHES "Device" AND CUDA_BUILD_CUBIN)
+  ELSE (MT_CUDA_BUILD_TYPE MATCHES "Device" AND CUDA_BUILD_CUBIN)
     # Depend on something that will exist.
     SET(NVCC_generated_cubin_file "${source_file}")
-  ENDIF (CUDA_BUILD_TYPE MATCHES "Device"AND CUDA_BUILD_CUBIN)
+  ENDIF (MT_CUDA_BUILD_TYPE MATCHES "Device"AND CUDA_BUILD_CUBIN)
 
 	# Build the NVCC made dependency file
 	ADD_CUSTOM_COMMAND(
@@ -399,7 +399,7 @@ MACRO(CUDA_add_custom_commands cuda_target)
       # MAIN_DEPENDENCY ${source_file}
       DEPENDS ${source_file}
       DEPENDS ${CUDA_NVCC_DEPEND}
-	  COMMENT "Building (${CUDA_BUILD_TYPE}) NVCC Dependency File: ${NVCC_generated_dependency_file}\n"
+	  COMMENT "Building (${MT_CUDA_BUILD_TYPE}) NVCC Dependency File: ${NVCC_generated_dependency_file}\n"
     )
     
     # Build the CMake readible dependency file
@@ -428,7 +428,7 @@ MACRO(CUDA_add_custom_commands cuda_target)
            --keep
            -cuda -o ${generated_file} 
            ${CUDA_NVCC_INCLUDE_ARGS}
-       COMMENT "Building (${CUDA_BUILD_TYPE}) NVCC ${source_file}: ${generated_file}\n"
+       COMMENT "Building (${MT_CUDA_BUILD_TYPE}) NVCC ${source_file}: ${generated_file}\n"
       )
     	
     SET(cuda_cu_sources ${cuda_cu_sources} ${source_file})

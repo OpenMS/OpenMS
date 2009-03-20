@@ -17,7 +17,7 @@ PROJECT("OpenMS")
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
 # QT_DB_PLUGIN
-# CUDA_BUILD_TYPE
+# MT_MT_CUDA_BUILD_TYPE
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -48,7 +48,7 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	if (ENABLE_CUDA)
+	if (MT_ENABLE_CUDA)
 		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long) # necessary since CUDA contains non-pedantic code
 	else()
 		add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long --pedantic)
@@ -99,17 +99,17 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 ## cuda checking
-set(ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
-set(CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
-if (ENABLE_CUDA)
-	MESSAGE(STATUS "NVIDIA CUDA: ${CUDA_BUILD_TYPE} mode")
+set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
+set(MT_CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
+if (MT_ENABLE_CUDA)
+	MESSAGE(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
 	find_package(Cuda)
 else()
-  MESSAGE(STATUS "NVIDIA CUDA: ${ENABLE_CUDA}")
+  MESSAGE(STATUS "NVIDIA CUDA: ${MT_ENABLE_CUDA}")
 endif()
 
 
-if (FOUND_CUDART AND ENABLE_CUDA) #CUDART and not CUDA!!!
+if (FOUND_CUDART AND MT_ENABLE_CUDA) #CUDART and not CUDA!!!
 	add_definitions(/DOPENMS_HAS_CUDA)
 	MESSAGE (STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
 	MESSAGE (STATUS "Found CUDA library at: ${FOUND_CUDART}") 
@@ -118,24 +118,24 @@ if (FOUND_CUDART AND ENABLE_CUDA) #CUDART and not CUDA!!!
 endif()
 
 ## TBB
-set(ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be enabled.")
-set(TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
-set(TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
+set(MT_ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be enabled.")
+set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
+set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
 
 
-MESSAGE(STATUS "Intel TBB: ${ENABLE_TBB}")
-if (ENABLE_TBB)
+MESSAGE(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
+if (MT_ENABLE_TBB)
 	find_package(TBB)
 endif()
 
 if (TBB_FOUND)
-	INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIR})
+	INCLUDE_DIRECTORIES(${MT_TBB_INCLUDE_DIR})
 	add_definitions(/DOPENMS_HAS_TBB)
 endif()
 
 ## OpenMP
-set(ENABLE_OPENMP ON CACHE BOOL "Should OpenMP support be enabled")
-if (ENABLE_OPENMP)
+set(MT_ENABLE_OPENMP ON CACHE BOOL "Should OpenMP support be enabled")
+if (MT_ENABLE_OPENMP)
 	find_package(OpenMP)
 endif()
 
@@ -513,7 +513,7 @@ link_directories(${CONTRIB_LIB_DIR})
 
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
-if (FOUND_CUDART AND ENABLE_CUDA) # we need both conditions due to possible present cached entries
+if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
 	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
 else()
 	ADD_LIBRARY(OpenMS ${OpenMS_sources})
