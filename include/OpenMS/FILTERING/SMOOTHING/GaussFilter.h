@@ -108,7 +108,12 @@ namespace OpenMS
         // This is the case if the gaussian filter is smaller than the spacing of raw data
         if (!found_signal && spectrum.size()>=3)
         {
-          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");
+        	String error_message = "Found no signal. The gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
+        	if (spectrum.getRT()>0.0)
+        	{
+        		error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".";
+        	}
+          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, error_message);
         }
 
 				// copy the new data into the spectrum

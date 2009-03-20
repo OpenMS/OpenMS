@@ -440,6 +440,8 @@ namespace OpenMS
 		defaults_.setValidStrings("preferences:intensity_cutoff",StringList::create("on,off"));
     defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
 		defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
+    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
+		defaults_.setValidStrings("preferences:topp_cleanup",StringList::create("true,false"));
     //db
     defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
     defaults_.setValue("preferences:db:login", "NoName", "Database login.");
@@ -2234,6 +2236,14 @@ namespace OpenMS
 		delete topp_.process;
 		topp_.process = 0;
 		updateMenu();
+		
+		//clean up temporary files
+		if (param_.getValue("preferences:topp_cleanup")=="true")
+		{
+			File::remove(topp_.file_name+"_ini");
+			File::remove(topp_.file_name+"_in");
+			File::remove(topp_.file_name+"_out");
+  	}
   }
 
 	const LayerData* TOPPViewBase::getCurrentLayer() const
