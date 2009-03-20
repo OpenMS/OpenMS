@@ -576,18 +576,17 @@ namespace OpenMS
 				{
 					fillData_();
 					exp_->push_back(spec_);
+					
+					//catch errors stemming from confusion about elution time and scan time
+					if (exp_->back().getRT()==-1.0 && exp_->back().metaValueExists("elution time (seconds)"))
+					{
+						exp_->back().setRT(exp_->back().getMetaValue("elution time (seconds)"));
+					}
 				}
 				skip_spectrum_ = false;
 				logger_.setProgress(++scan_count);
 				data_.clear();
 				default_array_length_ = 0;
-				
-				//catch errors stemming from confusion about elution time and retention time
-				if (exp_->back().getRT()==-1.0 && exp_->back().metaValueExists("elution time (seconds)"))
-				{
-					exp_->back().setRT(exp_->back().getMetaValue("elution time (seconds)"));
-				}
-				
 			}
 			else if(equal_(qname,s_spectrum_list))
 			{
