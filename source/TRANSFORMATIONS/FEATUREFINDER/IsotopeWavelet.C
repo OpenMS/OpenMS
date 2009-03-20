@@ -27,6 +27,7 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -122,7 +123,7 @@ namespace OpenMS
 	
 	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		return (sin(2*M_PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/tgamma(tz1));
+		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/boost::math::tgamma(tz1));
 	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 
@@ -220,7 +221,7 @@ namespace OpenMS
 		exp_table_max_index_ = exp_table_.size();
 
 		query=0;
-		while (query < 2*M_PI)
+		while (query < 2*Constants::PI)
 		{
 			sine_table_.push_back (sin(query));
 			query += table_steps_;
