@@ -74,13 +74,9 @@ namespace OpenMS
 	__device__ unsigned int getMzPeakCutOffAtMonoPos (float mass, unsigned int  z)
 	{
 		float m (mass*z);
-		//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)	
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
 			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
 				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
-		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz) 
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))));*/
 	}
 	
 	__device__ unsigned int getNumPeakCutOff (float mass, unsigned int  z)
@@ -89,9 +85,6 @@ namespace OpenMS
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
 			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
 				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
-		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));	*/	
 	}
 
 	__device__ unsigned int getNumPeakCutOff (float m)
@@ -99,10 +92,6 @@ namespace OpenMS
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
 			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
 				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
-
-		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));		*/
 	}
 
 
@@ -160,6 +149,7 @@ namespace OpenMS
 		float old=0, c_diff, current, old_pos = (my_local_pos-from_max_to_left-1) > 0 ? signal_pos_block[my_local_pos-from_max_to_left-1] 
 			: signal_pos_block[my_local_pos-from_max_to_left]-(signal_pos[size-1]-signal_pos[size-2]); //i.e. min_spacing
 
+		//printf ("*********************************************** %f\n",  signal_pos_block[my_local_pos]);
 
 		for (int current_conv_pos = my_local_pos-from_max_to_left; 
 						current_conv_pos < my_local_pos+from_max_to_right; 
@@ -173,9 +163,12 @@ namespace OpenMS
 			value += 0.5*(current + old)*(signal_pos_block[current_conv_pos]-old_pos);
 			
 			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-				if (trunc(signal_pos_block[my_local_pos]) == 556 && charge == 2)
+				
+				//if (trunc(signal_pos_block[my_local_pos]) == 556 && charge == 2)
 				{
-					printf ("%i \t %f \t %f  \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, signal_pos_block[current_conv_pos], c_diff, current, old, c_diff, signal_int_block[current_conv_pos], boundary);
+					//printf ("%i \t %f \t %f  \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, signal_pos_block[current_conv_pos], c_diff, current, old, c_diff, signal_int_block[current_conv_pos], boundary);
+					printf ("%f  \t %f \t %f \t %f \t %f \t %f\n", signal_pos_block[current_conv_pos], c_diff > 0 && c_diff <= boundary ? isotope_wavelet(c_diff*charge+1., signal_pos_block[current_conv_pos]*charge): 0, value, signal_int_block[current_conv_pos], c_diff, boundary);
+
 				};
 			#endif
 
@@ -183,6 +176,8 @@ namespace OpenMS
 			old_pos = signal_pos_block[current_conv_pos];
 		};
 		
+		//printf ("################################################\n");
+
 		result[my_data_pos] = value;
 	}
 
@@ -217,7 +212,7 @@ namespace OpenMS
 	}
 
 
-	__global__ void getDerivatives (float* spec, float* spec_pos, float* fwd2, const int size)
+	__global__ void getDerivatives (float* spec, float* spec_pos, float* fwd2, const int size, float* intensities_dev)
 	{
 		int i = threadIdx.x + blockIdx.x * blockDim.x;
 	
@@ -231,18 +226,18 @@ namespace OpenMS
 		float bwd = (share-spec[i])/(share_pos-spec_pos[i]);
 		float fwd = (spec[i+2]-share)/(spec_pos[i+2]-share_pos);
 
-		if (bwd>=0 && fwd<=0)
+		if (bwd>=0 && fwd<=0 && share <= intensities_dev[i+1])
 		{
 			fwd2[i+1] = spec[i+1];
 		};
 	}
 
 
-	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size)
+	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size, float* intensities_dev)
 	{
 		dim3 blockDim (Constants::CUDA_BLOCK_SIZE_MAX);
 		dim3 gridDim ((int)(ceil)(size/(float)Constants::CUDA_BLOCK_SIZE_MAX));
-		getDerivatives<<<gridDim, blockDim>>> (spec, spec_pos, fwd, size);
+		getDerivatives<<<gridDim, blockDim>>> (spec, spec_pos, fwd, size, intensities_dev);
 		cudaThreadSynchronize();
 		checkCUDAError("deriveOnDevice");
 	}
@@ -256,7 +251,7 @@ namespace OpenMS
 			ConvolutionIsotopeWaveletKernel<<<dimGrid,dimBlock>>> (positions_dev, intensities_dev, from_max_to_left, from_max_to_right, result_dev, charge, to_load, to_compute, size);
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernel");
-			deriveOnDevice (result_dev, positions_dev, fwd2, size);
+			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev);
 		}
 		else
 		{
@@ -268,7 +263,7 @@ namespace OpenMS
 			ConvolutionIsotopeWaveletKernelTexture<<<dimGrid,dimBlock>>> (from_max_to_left, from_max_to_right, result_dev, charge, size);
 			cudaThreadSynchronize();
 			checkCUDAError("ConvolutionIsotopeWaveletKernelTexture");
-			deriveOnDevice (result_dev, positions_dev, fwd2, size);
+			deriveOnDevice (result_dev, positions_dev, fwd2, size, intensities_dev);
 			
 			cudaUnbindTexture(int_tex);
 			cudaUnbindTexture(pos_tex);
@@ -928,7 +923,7 @@ namespace OpenMS
 
 
 	extern __shared__ float external_shared [];
-	__global__ void scoreIndividuals (float* scores, const int overall_size, const int c, const int offset,  const int write_offset)
+	__global__ void scoreIndividuals (float* scores, const int overall_size, const int c, const int offset,  const int write_offset, const float ampl_cutoff)
 	{		
 		int v = threadIdx.x;
 		int ref_index = tex1Dfetch (sorted_positions_indices_tex, blockIdx.x+offset);
@@ -996,22 +991,36 @@ namespace OpenMS
 		//any performance advantages in our case; so we use the greedy way here ...	
 		if (v==0)
 		{
-			float final_score = 0;
+			float final_score = 0, mid_val=0, l_score=0;
 			int minus = -1, i;
-			//int minus = 1;
-			for (i=0; i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
+			for (i=0; i<(int)ceil(optimal_block_dim/2.); ++i)
+			{
+				if (c_scores[i] != INT_MIN)
+				{
+					final_score += minus*c_scores[i];
+				};
+				minus *=-1;
+			};
+			
+			l_score = final_score;
+			mid_val = c_scores[i];
+	
+			for (; i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
 			{
 				final_score += minus*c_scores[i];
 				minus *=-1;
 			};
 
-			if (i<optimal_block_dim)
+			/*if (i<optimal_block_dim)
 			{
 				scores[blockIdx.x+write_offset] = 0;
 				return;
-			};
+			};*/
 
-			scores[blockIdx.x+write_offset] = final_score;			
+			if (!(l_score <=0 || final_score-l_score-mid_val <= 0 || final_score-mid_val <= ampl_cutoff))
+			{
+				scores[blockIdx.x+write_offset] = final_score;	
+			};
 			//printf ("blockid: %i\t%i\n", blockIdx.x, write_offset);
 			//printf("final_score: %f\t\t%f\n", seed_mz, final_score);
 		};	
@@ -1019,7 +1028,7 @@ namespace OpenMS
 
 	
 	void scoreOnDevice (int* sorted_positions_indices, float* trans_intensities, float* pos, float* scores, 
-		const int c, const int num_of_scores, const int overall_size, const unsigned int max_peak_cutoff)
+		const int c, const int num_of_scores, const int overall_size, const unsigned int max_peak_cutoff, const float ampl_cutoff)
 	{
 		int theo_block_dim = 4*(max_peak_cutoff-1)-1; //the number of scoring points per candidates, due to numerical reasons we increse max_peak_cutoff by one
 		dim3 blockDim (theo_block_dim); //the number of scoring points per candidates
@@ -1037,7 +1046,7 @@ namespace OpenMS
 		while ((c_size -= Constants::CUDA_BLOCKS_PER_GRID_MAX) > 0)
 		{		
 			scoreIndividuals<<<gridDim, blockDim, blockDim.x*sizeof(float)>>> (scores, overall_size, c, 
-				counts*Constants::CUDA_BLOCKS_PER_GRID_MAX+offset, counts*Constants::CUDA_BLOCKS_PER_GRID_MAX);	
+				counts*Constants::CUDA_BLOCKS_PER_GRID_MAX+offset, counts*Constants::CUDA_BLOCKS_PER_GRID_MAX, ampl_cutoff);	
 			++counts;
 		};
 
@@ -1045,7 +1054,7 @@ namespace OpenMS
 		{
 			gridDim = dim3 (c_size);
 			scoreIndividuals<<<gridDim, blockDim, blockDim.x*sizeof(float)+2*sizeof(int)+sizeof(float)>>> (scores, overall_size, c, 
-				counts*Constants::CUDA_BLOCKS_PER_GRID_MAX+offset, counts*Constants::CUDA_BLOCKS_PER_GRID_MAX);		
+				counts*Constants::CUDA_BLOCKS_PER_GRID_MAX+offset, counts*Constants::CUDA_BLOCKS_PER_GRID_MAX, ampl_cutoff);		
 		};
 		
 		cudaThreadSynchronize();

@@ -678,6 +678,8 @@ namespace OpenMS
 			c_diff=0;
 			origin = -my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
 
+			//std::cout << "************************* " << my_local_MZ << " ****************************"  <<std::endl;
+			
 			for (Int current_conv_pos =  std::max(0, my_local_pos-from_max_to_left_); c_diff < T_boundary_right; ++current_conv_pos)
 			{
 				if (current_conv_pos >= spec_size)
@@ -693,13 +695,16 @@ namespace OpenMS
 				current = c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
 			
 				value += 0.5*(current + old)*(c_mz-old_pos);
+				//std::cout << c_mz << 	"\t" << (c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambdaExact (my_local_lambda, c_diff*charge+1.) : 0) << "\t" << value << "\t" << c_ref[current_conv_pos].getIntensity() << std::endl;
 
 				old = current;
 				old_pos = c_mz;
 			};		
 
+			//std::cout << "###########################################################################"  << std::endl;
+
 			c_trans[my_local_pos].setIntensity (value);
-	};
+		};
 	} 
 
 
@@ -754,6 +759,7 @@ namespace OpenMS
 			};
 			if (min_spacing_ == INT_MAX) //spectrum consists of a single data point
 			{
+				std::cout << "Scan consits of a single point. Unable to compute transform." << std::endl;
 				return (Constants::CUDA_INIT_FAIL);
 			};
 			
@@ -761,7 +767,8 @@ namespace OpenMS
 
 			if (wavelet_length > data_length_ || wavelet_length == 1) //==1, because of 'ceil'
 			{
-				return (Constants::CUDA_INIT_FAIL);
+				std::cout << "Warning: wavelet is larger than the number of data points. This might (!) severely affect the transform."<< std::endl;
+				std::cout << "Warning/Error generated at scan with RT " << scan.getRT() << "." << std::endl;
 			}; 
 
 			UInt max_index = (UInt) (Constants::IW_QUARTER_NEUTRON_MASS/min_spacing_);
@@ -817,7 +824,7 @@ namespace OpenMS
 			};
 
 			#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET				
-			std::stringstream name; name << "cuda_input_" << scan.getRT() << ".out\0"; 
+				std::stringstream name; name << "cuda_input_" << scan.getRT() << ".out\0"; 
 				std::fstream outfile(name.str().c_str(), std::ios::out);
 				for (size_t i=0; i<overall_size_; ++i)
 					outfile << cuda_positions_[i] << " " << cuda_intensities_[i] << std::endl;
@@ -927,7 +934,7 @@ namespace OpenMS
 			(cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores*sizeof(float), cudaMemcpyHostToDevice));
 		
 			scoreOnDevice ((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_,  (float*)cuda_device_pos_, (float*)cuda_device_scores_, 
-				c, num_of_scores, overall_size_, max_num_peaks_per_pattern_);
+				c, num_of_scores, overall_size_, max_num_peaks_per_pattern_, threshold);
 			
 			(cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores*sizeof(float), cudaMemcpyDeviceToHost));
 	
@@ -979,14 +986,14 @@ namespace OpenMS
 
 				c_score = *score_iter;
 
-	
-				if (c_score <=  c_sorted_candidate_[c_index].getIntensity()+ threshold)
+				if (c_score <= 0)
 				{
 					continue;
 				};
-	
+
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
+				
 				push2TmpBox_ (seed_mz, scan_index, c, c_score, c_sorted_candidate_[c_index].getIntensity(), ref.getRT(), MZ_start, MZ_end);
 					
 				//Push neighboring peaks to compute finally a derivative over the isotope pattern envelope				
@@ -1299,7 +1306,6 @@ namespace OpenMS
 
 			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
 			
-			
 			if (v == (int)(ceil(end/2.)))
 			{
 				l_score = c_score;
@@ -1328,8 +1334,11 @@ namespace OpenMS
 
 		if (l_score <=0 || c_score-l_score-mid_val <= 0 || c_score-mid_val <= ampl_cutoff)
 		{
+			//std::cout << "final_score: " <<  seed_mz << "\t" << "0" << std::endl;
 			return(0);
 		};
+
+		//std::cout << "final_score: " <<  seed_mz << "\t" << c_score << std::endl;
 
 		return (c_score);
 	}
@@ -1489,7 +1498,7 @@ namespace OpenMS
 		};		
 
 		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-			std::ofstream ofile_bwd ("bwd.dat");
+			std::ofstream ofile_bwd ("bwd_cpu.dat");
 			for (UInt i=0; i<num_o_feature; ++i)
 			{
 				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
@@ -2055,7 +2064,7 @@ namespace OpenMS
 		};		
 
 		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-			std::ofstream ofile_bwd ("bwd.dat");
+			std::ofstream ofile_bwd ("bwd_gpu.dat");
 			for (UInt i=0; i<num_o_feature; ++i)
 			{
 				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;

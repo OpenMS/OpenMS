@@ -269,6 +269,10 @@ namespace OpenMS
 										this->ff_->setProgress (++progress_counter_);	
 									};
 									iwt.finalizeScanCuda();
+								}
+								else
+								{
+									std::cout << "Warning/Error generated at scan " << i << " (" << (*this->map_)[i].getRT() << ")." << std::endl;
 								};
 							#else
 								std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
