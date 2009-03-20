@@ -366,20 +366,18 @@ namespace OpenMS
  				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
 				* @param seed_mz The predicted position of the monoisotopic peak.
  				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined.
- 				* @param intens The intensity of the transform at @p seed_mz.
  				* @param ampl_cutoff The threshold. */
 			virtual DoubleReal scoreThis_ (const TransSpectrum& candidate, const UInt peak_cutoff, 
-				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;
+				const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff) ;
 						
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
  				* @param candidate A isotope wavelet transformed spectrum.
  				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
 				* @param seed_mz The predicted position of the monoisotopic peak.
  				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined. 
- 				* @param intens The intensity of the transform at @p seed_mz.
  				* @param ampl_cutoff The threshold. */
 			virtual DoubleReal scoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
-				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) ;	
+				const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff) ;	
 
 
 			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
@@ -516,7 +514,8 @@ namespace OpenMS
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
-			UInt max_scan_size_, max_num_peaks_per_pattern_, max_charge_, from_max_to_left_, from_max_to_right_;
+			UInt max_scan_size_, max_num_peaks_per_pattern_, max_charge_;
+			Int from_max_to_left_, from_max_to_right_;
 			std::vector<int> indices_;
 			
 			MSSpectrum<PeakType> c_sorted_candidate_;
@@ -667,25 +666,20 @@ namespace OpenMS
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
 	{
-		Int spec_size = c_ref.size(), from_max_to_left (from_max_to_left_), from_max_to_right (from_max_to_right_), loop_break;
+		Int spec_size = c_ref.size();
 		UInt charge = c+1;
-		DoubleReal value, boundary, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;
+		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;
 
 		for(Int my_local_pos=0; my_local_pos<spec_size; ++my_local_pos)
 		{
-			value=0; boundary = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge)/charge;
-			old=0; old_pos=(my_local_pos-from_max_to_left-1>=0) ? c_ref[my_local_pos-from_max_to_left-1].getMZ() : c_ref[0].getMZ()-min_spacing_;
+			value=0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge)/(DoubleReal)charge;
+			old=0; old_pos=(my_local_pos-from_max_to_left_-1>=0) ? c_ref[my_local_pos-from_max_to_left_-1].getMZ() : c_ref[0].getMZ()-min_spacing_;
 			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge);
-			loop_break = my_local_pos+from_max_to_right;
-			
+			c_diff=0;
 			origin = -my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
-			
-			for (Int current_conv_pos = my_local_pos-from_max_to_left; current_conv_pos < loop_break; ++current_conv_pos)
+
+			for (Int current_conv_pos =  std::max(0, my_local_pos-from_max_to_left_); c_diff < T_boundary_right; ++current_conv_pos)
 			{
-				if (current_conv_pos<0)
-				{
-					continue;
-				};
 				if (current_conv_pos >= spec_size)
 				{
 					value += 0.5*old*min_spacing_;
@@ -696,24 +690,16 @@ namespace OpenMS
 				c_diff = c_mz + origin;
 
 				//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
-				current = c_diff > 0 && c_diff <= boundary ? IsotopeWavelet:: getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
-				
+				current = c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
+			
 				value += 0.5*(current + old)*(c_mz-old_pos);
-				
-				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-					if (trunc(c_ref[my_local_pos].getMZ()) == 556 && charge==2)
-					{
-						printf ("%i \t %f \t %f \t %f \t %f \t %f \t %f \t %f\n", current_conv_pos, c_ref[current_conv_pos].getMZ(), c_diff, current, old, c_diff, c_ref[current_conv_pos].getIntensity(), boundary);
-					};
-				#endif
 
 				old = current;
 				old_pos = c_mz;
-			};	
+			};		
 
 			c_trans[my_local_pos].setIntensity (value);
-
-		};
+	};
 	} 
 
 
@@ -813,7 +799,7 @@ namespace OpenMS
 			cuda_intensities_.resize (overall_size_, 0); cuda_positions_.resize (overall_size_, 0);
 			//Pad the values to the left; the positions should not matter if the values are zero
 			float first_pos = pre_positions[0];
-			for (UInt i=0; i<from_max_to_left_; ++i)
+			for (Int i=0; i<from_max_to_left_; ++i)
 			{
 				cuda_positions_[i] = first_pos-(from_max_to_left_-i)*min_spacing_;
 			};
@@ -1074,7 +1060,7 @@ namespace OpenMS
 			share = candidates[i+1].getIntensity(), share_pos = candidates[i+1].getMZ();
 			bwd = (share-candidates[i].getIntensity())/(share_pos-candidates[i].getMZ());
 			fwd = (candidates[i+2].getIntensity()-share)/(candidates[i+2].getMZ()-share_pos);
-			if (!(bwd>=0 && fwd<=0))
+			if (!(bwd>=0 && fwd<=0) || share > ref[i+1].getIntensity())
 			{
 				diffed[i+1].setIntensity(0);
 			};
@@ -1147,7 +1133,7 @@ namespace OpenMS
 	
 			memset (&(processed[MZ_start]), 1, sizeof(UInt)*(MZ_end-MZ_start+1));
 
-			c_score = scoreThis_ (candidates, IsotopeWavelet::getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, iter->getIntensity(), threshold);
+			c_score = scoreThis_ (candidates, IsotopeWavelet::getNumPeakCutOff(seed_mz*(c+1.)), seed_mz, c, threshold);
 
 			if (c_score <= 0)
 			{
@@ -1278,7 +1264,7 @@ namespace OpenMS
 
 	template<typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const MSSpectrum<PeakType>& candidate,
-		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff)
+		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff)
 	{
 		DoubleReal c_score=0, c_val;
 		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
@@ -1293,21 +1279,19 @@ namespace OpenMS
 			positions[i] =  seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(i+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1);
 		};
 
+		DoubleReal l_score=0, mid_val=0;
 		Int start_index = distance(candidate.begin(), candidate.MZBegin (positions[0]))-1;
 		for (Int v=1; v<=end; ++v, ++p_h_ind)
 		{		
 			do 
 			{
 				if (start_index < signal_size-1) ++start_index;
-				else 
-				{
-					return (0);
-				};
+				else break;
 			} while (candidate[start_index].getMZ() < positions[v-1]);
 			
 			if (start_index <= 0) //unable to interpolate
 			{
-				return (0);
+				continue;
 			};
 
 			c_left_iter2 = candidate.begin()+start_index-1;
@@ -1315,6 +1299,13 @@ namespace OpenMS
 
 			c_val = c_left_iter2->getIntensity() + (c_right_iter2->getIntensity() - c_left_iter2->getIntensity())/(c_right_iter2->getMZ() - c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 	
 			
+			
+			if (v == (int)(ceil(end/2.)))
+			{
+				l_score = c_score;
+				mid_val = c_val;
+			};
+
 			if (p_h_ind%2 == 1) //I.e. a whole
 			{
 				c_score -= c_val;
@@ -1335,7 +1326,7 @@ namespace OpenMS
 			ofile_check_score.close();
 		#endif
 
-		if (c_score <= ampl_cutoff+intens)
+		if (l_score <=0 || c_score-l_score-mid_val <= 0 || c_score-mid_val <= ampl_cutoff)
 		{
 			return(0);
 		};
@@ -1347,7 +1338,7 @@ namespace OpenMS
 	
 	template<typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const TransSpectrum& candidate, 
-		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) 
+		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff) 
 	{
 		DoubleReal c_score=0, c_val;
 		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
@@ -1362,25 +1353,31 @@ namespace OpenMS
 			positions[i] =  seed_mz-((peak_cutoff-1)*Constants::IW_NEUTRON_MASS-(i+1)*Constants::IW_HALF_NEUTRON_MASS)/((DoubleReal)c+1);
 		};
 
+		DoubleReal l_score=0, mid_val=0;
 		Int start_index = distance(candidate.begin(), candidate.MZBegin (positions[0]))-1;
 		for (Int v=1; v<=end; ++v, ++p_h_ind)
 		{		
 			do 
 			{
 				if (start_index < signal_size-1) ++start_index;
-				else return (0);
+				else break;
 			} while (candidate.getMZ(start_index) < positions[v-1]);
 			
 			if (start_index <= 0) //unable to interpolate
 			{
-				return (0);
+				continue;
 			};
 
 			c_left_iter2 = candidate.begin()+start_index-1;
 			c_right_iter2 = c_left_iter2+1;
 
 			c_val = candidate.getTransIntensity(start_index-1) + (candidate.getTransIntensity(start_index)-candidate.getTransIntensity(start_index-1))/(c_right_iter2->getMZ()-c_left_iter2->getMZ()) * (positions[v-1]-c_left_iter2->getMZ()); 
-			
+			if (v == (int)(ceil(end/2.)))
+			{
+				l_score = c_score;
+				mid_val = c_val;
+			};
+
 			if (p_h_ind%2 == 1) //I.e. a whole
 			{
 				c_score -= c_val;
@@ -1401,7 +1398,7 @@ namespace OpenMS
 			ofile_check_score.close();
 		#endif
 
-		if (c_score <= ampl_cutoff+intens)
+		if (l_score <=0 || c_score-l_score-mid_val <= 0 || c_score-mid_val <= ampl_cutoff)
 		{
 			return(0);
 		};
@@ -1417,53 +1414,65 @@ namespace OpenMS
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
-	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
-		UInt num_o_feature, l_mz, r_mz;
+	 	DoubleReal c_mz, av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
+		DoubleReal virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 		{	
+
 			Box& c_box = iter->second;
-			av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
+			av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
+			virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+
 			//Now, let's get the RT boundaries for the box
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
-				c_mz = box_iter->second.mz;
-				c_RT = box_iter->second.RT;
-				av_score += box_iter->second.score;
-				av_intens += box_iter->second.intens;
-				av_abs_intens += fabs(box_iter->second.intens);
-				av_mz += c_mz*fabs(box_iter->second.intens);
+				if (box_iter->second.score == 0) //virtual helping point
+				{
+					if (count != 0) continue; //it is in any way not pure virtual
 
-				if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
-				if (r_mz < box_iter->second.MZ_end) r_mz=box_iter->second.MZ_end;
-
-				++count;
+					c_mz = box_iter->second.mz;
+					virtual_av_intens += box_iter->second.intens;
+					virtual_av_abs_intens += fabs(box_iter->second.intens);
+					virtual_av_mz += c_mz*fabs(box_iter->second.intens);
+					++virtual_count;
+				}
+				else
+				{
+					c_mz = box_iter->second.mz;
+					av_score += box_iter->second.score;
+					av_intens += box_iter->second.intens;
+					av_abs_intens += fabs(box_iter->second.intens);
+					av_mz += c_mz*fabs(box_iter->second.intens);
+					++count;
+				};
 			};
 
-			if (count == 0)
-			{	
-				continue;
+			if (count == 0) //pure virtual helping box
+			{
+				av_intens = virtual_av_intens/virtual_count;		
+				av_score = 0; 
+				av_mz = virtual_av_mz/virtual_av_abs_intens;
+			}
+			else
+			{
+				av_intens /= count;		
+				av_score /= count; 
+				av_mz /= av_abs_intens;
 			};
-
-			av_intens /= count;		
-			av_score /= count; 
-			//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
-			av_mz /= av_abs_intens;
-
-			av_RT = c_box.begin()->second.RT;
 
 			BoxElement c_box_element;
 			c_box_element.mz = av_mz;
 			c_box_element.c = c;
 			c_box_element.score = av_score;
 			c_box_element.intens = av_intens;
-			c_box_element.RT=av_RT;
-			
+		
+			c_box_element.RT=c_box.begin()->second.RT;
 			final_box.push_back(c_box_element);
 		};	
 
-		num_o_feature = final_box.size();
+		UInt num_o_feature = final_box.size();				
 		if (num_o_feature == 0)
 		{
 			tmp_boxes_->at(c).clear();
@@ -1497,7 +1506,6 @@ namespace OpenMS
 					break;
 				++i;
 			};
-			
 	
 			if (bwd_diffs[i]>0 && bwd_diffs[i+1]<0)
 			{	
@@ -1973,53 +1981,64 @@ namespace OpenMS
 		typename std::multimap<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
 		std::vector<BoxElement> final_box;
-	 	DoubleReal c_mz, c_RT, av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0;
-		UInt num_o_feature, l_mz, r_mz;
+	 	DoubleReal c_mz, av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
+		DoubleReal virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 		{	
 			Box& c_box = iter->second;
-			av_score=0, av_mz=0, av_RT=0, av_intens=0, av_abs_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
-			//Now, let's get the RT boundaries for the box
+			av_score=0, av_mz=0, av_intens=0, av_abs_intens=0, count=0;
+			virtual_av_score=0, virtual_av_mz=0, virtual_av_intens=0, virtual_av_abs_intens=0, virtual_count=0;
+
 			for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 			{
-				c_mz = box_iter->second.mz;
-				c_RT = box_iter->second.RT;
-				av_score += box_iter->second.score;
-				av_intens += box_iter->second.intens;
-				av_abs_intens += fabs(box_iter->second.intens);
-				av_mz += c_mz*fabs(box_iter->second.intens);
+				if (box_iter->second.score == 0) //virtual helping point
+				{
+					if (count != 0) continue; //it is in any way not pure virtual
 
-				if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
-				if (r_mz < box_iter->second.MZ_end) r_mz=box_iter->second.MZ_end;
-
-				++count;
+					c_mz = box_iter->second.mz;
+					virtual_av_intens += box_iter->second.intens;
+					virtual_av_abs_intens += fabs(box_iter->second.intens);
+					virtual_av_mz += c_mz*fabs(box_iter->second.intens);
+					++virtual_count;
+				}
+				else
+				{
+					c_mz = box_iter->second.mz;
+					av_score += box_iter->second.score;
+					av_intens += box_iter->second.intens;
+					av_abs_intens += fabs(box_iter->second.intens);
+					av_mz += c_mz*fabs(box_iter->second.intens);
+					++count;
+				};
 			};
 
-			if (count == 0)
-			{	
-				continue;
+			if (count == 0) //pure virtual helping box
+			{
+				av_intens = virtual_av_intens/virtual_count;		
+				av_score = 0; 
+				av_mz = virtual_av_mz/virtual_av_abs_intens;
+			}
+			else
+			{
+				av_intens /= count;		
+				av_score /= count; 
+				av_mz /= av_abs_intens;
 			};
-
-			av_intens /= count;		
-			av_score /= count; 
-			//in contrast to the key entry of tmp_box_, this mz average is weighted by intensity
-			av_mz /= av_abs_intens;
-
-			av_RT = c_box.begin()->second.RT;
 
 			BoxElement c_box_element;
 			c_box_element.mz = av_mz;
 			c_box_element.c = c;
 			c_box_element.score = av_score;
 			c_box_element.intens = av_intens;
-			c_box_element.RT=av_RT;
+		
+			c_box_element.RT=c_box.begin()->second.RT;
 
-			final_box.push_back(c_box_element);
+			final_box.push_back(c_box_element);	
 		};	
 
-		num_o_feature = final_box.size();
+		UInt num_o_feature = final_box.size();			
 		if (num_o_feature == 0)
 		{
 			tmp_boxes_->at(c).clear();
@@ -2183,8 +2202,7 @@ namespace OpenMS
 			return (false);
 		};
 		
-		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
-		//DoubleReal c_score = scoreThisAlternative_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
+		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, 0);
 
 		if (c_score <= 0)
 		{
@@ -2240,8 +2258,7 @@ namespace OpenMS
 			return (false);
 		};
 		
-		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, candidate.getTransIntensity(distance(candidate.begin(), iter)), 0);
-		//DoubleReal c_score = scoreThisAlternative_ (candidate, peak_cutoff, real_mz, c, iter->getIntensity(), 0);
+		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, 0);
 
 		if (c_score <= 0)
 		{
@@ -2268,11 +2285,6 @@ namespace OpenMS
 	template <typename PeakType>
 	std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, DoubleReal c_mz)
 	{
-		UInt peak_cutoff = IsotopeWavelet::getNumPeakCutOff (c_mz, 1);
-
-		typename MSSpectrum<PeakType>::const_iterator liter = ref.MZBegin(c_mz-(peak_cutoff+1)*Constants::IW_NEUTRON_MASS);
-		typename MSSpectrum<PeakType>::const_iterator riter = ref.MZBegin(liter, c_mz+(2*peak_cutoff+1)*Constants::IW_NEUTRON_MASS, ref.end());
-	
 		DoubleReal ppms = getPPMs(peptideMassRule(c_mz), c_mz);
 		if (ppms >= Constants::PEPTIDE_MASS_RULE_THEO_PPM_BOUND)
 		{

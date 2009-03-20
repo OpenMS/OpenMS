@@ -131,34 +131,28 @@ namespace OpenMS
 		return (Constants::LAMBDA_L_0 + Constants::LAMBDA_L_1*m);
 	}
 				
-	DoubleReal IsotopeWavelet::getLambdaQ (const DoubleReal m) 
-	{
-		return (Constants::LAMBDA_Q_0 + Constants::LAMBDA_Q_1*m + Constants::LAMBDA_Q_2*m*m);
-	}
-	
 
 	UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos (const DoubleReal mass, const UInt z)
 	{ 
-		const DoubleReal mz (mass*z);
-		//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz) 
-				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz)))); 
+		const DoubleReal m (mass*z);
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
 	}
 
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mass, const UInt z)
 	{ 
-		const DoubleReal mz (mass*z);
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
+		const DoubleReal m (mass*z);
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
 	}	
 	
-	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mz)
+	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal m)
 	{ 
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
-			(UInt) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (UInt) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS)); 
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
 	}
 
 		
@@ -211,7 +205,7 @@ namespace OpenMS
 		};	
 		gamma_table_max_index_ = gamma_table_.size();
 
-		DoubleReal up_to2 = getLambdaQ(max_m*max_charge_);
+		DoubleReal up_to2 = getLambdaL(max_m*max_charge_);
 		query=0;
 		while (query <= up_to2)
 		{				

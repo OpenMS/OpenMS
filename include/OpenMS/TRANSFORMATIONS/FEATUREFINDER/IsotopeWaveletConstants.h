@@ -34,14 +34,6 @@ namespace OpenMS
 	{
 		#undef OPENMS_DEBUG_ISOTOPE_WAVELET
 
-		//the following case should never happen (due to configure)
-		//but just to be sure ...
-		#ifdef OPENMS_HAS_TBB
-			#ifndef OPENMS_HAS_CUDA //the use threading building blocks requires a working GPU device
-				#undef OPENMS_HAS_TBB
-			#endif
-		#endif 
-
 		const unsigned int DEFAULT_NUM_OF_INTERPOLATION_POINTS = 3;
 
 		const double MASS_EPSILON = 1e-4f;
@@ -58,6 +50,7 @@ namespace OpenMS
 		const double IW_QUARTER_NEUTRON_MASS = 0.252166228f;
 		const double WAVELET_PERIODICITY = 6.229209734f;*/
 
+		//according to Horn et al. (2000)
 		const double IW_NEUTRON_MASS = 1.00235f; 
 		const double IW_HALF_NEUTRON_MASS = 0.501175f;
 		const double IW_QUARTER_NEUTRON_MASS = 0.2505875f;
@@ -67,22 +60,16 @@ namespace OpenMS
 		const double IW_PROTON_MASS = 1.00727646688f;
 
 		//Linear Fit (standard)
-		const double LAMBDA_L_0 = -0.472998839574110749e-1f;
-		const double LAMBDA_L_1 = 0.743579753540513913e-3f;
+		const double LAMBDA_L_0 = 0.120398590399013419f;
+		const double LAMBDA_L_1 = 0.635926795694698589e-3f;
 
-		//Quadratic Fit (maybe a overkill, since the dependency looks quite linear, at least in moderate mass ranges)
-		const double LAMBDA_Q_0 = -0.137152573151174711f;
-		const double LAMBDA_Q_1 = 0.851289601785403817e-3f;
-		const double LAMBDA_Q_2 = -0.2834469691e-7f;
-
-		const double CUTOFF_FIT99_POLY_0 = 0.813303208695311253f;
-		const double CUTOFF_FIT99_POLY_1 = 0.00198668967903372230f;
-		const double CUTOFF_FIT99_POLY_2 = -1.17957442070674527e-7f;
-
-		const double BORDER_MZ_FIT99 = 4200.109412;
-
-		const double CUTOFF_FIT99_LOG_0 = -31.9263753269393682f;
-		const double CUTOFF_FIT99_LOG_1 = 4.67502601032944209f;
+		const double CUTOFF_FIT99_POLY_0 = 2.12202774968137176f;
+		const double CUTOFF_FIT99_POLY_1 = 0.00197865555872409017f;
+		const double CUTOFF_FIT99_POLY_2 = -9.99766525210084347e-8f;
+		const double BORDER_MZ_FIT99 = 4076.996010f;
+		const double CUTOFF_FIT99_POLY_3 = 3.68250011643849628f;
+		const double CUTOFF_FIT99_POLY_4 = 0.00124960187205541608f;
+		const double CUTOFF_FIT99_POLY_5 = -1.05660074613074878e-8f;
 
 		const int SHIFT23 = (1<<23);
 		const double SHIFT23_00 = (1.0/(1<<23));

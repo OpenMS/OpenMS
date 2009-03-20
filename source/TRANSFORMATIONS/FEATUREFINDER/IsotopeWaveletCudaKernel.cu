@@ -73,26 +73,36 @@ namespace OpenMS
 
 	__device__ unsigned int getMzPeakCutOffAtMonoPos (float mass, unsigned int  z)
 	{
-		float mz=mass*z;
-		//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+		float m (mass*z);
+		//in principle we need here (-0.25+0.25)*IW_NEUTRON_MASS to include the peaks as a whole (draw a picture to see this)	
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
+		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz) 
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))));
+				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))));*/
 	}
 	
 	__device__ unsigned int getNumPeakCutOff (float mass, unsigned int  z)
 	{
-		float mz=mass*z;
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+		float m (mass*z);
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));		
+				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));	*/	
 	}
 
-	__device__ unsigned int getNumPeakCutOff (float mz)
+	__device__ unsigned int getNumPeakCutOff (float m)
 	{
-		return ( mz<Constants::BORDER_MZ_FIT99 ? 
+		return ( m<Constants::BORDER_MZ_FIT99 ? 
+			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+
+		/*return ( mz<Constants::BORDER_MZ_FIT99 ? 
 			(unsigned int) ceil(Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*mz+Constants::CUTOFF_FIT99_POLY_2*mz*mz-Constants::IW_QUARTER_NEUTRON_MASS)
-				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));		
+				: (unsigned int) ceil(Constants::CUTOFF_FIT99_LOG_0+(Constants::CUTOFF_FIT99_LOG_1*log(mz))-Constants::IW_QUARTER_NEUTRON_MASS));		*/
 	}
 
 
