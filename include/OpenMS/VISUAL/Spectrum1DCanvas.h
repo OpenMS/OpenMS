@@ -49,8 +49,7 @@ namespace OpenMS
 		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
 		
-		@bug Make update of spectrum bar faster (Hiwi)
-		@bug Make sure the right spectrum is selected when applying TOPP tools - wait for next Qt release (Hiwi)
+		@bug Measuring does not work for rotated spectra (projections view)
 		
 		@ingroup SpectrumWidgets
 	*/

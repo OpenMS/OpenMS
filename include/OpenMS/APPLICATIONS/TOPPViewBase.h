@@ -72,6 +72,11 @@ namespace OpenMS
     @brief Main window of TOPPView tool
 		
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
+    
+    @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Johannes)
+    
+    @bug Make sure the right spectrum is selected when applying TOPP tools - wait for next Qt release (Hiwi)
+
     @todo Add "load instrument defaults" button to tools dialog (Marc)
   
     @ingroup TOPPView_elements
