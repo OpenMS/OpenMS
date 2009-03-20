@@ -859,6 +859,16 @@ namespace OpenMS
 		drawHighlightedPeak_(current_layer_, measurement_start_, painter, with_elongation);
 		drawHighlightedPeak_(current_layer_, selected_peak_, painter, with_elongation);
 		
+		//draw delta for measuring
+		if (action_mode_==AM_MEASURE && measurement_start_.isValid() && selected_peak_.isValid())
+		{
+			drawDeltas_(painter, measurement_start_, selected_peak_, false);
+		}
+		else
+		{
+			drawCoordinates_(painter, selected_peak_, false);
+		}
+		
 //		if (draw_metainfo_)
 //		{
 //			SpectrumIteratorType vbegin, vend;

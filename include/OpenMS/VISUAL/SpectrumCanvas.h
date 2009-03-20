@@ -646,7 +646,13 @@ namespace OpenMS
 		void updateCursor_();
 
 	protected:
-		
+
+		/// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+		void drawCoordinates_(QPainter& painter, const PeakIndex& peak, bool print_rt);
+
+		/// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
+		void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end, bool print_rt);
+
 		///Method that is called when a new layer has been added
 		virtual bool finishAdding_() = 0;
 		
@@ -899,6 +905,12 @@ namespace OpenMS
 		
 		///Flag that determines if timimg data is printed to the command line
 		bool show_timing_;
+
+		/// selected peak
+		PeakIndex selected_peak_;
+		/// start peak of measuring mode
+    PeakIndex measurement_start_;
+
 
 	};
 }

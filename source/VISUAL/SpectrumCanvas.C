@@ -67,7 +67,9 @@ namespace OpenMS
 			rubber_band_(QRubberBand::Rectangle,this),
 			watcher_(0),
 			context_add_(0),
-			show_timing_(false)
+			show_timing_(false),
+			selected_peak_(),
+			measurement_start_()
 	{		
 		//Prevent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
@@ -562,8 +564,6 @@ namespace OpenMS
 			action_mode_ = AM_TRANSLATE;
 			emit actionModeChange();
 		}
-		
-		//release Keyboard when loosing focus
 	}
 
 	void SpectrumCanvas::leaveEvent(QEvent* /*e*/)
@@ -853,6 +853,98 @@ namespace OpenMS
 			layer.modified = modified;
 			emit layerModficationChange(activeLayerIndex(), modified);
 		}
+	}
+
+
+	void SpectrumCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak, bool print_rt)
+	{
+		if (!peak.isValid()) return;
+		
+		painter.save();
+
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+		if (getCurrentLayer().type==LayerData::DT_FEATURE)
+		{
+			mz = peak.getFeature(getCurrentLayer().features).getMZ();
+			rt = peak.getFeature(getCurrentLayer().features).getRT();
+			it = peak.getFeature(getCurrentLayer().features).getIntensity();
+		}
+		else if (getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+			mz = peak.getPeak(getCurrentLayer().peaks).getMZ();
+			rt = peak.getSpectrum(getCurrentLayer().peaks).getRT();
+			it = peak.getPeak(getCurrentLayer().peaks).getIntensity();
+		}
+		else
+		{
+			mz = peak.getFeature(getCurrentLayer().consensus).getMZ();
+			rt = peak.getFeature(getCurrentLayer().consensus).getRT();
+			it = peak.getFeature(getCurrentLayer().consensus).getIntensity();
+		}
+		
+		//font settings
+		painter.setPen(QPen(Qt::black));
+		QFont font = painter.font();
+		font.setBold(true);
+		painter.setFont(font);
+		
+		//draw text			
+		QString label = "";
+		if (print_rt) label += "RT: " + QString::number(rt,'f',2) + "\n";
+		label += "MZ: " + QString::number(mz,'f',6) + "\n";
+		label += "INT: " + QString::number(it,'f',2);
+		painter.drawText(5, 5, 100, 50, Qt::AlignLeft|Qt::AlignTop, label);
+		
+		painter.restore();
+	}
+
+	void SpectrumCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end, bool print_rt)
+	{
+		if (!start.isValid()) return;
+		if (!end.isValid()) return;
+			
+		painter.save();
+
+		//determine coordinates;
+		DoubleReal mz = 0.0;
+		DoubleReal rt = 0.0;
+		Real it = 0.0;
+		if (getCurrentLayer().type==LayerData::DT_FEATURE)
+		{
+			mz = end.getFeature(getCurrentLayer().features).getMZ() - start.getFeature(getCurrentLayer().features).getMZ();
+			rt = end.getFeature(getCurrentLayer().features).getRT() - start.getFeature(getCurrentLayer().features).getRT();
+			it = end.getFeature(getCurrentLayer().features).getIntensity() - start.getFeature(getCurrentLayer().features).getIntensity();
+		}
+		else if (getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+			mz = end.getPeak(getCurrentLayer().peaks).getMZ() - start.getPeak(getCurrentLayer().peaks).getMZ();
+			rt = end.getSpectrum(getCurrentLayer().peaks).getRT() - start.getSpectrum(getCurrentLayer().peaks).getRT();
+			it = end.getPeak(getCurrentLayer().peaks).getIntensity() - start.getPeak(getCurrentLayer().peaks).getIntensity();
+		}
+		else
+		{
+			mz = end.getFeature(getCurrentLayer().consensus).getMZ() - start.getFeature(getCurrentLayer().consensus).getMZ();
+			rt = end.getFeature(getCurrentLayer().consensus).getRT() - start.getFeature(getCurrentLayer().consensus).getRT();
+			it = end.getFeature(getCurrentLayer().consensus).getIntensity() - start.getFeature(getCurrentLayer().consensus).getIntensity();
+		}
+		
+		//font settings
+		painter.setPen(QPen(Qt::black));
+		QFont font = painter.font();
+		font.setBold(true);
+		painter.setFont(font);
+		
+		//draw text			
+		QString label = "";
+		if (print_rt) label += "dRT: " + QString::number(rt,'f',2) + "\n";
+		label += "dMZ: " + QString::number(mz,'f',6) + "\n";
+		label += "dINT: " + QString::number(it,'f',2);
+		painter.drawText(5, 5, 100, 50, Qt::AlignLeft|Qt::AlignTop, label);
+		
+		painter.restore();
 	}
 
 } //namespace

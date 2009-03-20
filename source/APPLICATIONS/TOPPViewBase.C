@@ -228,7 +228,7 @@ namespace OpenMS
     rt_label_->setMinimumSize(rt_label_->sizeHint());
     rt_label_->setText("");
     statusBar()->addPermanentWidget(rt_label_,0);
-    mz_label_ = new QLabel("m/z: 12345678", statusBar());
+    mz_label_ = new QLabel("m/z: 123456780912", statusBar());
     mz_label_->setMinimumSize(mz_label_->sizeHint());
     mz_label_->setText("");
     statusBar()->addPermanentWidget(mz_label_,0);
@@ -1099,7 +1099,7 @@ namespace OpenMS
 		}
     else
     {
-      mz_label_->setText((String("m/z: ")+String::number(mz,3).fillLeft(' ',8)).toQString());
+      mz_label_->setText((String("m/z: ")+String::number(mz,6).fillLeft(' ',8)).toQString());
     }
     if (rt==-1)
     {

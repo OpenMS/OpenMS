@@ -233,7 +233,7 @@ namespace OpenMS
 				}
 			}
 
-      /// Highlights a single peak
+      /// Highlights a single peak and prints coordinates to screen
       void highlightPeak_(QPainter& p, const PeakIndex& peak);
 
       /// Returns the nearest peak to position @p pos

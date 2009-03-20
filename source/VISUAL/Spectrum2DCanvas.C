@@ -60,9 +60,7 @@ namespace OpenMS
 	using namespace Internal;
 
 	Spectrum2DCanvas::Spectrum2DCanvas(const Param& preferences, QWidget* parent)
-		: SpectrumCanvas(preferences, parent),
-			selected_peak_(),
-			measurement_start_()
+		: SpectrumCanvas(preferences, parent)
 	{
     //Paramater handling
     defaults_.setValue("background_color", "#ffffff", "Background color.");
@@ -99,22 +97,28 @@ namespace OpenMS
 	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
 	{
 		if (!peak.isValid()) return;
-		painter.save();
-		painter.setPen(QPen(Qt::red, 2));
+		
+		//determine coordinates;
 		QPoint pos;
 		if (getCurrentLayer().type==LayerData::DT_FEATURE)
 		{
-			dataToWidget_(peak.getFeature(getCurrentLayer().features).getMZ(),peak.getFeature(getCurrentLayer().features).getRT(),pos);
+			dataToWidget_(peak.getFeature(getCurrentLayer().features).getMZ(),  peak.getFeature(getCurrentLayer().features).getRT(), pos);
 		}
 		else if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			dataToWidget_(peak.getPeak(getCurrentLayer().peaks).getMZ(),peak.getSpectrum(getCurrentLayer().peaks).getRT(),pos);
+			dataToWidget_(peak.getPeak(getCurrentLayer().peaks).getMZ(), peak.getSpectrum(getCurrentLayer().peaks).getRT(), pos);
 		}
 		else
 		{
-			dataToWidget_(peak.getFeature(getCurrentLayer().consensus).getMZ(),peak.getFeature(getCurrentLayer().consensus).getRT(),pos);
+			dataToWidget_(peak.getFeature(getCurrentLayer().consensus).getMZ(), peak.getFeature(getCurrentLayer().consensus).getRT(), pos);
 		}
+		
+		//paint highlighed peak
+		painter.save();
+		painter.setPen(QPen(Qt::red, 2));
 		painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
+		
+		//restore painter
 		painter.restore();
 	}
 
@@ -1151,25 +1155,35 @@ namespace OpenMS
 
 			highlightPeak_(painter, measurement_start_);
 		}
-
-		//draw selected peak
-		if (action_mode_==AM_MEASURE || action_mode_==AM_TRANSLATE) highlightPeak_(painter, selected_peak_);
-
-		//draw convex hull of selected peak
+		
+		//draw convex hulls or consensus feeature elements
 		if (selected_peak_.isValid())
 		{
 			if (getCurrentLayer().type==LayerData::DT_FEATURE)
 			{
 				painter.setPen(QPen(Qt::red, 2));
-
 				paintConvexHulls_(selected_peak_.getFeature(getCurrentLayer().features).getConvexHulls(),painter);
 			}
 			else if (getCurrentLayer().type==LayerData::DT_CONSENSUS && getLayerFlag(current_layer_,LayerData::C_ELEMENTS))
 			{
 				painter.setPen(QPen(Qt::red, 2));
-
 				paintConsensusElement_(current_layer_, selected_peak_.getFeature(getCurrentLayer().consensus),painter,false);
 			}
+		}
+
+		if (action_mode_==AM_MEASURE || action_mode_==AM_TRANSLATE)
+		{
+			highlightPeak_(painter, selected_peak_);
+		}
+		
+		//draw delta for measuring
+		if (action_mode_==AM_MEASURE && measurement_start_.isValid() && selected_peak_.isValid())
+		{
+			drawDeltas_(painter, measurement_start_, selected_peak_, true);
+		}
+		else
+		{
+			drawCoordinates_(painter, selected_peak_, true);
 		}
 
 		painter.end();
@@ -1435,7 +1449,6 @@ namespace OpenMS
 						const ConsensusFeature& f1 = measurement_start_.getFeature(getCurrentLayer().consensus);
 						const ConsensusFeature& f2 = selected_peak_.getFeature(getCurrentLayer().consensus);
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensities %3 / %4").arg(f2.getRT()-f1.getRT()).arg(f2.getMZ()-f1.getMZ()).arg(f1.getIntensity()).arg(f2.getIntensity()).toStdString(), 0);
-
 					}
 				}
 				measurement_start_.clear();

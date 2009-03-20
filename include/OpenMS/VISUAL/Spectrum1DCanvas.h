@@ -194,10 +194,6 @@ namespace OpenMS
 
 			/// Draw modes (for each spectrum)
 			std::vector<DrawModes> draw_modes_; 
-			/// Iterator on peak next to mouse position
-			PeakIndex selected_peak_;
-			/// start peak of measuring mode
-      PeakIndex measurement_start_;
       /// start point of "ruler" for measure mode
       QPoint measurement_start_point_;
       /// Indicates whether this widget is currently in mirror mode
