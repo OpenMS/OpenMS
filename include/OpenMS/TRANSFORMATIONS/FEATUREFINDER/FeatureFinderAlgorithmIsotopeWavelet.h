@@ -210,7 +210,7 @@ namespace OpenMS
 								
 								iwt.getTransform (c_trans, c_ref, c);
 								
-								//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::stringstream stream;
 									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
@@ -219,7 +219,7 @@ namespace OpenMS
 										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
 									};
 									ofile.close();
-								//#endif
+								#endif
 
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "transform O.K. ... "; std::cout.flush();
