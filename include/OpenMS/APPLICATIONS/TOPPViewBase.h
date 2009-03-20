@@ -187,7 +187,7 @@ namespace OpenMS
       */
       void showStatusMessage(std::string msg, OpenMS::UInt time);
       /// shows m/z, intensity and rt in the status bar
-      void showCursorStatus(double mz, double intensity, double rt);
+      void showCursorStatus(double mz, double rt);
       /// Apply TOPP tool
       void showTOPPDialog();
       /// Annotates current layer with ID data
@@ -374,8 +374,6 @@ namespace OpenMS
       QLabel* message_label_;
       /// m/z label for messages in the status bar
       QLabel* mz_label_;
-      /// Intensity label for messages in the status bar
-      QLabel* int_label_;
       /// RT label for messages in the status bar
       QLabel* rt_label_;
 			//@}

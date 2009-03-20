@@ -1229,6 +1229,9 @@ namespace OpenMS
 	{
 		grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key
 		QPoint pos = e->pos();
+		PointType data_pos = widgetToData_(pos);
+		emit sendCursorStatus( data_pos[0], data_pos[1]);
+					
 	  PeakIndex near_peak = findNearestPeak_(pos);
 
 		//highlight current peak and display peak coordinates
@@ -1245,7 +1248,6 @@ namespace OpenMS
 				{
 					//coordinates
 					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
-					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
 					//additional feature info
 					String status;
 					status = status + "Quality: " + f.getOverallQuality();
@@ -1264,12 +1266,9 @@ namespace OpenMS
 				}
 				else if (getCurrentLayer().type==LayerData::DT_PEAK)
 				{
-					//coordinates
-					const ExperimentType::PeakType& p = selected_peak_.getPeak(getCurrentLayer().peaks);
-					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-					emit sendCursorStatus(p.getMZ(), p.getIntensity(), s.getRT());
 					//meta info
 					String status;
+					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 					for (Size m=0; m<s.getMetaDataArrays().size();++m)
 					{
 						status += s.getMetaDataArrays()[m].getName() + ": " + s.getMetaDataArrays()[m][selected_peak_.peak] + " ";
@@ -1278,10 +1277,8 @@ namespace OpenMS
 				}
 				else
 				{
-					//coordinates
-					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
-					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
 					//additional feature info
+					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
 					String status;
 					status = status + "Quality: " + f.getQuality();
 					if (f.getCharge()!=0)
@@ -1299,44 +1296,9 @@ namespace OpenMS
 			update_(__PRETTY_FUNCTION__);
 		}
 
-		//show current mouse cordinates
-		if (action_mode_==AM_ZOOM || !near_peak.isValid())
-		{
-			PointType pnt = widgetToData_(pos);
-			emit sendCursorStatus( pnt[0], -1.0, pnt[1]);
-		}
-
 		if (action_mode_==AM_MEASURE)
 		{
 			last_mouse_pos_ = pos;
-			//show coordinates of nearby peak or current position
-			if (near_peak.isValid()) // a peak is nearby
-			{
-				//if a valid range is selected, show the differences
-				if ((e->buttons() & Qt::LeftButton) && measurement_start_.isValid())
-				{
-					if (getCurrentLayer().type==LayerData::DT_FEATURE)
-					{
-						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
-						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensity ratio = %3").arg(f2.getRT()-f1.getRT()).arg(f2.getMZ()-f1.getMZ()).arg(f2.getIntensity()/f1.getIntensity()).toStdString(), 0);
-					}
-					else if (getCurrentLayer().type==LayerData::DT_PEAK)
-					{
-						const ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
-						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
-						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensity ratio = %3").arg(s2.getRT()-s1.getRT()).arg(p2.getMZ()-p1.getMZ()).arg(p2.getIntensity()/p1.getIntensity()).toStdString(), 0);
-					}
-					else
-					{
-						const ConsensusFeature& f1 = measurement_start_.getFeature(getCurrentLayer().consensus);
-						const ConsensusFeature& f2 = selected_peak_.getFeature(getCurrentLayer().consensus);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensities: %3 / %4").arg(f2.getRT()-f1.getRT()).arg(f2.getMZ()-f1.getMZ()).arg(f1.getIntensity()).arg(f2.getIntensity()).toStdString(), 0);
-					}
-				}
-			}
 		}
     else if (action_mode_ == AM_ZOOM)
 		{
@@ -1344,6 +1306,8 @@ namespace OpenMS
 			if (e->buttons() & Qt::LeftButton)
 			{
 				rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
+				rubber_band_.show(); //if the mouse button is pressed before the zoom key is pressed
+
 				update_(__PRETTY_FUNCTION__);
 			}
 		}
@@ -1427,31 +1391,8 @@ namespace OpenMS
 				{
 					measurement_start_.clear();
 				}
-				update_(__PRETTY_FUNCTION__);
-				if (measurement_start_.isValid())
-				{
-					if (getCurrentLayer().type==LayerData::DT_FEATURE)
-					{
-						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
-						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensity ratio = %3").arg(f2.getRT()-f1.getRT()).arg(f2.getMZ()-f1.getMZ()).arg(f2.getIntensity()/f1.getIntensity()).toStdString(), 0);
-					}
-					else if (getCurrentLayer().type==LayerData::DT_PEAK)
-					{
-						const ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
-						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
-						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensity ratio = %3").arg(s2.getRT()-s1.getRT()).arg(p2.getMZ()-p1.getMZ()).arg(p2.getIntensity()/p1.getIntensity()).toStdString(), 0);
-					}
-					else
-					{
-						const ConsensusFeature& f1 = measurement_start_.getFeature(getCurrentLayer().consensus);
-						const ConsensusFeature& f2 = selected_peak_.getFeature(getCurrentLayer().consensus);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %2, Intensities %3 / %4").arg(f2.getRT()-f1.getRT()).arg(f2.getMZ()-f1.getMZ()).arg(f1.getIntensity()).arg(f2.getIntensity()).toStdString(), 0);
-					}
-				}
 				measurement_start_.clear();
+				update_(__PRETTY_FUNCTION__);
 			}
 		  else if (action_mode_ == AM_ZOOM)
 			{

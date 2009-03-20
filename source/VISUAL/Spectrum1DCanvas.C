@@ -313,6 +313,8 @@ namespace OpenMS
 		
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
+		PointType data_pos = widgetToData(p);				
+		emit sendCursorStatus( data_pos.getX() );
 		
 		PeakIndex near_peak = findPeakAtPosition_(p);
 		
@@ -372,19 +374,7 @@ namespace OpenMS
 			{
 				if (near_peak.peak != measurement_start_.peak)
 				{
-					selected_peak_ = near_peak;
-									
-					if (measurement_start_.isValid() && selected_peak_.isValid())
-					{
-						const ExperimentType::PeakType& peak_1 = measurement_start_.getPeak(getCurrentLayer().peaks);
-						const ExperimentType::PeakType& peak_2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-						emit sendCursorStatus(peak_2.getMZ(), peak_2.getIntensity());
-						emit sendStatusMessage(QString("Measured: dMZ = %1, Intensity ratio = %2").arg(peak_2.getMZ()-peak_1.getMZ()).arg(peak_2.getIntensity()/peak_1.getIntensity()).toStdString(), 0);
-					}
-					else
-					{
-						emit sendCursorStatus();
-					}
+					selected_peak_ = near_peak;									
 					last_mouse_pos_ = p;
 					update_(__PRETTY_FUNCTION__);
 				}
@@ -401,25 +391,15 @@ namespace OpenMS
 				{
 					rubber_band_.setGeometry(0, last_mouse_pos_.y(), width(), p.y() - last_mouse_pos_.y());
 				}
+				rubber_band_.show(); //if the mouse button is pressed before the zoom key is pressed
 				
 				update_(__PRETTY_FUNCTION__);
-				
-				emit sendCursorStatus( pos.getX() );
 			}
 		}
 		else if (!e->buttons()) //no buttons pressed
 		{
 			selected_peak_ = findPeakAtPosition_(p);
 			update_(__PRETTY_FUNCTION__);
-			if (selected_peak_.isValid())
-			{
-				const ExperimentType::PeakType& sel = near_peak.getPeak(getCurrentLayer().peaks);
-				emit sendCursorStatus(sel.getMZ(), sel.getIntensity());
-			}
-			else
-			{
-				emit sendCursorStatus();
-			}
 		}
 	}
 
@@ -452,9 +432,7 @@ namespace OpenMS
 				{
 					const ExperimentType::PeakType& peak_1 = measurement_start_.getPeak(getCurrentLayer().peaks);
 					const ExperimentType::PeakType& peak_2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-					emit sendCursorStatus(peak_2.getMZ(), peak_2.getIntensity());
 					DoubleReal distance = peak_2.getMZ() - peak_1.getMZ();
-					emit sendStatusMessage(QString("Measured: dMZ = %1, Intensity ratio = %2").arg(distance).arg(peak_2.getIntensity()/peak_1.getIntensity()).toStdString(), 0);
 					// add new distance item to annotations_1d of current layer
 					if (intensity_mode_==IM_PERCENTAGE)
 					{
@@ -525,8 +503,8 @@ namespace OpenMS
 		Size spectrum_index = getCurrentLayer_().current_spectrum;
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
-		PointType lt = widgetToData(p - QPoint(1, 1), true);
-		PointType rb = widgetToData(p + QPoint(1, 1), true);
+		PointType lt = widgetToData(p - QPoint(2, 2), true);
+		PointType rb = widgetToData(p + QPoint(2, 2), true);
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
@@ -731,8 +709,7 @@ namespace OpenMS
 					switch (draw_modes_[i])
 					{
 						case DM_PEAKS:
-							//-----------------------------------------DRAWING PEAKS-------------------------------------------
-							
+							//-----------------------------------------DRAWING PEAKS-------------------------------------------							
 							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
 							{
 								if (layer.filters.passes(spectrum,it-spectrum.begin()))
@@ -743,18 +720,8 @@ namespace OpenMS
 									
 									// draw peak
 									painter.drawLine(begin, end);
-
-//									//draw icon if necessary
-//									if (it->metaValueExists(4))
-//									{
-//										painter.save();
-//										painter.setPen(icon_pen);	
-//										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
-//										painter.restore();
-//									}
 								}
 							}
-							//-----------------------------------------DRAWING PEAKS END-------------------------------------------
 							break;
 						case DM_CONNECTEDLINES:
 							{
@@ -777,15 +744,6 @@ namespace OpenMS
 									{
 										path.lineTo(begin);
 									}
-									
-//									// draw associated icon
-//									if (it->metaValueExists(4))
-//									{
-//										painter.save();
-//										painter.setPen(icon_pen);											
-//										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
-//										painter.restore();
-//									}
 								}
 								painter.drawPath(path);
 									
@@ -804,7 +762,6 @@ namespace OpenMS
 									dataToWidget(*(vend), end, layer.flipped);
 									painter.drawLine(begin,end);
 								}
-								//-------------------------------------DRAWING CONNECTED LINES END-----------------------------------------
 							}
 							break;
 						default:
@@ -869,26 +826,6 @@ namespace OpenMS
 			drawCoordinates_(painter, selected_peak_, false);
 		}
 		
-//		if (draw_metainfo_)
-//		{
-//			SpectrumIteratorType vbegin, vend;
-//			for (Size i=0; i< getLayerCount();++i)
-//			{
-//				if (getLayer(i).visible)
-//				{
-//
-//					vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-//					vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
-//			
-//					for (SpectrumIteratorType it = vbegin; it != vend; it++)
-//					{
-//						dataToWidget(*it, end);
-//						painter.drawText(end, it->getMetaValue("IonName").toQString());
-//					}
-//				}
-//			}
-//		}
-
 		painter.end();
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;

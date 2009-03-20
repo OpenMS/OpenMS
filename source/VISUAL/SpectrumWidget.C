@@ -84,7 +84,7 @@ namespace OpenMS
 		connect(x_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
 		connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
 		connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
-		connect(canvas_, SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
+		connect(canvas_, SIGNAL(sendCursorStatus(double,double)), this, SIGNAL(sendCursorStatus(double,double)));
 		
 		//swap axes if necessary
 		updateAxes();

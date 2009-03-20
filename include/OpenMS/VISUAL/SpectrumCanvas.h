@@ -614,7 +614,7 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area); //Do not change this to AreaType! QT needs the exact type...
 				
 		/// Emitted when the cursor position changes (for displaying e.g. in status bar)
-		void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
+		void sendCursorStatus(double mz=-1.0, double rt=-1.0);
 
 		/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
 		void sendStatusMessage(std::string message, OpenMS::UInt time);
@@ -652,7 +652,10 @@ namespace OpenMS
 
 		/// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
 		void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end, bool print_rt);
-
+			
+		/// Draws several lines of text to the upper right corner of the widget
+		void drawText_(QPainter& painter, QStringList text);
+	
 		///Method that is called when a new layer has been added
 		virtual bool finishAdding_() = 0;
 		

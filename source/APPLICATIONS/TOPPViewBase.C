@@ -232,10 +232,6 @@ namespace OpenMS
     mz_label_->setMinimumSize(mz_label_->sizeHint());
     mz_label_->setText("");
     statusBar()->addPermanentWidget(mz_label_,0);
-    int_label_ = new QLabel("Int: 123456789012", statusBar());
-    int_label_->setMinimumSize(int_label_->sizeHint());
-    int_label_->setText("");
-    statusBar()->addPermanentWidget(int_label_,0);
 
 		//################## TOOLBARS #################
     //create toolbars and connect signals
@@ -1086,7 +1082,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showCursorStatus(double mz, double intensity, double rt)
+  void TOPPViewBase::showCursorStatus(double mz, double rt)
   {
     message_label_->setText("");
     if (mz==-1)
@@ -1095,7 +1091,7 @@ namespace OpenMS
     }
     else if (isinf(mz) || isnan(mz))
 		{
-      int_label_->setText("m/z: n/a");
+      mz_label_->setText("m/z: n/a");
 		}
     else
     {
@@ -1107,23 +1103,11 @@ namespace OpenMS
     }
     else if (isinf(rt) || isnan(rt))
 		{
-      int_label_->setText("RT: n/a");
+      rt_label_->setText("RT: n/a");
 		}
     else
     {
       rt_label_->setText((String("RT: ")+String::number(rt,1).fillLeft(' ',8)).toQString());
-    }
-    if (intensity==-1)
-    {
-      int_label_->setText("Int: ");
-    }
-    else if (isinf(intensity) || isnan(intensity))
-		{
-      int_label_->setText("Int: n/a");
-		}
-		else
-    {
-      int_label_->setText((String("Int: ")+String::number(intensity,1).fillLeft(' ',12)).toQString());
     }
     statusBar()->update();
   }
@@ -1805,14 +1789,14 @@ namespace OpenMS
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateCurrentPath()));
     connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
-    connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+    connect(sw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
     connect(sw,SIGNAL(dropReceived(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));			
 
   	Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
   	{
-  		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
-  		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+  		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
+  		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
   		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
 

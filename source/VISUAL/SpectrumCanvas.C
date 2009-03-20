@@ -39,6 +39,7 @@
 #include <QtGui/QWheelEvent>
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
+#include <QtGui/QFontMetrics>
 
 #include <iostream>
 
@@ -555,7 +556,8 @@ namespace OpenMS
   		watcher_->removeFile(filename);
   	}  			
 	}
-
+	
+	//this does not work anymore, probably due to Qt::StrongFocus :(
 	void SpectrumCanvas::focusOutEvent(QFocusEvent* /*e*/)
 	{
 		// Alt/Shift pressed and focus lost => change back action mode
@@ -564,6 +566,14 @@ namespace OpenMS
 			action_mode_ = AM_TRANSLATE;
 			emit actionModeChange();
 		}
+		
+		//reset peaks
+		selected_peak_.clear();
+		measurement_start_.clear();
+		
+		//update
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
 	}
 
 	void SpectrumCanvas::leaveEvent(QEvent* /*e*/)
@@ -860,8 +870,6 @@ namespace OpenMS
 	{
 		if (!peak.isValid()) return;
 		
-		painter.save();
-
 		//determine coordinates;
 		DoubleReal mz = 0.0;
 		DoubleReal rt = 0.0;
@@ -884,30 +892,20 @@ namespace OpenMS
 			rt = peak.getFeature(getCurrentLayer().consensus).getRT();
 			it = peak.getFeature(getCurrentLayer().consensus).getIntensity();
 		}
-		
-		//font settings
-		painter.setPen(QPen(Qt::black));
-		QFont font = painter.font();
-		font.setBold(true);
-		painter.setFont(font);
-		
+				
 		//draw text			
-		QString label = "";
-		if (print_rt) label += "RT: " + QString::number(rt,'f',2) + "\n";
-		label += "MZ: " + QString::number(mz,'f',6) + "\n";
-		label += "INT: " + QString::number(it,'f',2);
-		painter.drawText(5, 5, 100, 50, Qt::AlignLeft|Qt::AlignTop, label);
-		
-		painter.restore();
+		QStringList lines;
+		if (print_rt) lines.push_back("RT : " + QString::number(rt,'f',2));
+		lines.push_back("m/z: " + QString::number(mz,'f',6));
+		lines.push_back("int: " + QString::number(it,'f',2));
+		drawText_(painter, lines);
 	}
 
 	void SpectrumCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end, bool print_rt)
 	{
 		if (!start.isValid()) return;
 		if (!end.isValid()) return;
-			
-		painter.save();
-
+		
 		//determine coordinates;
 		DoubleReal mz = 0.0;
 		DoubleReal rt = 0.0;
@@ -916,33 +914,63 @@ namespace OpenMS
 		{
 			mz = end.getFeature(getCurrentLayer().features).getMZ() - start.getFeature(getCurrentLayer().features).getMZ();
 			rt = end.getFeature(getCurrentLayer().features).getRT() - start.getFeature(getCurrentLayer().features).getRT();
-			it = end.getFeature(getCurrentLayer().features).getIntensity() - start.getFeature(getCurrentLayer().features).getIntensity();
+			it = end.getFeature(getCurrentLayer().features).getIntensity() / start.getFeature(getCurrentLayer().features).getIntensity();
 		}
 		else if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
 			mz = end.getPeak(getCurrentLayer().peaks).getMZ() - start.getPeak(getCurrentLayer().peaks).getMZ();
 			rt = end.getSpectrum(getCurrentLayer().peaks).getRT() - start.getSpectrum(getCurrentLayer().peaks).getRT();
-			it = end.getPeak(getCurrentLayer().peaks).getIntensity() - start.getPeak(getCurrentLayer().peaks).getIntensity();
+			it = end.getPeak(getCurrentLayer().peaks).getIntensity() / start.getPeak(getCurrentLayer().peaks).getIntensity();
 		}
 		else
 		{
 			mz = end.getFeature(getCurrentLayer().consensus).getMZ() - start.getFeature(getCurrentLayer().consensus).getMZ();
 			rt = end.getFeature(getCurrentLayer().consensus).getRT() - start.getFeature(getCurrentLayer().consensus).getRT();
-			it = end.getFeature(getCurrentLayer().consensus).getIntensity() - start.getFeature(getCurrentLayer().consensus).getIntensity();
+			it = end.getFeature(getCurrentLayer().consensus).getIntensity() / start.getFeature(getCurrentLayer().consensus).getIntensity();
 		}
+				
+		//draw text			
+		QStringList lines;
+		if (print_rt) lines.push_back("RT delta : " + QString::number(rt,'f',2));
+		lines.push_back("m/z delta: " + QString::number(mz,'f',6));
+		if (isinf(rt) || isnan(rt))
+		{
+			lines.push_back("int ratio: n/a");
+		}
+		else
+		{
+			lines.push_back("int ratio: " + QString::number(it,'f',2));			
+		}
+		drawText_(painter, lines);
+	}
+
+	void SpectrumCanvas::drawText_(QPainter& painter, QStringList text)
+	{
+		painter.save();
 		
-		//font settings
-		painter.setPen(QPen(Qt::black));
-		QFont font = painter.font();
-		font.setBold(true);
+		//font
+		QFont font("Courier");
 		painter.setFont(font);
 		
-		//draw text			
-		QString label = "";
-		if (print_rt) label += "dRT: " + QString::number(rt,'f',2) + "\n";
-		label += "dMZ: " + QString::number(mz,'f',6) + "\n";
-		label += "dINT: " + QString::number(it,'f',2);
-		painter.drawText(5, 5, 100, 50, Qt::AlignLeft|Qt::AlignTop, label);
+		//determine width and height of the box we need
+		QFontMetrics metrics(painter.font());
+		int line_spacing = metrics.lineSpacing();
+		int height = 6 + text.size() * line_spacing;
+		int width = 4;
+		for (int i=0;i<text.size(); ++i)
+		{
+			width = std::max(width, 4 + metrics.width(text[i]));
+		}
+		
+		//draw backgrond for text
+		painter.fillRect(2,3,width, height, QColor(255,255,255,200));
+		
+		//draw text
+		painter.setPen(Qt::black);
+		for (int i=0;i<text.size(); ++i)
+		{
+			painter.drawText(3, 3 + (i+1) * line_spacing, text[i]);
+		}
 		
 		painter.restore();
 	}
