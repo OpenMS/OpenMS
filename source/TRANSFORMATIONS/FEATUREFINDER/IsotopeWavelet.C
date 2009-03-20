@@ -52,8 +52,8 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::table_steps_ = 0.0001;
 	DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
 	IsotopeDistribution IsotopeWavelet::averagine_;
-	Int IsotopeWavelet::gamma_table_max_index_ = -1;
-	Int IsotopeWavelet::exp_table_max_index_ = -1;
+	Size IsotopeWavelet::gamma_table_max_index_ = 0;
+	Size IsotopeWavelet::exp_table_max_index_ = 0;
 
 
 	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) 
@@ -92,8 +92,8 @@ namespace OpenMS
 		sine_table_.clear();
 		table_steps_ = 0.0001;
 		inv_table_steps_ = 1./table_steps_;
-		gamma_table_max_index_ = -1;
-		exp_table_max_index_ = -1;
+		gamma_table_max_index_ = 0;
+		exp_table_max_index_ = 0;
 	} 	
 
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 

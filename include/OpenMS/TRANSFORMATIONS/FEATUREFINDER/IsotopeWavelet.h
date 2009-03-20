@@ -248,8 +248,8 @@ namespace OpenMS
 				/** Internally used averagine model. */
 				static IsotopeDistribution averagine_;
 
-				static Int gamma_table_max_index_;
-				static Int exp_table_max_index_;
+				static Size gamma_table_max_index_;
+				static Size exp_table_max_index_;
 
 	};
 

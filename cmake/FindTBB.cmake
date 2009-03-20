@@ -4,7 +4,7 @@
 # Modified by Andreas Bertsch
 
 # This module requires
-# TBB_INCLUDE_DIR
+# MT_TBB_INCLUDE_DIR
 # TBB_LIB_DIR
 
 # This module defines
@@ -47,15 +47,15 @@ endif (UNIX)
 set (TBB_FOUND "NO")
 
 #-- Look for libraries
-find_library(TBB_LIBRARY        ${_TBB_LIB_NAME}        ${TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
-find_library(TBB_MALLOC_LIBRARY ${_TBB_LIB_MALLOC_NAME} ${TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(TBB_LIBRARY        ${_TBB_LIB_NAME}        ${MT_TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(TBB_MALLOC_LIBRARY ${_TBB_LIB_MALLOC_NAME} ${MT_TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
 mark_as_advanced(TBB_LIBRARY TBB_MALLOC_LIBRARY)
 
-find_library(TBB_LIBRARY_DEBUG        ${_TBB_LIB_DEBUG_NAME}        ${TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
-find_library(TBB_MALLOC_LIBRARY_DEBUG ${_TBB_LIB_MALLOC_DEBUG_NAME} ${TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(TBB_LIBRARY_DEBUG        ${_TBB_LIB_DEBUG_NAME}        ${MT_TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(TBB_MALLOC_LIBRARY_DEBUG ${_TBB_LIB_MALLOC_DEBUG_NAME} ${MT_TBB_LIBRARY_DIR} NO_DEFAULT_PATH)
 mark_as_advanced(TBB_LIBRARY_DEBUG TBB_MALLOC_LIBRARY_DEBUG)
 
-if (TBB_INCLUDE_DIR)
+if (MT_TBB_INCLUDE_DIR)
 
 	# sample tbb source code to test includes
 	FILE(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testTBBInclude.C
@@ -68,12 +68,12 @@ if (TBB_INCLUDE_DIR)
 	try_compile(TBB_COMPILE_SUCCESS_HEADERS 
 							${CMAKE_BINARY_DIR} 
 							${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testTBBInclude.C
-							CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${TBB_INCLUDE_DIR}")
+							CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MT_TBB_INCLUDE_DIR}")
 	if (NOT TBB_COMPILE_SUCCESS_HEADERS)
 		message (STATUS "Could NOT find TBB headers.")
 	else()
-		message (STATUS "Intel Threading Building Blocks includes found in "${TBB_INCLUDE_DIR})
-		if (TBB_LIBRARY_DIR)
+		message (STATUS "Intel Threading Building Blocks includes found in "${MT_TBB_INCLUDE_DIR})
+		if (MT_TBB_LIBRARY_DIR)
 			# sample tbb source code to test library linking
 			FILE(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testTBBLinking.C
 		  "#include <tbb/task_scheduler_init.h>
@@ -87,13 +87,13 @@ if (TBB_INCLUDE_DIR)
 			try_compile(TBB_COMPILE_SUCCESS_LIBRARIES
               ${CMAKE_BINARY_DIR}
               ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testTBBLinking.C
-              CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${TBB_INCLUDE_DIR}" 
-							CMAKE_FLAGS "-DLINK_DIRECTORIES=${TBB_LIBRARY_DIR}"
+              CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MT_TBB_INCLUDE_DIR}" 
+							CMAKE_FLAGS "-DLINK_DIRECTORIES=${MT_TBB_LIBRARY_DIR}"
 							CMAKE_FLAGS "-DLINK_LIBRARIES:STRING=${_TBB_LIB_NAME};${_TBB_LIB_MALLOC_NAME}")
 			
 			if (TBB_COMPILE_SUCCESS_LIBRARIES)
 				set (TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
-				message (STATUS "Intel Threading Building Block libraries found in "${TBB_LIBRARY_DIR})
+				message (STATUS "Intel Threading Building Block libraries found in "${MT_TBB_LIBRARY_DIR})
 				set (TBB_FOUND "YES")
 			endif()
 		endif()
@@ -102,8 +102,8 @@ endif()
 
 if (NOT TBB_FOUND)
     message("ERROR: Intel TBB NOT found!")
-    message(STATUS "Looked for Threading Building Blocks includes in ${TBB_INCLUDE_DIR}")
-		message(STATUS "Looked for Threading Building Blocks libraries in ${TBB_LIBRARY_DIR}")
+    message(STATUS "Looked for Threading Building Blocks includes in ${MT_TBB_INCLUDE_DIR}")
+		message(STATUS "Looked for Threading Building Blocks libraries in ${MT_TBB_LIBRARY_DIR}")
 
     # do only throw fatal, if this pkg is REQUIRED
     if (TBB_FIND_REQUIRED)

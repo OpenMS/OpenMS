@@ -17,7 +17,7 @@ PROJECT("OpenMS")
 # CONTRIB_CUSTOM_DIR
 # STL_DEBUG
 # QT_DB_PLUGIN
-# MT_MT_CUDA_BUILD_TYPE
+# MT_CUDA_BUILD_TYPE
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
