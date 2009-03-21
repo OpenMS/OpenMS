@@ -39,6 +39,8 @@ namespace OpenMS
 	{
 		defaults_.setValue("num_top_peaks", 3, "Number of most intense peak to pick");
 		defaults_.setValue("min_pos_precursor_percentage", 80.0, "Minimal ion position the ion should have, relative to the precursor position");
+		defaults_.setValue("min_mz", 400.0, "Minimal m/z value that is allowed for selection.");
+		defaults_.setValue("max_mz", 1200.0, "Maximal m/z value that is allowed for selection.");
 		defaults_.setValue("consider_names", "true", "Should names be considered when selecting ions?");
 		defaults_.setValidStrings("consider_names", StringList::create("true,false"));
 		defaults_.setValue("allow_loss_ions", "false", "Should loss ions allowed to be selected?");
@@ -72,6 +74,8 @@ namespace OpenMS
     Size num_top_peaks = (UInt)param_.getValue("num_top_peaks");
 		bool consider_names(param_.getValue("consider_names").toBool());
     double min_pos_precursor_percentage = (double)param_.getValue("min_pos_precursor_percentage") / 100.0;
+		double min_mz = (double)param_.getValue("min_mz");
+		double max_mz = (double)param_.getValue("max_mz");
 		if (spec.getPrecursors().size() == 0)
 		{
 			cerr << "No Precursor peaks defined! Bailing out..." << endl;
@@ -89,7 +93,8 @@ namespace OpenMS
       //  name = spec_copy[i].getMetaValue("MSPPeakInfo");
       //}
       
-			if (spec_copy[i].getMZ() > min_pos_precursor_percentage * precursor_pos &&
+			if (spec_copy[i].getMZ() >= min_mz && spec_copy[i].getMZ() <= max_mz &&
+					spec_copy[i].getMZ() > min_pos_precursor_percentage * precursor_pos &&
          (!consider_names || peakselectionIsAllowed_(spec_copy[i])))
       {
         selected_peaks.push_back(spec_copy[i]);
