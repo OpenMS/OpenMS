@@ -375,6 +375,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
 	p2.setValue("TOPPBaseTest:1:log","TOPP.log","Location of the log file");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
+	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
 	//with restriction
 	p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("1,2,3"),"stringlist with restrictions");
