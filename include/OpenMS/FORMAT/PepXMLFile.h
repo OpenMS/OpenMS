@@ -59,12 +59,20 @@ namespace OpenMS
 			
 			/**
 				@brief Loads peptide sequences with modifications out of a PepXML file
-				
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides);			 			 
+			void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides);
+
+			/**
+				@brief Stores idXML as PepXML file
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
+			*/
+			void store(const String& filename,  std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+
+
   	protected:
 			// Docu in base class
 			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);

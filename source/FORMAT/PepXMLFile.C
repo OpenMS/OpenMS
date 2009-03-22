@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 #include <fstream>
@@ -62,9 +64,145 @@ namespace OpenMS
 		variable_modifications_ = vector< pair<String, DoubleReal> >();
 		fixed_modifications_ = vector<String>();
   }
-  					   
-  void PepXMLFile::matchModification_(DoubleReal			 														mass,
-  																		String&																			modification_description)
+
+	void PepXMLFile::store(const String& filename,  std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
+	{
+		ofstream f(filename.c_str());
+		if (!f)
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+
+		f.precision(writtenDigits<DoubleReal>());
+
+
+		f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+		f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << endl;
+		f << "<msms_run_summary base_name=\"" << filename << "\" msManufacturer=\"ThermoFinnigan\" msModel=\"LCQ Classic\" msIonization=\"ESI\" msMassAnalyzer=\"Ion Trap\" msDetector=\"UNKNOWN\" raw_data_type=\"raw\" raw_data=\".mzXML\">" << endl;
+
+		f << "<sample_enzyme name=\"trypsin\">" << endl;
+		f << "<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << endl;
+		f << "</sample_enzyme>" << endl;
+
+		f << "<search_summary base_name=\"" << filename << "\" search_engine=\"SEQUEST\" precursor_mass_type=\"average\" fragment_mass_type=\"average\" out_data_type=\"out\" out_data=\".tgz\" search_id=\"1\">" << endl;
+	//	f << "		<search_summary base_name=\"\" search_engine=\"Mascot\" precursor_mass_type=\"average\" fragment_mass_type=\"average\">" << endl;
+		f << "		<search_database local_path=\"dbase/ipi.HUMAN.fasta.v2.31\" type=\"AA\"/>" << endl;
+
+		// register modifications
+		set<String> aa_mods;
+		set<String> n_term_mods, c_term_mods;
+		for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+		{
+			if (it->getHits().size() > 0)
+			{
+				PeptideHit h = *it->getHits().begin();
+				
+				if (h.getSequence().isModified())
+				{
+					AASequence p = h.getSequence();
+					if (p.hasNTerminalModification())
+					{
+						n_term_mods.insert(p.getNTerminalModification());
+					}
+					if (p.hasCTerminalModification())
+					{
+						c_term_mods.insert(p.getCTerminalModification());
+					}
+
+					for (Size i = 0; i != p.size(); ++i)
+					{
+						if (p[i].isModified())
+						{
+							aa_mods.insert(p[i].getModification());
+						}
+					}
+				}				
+			}
+		}
+
+		// write modifications definitions
+		// <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
+		for (set<String>::const_iterator it = aa_mods.begin(); it != aa_mods.end(); ++it)
+		{
+			ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
+			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin() << "\" massdiff=\"" << mod.getDiffMonoMass() << "\" mass=\"" << mod.getMonoMass() << "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>" << endl;
+		}
+
+		for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+		{
+			ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
+			f << "<terminal_modification terminus=\"n\" massdiff=\"" << mod.getDiffMonoMass() << "\" mass=\"" << mod.getMonoMass() << "\" variable=\"Y\" description=\"" << *it << "\" protein_terminus=\"\"/>" << endl;
+		}
+
+		for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+		{
+			ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
+			f << "<terminal_modification terminus=\"c\" massdiff=\"" << mod.getDiffMonoMass() << "\" mass=\"" << mod.getMonoMass() << "\" variable=\"Y\" description=\"" << *it << "\" protein_terminus=\"\"/>" << endl;
+		}
+
+		f << "    </search_summary>" << endl;
+		f << "    <analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << endl;
+		
+
+		UInt count(1);
+		for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it, count++)
+		{
+			if (it->getHits().size() > 0)
+			{
+				PeptideHit h = *it->getHits().begin();
+				double precursor_neutral_mass(0);
+				precursor_neutral_mass = h.getSequence().getAverageWeight();
+				
+				f << "		<spectrum_query spectrum=\"" << count << "\" start_scan=\"" << count << "\" end_scan=\"" << count << "\" precursor_neutral_mass=\"" << precursor_neutral_mass << "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\">" << endl;
+				f << " 		<search_result>" << endl;
+				f << "			<search_hit hit_rank=\"1\" peptide=\"" << h.getSequence().toUnmodifiedString() << "\" peptide_prev_aa=\"" << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter() << "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precursor_neutral_mass << "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << endl;
+				if (h.getSequence().isModified())
+				{
+					f << "      <modification_info modified_peptide=\"" << h.getSequence() << "\"";
+
+					if (h.getSequence().hasNTerminalModification())
+					{
+						f << " mod_nterm_mass=\"" << ModificationsDB::getInstance()->getModification(h.getSequence().getNTerminalModification()).getMonoMass() << "\"";
+					}
+					
+					if (h.getSequence().hasCTerminalModification())
+					{
+						f << "mod_cterm_mass=\"" << ModificationsDB::getInstance()->getModification(h.getSequence().getCTerminalModification()).getMonoMass() << "\"";
+					}
+
+					f << ">" << endl;
+
+					for (Size i = 0; i != h.getSequence().size(); ++i)
+					{
+						if (h.getSequence()[i].isModified())
+						{
+							f << "         <mod_aminoacid_mass position=\"" << i << "\" mass=\"" << ModificationsDB::getInstance()->getModification(h.getSequence()[i].getModification()).getMonoMass() << "\"/>" << endl;
+						}
+					}
+
+					f << "      </modification_info>" << endl;
+									
+				}
+
+				f << " 			<analysis_result analysis=\"peptideprophet\">" << endl;
+				f << "			<peptideprophet_result probability=\"" << h.getScore() << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore() << "," << h.getScore() << ")\">" << endl;
+				f << "			</peptideprophet_result>" << endl;
+				f << "			</analysis_result>" << endl;
+				f << "			</search_hit>" << endl;	
+				f << "		</search_result>" << endl;
+				f << "		</spectrum_query>" << endl;
+			}
+		}
+
+		f << "	</msms_run_summary>" << endl;
+		f << "</msms_pipeline_analysis>" << endl;
+		
+		f.close();
+		
+	}
+
+  void PepXMLFile::matchModification_(DoubleReal mass,
+  																		String&		 modification_description)
 	{
 		UInt i = 0;
 		bool found = false;

@@ -49,7 +49,7 @@ namespace OpenMS
 	  	@note Do not use this class directly. It is only needed for ANDIFile.
 	  */
 		template <typename MapType>
-	  class OPENMS_DLLAPI ANDIHandler
+	  class ANDIHandler
 	  {
 	    public:
 	      /**@name Constructors and destructor */

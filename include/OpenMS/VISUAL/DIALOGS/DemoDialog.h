@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 	/**
-		@brief Dialog that is used to brose a list of HTML pages, e.g. for a demo or tutorial.
+		@brief Dialog that is used to browse a list of HTML pages, e.g. for a demo or tutorial.
 		
 		@ingroup Dialogs
 	*/
@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		public:
 			
-			///Constructor
+			/// Constructor
 			DemoDialog(QWidget* parent);
 			/// Destructor
 			~DemoDialog();

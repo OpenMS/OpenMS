@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML", "ms2"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML", "ms2", "xml"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -115,6 +115,10 @@ namespace OpenMS
 		else if (tmp == "MS2")
 		{
 			return FileTypes::MS2;
+		}
+		else if (tmp == "XML") 
+		{// this might require adaption if we ever support ProtXML (.xml)
+			return FileTypes::PEPXML;
 		}
 
 		return FileTypes::UNKNOWN;
@@ -285,6 +289,10 @@ namespace OpenMS
 				return FileTypes::MS2;
 			}
 		}
+
+		// pep XML
+		// we cannot read it .. so no need to check
+
 		return FileTypes::UNKNOWN;
 	}
 
