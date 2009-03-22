@@ -97,7 +97,6 @@ class TOPPXTandemAdapter
       setValidStrings_("fragment_error_units", valid_strings);
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor charge", false);
 			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
-			registerIntOption_("threads", "<num>", 1, "number of threads", false);
 			
 			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
       registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);

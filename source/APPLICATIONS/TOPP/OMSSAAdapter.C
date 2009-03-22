@@ -92,7 +92,6 @@ class TOPPOMSSAAdapter
       setValidStrings_("fragment_error_units", valid_strings);
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
-      registerIntOption_("threads", "<num>", 1, "number of threads", false);
       registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
       registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
 			
@@ -259,7 +258,6 @@ class TOPPOMSSAAdapter
 			registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false);
 		
 
-			//registerIntOption_("nt", "<Integer>", 1, "number of threads used to search", false);
 			//-foms <String> read in search result in .oms format (binary asn.1). 
 			//-fomx <Double> read in search result in .omx format (xml). 
 			//Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
@@ -362,7 +360,7 @@ class TOPPOMSSAAdapter
 			parameters += " -is " + String(getDoubleOption_("is"));
 			parameters += " -ir " + String(getDoubleOption_("ir"));
 			parameters += " -ii " + String(getDoubleOption_("ii"));
-			parameters += " -nt " + String(getIntOption_("threads")); //String(getIntOption_("nt"));
+			parameters += " -nt " + String(getIntOption_("threads"));
 
 			/*
 			if (getStringOption_("mux") != "")

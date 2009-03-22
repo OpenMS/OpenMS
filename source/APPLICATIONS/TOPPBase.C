@@ -32,6 +32,11 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+// OpenMP support
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
+
 #include <cmath>
 
 using namespace std;
@@ -97,6 +102,7 @@ namespace OpenMS
 		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false, true);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
+		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
 		registerStringOption_("write_ini","<file>","","Writes an example configuration file",false);
 		registerStringOption_("write_wsdl","<file>","","Writes an example WSDL file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
@@ -450,6 +456,14 @@ namespace OpenMS
 					writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
 				}
 			}
+
+			//----------------------------------------------------------
+			//threads
+			//----------------------------------------------------------
+			Int threads = getParamAsInt_("threads", 1);
+			#ifdef _OPENMP
+			omp_set_num_threads(threads);
+			#endif
 
 			//----------------------------------------------------------
 			//main
