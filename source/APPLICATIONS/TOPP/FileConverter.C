@@ -131,6 +131,13 @@ class TOPPFileConverter
 
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 
+		// validate combination
+		if ((in_type == FileTypes::IDXML) && !(out_type == FileTypes::PEPXML))
+		{
+			writeLog_("Error: Input type idXML can only be written to pepXML (.xml), nothing else!");
+			return INCOMPATIBLE_INPUT_DATA;
+		}
+
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
