@@ -83,9 +83,9 @@ class TOPPFileConverter
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,idXML"));
 
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,xml"));
+		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,pepXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,xml"));
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,pepXML"));
 	}
 
 	ExitCodes main_(int , const char**)
@@ -131,10 +131,10 @@ class TOPPFileConverter
 
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 
-		// validate combination
+		// validate input-output combination
 		if ((in_type == FileTypes::IDXML) && !(out_type == FileTypes::PEPXML))
 		{
-			writeLog_("Error: Input type idXML can only be written to pepXML (.xml), nothing else!");
+			writeLog_("Error: Input type idXML can only be written to pepXML (.pepXML), nothing else!");
 			return INCOMPATIBLE_INPUT_DATA;
 		}
 
