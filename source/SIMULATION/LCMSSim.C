@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 // General ideas:
-//   * aggresivly split the run method into several sub-units
+//   * aggressively split the run method into several sub-units
 //   * move as many parts as possible into separate classes
 //     so we can reuse it for e.g. MALDI-MS Sim
 //
@@ -85,7 +85,7 @@ namespace OpenMS{
     defaults_.setValue("column_condition","medium","LC condition: good | medium | poor");
 
     // random seed (advanced paramter?)
-    defaults_.setValue("random_seed",0,"Number used to initialize the random number generator, for reproducible results (0 = automatic)" /*,true*/);
+    defaults_.setValue("random_seed",0,"Number used to initialize the random number generator, for reproducible results (0 = time used as random seed)" /*,true*/);
 
     defaultsToParam_();
 
@@ -107,6 +107,10 @@ namespace OpenMS{
     : DefaultParamHandler(source),
   		ProgressLogger(source)
   {
+		// initialize random generator
+    gsl_rng_default_seed = time(0);
+    rand_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
+
     setParameters( source.getParameters() );
     updateMembers_();
   }
@@ -115,6 +119,9 @@ namespace OpenMS{
   {
     if (&source == this) return *this;
 
+		// initialize random generator
+    gsl_rng_default_seed = time(0);
+    rand_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
     setParameters( source.getParameters() );
     updateMembers_();
 
@@ -184,7 +191,7 @@ namespace OpenMS{
   void LCMSSim::readFromContaminationFile_(std::vector<EmpiricalFormula> & vef)
   {
     ifstream in("contaminants.dat");
-    if (!in)
+    if (! File::readable("contaminants.dat") )
     {
       cout << "Could not read file <contaminants.dat>." << endl;
       cout << "No contaminations are modelled." << endl;
@@ -301,6 +308,8 @@ namespace OpenMS{
         cout << "Aborting RT prediction!" << endl;
         //TODO where is the "return;" ?
         //TODO why is rtTable not filled with default values first?! (empty rtTable leads to empty map?! -->  see LCMSSim::run())
+				// Ole: these are valid suggestions, but they should be adressed when the simulator is modified to 
+				// incorporate MS/MS spectra.
       }
 
       Param additional_parameters;
@@ -611,7 +620,7 @@ namespace OpenMS{
       //cout << "end_scan: " << end_scan << endl;
 
       // This is a clear misuse of the Feature data structure
-      // but at this point, we shouldn't care  ;-)
+      // but at this point, we couldn't care less ;-)
       current_feature_.setQuality(0,start_scan);
       current_feature_.setQuality(1,end_scan);
 
@@ -638,6 +647,7 @@ namespace OpenMS{
     vector<EmpiricalFormula> vef;
 
     readFromContaminationFile_(vef);
+		if (vef.size() == 0) return;
 
     ProductModel<2> pm;
 

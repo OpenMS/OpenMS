@@ -89,7 +89,7 @@ START_SECTION((virtual EmgModel& operator=(const EmgModel &source)))
 	EmgModel em3;
 	em3.setInterpolationStep(0.2);
 	em3.setParameters(tmp);
-  	TEST_EQUAL(em3.getParameters(), em2.getParameters())
+  TEST_EQUAL(em3.getParameters(), em2.getParameters())
 END_SECTION
 
 // copy ctor

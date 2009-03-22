@@ -340,6 +340,14 @@ set(transformations_executables_list
   TwoDOptimization_test
 )
 
+set(simulation_executables_list
+	ElutionModel_test
+	IsotopeModelGeneral_test
+	LCMSSample_test
+	LCMSSim_test
+	MixtureModel_test
+)
+
 ### collect test executables
 set(TEST_executables
 		${concept_executables_list}
@@ -355,7 +363,8 @@ set(TEST_executables
 		${chemistry_executables_list}
 		${analysis_executables_list}
 		${applications_executables_list}
-		${transformations_executables_list})
+		${transformations_executables_list}
+		${simulation_executables_list})
 		
 
 ### add filenames to Visual Studio solution tree

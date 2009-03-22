@@ -44,6 +44,8 @@ namespace OpenMS
     defaults_.setValue("missed_cleavages",0,"maximum number of missed cleavages");
     defaults_.setValue("min_peptide_length",0,"minimum peptide length after digestion");
     defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
+
+		defaultsToParam_();
   }
 
   LCMSSample::~LCMSSample() { }
@@ -133,17 +135,21 @@ namespace OpenMS
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
 
-    //cout << "Loading svm model: " << DtModelFile_ << endl;
-    svm_.loadModel(DtModelFile_);
-
-     // load additional parameters
-    if (svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+		if (File::readable(DtModelFile_))
+		{
+    	//cout << "Loading svm model: " << DtModelFile_ << endl;
+    	svm_.loadModel(DtModelFile_);
+			//cout << "Done. " << endl;
+    }
+		
+		// load additional parameters
+		if (svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
     {
       String add_paramfile = DtModelFile_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
       {
         cout << "SVM parameter file " << DtModelFile_ << " not found or not readable" << endl;
-        cout << "Aborting detectability prediction!" << endl;
+        cout << "Not performing detectability prediction!" << endl;
       }
 
       Param additional_parameters;
@@ -159,7 +165,6 @@ namespace OpenMS
           && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
       {
          cout << "No k-mer length defined in additional parameters file. Aborting detectability prediction!" << endl;
-         // TODO Where does it acutally abort? More cases like this below...
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
@@ -172,21 +177,20 @@ namespace OpenMS
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
     }
 
-    svm_.setParameter(BORDER_LENGTH, (Int) border_length);
-    svm_.setParameter(SIGMA, sigma);
-    // to obtain probabilities
-    svm_.setParameter(PROBABILITY, 1);
-
+		if (File::readable(DtModelFile_))
+		{
+    	svm_.setParameter(BORDER_LENGTH, (Int) border_length);
+    	svm_.setParameter(SIGMA, sigma);
+    	// to obtain probabilities
+    	svm_.setParameter(PROBABILITY, 1);
+		}
       // loading training data
     String sample_file = DtModelFile_ + "_samples";
-    if (! File::readable( sample_file ) )
+    if (File::readable(sample_file))
     {
-      cout << "SVM sample file " << sample_file << " not found or not readable" << endl;
-      cout << "Aborting detectability prediction!" << endl;
+    	training_data = encoder.loadLibSVMProblem(sample_file);
+    	svm_.setTrainingSample(training_data);
     }
-    training_data = encoder.loadLibSVMProblem(sample_file);
-    svm_.setTrainingSample(training_data);
-
     cout << "Digesting...        " << endl;
 
     ProgressLogger plog;
@@ -249,7 +253,7 @@ namespace OpenMS
   void LCMSSample::filterForDetectability_(const vector<String>& all_peptides, vector<String>& filtered_peptides, UInt k_mer_length)
   {
 
-    if (DtModelFile_ == "none")
+    if (!File::readable(DtModelFile_))
     {
       cout << "Peptide detectability prediction disabled." << endl;
       cout << "All peptides will appear in LC-MS map. " << endl;

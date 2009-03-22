@@ -46,7 +46,7 @@ class TOPPMapSimulator
 {
 	public:
 		TOPPMapSimulator()
-			: TOPPBase("MapSimulator","This application simulates an LC-MS run.")
+			: TOPPBase("MapSimulator","This application simulates an LC-MS run.",false)
 		{ }
 
 	protected:

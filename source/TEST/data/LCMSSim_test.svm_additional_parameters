@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+  <ITEM name="border_length" value="25" type="int" />
+  <ITEM name="k_mer_length" value="1" type="int" />
+  <ITEM name="kernel_type" value="19" type="int" />
+  <ITEM name="sigma" value="3.863165" type="float" />
+  <ITEM name="sigma_0" value="0.09177721" type="float" />
+  <ITEM name="sigma_max" value="0.1417772" type="float" />
+</PARAMETERS>

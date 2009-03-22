@@ -63,8 +63,8 @@ namespace OpenMS
     /// assignment operator
     virtual IsotopeModelGeneral& operator =(const IsotopeModelGeneral& source);
 
-    UInt
-    getCharge();
+		/// return charge state 
+    //UInt getCharge();
 
     /// create new IsotopeModel object (needed by Factory)
     static BaseModel<1>* create()
