@@ -40,6 +40,7 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
 #include <QtGui/QFontMetrics>
+#include <QtGui/QFontMetrics>
 
 #include <iostream>
 
@@ -658,7 +659,7 @@ namespace OpenMS
 			resetZoom();
 		}
 
-		// CTRL+ALT+T
+		// CTRL+ALT+T => activate timing mode
 		if ((e->modifiers() & (Qt::ControlModifier|Qt::AltModifier)) && (e->key()==Qt::Key_T))
 		{
 			e->accept();

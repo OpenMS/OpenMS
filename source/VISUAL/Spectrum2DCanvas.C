@@ -332,7 +332,7 @@ namespace OpenMS
 							dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
 							if (pos.y()<image_height && pos.x()<image_width)
 							{
-								buffer_.setPixel(pos.x() , pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
+								buffer_.setPixel(pos.x() , pos.y(), heightColor_(max, layer.gradient, snap_factor));
 							}
 						}
 					}
@@ -353,7 +353,7 @@ namespace OpenMS
 						dataToWidget_(i->getMZ(), i.getRT(), pos);
 						if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 						{
-							QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
+							QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
 							buffer_.setPixel(pos.x() ,pos.y() ,color);
 							buffer_.setPixel(pos.x()-1 ,pos.y() ,color);
 							buffer_.setPixel(pos.x()+1 ,pos.y() ,color);
@@ -411,7 +411,7 @@ namespace OpenMS
 					}
 					else
 					{
-						color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
+						color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
 					}
 					//paint
 					QPoint pos;
@@ -452,7 +452,7 @@ namespace OpenMS
 						 layer.filters.passes(*i))
 				{
 					//determine color
-					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
+					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
 					//paint
 					QPoint pos;
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
@@ -1958,6 +1958,25 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
 	{
+		// CTRL+ALT+SHIFT+T => do 30 timing measurements in layer 0
+		if ((e->modifiers() & (Qt::ControlModifier|Qt::AltModifier|Qt::ShiftModifier)) && (e->key()==Qt::Key_T))
+		{
+			UInt repeats = 30;
+			cout << "TIMING AVG of " << repeats << " repeats: " << endl;
+			QTime timer;
+			timer.start();
+			for (UInt i=0; i<repeats; ++i)
+			{
+				QPainter painter;
+				buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
+				painter.begin(&buffer_);
+				paintDots_(0, painter);
+			}	
+			cout << "  " << timer.elapsed()/(DoubleReal)repeats << endl;
+			e->accept();
+			return;
+		}
+		
 		// Delete features
 		LayerData& layer = getCurrentLayer_();
 		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)

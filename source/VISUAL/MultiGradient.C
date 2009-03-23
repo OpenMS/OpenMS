@@ -54,7 +54,7 @@ namespace OpenMS
 	}
 	
 
-	void MultiGradient::insert (Int position, const QColor& color)
+	void MultiGradient::insert (Int position, QColor color)
 	{
 		if (position >= 0 || position <=100 )
 		{
@@ -94,7 +94,7 @@ namespace OpenMS
 		return it->first;
 	}
 	
-	const QColor& MultiGradient::color(UInt index)
+	QColor MultiGradient::color(UInt index)
 	{
 		if (index>size()-1)
 		{

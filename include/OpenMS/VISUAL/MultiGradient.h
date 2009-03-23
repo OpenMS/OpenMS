@@ -72,7 +72,7 @@ namespace OpenMS
 		~MultiGradient();
 	
 		/// sets or replaces the color at position @p position
-		void insert (Int position, const QColor& color);
+		void insert (Int position, QColor color);
 		/// removes the color at position @p position. Colors at positions 0 and 100 cannot be removed.
 		bool remove (Int position);
 		/// returns if a value for position @p position exists
@@ -88,7 +88,7 @@ namespace OpenMS
 
 		  @exception Exception::IndexOverflow is thrown for a too large index
 		*/
-		const QColor& color(UInt index);
+		QColor color(UInt index);
 	
 	
 		/** 
@@ -117,7 +117,7 @@ namespace OpenMS
 			- With debug information an Precondition exception is thrown
 			- Wihtout debug information array boundaries are violated, which probably causes a segmentation fault.
 		*/
-		inline const QColor& precalculatedColorAt(DoubleReal position) const
+		inline QColor precalculatedColorAt(DoubleReal position) const
 		{
 			OPENMS_PRECONDITION(pre_.size()!=0,"MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
 			OPENMS_PRECONDITION(position>=pre_min_,(String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_+pre_size_) + ")!").c_str());

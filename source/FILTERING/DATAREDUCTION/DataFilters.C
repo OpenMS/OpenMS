@@ -164,12 +164,6 @@ namespace OpenMS
 		if (size()==0) is_active_ = false;
 	}
 
-
-	bool DataFilters::isActive() const
-	{
-		return is_active_;
-	}
-
 	void DataFilters::replace(Size index, const DataFilter& filter)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());

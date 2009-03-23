@@ -162,7 +162,10 @@ namespace OpenMS
 				They are automatically enabled when a filter is added and
 				automatically disabled when the last filter is removed
 			*/
-			bool isActive() const;
+			inline bool isActive() const
+			{
+				return is_active_;
+			}
 			
 			///Returns if the @p feature fulfills the current filter criteria
 			bool passes(const Feature& feature) const;
@@ -172,7 +175,7 @@ namespace OpenMS
 			
 			///Returns if the @p peak fulfills the current filter criteria
 			template<class PeakType>
-			bool passes(const MSSpectrum<PeakType>& spectrum, Size peak_index) const
+			inline bool passes(const MSSpectrum<PeakType>& spectrum, Size peak_index) const
 			{
 				if (!is_active_) return true;
 				
@@ -181,9 +184,20 @@ namespace OpenMS
 					const DataFilters::DataFilter& filter = filters_[i];
 					if (filter.field==INTENSITY)
 					{
-						if (filter.op==GREATER_EQUAL && spectrum[peak_index].getIntensity()<filter.value) return false;
-						else if (filter.op==LESS_EQUAL && spectrum[peak_index].getIntensity()>filter.value) return false;
-						else if (filter.op==EQUAL && spectrum[peak_index].getIntensity()!=filter.value) return false;
+						switch (filter.op)
+						{
+							case GREATER_EQUAL:
+								if (spectrum[peak_index].getIntensity()<filter.value) return false;
+								break;
+							case EQUAL:
+								if (spectrum[peak_index].getIntensity()!=filter.value) return false;
+								break;
+							case LESS_EQUAL:
+								if(spectrum[peak_index].getIntensity()>filter.value) return false;
+								break;
+							default:
+								break;
+						}
 					}
 					else if (filter.field==META_DATA)
 					{

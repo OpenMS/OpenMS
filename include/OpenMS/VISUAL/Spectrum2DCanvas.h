@@ -216,18 +216,18 @@ namespace OpenMS
       	
       	Takes intensity modes into account.
       */
-      inline const QColor& heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
+      inline QRgb heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
 			{
 				switch (intensity_mode_)
 				{
 					case IM_NONE:
-						return gradient.precalculatedColorAt(val);
+						return gradient.precalculatedColorAt(val).rgb();
 						break;
 					case IM_PERCENTAGE:
-						return gradient.precalculatedColorAt(val*percentage_factor_);
+						return gradient.precalculatedColorAt(val*percentage_factor_).rgb();
 						break;
 					case IM_SNAP:
-						return gradient.precalculatedColorAt(val*snap_factor);
+						return gradient.precalculatedColorAt(val*snap_factor).rgb();
 						break;
 					default:
 						throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
