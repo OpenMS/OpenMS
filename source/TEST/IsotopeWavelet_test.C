@@ -46,12 +46,12 @@ START_SECTION(static UInt getMaxCharge())
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 1)
 END_SECTION
 
-START_SECTION(static Int getGammaTableMaxIndex())
-	TEST_EQUAL(IsotopeWavelet::getGammaTableMaxIndex(), -1)
+START_SECTION(static Size getGammaTableMaxIndex())
+	TEST_EQUAL(IsotopeWavelet::getGammaTableMaxIndex(), 0)
 END_SECTION
 
-START_SECTION(static Int getExpTableMaxIndex())
-	TEST_EQUAL(IsotopeWavelet::getExpTableMaxIndex(), -1)
+START_SECTION(static Size getExpTableMaxIndex())
+	TEST_EQUAL(IsotopeWavelet::getExpTableMaxIndex(), 0)
 END_SECTION
 
 START_SECTION((static void setMaxCharge(const UInt max_charge))) 

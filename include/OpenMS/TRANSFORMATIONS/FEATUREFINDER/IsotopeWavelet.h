@@ -153,13 +153,13 @@ namespace OpenMS
 
 
 				/** @brief Returns the largest possible index for the pre-sampled gamma table. */
-				static Int getGammaTableMaxIndex ()
+				static Size getGammaTableMaxIndex ()
 				{
 					return (gamma_table_max_index_);
 				};
 
 				/** @brief Returns the largest possible index for the pre-sampled exp table. */
-				static Int getExpTableMaxIndex ()
+				static Size getExpTableMaxIndex ()
 				{
 					return (exp_table_max_index_);
 				};
