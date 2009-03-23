@@ -1958,25 +1958,6 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
 	{
-		// CTRL+ALT+SHIFT+T => do 30 timing measurements in layer 0
-		if ((e->modifiers() & (Qt::ControlModifier|Qt::AltModifier|Qt::ShiftModifier)) && (e->key()==Qt::Key_T))
-		{
-			UInt repeats = 30;
-			cout << "TIMING AVG of " << repeats << " repeats: " << endl;
-			QTime timer;
-			timer.start();
-			for (UInt i=0; i<repeats; ++i)
-			{
-				QPainter painter;
-				buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
-				painter.begin(&buffer_);
-				paintDots_(0, painter);
-			}	
-			cout << "  " << timer.elapsed()/(DoubleReal)repeats << endl;
-			e->accept();
-			return;
-		}
-		
 		// Delete features
 		LayerData& layer = getCurrentLayer_();
 		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
