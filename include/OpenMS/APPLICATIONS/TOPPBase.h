@@ -99,7 +99,6 @@ namespace OpenMS
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
-    @todo Add 'threads' parameter (Marc, Andreas)
     @todo Add 'instr' parameter for instrument defaults (Marc, Andreas)
   */
   class OPENMS_DLLAPI TOPPBase

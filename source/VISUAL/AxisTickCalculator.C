@@ -44,7 +44,9 @@ namespace OpenMS
 	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)
 	{		
 		grid.clear();
-
+		
+		if (isnan(x1) || isnan(x2)) return;
+		
 		if (x1 > -0.0001 && x1 < 0.0001) 
 		{
 			x1 = 0.0001; 
