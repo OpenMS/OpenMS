@@ -460,8 +460,8 @@ namespace OpenMS
 			//----------------------------------------------------------
 			//threads
 			//----------------------------------------------------------
-			Int threads = getParamAsInt_("threads", 1);
 			#ifdef _OPENMP
+			Int threads = getParamAsInt_("threads", 1);
 			omp_set_num_threads(threads);
 			#endif
 
