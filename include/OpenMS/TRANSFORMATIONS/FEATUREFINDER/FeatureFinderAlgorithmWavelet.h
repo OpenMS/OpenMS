@@ -129,6 +129,7 @@ namespace OpenMS
             for (Size i=0, j=0; i<this->map_->size(); ++i)
             {
               const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
+							iwt.initializeScan ((*this->map_)[i]);
 							for (UInt c=0; c<max_charge_; ++c)
 							{
 								MSSpectrum<PeakType> c_trans (c_ref);

@@ -136,23 +136,23 @@ namespace OpenMS
 	{ 
 		const DoubleReal m (mass*z);
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
+			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m))
+				: (UInt) ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m)));
 	}
 
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal mass, const UInt z)
 	{ 
 		const DoubleReal m (mass*z);
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: (UInt) ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
 	}	
 	
 	UInt IsotopeWavelet::getNumPeakCutOff (const DoubleReal m)
 	{ 
 		return ( m<Constants::BORDER_MZ_FIT99 ? 
-			ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
-				: ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
+			(UInt) ceil((Constants::CUTOFF_FIT99_POLY_0+Constants::CUTOFF_FIT99_POLY_1*m+Constants::CUTOFF_FIT99_POLY_2*m*m-Constants::IW_QUARTER_NEUTRON_MASS))
+				: (UInt)ceil((Constants::CUTOFF_FIT99_POLY_3+Constants::CUTOFF_FIT99_POLY_4*m+Constants::CUTOFF_FIT99_POLY_5*m*m-Constants::IW_QUARTER_NEUTRON_MASS)));
 	}
 
 		
