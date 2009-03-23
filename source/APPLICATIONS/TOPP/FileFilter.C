@@ -279,7 +279,6 @@ class TOPPFileFilter
 						snm.init(it->begin(), it->end());
 						for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
 						{
-							std::cout << "sn is: " << snm.getSignalToNoise(spec) << "\n";
 							if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
 						}
 						it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1,numeric_limits<MapType::PeakType::IntensityType>::max(), true)) , it->end());
