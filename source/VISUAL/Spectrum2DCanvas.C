@@ -221,7 +221,7 @@ namespace OpenMS
 		//temporary variables
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
-
+		
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
 			//renaming some values for readability
@@ -1958,6 +1958,19 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
 	{
+		// CTRL+ALT+H => hidden action
+		if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key()==Qt::Key_H))
+		{
+			for (UInt i=200; i<1100; i+=100)
+			{
+				cout << "Pixels: " << i << "x" << i << endl; 
+				resize(i,i);
+			}
+
+			e->accept();
+			return;
+		}
+
 		// Delete features
 		LayerData& layer = getCurrentLayer_();
 		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)

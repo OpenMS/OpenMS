@@ -660,7 +660,7 @@ namespace OpenMS
 		}
 
 		// CTRL+ALT+T => activate timing mode
-		if ((e->modifiers() & (Qt::ControlModifier|Qt::AltModifier)) && (e->key()==Qt::Key_T))
+		if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key()==Qt::Key_T))
 		{
 			e->accept();
 			show_timing_ = !show_timing_;
