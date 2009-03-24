@@ -128,9 +128,9 @@ class TOPPIdXMLEvaluation
 			fdrs.push_back(0.4);
 			fdrs.push_back(0.45);
 			fdrs.push_back(0.5);
-			vector<UInt> temp_performances;
+			vector<Size> temp_performances;
 //			ofstream tempfile("test.txt");
-			vector< vector< UInt > > performances;
+			vector< vector< Size > > performances;
 			
 			
 			protein_identifications.push_back(ProteinIdentification());
@@ -152,30 +152,30 @@ class TOPPIdXMLEvaluation
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			for(Int j = fdrs.size() - 1; j >= 0; --j)
+			for(SignedSize j = fdrs.size() - 1; j >= 0; --j)
 			{
-				UInt tps = 0;
-				UInt fps = 0;
-				UInt nes = 0;
-				UInt tps_rt1 = 0;
-				UInt fps_rt1 = 0;
-				UInt tns_rt1 = 0;
-				UInt fns_rt1 = 0;
-				UInt nes_rt1 = 0;
-				UInt tps_rt2 = 0;
-				UInt fps_rt2 = 0;
-				UInt tns_rt2 = 0;
-				UInt fns_rt2 = 0;
-				UInt nes_rt2 = 0;
-				UInt tps_both = 0;
-				UInt fps_both = 0;
-				UInt tns_both = 0;
-				UInt fns_both = 0;
-				UInt nes_both = 0;
+				Size tps = 0;
+				Size fps = 0;
+				Size nes = 0;
+				Size tps_rt1 = 0;
+				Size fps_rt1 = 0;
+				Size tns_rt1 = 0;
+				Size fns_rt1 = 0;
+				Size nes_rt1 = 0;
+				Size tps_rt2 = 0;
+				Size fps_rt2 = 0;
+				Size tns_rt2 = 0;
+				Size fns_rt2 = 0;
+				Size nes_rt2 = 0;
+				Size tps_both = 0;
+				Size fps_both = 0;
+				Size tns_both = 0;
+				Size fns_both = 0;
+				Size nes_both = 0;
 
 				temp_performances.clear();
 				temp_performances.resize(20, 0);
-				for(UInt i = 0; i < identifications.size(); i++)
+				for(Size i = 0; i < identifications.size(); i++)
 				{
 					PeptideIdentification temp_identification_2 = identifications[i];
 					PeptideIdentification temp_identification_3;
@@ -404,10 +404,10 @@ class TOPPIdXMLEvaluation
 				output_file << "q-value_threshold ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision" << endl;
 			}			
 			
-			for(Int i = performances.size() - 1; i >= 0; --i)
+			for(SignedSize i = performances.size() - 1; i >= 0; --i)
 			{	
 				output_file << fdrs[performances.size() - i - 1];
-				for(UInt j = 0; j < performances[i].size(); ++j)
+				for(Size j = 0; j < performances[i].size(); ++j)
 				{
 					if (latex)
 					{

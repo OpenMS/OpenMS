@@ -213,8 +213,8 @@ class TOPPInspectAdapter
 				no_tmp_dbs(false),
 				monoisotopic(false);
 
-			Real p_value_threshold(1.0);
-			Real cutoff_p_value(1.0);
+			DoubleReal p_value_threshold(1.0);
+			DoubleReal cutoff_p_value(1.0);
 
 			char separator = '/';
 
@@ -223,8 +223,8 @@ class TOPPInspectAdapter
 			ExitCodes exit_code = EXECUTION_OK;
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
-			map< String, UInt > files;
-			UInt const
+			map< String, Size > files;
+			Size const
 				exist(1),
 				readable(2),
 				writable(4),
@@ -648,9 +648,9 @@ class TOPPInspectAdapter
 			// checking accessability of files
 
 			bool existed(false);
-			UInt file_tag(0);
+			Size file_tag(0);
 
-			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+			for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
 				string_buffer = files_it->first;
 				file_tag = files_it->second;
@@ -680,7 +680,7 @@ class TOPPInspectAdapter
 				existed = false;
 			}
 
-			vector< UInt > wanted_records;
+			vector< Size > wanted_records;
 
 			// creating the input file and converting and merging the databases
 			if ( exit_code == EXECUTION_OK && inspect_in )
@@ -828,7 +828,7 @@ class TOPPInspectAdapter
 
 						try
 						{
-							vector< UInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
+							vector< Size > corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
 						}
 						catch( Exception::ParseError pe )
 						{
@@ -856,7 +856,7 @@ class TOPPInspectAdapter
 				files[logfile] = readable;
 			}
 			// deleting all temporary files
-			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+			for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
 				if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
 			}

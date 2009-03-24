@@ -111,7 +111,7 @@ END_SECTION
 
 InspectOutfile file;
 
-START_SECTION(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = ""))
+START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, const String& database_filename = ""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
@@ -219,8 +219,8 @@ START_SECTION(void generateTrieDB(const std::String& source_database_filename, c
 	remove("InspectOutfile_test.index");
 END_SECTION
 
-START_SECTION(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
-	vector< UInt > wanted_records(1, 0);
+START_SECTION(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< Size >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
+	vector< Size > wanted_records(1, 0);
 
 	// test exceptions
 	remove("InspectOutfile_test.trie");
@@ -274,8 +274,8 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 END_SECTION
 
 
-START_SECTION(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences))
-	map< UInt, UInt > rn_position_map;
+START_SECTION(std::vector< Size > getSequences(const String& database_filename, const std::map< Size, Size >& wanted_records, std::vector< String >& sequences))
+	map< Size, Size > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
 	vector< String > sequences, found_sequences;
@@ -354,20 +354,20 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 END_SECTION
 
-START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
-	vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;
+START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
+	vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
 	vector< PeptideIdentification > ids, ids_found;
 
 	// test exceptions
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
 	
 	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();
 	ids_found.clear();
 	
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file2, vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair < Size, Size > >(1, make_pair(0, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file2, vector< pair < Size, Size > >(1, make_pair(1, 4))));
 	ids_found.push_back(PeptideIdentification());
 	ids_found.push_back(PeptideIdentification());
 	
@@ -402,7 +402,7 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	TEST_STRING_EQUAL(species_label, ">")
 END_SECTION
 
-START_SECTION(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold))
+START_SECTION(vector< Size > getWantedRecords(const String& result_filename, DoubleReal p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
@@ -412,7 +412,7 @@ START_SECTION(vector< UInt > getWantedRecords(const String& result_filename, Rea
 	
 
 	// test the actual program
-	vector< UInt > wanted_records = file.getWantedRecords(input_file_name, 0.01);
+	vector< Size > wanted_records = file.getWantedRecords(input_file_name, 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 END_SECTION
@@ -446,12 +446,12 @@ START_SECTION(void getSearchEngineAndVersion(const String& inspect_output_withou
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
 END_SECTION
 
-START_SECTION(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt &number_of_columns))
+START_SECTION(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, Size &number_of_columns))
 		
 	String header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
 	
 	Int spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column;
-	UInt number_of_columns;
+	Size number_of_columns;
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns), "dummy_testfile in: at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!")

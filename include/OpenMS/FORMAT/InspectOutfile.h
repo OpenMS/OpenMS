@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_INSPECTOUTFILE_H
@@ -77,7 +77,7 @@ namespace OpenMS
 					@throw ParseError is thrown if the given file could not be parsed
 					@throw FileEmptry is thrown if the given file is empty
 			*/
-			std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "");
+			std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, const String& database_filename = "");
 
 			/** loads only results which exceeds a given P-value threshold
 
@@ -86,7 +86,7 @@ namespace OpenMS
 					@throw FileNotFound is thrown is the file is not found
 					@throw FileEmpty is thrown if the given file is empty
 			*/
-			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold);
+			std::vector< Size > getWantedRecords(const String& result_filename, DoubleReal p_value_threshold);
 
 			/** generates a trie database from another one, using the wanted records only
 
@@ -95,7 +95,7 @@ namespace OpenMS
 					@throw Exception::UnableToCreateFile
 
 			*/
-			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false);
+			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< Size >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false);
 
 			/** generates a trie database from a given one (the type of database is determined by getLabels)
 					@throw Exception::FileNotFound
@@ -112,7 +112,7 @@ namespace OpenMS
 
 					@throw Exception::ParseError
 			*/
-			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids);
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids);
 
 			/** retrieve the labes of a given database (at the moment FASTA and Swissprot)
 
@@ -125,7 +125,7 @@ namespace OpenMS
 
 					@throw Exception::FileNotFound
 			*/
-			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences);
+			std::vector< Size > getSequences(const String& database_filename, const std::map< Size, Size >& wanted_records, std::vector< String >& sequences);
 
 			/** get the experiment from a file
 
@@ -156,17 +156,17 @@ namespace OpenMS
 			/** read the header of an inspect output file and retrieve various informations
 					@throw Exception::ParseError
 			*/
-			void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns);
+			void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, Size& number_of_columns);
 
 		protected:
 			/// a record in the index file that belongs to a trie database consists of three parts
 			/// 1) the protein's position in the original database
 			/// 2) the proteins's position in the trie database
 			/// 3) the name of the protein (the line with the accession identifier)
-			static const UInt db_pos_length_; ///< length of 1)
-			static const UInt trie_db_pos_length_; ///< length of 2)
-			static const UInt protein_name_length_; ///< length of 3)
-			static const UInt record_length_; ///< length of the whole record
+			static const Size db_pos_length_; ///< length of 1)
+			static const Size trie_db_pos_length_; ///< length of 2)
+			static const Size protein_name_length_; ///< length of 3)
+			static const Size record_length_; ///< length of the whole record
 			static const char trie_delimiter_; ///< the sequences in the trie database are delimited by this character
 			static const String score_type_;///< type of score
 	};

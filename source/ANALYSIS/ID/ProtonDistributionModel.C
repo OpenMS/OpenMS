@@ -330,7 +330,7 @@ namespace OpenMS
 		double gb_left_n_term(0), gb_right_n_term(0);
 		getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
 		gb_bb.push_back(gb_left_n_term + gb_right_n_term);
-		UInt count(1);
+		Size count(1);
 		for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
 		{
 			double gb_left(0), gb_right(0);
@@ -345,7 +345,7 @@ namespace OpenMS
 		// now distribute the charges until no site has more than 1.0 proton
 		vector<double> bb_coulomb(peptide.size() + 1, 0.0), sc_coulomb(peptide.size(), 0.0);
 		Int actual_charge(charge);
-		set<UInt> sc_sites, bb_sites;
+		set<Size> sc_sites, bb_sites;
 		while (true)
 		{
 			//cerr << "#protons remaining: " << actual_charge << endl;
@@ -427,19 +427,19 @@ namespace OpenMS
 				if (bb_sites.find(i) == bb_sites.end())
 				{
 					double coulomb_sum(0);
-					for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+					for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
 					{
 						// calculate the distance between occupied site and this backbone site
-						UInt pos = *it;
-						UInt diff = (pos > i) ? pos - i : i - pos;
+						Size pos = *it;
+						Size diff = (pos > i) ? pos - i : i - pos;
 						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
 
-					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+					for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
 					{
 						// calculate the distance between occupied side chain and this backbone site
-						UInt pos = *it;
-						UInt diff = (pos > i) ? pos -i : i - pos;
+						Size pos = *it;
+						Size diff = (pos > i) ? pos -i : i - pos;
 						++diff; // bond to the side chain counts extra
 						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
@@ -452,17 +452,17 @@ namespace OpenMS
 				if (sc_sites.find(i) == sc_sites.end())
 				{
 					double coulomb_sum(0);
-					for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+					for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
 					{
-						UInt pos = *it;
-						UInt diff = (pos > i) ? pos - i : i - pos;
+						Size pos = *it;
+						Size diff = (pos > i) ? pos - i : i - pos;
 						++diff;
 						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
-					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+					for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
 					{
-						UInt pos = *it;
-						UInt diff = (pos > i) ? pos - i : i - pos;
+						Size pos = *it;
+						Size diff = (pos > i) ? pos - i : i - pos;
 						diff += 2;
 						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
@@ -513,7 +513,7 @@ namespace OpenMS
 																																		bool use_most_basic_site)
 	{
 		double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
-		UInt most_basic_site(0);
+		Size most_basic_site(0);
 		bool most_basic_site_sc(false);
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
@@ -1431,7 +1431,7 @@ namespace OpenMS
 		// side-chain induced cleavages (side-chain protons stay at the side chain)
 		// for charge-directed cleavages there must be one proton which induces 
 		// the cleavage, however, this can be distributed over several places
-		UInt num_active_protons = charge;
+		Size num_active_protons = charge;
 		if (type == ChargeDirected)
 		{
 			num_active_protons = charge - 1;

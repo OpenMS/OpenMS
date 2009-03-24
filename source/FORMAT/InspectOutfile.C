@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #if defined OPENMS_BIG_ENDIAN
@@ -60,8 +60,8 @@ namespace OpenMS
 		return true;
 	}
 
-	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
-		ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename)
+	vector<Size> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
+		ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, const String& database_filename)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -82,14 +82,14 @@ namespace OpenMS
 			spectrum_file,
 			identifier;
 			
-		UInt
+		Size
 			record_number(0),
 			scan_number(0),
 			line_number(0),
 			number_of_columns(0);
 		
 		vector< String > substrings;
-		vector< UInt > corrupted_lines;
+		vector< Size > corrupted_lines;
 		
 		PeptideIdentification peptide_identification;
 		
@@ -108,9 +108,9 @@ namespace OpenMS
 		else protein_identification.getSearchEngine() + "_" + datetime.getDate();
 		
 		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
-		vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;
+		vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
 		// the record number is mapped to the position in the protein hits, to retrieve their sequences
-		map< UInt, UInt > rn_position_map;
+		map<Size, Size> rn_position_map;
 		
 		// get the header
 		Int
@@ -174,14 +174,14 @@ namespace OpenMS
 			}
 			
 			// if a new scan is found (new file or new scan), insert it into the vector (the first time the condition is fullfilled because spectrum_file is "")
-			if ( (substrings[spectrum_file_column] != spectrum_file) || ((UInt) substrings[scan_column].toInt() != scan_number) )
+			if ( (substrings[spectrum_file_column] != spectrum_file) || ((Size) substrings[scan_column].toInt() != scan_number) )
 			{
 				if ( substrings[spectrum_file_column] != spectrum_file ) // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
 				{
 					// if it's the first file or if hits have been found in the file before, insert a new file
 					if ( files_and_peptide_identification_with_scan_number.empty() || !files_and_peptide_identification_with_scan_number.back().second.empty() )
 					{
-						files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column], vector< pair< UInt, UInt > >()));
+						files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column], vector< pair<Size , Size> >()));
 					}
 					// otherwise change the name of the last file entry (the one without hits)
 					else files_and_peptide_identification_with_scan_number.back().first = substrings[spectrum_file_column];
@@ -258,7 +258,7 @@ namespace OpenMS
 			
 			// set the retrieved sequences
 			vector< String >::const_iterator s_i = sequences.begin();
-			for ( map< UInt, UInt >::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i ) protein_hits[rn_i->second].setSequence(*s_i);
+			for ( map< Size, Size >::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i ) protein_hits[rn_i->second].setSequence(*s_i);
 			
 			sequences.clear();
 			rn_position_map.clear();
@@ -275,10 +275,10 @@ namespace OpenMS
   }
 	
 	// < record number, number of protein in a vector >
-	vector< UInt >
+	vector< Size >
 	InspectOutfile::getSequences(
 		const String& database_filename,
-		const map< UInt, UInt >& wanted_records,
+		const map< Size, Size >& wanted_records,
 		vector< String >& sequences)
 	{
 		ifstream database(database_filename.c_str());
@@ -287,14 +287,14 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
 		
-		vector< UInt > not_found;
-		UInt seen_records(0);
+		vector< Size > not_found;
+		Size seen_records(0);
 		stringbuf sequence;
 		database.seekg(0, ios::end);
 		streampos sp = database.tellg();
 		database.seekg(0, ios::beg);
 		
-		for ( map< UInt, UInt >::const_iterator wr_i = wanted_records.begin(); wr_i !=  wanted_records.end(); ++wr_i )
+		for ( map< Size, Size >::const_iterator wr_i = wanted_records.begin(); wr_i !=  wanted_records.end(); ++wr_i )
 		{
 			for ( ; seen_records < wr_i->first; ++seen_records )
 			{
@@ -450,13 +450,13 @@ namespace OpenMS
 
 	void
 	InspectOutfile::getPrecursorRTandMZ(
-		const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number,
+		const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number,
 		vector< PeptideIdentification >& ids)
 	{
 		MSExperiment<> experiment;
 		String type;
 		
-		for ( vector< pair< String, vector< pair< UInt, UInt > > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i )
+		for ( vector< pair< String, vector< pair< Size, Size > > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i )
 		{
 			getExperiment(experiment, type, fs_i->first); // may throw an exception if the filetype could not be determined
 			
@@ -465,7 +465,7 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enought scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
 			}
 			
-			for ( vector< pair< UInt, UInt > >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i )
+			for ( vector< pair< Size, Size > >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i )
 			{
 				ids[pi_scan_i->first].setMetaValue("MZ", experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
 				ids[pi_scan_i->first].setMetaValue("RT", experiment[pi_scan_i->second - 1].getRT());
@@ -477,7 +477,7 @@ namespace OpenMS
 	InspectOutfile::compressTrieDB(
 		const String& database_filename,
 		const String& index_filename,
-		vector< UInt >& wanted_records,
+		vector< Size >& wanted_records,
 		const String& snd_database_filename,
 		const String& snd_index_filename,
 		bool append)
@@ -511,7 +511,7 @@ namespace OpenMS
 		bool empty_records = wanted_records.empty();
 		if ( wanted_records.empty() )
 		{
-			for ( UInt i = 0; i < index_length / record_length_; ++i ) wanted_records.push_back(i);
+			for ( Size i = 0; i < index_length / record_length_; ++i ) wanted_records.push_back(i);
 		}
 		
 		// take the wanted records, copy their sequences to the new db and write the index file accordingly
@@ -542,11 +542,11 @@ namespace OpenMS
 		}
 		
 		char* index_record = new char[record_length_]; // to copy one record from the index file
-		UInt database_pos(0), snd_database_pos(0); // their sizes HAVE TO BE 4 bytes
+		Size database_pos(0), snd_database_pos(0); // their sizes HAVE TO BE 4 bytes
 		stringbuf sequence;
 		streampos index_pos(0);
 		
-		for ( vector< UInt >::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i )
+		for ( vector< Size >::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i )
 		{
 			// get the according record in the index file
 			if ( index_length < Int((*wr_i + 1) * record_length_) ) // if the file is too short
@@ -676,7 +676,7 @@ namespace OpenMS
 		String::size_type pos(0); // the position in a line
 		unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
 		unsigned long long source_database_pos_buffer = 0; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
-		UInt database_pos(0);
+		Size database_pos(0);
 		String line, sequence, protein_name;
 		char* record = new char[record_length_]; // a record in the index file
 		char* protein_name_pos = record + db_pos_length_ + trie_db_pos_length_;
@@ -889,7 +889,7 @@ namespace OpenMS
 		}
 	}
 
-	vector<UInt> InspectOutfile::getWantedRecords(const String& result_filename, Real p_value_threshold)
+	vector<Size> InspectOutfile::getWantedRecords(const String& result_filename, DoubleReal p_value_threshold)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -906,13 +906,13 @@ namespace OpenMS
 		String line;
 		vector< String > substrings;
 		
-		set< UInt > wanted_records_set;
+		set< Size > wanted_records_set;
 		
-		vector< UInt >
+		vector< Size >
 			wanted_records,
 			corrupted_lines;
 		
-		UInt line_number(0);
+		Size line_number(0);
 		
 		// get the header
 		Int
@@ -927,7 +927,7 @@ namespace OpenMS
 			DB_file_pos_column(-1),
 			spec_file_pos_column(-1);
 			
-		UInt number_of_columns(0);
+		Size number_of_columns(0);
 		
 		if ( !getline(result_file, line) )
 		{
@@ -965,7 +965,7 @@ namespace OpenMS
 		result_file.close();
 		result_file.clear();
 		
-		for ( set< UInt >::const_iterator rn_i = wanted_records_set.begin(); rn_i != wanted_records_set.end(); ++rn_i )
+		for ( set< Size >::const_iterator rn_i = wanted_records_set.begin(); rn_i != wanted_records_set.end(); ++rn_i )
 		{
 			wanted_records.push_back(*rn_i);
 		}
@@ -1023,7 +1023,7 @@ namespace OpenMS
 		Int& record_number_column,
 		Int& DB_file_pos_column,
 		Int& spec_file_pos_column,
-		UInt& number_of_columns)
+		Size& number_of_columns)
 	{
 		spectrum_file_column = scan_column = peptide_column = protein_column = charge_column = MQ_score_column = p_value_column = record_number_column = DB_file_pos_column = spec_file_pos_column = -1;
 		
@@ -1052,10 +1052,10 @@ namespace OpenMS
 		number_of_columns = substrings.size();
 	}
 	
-	const UInt InspectOutfile::db_pos_length_ = 8;
-	const UInt InspectOutfile::trie_db_pos_length_ = 4;
-	const UInt InspectOutfile::protein_name_length_ = 80;
-	const UInt InspectOutfile::record_length_ = db_pos_length_ + trie_db_pos_length_ + protein_name_length_;
+	const Size InspectOutfile::db_pos_length_ = 8;
+	const Size InspectOutfile::trie_db_pos_length_ = 4;
+	const Size InspectOutfile::protein_name_length_ = 80;
+	const Size InspectOutfile::record_length_ = db_pos_length_ + trie_db_pos_length_ + protein_name_length_;
 	const char InspectOutfile::trie_delimiter_ = '*';
 	const String InspectOutfile::score_type_ = "Inspect";
 	

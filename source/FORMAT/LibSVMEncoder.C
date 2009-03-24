@@ -55,9 +55,9 @@ namespace OpenMS
 																							const String& 										allowed_characters)
 	{
 	
-		UInt number_of_different_letters = allowed_characters.size();
-		UInt* counts = new UInt[number_of_different_letters];
-		UInt total_count = 0;
+		Size number_of_different_letters = allowed_characters.size();
+		Size* counts = new Size[number_of_different_letters];
+		Size total_count = 0;
 		
 		composition_vector.clear();												
 		
@@ -309,7 +309,7 @@ namespace OpenMS
 		it = text_file.begin();
 		
 		data = new svm_problem;
-		data->l = text_file.size();
+		data->l = (Int)text_file.size();
 		data->x = new svm_node*[text_file.size()];
 		data->y = new DoubleReal[text_file.size()];
 		while(counter < text_file.size()&& it != text_file.end())
@@ -423,7 +423,7 @@ namespace OpenMS
 				oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
 		
 				values.first = ((Int) (oligo_value + 2));
-				values.second = j + 1;
+				values.second = (Int)j + 1;
 		
 				ordered_tree.insert(values);	
 		  }
@@ -462,7 +462,7 @@ namespace OpenMS
 				  {
 				  	values.first = ((Int ) (oligo_value + 2));
 				  }
-					values.second = j + 1;
+					values.second = (Int)j + 1;
 			
 					ordered_tree.insert(values);	
 			  }
@@ -626,11 +626,11 @@ namespace OpenMS
     DoubleReal											factor_simple = 0.;
     map<String, UInt>               residue_values;
     UInt									 					counter     = 0;
-    UInt									 					number_of_residues = allowed_characters.size();
-    UInt														sequence_length = sequence.size();
+    Size									 					number_of_residues = allowed_characters.size();
+    Size														sequence_length = sequence.size();
     bool                            sequence_ok = true;
     ModificationsDB*                modifications = ModificationsDB::getInstance();
-    UInt 														number_of_modifications = modifications->getNumberOfModifications();
+    Size 														number_of_modifications = modifications->getNumberOfModifications();
     
     // checking if sequence contains illegal characters
     for (Size i = 0; i < sequence.size(); ++i)
@@ -703,11 +703,11 @@ namespace OpenMS
 	          }
 						if (is_right_border)
 						{
-				    	values[counter].first = sequence_length - k_mer_length - j + 1;
+				    	values[counter].first = (Int)sequence_length - k_mer_length - j + 1;
 						}
 						else
 						{
-				    	values[counter].first = j + 1;
+				    	values[counter].first = (Int)j + 1;
 				    }
 				    values[counter].second = oligo_value ;
 				    ++counter;
@@ -757,7 +757,7 @@ namespace OpenMS
 	            oligo_value = oligo_value * factor_simple + residue_values[sequence[j].getOneLetterCode()];
 	          }
 						
-			    	values[counter].first = sequence_length - k_mer_length - j + 1;
+			    	values[counter].first = (Int)(sequence_length - k_mer_length - j + 1);
 
 				    values[counter].second = oligo_value ;
 				    ++counter;

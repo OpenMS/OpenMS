@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 
@@ -282,7 +282,7 @@ class TOPPSequestAdapter
 			MSExperiment<Peak1D>& msexperiment,
 			const String& common_name,
 			const vector< Int >& charges,
-			map< String, Real >& outfile_names_and_precursor_retention_times,
+			map< String, DoubleReal >& outfile_names_and_precursor_retention_times,
 			vector< String >& dta_filenames,
 			bool make_dtas = true)
 		{
@@ -384,7 +384,7 @@ class TOPPSequestAdapter
 
 			vector< Int > charges;
 
-			Real
+			DoubleReal
 				Real_buffer(0.0),
 				Real_buffer2(0.0),
 				p_value(1.0);
@@ -402,7 +402,7 @@ class TOPPSequestAdapter
 			StringList out_files;
 
 			// the outfile-names and their retention_times
-			map< String, Real > outfile_names_and_precursor_retention_times;
+			map< String, DoubleReal > outfile_names_and_precursor_retention_times;
 
 			// the names of the dta_files - used to erase them afterwards
 	 		vector< String > dta_filenames;
@@ -815,7 +815,7 @@ class TOPPSequestAdapter
 				else
 				{
 					substrings.clear();
-					Int highest_enzyme_number = sequest_infile.setEnzyme(getStringOption_("cleavage"));
+					SignedSize highest_enzyme_number = sequest_infile.setEnzyme(getStringOption_("cleavage"));
 					if ( highest_enzyme_number )
 					{
 						writeLog_("Chosen enzym is not in list. Aborting!");
@@ -926,7 +926,7 @@ class TOPPSequestAdapter
 				{
 					for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); ++substrings_it )
 					{
-						// the values are expected to be Real, otherwise they will be seen as 0!
+						// the values are expected to be DoubleReal, otherwise they will be seen as 0!
 						Real_buffer = atof(substrings_it->c_str());
 						if ( (Real_buffer < 0) || (Real_buffer > 1) )
 						{
@@ -1200,10 +1200,10 @@ class TOPPSequestAdapter
 				}
 				if ( exit_code == EXECUTION_OK )
 				{
-					vector< pair < String, vector< Real > > > filenames_and_pvalues;
+					vector< pair < String, vector< DoubleReal > > > filenames_and_pvalues;
 					for ( StringList::iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
 					{
-						filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector< Real >()));
+						filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector< DoubleReal >()));
 					}
 	// 				sequest_outfile.getPValuesFromOutFiles(filenames_and_pvalues);
 
@@ -1226,7 +1226,7 @@ class TOPPSequestAdapter
 					protein_identification.setSearchParameters(sp);
 
 					Size peptide_identification_size = peptide_identifications.size();
-					for ( vector< pair < String, vector< Real > > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it )
+					for ( vector< pair < String, vector< DoubleReal > > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it )
 					{
 						try
 						{

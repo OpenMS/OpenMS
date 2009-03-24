@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -72,10 +72,10 @@ END_SECTION
 
 SequestOutfile file;
 
-START_SECTION(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database=""))
+START_SECTION(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, std::vector< DoubleReal >& pvalues, const String& database=""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
-	vector< Real > pvalues;
+	vector< DoubleReal > pvalues;
 	
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
@@ -396,12 +396,12 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 END_SECTION
 
-START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
+START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
 	
 	String result_filename = OPENMS_GET_TEST_DATA_PATH("../TOPP/tmp/Sequest.mzXML.13.1.d.out");
 	DateTime datetime;
 	
-	Real precursor_mz_value(0.0);
+	DoubleReal precursor_mz_value(0.0);
 	Int
 	 charge(-1),
 	 number_column(-1),

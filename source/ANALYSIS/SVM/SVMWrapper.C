@@ -138,17 +138,17 @@ namespace OpenMS
 					}
 					else
 					{
-						return kernel_type_;
+						return (Int)kernel_type_;
 						break;
 					}
 	    	case(SVM_TYPE):
 	    	    return param_->svm_type;
 	    	    break;
 	    	case(DEGREE):
-	    	    return (int) param_->degree;
+	    	    return (Int) param_->degree;
 	    	    break;
 	    	case(BORDER_LENGTH):
-	    	    return border_length_;
+	    	    return (Int)border_length_;
 	    	    break;
 	    	case(PROBABILITY):
 	    	    return param_->probability;
@@ -505,7 +505,7 @@ namespace OpenMS
 				{
 					if (actual_partition_size == 0)
 					{
-						problems[partition_index]->l = partition_count;
+						problems[partition_index]->l = (Int)partition_count;
 						problems[partition_index]->x = new svm_node*[partition_count];
 						problems[partition_index]->y = new DoubleReal[partition_count];						
 					}
@@ -1755,7 +1755,7 @@ namespace OpenMS
 	{
 		if (weight_labels.size() == weights.size() && weights.size() > 0)
 		{
-			param_->nr_weight = weights.size();
+			param_->nr_weight = (Int)weights.size();
 			param_->weight_label = new Int[weights.size()];
 			param_->weight = new DoubleReal[weights.size()];
 			for (Size i = 0; i < weights.size(); ++i)
@@ -1772,11 +1772,11 @@ namespace OpenMS
 																		 int 			          											 max_distance)
 {
     DoubleReal kernel = 0;
-    unsigned int    i1     = 0;
-    unsigned int    i2     = 0;
-    unsigned int    c1     = 0;
-    unsigned int x_size = x.size();
-    unsigned int y_size = y.size();
+    Size i1     = 0;
+    Size i2     = 0;
+    Size c1     = 0;
+    Size x_size = x.size();
+    Size y_size = y.size();
     
     while(i1 < x_size && i2 < y_size)
     {
@@ -1980,9 +1980,9 @@ namespace OpenMS
 				for (Size j = i; j < number_of_sequences; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
-					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].index = (Int)j + 1;
 					kernel_matrix->x[i][j + 1].value = temp;
-					kernel_matrix->x[j][i + 1].index = i + 1;
+					kernel_matrix->x[j][i + 1].index = (Int)i + 1;
 					kernel_matrix->x[j][i + 1].value = temp;				
 				}
 			}
@@ -1995,7 +1995,7 @@ namespace OpenMS
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 
-					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].index = (Int)j + 1;
 					kernel_matrix->x[i][j + 1].value = temp;
 				}
 			}			
@@ -2019,7 +2019,7 @@ namespace OpenMS
 			return NULL;
 		}		
 
-		UInt number_of_sequences = 0;
+		Size number_of_sequences = 0;
 
 		number_of_sequences = problem1.labels.size();		
 		kernel_matrix = new svm_problem;

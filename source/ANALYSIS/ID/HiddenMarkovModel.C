@@ -324,7 +324,7 @@ namespace OpenMS
 		return;
 	}
 	
-	UInt HiddenMarkovModel::getNumberOfStates() const
+	Size HiddenMarkovModel::getNumberOfStates() const
 	{
 		return states_.size();
 	}
@@ -852,9 +852,9 @@ namespace OpenMS
 	{
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 		cerr << "Transition training stats" << endl;
-		for (Map<HMMState*, Map<HMMState*, UInt> >::const_iterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
+		for (Map<HMMState*, Map<HMMState*, Size> >::const_iterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
-			for (Map<HMMState*, UInt>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			for (Map<HMMState*, Size>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cerr << it->first->getName() << " " << it1->first->getName() << " " << it1->second << endl;
 			}
@@ -892,7 +892,7 @@ namespace OpenMS
 
 					if (training_steps_count_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] == 0)
 					{
-						UInt count(0);
+						Size count(0);
 						double sum(0);
 						// "rows" of the amino acid matrix
 						for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
@@ -958,7 +958,7 @@ namespace OpenMS
 				s2 = name_to_state_[sc_res];
 				if (training_steps_count_[name_to_state_[aa2 + "_" + sc_res]][s2] == 0)
 				{
-					UInt count(0);
+					Size count(0);
 					double sum(0);
 					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
 					{
@@ -996,7 +996,7 @@ namespace OpenMS
 				String aa1(first_aa.toString());
 				if (training_steps_count_[name_to_state_[aa1 + "_" + pathway]][s2] == 0)
 				{
-					UInt count(0);
+					Size count(0);
 					double sum(0);
 					for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 					{
@@ -1077,9 +1077,9 @@ namespace OpenMS
 		}
 
 
-		for (Map<HMMState*, Map<HMMState*, UInt> >::const_iterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
+		for (Map<HMMState*, Map<HMMState*, Size> >::const_iterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
     {
-      for (Map<HMMState*, UInt>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMState*, Size>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         training_steps_count_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }

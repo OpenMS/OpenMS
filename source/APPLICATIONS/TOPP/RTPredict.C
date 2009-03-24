@@ -333,11 +333,11 @@ class TOPPRTPredict
 			}
 			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 			{
-				number_of_peptides = modified_peptides.size();
+				number_of_peptides = (Int)modified_peptides.size();
 			}
 			else
 			{
-				number_of_peptides = peptides.size();
+				number_of_peptides = (Int)peptides.size();
 			}			
 										
 			vector<DoubleReal> rts;

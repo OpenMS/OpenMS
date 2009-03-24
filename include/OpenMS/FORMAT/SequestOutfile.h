@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
@@ -86,10 +86,10 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector<Real>& pvalues, const String& database = "");
+			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "");
 
 //			/// retrieve the p-values from the out files
-// 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
+// 			void getPValuesFromOutFiles(vector< pair < String, vector< DoubleReal > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector<String>& substrings, Size number_of_columns, Size reference_column);
@@ -113,15 +113,15 @@ namespace OpenMS
 					@throw Exception::FileNotFound is thrown if the results file could not be found
 					@throw Exception::ParseError is thrown if the results file could not be parsed
 			*/
-			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns);
+			void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns);
 			
 		private:
 
-			static Real const_weights_[];
-			static Real xcorr_weights_[];
-			static Real delta_cn_weights_[];
-			static Real rank_sp_weights_[];
-			static Real delta_mass_weights_[];
+			static DoubleReal const_weights_[];
+			static DoubleReal xcorr_weights_[];
+			static DoubleReal delta_cn_weights_[];
+			static DoubleReal rank_sp_weights_[];
+			static DoubleReal delta_mass_weights_[];
 			static Size max_pep_lens_[];
 			static Size num_frags_[];
    };

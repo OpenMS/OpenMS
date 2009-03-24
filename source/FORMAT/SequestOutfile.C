@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
@@ -56,8 +56,8 @@ namespace OpenMS
 	void SequestOutfile::load(const String& result_filename,
 		vector<PeptideIdentification>& peptide_identifications,
 		ProteinIdentification& protein_identification,
-		const Real p_value_threshold,
-		vector<Real>& pvalues,
+		const DoubleReal p_value_threshold,
+		vector<DoubleReal>& pvalues,
 		const String& database)
 	{
 		// check whether the p_value is correct
@@ -96,7 +96,7 @@ namespace OpenMS
 		String accession, accession_type,	score_type;
 		
 		DateTime datetime;
-		Real precursor_mz_value(0.0);
+		DoubleReal precursor_mz_value(0.0);
 		Size
 			precursor_mass_type(0),
 			ion_mass_type(0),
@@ -162,7 +162,7 @@ namespace OpenMS
 		
 		if (no_pvalues) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
 		
-		vector<Real>::const_iterator p_value = pvalues.begin();
+		vector<DoubleReal>::const_iterator p_value = pvalues.begin();
 		
 		for (Size viewed_peptides = 0; viewed_peptides < displayed_peptides; )
 		{
@@ -568,7 +568,7 @@ namespace OpenMS
 	void SequestOutfile::readOutHeader(
 		const String& result_filename,
 		DateTime& datetime,
-		Real& precursor_mz_value,
+		DoubleReal& precursor_mz_value,
 		Int& charge,
 		Size& precursor_mass_type,
 		Size& ion_mass_type,
@@ -823,11 +823,11 @@ namespace OpenMS
 		result_file.clear();
 	}
 
-// 	void SequestOutfile::getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& out_filenames_and_pvalues)
+// 	void SequestOutfile::getPValuesFromOutFiles(vector< pair < String, vector< DoubleReal > > >& out_filenames_and_pvalues)
 // 	throw (Exception::FileNotFound, Exception::ParseError)
 // 	{
 // 		DateTime datetime;
-// 		Real
+// 		DoubleReal
 // 			precursor_mz_value(0),
 // 			discriminant_score,
 // 			xcorr,
@@ -866,16 +866,16 @@ namespace OpenMS
 // 			database_type;
 // 
 // 		vector< String > substrings;
-// 		vector< Real >
+// 		vector< DoubleReal >
 // 			delta_cns,
 // 			current_discriminant_scores,
 // 			pvalues;
 // 			
-// // 		map< String, vector< Real > > out_filenames_and_discriminant_scores;
-// 		vector< vector< Real > > discriminant_scores;
-// 		map< Real, Size > discriminant_scores_histogram;
+// // 		map< String, vector< DoubleReal > > out_filenames_and_discriminant_scores;
+// 		vector< vector< DoubleReal > > discriminant_scores;
+// 		map< DoubleReal, Size > discriminant_scores_histogram;
 // 			
-// 		for ( vector< pair < String, vector< Real > > >::const_iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i )
+// 		for ( vector< pair < String, vector< DoubleReal > > >::const_iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i )
 // 		{
 // 			current_discriminant_scores.clear();
 // 			readOutHeader(fp_i->first, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, line, line, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
@@ -956,8 +956,8 @@ namespace OpenMS
 // 			else if ( delta_cns.size() > 1 )
 // 			{
 // 				// the delta cns are recalculated and the discriminant scores are calculated correspondingly and added to the histogram
-// 				vector< Real >::iterator ds_i = current_discriminant_scores.begin();
-// 				for ( vector< Real >::const_iterator dcn_i = delta_cns.begin(); dcn_i != delta_cns.end(); ++dcn_i, ++ds_i )
+// 				vector< DoubleReal >::iterator ds_i = current_discriminant_scores.begin();
+// 				for ( vector< DoubleReal >::const_iterator dcn_i = delta_cns.begin(); dcn_i != delta_cns.end(); ++dcn_i, ++ds_i )
 // 				{
 // 					(*ds_i) += delta_cn_weights_[charge] * (delta_cns.back() - (*dcn_i));
 // 					++discriminant_scores_histogram[*ds_i]; // bucketing; not yet finished
@@ -979,13 +979,13 @@ namespace OpenMS
 // 		incorrect.setMean();
 // 		incorrect.setVariance();
 // 		
-// // 		for ( map< String, vector< Real > >::const_iterator fnds_i = out_filenames_and_discriminant_scores.begin(); fnds_i != out_filenames_and_discriminant_scores.end(); ++fnds_i )
-// 		vector< vector< Real >::const_iterator dss_i = discriminant_scores.begin();
-// 		for ( vector< pair < String, vector< Real > > >::iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i, ++dss_i )
+// // 		for ( map< String, vector< DoubleReal > >::const_iterator fnds_i = out_filenames_and_discriminant_scores.begin(); fnds_i != out_filenames_and_discriminant_scores.end(); ++fnds_i )
+// 		vector< vector< DoubleReal >::const_iterator dss_i = discriminant_scores.begin();
+// 		for ( vector< pair < String, vector< DoubleReal > > >::iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i, ++dss_i )
 // 		{
 // 			pvalues.clear();
-// // 			for ( vector< Real >::const_iterator ds_i = fnds_i->second.begin(); ds_i != fnds_i->second.begin(); ++ds_i )
-// 			for ( vector< Real >::const_iterator ds_i = dss_i->begin(); ds_i != dss_i->end(); ++ds_i )
+// // 			for ( vector< DoubleReal >::const_iterator ds_i = fnds_i->second.begin(); ds_i != fnds_i->second.begin(); ++ds_i )
+// 			for ( vector< DoubleReal >::const_iterator ds_i = dss_i->begin(); ds_i != dss_i->end(); ++ds_i )
 // 			{
 // 				pvalues.push_back(correct.normalDensity(*ds_i) / (correct.normalDensity(*ds_i) + incorrect.normalDensity(*ds_i)));
 // // 				p_correct = exp(-0.5 * pow((*ds_i - mean_correct) / sd, 2)) / (sd_correct * sqrt(2 * pi) );
@@ -996,11 +996,11 @@ namespace OpenMS
 // 		}
 // 	}
 	
-	Real SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
-	Real SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};
-	Real SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
-	Real SequestOutfile::rank_sp_weights_[] = {-0.455f, -0.194f, -0.201f};
-	Real SequestOutfile::delta_mass_weights_[] =  {-0.84f, -0.314f, -0.277f};
+	DoubleReal SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
+	DoubleReal SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};
+	DoubleReal SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
+	DoubleReal SequestOutfile::rank_sp_weights_[] = {-0.455f, -0.194f, -0.201f};
+	DoubleReal SequestOutfile::delta_mass_weights_[] =  {-0.84f, -0.314f, -0.277f};
 	Size SequestOutfile::max_pep_lens_[] = {100, 15, 25};
 	Size SequestOutfile::num_frags_[] = {2, 2, 4};
 } //namespace OpenMS

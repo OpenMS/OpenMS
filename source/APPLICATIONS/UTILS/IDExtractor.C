@@ -95,14 +95,14 @@ class TOPPIDExtractor
 			vector<ProteinIdentification> chosen_protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector<PeptideIdentification> chosen_identifications;
-			vector<UInt> indices;
+			vector<Size> indices;
 			vector<PeptideHit> temp_peptide_hits;
 			vector<ProteinHit> temp_protein_hits;
 			vector<ProteinHit> chosen_protein_hits;
 			String inputfile_name = "";
 			String outputfile_name = "";
-			UInt number_of_peptides = 0;
-			UInt number_of_rand_invokations = 0;
+			Size number_of_peptides = 0;
+			Size number_of_rand_invokations = 0;
 			map<String, vector< PeptideIdentification > > identifiers;
 			PeptideIdentification temp_identification;
 			vector<String> chosen_ids;
@@ -179,7 +179,7 @@ class TOPPIDExtractor
 				}
 				random_shuffle(indices.begin(), indices.end());
 				
-				UInt index = 0;
+				Size index = 0;
 				while(chosen_ids.size() < number_of_peptides && index < indices.size())
 				{
 					if (identifications[indices[index]].getHits().size() > 0 && find(chosen_ids.begin(), chosen_ids.end(), identifications[indices[index]].getHits()[0].getSequence().toString()) == chosen_ids.end())
