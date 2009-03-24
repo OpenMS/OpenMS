@@ -158,7 +158,7 @@ namespace OpenMS
 					};
 
 					/** Returns the size of spectra. */
-					inline UInt size () const
+					inline Size size () const
 					{
 						return (trans_intens_->size());
 					};
@@ -666,7 +666,9 @@ namespace OpenMS
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
 	{
-		Int spec_size = c_ref.size();
+		Int spec_size ((Int)c_ref.size());
+		//in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
+		//for the sake of simplicity (we need here a signed int) we do not cast at every following comparison individually
 		UInt charge = c+1;
 		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;
 
@@ -1047,7 +1049,7 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::identifyCharge (const MSSpectrum<PeakType>& candidates,
 		const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs)
 	{
-		UInt scan_size=candidates.size(); 
+		Size scan_size (candidates.size()); 
 		typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
 		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
 		DoubleReal mz_cutoff, seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz, share, share_pos, bwd, fwd;
@@ -1275,7 +1277,9 @@ namespace OpenMS
 	{
 		DoubleReal c_score=0, c_val;
 		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
-		Int signal_size = candidate.size();
+		Int signal_size ((Int)candidate.size());
+		//in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
+		//for the sake of simplicity (we need here a signed int) we do not cast at every following comparison individually
 
 		//p_h_ind indicates if we are looking for a whole or a peak
 		Int p_h_ind=1, end=4*(peak_cutoff-1) -1; //4 times and not 2 times, since we move by 0.5 m/z entities
@@ -1481,7 +1485,7 @@ namespace OpenMS
 			final_box.push_back(c_box_element);
 		};	
 
-		UInt num_o_feature = final_box.size();				
+		Size num_o_feature = final_box.size();				
 		if (num_o_feature == 0)
 		{
 			tmp_boxes_->at(c).clear();
@@ -1492,14 +1496,14 @@ namespace OpenMS
 		std::vector<DoubleReal> bwd_diffs(num_o_feature, 0);
 
 		bwd_diffs[0]=0;
-		for (UInt i=1; i<num_o_feature; ++i)
+		for (Size i=1; i<num_o_feature; ++i)
 		{
 			bwd_diffs[i] = (final_box[i].intens-final_box[i-1].intens)/(final_box[i].mz-final_box[i-1].mz);
 		};		
 
 		#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 			std::ofstream ofile_bwd ("bwd_cpu.dat");
-			for (UInt i=0; i<num_o_feature; ++i)
+			for (Size i=0; i<num_o_feature; ++i)
 			{
 				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
 			};
@@ -1507,7 +1511,7 @@ namespace OpenMS
 		#endif
 			
 
-		for (UInt i=0; i<num_o_feature-1; ++i)
+		for (Size i=0; i<num_o_feature-1; ++i)
 		{	
 			while (i<num_o_feature-2)
 			{

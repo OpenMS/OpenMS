@@ -98,7 +98,7 @@ START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const Doubl
 	TOLERANCE_ABSOLUTE (1e-4)
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
-		v=iw->getValueByMass (Constants::IW_HALF_NEUTRON_MASS/(c+1.), 1000, c+1, 1);
+		v=iw->getValueByMass (Constants::IW_HALF_NEUTRON_MASS/((UInt)(c)+1.), 1000, c+1, 1);
 		TEST_REAL_SIMILAR(v, 0)
 	};
 END_SECTION

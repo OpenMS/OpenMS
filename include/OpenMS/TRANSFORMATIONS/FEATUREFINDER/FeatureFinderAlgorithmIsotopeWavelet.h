@@ -93,7 +93,7 @@ namespace OpenMS
 				this->defaults_.setValue ("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
 																	"subsequent scans where a pattern must occur to be considered as a feature.");
 				this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
-				this->defaults_.setValue ("sweep_line:rt_interleave", 2, "Defines the maximum number of "
+				this->defaults_.setValue ("sweep_line:rt_interleave", 0, "Defines the maximum number of "
 																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.");
 				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
 				this->defaultsToParam_();
@@ -112,7 +112,7 @@ namespace OpenMS
 				DoubleReal max_mz = this->map_->getMax()[1];
 				DoubleReal min_mz = this->map_->getMin()[1];
 					
-				size_t max_size=0;
+				Size max_size=0;
 				#ifdef OPENMS_HAS_CUDA 
 					if (use_cuda_) //some preprocessing necessary for the GPU computation
 					{
@@ -147,7 +147,7 @@ namespace OpenMS
 						std::vector<IsotopeWaveletTransform<PeakType>*> iwts (num_gpus); 
 						for (UInt t=0; t<num_gpus; ++t)
 						{
-							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, max_size);
+							iwts[t] = new IsotopeWaveletTransform<PeakType> (min_mz, max_mz, max_charge_, (UInt)max_size);
 						};
 
 						static tbb::affinity_partitioner ap;
@@ -184,7 +184,7 @@ namespace OpenMS
 
 				if (!use_tbb_)
 				{
-					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, max_size);
+					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, (UInt)max_size);
 				
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
@@ -210,7 +210,7 @@ namespace OpenMS
 								
 								iwt.getTransform (c_trans, c_ref, c);
 								
-								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+								//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::stringstream stream;
 									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
@@ -219,7 +219,7 @@ namespace OpenMS
 										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
 									};
 									ofile.close();
-								#endif
+								//#endif
 
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "transform O.K. ... "; std::cout.flush();
