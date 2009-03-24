@@ -1961,11 +1961,31 @@ namespace OpenMS
 		// CTRL+ALT+H => hidden action
 		if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key()==Qt::Key_H))
 		{
-			for (UInt i=200; i<1100; i+=100)
+			/*
+			//Scaling with file size (layers)
+			for (UInt i=0; i<getLayerCount(); ++i)
 			{
-				cout << "Pixels: " << i << "x" << i << endl; 
-				resize(i,i);
+				QTime timer;
+				timer.start();
+				for (UInt j=0; j<10; ++j)
+				{
+					QPainter painter(&buffer_);
+					paintDots_(i, painter);
+				}
+				cout << "peaks: " << getLayer(i).peaks.getSize() << " time: " << timer.elapsed() / 10.0 << endl;
 			}
+			
+			//Scaling with resolution
+			for (UInt i=250; i<3001; i+=250)
+			{
+				resize(i,i);
+				QTime timer;
+				timer.start();
+				QPainter painter(&buffer_);
+				paintDots_(0, painter);
+				cout << "pixels: " << i << " time: " << timer.elapsed() << endl;
+			}
+			*/
 
 			e->accept();
 			return;
