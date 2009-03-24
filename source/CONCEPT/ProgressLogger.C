@@ -65,7 +65,7 @@ namespace OpenMS
 	}
 
 
-	void ProgressLogger::startProgress(int begin, int end, const String& label) const
+	void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
 		switch (type_)
@@ -82,7 +82,7 @@ namespace OpenMS
 				begin_ = begin;
 				end_ = end;
 				if(!dlg_) dlg_ = new QProgressDialog();
-				dlg_->setRange(begin,end);
+				dlg_->setRange((int)begin,(int)end);
 				dlg_->setLabelText(label.c_str());
 				dlg_->setWindowTitle(label.c_str());
 				dlg_->show();
@@ -94,7 +94,7 @@ namespace OpenMS
 		return;
 	}
 
-	void ProgressLogger::setProgress(int value) const
+	void ProgressLogger::setProgress(SignedSize value) const
 	{
 		switch (type_)
 		{
@@ -117,7 +117,7 @@ namespace OpenMS
 			case GUI:
 				if (begin_==end_)
 				{
-					dlg_->setValue(value);
+					dlg_->setValue((int)value);
 				}
 				else if (value<begin_ || value >end_)
 				{
@@ -126,7 +126,7 @@ namespace OpenMS
 				}
 				else
 				{
-					dlg_->setValue(value);
+					dlg_->setValue((int)value);
 				}
 				break;
 			case NONE:
@@ -152,7 +152,7 @@ namespace OpenMS
 				}
 				break;
 			case GUI:
-				dlg_->setValue(end_);
+				dlg_->setValue((int)end_);
 				break;
 			case NONE:
 				break;

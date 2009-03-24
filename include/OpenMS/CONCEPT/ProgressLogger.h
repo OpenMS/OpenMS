@@ -43,8 +43,6 @@ namespace OpenMS
 
 	Use startProgress, setProgress and endProgress for the actual logging.
 
-  Note: Progress is measured in 'int', just as Qt does.
-
 	@note All methods are const, so it can be used through a const reference or in const methods as well!
 	*/
 	class OPENMS_DLLAPI ProgressLogger
@@ -81,19 +79,19 @@ namespace OpenMS
 
 		@note Make sure to call setLogType first!
 		*/
-		void startProgress(int begin, int end, const String& label) const;
+		void startProgress(SignedSize begin, SignedSize end, const String& label) const;
 
 		/// Sets the current progress
-		void setProgress(int value) const;
+		void setProgress(SignedSize value) const;
 
 		/// Ends the progress display
 		void endProgress() const;
 
 	 protected:
 		mutable LogType type_;
-		mutable int begin_;
-		mutable int end_;
-		mutable int value_;
+		mutable SignedSize begin_;
+		mutable SignedSize end_;
+		mutable SignedSize value_;
 		mutable QProgressDialog* dlg_;
 		mutable StopWatch stop_watch_;
 		static int recursion_depth_;

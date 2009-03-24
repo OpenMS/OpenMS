@@ -61,10 +61,10 @@ struct LessByString
 Int main()
 {
   IntRealStringVector vec;
-  vec.push_back(IntRealString(1, 4.5, "paul"));
-  vec.push_back(IntRealString(2, 4.5, "josie"));
-  vec.push_back(IntRealString(1, 4.5, "john"));
-  vec.push_back(IntRealString(2, 3.9, "kim"));
+  vec.push_back(IntRealString(1, 4.5f, "paul"));
+  vec.push_back(IntRealString(2, 4.5f, "josie"));
+  vec.push_back(IntRealString(1, 4.5f, "john"));
+  vec.push_back(IntRealString(2, 3.9f, "kim"));
   
   std::cout << "After initialization:" << std::endl;
   vec.print();
