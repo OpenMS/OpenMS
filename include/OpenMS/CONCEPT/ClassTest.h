@@ -272,7 +272,7 @@ namespace OpenMS
         {
           ++test_count;
           test_line = line;
-          this_test = ( expression_1 == T1(expression_2) );
+          this_test = bool( expression_1 == T1(expression_2) );
           test = test && this_test;
           {
             initialNewline();

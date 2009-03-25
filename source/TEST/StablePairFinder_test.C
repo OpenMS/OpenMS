@@ -37,7 +37,7 @@ using namespace std;
 
 typedef DPosition<2> PositionType;
 
-START_TEST(StablePairFinder, "$Id: StablePairFinder_test.C 4462 2009-01-27 19:17:55Z marc_sturm $")
+START_TEST(StablePairFinder, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
