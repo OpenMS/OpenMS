@@ -647,7 +647,7 @@ namespace OpenMS
 			else if (tag=="spectrumInstrument" || tag=="acqInstrument")
 			{
 				spec_.setMSLevel(attributeAsInt_(attributes, s_mslevel));
-				InstrumentSettings::ScanWindow window;
+				ScanWindow window;
 				optionalAttributeAsDouble_(window.begin, attributes, s_mzrangestart);
 				optionalAttributeAsDouble_(window.end, attributes, s_mzrangestop);
 				if (window.begin!=0.0 || window.end!=0.0)

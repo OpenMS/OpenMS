@@ -239,20 +239,20 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getMZ(),101.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIntensity(),100.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowLowerBound(),96.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowUpperBound(),106.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowLowerOffset(),96.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowUpperOffset(),106.0)
 	TEST_EQUAL(e[3].getPrecursors()[0].getCharge(),1)
 	
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getMZ(),201.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIntensity(),200.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowLowerBound(),191.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowUpperBound(),211.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowLowerOffset(),191.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowUpperOffset(),211.0)
 	TEST_EQUAL(e[3].getPrecursors()[1].getCharge(),2)
 
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getMZ(),301.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIntensity(),300.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowLowerBound(),286.0)
-	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowUpperBound(),316.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowLowerOffset(),286.0)
+	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowUpperOffset(),316.0)
 	TEST_EQUAL(e[3].getPrecursors()[2].getCharge(),3)
 	
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////

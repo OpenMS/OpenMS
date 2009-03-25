@@ -50,8 +50,10 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
 		
-		@todo Check Precursor implementation, it has changed (Hiwi)
+		@todo Precursor implementation has changed (Hiwi)
 		@todo NativeIDType was moved from ExperimentalSettings to SourceFile (Hiwi)
+		@todo MetaInfoInterface was added to ScanWindow (Hiwi)
+		
     @ingroup DatabaseIO
   */
  
@@ -1233,7 +1235,7 @@ namespace OpenMS
 		result = db_con_.executeQuery(query.str());
 		result.first();
 
-		InstrumentSettings::ScanWindow window;
+		ScanWindow window;
 		window.begin = result.value(0).toDouble();
 		window.end = result.value(1).toDouble();
 		settings.getScanWindows().push_back(window);

@@ -31,7 +31,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
 	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","MassSpectrum","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGain","ConstantNeutralLoss","Precursor","EnhancedMultiplyCharged","TimeDelayedFragmentation","ElectromagneticRadiation","Emission","Absorbtion"};
 
 	InstrumentSettings::InstrumentSettings():
@@ -105,17 +104,17 @@ namespace OpenMS
 	  polarity_ = polarity; 
 	}
 	
-	const std::vector< InstrumentSettings::ScanWindow >&  InstrumentSettings::getScanWindows() const
+	const std::vector< ScanWindow >&  InstrumentSettings::getScanWindows() const
 	{
 	  return scan_windows_;
 	}
 	
-	std::vector< InstrumentSettings::ScanWindow >&  InstrumentSettings::getScanWindows()
+	std::vector< ScanWindow >&  InstrumentSettings::getScanWindows()
 	{
 	  return scan_windows_;
 	}
 	
-	void InstrumentSettings::setScanWindows(std::vector< InstrumentSettings::ScanWindow >  scan_windows)
+	void InstrumentSettings::setScanWindows(std::vector< ScanWindow >  scan_windows)
 	{
 	  scan_windows_ =  scan_windows;
 	}

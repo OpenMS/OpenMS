@@ -768,7 +768,7 @@ namespace OpenMS
 	}
 
 	//Visualizing ProteinHit object
-	void MetaDataBrowser::visualize_(InstrumentSettings::ScanWindow& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ScanWindow& meta, QTreeWidgetItem* parent)
 	{
 		ScanWindowVisualizer *visualizer = new ScanWindowVisualizer(isEditable(), this);
 		visualizer->load(meta);
@@ -785,6 +785,9 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 

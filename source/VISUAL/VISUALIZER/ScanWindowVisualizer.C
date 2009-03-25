@@ -40,7 +40,7 @@ namespace OpenMS
 
 	ScanWindowVisualizer::ScanWindowVisualizer(bool editable, QWidget* parent)
 		: BaseVisualizerGUI(editable, parent),
-			BaseVisualizer<InstrumentSettings::ScanWindow>()
+			BaseVisualizer<ScanWindow>()
 	{
 		addLabel_("Modify scan window information.");	
 		addSeparator_();        

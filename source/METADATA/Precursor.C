@@ -114,22 +114,22 @@ namespace OpenMS
 	  activation_energy_ = activation_energy; 
 	}
 	
-	DoubleReal Precursor::getIsolationWindowLowerBound() const
+	DoubleReal Precursor::getIsolationWindowLowerOffset() const
 	{
 		return window_low_;
 	}
 	
-	void Precursor::setIsolationWindowLowerBound(DoubleReal bound)
+	void Precursor::setIsolationWindowLowerOffset(DoubleReal bound)
 	{
 		window_low_ = bound;
 	}
 	
-	DoubleReal Precursor::getIsolationWindowUpperBound() const
+	DoubleReal Precursor::getIsolationWindowUpperOffset() const
 	{
 		return window_up_;
 	}
 
-	void Precursor::setIsolationWindowUpperBound(DoubleReal bound)
+	void Precursor::setIsolationWindowUpperOffset(DoubleReal bound)
 	{
 		window_up_ = bound;
 	}

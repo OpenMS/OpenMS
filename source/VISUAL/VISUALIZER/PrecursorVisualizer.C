@@ -66,8 +66,8 @@ namespace OpenMS
 		precursor_int_->setText(String( temp_.getIntensity() ).c_str() );
 		precursor_charge_->setText(String( temp_.getCharge() ).c_str() );
 		
-		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerBound() ).c_str() );
-		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperBound() ).c_str() );
+		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerOffset() ).c_str() );
+		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperOffset() ).c_str() );
 		
 		if(! isEditable())
 		{
@@ -87,8 +87,8 @@ namespace OpenMS
 		ptr_->setIntensity(precursor_int_->text().toFloat());
 		ptr_->setCharge(precursor_charge_->text().toInt());
 		
-		ptr_->setIsolationWindowLowerBound(precursor_window_low_->text().toFloat());		
-		ptr_->setIsolationWindowUpperBound(precursor_window_up_->text().toFloat());		
+		ptr_->setIsolationWindowLowerOffset(precursor_window_low_->text().toFloat());		
+		ptr_->setIsolationWindowUpperOffset(precursor_window_up_->text().toFloat());		
 
 		ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
 		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());

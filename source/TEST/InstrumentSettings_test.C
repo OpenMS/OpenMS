@@ -73,7 +73,7 @@ END_SECTION
 
 START_SECTION((void setScanWindows(std::vector< ScanWindow >  scan_windows)))
 	InstrumentSettings tmp;
-  vector<InstrumentSettings::ScanWindow> vec(17);
+  vector<ScanWindow> vec(17);
   tmp.setScanWindows(vec);
   TEST_EQUAL(tmp.getScanWindows().size(),17);
 END_SECTION

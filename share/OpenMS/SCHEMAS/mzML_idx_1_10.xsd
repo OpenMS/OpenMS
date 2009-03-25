@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns="http://http://psi.hupo.org/ms/mzml" xmlns:dx="http://psi.hupo.org/ms/mzml" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://psi.hupo.org/ms/mzml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1.0">
 	<xs:element name="indexedmzML">
 		<xs:annotation>
@@ -81,209 +82,6 @@
 		<xs:keyref name="FKNID" refer="dx:KEY_ID_IDX">
 			<xs:selector xpath=".//dx:indexedmzML/dx:indexList/dx:index/dx:offset"/>
 			<xs:field xpath="@id"/>
-		</xs:keyref>
-	</xs:element>
-	<xs:element name="mzML" type="dx:mzMLType">
-		<xs:annotation>
-			<xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
-		</xs:annotation>
-		<xs:key name="KEY_SPECTRUM_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on spectrum identifiers stored in the id attribute. It ensures that an id is present and unique among all spectra. Note that this constrains schematic validation only (full semantic validation restricts spectrum IDs to a specified nativeID format).
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_CHROMATOGRAM_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on chromatogram identifiers stored in the id attribute. It ensures that an id is present and unique among all chromatograms.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:chromatogramList/dx:chromatogram"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_SOURCEFILE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on source file identifiers stored in the id attribute. It ensures that an id is present and unique among all source files.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:fileDescription/dx:sourceFileList/dx:sourceFile"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_CV_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on CV identifiers stored in the id attribute. It ensures that an id is present and unique among all CVs.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:cvList/dx:cv"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_RPG_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on referenceable param group identifiers stored in the id attribute. It ensures that an id is present and unique among all referenceable param groups.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:referenceableParamGroupList/dx:referenceableParamGroup"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_SAMPLE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on sample identifiers stored in the id attribute. It ensures that an id is present and unique among all samples.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:sampleList/dx:sample"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_IC_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on instrument configuration identifiers stored in the id attribute. It ensures that an id is present and unique among all instrument configurations.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:instrumentConfigurationList/dx:instrumentConfiguration"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_DP_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on data processing identifiers stored in the id attribute. It ensures that an id is present and unique among all data processing elements.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:dataProcessingList/dx:dataProcessing"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_SOFTWARE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on software identifiers stored in the id attribute. It ensures that an id is present and unique among all software elements.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:softwareList/dx:software"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:key name="KEY_SCAN_SETTINGS_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a unique key constraint on scan settings identifiers stored in the id attribute. It ensures that an id is present and unique among all scan settings elements.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:scanSettingsList/dx:scanSettings"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:keyref name="KEYREF_SCAN_SPECTRUMREF" refer="dx:KEY_SPECTRUM_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to spectrum contained within this file. It ensures that an id is present in the file and is one of the values defined in KEY_SPECTRUM_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum/dx:precursorList/dx:precursor"/>
-			<xs:field xpath="@spectrumRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_PRECURSOR_SPECTRUMREF" refer="dx:KEY_SPECTRUM_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to spectrum contained within this file. It ensures that an id is present in the file and is one of the values defined in KEY_SPECTRUM_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum/dx:scanList/dx:scan"/>
-			<xs:field xpath="@spectrumRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_PRECURSOR_SOURCEFILEREF" refer="dx:KEY_SOURCEFILE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a source file in sourceFileList. It ensures that an id is present in the file and is one of the values defined in KEY_SOURCEFILE_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:precursor | .//dx:scan"/>
-			<xs:field xpath="@sourceFileRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_RUN_SAMPLEREF" refer="dx:KEY_SAMPLE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a sample in sampleList. It ensures that an id is present in the file and is one of the values defined in KEY_SAMPLE_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run"/>
-			<xs:field xpath="@sampleRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_SOFTWAREREF" refer="dx:KEY_SOFTWARE_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_SOFTWARE_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:processingMethod"/>
-			<xs:field xpath="@softwareRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_DEFAULTDPREF" refer="dx:KEY_DP_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
-			<xs:field xpath="@defaultDataProcessingRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_DPREF" refer="dx:KEY_DP_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:spectrum | .//dx:chromatogram | .//dx:binaryDataArray"/>
-			<xs:field xpath="@dataProcessingRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_CVREF" refer="dx:KEY_CV_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a CV in cvList. It ensures that an id is present in the file and is one of the values defined in KEY_CV_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:cvParam"/>
-			<xs:field xpath="@cvRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_UNITCVREF" refer="dx:KEY_CV_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to the CV in cvList used for unit terms. It ensures that an id is present in the file and is one of the values defined in KEY_CV_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:cvParam | .//dx:userParam"/>
-			<xs:field xpath="@unitCvRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_RPGREF" refer="dx:KEY_RPG_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to a referenceable param group in referenceableParamGroupList. It ensures that an id is present in the file and is one of the values defined in KEY_RPG_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:referenceableParamGroupRef"/>
-			<xs:field xpath="@ref"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_DEFAULTICREF" refer="dx:KEY_IC_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_IC_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
-			<xs:field xpath="@defaultInstrumentConfigurationRef"/>
-		</xs:keyref>
-		<xs:keyref name="KEYREF_ICREF" refer="dx:KEY_IC_ID">
-			<xs:annotation>
-				<xs:documentation>
-          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_IC_ID.
-        </xs:documentation>
-			</xs:annotation>
-			<xs:selector xpath=".//dx:scan"/>
-			<xs:field xpath="@instrumentConfigurationRef"/>
 		</xs:keyref>
 	</xs:element>
 	<xs:complexType name="mzMLType">
@@ -942,9 +740,9 @@
 	</xs:complexType>
 	<xs:complexType name="ScanWindowListType">
 		<xs:sequence>
-			<xs:element name="scanWindow" type="dx:ScanWindowType" maxOccurs="unbounded">
+			<xs:element name="scanWindow" type="dx:ParamGroupType" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>Definition of a scan window.</xs:documentation>
+					<xs:documentation>A range of m/z values over which the instrument scans and aquires a spectrum.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -954,18 +752,9 @@
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
-	<xs:complexType name="ScanWindowType">
-		<xs:sequence>
-			<xs:element name="cvParam" type="dx:CVParamType" minOccurs="2" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>Two or more CV parameters defining the scan window.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
-	</xs:complexType>
 	<xs:complexType name="ScanListType" mixed="false">
 		<xs:annotation>
-			<xs:documentation>List and descriptions of scans .</xs:documentation>
+			<xs:documentation>List and descriptions of scans.</xs:documentation>
 		</xs:annotation>
 		<xs:complexContent mixed="false">
 			<xs:extension base="dx:ParamGroupType">
@@ -1203,4 +992,207 @@
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+	<xs:element name="mzML" type="dx:mzMLType">
+		<xs:annotation>
+			<xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
+		</xs:annotation>
+		<xs:key name="KEY_SPECTRUM_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on spectrum identifiers stored in the id attribute. It ensures that an id is present and unique among all spectra. Note that this constrains schematic validation only (full semantic validation restricts spectrum IDs to a specified nativeID format).
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_CHROMATOGRAM_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on chromatogram identifiers stored in the id attribute. It ensures that an id is present and unique among all chromatograms.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:chromatogramList/dx:chromatogram"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_SOURCEFILE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on source file identifiers stored in the id attribute. It ensures that an id is present and unique among all source files.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:fileDescription/dx:sourceFileList/dx:sourceFile"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_CV_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on CV identifiers stored in the id attribute. It ensures that an id is present and unique among all CVs.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:cvList/dx:cv"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_RPG_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on referenceable param group identifiers stored in the id attribute. It ensures that an id is present and unique among all referenceable param groups.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:referenceableParamGroupList/dx:referenceableParamGroup"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_SAMPLE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on sample identifiers stored in the id attribute. It ensures that an id is present and unique among all samples.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:sampleList/dx:sample"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_IC_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on instrument configuration identifiers stored in the id attribute. It ensures that an id is present and unique among all instrument configurations.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:instrumentConfigurationList/dx:instrumentConfiguration"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_DP_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on data processing identifiers stored in the id attribute. It ensures that an id is present and unique among all data processing elements.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:dataProcessingList/dx:dataProcessing"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_SOFTWARE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on software identifiers stored in the id attribute. It ensures that an id is present and unique among all software elements.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:softwareList/dx:software"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="KEY_SCAN_SETTINGS_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a unique key constraint on scan settings identifiers stored in the id attribute. It ensures that an id is present and unique among all scan settings elements.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:scanSettingsList/dx:scanSettings"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:keyref name="KEYREF_SCAN_SPECTRUMREF" refer="dx:KEY_SPECTRUM_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to spectrum contained within this file. It ensures that an id is present in the file and is one of the values defined in KEY_SPECTRUM_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum/dx:precursorList/dx:precursor"/>
+			<xs:field xpath="@spectrumRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_PRECURSOR_SPECTRUMREF" refer="dx:KEY_SPECTRUM_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to spectrum contained within this file. It ensures that an id is present in the file and is one of the values defined in KEY_SPECTRUM_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:spectrumList/dx:spectrum/dx:scanList/dx:scan"/>
+			<xs:field xpath="@spectrumRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_PRECURSOR_SOURCEFILEREF" refer="dx:KEY_SOURCEFILE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a source file in sourceFileList. It ensures that an id is present in the file and is one of the values defined in KEY_SOURCEFILE_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:precursor | .//dx:scan"/>
+			<xs:field xpath="@sourceFileRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_RUN_SAMPLEREF" refer="dx:KEY_SAMPLE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a sample in sampleList. It ensures that an id is present in the file and is one of the values defined in KEY_SAMPLE_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run"/>
+			<xs:field xpath="@sampleRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_SOFTWAREREF" refer="dx:KEY_SOFTWARE_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_SOFTWARE_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:processingMethod"/>
+			<xs:field xpath="@softwareRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_DEFAULTDPREF" refer="dx:KEY_DP_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
+			<xs:field xpath="@defaultDataProcessingRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_DPREF" refer="dx:KEY_DP_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:spectrum | .//dx:chromatogram | .//dx:binaryDataArray"/>
+			<xs:field xpath="@dataProcessingRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_CVREF" refer="dx:KEY_CV_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a CV in cvList. It ensures that an id is present in the file and is one of the values defined in KEY_CV_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:cvParam"/>
+			<xs:field xpath="@cvRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_UNITCVREF" refer="dx:KEY_CV_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to the CV in cvList used for unit terms. It ensures that an id is present in the file and is one of the values defined in KEY_CV_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:cvParam | .//dx:userParam"/>
+			<xs:field xpath="@unitCvRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_RPGREF" refer="dx:KEY_RPG_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to a referenceable param group in referenceableParamGroupList. It ensures that an id is present in the file and is one of the values defined in KEY_RPG_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:referenceableParamGroupRef"/>
+			<xs:field xpath="@ref"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_DEFAULTICREF" refer="dx:KEY_IC_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_IC_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
+			<xs:field xpath="@defaultInstrumentConfigurationRef"/>
+		</xs:keyref>
+		<xs:keyref name="KEYREF_ICREF" refer="dx:KEY_IC_ID">
+			<xs:annotation>
+				<xs:documentation>
+          This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_IC_ID.
+        </xs:documentation>
+			</xs:annotation>
+			<xs:selector xpath=".//dx:scan"/>
+			<xs:field xpath="@instrumentConfigurationRef"/>
+		</xs:keyref>
+	</xs:element>
 </xs:schema>

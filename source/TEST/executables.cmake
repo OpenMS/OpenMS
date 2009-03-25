@@ -42,6 +42,7 @@ set(metadata_executables_list
   MetaInfoRegistry_test
   MetaInfo_test
   MetaInfoInterface_test
+  ScanWindow_test
   IonSource_test
   IonDetector_test
 	IDTagger_test

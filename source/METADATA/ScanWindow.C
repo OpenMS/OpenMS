@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-s
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free ScanWindow Foundation; either
+//  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
 //
 //  This library is distributed in the hope that it will be useful,
@@ -24,57 +24,51 @@
 // $Maintainer: Marc Sturm $
 // $Authors: $
 // --------------------------------------------------------------------------
- 
-#ifndef OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 
-//OpenMS
-#include <OpenMS/METADATA/InstrumentSettings.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
+#include <OpenMS/METADATA/ScanWindow.h>
 
+using namespace std;
 
 namespace OpenMS
 {
-
-	class MetaDataBrowser;
-	
-	/**
-		@brief Class that displays all meta information for ScanWindow objects
-		
-		This class provides all functionality to view the meta information of an object of type ScanWindow.
-	*/
-	class OPENMS_DLLAPI ScanWindowVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<ScanWindow>
+	//--------------------------- ScanWindow ----------------------------
+	ScanWindow::ScanWindow()
+		: MetaInfoInterface(),
+			begin(0.0),
+			end(0.0)
 	{
-		Q_OBJECT
-
-		public:
-			
-			///Constructor 
-			ScanWindowVisualizer(bool editable = false, QWidget* parent = 0);
-		  
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
+	}
 	
-		protected:
+	ScanWindow::ScanWindow(const ScanWindow& source)
+		: MetaInfoInterface(source),
+			begin(source.begin),
+		  end(source.end)
+	{
+	}
+	  
+	bool ScanWindow::operator==(const ScanWindow& source) const
+	{
+		return
+			MetaInfoInterface::operator==(source) &&
+			begin == source.begin &&
+			end == source.end;
+	}
+
+	bool ScanWindow::operator!=(const ScanWindow& source) const
+	{
+		return !(operator==(source));
+	}
+
+	ScanWindow& ScanWindow::operator=(const ScanWindow& source)
+	{
+		if (&source == this) return *this;
 			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* begin_;
-			QLineEdit* end_;
-	    //@}
-	    
-			//Docu in base class
-			void update_();
-	};
+		MetaInfoInterface::operator=(source);
+		begin = source.begin;
+		end = source.end;
+		
+		return *this;
+	}
+
 }
-#endif //OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
+

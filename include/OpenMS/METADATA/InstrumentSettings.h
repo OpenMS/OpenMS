@@ -28,7 +28,7 @@
 #ifndef OPENMS_METADATA_INSTRUMENTSETTINGS_H
 #define OPENMS_METADATA_INSTRUMENTSETTINGS_H
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
 
 namespace OpenMS 
@@ -64,24 +64,6 @@ namespace OpenMS
 			/// Names of scan modes
 			static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
 			
-      /// Scan window type containing m/z begin and end
-      struct ScanWindow
-      {
-        ScanWindow()
-          : begin(0.0),
-            end(0.0)
-        {
-        }
-        
-        bool operator==(const ScanWindow& rhs) const
-        {
-          return begin == rhs.begin && end == rhs.end;
-        }
-        
-        DoubleReal begin;
-        DoubleReal end;
-      };        
-        
 			/// Constructor
       InstrumentSettings();
       /// Copy constructor

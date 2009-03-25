@@ -57,7 +57,7 @@
 
         <!-- source -->
         <CvMappingRule id="source_must" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000008" useTerm="false" termName="ionization type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000008" useTerm="true" termName="ionization type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="source_may" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000007" useTerm="false" termName="inlet type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
@@ -66,7 +66,7 @@
         
         <!-- analyzer  -->
         <CvMappingRule id="analyzer_must" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000443" useTerm="false" termName="mass analyzer type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000443" useTerm="true" termName="mass analyzer type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="analyzer_may" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000480" useTerm="false" termName="analyzer attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
@@ -74,10 +74,10 @@
         
         <!-- detector -->
         <CvMappingRule id="detector_must" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000026" useTerm="false" termName="detector type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000026" useTerm="true" termName="detector type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
        <CvMappingRule id="detector_may" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000027" useTerm="false" termName="detector acquisition mode" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000027" useTerm="false" termName="detector acquisition mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000481" useTerm="false" termName="detector attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <!-- end of instrument -->

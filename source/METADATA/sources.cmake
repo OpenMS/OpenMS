@@ -34,6 +34,7 @@ Software.C
 SourceFile.C
 SpectrumSettings.C
 Tagging.C
+ScanWindow.C
 )
 
 ### add path to the filenames

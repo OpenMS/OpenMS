@@ -399,7 +399,7 @@ namespace OpenMS
 				DoubleReal window = 0.0;
 				if(optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
 				{
-					exp_->back().getPrecursors().back().setIsolationWindowLowerBound(window);
+					exp_->back().getPrecursors().back().setIsolationWindowLowerOffset(window);
 				}
 			}
 			else if (tag=="scan")
@@ -460,7 +460,7 @@ namespace OpenMS
 				//centroided, chargeDeconvoluted, deisotoped, collisionEnergy are ignored
 
 				//other optional attributes
-				InstrumentSettings::ScanWindow window;
+				ScanWindow window;
 				optionalAttributeAsDouble_(window.begin, attributes, s_startmz_);
 				optionalAttributeAsDouble_(window.end, attributes, s_endmz_);
 				if (window.begin!=0.0 || window.end!=0.0 )
@@ -742,11 +742,11 @@ namespace OpenMS
 				//precursor m/z
 				exp_->back().getPrecursors().back().setMZ(mz_pos);
 				//update window bounds - center them around the m/z pos
-				DoubleReal window_width = exp_->back().getPrecursors().back().getIsolationWindowLowerBound();
+				DoubleReal window_width = exp_->back().getPrecursors().back().getIsolationWindowLowerOffset();
 				if (window_width!=0.0)
 				{
-					exp_->back().getPrecursors().back().setIsolationWindowLowerBound(mz_pos - 0.5*window_width);
-					exp_->back().getPrecursors().back().setIsolationWindowUpperBound(mz_pos + 0.5*window_width);
+					exp_->back().getPrecursors().back().setIsolationWindowLowerOffset(mz_pos - 0.5*window_width);
+					exp_->back().getPrecursors().back().setIsolationWindowUpperOffset(mz_pos + 0.5*window_width);
 				}
 			}
 			else if (	open_tags_.back()=="comment")
@@ -1088,7 +1088,7 @@ namespace OpenMS
 					//charge
 					if (precursor.getCharge()!=0) os << "\" precursorCharge=\"" << precursor.getCharge();
 					//window size
-					if (precursor.getIsolationWindowLowerBound()!=precursor.getIsolationWindowUpperBound()) os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperBound()-precursor.getIsolationWindowLowerBound());
+					if (precursor.getIsolationWindowLowerOffset()!=precursor.getIsolationWindowUpperOffset()) os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperOffset()-precursor.getIsolationWindowLowerOffset());
 					//m/z
 					os << "\">" << precursor.getMZ() << "</precursorMz>\n";
 				}

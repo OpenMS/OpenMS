@@ -10,7 +10,7 @@ remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
-import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.15
+import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.20
 
 [Term]
 id: MS:0000000
@@ -3277,7 +3277,7 @@ name: dwell time
 def: "The time spent gathering data across a peak." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "Scan Duration" RELATED []
-is_a: MS:1000549 ! selection window attribute
+is_a: MS:1000503 ! scan attribute
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
 
@@ -5137,18 +5137,22 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000793
 name: isolation window upper limit
-def: "The highest m/z being isolated in an isolation window." [PSI:MS]
+def: "OBSOLETE The highest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
 relationship: has_units MS:1000040 ! m/z
+is_obsolete: true
+comment: This term was obsoleted in favor of using a target, lower, upper offset scheme. See terms 1000827-1000829
 
 [Term]
 id: MS:1000794
 name: isolation window lower limit
-def: "The lowest m/z being isolated in an isolation window." [PSI:MS]
+def: "OBSOLETE The lowest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
 relationship: has_units MS:1000040 ! m/z
+is_obsolete: true
+comment: This term was obsoleted in favor of using a target, lower, upper offset scheme. See terms 1000827-1000829
 
 [Term]
 id: MS:1000795
@@ -5370,6 +5374,30 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000827
+name: isolation window target m/z
+def: "The primary or reference m/z about which the isolation window is defined." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000792 ! isolation window attribute
+relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000828
+name: isolation window lower offset
+def: "The extent of the isolation window in m/z below the isolation window target m/z. The lower and upper offsets may be asymetric about the target m/z." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000792 ! isolation window attribute
+relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000829
+name: isolation window upper offset
+def: "The extent of the isolation window in m/z above the isolation window target m/z. The lower and upper offsets may be asymetric about the target m/z." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000792 ! isolation window attribute
+relationship: has_units MS:1000040 ! m/z
 
 [Typedef]
 id: has_units

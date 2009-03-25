@@ -450,7 +450,7 @@ namespace OpenMS
 		spectrum.setRT( float_(scan_data->scan_acq_time));
 		spectrum.setNativeID(String("index=")+ scan_number);
 		spectrum.setMSLevel(1);
-		InstrumentSettings::ScanWindow window;
+		ScanWindow window;
 		window.begin = float_(scan_data->mass_range_min);
 		window.end = float_(scan_data->mass_range_max);
 		spectrum.getInstrumentSettings().getScanWindows().push_back(window);

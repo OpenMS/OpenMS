@@ -662,9 +662,9 @@
   </xs:complexType>
   <xs:complexType name="ScanWindowListType">
     <xs:sequence>
-      <xs:element maxOccurs="unbounded" name="scanWindow" type="dx:ScanWindowType">
+      <xs:element maxOccurs="unbounded" name="scanWindow" type="dx:ParamGroupType">
         <xs:annotation>
-          <xs:documentation>Definition of a scan window.</xs:documentation>
+          <xs:documentation>A range of m/z values over which the instrument scans and aquires a spectrum.</xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
@@ -674,18 +674,9 @@
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
-  <xs:complexType name="ScanWindowType">
-    <xs:sequence>
-      <xs:element minOccurs="2" maxOccurs="unbounded" name="cvParam" type="dx:CVParamType">
-        <xs:annotation>
-          <xs:documentation>Two or more CV parameters defining the scan window.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:sequence>
-  </xs:complexType>
   <xs:complexType name="ScanListType">
     <xs:annotation>
-      <xs:documentation>List and descriptions of scans .</xs:documentation>
+      <xs:documentation>List and descriptions of scans.</xs:documentation>
     </xs:annotation>
     <xs:complexContent mixed="false">
       <xs:extension base="dx:ParamGroupType">

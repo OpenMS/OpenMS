@@ -44,7 +44,6 @@
 //TODO:
 // - product list
 // - scanSettingsList
-// - scanWindow userParam, referencableParamGroups
 //
 //MISSING:
 // - multiple 'dissociation methods' per precursor
@@ -555,7 +554,7 @@ namespace OpenMS
 			}
 			else if (tag=="scanWindow")
 			{
-				spec_.getInstrumentSettings().getScanWindows().push_back(InstrumentSettings::ScanWindow());
+				spec_.getInstrumentSettings().getScanWindows().push_back(ScanWindow());
 			}
 		}
 
@@ -1032,10 +1031,6 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().end = value.toDouble();
 				}
-				else if (accession=="MS:1000502") //dwell time
-				{
-					//Currently ignored
-				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- referenceableParamGroup ----------------------------
@@ -1056,6 +1051,7 @@ namespace OpenMS
 				
 				if (accession=="MS:1000744") //selected ion m/z
 				{
+					//this overwrites the m/z of the isolation window, as it is probably more accurate
 					spec_.getPrecursors().back().setMZ(value.toDouble());
 				}
 				else if (accession=="MS:1000041") //charge state
@@ -1163,23 +1159,31 @@ namespace OpenMS
 			{
 				if (parent_parent_tag=="precursor")
 				{
-					if (accession=="MS:1000793") //isolation window upper limit
+					if (accession=="MS:1000827") //isolation window target m/z
 					{
-						spec_.getPrecursors().back().setIsolationWindowUpperBound(value.toDouble());
+						spec_.getPrecursors().back().setMZ(value.toDouble());
 					}
-					else if (accession=="MS:1000794") //isolation window lower limit
+					else if (accession=="MS:1000828") //isolation window lower offset
 					{
-						spec_.getPrecursors().back().setIsolationWindowLowerBound(value.toDouble());
+						spec_.getPrecursors().back().setIsolationWindowLowerOffset(value.toDouble());
+					}
+					else if (accession=="MS:1000829") //isolation window upper offset
+					{
+						spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
 				else if (parent_parent_tag=="product")
 				{
-					if (accession=="MS:1000793") //isolation window upper limit
+					if (accession=="MS:1000827") //isolation window target m/z
 					{
 						//TODO
 					}
-					else if (accession=="MS:1000794") //isolation window lower limit
+					else if (accession=="MS:1000829") //isolation window upper offset
+					{
+						//TODO
+					}
+					else if (accession=="MS:1000828") //isolation window lower offset
 					{
 						//TODO
 					}
@@ -1199,7 +1203,12 @@ namespace OpenMS
 			else if (parent_tag=="scan")
 			{
 				//scan attributes
-				if (accession=="MS:1000011")//mass resolution
+				if (accession=="MS:1000502") //dwell time
+				{
+					//No member => meta data
+					spec_.setMetaValue("dwell time",value.toDouble());
+				}
+				else if (accession=="MS:1000011")//mass resolution
 				{
 					//No member => meta data
 					spec_.setMetaValue("mass resolution",value);
@@ -1786,6 +1795,10 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SEND);
 				}
+				else if (accession=="MS:1000008") //ionization type (base term)
+				{
+					instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IONMETHODNULL);
+				}
 				
 				//source attribute
 				else if (accession=="MS:1000392") //ionization efficiency
@@ -1854,6 +1867,10 @@ namespace OpenMS
 				else if (accession=="MS:1000291") //linear ion trap
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::LIT);
+				}
+				else if (accession=="MS:1000443") //mass analyzer type (base term)
+				{
+					instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::ANALYZERNULL);
 				}
 				//mass analyzer attribute
 				else if (accession=="MS:1000014") //accuracy (ppm)
@@ -1964,6 +1981,10 @@ namespace OpenMS
 				else if (accession=="MS:1000113") //focal plane array
 				{
 					instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FOCALPLANEARRAY);
+				}
+				else if (accession=="MS:1000026") //detector type (base term)
+				{
+					instruments_[current_id_].getIonDetectors().back().setType(IonDetector::TYPENULL);
 				}
 				//detector attribute
 				else if (accession=="MS:1000028") //detector resolution
@@ -2179,6 +2200,10 @@ namespace OpenMS
 			else if (parent_tag=="scan")
 			{
 				spec_.getAcquisitionInfo().back().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="scanWindow")
+			{
+				spec_.getInstrumentSettings().getScanWindows().back().setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="isolationWindow")
 			{
@@ -2892,6 +2917,10 @@ namespace OpenMS
 					{
 						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
 					}
+					else if(so.getIonizationMethod()==IonSource::IONMETHODNULL)
+					{
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000008\" name=\"ionization type\" />\n";
+					}
 						
 					writeUserParam_(os, so, 5);
 					os  << "				</source>\n";				
@@ -2978,6 +3007,10 @@ namespace OpenMS
 					else if (ma.getType()==MassAnalyzer::LIT)
 					{
 						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000291\" name=\"linear ion trap\" />\n";
+					}
+					else if (ma.getType()==MassAnalyzer::ANALYZERNULL)
+					{
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000443\" name=\"mass analyzer type\" />\n";
 					}
 					
 					writeUserParam_(os, ma, 5);
@@ -3098,6 +3131,10 @@ namespace OpenMS
 					else if (id.getType()==IonDetector::FOCALPLANEARRAY)
 					{
 						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000113\" name=\"focal plane array\" />\n";
+					}
+					else if (id.getType()==IonDetector::TYPENULL)
+					{
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000026\" name=\"detector type\" />\n";
 					}
 	
 					writeUserParam_(os, id, 5);
@@ -3371,6 +3408,7 @@ namespace OpenMS
 							os	<< "						<scanWindow>\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3391,6 +3429,7 @@ namespace OpenMS
 							os	<< "						<scanWindow>\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3411,11 +3450,12 @@ namespace OpenMS
 						//--------------------------------------------------------------------------------------------
 						//isolation window
 						//--------------------------------------------------------------------------------------------
-						if (precursor.getIsolationWindowLowerBound()!=precursor.getIsolationWindowUpperBound())
+						if (precursor.getIsolationWindowLowerOffset()!=precursor.getIsolationWindowUpperOffset())
 						{
 							os	<< "						<isolationWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000794\" name=\"isolation window lower limit\" value=\"" << precursor.getIsolationWindowLowerBound() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000793\" name=\"isolation window upper limit\" value=\"" << precursor.getIsolationWindowUpperBound() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os	<< "						</isolationWindow>\n";
 						}
 						//userParam: no extra object for it => no user paramters
