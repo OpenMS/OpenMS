@@ -81,7 +81,7 @@ namespace OpenMS
 																	"If you set intensity_threshold=-1, t' will be zero.\n");
 				
 				this->defaults_.setValue ("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
-																	"potential peptide masses are checked for plausibility."); 
+																	"potential peptide masses are checked for plausibility.", StringList::create("advanced")); 
 				this->defaults_.setValidStrings("check_ppm",StringList::create("true,false"));
 
 
@@ -91,11 +91,8 @@ namespace OpenMS
 				#endif
 
 				this->defaults_.setValue ("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
-																	"subsequent scans where a pattern must occur to be considered as a feature.");
+																	"subsequent scans where a pattern must occur to be considered as a feature.", StringList::create("advanced"));
 				this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
-				this->defaults_.setValue ("sweep_line:rt_interleave", 0, "Defines the maximum number of "
-																	"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.");
-				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
 				this->defaultsToParam_();
 		}
 
@@ -160,7 +157,7 @@ namespace OpenMS
 
 						for (UInt t=1; t<num_gpus; ++t)
 						{
-							iwts[0]->mergeFeatures (iwts[t], RT_interleave_, RT_votes_cutoff_);	
+							iwts[0]->mergeFeatures (iwts[t], RT_votes_cutoff_);	
 						};
 
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -210,7 +207,7 @@ namespace OpenMS
 								
 								iwt.getTransform (c_trans, c_ref, c);
 								
-								//#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::stringstream stream;
 									stream << "cpu_" << c_ref.getRT() << "_" << c+1 << ".trans\0"; 
 									std::ofstream ofile (stream.str().c_str());
@@ -219,7 +216,7 @@ namespace OpenMS
 										ofile << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
 									};
 									ofile.close();
-								//#endif
+								#endif
 
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "transform O.K. ... "; std::cout.flush();
@@ -280,7 +277,7 @@ namespace OpenMS
 							#endif
 						};
 		
-						iwt.updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
+						iwt.updateBoxStates(*this->map_, i, real_RT_votes_cutoff_);
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "updated box states." << std::endl;
 						#endif
@@ -291,7 +288,7 @@ namespace OpenMS
 					this->ff_->endProgress();
 
 					//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
-					iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_);
+					iwt.updateBoxStates(*this->map_, INT_MAX, real_RT_votes_cutoff_);
 									
 					#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 			std::cout << "Final mapping."; std::cout.flush();
@@ -313,7 +310,7 @@ namespace OpenMS
 
 		static const String getProductName()
 		{ 
-			return ("isotope_wavelet_nofit"); 
+			return ("isotope_wavelet"); 
 		}
 					
 		static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
@@ -339,7 +336,6 @@ namespace OpenMS
 		UInt max_charge_; ///<The maximal charge state we will consider
 		DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
 		UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
-		UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
 		String use_gpus_;
 		bool use_tbb_, use_cuda_, check_PPMs_;
 		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
@@ -356,7 +352,6 @@ namespace OpenMS
 			max_charge_ = this->param_.getValue ("max_charge");
 			intensity_threshold_ = this->param_.getValue ("intensity_threshold");
 			RT_votes_cutoff_ = this->param_.getValue ("sweep_line:rt_votes_cutoff");
-			RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
 			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
 			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)

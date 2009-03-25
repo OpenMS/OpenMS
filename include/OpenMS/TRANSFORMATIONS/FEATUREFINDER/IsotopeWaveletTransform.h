@@ -297,13 +297,12 @@ namespace OpenMS
  				* @param map The original map containing the data set to be analyzed.
 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
  				* This information is necessary to sweep across the map after each scan has been evaluated.
- 				* @param RT_interleave See the IsotopeWaveletFF class.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
 				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
 		
-			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff); 
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -1191,7 +1190,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
+	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
@@ -1222,7 +1221,7 @@ namespace OpenMS
 				c_dist = fabs(end_iter->first - front_iter->first); 
 				if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
 				{
-					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
+					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= 0)
 					//otherwise, there are too many blank scans in between
 					{	
 						best_match = end_iter;
@@ -1824,7 +1823,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
 		const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter, iter2;
@@ -1842,11 +1841,10 @@ namespace OpenMS
 		for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); )
 		{
 			//For each Box we need to figure out, if and when the last RT value has been inserted
-			//If the Box has unchanged since RT_interleave_ scans, we will close the Box.
 			UInt lastScan = (--(iter->second.end()))->first;
-			if (scan_index - lastScan > RT_interleave) //I.e. close the box!
+			if (scan_index - lastScan > 0) //I.e. close the box!
 			{
-				if (iter->second.begin()->first -front_bound <= RT_interleave && front_bound > 0)
+				if (iter->second.begin()->first -front_bound <= 0 && front_bound > 0)
 				{
 					iter2=iter;
 					++iter2;

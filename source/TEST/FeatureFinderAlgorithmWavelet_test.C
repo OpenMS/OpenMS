@@ -79,7 +79,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 END_SECTION
 
 START_SECTION(static const String getProductName())
-    TEST_EQUAL(FFAW::getProductName(),"isotope_wavelet")
+    TEST_EQUAL(FFAW::getProductName(),"wavelet")
 END_SECTION
 
 /////////////////////////////////////////////////////////////

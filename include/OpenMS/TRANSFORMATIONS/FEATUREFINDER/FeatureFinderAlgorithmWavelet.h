@@ -86,7 +86,6 @@ namespace OpenMS
               tmp.setValue("max_charge", 1, "The maximal charge state to be considered.");
               tmp.setValue("intensity_threshold", 2.0, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.");
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.");
-              tmp.setValue("rt_interleave", 0, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.");
               tmp.setValue("charge_threshold", 0.1, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", StringList::create("advanced"));
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
@@ -162,7 +161,7 @@ namespace OpenMS
             };
 
             //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_
-            iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff);
+            iwt.updateBoxStates(*this->map_, INT_MAX, RT_votes_cutoff);
 
             //std::cout << "Final mapping."; std::cout.flush();
 
@@ -450,7 +449,7 @@ namespace OpenMS
 
         static const String getProductName()
         {
-          return "isotope_wavelet";
+          return "wavelet";
         }
 
       protected:
@@ -464,8 +463,6 @@ namespace OpenMS
         CoordinateType ampl_cutoff_;
         /// The number of susequent scans a pattern must cover in order to be considered as signal
         UInt RT_votes_cutoff_;
-        /// The numer of scans we allow to be missed within RT_votes_cutoff_
-        UInt RT_interleave_;
         /// Charge threshold (in percent)
         CoordinateType charge_threshold_;
 
@@ -474,7 +471,6 @@ namespace OpenMS
           max_charge_ = this->param_.getValue ("max_charge");
           ampl_cutoff_ = this->param_.getValue ("intensity_threshold");
           RT_votes_cutoff_ = this->param_.getValue ("rt_votes_cutoff");
-          RT_interleave_ = this->param_.getValue ("rt_interleave");
           IsotopeWavelet::setMaxCharge(max_charge_);
           charge_threshold_ = this->param_.getValue ("charge_threshold");
         }
