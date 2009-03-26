@@ -96,6 +96,7 @@ namespace OpenMS
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
 				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) ;
 
+				static DoubleReal getValueByExpLambda (const DoubleReal explambda, const DoubleReal lambda, const DoubleReal tz1); 
 
 				static DoubleReal getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) ; 
 				
@@ -237,7 +238,7 @@ namespace OpenMS
 				static DoubleReal inv_table_steps_;
 
 				/** Internal table for the precomputed values of the gamma function. */ 
-				static std::vector<DoubleReal> gamma_table_;
+				static std::vector<DoubleReal> gamma_table_, gamma_table_new_;
 				
 				/** Internal table for the precomputed values of the exponential function. */ 
 				static std::vector<DoubleReal> exp_table_;

@@ -47,6 +47,7 @@ namespace OpenMS
 	IsotopeWavelet* IsotopeWavelet::me_ = NULL;
 	UInt IsotopeWavelet::max_charge_ = 1;
 	std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
+	std::vector<DoubleReal> IsotopeWavelet::gamma_table_new_;
 	std::vector<DoubleReal> IsotopeWavelet::exp_table_;
 	std::vector<DoubleReal> IsotopeWavelet::sine_table_;
 	DoubleReal IsotopeWavelet::table_steps_ = 0.0001;
@@ -99,18 +100,25 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal tz (tz1-1);
-		//DoubleReal fi_lgamma (gamma_table_.at((Int)(tz1*inv_table_steps_)));
-
 		DoubleReal fi_lgamma (gamma_table_ [(Int)(tz1*inv_table_steps_)]);
-		
 		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
 		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
-
 		DoubleReal fac (-lambda + tz*myLog2_(lambda)*ONEOLOG2E - fi_lgamma);
 
 		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
 	
+	DoubleReal IsotopeWavelet::getValueByExpLambda (const DoubleReal explambda, const DoubleReal lambda, const DoubleReal tz1) 
+	{
+		DoubleReal tz (tz1-1);
+		DoubleReal gammaval (gamma_table_new_ [(Int)(tz1*inv_table_steps_)]);
+		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
+		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
+		//DoubleReal fac (pow(lambda, tz));
+
+		return (sine_table_[(Int)(sine_index)] * explambda /** fac*/ / gammaval);
+	}
+
 
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
@@ -194,13 +202,17 @@ namespace OpenMS
 		UInt peak_cutoff = getNumPeakCutOff(max_m, max_charge_);
 		UInt up_to = peak_cutoff*max_charge_+1;
 		gamma_table_.clear();
+		gamma_table_new_.clear();
 		exp_table_.clear();
 		DoubleReal query=0;
 		gamma_table_.push_back (std::numeric_limits<int>::max());
+		gamma_table_new_.push_back (std::numeric_limits<int>::max());
 		query += table_steps_; 
 		while (query <= up_to)
 		{
 			gamma_table_.push_back (boost::math::lgamma(query));
+			gamma_table_new_.push_back (boost::math::tgamma(query));
+
 			query += table_steps_;	
 		};	
 		gamma_table_max_index_ = gamma_table_.size();

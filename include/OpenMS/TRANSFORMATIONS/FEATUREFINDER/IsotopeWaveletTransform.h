@@ -669,13 +669,13 @@ namespace OpenMS
 		//in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
 		//for the sake of simplicity (we need here a signed int) we do not cast at every following comparison individually
 		UInt charge = c+1;
-		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;
+		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz; //my_local_exp_lambda;
 
 		for(Int my_local_pos=0; my_local_pos<spec_size; ++my_local_pos)
 		{
 			value=0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge)/(DoubleReal)charge;
 			old=0; old_pos=(my_local_pos-from_max_to_left_-1>=0) ? c_ref[my_local_pos-from_max_to_left_-1].getMZ() : c_ref[0].getMZ()-min_spacing_;
-			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge);
+			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge); //my_local_exp_lambda = exp(-my_local_lambda);
 			c_diff=0;
 			origin = -my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
 
@@ -693,7 +693,7 @@ namespace OpenMS
 				c_diff = c_mz + origin;
 
 				//Attention! The +1. has nothing to do with the charge, it is caused by the wavelet's formula (tz1).
-				current = c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambda (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
+				current = c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambdaExact (my_local_lambda, c_diff*charge+1.)*c_ref[current_conv_pos].getIntensity() : 0;
 			
 				value += 0.5*(current + old)*(c_mz-old_pos);
 				//std::cout << c_mz << 	"\t" << (c_diff > T_boundary_left && c_diff <= T_boundary_right ? IsotopeWavelet::getValueByLambdaExact (my_local_lambda, c_diff*charge+1.) : 0) << "\t" << value << "\t" << c_ref[current_conv_pos].getIntensity() << std::endl;
@@ -889,6 +889,12 @@ namespace OpenMS
 
 			(cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], overall_size_*sizeof(int), cudaMemcpyHostToDevice));
 			Int gpu_index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, overall_size_, 0);
+			
+			if (gpu_index < 0) //i.e., there is no positive intensity value at all
+			{
+				return (gpu_index);
+			};
+			
 			(cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_+gpu_index, sizeof(float) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
 			(cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_+gpu_index, sizeof(int) * (overall_size_-gpu_index), cudaMemcpyDeviceToHost));
 

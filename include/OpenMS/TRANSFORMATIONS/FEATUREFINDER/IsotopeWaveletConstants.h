@@ -45,16 +45,18 @@ namespace OpenMS
 		const double PEPTIDE_MASS_RULE_THEO_PPM_BOUND = 200;
 
 		//exact
-		/*const double IW_NEUTRON_MASS = 1.00866491578f; 
+		const double IW_NEUTRON_MASS = 1.00866491578f; 
 		const double IW_HALF_NEUTRON_MASS = 0.5043325f;
 		const double IW_QUARTER_NEUTRON_MASS = 0.252166228f;
-		const double WAVELET_PERIODICITY = 6.229209734f;*/
+		const double WAVELET_PERIODICITY = 6.229209734f;
 
 		//according to Horn et al. (2000)
-		const double IW_NEUTRON_MASS = 1.00235f; 
+		/*const double IW_NEUTRON_MASS = 1.00235f; 
 		const double IW_HALF_NEUTRON_MASS = 0.501175f;
 		const double IW_QUARTER_NEUTRON_MASS = 0.2505875f;
-		const double WAVELET_PERIODICITY = 6.268454439f;
+		const double WAVELET_PERIODICITY = 6.268454439f;*/
+		
+		
 		const double ONEOLOG2E = 0.6931471806f;
 
 		const double IW_PROTON_MASS = 1.00727646688f;

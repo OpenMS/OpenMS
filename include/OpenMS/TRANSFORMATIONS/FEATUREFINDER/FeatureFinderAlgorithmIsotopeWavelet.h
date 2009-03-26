@@ -186,18 +186,21 @@ namespace OpenMS
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
 						const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
-
+					
+						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+							std::cout << ::std::fixed << ::std::setprecision(6) << "Spectrum " << i+1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... " ; 
+							std::cout.flush();
+						#endif
+						
 						if (c_ref.size() <= 1) //unable to do transform anything
 						{					
+							#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+								std::cout << "scan empty or consisting of a single data point. Skipping." << std::endl; 
+							#endif
 							this->ff_->setProgress (progress_counter_+=2);
 							continue;
 						};
 
-						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-							std::cout << "Spectrum " << i+1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... " ; 
-							std::cout.flush();
-						#endif
-						
 						if (!use_cuda_)
 						{	
 							iwt.initializeScan ((*this->map_)[i]);
@@ -237,7 +240,7 @@ namespace OpenMS
 								cudaSetDevice(gpu_ids_[0]);
 								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
 								if (iwt.initializeScanCuda ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
-								{
+								{		
 									for (UInt c=0; c<max_charge_; ++c)
 									{	
 										iwt.getTransformCuda (c_trans, c);
@@ -261,7 +264,7 @@ namespace OpenMS
 										iwt.identifyChargeCuda (c_trans, i, c, intensity_threshold_, check_PPMs_);
 
 										#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-											std::cout << "cuda charge recognition for charge " << c+1 << " O.K. ... "; std::cout.flush();
+											std::cout << "cuda charge recognition for charge " << c+1 << " O.K." << std::endl;
 										#endif					
 										this->ff_->setProgress (++progress_counter_);	
 									};
@@ -291,7 +294,7 @@ namespace OpenMS
 					iwt.updateBoxStates(*this->map_, INT_MAX, real_RT_votes_cutoff_);
 									
 					#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-			std::cout << "Final mapping."; std::cout.flush();
+						std::cout << "Final mapping."; std::cout.flush();
 					#endif
 					*this->features_ = iwt.mapSeeds2Features (*this->map_, real_RT_votes_cutoff_); 
 				}
