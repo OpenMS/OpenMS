@@ -5,9 +5,6 @@ set(directory include/OpenMS/ANALYSIS/MAPMATCHING)
 set(sources_list_h
 BaseGroupFinder.h
 BaseSuperimposer.h
-CaapEvalAlgorithm.h
-CaapEvalAlgorithmPrecision.h
-CaapEvalAlgorithmRecall.h
 DelaunayPairFinder.h
 FeatureGroupingAlgorithm.h
 FeatureGroupingAlgorithmLabeled.h
@@ -17,6 +14,9 @@ MapAlignmentAlgorithm.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h
 MapAlignmentAlgorithmApplyGivenTrafo.h
+MapAlignmentEvaluationAlgorithm.h
+MapAlignmentEvaluationAlgorithmPrecision.h
+MapAlignmentEvaluationAlgorithmRecall.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 SimplePairFinder.h

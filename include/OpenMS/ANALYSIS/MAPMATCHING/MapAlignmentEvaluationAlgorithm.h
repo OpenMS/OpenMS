@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHM_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H
+#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -39,20 +39,20 @@ namespace OpenMS
 		
 		These algorithms evaluates alignment results against a ground truth.
 	*/
-	class OPENMS_DLLAPI CaapEvalAlgorithm
+	class OPENMS_DLLAPI MapAlignmentEvaluationAlgorithm
 	 : public FactoryProduct
 	{
 
 		protected:
-			typedef ConsensusFeature::HandleSetType::const_iterator HandleIterator; //geht nicht private! fehler:/home/bude/albers/RAID/cmakeOpenMS/include/OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithm.h:46: error: 'typedef struct std::_Rb_tree_const_iterator<OpenMS::FeatureHandle> OpenMS::CaapEvalAlgorithm::HandleIterator' is private
+			typedef ConsensusFeature::HandleSetType::const_iterator HandleIterator; //geht nicht private! fehler:/home/bude/albers/RAID/cmakeOpenMS/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h:46: error: 'typedef struct std::_Rb_tree_const_iterator<OpenMS::FeatureHandle> OpenMS::MapAlignmentEvaluationAlgorithm::HandleIterator' is private
 
 		public:
 
 			/// Default constructor
-			CaapEvalAlgorithm();
+			MapAlignmentEvaluationAlgorithm();
 
 			/// Destructor
-			virtual ~CaapEvalAlgorithm();
+			virtual ~MapAlignmentEvaluationAlgorithm();
 
 			
 			///Applies the algorithm. The input consensus map is compared to the ground truth.
@@ -65,12 +65,12 @@ namespace OpenMS
 		
 		private:
 			///Copy constructor is not implemented -> private
-			CaapEvalAlgorithm(const CaapEvalAlgorithm& );
+			MapAlignmentEvaluationAlgorithm(const MapAlignmentEvaluationAlgorithm& );
 			///Assignment operator is not implemented -> private
-			CaapEvalAlgorithm& operator=(const CaapEvalAlgorithm& );
+			MapAlignmentEvaluationAlgorithm& operator=(const MapAlignmentEvaluationAlgorithm& );
 			
 	};
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHM_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H

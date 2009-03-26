@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmPrecision.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 //#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 #include <vector>
@@ -34,17 +34,17 @@ namespace OpenMS
 {
 
 
-	CaapEvalAlgorithmPrecision::CaapEvalAlgorithmPrecision()
-		: CaapEvalAlgorithm()
+	MapAlignmentEvaluationAlgorithmPrecision::MapAlignmentEvaluationAlgorithmPrecision()
+		: MapAlignmentEvaluationAlgorithm()
 	{
-		setName("CaapEvalAlgorithmPrecision");
+		setName("MapAlignmentEvaluationAlgorithmPrecision");
 	}
 
-	CaapEvalAlgorithmPrecision::~CaapEvalAlgorithmPrecision()
+	MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision()
 	{
 	}
 
-	void CaapEvalAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
 	{
 		//Precision = 1/N * sum ( gt_subtend_tilde_tool_i / tilde_tool_i )
 

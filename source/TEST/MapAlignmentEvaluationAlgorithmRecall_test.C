@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmRecall.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
@@ -38,42 +38,42 @@ using namespace OpenMS;
 using namespace std;
 
 
-START_TEST(CaapEvalAlgorithmRecall, "$Id CaapEvalAlgorithmRecall_test.C 139 2006-07-14 10:08:39Z ole_st $")
+START_TEST(MapAlignmentEvaluationAlgorithmRecall, "$Id MapAlignmentEvaluationAlgorithmRecall_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CaapEvalAlgorithmRecall* ptr = 0;
-START_SECTION((CaapEvalAlgorithmRecall()))
-	ptr = new CaapEvalAlgorithmRecall();
+MapAlignmentEvaluationAlgorithmRecall* ptr = 0;
+START_SECTION((MapAlignmentEvaluationAlgorithmRecall()))
+	ptr = new MapAlignmentEvaluationAlgorithmRecall();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((virtual ~CaapEvalAlgorithmRecall()))
+START_SECTION((virtual ~MapAlignmentEvaluationAlgorithmRecall()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static CaapEvalAlgorithmRecall* create()))
-	CaapEvalAlgorithm* ptr2 = 0;
-	ptr2 = CaapEvalAlgorithmRecall::create();
+START_SECTION((static MapAlignmentEvaluationAlgorithmRecall* create()))
+	MapAlignmentEvaluationAlgorithm* ptr2 = 0;
+	ptr2 = MapAlignmentEvaluationAlgorithmRecall::create();
 	TEST_NOT_EQUAL(ptr2, 0)
 END_SECTION
 
 START_SECTION((static String getProductName()))
-	TEST_EQUAL(CaapEvalAlgorithmRecall::getProductName(),"recall")
+	TEST_EQUAL(MapAlignmentEvaluationAlgorithmRecall::getProductName(),"recall")
 END_SECTION
 
 START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, DoubleReal& out)))
-	CaapEvalAlgorithmRecall cae;
+	MapAlignmentEvaluationAlgorithmRecall cae;
 	ConsensusMap in;
 	ConsensusMap gt;
 	DoubleReal out; 
 	
 	ConsensusXMLFile consensus_xml_file_in;
-	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_in.consensusXML"), in );
+	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_in.consensusXML"), in );
 		
 	ConsensusXMLFile consensus_xml_file_gt;
-	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_gt.consensusXML"), gt );
+	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_gt.consensusXML"), gt );
 	
 	cae.evaluate(in, gt, out);
 

@@ -25,31 +25,31 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHMPRECISION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHMPRECISION_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHMRECALL_H
+#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHMRECALL_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 
 namespace OpenMS
 {
 	/**
-		@brief Caap evaluation algorithm to obtain a precision value.
+		@brief Caap evaluation algorithm to obtain a recall value.
 		
 		It evaluates an input consensus map with respect to a ground truth.
 
-	  @htmlinclude OpenMS_CaapEvalAlgorithmPrecision.parameters
+	  @htmlinclude OpenMS_MapAlignmentEvaluationAlgorithmRecall.parameters
 	  
-		@ingroup CaapEval
+		@ingroup MapAlignmentEvaluation
 	*/
-	class OPENMS_DLLAPI CaapEvalAlgorithmPrecision
-	 : public CaapEvalAlgorithm
+	class OPENMS_DLLAPI MapAlignmentEvaluationAlgorithmRecall
+	 : public MapAlignmentEvaluationAlgorithm
 	{
 		public:
 			/// Default constructor
-			CaapEvalAlgorithmPrecision();
+			MapAlignmentEvaluationAlgorithmRecall();
 
 			/// Destructor
-			virtual ~CaapEvalAlgorithmPrecision();
+			virtual ~MapAlignmentEvaluationAlgorithmRecall();
 			
 			/**
 				@brief Applies the algorithm
@@ -57,27 +57,27 @@ namespace OpenMS
 			virtual void evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out);
 
 			/// Creates a new instance of this class (for Factory)
-			static CaapEvalAlgorithm* create()
+			static MapAlignmentEvaluationAlgorithm* create()
 			{
-				return new CaapEvalAlgorithmPrecision();
+				return new MapAlignmentEvaluationAlgorithmRecall();
 			}
 			
 			/// Returns the product name (for the Factory)
 			static String getProductName()
 			{
-				return "precision";
+				return "recall";
 			}
 			
 		private:
 
 			/// Copy constructor intentionally not implemented -> private
-			CaapEvalAlgorithmPrecision(const CaapEvalAlgorithmPrecision& );
+			MapAlignmentEvaluationAlgorithmRecall(const MapAlignmentEvaluationAlgorithmRecall& );
 			/// Assignment operator intentionally not implemented -> private
-			CaapEvalAlgorithmPrecision& operator=(const CaapEvalAlgorithmPrecision& );
+			MapAlignmentEvaluationAlgorithmRecall& operator=(const MapAlignmentEvaluationAlgorithmRecall& );
 			
 	};
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_CAAPEVALALGORITHMPRECISION_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHMRECALL_H
 

@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -38,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page CaapEval CaapEval
+	@page MapAlignmentEvaluation MapAlignmentEvaluation
 		
-	@brief Evaluate alignment results against ground truth
+	@brief Evaluate alignment results against a ground truth
 	
 	This tool implements the evaluation measures from our paper 
 	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",
@@ -58,19 +58,19 @@ using namespace std;
 				"doi:10.1186/1471-2105-9-375\n"
 	
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_CaapEval.cli
+	@verbinclude UTILS_MapAlignmentEvaluation.cli
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPCaapEval
+class TOPPMapAlignmentEvaluation
   : public TOPPBase
 {
 
 public:
-	TOPPCaapEval()
-		: TOPPBase("CAAP_eval","Evaluate alignment results against ground truth.", false)
+	TOPPMapAlignmentEvaluation()
+		: TOPPBase("MapAlignmentEvaluation","Evaluate alignment results against a ground truth.", false)
 	{
 	}
 
@@ -81,10 +81,9 @@ protected:
 		setValidFormats_("in",StringList::create("consensusXML"));
 		registerInputFile_("gt","<file>","","input file: ground truth",true);
 		setValidFormats_("gt",StringList::create("consensusXML"));
-		// registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",false);
-		// setValidFormats_("out",StringList::create("mzData,featureXML"));
+		//registerOutputFile_("out","<file>","","output file ");
 		registerStringOption_("type","<name>","","Caap Evaluation type",true);
-		setValidStrings_("type",Factory<CaapEvalAlgorithm>::registeredProducts());
+		setValidStrings_("type",Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts());
 
 		/*addEmptyLine_();
 		addText_("This tool implements the evaluation measures from our paper:\n"
@@ -123,14 +122,14 @@ protected:
 			writeLog_("Error: The groundtruth file must be of type ConsensusXML!");
 			return ILLEGAL_PARAMETERS;
 		}	*/
-		//fehler: /home/kate/OpenMS/source/APPLICATIONS/TOPP/CaapEval.C: In member function ‘virtual OpenMS::TOPPBase::ExitCodes TOPPCaapEval::main_(int, const char**)’:
-		//home/kate/OpenMS/source/APPLICATIONS/TOPP/CaapEval.C:114: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
-		//home/kate/OpenMS/source/APPLICATIONS/TOPP/CaapEval.C:120: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
+		//fehler: /home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C: In member function ‘virtual OpenMS::TOPPBase::ExitCodes TOPPMapAlignmentEvaluation::main_(int, const char**)’:
+		//home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C:114: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
+		//home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C:120: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
 
 		//-------------------------------------------------------------
 		// set up algorithm
 		//-------------------------------------------------------------
-		CaapEvalAlgorithm* algorithm = Factory<CaapEvalAlgorithm>::create(type);
+		MapAlignmentEvaluationAlgorithm* algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
 
 		
 		//-------------------------------------------------------------
@@ -167,7 +166,7 @@ protected:
 
 int main( int argc, const char** argv )
 {
-  TOPPCaapEval tool;
+  TOPPMapAlignmentEvaluation tool;
   return tool.main(argc,argv);
 }
 

@@ -6,9 +6,6 @@ set(sources_list
 BaseGroupFinder.C
 BaseSuperimposer.C
 DelaunayPairFinder.C
-CaapEvalAlgorithm.C
-CaapEvalAlgorithmPrecision.C
-CaapEvalAlgorithmRecall.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmLabeled.C
 FeatureGroupingAlgorithmUnlabeled.C
@@ -17,6 +14,9 @@ MapAlignmentAlgorithm.C
 MapAlignmentAlgorithmPoseClustering.C
 MapAlignmentAlgorithmSpectrumAlignment.C
 MapAlignmentAlgorithmApplyGivenTrafo.C
+MapAlignmentEvaluationAlgorithm.C
+MapAlignmentEvaluationAlgorithmPrecision.C
+MapAlignmentEvaluationAlgorithmRecall.C
 PoseClusteringAffineSuperimposer.C
 PoseClusteringShiftSuperimposer.C
 SimplePairFinder.C

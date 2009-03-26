@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmRecall.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 //#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 #include <vector>
@@ -34,17 +34,17 @@ namespace OpenMS
 {
 
 
-	CaapEvalAlgorithmRecall::CaapEvalAlgorithmRecall()
-		: CaapEvalAlgorithm()
+	MapAlignmentEvaluationAlgorithmRecall::MapAlignmentEvaluationAlgorithmRecall()
+		: MapAlignmentEvaluationAlgorithm()
 	{
-		setName("CaapEvalAlgorithmRecall");
+		setName("MapAlignmentEvaluationAlgorithmRecall");
 	}
 
-	CaapEvalAlgorithmRecall::~CaapEvalAlgorithmRecall()
+	MapAlignmentEvaluationAlgorithmRecall::~MapAlignmentEvaluationAlgorithmRecall()
 	{
 	}
 
-	void CaapEvalAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
 	{
 		//Recall = 1/N * sum( gt_subtend_tilde_tool_i / ( m_i * gt_i ) )
 

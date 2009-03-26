@@ -25,23 +25,23 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 
 // Derived classes are included here
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmPrecision.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmRecall.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
 namespace OpenMS
 {
 	//register products here
-	void CaapEvalAlgorithm::registerChildren()
+	void MapAlignmentEvaluationAlgorithm::registerChildren()
 	{
-		Factory<CaapEvalAlgorithm>::registerProduct ( CaapEvalAlgorithmPrecision::getProductName(), &CaapEvalAlgorithmPrecision::create );
-		Factory<CaapEvalAlgorithm>::registerProduct ( CaapEvalAlgorithmRecall::getProductName(), &CaapEvalAlgorithmRecall::create );
+		Factory<MapAlignmentEvaluationAlgorithm>::registerProduct ( MapAlignmentEvaluationAlgorithmPrecision::getProductName(), &MapAlignmentEvaluationAlgorithmPrecision::create );
+		Factory<MapAlignmentEvaluationAlgorithm>::registerProduct ( MapAlignmentEvaluationAlgorithmRecall::getProductName(), &MapAlignmentEvaluationAlgorithmRecall::create );
 	}
 
 	// TODO consider using (RT,MZ,IT) as a unique identifier ?
-	bool CaapEvalAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs) //const		//geht nicht: fehler:/home/bude/albers/RAID/cmakeOpenMS/source/ANALYSIS/MAPMATCHING/CaapEvalAlgorithm.C:46: error: non-member function 'bool OpenMS::isSameHandle(const OpenMS::FeatureHandle&, const OpenMS::FeatureHandle&)' cannot have cv-qualifier
+	bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs) //const		//geht nicht: fehler:/home/bude/albers/RAID/cmakeOpenMS/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.C:46: error: non-member function 'bool OpenMS::isSameHandle(const OpenMS::FeatureHandle&, const OpenMS::FeatureHandle&)' cannot have cv-qualifier
 	{
 #if 1
 		// use (RT,MZ,IT) as "unique" identifier 
@@ -55,12 +55,12 @@ namespace OpenMS
 #endif
 }
 
-	CaapEvalAlgorithm::CaapEvalAlgorithm()
-		: FactoryProduct("CaapEvalAlgorithm")
+	MapAlignmentEvaluationAlgorithm::MapAlignmentEvaluationAlgorithm()
+		: FactoryProduct("MapAlignmentEvaluationAlgorithm")
 	{
 	}
 
-	CaapEvalAlgorithm::~CaapEvalAlgorithm()
+	MapAlignmentEvaluationAlgorithm::~MapAlignmentEvaluationAlgorithm()
 	{
 	}
 

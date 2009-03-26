@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,59 +28,62 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/CaapEvalAlgorithmPrecision.h>
-
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 ///////////////////////////
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
 using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+	class CEA
+	 : public MapAlignmentEvaluationAlgorithm
+	{
+		public:
+			void evaluate(const ConsensusMap&, const ConsensusMap&, DoubleReal& real)
+			{
+				real = 1.5;
+			}
+	};
+}
 
-START_TEST(CaapEvalAlgorithmPrecision, "$Id CaapEvalAlgorithmPrecision_test.C 139 2006-07-14 10:08:39Z ole_st $")
+START_TEST(MapAlignmentEvaluation, "$Id MapAlignmentEvaluationAlgorithm_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CaapEvalAlgorithmPrecision* ptr = 0;
-START_SECTION((CaapEvalAlgorithmPrecision()))
-	ptr = new CaapEvalAlgorithmPrecision();
+CEA* ptr = 0;
+START_SECTION((MapAlignmentEvaluationAlgorithm()))
+	ptr = new CEA();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((virtual ~CaapEvalAlgorithmPrecision()))
+START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static CaapEvalAlgorithmPrecision* create()))
-	CaapEvalAlgorithm* ptr2 = 0;
-	ptr2 = CaapEvalAlgorithmPrecision::create();
-	TEST_NOT_EQUAL(ptr2, 0)
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, DoubleReal& realin)=0))
+	CEA cea;
+	ConsensusMap map1;
+	ConsensusMap map2;
+	DoubleReal real;
+	cea.evaluate(map1, map2, real);
+	TEST_EQUAL(real, 1.5)
 END_SECTION
 
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(CaapEvalAlgorithmPrecision::getProductName(),"precision")
-END_SECTION
+//isSameHandle testen!?
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, DoubleReal& out)))
-	CaapEvalAlgorithmPrecision cae;
-	ConsensusMap in;
-	ConsensusMap gt;
-	DoubleReal out; 
-	
-	ConsensusXMLFile consensus_xml_file_in;
-	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_in.consensusXML"), in );
-		
-	ConsensusXMLFile consensus_xml_file_gt;
-	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("CaapEvalAlgorithm_gt.consensusXML"), gt );
-	
-	cae.evaluate(in, gt, out);
-
-	TEST_REAL_SIMILAR(out, 0.757143)
+START_SECTION((static void registerChildren()))
+{
+	TEST_STRING_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts()[0],MapAlignmentEvaluationAlgorithmPrecision::getProductName());
+	TEST_STRING_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts()[1],MapAlignmentEvaluationAlgorithmRecall::getProductName());
+	TEST_EQUAL(Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts().size(),2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
