@@ -1332,7 +1332,7 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setChecksum(value, SourceFile::MD5);
 				}
-				else if (cv_.isChildOf(accession,"MS:1000560")) //file type as string
+				else if (cv_.isChildOf(accession,"MS:1000560")) //source file type as string
 				{
 					source_files_[current_id_].setFileType(cv_.getTerm(accession).name);
 				}
@@ -3563,7 +3563,7 @@ namespace OpenMS
 					for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" />\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
 					os	<< "						<binary>" << encoded_string << "</binary>\n";

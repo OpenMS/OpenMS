@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.18.1
-remark: release date: 2009-03-10
+remark: version: 1.18.2
+remark: release date: 2009-03-25
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -3371,6 +3371,8 @@ id: MS:1000515
 name: intensity array
 def: "A data array of intensity values." [PSI:MS]
 is_a: MS:1000513 ! binary data array
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000814 ! counts per second
 
 [Term]
 id: MS:1000516
@@ -3438,8 +3440,8 @@ relationship: part_of MS:1000442 ! spectrum
 
 [Term]
 id: MS:1000526
-name: Waters DAT file
-def: "Waters DAT file format, storing a single function recorded by the instrument in a Waters RAW directory." [PSI:MS]
+name: Waters raw file
+def: "Waters data file found in a Waters RAW directory, generated from an MS acquisition." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
