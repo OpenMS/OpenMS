@@ -590,7 +590,10 @@ namespace OpenMS
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
-		IsotopeWavelet::init (max_mz, max_charge);				
+		if (max_scan_size <= 0) //only important for the CPU
+		{
+			IsotopeWavelet::init (max_mz, max_charge);			
+		};
 
 		av_MZ_spacing_=1;
 		max_mz_cutoff_ =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(max_mz, max_charge);
