@@ -67,7 +67,7 @@ namespace OpenMS
 		}
 
 		//check if tool is in official tools list
-		if (official && !getToolList().contains(tool_name_))
+		if (official && !getToolList().has(tool_name_))
 		{
 			writeLog_(String("Error: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
