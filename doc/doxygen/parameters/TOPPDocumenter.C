@@ -37,30 +37,30 @@ using namespace OpenMS;
 int main (int , char** )
 {	
 	//TOPP tools
-	StringList tools = TOPPBase::getToolList();
-	for (Size i=0; i<tools.size(); ++i)
+	map<String,StringList> topp_tools = TOPPBase::getToolList();
+	for (map<String,StringList>::const_iterator it=topp_tools.begin(); it!=topp_tools.end(); ++it)
 	{
 		//start process
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
-		process.start((tools[i] + " --help").toQString());
+		process.start((it->first + " --help").toQString());
 		process.waitForFinished();
 		//write output
-		ofstream f((String("output/TOPP_") + tools[i] + ".cli").c_str());
+		ofstream f((String("output/TOPP_") + it->first + ".cli").c_str());
 		f << QString(process.readAllStandardOutput()).toStdString();
 	}
 	
 	//UTILS
-	tools = StringList::create("DecoyDatabase,CaapEval,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation");
-	for (Size i=0; i<tools.size(); ++i)
+	StringList utils_tools = StringList::create("DecoyDatabase,CaapEval,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation");
+	for (Size i=0; i<utils_tools.size(); ++i)
 	{
 		//start process
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
-		process.start((tools[i] + " --help").toQString());
+		process.start((utils_tools[i] + " --help").toQString());
 		process.waitForFinished();
 		//write output
-		ofstream f((String("output/UTILS_") + tools[i] + ".cli").c_str());
+		ofstream f((String("output/UTILS_") + utils_tools[i] + ".cli").c_str());
 		f << QString(process.readAllStandardOutput()).toStdString();
 	}
 	
