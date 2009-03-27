@@ -1636,22 +1636,23 @@ namespace OpenMS
 					  index  = (index_tic_vec.end()-1-s)->first; 
 						// now pick this spectrum with the different peak widths
 						MSExperiment<> exp;
-						// 				gsl_matrix *X2;
-						// 				std::vector<DoubleReal> fwhms;
 						for(Size w = 0; w < widths.size(); ++w)
 							{
 								MSSpectrum<> spec;
 								param_.setValue("peak_width",widths[w]);
 								fwhm_bound_ = widths[w] *(DoubleReal) param_.getValue("fwhm_bound_factor");
+#ifdef DEBUG_PEAK_PICKING
 								std::cout << "peak_width "<<param_.getValue("peak_width")<<"\tfwhm_bound_ "<<fwhm_bound_<<"\t";
+#endif
 								pick(input[index],spec);
+#ifdef DEBUG_PEAK_PICKING
 								DoubleReal fwhm = 0.;
 								for(Size p = 0; p < spec.size();++p)
 									{
 										fwhm += spec.getMetaDataArrays()[2][p];
 									}
 								fwhm /= (DoubleReal) spec.size();
-#ifdef DEBUG_PEAK_PICKING
+
 								std::cout << spec.size() << "\t"<<fwhm<<std::endl;
 #endif
 								exp.push_back(spec);
@@ -1662,7 +1663,9 @@ namespace OpenMS
 						DoubleReal m_max = 0.;
 						for(Size i = 0; i < exp.size()-1; ++i)
 							{
+#ifdef DEBUG_PEAK_PICKING
 								std::cout << ((SignedSize)exp[i].size()-(SignedSize)exp[i+1].size()) << "/"<<(widths[i]-widths[i+1])<<"\t";
+#endif
 								DoubleReal m = (DoubleReal)((SignedSize)exp[i].size()-(SignedSize)exp[i+1].size())/(widths[i]-widths[i+1]);
 								slopes.push_back(m);
 								if(fabs(m) > m_max) m_max = fabs(m);
@@ -1670,7 +1673,7 @@ namespace OpenMS
 								std::cout << (widths[i]+widths[i+1])/2 << "\t"<< m << std::endl;
 #endif
 							}
-						// determine point where slope is decreasing again
+						// determine point where slope is decreasing again, there the plateau should begin
 						bool max_found = false;
 						for(Size s = 0; s < slopes.size(); ++s)
 							{
@@ -1680,12 +1683,15 @@ namespace OpenMS
 								if(fabs(fabs(slopes[s])- m_max) < 0.01) max_found = true;
 								if(max_found && fabs(slopes[s]/m_max) <= 0.75)
 									{
+#ifdef DEBUG_PEAK_PICKING
 										std::cout << "peak_width = "<< (widths[s]+widths[s+1])/2 <<std::endl;
+#endif
 										estimated_widths.push_back((widths[s]+widths[s+1])/2);
 										break;
 									}
 							}
 					}
+				// average width over the three tested spectra
 				DoubleReal avg_width = 0.;
 				if(estimated_widths.size() == 0)
 					{

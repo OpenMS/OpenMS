@@ -97,6 +97,12 @@ namespace OpenMS
 		/**
 			 @brief Estimates average peak width that can then be used for peak picking.
 
+			 The spectra with the highest TICs are used to estimate an average peak width that
+			 can be used as the peak_width parameter for picking the complete data set.
+			 Typically, the number of peaks increases with decreasing peak width until a plateau
+			 is reached. The beginning of this plateau is our estimate for the peak width.
+			 This estimate is averaged over several spectra.
+
 		 */
 		DoubleReal estimatePeakWidth(const MSExperiment<>& input);
 	 protected:
@@ -173,6 +179,9 @@ namespace OpenMS
       DPosition<1> centroid_position;
     };
 
+		/**
+			@brief Class for comparison of SpectrumIndex-TIC-Pair needed for peak width estimation.
+    */
 		class OPENMS_DLLAPI TICLess_
 			{
 			  public:
