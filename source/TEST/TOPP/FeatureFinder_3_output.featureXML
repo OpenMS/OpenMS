@@ -80,34 +80,34 @@
 			</convexhull>
 		</feature>
 		<feature id="f_1">
-			<position dim="0">1244.75047800784</position>
-			<position dim="1">690.047817982897</position>
-			<intensity>2.32478e+06</intensity>
-			<quality dim="0">0.993496184462683</quality>
-			<quality dim="1">0.941780540050599</quality>
-			<overallquality>0.964290809017502</overallquality>
+			<position dim="0">1244.81231128703</position>
+			<position dim="1">690.057207186661</position>
+			<intensity>2.29875e+06</intensity>
+			<quality dim="0">0.993511492826044</quality>
+			<quality dim="1">0.94246741431442</quality>
+			<overallquality>0.962238679670566</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="cutoff" value="3378.68985015154"/>
+				<param name="cutoff" value="3378.6898222075"/>
 				<param name="RT" value="EmgModel"/>
 				<param name="MZ" value="IsotopeModel"/>
-				<param name="intensity_scaling" value="0.198684692382812"/>
+				<param name="intensity_scaling" value="0.204663962125778"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
-				<param name="RT:bounding_box:min" value="1212.36954317873"/>
-				<param name="RT:bounding_box:max" value="1282.41045682127"/>
-				<param name="RT:statistics:variance" value="9.5696532012764"/>
-				<param name="RT:statistics:mean" value="1244.75047800784"/>
-				<param name="RT:emg:height" value="653084.211488119"/>
-				<param name="RT:emg:width" value="0.86563830254745"/>
-				<param name="RT:emg:symmetry" value="0.719348371647211"/>
-				<param name="RT:emg:retention" value="1245.23927809998"/>
+				<param name="RT:bounding_box:min" value="1212.34349853327"/>
+				<param name="RT:bounding_box:max" value="1282.43650146673"/>
+				<param name="RT:statistics:variance" value="9.62344106113606"/>
+				<param name="RT:statistics:mean" value="1244.81231128703"/>
+				<param name="RT:emg:height" value="653215.290398031"/>
+				<param name="RT:emg:width" value="0.865726534952722"/>
+				<param name="RT:emg:symmetry" value="0.719762532457905"/>
+				<param name="RT:emg:retention" value="1245.23854642206"/>
 				<param name="MZ:charge" value="2"/>
 				<param name="MZ:cutoff" value="0"/>
 				<param name="MZ:interpolation_step" value="0.1"/>
 				<param name="MZ:intensity_scaling" value="1"/>
-				<param name="MZ:statistics:mean" value="690.457233174874"/>
+				<param name="MZ:statistics:mean" value="690.466622378638"/>
 				<param name="MZ:isotope:stdev" value="0.159999996423721"/>
 				<param name="MZ:isotope:maximum" value="4"/>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"/>
