@@ -46,6 +46,21 @@ namespace OpenMS
 			edge_being_created_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		if (vt == VT_TOOL)
+		{
+			pen_color_ = Qt::black;
+			brush_color_ = QColor(250,200,0);
+		}
+		else if (vt == VT_SOURCE)
+		{
+			pen_color_ = Qt::black;
+			brush_color_ = Qt::lightGray;
+		}
+		else if (vt == VT_TARGET)
+		{
+			pen_color_ = Qt::black;
+			brush_color_ = Qt::lightGray;
+		}
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -67,8 +82,8 @@ namespace OpenMS
 	{
 		QPainterPath path;
 		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
-		painter->setPen(QPen(QColor(0, 0, 0), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-		painter->setBrush(QColor(250,200,0));
+		painter->setPen(QPen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+		painter->setBrush(brush_color_);
  		painter->drawPath(path);
  		
 		if (type_ == "")
@@ -128,6 +143,12 @@ namespace OpenMS
 		}
 		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
 		{
+			if (vertex_type_ == VT_TARGET)
+			{
+				// cannot create outedge for output files
+				return;
+			}
+			
 			if (!edge_being_created_)
 			{
 				emit newHoveringEdge(e->pos());
@@ -146,6 +167,16 @@ namespace OpenMS
 	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesEnd()
 	{
 		return out_edges_.end();
+	}
+	
+		TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesBegin()
+	{
+		return in_edges_.begin();
+	}
+	
+	TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesEnd()
+	{
+		return in_edges_.end();
 	}
 
 }

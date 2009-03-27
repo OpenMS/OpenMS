@@ -64,18 +64,18 @@ namespace OpenMS
 			
 			/// Returns the name of the tool
 			const String& getName();
-			
 			/// Returns the bounding rectangle of this item
 			QRectF boundingRect() const;
-			
 			/// Paints the item
 			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-			
 			/// Returns begin() iterator of outgoing edges
 			EdgeIterator outEdgesBegin();
-			
 			/// Returns end() iterator of outgoing edges
 			EdgeIterator outEdgesEnd();
+			/// Returns begin() iterator of incoming edges
+			EdgeIterator inEdgesBegin();
+			/// Returns end() iterator of incoming edges
+			EdgeIterator inEdgesEnd();
 
 		signals:
 			
@@ -98,8 +98,14 @@ namespace OpenMS
 			VertexType vertex_type_;
 			/// The list of outgoing edges
 			EdgeContainer out_edges_;
+			/// The list of incoming edges
+			EdgeContainer in_edges_;
 			/// Indicates whether a new out edge is currently being created
 			bool edge_being_created_;
+			/// The color of the pen
+			QColor pen_color_;
+			/// The color of the brush
+			QColor brush_color_;
 			
 			///@name reimplemented Qt events
       //@{

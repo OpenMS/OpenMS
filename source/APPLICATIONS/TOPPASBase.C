@@ -151,8 +151,15 @@ namespace OpenMS
   	tools_tree_view_->setHeaderLabels(header_labels);
     topp_tools_bar->setWidget(tools_tree_view_);
     
+    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<< Input file >>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<< Output file >>");
+    tools_tree_view_->addTopLevelItem(item);
+    
+    
     Map<String,StringList> tools_list = TOPPBase::getToolList();
-    QTreeWidgetItem* item;
     QTreeWidgetItem* parent_item;
     for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
@@ -526,31 +533,45 @@ namespace OpenMS
 	
 	void TOPPASBase::insertNewVertex_(double x, double y)
 	{
-		String tool_name;
-		String tool_type;
 		QTreeWidgetItem* current_tool = tools_tree_view_->currentItem();
+		String tool_name = String(current_tool->text(0));
+		TOPPASVertex* tv = 0;
 		
-		if (current_tool->childCount() > 0)
+		if (tool_name == "<< Input file >>")
 		{
-			// tool has a type, but is selected itself (instead of type)
-			return;
+			tv = new TOPPASVertex(tool_name, String(""), TOPPASVertex::VT_SOURCE);
 		}
-		if (current_tool->parent() != 0)
+		else if (tool_name == "<< Output file >>")
 		{
-			// selected item is a type
-			tool_type = String(current_tool->text(1));
-			tool_name = String(current_tool->parent()->text(0));
+			tv = new TOPPASVertex(tool_name, String(""), TOPPASVertex::VT_TARGET);
 		}
-		else
-		{
-			// normal tool which does not have type selected
-			tool_name = String(current_tool->text(0));
-			tool_type = "";
+		else // node is a TOPP tool
+		{	
+			if (current_tool->childCount() > 0)
+			{
+				// tool has a type, but is selected itself (instead of type)
+				return;
+			}
+			String tool_type;
+			if (current_tool->parent() != 0)
+			{
+				// selected item is a type
+				tool_type = String(current_tool->text(1));
+				tool_name = String(current_tool->parent()->text(0));
+			}
+			else
+			{
+				// normal tool which does not have type selected
+				tool_name = String(current_tool->text(0));
+				tool_type = "";
+			}
+			
+			tv = new TOPPASVertex(tool_name, tool_type);
 		}
 		
-		TOPPASVertex* tv = new TOPPASVertex(tool_name, tool_type);
 		activeWindow_()->getScene()->addItem(tv);
 		tv->setPos(x,y);
+		
 		connect(tv,SIGNAL(clicked()),activeWindow_(),SLOT(itemClicked()));
 		connect(tv,SIGNAL(doubleClicked()),activeWindow_(),SLOT(itemDoubleClicked()));
 		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),activeWindow_(),SLOT(updateHoveringEdgePos(const QPointF&)));

@@ -48,7 +48,7 @@ namespace OpenMS
 		setRenderHint(QPainter::Antialiasing);
 		setScene(scene_);
 		setAcceptDrops(true);
-		setDragMode(QGraphicsView::RubberBandDrag);
+		setDragMode(QGraphicsView::ScrollHandDrag);
 	}
 	
 	TOPPASWidget::~TOPPASWidget()
@@ -99,6 +99,11 @@ namespace OpenMS
 			getScene()->setActionMode(TOPPASScene::AM_NEW_EDGE);
 			e->accept();
 		}
+		else if (e->key() == Qt::Key_Control)
+		{
+			setDragMode(QGraphicsView::RubberBandDrag);
+			e->accept();
+		}
 		//e->ignore(); how does this work again?
 	}
 	
@@ -107,6 +112,11 @@ namespace OpenMS
 		if (e->key() == Qt::Key_Shift)
 		{
 			getScene()->setActionMode(TOPPASScene::AM_MOVE);
+			e->accept();
+		}
+		else if (e->key() == Qt::Key_Control)
+		{
+			setDragMode(QGraphicsView::ScrollHandDrag);
 			e->accept();
 		}
 		//e->ignore(); how does this work again?
