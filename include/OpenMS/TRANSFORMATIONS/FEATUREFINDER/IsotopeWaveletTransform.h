@@ -1346,7 +1346,7 @@ namespace OpenMS
 
 		if (l_score <=0 || c_score-l_score-mid_val <= 0 || c_score-mid_val <= ampl_cutoff)
 		{
-			//std::cout << "final_score: " <<  seed_mz << "\t" << "0" << std::endl;
+			//std::cout << "final_score: " <<  seed_mz << "\t" << "\t" << l_score << "\t" << mid_val << "\t" << c_score-mid_val-l_score << std::endl;
 			return(0);
 		};
 

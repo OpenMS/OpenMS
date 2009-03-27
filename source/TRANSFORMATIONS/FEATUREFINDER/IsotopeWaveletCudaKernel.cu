@@ -1030,22 +1030,27 @@ namespace OpenMS
 		{
 			l_score=0; mid_val=0;
 			int minus = -1; int i;
-			for (i=0; i<(int)ceil(optimal_block_dim/2.); ++i)
+			for (i=0; i<(int)floor(optimal_block_dim/2.); ++i)
 			{
 				if (c_scores[i] != INT_MIN)
 				{
+					//if (trunc(seed_mz*100) == 80442) printf("l: %f\n", c_scores[i]); 
+					
 					l_score += minus*c_scores[i];
 				};
 				minus *=-1;
 			};
 			mid_val = c_scores[i];
+			//if (trunc(seed_mz*100) == 80442) printf("m: %f\n", c_scores[i]);
 		};
 		if(v==1)
 		{
 			r_score=0;
 			int minus = -1;
-			for (int i=(int)ceil(optimal_block_dim/2.); i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
+			for (int i=(int)floor(optimal_block_dim/2.)+1; i<optimal_block_dim && c_scores[i] != INT_MIN; ++i)
 			{
+				//if (trunc(seed_mz*100) == 80442) printf("r: %f\n", c_scores[i]);
+
 				r_score += minus*c_scores[i];
 				minus *=-1;
 			};
@@ -1055,13 +1060,15 @@ namespace OpenMS
 
 		if(v==0)
 		{
-			float final_score = l_score + r_score;
-			if (!(l_score <=0 || final_score-l_score-mid_val <= 0 || final_score-mid_val <= ampl_cutoff))
+			if (!(l_score <=0 || r_score <= 0 || l_score + r_score <= ampl_cutoff))
 			{
-				scores[blockIdx.x+write_offset] = final_score;	
+				scores[blockIdx.x+write_offset] = l_score + r_score + mid_val;	
 			};
 			//printf ("blockid: %i\t%i\n", blockIdx.x, write_offset);
-			//printf("final_score: %f\t\t%f\n", seed_mz, final_score);
+			/*if (trunc(seed_mz*100) == 80442) 
+			{
+				printf("final_score: %f\t\t%f\t%f\t%f\n", seed_mz,  l_score, mid_val, r_score);
+			};*/
 		};
 	};
 
