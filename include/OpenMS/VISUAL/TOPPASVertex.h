@@ -66,6 +66,8 @@ namespace OpenMS
 			const String& getName();
 			/// Returns the bounding rectangle of this item
 			QRectF boundingRect() const;
+			/// Returns a more precise shape
+			QPainterPath shape () const;
 			/// Paints the item
 			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			/// Returns begin() iterator of outgoing edges

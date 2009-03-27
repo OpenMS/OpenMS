@@ -26,13 +26,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 
 namespace OpenMS
 {
 	
 	TOPPASScene::TOPPASScene()
 		:	QGraphicsScene(),
-			action_mode_(AM_MOVE)
+			action_mode_(AM_MOVE),
+			vertices_(),
+			edges_(),
+			hover_edge_(0)
 	{
 	}
 	
@@ -50,6 +55,83 @@ namespace OpenMS
 	{
 		return action_mode_;
 	}
-
+	
+	TOPPASScene::VertexIterator TOPPASScene::verticesBegin()
+	{
+		return vertices_.begin();
+	}
+	
+	TOPPASScene::VertexIterator TOPPASScene::verticesEnd()
+	{
+		return vertices_.end();
+	}
+	
+	TOPPASScene::EdgeIterator TOPPASScene::edgesBegin()
+	{
+		return edges_.begin();
+	}
+	
+	TOPPASScene::EdgeIterator TOPPASScene::edgesEnd()
+	{
+		return edges_.end();
+	}
+	
+	void TOPPASScene::addVertex(TOPPASVertex* tv)
+	{
+		vertices_.push_back(tv);
+		addItem(tv);
+	}
+	
+	void TOPPASScene::addEdge(TOPPASEdge* te)
+	{
+		edges_.push_back(te);
+		addItem(te);
+	}
+	
+	void TOPPASScene::itemClicked()
+	{
+		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
+		if (!sender)
+		{
+			return;
+		}
+		if (getActionMode() == AM_MOVE)
+		{
+			std::cout << "AM_MOVE" << std::endl;
+		}
+		else if (getActionMode() == AM_NEW_EDGE)
+		{
+			std::cout << "AM_NEW_EDGE" << std::endl;
+		}
+		
+	}
+	
+	void TOPPASScene::itemDoubleClicked()
+	{
+		std::cout << "double click!" << std::endl;
+	}
+	
+	void TOPPASScene::updateHoveringEdgePos(const QPointF& new_pos)
+	{
+		if (!hover_edge_)
+		{
+			return;
+		}
+		
+		hover_edge_->setPos(new_pos);
+	}
+	
+	void TOPPASScene::addHoveringEdge(const QPointF& pos)
+	{
+		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
+		if (!sender)
+		{
+			return;
+		}
+		TOPPASEdge* new_edge = new TOPPASEdge(sender, pos);
+		hover_edge_ = new_edge;
+		addEdge(new_edge);
+	}
+	
 } //namespace OpenMS
 

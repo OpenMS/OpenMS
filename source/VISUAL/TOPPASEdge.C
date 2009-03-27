@@ -27,15 +27,19 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
+
 namespace OpenMS
 {	
 	
-	TOPPASEdge::TOPPASEdge(TOPPASVertex* from, TOPPASVertex* to)
+	TOPPASEdge::TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos)
 		:	QGraphicsItem(),
 			from_(from),
-			to_(to)
+			to_(0),
+			hover_pos_(hover_pos)
 	{
-		// ...
+		
 	}
 	
 	TOPPASEdge::~TOPPASEdge()
@@ -45,12 +49,60 @@ namespace OpenMS
 	
 	QRectF TOPPASEdge::boundingRect() const
 	{
-		return QRectF(/*...*/);
+		qreal min_x = startPos().x() < endPos().x() ? startPos().x() : endPos().x();
+		qreal min_y = startPos().y() < endPos().y() ? startPos().y() : endPos().y();
+		qreal max_x = startPos().x() > endPos().x() ? startPos().x() : endPos().x();
+		qreal max_y = startPos().y() > endPos().y() ? startPos().y() : endPos().y();
+		
+		return QRectF(QPointF(min_x,min_y), QPointF(max_x,max_y));
 	}
 	
-	void TOPPASEdge::paint(QPainter* /*painter*/, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+	QPainterPath TOPPASEdge::shape () const
 	{
+		// this should be slightly more precise..
+		QPainterPath shape;
+		shape.addRect(boundingRect());
+		
+		return shape;
+	}
 	
+	void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+	{
+		painter->drawLine(startPos(),endPos());
+	}
+	
+	QPointF TOPPASEdge::startPos() const
+	{
+		QPointF position = mapFromScene(from_->scenePos());
+		
+		return position;
+	}
+	
+	QPointF TOPPASEdge::endPos() const
+	{
+		QPointF position;
+		
+		if (!to_)
+		{
+			// we do not have a target vertex yet
+			position = mapFromScene(hover_pos_);
+		}
+		else
+		{
+			position = mapFromScene(to_->scenePos());
+		}
+		
+		return position;
+	}
+	
+	void TOPPASEdge::setHoverPos(const QPointF& pos)
+	{
+		hover_pos_ = pos;
+	}
+	
+	void TOPPASEdge::setTargetVertex(TOPPASVertex* tv)
+	{
+		to_ = tv;
 	}
 	
 } //namespace

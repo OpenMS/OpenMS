@@ -78,6 +78,14 @@ namespace OpenMS
 		return QRectF(-70,-40,140,80);
 	}
 	
+	QPainterPath TOPPASVertex::shape () const
+	{
+		QPainterPath shape;
+		shape.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);
+		
+		return shape;
+	}
+	
 	void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
 		QPainterPath path;
@@ -135,10 +143,13 @@ namespace OpenMS
 			QPointF delta = e->pos() - e->lastPos();
 			moveBy(delta.x(), delta.y());
 			
-			if (!ts->collidingItems(this).empty())
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
-				// we collide with other items --> move back to old position
-				moveBy(-delta.x(), -delta.y());
+				(*it)->update();
+			}
+			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+			{
+				(*it)->update();
 			}
 		}
 		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
@@ -151,11 +162,11 @@ namespace OpenMS
 			
 			if (!edge_being_created_)
 			{
-				emit newHoveringEdge(e->pos());
+				emit newHoveringEdge(e->scenePos());
 				edge_being_created_ = true;
 			}
 			
-			emit hoveringEdgePosChanged(e->pos());
+			emit hoveringEdgePosChanged(e->scenePos());
 		}
 	}
 	

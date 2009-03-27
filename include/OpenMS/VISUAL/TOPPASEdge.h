@@ -43,23 +43,34 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASEdge(TOPPASVertex* from, TOPPASVertex* to);
+			TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos);
 			
 			/// Destructor
 			virtual ~TOPPASEdge();
 			
 			/// Returns the bounding rectangle of this item
 			QRectF boundingRect() const;
-			
+			/// Returns a more precise shape
+			QPainterPath shape () const;
 			/// Paints the item
 			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-		
+			/// Returns the start position of this edge
+			QPointF startPos() const;
+			/// Returns the end position of this edge
+			QPointF endPos() const;
+			/// Sets the position of the hovering end while edge is being created
+			void setHoverPos(const QPointF& pos);
+			/// Sets the target vertex of this edge
+			void setTargetVertex(TOPPASVertex* tv);
+			
 		protected:
 		
 			/// Pointer to the source of this edge
 			TOPPASVertex* from_;
 			/// Pointer to the target of this edge
 			TOPPASVertex* to_;
+			/// Position of hovering end while edge is being created
+			QPointF hover_pos_;
 	};
 }
 

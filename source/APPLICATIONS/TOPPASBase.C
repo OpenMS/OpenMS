@@ -569,13 +569,13 @@ namespace OpenMS
 			tv = new TOPPASVertex(tool_name, tool_type);
 		}
 		
-		activeWindow_()->getScene()->addItem(tv);
 		tv->setPos(x,y);
+		activeWindow_()->getScene()->addVertex(tv);
 		
-		connect(tv,SIGNAL(clicked()),activeWindow_(),SLOT(itemClicked()));
-		connect(tv,SIGNAL(doubleClicked()),activeWindow_(),SLOT(itemDoubleClicked()));
-		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),activeWindow_(),SLOT(updateHoveringEdgePos(const QPointF&)));
-		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),activeWindow_(),SLOT(addHoveringEdge(const QPointF&)));
+		connect(tv,SIGNAL(clicked()),activeWindow_()->getScene(),SLOT(itemClicked()));
+		connect(tv,SIGNAL(doubleClicked()),activeWindow_()->getScene(),SLOT(itemDoubleClicked()));
+		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),activeWindow_()->getScene(),SLOT(updateHoveringEdgePos(const QPointF&)));
+		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),activeWindow_()->getScene(),SLOT(addHoveringEdge(const QPointF&)));
 	}
 
 } //namespace OpenMS

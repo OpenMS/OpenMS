@@ -28,6 +28,7 @@
 // OpenMS
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 
 
 // Qt
@@ -120,39 +121,6 @@ namespace OpenMS
 			e->accept();
 		}
 		//e->ignore(); how does this work again?
-	}
-	
-	void TOPPASWidget::itemClicked()
-	{
-		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
-		if (sender == 0)
-		{
-			return;
-		}
-		if (getScene()->getActionMode() == TOPPASScene::AM_MOVE)
-		{
-			std::cout << "AM_MOVE" << std::endl;
-		}
-		else if (getScene()->getActionMode() == TOPPASScene::AM_NEW_EDGE)
-		{
-			std::cout << "AM_NEW_EDGE" << std::endl;
-		}
-		
-	}
-	
-	void TOPPASWidget::itemDoubleClicked()
-	{
-		std::cout << "double click!" << std::endl;
-	}
-	
-	void TOPPASWidget::updateHoveringEdgePos(const QPointF& /*new_pos*/)
-	{
-		puts("yeyaah");
-	}
-	
-	void TOPPASWidget::addHoveringEdge(const QPointF& /*pos*/)
-	{
-		puts("add new edge");
 	}
 
 } //Namespace

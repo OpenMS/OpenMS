@@ -55,19 +55,8 @@ namespace OpenMS
       /// Widget id used as identifier
 			Int window_id;
 			
-			/// Returns the scene TODO (public..)
+			/// Returns the scene
 			TOPPASScene* getScene();
-		
-		public slots:
-		
-			/// Called when an item is clicked
-			void itemClicked();
-			/// Called when an item is double-clicked
-			void itemDoubleClicked();
-			/// Called when the position of the hovering edge changes
-			void updateHoveringEdgePos(const QPointF& new_pos);
-			/// Called when a new out edge is supposed to be created
-			void addHoveringEdge(const QPointF& pos);
 		
 		signals:
 		
