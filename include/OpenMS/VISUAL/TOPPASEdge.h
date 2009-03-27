@@ -35,8 +35,11 @@
 namespace OpenMS
 {
 	class OPENMS_DLLAPI TOPPASEdge
-		: public QGraphicsItem
-	{		
+		: public QObject,
+			public QGraphicsItem
+	{
+		Q_OBJECT
+		
 		public:
 			
 			/// Constructor

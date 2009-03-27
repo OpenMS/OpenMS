@@ -52,17 +52,22 @@ namespace OpenMS
       /// Destructor
       virtual ~TOPPASWidget();
       
-      enum ActionMode
-      {
-      	AM_NEW_EDGE,
-      	AM_MOVE
-      };
-      
       /// Widget id used as identifier
 			Int window_id;
 			
 			/// Returns the scene TODO (public..)
 			TOPPASScene* getScene();
+		
+		public slots:
+		
+			/// Called when an item is clicked
+			void itemClicked();
+			/// Called when an item is double-clicked
+			void itemDoubleClicked();
+			/// Called when the position of the hovering edge changes
+			void updateHoveringEdgePos(const QPointF& new_pos);
+			/// Called when a new out edge is supposed to be created
+			void addHoveringEdge(const QPointF& pos);
 		
 		signals:
 		
@@ -83,6 +88,13 @@ namespace OpenMS
 			void dragEnterEvent(QDragEnterEvent* event);
 			void dragMoveEvent(QDragMoveEvent* event);
 			void dropEvent(QDropEvent* event);
+			
+			///@name reimplemented QT events
+			//@{
+			void wheelEvent(QWheelEvent* event);
+			void keyPressEvent(QKeyEvent* e);
+			void keyReleaseEvent(QKeyEvent* e);
+			//@}
   };
 }
 

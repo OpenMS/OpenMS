@@ -27,9 +27,12 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 // Qt
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QGraphicsSceneMouseEvent>
 
 namespace OpenMS
@@ -38,7 +41,9 @@ namespace OpenMS
 		: QGraphicsItem(),
 			name_(name),
 			type_(type),
-			vertex_type_(vt)
+			vertex_type_(vt),
+			out_edges_(),
+			edge_being_created_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -60,7 +65,12 @@ namespace OpenMS
 	
 	void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
-		painter->drawRoundRect(-70,-40,140,80);
+		QPainterPath path;
+		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
+		painter->setPen(QPen(QColor(0, 0, 0), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+		painter->setBrush(QColor(250,200,0));
+ 		painter->drawPath(path);
+ 		
 		if (type_ == "")
 		{
 			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
@@ -73,18 +83,69 @@ namespace OpenMS
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
 			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.5), type_.toQString());
 		}
+		
+		if (isSelected())
+		{
+			// draw selection rectangle
+		}
 	}
 	
-	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
+	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		last_mouse_pos_ = e->pos();
+		emit clicked();
+	}
+	
+	void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		if (edge_being_created_)
+		{
+			// TODO construct new edge if pos of new edge on other node
+		}
+		
+		edge_being_created_ = false;
+	}
+	
+	void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		emit doubleClicked();
 	}
 	
 	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 	{
-		QPointF delta = e->pos() - last_mouse_pos_;
-		moveBy(delta.x(), delta.y());
-		last_mouse_pos_ = e->pos();
+		TOPPASScene* ts = static_cast<TOPPASScene*>(scene());
+		TOPPASScene::ActionMode action_mode = ts->getActionMode();
+		
+		if (action_mode == TOPPASScene::AM_MOVE)
+		{
+			QPointF delta = e->pos() - e->lastPos();
+			moveBy(delta.x(), delta.y());
+			
+			if (!ts->collidingItems(this).empty())
+			{
+				// we collide with other items --> move back to old position
+				moveBy(-delta.x(), -delta.y());
+			}
+		}
+		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
+		{
+			if (!edge_being_created_)
+			{
+				emit newHoveringEdge(e->pos());
+				edge_being_created_ = true;
+			}
+			
+			emit hoveringEdgePosChanged(e->pos());
+		}
+	}
+	
+	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesBegin()
+	{
+		return out_edges_.begin();
+	}
+	
+	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesEnd()
+	{
+		return out_edges_.end();
 	}
 
 }

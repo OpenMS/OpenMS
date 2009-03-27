@@ -30,9 +30,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h> 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 //Qt
@@ -154,52 +151,21 @@ namespace OpenMS
   	tools_tree_view_->setHeaderLabels(header_labels);
     topp_tools_bar->setWidget(tools_tree_view_);
     
-    StringList tools_list = TOPPBase::getToolList();
-    sort(tools_list.begin(), tools_list.end());
+    Map<String,StringList> tools_list = TOPPBase::getToolList();
     QTreeWidgetItem* item;
     QTreeWidgetItem* parent_item;
-    for (StringList::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
     	item = new QTreeWidgetItem((QTreeWidget*)0);
-    	item->setText(0, it->toQString());
+    	item->setText(0, it->first.toQString());
     	tools_tree_view_->addTopLevelItem(item);
    		parent_item = item;
-
-    	if (*it == "NoiseFilter")
-    	{
-    		item = new QTreeWidgetItem(parent_item);
-    		item->setText(1, "sgolay");
-    		
-    		item = new QTreeWidgetItem(parent_item);
-    		item->setText(1, "gaussian");
-    	}
-    	else if (*it == "FeatureFinder")
-			{
-				std::vector<String> type_list = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
-				for (Size i=0; i<type_list.size(); ++i)
-				{
-					item = new QTreeWidgetItem(parent_item);
-					item->setText(1, type_list[i].toQString());
-				}
-			}
-			else if (*it == "SpectraFilter")
-			{
-				std::vector<String> type_list = Factory<PreprocessingFunctor>::registeredProducts();
-				for (Size i=0; i<type_list.size(); ++i)
-				{
-					item = new QTreeWidgetItem(parent_item);
-					item->setText(1, type_list[i].toQString());		
-				}
-			}
-			else if (*it == "FeatureLinker")
-			{
-				std::vector<String> type_list = Factory<FeatureGroupingAlgorithm>::registeredProducts();
-				for (Size i=0; i<type_list.size(); ++i)
-				{
-					item = new QTreeWidgetItem(parent_item);
-					item->setText(1, type_list[i].toQString());		
-				}
-			}
+   		StringList types = it->second;
+   		for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
+   		{
+   			item = new QTreeWidgetItem(parent_item);
+   			item->setText(1, types_it->toQString());
+   		}
     }
     tools_tree_view_->setDragEnabled(true);
     
@@ -585,6 +551,10 @@ namespace OpenMS
 		TOPPASVertex* tv = new TOPPASVertex(tool_name, tool_type);
 		activeWindow_()->getScene()->addItem(tv);
 		tv->setPos(x,y);
+		connect(tv,SIGNAL(clicked()),activeWindow_(),SLOT(itemClicked()));
+		connect(tv,SIGNAL(doubleClicked()),activeWindow_(),SLOT(itemDoubleClicked()));
+		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),activeWindow_(),SLOT(updateHoveringEdgePos(const QPointF&)));
+		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),activeWindow_(),SLOT(addHoveringEdge(const QPointF&)));
 	}
 
 } //namespace OpenMS

@@ -61,23 +61,89 @@ namespace OpenMS
 		return scene_;
 	}
 	
+	void TOPPASWidget::wheelEvent(QWheelEvent* event)
+	{
+		qreal factor = 1.2;
+		if (event->delta() < 0)
+		{
+			factor = 1.0 / factor;
+		}
+		scale(factor, factor);
+	}
+
+	
 	void TOPPASWidget::dragEnterEvent(QDragEnterEvent* event)
 	{
-		// TODO: test mime type
-		event->accept();
+		// TODO: test mime type/source? where?
+		event->acceptProposedAction();
 	}
 	
 	void TOPPASWidget::dragMoveEvent(QDragMoveEvent* event)
 	{
-		// TODO: test mime type
-		event->accept();
+		// TODO: test mime type/source? where?
+		event->acceptProposedAction();
 	}
 	
 	void TOPPASWidget::dropEvent(QDropEvent* event)
 	{
+		// TODO: test mime type/source? where?
 		QPointF scene_pos = mapToScene(event->pos());
 		emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
+		event->acceptProposedAction();
 	}
 	
+	void TOPPASWidget::keyPressEvent(QKeyEvent* e)
+	{
+		if (e->key() == Qt::Key_Shift)
+		{
+			getScene()->setActionMode(TOPPASScene::AM_NEW_EDGE);
+			e->accept();
+		}
+		//e->ignore(); how does this work again?
+	}
+	
+	void TOPPASWidget::keyReleaseEvent(QKeyEvent* e)
+	{
+		if (e->key() == Qt::Key_Shift)
+		{
+			getScene()->setActionMode(TOPPASScene::AM_MOVE);
+			e->accept();
+		}
+		//e->ignore(); how does this work again?
+	}
+	
+	void TOPPASWidget::itemClicked()
+	{
+		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
+		if (sender == 0)
+		{
+			return;
+		}
+		if (getScene()->getActionMode() == TOPPASScene::AM_MOVE)
+		{
+			std::cout << "AM_MOVE" << std::endl;
+		}
+		else if (getScene()->getActionMode() == TOPPASScene::AM_NEW_EDGE)
+		{
+			std::cout << "AM_NEW_EDGE" << std::endl;
+		}
+		
+	}
+	
+	void TOPPASWidget::itemDoubleClicked()
+	{
+		std::cout << "double click!" << std::endl;
+	}
+	
+	void TOPPASWidget::updateHoveringEdgePos(const QPointF& /*new_pos*/)
+	{
+		puts("yeyaah");
+	}
+	
+	void TOPPASWidget::addHoveringEdge(const QPointF& /*pos*/)
+	{
+		puts("add new edge");
+	}
+
 } //Namespace
 

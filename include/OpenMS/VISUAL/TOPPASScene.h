@@ -41,20 +41,28 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-		
+			
+			enum ActionMode
+      {
+      	AM_NEW_EDGE,
+      	AM_MOVE
+      };
+			
 			/// Standard constructor
 			TOPPASScene();
 		
 			/// Destructor
-			~TOPPASScene();
-		
-		signals:
-		
-			void testSignal(int);
+			virtual ~TOPPASScene();
+			
+			/// Sets the action mode
+			void setActionMode(ActionMode mode);
+			/// Returns the action mode
+			ActionMode getActionMode();
 			
 		protected:
 		
-			String blabla_;
+			/// The current action mode
+			ActionMode action_mode_;
 
 	};
 

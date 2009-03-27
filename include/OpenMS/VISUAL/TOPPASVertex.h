@@ -34,9 +34,14 @@
 
 namespace OpenMS
 {
+	class TOPPASEdge;
+
 	class OPENMS_DLLAPI TOPPASVertex
-		: public QGraphicsItem
-	{		
+		: public QObject,
+			public QGraphicsItem
+	{
+		Q_OBJECT
+		
 		public:
 			
 			enum VertexType
@@ -45,6 +50,11 @@ namespace OpenMS
 				VT_TARGET,
 				VT_TOOL
 			};
+			
+			typedef std::vector<TOPPASEdge*> EdgeContainer;
+			typedef EdgeContainer::iterator EdgeIterator;
+			typedef EdgeContainer::const_iterator ConstEdgeIterator;
+			
 			
 			/// Constructor
 			TOPPASVertex(const String& name, const String& type = "", VertexType vt = VT_TOOL);
@@ -60,7 +70,23 @@ namespace OpenMS
 			
 			/// Paints the item
 			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+			
+			/// Returns begin() iterator of outgoing edges
+			EdgeIterator outEdgesBegin();
+			
+			/// Returns end() iterator of outgoing edges
+			EdgeIterator outEdgesEnd();
 
+		signals:
+			
+			/// Emitted when this item is clicked
+			void clicked();
+			/// Emitted when this item is double-clicked
+			void doubleClicked();
+			/// Emitted when the position of the hovering edge changes
+			void hoveringEdgePosChanged(const QPointF& new_pos);
+			/// Emitted when a new out edge is supposed to be created
+			void newHoveringEdge(const QPointF& pos);
 			
 		protected:
 			
@@ -70,12 +96,16 @@ namespace OpenMS
 			String type_;
 			/// The type of this vertex
 			VertexType vertex_type_;
-			/// Position of last mouse click
-			QPointF last_mouse_pos_;
+			/// The list of outgoing edges
+			EdgeContainer out_edges_;
+			/// Indicates whether a new out edge is currently being created
+			bool edge_being_created_;
 			
 			///@name reimplemented Qt events
       //@{
-			void mousePressEvent(QGraphicsSceneMouseEvent* e);
+      void mouseReleaseEvent(QGraphicsSceneMouseEvent* e);
+      void mousePressEvent(QGraphicsSceneMouseEvent* e);
+      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void mouseMoveEvent(QGraphicsSceneMouseEvent* e);
 			//@}
 			

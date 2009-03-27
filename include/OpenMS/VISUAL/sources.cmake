@@ -22,6 +22,8 @@ SpectrumWidget.h
 ListEditor.h
 TOPPASWidget.h
 TOPPASScene.h
+TOPPASVertex.h
+TOPPASEdge.h
 EnhancedWorkspace.h
 )
 

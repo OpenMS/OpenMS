@@ -31,13 +31,24 @@ namespace OpenMS
 {
 	
 	TOPPASScene::TOPPASScene()
-		:	QGraphicsScene()
+		:	QGraphicsScene(),
+			action_mode_(AM_MOVE)
 	{
 	}
 	
 	TOPPASScene::~TOPPASScene()
 	{
+		// Qt should clean up for us..
+	}
 	
+	void TOPPASScene::setActionMode(ActionMode mode)
+	{
+		action_mode_ = mode;
+	}
+	
+	TOPPASScene::ActionMode TOPPASScene::getActionMode()
+	{
+		return action_mode_;
 	}
 
 } //namespace OpenMS
