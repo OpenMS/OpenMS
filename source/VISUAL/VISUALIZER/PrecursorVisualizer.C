@@ -51,8 +51,8 @@ namespace OpenMS
 		addDoubleLineEdit_(precursor_int_, "intensity");
 		addIntLineEdit_(precursor_charge_, "charge");
 
-		addDoubleLineEdit_(precursor_window_low_, "Isolation window lower bound");
-		addDoubleLineEdit_(precursor_window_up_, "Isolation window upper bound");
+		addDoubleLineEdit_(precursor_window_low_, "Lower offset from target m/z");
+		addDoubleLineEdit_(precursor_window_up_, "Upper offset from target m/z");
 			
 		addComboBox_(precursor_activation_method_, "Activation method");
 		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");

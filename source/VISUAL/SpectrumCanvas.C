@@ -821,7 +821,7 @@ namespace OpenMS
 			//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
 			if (getName()=="Spectrum1DCanvas")
 			{
-				dlg.add(layer.peaks[0]);
+				dlg.add(layer.peaks[layer.current_spectrum]);
 			}
   	}
   	else if (layer.type==LayerData::DT_FEATURE)
