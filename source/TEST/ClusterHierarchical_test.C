@@ -198,7 +198,7 @@ END_SECTION
 
 START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(std::vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
 {
-	vector<UInt> d(6,0);
+	vector<Size> d(6,0);
 	for (Size i = 0; i<d.size(); ++i)
 	{
 		d[i]=i;
@@ -215,7 +215,7 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 	tree.push_back(BinaryTreeNode(0,1,0.7f));
 	DistanceMatrix<Real> matrix;
 
-	ch.cluster<UInt,lowlevelComparator>(d,lc,sl,result, matrix);
+	ch.cluster<Size,lowlevelComparator>(d,lc,sl,result, matrix);
 
 	TEST_EQUAL(tree.size(), result.size());
 	for (Size i = 0; i < tree.size(); ++i)

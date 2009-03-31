@@ -112,7 +112,7 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 
-	Real th(0.7);
+	Real th(0.7f);
 	tree.pop_back();
 	tree.pop_back();
 	tree.push_back(BinaryTreeNode(0,1,-1.0f));

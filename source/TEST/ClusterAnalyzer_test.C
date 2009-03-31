@@ -132,7 +132,7 @@ START_SECTION((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tr
 	tree.push_back(BinaryTreeNode(0,1,0.6f));
 	tree.push_back(BinaryTreeNode(0,1,0.7f));
 	vector<Real> di(5);
-	di[0]=0.4/0.3; di[1]=0.5/0.4; di[2]=0.6/0.8; di[3]=0.7/0.8; di[4]=0.0;
+	di[0]=0.4f/0.3f; di[1]=0.5f/0.4f; di[2]=0.6f/0.8f; di[3]=0.7f/0.8f; di[4]=0.0f;
 	vector<Real> result = ptr->dunnIndices(tree, matrix);
 	TEST_EQUAL(result.size(), di.size());
 	for (Size i = 0; i < result.size(); ++i)
