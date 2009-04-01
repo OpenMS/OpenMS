@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch, Daniel Jameson$
-// $Authors: $
+// $Maintainer: Andreas Bertsch$
+// $Authors: Andreas Bertsch, Daniel Jameson$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
@@ -43,6 +43,8 @@ namespace OpenMS
 
 		This class provides a communication interface which is able to query the Mascot
 		server and reports the identifications provided be the Mascot server
+
+		@htmlinclude OpenMS_MascotRemoteQuery.parameters
 	*/
 	class OPENMS_DLLAPI MascotRemoteQuery 
 		: public QObject,

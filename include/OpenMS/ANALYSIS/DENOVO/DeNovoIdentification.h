@@ -25,8 +25,8 @@
 // $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H
-#define OPENMS_ANALYSIS_ID_DENOVOIDENTIFICATION_H
+#ifndef OPENMS_ANALYSIS_DENOVO_DENOVOIDENTIFICATION_H
+#define OPENMS_ANALYSIS_DENOVO_DENOVOIDENTIFICATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

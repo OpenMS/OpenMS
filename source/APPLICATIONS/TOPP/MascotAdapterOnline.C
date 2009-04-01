@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch, Daniel Jameson$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>

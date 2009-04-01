@@ -176,7 +176,7 @@ START_SECTION((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
   Map<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
 END_SECTION
 
-START_SECTION(const Residue& operator [] (Size index) const)
+START_SECTION(const Residue& operator [] (SignedSize index) const)
   AASequence seq("DFPIANGER");
 	SignedSize index = 0;
 	TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -186,7 +186,7 @@ START_SECTION(const Residue& operator [] (Size index) const)
 	TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
 
-START_SECTION(const Residue& operator [] (Size index) const)
+START_SECTION([EXTRA] const Residue& operator [] (Size index) const)
 	AASequence seq("DFPIANGER");
   Size index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -237,7 +237,7 @@ START_SECTION(AASequence getSuffix(Size index) const)
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSuffix(10))
 END_SECTION
 
-START_SECTION(AASequence getSubsequence(Size index, Size number) const)
+START_SECTION(AASequence getSubsequence(Size index, UInt number) const)
   AASequence seq1("DFPIANGER"), seq2("IAN"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSubsequence(3, 3))
 	TEST_EQUAL(seq3, seq1.getSubsequence(0, 9))
@@ -587,6 +587,34 @@ START_SECTION(bool operator!=(const char *rhs) const)
 	AASequence seq5("DFBIANGER");
 	TEST_EQUAL(seq5 != "DFPIANGER", true)
 	TEST_EQUAL(seq5 != "DFBIANGER", false)
+END_SECTION
+
+START_SECTION(bool setResidue(Int index, const Residue *residue))
+
+END_SECTION
+
+START_SECTION(bool setResidue(Size index, const Residue *residue))
+
+END_SECTION
+
+START_SECTION(AASequence operator+(const Residue *residue) const)
+
+END_SECTION
+
+START_SECTION(AASequence& operator+=(const Residue *residue))
+
+END_SECTION
+
+START_SECTION(AASequence getSubsequence(Size index, UInt number) const)
+
+END_SECTION
+
+START_SECTION(Size getNumberOf(const String &residue) const)
+
+END_SECTION
+
+START_SECTION(Size getNumberOf(const char *residue) const)
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

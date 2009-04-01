@@ -110,7 +110,7 @@ START_SECTION(const String& getBigString() const )
 	TEST_EQUAL (ptr->getBigString(),"$AAAAA$BBBBB$");
 END_SECTION
 
-START_SECTION(unsigned int size())
+START_SECTION(Size size())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->size(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
@@ -121,7 +121,7 @@ START_SECTION(unsigned int size())
 	}
 END_SECTION
 
-START_SECTION(unsigned int length())
+START_SECTION(Size length())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->length(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
@@ -132,7 +132,7 @@ START_SECTION(unsigned int length())
 	}
 END_SECTION
 
-START_SECTION(void getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length))
+START_SECTION(void getPeptide(FASTAEntry& entry, Size start, Size length))
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);

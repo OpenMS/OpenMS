@@ -134,7 +134,7 @@ END_SECTION
 
 ptr = new HiddenMarkovModel();
 
-START_SECTION((UInt getNumberOfStates() const))
+START_SECTION((Size getNumberOfStates() const))
 	TEST_EQUAL(ptr->getNumberOfStates(), 0)
 END_SECTION
 
@@ -276,12 +276,16 @@ START_SECTION((void forwardDump()))
 	// nothing to test
 END_SECTION
 
-START_SECTION((void write(std::ostream& out)))
+START_SECTION((void write(std::ostream& out) const))
 	stringstream ss;
 	ptr->write(ss);
 END_SECTION
 
 START_SECTION((void writeGraphMLFile(const String& filename)))
+
+END_SECTION
+
+START_SECTION((void setVariableModifications(const StringList &modifications)))
 
 END_SECTION
 
