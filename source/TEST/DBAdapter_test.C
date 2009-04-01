@@ -367,6 +367,7 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
+		spec.getPrecursors().resize(1);
 		spec.getPrecursors()[0].setMZ(600.1);
 		spec.getPrecursors()[0].setIntensity(4711.0f);
 		spec.getPrecursors()[0].setCharge(2);
@@ -648,6 +649,7 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
+			TEST_EQUAL( itn->getPrecursors().size() , ito->getPrecursors().size() )
 			TEST_EQUAL( itn->getPrecursors()[0].getMZ() , ito->getPrecursors()[0].getMZ() )
 			TEST_EQUAL( itn->getPrecursors()[0].getIntensity() , ito->getPrecursors()[0].getIntensity() )
 			TEST_EQUAL( itn->getPrecursors()[0].getCharge() , ito->getPrecursors()[0].getCharge() )
@@ -780,6 +782,7 @@ END_SECTION
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
+			TEST_EQUAL( itn->getPrecursors().size() , ito->getPrecursors().size() )
 			TEST_EQUAL( itn->getPrecursors()[0].getMZ() , ito->getPrecursors()[0].getMZ() )
 			TEST_EQUAL( itn->getPrecursors()[0].getIntensity() , ito->getPrecursors()[0].getIntensity() )
 			TEST_EQUAL( itn->getPrecursors()[0].getCharge() , ito->getPrecursors()[0].getCharge() )

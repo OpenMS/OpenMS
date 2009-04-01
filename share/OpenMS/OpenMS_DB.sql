@@ -6,6 +6,8 @@ SET FOREIGN_KEY_CHECKS=0;
 -- Table structure for table `ADMIN_Version`
 -- 
 
+DROP TABLE IF EXISTS ADMIN_Version;
+
 CREATE TABLE ADMIN_Version (
   version varchar(50) NOT NULL default ''
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -15,6 +17,8 @@ CREATE TABLE ADMIN_Version (
 -- 
 -- Table structure for table `DATA_ExperimentGroup`
 -- 
+
+DROP TABLE IF EXISTS DATA_ExperimentGroup;
 
 CREATE TABLE DATA_ExperimentGroup (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -33,6 +37,8 @@ CREATE TABLE DATA_ExperimentGroup (
 -- Table structure for table `DATA_Peak`
 -- 
 
+DROP TABLE IF EXISTS DATA_Peak;
+
 CREATE TABLE DATA_Peak (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
@@ -50,6 +56,8 @@ CREATE TABLE DATA_Peak (
 -- Table structure for table `DATA_PeakMetaData`
 --
 
+DROP TABLE IF EXISTS DATA_PeakMetaData;
+
 CREATE TABLE DATA_PeakMetaData (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Peak bigint(20) unsigned NOT NULL default '0',
@@ -65,6 +73,8 @@ CREATE TABLE DATA_PeakMetaData (
 -- 
 -- Table structure for table `DATA_Precursor`
 -- 
+
+DROP TABLE IF EXISTS DATA_Precursor;
 
 CREATE TABLE DATA_Precursor (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -87,6 +97,8 @@ CREATE TABLE DATA_Precursor (
 -- 
 -- Table structure for table `DATA_Spectrum`
 -- 
+
+DROP TABLE IF EXISTS DATA_Spectrum;
 
 CREATE TABLE DATA_Spectrum (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -111,6 +123,8 @@ CREATE TABLE DATA_Spectrum (
 -- Table structure for table `ID_FixedModifications`
 -- 
 
+DROP TABLE IF EXISTS ID_FixedModifications;
+
 CREATE TABLE ID_FixedModifications (
   id bigint(20) unsigned NOT NULL default '0',
   fid_SearchParameters bigint(20) unsigned NOT NULL default '0',
@@ -124,6 +138,8 @@ CREATE TABLE ID_FixedModifications (
 -- 
 -- Table structure for table `ID_PeptideHit`
 -- 
+
+DROP TABLE IF EXISTS ID_PeptideHit;
 
 CREATE TABLE ID_PeptideHit (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -146,6 +162,8 @@ CREATE TABLE ID_PeptideHit (
 -- Table structure for table `ID_PeptideIdentification`
 -- 
 
+DROP TABLE IF EXISTS ID_PeptideIdentification;
+
 CREATE TABLE ID_PeptideIdentification (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned default NULL,
@@ -166,6 +184,8 @@ CREATE TABLE ID_PeptideIdentification (
 -- Table structure for table `ID_ProteinHit`
 -- 
 
+DROP TABLE IF EXISTS ID_ProteinHit;
+
 CREATE TABLE ID_ProteinHit (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_ProteinIdentification bigint(20) unsigned NOT NULL default '0',
@@ -184,6 +204,8 @@ CREATE TABLE ID_ProteinHit (
 -- 
 -- Table structure for table `ID_ProteinIdentification`
 -- 
+
+DROP TABLE IF EXISTS ID_ProteinIdentification;
 
 CREATE TABLE ID_ProteinIdentification (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -208,6 +230,8 @@ CREATE TABLE ID_ProteinIdentification (
 -- Table structure for table `ID_SearchParameters`
 -- 
 
+DROP TABLE IF EXISTS ID_SearchParameters;
+
 CREATE TABLE ID_SearchParameters (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Identification bigint(20) unsigned NOT NULL default '0',
@@ -230,6 +254,8 @@ CREATE TABLE ID_SearchParameters (
 -- Table structure for table `ID_VariableModifications`
 -- 
 
+DROP TABLE IF EXISTS ID_VariableModifications;
+
 CREATE TABLE ID_VariableModifications (
   id bigint(20) unsigned NOT NULL default '0',
   fid_SearchParameters bigint(20) unsigned NOT NULL default '0',
@@ -244,6 +270,8 @@ CREATE TABLE ID_VariableModifications (
 -- Table structure for table `LINK_ExperimentGroup_MSExperiment`
 -- 
 
+DROP TABLE IF EXISTS LINK_ExperimentGroup_MSExperiment;
+
 CREATE TABLE LINK_ExperimentGroup_MSExperiment (
   fid_ExperimentGroup bigint(20) unsigned NOT NULL default '0',
   fid_MSExperiment bigint(20) unsigned NOT NULL default '0',
@@ -256,6 +284,8 @@ CREATE TABLE LINK_ExperimentGroup_MSExperiment (
 -- 
 -- Table structure for table `LINK_MSExperiment_File`
 -- 
+
+DROP TABLE IF EXISTS LINK_MSExperiment_File;
 
 CREATE TABLE LINK_MSExperiment_File (
   fid_MSExperiment bigint(20) unsigned NOT NULL default '0',
@@ -270,6 +300,8 @@ CREATE TABLE LINK_MSExperiment_File (
 -- Table structure for table `LINK_PeptideHit_ProteinHit`
 -- 
 
+DROP TABLE IF EXISTS LINK_PeptideHit_ProteinHit;
+
 CREATE TABLE LINK_PeptideHit_ProteinHit (
   fid_PeptideHit bigint(20) unsigned NOT NULL default '0',
   fid_ProteinHit bigint(20) unsigned NOT NULL default '0',
@@ -282,6 +314,8 @@ CREATE TABLE LINK_PeptideHit_ProteinHit (
 -- 
 -- Table structure for table `META_Acquisition`
 -- 
+
+DROP TABLE IF EXISTS META_Acquisition;
 
 CREATE TABLE META_Acquisition (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -299,6 +333,8 @@ CREATE TABLE META_Acquisition (
 -- Table structure for table `META_AcquisitionInfo`
 -- 
 
+DROP TABLE IF EXISTS META_AcquisitionInfo;
+
 CREATE TABLE META_AcquisitionInfo (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
@@ -312,6 +348,8 @@ CREATE TABLE META_AcquisitionInfo (
 -- 
 -- Table structure for table `META_ContactPerson`
 -- 
+
+DROP TABLE IF EXISTS META_ContactPerson;
 
 CREATE TABLE META_ContactPerson (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -333,6 +371,8 @@ CREATE TABLE META_ContactPerson (
 -- Table structure for table `META_Digestion`
 -- 
 
+DROP TABLE IF EXISTS META_Digestion;
+
 CREATE TABLE META_Digestion (
   id bigint(20) unsigned NOT NULL auto_increment,
   Enzyme varchar(50) NOT NULL default '',
@@ -347,6 +387,8 @@ CREATE TABLE META_Digestion (
 -- 
 -- Table structure for table `META_File`
 -- 
+
+DROP TABLE IF EXISTS META_File;
 
 CREATE TABLE META_File (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -364,6 +406,8 @@ CREATE TABLE META_File (
 -- Table structure for table `META_GradientEluent`
 -- 
 
+DROP TABLE IF EXISTS META_GradientEluent;
+
 CREATE TABLE META_GradientEluent (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_HPLC bigint(20) unsigned NOT NULL default '0',
@@ -377,6 +421,8 @@ CREATE TABLE META_GradientEluent (
 -- 
 -- Table structure for table `META_GradientPercentage`
 -- 
+
+DROP TABLE IF EXISTS META_GradientPercentage;
 
 CREATE TABLE META_GradientPercentage (
   fid_GradientTime bigint(20) unsigned NOT NULL default '0',
@@ -392,6 +438,8 @@ CREATE TABLE META_GradientPercentage (
 -- Table structure for table `META_GradientTime`
 -- 
 
+DROP TABLE IF EXISTS META_GradientTime;
+
 CREATE TABLE META_GradientTime (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_HPLC bigint(20) unsigned NOT NULL default '0',
@@ -405,6 +453,8 @@ CREATE TABLE META_GradientTime (
 -- 
 -- Table structure for table `META_HPLC`
 -- 
+
+DROP TABLE IF EXISTS META_HPLC;
 
 CREATE TABLE META_HPLC (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -425,6 +475,8 @@ CREATE TABLE META_HPLC (
 -- Table structure for table `META_InstrumentSettings`
 -- 
 
+DROP TABLE IF EXISTS META_InstrumentSettings;
+
 CREATE TABLE META_InstrumentSettings (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
@@ -443,6 +495,8 @@ CREATE TABLE META_InstrumentSettings (
 -- 
 -- Table structure for table `META_IonDetector`
 -- 
+
+DROP TABLE IF EXISTS META_IonDetector;
 
 CREATE TABLE META_IonDetector (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -463,6 +517,8 @@ CREATE TABLE META_IonDetector (
 -- Table structure for table `META_IonSource`
 -- 
 
+DROP TABLE IF EXISTS META_IonSource;
+
 CREATE TABLE META_IonSource (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_MSInstrument bigint(20) unsigned NOT NULL default '0',
@@ -481,6 +537,8 @@ CREATE TABLE META_IonSource (
 -- Table structure for table `META_MSExperiment`
 -- 
 
+DROP TABLE IF EXISTS META_MSExperiment;
+
 CREATE TABLE META_MSExperiment (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_MetaInfo bigint(20) unsigned default NULL,
@@ -496,6 +554,8 @@ CREATE TABLE META_MSExperiment (
 -- 
 -- Table structure for table `META_MSInstrument`
 -- 
+
+DROP TABLE IF EXISTS META_MSInstrument;
 
 CREATE TABLE META_MSInstrument (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -514,6 +574,8 @@ CREATE TABLE META_MSInstrument (
 -- 
 -- Table structure for table `META_MassAnalyzer`
 -- 
+
+DROP TABLE IF EXISTS META_MassAnalyzer;
 
 CREATE TABLE META_MassAnalyzer (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -544,6 +606,8 @@ CREATE TABLE META_MassAnalyzer (
 -- Table structure for table `META_MetaInfo`
 -- 
 
+DROP TABLE IF EXISTS META_MetaInfo;
+
 CREATE TABLE META_MetaInfo (
   id bigint(20) unsigned NOT NULL auto_increment,
   PRIMARY KEY  (id)
@@ -554,6 +618,8 @@ CREATE TABLE META_MetaInfo (
 -- 
 -- Table structure for table `META_MetaInfoDescription`
 -- 
+
+DROP TABLE IF EXISTS META_MetaInfoDescription;
 
 CREATE TABLE META_MetaInfoDescription (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -574,6 +640,8 @@ CREATE TABLE META_MetaInfoDescription (
 -- Table structure for table `META_Modification`
 -- 
 
+DROP TABLE IF EXISTS META_Modification;
+
 CREATE TABLE META_Modification (
   id bigint(20) unsigned NOT NULL auto_increment,
   ReagentName varchar(50) NOT NULL default '',
@@ -588,27 +656,10 @@ CREATE TABLE META_Modification (
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `META_PreProcessing`
--- 
-
-CREATE TABLE META_PreProcessing (
-  id bigint(20) unsigned NOT NULL auto_increment,
-  fid_MSExperiment bigint(20) unsigned NOT NULL default '0',
-  fid_File bigint(20) unsigned default NULL,
-  fid_MetaInfo bigint(20) unsigned default NULL,
-  `Type` enum('Deconvolution','Deisotoping','PeakPicking','Misc') collate latin1_general_ci NOT NULL default 'Misc',
-  Description text collate latin1_general_ci NOT NULL,
-  PRIMARY KEY  (id),
-  KEY fid_MetaInfo (fid_MetaInfo),
-  KEY fid_MSExperiment (fid_MSExperiment),
-  KEY fid_File (fid_File)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-
--- --------------------------------------------------------
-
--- 
 -- Table structure for table `META_Sample`
 -- 
+
+DROP TABLE IF EXISTS META_Sample;
 
 CREATE TABLE META_Sample (
   id bigint(20) unsigned NOT NULL auto_increment,
@@ -635,6 +686,8 @@ CREATE TABLE META_Sample (
 -- Table structure for table `META_SampleTreatment`
 -- 
 
+DROP TABLE IF EXISTS META_SampleTreatment;
+
 CREATE TABLE META_SampleTreatment (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Sample bigint(20) unsigned NOT NULL default '0',
@@ -655,6 +708,8 @@ CREATE TABLE META_SampleTreatment (
 -- Table structure for table `META_Software`
 -- 
 
+DROP TABLE IF EXISTS META_Software;
+
 CREATE TABLE META_Software (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_MSExperiment bigint(20) unsigned NOT NULL default '0',
@@ -672,6 +727,8 @@ CREATE TABLE META_Software (
 -- Table structure for table `META_SpectrumQuality`
 -- 
 
+DROP TABLE IF EXISTS META_SpectrumQuality;
+
 CREATE TABLE META_SpectrumQuality (
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
   Score float NOT NULL default '0',
@@ -684,6 +741,8 @@ CREATE TABLE META_SpectrumQuality (
 -- 
 -- Table structure for table `META_TypeNameValue`
 -- 
+
+DROP TABLE IF EXISTS META_TypeNameValue;
 
 CREATE TABLE META_TypeNameValue (
   fid_MetaInfo bigint(20) unsigned NOT NULL default '0',
@@ -894,14 +953,6 @@ ALTER TABLE `META_MetaInfoDescription`
   ADD CONSTRAINT META_MetaInfoDescription_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT META_MetaInfoDescription_ibfk_2 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT META_MetaInfoDescription_ibfk_3 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL;
-
--- 
--- Constraints for table `META_PreProcessing`
--- 
-ALTER TABLE `META_PreProcessing`
-  ADD CONSTRAINT META_PreProcessing_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
-  ADD CONSTRAINT META_PreProcessing_ibfk_2 FOREIGN KEY (fid_MSExperiment) REFERENCES META_MSExperiment (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT META_PreProcessing_ibfk_3 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL;
 
 -- 
 -- Constraints for table `META_Sample`
