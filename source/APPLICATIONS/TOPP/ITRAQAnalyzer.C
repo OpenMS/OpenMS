@@ -62,7 +62,7 @@ class TOPPITRAQAnalyzer
 {
  public:
 	TOPPITRAQAnalyzer()
-		: TOPPBase("ITRAQAnalyzer","\nWARNING: EXPERIMENTAL\n\n Calculates iTRAQ quantitative values for peptides or proteins (when idXML available)", true, true)
+		: TOPPBase("ITRAQAnalyzer","\n\nWARNING: EXPERIMENTAL\n\n Calculates iTRAQ quantitative values for peptides or proteins (when idXML available)", true, true)
 	{
 	}
 
@@ -80,7 +80,7 @@ class TOPPITRAQAnalyzer
 		registerStringOption_ ("idxml", "<file>", "", "!not supported yet! idXML file with peptide identifications from tandemMS of the -in file", false, false);
 		
 		addEmptyLine_();
-		addText_("Note: We highly recommend providing an idXML file with identifications. This enables ITRAQAnalyzer to report protein ratios!");
+		//addText_("Note: We highly recommend providing an idXML file with identifications. This enables ITRAQAnalyzer to report protein ratios!");
 
   	registerSubsection_("algorithm","Algorithm parameters section");
 			

@@ -737,7 +737,7 @@ namespace OpenMS
       return;
 		}
 		//abort if file type unsupported
-		if (file_type==FileTypes::PARAM || file_type==FileTypes::IDXML)
+		if (file_type==FileTypes::INI || file_type==FileTypes::IDXML)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
    		setCursor(Qt::ArrowCursor);

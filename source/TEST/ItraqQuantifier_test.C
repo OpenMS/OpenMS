@@ -70,12 +70,12 @@ END_SECTION
 START_SECTION((ItraqQuantifier(Int itraq_type, const Param &param)))
 {
 	Param p;
-	p.setValue("isotope_correction_values", "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2");
+	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
   ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
-	TEST_EQUAL((String) iq.getParameters().getValue("isotope_correction_values"), "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2");
+	TEST_EQUAL((StringList) iq.getParameters().getValue("isotope_correction_values"),StringList::create( "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
 	
 	// this should go wrong
-	p.setValue("isotope_correction_values", "114:0/0.3/0 , 116:0.1/0.3/3/0.2");	
+	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/0 , 116:0.1/0.3/3/0.2"));	
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::EIGHTPLEX, p));	
 
 }

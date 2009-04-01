@@ -187,7 +187,7 @@ namespace OpenMS
                   passed_single = false;
                 }
                 break;
-              case FileTypes::PARAM:
+              case FileTypes::INI:
                 if ( !Param().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;

@@ -123,7 +123,9 @@ namespace OpenMS
             UInt RT_votes_cutoff = RT_votes_cutoff_;
             //Check for useless RT_votes_cutoff_ parameter
             if (RT_votes_cutoff_ > this->map_->size())
+						{
               RT_votes_cutoff = 0;
+						}
 
             for (Size i=0, j=0; i<this->map_->size(); ++i)
             {
@@ -151,7 +153,7 @@ namespace OpenMS
 								#endif							
 								this->ff_->setProgress (++j);
 
-								iwt.identifyCharge (c_trans, c_ref, i, c, ampl_cutoff_, false);
+								iwt.identifyCharge (c_trans, c_ref, (UInt)i, c, ampl_cutoff_, false);
 						
 								#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 									std::cout << "charge recognition O.K. ... "; std::cout.flush();

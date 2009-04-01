@@ -270,11 +270,11 @@ namespace OpenMS
 
 		if (itraq_type_ == ItraqConstants::FOURPLEX)
 		{
-			defaults_.setValue("channel_active", "114:myReference", "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. '114:myref,115:liver'."); 
+			defaults_.setValue("channel_active", StringList::create("114:myReference"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
 		}
 		else
 		{
-			defaults_.setValue("channel_active", "113:myReference", "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. '113:myref,115:liver,118:lung'."); 
+			defaults_.setValue("channel_active", StringList::create("113:myReference"), "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
 		}
 
 		PeakPickerCWT ppcwt; 
@@ -292,7 +292,7 @@ namespace OpenMS
 		if (channel_map_.empty()) return;
 
 		// extract channel names
-		StringList channels = StringList::create(String(param_.getValue("channel_active")).trim());
+		StringList channels = StringList(param_.getValue("channel_active"));
 
 		// split the channels key:name pairs apart
 		for (StringList::const_iterator it=channels.begin();it!=channels.end();++it)

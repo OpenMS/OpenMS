@@ -55,7 +55,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"IdXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
-	TEST_EQUAL(tmp.typeToName(FileTypes::PARAM),"Param");
+	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");
 END_SECTION
 
 START_SECTION((static FileTypes::Type nameToType(const String &name)))
@@ -71,7 +71,7 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
-	TEST_EQUAL(FileTypes::PARAM, tmp.nameToType("Param"));
+	TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
 	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
 END_SECTION
 
@@ -89,7 +89,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::PARAM)
+	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))

@@ -121,7 +121,7 @@ class TOPPXMLValidator
 					cout << " against schema version " << MzXMLFile().getVersion() << endl;
 					valid = MzXMLFile().isValid(in);
 					break;
-				case FileTypes::PARAM :
+				case FileTypes::INI :
 					cout << " against schema version " << Param().getVersion() << endl;
 					valid = Param().isValid(in);
 					break;

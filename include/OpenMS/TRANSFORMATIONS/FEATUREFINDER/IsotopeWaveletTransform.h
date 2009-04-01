@@ -1363,7 +1363,7 @@ namespace OpenMS
 	{
 		DoubleReal c_score=0, c_val;
 		typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
-		Int signal_size = candidate.size();
+		Int signal_size((Int)candidate.size());
 
 		//p_h_ind indicates if we are looking for a whole or a peak
 		Int p_h_ind=1, end=4*(peak_cutoff-1) -1; //4 times and not 2 times, since we move by 0.5 m/z entities

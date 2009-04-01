@@ -27,6 +27,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -68,12 +70,22 @@ namespace OpenMS
 
       void registerOptionsAndFlags_()
       {
-        registerInputFile_("in", "<file>", "", "Input text file containing the following columns: RT, m/z, intensity."
-                                               "\nAdditionally meta data columns may follow."
-                                               "\nIf meta data is used, meta data column names have to be specified in the header line.");
-        registerOutputFile_("out", "<file>", "", "Output XML file.", false);
-        setValidFormats_("out",StringList::create( "featureXML"));
+				registerInputFile_("in", "<file>", "", "(Excel readable) Text file (supported formats: see below)");
+				registerInputFile_ ("template_ini", "<file>", "", "Template Ini file to augment", false);
+        registerOutputFile_("out", "<file>", "", "Output XML file.");
+        setValidFormats_("out",StringList::create( "featureXML,ini"));
         registerStringOption_( "separator", "<sep>", "", "The used separator characters in the input. If unset the 'tab' character is used.", false);
+				addEmptyLine_();
+				addText_("The following conversions are supported:");
+				addText_("- CSV to featureXML");
+				addText_("    Input text file containing the following columns: RT, m/z, intensity.");
+				addText_("    Additionally meta data columns may follow.");
+				addText_("    If meta data is used, meta data column names have to be specified in the header line.");
+				addText_("- CSV to INI(ITRAQAnalyzer-settings)");
+				addText_("    Input text file contains meta data as well as isotope correction matrix");
+				addText_("    and channel assignments. The -template_ini option is mandatory and serves as template for the output ini file.");
+				//addText_("    For the template CSV see share/OpenMS/");
+
       }
 
       ExitCodes main_( int, const char** )
@@ -83,6 +95,16 @@ namespace OpenMS
         //-------------------------------------------------------------
         String in = getStringOption_("in");
         String out = getStringOption_("out");
+				FileHandler fh;
+				FileTypes::Type out_type = fh.getType(out);
+				writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+
+				if (out_type==FileTypes::UNKNOWN)
+				{
+					writeLog_("Error: Could not determine output file type!");
+					return PARSE_ERROR;
+				}
+
         String separator = getStringOption_("separator");
         if ( separator == "" ) separator = "\t";
 
@@ -91,99 +113,117 @@ namespace OpenMS
         //-------------------------------------------------------------
 				TextFile text(in);
 
+
+
         //-------------------------------------------------------------
-        // parsing header line
+        // processing
         //-------------------------------------------------------------
-				vector<String> headers;
-				text[0].split(separator[0], headers);
-				for (UInt i=0; i<headers.size(); ++i)
-				{
-					headers[i].trim();
-				}
-				String header_trimmed = text[0];
-				header_trimmed.trim();
-        //-------------------------------------------------------------
-        // parsing features
-        //-------------------------------------------------------------
-				FeatureMap<> feature_map;
-				feature_map.reserve(text.size());
-				for (Size i=0; i<text.size(); ++i)
-				{
-					//do nothing for empty lines
-					String line_trimmed = text[i];
-					line_trimmed.trim();
-					if (line_trimmed=="")
+				if (out_type==FileTypes::FEATUREXML)
 					{
-						if (i<text.size()-1) writeLog_(String("Notice: Empty line ignored (line ") + (i+1) + ").");
-						continue;
+					//-------------------------------------------------------------
+					// parsing header line
+					//-------------------------------------------------------------
+					vector<String> headers;
+					text[0].split(separator[0], headers);
+					for (UInt i=0; i<headers.size(); ++i)
+					{
+						headers[i].trim();
 					}
-					
-					//split line to tokens
-					vector<String> parts;
-					text[i].split(separator[0], parts);
-					
-					//abort if line does not contain enough fields
-					if (parts.size()<3)
+					String header_trimmed = text[0];
+					header_trimmed.trim();
+					//-------------------------------------------------------------
+					// parsing features
+					//-------------------------------------------------------------
+					FeatureMap<> feature_map;
+					feature_map.reserve(text.size());
+					for (Size i=0; i<text.size(); ++i)
 					{
-						writeLog_("Error: Invalid input line: At least three columns are needed!");
-						writeLog_(String("Offending line: '") + line_trimmed + "'  (line " + (i+1) + ")");
-						return INPUT_FILE_CORRUPT;
-					}
-					
-					//convert coordinate columns to doubles
-					DoubleReal rt = 0.0;
-					DoubleReal mz = 0.0;
-					DoubleReal it = 0.0;
-					try
-					{
-						rt = parts[0].toDouble();
-						mz = parts[1].toDouble();
-						it = parts[2].toDouble();
-					}
-					catch (Exception::BaseException&)
-					{
-						if (i!=0)
+						//do nothing for empty lines
+						String line_trimmed = text[i];
+						line_trimmed.trim();
+						if (line_trimmed=="")
 						{
-							writeLog_("Error: Invalid input line: Could not convert the first three columns to float!");
-							writeLog_("       Is the correct separator specified?");
+							if (i<text.size()-1) writeLog_(String("Notice: Empty line ignored (line ") + (i+1) + ").");
+							continue;
+						}
+						
+						//split line to tokens
+						vector<String> parts;
+						text[i].split(separator[0], parts);
+						
+						//abort if line does not contain enough fields
+						if (parts.size()<3)
+						{
+							writeLog_("Error: Invalid input line: At least three columns are needed!");
 							writeLog_(String("Offending line: '") + line_trimmed + "'  (line " + (i+1) + ")");
 							return INPUT_FILE_CORRUPT;
 						}
-					}
-					Feature f;
-					f.setMZ(mz);
-					f.setRT(rt);
-					f.setIntensity(it);
-
-					//parse meta data
-					for (Size j=3; j<parts.size(); ++j)
-					{
-						String part_trimmed = parts[j];
-						part_trimmed.trim();
-						if (part_trimmed!="")
+						
+						//convert coordinate columns to doubles
+						DoubleReal rt = 0.0;
+						DoubleReal mz = 0.0;
+						DoubleReal it = 0.0;
+						try
 						{
-							//check if column name is ok
-							if (headers.size()<=j || headers[j]=="")
+							rt = parts[0].toDouble();
+							mz = parts[1].toDouble();
+							it = parts[2].toDouble();
+						}
+						catch (Exception::BaseException&)
+						{
+							if (i!=0)
 							{
-								writeLog_(String("Error: Missing meta data header for column ") + (j+i) + "!");
-								writeLog_(String("Offending header line: '") + header_trimmed + "'  (line 1)");
+								writeLog_("Error: Invalid input line: Could not convert the first three columns to float!");
+								writeLog_("       Is the correct separator specified?");
+								writeLog_(String("Offending line: '") + line_trimmed + "'  (line " + (i+1) + ")");
 								return INPUT_FILE_CORRUPT;
 							}
-							//add meta value
-							f.setMetaValue(headers[j],part_trimmed);
 						}
+						Feature f;
+						f.setMZ(mz);
+						f.setRT(rt);
+						f.setIntensity(it);
 
+						//parse meta data
+						for (Size j=3; j<parts.size(); ++j)
+						{
+							String part_trimmed = parts[j];
+							part_trimmed.trim();
+							if (part_trimmed!="")
+							{
+								//check if column name is ok
+								if (headers.size()<=j || headers[j]=="")
+								{
+									writeLog_(String("Error: Missing meta data header for column ") + (j+i) + "!");
+									writeLog_(String("Offending header line: '") + header_trimmed + "'  (line 1)");
+									return INPUT_FILE_CORRUPT;
+								}
+								//add meta value
+								f.setMetaValue(headers[j],part_trimmed);
+							}
+
+						}
+						
+						//insert feature to map
+						feature_map.push_back(f);
 					}
+				
+					//-------------------------------------------------------------
+					// write output
+					//-------------------------------------------------------------
+					FeatureXMLFile().store(out, feature_map);
+				}
+				else // PARAM
+				{
+					Param p;
+					String ini_file("");
+					ini_file = getStringOption_("template_ini");
+					if (File::exists(ini_file))	p.load(ini_file);
 					
-					//insert feature to map
-					feature_map.push_back(f);
+
 				}
 				
-				//-------------------------------------------------------------
-        // write output
-        //-------------------------------------------------------------
-				FeatureXMLFile().store(out, feature_map);
-				
+
         return EXECUTION_OK;
       }
   };

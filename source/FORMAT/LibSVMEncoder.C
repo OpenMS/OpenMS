@@ -79,7 +79,7 @@ namespace OpenMS
 		{
 			if (counts[i] > 0)
 			{
-				composition_vector.push_back(make_pair(i + 1, (((DoubleReal) counts[i]) / total_count)));
+				composition_vector.push_back(make_pair(Int(i + 1), (((DoubleReal) counts[i]) / total_count)));
 			}
 		}
 		delete [] counts;
@@ -218,7 +218,7 @@ namespace OpenMS
 		{
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-			encoded_vector.push_back(make_pair(allowed_characters.size() + 1, ((DoubleReal) sequences[i].length()) / maximum_sequence_length));
+			encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), ((DoubleReal) sequences[i].length()) / maximum_sequence_length));
 			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}
@@ -238,8 +238,8 @@ namespace OpenMS
 		{
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-			encoded_vector.push_back(make_pair(allowed_characters.size() + 1, (DoubleReal) sequences[i].length()));
-			encoded_vector.push_back(make_pair(allowed_characters.size() + 2, AASequence(sequences[i]).getAverageWeight()));
+			encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (DoubleReal) sequences[i].length()));
+			encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence(sequences[i]).getAverageWeight()));
 			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}
@@ -350,14 +350,14 @@ namespace OpenMS
 	  multimap<Int, Int>::const_iterator 	elements_start;
 	  multimap<Int, Int>::const_iterator 	elements_end;
 	  pair<Int, Int>  	             			values;
-	  UInt               									oligo_value = 0;
-	  UInt                								factor      = 1;
-	  map<String::value_type, UInt>				residue_values;
-	  UInt 																counter 		= 0;
-	  UInt 																number_of_residues = 0;
-	  UInt 																left_border = 0;
-	  UInt																right_border = 0;
-	  UInt																sequence_length = 0;
+	  Size               									oligo_value = 0;
+	  Size                								factor      = 1;
+	  map<String::value_type, Size>				residue_values;
+	  Size 																counter 		= 0;
+	  Size 																number_of_residues = 0;
+	  Size 																left_border = 0;
+	  Size																right_border = 0;
+	  Size																sequence_length = 0;
 	  bool 																wrong_characters = false;
 
 	  number_of_residues = allowed_characters.size();
@@ -643,7 +643,7 @@ namespace OpenMS
 
     if (sequence_ok && k_mer_length <= sequence_length)
     {	
-    	factor_simple = (number_of_residues * (number_of_modifications + 1));
+    	factor_simple = DoubleReal(number_of_residues * (number_of_modifications + 1));
     	
 			values.resize(sequence_length - k_mer_length + 1, pair<Int, DoubleReal>());
 			for (Size i = 0; i < number_of_residues; ++i)
@@ -672,7 +672,7 @@ namespace OpenMS
 				counter = 0;
 				if (is_right_border)
 				{
-					values[counter].first = sequence_length - k_mer_length + 1;
+					values[counter].first = Int(sequence_length - k_mer_length + 1);
 				}
 				else
 				{
@@ -703,7 +703,7 @@ namespace OpenMS
 	          }
 						if (is_right_border)
 						{
-				    	values[counter].first = (Int)sequence_length - k_mer_length - j + 1;
+				    	values[counter].first = Int(sequence_length - k_mer_length - j + 1);
 						}
 						else
 						{

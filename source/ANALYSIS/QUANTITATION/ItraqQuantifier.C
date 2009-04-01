@@ -512,7 +512,22 @@ namespace OpenMS
 		defaults_.setValue("do_normalization", "false", "normalize channels?", StringList::create("advanced")); 
 		defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
 
-		defaults_.setValue("isotope_correction_values", "", "override default values (see Documentation); use the following format: <channel>:<v1>/<v2>/<v3>/<v4> ; e.g. '114:0/0.3/4/0 , 116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+		StringList isotopes;
+		std::vector< Matrix<Int> > channel_names(2);
+		channel_names[0].setMatrix<4,1>(CHANNELS_FOURPLEX);
+		channel_names[1].setMatrix<8,1>(CHANNELS_EIGHTPLEX);
+		for (Int i=0;i<ItraqQuantifier::CHANNEL_COUNT[itraq_type_];++i)
+		{
+			String line = String(channel_names[itraq_type_].getValue(i,0)) + ":";
+			for (Int j=0;j<3;++j)
+			{
+				line += String(isotope_corrections_[itraq_type_].getValue(i,j)) + "/";
+			}
+			line += String(isotope_corrections_[itraq_type_].getValue(i,3));
+			isotopes.push_back(line);
+		} 
+		defaults_.setValue("isotope_correction_values", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+		
 
 		if (itraq_type_ == ItraqConstants::FOURPLEX)
 		{
@@ -537,7 +552,7 @@ namespace OpenMS
 	{
 
 		// update isotope_corrections_ Matrix with custom values
-		StringList channels = StringList::create(param_.getValue("isotope_correction_values"));
+		StringList channels = param_.getValue("isotope_correction_values");
 		if (channels.size()>0)
 		{
 			// split the channels key:name pairs apart

@@ -59,9 +59,9 @@ END_SECTION
 START_SECTION((ItraqChannelExtractor(Int itraq_type)))
 {
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX);
-	TEST_EQUAL((String) ice.getParameters().getValue("channel_active"), "113:myReference");
+	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("113:myReference"));
   ItraqChannelExtractor ice2(ItraqChannelExtractor::FOURPLEX);
-	TEST_EQUAL((String) ice2.getParameters().getValue("channel_active"), "114:myReference");
+	TEST_EQUAL((StringList) ice2.getParameters().getValue("channel_active"), StringList::create("114:myReference"));
 }
 END_SECTION
 
@@ -69,13 +69,13 @@ START_SECTION((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 {
 	Param p;
 	p.setValue("reporter_mass_deviation", 0.1234);
-	p.setValue("channel_active", "121:this is a test");
+	p.setValue("channel_active", StringList::create("121:this is a test"));
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX, p);
 	TEST_EQUAL((double) ice.getParameters().getValue("reporter_mass_deviation"), 0.1234);
-	TEST_EQUAL((String) ice.getParameters().getValue("channel_active"), "121:this is a test");
+	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("121:this is a test"));
 	
 	// this should go wrong
-	p.setValue("channel_active", "120:channel non existant");	
+	p.setValue("channel_active", StringList::create("120:channel non existant"));	
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqChannelExtractor ice2(ItraqChannelExtractor::EIGHTPLEX, p));	
 }
 END_SECTION
@@ -86,7 +86,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap 
 	MSExperiment<Peak1D > exp;
 	mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"),exp);
 	Param p;
-	p.setValue("channel_active", "114:ref, 115:something, 116:else");
+	p.setValue("channel_active", StringList::create("114:ref,115:something,116:else"));
   ItraqChannelExtractor ice(ItraqChannelExtractor::FOURPLEX, p);
 	ConsensusMap cm_out;
 	ice.run(exp, cm_out);
