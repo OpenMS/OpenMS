@@ -53,6 +53,7 @@ namespace OpenMS
 		@todo Precursor implementation has changed (Hiwi)
 		@todo NativeIDType was moved from ExperimentalSettings to SourceFile (Hiwi)
 		@todo MetaInfoInterface was added to ScanWindow (Hiwi)
+		@todo Product list was added to SpectrumSettings (Hiwi) 
 		
     @ingroup DatabaseIO
   */

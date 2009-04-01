@@ -201,6 +201,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),0)
+		TEST_EQUAL(spec.getProducts().size(),0)
 	}
 
 	//-------------------------- spectrum 1 --------------------------
@@ -256,6 +257,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),0.0f)
 		TEST_EQUAL(spec.getPrecursors()[1].getCharge(),0)
 		TEST_EQUAL(spec.getPrecursors()[1].getPossibleChargeStates().size(),0)
+		//products
+		TEST_EQUAL(spec.getProducts().size(),0)
 		//source file
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
@@ -298,6 +301,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M2")
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),0)
+		//products
+		TEST_EQUAL(spec.getProducts().size(),2)
+		TEST_REAL_SIMILAR(spec.getProducts()[0].getMZ(),18.88)
+		TEST_REAL_SIMILAR(spec.getProducts()[0].getIsolationWindowLowerOffset(),1.0)
+		TEST_REAL_SIMILAR(spec.getProducts()[0].getIsolationWindowUpperOffset(),2.0)
+		TEST_REAL_SIMILAR(spec.getProducts()[1].getMZ(),19.99)
+		TEST_REAL_SIMILAR(spec.getProducts()[1].getIsolationWindowLowerOffset(),3.0)
+		TEST_REAL_SIMILAR(spec.getProducts()[1].getIsolationWindowUpperOffset(),4.0)
 	}
 
 	//-------------------------- spectrum 3 (no peaks) --------------------------
@@ -323,6 +334,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),0)
+		TEST_EQUAL(spec.getProducts().size(),0)
 	}
 
 	//-------------------------- userParam --------------------------
@@ -383,6 +395,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("siname").toString(),"selectedion1")
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("acname").toString(),"activation1")
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[1].getMetaValue("acname").toString(),"activation2")
+	TEST_STRING_EQUAL(exp[1].getPrecursors()[1].getMetaValue("iwname").toString(),"isolationwindow2")
+	//product
+	TEST_STRING_EQUAL(exp[2].getProducts()[0].getMetaValue("iwname").toString(),"isolationwindow3")
+	TEST_STRING_EQUAL(exp[2].getProducts()[1].getMetaValue("iwname").toString(),"isolationwindow4")
 	//scan window
 	TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getScanWindows()[0].getMetaValue("name"),"scanwindow1")
 	//-------------------------- cvParam (but no member => meta data)--------------------------

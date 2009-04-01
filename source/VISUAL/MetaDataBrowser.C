@@ -52,6 +52,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionInfoVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoDescriptionVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PrecursorVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/ProductVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
@@ -711,6 +712,30 @@ namespace OpenMS
 		connectVisualizer_(visualizer);
 	}
 
+	//Visualizing Product object
+	void MetaDataBrowser::visualize_(Product& meta, QTreeWidgetItem* parent)
+	{
+		ProductVisualizer* visualizer = new ProductVisualizer(isEditable(), this);
+		visualizer->load(meta);
+
+    QStringList labels;
+    labels << "Product" << QString::number(ws_->addWidget(visualizer));
+
+    QTreeWidgetItem* item;
+		if(parent == 0)
+		{
+			item = new QTreeWidgetItem(treeview_, labels );
+		}
+		else
+		{
+			item = new QTreeWidgetItem(parent, labels );
+		}
+
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
+		connectVisualizer_(visualizer);
+	}
+
 
 	//Visualizing DataProcessing object
 	void MetaDataBrowser::visualize_(DataProcessing& meta, QTreeWidgetItem* parent)
@@ -917,10 +942,16 @@ namespace OpenMS
 		//check for PeptideIdentification
 		visualizeAll_(meta.getPeptideIdentifications(), item);
 
-		//check for Precursor
+		//check for Precursors
 		for(Size i=0; i<meta.getPrecursors().size(); ++i)
 		{
 			visualize_(meta.getPrecursors()[i], item);
+		}
+
+		//check for Products
+		for(Size i=0; i<meta.getProducts().size(); ++i)
+		{
+			visualize_(meta.getProducts()[i], item);
 		}
 
 		//check for AcquisitionInfo

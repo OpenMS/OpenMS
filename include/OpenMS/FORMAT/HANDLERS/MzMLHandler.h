@@ -42,7 +42,6 @@
 #include <iostream>
 
 //TODO:
-// - product list
 // - scanSettingsList
 //
 //MISSING:
@@ -538,6 +537,11 @@ namespace OpenMS
 				}
 				//reset selected ion count
 				selected_ion_count_ = 0;
+			}
+			else if (tag=="product")
+			{
+				//initialize
+				spec_.getProducts().push_back(Product());
 			}
 			else if (tag=="selectedIon")
 			{
@@ -1177,15 +1181,15 @@ namespace OpenMS
 				{
 					if (accession=="MS:1000827") //isolation window target m/z
 					{
-						//TODO
+						spec_.getProducts().back().setMZ(value.toDouble());
 					}
 					else if (accession=="MS:1000829") //isolation window upper offset
 					{
-						//TODO
+						spec_.getProducts().back().setIsolationWindowUpperOffset(value.toDouble());
 					}
 					else if (accession=="MS:1000828") //isolation window lower offset
 					{
-						//TODO
+						spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
@@ -2214,7 +2218,7 @@ namespace OpenMS
 				}
 				else if (parent_parent_tag=="product")
 				{
-					//TODO
+					spec_.getProducts().back().setMetaValue(name,data_value);
 				} 
 			}
 			else if (parent_tag=="selectedIon")
@@ -3450,14 +3454,11 @@ namespace OpenMS
 						//--------------------------------------------------------------------------------------------
 						//isolation window
 						//--------------------------------------------------------------------------------------------
-						if (precursor.getIsolationWindowLowerOffset()!=precursor.getIsolationWindowUpperOffset())
-						{
-							os	<< "						<isolationWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os	<< "						</isolationWindow>\n";
-						}
+						os	<< "						<isolationWindow>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						os	<< "						</isolationWindow>\n";
 						//userParam: no extra object for it => no user paramters
 						
 						//--------------------------------------------------------------------------------------------
@@ -3540,7 +3541,25 @@ namespace OpenMS
 					}
 					os	<< "			</precursorList>\n";
 				}
-				writeUserParam_(os, spec.getInstrumentSettings(), 5);
+				//--------------------------------------------------------------------------------------------
+				//product list
+				//--------------------------------------------------------------------------------------------
+				if (spec.getProducts().size()!=0)
+				{
+					os	<< "				<productList count=\"" << spec.getProducts().size() << "\">\n";
+					for (Size p=0; p<spec.getProducts().size(); ++p)
+					{
+						os	<< "					<product>\n";
+						os	<< "						<isolationWindow>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << spec.getProducts()[p].getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << spec.getProducts()[p].getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << spec.getProducts()[p].getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+						writeUserParam_(os, spec.getProducts()[p], 7);
+						os	<< "						</isolationWindow>\n";
+						os	<< "				</product>\n";
+					}
+					os	<< "			</productList>\n";
+				}
 				//--------------------------------------------------------------------------------------------
 				//binary data array list
 				//--------------------------------------------------------------------------------------------

@@ -47,16 +47,6 @@ using namespace std;
 	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.
 	doi:10.1186/1471-2105-9-375.
 	
-				"  input    is a ground truth file as described on the CAAP web page\n"
-				"  output   is the result in consensusXML format as described in the OpenMS docu.\n"
-				"  [supply optional third argument -v for verbose output]\n"
-				"\n"
-				"See the paper:\n"
-				"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
-				"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
-				"BMC Bioinformatics 2008, 9:375.\n"
-				"doi:10.1186/1471-2105-9-375\n"
-	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_MapAlignmentEvaluation.cli
 */

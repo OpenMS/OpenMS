@@ -60,6 +60,7 @@ set(metadata_executables_list
   PeptideIdentification_test
   AcquisitionInfo_test
   Precursor_test
+  Product_test
   ContactPerson_test
   SourceFile_test
   Software_test

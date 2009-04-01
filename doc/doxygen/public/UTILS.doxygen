@@ -48,7 +48,7 @@
   - @subpage FFEval
   - @subpage LabeledEval
 	- @subpage CaapConvert
-	- @subpage CaapEval
+	- @subpage MapAlignmentEvaluation
   - @subpage RTEvaluation
 	- @subpage IdXMLEvaluation
   

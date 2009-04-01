@@ -33,6 +33,7 @@ SoftwareVisualizer.C
 SourceFileVisualizer.C
 SpectrumSettingsVisualizer.C
 TaggingVisualizer.C
+ProductVisualizer.C
 )
 
 ### add path to the filenames

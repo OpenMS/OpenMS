@@ -35,6 +35,7 @@ SourceFile.h
 SpectrumSettings.h
 Tagging.h
 ScanWindow.h
+Product.h
 )
 
 ### add path to the filenames

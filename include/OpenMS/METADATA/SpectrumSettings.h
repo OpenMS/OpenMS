@@ -33,6 +33,7 @@
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <map>
@@ -50,8 +51,6 @@ namespace OpenMS
 		The precursor spectrum is the first spectrum before this spectrum, that has a lower MS-level than
 		the current spectrum.
 	
-    @todo add product list class, DB access and visualization (Marc)
-  
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI SpectrumSettings 
@@ -121,12 +120,19 @@ namespace OpenMS
       /// sets the source file
       void setSourceFile(const SourceFile& source_file);
 			
-			/// returns a const reference to the precursor
+			/// returns a const reference to the precursors
       const std::vector<Precursor>& getPrecursors() const;
-      /// returns a mutable reference to the precursor
+      /// returns a mutable reference to the precursors
       std::vector<Precursor>& getPrecursors();
-      /// adds the precursor
+      /// sets the precursors
       void setPrecursors(const std::vector<Precursor>& precursors);
+
+			/// returns a const reference to the products
+      const std::vector<Product>& getProducts() const;
+      /// returns a mutable reference to the products
+      std::vector<Product>& getProducts();
+      /// sets the products
+      void setProducts(const std::vector<Product>& products);
 			
       /// returns a const reference to the PeptideIdentification vector
 	    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;	    	
@@ -144,6 +150,7 @@ namespace OpenMS
       SourceFile source_file_;
       AcquisitionInfo acquisition_info_;
       std::vector<Precursor> precursors_;
+      std::vector<Product> products_;
 	    std::vector<PeptideIdentification> identification_;
   };
 

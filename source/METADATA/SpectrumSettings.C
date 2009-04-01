@@ -43,6 +43,7 @@ namespace OpenMS
 			source_file_(),
 			acquisition_info_(),
 			precursors_(),
+			products_(),
 			identification_()
 	{
 	}
@@ -55,6 +56,7 @@ namespace OpenMS
 			source_file_(source.source_file_),
 			acquisition_info_(source.acquisition_info_),
 			precursors_(source.precursors_),
+			products_(source.products_),
 			identification_(source.identification_)
 	{
 	}
@@ -75,6 +77,7 @@ namespace OpenMS
     source_file_ = source.source_file_;
     precursors_ = source.precursors_;
     identification_ = source.identification_;
+	  products_ = source.products_;
 	  
 	  return *this;
 	}
@@ -89,7 +92,8 @@ namespace OpenMS
 	    acquisition_info_ == rhs.acquisition_info_ &&
 		  source_file_ == rhs.source_file_ &&
 	    precursors_ == rhs.precursors_ &&
-	    identification_ == rhs.identification_
+	    identification_ == rhs.identification_ &&
+	    products_ == rhs.products_
   		;
   }
   
@@ -177,7 +181,22 @@ namespace OpenMS
 	{
 	  precursors_ = precursors; 
 	}
+
+	const vector<Product>& SpectrumSettings::getProducts() const 
+	{
+	  return products_; 
+	}
 	
+	vector<Product>&  SpectrumSettings::getProducts()
+	{
+	  return products_; 
+	}
+	
+	void SpectrumSettings::setProducts(const vector<Product>& products)
+	{
+	  products_ = products; 
+	}
+
 	std::ostream& operator << (std::ostream& os, const SpectrumSettings& /*spec*/)
 	{
 		os << "-- SPECTRUMSETTINGS BEGIN --"<<std::endl;

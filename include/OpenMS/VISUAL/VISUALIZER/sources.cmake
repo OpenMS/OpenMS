@@ -32,6 +32,7 @@ SoftwareVisualizer.h
 SourceFileVisualizer.h
 SpectrumSettingsVisualizer.h
 TaggingVisualizer.h
+ProductVisualizer.h
 )
 
 ### add path to the filenames
@@ -80,6 +81,7 @@ SoftwareVisualizer.h
 SourceFileVisualizer.h
 SpectrumSettingsVisualizer.h
 TaggingVisualizer.h
+ProductVisualizer.h
 )
 
 ### add path to the filenames
