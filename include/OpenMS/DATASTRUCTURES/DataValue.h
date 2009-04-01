@@ -94,11 +94,11 @@ namespace OpenMS
       /// specific constructor for int values (note: the implementation uses Int)
       DataValue(int);
       /// specific constructor for unsigned int values (note: the implementation uses Int)
-      DataValue(unsigned nt);
+      DataValue(unsigned);
       /// specific constructor for long int values (note: the implementation uses Int)
       DataValue(long int);
       /// specific constructor for unsigned long int values (note: the implementation uses Int)
-      DataValue(unsigned long nt);
+      DataValue(unsigned long);
 			/// copy constructor
 			DataValue(const DataValue&);
 			/// destructor

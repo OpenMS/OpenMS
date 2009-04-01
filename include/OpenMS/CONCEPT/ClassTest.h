@@ -255,7 +255,7 @@ namespace OpenMS
       extern OPENMS_DLLAPI std::string add_message;
 
       /**@brief Last message from a fuzzy comparison.  Written by
-       #isRealSimilar(), #isStringSimilar(), #isFileSimilar().  Read by
+       #isRealSimilar(), #testStringSimilar(), #isFileSimilar().  Read by
        #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR;
        */
       extern OPENMS_DLLAPI std::string fuzzy_message;
@@ -755,7 +755,7 @@ int main(int argc, char **argv)																									\
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
  @note Both arguments are converted to @c std::string.  The actual comparison
- is done by isStringSimilar().
+ is done by testStringSimilar().
 
  @param a value to test
  @param b expected value
@@ -926,7 +926,7 @@ int main(int argc, char **argv)																									\
   This macro checks if a precondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Precondition,command)</code>.
   However the test is executed only when the #OPENMS_PRECONDITION macros are active,
-  i.e., when compiling in Debug mode.  (See #Macros.h)
+  i.e., when compiling in Debug mode.  (See Macros.h)
 
  @param command any general C++ or OpenMS-specific command
 
@@ -943,7 +943,7 @@ int main(int argc, char **argv)																									\
   This macro checks if a postcondition violation is detected while executing the command,
   similar to <code>TEST_EXCEPTION(Exception::Postcondition,command)</code>.
   However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
-  i.e., when compiling in Debug mode.  (See #Macros.h)
+  i.e., when compiling in Debug mode.  (See Macros.h)
 
  @param command any general C++ or OpenMS-specific command
 

@@ -62,7 +62,7 @@ START_SECTION((void setInterpolationMode(InterpolationMode mode)))
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
 END_SECTION
 
-START_SECTION((Size size() const ))
+START_SECTION((Size size() const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
 END_SECTION
@@ -73,13 +73,13 @@ START_SECTION((UInt position(UInt index)))
 	TEST_EQUAL(mg.position(1),100);
 END_SECTION
 
-START_SECTION((const QColor& color(UInt index)))
+START_SECTION((QColor color(UInt index)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 END_SECTION
 
-START_SECTION((void insert(Int position, const QColor& color)))
+START_SECTION((void insert(Int position, QColor color)))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.size(),3);
@@ -237,7 +237,7 @@ START_SECTION((void activatePrecalculationMode(DoubleReal min, DoubleReal max, U
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((const QColor& precalculatedColorAt(DoubleReal position) const))
+START_SECTION((QColor precalculatedColorAt(DoubleReal position) const ))
 	MultiGradient mg;
 	mg.insert(0,Qt::white);
 	mg.insert(100,Qt::blue);

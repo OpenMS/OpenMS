@@ -47,6 +47,16 @@ START_SECTION((IdXMLFile()))
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+	std::vector<ProteinIdentification> protein_ids;
+	std::vector<PeptideIdentification> peptide_ids;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+	
+	TEST_EQUAL(protein_ids.size(),2)
+	TEST_EQUAL(peptide_ids.size(),3)
+END_SECTION
+
+
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id) )
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;

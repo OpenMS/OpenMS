@@ -77,6 +77,7 @@ set(metadata_executables_list
 set(system_executables_list
 	StopWatch_test
   File_test
+  FileWatcher_test
 )
 
 set(kernel_executables_list
@@ -149,6 +150,7 @@ set(format_executables_list
   ControlledVocabulary_test
   TransformationXMLFile_test
   SemanticValidator_test
+  MzMLValidator_test
   MS2File_test
 )
 

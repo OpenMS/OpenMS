@@ -45,14 +45,14 @@ add_test("TOPP_MapNormalizer_1" ${TOPP_BIN_PATH}/MapNormalizer  -in ${DATA_DIR_T
 add_test("TOPP_MapNormalizer_1_out1" ${DIFF} -in1 MapNormalizer_output.tmp -in2 ${DATA_DIR_TOPP}/MapNormalizer_output.mzData)
 
 ### DBImporter tests
-if (EXISTS source/TEST/TOPP/DBImporter_input.ini)
+if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter_input.ini)
 	add_test("TOPP_DBImporter_1" ${TOPP_BIN_PATH}/DBImporter  -init -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
 	add_test("TOPP_DBImporter_2" ${TOPP_BIN_PATH}/DBImporter  -in ${DATA_DIR_TOPP}/DBImporter_input.mzData -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
 	add_test("TOPP_DBImporter_3" ${TOPP_BIN_PATH}/DBImporter  -in ${DATA_DIR_TOPP}/DBImporter_input2.mzData -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
 endif()
 
 ### DBExporter tests
-if (EXISTS source/TEST/TOPP/DBExporter_input.ini)
+if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter_input.ini)
 	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -id 1)
 	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter_output.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
 	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output2.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query "SELECT 1")

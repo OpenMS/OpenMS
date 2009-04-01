@@ -95,7 +95,7 @@ START_SECTION((DataValue(int)))
   TEST_EQUAL((int)d, -3000)
 END_SECTION
 
-START_SECTION((DataValue(unsigned int)))
+START_SECTION((DataValue(unsigned)))
   unsigned int n = 3000u;
   DataValue d(n);
   TEST_EQUAL((unsigned int)d, 3000u)
@@ -107,12 +107,11 @@ START_SECTION((DataValue(long int)))
   TEST_EQUAL((long int)d, -3000)
 END_SECTION
 
-START_SECTION((DataValue(unsigned long int)))
+START_SECTION((DataValue(unsigned long)))
   unsigned long int n = 3000u;
   DataValue d(n);
   TEST_EQUAL((unsigned long int)d, 3000u)
 END_SECTION
-
 
 START_SECTION((DataValue(const char*)))
 	const char* s = "test char";
@@ -272,41 +271,69 @@ START_SECTION((operator long double() const))
 	DataValue d(5.4L);
 	long double k = d;
 	TEST_REAL_SIMILAR(k,5.4L)
-
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 END_SECTION
 
 START_SECTION((operator double() const))
 	DataValue d(5.4);
 	double k = d;
 	TEST_REAL_SIMILAR(k,5.4)
-
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 END_SECTION
 
 START_SECTION((operator float() const))
 	DataValue d(5.4f);
 	float k = d;
 	TEST_REAL_SIMILAR(k,5.4f)
-
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 END_SECTION
 
-START_SECTION((operator Int() const))
+START_SECTION((operator int() const ))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
+  TEST_EXCEPTION(Exception::ConversionError, (int)DataValue(55.4))
 END_SECTION
 
-START_SECTION((operator UInt() const))
+START_SECTION((operator unsigned int() const ))
 	DataValue d((Int) 55);
-	UInt k = d;
+	unsigned int k = d;
 	TEST_EQUAL(k,55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
-  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned int)DataValue(55.4))
+END_SECTION
+
+START_SECTION((operator short int() const))
+	DataValue d((short int) 55);
+	short int k = d;
+	TEST_EQUAL(k,55)
+
+  TEST_EXCEPTION(Exception::ConversionError, (short int)DataValue(55.4))
+END_SECTION
+
+START_SECTION((operator unsigned short int() const))
+	DataValue d((short int) 55);
+	unsigned short int k = d;
+	TEST_EQUAL(k,55)
+
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned short int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned short int)DataValue(55.4))
+END_SECTION
+
+START_SECTION((operator long int() const))
+	DataValue d((long int) 55);
+	long int k = d;
+	TEST_EQUAL(k,55)
+
+  TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
+END_SECTION
+
+START_SECTION((operator unsigned long int() const))
+	DataValue d((long int) 55);
+	unsigned long int k = d;
+	TEST_EQUAL(k,55)
+
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(55.4))
 END_SECTION
 
 START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))

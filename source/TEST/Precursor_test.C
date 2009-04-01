@@ -49,7 +49,7 @@ START_SECTION((~Precursor()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((DoubleReal getActivationEnergy() const ))
+START_SECTION((DoubleReal getActivationEnergy() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergy(),0);
 END_SECTION
@@ -71,7 +71,7 @@ START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowUpperOffset() const ))
+START_SECTION((DoubleReal getIsolationWindowUpperOffset() const))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 0);
 END_SECTION
@@ -82,7 +82,7 @@ START_SECTION((void setIsolationWindowUpperOffset(DoubleReal bound)))
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 22.7);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowLowerOffset() const ))
+START_SECTION((DoubleReal getIsolationWindowLowerOffset() const))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 0);
 END_SECTION
@@ -91,6 +91,35 @@ START_SECTION((void setIsolationWindowLowerOffset(DoubleReal bound)))
   Precursor tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 22.8);
+END_SECTION
+
+START_SECTION((Int getCharge() const))
+  Precursor tmp;
+  TEST_EQUAL(tmp.getCharge(), 0);
+END_SECTION
+
+START_SECTION((void setCharge(Int charge)))
+  Precursor tmp;
+  tmp.setCharge(2);
+  TEST_EQUAL(tmp.getCharge(), 2);
+END_SECTION
+
+START_SECTION((const std::vector<Int>& getPossibleChargeStates() const))
+  Precursor tmp;
+  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 0);
+END_SECTION
+
+START_SECTION((std::vector<Int>& getPossibleChargeStates()))
+  Precursor tmp;
+  tmp.getPossibleChargeStates().resize(1);
+  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 1);
+END_SECTION
+
+START_SECTION((void setPossibleChargeStates(const std::vector<Int>& possible_charge_states)))
+  Precursor tmp;
+  vector<Int> states(1);
+  tmp.setPossibleChargeStates(states);
+  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 1);
 END_SECTION
 
 START_SECTION((Precursor(const Precursor& source)))
@@ -156,6 +185,14 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
+  tmp.setCharge(13);
+	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+  tmp.getPossibleChargeStates().resize(5);
+	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
@@ -178,6 +215,14 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
+	TEST_EQUAL(tmp!=tmp2, true);
+
+	tmp2 = tmp;
+  tmp.setCharge(13);
+	TEST_EQUAL(tmp!=tmp2, true);
+
+	tmp2 = tmp;
+  tmp.getPossibleChargeStates().resize(5);
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;

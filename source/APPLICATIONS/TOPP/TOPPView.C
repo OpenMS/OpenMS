@@ -34,7 +34,7 @@
  	
  	@image html TOPPView.png
 	
-	More information about TOPPView can be found in the @ref TOPPViewTutorial.
+	More information about TOPPView can be found in the @ref TOPP_tutorial.
 */
 
 //QT

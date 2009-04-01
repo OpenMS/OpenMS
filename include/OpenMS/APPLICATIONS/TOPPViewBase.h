@@ -115,6 +115,7 @@ namespace OpenMS
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
       	@param add_to_recent If the file should be added to the recent files after opening
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
+      	@param spectrum_id determines the spectrum to show in 1D view.
       */
       void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption="", UInt window_id=0, Size spectrum_id=0);
       /**
@@ -296,6 +297,7 @@ namespace OpenMS
   			@param filename source file name (if the data came from a file)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
+      	@param spectrum_id determines the spectrum to show in 1D view.
       */
   		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
   

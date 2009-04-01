@@ -51,12 +51,12 @@ START_SECTION((~SpectrumSettings()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getNativeID() const)
+START_SECTION((const String& getNativeID() const))
 	SpectrumSettings tmp;
 	TEST_STRING_EQUAL(tmp.getNativeID(),"");
 END_SECTION
 
-START_SECTION(void setNativeID(const String& native_id))
+START_SECTION((void setNativeID(const String& native_id)))
 	SpectrumSettings tmp;
 	tmp.setNativeID("nid");
 	TEST_STRING_EQUAL(tmp.getNativeID(),"nid");
@@ -119,7 +119,7 @@ START_SECTION((InstrumentSettings& getInstrumentSettings()))
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);	
 END_SECTION
 
-START_SECTION((const std::vector<Precursor>& getPrecursors()[0]. const))
+START_SECTION((const std::vector<Precursor>& getPrecursors() const ))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getPrecursors().size(),0);	  
 END_SECTION
@@ -130,13 +130,13 @@ START_SECTION((void setPrecursors(const std::vector<Precursor>& precursors)))
 	TEST_EQUAL(tmp.getPrecursors().size(), 2);
 END_SECTION
 
-START_SECTION((std::vector<Precursor>& getPrecursors()[0].))
+START_SECTION((std::vector<Precursor>& getPrecursors()))
 	SpectrumSettings tmp;
 	tmp.getPrecursors().resize(4);
 	TEST_EQUAL(tmp.getPrecursors().size(), 4);	
 END_SECTION
 
-START_SECTION((const std::vector<Product>& getProducts()[0]. const))
+START_SECTION((const std::vector<Product>& getProducts() const ))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getProducts().size(),0);	  
 END_SECTION
@@ -147,7 +147,7 @@ START_SECTION((void setProducts(const std::vector<Product>& products)))
 	TEST_EQUAL(tmp.getProducts().size(), 2);
 END_SECTION
 
-START_SECTION((std::vector<Product>& getProducts()[0].))
+START_SECTION((std::vector<Product>& getProducts()))
 	SpectrumSettings tmp;
 	tmp.getProducts().resize(4);
 	TEST_EQUAL(tmp.getProducts().size(), 4);	

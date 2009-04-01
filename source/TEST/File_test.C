@@ -79,7 +79,7 @@ START_SECTION((static bool writable(const String &file)))
 	TEST_EQUAL(File::writable(filename), true)
 END_SECTION
 
-START_SECTION((static String find(const String &filename, StringList=StringList())))
+START_SECTION((static String find(const String &filename, StringList directories=StringList())))
 	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
 
 	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");

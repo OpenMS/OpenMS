@@ -121,12 +121,6 @@ START_SECTION((bool operator!= (const MSExperiment& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 END_SECTION
 
-START_SECTION(void resize(const typename Base::size_type& size))
-	MSExperiment<> tmp;
-	tmp.resize(5);
-	TEST_EQUAL(tmp.size(),5)
-END_SECTION
-
 START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;

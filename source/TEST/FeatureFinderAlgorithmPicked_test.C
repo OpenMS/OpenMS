@@ -57,6 +57,7 @@ END_SECTION
 
 START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
 	FeatureFinderAlgorithmPicked<RichPeak1D,Feature> ffa;
+	NOT_TESTABLE
 END_SECTION
 	
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

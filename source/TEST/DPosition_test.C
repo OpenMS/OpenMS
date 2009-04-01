@@ -53,7 +53,7 @@ START_SECTION((~DPosition()))
 	delete d10_ptr;
 END_SECTION
 
-START_SECTION((CoordinateType operator[](Size index) const ))
+START_SECTION((CoordinateType operator[](Size index) const))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
@@ -453,22 +453,22 @@ START_SECTION((bool spatiallyLessEqual(const DPosition &point) const))
 	TEST_EQUAL(p11.spatiallyLessEqual(p11), true )
 END_SECTION
 
-START_SECTION((inline static const DPosition zero()))
+START_SECTION((static const DPosition zero()))
   typedef DPosition<1> D1;
   TEST_EQUAL(D1::zero()[0],0);
 END_SECTION
 
-START_SECTION((inline static const DPosition min()))
+START_SECTION((static const DPosition min()))
   typedef DPosition<1> D1;
   TEST_EQUAL(D1::min()[0],std::numeric_limits<D1::CoordinateType>::min());
 END_SECTION
 
-START_SECTION((inline static const DPosition min_negative()))
+START_SECTION((static const DPosition min_negative()))
   typedef DPosition<1> D1;
   TEST_EQUAL(D1::min_negative()[0],-std::numeric_limits<D1::CoordinateType>::max());
 END_SECTION
 
-START_SECTION((inline static const DPosition max()))
+START_SECTION((static const DPosition max()))
   typedef DPosition<1> D1;
   TEST_EQUAL(D1::max()[0],std::numeric_limits<D1::CoordinateType>::max());
 END_SECTION

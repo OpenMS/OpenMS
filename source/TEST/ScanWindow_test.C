@@ -74,7 +74,7 @@ START_SECTION((ScanWindow& operator= (const ScanWindow& source)))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
-START_SECTION((bool operator== (const ScanWindow& rhs) const))
+START_SECTION((bool operator==(const ScanWindow &source) const ))
   ScanWindow edit, empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -91,7 +91,7 @@ START_SECTION((bool operator== (const ScanWindow& rhs) const))
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
-START_SECTION((bool operator!= (const ScanWindow& rhs) const))
+START_SECTION((bool operator!=(const ScanWindow &source) const ))
   ScanWindow edit, empty;
   
   TEST_EQUAL(edit!=empty,false);

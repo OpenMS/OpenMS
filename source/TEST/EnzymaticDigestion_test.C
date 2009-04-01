@@ -66,6 +66,7 @@ END_SECTION
 
 START_SECTION((void setEnzyme(Enzyme enzyme)))
 	//can be tested as soon as there is a second enzyme
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((Size peptideCount(const AASequence &protein)))

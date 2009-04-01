@@ -56,6 +56,7 @@ END_SECTION
 
 START_SECTION([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
 	FeatureFinderAlgorithmWatershed<RichPeak1D,Feature> ffa;
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((virtual void run()))

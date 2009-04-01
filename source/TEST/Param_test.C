@@ -43,16 +43,16 @@ START_TEST(Param, "$Id$")
 ////////////////////////////////////////////////////////////////////
 
 Param::ParamEntry* pe_ptr =0;
-START_SECTION((Param::ParamEntry()))
+START_SECTION(([EXTRA] Param::ParamEntry()))
 	pe_ptr = new Param::ParamEntry();
 	TEST_NOT_EQUAL(pe_ptr,0)
 END_SECTION
 
-START_SECTION((~Param::ParamEntry()))
+START_SECTION(([EXTRA] ~Param::ParamEntry()))
 	delete pe_ptr;
 END_SECTION
 
-START_SECTION((Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u)))
+START_SECTION(([EXTRA] Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u)))
 	Param::ParamEntry pe("n","v","d",StringList::create("advanced"));
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
@@ -66,7 +66,7 @@ START_SECTION((Param::ParamEntry(const String& n, const DataValue& v, const Stri
 	TEST_EQUAL(pe.tags.count("advanced")==1,false)
 END_SECTION
 
-START_SECTION((bool operator==(const Param::ParamEntry& rhs) const))
+START_SECTION(([EXTRA] bool operator==(const Param::ParamEntry& rhs) const))
 	Param::ParamEntry n1("n","d","v",StringList::create("advanced"));
 	Param::ParamEntry n2("n","d","v",StringList::create("advanced"));
 	
@@ -91,16 +91,16 @@ END_SECTION
 ////////////////////////////////////////////////////////////////////
 
 Param::ParamNode* pn_ptr =0;
-START_SECTION((Param::ParamNode()))
+START_SECTION(([EXTRA] Param::ParamNode()))
 	pn_ptr = new Param::ParamNode();
 	TEST_NOT_EQUAL(pn_ptr,0)
 END_SECTION
 
-START_SECTION((~Param::ParamNode()))
+START_SECTION(([EXTRA] ~Param::ParamNode()))
 	delete pn_ptr;
 END_SECTION
 
-START_SECTION((Param::ParamNode(const String& n, const String& d)))
+START_SECTION(([EXTRA] Param::ParamNode(const String& n, const String& d)))
 	Param::ParamNode n("n","d");
 	TEST_EQUAL(n.name,"n")
 	TEST_EQUAL(n.description,"d")
@@ -110,7 +110,7 @@ START_SECTION((Param::ParamNode(const String& n, const String& d)))
 	TEST_EQUAL(n.description,"d1")
 END_SECTION
 
-START_SECTION((bool operator==(const Param::ParamNode& rhs) const))
+START_SECTION(([EXTRA] bool operator==(const Param::ParamNode& rhs) const))
 	Param::ParamNode n1("n","d");
 	Param::ParamNode n2("n","d");
 
@@ -145,7 +145,7 @@ START_SECTION((bool operator==(const Param::ParamNode& rhs) const))
 	TEST_EQUAL(n1==n2,true)	
 END_SECTION
 
-START_SECTION((String suffix(const String& key)))
+START_SECTION(([EXTRA] String suffix(const String& key)))
 	Param::ParamNode node;
 	TEST_EQUAL(node.suffix(""),"")
 	TEST_EQUAL(node.suffix("A"),"A")
@@ -174,13 +174,13 @@ n.name="B"; pn.nodes.push_back(n);
 e.name="G"; e.value=1; pn.nodes[1].entries.push_back(e);
 
 
-START_SECTION((Size size() const ))
+START_SECTION(([EXTRA] Size size() const ))
 	TEST_EQUAL(pn.size(),4)
 	TEST_EQUAL(pn.nodes[0].size(),2)
 	TEST_EQUAL(pn.nodes[1].size(),1)
 END_SECTION
 
-START_SECTION((EntryIterator findEntry(const String& name)))
+START_SECTION(([EXTRA] EntryIterator findEntry(const String& name)))
 	TEST_EQUAL(pn.findEntry("A")==pn.entries.end(),true)
 	TEST_EQUAL(pn.findEntry("B")!=pn.entries.end(),true)
 	TEST_EQUAL(pn.findEntry("C")==pn.entries.end(),true)
@@ -191,7 +191,7 @@ START_SECTION((EntryIterator findEntry(const String& name)))
 	TEST_EQUAL(pn.findEntry("H")==pn.entries.end(),true)
 END_SECTION
 
-START_SECTION((NodeIterator findNode(const String& name)))
+START_SECTION(([EXTRA] NodeIterator findNode(const String& name)))
 	TEST_EQUAL(pn.findNode("A")==pn.nodes.end(),true)
 	TEST_EQUAL(pn.findNode("B")!=pn.nodes.end(),true)
 	TEST_EQUAL(pn.findNode("C")!=pn.nodes.end(),true)
@@ -202,7 +202,7 @@ START_SECTION((NodeIterator findNode(const String& name)))
 	TEST_EQUAL(pn.findNode("H")==pn.nodes.end(),true)
 END_SECTION
 
-START_SECTION((Param::ParamNode* findParentOf(const String& name)))
+START_SECTION(([EXTRA] Param::ParamNode* findParentOf(const String& name)))
 	TEST_EQUAL(pn.findParentOf("A"),0)
 	TEST_EQUAL(pn.findParentOf("B"),&pn)
 	TEST_EQUAL(pn.findParentOf("C"),&pn)
@@ -216,7 +216,7 @@ START_SECTION((Param::ParamNode* findParentOf(const String& name)))
 	TEST_EQUAL(pn.findParentOf("H:C:"),0)
 END_SECTION
 
-START_SECTION((Param::ParamEntry* findEntryRecursive(const String& name)))
+START_SECTION(([EXTRA] Param::ParamEntry* findEntryRecursive(const String& name)))
 	TEST_EQUAL(pn.findEntryRecursive("A"),0)
 	TEST_EQUAL(pn.findEntryRecursive("B"),&(pn.entries[0]))
 	TEST_EQUAL(pn.findEntryRecursive("C"),0)
@@ -241,7 +241,7 @@ END_SECTION
 // |-F
 //   |-H(5)
 
-START_SECTION((void insert(const Param::ParamNode& node, const String& prefix = "")))
+START_SECTION(([EXTRA] void insert(const Param::ParamNode& node, const String& prefix = "")))
 	Param::ParamNode node("","");
 	node.entries.push_back(Param::ParamEntry("H",5,"",StringList::create("advanced")));
 	pn.insert(node,"F");
@@ -264,7 +264,7 @@ START_SECTION((void insert(const Param::ParamNode& node, const String& prefix = 
 	TEST_NOT_EQUAL(pn.findEntryRecursive("QW:H"),0)	
 END_SECTION
 
-START_SECTION((void insert(const Param::ParamEntry& entry, const String& prefix = "")))
+START_SECTION(([EXTRA] void insert(const Param::ParamEntry& entry, const String& prefix = "")))
 	Param::ParamEntry entry("H","",5,StringList::create("advanced"));
 
 	pn.insert(entry);
@@ -286,22 +286,22 @@ END_SECTION
 
 
 Param::ParamIterator* pi_ptr=0;
-START_SECTION((ParamIterator()))
+START_SECTION(([EXTRA] ParamIterator()))
 	pi_ptr = new Param::ParamIterator();
 	TEST_NOT_EQUAL(pi_ptr,0)
 END_SECTION
 
-START_SECTION((~ParamIterator()))
+START_SECTION(([EXTRA] ~ParamIterator()))
 	delete(pi_ptr);
 END_SECTION
 
-START_SECTION((ParamIterator(const Param::ParamNode& root)))
+START_SECTION(([EXTRA] ParamIterator(const Param::ParamNode& root)))
 	Param::ParamNode node;
 	pi_ptr = new Param::ParamIterator(node);
 	TEST_NOT_EQUAL(pi_ptr,0)
 END_SECTION
 
-START_SECTION((const Param::ParamEntry& operator*()))
+START_SECTION(([EXTRA] const Param::ParamEntry& operator*()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	Param::ParamIterator it(node);
@@ -311,7 +311,7 @@ START_SECTION((const Param::ParamEntry& operator*()))
 	TEST_EQUAL((*it).tags.count("advanced")==1,true)
 END_SECTION
 
-START_SECTION((const Param::ParamEntry* operator->()))
+START_SECTION(([EXTRA] const Param::ParamEntry* operator->()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	Param::ParamIterator it(node);
@@ -345,7 +345,7 @@ r.nodes.push_back(s);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
-START_SECTION((ParamIterator& operator++()))
+START_SECTION(([EXTRA] ParamIterator& operator++()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
@@ -433,7 +433,7 @@ START_SECTION((ParamIterator& operator++()))
 	++it2;
 END_SECTION
 
-START_SECTION((ParamIterator operator++(Int)))
+START_SECTION(([EXTRA] ParamIterator operator++(Int)))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
@@ -453,7 +453,7 @@ START_SECTION((ParamIterator operator++(Int)))
 	TEST_EQUAL(it2->tags.count("advanced")==1,true);
 END_SECTION
 
-START_SECTION((String getName() const))
+START_SECTION(([EXTRA] String getName() const))
 	Param::ParamIterator it(root);
 	
 	TEST_EQUAL(it.getName(),"A");
@@ -470,7 +470,7 @@ START_SECTION((String getName() const))
 END_SECTION
 
 
-START_SECTION((bool operator==(const ParamIterator& rhs) const))
+START_SECTION(([EXTRA] bool operator==(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin==begin, true)
@@ -518,7 +518,7 @@ START_SECTION((bool operator==(const ParamIterator& rhs) const))
 	TEST_EQUAL(begin2==end, true)
 END_SECTION
 
-START_SECTION((bool operator!=(const ParamIterator& rhs) const))
+START_SECTION(([EXTRA] bool operator!=(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
@@ -529,7 +529,7 @@ START_SECTION((bool operator!=(const ParamIterator& rhs) const))
 END_SECTION
 
 
-START_SECTION((const std::vector< TraceInfo>& getTrace() const))
+START_SECTION(([EXTRA] const std::vector< TraceInfo>& getTrace() const))
 	
 	//A	
 	Param::ParamIterator it(root);
@@ -792,7 +792,7 @@ START_SECTION((void clear()))
 	TEST_EQUAL(p2.empty(), true)
 END_SECTION
 
-START_SECTION((Size size() const ))
+START_SECTION((Size size() const))
 	Param p;
 	TEST_EQUAL(p.size(), 0)
 	p.setValue("key",17.4f);
@@ -1370,7 +1370,7 @@ command_line4[7] = a8;
 command_line4[8] = a9;
 command_line4[9] = a10;
 
-START_SECTION((void parseCommandLine(const int argc, const char **argv, const Map< String, String > &options_with_one_argument, const Map< String, String > &options_without_argument, const Map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
+START_SECTION((void parseCommandLine(const int argc, const char **argv, String prefix="")))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -1397,7 +1397,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 END_SECTION
 
 
-START_SECTION((void parseCommandLine(const int argc, const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown")))
+START_SECTION((void parseCommandLine(const int argc, const char **argv, const Map< String, String > &options_with_one_argument, const Map< String, String > &options_without_argument, const Map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
 
 	Map<String,String> with_one,without,with_multiple;
 	with_one["-a"]="a";
