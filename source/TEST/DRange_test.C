@@ -373,6 +373,23 @@ START_SECTION(bool isIntersected(const DRange& range) const)
 	TEST_EQUAL(r2.isIntersected(r3),true)		
 END_SECTION
 
+START_SECTION(DRange united(const DRange<D>& other_range) const)
+	DRange<2> r2(p1,p2);
+	DRange<2> r3(r2);
+	TEST_EQUAL(r2 == r2.united(r3), true)
+	TEST_EQUAL(r3 == r2.united(r3), true)
+	TEST_EQUAL(r2 == r3.united(r2), true)
+	TEST_EQUAL(r3 == r3.united(r2), true)
+	r3.setMin(r2.max()+one);
+	r3.setMax(r2.max()+two);
+	DRange<2> r4;
+	r4.setMin(r2.min());
+	r4.setMax(r3.max());
+	TEST_EQUAL(r2.united(r3) == r4, true);
+	TEST_EQUAL(r3.united(r2) == r4, true);
+END_SECTION
+
+
 START_SECTION(bool encloses(CoordinateType x, CoordinateType y) const)
 	DRange<2> r2(p1,p2);
 	TEST_EQUAL(r2.encloses(0.0f,0.0f),true);
