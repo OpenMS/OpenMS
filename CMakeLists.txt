@@ -284,7 +284,7 @@ if (NOT MSVC AND USE_ANDIMS)
 	set(CONTRIB_NETCDF ${CONTRIB_NETCDF_CPP} ${CONTRIB_NETCDF_C})
 endif()
 
-# libSVM:
+#libSVM support
 
 if (MSVC) 
 	## we created a lib here, because we cannot just add an object..
@@ -292,6 +292,23 @@ if (MSVC)
 else()
 	## there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
 	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
+endif()
+
+# Boost support
+if (MSVC)
+	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
+	link_directories(${CONTRIB_LIB_DIR})
+else()
+	set(CONTRIB_ENABLE_BOOST OFF CACHE BOOL "Enable Boost iostreams lib support")
+	if(CONTRIB_ENABLE_BOOST)
+		#determine boost library suffix
+		file(GLOB BOOST_IO_LIB_PATH "${CONTRIB_LIB_DIR}/*boost_iostreams*[^0-9].*")
+		string(REGEX MATCH "-.*-[^.]*" BOOST_LIB_SUFFIX ${BOOST_IO_LIB_PATH})
+		message(STATUS "Boost library suffix: ${BOOST_LIB_SUFFIX}")
+		
+		#find libs
+		OPENMS_CHECKLIB(CONTRIB_BOOST_IO "boost_iostreams${BOOST_LIB_SUFFIX}" "boost_iostreams${BOOST_LIB_SUFFIX}" "Boost iostreams")
+	endif()
 endif()
 
 
@@ -508,9 +525,6 @@ ENDMACRO (QT4_WRAP_UI_OWN)
 ## big include file for headers and C files, which fills the OpenMS_sources variable
 include (cmake/includes.cmake)
 
-## needed for MSVC to locate Boost-Libs (put this above ADD_LIBRARY() - otherwise it will not work)
-link_directories(${CONTRIB_LIB_DIR})
-
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
@@ -529,7 +543,7 @@ endif()
 
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF} ${CONTRIB_BOOST_IO})
 if (TBB_FOUND)
 	set (OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES} ${TBB_LIBRARIES})
 endif()

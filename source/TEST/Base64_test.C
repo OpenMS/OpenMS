@@ -33,6 +33,23 @@
 
 ///////////////////////////
 
+#include <fstream>
+#include <iostream>
+#include <string>
+
+//ZLIB example:
+//#include <boost/iostreams/filter/gzip.hpp>
+//#include <boost/iostreams/filtering_streambuf.hpp>
+//#include <boost/iostreams/copy.hpp>
+//
+//ifstream filein("/share_pride/usr/sturm/contrib/test/text.txt.gz", ios_base::in | ios_base::binary);
+//boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
+//in.push(boost::iostreams::gzip_decompressor());
+//in.push(filein);
+//boost::iostreams::copy(in, cout);
+
+using namespace std;
+
 START_TEST(Base64, "$Id$")
 
 /////////////////////////////////////////////////////////////
