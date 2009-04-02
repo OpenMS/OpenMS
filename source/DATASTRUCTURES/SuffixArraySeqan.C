@@ -408,7 +408,7 @@ namespace OpenMS
 					if ((i<1&&length_till_node<1)?false:(cc=='$')) {
 						// either we are not using tags or we have already seen one of the tags
 						if (!use_tags_ || 
-								binary_search(tag_indices.begin(), tag_indices.end(), length_till_node + i + start_index_in_text - 2 /*, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
+								binary_search(tag_indices.begin(), tag_indices.end(), Size(length_till_node + i + start_index_in_text - 2) /*, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
 							 )
 						{
 							// if the mass is in spectrum but only if the digesting enzyme will not cut after the last character (because if it does the canditate was already added to the result the step before)
@@ -467,7 +467,7 @@ namespace OpenMS
 						double newm = (mm-masse_[(int)start_char]);
 						// if the mass is in the spectrum
 						if (!use_tags_ || 
-								binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2 /*, 
+								binary_search(tag_indices.begin(),tag_indices.end(),Size(length_till_node+i+start_index_in_text-2) /*, 
 								IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
 							 )
 						{

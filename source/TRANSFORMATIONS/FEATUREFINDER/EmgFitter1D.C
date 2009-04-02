@@ -240,7 +240,7 @@ namespace OpenMS
       for (Size i=0; i<set.size(); ++i) sum += set[i].getIntensity();
 
       // calculate the median
-      Int median = 0;
+      Size median;
       Real count = 0.0;
       for ( Size i = 0; i < set.size(); ++i )
       {

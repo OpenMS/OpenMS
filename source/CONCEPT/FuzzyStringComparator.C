@@ -301,14 +301,14 @@ namespace OpenMS
 				line_1_pos_ = line_1_.tellg(); // save current reading position
 				line_1_ >> letter_1_; // read letter
 				// std::cout << ":::" << letter_1_ << line_1_pos_ << std::endl;
-				if ( ( is_space_1_ = (bool) isspace(letter_1_) ) ) // is whitespace?
+				if ( ( is_space_1_ = (isspace(letter_1_)!=0) ) ) // is whitespace?
 				{
 					line_1_ >> std::ws; // skip over further whitespace
 				}
 				else
 				{
 					line_1_.seekg(line_1_pos_); // rewind to saved position
-					if ( ( is_number_1_ = (bool) ( line_1_ >> number_1_ ) ) ) // is a number?
+					if ( ( is_number_1_ = ( ( line_1_ >> number_1_ )!=0) ) ) // is a number?
 					{
 						// letter_1_ = '\0';
 						// std::cout << line_1_pos_ << std::endl;
@@ -323,14 +323,14 @@ namespace OpenMS
 
 				line_2_pos_ = line_2_.tellg(); // save current reading position
 				line_2_ >> letter_2_; // read letter
-				if ( ( is_space_2_ = (bool) isspace(letter_2_) ) ) // is whitespace?
+				if ( ( is_space_2_ = ( isspace(letter_2_)!=0 ) ) ) // is whitespace?
 				{
 					line_2_ >> std::ws; // skip over further whitespace
 				}
 				else
 				{
 					line_2_.seekg(line_2_pos_); // rewind to saved position
-					if ( ( is_number_2_ = (bool) ( line_2_ >> number_2_ ) ) ) // is a number?
+					if ( ( is_number_2_ = ( ( line_2_ >> number_2_ )!=0) ) ) // is a number?
 					{
 						// letter_2_ = '\0';
 					}
