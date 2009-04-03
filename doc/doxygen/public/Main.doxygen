@@ -85,6 +85,11 @@
 					<LI> @subpage external_code
 				</UL>
 				
+				Misc:
+				<UL>
+					<LI> @subpage FAQ
+				</UL>
+				
 				@if INTERNAL_INFO
 				Internal:
 				<UL>
