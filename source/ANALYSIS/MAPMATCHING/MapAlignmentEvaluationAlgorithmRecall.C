@@ -21,12 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
-//#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 #include <vector>
 
@@ -44,7 +43,7 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)
 	{
 		//Recall = 1/N * sum( gt_subtend_tilde_tool_i / ( m_i * gt_i ) )
 
@@ -103,7 +102,7 @@ namespace OpenMS
 					{
 						++cons_tool_size;
 
-						if (isSameHandle(*tool_it, *gt_it))
+						if (isSameHandle(*tool_it, *gt_it, rt_dev, mz_dev, int_dev))
 						{
 							++gt_i_subtend_tool_j;
 						}
@@ -122,7 +121,7 @@ namespace OpenMS
 			gt.push_back( gt_i / cons_map_tool.size() );
 
 		}
-		for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k) //sollte man überprüfen, dass die vektoren und N gleich groß sind?
+		for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k)
 		{
 			fraction = 0;
 
@@ -131,13 +130,9 @@ namespace OpenMS
 				fraction = DoubleReal(gt_subtend_tilde_tool[k]) / ( m[k] * gt[k] );
 			}
 			sum += fraction;
-			//std::cout << "gt_subtend_tilde_tool: " << gt_subtend_tilde_tool[k] << "   m: " << m[k] << "   gt: " << gt[k] << "\n";
-			//std::cout << "fraction: " << fraction << "\n";
-			//std::cout << "sum: " << sum << "\n";
 		}
 		recall = (1.0 / DoubleReal(cons_map_gt.size()) ) * sum;
 		out = recall;
-		//std::cout << "recall: " << recall << "\n";
 	}
 
 } // namespace OpenMS

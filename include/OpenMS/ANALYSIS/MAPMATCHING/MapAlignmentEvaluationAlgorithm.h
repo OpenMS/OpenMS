@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H
@@ -44,7 +44,7 @@ namespace OpenMS
 	{
 
 		protected:
-			typedef ConsensusFeature::HandleSetType::const_iterator HandleIterator; //geht nicht private! fehler:/home/bude/albers/RAID/cmakeOpenMS/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h:46: error: 'typedef struct std::_Rb_tree_const_iterator<OpenMS::FeatureHandle> OpenMS::MapAlignmentEvaluationAlgorithm::HandleIterator' is private
+			typedef ConsensusFeature::HandleSetType::const_iterator HandleIterator;
 
 		public:
 
@@ -56,9 +56,10 @@ namespace OpenMS
 
 			
 			///Applies the algorithm. The input consensus map is compared to the ground truth.
-			virtual void evaluate(const ConsensusMap & conensus_map_in, const ConsensusMap & consensus_map_gt, DoubleReal & out)=0;
+			virtual void evaluate(const ConsensusMap & conensus_map_in, const ConsensusMap & consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal & out)=0;
 
-			bool isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs);
+			///Decides if two features are the same, based on maximum allowed deviations for retention time, m/z and intensity.
+			bool isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev);
 
 			/// Register all derived classes in this method
 			static void registerChildren();

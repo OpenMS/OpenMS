@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -63,10 +63,12 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmRecall::getProductName(),"recall")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, DoubleReal& out)))
-	MapAlignmentEvaluationAlgorithmRecall cae;
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)))
+	MapAlignmentEvaluationAlgorithmRecall maea;
 	ConsensusMap in;
 	ConsensusMap gt;
+	DoubleReal rt_dev, mz_dev;
+	Int int_dev;
 	DoubleReal out; 
 	
 	ConsensusXMLFile consensus_xml_file_in;
@@ -75,7 +77,7 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	ConsensusXMLFile consensus_xml_file_gt;
 	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_gt.consensusXML"), gt );
 	
-	cae.evaluate(in, gt, out);
+	maea.evaluate(in, gt, rt_dev, mz_dev, int_dev, out);
 
 	TEST_REAL_SIMILAR(out, 0.5)
 END_SECTION

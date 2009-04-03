@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -39,11 +39,11 @@ using namespace std;
 
 namespace OpenMS
 {
-	class CEA
+	class MAEA
 	 : public MapAlignmentEvaluationAlgorithm
 	{
 		public:
-			void evaluate(const ConsensusMap&, const ConsensusMap&, DoubleReal& real)
+			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Int&, DoubleReal& real)
 			{
 				real = 1.5;
 			}
@@ -55,9 +55,9 @@ START_TEST(MapAlignmentEvaluation, "$Id MapAlignmentEvaluationAlgorithm_test.C 1
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CEA* ptr = 0;
+MAEA* ptr = 0;
 START_SECTION((MapAlignmentEvaluationAlgorithm()))
-	ptr = new CEA();
+	ptr = new MAEA();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
@@ -65,12 +65,14 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, DoubleReal& realin)=0))
-	CEA cea;
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& realin)=0))
+	MAEA maea;
 	ConsensusMap map1;
 	ConsensusMap map2;
+	DoubleReal rt_dev, mz_dev;
+	Int int_dev;
 	DoubleReal real;
-	cea.evaluate(map1, map2, real);
+	maea.evaluate(map1, map2, rt_dev, mz_dev, int_dev, real);
 	TEST_EQUAL(real, 1.5)
 END_SECTION
 

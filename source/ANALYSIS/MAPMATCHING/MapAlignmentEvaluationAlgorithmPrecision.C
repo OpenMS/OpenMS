@@ -21,12 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
-//#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 #include <vector>
 
@@ -44,7 +43,7 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)
 	{
 		//Precision = 1/N * sum ( gt_subtend_tilde_tool_i / tilde_tool_i )
 
@@ -58,7 +57,7 @@ namespace OpenMS
 			}
 		}
 
-		ConsensusMap cons_map_tool = consensus_map_in; //krrrr!
+		ConsensusMap cons_map_tool = consensus_map_in;
 
 		std::vector<Size> gt_subtend_tilde_tool;	//holds the numerators of the sum
 		std::vector<Size> tilde_tool;			//holds the denominators of the sum
@@ -99,7 +98,7 @@ namespace OpenMS
 					{
 						//++cons_tool_size;
 
-						if (isSameHandle(*tool_it, *gt_it))
+						if (isSameHandle(*tool_it, *gt_it, rt_dev, mz_dev, int_dev))
 						{
 							++gt_i_subtend_tool_j;
 						}
@@ -116,7 +115,7 @@ namespace OpenMS
 			gt_subtend_tilde_tool.push_back(gt_subtend_tilde_tool_i);
 			tilde_tool.push_back(tilde_tool_i);
 		}
-		for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k) //sollte man überprüfen, dass die vektoren und N gleich groß sind?
+		for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k) 
 		{
 			fraction = 0;
 
@@ -125,13 +124,9 @@ namespace OpenMS
 				fraction = DoubleReal(gt_subtend_tilde_tool[k]) / DoubleReal(tilde_tool[k]);
 			}
 			sum += fraction;
-			//std::cout << "gt_subtend_tilde_tool: " << gt_subtend_tilde_tool[k] << "   tilde_tool: " << tilde_tool[k] << "\n";
-			//std::cout << "fraction: " << fraction << "\n";
-			//std::cout << "sum: " << sum << "\n";
 		}
 		precision = (1.0 / DoubleReal(cons_map_gt.size()) ) * sum;
 		out = precision;
-		//std::cout << "precision: " << precision << "\n";
 	}
 
 } // namespace OpenMS
