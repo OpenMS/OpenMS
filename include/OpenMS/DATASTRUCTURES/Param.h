@@ -52,7 +52,7 @@ namespace OpenMS
 		
 		Each parameter and section has a description. Newline characters in the description are possible.
 		
-		Each parameter can be annotated with an arbitrary number of tags. Tags cannot contain comma chracters!
+		Each parameter can be annotated with an arbitrary number of tags. Tags must not contain comma characters!
 		@n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
  
 		@see DefaultParamHandler

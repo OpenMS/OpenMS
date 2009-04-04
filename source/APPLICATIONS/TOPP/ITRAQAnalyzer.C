@@ -97,6 +97,7 @@ class TOPPITRAQAnalyzer
 	  Param tmp;
 		tmp.insert("Extraction:",ItraqChannelExtractor(t).getParameters());
 	  tmp.insert("Quantification:",ItraqQuantifier(t).getParameters());
+		tmp.setValue ("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", StringList::create("advanced"));
 	  return tmp;
 	}
 	
