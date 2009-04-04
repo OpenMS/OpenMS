@@ -93,9 +93,9 @@ END_SECTION
 
 
 TransformationDescription::PairVector pairs;
-pairs.push_back(make_pair(1.2,5.2));
-pairs.push_back(make_pair(3.2,7.3));
-pairs.push_back(make_pair(2.2,6.25));
+pairs.push_back(make_pair(1.2f,5.2f));
+pairs.push_back(make_pair(3.2f,7.3f));
+pairs.push_back(make_pair(2.2f,6.25f));
 
 START_SECTION((const PairVector& getPairs() const))
 	TransformationDescription td;
@@ -106,7 +106,7 @@ START_SECTION((PairVector& getPairs()))
 {
   TransformationDescription td;
   TEST_EQUAL(td.getPairs().size(),0)
-  td.getPairs().push_back(make_pair(12.34,56.78));
+  td.getPairs().push_back(make_pair(12.34f,56.78f));
   TEST_EQUAL(td.getPairs().size(),1)
   TEST_EQUAL(td.getPairs()[0].first,12.34);
   TEST_EQUAL(td.getPairs()[0].second,56.78);

@@ -152,7 +152,7 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 			}
 		}
 		
-		TEST_EQUAL (isCorrect, 1);
+		TEST_EQUAL (isCorrect, true);
 		++*ptr;
 	}
 END_SECTION

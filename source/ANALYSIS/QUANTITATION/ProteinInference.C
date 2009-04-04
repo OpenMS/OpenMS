@@ -119,7 +119,7 @@ namespace OpenMS
 			// Use all matching ConsensusElements to derive a quantitation for current protein
 			// build up ratios for every map vs reference
 			double coverage = 0;
-			Map < UInt, std::vector < IntensityType > > ratios;
+			Map < Size, std::vector < IntensityType > > ratios;
 			
 			// number of unique peptides pointing to current protein
 			UInt coverage_count = (UInt)consensus_to_peptide.size();

@@ -105,7 +105,7 @@ using namespace std;
 		Matrix<DoubleReal> A = llm_.getMatrixA();
 
 		//determine best matching unit
-		UInt winner = findWinner_(data);
+		Size winner = findWinner_(data);
 		//calculate Gaussian neighborhood function 
 		vector< DoubleReal > nei = llm_.neigh(llm_.getCord(), winner, llm_.getLLMParam().radius);
 
@@ -140,9 +140,9 @@ using namespace std;
 		return g_i;
 	}
 
-	UInt PeakIntensityPredictor::findWinner_(const vector<DoubleReal>& data)
+	Size PeakIntensityPredictor::findWinner_(const vector<DoubleReal>& data)
 	{
-		UInt winner = 0;
+		Size winner = 0;
 		DoubleReal min_dist = 0.0;
 		Matrix<DoubleReal> code = llm_.getCodebooks();
 
@@ -175,7 +175,7 @@ using namespace std;
 	vector<DoubleReal> PeakIntensityPredictor::calculateAddInfo_(const vector<DoubleReal>& data) 
 	{
 		vector<DoubleReal> foo(3);
-		UInt winner = findWinner_(data);
+		Size winner = findWinner_(data);
 		Matrix<DoubleReal> code = llm_.getCodebooks();
 		Matrix<UInt> cord = llm_.getCord();
 

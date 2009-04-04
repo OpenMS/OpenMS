@@ -122,7 +122,7 @@ namespace OpenMS
 		// (1.0.2) Searching for query indices for which peptides are present
 		if (number_of_queries > 1)
 		{
-			for (Size i = 1; i <= number_of_queries; i++)
+			for (UInt i = 1; i <= number_of_queries; i++)
 			{
 				//if no peptide is found for a certain query, there is just a -1 in the qi_p1 line
 	  		it = f.search(it, "q" + String(i) + "_p1=");
@@ -130,7 +130,7 @@ namespace OpenMS
 	  		{				  		
 	  			if (it->suffix('=').at(0) != '-')
 	  			{
-	  				indices.insert(make_pair(i, indices.size()));
+	  				indices.insert(make_pair(i, (UInt)indices.size()));
 	  			}
 	  		}
 	  		else

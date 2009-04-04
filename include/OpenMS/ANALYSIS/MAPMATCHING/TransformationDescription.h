@@ -60,7 +60,7 @@ namespace OpenMS
 
 	 public:
 			
-		/// Coordnate pair vector type
+		/// Coordinate pair vector type
 		typedef std::vector< std::pair<Real,Real> > PairVector;
 			
 		/// Constructor

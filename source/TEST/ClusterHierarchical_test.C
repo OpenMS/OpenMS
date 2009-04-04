@@ -254,7 +254,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.0));
-	tree.push_back(BinaryTreeNode(0,1,0.0086));
+	tree.push_back(BinaryTreeNode(0,1,0.0086f));
 	DistanceMatrix<Real> matrix;
 
 	ch.cluster(d,bspc,1.5,2,sl,result, matrix);

@@ -131,19 +131,19 @@ using namespace std;
   {
   }
 
-  Matrix<UInt> LocalLinearMap::genCord_(UInt xdim, UInt ydim) 
+  Matrix<UInt> LocalLinearMap::genCord_(Size xdim, Size ydim) 
   {
 		//store 2 dim coordinates   
     Matrix<UInt> foo(xdim*ydim, 2);
     for(Size i=0; i<xdim*ydim; i++)
     {
-    	foo.setValue(i, 0, (UInt)i/ydim);
-    	foo.setValue(i, 1, (UInt)i%ydim);
+    	foo.setValue(i, 0, UInt(i/ydim));
+    	foo.setValue(i, 1, UInt(i%ydim));
 		}
     return foo;
   }
 
-  vector< DoubleReal > LocalLinearMap::neigh(const Matrix<UInt>& cord, UInt win, DoubleReal radius) 
+  vector< DoubleReal > LocalLinearMap::neigh(const Matrix<UInt>& cord, Size win, DoubleReal radius) 
   {
   	vector< DoubleReal > neighborhood(cord.rows());
 	    
@@ -159,7 +159,7 @@ using namespace std;
     return neighborhood;
   }
 
-  DoubleReal LocalLinearMap::dist_(const Matrix<UInt>& u, const Matrix<UInt>& v, UInt a, UInt b)
+  DoubleReal LocalLinearMap::dist_(const Matrix<UInt>& u, const Matrix<UInt>& v, Size a, Size b)
   {
     DoubleReal dd = 0.0;
     //get euclidean distance of instances a of u and b of v

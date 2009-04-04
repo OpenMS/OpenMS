@@ -222,7 +222,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(2);
 		fsc.setAcceptableRelative(1.00021);
 		fsc.setAcceptableAbsolute(0.0);
-		bool result = fsc.compareStrings("0.9999E4","1.0001E4");
+		bool result = (fsc.compareStrings("0.9999E4","1.0001E4")!=0);
 		TEST_EQUAL(result,true);
 		// STATUS(log.str());
 	}
@@ -233,7 +233,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(2);
 		fsc.setAcceptableRelative(1.0);
 		fsc.setAcceptableAbsolute(2.0);
-		bool result = fsc.compareStrings("0.9999E4","1.0001E4");
+		bool result = (fsc.compareStrings("0.9999E4","1.0001E4")!=0);
 		TEST_EQUAL(result,true);
 		// STATUS(log.str());
 	}
@@ -246,7 +246,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(1);
 		fsc.setAcceptableRelative(1.01);
 		fsc.setAcceptableAbsolute(0.001);
-		bool result = fsc.compareStrings("bl   a b 00.0022 asdfdf","bl a  b 0.00225 asdfdf");
+		bool result = (fsc.compareStrings("bl   a b 00.0022 asdfdf","bl a  b 0.00225 asdfdf")!=0);
 		TEST_EQUAL(result,true);
 		// STATUS(log.str());
 	}
@@ -257,7 +257,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(1);
 		fsc.setAcceptableRelative(1.01);
 		fsc.setAcceptableAbsolute(0.01);
-		bool result = fsc.compareStrings("bl   a 1.2   b","bl a 1.25 b");
+		bool result = (fsc.compareStrings("bl   a 1.2   b","bl a 1.25 b")!=0);
 		TEST_EQUAL(result,false);
 		// STATUS(log.str());
 	}
@@ -268,7 +268,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(1);
 		fsc.setAcceptableRelative(2.);
 		fsc.setAcceptableAbsolute(0.01);
-		bool result = fsc.compareStrings("bl   a 1.2   b","bl a 1.25 b");
+		bool result = (fsc.compareStrings("bl   a 1.2   b","bl a 1.25 b")!=0);
 		TEST_EQUAL(result,true);
 		// STATUS(log.str());
 	}
@@ -279,7 +279,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(1);
 		fsc.setAcceptableRelative(1.01);
 		fsc.setAcceptableAbsolute(0.0);
-		bool result = fsc.compareStrings("bl   a 1.002   b","bl a 1.0025 b");
+		bool result = (fsc.compareStrings("bl   a 1.002   b","bl a 1.0025 b")!=0);
 		TEST_EQUAL(result,true);
 		// STATUS(log.str());
 	}
@@ -292,7 +292,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(1);
 		fsc.setAcceptableRelative(1.03);
 		fsc.setAcceptableAbsolute(0.01);
-		bool result = fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3");
+		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
 		std::vector<OpenMS::String> substrings;
 		OpenMS::String(log.str()).split('\n',substrings);
@@ -307,7 +307,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 		fsc.setVerboseLevel(2);
 		fsc.setAcceptableRelative(1.03);
 		fsc.setAcceptableAbsolute(0.01);
-		bool result = fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3");
+		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
 		std::vector<OpenMS::String> substrings;
 		OpenMS::String(log.str()).split('\n',substrings);

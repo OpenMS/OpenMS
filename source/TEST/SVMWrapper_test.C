@@ -72,10 +72,10 @@ START_SECTION((DoubleReal getSVRProbability()))
 	vector<DoubleReal> labels;
 	svm_problem* problem;
 
-	for (Size j = 0; j < count; j++)
+	for (int j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}

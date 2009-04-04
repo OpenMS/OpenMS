@@ -251,7 +251,7 @@ namespace OpenMS
 	          {
 	            if (iter->empty())
 	              continue;
-	            std::pair<UInt,UInt> row_col = fb.indexPair(iter-fb.begin());
+	            std::pair<Size,Size> row_col = fb.indexPair(iter-fb.begin());
 	            dump_file << row_col.first << ' ' << row_col.second << " #bucket" << std::endl;
 	            for ( std::vector<UInt>::const_iterator viter = iter->begin(); viter != iter->end(); ++viter)
 	            {
@@ -459,7 +459,7 @@ namespace OpenMS
 
 	        for ( ShiftQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
 	        {
-	          std::pair<UInt,UInt> row_col = tb.indexPair(iter-tb.begin());
+	          std::pair<Size,Size> row_col = tb.indexPair(iter-tb.begin());
 	          if ( *iter )
 	          {
 	            dump_file << tbbe_min[Peak2D::RT] + tbs[Peak2D::RT] * row_col.first << ' '

@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-Real score = 4.4;
+Real score = 4.4f;
 UInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";

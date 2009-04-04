@@ -170,7 +170,7 @@ namespace OpenMS
 		}
 		else if ( element == "Pair" )
 		{
-			pairs_.push_back(make_pair(attributeAsDouble_(attributes,"from"),attributeAsDouble_(attributes,"to")));
+			pairs_.push_back(make_pair((Real)attributeAsDouble_(attributes,"from"),(Real)attributeAsDouble_(attributes,"to")));
 		}
 	}
 	

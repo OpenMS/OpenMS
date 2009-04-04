@@ -96,9 +96,9 @@ END_SECTION
 DoubleReal v=-1;
 START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1))) 
 	TOLERANCE_ABSOLUTE (1e-4)
-	for (Size c=0; c<iw->getMaxCharge(); ++c)
+	for (UInt c=0; c<iw->getMaxCharge(); ++c)
 	{
-		v=iw->getValueByMass (Constants::IW_HALF_NEUTRON_MASS/((UInt)(c)+1.), 1000, c+1, 1);
+		v=iw->getValueByMass (Constants::IW_HALF_NEUTRON_MASS/(c+1.), 1000, c+1, 1);
 		TEST_REAL_SIMILAR(v, 0)
 	};
 END_SECTION
@@ -123,7 +123,7 @@ END_SECTION
 
 
 START_SECTION(static float myPow(float a, float b))
-	TEST_EQUAL (int(IsotopeWavelet::myPow(1.1, 3)*10), 13);
+	TEST_EQUAL (int(IsotopeWavelet::myPow(1.1f, 3.0f)*10), 13);
 END_SECTION
 
 END_TEST

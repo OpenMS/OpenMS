@@ -227,15 +227,15 @@ START_SECTION((SizeType rowIndex(SizeType index) const))
 }
 END_SECTION;
 
-START_SECTION((std::pair<UInt,UInt> const indexPair(UInt index) const))
+START_SECTION((std::pair<Size,Size> const indexPair(UInt index) const))
 {
-	std::pair<UInt,UInt> result = mf.indexPair(30);
+	std::pair<Size,Size> result = mf.indexPair(30);
   TEST_EQUAL(result.first,4);
 	TEST_EQUAL(result.second,2);
 }
 END_SECTION
 
-START_SECTION((std::pair<UInt,UInt> sizePair() const))
+START_SECTION((std::pair<Size,Size> sizePair() const))
 {
 	Matrix<float> const mf(6,7,8);
 	TEST_EQUAL(mf.sizePair().first,6);

@@ -51,8 +51,8 @@ END_SECTION
 
 START_SECTION((virtual void init(double scale, double spacing)))
   ContinuousWaveletTransformNumIntegration transformer;
-  float scale = 0.5;
-  float spacing = 0.1;
+  float scale = 0.5f;
+  float spacing = 0.1f;
   
   transformer.init(scale,spacing);
   TEST_REAL_SIMILAR(transformer.getWavelet()[0],1.)
@@ -62,8 +62,8 @@ END_SECTION
 
 START_SECTION((template <typename InputPeakIterator> void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution, unsigned int zeros=0)))
   ContinuousWaveletTransformNumIntegration transformer;
-  float scale = 0.5;
-  float spacing = 0.1;
+  float scale = 0.5f;
+  float spacing = 0.1f;
   
   transformer.init(scale,spacing);
   std::vector<Peak1D > raw_data(9);

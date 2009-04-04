@@ -140,9 +140,9 @@ END_SECTION
 START_SECTION([EXTRA](IntensityType& getIntensity()))
 	Feature p;
 	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	TEST_REAL_SIMILAR(p.getIntensity(), 123.456f)
-	p.setIntensity(-0.12345);
+	p.setIntensity(-0.12345f);
 	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345f)
 	p.setIntensity(0.0f);
 	TEST_REAL_SIMILAR(p.getIntensity(), 0.0f)
@@ -262,7 +262,7 @@ START_SECTION((Feature(const Feature &feature)))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Feature p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	p.setMetaValue("cluster_id",4711);
   p.setOverallQuality(0.9);
@@ -305,7 +305,7 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Feature p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
   p.setOverallQuality(0.9);
   p.setQuality(0, 0.1);

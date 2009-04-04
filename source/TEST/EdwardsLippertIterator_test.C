@@ -196,10 +196,10 @@ START_SECTION(bool isAtEnd ())
 	ptr->begin();
 	for (int i = 0; i < 58;i++)
 	{
-		TEST_EQUAL(ptr->isAtEnd(),0);
+		TEST_EQUAL(ptr->isAtEnd(),false);
 		(*ptr)++;
 	}
-	TEST_EQUAL(ptr->isAtEnd(),1);
+	TEST_EQUAL(ptr->isAtEnd(),true);
 END_SECTION
 
 START_SECTION(virtual void setTolerance(DoubleReal t))
@@ -238,11 +238,11 @@ END_SECTION
 
 START_SECTION(virtual bool isDigestingEnd(char, char))
 	ptr = new EdwardsLippertIterator();
-	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('K','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('R','P'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('K','P'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('S','S'),1)
+	TEST_EQUAL(ptr->isDigestingEnd('R','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('K','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('R','P'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('K','P'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('S','S'),true)
 END_SECTION
 
 START_SECTION(static const String getProductName())

@@ -178,8 +178,8 @@ class TOPPResampler
 
 			//----------------------------------------------------------------
 			//create and store image
-			UInt scans = bilip.getData().sizePair().first;
-			UInt peaks = bilip.getData().sizePair().second;
+			int scans = (int) bilip.getData().sizePair().first;
+			int peaks = (int) bilip.getData().sizePair().second;
 
 			MultiGradient gradient;
 			String gradient_str = getStringOption_("gradient");
@@ -210,9 +210,9 @@ class TOPPResampler
       // apply logarithm to intensities
       if (use_log)
       {
-  			for (Size i=0; i<scans; ++i)
+  			for (int i=0; i<scans; ++i)
   			{
-  				for (Size j=0; j<peaks; ++j)
+  				for (int j=0; j<peaks; ++j)
   				{
   					image.setPixel(j, i, gradient.interpolatedColorAt(std::log(bilip.getData().getValue(i, j))/factor).rgb());
   				}
@@ -220,9 +220,9 @@ class TOPPResampler
       }
       else
       {
-        for (Size i=0; i<scans; ++i)
+        for (int i=0; i<scans; ++i)
         {
-          for (Size j=0; j<peaks; ++j)
+          for (int j=0; j<peaks; ++j)
           {
             image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
           }

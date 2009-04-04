@@ -114,7 +114,7 @@ START_SECTION((const Matrix<UInt>& getCord() const))
 	TEST_EQUAL(llm.getCord().getValue(1,1), 1)
 END_SECTION
 
-START_SECTION((std::vector<DoubleReal> neigh(const Matrix< UInt > &cord, UInt win, DoubleReal radius)))
+START_SECTION((std::vector<DoubleReal> neigh(const Matrix< UInt > &cord, Size win, DoubleReal radius)))
 	vector<DoubleReal> nei1 = llm.neigh(llm.getCord(), 0, llm.getLLMParam().radius);
 	TEST_EQUAL(nei1[0], 1)
 	TEST_REAL_SIMILAR(nei1[1], 0.04393693) 	

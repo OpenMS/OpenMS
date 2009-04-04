@@ -70,10 +70,10 @@ START_SECTION((Real operator()(const std::pair< Real, Real > &a, const std::pair
 {
 			EuclideanSimilarity es;
 			TOLERANCE_ABSOLUTE(0.0001);
-			TEST_REAL_SIMILAR(es(make_pair(2,2),make_pair(4,4)), 1-sqrt(8.0));
-			TEST_REAL_SIMILAR(es(make_pair(9,0.1),make_pair(2.8,2)), 1-sqrt(42.05));
-			TEST_REAL_SIMILAR(es(make_pair(12,0),make_pair(2,0)), 1-sqrt(100.0));
-			es.setScale(sqrt(233.28));
+			TEST_REAL_SIMILAR(es(make_pair(2.0f,2.0f),make_pair(4.f,4.f)), 1-sqrt(8.0));
+			TEST_REAL_SIMILAR(es(make_pair(9.f,0.1f),make_pair(2.8f,2.f)), 1-sqrt(42.05));
+			TEST_REAL_SIMILAR(es(make_pair(12.f,0.0f),make_pair(2.f,0.0f)), 1-sqrt(100.0));
+			es.setScale(sqrt(233.28f));
 }
 END_SECTION
 
@@ -81,8 +81,8 @@ START_SECTION((Real operator()(const std::pair< Real, Real > &c) const ))
 {
 			EuclideanSimilarity es;
 			TOLERANCE_ABSOLUTE(0.0001);
-			TEST_REAL_SIMILAR(es(make_pair(9,0.1)), 1-0);
-			TEST_REAL_SIMILAR(es(make_pair(2.8,2)), 1-0);
+			TEST_REAL_SIMILAR(es(make_pair(9.0f,0.1f)), 1-0);
+			TEST_REAL_SIMILAR(es(make_pair(2.8f,2.0f)), 1-0);
 }
 END_SECTION
 
@@ -91,11 +91,11 @@ START_SECTION((void setScale(Real x)))
 			EuclideanSimilarity es;
 			es.setScale(10);
 			TOLERANCE_ABSOLUTE(0.0001);
-			TEST_REAL_SIMILAR(es(make_pair(2,2),make_pair(4,4)), 1-(sqrt(8.0)/10));
-			TEST_REAL_SIMILAR(es(make_pair(9,0.1),make_pair(2.8,2)), 1-(sqrt(42.05)/10));
-			TEST_REAL_SIMILAR(es(make_pair(12,0),make_pair(2,0)), 1-(sqrt(100.0)/10));
-			es.setScale(sqrt(233.28));
-			TEST_REAL_SIMILAR(es(make_pair(0.1,0.1),make_pair(10.9,10.9)), 1-1);
+			TEST_REAL_SIMILAR(es(make_pair(2.0f,2.0f),make_pair(4.f,4.f)), 1-(sqrt(8.0)/10));
+			TEST_REAL_SIMILAR(es(make_pair(9.0f,0.1f),make_pair(2.8f,2.f)), 1-(sqrt(42.05)/10));
+			TEST_REAL_SIMILAR(es(make_pair(12.0f,0.0f),make_pair(2.f,0.0f)), 1-(sqrt(100.0)/10));
+			es.setScale(sqrt(233.28f));
+			TEST_REAL_SIMILAR(es(make_pair(0.1f,0.1f),make_pair(10.9f,10.9f)), 1-1);
 }
 END_SECTION
 

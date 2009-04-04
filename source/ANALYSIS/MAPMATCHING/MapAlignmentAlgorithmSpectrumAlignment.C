@@ -225,7 +225,7 @@ namespace OpenMS
 		std::map<Size,std::map<Size,Size> > traceback;
 		//calculate the value of k
 		Int k_=bestk_(pattern, aligned, buffermatrix, column_row_orientation,xbegin,xend, ybegin, yend)+2;
-		Real score_=-99999999.0;	 
+		Real score_=-99999999.0f;	 
 		//flag if we have to calculate again the alignment in step k+1
 		bool finish = false;
 		while(!finish)
@@ -316,7 +316,7 @@ namespace OpenMS
 								}
 								else traceback[i][j]=0;
 							}
-							catch (Exception::OutOfRange &e) 
+							catch (Exception::OutOfRange /*&e*/) 
 							{
 								throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 							}
@@ -339,7 +339,7 @@ namespace OpenMS
 			{
 				score_=firstcolummatchmatrix[n][m];
 				k_*=2;
-				if(k_>(Int)n+2)k_=n+2;
+				if(k_>n+2)k_=(Int)n+2;
 			}
 		}
   	//	matchmatrix.clear();
@@ -354,8 +354,8 @@ namespace OpenMS
 		}*/
   	//traceback
 		bool endtraceback=false;
-		int i= n;
-		int j= m;
+		int i=(int) n;
+		int j=(int) m;
 		//Real maximum = -999.0;
 		//container necessary for collecting the positions of both sequence to gain later the correct datapoints for the spline
 		std::vector<int> xvar;
@@ -374,21 +374,21 @@ namespace OpenMS
 					{	
 						if(debug_)
 						{
-							debugtraceback_.push_back(std::make_pair(i+xbegin-1,j+ybegin-1));
+							debugtraceback_.push_back(std::make_pair(Real(i+xbegin-1),Real(j+ybegin-1)));
 						}
-						xvar.push_back(j+ybegin-1);
+						xvar.push_back(j+(int)ybegin-1);
 						yvar.push_back((*pattern[i+xbegin-1]).getRT());
-						xxvar.push_back(i+xbegin-1);
+						xxvar.push_back(i+(int)xbegin-1);
 					}
 					else
 					{ 	
 						if(debug_)
 						{
-							debugtraceback_.push_back(std::make_pair(j+xbegin-1,i+ybegin-1));
+							debugtraceback_.push_back(std::make_pair(Real(j+xbegin-1),Real(i+ybegin-1)));
 						}
-						xvar.push_back(i+ybegin-1);
+						xvar.push_back(i+(int)ybegin-1);
 						yvar.push_back((*pattern[j+xbegin-1]).getRT());	
-						xxvar.push_back(j+xbegin-1);
+						xxvar.push_back(j+(int)xbegin-1);
 					}
 					i=i-1;
 					j=j-1;
@@ -558,7 +558,7 @@ namespace OpenMS
 		}
 	}
 		
-	inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Int j, Size n, Size m,Int k_) 
+	inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Size j, Size n, Size m,Int k_) 
 	{
 		if((Int)(m-n-k_)<=(Int)(i-j) && (Int) (i-j) <=k_) //	if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
 		{
@@ -588,7 +588,7 @@ namespace OpenMS
 				if(column_row_orientation)
 				{ 
 					x= (Size)temp+1;
-					y= k+1;
+					y= (Int)k+1;
 					s= scoreCalculation_(x,y,xbegin,ybegin,pattern,aligned,buffer,column_row_orientation);
 				}
 				else
@@ -737,7 +737,7 @@ namespace OpenMS
 		}
 	}
 
-	inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i,Int j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation)
+	inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i,Size j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation)
 	{
 		if(!column_row_orientation)
 		{

@@ -47,7 +47,7 @@ START_TEST(Identification, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-float protein_significance_threshold = 63.2;
+float protein_significance_threshold = 63.2f;
 std::vector<ProteinHit> protein_hits;
 ProteinHit protein_hit;
 ProteinIdentification protein_identification;

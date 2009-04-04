@@ -112,7 +112,7 @@ namespace OpenMS
       template <typename PeakType>
       void filter(MSSpectrum<PeakType>& spectrum)
       {
-        UInt n = spectrum.size();
+        UInt n = (UInt)spectrum.size();
         
         typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
         typename MSSpectrum<PeakType>::iterator last = spectrum.end();

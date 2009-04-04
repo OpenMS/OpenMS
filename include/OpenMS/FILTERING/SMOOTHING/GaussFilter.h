@@ -158,7 +158,7 @@ namespace OpenMS
         DoubleReal v = 0.;
         // norm the gaussian kernel area to one
         DoubleReal norm = 0.;
-        int middle = coeffs_.size();
+        Size middle = coeffs_.size();
 
         DoubleReal start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
                            : first->getMZ();
@@ -177,7 +177,7 @@ namespace OpenMS
         {
           // search for the corresponding datapoint of help in the gaussian (take the left most adjacent point)
           DoubleReal distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
-          UInt left_position = (UInt)floor(distance_in_gaussian / spacing_);
+          Size left_position = (Size)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (int j=0; ((j<3) &&  (distance(first,help-j) >= 0)); ++j)
@@ -196,7 +196,7 @@ namespace OpenMS
           }
 
           // interpolate between the left and right data points in the gaussian to get the true value at position distance_in_gaussian
-          int right_position = left_position+1;
+          Size right_position = left_position+1;
           DoubleReal d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
           // check if the right data point in the gaussian exists
           DoubleReal coeffs_right = (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
@@ -214,7 +214,7 @@ namespace OpenMS
 
           // search for the corresponding datapoint for (help-1) in the gaussian (take the left most adjacent point)
           distance_in_gaussian = fabs(x->getMZ() - (help-1)->getMZ());
-          left_position = (UInt)floor(distance_in_gaussian / spacing_);
+          left_position = (Size)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (UInt j=0; ((j<3) && (distance(first,help-j) >= 0)); ++j)

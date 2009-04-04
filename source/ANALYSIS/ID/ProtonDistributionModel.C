@@ -1431,7 +1431,7 @@ namespace OpenMS
 		// side-chain induced cleavages (side-chain protons stay at the side chain)
 		// for charge-directed cleavages there must be one proton which induces 
 		// the cleavage, however, this can be distributed over several places
-		Size num_active_protons = charge;
+		int num_active_protons = charge;
 		if (type == ChargeDirected)
 		{
 			num_active_protons = charge - 1;
