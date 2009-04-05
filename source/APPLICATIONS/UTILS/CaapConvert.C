@@ -91,8 +91,9 @@ int main( int argc, const char** argv )
 	std::fstream input(argv_input);
 	std::string line;
 	std::string map_id_str;
-	int map_id_num = 0;
-	std::map<std::string,unsigned> map_filename_to_map_index;
+	OpenMS::Size map_id_num = 0;
+	typedef std::map<std::string,OpenMS::Size> MapType;
+	MapType map_filename_to_map_index;
 	double score;
 	double intensity;
 	double retention_time;
@@ -112,7 +113,7 @@ int main( int argc, const char** argv )
 		{
 			linestream >> map_id_str >> score >> intensity >> retention_time >> mass_to_charge;
 			if (!linestream) break;
-			std::map<std::string,unsigned>::const_iterator map_iter = map_filename_to_map_index.find(map_id_str);
+			MapType::const_iterator map_iter = map_filename_to_map_index.find(map_id_str);
 			if ( map_iter != map_filename_to_map_index.end() )
 			{
 				map_id_num = map_iter->second;
@@ -163,7 +164,7 @@ int main( int argc, const char** argv )
 
 	OpenMS::ConsensusMap::FileDescription file_description;
 	VERBOSEMSG2("map_id_numbers:");
-	for ( std::map<std::string,unsigned>::const_iterator map_iter = map_filename_to_map_index.begin();
+	for ( MapType::const_iterator map_iter = map_filename_to_map_index.begin();
 				map_iter != map_filename_to_map_index.end();
 				++map_iter
 			)

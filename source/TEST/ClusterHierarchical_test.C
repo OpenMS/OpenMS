@@ -46,9 +46,9 @@ using namespace std;
 class lowlevelComparator
 {
 	public:
-	double operator()(const UInt first, const UInt second) const
+	double operator()(const Size first, const Size second) const
 	{
-		UInt x,y;
+		Size x,y;
 		x = min(second,first);
 		y = max(first,second);
 

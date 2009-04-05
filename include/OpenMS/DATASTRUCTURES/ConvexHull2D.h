@@ -37,8 +37,16 @@
 #include <map>
 #include <cmath>
 
+#ifdef _MSC_VER // disable some CGAL warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4244 )
+#endif
 #include <CGAL/Cartesian.h>
 #include <CGAL/convex_hull_2.h>
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 namespace OpenMS
 {
