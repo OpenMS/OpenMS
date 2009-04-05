@@ -202,7 +202,7 @@ START_SECTION(void setScale( KeyType const & scale ) )
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
 	TEST_REAL_SIMILAR(lifd.getScale(), 13.f);
-	lifd.setScale(88.88);
+	lifd.setScale(88.88f);
 	TEST_REAL_SIMILAR(lifd.getScale(), 88.88f);
 }
 END_SECTION
@@ -218,7 +218,7 @@ START_SECTION(void setOffset( KeyType const & offset ) )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_EQUAL ( lifd.getOffset(), 3.5f );
-	lifd.setOffset(88.88);
+	lifd.setOffset(88.88f);
 	TEST_EQUAL ( lifd.getOffset(), 88.88f );
 }
 END_SECTION
@@ -341,7 +341,7 @@ START_SECTION(ValueType value( KeyType arg_pos ) const )
 
 	for ( int i = 0; i < num_values; ++i )
 	{
-		TEST_EQUAL ( lifd0.value ( i ), values[i] );
+		TEST_EQUAL ( lifd0.value ( LIFD::KeyType(i) ), values[i] );
 	}
 
 	double inter_values[] =
@@ -375,13 +375,13 @@ START_SECTION(ValueType value( KeyType arg_pos ) const )
 
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
-		float pos = i/4.;
+		float pos = i/4.f;
 		TEST_REAL_SIMILAR ( lifd1.key2index(lifd1.index2key(pos)), pos );
 	}
 
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
-		float pos = i/4.;
+		float pos = i/4.f;
 		TEST_REAL_SIMILAR ( lifd1.value ( pos*scale+offset ), lifd0.value ( pos ) ) ;
 	}
 
@@ -449,7 +449,7 @@ START_SECTION(ValueType derivative( KeyType arg_pos ) const )
 	int const num_inter_values = sizeof (inter_values) / sizeof (*inter_values);
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
-		float key = i/4.;
+		float key = i/4.f;
 		int index = i+8;
 		STATUS( "key:" << key << "  index:" << index << '\n')
 		TEST_REAL_SIMILAR ( lifd0.derivative ( key ), inter_values[index] );

@@ -380,7 +380,7 @@ END_SECTION
 
 
 START_SECTION(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
-	file.setPrecursorMassTolerance(1.3);
+	file.setPrecursorMassTolerance(1.3f);
 	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 1.3)
 END_SECTION
 
@@ -389,7 +389,7 @@ START_SECTION((Real getPrecursorMassTolerance() const))
 END_SECTION
 
 START_SECTION(void setPeakMassTolerance(Real peak_mass_tolerance))
-	file.setPeakMassTolerance(0.3);
+	file.setPeakMassTolerance(0.3f);
 	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 0.3)
 END_SECTION
 
@@ -398,7 +398,7 @@ START_SECTION((Real getPeakMassTolerance() const))
 END_SECTION
 
 START_SECTION(void setMatchPeakTolerance(Real match_peak_tolerance))
-	file.setMatchPeakTolerance(1.2);
+	file.setMatchPeakTolerance(1.2f);
 	TEST_REAL_SIMILAR(file.getMatchPeakTolerance() , 1.2)
 END_SECTION
 
@@ -407,7 +407,7 @@ START_SECTION((Real getMatchPeakTolerance() const))
 END_SECTION
 
 START_SECTION(void setIonCutoffPercentage(Real ion_cutoff_percentage))
-	file.setIonCutoffPercentage(0.3);
+	file.setIonCutoffPercentage(0.3f);
 	TEST_REAL_SIMILAR(file.getIonCutoffPercentage() , 0.3)
 END_SECTION
 

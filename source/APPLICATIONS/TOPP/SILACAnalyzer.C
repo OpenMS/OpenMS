@@ -305,7 +305,7 @@ class TOPPSILACAnalyzer
 			if (in.has('.'))
 			{
 				//std::cout << "yes" << std::endl;
-				debug_trunk = in.substr(0,-in.suffix('.').length()-1);
+				debug_trunk = in.substr(0,-SignedSize(in.suffix('.').length())-1);
 				//std::cout << debug_trunk << std::endl;
 			}
 
@@ -313,7 +313,7 @@ class TOPPSILACAnalyzer
 			int cluster_number[] = {1,1,1,1,1,1,1,1,1,1}; // maybe though with a vector even if more that 10 charge states are doubtfull?
 
 			//iterate over all charge states
-			for (Size charge=charge_min; charge<=charge_max; ++charge)
+			for (UInt charge=charge_min; charge<=charge_max; ++charge)
 			{
 				std::cout << std::endl << "charge state: " << charge << "+" << std::endl;
 				DoubleReal isotope_distance = 1.0 / (DoubleReal)charge;
@@ -350,7 +350,7 @@ class TOPPSILACAnalyzer
 				for (MSExperiment<>::Iterator rt_it=exp.begin(); rt_it!=exp.end(); ++rt_it)
 				{
 					logger_.setProgress(rt_it-exp.begin());
-					Int number_data_points = rt_it->size();
+					Size number_data_points = rt_it->size();
 					// spectra with less than 10 data points are being ignored
 					if (number_data_points>=10) {
 					  // read one OpenMS spectrum into GSL structure
@@ -442,13 +442,13 @@ class TOPPSILACAnalyzer
 				std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
 				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
 				//~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
-				Size best_n = tree.size();
+				int best_n = (int)tree.size();
 				Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
 				for (Size i = 0; i < asw.size(); ++i)
 				{
 					if(std::fabs(asw[i]-(*max_el))<=max_deviation)
 					{
-						best_n = tree.size() - i;
+						best_n = int(tree.size() - i);
 						break;
 					}
 				}
@@ -472,7 +472,7 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				// choose appropriate(best) partition of data from best_n
 				//-------------------------------------------------------------
-				best_n = Size(cluster_number_scaling * best_n); // slightly increase cluster number
+				best_n = int(cluster_number_scaling * best_n); // slightly increase cluster number
 				std::vector< std::vector<Size> > best_n_clusters;
 				ca.cut(best_n,best_n_clusters,tree);
 				cluster_number[charge] = best_n;
@@ -480,7 +480,7 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				// count data points in each cluster
 				//-------------------------------------------------------------
-				std::vector<Int> cluster_size(best_n,0); // number of points per cluster
+				std::vector<SignedSize> cluster_size(best_n,0); // number of points per cluster
 				for (Size i=0; i < cluster_size.size(); ++i)
 				{
 					cluster_size[i] = best_n_clusters[i].size();
@@ -493,8 +493,8 @@ class TOPPSILACAnalyzer
 				{
 					for (Size j=0; j < best_n_clusters[i].size(); ++j)
 					{
-						data[best_n_clusters[i][j]].cluster_id = i;
-						data[best_n_clusters[i][j]].cluster_size = best_n_clusters[i].size();
+						data[best_n_clusters[i][j]].cluster_id = (Int)i;
+						data[best_n_clusters[i][j]].cluster_size =(Int)best_n_clusters[i].size();
 					}
 				}
 				std::sort(data.begin(),data.end());
@@ -520,7 +520,7 @@ class TOPPSILACAnalyzer
 				//--------------------------------------------------------------
 				// update cluster_size
 				//--------------------------------------------------------------
-				cluster_size = std::vector<Int>(best_n,0);
+				cluster_size = std::vector<SignedSize>(best_n,0);
 				k = -1;
 				for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 				{

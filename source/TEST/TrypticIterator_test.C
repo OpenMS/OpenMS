@@ -194,10 +194,10 @@ END_SECTION
 
 START_SECTION(virtual bool isDigestingEnd(char aa1, char aa2))
 	ptr = new TrypticIterator();
-	TEST_EQUAL (ptr->isDigestingEnd('R','C'),1);
-	TEST_EQUAL (ptr->isDigestingEnd('K','C'),1);
-	TEST_EQUAL (ptr->isDigestingEnd('R','P'),0);
-	TEST_EQUAL (ptr->isDigestingEnd('K','P'),0);
+	TEST_EQUAL (ptr->isDigestingEnd('R','C'),true);
+	TEST_EQUAL (ptr->isDigestingEnd('K','C'),true);
+	TEST_EQUAL (ptr->isDigestingEnd('R','P'),false);
+	TEST_EQUAL (ptr->isDigestingEnd('K','P'),false);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

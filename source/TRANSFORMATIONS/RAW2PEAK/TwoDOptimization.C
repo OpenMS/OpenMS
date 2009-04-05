@@ -46,7 +46,7 @@ namespace OpenMS
       DoubleReal p_height, p_position, p_width;
       Int count =0;
       Int counter_posf=0;
-			std::vector<std::pair<Int,Int> >& signal2D = static_cast<TwoDOptimization::Data*> (params) ->signal2D; 
+			std::vector<std::pair<SignedSize,SignedSize> >& signal2D = static_cast<TwoDOptimization::Data*> (params) ->signal2D; 
 			std::multimap<DoubleReal,IsotopeCluster>::iterator iso_map_iter=static_cast<TwoDOptimization::Data*> (params) ->iso_map_iter;
 			Size total_nr_peaks=static_cast<TwoDOptimization::Data*> (params) ->total_nr_peaks;
 			std::map<Int, std::vector<PeakIndex> >& matching_peaks=static_cast<TwoDOptimization::Data*> (params) ->matching_peaks;
@@ -250,7 +250,7 @@ namespace OpenMS
       Int count =0;
       Int counter_posf=0;
 
-			std::vector<std::pair<Int,Int> >& signal2D = static_cast<TwoDOptimization::Data*> (params) ->signal2D; 
+			std::vector<std::pair<SignedSize,SignedSize> >& signal2D = static_cast<TwoDOptimization::Data*> (params) ->signal2D; 
 			std::multimap<DoubleReal,IsotopeCluster>::iterator iso_map_iter=static_cast<TwoDOptimization::Data*> (params) ->iso_map_iter;
 			Size total_nr_peaks=static_cast<TwoDOptimization::Data*> (params) ->total_nr_peaks;
 			std::map<Int, std::vector<PeakIndex> >& matching_peaks=static_cast<TwoDOptimization::Data*> (params) ->matching_peaks;

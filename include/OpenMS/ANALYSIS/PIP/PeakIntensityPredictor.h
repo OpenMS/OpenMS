@@ -100,7 +100,7 @@ namespace OpenMS
 			/// calculate and return predicted value based on given LocalLinearMap model for corresponding aaindex variables
 			DoubleReal map_(const std::vector<DoubleReal>& data);
 			/// find winning prototype
-			UInt findWinner_(const std::vector<DoubleReal>& data);
+			Size findWinner_(const std::vector<DoubleReal>& data);
 			/// calculate assignments of peptides to cluster and the corresponding error
 			std::vector<DoubleReal> calculateAddInfo_(const std::vector<DoubleReal>& data);
 

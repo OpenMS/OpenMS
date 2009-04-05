@@ -772,13 +772,13 @@ namespace OpenMS
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin_0() const
 			{
-				return index2key_0 ( empty() ? 0. : -1. );
+				return index2key_0 ( empty() ? KeyType(0.) : KeyType(-1.) );
 			}
 
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin_1() const
 			{
-				return index2key_1 ( empty() ? 0. : -1. );
+				return index2key_1 ( empty() ? KeyType(0.) : KeyType(-1.) );
 			}
 
 			/// Upper boundary of the support, in "outside" coordinates.

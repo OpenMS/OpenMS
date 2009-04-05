@@ -511,34 +511,70 @@ namespace OpenMS
 		return *this;
 	}
 
-	bool String::split(char splitter, std::vector<String>& substrings) const
+	bool String::split(char splitter, std::vector<String>& substrings, bool quote_protect) const
 	{
 		Int parts = count(this->begin(),this->end(),splitter);
-		
-		// no splitter found
-		if (parts == 0)
-		{
-			substrings.clear();
-			return false;
-		}
+		substrings.clear();
+		if (parts == 0) return false;
 		
 		// splitter(s) found
-		substrings.resize(parts+1);		
+		substrings.reserve(parts+1);		
 		
 		ConstIterator end = this->begin();
 		ConstIterator begin = this->begin();		
 		
-		parts=0;
-		
-		for (; end != this->end(); ++end)
+		if (quote_protect)
 		{
-			if (*end == splitter)
+			Int quote_count(0);
+			for (; end != this->end(); ++end)
 			{
-				substrings[parts++] = String(begin,end);
-				begin = end+1;
+				if (quote_protect && (*end == '"'))
+				{
+					++quote_count;
+				}
+				if ((quote_count%2==0) && (*end == splitter))
+				{
+					String block = String(begin,end);
+					block.trim();
+					if (block.size()>=2 && (Int(block.prefix(1)==String("\""))+Int(block.suffix(1)==String("\""))==1))
+					{// block has start or end quote but not both (one quote is somewhere in the middle) 
+						throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not dequote string '")+block+"' due to wrongly placed '\"'.");
+					}
+					else if (block.size()>=2 && block.prefix(1)==String("\"") && block.suffix(1)==String("\""))
+					{// block has start and end quotes --> remove them
+						block = block.substr(1,block.size()-2);
+					}
+					substrings.push_back(block);
+					begin = end+1;
+				}
 			}
+			// no valid splitter found - return empty list
+			if (substrings.size()==0) return false;
+			
+			String block = String(begin,end);
+			block.trim();
+			if (block.size()>=2 && (Int(block.prefix(1)==String("\""))+Int(block.suffix(1)==String("\""))==1))
+			{// block has start or end quote but not both (one quote is somewhere in the middle) 
+				throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not dequote string '")+block+"' due to wrongly placed '\"'.");
+			}
+			else if (block.size()>=2 && block.prefix(1)==String("\"") && block.suffix(1)==String("\""))
+			{// block has start and end quotes --> remove them
+				block = block.substr(1,block.size()-2);
+			}
+			substrings.push_back(block);
 		}
-		substrings[parts] = String(begin,end);
+		else // do not honor quotes
+		{
+			for (; end != this->end(); ++end)
+			{
+				if (*end == splitter)
+				{
+					substrings.push_back(String(begin,end));
+					begin = end+1;
+				}
+			}
+			substrings.push_back(String(begin,end));
+		}
 		
 		return true;
 	}

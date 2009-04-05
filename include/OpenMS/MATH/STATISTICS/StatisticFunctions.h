@@ -90,7 +90,7 @@ namespace OpenMS
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 
-			DoubleReal correct = dist;
+			DoubleReal correct = (DoubleReal)dist;
 			while(begin_a != end_a)
 			{
 				if ((*begin_a < 0 && *begin_b >= 0) || (*begin_a >= 0 && *begin_b < 0))

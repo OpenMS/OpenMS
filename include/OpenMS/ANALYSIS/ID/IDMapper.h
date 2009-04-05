@@ -80,22 +80,22 @@ namespace OpenMS
 				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 		
   			//store mapping of scan RT to index
-				std::multimap<DoubleReal, UInt> experiment_precursors;
+				std::multimap<DoubleReal, Size> experiment_precursors;
 				for (Size i = 0; i < map.size(); i++)
 				{
 					experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
 				}
 				
 				//store mapping of identification RT to index
-				std::multimap<DoubleReal, UInt> identifications_precursors;
+				std::multimap<DoubleReal, Size> identifications_precursors;
 				for (Size i = 0; i < ids.size(); i++)
 				{
 					identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
 				}
 				
 				//calculate the actual mapping
-				std::multimap<DoubleReal, UInt>::iterator experiment_iterator = experiment_precursors.begin();
-				std::multimap<DoubleReal, UInt>::iterator identifications_iterator = identifications_precursors.begin();	
+				std::multimap<DoubleReal, Size>::iterator experiment_iterator = experiment_precursors.begin();
+				std::multimap<DoubleReal, Size>::iterator identifications_iterator = identifications_precursors.begin();	
 				while(experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
 				{
 					while(identifications_iterator != identifications_precursors.end())

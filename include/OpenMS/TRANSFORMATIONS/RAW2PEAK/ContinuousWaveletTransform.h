@@ -123,49 +123,49 @@ namespace OpenMS
     }
 
     /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
-    inline Int getLeftPaddingIndex() const
+    inline SignedSize getLeftPaddingIndex() const
     {
 			return end_left_padding_;
     }
     /// Mutable access to the position where the signal starts
-    inline int& getLeftPaddingIndex()
+    inline SignedSize& getLeftPaddingIndex()
     {
 			return end_left_padding_;
     }
     /// Mutable access to position where the signal starts
-    inline void setLeftPaddingIndex(const int end_left_padding)
+    inline void setLeftPaddingIndex(const SignedSize end_left_padding)
     {
 			end_left_padding_ = end_left_padding;
     }
 
     /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
-    inline Int getRightPaddingIndex() const
+    inline SignedSize getRightPaddingIndex() const
     {
 			return begin_right_padding_;
     }
     /// Mutable access to the position where the signal starts
-    inline int& getRightPaddingIndex()
+    inline SignedSize& getRightPaddingIndex()
     {
 			return begin_right_padding_;
     }
     /// Mutable access to position where the signal starts
-    inline void setRightPaddingIndex(const int begin_right_padding)
+    inline void setRightPaddingIndex(const SignedSize begin_right_padding)
     {
 			begin_right_padding_ = begin_right_padding;
     }
 
     /// Non-mutable access to signal length [end_left_padding,begin_right_padding]
-    inline Int getSignalLength() const
+    inline SignedSize getSignalLength() const
     {
 			return signal_length_;
     }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
-    inline int& getSignalLength()
+    inline SignedSize& getSignalLength()
     {
 			return signal_length_;
     }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
-    inline void setSignalLength(const int signal_length)
+    inline void setSignalLength(const SignedSize signal_length)
     {
 			signal_length_ = signal_length;
     }
@@ -207,13 +207,13 @@ namespace OpenMS
     /// Spacing and scale of the wavelet and length of the signal.
     double scale_;
     double spacing_;
-    int signal_length_;
+    SignedSize signal_length_;
 
     /// We often have to pad the transform at the left and right with
     /// zeros. Since we don't want to iterate over those as well, we
     /// have to store their positions.
-    int end_left_padding_;
-    int begin_right_padding_;
+    SignedSize end_left_padding_;
+    SignedSize begin_right_padding_;
 
 		template < typename InputPeakIterator >
 		double getInterpolatedValue_(double x, InputPeakIterator it_left)

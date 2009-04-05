@@ -1578,7 +1578,7 @@ namespace OpenMS
 			for (Size i = 0; i < peak_shapes.size(); ++i)
 			{
 				// put it out only if the peak was not deconvoluted
-				if(peaks_to_skip.find(i) == peaks_to_skip.end() )
+				if(peaks_to_skip.find((UInt)i) == peaks_to_skip.end() )
 				{
 					//store output peak
 					Peak1D picked_peak;

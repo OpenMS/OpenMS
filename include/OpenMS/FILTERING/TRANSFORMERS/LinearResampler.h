@@ -85,7 +85,7 @@ namespace OpenMS
       	
         double end_pos = (last-1)->getMZ();
         double start_pos = first->getMZ();
-        int number_raw_points = spectrum.size();
+        int number_raw_points = (int)spectrum.size();
         int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
 
         typename std::vector<PeakType> resampled_peak_container;

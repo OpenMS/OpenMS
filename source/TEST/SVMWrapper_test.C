@@ -68,14 +68,14 @@ START_SECTION((DoubleReal getSVRProbability()))
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;
 	vector<svm_node*> encoded_vectors;
-	UInt count = 100;
+	Int count = 100;
 	vector<DoubleReal> labels;
 	svm_problem* problem;
 
-	for (Size j = 0; j < count; j++)
+	for (Int j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (Int i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -340,10 +340,10 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	map<SVM_parameter_type, DoubleReal> parameters;
 	DoubleReal cv_quality;
 
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (UInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -431,10 +431,10 @@ START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal
 	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (UInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -638,10 +638,10 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	svm.setParameter(SVM_TYPE, NU_SVR);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 1; i < 6; i++)
+		for (UInt i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -704,10 +704,10 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 	svm.setParameter(SVM_TYPE, NU_SVR);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 1; i < 6; i++)
+		for (UInt i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i, ((DoubleReal) i) * j * 0.3));
 		}
@@ -874,10 +874,10 @@ START_SECTION((void loadModel(std::string modelFilename)))
 	svm_problem* problem;
 	SVMWrapper svm2;
 
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (UInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -918,10 +918,10 @@ START_SECTION((void saveModel(std::string modelFilename) const))
 	svm_problem* problem;
 	SVMWrapper svm2;
 
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 0; i < 6; i++)
+		for (UInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -961,9 +961,9 @@ START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vecto
 	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
-		for (Size i = 0; i < 6; i++)
+		for (UInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -999,10 +999,10 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	svm.setParameter(SVM_TYPE, C_SVC);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for (Size j = 0; j < count; j++)
+	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Size i = 1; i < 6; i++)
+		for (UInt i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}

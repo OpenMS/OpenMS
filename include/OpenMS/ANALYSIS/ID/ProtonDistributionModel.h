@@ -62,7 +62,7 @@ namespace OpenMS
 	 
 		@htmlinclude OpenMS_ProtonDistributionModel.parameters
 	*/
-	class ProtonDistributionModel : public DefaultParamHandler
+	class OPENMS_DLLAPI ProtonDistributionModel : public DefaultParamHandler
 	{
 		public:
 			

@@ -182,7 +182,7 @@ namespace OpenMS
 				@param m size of row
 				@param k_ size of k_
 			*/			
-			bool insideBand_(Size i,Int j,Size n,Size m,Int k_);
+			bool insideBand_(Size i,Size j,Size n,Size m,Int k_);
 			
 			/**
 		    @brief function to calculate a cubicspline to interpolate the Retention time
@@ -232,7 +232,7 @@ namespace OpenMS
 				@param buffer  holds the calculated score of index i,j.
 				@param column_row_orientation indicate the order of the matrix
 			*/
-			Real scoreCalculation_(Size i,Int j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation);
+			Real scoreCalculation_(Size i,Size j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation);
 			
 			/**
 				@brief return the score of two given MSSpectrums by calling the scorefunction

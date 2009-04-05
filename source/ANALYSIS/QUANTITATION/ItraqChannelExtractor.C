@@ -337,7 +337,7 @@ namespace OpenMS
 			ChannelInfo info;
 			info.description = "";
 			info.name = channel_names_[itraq_type_].getValue(i,0);
-			info.id = i;
+			info.id = (Int)i;
 			info.center = double(info.name) + 0.1;
 			info.active = false;
 			channel_map_[info.name] = info;

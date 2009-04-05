@@ -105,7 +105,7 @@ namespace OpenMS
 	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
 		cout << "ranked_" << endl;
-		map<AASequence, Real> scores;		
+		map<AASequence, DoubleReal> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
@@ -126,7 +126,7 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
 					cout << " - New hit: " << hit->getSequence() << " " << hit->getRank() << endl;
 #endif
-					scores.insert(make_pair(hit->getSequence(),( considered_hits + 1 - hit->getRank())));  
+					scores.insert(make_pair(hit->getSequence(),DoubleReal( considered_hits + 1 - hit->getRank())));  
 				}
 				else
 				{
@@ -148,7 +148,7 @@ namespace OpenMS
 		{
 			max_score = number_of_runs*considered_hits;
 		}
-		for (map<AASequence,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			it->second = (it->second * 100.0f / max_score);
 		}
@@ -158,7 +158,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType("Consensus_averaged");
 
-		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -170,7 +170,7 @@ namespace OpenMS
 
 	void ConsensusID::merge_(vector<PeptideIdentification>& ids)
 	{
-		map<AASequence,Real> scores;		
+		map<AASequence,DoubleReal> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 				
 		//store the score type (to make sure only IDs of the same type are merged)
@@ -219,7 +219,7 @@ namespace OpenMS
 		ids[0].setScoreType(String("Consensus_merged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
 		
-		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -230,7 +230,7 @@ namespace OpenMS
 
 	void ConsensusID::average_(vector<PeptideIdentification>& ids)
 	{
-		map<AASequence,Real> scores;		
+		map<AASequence,DoubleReal> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
@@ -277,7 +277,7 @@ namespace OpenMS
 			}
 		}
 		//normalize score by number of id runs
-		for (map<AASequence,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			if (number_of_runs==0)
 			{
@@ -294,7 +294,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
-		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -311,7 +311,7 @@ namespace OpenMS
 	
 	void ConsensusID::probability_(vector<PeptideIdentification>& ids)
 	{
-		map<AASequence,Real> scores;	 	
+		map<AASequence,DoubleReal> scores;	 	
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
         //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
 			
@@ -365,7 +365,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
-		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);

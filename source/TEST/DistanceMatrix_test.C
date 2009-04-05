@@ -212,7 +212,7 @@ END_SECTION
 START_SECTION((std::pair<UInt,UInt> getMinElementCoordinates() const))
 {
 	dm.updateMinElement();
-	pair<UInt,UInt> min = dm.getMinElementCoordinates();
+	pair<Size,Size> min = dm.getMinElementCoordinates();
 	TEST_EQUAL(min.first,1)
 	TEST_EQUAL(min.second,0)
 }
@@ -222,7 +222,7 @@ START_SECTION((void updateMinElement()))
 {
 	dm.setValueQuick(2,3,0.5);
 	dm.updateMinElement();
-	std::pair<UInt,UInt> min = dm.getMinElementCoordinates();
+	std::pair<Size,Size> min = dm.getMinElementCoordinates();
 	TEST_EQUAL(min.first,3)
 	TEST_EQUAL(min.second,2)
 }

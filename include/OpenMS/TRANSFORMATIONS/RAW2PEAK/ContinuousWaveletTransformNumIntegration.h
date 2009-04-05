@@ -96,10 +96,8 @@ namespace OpenMS
       if (fabs(resolution-1) < 0.0001)
       {
         // resolution = 1 corresponds to the cwt at supporting points which have a distance corresponding to the minimal spacing in [begin_input,end_input)
-        unsigned int n = distance(begin_input,end_input);
+        SignedSize n = distance(begin_input,end_input);
         signal_length_ = n;
-
-        unsigned int i;
 
         signal_.clear();
         signal_.resize(n);
@@ -109,10 +107,10 @@ namespace OpenMS
         std::cout << "---------START TRANSFORM---------- \n";
 #endif
         InputPeakIterator help = begin_input;
-        for (i=0; i < n; ++i)
+        for (int i=0; i < n; ++i)
         {
           signal_[i].setMZ(help->getMZ());
-          signal_[i].setIntensity(integrate_(help,begin_input,end_input));
+					signal_[i].setIntensity((Peak1D::IntensityType)integrate_(help,begin_input,end_input));
           ++help;
         }
 #ifdef DEBUG_PEAK_PICKING
@@ -124,7 +122,7 @@ namespace OpenMS
       }
       else
       {
-				unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
+				SignedSize n = SignedSize( resolution * distance(begin_input, end_input));
         double origin  = begin_input->getMZ();
         double spacing = ((end_input-1)->getMZ()-origin)/(n-1);
 				
@@ -148,7 +146,7 @@ namespace OpenMS
 				else processed_input[0]=it_help->getIntensity();
 				
         double x;
-        for (Size k=1; k < n-zeros; ++k)
+        for (SignedSize k=1; k < n-zeros; ++k)
         {
           x = origin + k*spacing;
           // go to the real data point next to x
@@ -167,7 +165,7 @@ namespace OpenMS
         for (UInt i=0; i < n; ++i)
         {
           signal_[i].setMZ(origin + i*spacing);
-          signal_[i].setIntensity(integrate_(processed_input,spacing,i));
+					signal_[i].setIntensity((Peak1D::IntensityType)integrate_(processed_input,spacing,i));
         }
 
         if(zeros == 0)

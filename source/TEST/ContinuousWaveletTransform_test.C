@@ -88,19 +88,19 @@ START_SECTION((double operator[](unsigned int i) const ))
   TEST_REAL_SIMILAR(cwt_const[0],0)
 END_SECTION
 
-START_SECTION((Int getLeftPaddingIndex() const))
+START_SECTION((SignedSize getLeftPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
   TEST_EQUAL(cwt.getLeftPaddingIndex(), 0)
 END_SECTION
 
-START_SECTION((Int getRightPaddingIndex() const))
+START_SECTION((SignedSize getRightPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
   TEST_EQUAL(cwt.getRightPaddingIndex(), 0)
 END_SECTION
 
-START_SECTION((Int getSignalLength() const))
+START_SECTION((SignedSize getSignalLength() const))
   ContinuousWaveletTransform cwt;
   
   TEST_EQUAL(cwt.getSignalLength(), 0)
@@ -144,21 +144,21 @@ START_SECTION((double operator[](unsigned int i)))
   TEST_EQUAL(cwt[0],100)
 END_SECTION
 
-START_SECTION((int& getLeftPaddingIndex()))
+START_SECTION((SignedSize& getLeftPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getLeftPaddingIndex() = 2;
   
   TEST_EQUAL(cwt.getLeftPaddingIndex(), 2)
 END_SECTION
 
-START_SECTION((int& getRightPaddingIndex()))
+START_SECTION((SignedSize& getRightPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getRightPaddingIndex() = 2;
   
   TEST_EQUAL(cwt.getRightPaddingIndex(), 2)
 END_SECTION
 
-START_SECTION((int& getSignalLength()))
+START_SECTION((SignedSize& getSignalLength()))
   ContinuousWaveletTransform cwt;
   cwt.getSignalLength() = 2;
   
@@ -187,14 +187,14 @@ START_SECTION((virtual void init(double scale, double spacing)))
   TEST_REAL_SIMILAR(cwt.getScale(),scale)
 END_SECTION
 
-START_SECTION((void setLeftPaddingIndex(const int end_left_padding)))
+START_SECTION((void setLeftPaddingIndex(const SignedSize end_left_padding)))
   ContinuousWaveletTransform cwt;
   cwt.setLeftPaddingIndex(2);
   
   TEST_EQUAL(cwt.getLeftPaddingIndex(), 2)
 END_SECTION
 
-START_SECTION((void setRightPaddingIndex(const int begin_right_padding)))
+START_SECTION((void setRightPaddingIndex(const SignedSize begin_right_padding)))
   ContinuousWaveletTransform cwt;
   cwt.setRightPaddingIndex(2);
   
@@ -217,7 +217,7 @@ START_SECTION((void setSignal(const std::vector<Peak1D >& signal)))
   TEST_EQUAL(cwt.getSignal() == signal, true)
 END_SECTION
 
-START_SECTION((void setSignalLength(const int signal_length)))
+START_SECTION((void setSignalLength(const SignedSize signal_length)))
   ContinuousWaveletTransform cwt;
   cwt.setSignalLength(2);
   

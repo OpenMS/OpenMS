@@ -194,7 +194,7 @@ class TOPPSequenceCoverageCalculator
 */
 				//				statistics[j] = make_pair(, 
 				//													accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
-				statistics[j] = ((DoubleReal) accumulate(coverage.begin(), coverage.end(), 0)) / proteins[j].sequence.size();
+				statistics[j] = ((DoubleReal) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
 				counts[j] = temp_unique_peptides.size();
 				mod_counts[j] = temp_modified_unique_peptides.size();
 //				cout << statistics[j] << endl;

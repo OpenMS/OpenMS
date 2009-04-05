@@ -85,7 +85,7 @@ namespace OpenMS
 			///calculate and return normalized amino acid index variables from string representation of peptide
 			void normalizeVector(std::vector<DoubleReal>& aaIndexVariables);
 			///calculate neighborhood function based on distance of prototypes to winner prototype on two-dimensional grid structure and neighborhood width.
-			std::vector<DoubleReal> neigh(const Matrix<UInt>& cord, UInt win, DoubleReal radius);
+			std::vector<DoubleReal> neigh(const Matrix<UInt>& cord, Size win, DoubleReal radius);
 			
 		private:
 			
@@ -96,9 +96,9 @@ namespace OpenMS
 			Matrix<UInt> cord_;								///<coordinates of codebooks on grid
 
 			/// needed to store prototype coordinates
-			Matrix<UInt> genCord_(UInt xdim, UInt ydim);
+			Matrix<UInt> genCord_(Size xdim, Size ydim);
 			///calculate distance between two prototypes
-			DoubleReal dist_(const Matrix<UInt>& u, const Matrix<UInt>& v, UInt a, UInt b);
+			DoubleReal dist_(const Matrix<UInt>& u, const Matrix<UInt>& v, Size a, Size b);
 			
 			///Copy constructor not implemented => private
 			LocalLinearMap(LocalLinearMap& rhs);

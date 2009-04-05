@@ -101,7 +101,7 @@ namespace OpenMS
 		
 		//levers
 		painter.setPen(QColor(0,0,0));
-		for (Size i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<(UInt)gradient_.size();++i)
 		{
 			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			painter.drawRect(pos-4,height()-margin_-lever_area_height_+5,9,9);
@@ -132,7 +132,7 @@ namespace OpenMS
 		left_button_pressed_=true;
 		
 		//select lever
-		for (Size i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<(UInt)gradient_.size();++i)
 		{
 			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
@@ -186,7 +186,7 @@ namespace OpenMS
 	
 	void MultiGradientSelector::mouseDoubleClickEvent ( QMouseEvent * e )
 	{
-		for (Size i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<(UInt)gradient_.size();++i)
 		{
 			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)

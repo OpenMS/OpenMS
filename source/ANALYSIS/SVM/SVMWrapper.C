@@ -593,7 +593,7 @@ namespace OpenMS
 								 													 Size 											 except)
 	{
 		svm_problem* merged_problem = NULL;
-		Size count = 0;
+		int count = 0;
 		Size actual_index = 0;
 		
 		if (problems.size() == 1 && except == 0)
@@ -671,13 +671,13 @@ namespace OpenMS
 	
 	void SVMWrapper::getLabels(svm_problem* problem, vector<DoubleReal>& labels)
 	{
-		Size count = 0;
+		int count = 0;
 		labels.clear();
 		
 		if (problem != NULL)
 		{		
 			count = problem->l;
-			for (Size i = 0; i < count; i++)
+			for (int i = 0; i < count; i++)
 			{
 				labels.push_back(problem->y[i]);
 			}
@@ -2019,11 +2019,9 @@ namespace OpenMS
 			return NULL;
 		}		
 
-		Size number_of_sequences = 0;
-
-		number_of_sequences = problem1.labels.size();		
+		Size number_of_sequences = problem1.labels.size();		
 		kernel_matrix = new svm_problem;
-		kernel_matrix->l = number_of_sequences;
+		kernel_matrix->l = (int) number_of_sequences;
 		kernel_matrix->x = new svm_node*[number_of_sequences];
 		kernel_matrix->y = new DoubleReal[number_of_sequences];
 		
@@ -2043,9 +2041,9 @@ namespace OpenMS
 				for (Size j = i; j < number_of_sequences; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
-					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].index = int(j) + 1;
 					kernel_matrix->x[i][j + 1].value = temp;
-					kernel_matrix->x[j][i + 1].index = i + 1;
+					kernel_matrix->x[j][i + 1].index = int(i) + 1;
 					kernel_matrix->x[j][i + 1].value = temp;				
 				}
 			}
@@ -2058,7 +2056,7 @@ namespace OpenMS
 				{
 					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
 
-					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].index = int(j) + 1;
 					kernel_matrix->x[i][j + 1].value = temp;
 				}
 			}			

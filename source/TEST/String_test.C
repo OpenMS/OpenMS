@@ -445,7 +445,7 @@ START_SECTION((static String random(UInt length)))
 	TEST_EQUAL(s2.size(),10);
 END_SECTION
 
-START_SECTION((bool split(char splitter, std::vector<String>& substrings) const))
+START_SECTION((bool split(char splitter, std::vector<String>& substrings, bool quote_protect=false) const))
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);
@@ -481,6 +481,52 @@ START_SECTION((bool split(char splitter, std::vector<String>& substrings) const)
 	TEST_EQUAL(result,false);
 	TEST_EQUAL(split.size(),0);
 
+	s = "nodelim";
+	result = s.split(';', split);
+	TEST_EQUAL(result,false);
+	TEST_EQUAL(split.size(),0);
+
+	// testing quoting behaviour
+	s=" \"hello\", world, 23.3";
+	result = s.split(',', split, true);
+	TEST_EQUAL(result,true);
+	TEST_EQUAL(split.size(),3);
+	TEST_EQUAL(split[0],"hello");
+	TEST_EQUAL(split[1],"world");
+	TEST_EQUAL(split[2],"23.3");
+
+	s=" \"hello\", \" donot,splitthis \", \"23.4 \" ";
+	result = s.split(',', split, true);
+	TEST_EQUAL(result,true);
+	TEST_EQUAL(split.size(),3);
+	TEST_EQUAL(split[0],"hello");
+	TEST_EQUAL(split[1]," donot,splitthis ");
+	TEST_EQUAL(split[2],"23.4 ");
+
+	s=" \"hello\", \" donot,splitthis \", \"23.5 \" ";
+	result = s.split(',', split, true);
+	TEST_EQUAL(result,true);
+	TEST_EQUAL(split.size(),3);
+	TEST_EQUAL(split[0],"hello");
+	TEST_EQUAL(split[1]," donot,splitthis ");
+	TEST_EQUAL(split[2],"23.5 ");
+
+	s=" \"hello\", \" donot,splitthis \", \"23.6 \" ";
+	result = s.split(',', split, true);
+	TEST_EQUAL(result,true);
+	TEST_EQUAL(split.size(),3);
+	TEST_EQUAL(split[0],"hello");
+	TEST_EQUAL(split[1]," donot,splitthis ");
+	TEST_EQUAL(split[2],"23.6 ");
+
+	s = " \"nodelim \"";
+	result = s.split(';', split, true);
+	TEST_EQUAL(result,false);
+	TEST_EQUAL(split.size(),0);
+
+	// testing invalid quoting...
+	s = " \"first\", \"seconds\"<thisshouldnotbehere>, third";
+	TEST_EXCEPTION(Exception::ConversionError, s.split(',', split, true));
 
 END_SECTION
 

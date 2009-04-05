@@ -266,7 +266,7 @@ namespace OpenMS
 				// "else" case: to the right of the left margin
 
 
-				KeyType factor = KeyType(left) - pos + 0.5;
+				KeyType factor = KeyType(left) - pos + KeyType(0.5);
 
 				if ( left > size_ ) // quite large
 				{

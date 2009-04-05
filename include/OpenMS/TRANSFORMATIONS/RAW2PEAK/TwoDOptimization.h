@@ -191,7 +191,7 @@ namespace OpenMS
 		/// Helper struct (contains the size of an area and a raw data container)
 		struct Data
 		{
-			std::vector<std::pair<Int,Int> > signal2D; 
+			std::vector<std::pair<SignedSize,SignedSize> > signal2D; 
 			std::multimap<DoubleReal,IsotopeCluster>::iterator iso_map_iter;
 			Size total_nr_peaks;
 			std::map<Int, std::vector<PeakIndex> > matching_peaks;

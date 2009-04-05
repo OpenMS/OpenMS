@@ -46,9 +46,9 @@ using namespace std;
 class lowlevelComparator
 {
 	public:
-	double operator()(const UInt first, const UInt second) const
+	double operator()(const Size first, const Size second) const
 	{
-		UInt x,y;
+		Size x,y;
 		x = min(second,first);
 		y = max(first,second);
 
@@ -254,7 +254,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.0));
-	tree.push_back(BinaryTreeNode(0,1,0.0086));
+	tree.push_back(BinaryTreeNode(0,1,0.0086f));
 	DistanceMatrix<Real> matrix;
 
 	ch.cluster(d,bspc,1.5,2,sl,result, matrix);

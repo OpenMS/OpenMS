@@ -333,9 +333,9 @@ class TOPPFileInfo
 		{
 
 			UInt spectrum_count = 0;
-			UInt peptide_hit_count = 0;
+			Size peptide_hit_count = 0;
 			UInt runs_count = 0;
-			UInt protein_hit_count = 0;
+			Size protein_hit_count = 0;
 			vector<String> peptides;
 			vector<String> proteins;
 			
