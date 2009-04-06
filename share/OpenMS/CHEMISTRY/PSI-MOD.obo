@@ -23701,6 +23701,23 @@ property_value: Source: "Artifact"
 property_value: TermSpec: "none"
 is_a: MOD:00626 ! fluorescein-5-thiosemicarbazide
 
+
+
+
+
+[Term]
+id: MOD:09995
+name: iTRAQ8plex
+def: "iTRAQ 8plex label []
+property_value: DiffAvg: "none"
+property_value: DiffFormula: "H 24 C 7 (13) C 7 N 3 (15) N 1 O 3"
+property_value: DiffMono: "none"
+property_value: Formula: ""
+property_value: MassAvg: "304.3074"
+property_value: MassMono: "304.205360"
+property_value: Origin: "X
+property_value: TermSpec: "N-term"
+
 [Term]
 id: MOD:09996
 name: 5x(13)C and (15)N label
