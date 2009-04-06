@@ -45,6 +45,8 @@ using namespace std;
 	
 	@brief Extracts and normalizes iTRAQ information from an MS experiment.
 	
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 	Provide an idXML file that you obtained from the same data (e.g. by using InspectAdapter) 
 	to have protein ratios reported, instead of peptide ratios.
 	
@@ -151,6 +153,14 @@ class TOPPITRAQAnalyzer
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
 		if (getStringOption_("id_pool").trim().length()>0) getIDTagger_().tag(consensus_map_raw);
+
+		// annotate output file with MetaInformation
+		Param metainfo_param(getParam_().copy("algorithm:MetaInformation:",true));
+		for (Param::ParamIterator it = metainfo_param.begin(); it!=metainfo_param.end(); ++it)
+		{
+			consensus_map_raw.setMetaValue (it->name, it->value);
+		}
+
 
 		//-------------------------------------------------------------
 		// writing output 

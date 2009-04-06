@@ -287,7 +287,15 @@ namespace OpenMS
 									p.setValue("ITRAQAnalyzer:"+instance+":algorithm:MetaInformation:"+parts[0],parts[1].trim(), "MetaValue" ,StringList::create("advanced"));
 									break;
 								case ITRAQ_CHANNELALLOC:
-									channel_alloc.push_back(parts[1].trim());
+									if (parts[1].trim()=="") break;
+									parts[0].split(' ', subs);
+									try{subs[1].toInt();}
+									catch (...)
+									{
+										writeLog_(String("Channel allocation entry in column 1 in line ") + String(i+1) + String(" does not have the format <String> <Number> <String> in CSV file! Terminating..."));
+										exit(INCOMPATIBLE_INPUT_DATA);
+									}
+									channel_alloc.push_back(subs[1] + ":" + parts[1].trim());
 									break;
 
 								case ITRAQ_MATRIX:

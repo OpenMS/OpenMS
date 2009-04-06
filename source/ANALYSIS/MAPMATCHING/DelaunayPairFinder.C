@@ -32,8 +32,18 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <climits> // damn CGAL uses INT_MAX!
+
+#ifdef _MSC_VER // disable some CGAL warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4396 )
+#	pragma warning( disable : 4267 )
+#endif
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 // #define Debug_DelaunayPairFinder
 #ifdef Debug_DelaunayPairFinder
