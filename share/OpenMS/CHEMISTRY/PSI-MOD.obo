@@ -23766,7 +23766,7 @@ property_value: MassAvg: "none"
 property_value: MassMono: "none"
 property_value: Origin: "X"
 property_value: Source: "Artifact"
-property_value: TermSpec: "N-term"
+property_value: TermSpec: "none"
 
 [Term]
 id: MOD:09999
