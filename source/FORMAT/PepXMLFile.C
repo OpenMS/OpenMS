@@ -65,7 +65,7 @@ namespace OpenMS
 		fixed_modifications_ = vector<String>();
   }
 
-	void PepXMLFile::store(const String& filename,  std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
+	void PepXMLFile::store(const String& filename,  std::vector<ProteinIdentification>& /* protein_ids */, std::vector<PeptideIdentification>& peptide_ids)
 	{
 		ofstream f(filename.c_str());
 		if (!f)

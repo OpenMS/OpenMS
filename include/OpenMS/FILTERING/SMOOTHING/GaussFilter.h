@@ -287,7 +287,7 @@ namespace OpenMS
             }
           }
           // start the interpolation for the true value in the gaussian
-          int right_position = left_position+1;
+          Size right_position = left_position+1;
           DoubleReal d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
           DoubleReal coeffs_left= (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
                               : coeffs_[left_position];

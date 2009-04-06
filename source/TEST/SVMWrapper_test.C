@@ -82,7 +82,7 @@ START_SECTION((DoubleReal getSVRProbability()))
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for (Size i = 0; i < count; i++)
+	for (Int i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}

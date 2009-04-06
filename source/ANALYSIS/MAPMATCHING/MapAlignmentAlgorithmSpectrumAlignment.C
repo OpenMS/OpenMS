@@ -339,7 +339,7 @@ namespace OpenMS
 			{
 				score_=firstcolummatchmatrix[n][m];
 				k_*=2;
-				if(k_>n+2)k_=(Int)n+2;
+				if (k_>(Int)n+2) k_=(Int)n+2;
 			}
 		}
   	//	matchmatrix.clear();
