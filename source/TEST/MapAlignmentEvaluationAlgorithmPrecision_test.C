@@ -67,8 +67,6 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	MapAlignmentEvaluationAlgorithmPrecision maea;
 	ConsensusMap in;
 	ConsensusMap gt;
-	DoubleReal rt_dev, mz_dev;
-	Int int_dev;
 	DoubleReal out; 
 	
 	ConsensusXMLFile consensus_xml_file_in;
@@ -77,7 +75,7 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	ConsensusXMLFile consensus_xml_file_gt;
 	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_gt.consensusXML"), gt );
 	
-	maea.evaluate(in, gt, rt_dev, mz_dev, int_dev, out);
+	maea.evaluate(in, gt, 0.1, 0.1, 100, out);
 
 	TEST_REAL_SIMILAR(out, 0.757143)
 END_SECTION

@@ -141,13 +141,9 @@ protected:
 		ConsensusMap consensus_map_in;
 		consensus_xml_file_in.load( in, consensus_map_in );
 		
-		// reader
-		ConsensusXMLFile consensus_xml_file_gt;
-		consensus_xml_file_gt.setLogType(log_type_); //richtig??
-
 		// gt -> consensus_map_gt
 		ConsensusMap consensus_map_gt;
-		consensus_xml_file_gt.load( gt, consensus_map_gt );
+		consensus_xml_file_in.load( gt, consensus_map_gt );
 		
 
 		//evaluate
