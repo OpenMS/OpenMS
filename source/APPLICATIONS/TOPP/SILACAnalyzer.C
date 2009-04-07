@@ -545,7 +545,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 						for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if ((UInt)it->cluster_id==i)
+							if (it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;
@@ -697,7 +697,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 		   			for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if ((UInt)it->cluster_id==i)
+							if (it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;

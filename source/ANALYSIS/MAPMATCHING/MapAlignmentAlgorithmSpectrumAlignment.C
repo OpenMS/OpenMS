@@ -587,13 +587,13 @@ namespace OpenMS
 				Int y;
 				if(column_row_orientation)
 				{ 
-					x= (Size)temp+1;
+					x= temp+1;
 					y= (Int)k+1;
 					s= scoreCalculation_(x,y,xbegin,ybegin,pattern,aligned,buffer,column_row_orientation);
 				}
 				else
 				{
-					x= (Size)k+1;
+					x= k+1;
 					y= (Int)(temp+1);
 					s= scoreCalculation_(x,y,xbegin,ybegin,pattern,aligned,buffer,column_row_orientation);
 				}
@@ -636,8 +636,8 @@ namespace OpenMS
 			trans.setPairs(PairVector);
 			transformation.push_back(trans);
 			gsl_interp_accel *acc = gsl_interp_accel_alloc();
-			gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (Size)x.size());
-			gsl_spline_init(spline,tempx,tempy,(Size)x.size());
+			gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());
+			gsl_spline_init(spline,tempx,tempy,x.size());
 
 			for (Size i = begin; i <= end; ++i)
 			{
