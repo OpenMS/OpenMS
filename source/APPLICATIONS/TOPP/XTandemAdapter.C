@@ -157,6 +157,10 @@ class TOPPXTandemAdapter
 
 			String unique_name = File::getUniqueName(); // body for the tmp files
 			String temp_directory(getStringOption_("temp_directory"));
+			if (temp_directory != "")
+			{
+				temp_directory.ensureLastChar('/');
+			}
 
 			String input_filename(temp_directory + unique_name + "_tandem_input_file.xml");
 			String tandem_input_filename(temp_directory + unique_name + "_tandem_input_file.mzData");
@@ -269,7 +273,7 @@ class TOPPXTandemAdapter
 			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
 			StringList files;
-			File::fileList("/tmp", unique_name + "_tandem_output_file*.xml", files);
+			File::fileList(temp_directory, unique_name + "_tandem_output_file*.xml", files);
 			if (files.size() != 1)
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
@@ -340,7 +344,7 @@ class TOPPXTandemAdapter
 
 			/// Deletion of temporary files	
 			QFile(input_filename.toQString()).remove();
-			QFile(files[0].toQString()).remove();
+			QFile((temp_directory + files[0]).toQString()).remove();
 			QFile(tandem_input_filename.toQString()).remove();
 			QFile(tandem_taxonomy_filename.toQString()).remove();
 			
