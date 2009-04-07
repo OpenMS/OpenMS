@@ -61,6 +61,8 @@ namespace OpenMS
 			pen_color_ = Qt::black;
 			brush_color_ = Qt::lightGray;
 		}
+		// draw vertices on top of edges:
+		setZValue(42);
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -75,7 +77,7 @@ namespace OpenMS
 	
 	QRectF TOPPASVertex::boundingRect() const
 	{
-		return QRectF(-70,-40,140,80);
+		return QRectF(-71,-41,142,82);
 	}
 	
 	QPainterPath TOPPASVertex::shape () const
@@ -122,7 +124,7 @@ namespace OpenMS
 	{
 		if (edge_being_created_)
 		{
-			// TODO construct new edge if pos of new edge on other node
+			emit finishHoveringEdge();
 		}
 		
 		edge_being_created_ = false;
@@ -140,17 +142,17 @@ namespace OpenMS
 		
 		if (action_mode == TOPPASScene::AM_MOVE)
 		{
-			QPointF delta = e->pos() - e->lastPos();
-			moveBy(delta.x(), delta.y());
-			
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
-				(*it)->update();
+				(*it)->prepareResize();
 			}
 			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
-				(*it)->update();
+				(*it)->prepareResize();
 			}
+			
+			QPointF delta = e->pos() - e->lastPos();
+			moveBy(delta.x(), delta.y());
 		}
 		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
 		{
@@ -162,11 +164,11 @@ namespace OpenMS
 			
 			if (!edge_being_created_)
 			{
-				emit newHoveringEdge(e->scenePos());
+				emit newHoveringEdge(mapToScene(e->pos()));
 				edge_being_created_ = true;
 			}
 			
-			emit hoveringEdgePosChanged(e->scenePos());
+			emit hoveringEdgePosChanged(mapToScene(e->pos()));
 		}
 	}
 	
@@ -188,6 +190,34 @@ namespace OpenMS
 	TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesEnd()
 	{
 		return in_edges_.end();
+	}
+
+	void TOPPASVertex::addInEdge(TOPPASEdge* edge)
+	{
+		in_edges_.push_back(edge);
+	}
+	
+	void TOPPASVertex::addOutEdge(TOPPASEdge* edge)
+	{
+		out_edges_.push_back(edge);
+	}
+	
+	void TOPPASVertex::removeInEdge(TOPPASEdge* edge)
+	{
+		int index = in_edges_.indexOf(edge);
+		if (index != -1)
+		{
+			in_edges_.removeAt(index);
+		}
+	}
+	
+	void TOPPASVertex::removeOutEdge(TOPPASEdge* edge)
+	{
+		int index = out_edges_.indexOf(edge);
+		if (index != -1)
+		{
+			out_edges_.removeAt(index);
+		}
 	}
 
 }

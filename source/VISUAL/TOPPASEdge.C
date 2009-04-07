@@ -39,7 +39,6 @@ namespace OpenMS
 			to_(0),
 			hover_pos_(hover_pos)
 	{
-		
 	}
 	
 	TOPPASEdge::~TOPPASEdge()
@@ -54,7 +53,7 @@ namespace OpenMS
 		qreal max_x = startPos().x() > endPos().x() ? startPos().x() : endPos().x();
 		qreal max_y = startPos().y() > endPos().y() ? startPos().y() : endPos().y();
 		
-		return QRectF(QPointF(min_x,min_y), QPointF(max_x,max_y));
+		return QRectF(QPointF(min_x-11.0,min_y-11.0), QPointF(max_x+11.0,max_y+11.0));
 	}
 	
 	QPainterPath TOPPASEdge::shape () const
@@ -68,14 +67,63 @@ namespace OpenMS
 	
 	void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
+		painter->drawEllipse(QRectF(startPos()-QPointF(5,5), startPos()+QPointF(5,5)));
 		painter->drawLine(startPos(),endPos());
+		
+		// draw arrow head
+		QPointF delta = endPos() - startPos();
+		qreal angle;
+		if (delta.x() == 0.0)
+		{
+			angle = endPos().y() > startPos().y() ? 90.0 : 270.0;
+		}
+		else
+		{
+			angle = delta.y() / delta.x();
+			angle = std::atan(angle);
+			angle = (angle / 3.14159265) * 180.0;
+			if (delta.x() < 0.0)
+			{
+				angle += 180;
+			}
+		}
+		
+		painter->save();
+		painter->translate(endPos());
+		painter->rotate(angle);
+		QPainterPath path;
+		path.moveTo(QPointF(0,0));
+		path.lineTo(QPointF(-10,4));
+		path.lineTo(QPointF(-10,-4));
+		path.closeSubpath();
+		painter->setPen(Qt::black);
+		painter->setBrush(Qt::white);
+		painter->drawPath(path);
+		painter->restore();
 	}
 	
 	QPointF TOPPASEdge::startPos() const
 	{
-		QPointF position = mapFromScene(from_->scenePos());
-		
-		return position;
+// 		QPointF target_pos;
+// 		if (to_)
+// 		{
+// 			target_pos = mapFromScene(to_->scenePos());
+// 		}
+// 		else
+// 		{
+// 			target_pos = hover_pos_;
+// 		}
+// 		
+// 		QRectF source_boundings = mapFromItem(from_, from_->boundingRect()).boundingRect();
+// 		QList<QPointF> point_list;
+// 		point_list.push_back(QPointF(source_boundings.left(), (source_boundings.bottom() + source_boundings.top()) / 2));
+// 		point_list.push_back(QPointF(source_boundings.right(), (source_boundings.bottom() + source_boundings.top()) / 2));
+// 		point_list.push_back(QPointF((source_boundings.right() + source_boundings.left()) / 2, source_boundings.bottom()));
+// 		point_list.push_back(QPointF((source_boundings.right() + source_boundings.left()) / 2, source_boundings.top()));
+// 			
+// 		return nearestPoint_(target_pos, point_list);
+
+		return mapFromScene(from_->scenePos());
 	}
 	
 	QPointF TOPPASEdge::endPos() const
@@ -85,11 +133,89 @@ namespace OpenMS
 		if (!to_)
 		{
 			// we do not have a target vertex yet
-			position = mapFromScene(hover_pos_);
+			position = hover_pos_;
 		}
 		else
 		{
-			position = mapFromScene(to_->scenePos());
+			// we have a target node --> line should end at its border
+//
+//			nicer, but performs quite bad
+//
+
+// 			QPainterPath dummy;
+// 			dummy.moveTo(startPos());
+// 			dummy.lineTo(mapFromScene(to_->scenePos()));
+// 			dummy.lineTo(mapFromScene(to_->scenePos() + QPointF(1,1)));
+// 			dummy.lineTo(startPos() + QPointF(1,1));
+// 			dummy.closeSubpath();
+// 			
+// 			QPainterPath intersection_with_target = dummy.intersected(mapFromItem(to_, to_->shape()));
+// 			
+// 			// find closest point of this intersection
+// 			QRectF intersection_boundings = intersection_with_target.boundingRect();
+// 			QList<QPointF> bounding_corners;
+// 			bounding_corners.push_back(intersection_boundings.topLeft());
+// 			bounding_corners.push_back(intersection_boundings.topRight());
+// 			bounding_corners.push_back(intersection_boundings.bottomLeft());
+// 			bounding_corners.push_back(intersection_boundings.bottomRight());
+// 			
+// 			position = nearestPoint_(startPos(), bounding_corners);
+			
+	///
+			// ugly:
+			
+// 			QRectF target_boundings = mapFromItem(to_, to_->boundingRect()).boundingRect();
+// 			QList<QPointF> point_list;
+// 			point_list.push_back(QPointF(target_boundings.left(), (target_boundings.bottom() + target_boundings.top()) / 2));
+// 			point_list.push_back(QPointF(target_boundings.right(), (target_boundings.bottom() + target_boundings.top()) / 2));
+// 			point_list.push_back(QPointF((target_boundings.right() + target_boundings.left()) / 2, target_boundings.bottom()));
+// 			point_list.push_back(QPointF((target_boundings.right() + target_boundings.left()) / 2, target_boundings.top()));
+			
+			QList<QPointF> point_list;
+			
+			QPointF target_pos = mapFromScene(to_->scenePos());
+			QRectF target_boundings = mapFromItem(to_, to_->shape()).boundingRect();
+			QPointF delta = target_pos - startPos();
+			qreal slope;
+			if (delta.x() == 0)
+			{
+				slope = std::numeric_limits<double>::infinity();
+			}
+			else
+			{
+				slope = delta.y() / delta.x();
+			}
+			
+			qreal y_1 = startPos().y() + slope * (target_boundings.left() - startPos().x());
+			qreal y_2 = startPos().y() + slope * (target_boundings.right() - startPos().x());
+			
+			slope = 1.0 / slope;
+			
+			qreal x_3 = startPos().x() + slope * (target_boundings.top() - startPos().y());
+			qreal x_4 = startPos().x() + slope * (target_boundings.bottom() - startPos().y());
+			
+			//qreal x_3 = startPos().x() + target_boundings.top() / slope;
+			//qreal x_4 = startPos().x() + target_boundings.bottom() / slope;
+
+			
+			if (y_1 <= target_boundings.bottom() && y_1 >= target_boundings.top())
+			{
+				point_list.push_back(QPointF(target_boundings.left(), y_1));
+			}
+			if (y_2 <= target_boundings.bottom() && y_2 >= target_boundings.top())
+			{
+				point_list.push_back(QPointF(target_boundings.right(), y_2));
+			}
+			if (x_3 <= target_boundings.right() && x_3 >= target_boundings.left())
+			{
+				point_list.push_back(QPointF(x_3, target_boundings.top()));
+			}
+			if (x_4 <= target_boundings.right() && x_4 >= target_boundings.left())
+			{
+				point_list.push_back(QPointF(x_4, target_boundings.bottom()));
+			}
+			
+			position = nearestPoint_(startPos(), point_list);
 		}
 		
 		return position;
@@ -97,13 +223,59 @@ namespace OpenMS
 	
 	void TOPPASEdge::setHoverPos(const QPointF& pos)
 	{
+		prepareResize();
 		hover_pos_ = pos;
+		update();
 	}
 	
 	void TOPPASEdge::setTargetVertex(TOPPASVertex* tv)
 	{
 		to_ = tv;
 	}
+	
+	void TOPPASEdge::setSourceVertex(TOPPASVertex* tv)
+	{
+		from_ = tv;
+	}
+	
+	TOPPASVertex* TOPPASEdge::getSourceVertex()
+	{
+		return from_;
+	}
+	
+	TOPPASVertex* TOPPASEdge::getTargetVertex()
+	{
+		return to_;
+	}
+	
+	void TOPPASEdge::prepareResize()
+	{
+		prepareGeometryChange();
+	}
+	
+	QPointF TOPPASEdge::nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const
+	{
+		if (list.empty())
+		{
+			return QPointF();
+		}
+		QPointF nearest = list.first();
+		qreal min_distance = std::numeric_limits<double>::max();
+		
+		for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
+		{
+			qreal sqr_distance = (it->x() - origin.x()) * (it->x() - origin.x()) +
+												(it->y() - origin.y()) * (it->y() - origin.y());
+			if (sqr_distance < min_distance)
+			{
+				min_distance = sqr_distance;
+				nearest = *it;
+			}
+		}
+		
+		return nearest;
+	}
+
 	
 } //namespace
 

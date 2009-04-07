@@ -118,7 +118,7 @@ namespace OpenMS
 			return;
 		}
 		
-		hover_edge_->setPos(new_pos);
+		hover_edge_->setHoverPos(new_pos);
 	}
 	
 	void TOPPASScene::addHoveringEdge(const QPointF& pos)
@@ -131,6 +131,36 @@ namespace OpenMS
 		TOPPASEdge* new_edge = new TOPPASEdge(sender, pos);
 		hover_edge_ = new_edge;
 		addEdge(new_edge);
+	}
+	
+	void TOPPASScene::finishHoveringEdge()
+	{
+		QList<QGraphicsItem*> target_list = items(hover_edge_->endPos());
+		bool destroy = true;
+		
+		// if one of the items at this position is a vertex: use it as target of the edge
+		for (QList<QGraphicsItem*>::iterator it = target_list.begin(); it != target_list.end(); ++it)
+		{
+			TOPPASVertex* target = dynamic_cast<TOPPASVertex*>(*it);
+			if (target)
+			{
+				hover_edge_->setTargetVertex(target);
+				TOPPASVertex* source = hover_edge_->getSourceVertex();
+				source->addOutEdge(hover_edge_);
+				target->addInEdge(hover_edge_);
+				
+				hover_edge_ = 0;
+				destroy = false;
+				break;
+			}
+		}
+		
+		if (destroy && hover_edge_ != 0)
+		{
+			removeItem(hover_edge_);
+			hover_edge_ = 0;
+		}
+		update();
 	}
 	
 } //namespace OpenMS

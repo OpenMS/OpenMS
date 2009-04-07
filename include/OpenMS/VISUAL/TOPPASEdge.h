@@ -60,10 +60,21 @@ namespace OpenMS
 			QPointF endPos() const;
 			/// Sets the position of the hovering end while edge is being created
 			void setHoverPos(const QPointF& pos);
+			/// Sets the source vertex of this edge
+			void setSourceVertex(TOPPASVertex* tv);
 			/// Sets the target vertex of this edge
 			void setTargetVertex(TOPPASVertex* tv);
+			/// Returns the source vertex
+			TOPPASVertex* getSourceVertex();
+			/// Returns the target vertex
+			TOPPASVertex* getTargetVertex();
+			/// Call this before changing the item geometry
+			void prepareResize();
 			
 		protected:
+		
+			/// Returns the point in the @p list that is nearest to @p origin
+			QPointF nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const;
 		
 			/// Pointer to the source of this edge
 			TOPPASVertex* from_;

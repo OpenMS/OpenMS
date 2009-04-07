@@ -90,6 +90,8 @@ namespace OpenMS
 			void updateHoveringEdgePos(const QPointF& new_pos);
 			/// Called when a new out edge is supposed to be created
 			void addHoveringEdge(const QPointF& pos);
+			/// Called when the new edge is being "released"
+			void finishHoveringEdge();
 			
 		protected:
 		
