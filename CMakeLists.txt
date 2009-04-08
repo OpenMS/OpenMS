@@ -525,6 +525,11 @@ ENDMACRO (QT4_WRAP_UI_OWN)
 ## big include file for headers and C files, which fills the OpenMS_sources variable
 include (cmake/includes.cmake)
 
+if (MSVC)
+	## use OpenMSd.dll in debug mode
+	SET(CMAKE_DEBUG_POSTFIX d)
+endif()
+
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
