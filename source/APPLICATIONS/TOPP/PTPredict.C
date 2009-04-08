@@ -122,7 +122,7 @@ class TOPPPTPredict
 
 			// Since the POBK is not included in the libsvm we have to load
 			// additional parameters from additional files.
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
 				inputFileReadable_(svmfile_name + "_additional_parameters");
 	
@@ -131,11 +131,11 @@ class TOPPPTPredict
 				additional_parameters.load(svmfile_name + "_additional_parameters");
 				if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
 				{
-					svm.setParameter(KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
+					svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
 				}
 								
 				if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No border length saved in additional parameters file. Aborting!");
 					cout << "No border length saved in additional parameters file. Aborting!" << endl;
@@ -143,7 +143,7 @@ class TOPPPTPredict
 				}
 				border_length = ((String)additional_parameters.getValue("border_length")).toInt();
 				if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No k-mer length saved in additional parameters file. Aborting!");
 					cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
@@ -151,7 +151,7 @@ class TOPPPTPredict
 				}
 				k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 				if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No sigma saved in additional parameters file. Aborting!");
 					cout << "No sigma saved in additional parameters file. Aborting!" << endl;
@@ -178,7 +178,7 @@ class TOPPPTPredict
 			
 			vector<DoubleReal> rts;
 			rts.resize(peptides.size(), 0);
-			if (svm.getIntParameter(KERNEL_TYPE) != OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
 			{
 				prediction_data = 
 					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(peptides,
@@ -186,7 +186,7 @@ class TOPPPTPredict
 																														 					allowed_amino_acid_characters,
 																														 					maximum_length);
 			}
-			else if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
 				prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides, 
 																																						rts, 
@@ -195,15 +195,15 @@ class TOPPPTPredict
 																																						border_length);				
 			}
 					
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
 				inputFileReadable_((svmfile_name + "_samples").c_str());
 
 				training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
 				svm.setTrainingSample(training_data);
 
-				svm.setParameter(BORDER_LENGTH, (Int) border_length);
-				svm.setParameter(SIGMA, sigma);
+				svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+				svm.setParameter(SVMWrapper::SIGMA, sigma);
 			}
 	    svm.getSVCProbabilities(prediction_data, predicted_likelihoods, predicted_labels);
 

@@ -53,14 +53,14 @@ START_SECTION((SVMWrapper()))
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((DoubleReal getDoubleParameter(SVM_parameter_type type)))
-	svm.setParameter(C, 1.0043);
-	svm.setParameter(NU, 0.0523);
-	svm.setParameter(P, 1.2319);
+START_SECTION((DoubleReal getDoubleParameter(SVMWrapper::SVM_parameter_type type)))
+	svm.setParameter(SVMWrapper::C, 1.0043);
+	svm.setParameter(SVMWrapper::NU, 0.0523);
+	svm.setParameter(SVMWrapper::P, 1.2319);
 
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(C), 1.0043)
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(NU), 0.0523)
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(P), 1.2319)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::C), 1.0043)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::NU), 0.0523)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::P), 1.2319)
 END_SECTION
 
 START_SECTION((DoubleReal getSVRProbability()))
@@ -87,19 +87,19 @@ START_SECTION((DoubleReal getSVRProbability()))
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
-	svm.setParameter(PROBABILITY, 1);
+	svm.setParameter(SVMWrapper::PROBABILITY, 1);
 	svm.train(problem);
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
 END_SECTION
 
-START_SECTION((Int getIntParameter(SVM_parameter_type type)))
-	svm.setParameter(SVM_TYPE, EPSILON_SVR);
-	svm.setParameter(KERNEL_TYPE, LINEAR);
-	svm.setParameter(DEGREE, 2);
+START_SECTION((Int getIntParameter(SVMWrapper::SVM_parameter_type type)))
+	svm.setParameter(SVMWrapper::SVM_TYPE, EPSILON_SVR);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
+	svm.setParameter(SVMWrapper::DEGREE, 2);
 
-	TEST_EQUAL(svm.getIntParameter(SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(DEGREE)==2,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
 END_SECTION
 
 START_SECTION((Int train(struct svm_problem *problem)))
@@ -129,11 +129,11 @@ START_SECTION((Int train(SVMData &problem)))
 	vector< vector<pair<Int, DoubleReal> > > sequences;
 	vector<pair<Int, DoubleReal> > sequence;
 	
-	svm2.setParameter(KERNEL_TYPE, OLIGO);
-	svm2.setParameter(BORDER_LENGTH, 2);
-	svm2.setParameter(C, 1);
-	svm2.setParameter(SIGMA, 1);
-	svm2.setParameter(SVM_TYPE, NU_SVR);
+	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
+	svm2.setParameter(SVMWrapper::BORDER_LENGTH, 2);
+	svm2.setParameter(SVMWrapper::C, 1);
+	svm2.setParameter(SVMWrapper::SIGMA, 1);
+	svm2.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -326,10 +326,10 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
-	map<SVM_parameter_type, DoubleReal> start_values;
-	map<SVM_parameter_type, DoubleReal> step_sizes;
-	map<SVM_parameter_type, DoubleReal> end_values;
+START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &start_values, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -337,7 +337,7 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	UInt count = 8;
 	vector<DoubleReal> labels;
 	svm_problem* problem;
-	map<SVM_parameter_type, DoubleReal> parameters;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> parameters;
 	DoubleReal cv_quality;
 
 	for (UInt j = 0; j < count; j++)
@@ -356,29 +356,29 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 
-	start_values.insert(make_pair(C, 1));
-	step_sizes.insert(make_pair(C, 100));
-	end_values.insert(make_pair(C, 1000));
+	start_values.insert(make_pair(SVMWrapper::C, 1));
+	step_sizes.insert(make_pair(SVMWrapper::C, 100));
+	end_values.insert(make_pair(SVMWrapper::C, 1000));
 
-	start_values.insert(make_pair(NU, 0.4));
-	step_sizes.insert(make_pair(NU, 0.1));
-	end_values.insert(make_pair(NU, 0.6));
+	start_values.insert(make_pair(SVMWrapper::NU, 0.4));
+	step_sizes.insert(make_pair(SVMWrapper::NU, 0.1));
+	end_values.insert(make_pair(SVMWrapper::NU, 0.6));
 
-	start_values.insert(make_pair(DEGREE, 1));
-	step_sizes.insert(make_pair(DEGREE, 1));
-	end_values.insert(make_pair(DEGREE, 3));
+	start_values.insert(make_pair(SVMWrapper::DEGREE, 1));
+	step_sizes.insert(make_pair(SVMWrapper::DEGREE, 1));
+	end_values.insert(make_pair(SVMWrapper::DEGREE, 3));
 
 	cv_quality = svm.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
-	map<SVM_parameter_type, DoubleReal> start_values;
-	map<SVM_parameter_type, DoubleReal> step_sizes;
-	map<SVM_parameter_type, DoubleReal> end_values;
+START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
 	UInt count = 8;
-	map<SVM_parameter_type, DoubleReal> parameters;
+	map<SVMWrapper::SVM_parameter_type, DoubleReal> parameters;
 	DoubleReal cv_quality;
 	SVMWrapper svm2;
 	SVMData problem;
@@ -386,11 +386,11 @@ START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const s
 	vector< vector<pair<Int, DoubleReal> > > sequences;
 	vector<pair<Int, DoubleReal> > sequence;
 	
-	svm2.setParameter(KERNEL_TYPE, OLIGO);
-	svm2.setParameter(BORDER_LENGTH, 2);
-	svm2.setParameter(C, 1);
-	svm2.setParameter(SIGMA, 1);
-	svm2.setParameter(SVM_TYPE, NU_SVR);
+	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
+	svm2.setParameter(SVMWrapper::BORDER_LENGTH, 2);
+	svm2.setParameter(SVMWrapper::C, 1);
+	svm2.setParameter(SVMWrapper::SIGMA, 1);
+	svm2.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -405,17 +405,17 @@ START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const s
 	problem.sequences = sequences;
 	problem.labels = labels;
 
-	start_values.insert(make_pair(C, 1));
-	step_sizes.insert(make_pair(C, 100));
-	end_values.insert(make_pair(C, 1000));
+	start_values.insert(make_pair(SVMWrapper::C, 1));
+	step_sizes.insert(make_pair(SVMWrapper::C, 100));
+	end_values.insert(make_pair(SVMWrapper::C, 1000));
 
-	start_values.insert(make_pair(NU, 0.4));
-	step_sizes.insert(make_pair(NU, 0.1));
-	end_values.insert(make_pair(NU, 0.6));
+	start_values.insert(make_pair(SVMWrapper::NU, 0.4));
+	step_sizes.insert(make_pair(SVMWrapper::NU, 0.1));
+	end_values.insert(make_pair(SVMWrapper::NU, 0.6));
 
-	start_values.insert(make_pair(DEGREE, 1));
-	step_sizes.insert(make_pair(DEGREE, 1));
-	end_values.insert(make_pair(DEGREE, 3));
+	start_values.insert(make_pair(SVMWrapper::DEGREE, 1));
+	step_sizes.insert(make_pair(SVMWrapper::DEGREE, 1));
+	end_values.insert(make_pair(SVMWrapper::DEGREE, 3));
 
 	cv_quality = svm2.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
@@ -461,11 +461,11 @@ START_SECTION((void predict(const SVMData &problem, std::vector< DoubleReal > &r
 	vector<DoubleReal> predicted_labels;
 	SVMData problem;
 
-	svm2.setParameter(KERNEL_TYPE, OLIGO);
-	svm2.setParameter(BORDER_LENGTH, 2);
-	svm2.setParameter(C, 1);
-	svm2.setParameter(SIGMA, 1);
-	svm2.setParameter(SVM_TYPE, NU_SVR);
+	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
+	svm2.setParameter(SVMWrapper::BORDER_LENGTH, 2);
+	svm2.setParameter(SVMWrapper::C, 1);
+	svm2.setParameter(SVMWrapper::SIGMA, 1);
+	svm2.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -497,9 +497,9 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
   struct svm_problem* kernel_matrix;
   LibSVMEncoder encoder;
 
-	svm.setParameter(BORDER_LENGTH, border_length);
-	svm.setParameter(SIGMA, sigma);
-	svm.setParameter(KERNEL_TYPE, OLIGO);
+	svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
+	svm.setParameter(SVMWrapper::SIGMA, sigma);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
   sequences.push_back("ACNNGTATCA");
@@ -538,9 +538,9 @@ START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const S
 	vector< vector< std::pair< Int, DoubleReal > > > data;
 	SVMData svm_data;
 
-	svm.setParameter(BORDER_LENGTH, border_length);
-	svm.setParameter(SIGMA, sigma);
-	svm.setParameter(KERNEL_TYPE, OLIGO);
+	svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
+	svm.setParameter(SVMWrapper::SIGMA, sigma);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
   sequences.push_back(AASequence("ACNNGTATCA"));
@@ -582,9 +582,9 @@ START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *
 	vector<String> sequences;
   svm.calculateGaussTable(border_length, sigma, gauss_table);
 	LibSVMEncoder encoder;
-	svm.setParameter(BORDER_LENGTH, border_length);
-	svm.setParameter(SIGMA, sigma);
-	svm.setParameter(KERNEL_TYPE, OLIGO);
+	svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
+	svm.setParameter(SVMWrapper::SIGMA, sigma);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
 
   labels.push_back(1);
   labels.push_back(2);
@@ -610,9 +610,9 @@ START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< int, 
 	vector<AASequence> sequences;
   svm.calculateGaussTable(border_length, sigma, gauss_table);
 	LibSVMEncoder encoder;
-	svm.setParameter(BORDER_LENGTH, border_length);
-	svm.setParameter(SIGMA, sigma);
-	svm.setParameter(KERNEL_TYPE, OLIGO);
+	svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
+	svm.setParameter(SVMWrapper::SIGMA, sigma);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
 
   labels.push_back(1);
   labels.push_back(2);
@@ -635,9 +635,9 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	svm_problem* problem;
 	vector<DoubleReal> decision_values;
 
-	svm.setParameter(SVM_TYPE, NU_SVR);
-	svm.setParameter(KERNEL_TYPE, POLY);
-	svm.setParameter(DEGREE, 2);
+	svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
+	svm.setParameter(SVMWrapper::DEGREE, 2);
 	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
@@ -659,7 +659,7 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	svm.getDecisionValues(problem, decision_values);
 	TEST_EQUAL(predicted_labels == decision_values, true)
 
-	svm.setParameter(SVM_TYPE, C_SVC);
+	svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
 	labels.clear();
 	labels.resize(4, 1);
 	labels.resize(8, -1);
@@ -701,9 +701,9 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 	svm_problem* problem;
 	vector<DoubleReal> decision_values;
 
-	svm.setParameter(SVM_TYPE, NU_SVR);
-	svm.setParameter(KERNEL_TYPE, POLY);
-	svm.setParameter(DEGREE, 2);
+	svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
+	svm.setParameter(SVMWrapper::DEGREE, 2);
 	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
@@ -833,28 +833,28 @@ START_SECTION((void setTrainingSample(SVMData &training_sample)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setParameter(SVM_parameter_type type, DoubleReal value)))
- 	svm.setParameter(C, 1.0043);
-	svm.setParameter(NU, 0.0523);
-	svm.setParameter(P, 1.2319);
+START_SECTION((void setParameter(SVMWrapper::SVM_parameter_type type, DoubleReal value)))
+ 	svm.setParameter(SVMWrapper::C, 1.0043);
+	svm.setParameter(SVMWrapper::NU, 0.0523);
+	svm.setParameter(SVMWrapper::P, 1.2319);
 
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(C), 1.0043)
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(NU), 0.0523)
-	TEST_REAL_SIMILAR(svm.getDoubleParameter(P), 1.2319)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::C), 1.0043)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::NU), 0.0523)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::P), 1.2319)
 END_SECTION
 
-START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
-	svm.setParameter(SVM_TYPE, EPSILON_SVR);
-	svm.setParameter(KERNEL_TYPE, LINEAR);
-	svm.setParameter(DEGREE, 2);
-	svm.setParameter(C, 23);
-	svm.setParameter(PROBABILITY, 1);
+START_SECTION((void setParameter(SVMWrapper::SVM_parameter_type type, Int value)))
+	svm.setParameter(SVMWrapper::SVM_TYPE, EPSILON_SVR);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
+	svm.setParameter(SVMWrapper::DEGREE, 2);
+	svm.setParameter(SVMWrapper::C, 23);
+	svm.setParameter(SVMWrapper::PROBABILITY, 1);
 
-	TEST_EQUAL(svm.getIntParameter(SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(DEGREE)==2,true);
-	TEST_EQUAL((int) svm.getDoubleParameter(C), 23);
-	TEST_EQUAL(svm.getIntParameter(PROBABILITY), 1)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
+	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::PROBABILITY), 1)
 END_SECTION
 
 START_SECTION((virtual ~SVMWrapper()))
@@ -863,7 +863,7 @@ END_SECTION
 
 START_SECTION((void loadModel(std::string modelFilename)))
 	LibSVMEncoder encoder;
-	svm.setParameter(KERNEL_TYPE, POLY);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;
 	vector<svm_node*> encoded_vectors;
@@ -907,7 +907,7 @@ END_SECTION
 
 START_SECTION((void saveModel(std::string modelFilename) const))
 	LibSVMEncoder encoder;
-	svm.setParameter(KERNEL_TYPE, POLY);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;
 	vector<svm_node*> encoded_vectors;
@@ -996,9 +996,9 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	svm_problem* problem;
 	vector<DoubleReal> probabilities;
 
-	svm.setParameter(SVM_TYPE, C_SVC);
-	svm.setParameter(KERNEL_TYPE, POLY);
-	svm.setParameter(DEGREE, 2);
+	svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
+	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
+	svm.setParameter(SVMWrapper::DEGREE, 2);
 	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();

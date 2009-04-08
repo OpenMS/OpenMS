@@ -299,7 +299,7 @@ namespace OpenMS{
     svm.loadModel(RTModelFile_);
 
      // load additional parameters
-    if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       String add_paramfile = RTModelFile_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
@@ -316,14 +316,14 @@ namespace OpenMS{
       additional_parameters.load(add_paramfile);
 
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-          && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
          cout << "No border length defined in additional parameters file. Aborting RT prediction!" << endl;
          return;
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-          && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         cout << "No k-mer length defined in additional parameters file. Aborting RT prediction!" << endl;
         return;
@@ -331,7 +331,7 @@ namespace OpenMS{
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-          && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         cout << "No sigma defined in additional parameters file. Aborting RT prediction!" << endl;
         return;
@@ -340,8 +340,8 @@ namespace OpenMS{
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
     }
 
-    svm.setParameter(BORDER_LENGTH, (Int) border_length);
-    svm.setParameter(SIGMA, sigma);
+    svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+    svm.setParameter(SVMWrapper::SIGMA, sigma);
 
     // Encoding test data
     vector<DoubleReal> rts;
