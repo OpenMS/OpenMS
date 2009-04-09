@@ -19,6 +19,7 @@ SequenceCoverageCalculator
 XMLValidator
 IdXMLEvaluation
 DecoyDatabase
+IDMassAccuracy
 )
 
 ### pass source file list to the upper instance
