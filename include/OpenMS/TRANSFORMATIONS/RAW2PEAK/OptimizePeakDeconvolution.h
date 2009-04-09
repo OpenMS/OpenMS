@@ -102,7 +102,9 @@ namespace OpenMS
     typedef RawDataVector::iterator PeakIterator;
     //@}
 
-
+		/**
+			 @brief Class containing the data needed for optimization.
+		*/
 		struct Data
 		{  
 				std::vector<PeakShape> peaks;

@@ -101,7 +101,7 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
 END_SECTION
 
 
-START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
+START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator first,InputSpectrumIterator last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
   //******************************************************************
   //test exception with unequal number of scans
   {
