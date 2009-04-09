@@ -23716,8 +23716,10 @@ property_value: DiffMono: "none"
 property_value: Formula: ""
 property_value: MassAvg: "304.3074"
 property_value: MassMono: "304.205360"
-property_value: Origin: "X
+property_value: Origin: "X"
 property_value: TermSpec: "none"
+is_a: MOD:00842 ! (13)C labeled residue
+is_a: MOD:00843 ! (15)N labeled residue
 
 [Term]
 id: MOD:09996
