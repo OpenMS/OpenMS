@@ -416,11 +416,11 @@ class TOPPRTModel
 			svm.setParameter(SVMWrapper::C, getDoubleOption_("c"));
  			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
  			{
-				svm.setParameter(SVMWrapper::SVMWrapper::NU, getDoubleOption_("nu"));
+				svm.setParameter(SVMWrapper::NU, getDoubleOption_("nu"));
 			}
  			else if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
  			{
-				svm.setParameter(SVMWrapper::SVMWrapper::P, getDoubleOption_("p"));
+				svm.setParameter(SVMWrapper::P, getDoubleOption_("p"));
 			}
 			
 			//grid search parameters
