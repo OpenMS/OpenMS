@@ -60,6 +60,7 @@ struct MassDifference
 	Int charge;
 	DoubleReal theo_mz;
 	DoubleReal theo_mass;
+	DoubleReal intensity;
 };
 
 class TOPPIDMassAccuracy
@@ -77,9 +78,17 @@ class TOPPIDMassAccuracy
 		{
 			registerInputFileList_("in","<file list>", StringList(), "Input mzData file list, containing the spectra.");
 			registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
+
 			registerOutputFile_("precursor_out","<file>","","Output file which contains the deviations from the precursors", false, false);
+			registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
+			setValidStrings_("precursor_columns", StringList::create("MassDifference"));
+			
 			registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
-			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Fragment mass tolerance which is allowed for MS/MS spectra.", false, false);
+			registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
+			setValidStrings_("fragment_columns", StringList::create("MassDifference"));
+			
+			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
+			registerStringOption_("separator", "<character>", "	", "character which should be used to separate the columns in the output files");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -198,7 +207,12 @@ class TOPPIDMassAccuracy
 								MassDifference md;
 								md.exp_mz = maps[i][j][pit->second].getMZ();
 								md.theo_mz = theo_spec[pit->first].getMZ();
-								// TODO mass und charge
+								md.intensity = maps[i][j][pit->second].getIntensity();
+								md.charge = hit.getCharge();
+								if (md.charge != 0)
+								{
+									md.theo_mass = (md.theo_mz * md.charge) - md.charge;
+								}
 								fragment_diffs.push_back(md);
 							}
 						}
