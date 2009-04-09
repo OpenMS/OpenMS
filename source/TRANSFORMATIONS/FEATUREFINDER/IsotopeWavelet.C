@@ -131,7 +131,7 @@ namespace OpenMS
 	
 	DoubleReal IsotopeWavelet::getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/boost::math::tgamma(tz1));
+		return (sin(2*Constants::PI*(tz1-1)/Constants::IW_NEUTRON_MASS)*exp(-lambda)*pow(lambda, tz1-1)/boost::math::tgamma(tz1));//tgamma(tz1)); //gsl_sf_gamma(tz1));//boost::math::tgamma1pm1(tz1));
 	}
 
 	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 

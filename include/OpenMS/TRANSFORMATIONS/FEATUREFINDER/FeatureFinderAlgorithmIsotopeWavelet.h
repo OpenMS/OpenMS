@@ -93,6 +93,9 @@ namespace OpenMS
 				this->defaults_.setValue ("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
 																	"subsequent scans where a pattern must occur to be considered as a feature.", StringList::create("advanced"));
 				this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
+				this->defaults_.setValue ("sweep_line:rt_interleave", 2, "Defines the maximum number of "
+							"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", StringList::create("advanced"));
+				this->defaults_.setMinInt ("sweep_line:rt_interleave", 0);
 				this->defaultsToParam_();
 		}
 
@@ -157,7 +160,7 @@ namespace OpenMS
 
 						for (UInt t=1; t<num_gpus; ++t)
 						{
-							iwts[0]->mergeFeatures (iwts[t], RT_votes_cutoff_);	
+							iwts[0]->mergeFeatures (iwts[t], RT_interleave_, RT_votes_cutoff_);	
 						};
 
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -182,7 +185,13 @@ namespace OpenMS
 				if (!use_tbb_)
 				{
 					IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_, (UInt)max_size);
-				
+					#ifdef OPENMS_HAS_CUDA
+						if (use_cuda_)
+						{
+							cudaSetDevice(gpu_ids_[0]);
+						};
+					#endif
+	
 					for (UInt i=0; i<this->map_->size(); ++i)
 					{			
 						const MSSpectrum<PeakType>& c_ref ((*this->map_)[i]);
@@ -237,7 +246,6 @@ namespace OpenMS
 						else
 						{
 							#ifdef OPENMS_HAS_CUDA
-								cudaSetDevice(gpu_ids_[0]);
 								typename IsotopeWaveletTransform<PeakType>::TransSpectrum c_trans (&(*this->map_)[i]);
 								if (iwt.initializeScanCuda ((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS)
 								{		
@@ -280,7 +288,7 @@ namespace OpenMS
 							#endif
 						};
 		
-						iwt.updateBoxStates(*this->map_, i, real_RT_votes_cutoff_);
+						iwt.updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
 						#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 							std::cout << "updated box states." << std::endl;
 						#endif
@@ -291,7 +299,7 @@ namespace OpenMS
 					this->ff_->endProgress();
 
 					//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
-					iwt.updateBoxStates(*this->map_, INT_MAX, real_RT_votes_cutoff_);
+					iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_);
 									
 					#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 						std::cout << "Final mapping."; std::cout.flush();
@@ -338,7 +346,7 @@ namespace OpenMS
 
 		UInt max_charge_; ///<The maximal charge state we will consider
 		DoubleReal intensity_threshold_; ///<The only parameter of the isotope wavelet
-		UInt RT_votes_cutoff_, real_RT_votes_cutoff_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
+		UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal 
 		String use_gpus_;
 		bool use_tbb_, use_cuda_, check_PPMs_;
 		std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
@@ -355,6 +363,7 @@ namespace OpenMS
 			max_charge_ = this->param_.getValue ("max_charge");
 			intensity_threshold_ = this->param_.getValue ("intensity_threshold");
 			RT_votes_cutoff_ = this->param_.getValue ("sweep_line:rt_votes_cutoff");
+			RT_interleave_ = this->param_.getValue ("sweep_line:rt_interleave");
 			IsotopeWavelet::setMaxCharge(max_charge_);
 			check_PPMs_ = ( (String)(this->param_.getValue("check_ppm"))=="true" );
 			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)

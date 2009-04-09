@@ -298,11 +298,11 @@ namespace OpenMS
 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
  				* This information is necessary to sweep across the map after each scan has been evaluated.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
+			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
 				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
 		
-			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff); 
+			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -672,13 +672,13 @@ namespace OpenMS
 		//in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
 		//for the sake of simplicity (we need here a signed int) we do not cast at every following comparison individually
 		UInt charge = c+1;
-		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz; //my_local_exp_lambda;
+		DoubleReal value, T_boundary_left, T_boundary_right, old, c_diff, current, old_pos, my_local_MZ, my_local_lambda, origin, c_mz;//, my_local_exp_lambda;
 
 		for(Int my_local_pos=0; my_local_pos<spec_size; ++my_local_pos)
 		{
 			value=0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge)/(DoubleReal)charge;
 			old=0; old_pos=(my_local_pos-from_max_to_left_-1>=0) ? c_ref[my_local_pos-from_max_to_left_-1].getMZ() : c_ref[0].getMZ()-min_spacing_;
-			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge); //my_local_exp_lambda = exp(-my_local_lambda);
+			my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ*charge);//, my_local_exp_lambda = 0.3678794412f;//exp(-my_local_lambda);
 			c_diff=0;
 			origin = -my_local_MZ+Constants::IW_QUARTER_NEUTRON_MASS/(DoubleReal)charge;
 
@@ -1199,7 +1199,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff)
+	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
@@ -1230,7 +1230,7 @@ namespace OpenMS
 				c_dist = fabs(end_iter->first - front_iter->first); 
 				if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
 				{
-					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= 0)
+					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
 					//otherwise, there are too many blank scans in between
 					{	
 						best_match = end_iter;
@@ -1832,7 +1832,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
+	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
 		const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter, iter2;
@@ -1851,9 +1851,9 @@ namespace OpenMS
 		{
 			//For each Box we need to figure out, if and when the last RT value has been inserted
 			UInt lastScan = (--(iter->second.end()))->first;
-			if (scan_index - lastScan > 0) //I.e. close the box!
+			if (scan_index - lastScan > RT_interleave) //I.e. close the box!
 			{
-				if (iter->second.begin()->first -front_bound <= 0 && front_bound > 0)
+				if (iter->second.begin()->first -front_bound <= RT_interleave && front_bound > 0)
 				{
 					iter2=iter;
 					++iter2;
@@ -2204,7 +2204,7 @@ namespace OpenMS
 		{
 			return (false);
 		};
-
+		
 		std::pair<DoubleReal, DoubleReal> reals;
 		//Check and/or correct the position
 		if (check_PPMs)
@@ -2221,7 +2221,8 @@ namespace OpenMS
 		{
 			return (false);
 		};
-		
+	
+
 		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, real_mz, c, 0);
 
 		if (c_score <= 0)
@@ -2260,7 +2261,7 @@ namespace OpenMS
 		{
 			return (false);
 		};
-
+			
 		std::pair<DoubleReal, DoubleReal> reals;
 		//Correct the position
 		if (check_PPMs)
