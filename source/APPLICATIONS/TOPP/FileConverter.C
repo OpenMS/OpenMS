@@ -54,8 +54,6 @@ using namespace std;
 	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
 	In these cases a warning is shown.
 
-	@improvement Implement support for writing MGF (Andreas)
-
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileConverter.cli
 */
