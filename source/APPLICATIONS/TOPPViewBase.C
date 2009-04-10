@@ -1391,7 +1391,7 @@ namespace OpenMS
 
 				if (i == cl.current_spectrum)
 				{
-					item->setSelected(true);
+					// just remember it, select later
 					selected_item = item;
 				}
 			}
@@ -1418,7 +1418,7 @@ namespace OpenMS
 					toplevel_items.push_back(item);
 					if (i == cl.current_spectrum)
 					{
-						item->setSelected(true);
+						// just remember it, select later
 						selected_item = item;
 					}
 				}
@@ -1426,6 +1426,8 @@ namespace OpenMS
 			}
 			if (selected_item)
 			{
+				// now, select and scroll down to item
+				selected_item->setSelected(true);
 				spectrum_selection_->scrollToItem(selected_item);
 			}
   	}
