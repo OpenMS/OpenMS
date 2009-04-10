@@ -1462,9 +1462,12 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
+	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 	{
-		if (current == 0)
+		if (current == 0 || previous == 0)
+		/*	test for previous == 0 is important - without it,
+				the wrong spectrum will be selected after finishing
+				the execution of a TOPP tool on the whole data */
 		{
 			return;
 		}
