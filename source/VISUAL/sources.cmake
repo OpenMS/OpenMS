@@ -32,6 +32,9 @@ ListEditor.C
 TOPPASWidget.C
 TOPPASScene.C
 TOPPASVertex.C
+TOPPASToolVertex.C
+TOPPASInputVertex.C
+TOPPASOutputVertex.C
 TOPPASEdge.C
 EnhancedWorkspace.C
 )

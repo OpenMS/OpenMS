@@ -29,13 +29,16 @@
 #define OPENMS_VISUAL_TOPPASVERTEX_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
+#include <QtGui/QGraphicsSceneMouseEvent>
 #include <QtGui/QGraphicsItem>
 
 namespace OpenMS
 {
-	class TOPPASEdge;
-
 	class OPENMS_DLLAPI TOPPASVertex
 		: public QObject,
 			public QGraphicsItem
@@ -43,21 +46,14 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-			
-			enum VertexType
-			{
-				VT_SOURCE,
-				VT_TARGET,
-				VT_TOOL
-			};
-			
+		
 			typedef QList<TOPPASEdge*> EdgeContainer;
 			typedef EdgeContainer::iterator EdgeIterator;
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
 			
 			
 			/// Constructor
-			TOPPASVertex(const String& name, const String& type = "", VertexType vt = VT_TOOL);
+			TOPPASVertex(const String& name, const String& type = "");
 			
 			/// Destructor
 			virtual ~TOPPASVertex();
@@ -106,8 +102,6 @@ namespace OpenMS
 			String name_;
 			/// The type of the tool, or "" if it does not have a type
 			String type_;
-			/// The type of this vertex
-			VertexType vertex_type_;
 			/// The list of outgoing edges
 			EdgeContainer out_edges_;
 			/// The list of incoming edges
@@ -126,6 +120,9 @@ namespace OpenMS
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void mouseMoveEvent(QGraphicsSceneMouseEvent* e);
 			//@}
+			
+			/// Moves the target pos of the edge which is just being created to @p pos
+			virtual void moveNewEdgeTo_(const QPointF& pos);
 			
 	};
 }

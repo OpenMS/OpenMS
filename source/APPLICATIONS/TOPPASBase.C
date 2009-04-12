@@ -30,7 +30,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h> 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
+
 
 //Qt
 #include <QtGui/QToolBar>
@@ -152,10 +155,10 @@ namespace OpenMS
     topp_tools_bar->setWidget(tools_tree_view_);
     
     QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Input file >>");
+    item->setText(0, "<< Input files >>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Output file >>");
+    item->setText(0, "<< Output files >>");
     tools_tree_view_->addTopLevelItem(item);
     
     
@@ -537,13 +540,13 @@ namespace OpenMS
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
 		
-		if (tool_name == "<< Input file >>")
+		if (tool_name == "<< Input files >>")
 		{
-			tv = new TOPPASVertex(tool_name, String(""), TOPPASVertex::VT_SOURCE);
+			tv = new TOPPASInputVertex(tool_name, String(""));
 		}
-		else if (tool_name == "<< Output file >>")
+		else if (tool_name == "<< Output files >>")
 		{
-			tv = new TOPPASVertex(tool_name, String(""), TOPPASVertex::VT_TARGET);
+			tv = new TOPPASOutputVertex(tool_name, String(""));
 		}
 		else // node is a TOPP tool
 		{	
@@ -566,7 +569,7 @@ namespace OpenMS
 				tool_type = "";
 			}
 			
-			tv = new TOPPASVertex(tool_name, tool_type);
+			tv = new TOPPASToolVertex(tool_name, tool_type);
 		}
 		
 		tv->setPos(x,y);

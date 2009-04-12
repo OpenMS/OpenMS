@@ -25,42 +25,33 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-// OpenMS
 #include <OpenMS/VISUAL/TOPPASVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-
-// Qt
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtGui/QGraphicsSceneMouseEvent>
 
 namespace OpenMS
 {
-	TOPPASVertex::TOPPASVertex(const String& name, const String& type, VertexType vt)
+	TOPPASVertex::TOPPASVertex(const String& name, const String& type)
 		: QGraphicsItem(),
 			name_(name),
 			type_(type),
-			vertex_type_(vt),
 			out_edges_(),
 			edge_being_created_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
-		if (vt == VT_TOOL)
-		{
-			pen_color_ = Qt::black;
-			brush_color_ = QColor(250,200,0);
-		}
-		else if (vt == VT_SOURCE)
-		{
-			pen_color_ = Qt::black;
-			brush_color_ = Qt::lightGray;
-		}
-		else if (vt == VT_TARGET)
-		{
-			pen_color_ = Qt::black;
-			brush_color_ = Qt::lightGray;
-		}
+// 		if (vt == VT_TOOL)
+// 		{
+// 			pen_color_ = Qt::black;
+// 			brush_color_ = QColor(250,200,0);
+// 		}
+// 		else if (vt == VT_SOURCE)
+// 		{
+// 			pen_color_ = Qt::black;
+// 			brush_color_ = Qt::lightGray;
+// 		}
+// 		else if (vt == VT_TARGET)
+// 		{
+// 			pen_color_ = Qt::black;
+// 			brush_color_ = Qt::lightGray;
+// 		}
 		// draw vertices on top of edges:
 		setZValue(42);
 	}
@@ -156,20 +147,19 @@ namespace OpenMS
 		}
 		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
 		{
-			if (vertex_type_ == VT_TARGET)
-			{
-				// cannot create outedge for output files
-				return;
-			}
-			
-			if (!edge_being_created_)
-			{
-				emit newHoveringEdge(mapToScene(e->pos()));
-				edge_being_created_ = true;
-			}
-			
-			emit hoveringEdgePosChanged(mapToScene(e->pos()));
+			moveNewEdgeTo_(e->pos());
 		}
+	}
+	
+	void TOPPASVertex::moveNewEdgeTo_(const QPointF& pos)
+	{	
+		if (!edge_being_created_)
+		{
+			emit newHoveringEdge(mapToScene(pos));
+			edge_being_created_ = true;
+		}
+		
+		emit hoveringEdgePosChanged(mapToScene(pos));
 	}
 	
 	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesBegin()

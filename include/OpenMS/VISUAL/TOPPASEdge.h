@@ -28,12 +28,13 @@
 #ifndef OPENMS_VISUAL_TOPPASEDGE_H
 #define OPENMS_VISUAL_TOPPASEDGE_H
 
-#include <OpenMS/VISUAL/TOPPASVertex.h>
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <QtGui/QGraphicsItem>
 
 namespace OpenMS
 {
+	class TOPPASVertex;
+	
 	class OPENMS_DLLAPI TOPPASEdge
 		: public QObject,
 			public QGraphicsItem

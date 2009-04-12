@@ -23,6 +23,9 @@ ListEditor.h
 TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h
+TOPPASToolVertex.h
+TOPPASInputVertex.h
+TOPPASOutputVertex.h
 TOPPASEdge.h
 EnhancedWorkspace.h
 )

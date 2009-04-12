@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
 
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -104,25 +105,6 @@ namespace OpenMS
 	
 	QPointF TOPPASEdge::startPos() const
 	{
-// 		QPointF target_pos;
-// 		if (to_)
-// 		{
-// 			target_pos = mapFromScene(to_->scenePos());
-// 		}
-// 		else
-// 		{
-// 			target_pos = hover_pos_;
-// 		}
-// 		
-// 		QRectF source_boundings = mapFromItem(from_, from_->boundingRect()).boundingRect();
-// 		QList<QPointF> point_list;
-// 		point_list.push_back(QPointF(source_boundings.left(), (source_boundings.bottom() + source_boundings.top()) / 2));
-// 		point_list.push_back(QPointF(source_boundings.right(), (source_boundings.bottom() + source_boundings.top()) / 2));
-// 		point_list.push_back(QPointF((source_boundings.right() + source_boundings.left()) / 2, source_boundings.bottom()));
-// 		point_list.push_back(QPointF((source_boundings.right() + source_boundings.left()) / 2, source_boundings.top()));
-// 			
-// 		return nearestPoint_(target_pos, point_list);
-
 		return mapFromScene(from_->scenePos());
 	}
 	
@@ -138,38 +120,6 @@ namespace OpenMS
 		else
 		{
 			// we have a target node --> line should end at its border
-//
-//			nicer, but performs quite bad
-//
-
-// 			QPainterPath dummy;
-// 			dummy.moveTo(startPos());
-// 			dummy.lineTo(mapFromScene(to_->scenePos()));
-// 			dummy.lineTo(mapFromScene(to_->scenePos() + QPointF(1,1)));
-// 			dummy.lineTo(startPos() + QPointF(1,1));
-// 			dummy.closeSubpath();
-// 			
-// 			QPainterPath intersection_with_target = dummy.intersected(mapFromItem(to_, to_->shape()));
-// 			
-// 			// find closest point of this intersection
-// 			QRectF intersection_boundings = intersection_with_target.boundingRect();
-// 			QList<QPointF> bounding_corners;
-// 			bounding_corners.push_back(intersection_boundings.topLeft());
-// 			bounding_corners.push_back(intersection_boundings.topRight());
-// 			bounding_corners.push_back(intersection_boundings.bottomLeft());
-// 			bounding_corners.push_back(intersection_boundings.bottomRight());
-// 			
-// 			position = nearestPoint_(startPos(), bounding_corners);
-			
-	///
-			// ugly:
-			
-// 			QRectF target_boundings = mapFromItem(to_, to_->boundingRect()).boundingRect();
-// 			QList<QPointF> point_list;
-// 			point_list.push_back(QPointF(target_boundings.left(), (target_boundings.bottom() + target_boundings.top()) / 2));
-// 			point_list.push_back(QPointF(target_boundings.right(), (target_boundings.bottom() + target_boundings.top()) / 2));
-// 			point_list.push_back(QPointF((target_boundings.right() + target_boundings.left()) / 2, target_boundings.bottom()));
-// 			point_list.push_back(QPointF((target_boundings.right() + target_boundings.left()) / 2, target_boundings.top()));
 			
 			QList<QPointF> point_list;
 			
@@ -193,10 +143,6 @@ namespace OpenMS
 			
 			qreal x_3 = startPos().x() + slope * (target_boundings.top() - startPos().y());
 			qreal x_4 = startPos().x() + slope * (target_boundings.bottom() - startPos().y());
-			
-			//qreal x_3 = startPos().x() + target_boundings.top() / slope;
-			//qreal x_4 = startPos().x() + target_boundings.bottom() / slope;
-
 			
 			if (y_1 <= target_boundings.bottom() && y_1 >= target_boundings.top())
 			{
