@@ -46,8 +46,14 @@ namespace OpenMS
 			/// Constructor
 			TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos);
 			
+			/// Copy constructor
+			TOPPASEdge(const TOPPASEdge& rhs);
+			
 			/// Destructor
 			virtual ~TOPPASEdge();
+			
+			/// Assignment operator
+			TOPPASEdge& operator= (const TOPPASEdge& rhs);
 			
 			/// Returns the bounding rectangle of this item
 			QRectF boundingRect() const;

@@ -50,6 +50,7 @@ namespace OpenMS
 		setScene(scene_);
 		setAcceptDrops(true);
 		setDragMode(QGraphicsView::ScrollHandDrag);
+		setFocusPolicy(Qt::StrongFocus);
 	}
 	
 	TOPPASWidget::~TOPPASWidget()
@@ -105,6 +106,10 @@ namespace OpenMS
 			setDragMode(QGraphicsView::RubberBandDrag);
 			e->accept();
 		}
+		else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
+		{
+			scene_->removeSelected();
+		}
 		//e->ignore(); how does this work again?
 	}
 	
@@ -121,6 +126,18 @@ namespace OpenMS
 			e->accept();
 		}
 		//e->ignore(); how does this work again?
+	}
+	
+	void TOPPASWidget::leaveEvent(QEvent* /*e*/)
+	{
+		//release keyboard, when the mouse pointer leaves
+		releaseKeyboard();
+	}
+
+	void TOPPASWidget::enterEvent(QEvent* /*e*/)
+	{
+		//grab keyboard, as we need to handle key presses
+		grabKeyboard();
 	}
 
 } //Namespace

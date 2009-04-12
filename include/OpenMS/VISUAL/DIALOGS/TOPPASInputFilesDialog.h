@@ -1,8 +1,8 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,41 +21,34 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Marc Sturm$
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
 
-namespace OpenMS
+#ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
+
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFilesDialog.h>
+
+namespace OpenMS 
 {
-	TOPPASOutputVertex::TOPPASOutputVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASOutputVertex::TOPPASOutputVertex(const TOPPASOutputVertex& rhs)
-		:	TOPPASVertex(rhs)
-	{
+	/**
+		@brief Dialog which allows to specify a list of input files
 		
-	}
-	
-	TOPPASOutputVertex::~TOPPASOutputVertex()
+		@ingroup Dialogs
+	*/
+	class TOPPASInputFilesDialog
+		: public QDialog,
+  		public Ui::TOPPASInputFilesDialogTemplate
 	{
+		Q_OBJECT
+				
+		public:
+			
+			/// Constructor
+			TOPPASInputFilesDialog();
+	};
 	
-	}
-	
-	TOPPASOutputVertex& TOPPASOutputVertex::operator= (const TOPPASOutputVertex& rhs)
-	{
-		(TOPPASVertex)(*this) = rhs; // does it work that way?
-		
-		return *this;
-	}
-	
-	void TOPPASOutputVertex::moveNewEdgeTo_(const QPointF& /*pos*/)
-	{	
-		// do nothing, no outedges allowed here
-	}
 }
+#endif // OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H

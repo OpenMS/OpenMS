@@ -30,40 +30,58 @@
 namespace OpenMS
 {
 	TOPPASVertex::TOPPASVertex(const String& name, const String& type)
-		: QGraphicsItem(),
+		: QObject(),
+			QGraphicsItem(),
 			name_(name),
 			type_(type),
+			in_edges_(),
 			out_edges_(),
 			edge_being_created_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
-// 		if (vt == VT_TOOL)
-// 		{
-// 			pen_color_ = Qt::black;
-// 			brush_color_ = QColor(250,200,0);
-// 		}
-// 		else if (vt == VT_SOURCE)
-// 		{
-// 			pen_color_ = Qt::black;
-// 			brush_color_ = Qt::lightGray;
-// 		}
-// 		else if (vt == VT_TARGET)
-// 		{
-// 			pen_color_ = Qt::black;
-// 			brush_color_ = Qt::lightGray;
-// 		}
-		// draw vertices on top of edges:
 		setZValue(42);
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
 	{
+		foreach (TOPPASEdge* edge, in_edges_)
+		{
+			edge->setTargetVertex(0);
+		}
+		foreach (TOPPASEdge* edge, out_edges_)
+		{
+			edge->setSourceVertex(0);
+		}
+	}
 	
+	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
+		:	QObject(),
+			QGraphicsItem()
+	{
+		name_ = rhs.name_;
+		
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		setZValue(42);		
+	}
+	
+	TOPPASVertex& TOPPASVertex::operator= (const TOPPASVertex& rhs)
+	{
+		name_ = rhs.name_;
+		
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		setZValue(42);
+		
+		return *this;
 	}
 	
 	const String& TOPPASVertex::getName()
 	{
 		return name_;
+	}
+	
+	const String& TOPPASVertex::getType()
+	{
+		return type_;
 	}
 	
 	QRectF TOPPASVertex::boundingRect() const
@@ -81,10 +99,18 @@ namespace OpenMS
 	
 	void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
+		painter->setPen(QPen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+		if (isSelected())
+		{
+			painter->setBrush(brush_color_.darker(170));
+		}
+		else
+		{
+			painter->setBrush(brush_color_);
+		}
+	
 		QPainterPath path;
 		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
-		painter->setPen(QPen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-		painter->setBrush(brush_color_);
  		painter->drawPath(path);
  		
 		if (type_ == "")
@@ -99,20 +125,21 @@ namespace OpenMS
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
 			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.5), type_.toQString());
 		}
-		
-		if (isSelected())
-		{
-			// draw selection rectangle
-		}
 	}
 	
-	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* /*e*/)
+	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	{
+		// selection is handled automagically by Qt
+		QGraphicsItem::mousePressEvent(e);
+		
 		emit clicked();
 	}
 	
-	void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent* /*e*/)
+	void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 	{
+		// selection is handled automagically by Qt
+		QGraphicsItem::mouseReleaseEvent(e);
+		
 		if (edge_being_created_)
 		{
 			emit finishHoveringEdge();
@@ -123,7 +150,7 @@ namespace OpenMS
 	
 	void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		emit doubleClicked();
+	
 	}
 	
 	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)

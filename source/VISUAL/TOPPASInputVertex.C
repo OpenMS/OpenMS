@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASInputVertex.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 
 namespace OpenMS
 {
@@ -36,8 +37,27 @@ namespace OpenMS
 		brush_color_ = Qt::lightGray;
 	}
 	
+	TOPPASInputVertex::TOPPASInputVertex(const TOPPASInputVertex& rhs)
+		:	TOPPASVertex(rhs)
+	{
+		
+	}
+	
 	TOPPASInputVertex::~TOPPASInputVertex()
 	{
 	
+	}
+	
+	TOPPASInputVertex& TOPPASInputVertex::operator= (const TOPPASInputVertex& rhs)
+	{
+		(TOPPASVertex)(*this) = rhs; // does it work that way?
+		
+		return *this;
+	}
+	
+	void TOPPASInputVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		TOPPASInputFilesDialog tifd;
+		tifd.exec();
 	}
 }

@@ -36,8 +36,21 @@ namespace OpenMS
 		brush_color_ = QColor(250,200,0);
 	}
 	
+	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
+		:	TOPPASVertex(rhs)
+	{
+		
+	}
+	
 	TOPPASToolVertex::~TOPPASToolVertex()
 	{
 	
+	}
+	
+	TOPPASToolVertex& TOPPASToolVertex::operator= (const TOPPASToolVertex& rhs)
+	{
+		(TOPPASVertex)(*this) = rhs; // does it work that way?
+		
+		return *this;
 	}
 }

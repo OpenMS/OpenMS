@@ -90,11 +90,12 @@ namespace OpenMS
 	
 	void TOPPASScene::itemClicked()
 	{
-		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
+		TOPPASVertex* sender = qobject_cast<TOPPASVertex*>(QObject::sender());
 		if (!sender)
 		{
 			return;
 		}
+		
 		if (getActionMode() == AM_MOVE)
 		{
 			std::cout << "AM_MOVE" << std::endl;
@@ -103,7 +104,6 @@ namespace OpenMS
 		{
 			std::cout << "AM_NEW_EDGE" << std::endl;
 		}
-		
 	}
 	
 	void TOPPASScene::itemDoubleClicked()
@@ -161,6 +161,52 @@ namespace OpenMS
 			hover_edge_ = 0;
 		}
 		update();
+	}
+	
+	void TOPPASScene::removeSelected()
+	{
+		QList<TOPPASVertex*> vertices_to_be_removed;
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			if ((*it)->isSelected())
+			{
+				// also select all in and out edges (will be deleted below)
+				for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+				{
+					(*e_it)->setSelected(true);
+				}
+				for (TOPPASVertex::EdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
+				{
+					(*e_it)->setSelected(true);
+				}
+				vertices_to_be_removed.push_back(*it);
+				// remove from scene
+				removeItem(*it);
+			}
+		}
+		
+		QList<TOPPASEdge*> edges_to_be_removed;
+		for (EdgeIterator it = edgesBegin(); it != edgesEnd(); ++it)
+		{
+			if ((*it)->isSelected())
+			{
+				edges_to_be_removed.push_back(*it);
+				removeItem(*it);
+			}
+		}
+		
+		TOPPASEdge* edge;
+		foreach (edge, edges_to_be_removed)
+		{
+			edges_.removeAll(edge);
+			delete edge;
+		}
+		TOPPASVertex* vertex;
+		foreach (vertex, vertices_to_be_removed)
+		{
+			vertices_.removeAll(vertex);
+			delete vertex;
+		}
 	}
 	
 } //namespace OpenMS

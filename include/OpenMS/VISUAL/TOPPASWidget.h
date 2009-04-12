@@ -74,15 +74,16 @@ namespace OpenMS
 			/// The scene visualized by this widget
 			TOPPASScene* scene_;
 			
-			void dragEnterEvent(QDragEnterEvent* event);
-			void dragMoveEvent(QDragMoveEvent* event);
-			void dropEvent(QDropEvent* event);
-			
 			///@name reimplemented QT events
 			//@{
 			void wheelEvent(QWheelEvent* event);
 			void keyPressEvent(QKeyEvent* e);
 			void keyReleaseEvent(QKeyEvent* e);
+			void leaveEvent(QEvent* e);
+			void enterEvent(QEvent* e);
+			void dragEnterEvent(QDragEnterEvent* event);
+			void dragMoveEvent(QDragMoveEvent* event);
+			void dropEvent(QDropEvent* event);
 			//@}
   };
 }

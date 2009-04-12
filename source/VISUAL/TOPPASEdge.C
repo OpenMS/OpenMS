@@ -35,16 +35,47 @@ namespace OpenMS
 {	
 	
 	TOPPASEdge::TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos)
-		:	QGraphicsItem(),
+		:	QObject(),
+			QGraphicsItem(),
 			from_(from),
 			to_(0),
 			hover_pos_(hover_pos)
 	{
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+	}
+	
+	TOPPASEdge::TOPPASEdge(const TOPPASEdge& rhs)
+		:	QObject(),
+			QGraphicsItem()
+	{
+		from_ = rhs.from_;
+		to_ = rhs.to_;
+		hover_pos_ = rhs.hover_pos_;
+		
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+	}
+	
+	TOPPASEdge& TOPPASEdge::operator= (const TOPPASEdge& rhs)
+	{
+		from_ = rhs.from_;
+		to_ = rhs.to_;
+		hover_pos_ = rhs.hover_pos_;
+		
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		
+		return *this;
 	}
 	
 	TOPPASEdge::~TOPPASEdge()
 	{
-	
+		if (from_)
+		{
+			from_->removeOutEdge(this);
+		}
+		if (to_)
+		{
+			to_->removeInEdge(this);
+		}
 	}
 	
 	QRectF TOPPASEdge::boundingRect() const
@@ -59,16 +90,31 @@ namespace OpenMS
 	
 	QPainterPath TOPPASEdge::shape () const
 	{
-		// this should be slightly more precise..
+		// this is not quite correct..
 		QPainterPath shape;
-		shape.addRect(boundingRect());
+		shape.setFillRule(Qt::WindingFill);
+		shape.moveTo(startPos());
+		shape.lineTo(startPos() - QPointF(10,10));
+		shape.lineTo(endPos() - QPointF(10,10));
+		shape.lineTo(endPos() + QPointF(10,10));
+		shape.lineTo(startPos() + QPointF(10,10));
+		shape.closeSubpath();
+		shape.addEllipse(endPos().x() - 10, endPos().y() - 10, 20, 20);
 		
 		return shape;
 	}
 	
 	void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
-		painter->drawEllipse(QRectF(startPos()-QPointF(5,5), startPos()+QPointF(5,5)));
+		painter->setBrush(Qt::white);
+
+		QPen pen(Qt::black);
+		if (isSelected())
+		{
+			pen.setWidth(2);
+		}
+		painter->setPen(pen);
+		
 		painter->drawLine(startPos(),endPos());
 		
 		// draw arrow head
@@ -97,8 +143,6 @@ namespace OpenMS
 		path.lineTo(QPointF(-10,4));
 		path.lineTo(QPointF(-10,-4));
 		path.closeSubpath();
-		painter->setPen(Qt::black);
-		painter->setBrush(Qt::white);
 		painter->drawPath(path);
 		painter->restore();
 	}
@@ -222,7 +266,6 @@ namespace OpenMS
 		return nearest;
 	}
 
-	
 } //namespace
 
 

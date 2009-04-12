@@ -55,11 +55,19 @@ namespace OpenMS
 			/// Constructor
 			TOPPASVertex(const String& name, const String& type = "");
 			
+			/// Copy constructor
+			TOPPASVertex(const TOPPASVertex& rhs);
+			
 			/// Destructor
 			virtual ~TOPPASVertex();
 			
+			/// Assignment operator
+			TOPPASVertex& operator= (const TOPPASVertex& rhs);
+			
 			/// Returns the name of the tool
 			const String& getName();
+			/// Returns the type of the tool
+			const String& getType();
 			/// Returns the bounding rectangle of this item
 			QRectF boundingRect() const;
 			/// Returns a more precise shape
@@ -102,10 +110,10 @@ namespace OpenMS
 			String name_;
 			/// The type of the tool, or "" if it does not have a type
 			String type_;
-			/// The list of outgoing edges
-			EdgeContainer out_edges_;
 			/// The list of incoming edges
 			EdgeContainer in_edges_;
+			/// The list of outgoing edges
+			EdgeContainer out_edges_;
 			/// Indicates whether a new out edge is currently being created
 			bool edge_being_created_;
 			/// The color of the pen

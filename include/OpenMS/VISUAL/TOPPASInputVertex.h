@@ -42,8 +42,22 @@ namespace OpenMS
 			/// Constructor
 			TOPPASInputVertex(const String& name, const String& type = "");
 			
+			/// Copy constructor
+			TOPPASInputVertex(const TOPPASInputVertex& rhs);
+			
 			/// Destructor
 			virtual ~TOPPASInputVertex();
+			
+			/// Assignment operator
+			TOPPASInputVertex& operator= (const TOPPASInputVertex& rhs);
+			
+		protected:
+		
+			///@name reimplemented Qt events
+      //@{
+      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+			//@}
+			
 	};
 }
 

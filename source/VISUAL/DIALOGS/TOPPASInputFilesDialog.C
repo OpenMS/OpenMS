@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,41 +21,18 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Marc Sturm$
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
+// OpenMS includes
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 
 namespace OpenMS
 {
-	TOPPASOutputVertex::TOPPASOutputVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type)
+	TOPPASInputFilesDialog::TOPPASInputFilesDialog()
 	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
+		setupUi(this);
 	}
 	
-	TOPPASOutputVertex::TOPPASOutputVertex(const TOPPASOutputVertex& rhs)
-		:	TOPPASVertex(rhs)
-	{
-		
-	}
-	
-	TOPPASOutputVertex::~TOPPASOutputVertex()
-	{
-	
-	}
-	
-	TOPPASOutputVertex& TOPPASOutputVertex::operator= (const TOPPASOutputVertex& rhs)
-	{
-		(TOPPASVertex)(*this) = rhs; // does it work that way?
-		
-		return *this;
-	}
-	
-	void TOPPASOutputVertex::moveNewEdgeTo_(const QPointF& /*pos*/)
-	{	
-		// do nothing, no outedges allowed here
-	}
-}
+} // namespace

@@ -50,10 +50,10 @@ namespace OpenMS
       	AM_MOVE
       };
       
-      typedef std::vector<TOPPASEdge*> EdgeContainer;
+      typedef QList<TOPPASEdge*> EdgeContainer;
 			typedef EdgeContainer::iterator EdgeIterator;
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
-			typedef std::vector<TOPPASVertex*> VertexContainer;
+			typedef QList<TOPPASVertex*> VertexContainer;
 			typedef VertexContainer::iterator VertexIterator;
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
@@ -79,6 +79,8 @@ namespace OpenMS
 			EdgeIterator edgesBegin();
 			/// Returns end() iterator of all edges
 			EdgeIterator edgesEnd();
+			/// Removes all currently selected edges and vertices
+			void removeSelected();
 			
 		public slots:
 		

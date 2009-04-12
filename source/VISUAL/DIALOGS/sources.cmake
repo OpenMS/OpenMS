@@ -20,6 +20,7 @@ TOPPViewPrefDialog.C
 ToolsDialog.C
 TheoreticalSpectrumGenerationDialog.C
 SpectrumAlignmentDialog.C
+TOPPASInputFilesDialog.C
 )
 
 ### add path to the filenames

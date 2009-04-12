@@ -177,6 +177,7 @@ namespace OpenMS
    			item->setText(1, types_it->toQString());
    		}
     }
+    tools_tree_view_->resizeColumnToContents(0);
     tools_tree_view_->setDragEnabled(true);
     
     //Blocks window

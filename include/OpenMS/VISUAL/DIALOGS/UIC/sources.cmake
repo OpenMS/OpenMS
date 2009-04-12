@@ -16,6 +16,7 @@ TOPPViewOpenDialog.ui
 TOPPViewPrefDialog.ui
 SpectrumAlignmentDialog.ui
 TheoreticalSpectrumGenerationDialog.ui
+TOPPASInputFilesDialog.ui
 )
 
 ### add path to the filenames
