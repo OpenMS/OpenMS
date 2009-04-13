@@ -53,6 +53,8 @@ namespace OpenMS
 			
 		protected:
 		
+			QStringList files_;
+		
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);

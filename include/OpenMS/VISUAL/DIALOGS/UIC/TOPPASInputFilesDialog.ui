@@ -20,7 +20,11 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3" >
       <item>
-       <widget class="QListView" name="input_file_list" />
+       <widget class="QListWidget" name="input_file_list" >
+        <property name="selectionMode" >
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout" >

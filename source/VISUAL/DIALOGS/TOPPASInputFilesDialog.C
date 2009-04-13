@@ -28,11 +28,52 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 
+#include <QtGui/QFileDialog>
+
+#include <iostream>
+
 namespace OpenMS
 {
-	TOPPASInputFilesDialog::TOPPASInputFilesDialog()
+	TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& files)
 	{
 		setupUi(this);
+		
+		input_file_list->setSortingEnabled(true);
+		input_file_list->addItems(files);
+		
+		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
+		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
+		connect (add_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
+		connect (remove_button,SIGNAL(clicked()),this,SLOT(removeSelected()));
+	}
+	
+	void TOPPASInputFilesDialog::showFileDialog()
+	{
+		QFileDialog fd;
+		fd.setFileMode(QFileDialog::ExistingFiles);
+		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
+		if (fd.exec())
+		{
+			input_file_list->addItems(fd.selectedFiles());
+		}
+	}
+	
+	void TOPPASInputFilesDialog::removeSelected()
+	{
+		QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
+		foreach (QListWidgetItem* item, selected_items)
+		{
+			input_file_list->takeItem(input_file_list->row(item));
+		}
+	}
+	
+	void TOPPASInputFilesDialog::getFilenames(QStringList& files)
+	{
+		files.clear();
+		for (int i = 0; i < input_file_list->count(); ++i)
+		{
+			files.push_back(input_file_list->item(i)->text());
+		}
 	}
 	
 } // namespace

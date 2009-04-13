@@ -31,7 +31,8 @@
 namespace OpenMS
 {
 	TOPPASInputVertex::TOPPASInputVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type)
+		: TOPPASVertex(name, type),
+			files_()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -40,7 +41,7 @@ namespace OpenMS
 	TOPPASInputVertex::TOPPASInputVertex(const TOPPASInputVertex& rhs)
 		:	TOPPASVertex(rhs)
 	{
-		
+		files_ = rhs.files_;
 	}
 	
 	TOPPASInputVertex::~TOPPASInputVertex()
@@ -52,12 +53,17 @@ namespace OpenMS
 	{
 		(TOPPASVertex)(*this) = rhs; // does it work that way?
 		
+		files_ = rhs.files_;
+		
 		return *this;
 	}
 	
 	void TOPPASInputVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		TOPPASInputFilesDialog tifd;
-		tifd.exec();
+		TOPPASInputFilesDialog tifd(files_);
+		if (tifd.exec())
+		{
+			tifd.getFilenames(files_);
+		}
 	}
 }

@@ -40,14 +40,24 @@ namespace OpenMS
 	*/
 	class TOPPASInputFilesDialog
 		: public QDialog,
-  		public Ui::TOPPASInputFilesDialogTemplate
+			public Ui::TOPPASInputFilesDialogTemplate
 	{
 		Q_OBJECT
 				
 		public:
 			
 			/// Constructor
-			TOPPASInputFilesDialog();
+			TOPPASInputFilesDialog(const QStringList& files);
+			
+			/// Stores the list of all filenames in the list widget in @p files
+			void getFilenames(QStringList& files);
+			
+		public slots:
+		
+			/// Lets the user select files via a file dialog
+			void showFileDialog();
+			/// Removes all currently selected files from the list
+			void removeSelected();
 	};
 	
 }
