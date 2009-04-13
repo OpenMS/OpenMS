@@ -303,7 +303,7 @@ else()
 	if(CONTRIB_ENABLE_BOOST)
 		#determine boost library suffix
 		file(GLOB BOOST_IO_LIB_PATH "${CONTRIB_LIB_DIR}/*boost_iostreams*[^0-9].*")
-		string(REGEX MATCH "-.*-[^.]*" BOOST_LIB_SUFFIX ${BOOST_IO_LIB_PATH})
+		string(REGEX MATCH "-[^/]*-[^.]*" BOOST_LIB_SUFFIX ${BOOST_IO_LIB_PATH})
 		message(STATUS "Boost library suffix: ${BOOST_LIB_SUFFIX}")
 		
 		#find libs
