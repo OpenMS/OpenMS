@@ -108,18 +108,6 @@ namespace OpenMS
 		return (sine_table_[(Int)(sine_index)] * exp(fac));
 	}
 	
-	DoubleReal IsotopeWavelet::getValueByExpLambda (const DoubleReal explambda, const DoubleReal, const DoubleReal tz1) 
-	{
-		DoubleReal tz (tz1-1);
-		DoubleReal gammaval (gamma_table_new_ [(Int)(tz1*inv_table_steps_)]);
-		DoubleReal help (tz*Constants::WAVELET_PERIODICITY/(TWOPI));
-		DoubleReal sine_index ((help-(int)(help))*TWOPI*inv_table_steps_);
-		//DoubleReal fac (pow(lambda, tz));
-
-		return (sine_table_[(Int)(sine_index)] * explambda /** fac*/ / gammaval);
-	}
-
-
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));

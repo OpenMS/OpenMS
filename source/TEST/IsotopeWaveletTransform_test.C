@@ -37,9 +37,22 @@
 using namespace OpenMS;
 using namespace std;
 
-//Classes completely redesigned
-//Test will follow soon
-
 START_TEST(IsotopeWaveletTransform, "$Id$")
+
+START_SECTION(IsotopeWaveletTransform(const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0))
+	IsotopeWaveletTransform<Peak1D> iw (800, 1000, 2);
+	TEST_EQUAL (iw.getClosedBoxes().size(), 0)
+END_SECTION
+
+START_SECTION(~IsotopeWaveletTransform())
+	IsotopeWaveletTransform<Peak1D>* iw2 = new IsotopeWaveletTransform<Peak1D> (800, 1000, 2);
+	delete (iw2);
+	iw2 = NULL;
+END_SECTION
+
+START_SECTION(void mergeFeatures(IsotopeWaveletTransform< PeakType > *later_iwt, const UInt RT_votes_cutoff))
+//unable to test here something, since this is only testable with CUDA and TBB
+	TEST_EQUAL (0, 0)
+END_SECTION
 
 END_TEST

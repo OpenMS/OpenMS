@@ -446,6 +446,9 @@
 			"Macros.h",
 			"Benchmark.h",
 			"Constants.h",
+			"IsotopeWaveletConstants.h",
+			"IsotopeWaveletCudaKernel.h",
+			"IsotopeWaveletParallelFor.h"
 			);
 
 		if (!endsWith($f,"_impl.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
@@ -558,6 +561,9 @@
 				"Serialization.h",
 				"IsotopeCluster.h",
 				"Param.h",
+				"IsotopeWaveletCudaKernel.h",
+				"IsotopeWaveletConstants.h",
+				"IsotopeWaveletParallelFor.h"
 				);
 
 			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))

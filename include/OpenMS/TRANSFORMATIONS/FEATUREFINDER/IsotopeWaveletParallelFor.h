@@ -40,6 +40,7 @@ namespace OpenMS
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet;
 
+	//@brief A class to leverage the computing power of several GPU cards by splitting the data set and partitioning the work via Intel TBB. 
 	template <typename PeakType, typename FeatureType>
 	class IsotopeWaveletParallelFor
 	{
@@ -52,7 +53,7 @@ namespace OpenMS
 
 			void operator() (const tbb::blocked_range<size_t>& r) const
 			{
-				for (size_t t=r.begin(); t!=r.end(); ++t) //this will be essentially one iteratoin
+				for (size_t t=r.begin(); t!=r.end(); ++t) //this will be essentially one iteration
 				{
 					cudaSetDevice(ff_->gpu_ids_[t]);
 					IsotopeWaveletTransform<PeakType>* c_iwt = iwts_[t];
