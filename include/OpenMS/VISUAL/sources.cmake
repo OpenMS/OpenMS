@@ -20,10 +20,6 @@ Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
 ListEditor.h
-TOPPASWidget.h
-TOPPASScene.h
-TOPPASVertex.h
-TOPPASEdge.h
 EnhancedWorkspace.h
 )
 
@@ -68,10 +64,6 @@ Spectrum3DOpenGLCanvas.h
 Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
-TOPPASWidget.h
-TOPPASScene.h
-TOPPASVertex.h
-TOPPASEdge.h
 EnhancedWorkspace.h
 )
 

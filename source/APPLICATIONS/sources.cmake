@@ -6,7 +6,6 @@ set(sources_list
 INIFileEditorWindow.C
 TOPPBase.C
 TOPPViewBase.C
-TOPPASBase.C
 )
 
 ### add path to the filenames
