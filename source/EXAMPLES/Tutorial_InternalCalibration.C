@@ -19,8 +19,7 @@ Int main()
 
   Param param;
   param.setValue("PeakPicker:thresholds:peak_bound",800.0);
-  param.setValue("PeakPicker:thresholds:fwhm_bound",0.1);
-  param.setValue("PeakPicker:wavelet_transform:scale",0.12);
+  param.setValue("PeakPicker:peak_width",0.15);
   ic.setParameters(param);
   
   ic.calibrate(exp_raw,ref_masses);

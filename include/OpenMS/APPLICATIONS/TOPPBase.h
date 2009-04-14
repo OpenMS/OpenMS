@@ -498,7 +498,7 @@ namespace OpenMS
       void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 			
 			/**
-				@brief Sets the valid strings for a string option or a hole string list
+				@brief Sets the valid strings for a string option or a whole string list
 				
 				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
 				@exception Exception::InvalidParameter is thrown if the valid strings contain comma characters

@@ -46,7 +46,7 @@ namespace OpenMS
   /**
 		 @brief This class makes nothing.
 		 
-		 @htmlinclude OpenMS_PeakPickerCWT.parameters
+		 @htmlinclude OpenMS_PeakPickerHiRes.parameters
 		 
 		 @ingroup PeakPicking
   */

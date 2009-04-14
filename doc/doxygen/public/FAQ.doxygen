@@ -37,12 +37,6 @@
 	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
 		<UL>
 
-			<LI><B>(Linux) When building %OpenMS Qt errors occur.</B>
-			
-			Your Qt version is too old if the errors look like this:
-			@code error: 'class QGridLayout' has no member named 'setLeftMargin'@endcode
-			
-			
 			<LI><B>(Linux) When executing 'make test', all tests fail.</B>
 			
 			Please check the LD_LIBRARY_PATH environment variable:

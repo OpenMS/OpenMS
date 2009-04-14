@@ -645,6 +645,22 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	endforeach(i)
 	add_custom_target(EXAMPLES)
 	add_dependencies(EXAMPLES ${EXAMPLES_executables})
+	
+	#Create target the executes all examples
+	add_custom_target(EXAMPLES_exec
+			COMMENT "Executes all examples"
+			)
+	
+	#Create single target for each example, add it as a dependency to the main target
+	foreach(i ${EXAMPLES_executables})
+		add_custom_target(EXAMPLES_exec_${i}
+			COMMAND ${CMAKE_COMMAND} -E chdir source/EXAMPLES ${i}
+			COMMENT "Executes the example ${i}"
+			)
+	  add_dependencies(EXAMPLES_exec_${i} ${i})
+	  add_dependencies(EXAMPLES_exec EXAMPLES_exec_${i})
+	endforeach(i)
+
 endif()
 
 ##### Tests #####
@@ -690,7 +706,8 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS      [Visual Studio only] executes OpenMS and TOPP tests (*)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test           [NMake only]         executes OpenMS and TOPP tests (*)"
 										COMMAND ${CMAKE_COMMAND} -E echo "                   *) make sure they are built using the TEST target"
-										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the examples in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES_exec  executes the examples in source/EXAMPLES"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc            builds the doxygen documentation and tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials  builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -715,7 +732,8 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
 										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
-										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the examples in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES_exec  executes the examples in source/EXAMPLES"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc            builds the doxygen documentation and tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials  builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"

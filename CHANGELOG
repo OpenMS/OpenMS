@@ -17,7 +17,7 @@ Main improvements of TOPP:
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 RC5 support
 - removed support for external memory (use the 64bit builds if you want to process large datasets)
-- added suuport for three kinds of parallization architectures
+- added support for three kinds of parallization architectures
 	- OpenMP 
 	- Intel Threading Building Blocks
 	- Nvidia Cuda

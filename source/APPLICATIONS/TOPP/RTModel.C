@@ -500,8 +500,8 @@ class TOPPRTModel
 			DoubleReal nu_start = 0.;
 			DoubleReal nu_step_size = 0.;
 			DoubleReal nu_stop = 0.;
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR 
-					|| svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC
+			if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR 
+					|| svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
 					&& !skip_cv)
 			{
 				if (setByUser_("nu_start") && setByUser_("nu_step_size") && setByUser_("nu_stop"))
