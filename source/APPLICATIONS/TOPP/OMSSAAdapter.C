@@ -49,6 +49,17 @@ using namespace std;
 	@page TOPP_OMSSAAdapter OMSSAAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
+
+	@em OMSSA must be installed on the system to be able to use the @em OMSSAAdapter. See pubchem.ncbi.nlm.nih.gov/omssa/
+	for further information on how to download and install @em OMSSA on your system. 
+
+	Sequence databases in fasta format must be converted into the NCBI format before usable with omssa. Therefore, use the program formatdb
+	of the NCBI-tools suite, e.g. @em formatdb @em -i @em SwissProt.fasta. This will create additional files, which
+	will be used by @em OMSSA. The database option of the @em OMSSAAdapter should contain the basename without the different 
+	file endings created by formatdb (e.g. SwissProt.fasta).
+
+	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
+	proteases can be found be executing @em omssacl @em -el.
 	
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 
