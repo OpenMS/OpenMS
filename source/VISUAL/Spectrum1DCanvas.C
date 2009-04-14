@@ -609,7 +609,7 @@ namespace OpenMS
 		
 		if (!flippedLayersExist())
 		{
-			mirror_mode_ = false;
+			setMirrorModeActive(false);
 		}
 		
 		//update range area
