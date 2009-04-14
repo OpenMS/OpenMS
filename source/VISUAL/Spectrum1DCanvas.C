@@ -607,6 +607,11 @@ namespace OpenMS
 			return;
 		}
 		
+		if (!flippedLayersExist())
+		{
+			mirror_mode_ = false;
+		}
+		
 		//update range area
 		recalculateRanges_(0,2,1);
 		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
@@ -1362,6 +1367,7 @@ namespace OpenMS
 			if (layers_[i].flipped)
 			{
 				if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not = true;
+				break;
 			}
 		}
 		return if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not;
