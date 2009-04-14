@@ -48,9 +48,7 @@ namespace OpenMS
 		The example image shows %Spectrum1DCanvas displaying a raw data layer and a peak data layer. 
 		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
-		
-		@todo Measuring does not work for rotated spectra, e.g. in projections view (Hiwi)
-		
+				
 		@ingroup SpectrumWidgets
 	*/
 	class OPENMS_DLLAPI Spectrum1DCanvas 
