@@ -321,6 +321,7 @@ SET(QT_USE_QTXML 1)
 SET(QT_USE_QTNETWORK 1)
 SET(QT_USE_QTSQL 1)
 SET(QT_USE_QTOPENGL 1)
+SET(QT_MIN_VERSION "4.3.0")
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 INCLUDE(UseQt4)
@@ -328,6 +329,9 @@ INCLUDE(UseQt4)
 Message(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
 Message(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
 Message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
+
+
+
 
 ########################################################
 ###    useful programms															 ###
