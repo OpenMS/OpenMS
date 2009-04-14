@@ -53,7 +53,6 @@ namespace OpenMS
 		@htmlinclude OpenMS_Spectrum2DCanvas.parameters
 
     @improvement Support different peak icons - cross, star, square - and sizes (HiWi)
-    @improvement Add log mode (Marc)
 		
   	@ingroup SpectrumWidgets
   */

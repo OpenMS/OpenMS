@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
 		
-		@bug Measuring does not work for rotated spectra (projections view)
+		@todo Measuring does not work for rotated spectra, e.g. in projections view (Hiwi)
 		
 		@ingroup SpectrumWidgets
 	*/

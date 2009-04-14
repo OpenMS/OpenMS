@@ -216,8 +216,13 @@ namespace OpenMS
  		if(canvas_3d_.legend_shown_)
 		{
 			font.setPixelSize(12);
-	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, "m/z", font);
-			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, "RT", font);
+			
+			static QString mz_label = (String(Peak2D::shortDimensionName(Peak2D::MZ))+" ["+String(Peak2D::shortDimensionUnit(Peak2D::MZ))+"]").toQString();
+	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, mz_label, font);
+	 		
+	 		static QString rt_label = (String(Peak2D::shortDimensionName(Peak2D::RT))+" ["+String(Peak2D::shortDimensionUnit(Peak2D::RT))+"]").toQString();
+			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, rt_label, font);
+			
 			font.setPixelSize(10);
 		}
 		

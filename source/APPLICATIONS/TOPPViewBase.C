@@ -365,7 +365,7 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     connect(layer_manager_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(layerEdit(QListWidgetItem*)));
 
-    windows->addAction("&Show layer window",layer_bar,SLOT(show()));
+    windows->addAction(layer_bar->toggleViewAction());
 
     //spectrum selection
     spectrum_bar_ = new QDockWidget("Spectra", this);
@@ -382,7 +382,7 @@ namespace OpenMS
     spectrum_selection_->setDragEnabled(true);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
-    windows->addAction("&Show spectrum selection window",this,SLOT(showSpectrumBrowser()));
+    windows->addAction(spectrum_bar_->toggleViewAction());
 
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
@@ -404,7 +404,7 @@ namespace OpenMS
     connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
     vbl->addWidget(filters_check_box_);
 
-    windows->addAction("&Show filter window",filter_bar,SLOT(show()));
+    windows->addAction(filter_bar->toggleViewAction());
 
 
 		//log window
@@ -416,7 +416,7 @@ namespace OpenMS
 		connect(log_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(logContextMenu(const QPoint&)));
 		log_bar->setWidget(log_);
 		log_bar->hide();
-    windows->addAction("&Show log window",log_bar,SLOT(show()));
+    windows->addAction(log_bar->toggleViewAction());
 
 		//################## DEFAULTS #################
     //general

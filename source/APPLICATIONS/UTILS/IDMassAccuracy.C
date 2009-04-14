@@ -49,6 +49,8 @@ using namespace std;
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDMassAccuracy.cli
+	
+	@todo Write docu (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -68,7 +70,7 @@ class TOPPIDMassAccuracy
 {
 	public:
 		TOPPIDMassAccuracy()
-			: TOPPBase("IDMassAccuracy","Create decoy databases from normal ones", false)
+			: TOPPBase("IDMassAccuracy","TODO", false)
 		{
 			
 		}

@@ -44,8 +44,6 @@ using namespace std;
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_FFEval.cli
-
-	@improvement Handling of truth convex hulls (Marc)
 */
 
 // We do not want this class to show up in the docu:

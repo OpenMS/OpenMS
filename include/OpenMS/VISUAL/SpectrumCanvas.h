@@ -75,7 +75,9 @@ namespace OpenMS
 		  - Pressing the @em Backspace key resets the zoom (and stack)
     - Measure mode
       - Activated using the SHIFT key
-      
+    
+    @improvement Add log mode (Hiwi)
+    
 		@ingroup SpectrumWidgets
 	*/
 	class OPENMS_DLLAPI SpectrumCanvas 

@@ -41,7 +41,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)
+	void AxisTickCalculator::calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)
 	{		
 		grid.clear();
 		
@@ -52,18 +52,18 @@ namespace OpenMS
 			x1 = 0.0001; 
 		}
 
-		double dx = x2 - x1;
+		DoubleReal dx = x2 - x1;
 
 		if (dx < 0.0000001)
 		{
 			return ;
 		}
-		double epsilon = dx/200;
+		DoubleReal epsilon = dx/200;
 
-		double sDecPow = floor(log10(dx));
-		double sDec = pow(10.0,sDecPow);
-		std::vector<double> big;
-		double currGL = ceil_decimal(x1, (UInt)sDecPow);
+		DoubleReal sDecPow = floor(log10(dx));
+		DoubleReal sDec = pow(10.0,sDecPow);
+		std::vector<DoubleReal> big;
+		DoubleReal currGL = ceil_decimal(x1, (UInt)sDecPow);
 		while (currGL < (x2+epsilon) )
 		{			
 			big.push_back(currGL);
@@ -72,7 +72,7 @@ namespace OpenMS
 		grid.push_back(big);
 		if (big.size() < max_num_big && levels>=2) 
 		{
-			std::vector<double> small;
+			std::vector<DoubleReal> small;
 			currGL = grid[0][0]-sDec/2;
 			while(currGL<(x2+epsilon))
 			{
@@ -87,7 +87,7 @@ namespace OpenMS
 
 			if(big.size() < max_num_small && levels==3)
 			{	
-				std::vector<double> smaller;
+				std::vector<DoubleReal> smaller;
 				currGL=grid[0][0]-0.75*sDec;
 				while(currGL<(x2+epsilon))
 				{
@@ -102,10 +102,10 @@ namespace OpenMS
 		}
 	}
 	
-	void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
+	void AxisTickCalculator::calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)
 	{
 		grid.clear();		
-		double scalValues[8];
+		DoubleReal scalValues[8];
 		scalValues[0]=log10(2.0);
 		scalValues[1]=log10(3.0);
 		scalValues[2]=log10(4.0);
@@ -114,26 +114,26 @@ namespace OpenMS
 		scalValues[5]=log10(7.0);
 		scalValues[6]=log10(8.0);
 		scalValues[7]=log10(9.0);
-		double dx = x2-x1;
+		DoubleReal dx = x2-x1;
 
 		if(dx<0.00000001)
 		{
 			return;
 		}
 		
-		int x1ceil = (int)floor(x1);
-		int x2floor = (int)ceil(x2);
-		std::vector<double> big;
-		for(int i = x1ceil;i!=x2floor;++i)
+		Int x1ceil = (Int)floor(x1);
+		Int x2floor = (Int)ceil(x2);
+		std::vector<DoubleReal> big;
+		for(Int i = x1ceil;i!=x2floor;++i)
 		{
 			big.push_back(i);
 		}
 		grid.push_back(big);
-		std::vector<double> small;
+		std::vector<DoubleReal> small;
 		for (Size i = 0;i!=grid[0].size();++i)
 		{
-			double currGL =grid[0][i];
-			for(int j = 0;j!=8;++j)
+			DoubleReal currGL =grid[0][i];
+			for(Int j = 0;j!=8;++j)
 			{
 				if(currGL + scalValues[j]>x2)
 				{

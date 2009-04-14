@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		This Widget also provides axis widgets and scrollbars.
 		
-		@todo Add support to store the displayed data as SVG or PNG image (HiWi)
+		@todo Add support to store the displayed data as SVG image (HiWi)
 	*/
 	class OPENMS_DLLAPI SpectrumWidget 
 		: public QWidget

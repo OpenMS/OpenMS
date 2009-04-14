@@ -56,15 +56,23 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-	
+			///Type definitions
+			//@{
 			///Vector of vector of doubles that defines the grid
-			typedef std::vector<std::vector<double> > GridVector;
+			typedef std::vector<std::vector<DoubleReal> > GridVector;
 			
 			/// Where the axis is placed
-			static enum {TOP, BOTTOM, LEFT, RIGHT} ALIGNMENT_ENUM;
-	
+			enum Alignment
+			{
+				TOP, 
+				BOTTOM, 
+				LEFT, 
+				RIGHT
+			};
+			//@}
+			
 			/// constructor
-			AxisWidget(UInt alignment, const char* legend="", QWidget* parent = 0);
+			AxisWidget(Alignment alignment, const char* legend="", QWidget* parent = 0);
 			
 			/// destructor
 			virtual ~AxisWidget();
@@ -80,28 +88,21 @@ namespace OpenMS
 	
 			/// returns true if legend is shown
 			bool isLegendShown() const;
+
+			/// sets the legend text
+			void setLegend(const String& legend);
 	
-			/**
-				@brief return constant reference to grid_line_
-				
-				gridlines are calculated by setAxisBounds or set by the user using setGridLines
-			 */
+			/// returns the actual legend text
+			const String& getLegend();
+			
+			///returns the currently used grid lines
 			const GridVector& gridLines();
-	
-			/// set user-defined gridlines (instead of using setAxisBounds to calculate GridLines)
-			void setGridLines(std::vector<double>&);
 	
 			/// sets the axis to logarithmic scale
 			void setLogScale(bool is_log);
 	
 			/// returns true if the axis has logarithmic scale
 			bool isLogScale();
-	
-			/// sets the legend text
-			void setLegend(const String& legend);
-	
-			/// returns the actual legend text
-			const String& getLegend();
 
 			/// set true to display the axis label in inverse order (left to right or bottom to top)
 			void setInverseOrientation(bool inverse_orientation);
@@ -110,74 +111,58 @@ namespace OpenMS
 			bool hasInverseOrientation();
 	
 			/// set true to allow for shortened numbers (with k/M/G units) on the axis label
-			void setAllowShortNumbers(bool short_nums = true);
+			void setAllowShortNumbers(bool short_nums);
 			
 			/// returns the minimum value displayed on the axis
-	    inline double getAxisMinimum() const
-	    {
-	    	return min_;
-	    }
+	    DoubleReal getAxisMinimum() const;
 
 	    /// returns the maximum value displayed on the axis
-	    inline double getAxisMaximum() const 
-	    {
-	    	return max_;
-	    }
+	    DoubleReal getAxisMaximum() const;
 	    
-	    /// sets the pen width for both text and lines and calls update()
-			inline void setPenWidth(int p)
-			{
-				pen_width_ = p;
-				update();
-			}
-	
 		public slots:
 		
 			///sets min/max of the axis
-			void setAxisBounds(double min, double max);
+			void setAxisBounds(DoubleReal min, DoubleReal max);
 			
-			/// set maximum number of tick levels (1 <= level <= 3)
+			/// set maximum number of tick levels ('1' or '2', default: '2')
 			void setTickLevel(UInt level);
 	
 		protected:
 			/// Vector that defines the position of the ticks/gridlines and the shown values on axis
 			GridVector grid_line_;
-	
 			/// format of axis scale (linear or logarithmic)
 			bool is_log_;
 			/// display of legend enabled or not
 			bool show_legend_;
 			/// Position of the axis (right, left, top, down as defined in ALIGNMENT_ENUM)
-			UInt alignment_;
+			Alignment alignment_;
 			/// true if axis label are displayed in inverse order (left to right or bottom to top)
 			bool inverse_orientation_;
 			/// margin of axis
 			UInt margin_;
 			/// minimum value on the axis
-			double min_;
+			DoubleReal min_;
 			/// maximum value on the axis
-			double max_;
+			DoubleReal max_;
 			/// text/unit on axis
 			String legend_;
-			/// maximum number of tick levels (default=3)
+			/// maximum number of tick levels (default=2)
 			UInt tick_level_;
-			/// drawing thicker lines (e.g. in printing) leads to better results
-			UInt pen_width_;
-
-			/// see QWidget
-			void paintEvent( QPaintEvent * );
+			/// true if k/M/G units can be used
+			bool allow_short_numbers_;
+			
+			///Reimplemented Qt event
+			void paintEvent(QPaintEvent*);
 	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
-			inline double scale_(double x)
+			inline DoubleReal scale_(DoubleReal x)
 			{
 				return (is_log_)? Math::round_decimal(pow(x,10),-8) : Math::round_decimal(x,-8);
 			}
 			
 			/// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
-			void getShortenedNumber_(QString& short_num, double number);
+			void getShortenedNumber_(QString& short_num, DoubleReal number);
 
-			/// true if k/M/G units can be used
-			bool allow_short_numbers_;
  	};
 } // namespace OpenMS
 
