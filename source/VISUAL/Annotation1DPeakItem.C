@@ -58,22 +58,36 @@ namespace OpenMS
 		
 		// compute bounding box of text_item on the specified painter
 		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
-		// shift pos - annotation should be over peak or, if not possible, next to it
-		DoubleReal vertical_shift = bounding_box_.height()/2 + 5;
-		if (!flipped)
+		
+		if (canvas->isMzToXAxis())
 		{
-			vertical_shift *= -1;
+			// shift pos - annotation should be over peak or, if not possible, next to it
+			DoubleReal vertical_shift = bounding_box_.height()/2 + 5;
+			if (!flipped)
+			{
+				vertical_shift *= -1;
+			}
+			bounding_box_.translate(0.0, vertical_shift);
+			if (flipped && bounding_box_.bottom() > canvas->height())
+			{
+				bounding_box_.moveBottom(canvas->height());
+				bounding_box_.moveLeft(pos.x() + 5.0);
+			}
+			else if (!flipped && bounding_box_.top() < 0.0)
+			{
+				bounding_box_.moveTop(0.0);
+				bounding_box_.moveLeft(pos.x() + 5.0);
+			}
 		}
-		bounding_box_.translate(0.0, vertical_shift);
-		if (flipped && bounding_box_.bottom() > canvas->height())
+		else
 		{
-			bounding_box_.moveBottom(canvas->height());
-			bounding_box_.moveLeft(pos.x() + 5.0);
-		}
-		else if (!flipped && bounding_box_.top() < 0.0)
-		{
-			bounding_box_.moveTop(0.0);
-			bounding_box_.moveLeft(pos.x() + 5.0);
+			// annotation should be next to the peak (to its right)
+			DoubleReal horizontal_shift = bounding_box_.width()/2 + 5;
+			bounding_box_.translate(horizontal_shift, 0.0);
+			if (bounding_box_.right() > canvas->width())
+			{
+				bounding_box_.moveRight(canvas->width());
+			}
 		}
 		
 		painter.drawText(bounding_box_, Qt::AlignCenter, text_);

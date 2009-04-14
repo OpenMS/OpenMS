@@ -60,28 +60,71 @@ namespace OpenMS
 		canvas->dataToWidget(end_point_.getX(), end_point_.getY(), end_p, flipped, true);
 		
 		// compute bounding box on the specified painter
-		bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y()+4)); // +4 for lower half of arrow heads
+		if (canvas->isMzToXAxis())
+		{
+			bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y()+4)); // +4 for lower half of arrow heads
+		}
+		else
+		{
+			bounding_box_ = QRectF(QPointF(start_p.x()-4, start_p.y()), QPointF(end_p.x(), end_p.y()));
+		}
 		
 		// find out how much additional space is needed for the text:
 		QRectF text_boundings = painter.boundingRect(QRectF(), Qt::AlignCenter, text_);
-		bounding_box_.setTop(bounding_box_.top() - text_boundings.height());
-		// if text doesn't fit between peaks, enlarge bounding box:
-		if (text_boundings.width() > bounding_box_.width())
+		if (canvas->isMzToXAxis())
 		{
-			float additional_space = (text_boundings.width() - bounding_box_.width()) / 2;
-			bounding_box_.setLeft(bounding_box_.left() - additional_space);
-			bounding_box_.setRight(bounding_box_.right() + additional_space);
+			bounding_box_.setTop(bounding_box_.top() - text_boundings.height());
+		}
+		else
+		{
+			bounding_box_.setRight(bounding_box_.right() + text_boundings.width());
+		}
+		// if text doesn't fit between peaks, enlarge bounding box:
+		if (canvas->isMzToXAxis())
+		{
+			if (text_boundings.width() > bounding_box_.width())
+			{
+				float additional_space = (text_boundings.width() - bounding_box_.width()) / 2;
+				bounding_box_.setLeft(bounding_box_.left() - additional_space);
+				bounding_box_.setRight(bounding_box_.right() + additional_space);
+			}
+		}
+		else
+		{
+			if (text_boundings.height() > bounding_box_.height())
+			{
+				float additional_space = (text_boundings.height() - bounding_box_.height()) / 2;
+				bounding_box_.setTop(bounding_box_.top() - additional_space);
+				bounding_box_.setBottom(bounding_box_.bottom() + additional_space);
+			}
 		}
 		
 		// draw line
 		painter.drawLine(start_p, end_p);
+		
 		// draw arrow heads and the ends
-		painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()-4));
-		painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()+4));
-		painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()-4));
-		painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()+4));
+		if (canvas->isMzToXAxis())
+		{
+			painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()-4));
+			painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()+4));
+			painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()-4));
+			painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()+4));
+		}
+		else
+		{
+			painter.drawLine(start_p, QPoint(start_p.x()+4, start_p.y()-5));
+			painter.drawLine(start_p, QPoint(start_p.x()-4, start_p.y()-5));
+			painter.drawLine(end_p, QPoint(end_p.x()+4, end_p.y()+5));
+			painter.drawLine(end_p, QPoint(end_p.x()-4, end_p.y()+5));
+		}
+		
+		if (!canvas->isMzToXAxis())
+		{
+			bounding_box_.setWidth(bounding_box_.width()+10.0);
+		}
 		
 		painter.drawText(bounding_box_, Qt::AlignHCenter, text_);
+		
 		if (selected_)
 		{
 			drawBoundingBox_(painter);

@@ -294,9 +294,27 @@ namespace OpenMS
 						measurement_start_.clear();
 					}
 				}
-				else
+				else // !isMzToXAxis()
 				{
-					QMessageBox::information(this,"Not supported","Measuring is not yet supported for rotated spectra.");
+					if (selected_peak_.isValid())
+					{
+						measurement_start_ = selected_peak_;
+						const ExperimentType::PeakType& peak = measurement_start_.getPeak(getCurrentLayer().peaks);
+						if (intensity_mode_==IM_PERCENTAGE)
+						{
+							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().getCurrentSpectrum().getMaxInt();
+						}
+						else 
+						{
+							percentage_factor_ = 1.0;
+						}
+						dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
+						measurement_start_point_.setX(last_mouse_pos_.x());
+					}
+					else
+					{
+						measurement_start_.clear();
+					}
 				}
 			}
 		}
@@ -856,13 +874,28 @@ namespace OpenMS
 			dataToWidget(sel, begin, getLayer_(layer_index).flipped);
 			QPoint top_end(begin);
 			
-			if (getLayer_(layer_index).flipped)
+			bool layer_flipped = getLayer_(layer_index).flipped;
+			if (isMzToXAxis())
 			{
-				top_end.setY(height());
+				if (layer_flipped)
+				{
+					top_end.setY(height());
+				}
+				else
+				{
+					top_end.setY(0);
+				}
 			}
 			else
 			{
-				top_end.setY(0);
+				if (!layer_flipped)
+				{
+					top_end.setX(width());
+				}
+				else // should not happen
+				{
+					top_end.setX(0);
+				}
 			}
 			
 			// paint the crosshair only for currently selected peaks of the current layer
