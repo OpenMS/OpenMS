@@ -30,6 +30,14 @@
 
 namespace OpenMS
 {
+	TOPPASInputVertex::TOPPASInputVertex()
+		:	TOPPASVertex(),
+			files_()
+	{
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
 	TOPPASInputVertex::TOPPASInputVertex(const String& name, const String& type)
 		: TOPPASVertex(name, type),
 			files_()
@@ -39,9 +47,11 @@ namespace OpenMS
 	}
 	
 	TOPPASInputVertex::TOPPASInputVertex(const TOPPASInputVertex& rhs)
-		:	TOPPASVertex(rhs)
+		:	TOPPASVertex(rhs),
+			files_(rhs.files_)
 	{
-		files_ = rhs.files_;
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
 	}
 	
 	TOPPASInputVertex::~TOPPASInputVertex()
@@ -51,7 +61,7 @@ namespace OpenMS
 	
 	TOPPASInputVertex& TOPPASInputVertex::operator= (const TOPPASInputVertex& rhs)
 	{
-		(TOPPASVertex)(*this) = rhs; // does it work that way?
+		TOPPASVertex::operator=(rhs);
 		
 		files_ = rhs.files_;
 		

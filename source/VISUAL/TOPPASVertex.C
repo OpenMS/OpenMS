@@ -29,6 +29,21 @@
 
 namespace OpenMS
 {
+	TOPPASVertex::TOPPASVertex()
+		:	QObject(),
+			QGraphicsItem(),
+			name_(),
+			type_(),
+			in_edges_(),
+			out_edges_(),
+			edge_being_created_(false),
+			pen_color_(),
+			brush_color_()
+	{
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		setZValue(42);
+	}
+	
 	TOPPASVertex::TOPPASVertex(const String& name, const String& type)
 		: QObject(),
 			QGraphicsItem(),
@@ -36,10 +51,27 @@ namespace OpenMS
 			type_(type),
 			in_edges_(),
 			out_edges_(),
-			edge_being_created_(false)
+			edge_being_created_(false),
+			pen_color_(),
+			brush_color_()
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
+	}
+	
+	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
+		:	QObject(),
+			QGraphicsItem(),
+			name_(rhs.name_),
+			type_(rhs.type_),
+			in_edges_(rhs.in_edges_),
+			out_edges_(rhs.out_edges_),
+			edge_being_created_(rhs.edge_being_created_),
+			pen_color_(rhs.pen_color_),
+			brush_color_(rhs.brush_color_)
+	{
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+		setZValue(42);	
 	}
 	
 	TOPPASVertex::~TOPPASVertex()
@@ -54,22 +86,15 @@ namespace OpenMS
 		}
 	}
 	
-	TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs)
-		:	QObject(),
-			QGraphicsItem()
-	{
-		name_ = rhs.name_;
-		
-		setFlag(QGraphicsItem::ItemIsSelectable, true);
-		setZValue(42);		
-	}
-	
 	TOPPASVertex& TOPPASVertex::operator= (const TOPPASVertex& rhs)
 	{
 		name_ = rhs.name_;
-		
-		setFlag(QGraphicsItem::ItemIsSelectable, true);
-		setZValue(42);
+		type_ = rhs.type_;
+		in_edges_ = rhs.in_edges_;
+		out_edges_ = rhs.out_edges_;
+		edge_being_created_ = rhs.edge_being_created_;
+		pen_color_ = rhs.pen_color_;
+		brush_color_ = rhs.brush_color_;
 		
 		return *this;
 	}

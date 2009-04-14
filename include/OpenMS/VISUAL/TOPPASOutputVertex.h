@@ -39,15 +39,15 @@ namespace OpenMS
 		
 		public:
 			
+			
+			/// Default constructor
+			TOPPASOutputVertex();
 			/// Constructor
 			TOPPASOutputVertex(const String& name, const String& type = "");
-			
 			/// Copy constructor
 			TOPPASOutputVertex(const TOPPASOutputVertex& rhs);
-			
 			/// Destructor
 			virtual ~TOPPASOutputVertex();
-			
 			/// Assignment operator
 			TOPPASOutputVertex& operator= (const TOPPASOutputVertex& rhs);
 			

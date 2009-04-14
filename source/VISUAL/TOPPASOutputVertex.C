@@ -29,6 +29,13 @@
 
 namespace OpenMS
 {
+	TOPPASOutputVertex::TOPPASOutputVertex()
+		:	TOPPASVertex()
+	{
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
 	TOPPASOutputVertex::TOPPASOutputVertex(const String& name, const String& type)
 		: TOPPASVertex(name, type)
 	{
@@ -39,7 +46,8 @@ namespace OpenMS
 	TOPPASOutputVertex::TOPPASOutputVertex(const TOPPASOutputVertex& rhs)
 		:	TOPPASVertex(rhs)
 	{
-		
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
 	}
 	
 	TOPPASOutputVertex::~TOPPASOutputVertex()
@@ -49,7 +57,7 @@ namespace OpenMS
 	
 	TOPPASOutputVertex& TOPPASOutputVertex::operator= (const TOPPASOutputVertex& rhs)
 	{
-		(TOPPASVertex)(*this) = rhs; // does it work that way?
+		TOPPASVertex::operator=(rhs);		
 		
 		return *this;
 	}

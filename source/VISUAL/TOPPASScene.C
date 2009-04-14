@@ -158,6 +158,7 @@ namespace OpenMS
 		if (destroy && hover_edge_ != 0)
 		{
 			removeItem(hover_edge_);
+			delete hover_edge_;
 			hover_edge_ = 0;
 		}
 		update();

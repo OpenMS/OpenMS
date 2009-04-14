@@ -52,15 +52,14 @@ namespace OpenMS
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
 			
 			
+			/// Default Constructor
+			TOPPASVertex();
 			/// Constructor
 			TOPPASVertex(const String& name, const String& type = "");
-			
 			/// Copy constructor
 			TOPPASVertex(const TOPPASVertex& rhs);
-			
 			/// Destructor
 			virtual ~TOPPASVertex();
-			
 			/// Assignment operator
 			TOPPASVertex& operator= (const TOPPASVertex& rhs);
 			

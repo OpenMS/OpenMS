@@ -39,15 +39,14 @@ namespace OpenMS
 		
 		public:
 			
+			/// Default constructor
+			TOPPASToolVertex();
 			/// Constructor
 			TOPPASToolVertex(const String& name, const String& type = "");
-			
 			/// Copy constructor
 			TOPPASToolVertex(const TOPPASToolVertex& rhs);
-			
 			/// Destructor
 			virtual ~TOPPASToolVertex();
-			
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 	};

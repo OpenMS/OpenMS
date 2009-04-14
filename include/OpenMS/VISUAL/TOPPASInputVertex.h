@@ -39,15 +39,14 @@ namespace OpenMS
 		
 		public:
 			
+			/// Default constructor
+			TOPPASInputVertex();
 			/// Constructor
 			TOPPASInputVertex(const String& name, const String& type = "");
-			
 			/// Copy constructor
 			TOPPASInputVertex(const TOPPASInputVertex& rhs);
-			
 			/// Destructor
 			virtual ~TOPPASInputVertex();
-			
 			/// Assignment operator
 			TOPPASInputVertex& operator= (const TOPPASInputVertex& rhs);
 			
