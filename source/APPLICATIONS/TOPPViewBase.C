@@ -2249,6 +2249,14 @@ namespace OpenMS
     Spectrum2DWidget* w = active2DWindow_();
     if (w)
     {
+    	if (!w->projectionsVisible())
+    	{
+    		setMinimumSize(700,700);
+    	}
+    	else
+    	{
+    		setMinimumSize(400,400);
+    	}
     	w->toggleProjections();
     }
   }
