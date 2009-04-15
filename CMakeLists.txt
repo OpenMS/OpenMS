@@ -223,7 +223,7 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.3.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.4.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
 
 if ("${CONTRIB_CONFIRM_DIR}" STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")

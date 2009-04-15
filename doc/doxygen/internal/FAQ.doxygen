@@ -449,6 +449,7 @@ svn propset svn:eol-style native MyClass.C
 
 				<LI><B>How is the platform-independent source release package created?</B>
 					<OL>
+						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and OpenMS.
 						<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
 						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
 						<LI> Run cmake
