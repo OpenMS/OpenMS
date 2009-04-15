@@ -44,7 +44,7 @@
 namespace OpenMS
 {
   /**
-		 @brief This class makes nothing.
+		 @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap).
 		 
 		 @htmlinclude OpenMS_PeakPickerHiRes.parameters
 		 
