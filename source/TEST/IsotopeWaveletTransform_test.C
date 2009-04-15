@@ -39,11 +39,6 @@ using namespace std;
 
 START_TEST(IsotopeWaveletTransform, "$Id$")
 
-START_SECTION(void mergeFeatures(IsotopeWaveletTransform< PeakType > *later_iwt, const UInt RT_votes_cutoff))
-//unable to test here something, since this is only testable with CUDA and TBB
-	TEST_EQUAL (0, 0)
-END_SECTION
-
 MSExperiment<> map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
@@ -57,7 +52,7 @@ END_SECTION
 
 START_SECTION(void initializeScan(const MSSpectrum< PeakType > &c_ref))
 	iw->initializeScan (map[0]);
-	TEST_NOT_EQUAL (iw, NULL) //nothing else to test here
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION(void getTransform(MSSpectrum<PeakType> &c_trans, const MSSpectrum<PeakType> &c_ref, const UInt c))
@@ -67,12 +62,12 @@ END_SECTION
 
 START_SECTION(void identifyCharge(const MSSpectrum< PeakType > &candidates, const MSSpectrum< PeakType > &ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs))
 	iw->identifyCharge (*spec, map[0], 0, 0, 0, false);
-	TEST_NOT_EQUAL (iw, NULL) //nothing else to test here
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION(void updateBoxStates(const MSExperiment< PeakType > &map, const Size scan_index, const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1))
 	iw->updateBoxStates(map, INT_MAX, 0);
-	TEST_NOT_EQUAL (iw->getClosedBoxes().size(), 0) //nothing else to test here
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((virtual std::multimap<DoubleReal, Box> getClosedBoxes ()))

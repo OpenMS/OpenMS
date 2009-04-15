@@ -303,8 +303,11 @@ namespace OpenMS
 			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
 				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
-		
-			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff); 
+			
+			#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
+				/** @brief Merges the results of different TBB threads. */
+				void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff, const UInt RT_votes_interleave); 
+			#endif
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -1187,85 +1190,87 @@ namespace OpenMS
 	}
 
 
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff)
-	{
-		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
-
-		//First of all do the trivial part of the merge
-		for (end_iter=later_iwt->closed_boxes_.begin(); end_iter!=later_iwt->closed_boxes_.end(); ++end_iter)
+	#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_votes_cutoff, const UInt RT_votes_interleave)
 		{
-			closed_boxes_.insert (*end_iter);
-		};
+			typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
-		typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
-		typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
-		
-		typename std::multimap<UInt, BoxElement>::iterator biter;
-
-		DoubleReal best_dist, c_dist; UInt c;
-		//Now, try to find matching boxes for the rest
-		for (front_iter=front_container.begin(); front_iter != front_container.end(); )
-		{
-			best_match = end_container.end(); best_dist = INT_MAX;
-			//This is everything else than efficient, but both containers should be very small in size
-			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
-			{
-				c=0;
-				for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
-				{
-					c=std::max (c, biter->second.c);
-				}; 
-				c_dist = fabs(end_iter->first - front_iter->first); 
-				if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
-				{
-					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= 0)
-					//otherwise, there are too many blank scans in between
-					{	
-						best_match = end_iter;
-						best_dist = c_dist;
-					};
-				};
-			};
-			if (best_match == end_container.end()) //No matching pair found
-			{
-				if (front_iter->second.size() >= RT_votes_cutoff)
-				{
-					closed_boxes_.insert (*front_iter);
-					//extendBox_ (map, front_iter->second);
-				};
-				++front_iter;
-			}		
-			else //That's the funny part
-			{
-				front_iter->second.insert (best_match->second.begin(), best_match->second.end());
-				Box replacement (front_iter->second);	
-
-				//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
-				DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
-				c_mz /= ((DoubleReal) front_iter->second.size());		
-
-				help_iter = front_iter;
-				++help_iter;
-				std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
-				closed_boxes_.insert (help3);
-				//extendBox_ (map, help3.second);				
-				front_container.erase (front_iter);
-				end_container.erase (best_match);
-				front_iter = help_iter;
-			};
-		};
-
-		//Merge the rest in end_container
-		for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
-		{
-			if (end_iter->second.size() >= RT_votes_cutoff)
+			//First of all do the trivial part of the merge
+			for (end_iter=later_iwt->closed_boxes_.begin(); end_iter!=later_iwt->closed_boxes_.end(); ++end_iter)
 			{
 				closed_boxes_.insert (*end_iter);
-				//extendBox_ (map, end_iter->second);
 			};
-		};
-	}
+
+			typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
+			typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
+			
+			typename std::multimap<UInt, BoxElement>::iterator biter;
+
+			DoubleReal best_dist, c_dist; UInt c;
+			//Now, try to find matching boxes for the rest
+			for (front_iter=front_container.begin(); front_iter != front_container.end(); )
+			{
+				best_match = end_container.end(); best_dist = INT_MAX;
+				//This is everything else than efficient, but both containers should be very small in size
+				for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+				{
+					c=0;
+					for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
+					{
+						c=std::max (c, biter->second.c);
+					}; 
+					c_dist = fabs(end_iter->first - front_iter->first); 
+					if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
+					{
+						if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_votes_interleave)
+						//otherwise, there are too many blank scans in between
+						{	
+							best_match = end_iter;
+							best_dist = c_dist;
+						};
+					};
+				};
+				if (best_match == end_container.end()) //No matching pair found
+				{
+					if (front_iter->second.size() >= RT_votes_cutoff)
+					{
+						closed_boxes_.insert (*front_iter);
+						//extendBox_ (map, front_iter->second);
+					};
+					++front_iter;
+				}		
+				else //That's the funny part
+				{
+					front_iter->second.insert (best_match->second.begin(), best_match->second.end());
+					Box replacement (front_iter->second);	
+
+					//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+					DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
+					c_mz /= ((DoubleReal) front_iter->second.size());		
+
+					help_iter = front_iter;
+					++help_iter;
+					std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
+					closed_boxes_.insert (help3);
+					//extendBox_ (map, help3.second);				
+					front_container.erase (front_iter);
+					end_container.erase (best_match);
+					front_iter = help_iter;
+				};
+			};
+
+			//Merge the rest in end_container
+			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+			{
+				if (end_iter->second.size() >= RT_votes_cutoff)
+				{
+					closed_boxes_.insert (*end_iter);
+					//extendBox_ (map, end_iter->second);
+				};
+			};
+		}
+	#endif
 
 
 	template<typename PeakType>
