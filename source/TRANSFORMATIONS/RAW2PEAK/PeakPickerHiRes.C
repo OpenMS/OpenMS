@@ -57,5 +57,6 @@ namespace OpenMS
 
 	void PeakPickerHiRes::updateMembers_()
 	{
+		signal_to_noise_ = param_.getValue("signal_to_noise");
 	}
 }

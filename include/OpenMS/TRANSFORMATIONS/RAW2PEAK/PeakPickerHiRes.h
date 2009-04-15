@@ -83,7 +83,7 @@ namespace OpenMS
 			// signal-to-noise estimation
 			SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
 			snt.init(input);
-			
+
 			// find local maxima in raw data
 			for (Size i = 1; i < input.size()-1; ++i)
 				{

@@ -43,68 +43,236 @@ START_TEST(PeakPickerHiRes, "$Id: PeakPickerHiRes_test.C 5049 2009-04-14 14:32:4
 PeakPickerHiRes* ptr = 0;
 START_SECTION((PeakPickerHiRes()))
   ptr = new PeakPickerHiRes();
-  TEST_NOT_EQUAL(ptr, 0)
-END_SECTION
+TEST_NOT_EQUAL(ptr, 0)
+	END_SECTION
 
 START_SECTION((virtual ~PeakPickerHiRes()))
   delete ptr;
 END_SECTION
 
-//load input and output data
-MzDataFile mz_data_file;
+
+
+PeakPickerHiRes pp_hires;
+Param param;
+
 MSExperiment<Peak1D> input, output;
 
-// load input/output Orbitrap data
-mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzData"),input);
-mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_snt1_out.mzData"),output);
- 
 
-/////////////////////////////
-// ORBITRAP test 1 (SNT=1) //
-/////////////////////////////
+
+
+/////////////////////////
+// ORBITRAP data tests //
+/////////////////////////
+
+
+// load Orbitrap input data
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzData"),input);
+
+////////////////////////////////////////////
+// ORBITRAP test 1 (w/o noise estimation) //
+////////////////////////////////////////////
+
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn0_out.mzData"),output);
 
 //set data type (this is not stored correctly in mzData)
-for (Size s=0; s<output.size(); ++s)
-{
-  output[s].setType(SpectrumSettings::PEAKS);
-}
+for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
+	{
+		output[scan_idx].setType(SpectrumSettings::PEAKS);
+	}
 
-//set up PeakPicker
-  PeakPickerHiRes pp;
-  Param param;
-  param.setValue("signal_to_noise",1.0);
-  pp.setParameters(param);   
+// PeakPickerHiRes config
+param.setValue("signal_to_noise",0.0);
+pp_hires.setParameters(param);   
 
 START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& output)))
-  MSSpectrum<> spec;
-  pp.pick(input[0],spec);
-  
-  TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)
-  for (Size p = 0; p < spec.size(); ++p)
-  {
-    TEST_REAL_SIMILAR(spec[p].getMZ(), output[0][p].getMZ())
-    TEST_REAL_SIMILAR(spec[p].getIntensity(), output[0][p].getIntensity())
-  }
+  MSSpectrum<> tmp_spec;
+pp_hires.pick(input[0],tmp_spec);
+
+TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+		{
+			TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+				TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+				}
 END_SECTION
 
 START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
-  MSExperiment<> exp;
-  pp.pickExperiment(input,exp);
+  MSExperiment<> tmp_exp;
+pp_hires.pickExperiment(input,tmp_exp);
 
-  TEST_EQUAL(exp.ExperimentalSettings::operator==(input), true)
-  for (Size s=0; s<exp.size(); ++s)
-  {
-    TEST_EQUAL(exp[s].SpectrumSettings::operator==(output[s]), true)
-    for (Size p=0; p<exp[s].size(); ++p)
-    {
-      TEST_REAL_SIMILAR(exp[s][p].getMZ(), output[s][p].getMZ())
-      TEST_REAL_SIMILAR(exp[s][p].getIntensity(), output[s][p].getIntensity())
-    }
-  }
+TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+		{
+			TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
+				for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+					{
+						TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+							TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+							}
+		}
 END_SECTION
 
+output.clear();
+
+
+
+/////////////////////////////////////////
+// ORBITRAP test 2 (signal-to-noise 4) //
+/////////////////////////////////////////
+
+
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn4_out.mzData"),output);
+
+//set data type (this is not stored correctly in mzData)
+for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
+	{
+		output[scan_idx].setType(SpectrumSettings::PEAKS);
+	}
+
+//set up PeakPicker
+param.setValue("signal_to_noise",4.0);
+pp_hires.setParameters(param);
+
+START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& output)))
+  MSSpectrum<> tmp_spec;
+pp_hires.pick(input[0],tmp_spec);
+
+TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+		{
+			TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+				TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+				}
+END_SECTION
+
+START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
+  MSExperiment<> tmp_exp;
+pp_hires.pickExperiment(input,tmp_exp);
+
+TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+		{
+			TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
+				for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+					{
+						TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+							TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+							}
+		}
+END_SECTION
+
+output.clear();
+input.clear();
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+/////////////////////////
+// FTICR-MS data tests //
+/////////////////////////
+
+
+// load FTMS input data
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms.mzData"),input);
+
+////////////////////////////////////////////
+// FTICR-MS test 1 (w/o noise estimation) //
+////////////////////////////////////////////
+
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn0_out.mzData"),output);
+
+//set data type (this is not stored correctly in mzData)
+for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
+	{
+		output[scan_idx].setType(SpectrumSettings::PEAKS);
+	}
+
+// PeakPickerHiRes config
+param.setValue("signal_to_noise",0.0);
+pp_hires.setParameters(param);   
+
+START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& output)))
+  MSSpectrum<> tmp_spec;
+pp_hires.pick(input[0],tmp_spec);
+
+TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+		{
+			TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+				TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+				}
+END_SECTION
+
+START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
+  MSExperiment<> tmp_exp;
+pp_hires.pickExperiment(input,tmp_exp);
+
+TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+		{
+			TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
+				for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+					{
+						TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+							TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())					
+							}
+		}
+END_SECTION
+
+output.clear();
+
+
+
+/////////////////////////////////////////
+// FTICR-MS test 2 (signal-to-noise 4) //
+/////////////////////////////////////////
+
+
+MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzData"),output);
+
+//set data type (this is not stored correctly in mzData)
+for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
+	{
+		output[scan_idx].setType(SpectrumSettings::PEAKS);
+	}
+
+//set up PeakPicker
+param.setValue("signal_to_noise",4.0);
+pp_hires.setParameters(param);
+
+START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& output)))
+  MSSpectrum<> tmp_spec;
+pp_hires.pick(input[0],tmp_spec);
+
+TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+		{
+			TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+				TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+				}
+END_SECTION
+
+START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
+  MSExperiment<> tmp_exp;
+pp_hires.pickExperiment(input,tmp_exp);
+
+TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+		{
+			TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
+				for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+					{
+						TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+							TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+							}
+		}
+END_SECTION
+
+output.clear();
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 END_TEST
 
 
