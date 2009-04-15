@@ -23,7 +23,7 @@ PROJECT("OpenMS")
 ###    manual entries (edit this for new release)    ###
 ########################################################
 
-set(CF_PACKAGE_VERSION "1.3" CACHE INTERNAL "OpenMS VERSION" FORCE)
+set(CF_PACKAGE_VERSION "1.4" CACHE INTERNAL "OpenMS VERSION" FORCE)
 
 ########################################################
 ###    end manual																	   ###
@@ -592,10 +592,10 @@ foreach(i ${TOPP_executables})
 
     add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C ${resource_dir}/${i}.icns)         
     ## transform TOPPView and INIFileEditor to real Mac OS X applications
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.3")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.4")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.4")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.4")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.4")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
@@ -857,11 +857,11 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	set(CPACK_PACKAGE_NAME "OpenMS")
 	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
 	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "1.3.0")
+	set(CPACK_PACKAGE_VERSION "1.4.0")
 	set(CPACK_PACKAGE_VERSION_MAJOR "1")
-	set(CPACK_PACKAGE_VERSION_MINOR "3")
+	set(CPACK_PACKAGE_VERSION_MINOR "4")
 	set(CPACK_PACKAGE_VERSION_PATCH "0")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.4")
 	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
 	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelomeFile.txt)
@@ -869,7 +869,8 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		include(cmake/package_dmg.cmake)
+		#include(cmake/package_dmg.cmake)
+		include(cmake/package_dragndrop_dmg.cmake)
 	endif()
 
 	if("${PACKAGE_TYPE}" STREQUAL "rpm")
