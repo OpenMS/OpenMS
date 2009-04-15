@@ -1,6 +1,6 @@
 /**
   
-  @page external_code External code
+  @page external_code Programming with OpenMS
   
 	@section development_external Compiling external code
 	
@@ -15,7 +15,9 @@
 project("MyOwnOpenMSProject")
 cmake_minimum_required(VERSION 2.6)
 
-set(OpenMS_DIR /path/to/OpenMS/)
+# set the OpenMS_DIR variable to the path were
+# OpenMS is installed, ending with cmake!
+set(OpenMS_DIR /path/to/OpenMS/cmake)
 find_package(OpenMS)
 
 # check whether the OpenMS package was found
