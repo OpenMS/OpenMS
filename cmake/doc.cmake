@@ -41,7 +41,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "Build the parameters documentation"
 										VERBATIM)
-	if (MSVC)
+	if (MSVC_IDE)
 		##copy required executables:
 		add_custom_target(doc_prepare
 											COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(OutDir)/DefaultParamHandlerDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/DefaultParamHandlerDocumenter.exe

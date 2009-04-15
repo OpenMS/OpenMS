@@ -346,11 +346,6 @@ set(transformations_executables_list
 )
 
 set(simulation_executables_list
-	ElutionModel_test
-	IsotopeModelGeneral_test
-	LCMSSample_test
-	LCMSSim_test
-	MixtureModel_test
 )
 
 ### collect test executables

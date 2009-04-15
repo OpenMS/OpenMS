@@ -646,17 +646,23 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	add_custom_target(EXAMPLES)
 	add_dependencies(EXAMPLES ${EXAMPLES_executables})
 	
-	#Create target the executes all examples
+	## Create target the executes all examples
 	add_custom_target(EXAMPLES_exec
 			COMMENT "Executes all examples"
-			)
+	)
 	
-	#Create single target for each example, add it as a dependency to the main target
+	if (MSVC_IDE)
+		set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(OutDir))
+	else()
+		set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+	endif()
+	
+	## Create single target for each example, add it as a dependency to the main target
 	foreach(i ${EXAMPLES_executables})
 		add_custom_target(EXAMPLES_exec_${i}
-			COMMAND ${CMAKE_COMMAND} -E chdir source/EXAMPLES ${i}
+			COMMAND ${CMAKE_COMMAND} -E  chdir ${PROJECT_SOURCE_DIR}/source/EXAMPLES ${EXAMPLES_EXE_DIR}/${i}
 			COMMENT "Executes the example ${i}"
-			)
+		)
 	  add_dependencies(EXAMPLES_exec_${i} ${i})
 	  add_dependencies(EXAMPLES_exec EXAMPLES_exec_${i})
 	endforeach(i)

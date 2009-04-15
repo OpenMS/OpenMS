@@ -125,13 +125,14 @@ add_custom_target(TRANSFORMATIONS_TEST)
 add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
 
 
+# (temporarily removed for Release1.4)
 ### SIMULATION
-foreach(i ${simulation_executables_list})
-  add_executable(${i} ${i}.C)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-endforeach(i)
-add_custom_target(SIMULATION_TEST)
-add_dependencies(SIMULATION_TEST ${simulation_executables_list})
+#foreach(i ${simulation_executables_list})
+#  add_executable(${i} ${i}.C)
+#	target_link_libraries(${i} ${OPENMS_LIBRARIES})
+#endforeach(i)
+#add_custom_target(SIMULATION_TEST)
+#add_dependencies(SIMULATION_TEST ${simulation_executables_list})
 
 ### TEST target
 add_custom_target(TEST)

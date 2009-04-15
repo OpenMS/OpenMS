@@ -12,7 +12,6 @@ HistView
 IDExtractor
 LabeledEval
 MapAlignmentEvaluation
-MapSimulator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
