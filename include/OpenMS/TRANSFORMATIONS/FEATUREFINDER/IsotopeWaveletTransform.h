@@ -319,27 +319,7 @@ namespace OpenMS
 			};
 		
 
-			/** @brief Computes a linear (intensity) interpolation. 
- 				* @param left_iter The point left to the query. 
- 				* @param mz_pos The query point.
- 				* @param right_iter The point right to the query. */	
-			inline DoubleReal getLinearInterpolation (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
-			{
-				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
-			};
-			
-			/** @brief Computes a linear (intensity) interpolation. 
- 				* @param mz_a The m/z value of the point left to the query.  
- 				* @param intens_a The intensity value of the point left to the query. 
- 				* @param mz_pos The query point.				
- 				* @param mz_b The m/z value of the point right to the query.  
- 				* @param intens_b The intensity value of the point right to the query. */ 
-			inline DoubleReal getLinearInterpolation (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
-			{
-				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
-			};
-
-		
+				
 		protected:
 
 
@@ -496,6 +476,28 @@ namespace OpenMS
 			{
 				return (fabs(mass_a-mass_b)/(0.5*(mass_a+mass_b))*1e6);
 			};
+	
+			
+			/** @brief Computes a linear (intensity) interpolation. 
+ 				* @param left_iter The point left to the query. 
+ 				* @param mz_pos The query point.
+ 				* @param right_iter The point right to the query. */	
+			inline DoubleReal getLinearInterpolation (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
+			{
+				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
+			};
+			
+			/** @brief Computes a linear (intensity) interpolation. 
+ 				* @param mz_a The m/z value of the point left to the query.  
+ 				* @param intens_a The intensity value of the point left to the query. 
+ 				* @param mz_pos The query point.				
+ 				* @param mz_b The m/z value of the point right to the query.  
+ 				* @param intens_b The intensity value of the point right to the query. */ 
+			inline DoubleReal getLinearInterpolation (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
+			{
+				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
+			};
+
 
 
 			//internally used data structures for the sweep line algorithm
