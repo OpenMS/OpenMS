@@ -3,11 +3,18 @@ set(directory include/OpenMS/SIMULATION)
 
 ### list all header files of the directory here
 set(sources_list_h
+DetectibilitySimulation.h
+DigestSimulation.h
 ElutionModel.h
+IonizationSimulation.h
 IsotopeModelGeneral.h
 LCMSSample.h
 LCMSSim.h
+MSSim.h
 MixtureModel.h
+PTMSimulation.h
+RTSimulation.h
+RawSignalSimulation.h
 )
 
 ### add path to the filenames

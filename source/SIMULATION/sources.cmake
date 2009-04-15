@@ -3,11 +3,18 @@ set(directory source/SIMULATION)
 
 ### list all header files of the directory here
 set(sources_list
+DetectibilitySimulation.C
+DigestSimulation.C
 ElutionModel.C
+IonizationSimulation.C
 IsotopeModelGeneral.C
 LCMSSample.C
 LCMSSim.C
+MSSim.C
 MixtureModel.C
+PTMSimulation.C
+RTSimulation.C
+RawSignalSimulation.C
 )
 
 ### add path to the filenames
