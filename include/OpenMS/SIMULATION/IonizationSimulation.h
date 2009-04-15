@@ -29,6 +29,7 @@
 #define OPENMS_SIMULATION_IONIZATIONSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS {
 
@@ -56,6 +57,7 @@ namespace OpenMS {
 
     IonizationSimulation& operator = (const IonizationSimulation& source);
 
+    void ionize(FeatureMap< > &, FeatureMap< > &);
   };
 
 }

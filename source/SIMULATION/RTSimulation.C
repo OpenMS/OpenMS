@@ -45,4 +45,6 @@ namespace OpenMS {
   RTSimulation::~RTSimulation()
   {}
   
+  void RTSimulation::predict_rt(FeatureMap< > &, FeatureMap< > &)
+  {}
 }

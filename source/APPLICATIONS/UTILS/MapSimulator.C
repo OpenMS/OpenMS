@@ -36,6 +36,13 @@
 #include <OpenMS/SIMULATION/LCMSSample.h>
 #include <OpenMS/SIMULATION/LCMSSim.h>
 
+#include <OpenMS/SIMULATION/DigestSimulation.h>
+#include <OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include <OpenMS/SIMULATION/PTMSimulation.h>
+#include <OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/SIMULATION/MSSim.h>
+#include <OpenMS/SIMULATION/RawSignalSimulation.h>
+#include <OpenMS/SIMULATION/IonizationSimulation.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -44,48 +51,41 @@ using namespace std;
 class TOPPMapSimulator
 	: public TOPPBase
 {
-	public:
+  public:
 		TOPPMapSimulator()
-			: TOPPBase("MapSimulator","This application simulates an LC-MS run.",false)
+    : TOPPBase("MapSimulator","This application simulates an LC-MS run.",false)
 		{ }
+    
+  protected:
+    
+    void registerOptionsAndFlags_()
+    {
+      // I/O settings
+      registerStringOption_("in","<file>","","input protein sequences in FASTA format",true);
+      registerStringOption_("out","<file>","","output (simulated MS map) in mzData format",true);
 
-	protected:
+      registerSubsection_("algorithm","Algorithm parameters section");    
+    }
+  
+    Param getSubsectionDefaults_(const String& /*section*/) const
+    { 
+      Param tmp;
+      tmp.insert("Digestion:",DigestSimulation().getParameters());
+      tmp.insert("PostTranslationalModifications:",PTMSimulation().getParameters());
+      tmp.insert("RTSimulation:",RTSimulation().getParameters());
+      tmp.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getParameters());
+      tmp.insert("Ionization:",IonizationSimulation().getParameters());
+      tmp.insert("RawSignal:",RawSignalSimulation().getParameters());
+      
+      return tmp;
+    }
 	
-	void registerOptionsAndFlags_()
-	{
-		// I/O settings
-		registerStringOption_("in","<file>","","input protein sequences in FASTA format",true);
-		registerStringOption_("out","<file>","","output (simulated LC-MS map) in mzData format",true);
-		registerStringOption_("rt_model","<file>","none","SVM model for retention time prediction ",true);
-		registerStringOption_("pd_model","<file>","none","SVM model for peptide detectability prediction ",true);
-		
- 		registerSubsection_("simulation","LC-MS simulation settings");
-		registerSubsection_("sample","Protein sample settings");
-	}
-		
-	Param getSubsectionDefaults_(const String& section) const
-	{
-		if (section == "simulation")
-		{
- 			return LCMSSim().getDefaults(); 
-		}
-		else if (section == "sample")
-		{
-			return LCMSSample().getDefaults();
-		}
-		
-		// should not happen
-		Param tmp;
-		return tmp;
-	}
-	
-
 		ExitCodes main_(int, const char**)
 		{
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-						
+      
 			String inputfile_name = getStringOption_("in");			
 			inputFileReadable_(inputfile_name);
 			String outputfile_name = getStringOption_("out");	
@@ -99,37 +99,37 @@ class TOPPMapSimulator
 			
 			String pdmodel_file = getStringOption_("pd_model");
 			inputFileReadable_(pdmodel_file);
-
+      
 			writeLog_(String("Reading from file: ") + inputfile_name);
 			//-------------------------------------------------------------
 			// Init simulation
 			//-------------------------------------------------------------
 			
 			LCMSSim sim;
-						
+      
 			Param const& sim_param = getParam_().copy("simulation:",true);
 			sim.setParameters(sim_param);
 			sim.setRTModelFile(rtmodel_file);
 			
 			StopWatch w;
 			{			
-			w.start();
-			LCMSSample sample;
-			Param const& digest_param = getParam_().copy("sample:",true);
-			sample.setParameters(digest_param);
-			sample.setPdModelFile(pdmodel_file);
-			sample.loadFASTA(inputfile_name);
-			sample.digest();
-			sample.clearProteins();
-			
-			writeLog_(String("Peptides: ") + String(sample.size()) );
-			
-			// debug output
-// 			sample.printProteins();
-// 			sample.printPeptides();
-			sim.setSample(sample);
-			w.stop();
-			writeLog_(String("Pre-processing took ") + String(w.getClockTime()) + String(" seconds"));   	  	
+        w.start();
+        LCMSSample sample;
+        Param const& digest_param = getParam_().copy("sample:",true);
+        sample.setParameters(digest_param);
+        sample.setPdModelFile(pdmodel_file);
+        sample.loadFASTA(inputfile_name);
+        sample.digest();
+        sample.clearProteins();
+        
+        writeLog_(String("Peptides: ") + String(sample.size()) );
+        
+        // debug output
+        // 			sample.printProteins();
+        // 			sample.printPeptides();
+        sim.setSample(sample);
+        w.stop();
+        writeLog_(String("Pre-processing took ") + String(w.getClockTime()) + String(" seconds"));   	  	
 			}
 			
 			//-------------------------------------------------------------

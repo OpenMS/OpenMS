@@ -29,6 +29,8 @@
 #define OPENMS_SIMULATION_RAWSIGNALSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS {
 
@@ -55,6 +57,9 @@ namespace OpenMS {
     //@}
 
     RawSignalSimulation& operator = (const RawSignalSimulation& source);
+    
+    // TODO: howto add contaminations
+    void generateRawSignals(FeatureMap< > &, MSExperiment<Peak1D> &);
   };
 
 }

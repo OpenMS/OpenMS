@@ -45,5 +45,8 @@ namespace OpenMS {
   IonizationSimulation::~IonizationSimulation()
   {}
 
+  void IonizationSimulation::ionize(FeatureMap< > &, FeatureMap< > &)
+  {}
+
 }
 

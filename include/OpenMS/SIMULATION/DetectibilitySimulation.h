@@ -29,6 +29,7 @@
 #define OPENMS_SIMULATION_DETECTIBILITYSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS {
 
@@ -55,6 +56,8 @@ namespace OpenMS {
     //@}
 
     DetectibilitySimulation& operator = (const DetectibilitySimulation& source);
+    
+    void filterDetectibility(FeatureMap< > &, FeatureMap< >&);
   };
 
 }

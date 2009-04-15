@@ -45,4 +45,6 @@ namespace OpenMS {
   RawSignalSimulation::~RawSignalSimulation()
   {}
   
+  void RawSignalSimulation::generateRawSignals(FeatureMap< > &, MSExperiment< Peak1D > &)
+  {}
 }

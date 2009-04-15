@@ -44,4 +44,7 @@ namespace OpenMS {
   
   DetectibilitySimulation::~DetectibilitySimulation()
   {}
+  
+  void DetectibilitySimulation::filterDetectibility(FeatureMap< > & , FeatureMap< > &)
+  {}
 }
