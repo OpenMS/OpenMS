@@ -15,6 +15,7 @@ MixtureModel.h
 PTMSimulation.h
 RTSimulation.h
 RawSignalSimulation.h
+SimTypes.h
 )
 
 ### add path to the filenames

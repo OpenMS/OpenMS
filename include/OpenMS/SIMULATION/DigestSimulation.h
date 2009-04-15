@@ -29,11 +29,7 @@
 #define OPENMS_SIMULATION_DIGESTSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <vector>
-#include <utility>
+#include <OpenMS/SIMULATION/SimTypes.h>
 
 namespace OpenMS {
 
@@ -61,7 +57,7 @@ namespace OpenMS {
 
     DigestSimulation& operator = (const DigestSimulation& source);
 
-    void digest(std::vector< std::pair<String, Real> > & , std::vector< std::pair< String, Real> > & );    
+    void digest(const SampleProteins & proteins, SamplePeptides & peptides);    
   };
 
 }

@@ -25,46 +25,21 @@
 // $Authors: Stephan Aiche Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_MSSIM_H
-#define OPENMS_SIMULATION_MSSIM_H
+#ifndef OPENMS_SIMULATION_SIMTYPES_H
+#define OPENMS_SIMULATION_SIMTYPES_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <vector>
+#include <utility>
 
-namespace OpenMS {
+#include <OpenMS/KERNEL/Peak2D.h>
 
-  /**
-   @brief Central class for simulation of mass spectrometry experiments
-   
-   This implementation is based on the concepts and ideas presented in:
-   LC-MSsim paper
-   
-   @ingroup Simulation
-  */
-  class OPENMS_DLLAPI MSSim
-    : public DefaultParamHandler
-  {
-
-  public:
-    /** @name Constructors and Destructors
-      */
-    //@{
-    /// Default constructor
-    MSSim();
-
-    /// Copy constructor
-    MSSim(const MSSim& source);
-
-    /// Destructor
-    virtual ~MSSim();
-    //@}
-
-    MSSim& operator = (const MSSim& source);
-
-    /**
-     @brief General purpose function to simualate a mass spectrometry run
-     */   
-    void simulate();
-  };
+namespace OpenMS 
+{
+	
+	typedef Peak2D::IntensityType SimIntensityType;
+	typedef std::pair<OpenMS::String, SimIntensityType> ProteinQuantPair;
+	typedef std::vector< ProteinQuantPair > SampleProteins;
+	typedef SampleProteins SamplePeptides;
 
 }
 

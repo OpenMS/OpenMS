@@ -27,14 +27,18 @@
 
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 
-using std::vector;
-using std::pair;
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 namespace OpenMS {
 
   DigestSimulation::DigestSimulation()
     : DefaultParamHandler("DigestSimulation")
-  {}
+  {
+    defaults_.setValue("missed_cleavages",0,"maximum number of missed cleavages");
+    defaults_.setValue("min_peptide_length",0,"minimum peptide length after digestion");
+
+		defaultsToParam_();		
+	}
 
   DigestSimulation::DigestSimulation(const DigestSimulation& source)
     : DefaultParamHandler(source)
@@ -48,7 +52,37 @@ namespace OpenMS {
   DigestSimulation::~DigestSimulation()
   {}
   
-  void DigestSimulation::digest(vector< pair< String, Real> > & , vector< pair< String, Real> > & )
+  void DigestSimulation::digest(const SampleProteins & proteins, SamplePeptides & peptides)
   {
+		// empty return vector
+		peptides.clear();
+
+		EnzymaticDigestion digestion;
+    digestion.setEnzyme(EnzymaticDigestion::TRYPSIN);
+
+    UInt missed_cleavages  = param_.getValue("missed_cleavages");
+    UInt min_peptide_length = param_.getValue("min_peptide_length");
+
+    digestion.setMissedCleavages( missed_cleavages );
+
+		std::vector<AASequence> digestion_products;
+
+    // Iterate through proteins and digest them
+		for (SampleProteins::const_iterator protein = proteins.begin();
+         protein != proteins.end();
+         ++protein)
+    {
+      digestion.digest(AASequence(protein->first), digestion_products);
+
+			for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
+           dp_it != digestion_products.end();
+           ++dp_it)
+      {
+        if (dp_it->size() < min_peptide_length) continue;
+
+				peptides.push_back( std::make_pair<String, SimIntensityType>(dp_it->toUnmodifiedString(), protein->second) );
+      }
+		}
+
   }
 }

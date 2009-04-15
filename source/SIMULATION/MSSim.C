@@ -27,6 +27,9 @@
 
 #include<OpenMS/SIMULATION/MSSim.h>
 
+#include<OpenMS/SIMULATION/DigestSimulation.h>
+#include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+
 namespace OpenMS {
 
   MSSim::MSSim()
@@ -59,5 +62,7 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
   
+	DigestSimulation digest_sim;
+
   }
 }
