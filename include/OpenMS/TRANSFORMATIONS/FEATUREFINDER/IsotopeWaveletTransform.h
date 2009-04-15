@@ -482,7 +482,7 @@ namespace OpenMS
  				* @param left_iter The point left to the query. 
  				* @param mz_pos The query point.
  				* @param right_iter The point right to the query. */	
-			inline DoubleReal getLinearInterpolation (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
+			inline DoubleReal getLinearInterpolation_ (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
 			{
 				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
 			};
@@ -493,7 +493,7 @@ namespace OpenMS
  				* @param mz_pos The query point.				
  				* @param mz_b The m/z value of the point right to the query.  
  				* @param intens_b The intensity value of the point right to the query. */ 
-			inline DoubleReal getLinearInterpolation (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
+			inline DoubleReal getLinearInterpolation_ (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
 			{
 				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
 			};
@@ -1011,7 +1011,7 @@ namespace OpenMS
 					{
 						UInt dist = distance(candidates.begin(), iter2);
 						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, 
-							getLinearInterpolation ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
+							getLinearInterpolation_ ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
 							candidates.getRT(), MZ_start, MZ_end);
 					};
 				};
@@ -1031,7 +1031,7 @@ namespace OpenMS
 					{
 						UInt dist = distance(candidates.begin(), iter2);
 						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, 
-							getLinearInterpolation ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
+							getLinearInterpolation_ ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
 							candidates.getRT(), MZ_start, MZ_end);
 					};
 				};
@@ -1162,7 +1162,7 @@ namespace OpenMS
 			{
 				if (iter2 != candidates.end())
 				{
-					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation_(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 				};
 			};
 		
@@ -1178,7 +1178,7 @@ namespace OpenMS
 			{
 				if (iter2 != candidates.end())
 				{
-					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation_(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 				};
 			};
 		};	
