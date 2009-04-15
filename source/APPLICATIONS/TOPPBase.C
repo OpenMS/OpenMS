@@ -1859,7 +1859,7 @@ namespace OpenMS
 	}
 
 
-	const String& TOPPBase::toolName() const
+	const String& TOPPBase::toolName_() const
 	{
 		return tool_name_;
 	}

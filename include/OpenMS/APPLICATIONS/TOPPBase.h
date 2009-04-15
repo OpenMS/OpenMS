@@ -413,7 +413,7 @@ namespace OpenMS
       }
 			
 			///Returns the tool name
-			const String& toolName() const;
+			const String& toolName_() const;
 			
       /**
       	@name Parameter handling

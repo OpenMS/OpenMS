@@ -109,7 +109,7 @@ class TOPPPeakPicker
 		registerOutputFile_("out","<file>","","output peak file ");
 	  setValidFormats_("out",StringList::create("mzData"));
 		registerStringOption_("type","<name>","","peak detection algorithm type",true);
-		setValidStrings_("type", getToolList()[toolName()] );
+		setValidStrings_("type", getToolList()[toolName_()] );
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
   	registerSubsection_("algorithm","Algorithm parameters section");
