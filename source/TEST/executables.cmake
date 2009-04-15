@@ -340,6 +340,7 @@ set(transformations_executables_list
   ContinuousWaveletTransformNumIntegration_test
   OptimizePick_test
   PeakPickerCWT_test
+	PeakPickerHiRes_test
   OptimizePeakDeconvolution_test
   TwoDOptimization_test
 )

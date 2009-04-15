@@ -48,7 +48,7 @@ namespace OpenMS
 
 		
 		// initialize class members
-		signalToNoise_ = param_.getValue("signal_to_noise");
+		signal_to_noise_ = param_.getValue("signal_to_noise");
   }
 
   PeakPickerHiRes::~PeakPickerHiRes()

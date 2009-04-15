@@ -67,45 +67,56 @@ namespace OpenMS
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
     {
-			// double SNT_THRESHOLD = 2.0;
+			// don't pick a spectrum with less than 3 data points
+			if (input.size() < 3)
+				return ;
+
+			// copy meta data of the input spectrum
+			output.clear();
+			output.SpectrumSettings::operator=(input);
+			output.MetaInfoInterface::operator=(input);
+			output.setRT(input.getRT());
+			output.setMSLevel(input.getMSLevel());
+			output.setName(input.getName());
+			output.setType(SpectrumSettings::PEAKS);
 			
-			// signal2noise estimation
+			// signal-to-noise estimation
 			SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
 			snt.init(input);
 			
 			// find local maxima in raw data
-			for (unsigned int i = 1; i < input.size()-1; ++i)
+			for (Size i = 1; i < input.size()-1; ++i)
 				{
-					double centralPeakMZ = input[i].getMZ(), centralPeakInt = input[i].getIntensity();
-					double lNeighbourMZ = input[i-1].getMZ(), lNeighbourInt = input[i-1].getIntensity();
-					double rNeighbourMZ = input[i+1].getMZ(), rNeighbourInt = input[i+1].getIntensity();
+					double central_peak_mz = input[i].getMZ(), central_peak_int = input[i].getIntensity();
+					double left_neighbor_mz = input[i-1].getMZ(), left_neighbor_int = input[i-1].getIntensity();
+					double right_neighbor_mz = input[i+1].getMZ(), right_neighbor_int = input[i+1].getIntensity();
 					
 					// MZ spacing sanity checks
-					double leftToCentral = std::fabs(centralPeakMZ-lNeighbourMZ);
-					double centralToRight = std::fabs(rNeighbourMZ-centralPeakMZ);
-					double minSpacing = (leftToCentral < centralToRight)? leftToCentral : centralToRight;
+					double left_to_central = std::fabs(central_peak_mz-left_neighbor_mz);
+					double central_to_right = std::fabs(right_neighbor_mz-central_peak_mz);
+					double min_spacing = (left_to_central < central_to_right)? left_to_central : central_to_right;
 				
 					// look for peak cores meeting MZ and intensity/SNT criteria
-					if (snt.getSignalToNoise(input[i]) >= signalToNoise_
-							&& leftToCentral < 1.5*minSpacing
-							&& centralPeakInt > lNeighbourInt
-							&& snt.getSignalToNoise(input[i-1]) >= signalToNoise_
-							&& centralToRight < 1.5*minSpacing
-							&& centralPeakInt > rNeighbourInt
-							&& snt.getSignalToNoise(input[i+1]) >= signalToNoise_)
+					if (snt.getSignalToNoise(input[i]) >= signal_to_noise_
+							&& left_to_central < 1.5*min_spacing
+							&& central_peak_int > left_neighbor_int
+							&& snt.getSignalToNoise(input[i-1]) >= signal_to_noise_
+							&& central_to_right < 1.5*min_spacing
+							&& central_peak_int > right_neighbor_int
+							&& snt.getSignalToNoise(input[i+1]) >= signal_to_noise_)
 						{
 							// special case: if a peak core is surrounded by more intense
 							// satellite peaks (indicates oscillation rather than
 							// real peaks) -> remove							
 							if ((i > 1
-									 && std::fabs(lNeighbourMZ - input[i-2].getMZ()) < 1.5*minSpacing
-									 && lNeighbourInt < input[i-2].getIntensity()
-									 && snt.getSignalToNoise(input[i-2]) >= signalToNoise_)
+									 && std::fabs(left_neighbor_mz - input[i-2].getMZ()) < 1.5*min_spacing
+									 && left_neighbor_int < input[i-2].getIntensity()
+									 && snt.getSignalToNoise(input[i-2]) >= signal_to_noise_)
 									&&
 									((i+2) < input.size()
-									 && std::fabs(input[i+2].getMZ() - rNeighbourMZ) < 1.5*minSpacing
-									 && rNeighbourInt < input[i+2].getIntensity()
-									 && snt.getSignalToNoise(input[i+2]) >= signalToNoise_)
+									 && std::fabs(input[i+2].getMZ() - right_neighbor_mz) < 1.5*min_spacing
+									 && right_neighbor_int < input[i+2].getIntensity()
+									 && snt.getSignalToNoise(input[i+2]) >= signal_to_noise_)
 									)
 								{
 									++i;
@@ -113,34 +124,34 @@ namespace OpenMS
 								}
 							
 							
-							std::map<double, double> peakRawData;
+							std::map<double, double> peak_raw_data;
 							
-							peakRawData[centralPeakMZ] = centralPeakInt;
-							peakRawData[lNeighbourMZ] = lNeighbourInt;
-							peakRawData[rNeighbourMZ] = rNeighbourInt;
+							peak_raw_data[central_peak_mz] = central_peak_int;
+							peak_raw_data[left_neighbor_mz] = left_neighbor_int;
+							peak_raw_data[right_neighbor_mz] = right_neighbor_int;
 							
 							
 							// peak core found, now extend it
 							// to the left
-							unsigned int k = 2;
+							Size k = 2;
 							
 							while ((i-k+1) > 0
-										 && std::fabs(input[i-k].getMZ() - peakRawData.begin()->first) < 1.5*minSpacing
-										 && input[i-k].getIntensity() < peakRawData.begin()->second
-										 && snt.getSignalToNoise(input[i-k]) >= signalToNoise_)
+										 && std::fabs(input[i-k].getMZ() - peak_raw_data.begin()->first) < 1.5*min_spacing
+										 && input[i-k].getIntensity() < peak_raw_data.begin()->second
+										 && snt.getSignalToNoise(input[i-k]) >= signal_to_noise_)
 								{
-									peakRawData[input[i-k].getMZ()] = input[i-k].getIntensity();
+									peak_raw_data[input[i-k].getMZ()] = input[i-k].getIntensity();
 									++k;
 								}
 							
 							// to the right
 							k = 2;
 							while ((i+k) < input.size()
-										 && std::fabs(input[i+k].getMZ() - peakRawData.rbegin()->first) < 1.5*minSpacing
-										 && input[i+k].getIntensity() < peakRawData.rbegin()->second
-										 && snt.getSignalToNoise(input[i+k]) >= signalToNoise_)
+										 && std::fabs(input[i+k].getMZ() - peak_raw_data.rbegin()->first) < 1.5*min_spacing
+										 && input[i+k].getIntensity() < peak_raw_data.rbegin()->second
+										 && snt.getSignalToNoise(input[i+k]) >= signal_to_noise_)
 								{
-									peakRawData[input[i+k].getMZ()] = input[i+k].getIntensity();
+									peak_raw_data[input[i+k].getMZ()] = input[i+k].getIntensity();
 									++k;
 								}
 						  
@@ -148,91 +159,95 @@ namespace OpenMS
 							// output all raw data points selected for one peak
 							// TODO: #ifdef DEBUG_ ...
 							/**
-								 for (std::map<double, double>::const_iterator mIt = peakRawData.begin(); mIt != peakRawData.end(); ++mIt) {
+								 for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
 								 PeakType peak;
 								 
-								 peak.setMZ(mIt->first);
-								 peak.setIntensity(mIt->second);
+								 peak.setMZ(map_it->first);
+								 peak.setIntensity(map_it->second);
 								 output.push_back(peak);
 								 
-								 std::cout << mIt->first << " " << mIt->second << " snt: " << std::endl;
+								 std::cout << map_it->first << " " << map_it->second << " snt: " << std::endl;
 								 
 								 }
 								 std::cout << "--------------------" << std::endl;
 							*/
 							
 							
-							const size_t numRawPoints = peakRawData.size();
+							const Size num_raw_points = peak_raw_data.size();
 							
-							std::vector<double> rawMZvalues;
-							std::vector<double> rawINTvalues;
+							std::vector<double> raw_mz_values;
+							std::vector<double> raw_int_values;
 							
-							for (std::map<double, double>::const_iterator mIt = peakRawData.begin(); mIt != peakRawData.end(); ++mIt)
+							for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
 								{
-									rawMZvalues.push_back(mIt->first);
-									rawINTvalues.push_back(mIt->second);
+									raw_mz_values.push_back(map_it->first);
+									raw_int_values.push_back(map_it->second);
 								}
 							
 							// setup gsl splines
-							gsl_interp_accel *splineAcc = gsl_interp_accel_alloc();
-							gsl_interp_accel *deriv1Acc = gsl_interp_accel_alloc();
-							gsl_spline *peakSpline = gsl_spline_alloc(gsl_interp_cspline, numRawPoints);
-							gsl_spline_init(peakSpline, &(*rawMZvalues.begin()), &(*rawINTvalues.begin()), numRawPoints);
+							gsl_interp_accel *spline_acc = gsl_interp_accel_alloc();
+							gsl_interp_accel *first_deriv_acc = gsl_interp_accel_alloc();
+							gsl_spline *peak_spline = gsl_spline_alloc(gsl_interp_cspline, num_raw_points);
+							gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
 							
 							
 							// calculate maximum by evaluating the spline's 1st derivative
 							// (bisection method)
-							double maxMZ = centralPeakMZ, maxInt = centralPeakInt;
+							double max_peak_mz = central_peak_mz, max_peak_int = central_peak_int;
 							double threshold = 0.000001;
-							double l = lNeighbourMZ;
-							double r = rNeighbourMZ;
+							double lefthand = left_neighbor_mz;
+							double righthand = right_neighbor_mz;
 							
-							bool lSign = 1;
+							bool lefthand_sign = 1;
 							double eps = std::numeric_limits<double>::epsilon();
 
 							
 							// bisection
 							do
 								{
-									double mid = (l + r) / 2;
+									double mid = (lefthand + righthand) / 2;
 									
-									double fMid = gsl_spline_eval_deriv(peakSpline, mid, deriv1Acc);
-									if (!(std::fabs(fMid) > eps))
-										break;
-
-									bool mSign = (fMid < 0.0)? 0 : 1;
+									double midpoint_deriv_val = gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
 									
-									if (lSign ^ mSign)
+									// if deriv nearly zero then maximum already found
+									if (!(std::fabs(midpoint_deriv_val) > eps))
 										{
-											r = mid;
+											break;
+										}
+
+									bool midpoint_sign = (midpoint_deriv_val < 0.0)? 0 : 1;
+									
+									if (lefthand_sign ^ midpoint_sign)
+										{
+											righthand = mid;
 										}
 									else
 										{
-											l = mid;
+											lefthand = mid;
 										}
 									
 									// TODO: #ifdef DEBUG_ ...
 									// PeakType peak;
 									// peak.setMZ(mid);
-									// peak.setIntensity(gsl_spline_eval(peakSpline, mid, splineAcc));
+									// peak.setIntensity(gsl_spline_eval(peak_spline, mid, spline_acc));
 									// output.push_back(peak);
 									
-								} while ( std::fabs(l - r) > threshold );
+								} while ( std::fabs(lefthand - righthand) > threshold );
 							
 							// sanity check?
-							maxMZ = (l + r) / 2;
-							maxInt = gsl_spline_eval(peakSpline, maxMZ, splineAcc);
+							max_peak_mz = (lefthand + righthand) / 2;
+							max_peak_int = gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
 							
 							// save picked pick into output spectrum
 							PeakType peak;
-							peak.setMZ(maxMZ);
-							peak.setIntensity(maxInt);
+							peak.setMZ(max_peak_mz);
+							peak.setIntensity(max_peak_int);
 							output.push_back(peak);
 							
 							// free allocated gsl memory
-							gsl_spline_free(peakSpline);
-							gsl_interp_accel_free(splineAcc);
-							gsl_interp_accel_free(deriv1Acc);
+							gsl_spline_free(peak_spline);
+							gsl_interp_accel_free(spline_acc);
+							gsl_interp_accel_free(first_deriv_acc);
 							
 							// jump over raw data points that have been considered already
 							i = i + k - 1;
@@ -249,18 +264,19 @@ namespace OpenMS
     template <typename PeakType>
     void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
     {
-			for (unsigned int scanIdx = 0; scanIdx != input.size(); ++scanIdx)
+			// make sure that output is clear
+			output.clear();
+
+			// copy experimental settings
+			static_cast<ExperimentalSettings&>(output) = input;
+
+			// resize output with respect to input
+			output.resize(input.size());
+			
+
+			for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
 				{
-					if (input[scanIdx].getMSLevel() == 1)
-						{
-							MSSpectrum<PeakType> tmpSpectrum;
-							
-							pick(input[scanIdx], tmpSpectrum);
-							
-							tmpSpectrum.setRT(input[scanIdx].getRT());
-							output.push_back(tmpSpectrum);
-						}
-					// post a warning if MS2 scans are detected?
+					pick(input[scan_idx], output[scan_idx]);	
 				}
 			
 			return ;
@@ -268,7 +284,7 @@ namespace OpenMS
 		
 	protected:
 		// signal-to-noise parameter
-		double signalToNoise_;
+		double signal_to_noise_;
 		
 		
 		//docu in base class
