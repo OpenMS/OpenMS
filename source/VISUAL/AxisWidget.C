@@ -114,7 +114,7 @@ namespace OpenMS
 			{
 				tick_count += grid_line_[i].size();
 			}
-			overall_required_pixels = max_width*tick_count;
+			overall_required_pixels = (UInt)(max_width*tick_count);
 		}
 		else //shrink font if the largest text is too big
 		{
@@ -243,11 +243,11 @@ namespace OpenMS
 					break;
 			  case LEFT: 
 					painter.rotate(270);
- 				painter.drawText(-h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
+ 				painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignTop, legend_.c_str());
 					break;
 			  case RIGHT:
 					painter.rotate(270);
-					painter.drawText(-h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
+					painter.drawText(-(int)h, 0 ,h ,w, Qt::AlignHCenter|Qt::AlignBottom, legend_.c_str());
 					break;
 			}	
 		}
