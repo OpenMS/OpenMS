@@ -22,7 +22,7 @@
 <b>Notation of this tutorial</b>
  <UL>
     <LI>whenever there is a $ this implies entering everything that follows the $ into a command line (usually the Visual Studio Command line)
-    <LI>A string in <> is something the user needs to choose e.g. <path_to_contrib> means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
+    <LI>A string in <> is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
     <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Lines</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
@@ -102,14 +102,14 @@
           <LI>$ cd <path-to-qt>
           <LI>$ configure.exe
           <LI>$ nmake
-          <LI>now you should have Link-Libraries and DLL's (debug and release) in your <Qt>/lib directory
+          <LI>now you should have Link-Libraries and DLL's (debug and release) in your &lt;Qt&gt;/lib directory
         </OL>
       <LI>commercial:
         <OL>
           <LI>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
         </OL>
       <LI>set the Environment Variable QTDIR to your Qt-Directory
-      <LI>add the <Qt>/bin (!) directory to your PATH Environment Variable
+      <LI>add the &lt;Qt&gt;/bin (!) directory to your PATH Environment Variable
 		</OL>
 
 	@subsection install_win_contrib Contrib installation
@@ -146,11 +146,11 @@
 				able to run 64bit apps in this case.
 				
 @code
-cd <path_to_contrib_build>
-cmake -G "<generator>" "<path_to_contrib>"
+cd &lt;path_to_contrib_build&gt;
+cmake -G "&lt;generator&gt;" "&lt;path_to_contrib&gt;"
 @endcode
 
-        The <generator> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
+        The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
         Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
         Type <tt>$ cmake</tt> to see a list of available generators.<br>
         Example:
@@ -159,7 +159,7 @@ cd c:\svn\contrib_win64_build
 cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 @endcode
 
-				<LI>add the <path_to_contrib_build>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+				<LI>add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
 
@@ -167,7 +167,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
   @section install_win_openms Installing OpenMS
 
 		If you have not installed the libraries which %OpenMS requires,
-		please refer to the section @ref install_win_required above.
+		please refer to the section @ref install_win_contrib above.
 		<br>
 		Assuming you have successfully installed the dependent libraries, you need to
 		get the %OpenMS source code. The latest stable version of %OpenMS
@@ -184,9 +184,9 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
       <LI>call CMake to create the BuildSystem there
 @code
 cd <path_to_OpenMS_build>
-cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
+cmake -D CONTRIB_CUSTOM_DIR:PATH="&lt;path_to_contrib_build&gt;" -G "&lt;generator&gt;" "&lt;path_to_OpenMS&gt;"
 @endcode
-          The choice of <generator> is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
+          The choice of &lt;generator&gt; is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
           If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
           Example:
 @code
@@ -253,7 +253,7 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 
   @section enable_db [deprecated] Enabling database support
   
-  This information is based on an old OpenMS version and might not work.
+  This information is based on an old %OpenMS version and might not work.
   
 	%OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
 	We try to install a MySQL driver (installing other db-drivers should work accordingly).

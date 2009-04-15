@@ -95,7 +95,7 @@
   <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
   For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
-  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above.
+  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above.
   
   CMake is used to check the system and create the main 'Makefile'.
   @n Go to the %OpenMS directory and execute the following command:
@@ -124,7 +124,7 @@
     <tr>
       <td valign="top">CONTRIB_CUSTOM_DIR</td>
       <td>search for the contrib libraries in this location.
-          If unset the the location is assumed to be <tt><path_to_OpenMS>/contrib</tt>.</td>
+          If unset the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
     </tr>
     <tr>
       <td valign="top">QT_QMAKE_EXECUTABLE</td>

@@ -384,7 +384,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			2D model based on averagine isotope pattern and elution profile.
 
-			See @ref FeatureFinderAlgorithmWavelet for a list of parameters.
+			See the #FeatureFinderAlgorithmWavelet class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
@@ -426,7 +426,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
 
-			See the @ref FeatureFinderAlgorithmIsotopeWavelet  class documentation for a parameter list.
+			See the #FeatureFinderAlgorithmIsotopeWavelet class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
@@ -461,7 +461,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
 			
-			See the @ref FeatureFinderAlgorithmPicked  class documentation for a parameter list.
+			See the #FeatureFinderAlgorithmPicked class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
@@ -486,7 +486,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 				(class EMGFitter1D, class LmaGaussFitter1D)
 				
-				See the @ref FeatureFinderAlgorithmSimple class documentation for a parameter list.
+				See the #FeatureFinderAlgorithmSimple class documentation for a parameter list.
 			</TD>
 		</TR>
 	</TABLE>
@@ -527,7 +527,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 				and the whole region is discarded, and its data points are marked as unused
 				again.  (class ModelFitter)
 				
-				See the @ref FeatureFinderAlgorithmSimplest class documentation for a parameter list.
+				See the #FeatureFinderAlgorithmSimplest class documentation for a parameter list.
 			</TD>
 		</TR>
 	</TABLE>

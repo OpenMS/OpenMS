@@ -308,7 +308,7 @@ svn propset svn:eol-style native MyClass.C
 	      <TT>svn propset svn:keywords Id &lt;file&gt;</TT>
 
 	    <LI><b>How do I create a branch?</b><BR>
-	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/<name>/</TT>
+	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</TT>
 
 			 <LI><b>How do I merge the changes i made to the HEAD into the release branch?</b><BR>
 			  Suppose you want to merge the changes you made in revision 2325 of the HEAD (/OpenMS) into the current
