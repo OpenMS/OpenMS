@@ -44,7 +44,9 @@
 namespace OpenMS
 {
   /**
-		 @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap).
+		 @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width.
+
+		 This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (signal_to_noise parameter). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline.
 		 
 		 @htmlinclude OpenMS_PeakPickerHiRes.parameters
 		 
@@ -62,7 +64,7 @@ namespace OpenMS
     virtual ~PeakPickerHiRes();
 		
     /** 
-				@brief pick
+				@brief pick Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
     */
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
@@ -259,7 +261,7 @@ namespace OpenMS
 		
 		
     /** 
-				@brief 
+				@brief Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting picked peaks are written to the output map.
     */
     template <typename PeakType>
     void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
@@ -273,11 +275,15 @@ namespace OpenMS
 			// resize output with respect to input
 			output.resize(input.size());
 			
+			Size progress = 0;
 
+			startProgress(0,input.size(),"picking peaks");
 			for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
 				{
-					pick(input[scan_idx], output[scan_idx]);	
+					pick(input[scan_idx], output[scan_idx]);
+					setProgress(++progress);
 				}
+			endProgress();
 			
 			return ;
     }
