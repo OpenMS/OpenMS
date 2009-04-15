@@ -48,13 +48,13 @@ namespace OpenMS
 		// check input
 		{	
 			// We need updated ranges => check number of peaks
-			if (algorithm_name != "MRM" && input_map.getSize()==0)
+			if (algorithm_name != "mrm" && input_map.getSize()==0)
 			{
 				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder needs updated ranges on input map. Aborting.");
 			}
 
 			// We need MS1 data only => check levels
-			if (algorithm_name != "MRM" && (input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1 ))
+			if (algorithm_name != "mrm" && (input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1 ))
 			{
 				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting.");
 			}

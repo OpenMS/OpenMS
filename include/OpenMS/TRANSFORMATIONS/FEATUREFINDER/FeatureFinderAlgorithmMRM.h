@@ -217,7 +217,7 @@ namespace OpenMS
 
 			static const String getProductName()
 			{
-				return "MRM";
+				return "mrm";
 			}
 	
 		protected:

@@ -80,6 +80,8 @@ add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_
 add_test("TOPP_FeatureFinder_3_out1" ${DIFF} -in1 FeatureFinder_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_3_output.featureXML)
 add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
 add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
+#add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder_5_output.tmp)
+#add_test("TOPP_FeatureFinder_5_out1" ${DIFF} -in1 FeatureFinder_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_5_output.featureXML)
 
 ### FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -in ${DATA_DIR_TOPP}/FileConverter_1_input.txt -in_type mzData -out FileConverter.tmp -out_type DTA2D)
@@ -364,9 +366,6 @@ add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -whitelist "SILACAnalyzer_2_input.m
 add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -whitelist "SILACAnalyzer_2_input.mzData" "?xml-stylesheet" -in1 SILACAnalyzer_2_output_vis.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output_vis.featureXML)
 
 
-### FeatureFinderMRM tests
-add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinder -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
-add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -in1 FeatureFinderMRM.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML)
 
 ### FeatureLinker tests
 add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)

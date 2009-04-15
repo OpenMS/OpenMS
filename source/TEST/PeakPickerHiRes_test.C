@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(PeakPickerHiRes, "$Id: PeakPickerHiRes_test.C 5049 2009-04-14 14:32:46Z ekenar $")
+START_TEST(PeakPickerHiRes, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

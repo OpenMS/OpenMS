@@ -257,14 +257,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
-		- You can find the @b NoiseFilter, the @b BaselineFilter, and the @b PeakPicker in @b TOPPView
-		  in the menu 'Layer' - 'Apply TOPP tool'
-		- The most important parameters for the @b PeakPicker are
-		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
-		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
-		  - <tt>fwhm_bound</tt> - The minimal width of a peak
-		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a data point has to reach in order to be considered a peak. The lower this value is, the more low-intensity peaks will be reported. 
-		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
+		- You can find the @b NoiseFilter, the @b BaselineFilter, and the @b PeakPicker in @b TOPPView in the menu 'Layer' - 'Apply TOPP tool'
 */
 
 //##############################################################################
@@ -332,7 +325,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		<TR>
 			<TD>
 				@b Description: <br>
-				This algorithms uses a dynamic-programming approach based on spectrum similariy for the alignment.
+				This @b experimental algorithm uses a dynamic-programming approach based on spectrum similariy for the alignment.
 				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
 				to the retention time pairs.
 				@n As this algorithm uses spectrum similarity, it is only applicable to peak data.
@@ -354,7 +347,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -375,7 +368,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 			Details on the mother wavelet can be found in Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
 
-			The algorithm "isotope_wavelet_nofit" which is described below does not use
+			The algorithm "isotope_wavelet" which is described below does not use
 			the two-dimensional model for filtering and is thus particularly well suited
 			for peitde mass fingerpriting (PMF) on MALDI data.
 			
@@ -391,8 +384,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			2D model based on averagine isotope pattern and elution profile.
 
-			See  
-			<a href="./FeatureFinderAlgorithmWavelet_Parameters.html">FeatureFinderAlgorithmWavelet Parameters</a> for a list of parameters.
+			See @ref FeatureFinderAlgorithmWavelet for a list of parameters.
 		</TD>
 	</TR>
 	</TABLE>
@@ -400,7 +392,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -434,9 +426,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
 
-			See the 
-			<a href="./FeatureFinderAlgorithmIsotopeWavelet_Parameters.html">FeatureFinderAlgorithmIsotopeWavelet Parameters</a>
-			 page for a documented list of configuration options for this algorithm.
+			See the @ref FeatureFinderAlgorithmIsotopeWavelet  class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
@@ -471,9 +461,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			<BR>
 			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
 			
-			See the 
-			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
-			 page for a documented list of configuration options for this algorithm.
+			See the @ref FeatureFinderAlgorithmPicked  class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
@@ -498,9 +486,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 				(class EMGFitter1D, class LmaGaussFitter1D)
 				
-				See the 
-				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
-				 page for a documented list of configuration options for this algorithm.
+				See the @ref FeatureFinderAlgorithmSimple class documentation for a parameter list.
 			</TD>
 		</TR>
 	</TABLE>
@@ -541,10 +527,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 				and the whole region is discarded, and its data points are marked as unused
 				again.  (class ModelFitter)
 				
-				See the <a
-				href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
-				Parameters</a> page for a documented list of configuration options for this
-				algorithm.
+				See the @ref FeatureFinderAlgorithmSimplest class documentation for a parameter list.
 			</TD>
 		</TR>
 	</TABLE>

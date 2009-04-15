@@ -70,17 +70,12 @@ using namespace std;
 			<td><b>LTQ Orbitrap</b></td>
 		</tr>
 		<tr>
-			<td><b>thresholds:signal_to_noise</b></td>
+			<td><b>signal_to_noise</b></td>
 			<td>2</td>
 			<td>0</td>
 		</tr>
 		<tr>
-			<td><b>thresholds:fwhm_bound</b></td>
-			<td>0.1</td>
-			<td>0.005</td>
-		</tr>
-		<tr>
-		<td><b>wavelet_transform:scale</b></td>
+		<td><b>peak_width</b></td>
 			<td>0.1</td>
 			<td>0.012</td>
 		</tr>
@@ -114,7 +109,7 @@ class TOPPPeakPicker
 		registerOutputFile_("out","<file>","","output peak file ");
 	  setValidFormats_("out",StringList::create("mzData"));
 		registerStringOption_("type","<name>","","peak detection algorithm type",true);
-		setValidStrings_("type", StringList::create("wavelet,high_res"));
+		setValidStrings_("type", getToolList()[toolName()] );
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
   	registerSubsection_("algorithm","Algorithm parameters section");
