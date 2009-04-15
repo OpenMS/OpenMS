@@ -28,13 +28,18 @@
 #ifndef OPENMS_SIMULATION_PTMSIMULATION_H
 #define OPENMS_SIMULATION_PTMSIMULATION_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <vector>
 #include <utility>
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <OpenMS/SIMULATION/SimTypes.h>
 
 namespace OpenMS {
 
@@ -62,7 +67,10 @@ namespace OpenMS {
 
     PTMSimulation& operator = (const PTMSimulation& source); 
     
-    void predict_ptms(std::vector< std::pair< String, Real > > &, FeatureMap< > & );
+    /**
+      @brief Adds possible post translational modifications to the peptides
+     */
+    void predict_ptms(FeatureMap< > &, PTMTable & , FeatureMap< > & );
     
   };
 }

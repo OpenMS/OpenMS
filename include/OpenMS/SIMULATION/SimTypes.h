@@ -30,8 +30,10 @@
 
 #include <vector>
 #include <utility>
+#include <map>
 
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS 
 {
@@ -41,6 +43,24 @@ namespace OpenMS
 	typedef std::vector< ProteinQuantPair > SampleProteins;
 	typedef SampleProteins SamplePeptides;
 
+  /// A posttranslational modification
+  struct PTM
+  {
+    /// (Simplified) name
+    String name_;
+    
+    /// Formula
+    EmpiricalFormula formula_;
+    
+    /// Relative abundance (in %)
+    double abundance_;
+    
+    /// mass shift (positive = true, negative = false)
+    bool shift_;
+  };  
+  
+  // maps from aminoacid (e.g. "A") to a list of possible modifications
+  typedef std::multimap<String, PTM> PTMTable;
 }
 
 #endif

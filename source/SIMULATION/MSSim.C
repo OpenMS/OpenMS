@@ -29,12 +29,25 @@
 
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 #include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include <OpenMS/SIMULATION/RawSignalSimulation.h>
+#include <OpenMS/SIMULATION/IonizationSimulation.h>
+#include <OpenMS/SIMULATION/PTMSimulation.h>
+#include <OpenMS/SIMULATION/RTSimulation.h>
 
 namespace OpenMS {
 
   MSSim::MSSim()
     : DefaultParamHandler("MSSim")
-  {}
+  {
+    defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
+    defaults_.insert("PostTranslationalModifications:",PTMSimulation().getDefaults());
+    defaults_.insert("RTSimulation:",RTSimulation().getDefaults());
+    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
+    defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
+    defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
+    
+    defaultsToParam_();
+  }
 
   MSSim::MSSim(const MSSim& source)
     : DefaultParamHandler(source)
@@ -62,7 +75,7 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
   
-	DigestSimulation digest_sim;
+    DigestSimulation digest_sim;
 
   }
 }

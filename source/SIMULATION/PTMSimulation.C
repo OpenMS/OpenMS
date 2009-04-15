@@ -46,7 +46,7 @@ namespace OpenMS {
   {}
   
  
-  void PTMSimulation::predict_ptms(std::vector< std::pair< String, Real > > &, FeatureMap< > &)
+  void PTMSimulation::predict_ptms(FeatureMap< > &, PTMTable & , FeatureMap< > & )
   {
   }
 }

@@ -36,13 +36,7 @@
 #include <OpenMS/SIMULATION/LCMSSample.h>
 #include <OpenMS/SIMULATION/LCMSSim.h>
 
-#include <OpenMS/SIMULATION/DigestSimulation.h>
-#include <OpenMS/SIMULATION/DetectibilitySimulation.h>
-#include <OpenMS/SIMULATION/PTMSimulation.h>
-#include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/SIMULATION/MSSim.h>
-#include <OpenMS/SIMULATION/RawSignalSimulation.h>
-#include <OpenMS/SIMULATION/IonizationSimulation.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,13 +64,7 @@ class TOPPMapSimulator
     Param getSubsectionDefaults_(const String& /*section*/) const
     { 
       Param tmp;
-      tmp.insert("Digestion:",DigestSimulation().getParameters());
-      tmp.insert("PostTranslationalModifications:",PTMSimulation().getParameters());
-      tmp.insert("RTSimulation:",RTSimulation().getParameters());
-      tmp.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getParameters());
-      tmp.insert("Ionization:",IonizationSimulation().getParameters());
-      tmp.insert("RawSignal:",RawSignalSimulation().getParameters());
-      
+      tmp.insert("MSSim:", MSSim().getParameters());      
       return tmp;
     }
 	
