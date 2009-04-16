@@ -49,8 +49,16 @@ using namespace std;
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDMassAccuracy.cli
-	
-	@todo Write docu (Andreas)
+
+	Given a number of peak maps and for each of the maps an idXML file which contains
+	peptide identifications the theoretical masses of the identifications and the peaks
+	of the spectra are compared. This can be done for precursor information stored in
+	the spectra as well as for fragment information.
+
+	The result is a distribution of errors of experimental vs. theoretical masses, which 
+	can be used for visualization with HistView for example. Having such distributions given
+	the search parameters of the sequence database search can be adjusted to speed-up 
+	the identification process and to get a higher performance.
 */
 
 // We do not want this class to show up in the docu:
@@ -70,7 +78,7 @@ class TOPPIDMassAccuracy
 {
 	public:
 		TOPPIDMassAccuracy()
-			: TOPPBase("IDMassAccuracy","TODO", false)
+			: TOPPBase("IDMassAccuracy","Given mass spectra and IDs a distribution of the mass error is written.", false)
 		{
 			
 		}
