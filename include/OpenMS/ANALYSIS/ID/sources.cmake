@@ -5,16 +5,9 @@ set(directory include/OpenMS/ANALYSIS/ID)
 set(sources_list_h
 ConsensusID.h
 FalseDiscoveryRate.h
-HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
-PILISIdentification.h
-PILISModel.h
-PILISModelGenerator.h
-PILISNeutralLossModel.h
 PILISScoring.h
-PILISCrossValidation.h
-ProtonDistributionModel.h
 PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h
 )

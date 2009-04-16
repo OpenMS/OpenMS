@@ -37,9 +37,6 @@ PepNovoAdapter
 RTModel
 RTPredict
 Resampler
-#SILACAnalyzer
-# PILISModel
-# PILISIdentification
 SequestAdapter
 SpectraFilter
 TOFCalibration

@@ -225,10 +225,10 @@ namespace OpenMS
 		return getFormula(type, charge).getMonoWeight();
 	}
 
-	Map<const EmpiricalFormula*, UInt> AASequence::getNeutralLosses() const
+	/*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const
 	{
 		// the following losses are from the Zhang paper (AC, 76, 14, 2004)
-		// charge directed
+		// charge directed*/
 		/*
 		static const EmpiricalFormula R_44("NH2CHNH"); 
 		static const EmpiricalFormula R_59("CN3H5"); // guanidium
@@ -236,14 +236,14 @@ namespace OpenMS
 		// charge remote
 		static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O
 		static const EmpiricalFormula H2O("H2O"); // loss from the C-terminus
-		static const EmpiricalFormula NH3("NH3");*/
+		static const EmpiricalFormula NH3("NH3");
 		Map<const EmpiricalFormula*, UInt> losses;
-		/*
+		
 		for (Size i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i]->hasNeutralLoss())
 			{
-				const EmpiricalFormula* loss = &peptide_[i]->getLossFormula();
+				const EmpiricalFormula* loss = peptide_[i]->getLossFormulas();
 				if (losses.find(loss) != losses.end())
 				{
 					losses[loss]++;
@@ -253,6 +253,7 @@ namespace OpenMS
 					losses[loss] = 1;
 				}
 			}
+	
 			
 			// TODO: hack this should be in the data file
 			if (peptide_[i]->getOneLetterCode() == "R")
@@ -264,9 +265,9 @@ namespace OpenMS
 			}
 			losses[&H2O] = 1;
 			losses[&NH3] = 1;
-		}	*/	
+		}	
 		return losses;
-	}
+	}*/
 
 	const Residue& AASequence::operator [] (SignedSize index) const
 	{
@@ -950,11 +951,6 @@ namespace OpenMS
 		return count;
 	}
 
-	Size AASequence::getNumberOf(const char* residue) const
-	{
-		return getNumberOf(String(residue));
-	}
-	
 	AASequence::AASequence(ConstIterator begin, ConstIterator end)
 		: valid_(true)
 	{

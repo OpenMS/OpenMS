@@ -5,16 +5,9 @@ set(directory source/ANALYSIS/ID)
 set(sources_list
 ConsensusID.C
 FalseDiscoveryRate.C
-HiddenMarkovModel.C
 IDDecoyProbability.C
 IDMapper.C
-PILISIdentification.C
-PILISModel.C
-PILISModelGenerator.C
-PILISNeutralLossModel.C
 PILISScoring.C
-PILISCrossValidation.C
-ProtonDistributionModel.C
 PrecursorIonSelectionPreprocessing.C
 PrecursorIonSelection.C
 )
