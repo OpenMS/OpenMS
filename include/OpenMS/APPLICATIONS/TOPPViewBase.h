@@ -76,7 +76,9 @@ namespace OpenMS
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Johannes)
     
     @todo Add "load instrument defaults" button to tools dialog (Marc)
-  
+  	
+  	@todo Add TOPPView live-tutorial (Stephan, Marc)
+  	
     @ingroup TOPPView_elements
   */
   class OPENMS_DLLAPI TOPPViewBase 

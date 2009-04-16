@@ -215,7 +215,10 @@ namespace OpenMS
 		help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
+		//action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
+		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
+		
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 
