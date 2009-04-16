@@ -2508,7 +2508,12 @@ namespace OpenMS
 													 ).arg(VersionInfo::getVersion().toQString());
 		label = new QLabel(text,dlg);
 		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
-
+			
+		//close button
+		QPushButton* button = new QPushButton("Close",dlg);
+		grid->addWidget(button,1,1,Qt::AlignBottom | Qt::AlignRight);
+		connect(button,SIGNAL(clicked()),dlg,SLOT(close()));
+		
 		//execute
 		dlg->exec();
 	}

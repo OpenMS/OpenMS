@@ -233,8 +233,7 @@ namespace OpenMS
 			return;
 		}
 
-		String tool = getTool();
-		if (tool!="NoiseFilter" && tool!="FeatureFinder" && tool!="SpectraFilter" && tool!="FeatureLinker" && tool!="PeakPicker")
+		if (TOPPBase::getToolList()[getTool()].empty())
 		{
 			setType_(-1);
 		}
@@ -254,62 +253,36 @@ namespace OpenMS
 		ok_button_->setEnabled(true);
 		input_combo_->setEnabled(true);
 		output_combo_->setEnabled(true);
-		
 	}
 
 	void ToolsDialog::updateTypes_()
 	{
-		QString tool = tools_combo_->currentText();
+		//clean up
 		type_combo_->clear();
 		
-		QStringList list;
-		list << "<select type>";		
-		if (tool=="NoiseFilter")
+		//get type list
+		StringList type_list = TOPPBase::getToolList()[tools_combo_->currentText()];
+		
+		//no types => disable combo box
+		if (type_list.empty())
 		{
-			list << "sgolay" << "gaussian";
-		}
-		else if (tool=="FeatureFinder")
-		{
-			std::vector<String> list2 = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
-			for (Size i=0; i<list2.size(); ++i)
-			{
-				list << list2[i].toQString();
-			}
-		}
-		else if (tool=="SpectraFilter")
-		{
-			std::vector<String> list2 = Factory<PreprocessingFunctor>::registeredProducts();
-			for (Size i=0; i<list2.size(); ++i)
-			{
-				list << list2[i].toQString();			
-			}
-		}
-		else if (tool=="FeatureLinker")
-		{
-			std::vector<String> list2 = Factory<FeatureGroupingAlgorithm>::registeredProducts();
-			for (Size i=0; i<list2.size(); ++i)
-			{
-				list << list2[i].toQString();			
-			}
-		}
-		else if (tool=="PeakPicker")
-		{
-			StringList list2 = StringList::create("wavelet,high_res");
-			for (Size i=0; i<list2.size(); ++i)
-			{
-				list << list2[i].toQString();			
-			}
-		}
-		else
-		{
-			type_combo_->clear();
 			type_combo_->setEnabled(false);
 			enable_();
-			return;
 		}
-		type_combo_->addItems(list);
-		type_combo_->setEnabled(true);
-		disable_();
+		//types => fill combo box
+		else
+		{
+			QStringList list;
+			list << "<select type>";		
+			for (Size i=0; i<type_list.size(); ++i)
+			{
+				list << type_list[i].toQString();
+			}
+
+			type_combo_->addItems(list);
+			type_combo_->setEnabled(true);
+			disable_();
+		}
 	}
 
 
@@ -378,8 +351,8 @@ namespace OpenMS
 		vis_param_.remove("debug");
 		//load data into editor
 		editor_->load(vis_param_);			
-		//special treatment for FeatureFinder, NoiseFilter, SpectraFilter => set type combo
-		if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter" || string=="FeatureLinker")
+		//special treatment for tools with type
+		if (!TOPPBase::getToolList()[string].empty())
 		{
 			String type;
 			if (vis_param_.exists("type")) type = vis_param_.getValue("type");
