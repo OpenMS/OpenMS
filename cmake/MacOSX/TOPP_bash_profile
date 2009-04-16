@@ -37,7 +37,7 @@ export DYLD_LIBRARY_PATH=${OPENMS_TOPP_PATH}/lib/:$DYLIB_LIBRARY_PATH
 export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/share/OpenMS
 
 ## we need to set the path variable accordingly, also add TOPPView and INIFileEditor
-export PATH=${OPENMS_TOPP_PATH}/bin:${OPENMS_TOPP_PATH}/Applications/TOPPView.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/Applications/INIFileEditor.app/Contents/MacOS/:$PATH
+export PATH=${OPENMS_TOPP_PATH}/TOPP:${OPENMS_TOPP_PATH}/TOPPView.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:$PATH
 
 ## eof
 
