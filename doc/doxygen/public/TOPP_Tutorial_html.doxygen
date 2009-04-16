@@ -55,8 +55,8 @@
 	
 		This part of the tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within TOPPView.
 		
-		- @subpage TOPPView_baseline_reduction
 		- @subpage TOPPView_smoothing
+		- @subpage TOPPView_baseline_reduction
 		- @subpage TOPPView_peakpicking
 		- @subpage TOPPView_feature_detection_centroided
 
