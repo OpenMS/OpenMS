@@ -298,7 +298,8 @@ namespace OpenMS
 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
  				* This information is necessary to sweep across the map after each scan has been evaluated.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. 
-				* @param front_bound The first scan belonging to the part of the map that is processed by this TBB thread.
+				* @param RT_interleave The max. allowed number of (possibly) missing subsequent scans within some feature.
+			 	* @param front_bound The first scan belonging to the part of the map that is processed by this TBB thread.
 				* @param end_bound The last scan belonging (not exclusively!) to the part of the map that is processed by this TBB thread. */
 			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index,
 				const UInt RT_interleave, const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
