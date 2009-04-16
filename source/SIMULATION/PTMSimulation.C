@@ -46,7 +46,7 @@ namespace OpenMS {
   {}
   
  
-  void PTMSimulation::predict_ptms(FeatureMap< > &, PTMTable & , FeatureMap< > & )
+  void PTMSimulation::predict_ptms(FeatureMap< > &, PTMTable & )
   {
   }
 }

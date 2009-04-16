@@ -57,7 +57,7 @@ namespace OpenMS {
 
     RTSimulation& operator = (const RTSimulation& source);
     
-    void predict_rt(FeatureMap< > &, FeatureMap< >&);
+    void predict_rt(FeatureMap< > &);
  
   private:
     // Name of the svm model file

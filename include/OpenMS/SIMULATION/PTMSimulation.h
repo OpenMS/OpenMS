@@ -70,7 +70,7 @@ namespace OpenMS {
     /**
       @brief Adds possible post translational modifications to the peptides
      */
-    void predict_ptms(FeatureMap< > &, PTMTable & , FeatureMap< > & );
+    void predict_ptms(FeatureMap< > &, PTMTable & );
     
   };
 }

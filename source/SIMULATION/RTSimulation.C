@@ -68,7 +68,7 @@ namespace OpenMS {
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
-  void RTSimulation::predict_rt(FeatureMap< > & input_features, FeatureMap< > & rt_features)
+  void RTSimulation::predict_rt(FeatureMap< > & features)
   {
     // TODO: maybe we should operate on the real data
     // TODO: compare results of this variant with the old predictions, just to ensure that everything works
@@ -88,14 +88,14 @@ namespace OpenMS {
     cout << "Predicting RT..    " << endl;
     
     // not that elegant...
-    vector< String > peptidesVector(input_features.size());
+    vector< String > peptidesVector(features.size());
 
     //for(PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin();
     //    seq_it != sample_.getPeptideSequences().end();
     //    ++seq_it)
-    for (Size i = 0; i < input_features.size(); ++i)
+    for (Size i = 0; i < features.size(); ++i)
     {
-      peptidesVector[i] = input_features[i].getMetaValue("sequence").toString();
+      peptidesVector[i] = features[i].getMetaValue("sequence").toString();
       //peptidesVector.push_back(seq_it->first);
     }
     
@@ -167,13 +167,12 @@ namespace OpenMS {
     delete training_data;
     delete prediction_data;
     
-    rt_features = input_features;
     for (UInt i = 0; i < peptidesVector.size(); i++)
     {
       if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
       else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
 
-      rt_features[i].setMetaValue("rt_time",predicted_retention_times[i]);
+      features[i].setMetaValue("rt_time",predicted_retention_times[i]);
     }
     // Create the retention time table:
     // RT : pointer to peptide sequence : rel. abundance
