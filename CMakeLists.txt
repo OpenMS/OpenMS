@@ -546,7 +546,7 @@ endif()
 if (OPENMS_HAS_SVNVERSION)
 ## TODO replace this with PreProcessorMacro when compiling lib
 ## e.g. SET_SOURCE_FILE_PROPERTIES(libSource.c main.c COMPILE_FLAGS -DREVISON=234)
-	Message(STATUS "Adding dependency on SVN-Version target file...")
+#	Message(STATUS "Adding dependency on SVN-Version target file...")
 #	add_dependencies(OpenMS svnversion_file_target)
 endif()
 
