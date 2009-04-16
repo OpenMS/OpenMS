@@ -46,11 +46,15 @@ namespace OpenMS
   /**
 		 @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width.
 
-		 This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (signal_to_noise parameter). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline.
+		 This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline.
+		 
+		 So far, this peak picker was mainly tested on high resolution data. With appropriate preprocessing steps (e.g. noise reduction and baseline subtraction), it might be also applied to low resolution data.
 		 
 		 @htmlinclude OpenMS_PeakPickerHiRes.parameters
 		 
 		 @ingroup PeakPicking
+
+		 @experimental This algorithm has not been tested thoroughly yet. There is a need for test cases where a list of previously identified masses is compared to the identifications based on the algorithm's peak-picking.
   */
   class OPENMS_DLLAPI PeakPickerHiRes
 		: public DefaultParamHandler,
@@ -64,7 +68,7 @@ namespace OpenMS
     virtual ~PeakPickerHiRes();
 		
     /** 
-				@brief pick Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
+				@brief Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
     */
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
@@ -160,20 +164,14 @@ namespace OpenMS
 							
 							// output all raw data points selected for one peak
 							// TODO: #ifdef DEBUG_ ...
-							/**
-								 for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
-								 PeakType peak;
-								 
-								 peak.setMZ(map_it->first);
-								 peak.setIntensity(map_it->second);
-								 output.push_back(peak);
-								 
-								 std::cout << map_it->first << " " << map_it->second << " snt: " << std::endl;
-								 
-								 }
-								 std::cout << "--------------------" << std::endl;
-							*/
-							
+							//	 for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
+							// PeakType peak;								 
+							// peak.setMZ(map_it->first);
+							// peak.setIntensity(map_it->second);
+							// output.push_back(peak);
+							// std::cout << map_it->first << " " << map_it->second << " snt: " << std::endl;
+							// }
+							// std::cout << "--------------------" << std::endl;
 							
 							const Size num_raw_points = peak_raw_data.size();
 							
