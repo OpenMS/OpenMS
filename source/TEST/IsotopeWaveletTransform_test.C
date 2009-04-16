@@ -65,8 +65,8 @@ START_SECTION(void identifyCharge(const MSSpectrum< PeakType > &candidates, cons
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void updateBoxStates(const MSExperiment< PeakType > &map, const Size scan_index, const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1))
-	iw->updateBoxStates(map, INT_MAX, 0);
+START_SECTION(void updateBoxStates(const MSExperiment< PeakType > &map, const Size scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1))
+	iw->updateBoxStates(map, INT_MAX, 0, 0);
 	NOT_TESTABLE
 END_SECTION
 
