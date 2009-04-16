@@ -252,12 +252,13 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		@section TOPP_example_signalprocessing_peakpicker Picking peaks with PeakPicker
 
-		The @b PeakPicker tool allows for picking peaks in profile data. Currently, there are two different algorithms:
+		The @b PeakPicker tool allows for picking peaks in profile data. Currently, there are two different algorithms.
+		With the option '<tt>type</tt>', the desired peak-picking algorithm can be selected.
 
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data (low/medium resolution) </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -270,7 +271,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
 		
 			<B>Application:</B>
-			<br>This algorithm was optimized on low resolution data and therefore suits well to such cases.</B> 
+			<br>This algorithm was designed for low and medium resolution data. 
+			    It can also be applied to high-resolution data, but can be slow on large datasets.</B> 
 
 			See the PeakPickerCWT class documentation for a parameter list.
 		</TD>
@@ -280,7 +282,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> high_res &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>Algorithm:</b> high_res &nbsp;&nbsp; <b>Input data:</b> profile data (high resolution) </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -288,14 +290,13 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter @a signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline. Please notice that this method is still @b experimental since it has not been tested thoroughly yet.<br>
 
 			<B>Application:</B>
-			<br>The algorithm is best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width. These properties faciliate a fast computation of picked peaks so that even large data sets can be processed very quickly.
+			<br>The algorithm is best suited for high-resolution MS data (FT-ICR-MS, Orbitrap). In high-resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width. These properties faciliate a fast computation of picked peaks so that even large data sets can be processed very quickly.
 
 			See the PeakPickerHiRes class documentation for a parameter list.
 		</TD>
 	</TR>
 	</TABLE>
 
-With the option '<tt>type</tt>', the desired peak-picking algorithm can be selected.
 
 	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
 

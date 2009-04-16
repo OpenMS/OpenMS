@@ -650,7 +650,7 @@ The classes described in this section can be found in the @a TRANSFORMATIONS fol
 
 @section transformations_pp Peak picking
 
-For peak picking, the class @a PeakPickerCWT is used. Because this class detects and
+For peak picking, the class @a PeakPickerCWT or @a PeakPickerHiRes is used. Because this class detects and
 extracts mass spectrometric peaks it is applicable to LC-MS as well as MALDI raw data.
 
 The following example (Tutorial_PeakPickerCWT.C) shows how to open a raw map (in mzData format), initialize a
