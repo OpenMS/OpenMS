@@ -44,7 +44,7 @@ namespace OpenMS
 	class OPENMS_DLLAPI EnzymaticDigestion
 	{
 		public: 
-			/// Possible enzymes for the digestion
+			/// Possible enzymes for the digestion (adapt NamesOfEnzymes & getEnzymeByName() & nextCleavageSite_() if you add more enzymes here)
 			enum Enzyme
 			{
 				TRYPSIN,
@@ -54,20 +54,24 @@ namespace OpenMS
 			/// Names of the Enzymes
 			static const std::string NamesOfEnzymes[SIZE_OF_ENZYMES];
 			
-			/// Deafult constructor
+			/// Default constructor
 			EnzymaticDigestion();
 			
-			///Returns the number of missed cleavages for the digestion
+			/// Returns the number of missed cleavages for the digestion
 			Size getMissedCleavages() const;
 
-			///Sets the number of missed cleavages for the digestion (default is 0).
+			/// Sets the number of missed cleavages for the digestion (default is 0).
 			void setMissedCleavages(Size missed_cleavages);	
 
-			///Returns the enzyme for the digestion
+			/// Returns the enzyme for the digestion
 			Enzyme getEnzyme() const;
 			
-			///Sets the enzyme for the digestion (default is TRYPSIN).
+			/// Sets the enzyme for the digestion (default is TRYPSIN).
 			void setEnzyme(Enzyme enzyme);		
+
+			/// convert enzyme string name to enum
+			/// returns SIZE_OF_ENZYMES if @p name is not valid
+			Enzyme getEnzymeByName(const String& name);
 
 			/// Performs the enzymatic digestion of a protein.
 			void digest(const AASequence& protein, std::vector<AASequence>& output);

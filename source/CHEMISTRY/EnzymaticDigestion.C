@@ -62,6 +62,12 @@ namespace OpenMS
 		if (enzyme < SIZE_OF_ENZYMES) enzyme_ = enzyme;
 	}
 
+	EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String& name)
+	{
+		if (name == "Trypsin") return TRYPSIN;
+		else return SIZE_OF_ENZYMES;
+	}
+
 	void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator)
 	{
 		switch (enzyme_)

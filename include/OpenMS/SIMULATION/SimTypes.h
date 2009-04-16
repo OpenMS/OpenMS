@@ -37,10 +37,12 @@
 
 namespace OpenMS 
 {
-	
+	/// Abundance of proteins/peptides
 	typedef Peak2D::IntensityType SimIntensityType;
-	typedef std::pair<OpenMS::String, SimIntensityType> ProteinQuantPair;
-	typedef std::vector< ProteinQuantPair > SampleProteins;
+	
+	/// Sequence -> Intensity container
+	typedef std::map< String, SimIntensityType > SampleProteins;
+	/// Peptides and Proteins are the same structurewise
 	typedef SampleProteins SamplePeptides;
 
   /// A posttranslational modification

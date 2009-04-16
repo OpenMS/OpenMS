@@ -69,6 +69,12 @@ START_SECTION((void setEnzyme(Enzyme enzyme)))
 	NOT_TESTABLE
 END_SECTION
 
+START_SECTION((Enzyme getEnzymeByName(const String& name)))
+	EnzymaticDigestion ed;
+	TEST_EQUAL(ed.getEnzymeByName("Trypsin"), EnzymaticDigestion::TRYPSIN);
+	TEST_EQUAL(ed.getEnzymeByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_ENZYMES);
+END_SECTION
+
 START_SECTION((Size peptideCount(const AASequence &protein)))
 	EnzymaticDigestion ed;
 	Size tmp = ed.peptideCount(String("ACDE"));
