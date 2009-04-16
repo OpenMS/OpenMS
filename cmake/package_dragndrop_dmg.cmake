@@ -1,5 +1,9 @@
 set(CPACK_GENERATOR "DragNDrop")
 
+# this option to take effect requires at least version 2.6.4 of cmake, which is not released yet
+# therefore only the developer version can be used to make background images
+set(CPACK_BUNDLE_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+
 # add start-up script for TOPPView.app into Bundle, and move real TOPPView executable to TOPPView.exe
 # call scripts to fix issues with wrongly referenced Qt libs 
 add_custom_command(TARGET TOPPView POST_BUILD
@@ -57,7 +61,7 @@ install(FILES 		${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION OpenMS
 install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION OpenMS-1.4/Documentation/ COMPONENT doc)
 
 # install the TOPP command shell
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command	DESTINATION OpenMS-1.4/ PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ COMPONENT TOPPShell)
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command DESTINATION OpenMS-1.4/ RENAME TOPP-shell PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ COMPONENT TOPPShell)
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile  DESTINATION OpenMS-1.4/ RENAME .TOPP_bash_profile COMPONENT TOPPShell)
 
 include(CPack)
