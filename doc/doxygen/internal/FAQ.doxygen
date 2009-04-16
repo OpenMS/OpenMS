@@ -480,6 +480,7 @@ svn propset svn:eol-style native MyClass.C
 					<OL>
 						<LI> Check out the release branch and contrib
 						<LI> Build the contrib libraries
+						<LI> Build the documentation (@em doc and @em doc_tutorials) or copy it to the right place
 						<LI> Configure %OpenMS using
 						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
 						<LI> Build the package using <tt>make package</tt>

@@ -882,6 +882,13 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	if("${PACKAGE_TYPE}" STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
+
+	if("${PACKAGE_TYPE}" STREQUAL "deb")
+		include(cmake/package_deb.cmake)
+	endif()
+
 else()
+
 	CMAKE_EXPORT_BUILD_SETTINGS(cmake/OpenMSBuildSettings.cmake)
+
 endif()
