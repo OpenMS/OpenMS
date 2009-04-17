@@ -28,8 +28,13 @@
 #ifndef OPENMS_SIMULATION_RTSIMULATION_H
 #define OPENMS_SIMULATION_RTSIMULATION_H
 
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
 
 namespace OpenMS {
 
@@ -45,9 +50,10 @@ namespace OpenMS {
     /** @name Constructors and Destructors
       */
     //@{
-    /// Default constructor
-    RTSimulation();
 
+    /// Constructor taking a random generator
+    RTSimulation(gsl_rng * random_generator);
+    
     /// Copy constructor
     RTSimulation(const RTSimulation& source);
 
@@ -57,13 +63,34 @@ namespace OpenMS {
 
     RTSimulation& operator = (const RTSimulation& source);
     
+    /** 
+     @brief Predict retention times for given features based on a SVM Model
+     */
     void predict_rt(FeatureMap< > &);
  
+    /**
+     @brief Set retention times randomly for given contaminants
+     */
+    void predict_contaminants_rt(FeatureMap< > &);
+    
   private:
+    /// Default constructor -> hidden since we need to have a random generator
+    RTSimulation();
+    
     // Name of the svm model file
-    // TODO: remove this .. it is only here to make the code compile
-		OpenMS::String RTModelFile_;
-  
+		OpenMS::String rtModelFile_;
+    
+		/// Random number generator
+		gsl_rng* rand_gen_;    
+    
+    /// total gradient time
+    SimCoordinateType gradientTime_;
+    
+    /// Synchronize members with param class
+		void updateMembers_();
+    
+    /// set defaults 
+    void setDefaultParams_();
   };
 
 }

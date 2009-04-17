@@ -25,7 +25,8 @@
 // $Authors: Stephan Aiche Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include<OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <vector>
@@ -35,30 +36,35 @@
 using std::vector;
 using std::cout;
 using std::endl;
-using std::make_pair;
 
 namespace OpenMS {
-
+  // TODO: debug out should be propagated some where else then std::cout
   RTSimulation::RTSimulation()
     : DefaultParamHandler("RTSimulation")
   {
-    // 
-    defaults_.setValue("rt_column_on",1,"Modelling of a rt column (0 = disabled, 1 = enabled)");
-
-    // Column settings
-    defaults_.setValue("total_gradient_time",2000.0,"the duration (in seconds) of the gradient");
-    defaults_.setValue("rt_sampling",2.0,"Time interval (in seconds) between consecutive scans");
-    defaults_.setValue("rt_model_file","","");
-    
+    setDefaultParams_();
 		defaultsToParam_();    
   }
 
+  RTSimulation::RTSimulation(gsl_rng * random_generator)
+    : DefaultParamHandler("RTSimulation")
+  {
+    setDefaultParams_();
+    rand_gen_ = random_generator;
+  }
+  
+  
   RTSimulation::RTSimulation(const RTSimulation& source)
     : DefaultParamHandler(source)
-  {}
+  {
+    setParameters( source.getParameters() );
+    updateMembers_();
+  }
 
   RTSimulation& RTSimulation::operator = (const RTSimulation& source)
   {
+    setParameters( source.getParameters() );
+    updateMembers_();
     return *this;
   }
   
@@ -70,9 +76,7 @@ namespace OpenMS {
    */
   void RTSimulation::predict_rt(FeatureMap< > & features)
   {
-    // TODO: maybe we should operate on the real data
     // TODO: compare results of this variant with the old predictions, just to ensure that everything works
-    // TODO: define a MetaInfoField for sequence ..
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
     LibSVMEncoder encoder;
@@ -90,29 +94,26 @@ namespace OpenMS {
     // not that elegant...
     vector< String > peptidesVector(features.size());
 
-    //for(PeptideSequences::const_iterator seq_it = sample_.getPeptideSequences().begin();
-    //    seq_it != sample_.getPeptideSequences().end();
-    //    ++seq_it)
     for (Size i = 0; i < features.size(); ++i)
     {
-      peptidesVector[i] = features[i].getMetaValue("sequence").toString();
-      //peptidesVector.push_back(seq_it->first);
+      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
     }
     
-    svm.loadModel(RTModelFile_);
+    svm.loadModel(rtModelFile_);
     
     // load additional parameters
     if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
     {
-      String add_paramfile = RTModelFile_ + "_additional_parameters";
+      String add_paramfile = rtModelFile_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
       {
         cout << "SVM parameter file " << add_paramfile << " not found or not readable" << endl;
         cout << "Aborting RT prediction!" << endl;
-        //TODO where is the "return;" ?
-        //TODO why is rtTable not filled with default values first?! (empty rtTable leads to empty map?! -->  see LCMSSim::run())
-				// Ole: these are valid suggestions, but they should be adressed when the simulator is modified to 
-				// incorporate MS/MS spectra.
+        //TODO: --- talk to ole/cg about the following stuff
+        // - where is the "return;" ?
+        // - why is rtTable not filled with default values first?! (empty rtTable leads to empty map?! -->  see LCMSSim::run())
+				// - Ole: these are valid suggestions, but they should be adressed when the simulator is modified to 
+				//   incorporate MS/MS spectra.
       }
       
       Param additional_parameters;
@@ -152,7 +153,7 @@ namespace OpenMS {
     prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, rts, k_mer_length, allowed_amino_acid_characters, border_length);
     
     // loading training data
-    String sample_file = RTModelFile_ + "_samples";
+    String sample_file = rtModelFile_ + "_samples";
     if (! File::readable( sample_file ) )
     {
       cout << "SVM sample file " << sample_file << " not found or not readable" << endl;
@@ -166,40 +167,57 @@ namespace OpenMS {
     cout << "Done." << endl;
     delete training_data;
     delete prediction_data;
+     
+    /// rt error stuff
+    SimCoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
+    SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      
     
     for (UInt i = 0; i < peptidesVector.size(); i++)
     {
+      // TODO: remove those peptides + debug out removed ones
       if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
       else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
 
-      features[i].setMetaValue("rt_time",predicted_retention_times[i]);
-    }
-    // Create the retention time table:
-    // RT : pointer to peptide sequence : rel. abundance
-    /*
-    for (UInt i = 0; i < peptidesVector.size(); i++)
-    {
-      PeptideSequences::const_iterator pit = sample_.getPeptideSequences().find( peptidesVector[i] );
+      // predicted_retention_times[i] ->  needs scaling onto the column     
+      // TODO: what does this 400.00 mean?
+      SimCoordinateType rt_error = gsl_ran_gaussian(rand_gen_, rt_shift_stddev) + rt_shift_mean;
+      SimCoordinateType retention_time = predicted_retention_times[i] * gradientTime_;
       
-      // check for rt outlier and rectify
-      if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
-      else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
-      
-      rtTable.insert( make_pair( predicted_retention_times[i], pit ) );
-    }
-    */
-#ifdef DEBUG_SIM
-    cout << "---------------------------------------------------------" << endl;
-    cout << "Content of retention time table:" << endl;
-    for (RTTable::const_iterator rtTableRow = rtTable.begin();
-         rtTableRow != rtTable.end();
-         ++rtTableRow)
-    {
-      cout << rtTableRow->first << ", ";
-      cout << ( (rtTableRow->second)->first ) << " , abundance: " << ( (rtTableRow->second)->second ) << endl;
-    }
-    cout << "---------------------------------------------------------" << endl;
-#endif  
+      features[i].setMetaValue("rt_time",retention_time + rt_error);
+    } 
+  }
   
+  void RTSimulation::predict_contaminants_rt(FeatureMap< > & contaminants)
+  {
+    // iterate of feature map
+    for (Size i = 0; i < contaminants.size(); ++i)
+    {
+      // assign random retention time
+      SimCoordinateType retention_time = gsl_ran_flat(rand_gen_, 0, gradientTime_);
+      contaminants[i].setMetaValue("rt_time", retention_time);
+    }
+  }
+  
+  void RTSimulation::updateMembers_()
+  {
+    rtModelFile_ = param_.getValue("rt_model_file");
+    gradientTime_ = param_.getValue("total_gradient_time");
+  }
+  
+  void RTSimulation::setDefaultParams_() 
+  {
+    // we need to further integrate this .. currently it is ignored
+    // TODO: we need to propagate this also to the product model which generates the signal
+    // but how
+    defaults_.setValue("rt_column_on",1,"Modelling of a rt column (0 = disabled, 1 = enabled)");
+    
+    // Column settings
+    defaults_.setValue("total_gradient_time",2000.0,"the duration (in seconds) of the gradient");
+    defaults_.setValue("rt_sampling",2.0,"Time interval (in seconds) between consecutive scans");
+    defaults_.setValue("rt_model_file","<file>","SVM model for retention time prediction");
+    
+    // rt error
+    defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
+    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");        
   }
 }

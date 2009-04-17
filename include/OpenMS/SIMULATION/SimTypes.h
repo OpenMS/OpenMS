@@ -37,6 +37,9 @@
 
 namespace OpenMS 
 {
+  /// Coordinate type in mz and rt dimension
+  typedef Peak2D::CoordinateType SimCoordinateType;
+  
 	/// Abundance of proteins/peptides
 	typedef Peak2D::IntensityType SimIntensityType;
 	

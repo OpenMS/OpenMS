@@ -41,7 +41,7 @@ namespace OpenMS {
   {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
     defaults_.insert("PostTranslationalModifications:",PTMSimulation().getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation().getDefaults());
+    defaults_.insert("RTSimulation:",RTSimulation(0).getDefaults());
     defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
     defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
