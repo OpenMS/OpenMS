@@ -617,6 +617,25 @@ START_SECTION(Size getNumberOf(const char *residue) const)
 
 END_SECTION
 
+START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
+	AASequence a("THREEAAAWITHYYY");
+
+	Map<String, Size> table, table_gold;
+	a.getAAFrequencies(table);
+
+	table_gold["T"]=2;
+	table_gold["H"]=2;
+	table_gold["R"]=1;
+	table_gold["E"]=2;
+	table_gold["A"]=3;
+	table_gold["W"]=1;
+	table_gold["I"]=1;
+	table_gold["Y"]=3;
+
+	TEST_EQUAL(table==table_gold, true);
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

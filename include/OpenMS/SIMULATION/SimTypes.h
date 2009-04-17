@@ -34,6 +34,12 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 namespace OpenMS 
 {
@@ -44,28 +50,82 @@ namespace OpenMS
 	typedef Peak2D::IntensityType SimIntensityType;
 	
 	/// Sequence -> Intensity container
-	typedef std::map< String, SimIntensityType > SampleProteins;
+	typedef std::map< AASequence, SimIntensityType > SampleProteins;
 	/// Peptides and Proteins are the same structurewise
 	typedef SampleProteins SamplePeptides;
+
+	/// Sim FeatureMap
+	typedef FeatureMap<> FeatureMapSim;
+
+	/// probability of a modification to occur
+	typedef Real ProbabilityType;
 
   /// A posttranslational modification
   struct PTM
   {
-    /// (Simplified) name
-    String name_;
+		/// Residue (modified)
+    Residue residue;
     
-    /// Formula
-    EmpiricalFormula formula_;
-    
-    /// Relative abundance (in %)
-    double abundance_;
-    
-    /// mass shift (positive = true, negative = false)
-    bool shift_;
+    /// Probability to occur (0-1)
+    ProbabilityType probability;
+
+		/// Constructor
+		PTM(const Residue p_residue, const ProbabilityType p_probability)
+			: residue(p_residue),
+				probability(p_probability)
+		{}
+
   };  
-  
-  // maps from aminoacid (e.g. "A") to a list of possible modifications
-  typedef std::multimap<String, PTM> PTMTable;
+ 
+	/// stores statistical properties of modifications on a single AA
+	/// (all @p candidates will have the same AA residue)
+	struct PTMRow
+	{
+		/// possible modifications (all affecting the same AA)
+		std::vector<PTM> candidates;
+		/// p that no modification will take place
+		ProbabilityType probability_none;
+		/// sum of all modifications' probabilites (can be >1)
+		ProbabilityType probability_sum;
+		/// number of AA affected
+		Size rnd_amount;
+
+		PTMRow()
+			:candidates(),
+			 probability_none(1),
+			 probability_sum(0),
+			 rnd_amount(0)
+		{}
+
+		/// add a candidate and update members
+		void add(const PTM& ptm)
+		{
+			candidates.push_back( ptm );
+			probability_none *= 1-ptm.probability;
+			probability_sum += ptm.probability;
+		}
+
+		/// draw one of the candidates according to their p's (sum normalized to one)
+		Residue draw(gsl_rng* rnd_gen)
+		{
+			double p_random = gsl_ran_flat(rnd_gen,0.0,1.0);
+			// normalize to one
+			p_random *= probability_sum;
+			// the candidate that covers the rnd number wins
+			double left=0,right=0;
+			for (Size i=0;i<candidates.size();++i)
+			{
+				left=right;
+				right+=candidates[i].probability;
+				if (left<=p_random && p_random<=right) return candidates[i].residue;
+			}
+			return candidates.back().residue;
+		}
+
+	};
+
+	typedef Map<String, PTMRow> PTMTable;
+
 }
 
 #endif

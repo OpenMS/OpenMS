@@ -950,6 +950,15 @@ namespace OpenMS
 		return count;
 	}
 
+	void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
+	{
+		frequency_table.clear();
+		for (String::ConstIterator it = sequence_string_.begin(); it != sequence_string_.end(); ++it)
+		{
+			frequency_table[String(*it)] += 1;
+		}
+	}
+
 	Size AASequence::getNumberOf(const char* residue) const
 	{
 		return getNumberOf(String(residue));

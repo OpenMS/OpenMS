@@ -457,6 +457,10 @@ namespace OpenMS
 
 			/// counts the number of occurrences of residue given by a string literal
 			Size getNumberOf(const char* residue) const;
+
+			/// compute frequency table of amino acids
+			void getAAFrequencies(Map<String, Size>& frequency_table) const;
+
 			//@}
 
 			/** @name Predicates

@@ -40,7 +40,7 @@ namespace OpenMS {
     : DefaultParamHandler("MSSim")
   {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
-    defaults_.insert("PostTranslationalModifications:",PTMSimulation().getDefaults());
+    defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(0).getDefaults());
     defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
@@ -61,7 +61,7 @@ namespace OpenMS {
   MSSim::~MSSim()
   {}
   
-  void MSSim::simulate()
+  void MSSim::simulate(const gsl_rng* rnd_gen, const SampleProteins& proteins)
   {
     /*
       General progress should be 
@@ -75,7 +75,35 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
   
+		// digest
     DigestSimulation digest_sim;
+		SamplePeptides peptides;
+		digest_sim.digest(proteins, peptides);
+		
+		// convert
+		FeatureMapSim map = createFeatureMap_(peptides);
+		
+		// add PTM's
+		PTMSimulation(rnd_gen).predict_ptms(map);
 
   }
+
+	FeatureMapSim MSSim::createFeatureMap_(const SamplePeptides& peptides)
+	{
+		FeatureMapSim map;
+		map.reserve(peptides.size());
+
+		for (SamplePeptides::const_iterator it=peptides.begin(); it!=peptides.end(); ++it)
+		{
+			Feature f;
+			PeptideIdentification pep_id;
+			pep_id.insertHit(PeptideHit(1.0, 1, 1, it->first));
+			f.getPeptideIdentifications().push_back(pep_id);
+			f.setIntensity(it->second);
+			map.push_back(f);
+		}
+
+		return map;
+	}
+
 }

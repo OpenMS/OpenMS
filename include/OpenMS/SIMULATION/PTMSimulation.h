@@ -34,11 +34,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
 #include <OpenMS/CONCEPT/Types.h>
-
 #include <OpenMS/SIMULATION/SimTypes.h>
 
 namespace OpenMS {
@@ -55,8 +51,8 @@ namespace OpenMS {
     /** @name Constructors and Destructors
       */
     //@{
-    /// Default constructor
-    PTMSimulation();
+    /// Constructor
+    PTMSimulation(const gsl_rng* rnd_gen);
 
     /// Copy constructor
     PTMSimulation(const PTMSimulation& source);
@@ -70,8 +66,22 @@ namespace OpenMS {
     /**
       @brief Adds possible post translational modifications to the peptides
      */
-    void predict_ptms(FeatureMap< > &, PTMTable & );
-    
+    void predict_ptms(FeatureMapSim & map);
+   
+	protected:
+		/// see
+		void updateMembers_();
+
+		/// valid PTM's
+		PTMTable ptms_;
+
+		/// random generator (GSL)
+		gsl_rng* rnd_gen_;
+
+	private:
+		/// Default (hidden)
+    PTMSimulation();
+
   };
 }
 

@@ -29,6 +29,8 @@
 #define OPENMS_SIMULATION_MSSIM_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
+
 
 namespace OpenMS {
 
@@ -61,9 +63,15 @@ namespace OpenMS {
     MSSim& operator = (const MSSim& source);
 
     /**
-     @brief General purpose function to simualate a mass spectrometry run
+     @brief General purpose function to simulate a mass spectrometry run
      */   
-    void simulate();
+    void simulate(const gsl_rng* rnd_gen, const SamplePeptides& peptides);
+	
+	protected:
+		
+		/// convert list of peptides with abundance to a FeatureMap
+		FeatureMapSim createFeatureMap_(const SamplePeptides& peptides);
+
   };
 
 }

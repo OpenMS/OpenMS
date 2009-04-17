@@ -88,7 +88,7 @@ namespace OpenMS {
 
 			// how many "atomic"(i.e. non-cleavable) peptides are created?
 			digestion.setMissedCleavages( 0 );
-			Size complete_digest_count = digestion.peptideCount(AASequence(protein->first));
+			Size complete_digest_count = digestion.peptideCount(protein->first);
 			// compute average numer of "atomic" peptides summed from all digestion products
 			Size number_atomic_whole = 0;
 			Size number_of_digestion_products = 0;
@@ -116,7 +116,7 @@ namespace OpenMS {
         if (dp_it->size() < min_peptide_length) continue;
 				
 				// sum equal peptide's intensities
-				peptides[dp_it->toUnmodifiedString()] += abundance;
+				peptides[*dp_it] += abundance;
       }
 		}
 
