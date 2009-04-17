@@ -9,15 +9,12 @@
 ##  $2 = QT_LIB_PATH
 ##  $3 = lib-path
 
-# fix openms id
-$1 -id @executable_path/../../../lib/libOpenMS.dylib \
-    $3/libOpenMS.dylib
-
 # fix Qt references of OpenMS
 for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork
 do
     # change association to Qt libs
     $1 -change $2/$lib.framework/Versions/4/$lib \
-        @executable_path/../../../lib/$lib.framework/Versions/4/$lib \
+        $lib.framework/Versions/4/$lib \
         $3/libOpenMS.dylib
 done
+

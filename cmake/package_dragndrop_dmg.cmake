@@ -5,7 +5,6 @@ set(CPACK_GENERATOR "DragNDrop")
 # The file should be accompanied with a file named background png, stored in the sam folder
 set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store)
 
-
 # add start-up script for TOPPView.app into Bundle, and move real TOPPView executable to TOPPView.exe
 # call scripts to fix issues with wrongly referenced Qt libs 
 add_custom_command(TARGET TOPPView POST_BUILD
@@ -28,9 +27,6 @@ install (TARGETS OpenMS
 	LIBRARY DESTINATION OpenMS-1.4/lib
 	ARCHIVE DESTINATION OpenMS-1.4/lib
 	COMPONENT library)
-
-# Qt and library fixes
-#install(SCRIPT ${PROJECT_SOURCE_DIR}/cmake/MacOSX/install_commands.cmake)
 
 # Qt libs, hack! Copy files to destination first
 install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION OpenMS-1.4/lib/ COMPONENT library REGEX "libOpenMS.[A-Za-z]*" EXCLUDE)
