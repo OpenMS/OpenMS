@@ -44,7 +44,7 @@ namespace OpenMS
     toolname_(toolname),
 		pool_file_()
   {
-		pool_file_ = String(OPENMS_DATA_PATH) + String("/IDPool/IDPool.txt");
+		pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
   
   IDTagger::IDTagger(const IDTagger& source):

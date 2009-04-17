@@ -516,10 +516,10 @@ namespace OpenMS
 		
 		//create file list
 		StringList pages;
-		File::fileList(String(OPENMS_DATA_PATH) + "/tutorial/","TOPPView_tutorial_*.html",pages);
+		File::fileList(File::getOpenMSDataPath() + "/tutorial/","TOPPView_tutorial_*.html",pages);
 		for (Size i=0; i<pages.size(); ++i)
 		{
-			pages[i] = String(OPENMS_DATA_PATH) + "/tutorial/" + pages[i];
+			pages[i] = File::getOpenMSDataPath() + "/tutorial/" + pages[i];
 		}
 		dlg->setPages(pages);
 		
@@ -2000,7 +2000,7 @@ namespace OpenMS
 
   void TOPPViewBase::openExampleDialog()
   {
-	 	QStringList files = getFileList_(String(OPENMS_DATA_PATH) + "/examples/");
+	 	QStringList files = getFileList_(File::getOpenMSDataPath() + "/examples/");
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
 			addDataFile(*it,true,true);
