@@ -125,14 +125,8 @@ namespace OpenMS
 	{
 		String filename_new = filename;
 		
-		//add env $OPENMS_DATA_PATH
-		if (getenv("OPENMS_DATA_PATH") != 0)
-		{
-			directories.push_back(String(getenv("OPENMS_DATA_PATH")));
-		}
-		
 		//add data dir in OpenMS data path
-		directories.push_back(OPENMS_DATA_PATH);
+		directories.push_back(getOpenMSDataPath());
 		
 		//add path suffix to all specified directories
 		String path = File::path(filename);
@@ -204,4 +198,13 @@ namespace OpenMS
 		return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
 	}
   
+  String File::getOpenMSDataPath()
+  {
+		if (getenv("OPENMS_DATA_PATH") != 0)
+		{
+			return getenv("OPENMS_DATA_PATH");
+		}
+		
+		return OPENMS_DATA_PATH;
+  }
 } // namespace OpenMS

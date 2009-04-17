@@ -100,7 +100,9 @@ namespace OpenMS
 
 			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();
-
+			
+			/// Returns the OpenMS data path (environment variable overwrites the default installation path)
+			static String getOpenMSDataPath();
 	};
 
 }
