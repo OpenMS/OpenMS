@@ -32,7 +32,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/TransPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -59,7 +58,7 @@
 
 namespace OpenMS
 {
-
+	//@brief A very simple class to ease data transfer onto and from GPU. 
 	class cudaHelp
 	{
 		public:
@@ -212,12 +211,13 @@ namespace OpenMS
 			}; 
 
 
-			
+
 			/** @brief Constructor.
  				*
  				* @param min_mz The smallest m/z value occurring in your map.
  				* @param max_mz The largest m/z value occurring in your map.
- 				* @param max_charge The highest charge state you would like to consider. */
+ 				* @param max_charge The highest charge state you would like to consider. 
+				* @param max_scan_size The maximum length of a scan (in number of data points). Only necessary for the GPU. */
 			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const UInt max_scan_size=0);
 
 			/** @brief Destructor. */
@@ -227,7 +227,7 @@ namespace OpenMS
 			/** @brief Computes the isotope wavelet transform of charge state @p c. 
  				* @param c_trans The transform.
  				* @param c_ref The reference spectrum. 
- 				* @oaram c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */	
+ 				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */	
 			virtual void getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
 
 	
@@ -297,58 +297,31 @@ namespace OpenMS
  				* @param map The original map containing the data set to be analyzed.
 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
  				* This information is necessary to sweep across the map after each scan has been evaluated.
- 				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
-				const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
+ 				* @param RT_votes_cutoff See the IsotopeWaveletFF class. 
+				* @param RT_interleave The max. allowed number of (possibly) missing subsequent scans within some feature.
+			 	* @param front_bound The first scan belonging to the part of the map that is processed by this TBB thread.
+				* @param end_bound The last scan belonging (not exclusively!) to the part of the map that is processed by this TBB thread. */
+			void updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff, const Int front_bound=-1, const Int end_bound=-1) ;
 
-		
-			void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+			#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
+				/** @brief Merges the results of different TBB threads. */
+				void mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff); 
+			#endif
 	
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
  				* @param map The original map containing the data set to be analyzed.
- 				* @param max_charge The maximal charge state under consideration.
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
 			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff) ;
 
 			/** @brief Returns the closed boxes. */
 			virtual std::multimap<DoubleReal, Box> getClosedBoxes ()
-				{ return (closed_boxes_); };
+			{ 
+				return (closed_boxes_); 
+			};
 		
 
-			/** @brief Computes a linear (intensity) interpolation. 
- 				* @param left_iter The point left to the query. 
- 				* @param mz_pos The query point.
- 				* @param right_iter The point right to the query. */	
-			inline DoubleReal getLinearInterpolation (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
-			{
-				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
-			};
-			
-			/** @brief Computes a linear (intensity) interpolation. 
- 				* @param mz_a The m/z value of the point left to the query.  
- 				* @param mz_a The intensity value of the point left to the query. 
- 				* @param mz_pos The query point.				
- 				* @param mz_b The m/z value of the point right to the query.  
- 				* @param intens_b The intensity value of the point left to the query. */ 
-			inline DoubleReal getLinearInterpolation (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
-			{
-				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
-			};
-
-			DoubleReal getCubicInterpolatedValue (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y); 
-		
-			inline DoubleReal getSigma () const
-			{
-				return (sigma_);
-			};
-
-			inline void setSigma (const DoubleReal sigma)
-			{
-				sigma_ = sigma;
-			};
-
-		
+				
 		protected:
 
 
@@ -385,7 +358,8 @@ namespace OpenMS
  				* @param ref The original spectrum containing the candidate.
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
+				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const TransSpectrum& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const UInt scan_index, const bool check_PPMs) ;
 			
@@ -395,7 +369,8 @@ namespace OpenMS
  				* @param ref The original spectrum containing the candidate.
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
+				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual bool checkPositionForPlausibility_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const UInt scan_index, const bool check_PPMs) ;
 			
@@ -416,7 +391,7 @@ namespace OpenMS
  				* @param mz The position of the pattern.
  				* @param scan The index of the scan, we are currently analyzing (w.r.t. the data map).
  				* This information is necessary for the post-processing (sweep lining).
- 				* @param charge The estimated charge state minus 1 (e.g. c=2 means charge state 3) of the pattern. 
+ 				* @param c The estimated charge state minus 1 (e.g. c=2 means charge state 3) of the pattern. 
  				* @param score The pattern's score.
  				* @param intens The intensity at the monoisotopic peak.
  				* @param rt The retention time of the scan (similar to @p scan, but here: no index, but the real value).
@@ -434,34 +409,36 @@ namespace OpenMS
  				* @param mz The position of the pattern.
  				* @param scan The index of the scan, we are currently analyzing (w.r.t. the data map).
  				* This information is necessary for the post-processing (sweep lining).
- 				* @param charge The estimated charge state minus 1 (e.g. c=2 means charge state 3) of the pattern. 
+ 				* @param c The estimated charge state minus 1 (e.g. c=2 means charge state 3) of the pattern. 
  				* @param score The pattern's score.
  				* @param intens The intensity at the monoisotopic peak.
  				* @param rt The retention time of the scan (similar to @p scan, but here: no index, but the real value).
  				* @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan.
  				* @param MZ_end The end index (w.r.t. the monoisotopic position!) of the pattern (m/z) w.r.t. the current scan.*/
-			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score,
+			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt c, const DoubleReal score,
 				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) ;
 
 			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index.
  				*
- 				* @param scan	The scan we are interested in.
- 				* @param start_index An optional starting position (index) w.r.t. @p scan.
- 				* @param end_index An optional final position (index) w.r.t. @p scan.*/
-			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan);//, Int start_index=0, Int end_index=-1) ;
+ 				* @param scan	The scan we are interested in. */
+			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan);
 
 
 			/** @brief Clusters the seeds stored by push2TmpBox_.
  				* @param candidates A isotope wavelet transformed spectrum.
  				* @param ref The corresponding original spectrum (w.r.t. @p candidates).
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */ 
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
+				* @param c The charge state minus 1 (e.g. c=2 means charge state 3). 
+				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			void clusterSeeds_ (const TransSpectrum& candidates, const MSSpectrum<PeakType>& ref, 
 				const UInt scan_index, const UInt c, const bool check_PPMs) ;
 		
 			/** @brief Clusters the seeds stored by push2TmpBox_.
  				* @param candidates A isotope wavelet transformed spectrum. 
  				* @param ref The corresponding original spectrum (w.r.t. @p candidates). 
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */ 
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map).  
+				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. 
+				* @param check_PPMs Applies an additional filter removing peptide candidates whose masses deviate more than 200 ppm from the average peptide mass model. */
 			virtual void clusterSeeds_ (const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, 
 				const UInt scan_index, const UInt c, const bool check_PPMs) ;
 
@@ -474,7 +451,7 @@ namespace OpenMS
 
 			/** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass. 
  				* @param c_mass The mass for which we would like to know the averagine decimal places. */
-			inline DoubleReal peptideMassRule (const DoubleReal c_mass) const
+			inline DoubleReal peptideMassRule_ (const DoubleReal c_mass) const
 			{
 				DoubleReal correction_fac = c_mass / Constants::PEPTIDE_MASS_RULE_BOUND;
 				DoubleReal old_frac_mass = c_mass - (Int)(c_mass);
@@ -497,10 +474,32 @@ namespace OpenMS
 			/** @brief Returns the parts-per-million deviation of the masses.
  				* @param mass_a The first mass. 
  				* @param mass_b The second mass. */
-			inline DoubleReal getPPMs (const DoubleReal mass_a, const DoubleReal mass_b) const
+			inline DoubleReal getPPMs_ (const DoubleReal mass_a, const DoubleReal mass_b) const
 			{
 				return (fabs(mass_a-mass_b)/(0.5*(mass_a+mass_b))*1e6);
 			};
+	
+			
+			/** @brief Computes a linear (intensity) interpolation. 
+ 				* @param left_iter The point left to the query. 
+ 				* @param mz_pos The query point.
+ 				* @param right_iter The point right to the query. */	
+			inline DoubleReal getLinearInterpolation_ (const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
+			{
+				return (left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity())/(right_iter->getMZ() - left_iter->getMZ()) * (mz_pos-left_iter->getMZ())); 
+			};
+			
+			/** @brief Computes a linear (intensity) interpolation. 
+ 				* @param mz_a The m/z value of the point left to the query.  
+ 				* @param intens_a The intensity value of the point left to the query. 
+ 				* @param mz_pos The query point.				
+ 				* @param mz_b The m/z value of the point right to the query.  
+ 				* @param intens_b The intensity value of the point right to the query. */ 
+			inline DoubleReal getLinearInterpolation_ (const DoubleReal mz_a, const DoubleReal intens_a, const DoubleReal mz_pos, const DoubleReal mz_b, const DoubleReal intens_b)
+			{
+				return (intens_a + (intens_b - intens_a)/(mz_b - mz_a) * (mz_pos-mz_a)); 
+			};
+
 
 
 			//internally used data structures for the sweep line algorithm
@@ -509,7 +508,7 @@ namespace OpenMS
 
 			gsl_interp_accel* acc_;
 			gsl_spline* spline_;
-			DoubleReal av_MZ_spacing_, sigma_;  
+			DoubleReal av_MZ_spacing_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
 			std::vector<DoubleReal> interpol_xs_, interpol_ys_;
 
@@ -649,21 +648,13 @@ namespace OpenMS
 		#ifdef OPENMS_HAS_CUDA
 			if (h_data_ != NULL) free (h_data_);
 			if (h_pos_ != NULL) free (h_pos_);
+			h_data_ = NULL;
+			h_pos_ = NULL;
 		#endif	
 	
 		delete (tmp_boxes_);
 	}
-	
 
-	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicInterpolatedValue (const std::vector<DoubleReal>& x, 
-		const DoubleReal xi, const std::vector<DoubleReal>& y) 
-	{
-		gsl_spline_init (spline_, &x[0], &y[0], x.size());
-		DoubleReal yi = gsl_spline_eval (spline_, xi, acc_);
-		return (yi);	
-	}
-	
 		
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransform (MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
@@ -1022,7 +1013,7 @@ namespace OpenMS
 					{
 						UInt dist = distance(candidates.begin(), iter2);
 						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, 
-							getLinearInterpolation ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
+							getLinearInterpolation_ ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
 							candidates.getRT(), MZ_start, MZ_end);
 					};
 				};
@@ -1042,7 +1033,7 @@ namespace OpenMS
 					{
 						UInt dist = distance(candidates.begin(), iter2);
 						push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, 
-							getLinearInterpolation ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
+							getLinearInterpolation_ ((iter2-1)->getMZ(), candidates.getTransIntensity(dist-1), help_mz, iter2->getMZ(), candidates.getTransIntensity(dist)),
 							candidates.getRT(), MZ_start, MZ_end);
 					};
 				};
@@ -1173,7 +1164,7 @@ namespace OpenMS
 			{
 				if (iter2 != candidates.end())
 				{
-					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation_(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 				};
 			};
 		
@@ -1189,7 +1180,7 @@ namespace OpenMS
 			{
 				if (iter2 != candidates.end())
 				{
-					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
+					push2TmpBox_ (iter2->getMZ(), scan_index, c, 0, getLinearInterpolation_(iter2-1, help_mz, iter2), ref.getRT(), MZ_start, MZ_end);
 				};
 			};
 		};	
@@ -1198,85 +1189,87 @@ namespace OpenMS
 	}
 
 
-	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
-	{
-		typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
-
-		//First of all do the trivial part of the merge
-		for (end_iter=later_iwt->closed_boxes_.begin(); end_iter!=later_iwt->closed_boxes_.end(); ++end_iter)
+	#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
+		template <typename PeakType>
+		void IsotopeWaveletTransform<PeakType>::mergeFeatures (IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
 		{
-			closed_boxes_.insert (*end_iter);
-		};
+			typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
-		typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
-		typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
-		
-		typename std::multimap<UInt, BoxElement>::iterator biter;
-
-		DoubleReal best_dist, c_dist; UInt c;
-		//Now, try to find matching boxes for the rest
-		for (front_iter=front_container.begin(); front_iter != front_container.end(); )
-		{
-			best_match = end_container.end(); best_dist = INT_MAX;
-			//This is everything else than efficient, but both containers should be very small in size
-			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
-			{
-				c=0;
-				for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
-				{
-					c=std::max (c, biter->second.c);
-				}; 
-				c_dist = fabs(end_iter->first - front_iter->first); 
-				if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
-				{
-					if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
-					//otherwise, there are too many blank scans in between
-					{	
-						best_match = end_iter;
-						best_dist = c_dist;
-					};
-				};
-			};
-			if (best_match == end_container.end()) //No matching pair found
-			{
-				if (front_iter->second.size() >= RT_votes_cutoff)
-				{
-					closed_boxes_.insert (*front_iter);
-					//extendBox_ (map, front_iter->second);
-				};
-				++front_iter;
-			}		
-			else //That's the funny part
-			{
-				front_iter->second.insert (best_match->second.begin(), best_match->second.end());
-				Box replacement (front_iter->second);	
-
-				//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
-				DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
-				c_mz /= ((DoubleReal) front_iter->second.size());		
-
-				help_iter = front_iter;
-				++help_iter;
-				std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
-				closed_boxes_.insert (help3);
-				//extendBox_ (map, help3.second);				
-				front_container.erase (front_iter);
-				end_container.erase (best_match);
-				front_iter = help_iter;
-			};
-		};
-
-		//Merge the rest in end_container
-		for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
-		{
-			if (end_iter->second.size() >= RT_votes_cutoff)
+			//First of all do the trivial part of the merge
+			for (end_iter=later_iwt->closed_boxes_.begin(); end_iter!=later_iwt->closed_boxes_.end(); ++end_iter)
 			{
 				closed_boxes_.insert (*end_iter);
-				//extendBox_ (map, end_iter->second);
 			};
-		};
-	}
+
+			typename std::multimap<DoubleReal, Box>& end_container (this->end_boxes_);
+			typename std::multimap<DoubleReal, Box>& front_container (later_iwt->front_boxes_);
+			
+			typename std::multimap<UInt, BoxElement>::iterator biter;
+
+			DoubleReal best_dist, c_dist; UInt c;
+			//Now, try to find matching boxes for the rest
+			for (front_iter=front_container.begin(); front_iter != front_container.end(); )
+			{
+				best_match = end_container.end(); best_dist = INT_MAX;
+				//This is everything else than efficient, but both containers should be very small in size
+				for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+				{
+					c=0;
+					for (biter=front_iter->second.begin(); biter != front_iter->second.end(); ++biter)
+					{
+						c=std::max (c, biter->second.c);
+					}; 
+					c_dist = fabs(end_iter->first - front_iter->first); 
+					if (c_dist < Constants::IW_HALF_NEUTRON_MASS/(c+1.) && c_dist < best_dist)
+					{
+						if ((front_iter->second.begin())->first - (--(end_iter->second.end()))->first <= RT_interleave)
+						//otherwise, there are too many blank scans in between
+						{	
+							best_match = end_iter;
+							best_dist = c_dist;
+						};
+					};
+				};
+				if (best_match == end_container.end()) //No matching pair found
+				{
+					if (front_iter->second.size() >= RT_votes_cutoff)
+					{
+						closed_boxes_.insert (*front_iter);
+						//extendBox_ (map, front_iter->second);
+					};
+					++front_iter;
+				}		
+				else //That's the funny part
+				{
+					front_iter->second.insert (best_match->second.begin(), best_match->second.end());
+					Box replacement (front_iter->second);	
+
+					//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
+					DoubleReal c_mz = front_iter->first * (front_iter->second.size()-best_match->second.size()) + best_match->first;	
+					c_mz /= ((DoubleReal) front_iter->second.size());		
+
+					help_iter = front_iter;
+					++help_iter;
+					std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
+					closed_boxes_.insert (help3);
+					//extendBox_ (map, help3.second);				
+					front_container.erase (front_iter);
+					end_container.erase (best_match);
+					front_iter = help_iter;
+				};
+			};
+
+			//Merge the rest in end_container
+			for (end_iter=end_container.begin(); end_iter != end_container.end(); ++end_iter)
+			{
+				if (end_iter->second.size() >= RT_votes_cutoff)
+				{
+					closed_boxes_.insert (*end_iter);
+					//extendBox_ (map, end_iter->second);
+				};
+			};
+		}
+	#endif
 
 
 	template<typename PeakType>
@@ -1832,8 +1825,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
-		const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
+		void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const Size scan_index, 			const UInt RT_interleave, const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
 	{
 		typename std::multimap<DoubleReal, Box>::iterator iter, iter2;
 
@@ -1883,9 +1875,8 @@ namespace OpenMS
 			};
 		};
 	}
-
-
-
+		
+		
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, const Box box)
 	{
@@ -2306,15 +2297,15 @@ namespace OpenMS
 	template <typename PeakType>
 	std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_ (const MSSpectrum<PeakType>& ref, DoubleReal c_mz)
 	{
-		DoubleReal ppms = getPPMs(peptideMassRule(c_mz), c_mz);
+		DoubleReal ppms = getPPMs_(peptideMassRule_(c_mz), c_mz);
 		if (ppms >= Constants::PEPTIDE_MASS_RULE_THEO_PPM_BOUND)
 		{
 			std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> rejected: ppm too large \t" << ppms 
-				<< " (rule: " << peptideMassRule(c_mz) << " got: " << c_mz << ")" << std::endl;
+				<< " (rule: " << peptideMassRule_(c_mz) << " got: " << c_mz << ")" << std::endl;
 			return (std::pair<DoubleReal, DoubleReal> (-1,-1));
 		};
 		std::cout << ::std::setprecision(8) << std::fixed << c_mz << "\t =(" << "ISO_WAVE" << ")> ACCEPT \t" << ppms << " (rule: " 
-			<< peptideMassRule(c_mz) << " got: " << c_mz << ")" << std::endl;
+			<< peptideMassRule_(c_mz) << " got: " << c_mz << ")" << std::endl;
 		return (std::pair<DoubleReal, DoubleReal> (c_mz, ref.MZBegin(c_mz)->getIntensity()));	
 	}
 

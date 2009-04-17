@@ -341,10 +341,20 @@ namespace OpenMS
 		{
 			if (value.trim() != "")
 			{
-				String mz(value.prefix('_'));
-				String rt(value.suffix('_'));
-				actual_peptide_id_.setMetaValue("MZ", mz.toDouble());
-				actual_peptide_id_.setMetaValue("RT", rt.toDouble());				
+				if (value.has('_'))
+				{
+					String mz(value.prefix('_'));
+					String rt(value.suffix('_'));
+					try
+					{
+						actual_peptide_id_.setMetaValue("MZ", mz.toDouble());
+						actual_peptide_id_.setMetaValue("RT", rt.toDouble());				
+					}
+					catch (...)
+					{
+						// if exception happens to occur here, s.th. went wrong, e.g. the value does not contains numbers
+					}
+				}
 			}
 		}
 	}

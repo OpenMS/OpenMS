@@ -31,6 +31,10 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -1852,6 +1856,65 @@ namespace OpenMS
 			exit(INTERNAL_ERROR);
 		}
 		return id_tagger_;
+	}
+
+
+	const String& TOPPBase::toolName_() const
+	{
+		return tool_name_;
+	}
+
+	Map<String,StringList> TOPPBase::getToolList()
+	{
+		Map<String,StringList> tools_map;
+		
+		tools_map["AdditiveSeries"] = StringList::create("");
+		tools_map["BaselineFilter"] = StringList::create("");
+		tools_map["ConsensusID"] = StringList::create("");
+		tools_map["DBExporter"] = StringList::create("");
+		tools_map["DBImporter"] = StringList::create("");
+		tools_map["DTAExtractor"] = StringList::create("");
+		tools_map["Decharger"] = StringList::create("");
+		tools_map["FalseDiscoveryRate"] = StringList::create("");
+		tools_map["FeatureFinder"] = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
+		tools_map["FeatureLinker"] = Factory<FeatureGroupingAlgorithm>::registeredProducts();
+		tools_map["FileConverter"] = StringList::create("");
+		tools_map["FileFilter"] = StringList::create("");
+		tools_map["FileInfo"] = StringList::create("");
+		tools_map["FileMerger"] = StringList::create("");
+		tools_map["IDDecoyProbability"] = StringList::create("");
+		tools_map["IDFilter"] = StringList::create("");
+		tools_map["IDMapper"] = StringList::create("");
+		tools_map["IDMerger"] = StringList::create("");
+		tools_map["IDRTCalibration"] = StringList::create("");
+		tools_map["ITRAQAnalyzer"] = StringList::create("4plex,8plex");
+		tools_map["InspectAdapter"] = StringList::create("");
+		tools_map["InternalCalibration"] = StringList::create("");
+		tools_map["MapAligner"] = Factory<MapAlignmentAlgorithm>::registeredProducts();
+		tools_map["MapNormalizer"] = StringList::create("");
+		tools_map["MascotAdapter"] = StringList::create("");
+		tools_map["MascotAdapterOnline"] = StringList::create("");
+		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
+		tools_map["OMSSAAdapter"] = StringList::create("");
+		tools_map["PILISIdentification"] = StringList::create("");
+		tools_map["PILISModel"] = StringList::create("");
+		tools_map["PTModel"] = StringList::create("");
+		tools_map["PTPredict"] = StringList::create("");
+		tools_map["PeakPicker"] = StringList::create("wavelet,high_res");
+		tools_map["PepNovoAdapter"] = StringList::create("");
+		tools_map["RTModel"] = StringList::create("");
+		tools_map["RTPredict"] = StringList::create("");
+		tools_map["Resampler"] = StringList::create("");
+		tools_map["SILACAnalyzer"] = StringList::create("");
+		tools_map["SequestAdapter"] = StringList::create("");
+		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
+		tools_map["TOFCalibration"] = StringList::create("");
+		tools_map["TextExporter"] = StringList::create("");
+		tools_map["TextImporter"] = StringList::create("");
+		tools_map["XTandemAdapter"] = StringList::create("");
+		tools_map["PrecursorIonSelector"] = StringList::create("");
+		
+		return tools_map;
 	}
 
 } // namespace OpenMS

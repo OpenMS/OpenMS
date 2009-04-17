@@ -36,7 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
-#include <iostream>
+#include <QtCore/QFile>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -110,6 +111,8 @@ class TOPPXTandemAdapter
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
 			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
+
+			registerStringOption_("temp_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", false, true);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -153,11 +156,16 @@ class TOPPXTandemAdapter
 
 
 			String unique_name = File::getUniqueName(); // body for the tmp files
+			String temp_directory(getStringOption_("temp_directory"));
+			if (temp_directory != "")
+			{
+				temp_directory.ensureLastChar('/');
+			}
 
-			String input_filename("/tmp/" + unique_name + "_tandem_input_file.xml");
-			String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mzData");
-			String tandem_output_filename("/tmp/" + unique_name + "_tandem_output_file.xml");
-			String tandem_taxonomy_filename("/tmp/" + unique_name + "_tandem_taxonomy_file.xml");
+			String input_filename(temp_directory + unique_name + "_tandem_input_file.xml");
+			String tandem_input_filename(temp_directory + unique_name + "_tandem_input_file.mzData");
+			String tandem_output_filename(temp_directory + unique_name + "_tandem_output_file.xml");
+			String tandem_taxonomy_filename(temp_directory + unique_name + "_tandem_taxonomy_file.xml");
 	
 			//-------------------------------------------------------------
 			// reading input
@@ -242,21 +250,17 @@ class TOPPXTandemAdapter
 			// calculations
 			//-------------------------------------------------------------
 
-
-			// TODO
-			// - Default input files lesen und mit den cmd parameter in Datei schreiben
-			// - Dateien fuer Sequenzfiles anlegen, taxonomy bestimmen und als parameter uebergeben
-			// - Parameter aufrauemen
-				
-
+			// @todo translate call to windows
 			String call = tandem_path + "/./tandem.exe " + input_filename;
 			int status = system(call.c_str());
 
 			if (status != 0)
 			{
 				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-				call = "rm " + input_filename + " " + tandem_taxonomy_filename + " " + tandem_input_filename;
-				system(call.c_str());
+				// clean temporary files
+				QFile(input_filename.toQString()).remove();
+      	QFile(tandem_input_filename.toQString()).remove();
+      	QFile(tandem_taxonomy_filename.toQString()).remove();
 				return EXTERNAL_PROGRAM_ERROR;
 			}
 
@@ -269,12 +273,12 @@ class TOPPXTandemAdapter
 			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
 			StringList files;
-			File::fileList("/tmp", unique_name + "_tandem_output_file*.xml", files);
+			File::fileList(temp_directory, unique_name + "_tandem_output_file*.xml", files);
 			if (files.size() != 1)
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
 			}
-			tandem_output.load("/tmp/" + files[0], protein_id, peptide_ids);
+			tandem_output.load(temp_directory + files[0], protein_id, peptide_ids);
 			
 			// now put the RTs into the peptide_ids from the spectrum ids
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
@@ -339,11 +343,10 @@ class TOPPXTandemAdapter
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 
 			/// Deletion of temporary files	
-			call = "rm " + input_filename;
-			call += " /tmp/" + files[0];
-			call += " " + tandem_input_filename;
-			call += " " + tandem_taxonomy_filename;
-			system(call.c_str());
+			QFile(input_filename.toQString()).remove();
+			QFile((temp_directory + files[0]).toQString()).remove();
+			QFile(tandem_input_filename.toQString()).remove();
+			QFile(tandem_taxonomy_filename.toQString()).remove();
 			
 			return EXECUTION_OK;	
 		}

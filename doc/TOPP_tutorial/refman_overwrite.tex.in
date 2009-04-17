@@ -62,10 +62,10 @@
 	\pagebreak
 
 \section{Calling TOPP tools from TOPPView}
-	
-	\input{TOPPView_baseline_reduction}
-	\pagebreak
+
 	\input{TOPPView_smoothing}
+	\pagebreak
+	\input{TOPPView_baseline_reduction}
 	\pagebreak
 	\input{TOPPView_peakpicking}
 	\pagebreak

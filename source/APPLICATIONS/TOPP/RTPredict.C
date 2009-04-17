@@ -98,6 +98,7 @@ class TOPPRTPredict
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 			setMinFloat_("total_gradient_time", 0.00001);
+			registerIntOption_("max_number_of_peptides", "<int>",100000,"the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n",false);
 		}
 
 		void loadStrings_(String filename, std::vector<String>& sequences)
@@ -143,6 +144,7 @@ class TOPPRTPredict
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 			vector<DoubleReal> predicted_retention_times;
+			vector<DoubleReal> all_predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
 			map< AASequence, DoubleReal > predicted_modified_data;
 			svm_problem* prediction_data = NULL;
@@ -169,7 +171,8 @@ class TOPPRTPredict
 			bool textfile_input = false;
 			bool textfile_output = false;
 			bool first_dim_rt = false;
-			UInt number_of_peptides = 0;
+			Size number_of_peptides = 0;
+			Size max_number_of_peptides = getIntOption_("max_number_of_peptides");
 			
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -212,13 +215,13 @@ class TOPPRTPredict
 			
 			svm.loadModel(svmfile_name);
 						
-			if ((svm.getIntParameter(SVM_TYPE) == C_SVC || svm.getIntParameter(SVM_TYPE) == NU_SVC) && !separation_prediction)
+			if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC) && !separation_prediction)
 			{
 					writeLog_("You cannot perform peptide separation prediction with a model trained for"
 										+ String("\npeptide retention time prediction. Aborting!"));
 					return ILLEGAL_PARAMETERS;					
 			}
-			if ((svm.getIntParameter(SVM_TYPE) != C_SVC && svm.getIntParameter(SVM_TYPE) != NU_SVC) && separation_prediction)
+			if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) != C_SVC && svm.getIntParameter(SVMWrapper::SVM_TYPE) != NU_SVC) && separation_prediction)
 			{
 					writeLog_("You cannot perform peptide retention time prediction with a model trained for\n"
 										+ String("peptide separation prediction. Aborting!"));
@@ -227,7 +230,7 @@ class TOPPRTPredict
 
 			// Since the POBK is not included in the libsvm we have to load
 			// additional parameters from additional files.
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
 				inputFileReadable_(svmfile_name + "_additional_parameters");
 	
@@ -241,11 +244,11 @@ class TOPPRTPredict
 				}
 				if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
 				{
-					svm.setParameter(KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
+					svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
 				}
 								
 				if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No border length saved in additional parameters file. Aborting!");
 					cout << "No border length saved in additional parameters file. Aborting!" << endl;
@@ -253,7 +256,7 @@ class TOPPRTPredict
 				}
 				border_length = ((String)additional_parameters.getValue("border_length")).toInt();
 				if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No k-mer length saved in additional parameters file. Aborting!");
 					cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
@@ -261,7 +264,7 @@ class TOPPRTPredict
 				}
 				k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 				if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No sigma saved in additional parameters file. Aborting!");
 					cout << "No sigma saved in additional parameters file. Aborting!" << endl;
@@ -294,7 +297,7 @@ class TOPPRTPredict
 			if (textfile_input)
 			{
 				loadStrings_(inputfile_name, peptides);
-				if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					for (Size i = 0; i < peptides.size(); ++i)
 					{
@@ -320,7 +323,7 @@ class TOPPRTPredict
 					temp_peptide_hits = identifications[i].getHits();
 					for (Size j = 0; j < temp_peptide_hits.size(); j++)
 					{
-						if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 						{
 							modified_peptides.push_back(temp_peptide_hits[j].getSequence());
 						}
@@ -331,71 +334,109 @@ class TOPPRTPredict
 					}
 				}
 			}
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
-				number_of_peptides = (Int)modified_peptides.size();
+				number_of_peptides = modified_peptides.size();
 			}
 			else
 			{
-				number_of_peptides = (Int)peptides.size();
+				number_of_peptides = peptides.size();
 			}			
 										
 			vector<DoubleReal> rts;
 			rts.resize(number_of_peptides, 0);
 			
-			if (svm.getIntParameter(KERNEL_TYPE) != OLIGO)
+			vector<String>::iterator it_from = peptides.begin();
+			vector<String>::iterator it_to = peptides.begin();
+			vector<AASequence>::iterator it_from_mod = modified_peptides.begin();
+			vector<AASequence>::iterator it_to_mod = modified_peptides.begin();
+			Size counter = 0;
+			while(counter < number_of_peptides)
 			{
-				prediction_data = 
-					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(peptides,
-																																			rts,
-																														 					allowed_amino_acid_characters,
-																														 					maximum_length);
-			}
-			else if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				encoder.encodeProblemWithOligoBorderVectors(modified_peptides, 
-																										k_mer_length, 
-																										allowed_amino_acid_characters, 
-																										border_length,
-																										prediction_samples.sequences);
-				prediction_samples.labels = rts;																																	
-			}
-					
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				inputFileReadable_((svmfile_name + "_samples").c_str());
+				vector<String> temp_peptides;
+				vector<AASequence> temp_modified_peptides;
+				vector<DoubleReal> temp_rts;
 
-				training_samples.load(svmfile_name + "_samples");
-				svm.setTrainingSample(training_samples);				
-
-				svm.setParameter(BORDER_LENGTH, (Int) border_length);
-				svm.setParameter(SIGMA, sigma);
-				svm.predict(prediction_samples, predicted_retention_times);
-			}
-			else
-			{
-				svm.predict(prediction_data, predicted_retention_times);
-				LibSVMEncoder::destroyProblem(prediction_data);
-			}
-
-			for (Size i = 0; i < number_of_peptides; i++)
-			{
-				if (svm.getIntParameter(KERNEL_TYPE) == OLIGO && !textfile_output)
+				Size temp_counter = 0;
+				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
 				{
-					predicted_modified_data.insert(make_pair(modified_peptides[i],
-																					(predicted_retention_times[i] * total_gradient_time)));
+					while(temp_counter <= max_number_of_peptides && it_to != peptides.end())
+					{
+						++it_to;
+						++temp_counter;
+					}
+					temp_peptides.insert(temp_peptides.end(), it_from, it_to);
+					//temp_peptides.insert(temp_peptides.end(), peptides.begin(), peptides.end());
+					temp_rts.resize(temp_peptides.size(), 0);
+
+					prediction_data = 
+						encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(temp_peptides,
+																																				temp_rts,
+																															 					allowed_amino_acid_characters,
+																															 					maximum_length);
+					it_from = it_to;
 				}
-				else if (svm.getIntParameter(KERNEL_TYPE) != OLIGO)
+				else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
-					predicted_data.insert(make_pair(peptides[i],
-																					(predicted_retention_times[i] * total_gradient_time)));
+					while(temp_counter < max_number_of_peptides && it_to_mod != modified_peptides.end())
+					{
+						++it_to_mod;
+						++temp_counter;
+					}
+					temp_modified_peptides.insert(temp_modified_peptides.end(), it_from_mod, it_to_mod);
+					//					temp_modified_peptides.insert(temp_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
+					temp_rts.resize(temp_modified_peptides.size(), 0);
+
+					encoder.encodeProblemWithOligoBorderVectors(temp_modified_peptides, 
+																											k_mer_length, 
+																											allowed_amino_acid_characters, 
+																											border_length,
+																											prediction_samples.sequences);
+					prediction_samples.labels = temp_rts;
+					it_from_mod = it_to_mod;
+				}
+				counter += temp_counter;
+
+				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+				{
+					inputFileReadable_((svmfile_name + "_samples").c_str());
+	
+					training_samples.load(svmfile_name + "_samples");
+					svm.setTrainingSample(training_samples);				
+	
+					svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+					svm.setParameter(SVMWrapper::SIGMA, sigma);
+					svm.predict(prediction_samples, predicted_retention_times);
+					prediction_samples.labels.clear();
+					prediction_samples.sequences.clear();
 				}
 				else
 				{
-					predicted_data.insert(make_pair(modified_peptides[i].toString(),
-																					(predicted_retention_times[i] * total_gradient_time)));
+					svm.predict(prediction_data, predicted_retention_times);
+					LibSVMEncoder::destroyProblem(prediction_data);
 				}
-			}
+				for (Size i = 0; i < temp_counter; ++i)
+				{
+					if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && !textfile_output)
+					{
+						predicted_modified_data.insert(make_pair(temp_modified_peptides[i],
+																						(predicted_retention_times[i] * total_gradient_time)));
+					}
+					else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
+					{
+						predicted_data.insert(make_pair(temp_peptides[i],
+																						(predicted_retention_times[i] * total_gradient_time)));
+					}
+					else
+					{
+						predicted_data.insert(make_pair(temp_modified_peptides[i].toString(),
+																						(predicted_retention_times[i] * total_gradient_time)));
+					}												
+				}
+				all_predicted_retention_times.insert(all_predicted_retention_times.end(), predicted_retention_times.begin(), predicted_retention_times.end());
+				predicted_retention_times.clear();
+			}						
+
 			if (!textfile_input)
 			{
 				if (!separation_prediction)
@@ -408,7 +449,7 @@ class TOPPRTPredict
 							DoubleReal temp_rt = 0.;
 							DoubleReal temp_p_value = 0.;
 														
-							if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+							if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 							{
 								temp_rt = predicted_modified_data[temp_peptide_hits[j].getSequence()];
 							}
@@ -429,14 +470,14 @@ class TOPPRTPredict
 									temp_point.first = identifications[i].getMetaValue("RT");
 								}
 							}
-							if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+							if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 							{
 								temp_point.second = temp_rt;
 								temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
 							}
 							if (first_dim_rt)
 							{
-								if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+								if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 								{
 									temp_peptide_hits[j].setMetaValue("predicted_RT_p_value_first_dim",temp_p_value);
 								}
@@ -445,7 +486,7 @@ class TOPPRTPredict
 							}
 							else
 							{
-								if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+								if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 								{
 									temp_peptide_hits[j].setMetaValue("predicted_RT_p_value",temp_p_value);
 								}
@@ -481,7 +522,7 @@ class TOPPRTPredict
 								it != temp_peptide_hits.end();
 								++it)
 						{						
-							if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+							if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 							{
 								if (predicted_modified_data[it->getSequence()] > 0)
 								{
@@ -544,16 +585,16 @@ class TOPPRTPredict
 				else
 				{
 					IdXML_file.store(outputfile_name,
-																 protein_identifications,
-																 identifications);
+													 protein_identifications,
+													 identifications);
 					writeDebug_("Linear correlation between predicted and measured rt is: "
-											+ String(Math::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
-																				predicted_retention_times.end(), 
+											+ String(Math::pearsonCorrelationCoefficient(all_predicted_retention_times.begin(), 
+																				all_predicted_retention_times.end(), 
 																				performance_retention_times.begin(), 
 																				performance_retention_times.end())), 1);														 
 					writeDebug_("MSE between predicted and measured rt is: "
-											+ String(Math::meanSquareError(predicted_retention_times.begin(), 
-																				predicted_retention_times.end(), 
+											+ String(Math::meanSquareError(all_predicted_retention_times.begin(), 
+																				all_predicted_retention_times.end(), 
 																				performance_retention_times.begin(), 
 																				performance_retention_times.end())), 1);														 
 					

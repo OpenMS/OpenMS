@@ -222,7 +222,10 @@ namespace OpenMS
 				param_.setValue(list_.name, list_.stringlist, list_.description, list_.tags);
 				if(list_.restrictions_index!=-1)
 				{
-					list_.restrictions.split(',', parts);
+					if (!list_.restrictions.split(',', parts) && list_.restrictions != "")
+					{
+						parts.push_back(list_.restrictions);
+					}
 					param_.setValidStrings(list_.name,parts);
 				}
 			}

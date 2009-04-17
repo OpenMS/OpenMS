@@ -386,12 +386,6 @@ namespace OpenMS
 			/// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
 			bool setStringSequence(const String& sequence);
 		
-			/// sets the residue at position index; residue must be a valid residue of the ResidueDB!
-			bool setResidue(Int index, const Residue* residue);
-		
-			/// sets the residue at position index; residue must be a valid residue of the ResidueDB!
-			bool setResidue(Size index, const Residue* residue);
-			
 			/// returns a pointer to the residue, which is at position index
 			const Residue& getResidue(SignedSize index) const;
 			
@@ -406,9 +400,6 @@ namespace OpenMS
 
 			/// returns the mono isotopic weight of the peptide
 			DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
-
-			/// fills in the map the neutral loss formulas associated with their occuring frequency
-			Map<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
 			const Residue& operator [] (SignedSize index) const;
@@ -454,9 +445,6 @@ namespace OpenMS
 
 			/// counts the number of occurrences of residue given by a string
 			Size getNumberOf(const String& residue) const;
-
-			/// counts the number of occurrences of residue given by a string literal
-			Size getNumberOf(const char* residue) const;
 
 			/// compute frequency table of amino acids
 			void getAAFrequencies(Map<String, Size>& frequency_table) const;

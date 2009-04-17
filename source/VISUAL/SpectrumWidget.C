@@ -52,7 +52,7 @@ namespace OpenMS
 		grid_->setSpacing(0);
 		grid_->setMargin(1);
 
-		setMinimumSize(250,250);
+		setMinimumSize(250,250); //Canvas (200) + AxisWidget (30) + ScrollBar (20)
 		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 		
 		setAcceptDrops(true);

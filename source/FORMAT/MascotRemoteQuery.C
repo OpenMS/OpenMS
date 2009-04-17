@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
+#include <QtGui/QTextDocument>
 #include <iostream>
 
 #define MASCOTREMOTEQUERY_DEBUG
@@ -375,7 +376,9 @@ void MascotRemoteQuery::httpDone(bool error)
 	QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "Response of query: " << endl;
-	cerr << new_bytes.constData() << endl;
+	QTextDocument doc;
+	doc.setHtml(new_bytes.constData());
+	cerr << doc.toPlainText().toStdString() << endl;
 #endif
 	
 	//Sucessful login? fire off the search
@@ -396,7 +399,6 @@ void MascotRemoteQuery::httpDone(bool error)
 		
 			//This will get the xml...
 			results_path_.append("/mascot/cgi/export_dat_2.pl?file=../data/");
-			//resultsPath->append("/mascot/cgi/export_dat.pl?file=../data/");
 			results_path_.append(rx.cap(1));
 			results_path_.append("/");
 			results_path_.append(rx.cap(2));
@@ -405,33 +407,29 @@ void MascotRemoteQuery::httpDone(bool error)
 #endif
 			results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
 		
-		if (param_.getValue("query_master").toBool())
-		{
-			results_path_.append("&query_master=1");
-		}
-		else
-		{
-			results_path_.append("&query_master=0");
-		}
+			if (param_.getValue("query_master").toBool())
+			{
+				results_path_.append("&query_master=1");
+			}
+			else
+			{
+				results_path_.append("&query_master=0");
+			}
 
-		//Finished search, fire off results retrieval
-		emit queryDone();
-		
+			//Finished search, fire off results retrieval
+			emit queryDone();
 		} 
 		else 
 		{	
-			if (new_bytes.contains("Sorry, your search could not be performed due to the following mistake entering data."))
+		
+			// check whether Mascot responded using an error code e.g. [M00440], pipe through results else
+			QString response_text = new_bytes;
+			QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
+			if (response_text.contains(mascot_error_regex))
 			{
-				String error = String(QString(new_bytes));
-				vector<String> split;
-				error.split('\n', split);
-				for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
-				{
-					if (it->hasPrefix("Sorry"))
-					{
-						error_message_ += *it + "\n";
-					}
-				}
+				QTextDocument doc;
+				doc.setHtml(response_text);
+				error_message_ = doc.toPlainText().toStdString();
 				emit done();
 			}
 			else

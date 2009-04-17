@@ -45,33 +45,6 @@
 namespace OpenMS 
 {
 	
-  /**
-    @brief 	Parameters for the svm to be set from outside
-
-		This type is used to specify the kind of parameter that
-		is to be set or retrieved by the set/getParameter methods.
-	*/
-	enum SVM_parameter_type
-	{
-		SVM_TYPE,				///< the svm type cab be NU_SVR or EPSILON_SVR
-		KERNEL_TYPE,		///< the kernel type
-		DEGREE,					///< the degree for the polynomial- kernel
-		C,							///< the C parameter of the svm
-		NU,							///< the nu parameter for nu-SVR
-		P,							///< the epsilon parameter for epsilon-SVR
-		GAMMA,					///< the gamma parameter of the POLY, RBF and SIGMOID kernel
-		PROBABILITY,		///<
-		SIGMA,					///<
-		BORDER_LENGTH		///<
-	};
-	
-	/// Kernel type
-	enum SVM_kernel_type
-	{
-		OLIGO = 19,
-		OLIGO_COMBINED
-	};
-	
 	/// Data structure used in SVMWrapper
 	struct SVMData
 	{
@@ -182,6 +155,33 @@ namespace OpenMS
 	class OPENMS_DLLAPI SVMWrapper
 	{
 	 public:
+	
+		  /**
+		    @brief 	Parameters for the svm to be set from outside
+		
+				This type is used to specify the kind of parameter that
+				is to be set or retrieved by the set/getParameter methods.
+			*/
+			enum SVM_parameter_type
+			{
+				SVM_TYPE,				///< the svm type cab be NU_SVR or EPSILON_SVR
+				KERNEL_TYPE,		///< the kernel type
+				DEGREE,					///< the degree for the polynomial- kernel
+				C,							///< the C parameter of the svm
+				NU,							///< the nu parameter for nu-SVR
+				P,							///< the epsilon parameter for epsilon-SVR
+				GAMMA,					///< the gamma parameter of the POLY, RBF and SIGMOID kernel
+				PROBABILITY,		///<
+				SIGMA,					///<
+				BORDER_LENGTH		///<
+			};
+			
+			/// Kernel type
+			enum SVM_kernel_type
+			{
+				OLIGO = 19,
+				OLIGO_COMBINED
+			};
 	
 			/// standard constructor
 	    SVMWrapper();

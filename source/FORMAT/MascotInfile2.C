@@ -61,6 +61,7 @@ namespace OpenMS
 		defaults_.setValue("number_of_hits", 10, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
 		defaults_.setMinInt("number_of_hits", 0);
 		defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
+		defaults_.setValidStrings("skip_spectrum_charges", StringList::create("true,false"));
 		
 		defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", StringList::create("advanced"));
 		defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", StringList::create("advanced"));

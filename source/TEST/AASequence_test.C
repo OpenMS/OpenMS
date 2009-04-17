@@ -171,11 +171,6 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 	TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
 END_SECTION
 
-START_SECTION((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
-	AASequence seq("DFPIANGER");
-  Map<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
-END_SECTION
-
 START_SECTION(const Residue& operator [] (SignedSize index) const)
   AASequence seq("DFPIANGER");
 	SignedSize index = 0;
@@ -186,7 +181,7 @@ START_SECTION(const Residue& operator [] (SignedSize index) const)
 	TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
 
-START_SECTION([EXTRA] const Residue& operator [] (Size index) const)
+START_SECTION(const Residue& operator [] (Size index) const)
 	AASequence seq("DFPIANGER");
   Size index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -205,6 +200,12 @@ START_SECTION(AASequence operator + (const String& peptide) const)
 	TEST_EQUAL(seq1, seq2 + seq3)
 END_SECTION
 
+START_SECTION(AASequence operator + (const Residue* residue) const)
+  AASequence seq1("DFPIANGER");
+	AASequence seq2("DFPIANGE");
+  TEST_EQUAL(seq1, seq2 + ResidueDB::getInstance()->getResidue("R"))
+END_SECTION
+
 START_SECTION(AASequence& operator += (const AASequence&))
   AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("IANGER");
 	seq2 += seq3;
@@ -216,6 +217,13 @@ START_SECTION(AASequence& operator += (const String&))
 	String seq3("IANGER"), seq4("BLUBB");
 	seq2 += seq3;
 	TEST_EQUAL(seq1, seq2)
+END_SECTION
+
+START_SECTION(AASequence& operator += (const Residue* residue))
+  AASequence seq1("DFPIANGER");
+  AASequence seq2("DFPIANGE");
+  seq2 += ResidueDB::getInstance()->getResidue("R");
+  TEST_EQUAL(seq1, seq2)
 END_SECTION
 
 START_SECTION(Size size() const)
@@ -589,32 +597,10 @@ START_SECTION(bool operator!=(const char *rhs) const)
 	TEST_EQUAL(seq5 != "DFBIANGER", false)
 END_SECTION
 
-START_SECTION(bool setResidue(Int index, const Residue *residue))
-
-END_SECTION
-
-START_SECTION(bool setResidue(Size index, const Residue *residue))
-
-END_SECTION
-
-START_SECTION(AASequence operator+(const Residue *residue) const)
-
-END_SECTION
-
-START_SECTION(AASequence& operator+=(const Residue *residue))
-
-END_SECTION
-
-START_SECTION(AASequence getSubsequence(Size index, UInt number) const)
-
-END_SECTION
-
 START_SECTION(Size getNumberOf(const String &residue) const)
-
-END_SECTION
-
-START_SECTION(Size getNumberOf(const char *residue) const)
-
+	AASequence seq("DFPIANGERDFPIANGER");
+	TEST_EQUAL(seq.getNumberOf("Ala"), 2)
+	TEST_EQUAL(seq.getNumberOf("D"), 2)
 END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)

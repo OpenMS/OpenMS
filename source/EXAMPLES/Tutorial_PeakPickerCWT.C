@@ -16,17 +16,13 @@ Int main()
 
   PeakPickerCWT pp;
   Param param;
-  param.setValue("thresholds:peak_bound",500.0);
-  param.setValue("thresholds:fwhm_bound",0.1);
-  param.setValue("wavelet_transform:scale",0.2);
+  param.setValue("peak_width",0.1);
   pp.setParameters(param);
 
   pp.pickExperiment(exp_raw,exp_picked);
   exp_picked.updateRanges();
   
-  cout << "Scale of the wavelet: " << (DoubleReal)param.getValue("wavelet_transform:scale")
-       << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("thresholds:fwhm_bound")
-       << "\nMinimal intensity of a mass spectrometric peak " << (DoubleReal)param.getValue("thresholds:peak_bound")
+  cout << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("peak_width")
        << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
 
   return 0;

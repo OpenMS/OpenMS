@@ -533,7 +533,7 @@ class TOPPSILACAnalyzer
 				//--------------------------------------------------------------
 				if (out!="")
 				{
-					for (Size i=0; i<best_n; ++i)
+					for (int i=0; i<best_n; ++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -545,7 +545,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 						for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if ((UInt)it->cluster_id==i)
+							if (it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;
@@ -685,7 +685,7 @@ class TOPPSILACAnalyzer
 	      	// write ratios of all cluster to *.dat
 					std::ofstream stream_ratios(debug_dat.c_str());
 					stream_ratios << "cluster_id cluster_size rt mz ratio" << std::endl;
-	      	for (Size i=0; i<best_n;++i)
+	      	for (int i=0; i<best_n;++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -697,7 +697,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 		   			for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if ((UInt)it->cluster_id==i)
+							if (it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;

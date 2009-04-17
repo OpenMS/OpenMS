@@ -57,6 +57,7 @@
 	- @subpage DecoyDatabase
 	- @subpage SequenceCoverageCalculator
   - @subpage IDExtractor
+  - @subpage IDMassAccuracy
 	
 	<b>Misc</b>
   - @subpage HistView

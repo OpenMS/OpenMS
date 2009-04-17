@@ -118,7 +118,7 @@ class TOPPFeatureFinder
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
-		setValidStrings_("type", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
+		setValidStrings_("type", getToolList()[toolName_()] );
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
 						 "They are set in the 'algorithm' section of the INI file.\n");	
@@ -154,7 +154,7 @@ class TOPPFeatureFinder
 		f.setLogType(log_type_);
 		PeakFileOptions options;
 
-		if (type != "MRM")
+		if (type != "mrm")
 		{
 			//prevent loading of fragment spectra
 			options.setMSLevels(vector<Int>(1,1));
@@ -163,7 +163,7 @@ class TOPPFeatureFinder
 		f.load(in,exp);
 
 		//prevent loading of everthing except MRM MS/MS spectra
-		if (type == "MRM")
+		if (type == "mrm")
 		{
 			PeakMap exp2;
 			for (Size i = 0; i != exp.size(); ++i)

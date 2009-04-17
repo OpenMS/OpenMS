@@ -51,9 +51,10 @@ namespace OpenMS
 		The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer. 
   	
 		@htmlinclude OpenMS_Spectrum2DCanvas.parameters
-
+		
+		@improvement Add RT interpolation mode for high zoom in 2D View (Hiwi)
+		
     @improvement Support different peak icons - cross, star, square - and sizes (HiWi)
-    @improvement Add log mode (Marc)
 		
   	@ingroup SpectrumWidgets
   */

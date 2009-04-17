@@ -282,17 +282,17 @@ namespace OpenMS
 #ifdef PIS_DEBUG
 		std::cout << protein_acc << "  shift down  "<<masses.size()<< " peptides"<<std::endl;
 #endif
-		FeatureMap<>::Iterator f_iter = features.begin();
-		for(;f_iter != features.end();++f_iter)
+		// go through all tryptic peptide masses of this protein
+		std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
+		for(;aa_vec_iter != masses.end(); ++aa_vec_iter)
 			{
-				if((DoubleReal) f_iter->getMetaValue("msms_score")>0
-					 && f_iter->getMetaValue("fragmented") == "false"
-					 && f_iter->getMetaValue("shifted") != "down"
-					 && f_iter->getMetaValue("shifted") != "both")
+				FeatureMap<>::Iterator f_iter = features.begin();
+				for(;f_iter != features.end();++f_iter)
 					{
-						// go through all tryptic peptide masses of this protein
-						std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
-						for(;aa_vec_iter != masses.end(); ++aa_vec_iter)
+						if((DoubleReal) f_iter->getMetaValue("msms_score")>0
+							 && f_iter->getMetaValue("fragmented") == "false"
+							 && f_iter->getMetaValue("shifted") != "down"
+							 && f_iter->getMetaValue("shifted") != "both")
 							{
 								DoubleReal weight = preprocessed_db.getWeight(*aa_vec_iter);
 								if(mz_tolerance_unit_ == "ppm")
@@ -350,18 +350,17 @@ namespace OpenMS
 #ifdef PIS_DEBUG
 		std::cout << protein_acc << "  shift up  "<<masses.size()<< " peptides"<<std::endl;
 #endif
-
-		FeatureMap<>::Iterator f_iter = features.begin();
-		for(;f_iter != features.end();++f_iter)
+		// go through all tryptic peptide masses of this protein
+		std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
+		for(;aa_vec_iter != masses.end(); ++aa_vec_iter)
 			{
-				if((DoubleReal) f_iter->getMetaValue("msms_score")>0
-					 && f_iter->getMetaValue("fragmented") == "false"
-					 && f_iter->getMetaValue("shifted") != "up"
-					 && f_iter->getMetaValue("shifted") != "both")
+				FeatureMap<>::Iterator f_iter = features.begin();
+				for(;f_iter != features.end();++f_iter)
 					{
-						// go through all tryptic peptide masses of this protein
-						std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
-						for(;aa_vec_iter != masses.end(); ++aa_vec_iter)
+						if((DoubleReal) f_iter->getMetaValue("msms_score")>0
+							 && f_iter->getMetaValue("fragmented") == "false"
+							 && f_iter->getMetaValue("shifted") != "up"
+							 && f_iter->getMetaValue("shifted") != "both")
 							{
 								DoubleReal weight = preprocessed_db.getWeight(*aa_vec_iter);
 								if(mz_tolerance_unit_ == "ppm")

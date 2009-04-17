@@ -117,7 +117,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 END_SECTION
 
-START_SECTION(void store(const String &, const RichPeakMap &) const)
+START_SECTION(void store(const String& filename, const RichPeakMap& exp) const)
 	MSPFile msp_file;
 	RichPeakMap exp;
 	// @todo write test for writing

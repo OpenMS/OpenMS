@@ -61,10 +61,6 @@ namespace OpenMS
 			/** @name Typedefs and Constants
 			*/
 			//@{
-			//typedef std::vector<EmpiricalFormula>::const_iterator LowMassConstIterator;
-			//typedef std::vector<EmpiricalFormula>::iterator LowMassIterator;
-
-			
 			inline static const EmpiricalFormula& getInternalToFull()
 			{
 				static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
@@ -315,29 +311,34 @@ namespace OpenMS
 			/// sets the neutral loss formulas 
 			void setLossFormulas(const std::vector<EmpiricalFormula>&);
 
-
+			/// adds N-terminal losses
 			void addNTermLossFormula(const EmpiricalFormula&);
 			
+			/// sets the N-terminal losses
 			void setNTermLossFormulas(const std::vector<EmpiricalFormula>&);
 			
-			/// returns the neutral loss formula (or just an empty string if there is none)
+			/// returns the neutral loss formulas
 			const std::vector<EmpiricalFormula>& getLossFormulas() const;
 
+			/// returns N-terminal loss formulas
 			const std::vector<EmpiricalFormula>& getNTermLossFormulas() const;
 			
 			/// set the neutral loss molecule name
 			void setLossNames(const std::vector<String>& name);
 
+			/// sets the N-terminal loss names
 			void setNTermLossNames(const std::vector<String>& name);
 			
-			/// add netural loss molecule name
+			/// add neutral loss molecule name
 			void addLossName(const String& name);
 		
+			/// adds a N-terminal loss name
 			void addNTermLossName(const String& name);
 			
 			/// gets neutral loss name (if there is one, else returns an empty string)
 			const std::vector<String>& getLossNames() const;
-		
+	
+			/// returns the N-terminal loss names
 			const std::vector<String>& getNTermLossNames() const;
 			
 			/// set empirical formula of the residue
@@ -383,6 +384,7 @@ namespace OpenMS
 			/// true if the residue has neutral loss
 			bool hasNeutralLoss() const;
 			
+			/// true if N-terminal neutral losses are set
 			bool hasNTermNeutralLosses() const;
 			
 			/// equality operator

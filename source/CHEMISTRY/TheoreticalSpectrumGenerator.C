@@ -221,17 +221,30 @@ namespace OpenMS
 			
 			if (add_losses)
 			{
-				Map<const EmpiricalFormula*, UInt> losses = ion.getNeutralLosses();
+				set<String> losses;
+				for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
+				{
+					if (it->hasNeutralLoss())
+					{
+						vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
+						for (Size i = 0; i != loss_formulas.size(); ++i)
+						{
+							losses.insert(loss_formulas[i].getString());
+						}
+					}
+				}
+
+
 				if (!add_isotopes)
 				{
 					p_.setIntensity(intensity * rel_loss_intensity);
 				}
 				
-				for (Map<const EmpiricalFormula*, UInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
+				for (set<String>::const_iterator it=losses.begin(); it!=losses.end(); ++it)
 				{
-					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - *it->first;
+					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
 					double loss_pos = loss_ion.getMonoWeight() / charge;
-					String loss_name = it->first->getString();
+					String loss_name = *it;
 					
 					if (add_isotopes)
 					{

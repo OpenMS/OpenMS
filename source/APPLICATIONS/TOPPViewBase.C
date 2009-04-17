@@ -47,7 +47,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
@@ -216,7 +215,10 @@ namespace OpenMS
 		help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
+		//action = help->addAction("TOPPView tutorial",this,SLOT(showTutorial()), Qt::Key_F1);
+		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
+		
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 
@@ -366,7 +368,7 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     connect(layer_manager_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(layerEdit(QListWidgetItem*)));
 
-    windows->addAction("&Show layer window",layer_bar,SLOT(show()));
+    windows->addAction(layer_bar->toggleViewAction());
 
     //spectrum selection
     spectrum_bar_ = new QDockWidget("Spectra", this);
@@ -383,7 +385,7 @@ namespace OpenMS
     spectrum_selection_->setDragEnabled(true);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
-    windows->addAction("&Show spectrum selection window",this,SLOT(showSpectrumBrowser()));
+    windows->addAction(spectrum_bar_->toggleViewAction());
 
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
@@ -405,7 +407,7 @@ namespace OpenMS
     connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
     vbl->addWidget(filters_check_box_);
 
-    windows->addAction("&Show filter window",filter_bar,SLOT(show()));
+    windows->addAction(filter_bar->toggleViewAction());
 
 
 		//log window
@@ -417,7 +419,7 @@ namespace OpenMS
 		connect(log_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(logContextMenu(const QPoint&)));
 		log_bar->setWidget(log_);
 		log_bar->hide();
-    windows->addAction("&Show log window",log_bar,SLOT(show()));
+    windows->addAction(log_bar->toggleViewAction());
 
 		//################## DEFAULTS #################
     //general
@@ -1392,7 +1394,7 @@ namespace OpenMS
 
 				if (i == cl.current_spectrum)
 				{
-					item->setSelected(true);
+					// just remember it, select later
 					selected_item = item;
 				}
 			}
@@ -1419,7 +1421,7 @@ namespace OpenMS
 					toplevel_items.push_back(item);
 					if (i == cl.current_spectrum)
 					{
-						item->setSelected(true);
+						// just remember it, select later
 						selected_item = item;
 					}
 				}
@@ -1427,6 +1429,8 @@ namespace OpenMS
 			}
 			if (selected_item)
 			{
+				// now, select and scroll down to item
+				selected_item->setSelected(true);
 				spectrum_selection_->scrollToItem(selected_item);
 			}
   	}
@@ -1461,9 +1465,12 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
+	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 	{
-		if (current == 0)
+		if (current == 0 || previous == 0)
+		/*	test for previous == 0 is important - without it,
+				the wrong spectrum will be selected after finishing
+				the execution of a TOPP tool on the whole data */
 		{
 			return;
 		}
@@ -2245,6 +2252,15 @@ namespace OpenMS
     Spectrum2DWidget* w = active2DWindow_();
     if (w)
     {
+    	//update minimum size before 
+    	if (!w->projectionsVisible())
+    	{
+    		setMinimumSize(700,700);
+    	}
+    	else
+    	{
+    		setMinimumSize(400,400);
+    	}
     	w->toggleProjections();
     }
   }
@@ -2495,7 +2511,12 @@ namespace OpenMS
 													 ).arg(VersionInfo::getVersion().toQString());
 		label = new QLabel(text,dlg);
 		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
-
+			
+		//close button
+		QPushButton* button = new QPushButton("Close",dlg);
+		grid->addWidget(button,1,1,Qt::AlignBottom | Qt::AlignRight);
+		connect(button,SIGNAL(clicked()),dlg,SLOT(close()));
+		
 		//execute
 		dlg->exec();
 	}

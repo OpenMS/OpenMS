@@ -96,8 +96,6 @@ namespace OpenMS
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
 				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) ;
 
-				static DoubleReal getValueByExpLambda (const DoubleReal explambda, const DoubleReal lambda, const DoubleReal tz1); 
-
 				static DoubleReal getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1) ; 
 				
 
@@ -141,9 +139,6 @@ namespace OpenMS
 
 				/** @brief Returns the mass-parameter lambda (linear fit). */ 
 				static DoubleReal getLambdaL (const DoubleReal m) ;
-
-				/** @brief Returns the mass-parameter lambda (quadratic fit).*/ 
-				static DoubleReal getLambdaQ (const DoubleReal m) ;		
 
 
 				/** @brief Computes the averagine isotopic distribution we would expect at the deconvoluted mass. 

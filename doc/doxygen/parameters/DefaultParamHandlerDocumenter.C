@@ -31,7 +31,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -88,6 +87,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -316,16 +316,12 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
-	//DOCME(PILISModel);
-	//DOCME(PILISNeutralLossModel);
-	//DOCME(PILISModelGenerator);
-	//DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
+	DOCME(PeakPickerHiRes);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);
-	DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
 	DOCME(StablePairFinder);

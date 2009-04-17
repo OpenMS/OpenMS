@@ -45,8 +45,9 @@ using namespace std;
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_SemanticValidator.cli
-	
-	@todo Docu (Andreas)
+
+	This util is able to validate analysisXML and mzML files
+	using an instance document and a mapping file.
 */
 
 // We do not want this class to show up in the docu:
@@ -57,7 +58,7 @@ class TOPPSemanticValidator
 {
  public:
 	TOPPSemanticValidator()
-		: TOPPBase("SemanticValidator","TODO",false)
+		: TOPPBase("SemanticValidator","SemanticValidator for analysisXML and mzML files.",false)
 	{
 	}
 	
@@ -65,8 +66,8 @@ class TOPPSemanticValidator
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in", "<file>", "", "");
-		registerInputFile_("mapping_file", "<file>", "", "", false);
+		registerInputFile_("in", "<file>", "", "Input file, either analysisXML or mzML.");
+		registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file.", false);
 	}	
 	
 	ExitCodes main_(int , const char**)
@@ -107,32 +108,6 @@ class TOPPSemanticValidator
 			cout << "Congratulations, the file is valid!" << endl;
 		}
 
-						
-
-		/*
-		// check units cv
-		Internal::SemanticValidator semantic_validator_u(mappings, cv);
-		semantic_validator_u.setAccessionAttribute("unitAccession");
-		semantic_validator_u.setNameAttribute("unitName");
-		semantic_validator_u.setValueAttribute("value");
-		semantic_validator_u.setCheckTermValueTypes(true);
-		StringList unit_tags(StringList::create("MinusValue,PlusValue,MassDelta"));
-
-		for (StringList::const_iterator it = unit_tags.begin(); it != unit_tags.end(); ++it)
-		{
-			semantic_validator_u.setTag(*it);
-    	StringList errors_u, warnings_u;
-    	bool valid_u = semantic_validator_u.validate(in_file, errors_u, warnings_u);
-    	for (Size i=0; i<warnings_u.size(); ++i)
-    	{
-      	cout << "Warning: " << warnings_u[i] << endl;
-    	}
-    	for (Size i=0; i<errors_u.size(); ++i)
-    	{
-      	cout << "Error: " << errors_u[i] << endl;
-    	}
-		}*/
-	
 		return EXECUTION_OK;
 	}
 };

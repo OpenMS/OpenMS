@@ -40,8 +40,8 @@ START_TEST(AxisTickCalculator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-START_SECTION((static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)))
-	std::vector<std::vector<double> > vector1;
+START_SECTION((static void calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)))
+	std::vector<std::vector<DoubleReal> > vector1;
 	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1,7,5);
 	
 	TEST_EQUAL(3,vector1.size());
@@ -67,8 +67,8 @@ START_SECTION((static void calcGridLines(double x1, double x2, int levels, GridV
 END_SECTION
 
 
-START_SECTION((static void calcLogGridLines(double x1, double x2, GridVector& grid)))
-	std::vector<std::vector<double> > vector1;
+START_SECTION((static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid)))
+	std::vector<std::vector<DoubleReal> > vector1;
 	AxisTickCalculator::calcLogGridLines(log10(10.0),log10(100.0),vector1);
 
 	TEST_EQUAL(1,vector1[0].size());

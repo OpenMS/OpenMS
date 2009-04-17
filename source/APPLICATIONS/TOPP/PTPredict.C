@@ -33,6 +33,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <map>
+#include <iterator>
 
 using namespace OpenMS;
 using namespace std;
@@ -78,6 +79,7 @@ class TOPPPTPredict
 			registerOutputFile_("out","<file>","","output file\n", false);
 			setValidFormats_("out",StringList::create("IdXML"));
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by PTModel)");
+			registerIntOption_("max_number_of_peptides", "<int>",100000,"the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n",false);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -103,6 +105,7 @@ class TOPPPTPredict
 			String inputfile_name = "";
 			String outputfile_name = "";
 			String svmfile_name = "";
+			UInt max_number_of_peptides = getIntOption_("max_number_of_peptides");
 
 			
 			//-------------------------------------------------------------
@@ -122,7 +125,7 @@ class TOPPPTPredict
 
 			// Since the POBK is not included in the libsvm we have to load
 			// additional parameters from additional files.
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 			{
 				inputFileReadable_(svmfile_name + "_additional_parameters");
 	
@@ -131,11 +134,11 @@ class TOPPPTPredict
 				additional_parameters.load(svmfile_name + "_additional_parameters");
 				if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
 				{
-					svm.setParameter(KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
+					svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
 				}
 								
 				if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No border length saved in additional parameters file. Aborting!");
 					cout << "No border length saved in additional parameters file. Aborting!" << endl;
@@ -143,7 +146,7 @@ class TOPPPTPredict
 				}
 				border_length = ((String)additional_parameters.getValue("border_length")).toInt();
 				if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No k-mer length saved in additional parameters file. Aborting!");
 					cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
@@ -151,7 +154,7 @@ class TOPPPTPredict
 				}
 				k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 				if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+						&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
 				{
 					writeLog_("No sigma saved in additional parameters file. Aborting!");
 					cout << "No sigma saved in additional parameters file. Aborting!" << endl;
@@ -176,50 +179,74 @@ class TOPPPTPredict
 				}
 			}
 			
-			vector<DoubleReal> rts;
-			rts.resize(peptides.size(), 0);
-			if (svm.getIntParameter(KERNEL_TYPE) != OLIGO)
+			vector<DoubleReal> labels;
+			labels.resize(peptides.size(), 0);
+			
+			vector<String>::iterator it_from = peptides.begin();
+			vector<String>::iterator it_to = peptides.begin();
+			while(it_from != peptides.end())
 			{
-				prediction_data = 
-					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(peptides,
-																																			rts,
-																														 					allowed_amino_acid_characters,
-																														 					maximum_length);
-			}
-			else if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides, 
-																																						rts, 
-																																						k_mer_length, 
-																																						allowed_amino_acid_characters, 
-																																						border_length);				
-			}
-					
-			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				inputFileReadable_((svmfile_name + "_samples").c_str());
+				vector<String> temp_peptides;
+				vector<DoubleReal> temp_labels;
+				UInt i = 0;
+				while(i <= max_number_of_peptides && it_to != peptides.end())
+				{
+					++it_to;
+					++i;
+				}
+								
+				temp_peptides.insert(temp_peptides.end(), it_from, it_to);
+				temp_labels.resize(temp_peptides.size(), 0);
+				
+				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
+				{
+					prediction_data = 
+						encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(temp_peptides,
+																																				temp_labels,
+																															 					allowed_amino_acid_characters,
+																															 					maximum_length);
+				}
+				else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+				{
+					prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(temp_peptides, 
+																																							temp_labels, 
+																																							k_mer_length, 
+																																							allowed_amino_acid_characters, 
+																																							border_length);				
+				}
+						
+				if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+				{
+					inputFileReadable_((svmfile_name + "_samples").c_str());
+	
+					training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
+					svm.setTrainingSample(training_data);
+	
+					svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+					svm.setParameter(SVMWrapper::SIGMA, sigma);
+				}
+		    svm.getSVCProbabilities(prediction_data, predicted_likelihoods, predicted_labels);
+	
+				for (Size i = 0; i < temp_peptides.size(); i++)
+				{
+					predicted_data.insert(make_pair(temp_peptides[i],
+																					(predicted_likelihoods[i])));
+				}
+				predicted_likelihoods.clear();
+				predicted_labels.clear();
+				LibSVMEncoder::destroyProblem(prediction_data);			
 
-				training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
-				svm.setTrainingSample(training_data);
-
-				svm.setParameter(BORDER_LENGTH, (Int) border_length);
-				svm.setParameter(SIGMA, sigma);
+				it_from = it_to;
 			}
-	    svm.getSVCProbabilities(prediction_data, predicted_likelihoods, predicted_labels);
-
-			for (Size i = 0; i < peptides.size(); i++)
-			{
-				predicted_data.insert(make_pair(peptides[i],
-																				(predicted_likelihoods[i])));
-			}
+			
 			for (Size i = 0; i < identifications.size(); i++)
 			{
 				temp_peptide_hits = identifications[i].getHits();
 				for (Size j = 0; j < temp_peptide_hits.size(); j++)
 				{
-					DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
+					DoubleReal temp_likelihood = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
 
-					temp_peptide_hits[j].setMetaValue("predicted_PT",temp_rt);
+					temp_peptide_hits[j].setMetaValue("predicted_PT", temp_likelihood);
 				}
 				identifications[i].setHits(temp_peptide_hits);				
 			}

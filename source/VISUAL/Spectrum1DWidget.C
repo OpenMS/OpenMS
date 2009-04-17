@@ -45,7 +45,7 @@ namespace OpenMS
 		//set the label mode for the axes  - side effect
 		setCanvas_(new Spectrum1DCanvas(preferences, this));
 
-		x_axis_->setLegend("m/z");
+		x_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::MZ))+" ["+String(Peak2D::shortDimensionUnit(Peak2D::MZ))+"]");
 		x_axis_->setAllowShortNumbers(false);
 		y_axis_->setLegend("Intensity");
 		y_axis_->setAllowShortNumbers(true);

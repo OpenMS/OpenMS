@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
@@ -41,13 +41,13 @@ namespace OpenMS
 	}
 
 	// TODO consider using (RT,MZ,IT) as a unique identifier ?
-	bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs) //const		//geht nicht: fehler:/home/bude/albers/RAID/cmakeOpenMS/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.C:46: error: non-member function 'bool OpenMS::isSameHandle(const OpenMS::FeatureHandle&, const OpenMS::FeatureHandle&)' cannot have cv-qualifier
+	bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev)
 	{
 #if 1
 		// use (RT,MZ,IT) as "unique" identifier 
-		if ( fabs ( lhs.getRT() - rhs.getRT() ) > 0.1 ) return false;  // TODO MAGIC_ALERT
-		if ( fabs ( lhs.getMZ() - rhs.getMZ() ) > 0.1 ) return false;  // TODO MAGIC_ALERT
-		if ( fabs ( lhs.getIntensity() - rhs.getIntensity() ) > 100 ) return false;  // TODO MAGIC_ALERT
+		if ( fabs ( lhs.getRT() - rhs.getRT() ) > rt_dev ) return false;  // TODO MAGIC_ALERT
+		if ( fabs ( lhs.getMZ() - rhs.getMZ() ) > mz_dev ) return false;  // TODO MAGIC_ALERT
+		if ( fabs ( lhs.getIntensity() - rhs.getIntensity() ) > int_dev ) return false;  // TODO MAGIC_ALERT
 		return true;
 #else
 		// use (map index, element index) as unique identifier

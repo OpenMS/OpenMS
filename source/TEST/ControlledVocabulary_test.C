@@ -148,6 +148,26 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 	TEST_EXCEPTION(Exception::InvalidValue, cv.isChildOf("OpenMS:7","OpenMS:3"))
 END_SECTION
 
+START_SECTION((const Map<String, CVTerm>& getTerms() const))
+	Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+	TEST_EQUAL(terms.size(), 6)
+	TEST_EQUAL(terms.has("OpenMS:1"), true)
+	TEST_EQUAL(terms.has("OpenMS:2"), true)
+	TEST_EQUAL(terms.has("OpenMS:3"), true)
+	TEST_EQUAL(terms.has("OpenMS:4"), true)
+	TEST_EQUAL(terms.has("OpenMS:5"), true)
+	TEST_EQUAL(terms.has("OpenMS:6"), true)
+	TEST_EQUAL(terms.has("OpenMS:7"), false)
+
+END_SECTION
+
+START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& parent) const))
+	set<String> terms;
+	cv.getAllChildTerms(terms, "OpenMS:2");
+	TEST_EQUAL(terms.size(), 2)
+	TEST_EQUAL(terms.find("OpenMS:2") == terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

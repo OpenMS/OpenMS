@@ -28,7 +28,6 @@
 #ifndef OPENMS_VISUAL_AXISTICKCALCULATOR_H
 #define OPENMS_VISUAL_AXISTICKCALCULATOR_H
 
-// STL
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -45,34 +44,34 @@ namespace OpenMS
 	{
 		public:
 	 
-	  /// Typedef for the grid vector
-		typedef std::vector<std::vector<double> > GridVector;
-
-		/**
-			 @brief Returns a GridVector with ticks for linear scales.
-			 
-			 @param x1 minimum value
-			 @param x2 maximum value
-			 @param levels numbers of different tick levels (maximum is 3)
-			 @param grid the grid_vector to fill
-			 @param max_num_big
-			 @param max_num_small
-		*/
-		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small);
-		
-		/**
-			 @brief Returns a GridVector with ticks for logarithmic scales.
-			 
-			 @param x1 minimum value
-			 @param x2 maximum value
-			 @param grid the grid_vector to fill
-		*/
-		static void calcLogGridLines(double x1, double x2, GridVector& grid);
+		  /// Typedef for the grid vector
+			typedef std::vector<std::vector<double> > GridVector;
+	
+			/**
+				 @brief Returns a GridVector with ticks for linear scales.
+				 
+				 @param x1 minimum value
+				 @param x2 maximum value
+				 @param levels numbers of different tick levels (maximum is 3)
+				 @param grid the grid_vector to fill
+				 @param max_num_big
+				 @param max_num_small
+			*/
+			static void calcGridLines(DoubleReal x1, DoubleReal x2, Int levels, GridVector& grid, UInt max_num_big, UInt max_num_small);
+			
+			/**
+				 @brief Returns a GridVector with ticks for logarithmic scales.
+				 
+				 @param x1 minimum value
+				 @param x2 maximum value
+				 @param grid the grid_vector to fill
+			*/
+			static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid);
 			
 		private: 
 		
-		///Constructor: only static methods
-		AxisTickCalculator();
+			///Constructor: only static methods
+			AxisTickCalculator();
 	};
 }
 #endif

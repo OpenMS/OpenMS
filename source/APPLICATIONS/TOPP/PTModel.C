@@ -58,7 +58,7 @@ using namespace std;
 		<li>
 			kernel_type: the kernel function (can be POLY for the 
 				polynomial kernel or LINEAR for the linear kernel, or 
-				OLIGO for our POBK (recommended))
+				SVMWrapper::OLIGO for our POBK (recommended))
 		</li>
 		<li>
 			border_length: border length for the POBK
@@ -202,7 +202,7 @@ class TOPPPTModel
 			registerDoubleOption_("sigma_start","<float>",1,"starting point of sigma",false);
 			registerDoubleOption_("sigma_step_size","<float>",1,"step size of sigma",false);
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
-			
+			registerFlag_("skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");			
 		}
 
 		ExitCodes main_(Int , const char**)
@@ -218,17 +218,17 @@ class TOPPPTModel
 			LibSVMEncoder encoder;
 			svm_problem* encoded_training_sample = 0;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			map<SVM_parameter_type, DoubleReal> start_values;
-			map<SVM_parameter_type, DoubleReal> step_sizes;
-			map<SVM_parameter_type, DoubleReal> end_values;
+			map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+			map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
+			map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 			DoubleReal sigma_start = 0;
 			DoubleReal sigma_step_size = 0;
 			DoubleReal sigma_stop = 0;
 			UInt number_of_partitions = 0;
 			UInt number_of_runs = 0;
 			DoubleReal cv_quality = 0;
-			map<SVM_parameter_type, DoubleReal> optimized_parameters;
-			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
+			map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
+			map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
 			UInt maximum_sequence_length = 50;
 			bool additive_cv = true;
 			Param additional_parameters;
@@ -241,8 +241,9 @@ class TOPPPTModel
 			UInt max_negative_count = 0;
 			UInt max_positive_count = 0;
 			bool non_redundant = false;
+			bool skip_cv = false;
 			
-			svm.setParameter(PROBABILITY, 1);
+			svm.setParameter(SVMWrapper::PROBABILITY, 1);
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -259,11 +260,11 @@ class TOPPPTModel
  			String type = getStringOption_("svm_type");
 			if (type == "NU_SVC")
 			{
-				svm.setParameter(SVM_TYPE, NU_SVC);
+				svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVC);
 			}
 			else if (type == "C_SVC")
 			{
-				svm.setParameter(SVM_TYPE, C_SVC);
+				svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
 			}
 			else
 			{
@@ -276,27 +277,27 @@ class TOPPPTModel
  			type = getStringOption_("kernel_type");
 			if (type == "POLY")
 			{
-				svm.setParameter(KERNEL_TYPE, POLY);
+				svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
 				temp_type = POLY;
 			}
 			else if (type == "LINEAR")
 			{
-				svm.setParameter(KERNEL_TYPE, LINEAR);
+				svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 				temp_type = LINEAR;
 			}			
 			else if (type == "RBF")
 			{
-				svm.setParameter(KERNEL_TYPE, RBF);
+				svm.setParameter(SVMWrapper::KERNEL_TYPE, RBF);
 				temp_type = RBF;
 			}
 			else if (type == "OLIGO")
 			{
-				svm.setParameter(KERNEL_TYPE, OLIGO);
-				temp_type = OLIGO;
+				svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
+				temp_type = SVMWrapper::OLIGO;
 			}
 			else if (type == "SIGMOID")
 			{
-				svm.setParameter(KERNEL_TYPE, SIGMOID);
+				svm.setParameter(SVMWrapper::KERNEL_TYPE, SIGMOID);
 				temp_type = SIGMOID;
 			}
 			else
@@ -307,152 +308,154 @@ class TOPPPTModel
 			}
 			
 			//parameters		
-			svm.setParameter(C, getDoubleOption_("c"));
-			svm.setParameter(DEGREE, getIntOption_("degree"));
- 			if (svm.getIntParameter(SVM_TYPE) == NU_SVC)
+			svm.setParameter(SVMWrapper::C, getDoubleOption_("c"));
+			svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
+ 			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
  			{
-				svm.setParameter(NU, getDoubleOption_("nu"));
+				svm.setParameter(SVMWrapper::NU, getDoubleOption_("nu"));
 			}
 
 			//grid search parameters
-			if (svm.getIntParameter(KERNEL_TYPE) == POLY)
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
 			{
-				UInt degree_start = 0;
-				if (setByUser_("degree_start"))
+				svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
+
+				if (setByUser_("degree_start") 
+						&& setByUser_("degree_step_size") 
+						&& setByUser_("degree_stop")
+						&& !skip_cv)
 				{
-					degree_start = getIntOption_("degree_start");
+					DoubleReal degree_start = getIntOption_("degree_start");
+					DoubleReal degree_step_size = getIntOption_("degree_step_size");
+					if (!additive_cv && degree_step_size <= 1)
+					{
+						writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+					DoubleReal degree_stop = getIntOption_("degree_stop");
+
+					start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
+					step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
+					end_values.insert(make_pair(SVMWrapper::DEGREE, degree_stop));	
 				}
-				UInt degree_step_size = 0;
-				if (setByUser_("degree_step_size"))
-				{
-					degree_step_size = getIntOption_("degree_step_size");
-				}
-				UInt degree_stop = 0;
-				if (setByUser_("degree_stop"))
-				{
-					degree_stop = getIntOption_("degree_stop");
-				}
-				if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
-				{
-					start_values.insert(make_pair(DEGREE, degree_start));
-					step_sizes.insert(make_pair(DEGREE, degree_step_size));
-					end_values.insert(make_pair(DEGREE, degree_stop));	
-				}
-			}
+			}			
 			
-			if (svm.getIntParameter(SVM_TYPE) == C_SVC)
+			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC)
 			{			
 				DoubleReal c_start = 0.;
 				DoubleReal c_step_size = 0.;
 				DoubleReal c_stop = 0.;
-				if (setByUser_("c_start"))
+	
+				if (setByUser_("c_start") 
+						&& setByUser_("c_step_size") 
+						&& setByUser_("c_stop") 
+						&& !skip_cv)
 				{
 					c_start = getDoubleOption_("c_start");
-				}
-				if (setByUser_("c_step_size"))
-				{
 					c_step_size = getDoubleOption_("c_step_size");
-				}
-				if (setByUser_("c_stop"))
-				{
+					if (!additive_cv && c_step_size <= 1)
+					{
+						writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
 					c_stop = getDoubleOption_("c_stop");
-				}
-				if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
-				{
-					start_values.insert(make_pair(C, c_start));
-					step_sizes.insert(make_pair(C, c_step_size));
-					end_values.insert(make_pair(C, c_stop));	
+	
+					start_values.insert(make_pair(SVMWrapper::C, c_start));
+					step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
+					end_values.insert(make_pair(SVMWrapper::C, c_stop));	
 				}			
 			}
 
-			if (svm.getIntParameter(SVM_TYPE) == NU_SVC)
+			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
 			{			
 				DoubleReal nu_start = 0.;
 				DoubleReal nu_step_size = 0.;
 				DoubleReal nu_stop = 0.;
-				if (setByUser_("nu_start"))
+				if (setByUser_("nu_start") 
+						&& setByUser_("nu_step_size") 
+						&& setByUser_("nu_stop")
+						&& !skip_cv)
 				{
 					nu_start = getDoubleOption_("nu_start");
-				}
-				if (setByUser_("nu_step_size"))
-				{
 					nu_step_size = getDoubleOption_("nu_step_size");
-				}
-				if (setByUser_("nu_stop"))
-				{
+					if (!additive_cv && nu_step_size <= 1)
+					{
+						writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
 					nu_stop = getDoubleOption_("nu_stop");
-				}
-				if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
-				{
-					start_values.insert(make_pair(NU, nu_start));
-					step_sizes.insert(make_pair(NU, nu_step_size));
-					end_values.insert(make_pair(NU, nu_stop));	
-				}
+
+					start_values.insert(make_pair(SVMWrapper::NU, nu_start));
+					step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
+					end_values.insert(make_pair(SVMWrapper::NU, nu_stop));	
+				}			
 			}			
 
-			if (setByUser_("border_length"))
-			{
- 				border_length = getIntOption_("border_length");
- 			}
  			if (!setByUser_("border_length")
- 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
  			{
 				writeLog_("No border length given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
-			svm.setParameter(BORDER_LENGTH, border_length);
-			if (setByUser_("sigma"))
+			if (setByUser_("border_length"))
 			{
-	 			sigma = getDoubleOption_("sigma");
-	 		}
+ 				border_length = getIntOption_("border_length");
+ 			}
+			svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
  			if (!setByUser_("sigma") 
- 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
  			{
 				writeLog_("No sigma given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
-			svm.setParameter(SIGMA, sigma);
-			if (setByUser_("k_mer_length"))
+			if (setByUser_("sigma"))
 			{
-	 			k_mer_length = getIntOption_("k_mer_length");
-			}
+	 			sigma = getDoubleOption_("sigma");
+	 		}
+			svm.setParameter(SVMWrapper::SIGMA, sigma);
+
  			if (!setByUser_("k_mer_length")
- 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 					&& svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
  			{
 				writeLog_("No k-mer length given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
+			if (setByUser_("k_mer_length"))
+			{
+	 			k_mer_length = getIntOption_("k_mer_length");
+			}
 
 			sigma_start = 0.;
 			sigma_step_size = 0.;
 			sigma_stop = 0.;
-			if (setByUser_("sigma_start"))
+			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO 
+					&& !skip_cv)
 			{
-				sigma_start = getDoubleOption_("sigma_start");
-			}
-			if (setByUser_("sigma_step_size"))
-			{
-				sigma_step_size = getDoubleOption_("sigma_step_size");
-			}
-			if (setByUser_("sigma_stop"))
-			{
-				sigma_stop = getDoubleOption_("sigma_stop");
+				if (setByUser_("sigma_start") 
+						&& setByUser_("sigma_step_size") 
+						&& setByUser_("sigma_stop"))
+				{
+					sigma_start = getDoubleOption_("sigma_start");
+					sigma_step_size = getDoubleOption_("sigma_step_size");
+					if (!additive_cv && sigma_step_size <= 1)
+					{
+						writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+					sigma_stop = getDoubleOption_("sigma_stop");
+
+					start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
+					step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
+					end_values.insert(make_pair(SVMWrapper::SIGMA, sigma_stop));
+					
+					debug_string = "CV from sigma = " + String(sigma_start) +
+						 " to sigma = " + String(sigma_stop) + " with step size " + 
+						 String(sigma_step_size);
+					writeDebug_(debug_string, 1);			
+				}			
 			}
 
-			if (sigma_step_size != 0
-					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				start_values.insert(make_pair(SIGMA, sigma_start));
-				step_sizes.insert(make_pair(SIGMA, sigma_step_size));
-				end_values.insert(make_pair(SIGMA, sigma_stop));
-				
-				debug_string = "CV from sigma = " + String(sigma_start) +
-					 " to sigma = " + String(sigma_stop) + " with step size " + 
-					 String(sigma_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
-			if (start_values.size() > 0)
+			if (!skip_cv && start_values.size() > 0)
 			{
  				number_of_runs = getIntOption_("number_of_runs");
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
@@ -567,14 +570,14 @@ class TOPPPTModel
 																																	allowed_amino_acid_characters,
 																																	maximum_sequence_length);
 			}
-			else if (temp_type == OLIGO)
+			else if (temp_type == SVMWrapper::OLIGO)
 			{
 				encoded_training_sample = 
 					encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
 																														training_labels,
 																														k_mer_length,
 																														allowed_amino_acid_characters,
-																														svm.getIntParameter(BORDER_LENGTH));
+																														svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
 			}			
 																													
 			if (start_values.size() > 0)
@@ -614,19 +617,19 @@ class TOPPPTModel
 				{
 					svm.setParameter(parameters_iterator->first,
 													 parameters_iterator->second);
-					if (parameters_iterator->first == DEGREE)
+					if (parameters_iterator->first == SVMWrapper::DEGREE)
 					{
 						debug_string += " degree: " + String(parameters_iterator->second);					
 					}
-					else if (parameters_iterator->first == C)
+					else if (parameters_iterator->first == SVMWrapper::C)
 					{
 						debug_string += " C: " + String(parameters_iterator->second);
 					}
-					else if (parameters_iterator->first == NU)
+					else if (parameters_iterator->first == SVMWrapper::NU)
 					{
 						debug_string += " nu: " + String(parameters_iterator->second);
 					}
-					else if (parameters_iterator->first == SIGMA)
+					else if (parameters_iterator->first == SVMWrapper::SIGMA)
 					{
 						debug_string += " sigma: " + String(parameters_iterator->second);
 					}
@@ -644,16 +647,16 @@ class TOPPPTModel
 			svm.saveModel(outputfile_name);
 
 			// If the oligo-border kernel is used some additional information has to be stored
-			if (temp_type == OLIGO)
+			if (temp_type == SVMWrapper::OLIGO)
 			{
 				encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
 				additional_parameters.setValue("kernel_type", temp_type);
 				
-				if (temp_type == OLIGO)
+				if (temp_type == SVMWrapper::OLIGO)
 				{
-					additional_parameters.setValue("border_length", svm.getIntParameter(BORDER_LENGTH));
+					additional_parameters.setValue("border_length", svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
 					additional_parameters.setValue("k_mer_length", k_mer_length);
-					additional_parameters.setValue("sigma", svm.getDoubleParameter(SIGMA));
+					additional_parameters.setValue("sigma", svm.getDoubleParameter(SVMWrapper::SIGMA));
 				}
 				
 				additional_parameters.store(outputfile_name + "_additional_parameters");

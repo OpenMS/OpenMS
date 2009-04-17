@@ -76,7 +76,7 @@ protected:
 		setValidFormats_("out",StringList::create("mzData,featureXML,idXML"));
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
-		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
+		setValidStrings_("type", getToolList()[toolName_()] );
 
 		// TODO  Remove this hack when StringList when become available in INIFileEditor.
 		registerInputFileList_("given_transformations","<files>",StringList(),"given transformations separated by blanks. [This is a workaround used by algorithm type apply_given_trafo until StringList is supported by INIFileEditor.]",false);

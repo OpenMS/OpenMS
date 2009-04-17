@@ -144,58 +144,7 @@ namespace OpenMS
       ExitCodes main(int argc, const char** argv);
 			
 			/// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
-			static Map<String,StringList> getToolList()
-			{
-				Map<String,StringList> tools_map;
-				
-				tools_map["AdditiveSeries"] = StringList::create("");
-				tools_map["BaselineFilter"] = StringList::create("");
-				tools_map["ConsensusID"] = StringList::create("");
-				tools_map["DBExporter"] = StringList::create("");
-				tools_map["DBImporter"] = StringList::create("");
-				tools_map["DTAExtractor"] = StringList::create("");
-				tools_map["Decharger"] = StringList::create("");
-				tools_map["FalseDiscoveryRate"] = StringList::create("");
-				tools_map["FeatureFinder"] = StringList::create("MRM,centroided,isotope_wavelet,isotope_wavelet_nofit,simple,simplest");
-				tools_map["FeatureLinker"] = StringList::create("labeled,unlabeled");
-				tools_map["FileConverter"] = StringList::create("");
-				tools_map["FileFilter"] = StringList::create("");
-				tools_map["FileInfo"] = StringList::create("");
-				tools_map["FileMerger"] = StringList::create("");
-				tools_map["IDDecoyProbability"] = StringList::create("");
-				tools_map["IDFilter"] = StringList::create("");
-				tools_map["IDMapper"] = StringList::create("");
-				tools_map["IDMerger"] = StringList::create("");
-				tools_map["IDRTCalibration"] = StringList::create("");
-				tools_map["ITRAQAnalyzer"] = StringList::create("4plex,8plex");
-				tools_map["InspectAdapter"] = StringList::create("");
-				tools_map["InternalCalibration"] = StringList::create("");
-				tools_map["MapAligner"] = StringList::create("apply_given_trafo,pose_clustering_affine,spectrum_alignment");
-				tools_map["MapNormalizer"] = StringList::create("");
-				tools_map["MascotAdapter"] = StringList::create("");
-				tools_map["MascotAdapterOnline"] = StringList::create("");
-				tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
-				tools_map["OMSSAAdapter"] = StringList::create("");
-				tools_map["PILISIdentification"] = StringList::create("");
-				tools_map["PILISModel"] = StringList::create("");
-				tools_map["PTModel"] = StringList::create("");
-				tools_map["PTPredict"] = StringList::create("");
-				tools_map["PeakPicker"] = StringList::create("high_res,wavelet");
-				tools_map["PepNovoAdapter"] = StringList::create("");
-				tools_map["RTModel"] = StringList::create("");
-				tools_map["RTPredict"] = StringList::create("");
-				tools_map["Resampler"] = StringList::create("");
-				tools_map["SILACAnalyzer"] = StringList::create("");
-				tools_map["SequestAdapter"] = StringList::create("");
-				tools_map["SpectraFilter"] = StringList::create("BernNorm,MarkerMower,NLargest,Normalizer,ParentPeakMower,Scaler,SqrtMower,ThresholdMower,WindowMower");
-				tools_map["TOFCalibration"] = StringList::create("");
-				tools_map["TextExporter"] = StringList::create("");
-				tools_map["TextImporter"] = StringList::create("");
-				tools_map["XTandemAdapter"] = StringList::create("");
-				tools_map["PrecursorIonSelector"] = StringList::create("");
-				
-				return tools_map;
-			}
+			static Map<String,StringList> getToolList();
 			
       ///Stuct that captures all information of a parameter
       struct ParameterInformation
@@ -458,11 +407,14 @@ namespace OpenMS
 
       	This is assigned during tool startup, depending on the command line but (of course) not depending on ini files.
       */
-      String const& getIniLocation_() const
+      const String& getIniLocation_() const
       {
         return ini_location_;
       }
-
+			
+			///Returns the tool name
+			const String& toolName_() const;
+			
       /**
       	@name Parameter handling
 
@@ -498,7 +450,7 @@ namespace OpenMS
       void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 			
 			/**
-				@brief Sets the valid strings for a string option or a hole string list
+				@brief Sets the valid strings for a string option or a whole string list
 				
 				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
 				@exception Exception::InvalidParameter is thrown if the valid strings contain comma characters

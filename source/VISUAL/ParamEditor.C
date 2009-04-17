@@ -238,7 +238,7 @@ namespace OpenMS
 					String restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
 					if (type=="int") //check if valid integer
 					{
-						bool ok;
+						bool ok(true);
 						new_value.toString().toLong(&ok);
 						if (!ok)
 						{
@@ -261,7 +261,7 @@ namespace OpenMS
 					}
 					else if (type=="float") //check if valid float
 					{
-						bool ok;
+						bool ok(true);
 						new_value.toString().toDouble(&ok);
 						if (!ok)
 						{
@@ -718,7 +718,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					restrictions.split(',', parts);
+					if (!restrictions.split(',', parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -730,7 +733,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					restrictions.split(',', parts);
+					if (!restrictions.split(',', parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -742,7 +748,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					restrictions.split(',', parts);
+					if (!restrictions.split(',', parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -777,7 +786,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					restrictions.split(',',parts);
+					if (!restrictions.split(',',parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -789,7 +801,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					restrictions.split(',',parts);
+					if (!restrictions.split(',',parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -801,7 +816,10 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					restrictions.split(',',parts);
+					if (!restrictions.split(',',parts))
+					{
+						parts.push_back(restrictions);
+					}
 					param_->setValidStrings(path,parts);
 				}
 			}

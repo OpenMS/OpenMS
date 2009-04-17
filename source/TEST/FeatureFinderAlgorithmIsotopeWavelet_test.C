@@ -27,16 +27,9 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-///////////////////////////
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 
-///////////////////////////
-
 START_TEST(FeatureFinderAlgorithmIsotopeWavelet, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -54,12 +47,7 @@ START_SECTION(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
 END_SECTION
 
-//START_SECTION([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
-//	FeatureFinderAlgorithmIsotopeWavelet<RichPeak1D,Feature> ffa;
-//END_SECTION
-
 START_SECTION(virtual void run())
-	//is tested in TOPP test
 	NOT_TESTABLE
 END_SECTION
 
@@ -70,10 +58,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 END_SECTION
 
 START_SECTION(static const String getProductName())
-	TEST_EQUAL(FFASS::getProductName(),"isotope_wavelet_nofit")
+	TEST_EQUAL(FFASS::getProductName(),"isotope_wavelet")
 END_SECTION
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 END_TEST

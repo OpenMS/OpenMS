@@ -624,18 +624,6 @@ namespace OpenMS
 		return modification_;
 	}
 
-	/*
-	void Residue::setUnmodifiedName(const String& name)
-	{
-		pre_mod_name_ = name;
-	}
-	
-	const String& Residue::getUnmodifiedName() const
-	{
-		return pre_mod_name_;
-	}
-	*/
-
 	void Residue::setLowMassIons(const vector<EmpiricalFormula>& low_mass_ions)
 	{
 		low_mass_ions_ = low_mass_ions;

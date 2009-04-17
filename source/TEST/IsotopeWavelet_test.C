@@ -41,7 +41,6 @@ START_SECTION((static IsotopeWavelet* getInstance()))
 	TEST_EQUAL(IsotopeWavelet::getInstance(), 0)
 END_SECTION
 
-
 START_SECTION(static UInt getMaxCharge())
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 1)
 END_SECTION
@@ -75,6 +74,19 @@ END_SECTION
 
 START_SECTION((static DoubleReal getLambdaL(const DoubleReal m)))
 	TEST_REAL_SIMILAR(IsotopeWavelet::getLambdaL(1000), 0.75632)
+END_SECTION
+
+
+START_SECTION((static UInt getMzPeakCutOffAtMonoPos(const DoubleReal mass, const UInt z)))
+	TEST_EQUAL(IsotopeWavelet::getMzPeakCutOffAtMonoPos(1000, 1), 5)
+END_SECTION
+
+START_SECTION((static UInt getNumPeakCutOff(const DoubleReal mass, const UInt z)))
+	TEST_EQUAL(IsotopeWavelet::getNumPeakCutOff(1000, 1), 4)
+END_SECTION
+
+START_SECTION((static UInt getNumPeakCutOff(const DoubleReal mz)))
+	TEST_EQUAL(IsotopeWavelet::getNumPeakCutOff(1000), 4)
 END_SECTION
 
 
@@ -121,9 +133,23 @@ START_SECTION((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lamb
 	};
 END_SECTION
 
+START_SECTION((static DoubleReal getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1))) 
+	for (Size c=0; c<iw->getMaxCharge(); ++c)
+	{
+		v=iw->getValueByLambdaExact (iw->getLambdaL(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);
+		TOLERANCE_ABSOLUTE (1e-4)
+		TEST_REAL_SIMILAR(v, 0)
+	};
+END_SECTION
+
 
 START_SECTION(static float myPow(float a, float b))
 	TEST_EQUAL (int(IsotopeWavelet::myPow(1.1f, 3.0f)*10), 13);
+END_SECTION
+
+START_SECTION(static void destroy())
+	IsotopeWavelet::destroy();
+	TEST_EQUAL (IsotopeWavelet::getExpTableMaxIndex(), 0);
 END_SECTION
 
 END_TEST

@@ -49,10 +49,6 @@
 	@image html TOPPView_tools_baseline_filtered.png
 	@image latex TOPPView_tools_baseline_filtered.png "" width=14cm
 	
-	
-	@todo Compose tutorial - video and text (Alexandra)
-	
-	
 */
 
 //##############################################################################
@@ -77,8 +73,6 @@
 	@image html TOPPView_tools_noisefilter_filtered.png
 	@image latex TOPPView_tools_noisefilter_filtered.png "" width=14cm
 	
-	
-	@todo Compose tutorial - video and text (Alexandra)
 */
 
 //##############################################################################
@@ -89,26 +83,25 @@
 	If you have low resolution data you may consider to smooth your data first(@ref TOPPView_smoothing) and subtract
 	the baseline (@ref TOPPView_baseline_reduction) before peak picking.
 
-	One of the main parameters for our PeakPicker is the peak width. If you don't know the
-	approximate fwhm of your peaks you may use the measuring tool (@ref TOPPView_views_use).
-	Afterwards call the PeakPicker (@a Tools > @a Apply @a TOPP @a tool), then select the PeakPicker (green rectangle).
-	Select as type wavelet (red rectangle), afterwards you can adapt the parameters (blue rectangle).
-	Enter as peak_width the average peak width you have determined with the measuring tool (pink rectangle).
-	Additionally you can set the minimal signal to noise ratio for a peak to be picked. 
+	We have two types of PeakPickers, the Wavelet-PeakPicker and one especially suited for
+	high resolution data (select type high_res). In this tutorial we consider the Wavelet-PeakPicker.
+	We use the file @a peakpicker_tutorial_2.mzData from the examples data (@a File > @a Open @a example @a data).
 
-	
-	@image html TOPPView_tools_pp_peakwidth.png
-	@image latex TOPPView_tools_pp_peakwidth.png "" width=14cm
 
+	The main parameters are the peak width and the minimal signal to noise ratio for a peak to be picked.
+	If you don't know the approximate fwhm of your peaks you can use the estimation included in the PeakPicker.
+	Here you need to set the flag estimate_peak_width to true.
+	After applying the PeakPicker you can see which peak width was estimated and used for peak picking in the log window.
 	
-	The following image shows a part of the spectrum with the picked peaks shown in red.
+	If you want to estimate the peak width on your own, you may use the measuring tool (@ref TOPPView_views_use)
+	to determine the fwhm of one or several representative peaks.
+	
+	The following image shows a part of the spectrum with the picked peaks shown in green,
+	the estimated peak width in the log window and the measured peak width.
 
 	@image html TOPPView_tools_pp_picked.png
 	@image latex TOPPView_tools_pp_picked.png "" width=14cm
 
-	
-	
-	@todo Compose tutorial - video and text (Alexandra)
 */
 
 //##############################################################################

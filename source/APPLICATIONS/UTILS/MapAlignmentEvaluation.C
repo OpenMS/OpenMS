@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Katharina Albers, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -40,12 +40,15 @@ using namespace std;
 /**
 	@page MapAlignmentEvaluation MapAlignmentEvaluation
 		
-	@brief Evaluate alignment results against a ground truth
+	@brief Evaluate alignment results against a ground truth.
 	
-	This tool implements the evaluation measures from our paper 
-	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",
-	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.
-	doi:10.1186/1471-2105-9-375.
+	This tool implements the evaluation measures from our paper \n
+	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements", \n
+	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375. \n
+	doi:10.1186/1471-2105-9-375. \n
+
+	Input is a ground truth file as described on the CAAP web page \n
+	Output is a recall- or a precision-value. \n
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_MapAlignmentEvaluation.cli
@@ -74,14 +77,17 @@ protected:
 		//registerOutputFile_("out","<file>","","output file ");
 		registerStringOption_("type","<name>","","Caap Evaluation type",true);
 		setValidStrings_("type",Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts());
+		registerDoubleOption_("rt_dev","<double>",0.1,"Maximum allowed deviation of the retention time", false);
+		registerDoubleOption_("mz_dev","<double>",0.1,"Maximum allowed deviation of m/z", false);
+		registerIntOption_("int_dev","<int>",100,"Maximum allowed deviation of Intensity", false);
 
-		/*addEmptyLine_();
+		addEmptyLine_();
 		addText_("This tool implements the evaluation measures from our paper:\n"
-						 "\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
-						 "Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
-						 "BMC Bioinformatics 2008, 9:375.\n"
-						 "doi:10.1186/1471-2105-9-375\n"
-						); */
+			"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
+			"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
+			"BMC Bioinformatics 2008, 9:375.\n"
+			"doi:10.1186/1471-2105-9-375\n"
+			);
 
 	}
 
@@ -95,26 +101,27 @@ protected:
 		String gt   = getStringOption_("gt");
 		String type = getStringOption_("type");
 
+		DoubleReal rt_dev = getDoubleOption_("rt_dev");
+		DoubleReal mz_dev = getDoubleOption_("mz_dev");
+		Int int_dev = getIntOption_("int_dev");
+
 		DoubleReal out = 0;
 
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
 		//check if both input files have the correct type
-	/*	if (FileHandler::getType(in)!=FileHandler::CONSENSUSXML)
+		if (FileHandler::getType(in) != FileTypes::CONSENSUSXML)
 		{
 			writeLog_("Error: The input file must be of type ConsensusXML!");
 			return ILLEGAL_PARAMETERS;
 		}
 
-		if (FileHandler::getType(gt)!=FileHandler::CONSENSUSXML)
+		if (FileHandler::getType(gt) != FileTypes::CONSENSUSXML)
 		{
 			writeLog_("Error: The groundtruth file must be of type ConsensusXML!");
 			return ILLEGAL_PARAMETERS;
-		}	*/
-		//fehler: /home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C: In member function ‘virtual OpenMS::TOPPBase::ExitCodes TOPPMapAlignmentEvaluation::main_(int, const char**)’:
-		//home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C:114: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
-		//home/kate/OpenMS/source/APPLICATIONS/TOPP/MapAlignmentEvaluation.C:120: error: ‘CONSENSUSXML’ is not a member of ‘OpenMS::FileHandler’
+		}
 
 		//-------------------------------------------------------------
 		// set up algorithm
@@ -134,17 +141,13 @@ protected:
 		ConsensusMap consensus_map_in;
 		consensus_xml_file_in.load( in, consensus_map_in );
 		
-		// reader
-		ConsensusXMLFile consensus_xml_file_gt;
-		consensus_xml_file_gt.setLogType(log_type_); //richtig??
-
 		// gt -> consensus_map_gt
 		ConsensusMap consensus_map_gt;
-		consensus_xml_file_gt.load( gt, consensus_map_gt );
+		consensus_xml_file_in.load( gt, consensus_map_gt );
 		
 
 		//evaluate
-		algorithm->evaluate(consensus_map_in, consensus_map_gt, out);
+		algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, out);
 
 		//write output
 		cout << type << ": " << out << "\n";

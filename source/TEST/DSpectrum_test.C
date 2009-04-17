@@ -374,6 +374,118 @@ START_SECTION((Iterator MZBegin(CoordinateType mz)))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 END_SECTION
 
+START_SECTION((Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)))
+	DSpectrum1 tmp;
+	DSpectrum1::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.push_back(rdp);
+
+	DSpectrum1::Iterator it;
+
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.begin());
+	TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
+END_SECTION
+
+START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const))
+	DSpectrum1 tmp;
+	DSpectrum1::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.push_back(rdp);
+
+	DSpectrum1::ConstIterator it;
+
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(tmp.begin(), 4.5, tmp.begin());
+	TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
+END_SECTION
+
+START_SECTION((Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)))
+	DSpectrum1 tmp;
+	DSpectrum1::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.push_back(rdp);
+
+	DSpectrum1::Iterator it;
+
+	it = tmp.MZEnd(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(tmp.begin(), 5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(tmp.begin(), 4.5, tmp.begin());
+	TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
+END_SECTION
+
+START_SECTION((ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const))
+	DSpectrum1 tmp;
+	DSpectrum1::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.push_back(rdp);
+
+	DSpectrum1::ConstIterator it;
+
+	it = tmp.MZEnd(tmp.begin(), 4.5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(tmp.begin(), 5, tmp.end());
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(tmp.begin(), 4.5, tmp.begin());
+	TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
+END_SECTION
+
 START_SECTION((ConstIterator MZEnd(CoordinateType mz) const))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;

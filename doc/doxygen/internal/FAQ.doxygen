@@ -308,14 +308,14 @@ svn propset svn:eol-style native MyClass.C
 	      <TT>svn propset svn:keywords Id &lt;file&gt;</TT>
 
 	    <LI><b>How do I create a branch?</b><BR>
-	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/<name>/</TT>
+	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/ReleaseX.Y/</TT>
 
 			 <LI><b>How do I merge the changes i made to the HEAD into the release branch?</b><BR>
 			  Suppose you want to merge the changes you made in revision 2325 of the HEAD (/OpenMS) into the current
-			  revision of the release branch for Release X.X (/branches/ReleasesX.X - see http://open-ms.svn.sourceforge.net/viewvc/open-ms for the actual name of the branch).
+			  revision of the release branch for Release X.Y (/branches/ReleasesX.Y - see http://open-ms.svn.sourceforge.net/viewvc/open-ms for the actual name of the branch).
 			  <OL>
 			  	<LI> Check out the release branch:<BR>
-			  			 <TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/ReleaseX.X/</TT>
+			  			 <TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/ReleaseX.Y/</TT>
 			  	<LI> Merge the changes into the the branch (where the <TT>rv</TT> in <TT>(rv-1):rv</TT> corresponds to your svn-revision number you just committed)<BR>
 			  			 <TT>svn merge -r 2324:2325 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/</TT>
 			  	<LI> Resolve conflicts and make sure all tests run
@@ -449,16 +449,17 @@ svn propset svn:eol-style native MyClass.C
 
 				<LI><B>How is the platform-independent source release package created?</B>
 					<OL>
+						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and %OpenMS.
 						<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
 						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
 						<LI> Run cmake
-						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed
+						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'EXAMPLES_exec')
 						<LI> Commit the changes to the SVN repository
 						<LI> Build the documentation that is needed for the release
 							<OL>
 								<LI> Check out a fresh working copy of %OpenMS
 								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>doc_internal</TT>!).
-								<LI> Build the tutorials using <TT>make totorials</TT>.
+								<LI> Build the PDF tutorials using <TT>make doc_tutorials</TT>.
 								<LI> Make sure that the Parameter documentation was created.
 								<LI> Make sure the include paths in the documentation are correct.
 							</OL>
@@ -479,6 +480,7 @@ svn propset svn:eol-style native MyClass.C
 					<OL>
 						<LI> Check out the release branch and contrib
 						<LI> Build the contrib libraries
+						<LI> Copy the documentation (HTML folder and PDF tutorials) to the @em doc folder.
 						<LI> Configure %OpenMS using
 						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
 						<LI> Build the package using <tt>make package</tt>

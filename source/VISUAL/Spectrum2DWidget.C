@@ -110,9 +110,6 @@ namespace OpenMS
 		projections_timer_->setSingleShot(true);
 		projections_timer_->setInterval(1000);		
 		connect(projections_timer_, SIGNAL(timeout()), this, SLOT(updateProjections()));
-		
-		//increase minimum size due to projections
-		setMinimumSize(500,500);		
 	}
 
 	Spectrum2DWidget::~Spectrum2DWidget()
@@ -268,6 +265,7 @@ namespace OpenMS
 	{
 		if (projectionsVisible())
 		{
+			setMinimumSize(250,250);
 			projection_box_->hide();
 			projection_horz_->hide();
 			projection_vert_->hide();
@@ -276,6 +274,7 @@ namespace OpenMS
 		}
 		else
 		{
+			setMinimumSize(500,500);
 			updateProjections();
 		}
 	}
