@@ -57,7 +57,20 @@ namespace OpenMS {
 
     DetectibilitySimulation& operator = (const DetectibilitySimulation& source);
     
-    void filterDetectibility(FeatureMap< > &, FeatureMap< >&);
+    void filterDetectibility(FeatureMap< > &);
+    
+  private:
+    // set defaults
+    void setDefaultParams_();
+    
+    /// Minimum allowed detectability likelihood of a peptide
+		DoubleReal min_detect_;    
+    
+    /// Synchronize members with param class
+		void updateMembers_();    
+    
+    /// Name of the svm model file
+		OpenMS::String dtModelFile_;    
   };
 
 }

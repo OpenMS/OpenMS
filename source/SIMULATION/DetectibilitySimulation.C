@@ -26,25 +26,171 @@
 // --------------------------------------------------------------------------
 
 #include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+#include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <vector>
+#include <iostream>
+
+using std::vector;
+using std::cout;
+using std::endl;
 
 namespace OpenMS {
 
   DetectibilitySimulation::DetectibilitySimulation()
     : DefaultParamHandler("DetectibilitySimulation")
-  {}
+  {
+    setDefaultParams_();
+    defaultsToParam_();
+  }
 
   DetectibilitySimulation::DetectibilitySimulation(const DetectibilitySimulation& source)
     : DefaultParamHandler(source)
-  {}
+  {
+    setParameters( source.getParameters() );
+    updateMembers_(); 
+  }
 
   DetectibilitySimulation& DetectibilitySimulation::operator = (const DetectibilitySimulation& source)
   {
+    setParameters( source.getParameters() );
+    updateMembers_();
     return *this;
   }
   
   DetectibilitySimulation::~DetectibilitySimulation()
   {}
   
-  void DetectibilitySimulation::filterDetectibility(FeatureMap< > & , FeatureMap< > &)
-  {}
+  void DetectibilitySimulation::filterDetectibility(FeatureMap< > & features)
+  {
+    
+    /// The support vector machine
+		SVMWrapper svm_;
+
+    // initialize support vector machine
+    LibSVMEncoder encoder;
+    svm_problem* training_data = NULL;
+    UInt k_mer_length = 0;
+    DoubleReal sigma = 0.0;
+    UInt border_length = 0;
+    
+		if (File::readable(dtModelFile_))
+		{
+    	//cout << "Loading svm model: " << DtModelFile_ << endl;
+    	svm_.loadModel(dtModelFile_);
+			//cout << "Done. " << endl;
+    }
+		
+		// load additional parameters
+		if (svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+    {
+      String add_paramfile = dtModelFile_ + "_additional_parameters";
+      if (! File::readable( add_paramfile ) )
+      {
+        cout << "SVM parameter file " << dtModelFile_ << " not found or not readable" << endl;
+        cout << "Not performing detectability prediction!" << endl;
+      }
+      
+      Param additional_parameters;
+      additional_parameters.load(add_paramfile);
+      
+      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+      {
+        cout << "No border length defined in additional parameters file." << endl;
+      }
+      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
+      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+      {
+        cout << "No k-mer length defined in additional parameters file. Aborting detectability prediction!" << endl;
+      }
+      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+      
+      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+      {
+        cout << "No sigma defined in additional parameters file. Aborting detectability prediction!" << endl;
+      }
+      
+      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+    }
+    
+		if (File::readable(dtModelFile_))
+		{
+    	svm_.setParameter(BORDER_LENGTH, (Int) border_length);
+    	svm_.setParameter(SIGMA, sigma);
+    	// to obtain probabilities
+    	svm_.setParameter(PROBABILITY, 1);
+		}
+    // loading training data
+    String sample_file = dtModelFile_ + "_samples";
+    if (File::readable(sample_file))
+    {
+    	training_data = encoder.loadLibSVMProblem(sample_file);
+    	svm_.setTrainingSample(training_data);
+    }
+    
+    // transform featuremap to peptides vector
+    vector< String > peptidesVector(features.size());
+    for(Size i = 0; i < features.size(); ++i)
+    {
+      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+    }
+    
+    
+    cout << "Predicting peptide detectabilities..    " << endl;
+    
+    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
+    
+    // Encoding test data
+    vector<DoubleReal> probs;
+    probs.resize(peptidesVector.size(), 0);
+
+    svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, probs,
+                                                                                     k_mer_length,
+                                                                                     allowed_amino_acid_characters,
+                                                                                     svm_.getIntParameter(BORDER_LENGTH));
+    
+    vector<DoubleReal> labels;
+    vector<DoubleReal> detectabilities;
+    svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
+    
+    cout << "Done." << endl;
+    
+    delete prediction_data;
+    
+#ifdef DEBUG_SIM
+    cout << "----------------------------------------------------------------" << endl;
+    cout << "Predicted detectabilities:" << endl;
+#endif
+    
+    FeatureMap< > tempCopy; 
+    for (Size i = 0; i < peptidesVector.size(); ++i)
+    {
+
+      if (detectabilities[i] > min_detect_)
+      {
+        features[i].setMetaValue("detectibility", detectabilities[i] );
+        tempCopy.push_back(features[i]);
+      }
+#ifdef DEBUG_SIM
+      cout << detectabilities[i] << " " << min_detect_ << endl;
+#endif
+      
+      features.swap(tempCopy);
+    } 
+  }
+
+  void DetectibilitySimulation::setDefaultParams_() 
+  {
+    defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
+    defaults_.setValue("dt_model_file","<file>","SVM model for peptide detectability prediction");
+  }
+  
+  void DetectibilitySimulation::updateMembers_()
+  {
+    min_detect_ = param_.getValue("min_detect");
+    dtModelFile_ = param_.getValue("dt_model_file");
+  }  
 }

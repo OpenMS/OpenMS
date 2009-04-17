@@ -63,6 +63,10 @@ namespace OpenMS {
   
   void MSSim::simulate(const gsl_rng* rnd_gen, const SampleProteins& proteins)
   {
+    // TODO: add method to read proteins/abundances from file
+    // TODO: add method to read contaminants
+    // TODO: add method to select contaminants
+    
     /*
       General progress should be 
         1. Digest Proteins
@@ -70,13 +74,18 @@ namespace OpenMS {
         3. add Post Translational modifications 
         4. predict detectibility 
         5. simulate ionization
-        6. simulate the (lc)ms signal
+        6. simulate the (lc)ms signal -> TODO: integrate parameter for signal in lc direction
         7. select features for MS2
         8. generate MS2 signals for selected features
      */
-  
+    
+    // start digestion process
+    Param const& digester_settings = param_.copy("Digestion:",true);
 		// digest
     DigestSimulation digest_sim;
+    digest_sim.setParameters(digester_settings);
+    
+    // read proteins from protein file  
 		SamplePeptides peptides;
 		digest_sim.digest(proteins, peptides);
 		
