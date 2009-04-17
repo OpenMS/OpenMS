@@ -459,7 +459,7 @@ svn propset svn:eol-style native MyClass.C
 							<OL>
 								<LI> Check out a fresh working copy of %OpenMS
 								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>doc_internal</TT>!).
-								<LI> Build the tutorials using <TT>make totorials</TT>.
+								<LI> Build the PDF tutorials using <TT>make doc_tutorials</TT>.
 								<LI> Make sure that the Parameter documentation was created.
 								<LI> Make sure the include paths in the documentation are correct.
 							</OL>
