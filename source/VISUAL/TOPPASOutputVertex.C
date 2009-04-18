@@ -67,3 +67,4 @@ namespace OpenMS
 		// do nothing, no outedges allowed here
 	}
 }
+

@@ -82,7 +82,7 @@ namespace OpenMS {
     }
 		
 		// load additional parameters
-		if (svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+		if (svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       String add_paramfile = dtModelFile_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
@@ -95,20 +95,20 @@ namespace OpenMS {
       additional_parameters.load(add_paramfile);
       
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         cout << "No border length defined in additional parameters file." << endl;
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         cout << "No k-mer length defined in additional parameters file. Aborting detectability prediction!" << endl;
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
       
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-          && svm_.getIntParameter(KERNEL_TYPE) == OLIGO)
+          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         cout << "No sigma defined in additional parameters file. Aborting detectability prediction!" << endl;
       }
@@ -118,10 +118,10 @@ namespace OpenMS {
     
 		if (File::readable(dtModelFile_))
 		{
-    	svm_.setParameter(BORDER_LENGTH, (Int) border_length);
-    	svm_.setParameter(SIGMA, sigma);
+    	svm_.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+    	svm_.setParameter(SVMWrapper::SIGMA, sigma);
     	// to obtain probabilities
-    	svm_.setParameter(PROBABILITY, 1);
+    	svm_.setParameter(SVMWrapper::PROBABILITY, 1);
 		}
     // loading training data
     String sample_file = dtModelFile_ + "_samples";
@@ -150,7 +150,7 @@ namespace OpenMS {
     svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, probs,
                                                                                      k_mer_length,
                                                                                      allowed_amino_acid_characters,
-                                                                                     svm_.getIntParameter(BORDER_LENGTH));
+                                                                                     svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
     
     vector<DoubleReal> labels;
     vector<DoubleReal> detectabilities;

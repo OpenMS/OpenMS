@@ -62,3 +62,4 @@ namespace OpenMS
 		return *this;
 	}
 }
+
