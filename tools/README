@@ -17,7 +17,5 @@ This folder contains some useful tools for developers:
 	
   make_dist.sh          -  Is used to create OpenMS release file.
 
-  make_dist_contrib.sh  -  Is used to create the contrib release file.
-
 
 Note: All php scripts are executed by calling them as argument of the php interpreter.

@@ -33,7 +33,7 @@ if test ! $1 || test ! $2 || test ! $3; then
  	echo "Pass the SVN path inside the OpenMS repository as first argument.";
  	echo "For the 1.2 release branch that would be 'branches/Release1.2'.";
  	echo "";
- 	echo "Pass the path to an OpemMS/doc directory containing the current";
+ 	echo "Pass the path to an OpenMS/doc directory containing the current";
  	echo "documentation as the second argument.";
  	echo "";
  	echo "Pass the release version as third argument.";
