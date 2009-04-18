@@ -99,8 +99,8 @@
 	
 	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
 	
-	@todo Add DataProcessing for all TOPP tools (Hiwi)
+	@todo Add DataProcessing for all TOPP tools, when mzML is finished (Marc)
 	
-	@todo Make mzML the default format of TOPP tools as soon as mzML 1.1 is finished and implemented completely (Hiwi)
+	@todo Make mzML the default format of TOPP tools, when mzML is finished (Marc)
 
 */

@@ -547,6 +547,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   @image html ExperimentalSettings.png "Map meta information"
   @image latex ExperimentalSettings.png "Map meta information" width=10cm
 
+	@todo Update meta data section, when mzML is finished (Marc)
+
 @section metadata_spectrum Meta data of a spectrum
 
   This class contains meta information about settings specific to one spectrum:
