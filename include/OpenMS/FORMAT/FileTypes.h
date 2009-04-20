@@ -55,6 +55,7 @@ namespace OpenMS
 			MZML,								///< MzML file (.mzML)
 			MS2,								///< MS2 file (.ms2)
 			PEPXML,							///< TPP pepXML file (.pepXML)
+			ANALYSISXML,				///< AnalysisXML (.analyisXML)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
 	}; //struct

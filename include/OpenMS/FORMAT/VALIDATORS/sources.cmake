@@ -6,6 +6,7 @@ set(sources_list_h
 XMLValidator.h
 MzMLValidator.h
 SemanticValidator.h
+AnalysisXMLValidator.h
 )
 
 ### add path to the filenames

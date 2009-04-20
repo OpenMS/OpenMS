@@ -6,6 +6,7 @@ set(sources_list
 XMLValidator.C
 MzMLValidator.C
 SemanticValidator.C
+AnalysisXMLValidator.C
 )
 
 ### add path to the filenames

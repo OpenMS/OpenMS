@@ -46,6 +46,7 @@ UnimodXMLFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C
+AnalysisXMLFile.C
 )
 
 if (USE_ANDIMS) 	 
