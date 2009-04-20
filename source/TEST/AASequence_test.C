@@ -606,21 +606,21 @@ END_SECTION
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
 	AASequence a("THREEAAAWITHYYY");
 
-	Map<String, Size> table, table_gold;
+	Map<String, Size> table;
 	a.getAAFrequencies(table);
 
-	table_gold["T"]=2;
-	table_gold["H"]=2;
-	table_gold["R"]=1;
-	table_gold["E"]=2;
-	table_gold["A"]=3;
-	table_gold["W"]=1;
-	table_gold["I"]=1;
-	table_gold["Y"]=3;
+	TEST_EQUAL(table["T"]==2, true);
+	TEST_EQUAL(table["H"]==2, true);
+	TEST_EQUAL(table["R"]==1, true);
+	TEST_EQUAL(table["E"]==2, true);
+	TEST_EQUAL(table["A"]==3, true);
+	TEST_EQUAL(table["W"]==1, true);
+	TEST_EQUAL(table["I"]==1, true);
+	TEST_EQUAL(table["Y"]==3, true);
 
-	TEST_EQUAL(table==table_gold, true);
+	TEST_EQUAL(table.size()==8, true);
 
-END_SECTION
+	END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

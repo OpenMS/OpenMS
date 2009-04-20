@@ -954,9 +954,20 @@ namespace OpenMS
 	void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
 	{
 		frequency_table.clear();
-		for (String::ConstIterator it = sequence_string_.begin(); it != sequence_string_.end(); ++it)
+	
+		if (valid_)
 		{
-			frequency_table[String(*it)] += 1;
+			for (vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
+			{
+				frequency_table[(*it)->getOneLetterCode()] +=1;
+			}
+		}
+		else
+		{
+			for (String::ConstIterator it = sequence_string_.begin(); it != sequence_string_.end(); ++it)
+			{
+				frequency_table[String(*it)] += 1;
+			}
 		}
 	}
 
