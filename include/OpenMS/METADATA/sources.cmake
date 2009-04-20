@@ -36,6 +36,7 @@ SpectrumSettings.h
 Tagging.h
 ScanWindow.h
 Product.h
+PeptideEvidence.h
 )
 
 ### add path to the filenames

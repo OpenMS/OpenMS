@@ -211,7 +211,7 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mzML")) return FileTypes::MZML;
 
 		//analysisXML (all lines)
-		if (all_simple.hasSubstring("<analysisXML")) return FileTypes::ANALYSISXML;
+		if (all_simple.hasSubstring("<AnalysisXML")) return FileTypes::ANALYSISXML;
 
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;

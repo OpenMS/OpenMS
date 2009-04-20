@@ -29,6 +29,39 @@
 
 namespace OpenMS
 {
+	
+
+	void Internal::AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	{
+		String tag = sm_.convert(qname);
+		if (tag == "AnalysisXML")
+		{
+			// TODO handle version
+			return;
+		}
+
+		if (tag == "SpectrumIdentificationList")
+		{
+			// This corresponds to a new "PeptideIdentification List"
+			
+			return;
+		}
+
+		if (tag == "SpectrumIdentificationResult")
+		{
+			// This corresponds to a new "PeptideIdentification"
+
+			return;
+		}
+
+		if (tag == "SpectrumIdentificationItem")
+		{
+			// This corresponds to a new "PeptideHit"
+
+			return;
+		}
+
+	}
 
 } // namespace OpenMS
 

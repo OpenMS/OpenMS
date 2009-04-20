@@ -36,6 +36,7 @@ SpectrumSettings.C
 Tagging.C
 ScanWindow.C
 Product.C
+PeptideEvidence.C
 )
 
 ### add path to the filenames

@@ -48,11 +48,8 @@ namespace OpenMS
 		/**
 			@brief XML handler for AnalysisXMLFile
 			
-			MapType has to be a MSExperiment or have the same interface.
-
 			@note Do not use this class. It is only needed in AnalysisXMLFile.
 		*/
-		template <typename MapType>
 		class AnalysisXMLHandler
 			: public XMLHandler
 		{
@@ -60,15 +57,17 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      AnalysisXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger)
-				: XMLHandler(filename, version)
+      AnalysisXMLHandler(const String& filename, const String& version, ProgressLogger& logger)
+				: XMLHandler(filename, version),
+					logger_(logger)
 	  	{
 				cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
 			}
 
       /// Constructor for a read-only handler
-      AnalysisXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
-				: XMLHandler(filename, version)
+      AnalysisXMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
+				: XMLHandler(filename, version),
+					logger_(logger)
   		{
 				cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
 			}

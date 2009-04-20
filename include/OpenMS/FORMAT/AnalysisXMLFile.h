@@ -58,17 +58,9 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			template <typename MapType>
-			void load(const String& filename, MapType& map)
+			void load(const String& filename)
 			{
-				map.reset();
-
-				//set DocumentIdentifier
-				map.setLoadedFileType(filename);
-				map.setLoadedFilePath(filename);
-
-				Internal::AnalysisXMLHandler<MapType> handler(map,filename,schema_version_,*this);
-				handler.setOptions(options_);
+				Internal::AnalysisXMLHandler handler(filename,schema_version_,*this);
 				parse_(filename, &handler);
 			}
 
@@ -77,11 +69,9 @@ namespace OpenMS
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			template <typename MapType>
-			void store(const String& filename, const MapType& map) const
+			void store(const String& filename) const
 			{
-				Internal::AnalysisXMLHandler<MapType> handler(map,filename,schema_version_,*this);
-				handler.setOptions(options_);
+				Internal::AnalysisXMLHandler handler(filename,schema_version_,*this);
 				save_(filename, &handler);
 			}
 
