@@ -147,7 +147,7 @@
 				
 @code
 cd &lt;path_to_contrib_build&gt;
-cmake -G "&lt;generator&gt;" "&lt;path_to_contrib&gt;"
+cmake -G "<generator>" "<path_to_contrib>"
 @endcode
 
         The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
@@ -184,7 +184,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
       <LI>call CMake to create the BuildSystem there
 @code
 cd <path_to_OpenMS_build>
-cmake -D CONTRIB_CUSTOM_DIR:PATH="&lt;path_to_contrib_build&gt;" -G "&lt;generator&gt;" "&lt;path_to_OpenMS&gt;"
+cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
 @endcode
           The choice of &lt;generator&gt; is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
           If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
