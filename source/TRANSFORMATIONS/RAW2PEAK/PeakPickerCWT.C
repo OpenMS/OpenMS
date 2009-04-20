@@ -1209,17 +1209,17 @@ namespace OpenMS
 
 	void PeakPickerCWT::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
 	{
-			// if estimatePeakWidth-flag is set estimate it
-			if(param_.getValue("estimate_peak_width")=="true") 
-			{
-				DoubleReal p_w = estimatePeakWidth(input);
-				if(p_w == 0.)
-					{
-						std::cout<< "Aborting!"<<std::endl;
-						return;
-					}
-				else param_.setValue("peak_width",p_w);
-			}
+		// if estimatePeakWidth-flag is set estimate it
+		if(param_.getValue("estimate_peak_width")=="true") 
+		{
+			DoubleReal p_w = estimatePeakWidth(input);
+			if(p_w == 0.)
+				{
+					std::cout<< "Aborting!"<<std::endl;
+					return;
+				}
+			else param_.setValue("peak_width",p_w);
+		}
 
 		//clear output container
 		output.clear();
@@ -1227,7 +1227,8 @@ namespace OpenMS
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
 		output.resize(input.size());
-
+		// needed to eliminate empty spectra
+		Size empty_specs = 0;
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
 		Size progress = 0;
@@ -1237,8 +1238,9 @@ namespace OpenMS
 		for (SignedSize i = 0; i < (SignedSize)input.size(); ++i)
 		{
 			// pick the peaks in scan i
-			pick(input[i],output[i]);
-
+			// this is needed to eliminate empty spectra in the end
+			if(input[i].size()>=2) pick(input[i],output[i-empty_specs]);
+			else ++empty_specs;
 #ifdef _OPENMP
 #pragma omp critical (PeakPickerCWT_PickExperiment)
 #endif
@@ -1246,7 +1248,7 @@ namespace OpenMS
 				setProgress(++progress); //do not use 'i' here, as each thread will be assigned different blocks
 			}
 		}
-		
+		if(empty_specs>0) output.erase(output.end()-empty_specs,output.end());
 		//optimize peak positions
 		if(two_d_optimization_ || optimization_)
 		{
@@ -1257,7 +1259,6 @@ namespace OpenMS
 			//sort spectra TODO: is this necessary?
 			output.sortSpectra(true);
 		}
-		
 		endProgress();
 	}
 
@@ -1298,7 +1299,8 @@ namespace OpenMS
 		output.getMetaDataArrays()[6].setName("SignalToNoise");
 
 #ifdef DEBUG_PEAK_PICKING
-		std::cout << "****************** PICK ******************" << std::endl;
+		std::cout << "****************** PICK ******************"<<input.getRT() 
+			      << " " << input.getMSLevel()<< std::endl;
 #endif
 
 		// vector of peak endpoint positions
@@ -1380,13 +1382,13 @@ namespace OpenMS
 				// if the peak achieves a minimal width, start the peak fitting
 				if (regular_endpoints)
 				{
-#ifdef DEBUG_PEAK_PICKING
-					std::cout << "The endpoints are "
-										<< area.left->getPosition()
-										<< " and "
-										<< area.right->getPosition()
-										<< std::endl;
-#endif
+//#ifdef DEBUG_PEAK_PICKING
+//					std::cout << "The endpoints are "
+//										<< area.left->getPosition()
+//										<< " and "
+//										<< area.right->getPosition()
+//										<< std::endl;
+//#endif
 					// determine the best fitting lorezian or sech2 function
 					PeakShape shape = fitPeakShape_(area,centroid_fit);
 					shape.setLeftEndpoint( (input.begin() + distance(raw_peak_array.begin(), area.left)));
@@ -1404,10 +1406,10 @@ namespace OpenMS
 
 					else
 					{
-#ifdef DEBUG_PEAK_PICKING
-						std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
-						std::cout << "Bad fitting peak "<< std::endl;
-#endif
+//#ifdef DEBUG_PEAK_PICKING
+//						std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
+//						std::cout << "Bad fitting peak "<< std::endl;
+//#endif
 					}
 				}
 
