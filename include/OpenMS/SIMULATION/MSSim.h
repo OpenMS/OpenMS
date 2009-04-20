@@ -69,7 +69,7 @@ namespace OpenMS {
 	
 	protected:
 		
-		/// convert list of peptides with abundance to a FeatureMap
+		/// convert list of peptides with abundance into a FeatureMap
 		FeatureMapSim createFeatureMap_(const SamplePeptides& peptides);
 
   };

@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
 
 namespace OpenMS {
 
@@ -45,8 +46,9 @@ namespace OpenMS {
     /** @name Constructors and Destructors
       */
     //@{
-    /// Default constructor
-    DetectibilitySimulation();
+
+    /// Constructor taking a random generator
+    DetectibilitySimulation(const gsl_rng * random_generator);
 
     /// Copy constructor
     DetectibilitySimulation(const DetectibilitySimulation& source);
@@ -60,17 +62,23 @@ namespace OpenMS {
     void filterDetectibility(FeatureMap< > &);
     
   private:
-    // set defaults
+		/// Default constructor (hidden)
+    DetectibilitySimulation();
+
+    /// set defaults
     void setDefaultParams_();
-    
-    /// Minimum allowed detectability likelihood of a peptide
-		DoubleReal min_detect_;    
     
     /// Synchronize members with param class
 		void updateMembers_();    
     
-    /// Name of the svm model file
-		OpenMS::String dtModelFile_;    
+    /// Minimum allowed detectability likelihood of a peptide
+		DoubleReal min_detect_;    
+		
+		/// Name of the svm model file
+		OpenMS::String dtModelFile_;
+
+		/// Random number generator
+		gsl_rng* rnd_gen_;    
   };
 
 }

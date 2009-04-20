@@ -39,18 +39,11 @@ using std::endl;
 
 namespace OpenMS {
   // TODO: debug out should be propagated some where else then std::cout
-  RTSimulation::RTSimulation()
+  RTSimulation::RTSimulation(const gsl_rng * random_generator)
     : DefaultParamHandler("RTSimulation")
   {
     setDefaultParams_();
-		defaultsToParam_();    
-  }
-
-  RTSimulation::RTSimulation(gsl_rng * random_generator)
-    : DefaultParamHandler("RTSimulation")
-  {
-    setDefaultParams_();
-    rand_gen_ = random_generator;
+		rnd_gen_ = gsl_rng_clone (random_generator);
   }
   
   
@@ -180,7 +173,7 @@ namespace OpenMS {
 
       // predicted_retention_times[i] ->  needs scaling onto the column     
       // TODO: what does this 400.00 mean?
-      SimCoordinateType rt_error = gsl_ran_gaussian(rand_gen_, rt_shift_stddev) + rt_shift_mean;
+      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
       SimCoordinateType retention_time = predicted_retention_times[i] * gradientTime_;
       
       features[i].setMetaValue("rt_time",retention_time + rt_error);
@@ -193,7 +186,7 @@ namespace OpenMS {
     for (Size i = 0; i < contaminants.size(); ++i)
     {
       // assign random retention time
-      SimCoordinateType retention_time = gsl_ran_flat(rand_gen_, 0, gradientTime_);
+      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_, 0, gradientTime_);
       contaminants[i].setMetaValue("rt_time", retention_time);
     }
   }
@@ -218,6 +211,8 @@ namespace OpenMS {
     
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
-    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");        
+    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");     
+
+		defaultsToParam_();
   }
 }

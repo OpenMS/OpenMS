@@ -52,7 +52,7 @@ namespace OpenMS {
     //@{
 
     /// Constructor taking a random generator
-    RTSimulation(gsl_rng * random_generator);
+    RTSimulation(const gsl_rng * random_generator);
     
     /// Copy constructor
     RTSimulation(const RTSimulation& source);
@@ -77,20 +77,20 @@ namespace OpenMS {
     /// Default constructor -> hidden since we need to have a random generator
     RTSimulation();
     
-    // Name of the svm model file
-		OpenMS::String rtModelFile_;
-    
-		/// Random number generator
-		gsl_rng* rand_gen_;    
-    
-    /// total gradient time
-    SimCoordinateType gradientTime_;
-    
     /// Synchronize members with param class
 		void updateMembers_();
     
     /// set defaults 
     void setDefaultParams_();
+
+		// Name of the svm model file
+		OpenMS::String rtModelFile_;
+    
+    /// total gradient time
+    SimCoordinateType gradientTime_;
+    
+		/// Random number generator
+		gsl_rng* rnd_gen_;    
   };
 
 }

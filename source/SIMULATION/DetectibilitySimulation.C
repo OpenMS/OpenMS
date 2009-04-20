@@ -28,6 +28,8 @@
 #include<OpenMS/SIMULATION/DetectibilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+
+
 #include <vector>
 #include <iostream>
 
@@ -37,11 +39,11 @@ using std::endl;
 
 namespace OpenMS {
 
-  DetectibilitySimulation::DetectibilitySimulation()
+  DetectibilitySimulation::DetectibilitySimulation(const gsl_rng * random_generator)
     : DefaultParamHandler("DetectibilitySimulation")
   {
     setDefaultParams_();
-    defaultsToParam_();
+		rnd_gen_ = gsl_rng_clone (random_generator);
   }
 
   DetectibilitySimulation::DetectibilitySimulation(const DetectibilitySimulation& source)
@@ -64,7 +66,7 @@ namespace OpenMS {
   void DetectibilitySimulation::filterDetectibility(FeatureMap< > & features)
   {
     
-    /// The support vector machine
+    // The support vector machine
 		SVMWrapper svm_;
 
     // initialize support vector machine
@@ -186,6 +188,7 @@ namespace OpenMS {
   {
     defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
     defaults_.setValue("dt_model_file","<file>","SVM model for peptide detectability prediction");
+    defaultsToParam_();
   }
   
   void DetectibilitySimulation::updateMembers_()

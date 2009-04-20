@@ -41,8 +41,8 @@ namespace OpenMS {
   {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation(0).getDefaults());
-    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
+    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation(NULL).getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
     defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
     
@@ -70,8 +70,8 @@ namespace OpenMS {
     /*
       General progress should be 
         1. Digest Proteins
-        2. Predict retention times
-        3. add Post Translational modifications 
+        2. add Post Translational modifications 
+        3. Predict retention times
         4. predict detectibility 
         5. simulate ionization
         6. simulate the (lc)ms signal -> TODO: integrate parameter for signal in lc direction
@@ -79,11 +79,9 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
     
-    // start digestion process
-    Param const& digester_settings = param_.copy("Digestion:",true);
 		// digest
     DigestSimulation digest_sim;
-    digest_sim.setParameters(digester_settings);
+    digest_sim.setParameters(param_.copy("Digestion:",true));
     
     // read proteins from protein file  
 		SamplePeptides peptides;
@@ -93,7 +91,28 @@ namespace OpenMS {
 		FeatureMapSim map = createFeatureMap_(peptides);
 		
 		// add PTM's
-		PTMSimulation(rnd_gen).predict_ptms(map);
+		PTMSimulation ptm_sim(rnd_gen);
+		ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
+		ptm_sim.predict_ptms(map);
+
+		// RT prediction
+		RTSimulation rt_sim(rnd_gen);
+		rt_sim.setParameters(param_.copy("RTSimulation:",true));
+		rt_sim.predict_rt(map);
+		
+		// Detectability prediction
+		DetectibilitySimulation dt_sim(rnd_gen);
+		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
+		dt_sim.filterDetectibility(map);
+
+/**
+			...
+				4. predict detectibility 
+        5. simulate ionization
+        6. simulate the (lc)ms signal -> TODO: integrate parameter for signal in lc direction
+        7. select features for MS2
+        8. generate MS2 signals for selected features
+**/
 
   }
 
