@@ -73,10 +73,6 @@ namespace OpenMS
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
     {
-			// don't pick a spectrum with less than 3 data points
-			if (input.size() < 3)
-				return ;
-
 			// copy meta data of the input spectrum
 			output.clear();
 			output.SpectrumSettings::operator=(input);
@@ -85,7 +81,10 @@ namespace OpenMS
 			output.setMSLevel(input.getMSLevel());
 			output.setName(input.getName());
 			output.setType(SpectrumSettings::PEAKS);
-			
+
+			// don't pick a spectrum with less than 3 data points
+			if (input.size() < 3) return;
+
 			// signal-to-noise estimation
 			SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
 			snt.init(input);

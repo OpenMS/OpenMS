@@ -1227,8 +1227,6 @@ namespace OpenMS
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
 		output.resize(input.size());
-		// needed to eliminate empty spectra
-		Size empty_specs = 0;
 		// pick peaks on each scan
 		startProgress(0,input.size(),"picking peaks");
 		Size progress = 0;
@@ -1239,8 +1237,7 @@ namespace OpenMS
 		{
 			// pick the peaks in scan i
 			// this is needed to eliminate empty spectra in the end
-			if(input[i].size()>=2) pick(input[i],output[i-empty_specs]);
-			else ++empty_specs;
+			pick(input[i],output[i]);
 #ifdef _OPENMP
 #pragma omp critical (PeakPickerCWT_PickExperiment)
 #endif
@@ -1248,7 +1245,6 @@ namespace OpenMS
 				setProgress(++progress); //do not use 'i' here, as each thread will be assigned different blocks
 			}
 		}
-		if(empty_specs>0) output.erase(output.end()-empty_specs,output.end());
 		//optimize peak positions
 		if(two_d_optimization_ || optimization_)
 		{
@@ -1264,20 +1260,6 @@ namespace OpenMS
 
 	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
 	{
-		/// The continuous wavelet "transformer"
-		ContinuousWaveletTransformNumIntegration wt;
-		/// The minimal height which defines a peak in the CWT (MS 1 level)
-		DoubleReal peak_bound_cwt = 0.0;
-		DoubleReal peak_bound_ms2_level_cwt = 0.0;
-		// now initialize every time as every spectrum is picked with its own cwt
-		initializeWT_(wt,peak_bound_cwt,peak_bound_ms2_level_cwt);
-
-		// nearly empty spectra shouldn't be picked
-		if(input.size()<2) return;
-
-		//create the peak shapes vector
-		std::vector<PeakShape> peak_shapes;
-		
 		// copy the spectrum meta data
 		output.clear();
 		output.SpectrumSettings::operator=(input);
@@ -1287,6 +1269,10 @@ namespace OpenMS
 		output.setName(input.getName());
 		//make sure the data type is set correctly
 		output.setType(SpectrumSettings::PEAKS);
+
+		// nearly empty spectra shouldn't be picked
+		if(input.size()<2) return;
+
 		//set up meta data arrays
 		output.getMetaDataArrays().clear();
 		output.getMetaDataArrays().resize(7);
@@ -1297,6 +1283,17 @@ namespace OpenMS
 		output.getMetaDataArrays()[4].setName("rightWidth");
 		output.getMetaDataArrays()[5].setName("peakShape");
 		output.getMetaDataArrays()[6].setName("SignalToNoise");
+
+		/// The continuous wavelet "transformer"
+		ContinuousWaveletTransformNumIntegration wt;
+		/// The minimal height which defines a peak in the CWT (MS 1 level)
+		DoubleReal peak_bound_cwt = 0.0;
+		DoubleReal peak_bound_ms2_level_cwt = 0.0;
+		// now initialize every time as every spectrum is picked with its own cwt
+		initializeWT_(wt,peak_bound_cwt,peak_bound_ms2_level_cwt);
+
+		//create the peak shapes vector
+		std::vector<PeakShape> peak_shapes;
 
 #ifdef DEBUG_PEAK_PICKING
 		std::cout << "****************** PICK ******************"<<input.getRT() 
