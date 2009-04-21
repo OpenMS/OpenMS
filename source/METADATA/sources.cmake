@@ -37,6 +37,7 @@ Tagging.C
 ScanWindow.C
 Product.C
 PeptideEvidence.C
+Identification.C
 )
 
 ### add path to the filenames

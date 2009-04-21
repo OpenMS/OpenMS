@@ -37,6 +37,7 @@ Tagging.h
 ScanWindow.h
 Product.h
 PeptideEvidence.h
+Identification.h
 )
 
 ### add path to the filenames

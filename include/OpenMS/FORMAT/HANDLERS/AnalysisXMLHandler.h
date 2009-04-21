@@ -30,15 +30,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
-#include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-
-#include <sstream>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -57,25 +52,13 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      AnalysisXMLHandler(const String& filename, const String& version, ProgressLogger& logger)
-				: XMLHandler(filename, version),
-					logger_(logger)
-	  	{
-				cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
-			}
+      AnalysisXMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler
-      AnalysisXMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
-				: XMLHandler(filename, version),
-					logger_(logger)
-  		{
-				cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
-			}
+      AnalysisXMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~AnalysisXMLHandler()
-      {
-      }
+      virtual ~AnalysisXMLHandler();
       //@}
 
 
@@ -112,7 +95,14 @@ namespace OpenMS
 			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 			
 			/// Helper method that writes a source file
-			void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
+			//void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
+
+
+			private:
+
+				AnalysisXMLHandler();
+				AnalysisXMLHandler(const AnalysisXMLHandler& rhs);
+				AnalysisXMLHandler& operator = (const AnalysisXMLHandler& rhs);
 		};
 	} // namespace Internal
 } // namespace OpenMS

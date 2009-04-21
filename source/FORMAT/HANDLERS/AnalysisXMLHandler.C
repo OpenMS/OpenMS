@@ -26,12 +26,32 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
-	
+	namespace Internal
+	{
 
-	void Internal::AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  AnalysisXMLHandler::AnalysisXMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
+		: XMLHandler(filename, version),
+    	logger_(logger)
+  {
+  	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
+  }
+
+  AnalysisXMLHandler::AnalysisXMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
+		: XMLHandler(filename, version),
+    	logger_(logger)
+  {
+  	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
+  }	
+
+	AnalysisXMLHandler::~AnalysisXMLHandler()
+	{
+	}
+
+	void AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		String tag = sm_.convert(qname);
 		if (tag == "AnalysisXML")
@@ -63,6 +83,20 @@ namespace OpenMS
 
 	}
 
+	void AnalysisXMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
+	{
+	}
+
+	void AnalysisXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	{
+	}
+	
+	void AnalysisXMLHandler::writeTo(std::ostream& os)
+	{
+	}
+
+
+	} //namespace Internal
 } // namespace OpenMS
 
 

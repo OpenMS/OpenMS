@@ -44,30 +44,18 @@ namespace OpenMS
 	{
 	}
 
-	//reimplemented in order to handle index AnalysisXML
-	bool AnalysisXMLFile::isValid(const String& filename, std::ostream& os) 
-	{
-		//determine if this is indexed mzML or not
-		bool indexed = false;
-		TextFile file(filename,true,4);
-		if (file.asString().hasSubstring("<indexedmzML"))
-		{
-			indexed = true;
-		}
-		// find the corresponding schema
-		String current_location;
-		if (indexed)
-		{
-			current_location = File::find(indexed_schema_location_);
-		}
-		else
-		{
-			current_location = File::find(schema_location_);
-		}
-		
-		return XMLValidator().isValid(filename,current_location,os);
-	}
-	
+  void AnalysisXMLFile::load(const String& filename, Identification& id)
+  {
+  	Internal::AnalysisXMLHandler handler(id, filename, schema_version_, *this);
+    parse_(filename, &handler);
+  }
+
+  void AnalysisXMLFile::store(const String& filename, const Identification& id) const
+  {
+  	Internal::AnalysisXMLHandler handler(id, filename, schema_version_, *this);
+    save_(filename, &handler);
+  }
+
 	bool AnalysisXMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
 	{
 		//load mapping

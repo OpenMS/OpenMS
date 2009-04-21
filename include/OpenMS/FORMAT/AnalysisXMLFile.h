@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/Identification.h>
 
 namespace OpenMS
 {
@@ -58,30 +59,14 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename)
-			{
-				Internal::AnalysisXMLHandler handler(filename,schema_version_,*this);
-				parse_(filename, &handler);
-			}
+			void load(const String& filename, Identification& id);
 
 			/**
 				@brief Stores a map in a AnalysisXML file.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(const String& filename) const
-			{
-				Internal::AnalysisXMLHandler handler(filename,schema_version_,*this);
-				save_(filename, &handler);
-			}
-
-			/**
-				@brief Checks if a file validates against the XML schema.
-
-		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
-				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
-			*/
-			bool isValid(const String& filename, std::ostream& os = std::cerr);
+			void store(const String& filename, const Identification& id) const;
 
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -96,11 +81,6 @@ namespace OpenMS
 
 		private:
 
-			/// Options for loading / storing
-			PeakFileOptions options_;
-
-			/// Location of indexed mzML schema
-			String indexed_schema_location_;
 	};
 
 } // namespace OpenMS
