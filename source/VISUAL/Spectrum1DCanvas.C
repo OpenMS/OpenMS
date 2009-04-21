@@ -640,6 +640,9 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
 	{
+		//no layers
+		if (layers_.size()==0) return;
+			
 		if (draw_modes_[current_layer_]!=mode)
 		{
 			draw_modes_[current_layer_] = mode;
@@ -650,6 +653,9 @@ namespace OpenMS
 
 	Spectrum1DCanvas::DrawModes Spectrum1DCanvas::getDrawMode() const
 	{ 
+		//no layers
+		if (layers_.size()==0) return DM_PEAKS;
+			
 		return draw_modes_[current_layer_]; 
 	}
 	
@@ -1087,11 +1093,12 @@ namespace OpenMS
   {
   	if (intensity_mode_ == IM_SNAP) 
 		{
-			double local_max  = -numeric_limits<double>::max();
+			DoubleReal local_max  = -numeric_limits<double>::max();
 			for (Size i=0; i<getLayerCount();++i)
 			{
-				SpectrumIteratorType tmp  = max_element(getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX()), getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
-				if (tmp->getIntensity() > local_max) 
+				SpectrumType& spectrum = getLayer_(i).getCurrentSpectrum();
+				SpectrumIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
+				if (tmp != spectrum.end() && tmp->getIntensity() > local_max) 
 				{
 					local_max = tmp->getIntensity();
 				}
