@@ -50,7 +50,7 @@ namespace OpenMS
 			
 			@note Do not use this class. It is only needed in AnalysisXMLFile.
 		*/
-		class AnalysisXMLHandler
+		class OPENMS_DLLAPI AnalysisXMLHandler
 			: public XMLHandler
 		{
 		 public:
