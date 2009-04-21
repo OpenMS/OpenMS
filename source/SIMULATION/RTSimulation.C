@@ -31,7 +31,6 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <vector>
 #include <iostream>
-#include <utility>
 
 using std::vector;
 using std::cout;
@@ -43,7 +42,7 @@ namespace OpenMS {
     : DefaultParamHandler("RTSimulation")
   {
     setDefaultParams_();
-		rnd_gen_ = gsl_rng_clone (random_generator);
+		rnd_gen_ = random_generator;
   }
   
   

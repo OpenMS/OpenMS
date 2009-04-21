@@ -77,9 +77,6 @@ namespace OpenMS {
     /// Default constructor -> hidden since we need to have a random generator
     RTSimulation();
     
-    /// Synchronize members with param class
-		void updateMembers_();
-    
     /// set defaults 
     void setDefaultParams_();
 
@@ -88,9 +85,13 @@ namespace OpenMS {
     
     /// total gradient time
     SimCoordinateType gradientTime_;
-    
+  protected:  
 		/// Random number generator
-		gsl_rng* rnd_gen_;    
+		const gsl_rng* rnd_gen_;    
+    
+    /// Synchronize members with param class
+		void updateMembers_();
+    
   };
 
 }

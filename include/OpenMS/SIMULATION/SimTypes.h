@@ -106,7 +106,7 @@ namespace OpenMS
 		}
 
 		/// draw one of the candidates according to their p's (sum normalized to one)
-		Residue draw(gsl_rng* rnd_gen)
+		Residue draw(const gsl_rng* rnd_gen)
 		{
 			double p_random = gsl_ran_flat(rnd_gen,0.0,1.0);
 			// normalize to one

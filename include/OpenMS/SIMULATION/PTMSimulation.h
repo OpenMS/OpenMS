@@ -76,7 +76,7 @@ namespace OpenMS {
 		PTMTable ptms_;
 
 		/// random generator (GSL)
-		gsl_rng* rnd_gen_;
+		const gsl_rng* rnd_gen_;
 
 	private:
 		/// Default (hidden)

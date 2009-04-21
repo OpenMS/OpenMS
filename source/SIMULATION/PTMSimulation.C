@@ -34,9 +34,9 @@ namespace OpenMS {
   PTMSimulation::PTMSimulation(const gsl_rng* rnd_gen)
     : DefaultParamHandler("PTMSimulation")
   {
-		rnd_gen_ = gsl_rng_clone (rnd_gen);
+		rnd_gen_ = rnd_gen;
 
-		defaults_.setValue("potential_modifications", StringList::create("MOD:00071|0.13,MOD:00075|0.2,MOD:00076|0.12,MOD:00078|0.31,MOD:00130|0.21"), "List of PSI::MOD modifications (each with probability of occurence)");
+		defaults_.setValue("potential_modifications", StringList::create("MOD:00071|0.13,MOD:00076|0.12,MOD:00078|0.31,MOD:00130|0.21"), "List of PSI::MOD modifications (each with probability of occurence)");
 		defaults_.setValue("modification_bound", 3, "no more modifications are added to a peptide added when this number is reached. (set to 0 to disable this module)");
 		defaults_.setMinInt("modification_bound",0);
 		defaultsToParam_();		

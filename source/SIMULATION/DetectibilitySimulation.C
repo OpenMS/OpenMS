@@ -39,11 +39,10 @@ using std::endl;
 
 namespace OpenMS {
 
-  DetectibilitySimulation::DetectibilitySimulation(const gsl_rng * random_generator)
+  DetectibilitySimulation::DetectibilitySimulation()
     : DefaultParamHandler("DetectibilitySimulation")
   {
     setDefaultParams_();
-		rnd_gen_ = gsl_rng_clone (random_generator);
   }
 
   DetectibilitySimulation::DetectibilitySimulation(const DetectibilitySimulation& source)
@@ -64,6 +63,28 @@ namespace OpenMS {
   {}
   
   void DetectibilitySimulation::filterDetectibility(FeatureMap< > & features)
+  {
+    Int is_filter_active = param_.getValue("dt_simulation_on");
+    if(is_filter_active == 1)
+    {
+      svm_filter(features);
+    }
+    else
+    {
+      no_filter(features);
+    }
+  }
+  
+  void DetectibilitySimulation::no_filter(FeatureMap< > & features)
+  {  
+    // set detectibility to 1.0 for all given peptides
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      features[i].setMetaValue("detectibility", 1.0 );
+    }     
+  }
+    
+  void DetectibilitySimulation::svm_filter(FeatureMap< > & features)
   {
     
     // The support vector machine
@@ -179,15 +200,16 @@ namespace OpenMS {
 #ifdef DEBUG_SIM
       cout << detectabilities[i] << " " << min_detect_ << endl;
 #endif
-      
-      features.swap(tempCopy);
     } 
+    
+    features.swap(tempCopy);
   }
 
   void DetectibilitySimulation::setDefaultParams_() 
   {
     defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
     defaults_.setValue("dt_model_file","<file>","SVM model for peptide detectability prediction");
+    defaults_.setValue("dt_simulation_on",1, "Modelling detectibility (0 = disabled, 1 = enabled)");
     defaultsToParam_();
   }
   

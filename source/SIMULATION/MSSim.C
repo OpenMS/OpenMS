@@ -42,7 +42,7 @@ namespace OpenMS {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation(NULL).getDefaults());
+    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
     defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
     
@@ -101,7 +101,7 @@ namespace OpenMS {
 		rt_sim.predict_rt(map);
 		
 		// Detectability prediction
-		DetectibilitySimulation dt_sim(rnd_gen);
+		DetectibilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
 		dt_sim.filterDetectibility(map);
 

@@ -46,9 +46,8 @@ namespace OpenMS {
     /** @name Constructors and Destructors
       */
     //@{
-
     /// Constructor taking a random generator
-    DetectibilitySimulation(const gsl_rng * random_generator);
+    DetectibilitySimulation();
 
     /// Copy constructor
     DetectibilitySimulation(const DetectibilitySimulation& source);
@@ -62,9 +61,6 @@ namespace OpenMS {
     void filterDetectibility(FeatureMap< > &);
     
   private:
-		/// Default constructor (hidden)
-    DetectibilitySimulation();
-
     /// set defaults
     void setDefaultParams_();
     
@@ -77,8 +73,13 @@ namespace OpenMS {
 		/// Name of the svm model file
 		OpenMS::String dtModelFile_;
 
-		/// Random number generator
-		gsl_rng* rnd_gen_;    
+  protected:
+    /// filter using a svm model
+    void svm_filter(FeatureMap< > &);
+    
+    /// no filter just let them pass
+    void no_filter(FeatureMap< > &);
+    
   };
 
 }
