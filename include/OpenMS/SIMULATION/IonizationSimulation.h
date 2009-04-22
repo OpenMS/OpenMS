@@ -35,6 +35,9 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
+// STL includes
+#include <set>
+
 namespace OpenMS {
 
   /**
@@ -83,13 +86,32 @@ namespace OpenMS {
     /// Synchronize members with param class
 		void updateMembers_();        
     
-    /// 
+    /// ESI or MALDI ionization
     IonizationType ionization_type;
+    
+    /**
+     @brief counts all basic residues inside the amino acid sequence to give an upper bound on the maximal charge during ESI ionization
+    */
+    UInt countBasicResidues_(const AASequence & ) const;
+    
+    /*
+     @brief List of residues that are counted as basic during execution of countBasicResidues_
+    */
+    std::set<String> basic_residues_;
+    
+    /**
+     @brief Probability for the binomial distribution of ESI charge states
+     */
+    DoubleReal esi_probability;
+    
+    /**
+     @brief List of probabilities for each charge state during MALDI ionization
+     */
+    DoubleList maldi_probabilities;
     
   protected:
 		/// Random number generator
 		const gsl_rng* rnd_gen_;
-       
   };
 
 }
