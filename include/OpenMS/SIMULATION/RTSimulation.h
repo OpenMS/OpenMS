@@ -73,6 +73,10 @@ namespace OpenMS {
      */
     void predict_contaminants_rt(FeatureMap< > &);
     
+    /**
+     @brief Returns true if a RT column was simulated
+     */
+    bool isRTColumnOn();
   private:
     /// Default constructor -> hidden since we need to have a random generator
     RTSimulation();

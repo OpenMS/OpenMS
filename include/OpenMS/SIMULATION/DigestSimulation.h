@@ -58,6 +58,13 @@ namespace OpenMS {
     DigestSimulation& operator = (const DigestSimulation& source);
 
     void digest(const SampleProteins & proteins, SamplePeptides & peptides);    
+    
+  private:
+    /// set defaults
+    void setDefaultParams_();
+    
+    /// Synchronize members with param class
+		void updateMembers_();    
   };
 
 }

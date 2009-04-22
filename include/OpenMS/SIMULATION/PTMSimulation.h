@@ -81,6 +81,9 @@ namespace OpenMS {
 	private:
 		/// Default (hidden)
     PTMSimulation();
+    
+    /// see
+    void setDefaultParams_();
 
   };
 }

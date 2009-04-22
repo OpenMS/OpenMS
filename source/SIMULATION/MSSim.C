@@ -39,22 +39,20 @@ namespace OpenMS {
   MSSim::MSSim()
     : DefaultParamHandler("MSSim")
   {
-    defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
-    defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
-    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
-    defaults_.insert("Ionization:",IonizationSimulation().getDefaults());
-    defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
-    
-    defaultsToParam_();
+    setDefaultParams_();
   }
 
   MSSim::MSSim(const MSSim& source)
     : DefaultParamHandler(source)
-  {}
+  {
+    setParameters( source.getParameters() );
+    updateMembers_();  
+  }
 
   MSSim& MSSim::operator = (const MSSim& source)
   {
+    setParameters( source.getParameters() );
+    updateMembers_();    
     return *this;
   }
   
@@ -63,7 +61,6 @@ namespace OpenMS {
   
   void MSSim::simulate(const gsl_rng* rnd_gen, const SampleProteins& proteins)
   {
-    // TODO: add method to read proteins/abundances from file
     // TODO: add method to read contaminants
     // TODO: add method to select contaminants
     
@@ -114,6 +111,8 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
 **/
 
+    
+    
   }
 
 	FeatureMapSim MSSim::createFeatureMap_(const SamplePeptides& peptides)
@@ -134,4 +133,19 @@ namespace OpenMS {
 		return map;
 	}
 
+  
+  void MSSim::setDefaultParams_()
+  {
+    defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
+    defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
+    defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
+    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
+    defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
+    defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
+    
+    defaultsToParam_();  
+  }
+  
+  void MSSim::updateMembers_()
+  {}
 }

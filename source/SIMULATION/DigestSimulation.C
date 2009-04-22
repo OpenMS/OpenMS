@@ -34,24 +34,19 @@ namespace OpenMS {
   DigestSimulation::DigestSimulation()
     : DefaultParamHandler("DigestSimulation")
   {
-		defaults_.setValue("enzyme", String("Trypsin"), "Enzyme to use for digestion");
-		StringList enzymes;
-		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
-		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
-		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-		defaults_.setValidStrings("enzyme", enzymes);
-		defaults_.setValue("missed_cleavages",0,"maximum number of missed cleavages");
-    defaults_.setValue("min_peptide_length",0,"minimum peptide length after digestion");
-
-		defaultsToParam_();		
+    setDefaultParams_();
 	}
 
   DigestSimulation::DigestSimulation(const DigestSimulation& source)
     : DefaultParamHandler(source)
-  {}
+  {
+    updateMembers_();
+  }
 
   DigestSimulation& DigestSimulation::operator = (const DigestSimulation& source)
   {
+    setParameters( source.getParameters() );
+    updateMembers_();
     return *this;
   }
   
@@ -120,6 +115,23 @@ namespace OpenMS {
       }
 		}
 
-
   }
+  
+  void DigestSimulation::setDefaultParams_()
+  {
+		defaults_.setValue("enzyme", String("Trypsin"), "Enzyme to use for digestion");
+		StringList enzymes;
+		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
+		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
+		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
+		defaults_.setValidStrings("enzyme", enzymes);
+		defaults_.setValue("missed_cleavages",0,"maximum number of missed cleavages");
+    defaults_.setValue("min_peptide_length",0,"minimum peptide length after digestion");
+    
+		defaultsToParam_();		    
+  }
+  
+  
+  void DigestSimulation::updateMembers_()
+  {}
 }

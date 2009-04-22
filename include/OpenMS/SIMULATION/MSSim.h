@@ -72,6 +72,13 @@ namespace OpenMS {
 		/// convert list of peptides with abundance into a FeatureMap
 		FeatureMapSim createFeatureMap_(const SamplePeptides& peptides);
 
+  private:
+    /// set defaults
+    void setDefaultParams_();
+    
+    /// Synchronize members with param class
+		void updateMembers_();        
+    
   };
 
 }

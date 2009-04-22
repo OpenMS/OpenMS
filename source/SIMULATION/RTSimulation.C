@@ -39,10 +39,9 @@ using std::endl;
 namespace OpenMS {
   // TODO: debug out should be propagated some where else then std::cout
   RTSimulation::RTSimulation(const gsl_rng * random_generator)
-    : DefaultParamHandler("RTSimulation")
+    : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
     setDefaultParams_();
-		rnd_gen_ = random_generator;
   }
   
   
@@ -50,12 +49,14 @@ namespace OpenMS {
     : DefaultParamHandler(source)
   {
     setParameters( source.getParameters() );
+    rnd_gen_ = source.rnd_gen_;
     updateMembers_();
   }
 
   RTSimulation& RTSimulation::operator = (const RTSimulation& source)
   {
     setParameters( source.getParameters() );
+    rnd_gen_ = source.rnd_gen_;
     updateMembers_();
     return *this;
   }
@@ -213,5 +214,11 @@ namespace OpenMS {
     defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");     
 
 		defaultsToParam_();
+  }
+  
+  bool RTSimulation::isRTColumnOn()
+  {
+    Int isRTColumnOn = param_.getValue("rt_column_on");
+    return (isRTColumnOn == 1);
   }
 }

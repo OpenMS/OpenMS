@@ -60,6 +60,13 @@ namespace OpenMS {
     
     // TODO: howto add contaminations
     void generateRawSignals(FeatureMap< > &, MSExperiment<Peak1D> &);
+    
+  private:
+    /// Synchronize members with param class
+		void updateMembers_();
+    
+    /// 
+    void setDefaultParams_();
   };
 
 }

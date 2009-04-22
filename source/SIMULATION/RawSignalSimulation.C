@@ -31,14 +31,21 @@ namespace OpenMS {
 
   RawSignalSimulation::RawSignalSimulation()
     : DefaultParamHandler("RawSignalSimulation")
-  {}
+  {
+    setDefaultParams_();
+  }
 
   RawSignalSimulation::RawSignalSimulation(const RawSignalSimulation& source)
     : DefaultParamHandler(source)
-  {}
+  {
+    setParameters( source.getParameters() );
+    updateMembers_();
+  }
 
   RawSignalSimulation& RawSignalSimulation::operator = (const RawSignalSimulation& source)
   {
+    setParameters( source.getParameters() );
+    updateMembers_();
     return *this;
   }
   
@@ -46,5 +53,13 @@ namespace OpenMS {
   {}
   
   void RawSignalSimulation::generateRawSignals(FeatureMap< > &, MSExperiment< Peak1D > &)
+  {}
+  
+  void RawSignalSimulation::setDefaultParams_()
+  {
+    defaultsToParam_();
+  }
+  
+  void RawSignalSimulation::updateMembers_()
   {}
 }

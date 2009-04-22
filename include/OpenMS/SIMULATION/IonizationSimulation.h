@@ -31,6 +31,10 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 namespace OpenMS {
 
   /**
@@ -41,13 +45,19 @@ namespace OpenMS {
     : public DefaultParamHandler
   {
 
-  public:
+  public: 
+    /// possible ionization methods
+    typedef enum {
+      MALDI,
+      ESI
+    } IonizationType;
+    
     /** @name Constructors and Destructors
       */
     //@{
-    /// Default constructor
-    IonizationSimulation();
-
+    /// 
+    IonizationSimulation(const gsl_rng* );
+    
     /// Copy constructor
     IonizationSimulation(const IonizationSimulation& source);
 
@@ -57,7 +67,29 @@ namespace OpenMS {
 
     IonizationSimulation& operator = (const IonizationSimulation& source);
 
-    void ionize(FeatureMap< > &, FeatureMap< > &);
+    void ionize(FeatureMap< > &);
+
+  private:  
+    /// Default constructor
+    IonizationSimulation();
+    
+    void ionize_esi(FeatureMap< > &);
+    
+    void ionize_maldi(FeatureMap< > &);
+
+    /// set defaults
+    void setDefaultParams_();
+    
+    /// Synchronize members with param class
+		void updateMembers_();        
+    
+    /// 
+    IonizationType ionization_type;
+    
+  protected:
+		/// Random number generator
+		const gsl_rng* rnd_gen_;
+       
   };
 
 }
