@@ -153,7 +153,7 @@ namespace OpenMS {
         else
         {
           Feature chargedFeature(features[i]);
-          chargedFeature.setMetaValue("charge", c);
+          chargedFeature.setCharge(c);
           chargedFeature.setIntensity(charge_states[c]);
           copyMap.push_back(chargedFeature);
         }
@@ -217,7 +217,7 @@ namespace OpenMS {
         else
         {
           Feature chargedFeature(features[i]);
-          chargedFeature.setMetaValue("charge", c);
+          chargedFeature.setCharge(c);
           chargedFeature.setIntensity(charge_states[c]);
           copyMap.push_back(chargedFeature);
         }
