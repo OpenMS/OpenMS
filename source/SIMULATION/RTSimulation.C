@@ -42,6 +42,7 @@ namespace OpenMS {
     : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
     setDefaultParams_();
+    updateMembers_();
   }
   
   
@@ -167,16 +168,17 @@ namespace OpenMS {
     
     for (UInt i = 0; i < peptidesVector.size(); i++)
     {
-      // TODO: remove those peptides + debug out removed ones
+      // TODO: remove those peptides + debug out removed ones??
       if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
       else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
 
       // predicted_retention_times[i] ->  needs scaling onto the column     
       // TODO: what does this 400.00 mean?
+      // TODO: place peptides somewhere in the middle of the column to avoid elution below zero rt
       SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
       SimCoordinateType retention_time = predicted_retention_times[i] * gradientTime_;
       
-      features[i].setMetaValue("rt_time",retention_time + rt_error);
+      features[i].setRT(retention_time + rt_error);
     } 
   }
   
@@ -187,7 +189,7 @@ namespace OpenMS {
     {
       // assign random retention time
       SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_, 0, gradientTime_);
-      contaminants[i].setMetaValue("rt_time", retention_time);
+      contaminants[i].setRT(retention_time);
     }
   }
   
@@ -206,7 +208,6 @@ namespace OpenMS {
     
     // Column settings
     defaults_.setValue("total_gradient_time",2000.0,"the duration (in seconds) of the gradient");
-    defaults_.setValue("rt_sampling",2.0,"Time interval (in seconds) between consecutive scans");
     defaults_.setValue("rt_model_file","<file>","SVM model for retention time prediction");
     
     // rt error

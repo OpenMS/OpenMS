@@ -31,6 +31,12 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 namespace OpenMS {
 
@@ -46,8 +52,8 @@ namespace OpenMS {
     /** @name Constructors and Destructors
       */
     //@{
-    /// Default constructor
-    RawSignalSimulation();
+    /// Constructor taking a random generator
+    RawSignalSimulation(const gsl_rng * random_generator);
 
     /// Copy constructor
     RawSignalSimulation(const RawSignalSimulation& source);
@@ -57,16 +63,70 @@ namespace OpenMS {
     //@}
 
     RawSignalSimulation& operator = (const RawSignalSimulation& source);
-    
+
     // TODO: howto add contaminations
     void generateRawSignals(FeatureMap< > &, MSExperiment<Peak1D> &);
-    
+
   private:
+    /// Default constructor
+    RawSignalSimulation();
+
     /// Synchronize members with param class
 		void updateMembers_();
-    
-    /// 
+
+    ///
     void setDefaultParams_();
+
+    ///
+    void addMSSignal(Feature &, MSExperiment<Peak1D> &);
+
+    void samplePeptideModel_(const ProductModel<2> & pm,
+                             const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
+                             SimCoordinateType rt_start, SimCoordinateType rt_end,
+                             MSExperiment<Peak1D> &, Feature & activeFeature);
+
+    void chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale);
+
+    // TODO: the following parameters are imported -> revise
+    // TODO: we need to incorporate those parameters into constructors etc.
+    
+		/// bin sizes
+		SimCoordinateType mz_sampling_rate_;
+    SimCoordinateType rt_sampling_rate_;
+
+		/// Mean of peak m/z error
+		SimCoordinateType mz_error_mean_;
+		/// Standard deviation of peak m/z error
+		SimCoordinateType mz_error_stddev_;
+
+		/// Mean of peak intensity error
+		SimIntensityType intensity_error_mean_;
+		/// Standard deviation of peak intensity error
+		SimIntensityType intensity_error_stddev_;
+
+		/// Maximum m/z detected by mass analyser
+		SimCoordinateType maximal_mz_measurement_limit_;
+		/// Minimum m/z detected by mass analyser
+		SimCoordinateType minimal_mz_measurement_limit_;
+
+    /// Full width at half maximum of simulated peaks
+		SimCoordinateType peak_std_;
+
+    /// Mean intensity scaling
+    SimCoordinateType mean_scaling_;
+
+    /// Number of peptide ions
+    Size ion_count_;
+
+		/// Remembers which scans were changed after the last call to removeDuplicatePoints_()
+		std::vector<bool> changed_scans_;
+    
+    /// LC conditions (noise parameter for EMG)
+		DoubleReal distortion_;
+    
+  protected:
+		/// Random number generator
+		const gsl_rng* rnd_gen_;
   };
 
 }

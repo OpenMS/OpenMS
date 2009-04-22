@@ -101,7 +101,13 @@ namespace OpenMS {
 		DetectibilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
 		dt_sim.filterDetectibility(map);
-
+    
+    IonizationSimulation ion_sim(rnd_gen);
+    ion_sim.setParameters(param_.copy("Ionization:", true));
+    ion_sim.ionize(map);
+    
+    
+    
 /**
 			...
 				4. predict detectibility 
@@ -141,7 +147,7 @@ namespace OpenMS {
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
     defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
-    defaults_.insert("RawSignal:",RawSignalSimulation().getDefaults());
+    defaults_.insert("RawSignal:",RawSignalSimulation(NULL).getDefaults());
     
     defaultsToParam_();  
   }

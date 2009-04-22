@@ -49,6 +49,12 @@ namespace OpenMS
 	/// Abundance of proteins/peptides
 	typedef Peak2D::IntensityType SimIntensityType;
 	
+  /// Charge of a peptide
+  typedef Feature::ChargeType SimChargeType;
+  
+  /// 
+	typedef Peak1D SimPointType;
+  
 	/// Sequence -> Intensity container
 	typedef std::map< AASequence, SimIntensityType > SampleProteins;
 	/// Peptides and Proteins are the same structurewise
