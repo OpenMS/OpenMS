@@ -38,6 +38,8 @@ ScanWindow.C
 Product.C
 PeptideEvidence.C
 Identification.C
+SpectrumIdentification.C
+IdentificationHit.C
 )
 
 ### add path to the filenames

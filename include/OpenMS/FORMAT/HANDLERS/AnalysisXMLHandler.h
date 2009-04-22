@@ -33,6 +33,8 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/IdentificationHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
@@ -81,7 +83,17 @@ namespace OpenMS
 			
 			///Controlled vocabulary (psi-pi from OpenMS/share/OpenMS/CV/psi-pi.obo)
 			ControlledVocabulary cv_;
-			
+		
+			String tag_;
+
+			Identification* id_;
+
+			const Identification* cid_;
+
+			SpectrumIdentification current_spectrum_id_;
+
+			IdentificationHit current_id_hit_;
+
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
 

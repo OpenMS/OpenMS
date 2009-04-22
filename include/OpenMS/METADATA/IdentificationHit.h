@@ -25,14 +25,11 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATION_H
-#define OPENMS_METADATA_IDENTIFICATION_H
+#ifndef OPENMS_METADATA_IDENTIFICATIONHIT_H
+#define OPENMS_METADATA_IDENTIFICATIONHIT_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/METADATA/SpectrumIdentification.h>
-
-#include <vector>
 
 namespace OpenMS
 {   	
@@ -43,7 +40,7 @@ namespace OpenMS
 
 		@ingroup Metadata
   */
-  class OPENMS_DLLAPI Identification
+  class OPENMS_DLLAPI IdentificationHit
   	: public MetaInfoInterface
   {
 	  public:
@@ -51,43 +48,75 @@ namespace OpenMS
 	    /// @name constructors,destructors,assignment operator
 	    //@{
 	    /// default constructor
-	    Identification();
+	    IdentificationHit();
 	    /// destructor
-	    virtual ~Identification();
+	    virtual ~IdentificationHit();
 	    /// copy constructor
-	    Identification(const Identification& source);
+	    IdentificationHit(const IdentificationHit& source);
 	    /// assignment operator
-	    Identification& operator=(const Identification& source);    
+	    IdentificationHit& operator=(const IdentificationHit& source);    
 			/// Equality operator
-			bool operator == (const Identification& rhs) const;
+			bool operator == (const IdentificationHit& rhs) const;
 			/// Inequality operator
-			bool operator != (const Identification& rhs) const;
+			bool operator != (const IdentificationHit& rhs) const;
 	    //@}
 
 			/// @name Accessors
 			//@{
-			/// sets the date and time the file was written
-			void setCreationDate(const DateTime& date);
+			/// sets the identifier
+			void setId(const String& id);
 
-			/// returns the date and time the file was created
-			const DateTime& getCreationDate() const;
+			/// returns the id
+			const String& getId() const;
 
-			/// sets the spectrum identifications
-			void setSpectrumIdentifications(const std::vector<SpectrumIdentification>& ids);
+			/// sets the charge state of the peptide
+			void setCharge(Int charge);
 
-			/// adds a spectrum identification
-			void addSpectrumIdentification(const SpectrumIdentification& id);
+			/// returns the charge state
+			Int getCharge() const;
 
-			/// returns the spectrum identifications stored
-			const std::vector<SpectrumIdentification>& getSpectrumIdentifications() const;
+			/// sets the calculated mass to charge ratio
+			void setCalculatedMassToCharge(DoubleReal mz);
+
+			/// returns the calculated mass to charge ratio
+			DoubleReal getCalculatedMassToCharge() const;
+
+			/// sets the experimental mass to charge ratio
+			void setExperimentalMassToCharge(DoubleReal mz);
+
+			/// returns the experimental mass to charge
+			DoubleReal getExperimentalMassToCharge() const;
+
+			/// sets the name 
+			void setName(const String& name);
+
+			/// returns the name
+			const String& getName() const;
+
+			/// sets whether the peptide passed the threshold
+			void setPassThreshold(bool pass);
+
+			/// returns whether the peptide passed the threshold
+			bool getPassThreshold() const;
+
+			/// set the rank of the peptide
+			void setRank(Int rank);
+
+			/// returns the rank of the peptide
+			Int getRank() const;
 			//@}
+
+
 	  protected:
 			
-			String id_;								///< Identifier
-			DateTime creation_date_;	///< Date and time the search was performed
-			std::vector<SpectrumIdentification> spectrum_identifications_;
-
+			String id_;								///< identifier
+			Int charge_; 							///< peptide charge
+			DoubleReal calculated_mass_to_charge_; ///< calculated mass to charge ratio
+			DoubleReal experimental_mass_to_charge_; ///< experimental mass to charge ratio
+			String name_; 						///< name
+			bool pass_threshold_; 		///< pass threshold
+			Int rank_; 								///< rank of the peptide
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_IDENTIFICATION_H
+#endif // OPENMS_METADATA_IDENTIFICATIONHIT_H

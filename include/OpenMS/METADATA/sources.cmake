@@ -38,6 +38,8 @@ ScanWindow.h
 Product.h
 PeptideEvidence.h
 Identification.h
+SpectrumIdentification.h
+IdentificationHit.h
 )
 
 ### add path to the filenames

@@ -25,14 +25,11 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATION_H
-#define OPENMS_METADATA_IDENTIFICATION_H
+#ifndef OPENMS_METADATA_SPECTRUMIDENTIFICATION_H
+#define OPENMS_METADATA_SPECTRUMIDENTIFICATION_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/METADATA/SpectrumIdentification.h>
-
-#include <vector>
+#include <OpenMS/METADATA/IdentificationHit.h>
 
 namespace OpenMS
 {   	
@@ -43,7 +40,7 @@ namespace OpenMS
 
 		@ingroup Metadata
   */
-  class OPENMS_DLLAPI Identification
+  class OPENMS_DLLAPI SpectrumIdentification
   	: public MetaInfoInterface
   {
 	  public:
@@ -51,43 +48,36 @@ namespace OpenMS
 	    /// @name constructors,destructors,assignment operator
 	    //@{
 	    /// default constructor
-	    Identification();
+	    SpectrumIdentification();
 	    /// destructor
-	    virtual ~Identification();
+	    virtual ~SpectrumIdentification();
 	    /// copy constructor
-	    Identification(const Identification& source);
+	    SpectrumIdentification(const SpectrumIdentification& source);
 	    /// assignment operator
-	    Identification& operator=(const Identification& source);    
+	    SpectrumIdentification& operator=(const SpectrumIdentification& source);    
 			/// Equality operator
-			bool operator == (const Identification& rhs) const;
+			bool operator == (const SpectrumIdentification& rhs) const;
 			/// Inequality operator
-			bool operator != (const Identification& rhs) const;
+			bool operator != (const SpectrumIdentification& rhs) const;
 	    //@}
 
-			/// @name Accessors
+			// @name Accessors
 			//@{
-			/// sets the date and time the file was written
-			void setCreationDate(const DateTime& date);
+			/// sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
+			void setHits(const std::vector<IdentificationHit>& hits);
 
-			/// returns the date and time the file was created
-			const DateTime& getCreationDate() const;
+			/// adds a single identification hit to the hits
+			void addHit(const IdentificationHit& hit);
 
-			/// sets the spectrum identifications
-			void setSpectrumIdentifications(const std::vector<SpectrumIdentification>& ids);
-
-			/// adds a spectrum identification
-			void addSpectrumIdentification(const SpectrumIdentification& id);
-
-			/// returns the spectrum identifications stored
-			const std::vector<SpectrumIdentification>& getSpectrumIdentifications() const;
+			/// returns the identificatio hits of this spectrum identification
+			const std::vector<IdentificationHit>& getHits() const;
 			//@}
+
 	  protected:
 			
-			String id_;								///< Identifier
-			DateTime creation_date_;	///< Date and time the search was performed
-			std::vector<SpectrumIdentification> spectrum_identifications_;
-
+			String id_;																///< Identifier
+			std::vector<IdentificationHit> hits_;  		///< Single peptide hits
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_IDENTIFICATION_H
+#endif // OPENMS_METADATA_SPECTRUMIDENTIFICATION_H
