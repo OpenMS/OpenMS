@@ -48,6 +48,8 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
+			
+			@improvement Add implementation and tests of 'supDataArray' (Hiwi)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -103,7 +105,7 @@ namespace OpenMS
 				// ScanMode
 				// is no longer used cv_terms_[16] is empty now
 				// Polarity
-				String(";Positive;Negative").split(';',cv_terms_[17]);
+				// is no longer used cv_terms_[17] is empty now
 				// ActivationMethod
 				String(";CID;PSD;PD;SID").split(';',cv_terms_[18]);
 			}
@@ -155,7 +157,7 @@ namespace OpenMS
 				// ScanMode
 				// is no longer used cv_terms_[16] is empty now
 				// Polarity
-				String(";Positive;Negative").split(';',cv_terms_[17]);
+				// is no longer used cv_terms_[17] is empty now
 				// ActivationMethod
 				String(";CID;PSD;PD;SID").split(';',cv_terms_[18]);
 			}
@@ -685,7 +687,7 @@ namespace OpenMS
 			{
 					data_to_decode_.resize(data_to_decode_.size()+1);
 			}
-			else if (tag=="arrayName")
+			else if (tag=="arrayName" && parent_tag=="supDataArrayBinary")
 			{
 					// Note: name is set in closing tag as it is CDATA
 					data_to_decode_.resize(data_to_decode_.size()+1);
@@ -1170,7 +1172,16 @@ namespace OpenMS
 							warning(STORE, String("Scan mode '") + InstrumentSettings::NamesOfScanMode[iset.getScanMode()] + "' not supported by mzData. Using 'MassScan' scan mode!");
 					}
 					
-					writeCVS_(os, spec.getInstrumentSettings().getPolarity(), 17, "1000037", "Polarity",6);
+				 	//scan polarity
+					if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
+					{
+						os << String(6,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
+					}
+					else if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
+					{
+						os << String(6,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
+					}
+					
 					//Retiontion time already in TimeInSeconds
 					writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
 					writeUserParam_(os, spec.getInstrumentSettings(), 6);
@@ -1393,7 +1404,18 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000037") //Polarity
 				{
-					spec_.getInstrumentSettings().setPolarity((IonSource::Polarity)cvStringToEnum_(17, value,"polarity") );				
+					if (value=="Positive" || value=="positive" || value=="+") //be flexible here, actually only the first one is correct
+					{
+						spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+					}
+					else if (value=="Negative" || value=="negative" || value=="-") //be flexible here, actually only the first one is correct
+					{
+						spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+					}
+					else
+					{
+						warning(LOAD, String("Invalid scan polarity (PSI:1000037) detected: \"") + value + "\". Valid are 'Positive' or 'Negative'.");
+					}
 				}
 				else 
 				{
