@@ -77,7 +77,9 @@ namespace OpenMS
       - Activated using the SHIFT key
     
     @improvement Add log mode (Hiwi)
-    
+
+    @improvement Make layer container a list and allow reordering by drag-and-drop in layer bar (Hiwi)
+
 		@ingroup SpectrumWidgets
 	*/
 	class OPENMS_DLLAPI SpectrumCanvas 
