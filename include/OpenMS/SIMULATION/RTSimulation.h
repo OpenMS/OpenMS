@@ -66,17 +66,19 @@ namespace OpenMS {
     /** 
      @brief Predict retention times for given features based on a SVM Model
      */
-    void predict_rt(FeatureMap< > &);
+    void predict_rt(FeatureMapSim &);
  
     /**
      @brief Set retention times randomly for given contaminants
      */
-    void predict_contaminants_rt(FeatureMap< > &);
+    void predict_contaminants_rt(FeatureMapSim &);
     
     /**
      @brief Returns true if a RT column was simulated
      */
-    bool isRTColumnOn();
+    bool isRTColumnOn() const;
+    
+    SimCoordinateType getGradientTime() const;
   private:
     /// Default constructor -> hidden since we need to have a random generator
     RTSimulation();
@@ -89,6 +91,9 @@ namespace OpenMS {
     
     /// total gradient time
     SimCoordinateType gradientTime_;
+    
+    static const DoubleReal gradient_front_offset_;
+    static const DoubleReal gradient_total_offset_;
   protected:  
 		/// Random number generator
 		const gsl_rng* rnd_gen_;    

@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -63,6 +64,9 @@ namespace OpenMS
 	/// Sim FeatureMap
 	typedef FeatureMap<> FeatureMapSim;
 
+  /// sim MSExperiment type
+  typedef MSExperiment< Peak1D > MSSimExperiment;
+  
 	/// probability of a modification to occur
 	typedef Real ProbabilityType;
 

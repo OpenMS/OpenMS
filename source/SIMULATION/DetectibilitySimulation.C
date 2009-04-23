@@ -62,7 +62,7 @@ namespace OpenMS {
   DetectibilitySimulation::~DetectibilitySimulation()
   {}
   
-  void DetectibilitySimulation::filterDetectibility(FeatureMap< > & features)
+  void DetectibilitySimulation::filterDetectibility(FeatureMapSim & features)
   {
     Int is_filter_active = param_.getValue("dt_simulation_on");
     if(is_filter_active == 1)
@@ -75,16 +75,19 @@ namespace OpenMS {
     }
   }
   
-  void DetectibilitySimulation::no_filter(FeatureMap< > & features)
+  void DetectibilitySimulation::no_filter(FeatureMapSim & features)
   {  
     // set detectibility to 1.0 for all given peptides
-    for (Size i = 0; i < features.size(); ++i)
+    for(FeatureMapSim::iterator feature_it = features.begin();
+        feature_it != features.end();
+        ++feature_it) 
     {
-      features[i].setMetaValue("detectibility", 1.0 );
+      DoubleReal defaultDetectibility = 1.0;
+      (*feature_it).setMetaValue("detectibility", defaultDetectibility );
     }     
   }
     
-  void DetectibilitySimulation::svm_filter(FeatureMap< > & features)
+  void DetectibilitySimulation::svm_filter(FeatureMapSim & features)
   {
     
     // The support vector machine

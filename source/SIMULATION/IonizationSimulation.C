@@ -25,7 +25,7 @@
 // $Authors: Stephan Aiche Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include<OpenMS/SIMULATION/IonizationSimulation.h>
+#include <OpenMS/SIMULATION/IonizationSimulation.h>
 
 namespace OpenMS {
 
@@ -62,7 +62,7 @@ namespace OpenMS {
   IonizationSimulation::~IonizationSimulation()
   {}
 
-  void IonizationSimulation::ionize(FeatureMap< > & features)
+  void IonizationSimulation::ionize(FeatureMapSim & features)
   {
     switch (ionization_type) {
       case MALDI:
@@ -124,35 +124,39 @@ namespace OpenMS {
     esi_probability = param_.getValue("esi:ionization_probability");
   }
   
-  void IonizationSimulation::ionize_esi(FeatureMap< > & features)
+  void IonizationSimulation::ionize_esi(FeatureMapSim & features)
   {
     FeatureMap< > copyMap;
 
     // iterate over all features
-    for( Size i = 0 ; i < features.size() ; ++i)
+    for(FeatureMapSim::iterator feature_it = features.begin();
+        feature_it != features.end();
+        ++feature_it)
     {
       // iterate on abundance
-      Int abundance = ceil( features[i].getIntensity() );
-      UInt basic_residues_c = countBasicResidues_(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence());
+      Int abundance = ceil( (*feature_it).getIntensity() );
+      UInt basic_residues_c = countBasicResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
       
-      std::vector<UInt> charge_states(basic_residues_c);
+      std::vector<UInt> charge_states(basic_residues_c + 1, 0);
       
       // sample different charge states
       for(Int j = 0; j < abundance ; ++j)
       {
+        // TODO: currently we could also loose some molecules here
         // sample charge state from binomial
-       UInt charge = gsl_ran_binomial(rnd_gen_,esi_probability,basic_residues_c);
+        UInt charge = gsl_ran_binomial(rnd_gen_,esi_probability,basic_residues_c);
         // add 1 to abundance of sampled charge state
         ++charge_states[ charge ];
       }
-          
-      for(UInt c = 0 ; c < charge_states.size() ; ++c)
+
+      // only consider charged (charge >= 1) ions
+      for(UInt c = 1 ; c < charge_states.size() ; ++c)
       {
         // empty charge states won't be generated
         if(charge_states[c] == 0) { continue; }
         else
         {
-          Feature chargedFeature(features[i]);
+          Feature chargedFeature((*feature_it));
           chargedFeature.setCharge(c);
           chargedFeature.setIntensity(charge_states[c]);
           copyMap.push_back(chargedFeature);
@@ -181,42 +185,43 @@ namespace OpenMS {
     return count;
   }
   
-  void IonizationSimulation::ionize_maldi(FeatureMap< > & features)
+  void IonizationSimulation::ionize_maldi(FeatureMapSim & features)
   {
     FeatureMap< > copyMap;
-    for( Size i = 0 ; i < features.size() ; ++i)
+    for(FeatureMap< >::iterator feature_it = features.begin();
+        feature_it != features.end();
+        ++feature_it)
     {
-      Int abundance = ceil( features[i].getIntensity() );
-      std::vector<UInt> charge_states(maldi_probabilities.size());
-      
+      Int abundance = ceil( (*feature_it).getIntensity() );
+      std::vector<UInt> charge_states(maldi_probabilities.size() + 1);
       // sample different charge states
       for(Int j = 0; j < abundance ; ++j)
       {
         // sample charge from discrete distribution
         // TODO: maybe we should switch to gsl_ran_discrete .. but this needs preprocessing
         Real pr = gsl_rng_uniform(rnd_gen_);
-
         UInt charge = 1;
         for(Size pi = 0 ; pi < maldi_probabilities.size() ; ++pi)
         {
-          if(pr > maldi_probabilities[i])
+          if(pr < maldi_probabilities[pi])
           {
             charge = pi + 1;
             break;
           }
         }
-        
+
         // add 1 to abundance of sampled charge state
         ++charge_states[ charge ];
       }
       
-      for(UInt c = 0 ; c < charge_states.size() ; ++c)
+      // only consider charged (charge >= 1) ions
+      for(UInt c = 1 ; c < charge_states.size() ; ++c)
       {
         // empty charge states won't be generated
         if(charge_states[c] == 0) { continue; }
         else
         {
-          Feature chargedFeature(features[i]);
+          Feature chargedFeature((*feature_it));
           chargedFeature.setCharge(c);
           chargedFeature.setIntensity(charge_states[c]);
           copyMap.push_back(chargedFeature);

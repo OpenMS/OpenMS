@@ -29,8 +29,7 @@
 #define OPENMS_SIMULATION_RAWSIGNALSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 
@@ -65,8 +64,9 @@ namespace OpenMS {
     RawSignalSimulation& operator = (const RawSignalSimulation& source);
 
     // TODO: howto add contaminations
-    void generateRawSignals(FeatureMap< > &, MSExperiment<Peak1D> &);
+    void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
+    SimCoordinateType getRTSamplingRate() const;
   private:
     /// Default constructor
     RawSignalSimulation();
@@ -78,12 +78,12 @@ namespace OpenMS {
     void setDefaultParams_();
 
     ///
-    void addMSSignal(Feature &, MSExperiment<Peak1D> &);
+    void addMSSignal(Feature &, MSSimExperiment &);
 
     void samplePeptideModel_(const ProductModel<2> & pm,
                              const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                              SimCoordinateType rt_start, SimCoordinateType rt_end,
-                             MSExperiment<Peak1D> &, Feature & activeFeature);
+                             MSSimExperiment &, Feature & activeFeature);
 
     void chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale);
 

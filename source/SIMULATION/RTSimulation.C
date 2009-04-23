@@ -37,7 +37,12 @@ using std::cout;
 using std::endl;
 
 namespace OpenMS {
+  /// class constants
+  const DoubleReal RTSimulation::gradient_front_offset_ = 400.0;
+  const DoubleReal RTSimulation::gradient_total_offset_ = 800.0;  
+  
   // TODO: debug out should be propagated some where else then std::cout
+  // TODO: 
   RTSimulation::RTSimulation(const gsl_rng * random_generator)
     : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
@@ -68,7 +73,7 @@ namespace OpenMS {
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
-  void RTSimulation::predict_rt(FeatureMap< > & features)
+  void RTSimulation::predict_rt(FeatureMapSim & features)
   {
     // TODO: compare results of this variant with the old predictions, just to ensure that everything works
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
@@ -176,13 +181,16 @@ namespace OpenMS {
       // TODO: what does this 400.00 mean?
       // TODO: place peptides somewhere in the middle of the column to avoid elution below zero rt
       SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
-      SimCoordinateType retention_time = predicted_retention_times[i] * gradientTime_;
+
+      // shifting the retention time ensures that we do not have an elution profile that is
+      // cut on the minima of the map
+      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradientTime_ - RTSimulation::gradient_total_offset_));
       
       features[i].setRT(retention_time + rt_error);
     } 
   }
   
-  void RTSimulation::predict_contaminants_rt(FeatureMap< > & contaminants)
+  void RTSimulation::predict_contaminants_rt(FeatureMapSim & contaminants)
   {
     // iterate of feature map
     for (Size i = 0; i < contaminants.size(); ++i)
@@ -207,8 +215,9 @@ namespace OpenMS {
     defaults_.setValue("rt_column_on",1,"Modelling of a rt column (0 = disabled, 1 = enabled)");
     
     // Column settings
-    defaults_.setValue("total_gradient_time",2000.0,"the duration (in seconds) of the gradient");
-    defaults_.setValue("rt_model_file","<file>","SVM model for retention time prediction");
+    defaults_.setValue("total_gradient_time",2800.0,"the duration (in seconds) of the gradient");
+    defaults_.setMinFloat("total_gradient_time", 800);
+    defaults_.setValue("rt_model_file","file","SVM model for retention time prediction");
     
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
@@ -217,9 +226,14 @@ namespace OpenMS {
 		defaultsToParam_();
   }
   
-  bool RTSimulation::isRTColumnOn()
+  bool RTSimulation::isRTColumnOn() const
   {
     Int isRTColumnOn = param_.getValue("rt_column_on");
     return (isRTColumnOn == 1);
+  }
+  
+  SimCoordinateType RTSimulation::getGradientTime() const
+  {
+    return gradientTime_;
   }
 }

@@ -31,6 +31,12 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
+// file types
+// TODO: revise who should store
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 namespace OpenMS {
 
@@ -72,6 +78,8 @@ namespace OpenMS {
 		/// convert list of peptides with abundance into a FeatureMap
 		FeatureMapSim createFeatureMap_(const SamplePeptides& peptides);
 
+    /// generates a MSSimExperiment of correct size
+    MSSimExperiment createExperiment_(const DoubleReal gradient_time, const DoubleReal rt_sampling_rate);
   private:
     /// set defaults
     void setDefaultParams_();

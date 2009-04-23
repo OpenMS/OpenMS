@@ -29,7 +29,7 @@
 #define OPENMS_SIMULATION_IONIZATIONSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SIMULATION/SimTypes.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -70,15 +70,15 @@ namespace OpenMS {
 
     IonizationSimulation& operator = (const IonizationSimulation& source);
 
-    void ionize(FeatureMap< > &);
+    void ionize(FeatureMapSim &);
 
   private:  
     /// Default constructor
     IonizationSimulation();
     
-    void ionize_esi(FeatureMap< > &);
+    void ionize_esi(FeatureMapSim &);
     
-    void ionize_maldi(FeatureMap< > &);
+    void ionize_maldi(FeatureMapSim &);
 
     /// set defaults
     void setDefaultParams_();

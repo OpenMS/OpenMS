@@ -34,6 +34,8 @@
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
+#define _VFeature(feat) std::cout << __LINE__ << " RT: " << (feat).getRT() << " MZ: " << (feat).getMZ() << " INT: " << (feat).getIntensity() << " CHARGE: " << (feat).getCharge() << " Det: " << (feat).getMetaValue("detectibility") << ::std::endl; 
+
 namespace OpenMS {
 
   MSSim::MSSim()
@@ -78,15 +80,32 @@ namespace OpenMS {
     
 		// digest
     DigestSimulation digest_sim;
-    digest_sim.setParameters(param_.copy("Digestion:",true));
+    digest_sim.setParameters(param_.copy("Digestion:",true)); 
     
     // read proteins from protein file  
 		SamplePeptides peptides;
 		digest_sim.digest(proteins, peptides);
 		
+    // debug
+    for (SamplePeptides::const_iterator peptide = peptides.begin();
+         peptide != peptides.end();
+         ++peptide)
+    {
+      std::cout << "Generated " << (*peptide).first << " with abundance " << (*peptide).second << " via tryptic digestion" << std::endl; 
+    }
+      
+    
 		// convert
 		FeatureMapSim map = createFeatureMap_(peptides);
-		
+
+    // debug
+		for(FeatureMapSim::const_iterator feature = map.begin();
+        feature != map.end();
+        ++feature)
+    {
+      _VFeature(*feature)
+    }
+    
 		// add PTM's
 		PTMSimulation ptm_sim(rnd_gen);
 		ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
@@ -96,7 +115,7 @@ namespace OpenMS {
 		RTSimulation rt_sim(rnd_gen);
 		rt_sim.setParameters(param_.copy("RTSimulation:",true));
 		rt_sim.predict_rt(map);
-		
+       
 		// Detectability prediction
 		DetectibilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
@@ -106,8 +125,23 @@ namespace OpenMS {
     ion_sim.setParameters(param_.copy("Ionization:", true));
     ion_sim.ionize(map);
     
+    // debug
+		for(FeatureMapSim::const_iterator feature = map.begin();
+        feature != map.end();
+        ++feature)
+    {
+      _VFeature(*feature)
+    }
     
+    // TODO: experiment needs to be resized to fit the size of
+    //       setting -> RT dimension
+
+    RawSignalSimulation raw_sim(rnd_gen);
+    raw_sim.setParameters(param_.copy("RawSignal:", true));
+    MSSimExperiment experiment = createExperiment_(rt_sim.getGradientTime(), raw_sim.getRTSamplingRate());
     
+    raw_sim.generateRawSignals(map, experiment);
+    MzDataFile().store("/Users/aiche/dev/openms/debug_mssim.mzData", experiment);
 /**
 			...
 				4. predict detectibility 
@@ -139,9 +173,29 @@ namespace OpenMS {
 		return map;
 	}
 
+  MSSimExperiment MSSim::createExperiment_(const DoubleReal gradient_time, const DoubleReal rt_sampling_rate)
+  {
+    MSSimExperiment experiment;
+    
+    Size number_of_scans = static_cast<Size>(gradient_time / rt_sampling_rate);
+    experiment.resize(number_of_scans);
+    
+    DoubleReal current_scan_rt = rt_sampling_rate;
+    for(MSSimExperiment::iterator exp_it = experiment.begin();
+        exp_it != experiment.end();
+        ++exp_it)
+    {
+      // TODO: maybe we should also apply an error here
+      // double n = gsl_ran_gaussian(rand_gen_, 0.05);
+      (*exp_it).setRT(current_scan_rt);
+      current_scan_rt += rt_sampling_rate;
+    }
+
+    return experiment;
+  }
   
   void MSSim::setDefaultParams_()
-  {
+  {   
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());

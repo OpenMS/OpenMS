@@ -73,9 +73,6 @@ namespace OpenMS {
   RawSignalSimulation::~RawSignalSimulation()
   {}
 
-  void RawSignalSimulation::generateRawSignals(FeatureMap< > &, MSExperiment< Peak1D > &)
-  {}
-
   void RawSignalSimulation::setDefaultParams_()
   {
     // noise params
@@ -120,7 +117,18 @@ namespace OpenMS {
     rt_sampling_rate_ = param_.getValue("rt:sampling_rate");
   }
 
-  void RawSignalSimulation::addMSSignal(Feature & activeFeature, MSExperiment< Peak1D > & expirement)
+  void RawSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
+  {
+    changed_scans_.resize(experiment.size());
+    for(FeatureMap< >::iterator feature_it = features.begin();
+        feature_it != features.end();
+        ++feature_it)
+    {
+      addMSSignal(*feature_it, experiment);
+    }
+  }
+  
+  void RawSignalSimulation::addMSSignal(Feature & activeFeature, MSSimExperiment & expirement)
   {
     ProductModel<2> pm;
     Param p1;
@@ -171,7 +179,7 @@ namespace OpenMS {
     // add peptide to global MS map
     // TODO: use flexible boundaries for rt/mz depending on abundance/charge?
     // TODO: remove this current_feature_ dependency
-    // TODO: store all simulated features ..
+    // TODO: store all simulated features in a separate FeatureMap ..
 
     samplePeptideModel_(pm, (mz - 2.5),(mz + 5.0), (activeFeature.getRT() - 160.0),(activeFeature.getRT() + 280.0), expirement, activeFeature);
     /*
@@ -185,7 +193,7 @@ namespace OpenMS {
   void RawSignalSimulation::samplePeptideModel_(const ProductModel<2> & pm,
                                     const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                                     SimCoordinateType rt_start, SimCoordinateType rt_end,
-                                    MSExperiment<Peak1D> & expirement, Feature & activeFeature)
+                                    MSSimExperiment & expirement, Feature & activeFeature)
   {
     // start and end points of the sampling are entirely arbitrary
     // and should be modified at some point
@@ -233,7 +241,7 @@ namespace OpenMS {
           if (start_scan == -5)
           {
             start_scan = exp_iter - expirement.begin();
-            //cout << "start_scan: " << start_scan << endl;
+            //std::cout << "start_scan: " << start_scan << std::endl;
           }
 
           if (! changed_scans_.at( exp_iter - expirement.begin() ) )
@@ -256,7 +264,7 @@ namespace OpenMS {
           intensity_sum += point.getIntensity();
           points.push_back( DPosition<2>( rt, mz) );		// store position
           exp_iter->push_back(point);
-          //cout << "Sampling intensity: " << point.getIntensity() << endl;
+          //std::cout << "Sampling intensity: " << point.getIntensity() << std::endl;
 
           //update last scan
           end_scan = exp_iter - expirement.begin();
@@ -274,6 +282,7 @@ namespace OpenMS {
 
     // This is a clear misuse of the Feature data structure
     // but at this point, we couldn't care less ;-)
+    // TODO: this was currentFeature -> reimplement
     activeFeature.setQuality(0,start_scan);
     activeFeature.setQuality(1,end_scan);
 
@@ -357,5 +366,10 @@ namespace OpenMS {
 
       }
       pm.setModel(0,elutionmodel);
+  }
+  
+  SimCoordinateType RawSignalSimulation::getRTSamplingRate() const
+  {
+    return rt_sampling_rate_;
   }
 }

@@ -58,7 +58,7 @@ namespace OpenMS {
 
     DetectibilitySimulation& operator = (const DetectibilitySimulation& source);
     
-    void filterDetectibility(FeatureMap< > &);
+    void filterDetectibility(FeatureMapSim &);
     
   private:
     /// set defaults
@@ -75,10 +75,10 @@ namespace OpenMS {
 
   protected:
     /// filter using a svm model
-    void svm_filter(FeatureMap< > &);
+    void svm_filter(FeatureMapSim &);
     
     /// no filter just let them pass
-    void no_filter(FeatureMap< > &);
+    void no_filter(FeatureMapSim &);
     
   };
 
