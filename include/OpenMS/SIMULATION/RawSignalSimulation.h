@@ -87,6 +87,14 @@ namespace OpenMS {
 
     void chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale);
 
+    
+    void addShotNoise_(MSSimExperiment & experiment);
+    
+    void addBaseLine_(MSSimExperiment & experiment);
+    
+    void compressSignals_(MSSimExperiment & experiment);
+     
+    Size compressSignalsRun_(MSSimExperiment & experiment);
     // TODO: the following parameters are imported -> revise
     // TODO: we need to incorporate those parameters into constructors etc.
     
@@ -123,6 +131,8 @@ namespace OpenMS {
     
     /// LC conditions (noise parameter for EMG)
 		DoubleReal distortion_;
+    DoubleReal symmetry_up_;
+    DoubleReal symmetry_down_;
     
   protected:
 		/// Random number generator

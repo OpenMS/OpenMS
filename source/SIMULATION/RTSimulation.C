@@ -184,7 +184,9 @@ namespace OpenMS {
 
       // shifting the retention time ensures that we do not have an elution profile that is
       // cut on the minima of the map
-      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradientTime_ - RTSimulation::gradient_total_offset_));
+      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradientTime_));
+
+      std::cout << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
       
       features[i].setRT(retention_time + rt_error);
     } 

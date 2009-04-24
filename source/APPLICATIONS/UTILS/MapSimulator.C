@@ -43,6 +43,12 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
+// file types
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -144,9 +150,24 @@ class TOPPMapSimulator
       // select contaminants?? -> should this be done by MSSim??
       
       // start simulation
+      writeLog_("Starting simulation");
+      StopWatch w;
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));
+
+      w.start();
       ms_simulation.simulate(rnd_gen_, proteins);
+      w.stop();
+			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
+      
+      writeLog_(String("Storing simulated map in: ") + outputfile_name);
+      MzDataFile().store(outputfile_name, ms_simulation.getExperiment());
+      
+      Size i = outputfile_name.rfind(".");
+      String xml_out = outputfile_name;
+      xml_out.replace(i,xml_out.size(),"_feature_list.featureXML");
+      writeLog_(String("Storing simulated features in: ") + xml_out);
+      FeatureXMLFile().store(xml_out, ms_simulation.getSimulatedFeatures());
       
       /*
 			String rtmodel_file = getStringOption_("rt_model");
