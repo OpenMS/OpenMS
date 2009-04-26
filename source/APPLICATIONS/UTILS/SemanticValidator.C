@@ -95,7 +95,6 @@ class TOPPSemanticValidator
 		semantic_validator.setCheckTermValueTypes(true);
 		semantic_validator.setCheckUnits(true);
 		StringList errors, warnings;
-		FileTypes::Type file_type = FileHandler::getType(in_file);
 
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
     for (Size i=0; i<warnings.size(); ++i)
