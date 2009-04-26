@@ -78,7 +78,7 @@ class TOPPSemanticValidator
 		String mapping_file = getStringOption_("mapping_file");
 
 		CVMappings mappings;
-		CVMappingFile().load(mapping_file, mappings, true);
+		CVMappingFile().load(mapping_file, mappings, false);
 
 		ControlledVocabulary cv;
 		cv.loadFromOBO("PSI-PI", File::find("/CV/psi-pi.obo"));
@@ -97,10 +97,6 @@ class TOPPSemanticValidator
 		StringList errors, warnings;
 		FileTypes::Type file_type = FileHandler::getType(in_file);
 
-		if (file_type == FileTypes::ANALYSISXML)
-		{
-			semantic_validator.setTag("pf:cvParam");
-		}
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
     for (Size i=0; i<warnings.size(); ++i)
     {
