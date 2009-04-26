@@ -134,7 +134,7 @@ class TOPPXMLValidator
 		//Result
 		if (valid)
 		{
-			cout << "Success: fhe file is valid!" << endl;
+			cout << "Success: the file is valid!" << endl;
 		}
 		else
 		{
