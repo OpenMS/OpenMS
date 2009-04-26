@@ -27,6 +27,8 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -79,7 +81,7 @@ class TOPPSemanticValidator
 		CVMappingFile().load(mapping_file, mappings, true);
 
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI-PI", "psi-pi.obo");
+		cv.loadFromOBO("PSI-PI", File::find("/CV/psi-pi.obo"));
 		cv.loadFromOBO("PSI-MS",File::find("/CV/psi-ms.obo"));
 	  cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
@@ -93,6 +95,12 @@ class TOPPSemanticValidator
 		semantic_validator.setCheckTermValueTypes(true);
 		semantic_validator.setCheckUnits(true);
 		StringList errors, warnings;
+		FileTypes::Type file_type = FileHandler::getType(in_file);
+
+		if (file_type == FileTypes::ANALYSISXML)
+		{
+			semantic_validator.setTag("pf:cvParam");
+		}
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
     for (Size i=0; i<warnings.size(); ++i)
     {
