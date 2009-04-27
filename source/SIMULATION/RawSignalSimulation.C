@@ -186,7 +186,8 @@ namespace OpenMS {
     ProductModel<2> pm;
     Param p1;
 
-    SimIntensityType scale = activeFeature.getIntensity() * 1500; // was: 3000 TODO: ???? why 1500
+    // was: 3000 TODO: ???? why 1500
+    SimIntensityType scale = activeFeature.getIntensity() * 1500;
     mean_scaling_ += scale;
     ++ion_count_;
 

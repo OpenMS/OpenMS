@@ -41,8 +41,6 @@ namespace OpenMS {
   const DoubleReal RTSimulation::gradient_front_offset_ = 400.0;
   const DoubleReal RTSimulation::gradient_total_offset_ = 800.0;  
   
-  // TODO: debug out should be propagated some where else then std::cout
-  // TODO: 
   RTSimulation::RTSimulation(const gsl_rng * random_generator)
     : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
@@ -75,7 +73,6 @@ namespace OpenMS {
    */
   void RTSimulation::predict_rt(FeatureMapSim & features)
   {
-    // TODO: compare results of this variant with the old predictions, just to ensure that everything works
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
     LibSVMEncoder encoder;
@@ -113,13 +110,7 @@ namespace OpenMS {
       String add_paramfile = rtModelFile_ + "_additional_parameters";
       if (! File::readable( add_paramfile ) )
       {
-        cout << "SVM parameter file " << add_paramfile << " not found or not readable" << endl;
-        cout << "Aborting RT prediction!" << endl;
-        //TODO: --- talk to ole/cg about the following stuff
-        // - where is the "return;" ?
-        // - why is rtTable not filled with default values first?! (empty rtTable leads to empty map?! -->  see LCMSSim::run())
-				// - Ole: these are valid suggestions, but they should be adressed when the simulator is modified to 
-				//   incorporate MS/MS spectra.
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: SVM parameter file " + add_paramfile + " is not readable");
       }
       
       Param additional_parameters;
@@ -128,23 +119,20 @@ namespace OpenMS {
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
           && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        cout << "No border length defined in additional parameters file. Aborting RT prediction!" << endl;
-        return;
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
           && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        cout << "No k-mer length defined in additional parameters file. Aborting RT prediction!" << endl;
-        return;
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
       
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
           && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        cout << "No sigma defined in additional parameters file. Aborting RT prediction!" << endl;
-        return;
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No sigma defined in additional parameters file.");
       }
       
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
@@ -162,8 +150,7 @@ namespace OpenMS {
     String sample_file = rtModelFile_ + "_samples";
     if (! File::readable( sample_file ) )
     {
-      cout << "SVM sample file " << sample_file << " not found or not readable" << endl;
-      cout << "Aborting RT prediction!" << endl;
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: SVM sample file " + sample_file + " is not readable");
     }
     training_data = encoder.loadLibSVMProblem(sample_file);
     
@@ -185,13 +172,11 @@ namespace OpenMS {
       else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
 
       // predicted_retention_times[i] ->  needs scaling onto the column     
-      // TODO: what does this 400.00 mean?
-      // TODO: place peptides somewhere in the middle of the column to avoid elution below zero rt
       SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
 
       // shifting the retention time ensures that we do not have an elution profile that is
       // cut on the minima of the map
-      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradientTime_));
+      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradientTime_ - RTSimulation::gradient_total_offset_));
 
       std::cout << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
       
