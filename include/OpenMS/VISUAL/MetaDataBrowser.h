@@ -184,7 +184,7 @@ namespace OpenMS
 		protected slots:
 
 			/// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
-			void showDetails_(QTreeWidgetItem *item, int column);
+			void showDetails_();
 
 			/// Saves all changes and close explorer
 			void saveAll_();

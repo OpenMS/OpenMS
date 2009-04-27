@@ -122,7 +122,7 @@ namespace OpenMS
 			connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 
-	  connect(treeview_, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(showDetails_(QTreeWidgetItem*,int))  );
+	  connect(treeview_, SIGNAL(itemSelectionChanged()), this, SLOT(showDetails_())  );
 
 		status_list_="";
 
@@ -144,9 +144,12 @@ namespace OpenMS
 	}
 
 
-	void MetaDataBrowser::showDetails_(QTreeWidgetItem *item,int /*column*/)
+	void MetaDataBrowser::showDetails_()
 	{
-	  ws_->setCurrentIndex(item->text(1).toInt());
+		QList<QTreeWidgetItem *> list = treeview_->selectedItems();
+		if (list.size()==0) return;
+		
+	  ws_->setCurrentIndex(list[0]->text(1).toInt());
 	}
 
 	void MetaDataBrowser::saveAll_()
