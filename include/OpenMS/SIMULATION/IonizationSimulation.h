@@ -92,7 +92,7 @@ namespace OpenMS {
     /**
      @brief counts all basic residues inside the amino acid sequence to give an upper bound on the maximal charge during ESI ionization
     */
-    UInt countBasicResidues_(const AASequence & ) const;
+    UInt countIonizedResidues_(const AASequence & ) const;
     
     /*
      @brief List of residues that are counted as basic during execution of countBasicResidues_

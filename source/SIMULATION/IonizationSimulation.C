@@ -80,8 +80,10 @@ namespace OpenMS {
     StringList valid_ionization_types = StringList::create("MALDI,ESI");
     defaults_.setValidStrings("ionization_type", valid_ionization_types);
 
-    // TODO: add valid strings for basic residues
     defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ESI ionization. This parameter will be ignores during MALDI ionization.");
+    StringList valid_ionized_residues = StringList::create("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
+    defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
+    
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability",0.8, "Probability for the binomial distribution of the ESI charge states");
     defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1") , "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
@@ -135,7 +137,7 @@ namespace OpenMS {
     {
       // iterate on abundance
       Int abundance = ceil( (*feature_it).getIntensity() );
-      UInt basic_residues_c = countBasicResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
+      UInt basic_residues_c = countIonizedResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
       
       std::vector<UInt> charge_states(basic_residues_c + 1, 0);
       
@@ -170,7 +172,7 @@ namespace OpenMS {
   }
   
   
-  UInt IonizationSimulation::countBasicResidues_(const AASequence& seq) const
+  UInt IonizationSimulation::countIonizedResidues_(const AASequence& seq) const
   {
     UInt count = 0;
     for (Size i = 0; i<seq.size(); ++i)

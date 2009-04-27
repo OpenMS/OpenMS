@@ -53,12 +53,12 @@ using namespace OpenMS;
 using namespace std;
 
 
-class TOPPMapSimulator
+class TOPPMSSimulator
 	: public TOPPBase
 {
   public:
-		TOPPMapSimulator()
-    : TOPPBase("MapSimulator","This application simulates an LC-MS run.",false)
+		TOPPMSSimulator()
+    : TOPPBase("MSSimulator","\n\nWARNING: EXPERIMENTAL\n\nHighly configurable simulator for mass spectrometry experiments.",false)
 		{ }
     
   protected:
@@ -83,6 +83,8 @@ class TOPPMapSimulator
     // Load proteins from FASTA file
     void loadFASTA(const String filename, SampleProteins & proteins)
     {
+      writeLog_(String("Loading sequence data from ") + filename +  String(" ..") );
+      
       FASTAFile fastafile;
       typedef std::vector< FASTAFile::FASTAEntry > FASTAdata;
       FASTAdata fastadata;
@@ -117,12 +119,7 @@ class TOPPMapSimulator
         proteins.insert(make_pair(aaseq, relativeQuantity));
       }
       
-      cout << endl;
-      cout << "Done." << flush;
-      cout << " (" << fastadata.size() << " proteins loaded)";
-      
-      cout << endl;
-    
+      writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
     }
 	
 		ExitCodes main_(int, const char**)
@@ -238,7 +235,7 @@ class TOPPMapSimulator
 
 int main( int argc, const char** argv )
 {
-	TOPPMapSimulator tool;
+	TOPPMSSimulator tool;
 	return tool.main(argc,argv);
 }
 

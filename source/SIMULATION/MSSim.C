@@ -137,9 +137,6 @@ namespace OpenMS {
       _VFeature(*feature)
     }
     
-    // TODO: experiment needs to be resized to fit the size of
-    //       setting -> RT dimension
-
     RawSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     createExperiment_(rt_sim.getGradientTime(), raw_sim.getRTSamplingRate());
@@ -183,7 +180,7 @@ namespace OpenMS {
         exp_it != experiment_.end();
         ++exp_it)
     {
-      // TODO: maybe we should also apply an error here
+      // TODO: maybe we should also apply an error here like Ole did it in the original MapSimulator
       // double n = gsl_ran_gaussian(rand_gen_, 0.05);
       (*exp_it).setRT(current_scan_rt);
       current_scan_rt += rt_sampling_rate;

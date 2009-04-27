@@ -88,7 +88,14 @@ namespace OpenMS {
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
     
-    cout << "Predicting RT..    " << endl;
+    if (! File::readable( rtModelFile_ ) )
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation got invalid parameter. 'rt_model_file' " + rtModelFile_ + " is not readable");
+    }
+    else
+    {
+      cout << "Predicting RT..    " << endl;
+    }   
     
     // not that elegant...
     vector< String > peptidesVector(features.size());
