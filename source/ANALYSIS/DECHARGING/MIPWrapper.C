@@ -140,8 +140,6 @@ namespace OpenMS {
         std::cout << "found";
       }
       score = getScore(i, pairs, me);
-			//
-			std::cout << score << "+" << score_offs << "= " << (score+score_offs) << "\n"; 
 			score += score_offs;
 			namebuf.str("");
 			namebuf<<"x#"<<i;

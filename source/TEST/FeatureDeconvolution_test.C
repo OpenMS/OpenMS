@@ -30,6 +30,7 @@
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <CoinMessageHandler.hpp>
 ///////////////////////////
 
@@ -70,8 +71,17 @@ START_SECTION(void compute)
 	FeatureMap<> fm;
 	ConsensusMap cm, cm2;
 	FeatureXMLFile fl;
-	fl.load("/home/chris/svn2/SIM_EASY_INPUT.FEATUREXML",fm);
+	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"),fm);
 	fd.compute(fm, cm, cm2);
+
+	String out_file;
+	NEW_TMP_FILE(out_file)
+	ConsensusXMLFile c1;
+
+	c1.store(out_file,cm);
+
+	TEST_FILE_SIMILAR(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"))
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

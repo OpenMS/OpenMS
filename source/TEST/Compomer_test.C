@@ -54,7 +54,7 @@ END_SECTION
 
 START_SECTION((Compomer(Int net_charge, float mass, float log_p)))
 {
-	Compomer c(34, 45.32, 12.34);
+	Compomer c(34, 45.32f, 12.34f);
 	TEST_EQUAL(c.getNetCharge(), 34);
 	TEST_REAL_SIMILAR(c.getMass(), 45.32);	
 	TEST_REAL_SIMILAR(c.getLogP(), 12.34);
@@ -64,10 +64,10 @@ END_SECTION
 START_SECTION((void add(const Adduct &a)))
 {
 	//Adduct(Int charge, Int amount, float singleMass, String formula, float log_prob
-	Adduct a1(123, 43, 123.456, "SECRET", -0.3453);
-	Adduct a2(123,  3, 123.456, "SECRET", -0.3453);
+	Adduct a1(123, 43, 123.456f, "SECRET", -0.3453f);
+	Adduct a2(123,  3, 123.456f, "SECRET", -0.3453f);
 
-	Adduct b1(3, -2, 1.456, "H", -0.13);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f);
 
 	Compomer c;
 	c.add(a1);
@@ -102,10 +102,10 @@ START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left
 	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7));
 
 	{
-	Adduct a1(1, 2, 123.456, "NH4", -0.3453);
-	Adduct a2(1, -1, 1.007, "H1", -0.13);
+	Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
 
-	Adduct b1(1, -1, 1.007, "H1", -0.13);
+	Adduct b1(1, -1, 1.007f, "H1", -0.13f);
 
 	Compomer c,d;
 	c.add(a1);
@@ -120,10 +120,10 @@ START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left
 	}
 	
 	{
-  Adduct a1(1, -2, 123.456, "NH4", -0.3453);
-	Adduct a2(1, 1, 1.007, "H1", -0.13);
+  Adduct a1(1, -2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, 1, 1.007f, "H1", -0.13f);
 
-	Adduct b1(1, 2, 1.007, "H1", -0.13);
+	Adduct b1(1, 2, 1.007f, "H1", -0.13f);
 
 	Compomer c,d;
 	c.add(a1);
@@ -177,7 +177,7 @@ END_SECTION
 START_SECTION((const float& getMass() const))
 {
   Compomer c;
-	c.setMass(-123.12);
+	c.setMass(-123.12f);
 	TEST_REAL_SIMILAR(c.getMass(), -123.12)
 }
 END_SECTION
@@ -219,7 +219,7 @@ END_SECTION
 START_SECTION((const float& getLogP() const))
 {
   Compomer c;
-	c.setLogP(-123.12);
+	c.setLogP(-123.12f);
 	TEST_REAL_SIMILAR(c.getLogP(), -123.12)
 }
 END_SECTION

@@ -61,7 +61,7 @@ END_SECTION
 
 START_SECTION((Adduct(Int charge, Int amount, float singleMass, String formula, float log_prob)))
 {
-	Adduct a(123, 43, 123.456, "SECRET", -0.3453);
+	Adduct a(123, 43, 123.456f, "SECRET", -0.3453f);
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43);
 	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456);
@@ -108,7 +108,7 @@ END_SECTION
 START_SECTION((void setSingleMass(const float &singleMass)))
 {
 	Adduct a;
-	a.setSingleMass(43.21);
+	a.setSingleMass(43.21f);
   TEST_REAL_SIMILAR(a.getSingleMass(), 43.21);
 }
 END_SECTION
@@ -122,7 +122,7 @@ END_SECTION
 START_SECTION((void setLogProb(const float &log_prob)))
 {
 	Adduct a;
-	a.setLogProb(43.21);
+	a.setLogProb(43.21f);
   TEST_REAL_SIMILAR(a.getLogProb(), 43.21);
 }
 END_SECTION
@@ -144,11 +144,11 @@ END_SECTION
 
 START_SECTION((Adduct operator *(Int m)))
 {
-	Adduct a_p(123, 43, 123.456, "SECRET", -0.3453);
+	Adduct a_p(123, 43, 123.456f, "SECRET", -0.3453f);
 	Adduct a = a_p*4;
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43*4);
-	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456);
+	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456f);
 	TEST_EQUAL(a.getFormula()=="SECRET", true);
 	TEST_REAL_SIMILAR(a.getLogProb(), -0.3453);
 }
@@ -156,8 +156,8 @@ END_SECTION
 
 START_SECTION((Adduct operator+(const Adduct &rhs)))
 {
-	Adduct a_p(123, 43, 123.456, "SECRET", -0.3453);
-	Adduct a_p2(123, 40, 123.456, "SECRET", -0.3453);
+	Adduct a_p(123, 43, 123.456f, "SECRET", -0.3453f);
+	Adduct a_p2(123, 40, 123.456f, "SECRET", -0.3453f);
 	Adduct a = a_p + a_p2;
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43+40);
@@ -169,8 +169,8 @@ END_SECTION
 
 START_SECTION((void operator+=(const Adduct &rhs)))
 {
-	Adduct a_p(123, 43, 123.456, "SECRET", -0.3453);
-	Adduct a(1);
+	Adduct a_p(123, 43, 123.456f, "SECRET", -0.3453f);
+	Adduct a(a_p);
 	a.setAmount(10);
 	a	+= a_p;
 	TEST_EQUAL(a.getAmount(), 43+10);
