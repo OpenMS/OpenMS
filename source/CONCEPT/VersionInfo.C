@@ -60,9 +60,7 @@ namespace OpenMS
 		static String result;
 		if ( !is_initialized )
 		{
-			// Ultimately, this is derived from configure.ac, and might have
-			// whitespace around it
-			result = PACKAGE_VERSION;
+			result = OPENMS_PACKAGE_VERSION;
 			result.trim();
 			is_initialized = true;
 		}

@@ -3,7 +3,10 @@ set(directory source/DATASTRUCTURES)
 
 ### list all filenames of the directory here
 set(sources_list
+Adduct.C
 BigString.C
+ChargePair.C
+Compomer.C
 ConstRefVector.C
 ConvexHull2D.C
 DBoundingBox.C
@@ -18,6 +21,7 @@ DistanceMatrix.C
 DoubleList.C
 IntList.C
 Map.C
+MassExplainer.C
 Matrix.C
 Param.C
 SparseVector.C

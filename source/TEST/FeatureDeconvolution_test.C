@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,66 +21,61 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-
+#include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <CoinMessageHandler.hpp>
 ///////////////////////////
-
-START_TEST(VersionInfo, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION(static String getVersionAndTime())
-{
-	STATUS(VersionInfo::getVersionAndTime());
-	STATUS(OPENMS_PACKAGE_VERSION);
-	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(OPENMS_PACKAGE_VERSION).trim()),true);
-}
+START_TEST(FeatureDeconvolution, "$Id:$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FeatureDeconvolution* ptr = 0;
+START_SECTION(FeatureDeconvolution())
+	ptr = new FeatureDeconvolution();
+	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(static String getRevision() )
-{
-	// just to call the method
-	STATUS("If you have compiled from an SVN sandbox, then this should print a revision number, or a range of revisions followed by \"M\", or something similar.");
-  STATUS("Compare with \"svnversion\" or \"svn info\".")
-	STATUS(VersionInfo::getRevision());
-	NOT_TESTABLE;
-}
+START_SECTION(~FeatureDeconvolution())
+	delete ptr;
 END_SECTION
 
-START_SECTION(static String getVersion() )
-{
-	TEST_STRING_EQUAL(VersionInfo::getVersion(),String(OPENMS_PACKAGE_VERSION).trim());
-}
-END_SECTION
+START_SECTION(void compute)
+//_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
-START_SECTION(static Int getMajorVersion())
-{
-	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMajorVersion(), 1);
-}
-END_SECTION
 
-START_SECTION(static Int getMinorVersion())
-{
-	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMinorVersion(), 4);
-}
+	CoinMessageHandler a;
+	{
+	CoinMessageHandler bb;
+	}
+
+	/*CoinMessageHandler * handler_ =	new CoinMessageHandler();
+	delete handler_;
+	handler_ =	new CoinMessageHandler();
+	delete handler_;
+*/
+
+	FeatureDeconvolution fd;
+	FeatureMap<> fm;
+	ConsensusMap cm, cm2;
+	FeatureXMLFile fl;
+	fl.load("/home/chris/svn2/SIM_EASY_INPUT.FEATUREXML",fm);
+	fd.compute(fm, cm, cm2);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+

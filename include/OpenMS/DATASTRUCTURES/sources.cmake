@@ -3,7 +3,10 @@ set(directory include/OpenMS/DATASTRUCTURES)
 
 ### list all header files of the directory here
 set(sources_list_h
+Adduct.h
 BigString.h
+ChargePair.h
+Compomer.h
 ConstRefVector.h
 ConvexHull2D.h
 DBoundingBox.h
@@ -19,6 +22,7 @@ DoubleList.h
 IntList.h
 IsotopeCluster.h
 Map.h
+MassExplainer.h
 Matrix.h
 Param.h
 SparseVector.h

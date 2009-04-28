@@ -24,9 +24,17 @@
 // $Maintainer: Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OsiClpSolverInterface.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -36,20 +44,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_Decharger Decharger
-	
-	@brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
-	
-	The Decharger uses a hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
-	usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
-	are written to a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
-	variant is the average of all clustered peptides in each dimension.
-	If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
-	- cluster consists of only one charge variant (but several peptides) -> split cluster into single elements
-	- cluster consists of several charge variants -> dispose cluster
+   @page Decharger Decharger
+
+   @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
+
+   The Decharger uses a hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
+   usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
+   are written to a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
+   variant is the average of all clustered peptides in each dimension.
+   If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
+   <ul>
+   <li>cluster consists of only one charge variant (but several peptides) -> split cluster into single elements</li>
+   <li>cluster consists of several charge variants -> dispose cluster</li>
+   </ul>
+   
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_Decharger.cli
+	@verbinclude TOPP_DBImporter.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -60,7 +71,7 @@ class TOPPDecharger
 {
  public:
   TOPPDecharger()
-    : TOPPBase("Decharger","Decharges and merges different feature charge variants of the same chemical entity.")
+    : TOPPBase("Decharger","Decharges and merges different feature charge variants of the same peptide.")
   {
   }
 
@@ -69,11 +80,13 @@ class TOPPDecharger
   {
     registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("FeatureXML"));
-    registerOutputFile_("out","<file>","","output file ");
-	  	setValidFormats_("out",StringList::create("FeatureXML"));
+    registerOutputFile_("out","<file>","","output file");
+    registerOutputFile_("outpairs","<file>","","output file");
+	  setValidFormats_("out",StringList::create("ConsensusXML"));
+	  setValidFormats_("outpairs",StringList::create("ConsensusXML"));
 
     addEmptyLine_();
-    addText_("All other options of the Decharger depend on the FeatureDecharger and HierarchicalClustering used.\n"
+    addText_("All other options of the Decharger depend on the FeatureDeconvolution class.\n"
              "They can be given only in the 'algorithm' section  of the INI file.");
     
     registerSubsection_("algorithm","Feature decharging algorithm section");
@@ -82,9 +95,9 @@ class TOPPDecharger
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 	  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
-	  FeatureDecharger fdc;
+	  FeatureDeconvolution fdc;
 	  Param tmp;
-	  tmp.insert("FeatureDecharger:",fdc.getParameters());
+	  tmp.insert("FeatureDeconvolution:",fdc.getParameters());
 	  return tmp;
 	}
 
@@ -93,19 +106,15 @@ class TOPPDecharger
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    String infile = getStringOption_("in");
+    String outfile = getStringOption_("out");
+    String outfile_p = getStringOption_("outpairs");
 
-    FeatureDecharger fdc;
-    Param const& dc_param = getParam_().copy("algorithm:FeatureDecharger:",true);
+    FeatureDeconvolution fdc;
+    Param const& dc_param = getParam_().copy("algorithm:FeatureDeconvolution:",true);
 
     writeDebug_("Parameters passed to Decharger", dc_param, 3);
     
-    if (dc_param.empty())
-    {
-      writeLog_("No parameters for Decharger module given. Aborting!");
-      return ILLEGAL_PARAMETERS;
-    }
     fdc.setParameters(dc_param); 
 
     //-------------------------------------------------------------
@@ -116,24 +125,28 @@ class TOPPDecharger
     
     typedef FeatureMap<> FeatureMapType;
     FeatureMapType map;
-    FeatureXMLFile().load(in,map);
+    FeatureXMLFile().load(infile, map);
     //map.sortByPosition();
 
+		OsiClpSolverInterface solver;
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-
-    fdc.compute(map);
+    ConsensusMap cm, cm2;
+    fdc.compute(map, cm,cm2);
     
-    FeatureMapType feature_map = fdc.getFeatureMap();
-
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
     
-    writeDebug_("Saving output file", 1);
+    writeDebug_("Saving output files", 1);
 
-    FeatureXMLFile().store(out,feature_map);
+    cm.getFileDescriptions()[0].filename = infile;
+    cm2.getFileDescriptions()[0].filename = infile;
+
+    ConsensusXMLFile f;
+    f.store(outfile, cm);
+    f.store(outfile_p, cm2);
 
     return EXECUTION_OK;
   }

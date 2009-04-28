@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,66 +21,55 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 ///////////////////////////
-
-START_TEST(VersionInfo, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION(static String getVersionAndTime())
-{
-	STATUS(VersionInfo::getVersionAndTime());
-	STATUS(OPENMS_PACKAGE_VERSION);
-	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(OPENMS_PACKAGE_VERSION).trim()),true);
-}
+START_TEST(MassExplainer, "$Id:$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+MassExplainer* ptr = 0;
+START_SECTION(MassExplainer())
+	ptr = new MassExplainer();
+	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(static String getRevision() )
-{
-	// just to call the method
-	STATUS("If you have compiled from an SVN sandbox, then this should print a revision number, or a range of revisions followed by \"M\", or something similar.");
-  STATUS("Compare with \"svnversion\" or \"svn info\".")
-	STATUS(VersionInfo::getRevision());
-	NOT_TESTABLE;
-}
+START_SECTION(~MassExplainer())
+	delete ptr;
 END_SECTION
 
-START_SECTION(static String getVersion() )
-{
-	TEST_STRING_EQUAL(VersionInfo::getVersion(),String(OPENMS_PACKAGE_VERSION).trim());
-}
-END_SECTION
 
-START_SECTION(static Int getMajorVersion())
-{
-	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMajorVersion(), 1);
-}
-END_SECTION
-
-START_SECTION(static Int getMinorVersion())
-{
-	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMinorVersion(), 4);
-}
+	MassExplainer me;
+	me.compute();
+	
+	
+	MassExplainer::CompomerIterator s,e;
+	Int hits = me.query(3, 23.0, 3.0,  -100,s,e);
+	
+	std::cout << "hits: " << hits << std::endl;
+	for (; s!=e; ++s)
+	{
+			std::cout << *s << std::endl;
+	}
+	
+	
+START_SECTION(void compute)
+				
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+
+

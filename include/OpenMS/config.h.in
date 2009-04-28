@@ -44,7 +44,7 @@
 
 // The path to the directory where OpenMS data is installed
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
-#define PACKAGE_VERSION "@CF_PACKAGE_VERSION@"
+#define OPENMS_PACKAGE_VERSION "@CF_OPENMS_PACKAGE_VERSION@"
 
 // Macro to construct a c string containing the complete path to the test data
 #define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()

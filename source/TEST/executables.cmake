@@ -36,6 +36,10 @@ set(datastructures_executables_list
 	SuffixArrayPeptideFinder_test
 	SparseVector_test
 	DistanceMatrix_test
+	Adduct_test
+	ChargePair_test
+	Compomer_test
+	MassExplainer_test
 )
 
 set(metadata_executables_list
@@ -282,6 +286,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureDecharger_test
+	FeatureDeconvolution_test
   ConsensusID_test
   ProteinInference_test
   PILISScoring_test

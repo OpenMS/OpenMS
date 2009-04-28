@@ -1,0 +1,238 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(Compomer, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+Compomer* ptr = 0;
+START_SECTION(Compomer())
+{
+	ptr = new Compomer();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+END_SECTION
+
+START_SECTION(~Compomer())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((Compomer(Int net_charge, float mass, float log_p)))
+{
+	Compomer c(34, 45.32, 12.34);
+	TEST_EQUAL(c.getNetCharge(), 34);
+	TEST_REAL_SIMILAR(c.getMass(), 45.32);	
+	TEST_REAL_SIMILAR(c.getLogP(), 12.34);
+}
+END_SECTION
+
+START_SECTION((void add(const Adduct &a)))
+{
+	//Adduct(Int charge, Int amount, float singleMass, String formula, float log_prob
+	Adduct a1(123, 43, 123.456, "SECRET", -0.3453);
+	Adduct a2(123,  3, 123.456, "SECRET", -0.3453);
+
+	Adduct b1(3, -2, 1.456, "H", -0.13);
+
+	Compomer c;
+	c.add(a1);
+	//PRECISION(0.0001);
+	TEST_EQUAL(c.getNetCharge(), 123*43);
+	TEST_REAL_SIMILAR(c.getMass(), 123.456*43);	
+	TEST_REAL_SIMILAR(c.getLogP(), -0.3453*43);
+	TEST_EQUAL(c.getPositiveCharges(), 123*43);
+	TEST_EQUAL(c.getNegativeCharges(), 0);
+	
+	c.add(a2);
+	TEST_EQUAL(c.getNetCharge(), 123*46);
+	TEST_REAL_SIMILAR(c.getMass(), 123.456*46);	
+	TEST_REAL_SIMILAR(c.getLogP(), -0.3453*46);
+	TEST_EQUAL(c.getPositiveCharges(), 123*46);
+	TEST_EQUAL(c.getNegativeCharges(), 0);
+	
+	c.add(b1);
+	TEST_EQUAL(c.getNetCharge(), 123*46+ 3*(-2));
+	TEST_REAL_SIMILAR(c.getMass(), 123.456*46 - 2*1.456);	
+	TEST_REAL_SIMILAR(c.getLogP(), -0.3453*46 -0.13*2);
+	TEST_EQUAL(c.getPositiveCharges(), 123*46);
+	TEST_EQUAL(c.getNegativeCharges(), 6);	
+	
+		
+}
+END_SECTION
+
+START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left_other) const))
+{
+	EmpiricalFormula ef("H");
+	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7));
+
+	{
+	Adduct a1(1, 2, 123.456, "NH4", -0.3453);
+	Adduct a2(1, -1, 1.007, "H1", -0.13);
+
+	Adduct b1(1, -1, 1.007, "H1", -0.13);
+
+	Compomer c,d;
+	c.add(a1);
+	c.add(a2);
+	d.add(b1);
+	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*6,default_adduct*6), false);
+	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*2,default_adduct), true);
+
+	TEST_EQUAL(c.isConflicting(d,true,false,default_adduct,default_adduct), true);
+	TEST_EQUAL(c.isConflicting(d,false,true,default_adduct,default_adduct), true);
+	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct,default_adduct), true);
+	}
+	
+	{
+  Adduct a1(1, -2, 123.456, "NH4", -0.3453);
+	Adduct a2(1, 1, 1.007, "H1", -0.13);
+
+	Adduct b1(1, 2, 1.007, "H1", -0.13);
+
+	Compomer c,d;
+	c.add(a1);
+	c.add(a2);
+	d.add(b1);
+	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*5,default_adduct*4), true);
+	TEST_EQUAL(c.isConflicting(d,true,false,default_adduct,default_adduct), true);
+	TEST_EQUAL(c.isConflicting(d,false,true,default_adduct,default_adduct), true);
+	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct,default_adduct), true);
+	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct*5,default_adduct*4), false);
+
+	}
+	
+}
+END_SECTION
+
+START_SECTION((void setID(const Size &id)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const Size& getID() const))
+{
+  Compomer c;
+	c.setID(123);
+	TEST_EQUAL(c.getID(), 123)
+}
+END_SECTION
+
+START_SECTION((void setNetCharge(const Int &net_charge)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const Int& getNetCharge() const))
+{
+  Compomer c;
+	c.setNetCharge(-123);
+	TEST_EQUAL(c.getNetCharge(), -123)
+}
+END_SECTION
+
+START_SECTION((void setMass(const float &mass)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const float& getMass() const))
+{
+  Compomer c;
+	c.setMass(-123.12);
+	TEST_REAL_SIMILAR(c.getMass(), -123.12)
+}
+END_SECTION
+
+START_SECTION((void setPositiveCharges(const Int &pos_charges)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const Int& getPositiveCharges() const))
+{
+  Compomer c;
+	c.setPositiveCharges(32);
+	TEST_EQUAL(c.getPositiveCharges(), 32)
+}
+END_SECTION
+
+START_SECTION((void setNegativeCharges(const Int &neg_charges)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const Int& getNegativeCharges() const))
+{
+  Compomer c;
+	c.setNegativeCharges(43);
+	TEST_EQUAL(c.getNegativeCharges(), 43)
+}
+END_SECTION
+
+START_SECTION((void setLogP(const float &log_p)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+START_SECTION((const float& getLogP() const))
+{
+  Compomer c;
+	c.setLogP(-123.12);
+	TEST_REAL_SIMILAR(c.getLogP(), -123.12)
+}
+END_SECTION
+
+START_SECTION((void setFinal(const bool &final)))
+{
+  NOT_TESTABLE //well.. tested below...	
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+
