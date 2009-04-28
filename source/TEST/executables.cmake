@@ -348,6 +348,9 @@ set(transformations_executables_list
 )
 
 set(simulation_executables_list
+	DigestSimulation_test
+	PTMSimulation_test
+
 	ElutionModel_test
 	IsotopeModelGeneral_test
 	LCMSSample_test

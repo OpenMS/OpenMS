@@ -34,8 +34,16 @@
 namespace OpenMS {
 
   /**
-   @brief 
-   @ingroup Simulation
+		@brief Simulates protein digestion
+
+		Supports all enzymes supported by EnzymaticDigestion.h
+		and additionally incorporates abundance values, which
+		are distributed evenly among digestion products of each
+		protein.
+
+		@htmlinclude OpenMS_DigestSimulation.parameters
+
+		@ingroup Simulation
   */
   class OPENMS_DLLAPI DigestSimulation
     : public DefaultParamHandler
@@ -55,16 +63,26 @@ namespace OpenMS {
     virtual ~DigestSimulation();
     //@}
 
-    DigestSimulation& operator = (const DigestSimulation& source);
+		/// Assignment operator
+		DigestSimulation& operator = (const DigestSimulation& source);
 
+
+		/**
+			@brief Digest a set of proteins into peptides
+
+			Digest proteins to peptides, with protein abundance distributes equally among
+			created sibling peptides (this also applies for peptides with missed cleavages).
+			Should a peptide be non-unique the abundances of its instances from proteins are summed up.
+			
+			@param proteins Input protein list with abundance
+			@param peptides Output peptide list with abundance
+		**/
     void digest(const SampleProteins & proteins, SamplePeptides & peptides);    
     
   private:
     /// set defaults
     void setDefaultParams_();
-    
-    /// Synchronize members with param class
-		void updateMembers_();    
+
   };
 
 }

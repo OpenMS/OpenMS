@@ -40,8 +40,15 @@
 namespace OpenMS {
 
   /**
-   @brief 
-   @ingroup Simulation
+		@brief Adds PTM to peptides
+
+		This class can add PTMs to a set of peptides.
+		Up to one PTM version of a peptide is generated randomly
+		according to allowed modifications.
+
+		@htmlinclude OpenMS_PTMSimulation.parameters
+
+		@ingroup Simulation
   */
   class OPENMS_DLLAPI PTMSimulation
     : public DefaultParamHandler
@@ -61,10 +68,19 @@ namespace OpenMS {
     virtual ~PTMSimulation();
     //@}
 
+		/// Assignment operator
     PTMSimulation& operator = (const PTMSimulation& source); 
-    
+
     /**
       @brief Adds possible post translational modifications to the peptides
+
+			Up to 'modification_bound' PTMS are added (position independent) according to 
+			allowed modifications given in 'potential_modifications'.
+
+			Up to one new feature per input feature is added, i.e. 0 to 1 modified versions of a peptide are possible.
+
+			@param map FeatureMap which is extended by diced PTM's
+
      */
     void predict_ptms(FeatureMapSim & map);
    

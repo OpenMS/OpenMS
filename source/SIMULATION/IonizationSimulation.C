@@ -202,7 +202,7 @@ namespace OpenMS {
         // sample charge from discrete distribution
         // TODO: maybe we should switch to gsl_ran_discrete .. but this needs preprocessing
         Real pr = gsl_rng_uniform(rnd_gen_);
-        UInt charge = 1;
+        Size charge = 1;
         for(Size pi = 0 ; pi < maldi_probabilities.size() ; ++pi)
         {
           if(pr < maldi_probabilities[pi])

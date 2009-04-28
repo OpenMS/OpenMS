@@ -40,18 +40,20 @@ namespace OpenMS {
   DigestSimulation::DigestSimulation(const DigestSimulation& source)
     : DefaultParamHandler(source)
   {
-    updateMembers_();
   }
 
   DigestSimulation& DigestSimulation::operator = (const DigestSimulation& source)
   {
-    setParameters( source.getParameters() );
-    updateMembers_();
-    return *this;
+		if (this != &source)
+		{
+			DefaultParamHandler::operator=(source);
+		}
+		return *this;
   }
   
   DigestSimulation::~DigestSimulation()
-  {}
+  {
+	}
   
   void DigestSimulation::digest(const SampleProteins & proteins, SamplePeptides & peptides)
   {
@@ -101,7 +103,7 @@ namespace OpenMS {
 																																/SimIntensityType(number_atomic_whole) ); // order changed for numeric stability
 			
 			// do real digest
-			digestion.setMissedCleavages( 0 );
+			digestion.setMissedCleavages( missed_cleavages );
       digestion.digest(AASequence(protein->first), digestion_products);
 			
 			for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
@@ -119,19 +121,20 @@ namespace OpenMS {
   
   void DigestSimulation::setDefaultParams_()
   {
-		defaults_.setValue("enzyme", String("Trypsin"), "Enzyme to use for digestion");
+		// supported enzymes
 		StringList enzymes;
 		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
 		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
 		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
+		defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion");
 		defaults_.setValidStrings("enzyme", enzymes);
-		defaults_.setValue("missed_cleavages",0,"maximum number of missed cleavages");
-    defaults_.setValue("min_peptide_length",0,"minimum peptide length after digestion");
+		
+		// cleavages
+		defaults_.setValue("missed_cleavages",1,"maximum number of missed cleavages");
+    
+		// pep length
+		defaults_.setValue("min_peptide_length",3,"minimum peptide length after digestion");
     
 		defaultsToParam_();		    
   }
-  
-  
-  void DigestSimulation::updateMembers_()
-  {}
 }

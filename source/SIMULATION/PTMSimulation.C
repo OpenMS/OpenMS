@@ -40,21 +40,24 @@ namespace OpenMS {
   PTMSimulation::PTMSimulation(const PTMSimulation& source)
     : DefaultParamHandler(source)
   {
-    setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
-    updateMembers_();
+		//ptms_ will be done by updateMembers_
+		updateMembers_();
   }
 
   PTMSimulation& PTMSimulation::operator = (const PTMSimulation& source)
   {
-    setParameters( source.getParameters() );
-    rnd_gen_ = source.rnd_gen_;
-    updateMembers_();
-    
+		if (this != &source)
+		{
+			DefaultParamHandler::operator=(source);
+	    rnd_gen_ = source.rnd_gen_;
+			//ptms_ will be done by updateMembers_
+			updateMembers_();
+		}
     return *this;
   }
-  
-  PTMSimulation::~PTMSimulation()
+	
+	PTMSimulation::~PTMSimulation()
   {}
   
   void PTMSimulation::setDefaultParams_()
@@ -116,7 +119,7 @@ namespace OpenMS {
 
 		FeatureMapSim map_ptm;
 
-		// each peptide can has 0-1 modified versions currently
+		// each peptide has 0-1 modified versions currently
 		for (FeatureMapSim::iterator it_f=map.begin(); it_f!=map.end(); ++it_f)
 		{
 			// assume there is *one* peptide attached to current feature
@@ -150,6 +153,9 @@ namespace OpenMS {
 
 			// pick candidates
 			Size bound = std::min(max_mod_count, AAcandidates.size());
+
+			if (bound==0) continue; // not even a single modification selected
+
 			std::vector<UInt> AAcandidates_picked(bound);
 			// choose #bound candidates (no replacement) and put them into AAcandidates_picked
 			gsl_ran_choose (rnd_gen_, &(AAcandidates_picked[0]), bound, &(AAcandidates[0]), AAcandidates.size(), sizeof (UInt));
@@ -172,19 +178,25 @@ namespace OpenMS {
 				// we know the AA is there because we counted it
 				OPENMS_POSTCONDITION(hit_pos!=std::string::npos, "AA selected for modification could not be found! check code!");
 
-				//modify AA:
+				// modify AA
 				seq_aa.setModification (hit_pos, ptms_[aa_name].draw(rnd_gen_).getModification() );
 
 				search_offset = hit_pos+1;
 			}
 
-			// write back modified peptide
-			std::vector< PeptideIdentification > pep_ids = it_f->getPeptideIdentifications();
+			// create modified peptide
+			FeatureMapSim::FeatureType f = *it_f;
+			std::vector< PeptideIdentification > pep_ids = f.getPeptideIdentifications();
 			std::vector<PeptideHit> p_hits = pep_ids[0].getHits();
 			p_hits[0].setSequence(seq_aa);
 			pep_ids[0].setHits(p_hits);
-			it_f->setPeptideIdentifications(pep_ids);
+			f.setPeptideIdentifications(pep_ids);
+			map_ptm.push_back(f);
 
 		} //! for each peptide
+
+		// append PTM's to feature map
+		map.insert(map.end(), map_ptm.begin(), map_ptm.end());
+
   }
 }
