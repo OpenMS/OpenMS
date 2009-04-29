@@ -95,12 +95,12 @@ START_SECTION((virtual void run()))
 	
 	TOLERANCE_ABSOLUTE(0.001);
 	TEST_REAL_SIMILAR(output[0].getOverallQuality(),0.8819);
-	TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8766);
-	TEST_REAL_SIMILAR(output[2].getOverallQuality(),0.9158);
+	TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8673);
+	TEST_REAL_SIMILAR(output[2].getOverallQuality(),0.9079);
 	TEST_REAL_SIMILAR(output[3].getOverallQuality(),0.9271);
-	TEST_REAL_SIMILAR(output[4].getOverallQuality(),0.9538);
+	TEST_REAL_SIMILAR(output[4].getOverallQuality(),0.9401);
 	TEST_REAL_SIMILAR(output[5].getOverallQuality(),0.9094);
-	TEST_REAL_SIMILAR(output[6].getOverallQuality(),0.9392);
+	TEST_REAL_SIMILAR(output[6].getOverallQuality(),0.9403);
 	TEST_REAL_SIMILAR(output[7].getOverallQuality(),0.9243);
 	
 	TOLERANCE_ABSOLUTE(20.0);
@@ -110,7 +110,7 @@ START_SECTION((virtual void run()))
 	TEST_REAL_SIMILAR(output[3].getIntensity(),19428.9);
 	TEST_REAL_SIMILAR(output[4].getIntensity(),12513.9);
 	TEST_REAL_SIMILAR(output[5].getIntensity(),8512.71);
-	TEST_REAL_SIMILAR(output[6].getIntensity(),6561.2);
+	TEST_REAL_SIMILAR(output[6].getIntensity(),7295.3);
 	TEST_REAL_SIMILAR(output[7].getIntensity(),5024.74);
 	
 	TEST_STRING_EQUAL(output[0].getMetaValue("rt_apex_spectrum"),"spectrum=89")

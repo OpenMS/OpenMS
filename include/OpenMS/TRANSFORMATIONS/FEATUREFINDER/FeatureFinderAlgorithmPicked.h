@@ -320,7 +320,7 @@ namespace OpenMS
 				
 				/// Constructor that resizes the internal vectors
 				IsotopePattern(Size size)
-					: peak(size),
+					: peak(size,-1),
 						spectrum(size),
 						intensity(size),
 						mz_score(size),
@@ -1802,6 +1802,7 @@ namespace OpenMS
 					pos_score += mz_score;
 					++matches;
 				}
+				
 				//previous spectrum
 				if (spectrum_index!=0 && map_[spectrum_index-1].size()>0)
 				{
