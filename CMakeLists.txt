@@ -304,13 +304,7 @@ if (MSVC)
 	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
 else()
 	## there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
-	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o 
-
-#### @todo TODO to be done
-# @Chris, fix this if you can ;)
-#dmallocxx
-
- CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
+	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
 # Boost support
