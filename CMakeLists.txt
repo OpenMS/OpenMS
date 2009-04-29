@@ -269,6 +269,10 @@ if(NOT MSVC)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
 
+if (APPLE)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
+endif()
+
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 OPENMS_CHECKLIB(CONTRIB_GSL "libgsl_dll;gsl" "libgsl_dll_d;gsl" "GSL")
@@ -300,7 +304,13 @@ if (MSVC)
 	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
 else()
 	## there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
-	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o dmallocxx CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
+	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o 
+
+#### @todo TODO to be done
+# @Chris, fix this if you can ;)
+#dmallocxx
+
+ CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
 # Boost support
