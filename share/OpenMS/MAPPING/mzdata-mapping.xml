@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CvMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvMapping.xsd" modelName="mzData.xsd" modelURI="" modelVersion="1.0.5">  <CvReferenceList>
+    <CvReference cvName="mzData CV" cvIdentifier="PSI"/>
+  </CvReferenceList>
+  <CvMappingRuleList>
+    <CvMappingRule id="0" cvElementPath="/mzData/description/admin/sampleDescription/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/admin/sampleDescription" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000001" useTermName="false" useTerm="true" termName="Sample Number" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000002" useTermName="false" useTerm="true" termName="Sample Name" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000003" useTermName="false" useTerm="true" termName="Sample State" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000004" useTermName="false" useTerm="true" termName="Sample Mass" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000005" useTermName="false" useTerm="true" termName="Sample Volume" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000006" useTermName="false" useTerm="true" termName="Sample Concentration" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000047" useTermName="false" useTerm="true" termName="Emulsion" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000048" useTermName="false" useTerm="true" termName="Gas" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000049" useTermName="false" useTerm="true" termName="Liquid" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000050" useTermName="false" useTerm="true" termName="Solid" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000051" useTermName="false" useTerm="true" termName="Solution" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000052" useTermName="false" useTerm="true" termName="Suspension" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000053" useTermName="false" useTerm="true" termName="Batch" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000054" useTermName="false" useTerm="true" termName="Chromatography" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="1" cvElementPath="/mzData/description/instrument/source/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/instrument/source" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000007" useTermName="false" useTerm="true" termName="Inlet Type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000008" useTermName="false" useTerm="true" termName="Ionization Type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000009" useTermName="false" useTerm="true" termName="Ionization Mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000055" useTermName="false" useTerm="true" termName="Continuous Flow Fast Atom Bombardment" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000056" useTermName="false" useTerm="true" termName="Direct" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000057" useTermName="false" useTerm="true" termName="Electrospray Inlet" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000058" useTermName="false" useTerm="true" termName="Flow Injection Analysis" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000059" useTermName="false" useTerm="true" termName="Inductively Coupled Plasma" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000060" useTermName="false" useTerm="true" termName="Infusion" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000061" useTermName="false" useTerm="true" termName="Jet Separator" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000062" useTermName="false" useTerm="true" termName="Membrane Separator" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000063" useTermName="false" useTerm="true" termName="Moving Belt" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000064" useTermName="false" useTerm="true" termName="Moving Wire" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000065" useTermName="false" useTerm="true" termName="Open Split" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000066" useTermName="false" useTerm="true" termName="Particle Beam" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000067" useTermName="false" useTerm="true" termName="Reservoir" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000068" useTermName="false" useTerm="true" termName="Septum" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000069" useTermName="false" useTerm="true" termName="Thermospray Inlet" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000070" useTermName="false" useTerm="true" termName="Atmospheric Pressure Chemical Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000071" useTermName="false" useTerm="true" termName="Chemical Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000072" useTermName="false" useTerm="true" termName="Electronic Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000073" useTermName="false" useTerm="true" termName="Electrospray Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000074" useTermName="false" useTerm="true" termName="Fast Atom Bombardment Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000075" useTermName="false" useTerm="true" termName="Matrix-assisted Laser Desorption Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000076" useTermName="false" useTerm="true" termName="Negative Ion Mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000077" useTermName="false" useTerm="true" termName="Positive Ion Mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000239" useTermName="false" useTerm="true" termName="Atmospheric Pressure Matrix-Assisted Laser Desorption Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000240" useTermName="false" useTerm="true" termName="Atmospheric Pressure Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000241" useTermName="false" useTerm="true" termName="Atmostpheric Pressure Photoionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000247" useTermName="false" useTerm="true" termName="Desorption Ionization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000248" useTermName="false" useTerm="true" termName="Direct Insertion Probe" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000249" useTermName="false" useTerm="true" termName="Direct Liquid Introduction" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="2" cvElementPath="/mzData/description/instrument/analyzerList/analyzer/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/instrument/analyzerList/analyzer" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000010" useTermName="false" useTerm="true" termName="Analyzer Type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000011" useTermName="false" useTerm="true" termName="Mass Resolution" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000012" useTermName="false" useTerm="true" termName="Resolution Method" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000013" useTermName="false" useTerm="true" termName="Resolution Type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000014" useTermName="false" useTerm="true" termName="Accuracy" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000015" useTermName="false" useTerm="true" termName="Scan Rate" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000016" useTermName="false" useTerm="true" termName="Scan Time" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000017" useTermName="false" useTerm="true" termName="Scan Function" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000018" useTermName="false" useTerm="true" termName="Scan Direction" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000019" useTermName="false" useTerm="true" termName="Scan Law" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000020" useTermName="false" useTerm="true" termName="Tandem Scanning Method" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000021" useTermName="false" useTerm="true" termName="Reflectron State" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000022" useTermName="false" useTerm="true" termName="TOF Total Path Length" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000023" useTermName="false" useTerm="true" termName="Isolation Width" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000024" useTermName="false" useTerm="true" termName="Final MS Exponent" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000025" useTermName="false" useTerm="true" termName="Magnetic Field Strength" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000078" useTermName="false" useTerm="true" termName="Axial Ejection Linear Ion Trap" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000079" useTermName="false" useTerm="true" termName="Fourier Transform Ion Cyclotron Resonance Mass Spectrometer" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000080" useTermName="false" useTerm="true" termName="Magnetic Sector" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000081" useTermName="false" useTerm="true" termName="Quadrupole" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000082" useTermName="false" useTerm="true" termName="Quadrupole Ion Trap" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000083" useTermName="false" useTerm="true" termName="Radial Ejection Linear Ion Trap" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000084" useTermName="false" useTerm="true" termName="Time-of-flight" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000085" useTermName="false" useTerm="true" termName="Baseline" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000086" useTermName="false" useTerm="true" termName="Full Width at Half-Maximum" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000087" useTermName="false" useTerm="true" termName="Ten Percent Valley" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000088" useTermName="false" useTerm="true" termName="Constant" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000089" useTermName="false" useTerm="true" termName="Proportional" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000090" useTermName="false" useTerm="true" termName="Mass Scan" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000091" useTermName="false" useTerm="true" termName="Selected Ion Detection" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000092" useTermName="false" useTerm="true" termName="Down" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000093" useTermName="false" useTerm="true" termName="Up" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000094" useTermName="false" useTerm="true" termName="Exponential" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000095" useTermName="false" useTerm="true" termName="Linear" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000096" useTermName="false" useTerm="true" termName="Quadratic" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000097" useTermName="false" useTerm="true" termName="Constant Neutral Mass Loss" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000098" useTermName="false" useTerm="true" termName="Multiple Ion Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000099" useTermName="false" useTerm="true" termName="Multiple Reaction Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000100" useTermName="false" useTerm="true" termName="Precursor Ion Scan" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000101" useTermName="false" useTerm="true" termName="Product Ion Scan" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000102" useTermName="false" useTerm="true" termName="Single Ion Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000103" useTermName="false" useTerm="true" termName="Single Reaction Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000104" useTermName="false" useTerm="true" termName="None" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000105" useTermName="false" useTerm="true" termName="Off" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000106" useTermName="false" useTerm="true" termName="On" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000206" useTermName="false" useTerm="true" termName="Selected Reaction Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="3" cvElementPath="/mzData/description/instrument/detector/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/instrument/detector" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000026" useTermName="false" useTerm="true" termName="Detector Type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000027" useTermName="false" useTerm="true" termName="Detector Acquisition Mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000028" useTermName="false" useTerm="true" termName="Detector Resolution" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000029" useTermName="false" useTerm="true" termName="Sampling Frequency" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000107" useTermName="false" useTerm="true" termName="Channeltron" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000108" useTermName="false" useTerm="true" termName="Conversion Dynode Electron Multiplier" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000109" useTermName="false" useTerm="true" termName="Conversion Dynode Photomultiplier" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000110" useTermName="false" useTerm="true" termName="Daly Detector" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000111" useTermName="false" useTerm="true" termName="Electron Multiplier Tube" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000112" useTermName="false" useTerm="true" termName="Faraday Cup" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000113" useTermName="false" useTerm="true" termName="Focal Plane Array" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000114" useTermName="false" useTerm="true" termName="Microchannel Plate Detector" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000115" useTermName="false" useTerm="true" termName="Multi-Collector" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000116" useTermName="false" useTerm="true" termName="Photomultiplier" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000117" useTermName="false" useTerm="true" termName="Analog-Digital Converter" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000118" useTermName="false" useTerm="true" termName="Pulse Counting" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000119" useTermName="false" useTerm="true" termName="Time-Digital Converter" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000120" useTermName="false" useTerm="true" termName="Transient Recorder" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000037" useTermName="false" useTerm="true" termName="Polarity Mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="4" cvElementPath="/mzData/description/instrument/additional/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/instrument/additional" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000030" useTermName="false" useTerm="true" termName="Vendor" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000031" useTermName="false" useTerm="true" termName="Model" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000032" useTermName="false" useTerm="true" termName="Customization" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="5" cvElementPath="/mzData/description/dataProcessing/processingMethod/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/description/dataProcessing/processingMethod" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000033" useTermName="false" useTerm="true" termName="Deisotoping" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000034" useTermName="false" useTerm="true" termName="Charge Deconvolution" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000035" useTermName="false" useTerm="true" termName="Peak Processing" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="6" cvElementPath="/mzData/spectrumList/spectrum/spectrumDesc/spectrumInstrument/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/spectrumList/spectrum/spectrumDesc/spectrumInstrument" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000037" useTermName="false" useTerm="true" termName="Polarity mode" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000038" useTermName="false" useTerm="true" termName="Time In Minutes" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000039" useTermName="false" useTerm="true" termName="Time In Seconds" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="7" cvElementPath="/mzData/spectrumList/spectrum/spectrumDesc/precursorList/precursor/ionSelection/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/spectrumList/spectrum/spectrumDesc/precursorList/precursor/ionSelection" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000040" useTermName="false" useTerm="true" termName="Mass To Charge Ratio" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000041" useTermName="false" useTerm="true" termName="Charge State" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000042" useTermName="false" useTerm="true" termName="Intensity" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000043" useTermName="false" useTerm="true" termName="Intensity Units" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+    <CvMappingRule id="8" cvElementPath="/mzData/spectrumList/spectrum/spectrumDesc/precursorList/precursor/activation/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzData/spectrumList/spectrum/spectrumDesc/precursorList/precursor/activation" cvTermsCombinationLogic="OR">
+      <CvTerm termAccession="PSI:1000044" useTermName="false" useTerm="true" termName="Method" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000045" useTermName="false" useTerm="true" termName="Collision Energy" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000046" useTermName="false" useTerm="true" termName="Energy Units" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000242" useTermName="false" useTerm="true" termName="Blackbody Infrared Radiative Dissociation" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000243" useTermName="false" useTerm="true" termName="Charge-Remote Fragmentation" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000244" useTermName="false" useTerm="true" termName="Consecutive Reaction Monitoring" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000245" useTermName="false" useTerm="true" termName="Charge Stripping" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000246" useTermName="false" useTerm="true" termName="Delayed Extraction" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+      <CvTerm termAccession="PSI:1000250" useTermName="false" useTerm="true" termName="Electron Capture Dissociation" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI" />
+    </CvMappingRule>
+  </CvMappingRuleList>
+</CvMapping>

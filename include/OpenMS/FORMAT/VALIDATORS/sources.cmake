@@ -5,6 +5,7 @@ set(directory include/OpenMS/FORMAT/VALIDATORS)
 set(sources_list_h
 XMLValidator.h
 MzMLValidator.h
+MzDataValidator.h
 SemanticValidator.h
 AnalysisXMLValidator.h
 )

@@ -252,7 +252,36 @@ class TOPPFileInfo
 					}
 				}
 			}
-
+			else if (in_type==FileTypes::MZDATA)
+			{
+				if (!valid)
+				{
+					os << endl << "Semantic validation is not perfomed due to previous errors! " << endl;
+				}
+				else
+				{
+					os << endl << "Semantically validating " << fh.typeToName(in_type) << " file (EXPERIMENTAL) :" << endl;
+					StringList errors, warnings;
+					valid = MzDataFile().isSemanticallyValid(in, errors, warnings);
+					for (Size i=0; i<warnings.size(); ++i)
+					{
+						os << "Warning: " << warnings[i] << endl;
+					}
+					for (Size i=0; i<errors.size(); ++i)
+					{
+						os << "Error: " << errors[i] << endl;
+					}
+					if (valid)
+					{
+						os << "Success: fhe file is semantically valid!" << endl;
+					}
+					else
+					{
+						os << "Failed: errors are listed above!" << endl;
+					}
+				}
+			}
+			
 			return EXECUTION_OK;
 		}
 

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-//
+// 
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,48 +25,59 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
+#ifndef OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
 
-namespace OpenMS
+
+#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+
+
+namespace OpenMS 
 {
-	MzDataFile::MzDataFile()
-		: XMLFile("/SCHEMAS/mzData_1_05.xsd","1.05"),
-			options_()
+	class ControlledVocabulary;
+	namespace Internal
 	{
-	}
-
-	MzDataFile::~MzDataFile()
-	{
-	}
-
-	PeakFileOptions& MzDataFile::getOptions()
-	{
-		return options_;
-	}
-
-  const PeakFileOptions& MzDataFile::getOptions() const
-  {
-  	return options_;
-  }
-
-	bool MzDataFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
-	{
-		//load mapping
-		CVMappings mapping;
-		CVMappingFile().load(File::find("/MAPPING/mzdata-mapping.xml"),mapping);
 		
-		//load cvs
-		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI",File::find("/CV/psi-mzdata.obo"));
-		
-		//validate
-		Internal::MzDataValidator v(mapping, cv);
-		bool result = v.validate(filename, errors, warnings);
-		
-		return result;
-	}
+	  /**
+	    @brief Semantically validates MzXML files.
+	  */
+	  class OPENMS_DLLAPI MzDataValidator
+			: public SemanticValidator
+	  {
+	    public:
+	      /**
+	      	@brief Constructor
+	      
+					@param mapping The mapping rules
+					@param cv @em All controlled vocabularies required for the mapping 
+				*/
+	      MzDataValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
+				
+				/// Destructor
+				virtual ~MzDataValidator();
+				
+			protected:
+				
+				//Docu in base class
+				void handleTerm_(const String& path, const CVTerm& parsed_term);
+				
+			private:
+				
+				/// Not implemented
+				MzDataValidator();
+				
+				/// Not implemented
+				MzDataValidator(const MzDataValidator& rhs);
 	
-}// namespace OpenMS
+				/// Not implemented
+				MzDataValidator& operator = (const MzDataValidator& rhs);
+	
+	  };
+ 
+	} // namespace Internal
+ 
+} // namespace OpenMS
+
+#endif
 

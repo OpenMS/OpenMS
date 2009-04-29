@@ -38,7 +38,8 @@ namespace OpenMS
 {
 	/**
 		@brief File adapter for MzData files
-
+		
+		@todo Fix validation errors of our implementation, when mzML is finished (Marc)
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzDataFile
@@ -95,6 +96,17 @@ namespace OpenMS
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
+
+			/**
+				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+
+				@param filename File name of the file to be checked.
+				@param errors Errors during the validation are returned in this output parameter.
+				@param warnings Warnings during the validation are returned in this output parameter.
+
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+			*/
+			bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
 		private:
 

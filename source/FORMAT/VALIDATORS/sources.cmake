@@ -5,6 +5,7 @@ set(directory source/FORMAT/VALIDATORS)
 set(sources_list
 XMLValidator.C
 MzMLValidator.C
+MzDataValidator.C
 SemanticValidator.C
 AnalysisXMLValidator.C
 )

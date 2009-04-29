@@ -99,7 +99,7 @@ START_SECTION((bool validate(const String &filename, StringList &errors, StringL
 	TEST_EQUAL(sv.validate(OPENMS_GET_TEST_DATA_PATH("SemanticValidator_corrupt.xml"), errors, warnings),false);
 	TEST_EQUAL(errors.size(),5)
 	TEST_STRING_EQUAL(errors[0],"Violated mapping rule 'R3' at element '/mzML/fileDescription/sourceFileList/sourceFile'")
-	TEST_STRING_EQUAL(errors[1],"Name of CVTerm not correct: 'MS:1000554 - LCQ Deca2 - invalid repeat' should be 'LCQ Deca'")
+	TEST_STRING_EQUAL(errors[1],"Name of CV term not correct: 'MS:1000554 - LCQ Deca2 - invalid repeat' should be 'LCQ Deca'")
 	TEST_STRING_EQUAL(errors[2],"CV term used in invalid element: 'MS:1000030 - vendor' at element '/mzML/instrumentConfigurationList/instrumentConfiguration'")
 	TEST_STRING_EQUAL(errors[3],"Violated mapping rule 'R6a' number of term repeats at element '/mzML/instrumentConfigurationList/instrumentConfiguration'")
 	TEST_STRING_EQUAL(errors[4],"Violated mapping rule 'R17a' at element '/mzML/run/spectrumList/spectrum/spectrumDescription'")
