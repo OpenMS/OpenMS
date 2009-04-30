@@ -160,7 +160,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].getPrecursors()[0].getCharge(), 2)
 	TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getIntensity(), 2.3f)
 	TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("IonSelectionComment"), "selected")
-	TEST_EQUAL(e[1].getPrecursors()[0].getActivationMethod(), Precursor::CID)
+	TEST_EQUAL(e[1].getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
 	TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getActivationEnergy(), 3.4)
 	TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("ActivationComment"), "active")
 
@@ -168,7 +168,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].getPrecursors()[1].getCharge(), 3)
 	TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getIntensity(), 3.3f)
 	TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("IonSelectionComment"), "selected2")
-	TEST_EQUAL(e[1].getPrecursors()[1].getActivationMethod(), Precursor::SID)
+	TEST_EQUAL(e[1].getPrecursors()[1].getActivationMethods().count(Precursor::SID),1)
 	TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getActivationEnergy(), 4.4)
 	TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("ActivationComment"), "active2")
 

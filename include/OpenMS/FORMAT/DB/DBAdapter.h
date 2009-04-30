@@ -54,7 +54,8 @@ namespace OpenMS
 		@todo NativeIDType was moved from ExperimentalSettings to SourceFile (Hiwi)
 		@todo MetaInfoInterface was added to ScanWindow (Hiwi)
 		@todo Product list was added to SpectrumSettings (Hiwi) 
-		
+		@todo Activation method list was added to Precursor (Hiwi)
+	
     @ingroup DatabaseIO
   */
  
@@ -688,7 +689,7 @@ namespace OpenMS
 				//charge
 				query << ",Charge='" << exp_it->getPrecursors()[0].getCharge() << "'";
 				//activation method
-				query << ",ActivationMethod=" << (1u+exp_it->getPrecursors()[0].getActivationMethod());		
+				query << ",ActivationMethod=" << (1u); //TODO
 				//activation energy
 				query << ",ActivationEnergy='" << exp_it->getPrecursors()[0].getActivationEnergy() << "'";
 				
@@ -1356,7 +1357,7 @@ namespace OpenMS
 				spec.getPrecursors()[0].setMZ(result.value(0).toDouble());
 				spec.getPrecursors()[0].setIntensity(result.value(1).toDouble());
 				spec.getPrecursors()[0].setCharge(result.value(2).toInt());
-				spec.getPrecursors()[0].setActivationMethod((Precursor::ActivationMethod)(result.value(3).toInt()));
+				spec.getPrecursors()[0].getActivationMethods().insert((Precursor::ActivationMethod)(result.value(3).toInt()));
 				spec.getPrecursors()[0].setActivationEnergy(result.value(5).toDouble());
 				loadMetaInfo_(result.value(6).toInt(),spec.getPrecursors()[0]);
 			}

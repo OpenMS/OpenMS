@@ -107,7 +107,7 @@ namespace OpenMS
 				// Polarity
 				// is no longer used cv_terms_[17] is empty now
 				// ActivationMethod
-				String(";CID;PSD;PD;SID").split(';',cv_terms_[18]);
+				String("CID;PSD;PD;SID").split(';',cv_terms_[18]);
 			}
 
       /// Constructor for a read-only handler
@@ -159,7 +159,7 @@ namespace OpenMS
 				// Polarity
 				// is no longer used cv_terms_[17] is empty now
 				// ActivationMethod
-				String(";CID;PSD;PD;SID").split(';',cv_terms_[18]);
+				String("CID;PSD;PD;SID").split(';',cv_terms_[18]);
 			}
 
       /// Destructor
@@ -1213,7 +1213,10 @@ namespace OpenMS
 							os << "\t\t\t\t\t\t<activation>\n";
 							if (precursor != Precursor())
 							{
-								writeCVS_(os, precursor.getActivationMethod(), 18, "1000044", "Method",7);
+								if (precursor.getActivationMethods().size()>0)
+								{
+									writeCVS_(os, *(precursor.getActivationMethods().begin()), 18, "1000044", "Method",7);
+								}
 								writeCVS_(os, precursor.getActivationEnergy(), "1000045", "CollisionEnergy",7);
 								os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000046\" name=\"EnergyUnits\" value=\"eV\"/>\n";
 							}
@@ -1457,7 +1460,7 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000044") //Method
 				{
-					spec_.getPrecursors().back().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(18, value,"activation method"));
+					spec_.getPrecursors().back().getActivationMethods().insert((Precursor::ActivationMethod)cvStringToEnum_(18, value,"activation method"));
 				}
 				else if (accession=="PSI:1000045") //Energy
 				{

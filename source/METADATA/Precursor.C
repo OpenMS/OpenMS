@@ -32,11 +32,11 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string Precursor::NamesOfActivationMethod[] = {"Unknown","Collision-induced dissociation","Post-source decay","Plasma desorption","Surface-induced dissociation","Blackbody infrared radiative dissociation","Electron capture dissociation","Infrared multiphoton dissociation","Sustained off-resonance irradiation","High-energy collision-induced dissociation","Low-energy collision-induced dissociation","Photodissociation","Electron transfer dissociation","Pulsed q dissociation"};
+	const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation","Post-source decay","Plasma desorption","Surface-induced dissociation","Blackbody infrared radiative dissociation","Electron capture dissociation","Infrared multiphoton dissociation","Sustained off-resonance irradiation","High-energy collision-induced dissociation","Low-energy collision-induced dissociation","Photodissociation","Electron transfer dissociation","Pulsed q dissociation"};
 
 	Precursor::Precursor():
 		RichPeak1D(),
-		activation_method_(ACTMETHNULL),
+		activation_methods_(),
 		activation_energy_(0.0),
 		window_low_(0.0),
 		window_up_(0.0),
@@ -47,7 +47,7 @@ namespace OpenMS
 	
 	Precursor::Precursor(const Precursor& source):
 		RichPeak1D(source),
-	  activation_method_(source.activation_method_),
+	  activation_methods_(source.activation_methods_),
 	  activation_energy_(source.activation_energy_),
 	  window_low_(source.window_low_),
 	  window_up_(source.window_up_),
@@ -65,7 +65,7 @@ namespace OpenMS
 	  if (&source == this) return *this;
 	  
 	  RichPeak1D::operator=(source);
-	  activation_method_ = source.activation_method_;
+	  activation_methods_ = source.activation_methods_;
 	  activation_energy_ = source.activation_energy_;
 	  window_low_ = source.window_low_;
 	  window_up_ = source.window_up_;
@@ -78,7 +78,7 @@ namespace OpenMS
   bool Precursor::operator== (const Precursor& rhs) const
   {
   	return 
-	    activation_method_ == rhs.activation_method_ &&
+	    activation_methods_ == rhs.activation_methods_ &&
 	    activation_energy_ == rhs.activation_energy_ &&
 	    window_low_ == rhs.window_low_ &&
 	    window_up_ == rhs.window_up_ &&
@@ -94,14 +94,19 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	Precursor::ActivationMethod Precursor::getActivationMethod() const 
+	const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const 
 	{
-	  return activation_method_; 
+	  return activation_methods_;
+	}
+
+	set<Precursor::ActivationMethod>& Precursor::getActivationMethods() 
+	{
+	  return activation_methods_;
 	}
 	
-	void Precursor::setActivationMethod(Precursor::ActivationMethod activation_method)
+	void Precursor::setActivationMethods(const set<Precursor::ActivationMethod>& activation_methods)
 	{
-	  activation_method_ = activation_method; 
+	  activation_methods_ = activation_methods; 
 	}
 	
 	DoubleReal Precursor::getActivationEnergy() const 

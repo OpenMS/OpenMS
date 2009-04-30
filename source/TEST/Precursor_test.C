@@ -60,15 +60,24 @@ START_SECTION((void setActivationEnergy(DoubleReal activation_energy)))
   TEST_REAL_SIMILAR(tmp.getActivationEnergy(),47.11);
 END_SECTION
 
-START_SECTION((ActivationMethod getActivationMethod() const))
+START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
   Precursor tmp;
-  TEST_EQUAL(tmp.getActivationMethod(),Precursor::ACTMETHNULL);
+  TEST_EQUAL(tmp.getActivationMethods().size(),0);
 END_SECTION
 
-START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
+
+START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
   Precursor tmp;
-  tmp.setActivationMethod(Precursor::CID);
-  TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::CID);
+  TEST_EQUAL(tmp.getActivationMethods().size(),1);
+END_SECTION
+
+START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation_methods)))
+  Precursor tmp;
+	set<Precursor::ActivationMethod> methods;
+	methods.insert(Precursor::CID);
+	tmp.setActivationMethods(methods);
+  TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
 
 START_SECTION((DoubleReal getIsolationWindowUpperOffset() const))
@@ -125,14 +134,14 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
-	tmp.setActivationMethod(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
 	tmp.setMetaValue("label",String("label"));
 	
 	Precursor tmp2(tmp);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
+	TEST_EQUAL(tmp2.getActivationMethods().size(),1);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
@@ -141,7 +150,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
-	tmp.setActivationMethod(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
 	tmp.setMetaValue("label",String("label"));
@@ -150,7 +159,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp2;
 	tmp2 = tmp;
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
+	TEST_EQUAL(tmp2.getActivationMethods().size(),1);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
@@ -158,7 +167,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	//assignment of empty object
 	tmp2 = Precursor();
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
-	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::ACTMETHNULL);
+	TEST_EQUAL(tmp2.getActivationMethods().size(),0);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
@@ -173,7 +182,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setActivationMethod(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -206,7 +215,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
-	tmp.setActivationMethod(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;	tmp2 = tmp;

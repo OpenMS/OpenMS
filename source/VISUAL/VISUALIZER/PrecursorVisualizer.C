@@ -30,6 +30,7 @@
 //QT
 #include <QtGui/QLineEdit>
 #include <QtGui/QComboBox>
+#include <QtGui/QListWidget>
 
 //STL
 #include <iostream>
@@ -47,51 +48,74 @@ namespace OpenMS
 		
 		addSeparator_();  
 
-		addDoubleLineEdit_(precursor_mz_, "m/z");
-		addDoubleLineEdit_(precursor_int_, "intensity");
-		addIntLineEdit_(precursor_charge_, "charge");
+		addDoubleLineEdit_(mz_, "m/z");
+		addDoubleLineEdit_(int_, "intensity");
+		addIntLineEdit_(charge_, "charge");
 
-		addDoubleLineEdit_(precursor_window_low_, "Lower offset from target m/z");
-		addDoubleLineEdit_(precursor_window_up_, "Upper offset from target m/z");
+		addDoubleLineEdit_(window_low_, "Lower offset from target m/z");
+		addDoubleLineEdit_(window_up_, "Upper offset from target m/z");
 			
-		addComboBox_(precursor_activation_method_, "Activation method");
-		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");
+		addListView_(activation_methods_, "Activation methods");
+		addDoubleLineEdit_(activation_energy_, "Activation energy");
 
 		finishAdding_();
 	}
 	
 	void PrecursorVisualizer::update_()
 	{
-		precursor_mz_->setText(String( temp_.getMZ() ).c_str() );
-		precursor_int_->setText(String( temp_.getIntensity() ).c_str() );
-		precursor_charge_->setText(String( temp_.getCharge() ).c_str() );
+		mz_->setText(String( temp_.getMZ() ).c_str() );
+		int_->setText(String( temp_.getIntensity() ).c_str() );
+		charge_->setText(String( temp_.getCharge() ).c_str() );
 		
-		precursor_window_low_->setText(String( temp_.getIsolationWindowLowerOffset() ).c_str() );
-		precursor_window_up_->setText(String( temp_.getIsolationWindowUpperOffset() ).c_str() );
+		window_low_->setText(String( temp_.getIsolationWindowLowerOffset() ).c_str() );
+		window_up_->setText(String( temp_.getIsolationWindowUpperOffset() ).c_str() );
 		
-		if(! isEditable())
+		//actions
+		activation_methods_->clear();
+		for (Size i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
 		{
-			fillComboBox_(precursor_activation_method_,& temp_.NamesOfActivationMethod[temp_.getActivationMethod()] , 1);
+			QListWidgetItem* item = new QListWidgetItem(activation_methods_);
+			item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
+			if (temp_.getActivationMethods().count(Precursor::ActivationMethod(i))==1)
+			{
+				item->setCheckState(Qt::Checked);
+			}
+			else
+			{
+				item->setCheckState(Qt::Unchecked);
+			}
+			if (isEditable())
+			{
+				item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+			}
+			else
+			{
+				item->setFlags(Qt::ItemIsEnabled);
+			}
+			activation_methods_->addItem(item);
 		}
-		else
-		{
-			fillComboBox_(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
-			precursor_activation_method_->setCurrentIndex(temp_.getActivationMethod()); 
-		}
-		precursor_activation_energy_->setText(String( temp_.getActivationEnergy() ).c_str() );
+		
+		activation_energy_->setText(String( temp_.getActivationEnergy() ).c_str() );
 	}
 	
 	void PrecursorVisualizer::store()
 	{
-		ptr_->setMZ(precursor_mz_->text().toFloat());
-		ptr_->setIntensity(precursor_int_->text().toFloat());
-		ptr_->setCharge(precursor_charge_->text().toInt());
+		ptr_->setMZ(mz_->text().toFloat());
+		ptr_->setIntensity(int_->text().toFloat());
+		ptr_->setCharge(charge_->text().toInt());
 		
-		ptr_->setIsolationWindowLowerOffset(precursor_window_low_->text().toFloat());		
-		ptr_->setIsolationWindowUpperOffset(precursor_window_up_->text().toFloat());		
+		ptr_->setIsolationWindowLowerOffset(window_low_->text().toFloat());		
+		ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());		
 
-		ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
-		ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());
+		ptr_->getActivationMethods().clear();
+		for (UInt i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+		{
+			if (activation_methods_->item(i)->checkState()==Qt::Checked)
+			{
+				ptr_->getActivationMethods().insert(Precursor::ActivationMethod(i));
+			}
+		}
+		ptr_->setActivationEnergy(activation_energy_->text().toFloat());
 		
 		temp_=(*ptr_);
 	}

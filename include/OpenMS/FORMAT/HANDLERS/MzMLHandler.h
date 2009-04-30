@@ -45,7 +45,6 @@
 // - scanSettingsList
 //
 //MISSING:
-// - multiple 'dissociation methods' per precursor
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
 // - DataProcessing of spectrum (defaultsDataProcessingRef is used) and binaryDataArray
@@ -1106,55 +1105,55 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000133") //collision-induced dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::CID);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::CID);
 				}
 				else if (accession=="MS:1000134") //plasma desorption
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::PD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PD);
 				}
 				else if (accession=="MS:1000135") //post-source decay
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::PSD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PSD);
 				}
 				else if (accession=="MS:1000136") //surface-induced dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::SID);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SID);
 				}
 				else if (accession=="MS:1000242") //blackbody infrared radiative dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::BIRD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BIRD);
 				}
 				else if (accession=="MS:1000250") //electron capture dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::ECD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ECD);
 				}
 				else if (accession=="MS:1000262") //infrared multiphoton dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::IMD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::IMD);
 				}
 				else if (accession=="MS:1000282") //sustained off-resonance irradiation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::SORI);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
 				}
 				else if (accession=="MS:1000422") //high-energy collision-induced dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::HCID);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
 				}
 				else if (accession=="MS:1000433") //low-energy collision-induced dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::LCID);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LCID);
 				}
 				else if (accession=="MS:1000435") //photodissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::PHD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PHD);
 				}
 				else if (accession=="MS:1000598") //electron transfer dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::ETD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
 				}
 				else if (accession=="MS:1000599") //pulsed q dissociation
 				{
-					spec_.getPrecursors().back().setActivationMethod(Precursor::PQD);
+					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -3482,55 +3481,55 @@ namespace OpenMS
 						//--------------------------------------------------------------------------------------------
 						os	<< "						<activation>\n";
 						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
-						if (precursor.getActivationMethod()==Precursor::CID)
+						if (precursor.getActivationMethods().count(Precursor::CID)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::PD)
+						if (precursor.getActivationMethods().count(Precursor::PD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::PSD)
+						if (precursor.getActivationMethods().count(Precursor::PSD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::SID)
+						if (precursor.getActivationMethods().count(Precursor::SID)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::BIRD)
+						if (precursor.getActivationMethods().count(Precursor::BIRD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::ECD)
+						if (precursor.getActivationMethods().count(Precursor::ECD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::IMD)
+						if (precursor.getActivationMethods().count(Precursor::IMD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::SORI)
+						if (precursor.getActivationMethods().count(Precursor::SORI)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::HCID)
+						if (precursor.getActivationMethods().count(Precursor::HCID)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::LCID)
+						if (precursor.getActivationMethods().count(Precursor::LCID)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::PHD)
+						if (precursor.getActivationMethods().count(Precursor::PHD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::ETD)
+						if (precursor.getActivationMethods().count(Precursor::ETD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
 						}
-						else if (precursor.getActivationMethod()==Precursor::PQD)
+						if (precursor.getActivationMethods().count(Precursor::PQD)!=0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
 						}

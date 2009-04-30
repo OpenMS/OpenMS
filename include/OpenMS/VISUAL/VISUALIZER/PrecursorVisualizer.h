@@ -65,13 +65,13 @@ namespace OpenMS
 		protected:  
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit* precursor_mz_;
-			QLineEdit* precursor_int_;
-			QLineEdit* precursor_charge_;
-			QLineEdit* precursor_window_up_;
-			QLineEdit* precursor_window_low_;
-			QComboBox* precursor_activation_method_;
-			QLineEdit* precursor_activation_energy_;
+			QLineEdit* mz_;
+			QLineEdit* int_;
+			QLineEdit* charge_;
+			QLineEdit* window_up_;
+			QLineEdit* window_low_;
+			QListWidget* activation_methods_;
+			QLineEdit* activation_energy_;
 			//@}
 			
 			//Docu in base class

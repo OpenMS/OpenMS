@@ -29,6 +29,9 @@
 #define OPENMS_METADATA_PRECURSOR_H
 
 #include <OpenMS/KERNEL/RichPeak1D.h>
+
+#include <set>
+
 namespace OpenMS 
 {
 	/**
@@ -50,7 +53,6 @@ namespace OpenMS
     /// Method of activation
       enum ActivationMethod
       {
-      	ACTMETHNULL,	///< Unknown activation method
       	CID,					///< Collision-induced dissociation
       	PSD,					///< Post-source decay
       	PD,						///< Plasma desorption
@@ -84,10 +86,12 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const Precursor& rhs) const;
 			
-			/// returns the activation method
-      ActivationMethod getActivationMethod() const;
-      /// sets the activation method
-      void setActivationMethod(ActivationMethod activation_method);
+			/// returns a const reference to the activation methods
+      const std::set<ActivationMethod>& getActivationMethods() const;
+			/// returns a mutable reference to the activation methods
+      std::set<ActivationMethod>& getActivationMethods();
+      /// sets the activation methods
+      void setActivationMethods(const std::set<ActivationMethod>& activation_methods);
 			
 			/// returns the activation energy (in electronvolt)
       DoubleReal getActivationEnergy() const;
@@ -118,7 +122,7 @@ namespace OpenMS
  
     protected:
       
-      ActivationMethod activation_method_;
+      std::set<ActivationMethod> activation_methods_;
       DoubleReal activation_energy_;
       DoubleReal window_low_;
       DoubleReal window_up_;

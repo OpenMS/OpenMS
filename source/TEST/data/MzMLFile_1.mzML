@@ -299,7 +299,8 @@
             <activation>
               <cvParam cvRef="MS" accession="MS:1000412" name="buffer gas" value="Krypton"/>
               <cvParam cvRef="MS" accession="MS:1000419" name="collision gas" value="Argon"/>
-              <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
+              <cvParam cvRef="MS" accession="MS:1000134" name="plasma desorption" />
               <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
               <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="4.2" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
               <userParam name="acname" value="activation1"/>
