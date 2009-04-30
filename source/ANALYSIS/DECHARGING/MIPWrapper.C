@@ -43,22 +43,22 @@
 // useful example: https://projects.coin-or.org/Cbc/browser/trunk/Cbc/examples/sample5.cpp
 // Cuts
 
-#include "CglGomory.hpp"
-#include "CglProbing.hpp"
-#include "CglKnapsackCover.hpp"
-#include "CglOddHole.hpp"
-#include "CglClique.hpp"
-#include "CglFlowCover.hpp"
-#include "CglMixedIntegerRounding.hpp"
+#include "coin/CglGomory.hpp"
+#include "coin/CglProbing.hpp"
+#include "coin/CglKnapsackCover.hpp"
+#include "coin/CglOddHole.hpp"
+#include "coin/CglClique.hpp"
+#include "coin/CglFlowCover.hpp"
+#include "coin/CglMixedIntegerRounding.hpp"
 
 // Heuristics
-#include "CbcHeuristic.hpp"
-#include "CbcHeuristicLocal.hpp"
-#include <CbcConfig.h>
-#include <CbcModel.hpp>
-#include <CoinModel.hpp>
-#include <OsiClpSolverInterface.hpp>
-#include <CoinTime.hpp>
+#include "coin/CbcHeuristic.hpp"
+#include "coin/CbcHeuristicLocal.hpp"
+#include "coin/CbcConfig.h"
+#include "coin/CbcModel.hpp"
+#include "coin/CoinModel.hpp"
+#include "coin/OsiClpSolverInterface.hpp"
+#include "coin/CoinTime.hpp"
 #ifdef _MSC_VER
 #	pragma warning( pop )  // restore old warning state
 #endif

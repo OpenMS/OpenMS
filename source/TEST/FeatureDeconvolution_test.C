@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <CoinMessageHandler.hpp>
+#include <coin/CoinMessageHandler.hpp>
 ///////////////////////////
 
 using namespace OpenMS;

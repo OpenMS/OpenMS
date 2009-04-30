@@ -328,7 +328,6 @@ endif()
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, i.e. config.h
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR}/coin/)	## COIN-OR (its headers use flat includes)
 
 ## QT
 SET(QT_USE_QTXML 1)

@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OsiClpSolverInterface.hpp>
+#include <coin/OsiClpSolverInterface.hpp>
 
 using namespace OpenMS;
 using namespace std;
