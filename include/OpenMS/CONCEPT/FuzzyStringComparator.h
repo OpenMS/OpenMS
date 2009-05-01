@@ -247,9 +247,9 @@ namespace OpenMS
 
        This compares all lines of the input.
 
-       returns true in case of success
+       returns true in case of no differences found
        */
-      Int
+      bool
       compareStrings( std::string const & lhs, std::string const & rhs );
 
       /**@brief Compare two streams of input.
@@ -257,9 +257,9 @@ namespace OpenMS
        This compares all lines of the input.  Intended to be used for file
        streams.
 
-       returns true in case of success
+       returns true in case of no differences found
        */
-      Int
+      bool
       compareStreams( std::istream & input_1, std::istream & input_2 );
 
       /**@brief Simple diff-like application to compare two input files.
@@ -269,13 +269,13 @@ namespace OpenMS
        where
        @param filename_1 first input file
        @param filename_2 second input file
-       @return A non-zero exit status indicates that errors were found.  For the meaning of other numbers, see the code.
+       @return true in case of no differences found
 
        @sa ratio_max_allowed_
        @sa absdiff_max_allowed_
        @sa verbose_level_
        */
-      Int
+      bool
       compareFiles( const std::string & filename_1,
                     const std::string & filename_2 );
 
@@ -288,7 +288,7 @@ namespace OpenMS
 
        returns true (non-zero) in case of success
        */
-      Int
+      bool
       compareLines_( std::string const & line_str_1,
                      std::string const & line_str_2 );
 

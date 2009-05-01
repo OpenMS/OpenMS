@@ -31,6 +31,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
 #include <coin/CoinMessageHandler.hpp>
 ///////////////////////////
 
@@ -80,7 +82,11 @@ START_SECTION(void compute)
 
 	c1.store(out_file,cm);
 
-	TEST_FILE_SIMILAR(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"))
+	FuzzyStringComparator fsc;
+	fsc.setWhitelist (StringList::create("xml-stylesheet"));
+	bool cmp = fsc.compareFiles(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"));
+	
+	TEST_EQUAL(cmp, true);
 
 END_SECTION
 

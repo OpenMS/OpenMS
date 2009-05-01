@@ -210,7 +210,7 @@ END_SECTION
 
 //------------------------------------------------------------
 
-START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs)))
+START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rhs)))
 {
 	std::ostringstream log;
 	//------------------------------
@@ -363,7 +363,7 @@ START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs
 }
 END_SECTION
 
-START_SECTION((Int compareStreams(std::istream &input_1, std::istream &input_2)))
+START_SECTION((bool compareStreams(std::istream &input_1, std::istream &input_2)))
 {
 	std::ostringstream log;
 	{
@@ -393,7 +393,7 @@ START_SECTION((Int compareStreams(std::istream &input_1, std::istream &input_2))
 }
 END_SECTION
 
-START_SECTION((Int compareFiles(const std::string &filename_1, const std::string &filename_2)))
+START_SECTION((bool compareFiles(const std::string &filename_1, const std::string &filename_2)))
 {
 	std::ostringstream log;
 	{

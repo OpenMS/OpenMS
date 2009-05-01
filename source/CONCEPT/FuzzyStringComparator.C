@@ -257,7 +257,7 @@ namespace OpenMS
     return;
   }
 
-  Int FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
+  bool FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
   {
 
 		for ( StringList::const_iterator slit = whitelist_.begin();
@@ -524,7 +524,7 @@ namespace OpenMS
     return is_status_success_;
   } // compareLines_()
 
-  Int FuzzyStringComparator::compareStrings( std::string const & lhs, std::string const & rhs )
+  bool FuzzyStringComparator::compareStrings( std::string const & lhs, std::string const & rhs )
   {
 		std::istringstream input_1(lhs);
 		std::istringstream input_2(rhs);
@@ -565,7 +565,7 @@ namespace OpenMS
 
   } // compareStrings()
 
-  Int FuzzyStringComparator::compareStreams( std::istream & input_1, std::istream & input_2 )
+  bool FuzzyStringComparator::compareStreams( std::istream & input_1, std::istream & input_2 )
   {
     std::string line_str_1;
     std::string line_str_2;
@@ -604,7 +604,7 @@ namespace OpenMS
 
   } // compareStreams()
 
-	Int FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
+	bool FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
   {
 
 		input_1_name_ = filename_1;
@@ -613,7 +613,7 @@ namespace OpenMS
 		if ( input_1_name_ == input_2_name_ )
 		{
 			*log_dest_ << "Error: first and second input file have the same name.  That's cheating!\n";
-			return 2;
+			return false;
 		}
 
 		std::ifstream  input_1_f;
@@ -621,7 +621,7 @@ namespace OpenMS
 		if ( !input_1_f )
 		{
 			*log_dest_ << "Error opening first input file '" << input_1_name_ <<"'.\n";
-			return 11;
+			return false;
 		}
 		input_1_f.unsetf(std::ios::skipws);
 
@@ -630,7 +630,7 @@ namespace OpenMS
 		if ( !input_2_f )
 		{
 			*log_dest_ << "Error opening second input file '" << input_2_name_ <<"'.\n";
-			return 12;
+			return false;
 		}
 		input_2_f.unsetf(std::ios::skipws);
 
