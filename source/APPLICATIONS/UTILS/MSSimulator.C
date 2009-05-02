@@ -94,7 +94,7 @@ class TOPPMSSimulator
            
       // add data from file to protein storage
       String::size_type index;
-      int relativeQuantity;
+      SimIntensityType relativeQuantity;
       for (FASTAdata::iterator it = fastadata.begin(); it != fastadata.end(); ++it)
       {
         // remove all ambiguous characters from FASTA entry
