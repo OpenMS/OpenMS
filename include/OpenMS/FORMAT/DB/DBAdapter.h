@@ -55,6 +55,8 @@ namespace OpenMS
 		@todo MetaInfoInterface was added to ScanWindow (Hiwi)
 		@todo Product list was added to SpectrumSettings (Hiwi) 
 		@todo Activation method list was added to Precursor (Hiwi)
+		@todo DataProcessing list was moved from ExperimentalSettings to SpectrumSettings (Hiwi)
+		@todo Fraction identifier was added to ExperimentalSettings (Hiwi)
 	
     @ingroup DatabaseIO
   */

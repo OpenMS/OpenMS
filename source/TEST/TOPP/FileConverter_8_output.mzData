@@ -53,7 +53,7 @@
 				<version>2.0.5</version>
 			</software>
 			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="true"/>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" />
 				<userParam name="name" value="processingMethod"/>
 				<userParam name="low_intensity_threshold" value="5.9"/>
 			</processingMethod>

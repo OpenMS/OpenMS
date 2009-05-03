@@ -153,23 +153,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//instrument software
 	TEST_EQUAL(exp.getInstrument().getSoftware().getName(),"Bioworks")
 	TEST_EQUAL(exp.getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
-	//processing
-	TEST_EQUAL(exp.getDataProcessing().size(),2)
-	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
-	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),2)
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
-	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
-	TEST_REAL_SIMILAR(DoubleReal(exp.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
-	TEST_REAL_SIMILAR(DoubleReal(exp.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
-	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),false)
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),false)
-
+	
 	//-------------------------- spectrum 0 --------------------------
 	{
 		const MSSpectrum<>& spec = exp[0];
@@ -202,7 +186,23 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),0)
 		TEST_EQUAL(spec.getProducts().size(),0)
-	}
+		//data processing
+		TEST_EQUAL(spec.getDataProcessing().size(),2)
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().size(),2)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
+		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
+		TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().size(),1)
+		TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+		TEST_EQUAL(spec.getDataProcessing()[1].isMetaEmpty(),false)
+}
 
 	//-------------------------- spectrum 1 --------------------------
 	{
@@ -270,6 +270,22 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=1")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
+		//data processing
+		TEST_EQUAL(spec.getDataProcessing().size(),2)
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().size(),2)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
+		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
+		TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().size(),1)
+		TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+		TEST_EQUAL(spec.getDataProcessing()[1].isMetaEmpty(),false)
 
 	}
 
@@ -312,6 +328,17 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getProducts()[1].getMZ(),19.99)
 		TEST_REAL_SIMILAR(spec.getProducts()[1].getIsolationWindowLowerOffset(),3.0)
 		TEST_REAL_SIMILAR(spec.getProducts()[1].getIsolationWindowUpperOffset(),4.0)
+		//data processing
+		TEST_EQUAL(spec.getDataProcessing().size(),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().size(),2)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
 	}
 
 	//-------------------------- spectrum 3 (no peaks) --------------------------
@@ -338,6 +365,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),0)
 		TEST_EQUAL(spec.getProducts().size(),0)
+		//data processing
+		TEST_EQUAL(spec.getDataProcessing().size(),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"ProteoWizard")
+		TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getVersion(),"1.0")
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().size(),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
+
 	}
 
 	//-------------------------- userParam --------------------------
@@ -391,8 +426,12 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
 	TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
 	//data processing
-	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
-	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
+	TEST_STRING_EQUAL(exp[0].getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
+	TEST_STRING_EQUAL(exp[0].getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
+	TEST_STRING_EQUAL(exp[1].getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
+	TEST_STRING_EQUAL(exp[1].getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
+	TEST_STRING_EQUAL(exp[2].getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
+	TEST_STRING_EQUAL(exp[3].getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
 	//precursor
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("iwname").toString(),"isolationwindow1")
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("siname").toString(),"selectedion1")
@@ -481,7 +520,6 @@ START_SECTION([EXTRA] load only meta data)
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_EQUAL(exp.getSourceFiles().size(),1);
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
-	TEST_EQUAL(exp.getDataProcessing().size(),2)
 END_SECTION
 
 
@@ -566,6 +604,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 	//test if everything worked
 	TEST_EQUAL(exp==exp_original,true)
+//NOTE: If it does not work, use this code to find out where the difference is
 //	TEST_EQUAL(exp.size()==exp_original.size(),true)
 //	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
 //	TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)

@@ -351,6 +351,9 @@ namespace OpenMS
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 			
+			//Data processing auxilary variable
+			DataProcessing data_processing_;
+			
 		};
 
 		//--------------------------------------------------------------------------------
@@ -381,7 +384,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="version")
 			{
-				exp_->getDataProcessing().back().getSoftware().setVersion( sm_.convert(chars) );
+				data_processing_.getSoftware().setVersion( sm_.convert(chars) );
 			}
 			else if (current_tag=="institution")
 			{
@@ -397,11 +400,11 @@ namespace OpenMS
 			}
 			else if (current_tag=="name" && parent_tag=="software")
 			{
-				exp_->getDataProcessing().back().getSoftware().setName( sm_.convert(chars) );
+				data_processing_.getSoftware().setName( sm_.convert(chars) );
 			}
 			else if (current_tag=="comments" && parent_tag=="software")
 			{
-				exp_->getDataProcessing().back().setMetaValue("#comment", String(sm_.convert(chars)) );
+				data_processing_.getSoftware().setMetaValue("comment", String(sm_.convert(chars)) );
 			}
 			else if (current_tag == "comments" && parent_tag=="spectrumDesc")
 			{
@@ -507,10 +510,10 @@ namespace OpenMS
 			}
 			else if (tag=="software")
 			{
-				exp_->getDataProcessing().resize(1);
+				data_processing_ = DataProcessing();
 				if (attributes.getIndex(sm_.convert("completionTime"))!=-1)
 				{
-					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
+					data_processing_.setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
 				}
 			}
 			else if (tag=="precursor")
@@ -578,7 +581,7 @@ namespace OpenMS
 				}
 				else if (parent_tag=="processingMethod")
 				{
-					exp_->getDataProcessing().back().setMetaValue(name,value);			
+					data_processing_.setMetaValue(name,value);			
 				}
 				else
 				{
@@ -607,6 +610,7 @@ namespace OpenMS
 			{
 				spec_ = SpectrumType();
 				spec_.setNativeID(String("spectrum=") + attributeAsString_(attributes, s_id));
+				spec_.getDataProcessing().push_back(data_processing_);
 			}
 			else if (tag=="spectrumList")
 			{
@@ -964,7 +968,8 @@ namespace OpenMS
 			}
 			os << "\t\t</instrument>\n";
 			
-			if (cexp_->getDataProcessing().size()==0)
+			//the data processing information of the first spectrum is used for the whole file
+			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().size()==0)
 			{
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software>\n"
@@ -975,7 +980,7 @@ namespace OpenMS
 			}
 			else
 			{
-				const DataProcessing& data_processing = cexp_->getDataProcessing()[0];
+				const DataProcessing& data_processing = (*cexp_)[0].getDataProcessing()[0];
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software";
 				if (data_processing.getCompletionTime()!=DateTime())
@@ -985,19 +990,15 @@ namespace OpenMS
 				os << ">\n"
 					 << "\t\t\t\t<name>" << data_processing.getSoftware().getName() << "</name>\n"
 					 << "\t\t\t\t<version>" << data_processing.getSoftware().getVersion() << "</version>\n";
-				if (data_processing.metaValueExists("#comment"))
-				{
-					os << "\t\t\t\t<comments>" << data_processing.getMetaValue("#comment").toString() << "</comments>\n";
-				}
 				os << "\t\t\t</software>\n"
 					 << "\t\t\t<processingMethod>\n";
 				if(data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
 				{
-					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Deisotoping\" accession=\"PSI:1000033\" value=\"true\"/>\n";
+					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Deisotoping\" accession=\"PSI:1000033\" />\n";
 				}
 				if(data_processing.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
 				{
-					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\"true\"/>\n";
+					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" />\n";
 				}
 				if(data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
@@ -1006,12 +1007,6 @@ namespace OpenMS
 				writeUserParam_(os, data_processing);
 				os << "\t\t\t</processingMethod>\n"
 					 << "\t\t</dataProcessing>\n";
-				
-				//warn if we loose information
-				if (cexp_->getDataProcessing().size()>1)
-				{
-					warning(STORE, "The MzData format can store only one dataProcessing. Only the first one is stored!");
-				}
 			}
 			os << "\t</description>\n";
 
@@ -1648,15 +1643,15 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000033")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
+					data_processing_.getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				else if (accession=="PSI:1000034")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+					data_processing_.getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				else if (accession=="PSI:1000127")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+					data_processing_.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 				else if (accession=="PSI:1000035")
 				{

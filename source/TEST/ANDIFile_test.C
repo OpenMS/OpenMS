@@ -108,6 +108,18 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_REAL_SIMILAR(e[1].getRT(), 120)
   TEST_REAL_SIMILAR(e[2].getRT(), 180)
 
+	//check data processing (all spectra are assigned the general information)
+	for (Size i=0; i< e.size(); ++i)
+	{
+		TEST_EQUAL(e[i].getDataProcessing().size(),1)
+		TEST_EQUAL(e[i].getDataProcessing().back().getSoftware().getName(), "17")
+		TEST_EQUAL(e[i].getDataProcessing().back().getCompletionTime().get(), "0000-00-00 00:00:00")
+		TEST_REAL_SIMILAR(e[i].getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
+		TEST_EQUAL(e[i].getDataProcessing().back().getMetaValue("ErrorLog"), "")
+		TEST_EQUAL(e[i].getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
+		TEST_REAL_SIMILAR(e[i].getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
+	}
+
   //---------------------------------------------------------------------------
   // RT = 60
   //---------------------------------------------------------------------------
@@ -159,17 +171,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getContacts()[1].getLastName(), "7")
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "6")
   TEST_EQUAL(e.getContacts()[1].getMetaValue("ContactPosition"), "Dataset owner")
-
-  //---------------------------------------------------------------------------
-  // const DataProcessing& getDataProcessing() const;
-  //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getDataProcessing().size(),1)
-  TEST_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "17")
-  TEST_EQUAL(e.getDataProcessing().back().getCompletionTime().get(), "0000-00-00 00:00:00")
-  TEST_REAL_SIMILAR(e.getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
-  TEST_EQUAL(e.getDataProcessing().back().getMetaValue("ErrorLog"), "")
-  TEST_EQUAL(e.getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
-  TEST_REAL_SIMILAR(e.getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
 
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;

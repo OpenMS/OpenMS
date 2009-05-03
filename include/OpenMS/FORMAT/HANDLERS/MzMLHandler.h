@@ -43,12 +43,13 @@
 
 //TODO:
 // - scanSettingsList
+// - fraction identifier
+// - DataProcessing of binaryDataArray
+// - InstrumentConfiguration of Scan
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
-// - DataProcessing of spectrum (defaultsDataProcessingRef is used) and binaryDataArray
-// - InstrumentConfiguration of Scan
 
 // xs:id/xs:idref prefix list
 // - sf_ru : sourceFile (run)
@@ -59,7 +60,6 @@
 // - ic    : instrumentConfiguration
 // - so_dp : software (data processing)
 // - so_in : software (instrument)
-// - dp_ru : dataProcessing (run)
 // - dp_sp : dataProcessing (spectrum)
 // - dp_bi : dataProcessing (binary data array)
 // - dp_ch : dataProcessing (chromatogram)
@@ -193,6 +193,8 @@ namespace OpenMS
 			Map<String, Instrument> instruments_;
 			/// The data processing list: id => Instrument
 			Map<String, std::vector<DataProcessing> > processing_;
+			/// id of the default data processing (used when no processing is defined)
+			String default_processing_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -230,6 +232,9 @@ namespace OpenMS
 
 			/// Helper method that writes a source file
 			void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
+
+			/// Helper method that writes a data processing list
+			void writeDataProcessing_(std::ostream& os, Size spectrum_index, const std::vector<DataProcessing>& dps);
 		};
 
 		//--------------------------------------------------------------------------------
@@ -285,6 +290,7 @@ namespace OpenMS
 			static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
 			static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
+			static const XMLCh* s_data_processing_ref = xercesc::XMLString::transcode("dataProcessingRef");
 			static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
 			static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
 			static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
@@ -320,11 +326,21 @@ namespace OpenMS
 				{
 					spec_.setMetaValue("maldi_spot_id",maldi_spot_id);
 				}
+				//data processing
+				String data_processing_ref;
+				if(optionalAttributeAsString_(data_processing_ref,attributes, s_data_processing_ref))
+				{
+					spec_.setDataProcessing(processing_[data_processing_ref]);
+				}
+				else
+				{
+					spec_.setDataProcessing(processing_[default_processing_]);
+				}
 			}
 			else if (tag=="spectrumList")
 			{
 				//default data processing
-				exp_->setDataProcessing(processing_[attributeAsString_(attributes, s_default_data_processing_ref)]);
+				default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
 				
 				//Abort if we need meta data only
 				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
@@ -2385,6 +2401,104 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
+		void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, Size spectrum_index, const std::vector<DataProcessing>& dps)
+		{
+			os  << "		<dataProcessing id=\"dp_sp_" << spectrum_index << "\">\n";
+			
+			//FORCED
+			if (dps.size()==0)
+			{
+				os  << "			<processingMethod order=\"0\" softwareRef=\"so_default\">\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
+				os  << "				<userParam name=\"warning\" type=\"xsd:string\" value=\"fictional processing method used to fulfill format requirements\" />\n";
+				os  << "			</processingMethod>\n";
+			}
+			
+			for (Size i=0; i<dps.size(); ++i)
+			{
+				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << spectrum_index << "_pm_" << i << "\">\n";
+				if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::SMOOTHING)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_CALCULATION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING_SUM)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000801\" name=\"area peak picking\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING_MAX)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"height peak picking\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
+				{
+					//no CV term for this
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000594\" name=\"low intensity data point removal\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZML)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZXML)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\" />\n";
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_DTA)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\" />\n";
+				}
+				//data processing attribute
+				if (dps[i].getCompletionTime().isValid())
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i].getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
+				}
+				
+				writeUserParam_(os, dps[i], 4);
+				os  << "			</processingMethod>\n";
+			}
+			
+			os  << "		</dataProcessing>\n";
+		}
+		
+		template <typename MapType>
 		void MzMLHandler<MapType>::writeTo(std::ostream& os)
 		{
 			const MapType& exp = *(cexp_);
@@ -2572,18 +2686,22 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// software
 			//--------------------------------------------------------------------------------------------
-			os  << "	<softwareList count=\"" << std::max((UInt)2,(UInt)exp.getDataProcessing().size()+1) << "\">\n";			
+			os  << "	<softwareList count=\"" << (2+exp.size()) << "\">\n"; //TODO fix this number when everyting works			
 			//write instrument software
 			writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
-			//write data processing
-			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
+			//write fallback software
+			writeSoftware_(os, "so_default", Software());
+			//write data processing (for each spectrum)
+			for (Size s=0; s<exp.size(); ++s)
 			{
-				writeSoftware_(os, String("so_dp_") + i, exp.getDataProcessing()[i].getSoftware());
-			}
-			//FORCED - for DataProcessing
-			if (exp.getDataProcessing().size()==0)
-			{
-				writeSoftware_(os, "so_dp_0", Software());
+				//the data processing info of the first spectrum is the default
+				if (s==0 || exp[s].getDataProcessing()!=exp[0].getDataProcessing())
+				{
+					for (Size i=0; i<exp[s].getDataProcessing().size(); ++i)
+					{
+						writeSoftware_(os, String("so_dp_") + s + "_pm_" + i, exp[s].getDataProcessing()[i].getSoftware());
+					}
+				}
 			}
 			os  << "	</softwareList>\n";			
 
@@ -3160,98 +3278,26 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// data processing
 			//--------------------------------------------------------------------------------------------
-			os  << "	<dataProcessingList count=\"1\">\n";			
-			os  << "		<dataProcessing id=\"dp_ru_0\">\n";
-			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
+			os  << "	<dataProcessingList count=\"" << std::max((Size)1,exp.size()) << "\">\n";
+			//default (first spectrum data or fictional data)
+			if (exp.size()==0)
 			{
-				const DataProcessing& dp = exp.getDataProcessing()[i];
-				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << i << "\">\n";
-				if (dp.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::SMOOTHING)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::CHARGE_CALCULATION)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING_SUM)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000801\" name=\"area peak picking\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING_MAX)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"height peak picking\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
-				{
-					//no CV term for this
-				}
-				if (dp.getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000594\" name=\"low intensity data point removal\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZML)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZXML)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\" />\n";
-				}
-				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_DTA)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\" />\n";
-				}
-				//data processing attribute
-				if (dp.getCompletionTime().isValid())
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dp.getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
-				}
-				
-				writeUserParam_(os, dp, 4);
-				os  << "			</processingMethod>\n";
+				std::vector<DataProcessing> dummy;
+				writeDataProcessing_(os, 0 , dummy);
 			}
-			//FORCED (also includes a forced software: so_dp_0)
-			if (exp.getDataProcessing().size()==0)
+			else
 			{
-				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_0\">\n";
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
-				os  << "				<userParam name=\"warning\" type=\"xsd:string\" value=\"invented data processing, to fulfill mzML schema\" />\n";
-				os  << "			</processingMethod>\n";
+				writeDataProcessing_(os, 0 , exp[0].getDataProcessing());
 			}
-			os  << "		</dataProcessing>\n";
+			//for each spectrum
+			for (Size s=1; s<exp.size(); ++s)
+			{
+				if (exp[s].getDataProcessing()!=exp[0].getDataProcessing())
+				{
+					writeDataProcessing_(os, s, exp[s].getDataProcessing());
+				}
+			}
+
 			os  << "	</dataProcessingList>\n";		
 			//--------------------------------------------------------------------------------------------
 			// acquisitionSettings
@@ -3273,7 +3319,7 @@ namespace OpenMS
 			
 			writeUserParam_(os, exp, 2);
 
-			os	<< "		<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_ru_0\">\n"; 
+			os	<< "		<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n"; 
 			//--------------------------------------------------------------------------------------------
 			//spectrum
 			//--------------------------------------------------------------------------------------------
@@ -3284,6 +3330,11 @@ namespace OpenMS
 				if (spec.getSourceFile()!=SourceFile())
 				{
 					os << " sourceFileRef=\"sf_sp_" << s << "\"";
+				}
+				//the data processing info of the first spectrum is the default
+				if (s==0 || spec.getDataProcessing()!=exp[0].getDataProcessing())
+				{
+					os << " dataProcessingRef=\"dp_sp_" << s << "\"";
 				}
 				os  << ">\n";
 				
@@ -3379,7 +3430,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				//scan list
 				//--------------------------------------------------------------------------------------------
-				os	<< "				<scanList count=\"" << std::max((UInt)1,(UInt)spec.getAcquisitionInfo().size()) << "\">\n";
+				os	<< "				<scanList count=\"" << std::max((Size)1,spec.getAcquisitionInfo().size()) << "\">\n";
 				ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570",spec.getAcquisitionInfo().getMethodOfCombination());
 				if (ai_term.id!="")
 				{

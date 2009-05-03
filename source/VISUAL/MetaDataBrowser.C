@@ -309,9 +309,6 @@ namespace OpenMS
 		//check for ProteinIdentification
 		visualizeAll_(meta.getProteinIdentifications(), item);
 
-		//check for DataProcessing
-		visualizeAll_(meta.getDataProcessing(), item);
-
 		//check for Instrument
 		visualize_(meta.getInstrument(), item);
 
@@ -942,9 +939,9 @@ namespace OpenMS
 		//check for InstrumentSettings
 		visualize_(meta.getInstrumentSettings(), item);
 
-		//check for PeptideIdentification
-		visualizeAll_(meta.getPeptideIdentifications(), item);
-
+		//check for DataProcessing
+		visualizeAll_(meta.getDataProcessing(), item);
+		
 		//check for Precursors
 		for(Size i=0; i<meta.getPrecursors().size(); ++i)
 		{
@@ -959,6 +956,9 @@ namespace OpenMS
 
 		//check for AcquisitionInfo
 		visualize_(meta.getAcquisitionInfo(), item);
+
+		//check for PeptideIdentification
+		visualizeAll_(meta.getPeptideIdentifications(), item);
 
 		connectVisualizer_(visualizer);
 	}

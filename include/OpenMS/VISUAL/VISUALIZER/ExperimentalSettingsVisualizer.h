@@ -69,6 +69,8 @@ namespace OpenMS
 			QLineEdit* datetime_;		
 			/// The comment to this experiment
 			QTextEdit* comment_;
+			/// Fraction identifier
+			QLineEdit* fraction_identifier_;
 
 			//Docu in base class
 			void update_();

@@ -39,11 +39,11 @@ namespace OpenMS
 		source_files_(),
 		contacts_(),
 		instrument_(),
-		data_processing_(),
 		hplc_(),
 		datetime_(),
 		comment_(),
-		protein_identifications_()
+		protein_identifications_(),
+		fraction_identifier_()
 	{
 	}
 	
@@ -54,11 +54,11 @@ namespace OpenMS
 	  source_files_(source.source_files_),
 	  contacts_(source.contacts_),
 	  instrument_(source.instrument_),
-	  data_processing_(source.data_processing_),
 	  hplc_(source.hplc_),
 	  datetime_(source.datetime_),
 	  comment_(source.comment_),
-		protein_identifications_(source.protein_identifications_)
+		protein_identifications_(source.protein_identifications_),
+		fraction_identifier_(source.fraction_identifier_)
 	{
 	}
 	
@@ -74,11 +74,11 @@ namespace OpenMS
     source_files_ = source.source_files_;
     contacts_ = source.contacts_;
     instrument_ = source.instrument_;
-    data_processing_ = source.data_processing_;
     hplc_ = source.hplc_;
     datetime_ = source.datetime_;
     comment_ = source.comment_;
     protein_identifications_ = source.protein_identifications_;
+		fraction_identifier_ = source.fraction_identifier_;
     MetaInfoInterface::operator=(source);
 		DocumentIdentifier::operator=(source);
 	  
@@ -92,11 +92,11 @@ namespace OpenMS
 	    source_files_ == rhs.source_files_ &&
 	    contacts_ == rhs.contacts_ &&
 	    instrument_ == rhs.instrument_ &&
-	    data_processing_ == rhs.data_processing_ &&
 	    hplc_ == rhs.hplc_ &&
 	    datetime_ == rhs.datetime_ &&
     	protein_identifications_ == rhs.protein_identifications_ &&
     	comment_ == rhs.comment_ &&
+			fraction_identifier_ == rhs.fraction_identifier_ &&
   		MetaInfoInterface::operator==(rhs) &&
 			DocumentIdentifier::operator==(rhs)
   		;
@@ -167,21 +167,6 @@ namespace OpenMS
 	  instrument_ = instrument; 
 	}
 	
-	const vector<DataProcessing>& ExperimentalSettings::getDataProcessing() const 
-	{
-	  return data_processing_; 
-	}
-	
-	vector<DataProcessing>&  ExperimentalSettings::getDataProcessing()
-	{
-	  return data_processing_; 
-	}
-	
-	void ExperimentalSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
-	{
-	  data_processing_ = processing_method; 
-	}
-
 	const DateTime& ExperimentalSettings::getDateTime() const
 	{
 		return datetime_;
@@ -240,5 +225,15 @@ namespace OpenMS
 	  comment_ = comment; 
 	}
 
+	const String& ExperimentalSettings::getFractionIdentifier() const 
+	{
+	  return fraction_identifier_; 
+	}
+	
+	void ExperimentalSettings::setFractionIdentifier(const String& fraction_identifier)
+	{
+	  fraction_identifier_ = fraction_identifier; 
+	}
+	
 }
 

@@ -50,6 +50,7 @@ namespace OpenMS
 		addSeparator_();
 		addLineEdit_(datetime_, "Date and time of experiment");
 		addTextEdit_(comment_, "Comment");
+		addLineEdit_(fraction_identifier_, "Fraction identifier");
 		
 		finishAdding_();
 	}
@@ -58,6 +59,7 @@ namespace OpenMS
 	{		
 	  datetime_->setText(temp_.getDateTime().get().c_str()); 
 		comment_->setText(temp_.getComment().c_str());
+		fraction_identifier_->setText(temp_.getFractionIdentifier().c_str());
 	}
 	
 	void ExperimentalSettingsVisualizer::store()
@@ -78,6 +80,7 @@ namespace OpenMS
 		}
 		
 		ptr_->setComment(comment_->toPlainText());
+		ptr_->setFractionIdentifier(fraction_identifier_->text());
 		
 		temp_=(*ptr_);
 	}

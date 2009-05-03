@@ -421,11 +421,14 @@ class TOPPFileInfo
 
 			//check if the meta data indicates that this is peak data
 			UInt meta_type = SpectrumSettings::UNKNOWN;
-			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
+			if (exp.size()>0)
 			{
-				if (exp.getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				for (Size i=0; i<exp[0].getDataProcessing().size(); ++i)
 				{
-					meta_type = SpectrumSettings::PEAKS;
+					if (exp[0].getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+					{
+						meta_type = SpectrumSettings::PEAKS;
+					}
 				}
 			}
 			//determine type (search for the first scan with at least 5 peaks)

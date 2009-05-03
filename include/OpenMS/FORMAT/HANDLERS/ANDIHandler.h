@@ -140,6 +140,9 @@ namespace OpenMS
 				
 				///Progress logging helper class
 				const ProgressLogger& logger_;
+				
+				///DataProcessing auxilary variable
+				DataProcessing data_processing_;
   };
 
 	//---------------------------------------------------------------------------
@@ -291,16 +294,15 @@ namespace OpenMS
 		contact.setMetaValue(user_params_[CONTACT], String("Dataset owner"));
 		exp_.getContacts().push_back(contact);
  		
- 		exp_.getDataProcessing().resize(1);
-		exp_.getDataProcessing().back().getSoftware().setName( string_(admin_data->post_expt_program_name) );
-		exp_.getDataProcessing().back().setMetaValue(user_params_[ANDI_ERROR], string_(admin_data->error_log));
-		exp_.getDataProcessing().back().setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
-	 
+ 		data_processing_ = DataProcessing();
+		data_processing_.getSoftware().setName( string_(admin_data->post_expt_program_name) );
+		data_processing_.setMetaValue(user_params_[ANDI_ERROR], string_(admin_data->error_log));
+		data_processing_.setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
 		std::stringstream buffer;
 		buffer << string_(admin_data->calibration_history_0) << string_(admin_data->calibration_history_1)
 					 << string_(admin_data->calibration_history_2) << string_(admin_data->calibration_history_3);
-		exp_.getDataProcessing().back().setMetaValue(user_params_[CALHIST], String(buffer.str()));	
-		exp_.getDataProcessing().back().setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
+		data_processing_.setMetaValue(user_params_[CALHIST], String(buffer.str()));	
+		data_processing_.setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
 
 		// unused MS_Admin_Data fields: comments, experiment_title, ms_template_revision, netcdf_revision, languages
 		// experiment_date_time, netcdf_date_time, source_file_date_time, pre_expt_program_name
@@ -450,6 +452,7 @@ namespace OpenMS
 		spectrum.setRT( float_(scan_data->scan_acq_time));
 		spectrum.setNativeID(String("index=")+ scan_number);
 		spectrum.setMSLevel(1);
+		spectrum.getDataProcessing().push_back(data_processing_); //assign general data processing info to all spectra
 		ScanWindow window;
 		window.begin = float_(scan_data->mass_range_min);
 		window.end = float_(scan_data->mass_range_max);

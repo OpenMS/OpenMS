@@ -44,7 +44,8 @@ namespace OpenMS
 			acquisition_info_(),
 			precursors_(),
 			products_(),
-			identification_()
+			identification_(),
+			data_processing_()
 	{
 	}
 
@@ -57,7 +58,8 @@ namespace OpenMS
 			acquisition_info_(source.acquisition_info_),
 			precursors_(source.precursors_),
 			products_(source.products_),
-			identification_(source.identification_)
+			identification_(source.identification_),
+			data_processing_(source.data_processing_)
 	{
 	}
 	
@@ -78,7 +80,8 @@ namespace OpenMS
     precursors_ = source.precursors_;
     identification_ = source.identification_;
 	  products_ = source.products_;
-	  
+	  data_processing_ = source.data_processing_;
+		
 	  return *this;
 	}
 
@@ -93,7 +96,8 @@ namespace OpenMS
 		  source_file_ == rhs.source_file_ &&
 	    precursors_ == rhs.precursors_ &&
 	    identification_ == rhs.identification_ &&
-	    products_ == rhs.products_
+	    products_ == rhs.products_ &&
+			data_processing_ == rhs.data_processing_
   		;
   }
   
@@ -229,6 +233,21 @@ namespace OpenMS
 		native_id_ = native_id;
 	}
 
+	const vector<DataProcessing>& SpectrumSettings::getDataProcessing() const 
+	{
+	  return data_processing_; 
+	}
+	
+	vector<DataProcessing>&  SpectrumSettings::getDataProcessing()
+	{
+	  return data_processing_; 
+	}
+	
+	void SpectrumSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
+	{
+	  data_processing_ = processing_method; 
+	}
+	
 }
 
 

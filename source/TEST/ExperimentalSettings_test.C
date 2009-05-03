@@ -64,11 +64,6 @@ START_SECTION((const Instrument& getInstrument() const))
   TEST_EQUAL(tmp.getInstrument()==Instrument(),true);
 END_SECTION
 
-START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
-  ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getDataProcessing().size(),0);
-END_SECTION
-
 START_SECTION((const Sample& getSample() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSample()==Sample(),true);
@@ -89,6 +84,18 @@ START_SECTION((void setComment(const String& comment)))
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
+
+START_SECTION((const String& getFractionIdentifier() const))
+	ExperimentalSettings tmp;
+	TEST_EQUAL(tmp.getFractionIdentifier(), "");
+END_SECTION
+
+START_SECTION((void setFractionIdentifier(const String& fraction_identifier)))
+	ExperimentalSettings tmp;
+	tmp.setFractionIdentifier("bla");
+	TEST_EQUAL(tmp.getFractionIdentifier(), "bla");
+END_SECTION
+
 
 START_SECTION((void setContacts(const std::vector<ContactPerson>& contacts)))
   ExperimentalSettings tmp;
@@ -132,14 +139,6 @@ START_SECTION((void setInstrument(const Instrument& instrument)))
   TEST_EQUAL(tmp.getInstrument().getName(),"bla");
 END_SECTION
 
-START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
-  ExperimentalSettings tmp;
-  std::vector<DataProcessing> dummy;
-  dummy.resize(1);
-  tmp.setDataProcessing(dummy);
-  TEST_EQUAL(tmp.getDataProcessing().size(),1);
-END_SECTION
-
 START_SECTION((void setSample(const Sample& sample)))
   ExperimentalSettings tmp;
   Sample dummy;
@@ -166,12 +165,6 @@ START_SECTION((Instrument& getInstrument()))
   ExperimentalSettings tmp;
   tmp.getInstrument().setName("bla55");
   TEST_EQUAL(tmp.getInstrument().getName(),"bla55");
-END_SECTION
-
-START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
-  ExperimentalSettings tmp;
-  tmp.getDataProcessing().resize(1);
-  TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
 START_SECTION((Sample& getSample()))
@@ -215,9 +208,9 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   
   tmp.getHPLC().setFlux(5);
   tmp.setComment("bla");
+  tmp.setFractionIdentifier("bla2");
   tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
-  tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
@@ -226,10 +219,10 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   
   ExperimentalSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getFractionIdentifier(),"bla2");
   TEST_EQUAL(tmp2.getIdentifier(),"lsid");
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
-  TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
@@ -249,9 +242,9 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
 
   tmp.getHPLC().setFlux(5);
   tmp.setComment("bla");
+  tmp.setFractionIdentifier("bla2");
   tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
-  tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
@@ -263,8 +256,8 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getFractionIdentifier(),"bla2");
   TEST_EQUAL(tmp2.getIdentifier(),"lsid");
-  TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
@@ -275,8 +268,9 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   tmp2 = ExperimentalSettings();
   TEST_EQUAL(tmp2.getHPLC().getFlux(),0);
   TEST_EQUAL(tmp2.getInstrument().getName(),"");
+  TEST_EQUAL(tmp2.getComment(),"");
+  TEST_EQUAL(tmp2.getFractionIdentifier(),"");
   TEST_EQUAL(tmp2.getIdentifier(),"");
-  TEST_EQUAL(tmp2.getDataProcessing().size(),0);
   TEST_EQUAL(tmp2.getSample().getName(),"");
   TEST_EQUAL(tmp2.getSourceFiles().size(),0);
   TEST_EQUAL(tmp2.getContacts().size(),0);
@@ -304,10 +298,6 @@ START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.getDataProcessing().resize(1);
-  TEST_EQUAL(edit==empty,false);
-  
-  edit = empty;
   edit.getSample().setName("bla2");
   TEST_EQUAL(edit==empty,false);
   
@@ -325,6 +315,10 @@ START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
 
   edit = empty;
 	edit.setComment("bla");
+  TEST_EQUAL(edit==empty, false);
+
+  edit = empty;
+	edit.setFractionIdentifier("bla");
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
@@ -354,11 +348,15 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
   edit = empty;
   edit.getInstrument().setName("bla");
   TEST_EQUAL(edit!=empty,true);
-  
+
   edit = empty;
-  edit.getDataProcessing().resize(1);
-  TEST_EQUAL(edit!=empty,true);
-  
+	edit.setComment("bla");
+  TEST_EQUAL(edit!=empty, true);
+
+  edit = empty;
+	edit.setFractionIdentifier("bla2");
+  TEST_EQUAL(edit!=empty, true);
+
   edit = empty;
   edit.getSample().setName("bla2");
   TEST_EQUAL(edit!=empty,true);

@@ -30,7 +30,6 @@
 
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/HPLC.h>
 #include <OpenMS/METADATA/SourceFile.h>
@@ -100,13 +99,6 @@ namespace OpenMS
       /// sets the MS instrument description
       void setInstrument(const Instrument& instrument);
 
-			/// returns a const reference to the description of the applied processing
-      const std::vector<DataProcessing>& getDataProcessing() const;
-      /// returns a mutable reference to the description of the applied processing
-      std::vector<DataProcessing>& getDataProcessing();
-      /// sets the description of the applied processing
-      void setDataProcessing(const std::vector<DataProcessing>& processing_method);
-
 			/// returns a const reference to the description of the HPLC run
       const HPLC& getHPLC() const;
       /// returns a mutable reference to the description of the HPLC run
@@ -131,16 +123,21 @@ namespace OpenMS
 		  /// sets the protein ProteinIdentification vector
 		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+			/// returns fraction identifier
+      const String& getFractionIdentifier() const;
+      /// sets the fraction identifier
+      void setFractionIdentifier(const String& fraction_identifier);
+
     protected:
 			Sample sample_;
 			std::vector<SourceFile> source_files_;
 			std::vector<ContactPerson> contacts_;
 			Instrument instrument_;
-		  std::vector<DataProcessing> data_processing_;
 		  HPLC hplc_;
 		  DateTime datetime_;
 			String comment_;
 			std::vector<ProteinIdentification> protein_identifications_;
+      String fraction_identifier_;
   };
 
 	///Print the contents to a stream.

@@ -146,29 +146,32 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 
 	//---------------------------------------------------------------------------
-  // data processing
+  // data processing (assigned to each spectrum)
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getDataProcessing().size(),2)
+	for (Size i=0; i<e.size(); ++i)
+	{
+		TEST_EQUAL(e[i].getDataProcessing().size(),2)
 
-  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
-  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
-  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("#type").toString(), "conversion");
-  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 1").toString(), "done 1");
-  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 2").toString(), "done 2");
-  TEST_EQUAL(e.getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
-	TEST_EQUAL(e.getDataProcessing()[0].getProcessingActions().size(),0)
+		TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getName(), "MS-X");
+		TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getVersion(), "1.0");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("#type").toString(), "conversion");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("processing 1").toString(), "done 1");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("processing 2").toString(), "done 2");
+		TEST_EQUAL(e[i].getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
+		TEST_EQUAL(e[i].getDataProcessing()[0].getProcessingActions().size(),0)
 
-  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getName(), "MS-Y");
-  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getVersion(), "1.1");
-  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
-  TEST_REAL_SIMILAR((DoubleReal)(e.getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
-  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
-  TEST_EQUAL(e.getDataProcessing()[1].getCompletionTime().get(), "0000-00-00 00:00:00");
-	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),3)
-	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
-	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
-
+		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getName(), "MS-Y");
+		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getVersion(), "1.1");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
+		TEST_REAL_SIMILAR((DoubleReal)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
+		TEST_EQUAL(e[i].getDataProcessing()[1].getCompletionTime().get(), "0000-00-00 00:00:00");
+		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().size(),3)
+		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
+	}
+	
 	//---------------------------------------------------------------------------
   // instrument
   //---------------------------------------------------------------------------
@@ -327,11 +330,6 @@ START_SECTION(([EXTRA] load with metadata only flag))
   TEST_EQUAL(e.getSourceFiles().size(),2)
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
-	TEST_EQUAL(e.getDataProcessing().size(),2)
-  TEST_STRING_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "MS-Y");
-  TEST_STRING_EQUAL(e.getDataProcessing().back().getSoftware().getVersion(), "1.1");
-	TEST_STRING_EQUAL(e.getInstrument().getVendor(), "MS-Vendor")
-	TEST_STRING_EQUAL(e.getInstrument().getModel(), "MS 1")
 	TEST_EQUAL(e.getContacts().size(),1)
 	TEST_STRING_EQUAL(e.getContacts()[0].getFirstName(),"FirstName")
 	TEST_STRING_EQUAL( e.getContacts()[0].getLastName(),"LastName")

@@ -39,11 +39,10 @@
 			<software completionTime="2001-02-03T04:05:06">
 				<name>MS-X</name>
 				<version>1.0</version>
-				<comments>none</comments>
 			</software>
 			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="true"/>
-				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="true"/>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" />
+				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" />
 				<userParam name="processing 1#type 1" value="done 1"/>
 				<userParam name="processing 2#type 2" value="done 2"/>
 			</processingMethod>

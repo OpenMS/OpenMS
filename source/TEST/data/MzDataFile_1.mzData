@@ -102,8 +102,8 @@
 				<comments>SoftwareComment</comments>
 			</software>
 			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
-				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" />
+				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" />
 				<userParam name="URL" value="www.open-ms.de"/>
 				<userParam name="comment" value="ProcessingComment"/>
 			</processingMethod>

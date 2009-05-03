@@ -815,8 +815,11 @@ namespace OpenMS
         {
            p.setMetaValue(String("parameter: ") + it.getName() , it->value);
         }
-        //add processing to map
-        map.getDataProcessing().push_back(p);
+        //add processing to each spectrum
+        for (Size i=0; i<map.size(); ++i)
+        {
+          map[i].getDataProcessing().push_back(p);          
+        }
       }
 
       ///Convenience function that add a single processing action to a peak, feature or consensus map

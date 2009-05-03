@@ -590,18 +590,22 @@ END_SECTION
 
 START_SECTION(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const))
 	MSExperiment<> exp;
+	exp.resize(2);
 	std::set<DataProcessing::ProcessingAction> actions;
 	actions.insert(DataProcessing::ALIGNMENT);
 
 	TOPPBaseTest topp;
 	topp.addDataProcessing(exp, actions);
-
-	TEST_EQUAL(exp.getDataProcessing().size(),1)
-	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"TOPPBaseTest")
-	TEST_NOT_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"1.1")
-	TEST_EQUAL(exp.getDataProcessing()[0].getCompletionTime().isValid(),true)
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),1)
-	TEST_EQUAL(*(exp.getDataProcessing()[0].getProcessingActions().begin()),DataProcessing::ALIGNMENT)
+	
+	for (Size i=0; i<exp.size(); ++i)
+	{
+		TEST_EQUAL(exp[i].getDataProcessing().size(),1)
+		TEST_EQUAL(exp[i].getDataProcessing()[0].getSoftware().getName(),"TOPPBaseTest")
+		TEST_NOT_EQUAL(exp[i].getDataProcessing()[0].getSoftware().getVersion(),"1.1")
+		TEST_EQUAL(exp[i].getDataProcessing()[0].getCompletionTime().isValid(),true)
+		TEST_EQUAL(exp[i].getDataProcessing()[0].getProcessingActions().size(),1)
+		TEST_EQUAL(*(exp[i].getDataProcessing()[0].getProcessingActions().begin()),DataProcessing::ALIGNMENT)
+	}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

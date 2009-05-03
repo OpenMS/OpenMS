@@ -155,8 +155,8 @@
     </instrumentConfiguration>
   </instrumentConfigurationList>
   
-  <dataProcessingList count="1">
-    <dataProcessing id="default_dp">
+  <dataProcessingList count="3">
+    <dataProcessing id="dp_sp_0">
       <processingMethod order="2" softwareRef="Xcalibur">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
         <cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" value=""/>
@@ -171,7 +171,25 @@
         <userParam name="p2" value="value2"/>
       </processingMethod>
     </dataProcessing>
-  </dataProcessingList>
+    <dataProcessing id="dp_sp_2">
+      <processingMethod order="2" softwareRef="Xcalibur">
+        <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000631" name="high intensity threshold" value="10.9" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05"/>
+  			<userParam name="p1" value="value1"/>
+      </processingMethod>
+    </dataProcessing>
+    <dataProcessing id="dp_sp_3">
+      <processingMethod order="1" softwareRef="pwiz">
+        <cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:10"/>
+        <userParam name="p2" value="value2"/>
+      </processingMethod>
+    </dataProcessing>
+
+</dataProcessingList>
   
 
   
@@ -181,7 +199,7 @@
   	<userParam name="flag"/>
   	<userParam name="float" type="xsd:float" value="5.11"/>
     
-    <spectrumList count="4" defaultDataProcessingRef="default_dp">
+    <spectrumList count="4" defaultDataProcessingRef="dp_sp_0">
 
       <spectrum index="0" id="index=0" spotID="M0" defaultArrayLength="15">
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
@@ -353,7 +371,7 @@
         </binaryDataArrayList>
       </spectrum>
 
-      <spectrum index="2" id="index=2" spotID="M2" defaultArrayLength="15">
+      <spectrum index="2" id="index=2" spotID="M2" defaultArrayLength="15" dataProcessingRef="dp_sp_2">
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
@@ -417,7 +435,7 @@
         </binaryDataArrayList>
       </spectrum>
 
-      <spectrum index="3" id="index=3" defaultArrayLength="0">
+      <spectrum index="3" id="index=3" defaultArrayLength="0" dataProcessingRef="dp_sp_3">
         <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" value=""/>
       	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
@@ -443,7 +461,7 @@
 
 
 
-    <chromatogramList count="2" defaultDataProcessingRef="default_dp">
+    <chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
       <chromatogram index="0" id="tic native" defaultArrayLength="15" >
         <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
         <cvParam cvRef="MS" accession="MS:1000809" name="chromatogram title" value="chromatograms rule!"/>

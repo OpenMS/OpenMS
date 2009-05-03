@@ -62,6 +62,25 @@ START_SECTION((void setNativeID(const String& native_id)))
 	TEST_STRING_EQUAL(tmp.getNativeID(),"nid");
 END_SECTION
 
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
+  SpectrumSettings tmp;
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+END_SECTION
+
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
+  SpectrumSettings tmp;
+  std::vector<DataProcessing> dummy;
+  dummy.resize(1);
+  tmp.setDataProcessing(dummy);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+END_SECTION
+
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
+  SpectrumSettings tmp;
+  tmp.getDataProcessing().resize(1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+END_SECTION
+
 START_SECTION((AcquisitionInfo& getAcquisitionInfo()))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
@@ -212,6 +231,7 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
 	tmp.setNativeID("nid");
+	tmp.getDataProcessing().resize(1);
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
@@ -222,6 +242,7 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
+	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 END_SECTION
 
 START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
@@ -234,6 +255,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.setComment("bla");
 	tmp.getPeptideIdentifications().resize(1);
 	tmp.setNativeID("nid");
+	tmp.getDataProcessing().resize(1);
 	
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
@@ -245,6 +267,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
+	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
@@ -255,6 +278,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
+	TEST_EQUAL(tmp2.getDataProcessing().size(),0);
 
 END_SECTION
 
@@ -297,6 +321,11 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit==empty, false);
+
+	edit = empty;
+	edit.getDataProcessing().resize(1);
+	TEST_EQUAL(edit==empty, false);
+
 END_SECTION
 
 START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
@@ -338,6 +367,11 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit!=empty, true);
+
+	edit = empty;
+	edit.getDataProcessing().resize(1);
+	TEST_EQUAL(edit!=empty, true);
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

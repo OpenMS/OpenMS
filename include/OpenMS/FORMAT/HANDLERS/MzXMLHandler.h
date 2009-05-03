@@ -182,6 +182,9 @@ namespace OpenMS
 						}
 					}
 				}
+				
+				/// data processing auxilary variable
+				std::vector<DataProcessing> data_processing_;
 			
 			private:
 				/// Not implemented
@@ -327,6 +330,7 @@ namespace OpenMS
 				exp_->reserve(count);
 				logger_.startProgress(0,count,"loading mzXML file");
 				scan_count = 0;
+				data_processing_.clear();
 				//start and end time are xs:duration. This makes no senes => ignore them
 			}
 			else if (tag=="parentFile")
@@ -342,13 +346,13 @@ namespace OpenMS
 				String& parent_tag = *(open_tags_.end()-2);
 				if (parent_tag=="dataProcessing")
 				{
-					exp_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
-					exp_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name_));
-					exp_->getDataProcessing().back().setMetaValue("#type",String(attributeAsString_(attributes, s_type_)));
+					data_processing_.back().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
+					data_processing_.back().getSoftware().setName(attributeAsString_(attributes, s_name_));
+					data_processing_.back().setMetaValue("#type",String(attributeAsString_(attributes, s_type_)));
 					
 					String time;
 					optionalAttributeAsString_(time,attributes,s_completiontime_);
-					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(time) );
+					data_processing_.back().setCompletionTime( asDateTime_(time) );
 				}
 				else if (parent_tag=="msInstrument")
 				{
@@ -455,7 +459,8 @@ namespace OpenMS
 				exp_->back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount_);
-				exp_->back().reserve(peak_count_);
+				exp_->back().reserve(peak_count_/2+1);
+				exp_->back().setDataProcessing(data_processing_);
 				
 				//centroided, chargeDeconvoluted, deisotoped, collisionEnergy are ignored
 
@@ -579,33 +584,34 @@ namespace OpenMS
 			}
 			else if (tag=="dataProcessing")
 			{
-				exp_->getDataProcessing().push_back(DataProcessing());
+				data_processing_.push_back(DataProcessing());
+
 				String boolean = "";
 				optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
+					data_processing_.back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				
 				boolean = "";
 				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted_);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+					data_processing_.back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				
 				DoubleReal cutoff = 0.0;
 				optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff_);
 				if (cutoff!=0.0)
 				{
-					exp_->getDataProcessing().back().setMetaValue("#intensity_cutoff",cutoff);
+					data_processing_.back().setMetaValue("#intensity_cutoff",cutoff);
 				}
 					
 				boolean = "";
 				optionalAttributeAsString_(boolean, attributes, s_centroided_);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+					data_processing_.back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 			}
 			else if (tag=="nameValue")
@@ -641,7 +647,7 @@ namespace OpenMS
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value_);
 				
-				exp_->getDataProcessing().back().setMetaValue(name, value);
+				data_processing_.back().setMetaValue(name, value);
 			}
 			
 			//std::cout << " -- !Start -- " << std::endl;
@@ -915,9 +921,9 @@ namespace OpenMS
 			}
 			
 			//----------------------------------------------------------------------------------------
-			//data processing
+			//data processing (the information of the first spectrum is assigned to the whole file)
 			//----------------------------------------------------------------------------------------
-			if (cexp_->getDataProcessing().size()==0)
+			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().size()==0)
 			{
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
@@ -925,9 +931,9 @@ namespace OpenMS
 			}
 			else
 			{
-				for (Size i=0; i<cexp_->getDataProcessing().size(); ++i)
+				for (Size i=0; i<(*cexp_)[0].getDataProcessing().size(); ++i)
 				{
-					const DataProcessing& data_processing = cexp_->getDataProcessing()[i];
+					const DataProcessing& data_processing = (*cexp_)[0].getDataProcessing()[i];
 					os << "\t\t<dataProcessing deisotoped=\""
 						 << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
 						 << "\" chargeDeconvoluted=\""
