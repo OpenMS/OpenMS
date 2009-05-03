@@ -51,6 +51,12 @@ namespace OpenMS
 			typedef EdgeContainer::iterator EdgeIterator;
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
 			
+			enum DFS_COLOR
+			{
+				DFS_WHITE,
+				DFS_GRAY,
+				DFS_BLACK
+			};
 			
 			/// Default Constructor
 			TOPPASVertex();
@@ -89,7 +95,15 @@ namespace OpenMS
 			void removeInEdge(TOPPASEdge* edge);
 			/// Removes an outedge
 			void removeOutEdge(TOPPASEdge* edge);
-
+			/// Returns the DFS color of this node
+			DFS_COLOR getDFSColor();
+			/// Sets the DFS color of this node
+			void setDFSColor(DFS_COLOR color);
+			/// Returns the DFS parent of this node
+			TOPPASVertex* getDFSParent();
+			/// Sets the DFS parent of this node
+			void setDFSParent(TOPPASVertex* parent);
+			
 		signals:
 			
 			/// Emitted when this item is clicked
@@ -119,6 +133,10 @@ namespace OpenMS
 			QColor pen_color_;
 			/// The color of the brush
 			QColor brush_color_;
+			/// The DFS color of this node
+			DFS_COLOR dfs_color_;
+			/// The DFS parent of this node
+			TOPPASVertex* dfs_parent_;
 			
 			///@name reimplemented Qt events
       //@{

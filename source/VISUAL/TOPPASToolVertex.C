@@ -61,5 +61,10 @@ namespace OpenMS
 		
 		return *this;
 	}
+	
+	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		// show toolsdialog
+	}
 }
 

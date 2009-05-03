@@ -96,7 +96,15 @@ namespace OpenMS
 			void finishHoveringEdge();
 			
 		protected:
-		
+			
+			/// Is a hypothetical edge valid or not? Does something have to be configured?
+			enum EdgeValidity
+			{
+				EV_RED,			// not allowed
+				EV_YELLOW,	// allowed, but must be configured first
+				EV_GREEN		// allowed and unambiguous
+			};
+			
 			/// The current action mode
 			ActionMode action_mode_;
 			/// The list of all vertices
@@ -105,6 +113,15 @@ namespace OpenMS
 			EdgeContainer edges_;
 			/// The hovering edge which is currently being created
 			TOPPASEdge* hover_edge_;
+			/// The current potential target vertex of the hovering edge
+			TOPPASVertex* potential_target_;
+			
+			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
+			TOPPASVertex* getVertexAt_(const QPointF& pos);
+			/// Returns if edge (u,v) would be a valid edge if inserted into the graph
+			EdgeValidity getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v);
+			/// DFS helper method. Returns true, if a back edge has been discovered
+			bool dfsVisit_(TOPPASVertex* vertex);
 	};
 
 }

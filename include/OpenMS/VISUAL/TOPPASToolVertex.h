@@ -49,6 +49,15 @@ namespace OpenMS
 			virtual ~TOPPASToolVertex();
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
+			
+		protected:
+		
+			///@name reimplemented Qt events
+      //@{
+      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+			//@}
+			
+			
 	};
 }
 

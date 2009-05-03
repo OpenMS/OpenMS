@@ -34,24 +34,36 @@
 namespace OpenMS
 {	
 	
+	TOPPASEdge::TOPPASEdge()
+		:	QObject(),
+			QGraphicsItem(),
+			from_(0),
+			to_(0),
+			hover_pos_(),
+			color_()
+	{
+		setFlag(QGraphicsItem::ItemIsSelectable, true);
+	}
+	
 	TOPPASEdge::TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos)
 		:	QObject(),
 			QGraphicsItem(),
 			from_(from),
 			to_(0),
-			hover_pos_(hover_pos)
+			hover_pos_(hover_pos),
+			color_()
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
 	
 	TOPPASEdge::TOPPASEdge(const TOPPASEdge& rhs)
 		:	QObject(),
-			QGraphicsItem()
+			QGraphicsItem(),
+			from_(rhs.from_),
+			to_(rhs.to_),
+			hover_pos_(rhs.hover_pos_),
+			color_(rhs.color_)
 	{
-		from_ = rhs.from_;
-		to_ = rhs.to_;
-		hover_pos_ = rhs.hover_pos_;
-		
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
 	
@@ -60,6 +72,7 @@ namespace OpenMS
 		from_ = rhs.from_;
 		to_ = rhs.to_;
 		hover_pos_ = rhs.hover_pos_;
+		color_ = rhs.color_;
 		
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		
@@ -108,7 +121,7 @@ namespace OpenMS
 	{
 		painter->setBrush(Qt::white);
 
-		QPen pen(Qt::black);
+		QPen pen(color_);
 		if (isSelected())
 		{
 			pen.setWidth(2);
@@ -149,7 +162,14 @@ namespace OpenMS
 	
 	QPointF TOPPASEdge::startPos() const
 	{
-		return mapFromScene(from_->scenePos());
+		if (from_)
+		{
+			return mapFromScene(from_->scenePos());
+		}
+		else
+		{
+			return QPointF();
+		}
 	}
 	
 	QPointF TOPPASEdge::endPos() const
@@ -265,6 +285,12 @@ namespace OpenMS
 		
 		return nearest;
 	}
+	
+	void TOPPASEdge::setColor(const QColor& color)
+	{
+		color_ = color;
+	}
+
 
 } //namespace
 

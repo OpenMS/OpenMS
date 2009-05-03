@@ -38,7 +38,9 @@ namespace OpenMS
 			out_edges_(),
 			edge_being_created_(false),
 			pen_color_(),
-			brush_color_()
+			brush_color_(),
+			dfs_color_(DFS_WHITE),
+			dfs_parent_(0)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -53,7 +55,9 @@ namespace OpenMS
 			out_edges_(),
 			edge_being_created_(false),
 			pen_color_(),
-			brush_color_()
+			brush_color_(),
+			dfs_color_(DFS_WHITE),
+			dfs_parent_(0)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -68,7 +72,9 @@ namespace OpenMS
 			out_edges_(rhs.out_edges_),
 			edge_being_created_(rhs.edge_being_created_),
 			pen_color_(rhs.pen_color_),
-			brush_color_(rhs.brush_color_)
+			brush_color_(rhs.brush_color_),
+			dfs_color_(rhs.dfs_color_),
+			dfs_parent_(rhs.dfs_parent_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -95,6 +101,8 @@ namespace OpenMS
 		edge_being_created_ = rhs.edge_being_created_;
 		pen_color_ = rhs.pen_color_;
 		brush_color_ = rhs.brush_color_;
+		dfs_color_ = rhs.dfs_color_;
+		dfs_parent_ = rhs.dfs_parent_;
 		
 		return *this;
 	}
@@ -154,23 +162,27 @@ namespace OpenMS
 	
 	void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	{
-		// selection is handled automagically by Qt
-		QGraphicsItem::mousePressEvent(e);
-		
-		emit clicked();
+		if (!(e->modifiers() & Qt::ControlModifier))
+		{
+			emit clicked();
+		}
 	}
 	
 	void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 	{
-		// selection is handled automagically by Qt
-		QGraphicsItem::mouseReleaseEvent(e);
-		
 		if (edge_being_created_)
 		{
 			emit finishHoveringEdge();
+			edge_being_created_ = false;
 		}
-		
-		edge_being_created_ = false;
+		else if (e->modifiers() & Qt::ControlModifier)
+		{
+			QGraphicsItem::mouseReleaseEvent(e);
+		}
+		else
+		{
+			setSelected(true);
+		}
 	}
 	
 	void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -181,10 +193,10 @@ namespace OpenMS
 	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 	{
 		TOPPASScene* ts = static_cast<TOPPASScene*>(scene());
-		TOPPASScene::ActionMode action_mode = ts->getActionMode();
 		
-		if (action_mode == TOPPASScene::AM_MOVE)
+		if (isSelected())
 		{
+			ts->setActionMode(TOPPASScene::AM_MOVE);
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
 				(*it)->prepareResize();
@@ -197,8 +209,9 @@ namespace OpenMS
 			QPointF delta = e->pos() - e->lastPos();
 			moveBy(delta.x(), delta.y());
 		}
-		else if (action_mode == TOPPASScene::AM_NEW_EDGE)
+		else
 		{
+			ts->setActionMode(TOPPASScene::AM_NEW_EDGE);
 			moveNewEdgeTo_(e->pos());
 		}
 	}
@@ -224,7 +237,7 @@ namespace OpenMS
 		return out_edges_.end();
 	}
 	
-		TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesBegin()
+	TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesBegin()
 	{
 		return in_edges_.begin();
 	}
@@ -246,20 +259,32 @@ namespace OpenMS
 	
 	void TOPPASVertex::removeInEdge(TOPPASEdge* edge)
 	{
-		int index = in_edges_.indexOf(edge);
-		if (index != -1)
-		{
-			in_edges_.removeAt(index);
-		}
+		in_edges_.removeAll(edge);
 	}
 	
 	void TOPPASVertex::removeOutEdge(TOPPASEdge* edge)
 	{
-		int index = out_edges_.indexOf(edge);
-		if (index != -1)
-		{
-			out_edges_.removeAt(index);
-		}
+		out_edges_.removeAll(edge);
 	}
-
+	
+	TOPPASVertex::DFS_COLOR TOPPASVertex::getDFSColor()
+	{
+		return dfs_color_;
+	}
+	
+	void TOPPASVertex::setDFSColor(DFS_COLOR color)
+	{
+		dfs_color_ = color;
+	}
+	
+	TOPPASVertex* TOPPASVertex::getDFSParent()
+	{
+		return dfs_parent_;
+	}
+	
+	void TOPPASVertex::setDFSParent(TOPPASVertex* parent)
+	{
+		dfs_parent_ = parent;
+	}
+	
 }

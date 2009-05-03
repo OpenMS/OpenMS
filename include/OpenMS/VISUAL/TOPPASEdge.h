@@ -43,15 +43,15 @@ namespace OpenMS
 		
 		public:
 			
+			
+			/// Standard constructor
+			TOPPASEdge();
 			/// Constructor
 			TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos);
-			
 			/// Copy constructor
 			TOPPASEdge(const TOPPASEdge& rhs);
-			
 			/// Destructor
 			virtual ~TOPPASEdge();
-			
 			/// Assignment operator
 			TOPPASEdge& operator= (const TOPPASEdge& rhs);
 			
@@ -77,6 +77,8 @@ namespace OpenMS
 			TOPPASVertex* getTargetVertex();
 			/// Call this before changing the item geometry
 			void prepareResize();
+			/// Sets the color
+			void setColor(const QColor& color);
 			
 		protected:
 		
@@ -89,6 +91,8 @@ namespace OpenMS
 			TOPPASVertex* to_;
 			/// Position of hovering end while edge is being created
 			QPointF hover_pos_;
+			/// The color
+			QColor color_;
 	};
 }
 

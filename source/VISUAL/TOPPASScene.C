@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
 namespace OpenMS
@@ -34,10 +35,11 @@ namespace OpenMS
 	
 	TOPPASScene::TOPPASScene()
 		:	QGraphicsScene(),
-			action_mode_(AM_MOVE),
+			action_mode_(AM_NEW_EDGE),
 			vertices_(),
 			edges_(),
-			hover_edge_(0)
+			hover_edge_(0),
+			potential_target_(0)
 	{
 	}
 	
@@ -95,15 +97,12 @@ namespace OpenMS
 		{
 			return;
 		}
-		
-		if (getActionMode() == AM_MOVE)
+		bool was_selected = sender->isSelected();
+		foreach (QGraphicsItem* item, items())
 		{
-			std::cout << "AM_MOVE" << std::endl;
+			item->setSelected(false);
 		}
-		else if (getActionMode() == AM_NEW_EDGE)
-		{
-			std::cout << "AM_NEW_EDGE" << std::endl;
-		}
+		sender->setSelected(was_selected);
 	}
 	
 	void TOPPASScene::itemDoubleClicked()
@@ -119,11 +118,38 @@ namespace OpenMS
 		}
 		
 		hover_edge_->setHoverPos(new_pos);
+		
+		TOPPASVertex* target = getVertexAt_(new_pos);
+		if (target)
+		{
+			if (target != potential_target_)
+			{
+				potential_target_ = target;
+				EdgeValidity ev = getEdgeValidity_(hover_edge_->getSourceVertex(), target);
+				if (ev == EV_GREEN)
+				{
+					hover_edge_->setColor(Qt::green);
+				}
+				else if (ev == EV_YELLOW)
+				{
+					hover_edge_->setColor(Qt::yellow);
+				}
+				else // EV_RED
+				{
+					hover_edge_->setColor(Qt::red);
+				}
+			}
+		}
+		else
+		{
+			hover_edge_->setColor(Qt::black);
+			potential_target_ = 0;
+		}
 	}
 	
 	void TOPPASScene::addHoveringEdge(const QPointF& pos)
 	{
-		TOPPASVertex* sender = dynamic_cast<TOPPASVertex*>(QObject::sender());
+		TOPPASVertex* sender = qobject_cast<TOPPASVertex*>(QObject::sender());
 		if (!sender)
 		{
 			return;
@@ -135,33 +161,47 @@ namespace OpenMS
 	
 	void TOPPASScene::finishHoveringEdge()
 	{
-		QList<QGraphicsItem*> target_list = items(hover_edge_->endPos());
-		bool destroy = true;
+		TOPPASVertex* target = getVertexAt_(hover_edge_->endPos());
 		
-		// if one of the items at this position is a vertex: use it as target of the edge
+		if (target && 
+				target != hover_edge_->getSourceVertex() &&
+				!(getEdgeValidity_(hover_edge_->getSourceVertex(), target) == EV_RED))
+		{
+			hover_edge_->setTargetVertex(target);
+			TOPPASVertex* source = hover_edge_->getSourceVertex();
+			source->addOutEdge(hover_edge_);
+			target->addInEdge(hover_edge_);
+		}
+		else
+		{
+			if (hover_edge_ != 0)
+			{
+				edges_.removeAll(hover_edge_);
+				removeItem(hover_edge_);
+				delete hover_edge_;
+				hover_edge_ = 0;
+			}
+		}
+		
+		update();
+	}
+	
+	TOPPASVertex* TOPPASScene::getVertexAt_(const QPointF& pos)
+	{
+		QList<QGraphicsItem*> target_list = items(pos);
+		
+		// return first item that is a vertex
+		TOPPASVertex* target = 0;
 		for (QList<QGraphicsItem*>::iterator it = target_list.begin(); it != target_list.end(); ++it)
 		{
-			TOPPASVertex* target = dynamic_cast<TOPPASVertex*>(*it);
+			target = dynamic_cast<TOPPASVertex*>(*it);
 			if (target)
 			{
-				hover_edge_->setTargetVertex(target);
-				TOPPASVertex* source = hover_edge_->getSourceVertex();
-				source->addOutEdge(hover_edge_);
-				target->addInEdge(hover_edge_);
-				
-				hover_edge_ = 0;
-				destroy = false;
 				break;
 			}
 		}
 		
-		if (destroy && hover_edge_ != 0)
-		{
-			removeItem(hover_edge_);
-			delete hover_edge_;
-			hover_edge_ = 0;
-		}
-		update();
+		return target;
 	}
 	
 	void TOPPASScene::removeSelected()
@@ -181,34 +221,109 @@ namespace OpenMS
 					(*e_it)->setSelected(true);
 				}
 				vertices_to_be_removed.push_back(*it);
-				// remove from scene
-				removeItem(*it);
 			}
 		}
-		
 		QList<TOPPASEdge*> edges_to_be_removed;
 		for (EdgeIterator it = edgesBegin(); it != edgesEnd(); ++it)
 		{
 			if ((*it)->isSelected())
 			{
 				edges_to_be_removed.push_back(*it);
-				removeItem(*it);
 			}
 		}
-		
+
 		TOPPASEdge* edge;
 		foreach (edge, edges_to_be_removed)
 		{
 			edges_.removeAll(edge);
+			removeItem(edge); // remove from scene 
 			delete edge;
 		}
 		TOPPASVertex* vertex;
 		foreach (vertex, vertices_to_be_removed)
 		{
 			vertices_.removeAll(vertex);
+			removeItem(vertex); // remove from scene
 			delete vertex;
 		}
 	}
+	
+	TOPPASScene::EdgeValidity TOPPASScene::getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v)
+	{
+		if (u == 0 || v == 0 || u == v || qobject_cast<TOPPASInputVertex*>(v))
+		{
+			return EV_RED;
+		}
+		
+		//insert edge between u and v for testing, is removed afterwards
+		TOPPASEdge* test_edge = new TOPPASEdge(u,QPointF());
+		test_edge->setTargetVertex(v);
+		u->addOutEdge(test_edge);
+		v->addInEdge(test_edge);
+		addEdge(test_edge);
+		
+		bool graph_has_cycles = false;
+		//DFS
+		foreach (TOPPASVertex* vertex, vertices_)
+		{
+			vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
+			vertex->setDFSParent(0);
+		}
+		foreach (TOPPASVertex* vertex, vertices_)
+		{
+			if (vertex->getDFSColor() == TOPPASVertex::DFS_WHITE)
+			{
+				graph_has_cycles = dfsVisit_(vertex);
+				if (graph_has_cycles)
+				{
+					break;
+				}
+			}
+		}
+		// remove priorly inserted edge
+		edges_.removeAll(test_edge);
+		removeItem(test_edge);
+		delete test_edge;
+		
+		if (graph_has_cycles)
+		{
+			return EV_RED;
+		}
+		else if (false)
+		{
+			return EV_YELLOW;
+		}
+		else
+		{
+			return EV_GREEN;
+		}
+	}
+	
+	bool TOPPASScene::dfsVisit_(TOPPASVertex* vertex)
+	{
+		vertex->setDFSColor(TOPPASVertex::DFS_GRAY);
+		for (TOPPASVertex::EdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* target = (*it)->getTargetVertex();
+			if (target->getDFSColor() == TOPPASVertex::DFS_WHITE)
+			{
+				target->setDFSParent(vertex);
+				if (dfsVisit_(target))
+				{
+					// back edge found
+					return true;
+				}
+			}
+			else if (target->getDFSColor() == TOPPASVertex::DFS_GRAY)
+			{
+				// back edge found
+				return true;
+			}
+		}
+		vertex->setDFSColor(TOPPASVertex::DFS_BLACK);
+		return false;
+	}
+
 	
 } //namespace OpenMS
 
