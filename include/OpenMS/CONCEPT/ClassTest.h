@@ -236,6 +236,9 @@ namespace OpenMS
       /// List of tmp file names (these will be cleaned up, see #NEW_TMP_FILE)
       extern OPENMS_DLLAPI std::vector<std::string> tmp_file_list;
 
+      /// List of all failed lines for summary at the end of the test
+      extern OPENMS_DLLAPI std::vector<UInt> failed_lines_list;
+
       /// Questionable file tested by #TEST_FILE_EQUAL
       extern OPENMS_DLLAPI std::ifstream infile;
 
@@ -289,6 +292,7 @@ namespace OpenMS
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
                   << ", expected " << expression_2 << std::endl;
+							failed_lines_list.push_back(line);
             }
           }
         }
@@ -319,7 +323,8 @@ namespace OpenMS
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
                   << ", forbidden is " << expression_2 << std::endl;
-            }
+							failed_lines_list.push_back(line);
+						}
           }
         }
 
@@ -421,7 +426,7 @@ int main(int argc, char **argv)																									\
 		TEST::all_tests = false;																															\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "Error: Caught unexpected exception of type '" << e.getName() << "'";	\
+			std__cout << "Error: Caught unexpected OpenMS exception of type '" << e.getName() << "'";	\
 			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))													\
 			{																																										\
 				std__cout << " thrown in line " << e.getLine() << " of file '" << e.getFile() 		\
@@ -438,7 +443,7 @@ int main(int argc, char **argv)																									\
 		TEST::all_tests = false;																															\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "Error: Caught std::exception" << std::endl;														\
+			std__cout << "Error: Caught unexpected std::exception" << std::endl;														\
 			std__cout << " - Message: " << e.what() << std::endl;																\
 		}																																											\
 	}																																												\
@@ -461,9 +466,14 @@ int main(int argc, char **argv)																									\
 	/* check for exit code */																							\
 	if (!TEST::all_tests)																									\
 	{																																			\
-		std__cout << "FAILED";																							\
-		if (TEST::add_message != "") std__cout << " (" << TEST::add_message << ")";	\
-		std__cout << std::endl;																							\
+		std__cout << "FAILED" << std::endl;;																\
+		if (TEST::add_message != "") std__cout << "Message: " << TEST::add_message << std::endl;	\
+		std__cout << "Failed lines: ";																			\
+		for (OpenMS::Size i=0; i<TEST::failed_lines_list.size(); ++i)               \
+		{                                                                   \
+		  std__cout << TEST::failed_lines_list[i] << " ";                   \
+		}																																		\
+		std__cout << std::endl;       																			\
 		return 1;																														\
 	}																																			\
 	else																																	\
@@ -581,14 +591,14 @@ int main(int argc, char **argv)																									\
 		}																																											\
 		else																																									\
 		{																																											\
-			std__cout << ": failed ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl; \
+			std__cout << ": failed" << std::endl;                                               \
 		}																																											\
 	}																																												\
 	/* issue a warning if no tests were performed (unless in destructor)*/									\
 	if (TEST::test_count==0)																																\
 	{																																												\
 		bool destructor = false;																															\
-		for (Size i=0;i!=TEST::test_name.size();++i)																	\
+		for (OpenMS::Size i=0;i!=TEST::test_name.size();++i)																	\
 		{																																											\
 			if (TEST::test_name[i] == '~')																											\
 			{																																										\
@@ -726,6 +736,7 @@ int main(int argc, char **argv)																									\
  			else																																								\
 			{																																										\
 				std__cout << " -  line " << __LINE__ << ": TEST_FILE_EQUAL("<< #filename << ", " << #templatename << "): false (different files: "<< filename << " " << templatename << " )\n"; \
+				TEST::failed_lines_list.push_back(TEST::test_line); \
 			}																																										\
 		}																																											\
 	}
@@ -803,6 +814,7 @@ int main(int argc, char **argv)																									\
 					": TEST_FILE_SIMILAR(" #a "," #b ") ...    -\n";							\
 				std__cout << "message: \n";																			\
 				std__cout << TEST::fuzzy_message;																\
+				TEST::failed_lines_list.push_back(TEST::test_line);                              \
 			}																																	\
 		}																																		\
 	}
@@ -900,6 +912,7 @@ int main(int argc, char **argv)																									\
 				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
 					"): no exception thrown!" << std::endl;									      \
+				TEST::failed_lines_list.push_back(TEST::test_line);                              \
 				break;																													\
 			case 1:																														\
 				std__cout << " +  line " << TEST::test_line <<									\
@@ -911,11 +924,13 @@ int main(int argc, char **argv)																									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
 					"): wrong exception thrown!  \""															\
 									<< TEST::exception_name << "\"" << std::endl;		      \
+				TEST::failed_lines_list.push_back(TEST::test_line);                              \
 				break;																													\
 			case 3:																														\
 				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
 					"): wrong exception thrown!" << std::endl;							      \
+				TEST::failed_lines_list.push_back(TEST::test_line);                              \
 				break;																													\
 			}																																	\
 		}																																		\
@@ -1009,23 +1024,27 @@ int main(int argc, char **argv)																									\
 			case 0:																														\
 					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): no exception thrown!" << std::endl;								\
+						"): no exception thrown!" << std::endl;								      \
+					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 1:																														\
 					std__cout << " +  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): OK" << std::endl;																	\
+						"): OK" << std::endl;																	      \
+					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 2:																														\
 					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): wrong exception thrown!  \"" <<													\
-						TEST::exception_name << "\"" << std::endl;						\
+						TEST::exception_name << "\"" << std::endl;						      \
+					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 3:																														\
 					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): wrong exception thrown!" << std::endl;						\
+						"): wrong exception thrown!" << std::endl;						      \
+					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			case 4:																														\
 					std__cout << " -  line " << TEST::test_line <<								\
@@ -1034,7 +1053,8 @@ int main(int argc, char **argv)																									\
 						TEST::exception_message <<																	\
 						"', expected '" <<																					\
 						(message) <<																								\
-						"'"<< std::endl;																			\
+						"'"<< std::endl;																			      \
+					TEST::failed_lines_list.push_back(TEST::test_line);                            \
 					break;																												\
 			}																																	\
 		}																																		\
@@ -1080,6 +1100,7 @@ int main(int argc, char **argv)																									\
 			std__cout << " -  line " <<  __LINE__ <<													\
 				":  ABORT_IF(" #condition "):  TEST ABORTED" <<									\
 				std::endl;																											\
+			TEST::failed_lines_list.push_back(TEST::test_line);               \
 		}																																		\
 		break;																															\
 	}

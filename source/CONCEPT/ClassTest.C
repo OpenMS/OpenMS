@@ -72,6 +72,7 @@ namespace OpenMS
       std::string fuzzy_message;
       std::string test_name = "";
       std::vector<std::string> tmp_file_list;
+      std::vector<UInt> failed_lines_list;
       StringList whitelist;
     }
 
@@ -257,6 +258,7 @@ namespace OpenMS
             " argument " << number_1_stringified
               << " does not have a floating point type!  Go fix your code!"
               << std::endl;
+					failed_lines_list.push_back(line);
         }
         TEST::test = TEST::test && TEST::this_test;
         if ( TEST::this_test )
@@ -284,6 +286,7 @@ namespace OpenMS
                   << TEST::absdiff_max_allowed << "], relative: "
                   << TEST::ratio << " [" << TEST::ratio_max_allowed
                   << "], message: \"" << TEST::fuzzy_message << "\"" << std::endl;
+              failed_lines_list.push_back(line);
             }
           }
         }
@@ -437,6 +440,7 @@ namespace OpenMS
                 << string_1_stringified << ',' << string_2_stringified
                 << "): got \"" << string_1 << "\", expected \"" << string_2
                 << "\"" << std::endl;
+            failed_lines_list.push_back(line);
           }
         }
       }
@@ -495,8 +499,8 @@ namespace OpenMS
           TEST::printWithPrefix(string_2, TEST::line_num_2_max);
           std__cout << "message: \n";
           std__cout << TEST::fuzzy_message;
+          failed_lines_list.push_back(line);
         }
-        return;
       }
 
       bool
