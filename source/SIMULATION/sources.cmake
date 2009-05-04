@@ -3,7 +3,7 @@ set(directory source/SIMULATION)
 
 ### list all header files of the directory here
 set(sources_list
-DetectibilitySimulation.C
+DetectabilitySimulation.C
 DigestSimulation.C
 ElutionModel.C
 IonizationSimulation.C

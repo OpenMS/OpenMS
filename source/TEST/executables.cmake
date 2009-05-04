@@ -79,7 +79,7 @@ set(metadata_executables_list
 )
 
 set(system_executables_list
-  sStopWatch_test
+  StopWatch_test
   File_test
   FileWatcher_test
 )
@@ -356,7 +356,7 @@ set(simulation_executables_list
   DigestSimulation_test
   PTMSimulation_test
   IonizationSimulation_test
-  DetectebilitySimulation_test
+  DetectabilitySimulation_test
   RTSimulation_test
   RawSignalSimulation_test
   MSSim_test

@@ -3,7 +3,7 @@ set(directory include/OpenMS/SIMULATION)
 
 ### list all header files of the directory here
 set(sources_list_h
-DetectibilitySimulation.h
+DetectabilitySimulation.h
 DigestSimulation.h
 ElutionModel.h
 IonizationSimulation.h
