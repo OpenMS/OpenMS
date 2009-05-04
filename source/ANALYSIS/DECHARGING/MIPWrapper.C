@@ -262,13 +262,6 @@ namespace OpenMS {
 		//----------------------------------------Solving and querying result--------------------------------------
 		//---------------------------------------------------------------------------------------------------------
 
-		/* just out of curiosity, now show the model in lp format on screen */
-		#if 0
-		const char *FileName = "/home/takifugu2/bielow/install/model.lp";
-		SCIP_CALL_EXC(SCIPwriteLP(_scip, FileName));
-		#endif
-
-
 		/* Now let MIP calculate a solution */
 		// Pass to solver
 		CbcModel model(solver);

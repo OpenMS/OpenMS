@@ -112,7 +112,7 @@ namespace OpenMS
           }
           EmpiricalFormula ef(adduct_formula);
           Adduct a(charge, 1, ef.getMonoWeight(), ef.getString(), log(prob));
-          std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << charge << ", pr:" << prob << "]\n";
+          //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << charge << ", pr:" << prob << "]\n";
           potential_adducts_.push_back(a);
         }
       }

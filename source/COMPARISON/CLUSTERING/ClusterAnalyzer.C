@@ -484,7 +484,7 @@ namespace OpenMS
 				av_dist += original.getValue(i,j);
 			}
 		}
-		av_dist /= (((Real)original.dimensionsize()*(Real)(original.dimensionsize()-1.0))/2.0);
+		av_dist /= (((Real)original.dimensionsize()*(Real)(original.dimensionsize()-1.0))/2.0f);
 
 		std::vector< Real > cohesions;
 		cohesions.reserve(clusters.size());
@@ -499,7 +499,7 @@ namespace OpenMS
 				}
 			}
 
-			av_c_dist /= (((Real)clusters[i].size()*(Real)(clusters[i].size()-1.0))/2.0); //now av. intra cluster distance
+			av_c_dist /= (((Real)clusters[i].size()*(Real)(clusters[i].size()-1.0))/2.0f); //now av. intra cluster distance
 			if(clusters[i].size()==1)
 			{
 				av_c_dist = av_dist;
