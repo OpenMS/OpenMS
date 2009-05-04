@@ -68,7 +68,7 @@ XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
-AnalysisXMLFile.h
+MzIdentMLFile.h
 )
 
 ### add path to the filenames

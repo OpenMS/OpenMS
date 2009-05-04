@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		OpenMS can only read parts of the protein_summary subtree to extract protein-peptide associations. All other parts are silently ignored.
 
-  	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
+  	@note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML) AnalysisXML formats!
   	
   	@ingroup FileIO
   */

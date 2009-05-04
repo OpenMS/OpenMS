@@ -80,7 +80,7 @@ namespace OpenMS
 			
     if (tag_ == "CvMappingRule")
     {
-			// id="R1" cvElementPath="/psi-pi:AnalysisXML/psi-pi:AnalysisSoftwareList/psi-pi:AnalysisSoftware/pf:ContactRole/pf:role/pf:cvParam" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR
+			// id="R1" cvElementPath="/psi-pi:MzIdentML/psi-pi:AnalysisSoftwareList/psi-pi:AnalysisSoftware/pf:ContactRole/pf:role/pf:cvParam" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR
 			actual_rule_.setIdentifier(attributeAsString_(attributes, "id"));
 			String element_path = attributeAsString_(attributes, "cvElementPath");
 			if (strip_namespaces_)

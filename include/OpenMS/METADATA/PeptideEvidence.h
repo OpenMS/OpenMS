@@ -39,7 +39,7 @@ namespace OpenMS
 	class AASequence;
 
   /**
-    @brief Representation of a AnalysisXML PeptideEvidence
+    @brief Representation of a MzIdentML PeptideEvidence
     
 		It contains information about the protein the peptide comes from
 		and additional information were it is located in the protein.

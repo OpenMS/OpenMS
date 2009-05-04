@@ -25,39 +25,39 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/AnalysisXMLValidator.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
 
-	AnalysisXMLFile::AnalysisXMLFile()
+	MzIdentMLFile::MzIdentMLFile()
 		: XMLFile("/SCHEMAS/analysisXML_1_0.xsd","1.10")
 	{
 	}
 
-	AnalysisXMLFile::~AnalysisXMLFile()
+	MzIdentMLFile::~MzIdentMLFile()
 	{
 	}
 
-  void AnalysisXMLFile::load(const String& filename, Identification& id)
+  void MzIdentMLFile::load(const String& filename, Identification& id)
   {
-  	Internal::AnalysisXMLHandler handler(id, filename, schema_version_, *this);
+  	Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
     parse_(filename, &handler);
   }
 
-  void AnalysisXMLFile::store(const String& filename, const Identification& id) const
+  void MzIdentMLFile::store(const String& filename, const Identification& id) const
   {
-  	Internal::AnalysisXMLHandler handler(id, filename, schema_version_, *this);
+  	Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
     save_(filename, &handler);
   }
 
-	bool AnalysisXMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
+	bool MzIdentMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
 	{
 		//load mapping
 		CVMappings mapping;
@@ -72,7 +72,7 @@ namespace OpenMS
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 		
 		//validate
-		Internal::AnalysisXMLValidator v(mapping, cv);
+		Internal::MzIdentMLValidator v(mapping, cv);
 		bool result = v.validate(filename, errors, warnings);
 		
 		return result;

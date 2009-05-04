@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/VALIDATORS/AnalysisXMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 
 using namespace xercesc;
 using namespace std;
@@ -34,20 +34,20 @@ namespace OpenMS
 {
   namespace Internal
   {
-		AnalysisXMLValidator::AnalysisXMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
+		MzIdentMLValidator::MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
 			: SemanticValidator(mapping, cv)
 		{
 			setCheckUnits(true);
 		}
 		
-		AnalysisXMLValidator::~AnalysisXMLValidator()
+		MzIdentMLValidator::~MzIdentMLValidator()
 		{
 		}
 		
 		//This method needed to be reimplemented to
 		// - check CV term values
 		// - handle referenceableParamGroups
-	  void AnalysisXMLValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+	  void MzIdentMLValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	  {
 	    String tag = sm_.convert(qname);
 	    String parent_tag;
@@ -99,7 +99,7 @@ namespace OpenMS
 	  }
 		
 		//reimplemented in order to remove the "indexmzML" tag from the front (if present)
-		String AnalysisXMLValidator::getPath_(UInt remove_from_end) const
+		String MzIdentMLValidator::getPath_(UInt remove_from_end) const
 		{
 			String path;
 			if (open_tags_.size()!=0 && open_tags_.front()=="indexedmzML")
@@ -115,7 +115,7 @@ namespace OpenMS
 		}
 		
 		//reimplemented to catch non-PSI CVs
-		void AnalysisXMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
+		void MzIdentMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
 		{
 			//some CVs cannot be validates because they use 'part_of' which spoils the inheritance
 			if (parsed_term.accession.hasPrefix("GO:")) return;

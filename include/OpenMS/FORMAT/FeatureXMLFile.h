@@ -42,7 +42,7 @@ namespace OpenMS
 
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-  	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
+  	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML (mzIdentML and mzQuantML) formats!
 
   	@ingroup FileIO
   */

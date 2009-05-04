@@ -47,7 +47,7 @@ UnimodXMLFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C
-AnalysisXMLFile.C
+MzIdentMLFile.C
 )
 
 if (USE_ANDIMS) 	 

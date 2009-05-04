@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_ANALYSISXMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_ANALYSISXMLVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_MZIDENTMLVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_MZIDENTMLVALIDATOR_H
 
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
@@ -42,7 +42,7 @@ namespace OpenMS
 	  /**
 	    @brief Semantically validates MzXML files.
 	  */
-	  class OPENMS_DLLAPI AnalysisXMLValidator
+	  class OPENMS_DLLAPI MzIdentMLValidator
 			: public SemanticValidator
 	  {
 	    public:
@@ -52,10 +52,10 @@ namespace OpenMS
 					@param mapping The mapping rules
 					@param cv @em All controlled vocabularies required for the mapping 
 				*/
-	      AnalysisXMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
+	      MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
 				
 				/// Destructor
-				virtual ~AnalysisXMLValidator();
+				virtual ~MzIdentMLValidator();
 				
 			protected:
 				
@@ -77,13 +77,13 @@ namespace OpenMS
 			private:
 				
 				/// Not implemented
-				AnalysisXMLValidator();
+				MzIdentMLValidator();
 				
 				/// Not implemented
-				AnalysisXMLValidator(const AnalysisXMLValidator& rhs);
+				MzIdentMLValidator(const MzIdentMLValidator& rhs);
 	
 				/// Not implemented
-				AnalysisXMLValidator& operator = (const AnalysisXMLValidator& rhs);
+				MzIdentMLValidator& operator = (const MzIdentMLValidator& rhs);
 	
 	  };
  

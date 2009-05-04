@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_ANALYSISXMLFILE_H
-#define OPENMS_FORMAT_ANALYSISXMLFILE_H
+#ifndef OPENMS_FORMAT_MZIDENTMLFILE_H
+#define OPENMS_FORMAT_MZIDENTMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -37,24 +37,24 @@ namespace OpenMS
 	class StringList;
 
 	/**
-		@brief File adapter for AnalysisXML files
+		@brief File adapter for MzIdentML files
 
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
 		@ingroup FileIO
 	*/
-	class OPENMS_DLLAPI AnalysisXMLFile
+	class OPENMS_DLLAPI MzIdentMLFile
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
 		public:
 			///Default constructor
-			AnalysisXMLFile();
+			MzIdentMLFile();
 			///Destructor
-			virtual ~AnalysisXMLFile();
+			virtual ~MzIdentMLFile();
 
 			/**
-				@brief Loads a map from a AnalysisXML file.
+				@brief Loads a map from a MzIdentML file.
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
@@ -62,7 +62,7 @@ namespace OpenMS
 			void load(const String& filename, Identification& id);
 
 			/**
-				@brief Stores a map in a AnalysisXML file.
+				@brief Stores a map in a MzIdentML file.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/

@@ -7,7 +7,7 @@ XMLValidator.h
 MzMLValidator.h
 MzDataValidator.h
 SemanticValidator.h
-AnalysisXMLValidator.h
+MzIdentMLValidator.h
 )
 
 ### add path to the filenames

@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
@@ -33,7 +33,7 @@ namespace OpenMS
 	namespace Internal
 	{
 
-  AnalysisXMLHandler::AnalysisXMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
+  MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
 		: XMLHandler(filename, version),
     	logger_(logger),
 			id_(0),
@@ -42,7 +42,7 @@ namespace OpenMS
   	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
   }
 
-  AnalysisXMLHandler::AnalysisXMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
+  MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
 		: XMLHandler(filename, version),
     	logger_(logger),
 			id_(&id),
@@ -51,14 +51,14 @@ namespace OpenMS
   	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
   }	
 
-	AnalysisXMLHandler::~AnalysisXMLHandler()
+	MzIdentMLHandler::~MzIdentMLHandler()
 	{
 	}
 
-	void AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		tag_ = sm_.convert(qname);
-		if (tag_ == "AnalysisXML")
+		if (tag_ == "MzIdentML")
 		{
 			// TODO handle version
 			return;
@@ -137,7 +137,7 @@ namespace OpenMS
 
 	}
 
-	void AnalysisXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+	void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 	{
 		if (tag_ == "Customizations")
 		{
@@ -163,7 +163,7 @@ namespace OpenMS
 		// TODO any more?
 	}
 
-	void AnalysisXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		tag_ = sm_.convert(qname);
 		if (tag_ == "DataCollection")
@@ -199,7 +199,7 @@ namespace OpenMS
 		}
 	}
 	
-	void AnalysisXMLHandler::writeTo(std::ostream& /*os*/)
+	void MzIdentMLHandler::writeTo(std::ostream& /*os*/)
 	{
 		// TODO
 	}

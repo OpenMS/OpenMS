@@ -27,51 +27,37 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
+#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+
 ///////////////////////////
 
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+START_TEST(MzIdentMLValidator, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
 
-START_TEST(AnalysisXMLFile, "$Id")
+CVMappings mapping;
+ControlledVocabulary cv;
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-
-AnalysisXMLFile* ptr = 0;
-START_SECTION((AnalysisXMLFile()))
-	ptr = new AnalysisXMLFile;
+SemanticValidator* ptr = 0;
+START_SECTION((MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
+	ptr = new MzIdentMLValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((~AnalysisXMLFile()))
+START_SECTION((virtual ~MzIdentMLValidator()))
 	delete ptr;
-END_SECTION
-
-START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
-	AnalysisXMLFile file;
-	// TODO
-END_SECTION
-
-START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
-	AnalysisXMLFile file;
-
-	// TODO
-END_SECTION
-
-START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
-  AnalysisXMLFile file;
-	// TODO
-END_SECTION
-
-START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
-	// TODO
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+
 

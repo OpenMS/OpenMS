@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -42,24 +42,24 @@ namespace OpenMS
 	{
 
 		/**
-			@brief XML handler for AnalysisXMLFile
+			@brief XML handler for MzIdentMLFile
 			
-			@note Do not use this class. It is only needed in AnalysisXMLFile.
+			@note Do not use this class. It is only needed in MzIdentMLFile.
 		*/
-		class OPENMS_DLLAPI AnalysisXMLHandler
+		class OPENMS_DLLAPI MzIdentMLHandler
 			: public XMLHandler
 		{
 		 public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      AnalysisXMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler
-      AnalysisXMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~AnalysisXMLHandler();
+      virtual ~MzIdentMLHandler();
       //@}
 
 
@@ -111,9 +111,9 @@ namespace OpenMS
 
 			private:
 
-				AnalysisXMLHandler();
-				AnalysisXMLHandler(const AnalysisXMLHandler& rhs);
-				AnalysisXMLHandler& operator = (const AnalysisXMLHandler& rhs);
+				MzIdentMLHandler();
+				MzIdentMLHandler(const MzIdentMLHandler& rhs);
+				MzIdentMLHandler& operator = (const MzIdentMLHandler& rhs);
 				Map<String, AASequence> pep_sequences_;
 		};
 	} // namespace Internal
