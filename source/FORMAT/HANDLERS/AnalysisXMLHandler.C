@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
@@ -62,6 +62,23 @@ namespace OpenMS
 		{
 			// TODO handle version
 			return;
+		}
+
+		if (tag_ == "Peptide")
+		{
+			// start new peptide
+
+			// <Peptide id="peptide_1_1" sequenceMass="1341.72522" sequenceLength="12">
+      //   <Modification location="0" residues="R" monoisotopicMassDelta="127.063324">
+      //     <pf:cvParam accession="UNIMOD:29" name="SMA" cvRef="UNIMOD" />
+      //   </Modification>
+      //   <peptideSequence>DAGTISGLNVLR</peptideSequence>
+    	// </Peptide>
+		}
+
+		if (tag_ == "Modification")
+		{
+			
 		}
 
 		if (tag_ == "SpectrumIdentificationList")
@@ -139,7 +156,7 @@ namespace OpenMS
 		if (tag_ == "peptideSequence")
 		{
 			String pep = sm_.convert(chars);
-			// TODO write to actual peptide
+			//pep_sequences_[current] = current_sequence_;
 			return;
 		}
 

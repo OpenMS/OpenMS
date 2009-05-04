@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/METADATA/IdentificationHit.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
 {
@@ -113,6 +114,7 @@ namespace OpenMS
 				AnalysisXMLHandler();
 				AnalysisXMLHandler(const AnalysisXMLHandler& rhs);
 				AnalysisXMLHandler& operator = (const AnalysisXMLHandler& rhs);
+				Map<String, AASequence> pep_sequences_;
 		};
 	} // namespace Internal
 } // namespace OpenMS
