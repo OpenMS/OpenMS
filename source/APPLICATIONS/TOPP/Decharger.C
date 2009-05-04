@@ -44,7 +44,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page Decharger Decharger
+   @page TOPP_Decharger Decharger
 
    @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
 

@@ -8,6 +8,9 @@ set(CTEST_PROJECT_NAME "OpenMS")
 set(CTEST_NIGHTLY_START_TIME "00:00:00 UTC")
 
 set(CTEST_DROP_METHOD "http")
-set(CTEST_DROP_SITE "www.cdash.org")
-set(CTEST_DROP_LOCATION "/CDashPublic/submit.php?project=OpenMS")
+set(CTEST_DROP_SITE "www-bs3.informatik.uni-tuebingen.de")
+set(CTEST_DROP_LOCATION "/OpenMS/CDash/submit.php?project=OpenMS")
 set(CTEST_DROP_SITE_CDASH TRUE)
+
+
+http://index.php?project=OpenMS
