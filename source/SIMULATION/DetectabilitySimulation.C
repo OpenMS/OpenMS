@@ -25,7 +25,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 
@@ -39,30 +39,30 @@ using std::endl;
 
 namespace OpenMS {
 
-  DetectibilitySimulation::DetectibilitySimulation()
-    : DefaultParamHandler("DetectibilitySimulation")
+  DetectabilitySimulation::DetectabilitySimulation()
+    : DefaultParamHandler("DetectabilitySimulation")
   {
     setDefaultParams_();
   }
 
-  DetectibilitySimulation::DetectibilitySimulation(const DetectibilitySimulation& source)
+  DetectabilitySimulation::DetectabilitySimulation(const DetectabilitySimulation& source)
     : DefaultParamHandler(source)
   {
     setParameters( source.getParameters() );
     updateMembers_(); 
   }
 
-  DetectibilitySimulation& DetectibilitySimulation::operator = (const DetectibilitySimulation& source)
+  DetectabilitySimulation& DetectabilitySimulation::operator = (const DetectabilitySimulation& source)
   {
     setParameters( source.getParameters() );
     updateMembers_();
     return *this;
   }
   
-  DetectibilitySimulation::~DetectibilitySimulation()
+  DetectabilitySimulation::~DetectabilitySimulation()
   {}
   
-  void DetectibilitySimulation::filterDetectibility(FeatureMapSim & features)
+  void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
   {
     Int is_filter_active = param_.getValue("dt_simulation_on");
     if(is_filter_active == 1)
@@ -75,7 +75,7 @@ namespace OpenMS {
     }
   }
   
-  void DetectibilitySimulation::no_filter(FeatureMapSim & features)
+  void DetectabilitySimulation::no_filter(FeatureMapSim & features)
   {  
     // set detectibility to 1.0 for all given peptides
     for(FeatureMapSim::iterator feature_it = features.begin();
@@ -87,7 +87,7 @@ namespace OpenMS {
     }     
   }
     
-  void DetectibilitySimulation::svm_filter(FeatureMapSim & features)
+  void DetectabilitySimulation::svm_filter(FeatureMapSim & features)
   {
     
     // The support vector machine
@@ -212,7 +212,7 @@ namespace OpenMS {
     features.swap(tempCopy);
   }
 
-  void DetectibilitySimulation::setDefaultParams_() 
+  void DetectabilitySimulation::setDefaultParams_() 
   {
     defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
     defaults_.setValue("dt_model_file","<file>","SVM model for peptide detectability prediction");
@@ -220,7 +220,7 @@ namespace OpenMS {
     defaultsToParam_();
   }
   
-  void DetectibilitySimulation::updateMembers_()
+  void DetectabilitySimulation::updateMembers_()
   {
     min_detect_ = param_.getValue("min_detect");
     dtModelFile_ = param_.getValue("dt_model_file");

@@ -28,39 +28,39 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DetectibilitySimulation, "$Id$")
+START_TEST(DetectabilitySimulation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DetectibilitySimulation* ptr = 0;
-START_SECTION(DetectibilitySimulation())
+DetectabilitySimulation* ptr = 0;
+START_SECTION(DetectabilitySimulation())
 {
-	ptr = new DetectibilitySimulation();
+	ptr = new DetectabilitySimulation();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(~DetectibilitySimulation())
+START_SECTION(DetectabilitySimulation())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((DetectibilitySimulation(const DetectibilitySimulation &source)))
+START_SECTION((DetectabilitySimulation(const DetectabilitySimulation &source)))
 {
-  DetectibilitySimulation source;
+  DetectabilitySimulation source;
   Param p = source.getParameters();
   p.setValue("min_detect",0.0);
   source.setParameters(p);
   
-  DetectibilitySimulation target(source);
+  DetectabilitySimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
@@ -71,10 +71,10 @@ START_SECTION((virtual ~IonizationSimulation()))
 }
 END_SECTION
 
-START_SECTION((DetectibilitySimulation& operator=(const DetectibilitySimulation &source)))
+START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation &source)))
 {
-  DetectibilitySimulation detect_sim1;
-  DetectibilitySimulation detect_sim2(detect_sim1);
+  DetectabilitySimulation detect_sim1;
+  DetectabilitySimulation detect_sim2(detect_sim1);
   
 	Param p = detect_sim1.getParameters();
 	p.setValue("min_detect", 0.0);
@@ -85,10 +85,10 @@ START_SECTION((DetectibilitySimulation& operator=(const DetectibilitySimulation 
 }
 END_SECTION
 
-START_SECTION((void filterDetectebility(FeatureMapSim &)))
+START_SECTION((void filterDetectability(FeatureMapSim &)))
 {
   // test no detect
-  DetectibilitySimulation detect_off;
+  DetectabilitySimulation detect_off;
   Param p = detect_off.getParameters();
   p.setValue("dt_simulation_on",0);
   p.setValue("min_detect", 0.9);
@@ -106,7 +106,7 @@ START_SECTION((void filterDetectebility(FeatureMapSim &)))
 		no_detect_features.push_back(f);
 	}
   
-  detect_off.filterDetectibility(no_detect_features);
+  detect_off.filterDetectability(no_detect_features);
   
   TEST_EQUAL(no_detect_features.size(), 4)
   for(Size i = 0 ; i < no_detect_features.size() ; ++i) 
@@ -115,7 +115,7 @@ START_SECTION((void filterDetectebility(FeatureMapSim &)))
   }
   
   // test svm
-  DetectibilitySimulation detect_svm;
+  DetectabilitySimulation detect_svm;
   Param svm_params = detect_svm.getParameters();
   svm_params.setValue("dt_simulation_on",1);
   svm_params.setValue("min_detect", 0.4);
@@ -133,7 +133,7 @@ START_SECTION((void filterDetectebility(FeatureMapSim &)))
 		svm_features.push_back(f);
 	}
 
-  detect_svm.filterDetectibility(svm_features);
+  detect_svm.filterDetectability(svm_features);
   
   TEST_EQUAL(svm_features.size(), 2)
   TEST_EQUAL(svm_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")

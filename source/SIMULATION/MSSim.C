@@ -28,7 +28,7 @@
 #include<OpenMS/SIMULATION/MSSim.h>
 
 #include<OpenMS/SIMULATION/DigestSimulation.h>
-#include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawSignalSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/SIMULATION/PTMSimulation.h>
@@ -121,9 +121,9 @@ namespace OpenMS {
 		rt_sim.predict_rt(features_);
        
 		// Detectability prediction
-		DetectibilitySimulation dt_sim;
+		DetectabilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
-		dt_sim.filterDetectibility(features_);
+		dt_sim.filterDetectability(features_);
     
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
@@ -192,7 +192,7 @@ namespace OpenMS {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectibilitySimulation:",DetectibilitySimulation().getDefaults());
+    defaults_.insert("PeptideDetectibilitySimulation:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawSignalSimulation(NULL).getDefaults());
     

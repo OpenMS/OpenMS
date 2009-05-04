@@ -121,7 +121,7 @@
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 #include<OpenMS/SIMULATION/PTMSimulation.h>
 #include<OpenMS/SIMULATION/IonizationSimulation.h>
-#include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include<OpenMS/SIMULATION/RawSignalSimulation.h>
 #include<OpenMS/SIMULATION/MSSim.h>
 
@@ -287,7 +287,7 @@ int main (int argc , char** argv)
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
 	DOCME(DelaunayPairFinder);
-  DOCME(DetectibilitySimulation);
+  DOCME(DetectabilitySimulation);
 	DOCME(DigestSimulation);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);

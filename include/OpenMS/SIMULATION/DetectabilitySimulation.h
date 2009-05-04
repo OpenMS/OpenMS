@@ -43,7 +43,7 @@ namespace OpenMS
    
    @ingroup Simulation
   */
-  class OPENMS_DLLAPI DetectibilitySimulation
+  class OPENMS_DLLAPI DetectabilitySimulation
     : public DefaultParamHandler
   {
 
@@ -52,17 +52,17 @@ namespace OpenMS
       */
     //@{
     /// Constructor taking a random generator
-    DetectibilitySimulation();
+    DetectabilitySimulation();
 
     /// Copy constructor
-    DetectibilitySimulation(const DetectibilitySimulation& source);
+    DetectabilitySimulation(const DetectabilitySimulation& source);
 
     /// Destructor
-    virtual ~DetectibilitySimulation();
+    virtual ~DetectabilitySimulation();
     //@}
 
     /// Assignment operator
-    DetectibilitySimulation& operator = (const DetectibilitySimulation& source);
+    DetectabilitySimulation& operator = (const DetectabilitySimulation& source);
     
     /**
      @brief Filters the given peptide features for detectibility
@@ -72,7 +72,7 @@ namespace OpenMS
      
      @param features Feature map that will be filtered for detectibility
      */
-    void filterDetectibility(FeatureMapSim & features);
+    void filterDetectability(FeatureMapSim & features);
     
   private:
     /// Set default parameters
