@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: $
+// $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_TOPPASINPUTVERTEX_H

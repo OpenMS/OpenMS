@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Stephan Aiche Chris Bielow$
+// $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SIMULATION_PTMSIMULATION_H

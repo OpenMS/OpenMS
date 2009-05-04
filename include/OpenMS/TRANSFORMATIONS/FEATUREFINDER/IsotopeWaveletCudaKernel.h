@@ -36,8 +36,6 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-using namespace std;
-
 namespace OpenMS
 {
 	int checkCUDAError(const char *msg);
