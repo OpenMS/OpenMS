@@ -29,11 +29,10 @@
 #define OPENMS_SIMULATION_DETECTIBILITYSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-namespace OpenMS {
-
+namespace OpenMS
+{
   /**
    @brief 
    @ingroup Simulation

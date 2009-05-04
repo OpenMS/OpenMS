@@ -29,14 +29,14 @@
 #define OPENMS_FORMAT_HANDLERS_MZMLHANDLER_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
 #include <iostream>

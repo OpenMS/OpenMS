@@ -26,8 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QtGui/QToolBar>
 #include <QtCore/QString>
 #include <QtGui/QFileDialog>

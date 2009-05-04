@@ -29,7 +29,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {

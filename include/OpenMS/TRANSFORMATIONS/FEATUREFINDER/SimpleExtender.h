@@ -30,7 +30,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <queue>
 #include <iostream>

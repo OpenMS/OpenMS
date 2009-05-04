@@ -29,12 +29,9 @@
 #ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTIONPREPROCESSING_H
 #define OPENMS_ANALYSIS_ID_PRECURSORIONSELECTIONPREPROCESSING_H
 
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <algorithm>
 #include <cmath>

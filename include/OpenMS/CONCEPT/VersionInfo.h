@@ -28,7 +28,7 @@
 #ifndef OPENMS_CONCEPT_VERSIONINFO_H
 #define OPENMS_CONCEPT_VERSIONINFO_H
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include<OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

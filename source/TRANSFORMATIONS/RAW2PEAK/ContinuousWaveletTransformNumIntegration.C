@@ -27,7 +27,6 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {

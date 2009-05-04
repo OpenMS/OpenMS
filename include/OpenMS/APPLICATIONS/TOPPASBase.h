@@ -30,8 +30,6 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-#include <OpenMS/VISUAL/TOPPASWidget.h>
 
 //QT
 #include <QtGui/QMainWindow>
@@ -48,7 +46,10 @@ class QLabel;
 class QWidget;
 
 namespace OpenMS
-{	
+{
+	class TOPPASWidget;
+	class EnhancedTabBar;
+
   /**
   	@brief Main window of TOPPAS tool
   

@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 	
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 
 using namespace OpenMS;

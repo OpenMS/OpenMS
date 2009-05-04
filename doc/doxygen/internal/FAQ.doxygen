@@ -451,7 +451,7 @@ svn propset svn:eol-style native MyClass.C
 					<OL>
 						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and %OpenMS.
 						<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
-						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
+						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_OPENMS_PACKAGE_VERSION variable)
 						<LI> Run cmake
 						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'EXAMPLES_exec')
 						<LI> Commit the changes to the SVN repository

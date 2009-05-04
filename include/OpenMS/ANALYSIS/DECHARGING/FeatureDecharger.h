@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_DECHARGING_FEATUREDECHARGER_H
 
 // OpenMS
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>

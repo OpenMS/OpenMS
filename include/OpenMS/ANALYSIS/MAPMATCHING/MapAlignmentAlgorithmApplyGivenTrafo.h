@@ -30,7 +30,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {

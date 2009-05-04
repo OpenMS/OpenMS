@@ -29,7 +29,6 @@
 #define OPENMS_CHEMISTRY_EDWARDSLIPPERTITERATOR_H
 
 #include <OpenMS/CHEMISTRY/PepIterator.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS {
 /**

@@ -28,11 +28,12 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISMODELGENERATOR_H
 #define OPENMS_ANALYSIS_ID_PILISMODELGENERATOR_H
 
-#include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS 
 {
+	class HiddenMarkovModel;
+
 	/** 
 	  @brief This class implements the simulation of the spectra from PILIS
 

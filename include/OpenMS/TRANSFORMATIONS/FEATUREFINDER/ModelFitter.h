@@ -34,11 +34,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 #include <iostream>

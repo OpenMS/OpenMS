@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 

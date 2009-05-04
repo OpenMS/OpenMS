@@ -31,8 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <iostream>
 #include <time.h>
 #include <algorithm>

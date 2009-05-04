@@ -34,7 +34,6 @@
 #include <QtCore/QFile>
 #include <QtNetwork/QHttpRequestHeader>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {

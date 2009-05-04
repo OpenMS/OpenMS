@@ -29,8 +29,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <gsl/gsl_rng.h> // gsl random number generators
 #include <gsl/gsl_randist.h> // gsl random number distributions

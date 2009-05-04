@@ -29,13 +29,15 @@
 #ifndef OPENMS_VISUAL_TOPPASWIDGET_H
 #define OPENMS_VISUAL_TOPPASWIDGET_H
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtGui/QGraphicsView>
 
 namespace OpenMS
 {
+	class TOPPASScene;
+	class Param;
+
   /**
   	@brief Widget visualizing and allowing to edit TOPP pipelines.
   */

@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 namespace OpenMS
 {

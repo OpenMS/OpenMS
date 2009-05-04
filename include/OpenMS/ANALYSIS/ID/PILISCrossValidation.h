@@ -28,7 +28,6 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISCROSSVALIDATION_H
 #define OPENMS_ANALYSIS_ID_PILISCROSSVALIDATION_H
 
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <iostream>
@@ -37,6 +36,7 @@
 namespace OpenMS
 {
 	class PeakSpectrumCompareFunctor;
+	class PILISModel;
 
 	class PILISCrossValidation : public DefaultParamHandler
 	{

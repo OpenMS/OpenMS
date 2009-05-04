@@ -29,7 +29,6 @@
 #define OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <vector>

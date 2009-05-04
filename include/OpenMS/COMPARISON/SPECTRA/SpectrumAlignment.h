@@ -28,15 +28,12 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-//#include <cmath>
-//#include <limits>
-//#include <map>
 
 #include <vector>
 #include <map>
 #include <utility>
+#include <algorithm>
 
 #define ALIGNMENT_DEBUG
 #undef  ALIGNMENT_DEBUG
@@ -255,7 +252,7 @@ namespace OpenMS
 				j = new_j;
 			}
 	
-			reverse(alignment.begin(), alignment.end());
+			std::reverse(alignment.begin(), alignment.end());
 	
 #ifdef ALIGNMENT_DEBUG
 #if 0

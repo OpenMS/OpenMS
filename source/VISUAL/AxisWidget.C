@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 

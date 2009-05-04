@@ -31,8 +31,6 @@
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TheoreticalSpectrumGenerationDialog.h>
 
-#include <OpenMS/VISUAL/SpectrumWidget.h>
-
 namespace OpenMS 
 {
 	/**

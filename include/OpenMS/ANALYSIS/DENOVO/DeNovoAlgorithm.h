@@ -33,6 +33,8 @@
 
 namespace OpenMS
 {
+	class PeptideIdentification;
+
   /**
     @brief Base class for ion scoring implementation for de novo algorithms
 

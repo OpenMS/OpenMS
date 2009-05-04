@@ -85,8 +85,8 @@ What do we do in the current implementation?
 */
 
 //OpenMS includes
-#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
+#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/Digestion.h>

@@ -29,8 +29,6 @@
 #define OPENMS_VISUAL_TOPPASVERTEX_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -39,6 +37,8 @@
 
 namespace OpenMS
 {
+	class TOPPASEdge;
+
 	class OPENMS_DLLAPI TOPPASVertex
 		: public QObject,
 			public QGraphicsItem

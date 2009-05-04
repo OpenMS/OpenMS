@@ -31,7 +31,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <vector>

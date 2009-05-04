@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_TOPPASSCENE_H
 #define OPENMS_VISUAL_TOPPASSCENE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 #include <QtGui/QGraphicsScene>
 

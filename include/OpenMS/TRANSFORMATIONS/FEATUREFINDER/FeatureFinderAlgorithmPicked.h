@@ -33,10 +33,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <numeric>
 #include <fstream>

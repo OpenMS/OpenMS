@@ -30,6 +30,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 

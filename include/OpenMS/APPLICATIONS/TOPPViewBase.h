@@ -29,12 +29,10 @@
 #define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
 //OpenMS
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 //STL
 #include <map>
@@ -58,6 +56,7 @@ class QCloseEvent;
 class QTextEdit;
 class QCheckBox;
 class QSplashScreen;
+class QWorkspace;
 
 namespace OpenMS
 {
@@ -67,6 +66,7 @@ namespace OpenMS
   class Spectrum3DWidget;
   class ToolsDialog;
   class DBConnection;
+  class EnhancedTabBar;
 
   /**
     @brief Main window of TOPPView tool

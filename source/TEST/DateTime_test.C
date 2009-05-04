@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <iostream>
 #include <vector>
 

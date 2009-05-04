@@ -28,9 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMMRM_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 

@@ -27,6 +27,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtCore/QString>
 #include <QtGui/QProgressDialog>

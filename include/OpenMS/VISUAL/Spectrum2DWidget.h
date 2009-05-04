@@ -30,7 +30,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 
 class QGroupBox;
@@ -39,7 +38,7 @@ class QCheckBox;
 
 namespace OpenMS
 {
-	class Spectrum2DCanvas;
+	class Spectrum1DWidget;
 	
 	/**
 		@brief Widget for 2D-visualization of peak map and feature map data

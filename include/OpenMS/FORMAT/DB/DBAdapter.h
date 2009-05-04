@@ -32,7 +32,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
 
 //QT includes
 #include <QtSql/QSqlQuery>
@@ -44,7 +43,9 @@
 #include <map>
 
 namespace OpenMS
-{	
+{
+	class DBConnection;
+
   /** 
   	@brief A class for accessing and storing data in a SQL database
   	

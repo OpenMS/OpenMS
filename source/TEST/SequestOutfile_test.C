@@ -28,6 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;

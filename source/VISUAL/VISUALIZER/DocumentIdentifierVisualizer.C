@@ -27,6 +27,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 //QT
 #include <QtGui/QLineEdit>

@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 using namespace std;
 
 namespace OpenMS

@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/Tagging.h>

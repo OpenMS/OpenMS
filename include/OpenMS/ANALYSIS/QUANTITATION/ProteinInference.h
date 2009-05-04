@@ -32,7 +32,6 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {

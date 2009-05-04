@@ -30,7 +30,7 @@
 #define OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 #include <QtGui/QPushButton>
 
@@ -39,6 +39,9 @@
 
 namespace OpenMS 
 {
+	class SpectrumWidget;
+  class SpectrumCanvas;
+
 	/**
 		@brief Dialog showing statistics about the data of the current layer
 		

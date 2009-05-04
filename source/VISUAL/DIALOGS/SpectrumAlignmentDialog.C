@@ -27,7 +27,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 // QT includes
 #include <QtGui/QButtonGroup>

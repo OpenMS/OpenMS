@@ -32,7 +32,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {

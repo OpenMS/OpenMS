@@ -28,10 +28,9 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERDEFS_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERDEFS_H
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS

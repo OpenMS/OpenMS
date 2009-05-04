@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>

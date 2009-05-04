@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <iostream>
 #include <vector>

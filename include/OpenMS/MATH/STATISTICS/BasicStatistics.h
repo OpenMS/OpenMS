@@ -29,7 +29,6 @@
 #define OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 #include <ostream>
 #include <cmath>

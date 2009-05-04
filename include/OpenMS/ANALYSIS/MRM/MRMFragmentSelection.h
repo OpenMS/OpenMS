@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <vector>
 
 namespace OpenMS

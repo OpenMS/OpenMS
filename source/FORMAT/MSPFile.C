@@ -28,6 +28,7 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 
 using namespace std;

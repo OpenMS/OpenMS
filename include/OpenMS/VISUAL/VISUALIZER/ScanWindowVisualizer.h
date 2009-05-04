@@ -29,7 +29,7 @@
 #define OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 
 //OpenMS
-#include <OpenMS/METADATA/InstrumentSettings.h>
+#include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 

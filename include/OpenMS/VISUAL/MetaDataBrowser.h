@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/InstrumentSettings.h>
+
 //QT
 #include <QtGui/QDialog>
 #include <QtGui/QTreeWidget>

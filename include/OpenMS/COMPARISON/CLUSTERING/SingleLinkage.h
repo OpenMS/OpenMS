@@ -34,8 +34,6 @@
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {

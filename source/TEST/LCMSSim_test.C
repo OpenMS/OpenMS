@@ -30,8 +30,7 @@
 ///////////////////////////
 #include <OpenMS/SIMULATION/LCMSSim.h>
 #include <OpenMS/SIMULATION/LCMSSample.h>
-#include <string>
-///////////////////////////
+#include <OpenMS/FORMAT/MzDataFile.h>
 
 using namespace OpenMS;
 using namespace std;

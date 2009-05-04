@@ -30,7 +30,6 @@
 #define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 

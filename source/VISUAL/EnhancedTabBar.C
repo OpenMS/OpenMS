@@ -25,8 +25,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-// OpenMS includes
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <QtGui/QMouseEvent>
 #include <QtGui/QMenu>
 #include <QtGui/QMessageBox>

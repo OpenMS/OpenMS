@@ -29,8 +29,6 @@
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QStringList>
 #include <QtGui/QPushButton>

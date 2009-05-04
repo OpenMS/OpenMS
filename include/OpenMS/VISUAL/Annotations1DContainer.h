@@ -28,7 +28,6 @@
 #ifndef OPENMS_VISUAL_ANNOTATIONS1DCONTAINER_H
 #define OPENMS_VISUAL_ANNOTATIONS1DCONTAINER_H
 
-#include <OpenMS/VISUAL/Annotation1DItem.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <list>
@@ -42,6 +41,8 @@ class QPainter;
 
 namespace OpenMS
 {
+	class Annotation1DItem;
+
 	/// Container for annotations to content of Spectrum1DCanvas
 	class Annotations1DContainer
 		: public std::list<Annotation1DItem*>

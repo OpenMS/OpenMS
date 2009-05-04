@@ -33,11 +33,10 @@
 #include <gsl/gsl_randist.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-namespace OpenMS {
-
+namespace OpenMS
+{
   /**
    @brief 
    @ingroup Simulation

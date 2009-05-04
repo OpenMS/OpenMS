@@ -27,7 +27,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <svm.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 ///////////////////////////
 

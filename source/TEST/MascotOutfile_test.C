@@ -27,11 +27,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
-///////////////////////////
-
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
+
 #include <iostream>
 #include <vector>
 

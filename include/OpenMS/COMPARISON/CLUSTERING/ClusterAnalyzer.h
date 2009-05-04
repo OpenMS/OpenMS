@@ -29,9 +29,8 @@
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
 #include <iostream>
@@ -40,7 +39,7 @@
 
 namespace OpenMS
 {
-
+  class String;
 
 	/** @brief Elements of a binary tree used to represent a hierarchical clustering process
 

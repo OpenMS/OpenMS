@@ -6,8 +6,6 @@ This folder contains some useful tools for developers:
   correct_test.php      -  Helps the user to correct BEGIN_SECTION macros.
                            Function names inside the BEGIN_SECTION macros are automatically replaced by
                            the correct declarations in the header file.
-  
-  check_includes.php    -  Checks for unneeded includes.
 
   checker.php           -  Reports errors in the code, test, documentation, ...
                            This tool relies on doxygen XML output.

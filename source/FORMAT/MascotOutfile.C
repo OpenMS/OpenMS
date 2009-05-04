@@ -27,7 +27,7 @@
 
 #include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <cmath>

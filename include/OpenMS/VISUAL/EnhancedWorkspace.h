@@ -27,8 +27,9 @@
 #ifndef OPENMS_VISUAL_ENHANCEDWORKSPACE_H
 #define OPENMS_VISUAL_ENHANCEDWORKSPACE_H
 
+#include <OpenMS/config.h>
+
 #include <QtGui/QWorkspace>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 class QMimeData;
 class QDragEnterEvent;

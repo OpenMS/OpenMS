@@ -34,10 +34,11 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {
+	class InterpolationModel;
+
 	/**
 	@brief Abstract base class for all 1D-dimensional model fitter.
 

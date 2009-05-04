@@ -32,10 +32,8 @@
 #include <utility>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
+
 
 namespace OpenMS {
 

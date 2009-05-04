@@ -29,13 +29,13 @@
 #define OPENMS_FORMAT_ANALYSISXMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/Identification.h>
 
 namespace OpenMS
 {
+	class Identification;
+	class StringList;
+
 	/**
 		@brief File adapter for AnalysisXML files
 

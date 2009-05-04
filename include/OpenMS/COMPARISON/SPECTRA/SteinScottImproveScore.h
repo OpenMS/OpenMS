@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <cmath>
 
 namespace OpenMS

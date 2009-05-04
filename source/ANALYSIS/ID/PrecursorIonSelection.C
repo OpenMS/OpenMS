@@ -27,6 +27,8 @@
 //
 
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 using namespace std;
 //#define PIS_DEBUG

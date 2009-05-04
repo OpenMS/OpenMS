@@ -37,7 +37,6 @@
 #include <cstdio>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>

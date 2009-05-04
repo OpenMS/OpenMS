@@ -31,7 +31,6 @@
 
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 

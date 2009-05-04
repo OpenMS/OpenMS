@@ -27,6 +27,8 @@
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <cstdlib>
 #include <fstream>

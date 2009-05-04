@@ -28,17 +28,15 @@
 #ifndef OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/IdentificationHit.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/Identification.h>
 
 namespace OpenMS
 {
+	class ProgressLogger;
+
 	namespace Internal
 	{
 

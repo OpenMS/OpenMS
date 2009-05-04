@@ -28,10 +28,9 @@
 #ifndef OPENMS_FORMAT_PTMXMLFILE_H
 #define OPENMS_FORMAT_PTMXMLFILE_H
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
-
+#include <map>
 #include <vector>
 
 namespace OpenMS 

@@ -35,8 +35,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-#include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <QtGui/QImage>

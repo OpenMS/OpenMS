@@ -30,7 +30,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {

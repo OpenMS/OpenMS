@@ -42,7 +42,6 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -65,6 +64,9 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/VISUAL/DIALOGS/DemoDialog.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 //Qt
 #include <QtGui/QToolBar>

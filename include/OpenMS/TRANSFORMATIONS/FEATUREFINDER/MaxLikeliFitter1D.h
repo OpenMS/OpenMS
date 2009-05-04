@@ -30,7 +30,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {

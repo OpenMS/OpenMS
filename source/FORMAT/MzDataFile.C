@@ -25,6 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>

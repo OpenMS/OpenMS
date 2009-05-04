@@ -32,7 +32,6 @@
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>

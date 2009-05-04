@@ -29,9 +29,7 @@
 #define OPENMS_FORMAT_SEQUESTOUTFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <map>
@@ -40,6 +38,9 @@
 
 namespace OpenMS
 {
+	class ProteinIdentification;
+	class DateTime;
+
 	/**
     @brief Representation of a Sequest output file
     

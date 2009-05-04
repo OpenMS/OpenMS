@@ -28,7 +28,8 @@
 #ifndef OPENMS_VISUAL_TOPPASEDGE_H
 #define OPENMS_VISUAL_TOPPASEDGE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
 #include <QtGui/QGraphicsItem>
 
 namespace OpenMS

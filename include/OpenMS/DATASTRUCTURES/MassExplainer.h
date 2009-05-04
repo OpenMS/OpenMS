@@ -29,11 +29,9 @@
 #define OPENMS_DATASTRUCTURES_MASSEXPLAINER_H
 
 #include <iostream>
+#include <algorithm>
 
-
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 

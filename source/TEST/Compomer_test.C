@@ -28,7 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-///////////////////////////
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace OpenMS;
 using namespace std;

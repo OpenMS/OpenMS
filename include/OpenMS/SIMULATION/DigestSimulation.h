@@ -31,7 +31,8 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
   /**
 		@brief Simulates protein digestion

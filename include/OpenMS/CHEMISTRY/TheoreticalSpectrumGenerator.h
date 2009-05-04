@@ -28,10 +28,9 @@
 #ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {

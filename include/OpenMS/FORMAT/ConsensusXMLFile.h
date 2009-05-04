@@ -33,7 +33,6 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 namespace OpenMS
 {

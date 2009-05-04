@@ -29,8 +29,8 @@
 #define OPENMS_KERNEL_CONSENSUSMAP_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

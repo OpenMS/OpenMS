@@ -30,13 +30,13 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <vector>
 
 namespace OpenMS
 {
+	class ProteinIdentification;
+
   /**
     @brief Representation of a Mascot output file
     

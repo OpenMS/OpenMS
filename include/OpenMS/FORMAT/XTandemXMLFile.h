@@ -28,7 +28,6 @@
 #ifndef OPENMS_FORMAT_XTANDEMXMLFILE_H
 #define OPENMS_FORMAT_XTANDEMXMLFILE_H
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -39,7 +38,8 @@
 namespace OpenMS 
 {
 	class String;
-	
+  class ProteinIdentification;
+
   /**
     @brief Used to load XTandemXML files
     

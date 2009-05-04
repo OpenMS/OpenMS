@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/FORMAT/TextFile.h>
 
 #include <numeric>
 #include <iostream>

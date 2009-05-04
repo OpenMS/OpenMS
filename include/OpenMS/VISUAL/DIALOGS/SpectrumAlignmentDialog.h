@@ -30,10 +30,12 @@
 #define OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS 
 {
+	class Spectrum1DWidget;
+
 	/**
 		@brief Lets the user select two spectra and set the parameters for the spectrum alignment.
 		

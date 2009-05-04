@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>

@@ -28,12 +28,15 @@
 #ifndef OPENMS_DATASTRUCTURES_DATETIME_H
 #define OPENMS_DATASTRUCTURES_DATETIME_H
 
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <QtCore/QDateTime>
+
 namespace OpenMS
 {
+	class String;
+
 	/**	
 		@brief DateTime Class.
 	

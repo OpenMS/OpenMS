@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <cfloat>
 #include <cmath>

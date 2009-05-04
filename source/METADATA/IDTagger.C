@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IDTagger.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <boost/interprocess/sync/file_lock.hpp>
 

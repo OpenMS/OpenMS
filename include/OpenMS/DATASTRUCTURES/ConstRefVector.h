@@ -30,9 +30,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
 #include <typeinfo> 

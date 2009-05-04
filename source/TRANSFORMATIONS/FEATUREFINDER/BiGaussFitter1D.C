@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {

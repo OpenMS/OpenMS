@@ -30,7 +30,6 @@
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 namespace OpenMS

@@ -29,7 +29,6 @@
 #define OPENMS_DATASTRUCTURES_MATRIX_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cmath> // pow()
 #include <iomanip>

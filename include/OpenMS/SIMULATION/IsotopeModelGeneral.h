@@ -30,7 +30,6 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 

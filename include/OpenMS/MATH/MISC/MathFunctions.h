@@ -117,6 +117,11 @@ namespace OpenMS
 			return ((x & 1)!=0);
 		}
 
+		/**
+			@brief Rounds the value
+
+			@ingroup MathFunctionsMisc
+		*/
 		template <typename T>
 		T round (T x)
 		{

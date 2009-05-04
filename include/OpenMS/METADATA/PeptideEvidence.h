@@ -33,10 +33,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
 {
+	class AASequence;
+
   /**
     @brief Representation of a AnalysisXML PeptideEvidence
     

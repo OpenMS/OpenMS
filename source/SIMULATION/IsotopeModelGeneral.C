@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 namespace OpenMS
 {

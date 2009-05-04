@@ -29,9 +29,10 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {

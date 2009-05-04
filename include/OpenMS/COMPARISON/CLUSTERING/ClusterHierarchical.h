@@ -30,7 +30,6 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>

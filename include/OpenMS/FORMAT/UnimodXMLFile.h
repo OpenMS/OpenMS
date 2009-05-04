@@ -28,11 +28,12 @@
 #ifndef OPENMS_FORMAT_UNIMODXMLFILE_H
 #define OPENMS_FORMAT_UNIMODXMLFILE_H
 
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS 
 {
+	class ResidueModification;
+
   /**
     @brief Used to load XML files from unimod.org files
     

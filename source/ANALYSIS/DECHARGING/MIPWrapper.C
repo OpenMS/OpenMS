@@ -31,7 +31,6 @@
 #include <fstream>
 #include <vector>
 
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/CONCEPT/Exception.h>
 

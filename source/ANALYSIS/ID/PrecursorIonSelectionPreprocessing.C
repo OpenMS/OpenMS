@@ -27,6 +27,9 @@
 //
 
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 using namespace std;
 //#define PISP_DEBUG

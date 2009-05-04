@@ -32,7 +32,6 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <set>

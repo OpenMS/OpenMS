@@ -28,8 +28,6 @@
 #ifndef OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
 #define OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>

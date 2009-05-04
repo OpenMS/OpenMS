@@ -28,7 +28,6 @@
 #ifndef OPENMS_METADATA_ACQUISITION_H
 #define OPENMS_METADATA_ACQUISITION_H
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS 

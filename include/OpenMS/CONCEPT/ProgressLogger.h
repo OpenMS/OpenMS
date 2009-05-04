@@ -29,13 +29,14 @@
 #define OPENMS_CONCEPT_PROGRESSLOGGER_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 class QProgressDialog;
 
 namespace OpenMS
 {
+	class String;
+
 	/**
 	@brief Base class for all classes that want to report their progess.
 

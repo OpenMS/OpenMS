@@ -29,7 +29,6 @@
 #define OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <vector>

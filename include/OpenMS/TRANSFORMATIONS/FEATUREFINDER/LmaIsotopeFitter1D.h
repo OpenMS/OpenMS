@@ -29,10 +29,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAISOTOPEFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 
 

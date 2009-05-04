@@ -29,9 +29,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+
 using namespace OpenMS;
-
-
 
 //-------------------------------------------------------------
 //Doxygen docu

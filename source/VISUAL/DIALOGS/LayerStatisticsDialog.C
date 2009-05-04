@@ -27,6 +27,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 
 using namespace std;
 

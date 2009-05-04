@@ -32,7 +32,6 @@
 #include <cmath>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS

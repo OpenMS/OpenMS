@@ -29,16 +29,15 @@
 #ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTION_H
 #define OPENMS_ANALYSIS_ID_PRECURSORIONSELECTION_H
 
-#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
-
 
 #include <set>
-//#include <fstream>
+
 namespace OpenMS
 {
+	class PrecursorIonSelectionPreprocessing;
+
 	/**
 		 @brief This class implements different precursor ion selection strategies.
 

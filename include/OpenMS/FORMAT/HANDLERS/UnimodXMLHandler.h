@@ -29,12 +29,13 @@
 #define OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 
 namespace OpenMS
 {
+	class ResidueModification;
+
 	namespace Internal
 	{
   /**

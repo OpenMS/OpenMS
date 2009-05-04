@@ -30,7 +30,6 @@
 
 //OpenMS
 #include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 

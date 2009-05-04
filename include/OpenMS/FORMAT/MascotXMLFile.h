@@ -28,13 +28,14 @@
 #ifndef OPENMS_FORMAT_MASCOTXMLFILE_H
 #define OPENMS_FORMAT_MASCOTXMLFILE_H
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS 
 {
+	class ProteinIdentification;
+
   /**
     @brief Used to load MascotXML files
     

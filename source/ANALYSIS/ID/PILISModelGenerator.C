@@ -27,6 +27,7 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 

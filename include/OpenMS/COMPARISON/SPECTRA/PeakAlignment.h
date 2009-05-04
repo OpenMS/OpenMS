@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_PEAKALIGNMENT_H
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
 
 namespace OpenMS

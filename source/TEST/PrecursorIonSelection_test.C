@@ -28,6 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>

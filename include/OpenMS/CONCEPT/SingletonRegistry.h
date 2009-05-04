@@ -28,16 +28,15 @@
 #ifndef OPENMS_CONCEPT_SINGLETONREGISTRY_H
 #define OPENMS_CONCEPT_SINGLETONREGISTRY_H
 
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
 #include <iostream>
-#include <OpenMS/CONCEPT/FactoryBase.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
   class String;
+	class FactoryBase;
 
   /**
   	@brief Holds pointers to unique instance of a singleton factory.

@@ -28,8 +28,8 @@
 #ifndef OPENMS_ANALYSIS_DATASTRUCTURES_ADDUCT_H
 #define OPENMS_ANALYSIS_DATASTRUCTURES_ADDUCT_H
 
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS {
     

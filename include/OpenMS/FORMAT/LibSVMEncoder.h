@@ -29,8 +29,6 @@
 #define OPENMS_FORMAT_LIBSVMENCODER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <svm.h>
 

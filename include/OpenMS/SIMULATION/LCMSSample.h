@@ -35,17 +35,12 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/LibSVMEncoder.h>
 
-#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {

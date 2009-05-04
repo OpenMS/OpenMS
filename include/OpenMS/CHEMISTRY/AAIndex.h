@@ -30,7 +30,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <cmath>
 

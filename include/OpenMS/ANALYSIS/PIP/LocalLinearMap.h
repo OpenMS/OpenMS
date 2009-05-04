@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_PIP_LOCALLINEARMAP_H
 	
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 	
 namespace OpenMS
 {

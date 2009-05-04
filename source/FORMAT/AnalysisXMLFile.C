@@ -30,7 +30,8 @@
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
+#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {

@@ -30,10 +30,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h> 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputVertex.h>
-
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 //Qt
 #include <QtGui/QToolBar>

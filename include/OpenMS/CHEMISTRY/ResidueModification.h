@@ -29,8 +29,6 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
 #define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <set>

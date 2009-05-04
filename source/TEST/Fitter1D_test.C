@@ -27,6 +27,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 
 using namespace OpenMS;

@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {

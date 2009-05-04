@@ -29,7 +29,6 @@
 #ifndef OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 #define OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>

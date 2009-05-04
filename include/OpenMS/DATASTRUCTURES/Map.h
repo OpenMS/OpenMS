@@ -28,7 +28,6 @@
 #ifndef OPENMS_DATASTRUCTURES_MAP_H
 #define OPENMS_DATASTRUCTURES_MAP_H
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>

@@ -29,6 +29,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 
 using namespace std;

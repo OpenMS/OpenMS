@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

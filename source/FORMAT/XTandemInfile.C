@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemInfile.h>
-#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>

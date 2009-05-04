@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <cmath>
 #include <cfloat>

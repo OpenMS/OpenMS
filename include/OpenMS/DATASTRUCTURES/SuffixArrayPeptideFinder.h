@@ -30,7 +30,6 @@
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYPEPTIDEFINDER_H
 
 #include <vector>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/BigString.h>
 
 namespace OpenMS 

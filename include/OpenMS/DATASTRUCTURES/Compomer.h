@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
@@ -83,7 +84,7 @@ public:
 		mass_ += a.getAmount()*a.getSingleMass();
 		pos_charges_ +=  std::max(a.getAmount()*a.getCharge(),0);
 		neg_charges_ -=  std::min(a.getAmount()*a.getCharge(),0);
-		log_p_ += abs(a.getAmount())*a.getLogProb();
+		log_p_ += std::abs((Real)a.getAmount())*a.getLogProb();
 	}
 
 	
@@ -201,7 +202,7 @@ private:
         if (extra_amount<0)
         {
           std::cout << "Compomer: implicit H+ is negative!!\n)";
-          exit(0);
+					//TODO - replace by exception!? - exit(0);
         }
 			}
 			else extra_amount=0;
@@ -218,7 +219,7 @@ private:
       else if(it->second.getAmount()==0)
       {
         std::cout << "This should not happen, amount of an adduct is 0\n";
-        exit(0);
+				//TODO - replace by exception!? - exit(0);
       }
 
       if (normal_amount + extra_amount > 0)

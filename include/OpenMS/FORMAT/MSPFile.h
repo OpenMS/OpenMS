@@ -31,7 +31,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <vector>
 

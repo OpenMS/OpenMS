@@ -33,7 +33,6 @@
 #include <map>
 
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

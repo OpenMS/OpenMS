@@ -32,11 +32,18 @@
 //
 
 #include <OpenMS/SIMULATION/LCMSSim.h>
+#include <OpenMS/SIMULATION/ElutionModel.h>
+#include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 
 using namespace std;
 
-namespace OpenMS{
-
+namespace OpenMS
+{
   LCMSSim::LCMSSim()
   : DefaultParamHandler("LCMSSim"),
   	ProgressLogger(),

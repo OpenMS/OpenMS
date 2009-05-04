@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>

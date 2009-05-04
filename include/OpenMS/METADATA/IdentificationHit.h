@@ -29,7 +29,6 @@
 #define OPENMS_METADATA_IDENTIFICATIONHIT_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 namespace OpenMS
 {   	

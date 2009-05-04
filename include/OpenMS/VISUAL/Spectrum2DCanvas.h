@@ -32,7 +32,6 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 
 // QT

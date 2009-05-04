@@ -30,7 +30,6 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 

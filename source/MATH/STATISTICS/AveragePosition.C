@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {

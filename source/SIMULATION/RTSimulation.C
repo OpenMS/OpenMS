@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <vector>

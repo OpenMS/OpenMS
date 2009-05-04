@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_ENHANCEDTABBAR_H
 #define OPENMS_VISUAL_ENHANCEDTABBAR_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 //QT
 #include <QtGui/QTabBar>
@@ -37,6 +37,8 @@ class QMimeData;
 
 namespace OpenMS 
 {
+	class String;
+
 	/**
 		@brief Convenience tab bar implementation
 		

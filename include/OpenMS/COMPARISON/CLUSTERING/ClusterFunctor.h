@@ -29,9 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 

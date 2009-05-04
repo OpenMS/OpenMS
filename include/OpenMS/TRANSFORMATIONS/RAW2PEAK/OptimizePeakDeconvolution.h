@@ -30,11 +30,10 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPEAKDECONVOLUTION_H
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //#define DEBUG_DECONV

@@ -30,7 +30,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {

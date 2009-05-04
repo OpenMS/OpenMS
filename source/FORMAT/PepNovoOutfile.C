@@ -25,7 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
 

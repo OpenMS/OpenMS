@@ -28,9 +28,10 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

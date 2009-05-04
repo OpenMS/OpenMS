@@ -27,9 +27,12 @@
 
 
 #include <OpenMS/SIMULATION/LCMSSample.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
-
 
 namespace OpenMS
 {

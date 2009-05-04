@@ -44,6 +44,7 @@
 
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 
 using namespace OpenMS;

@@ -40,38 +40,17 @@
 #include <gsl/gsl_randist.h>
 
 // OpenMS includes
-#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-
-#include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-
-#include <OpenMS/SYSTEM/File.h>
-
 #include <OpenMS/SIMULATION/LCMSSample.h>
-#include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
-#include <OpenMS/SIMULATION/MixtureModel.h>
-#include <OpenMS/SIMULATION/ElutionModel.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
-namespace OpenMS{
+namespace OpenMS
+{
 
 	/**
 		@brief Simulation of a LC/MS experiment

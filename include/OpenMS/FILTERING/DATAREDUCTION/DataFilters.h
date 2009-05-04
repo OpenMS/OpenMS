@@ -29,7 +29,6 @@
 #define OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>

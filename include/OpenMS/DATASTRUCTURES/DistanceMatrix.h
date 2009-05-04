@@ -29,7 +29,6 @@
 #define OPENMS_DATASTRUCTURES_DISTANCEMATRIX_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <cmath>

@@ -31,22 +31,21 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
 
 namespace OpenMS
 {
+	class ProteinIdentification;
+
 	/**
-	@brief Representation of a PepNovo output file
+		@brief Representation of a PepNovo output file
+	
+		This class serves to read in a PepNovo outfile. The information can be
+		retrieved via the load function.
 
-	This class serves to read in a PepNovo outfile. The information can be
-	retrieved via the load function.
-
-	@ingroup FileIO
+		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI PepNovoOutfile
 	{

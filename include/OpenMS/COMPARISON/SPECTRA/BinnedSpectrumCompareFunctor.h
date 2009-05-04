@@ -28,9 +28,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
 
-#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 
