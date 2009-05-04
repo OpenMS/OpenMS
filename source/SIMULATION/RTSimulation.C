@@ -67,10 +67,34 @@ namespace OpenMS {
   RTSimulation::~RTSimulation()
   {}
   
+  void RTSimulation::no_rt_column(FeatureMapSim & features)
+  {
+    for(FeatureMapSim::iterator fIt = features.begin(); fIt != features.end();
+        ++fIt)
+    {
+      (*fIt).setRT(-1);
+    }
+  }
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
   void RTSimulation::predict_rt(FeatureMapSim & features)
+  {
+    Int doPredict = param_.getValue("rt_column_on");
+    if(doPredict == 1)
+    {
+      svm_predict(features);
+    }
+    else
+    {
+      no_rt_column(features);
+    }    
+  }
+  
+  /**
+   @brief Gets a feature map containing the peptides and predicts for those the retention times
+   */
+  void RTSimulation::svm_predict(FeatureMapSim & features)
   {
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;

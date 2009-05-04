@@ -40,7 +40,13 @@
 namespace OpenMS {
 
   /**
-   @brief
+   @brief Simulates MS signales for a given set of peptides
+   
+   Simulates MS signales for a given set of peptides, with charge annotation,
+   given detectabilities, predicted retention times and charge values.
+   
+   @htmlinclude OpenMS_RawSignalSimulation.parameters
+   
    @ingroup Simulation
   */
   class OPENMS_DLLAPI RawSignalSimulation
@@ -63,9 +69,12 @@ namespace OpenMS {
 
     RawSignalSimulation& operator = (const RawSignalSimulation& source);
 
-    // TODO: howto add contaminations
+    /**
+     
+     */
     void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
+    /// Returns the rt sampling rate that was set with the parameters
     SimCoordinateType getRTSamplingRate() const;
   private:
     /// Default constructor
@@ -74,32 +83,56 @@ namespace OpenMS {
     /// Synchronize members with param class
 		void updateMembers_();
 
-    ///
+    /// Set default parameters
     void setDefaultParams_();
 
-    ///
-    void addMSSignal(Feature &, MSSimExperiment &);
+    /** 
+     @brief Add a MS signal for a single feature
+     
+     @param feature The feature which should be simulated
+     @param experiment The experiment to which the simulated signals should be added
+     */
+    void addMSSignal(Feature & feature, MSSimExperiment & experiment);
 
+    /**
+     @brief Samples signales for the given product model
+     
+     @param pm The product model from which the signales will be sampled
+     @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
+     @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
+     @param rt_start Start coordinate (in rt dimension) of the region where the signals will be sampled
+     @param rt_end End coordinate (in rt dimension) of the region where the signals will be sampled
+     @param experiment Experiment to which the sampled signales will be added
+     @param activeFeature The current feature that is simulated
+     */
     void samplePeptideModel_(const ProductModel<2> & pm,
                              const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                              SimCoordinateType rt_start, SimCoordinateType rt_end,
-                             MSSimExperiment &, Feature & activeFeature);
+                             MSSimExperiment & experiment, Feature & activeFeature);
 
+    /**
+     @brief Add the correct Elution profile to the passed ProductModel
+     */
     void chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale);
 
-    
+    /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment);
     
+    /// Add a base line to the experiment
     void addBaseLine_(MSSimExperiment & experiment);
     
+    /// Compress signales in a single RT scan given the m/z bin size
     void compressSignals_(MSSimExperiment & experiment);
      
+    /// worker function for compressSignals_
     Size compressSignalsRun_(MSSimExperiment & experiment);
+
     // TODO: the following parameters are imported -> revise
     // TODO: we need to incorporate those parameters into constructors etc.
     
-		/// bin sizes
+		/// bin size in m/z dimension
 		SimCoordinateType mz_sampling_rate_;
+    /// bin size in rt dimension
     SimCoordinateType rt_sampling_rate_;
 
 		/// Mean of peak m/z error

@@ -37,8 +37,21 @@ namespace OpenMS
   /**
    @brief Central class for simulation of mass spectrometry experiments
    
-   This implementation is based on the concepts and ideas presented in:
-   LC-MSsim paper
+   This implementation is an extended and rewritten version of the concepts and ideas presented in:<br>
+   <p>
+    Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gropl, Oliver Kohlbacher, and Knut Reinert.<br>
+    LC-MSsim - A simulation software for liquid chromatography mass spectrometry data.<br>
+    <em>BMC Bioinformatics</em> 9:423, 2008.
+   </p>
+   
+   @htmlinclude OpenMS_MSSim.parameters
+   
+   @see DetectabilitySimulation
+   @see DigestSimulation
+   @see IonizationSimulation
+   @see PTMSimulation
+   @see RawSignalSimulation
+   @see RTSimulation
    
    @ingroup Simulation
   */
@@ -60,32 +73,32 @@ namespace OpenMS
     virtual ~MSSim();
     //@}
 
+    /// Assignment operator
     MSSim& operator = (const MSSim& source);
 
     /**
      @brief General purpose function to simulate a mass spectrometry run
+     
+     @param rnd_gen GSL random number generator which will be passed to the different classes
+     @param peptides List of peptides and abundances that will be simulated
      */   
     void simulate(const gsl_rng* rnd_gen, const SamplePeptides& peptides);
 	
-    /**
-     @brief Access the simulated experiment
-     */
+    /// Access the simulated experiment
     MSSimExperiment const & getExperiment() const;
     
-    /**
-     @brief Access the simulated features
-     */
+    /// Access the simulated features
     FeatureMapSim const & getSimulatedFeatures() const;
 	protected:
 		
-		/// convert list of peptides with abundance into a FeatureMap
+		/// Convert a list of peptides with given abundance values into a FeatureMap
 		void createFeatureMap_(const SamplePeptides& peptides);
 
-    /// generates a MSSimExperiment of correct size
+    /// Generates a MSSimExperiment of correct size in m/z and retention time dimension
     void createExperiment_(const DoubleReal gradient_time, const DoubleReal rt_sampling_rate);
 
   private:
-    /// set defaults
+    /// Set default parameters
     void setDefaultParams_();
     
     /// Synchronize members with param class

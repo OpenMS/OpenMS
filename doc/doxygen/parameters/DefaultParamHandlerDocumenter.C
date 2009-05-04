@@ -120,6 +120,10 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 #include<OpenMS/SIMULATION/PTMSimulation.h>
+#include<OpenMS/SIMULATION/IonizationSimulation.h>
+#include<OpenMS/SIMULATION/DetectibilitySimulation.h>
+#include<OpenMS/SIMULATION/RawSignalSimulation.h>
+#include<OpenMS/SIMULATION/MSSim.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -283,6 +287,7 @@ int main (int argc , char** argv)
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
 	DOCME(DelaunayPairFinder);
+  DOCME(DetectibilitySimulation);
 	DOCME(DigestSimulation);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);
@@ -310,6 +315,7 @@ int main (int argc , char** argv)
 	DOCME(LmaIsotopeFitter1D);
 	DOCME(LmaIsotopeModel);
 	DOCME(MSPFile);
+  DOCME(MSSim);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
 	DOCME(MapAlignmentAlgorithmApplyGivenTrafo);
@@ -365,6 +371,8 @@ int main (int argc , char** argv)
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
 	DOCME2(PTMSimulation, PTMSimulation(NULL));
-
+  DOCME2(IonizationSimulation, IonizationSimulation(NULL));
+  DOCME2(RawSignalSimulation, RawSignalSimulation(NULL));
+  
   return 0;
 }

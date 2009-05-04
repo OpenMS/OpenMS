@@ -38,7 +38,15 @@
 namespace OpenMS
 {
   /**
-   @brief 
+   @brief Simulates/Predicts predict retention times 
+   for peptides or peptide separation.
+   
+   The retention times for the different peptides are determined based on
+   a SVM model or are all set to -1 in case of simulations without a LC
+   column.
+   
+   @htmlinclude OpenMS_RTSimulation.parameters
+   
    @ingroup Simulation
   */
   class OPENMS_DLLAPI RTSimulation
@@ -60,12 +68,15 @@ namespace OpenMS
     virtual ~RTSimulation();
     //@}
 
+    // Assignment operator
     RTSimulation& operator = (const RTSimulation& source);
     
     /** 
-     @brief Predict retention times for given features based on a SVM Model
+     @brief Predict retention times for given peptide features based on a SVM Model
+     
+     @param features Feature map for which the retention times will be predicted
      */
-    void predict_rt(FeatureMapSim &);
+    void predict_rt(FeatureMapSim & features);
  
     /**
      @brief Set retention times randomly for given contaminants
@@ -79,20 +90,28 @@ namespace OpenMS
     
     SimCoordinateType getGradientTime() const;
   private:
-    /// Default constructor -> hidden since we need to have a random generator
+    /// Default constructor
     RTSimulation();
     
-    /// set defaults 
+    /// Set default parameters
     void setDefaultParams_();
 
 		// Name of the svm model file
 		OpenMS::String rtModelFile_;
     
-    /// total gradient time
+    /// Total gradient time
     SimCoordinateType gradientTime_;
     
+    /// Front part of the LC gradient that will not be directly assigned to guarantee a full elution profile
     static const DoubleReal gradient_front_offset_;
+    /// Total part (front + back) of the LC gradient that will not be directly assigned
     static const DoubleReal gradient_total_offset_;
+    
+    /// Simply set all retention times to -1
+    void no_rt_column(FeatureMapSim &);
+    
+    /// Predict all retention times based on a svm model
+    void svm_predict(FeatureMapSim &);
   protected:  
 		/// Random number generator
 		const gsl_rng* rnd_gen_;    

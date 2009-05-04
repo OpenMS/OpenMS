@@ -41,7 +41,14 @@
 namespace OpenMS {
 
   /**
-   @brief 
+   @brief Simulates Protein ionization
+   
+   Supports ESI and MALDI ionization. The abundance values are distributed among
+   the charge states based on a binomial distribution for the ESI ionization and 
+   based on discrete distribution for the MALDI ionization.
+   
+   @htmlinclude OpenMS_IonizationSimulation.parameters
+   
    @ingroup Simulation
   */
   class OPENMS_DLLAPI IonizationSimulation
@@ -68,9 +75,18 @@ namespace OpenMS {
     virtual ~IonizationSimulation();
     //@}
 
+    /// Assignment operator
     IonizationSimulation& operator = (const IonizationSimulation& source);
+    
+    /**
+     @brief Ionize all peptide features inside the Feature-Map
+     
+     Depending on the parameters the passed peptide features are ionized by MALDI
+     or by ESI ionization.
 
-    void ionize(FeatureMapSim &);
+     @param features FeatureMap which will be ionized
+     */
+    void ionize(FeatureMapSim & features);
 
   private:  
     /// Default constructor

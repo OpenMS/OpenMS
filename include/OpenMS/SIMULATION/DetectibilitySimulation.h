@@ -34,7 +34,13 @@
 namespace OpenMS
 {
   /**
-   @brief 
+   @brief Simulates peptide detectability
+   
+   The peptide detectability is predicted based on a support-vector machine. Alternativly 
+   the detectability can be set to a default value for all peptides if no model is given.
+   
+   @htmlinclude OpenMS_DetectibilitySimulation.parameters
+   
    @ingroup Simulation
   */
   class OPENMS_DLLAPI DetectibilitySimulation
@@ -55,12 +61,21 @@ namespace OpenMS
     virtual ~DetectibilitySimulation();
     //@}
 
+    /// Assignment operator
     DetectibilitySimulation& operator = (const DetectibilitySimulation& source);
     
-    void filterDetectibility(FeatureMapSim &);
+    /**
+     @brief Filters the given peptide features for detectibility
+     
+     Based on the provided method (SVM or simple) all peptide features are 
+     removed that do not have a sufficient peptide detectibility.
+     
+     @param features Feature map that will be filtered for detectibility
+     */
+    void filterDetectibility(FeatureMapSim & features);
     
   private:
-    /// set defaults
+    /// Set default parameters
     void setDefaultParams_();
     
     /// Synchronize members with param class
@@ -73,10 +88,10 @@ namespace OpenMS
 		OpenMS::String dtModelFile_;
 
   protected:
-    /// filter using a svm model
+    /// Filter the feature map using a svm model
     void svm_filter(FeatureMapSim &);
     
-    /// no filter just let them pass
+    /// Do not filter the feature map, just set the detectability to a default values
     void no_filter(FeatureMapSim &);
     
   };
