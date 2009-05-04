@@ -194,7 +194,7 @@ namespace OpenMS
         /**
          @brief Lexicographical less than operator.
 
-         Lexicographical copmarison from dimension 0 to dimension D-1 is done.
+         Lexicographical comparison from dimension 0 to dimension D-1 is done.
          */
         bool
         operator <( const DPosition& point ) const

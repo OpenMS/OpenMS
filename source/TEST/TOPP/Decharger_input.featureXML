@@ -781,16 +781,6 @@
       <overallquality>1</overallquality>
       <charge>3</charge>
     </feature>
-<feature id="76">
-      <position dim="0">412.611754484814</position>
-      <position dim="1">202.11</position>
-      <intensity>22004</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000024.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
 <feature id="77">
       <position dim="0">1046.15824383096</position>
       <position dim="1">1369.73</position>
@@ -1760,16 +1750,6 @@
       <meta>IPI00000045.1</meta>
       <overallquality>1</overallquality>
       <charge>2</charge>
-    </feature>
-<feature id="174">
-      <position dim="0">322.069927464204</position>
-      <position dim="1">115.736666666667</position>
-      <intensity>112390</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000045.1</meta>
-      <overallquality>1</overallquality>
-      <charge>3</charge>
     </feature>
 <feature id="175">
       <position dim="0">322.069927464204</position>
@@ -3581,26 +3561,6 @@
       <overallquality>1</overallquality>
       <charge>2</charge>
     </feature>
-<feature id="356">
-      <position dim="0">131.355564395529</position>
-      <position dim="1">416.28</position>
-      <intensity>11250</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000073.1</meta>
-      <overallquality>1</overallquality>
-      <charge>1</charge>
-    </feature>
-<feature id="357">
-      <position dim="0">131.355564395529</position>
-      <position dim="1">208.64</position>
-      <intensity>11250</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000073.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
 <feature id="358">
       <position dim="0">931.930268220363</position>
       <position dim="1">2833.1</position>
@@ -5050,16 +5010,6 @@
       <meta>IPI00000190.1</meta>
       <overallquality>1</overallquality>
       <charge>2</charge>
-    </feature>
-<feature id="503">
-      <position dim="0">386.941110992093</position>
-      <position dim="1">416.28</position>
-      <intensity>21139</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000190.1</meta>
-      <overallquality>1</overallquality>
-      <charge>1</charge>
     </feature>
 <feature id="504">
       <position dim="0">837.650916445626</position>
@@ -7331,16 +7281,6 @@
       <overallquality>1</overallquality>
       <charge>1</charge>
     </feature>
-<feature id="731">
-      <position dim="0">379.301960734719</position>
-      <position dim="1">202.11</position>
-      <intensity>77572</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00000949.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
 <feature id="732">
       <position dim="0">524.042048185865</position>
       <position dim="1">294.655</position>
@@ -7835,16 +7775,6 @@
       <position dim="0">818.028834261175</position>
       <position dim="1">478.245</position>
       <intensity>59814</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00001477.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
-<feature id="782">
-      <position dim="0">361.209586361166</position>
-      <position dim="1">194.13</position>
-      <intensity>29907</intensity>
       <quality dim="0">1</quality>
       <quality dim="1">1</quality>
       <meta>IPI00001477.1</meta>
@@ -8405,26 +8335,6 @@
       <position dim="0">605.264155150908</position>
       <position dim="1">318.66</position>
       <intensity>89721</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00001477.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
-<feature id="839">
-      <position dim="0">353.92095464154</position>
-      <position dim="1">375.21</position>
-      <intensity>59814</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00001477.1</meta>
-      <overallquality>1</overallquality>
-      <charge>1</charge>
-    </feature>
-<feature id="840">
-      <position dim="0">353.92095464154</position>
-      <position dim="1">188.105</position>
-      <intensity>59814</intensity>
       <quality dim="0">1</quality>
       <quality dim="1">1</quality>
       <meta>IPI00001477.1</meta>
@@ -9004,16 +8914,6 @@
 <feature id="898">
       <position dim="0">468.421851910356</position>
       <position dim="1">1124.035</position>
-      <intensity>16793</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00001592.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
-<feature id="899">
-      <position dim="0">322.069927464204</position>
-      <position dim="1">173.105</position>
       <intensity>16793</intensity>
       <quality dim="0">1</quality>
       <quality dim="1">1</quality>
@@ -13931,16 +13831,6 @@
       <overallquality>1</overallquality>
       <charge>2</charge>
     </feature>
-<feature id="1391">
-      <position dim="0">125.738333862553</position>
-      <position dim="1">203.615</position>
-      <intensity>2961</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00001952.5</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
 <feature id="1392">
       <position dim="0">1176.68284810575</position>
       <position dim="1">528.933333333333</position>
@@ -16741,16 +16631,6 @@
       <overallquality>1</overallquality>
       <charge>2</charge>
     </feature>
-<feature id="1672">
-      <position dim="0">386.050467997037</position>
-      <position dim="1">375.21</position>
-      <intensity>41916</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002460.2</meta>
-      <overallquality>1</overallquality>
-      <charge>1</charge>
-    </feature>
 <feature id="1673">
       <position dim="0">1796.43678033596</position>
       <position dim="1">1049.49</position>
@@ -17931,16 +17811,7 @@
       <overallquality>1</overallquality>
       <charge>2</charge>
     </feature>
-<feature id="1791">
-      <position dim="0">283.614200701447</position>
-      <position dim="1">102.716666666667</position>
-      <intensity>1402</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002543.1</meta>
-      <overallquality>1</overallquality>
-      <charge>3</charge>
-    </feature>
+
 <feature id="1792">
       <position dim="0">283.614200701447</position>
       <position dim="1">153.575</position>
@@ -18120,16 +17991,6 @@
       <meta>IPI00002543.1</meta>
       <overallquality>1</overallquality>
       <charge>3</charge>
-    </feature>
-<feature id="1810">
-      <position dim="0">322.069927464204</position>
-      <position dim="1">173.105</position>
-      <intensity>1402</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002543.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
     </feature>
 <feature id="1811">
       <position dim="0">594.045234452387</position>
@@ -18701,16 +18562,6 @@
       <overallquality>1</overallquality>
       <charge>3</charge>
     </feature>
-<feature id="1868">
-      <position dim="0">361.209586361166</position>
-      <position dim="1">194.13</position>
-      <intensity>23972</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002732.2</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
-    </feature>
 <feature id="1869">
       <position dim="0">1409.14798257932</position>
       <position dim="1">1208.275</position>
@@ -19101,16 +18952,6 @@
       <overallquality>1</overallquality>
       <charge>4</charge>
     </feature>
-<feature id="1908">
-      <position dim="0">92.3073785457429</position>
-      <position dim="1">49.7</position>
-      <intensity>23972</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002732.2</meta>
-      <overallquality>1</overallquality>
-      <charge>3</charge>
-    </feature>
 <feature id="1909">
       <position dim="0">352.113326105051</position>
       <position dim="1">377.19</position>
@@ -19440,16 +19281,6 @@
       <meta>IPI00002745.1</meta>
       <overallquality>1</overallquality>
       <charge>3</charge>
-    </feature>
-<feature id="1942">
-      <position dim="0">329.65892358228</position>
-      <position dim="1">160.075</position>
-      <intensity>164979</intensity>
-      <quality dim="0">1</quality>
-      <quality dim="1">1</quality>
-      <meta>IPI00002745.1</meta>
-      <overallquality>1</overallquality>
-      <charge>2</charge>
     </feature>
 <feature id="1943">
       <position dim="0">280.455427254639</position>
