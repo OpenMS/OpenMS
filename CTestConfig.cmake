@@ -12,5 +12,3 @@ set(CTEST_DROP_SITE "www-bs3.informatik.uni-tuebingen.de")
 set(CTEST_DROP_LOCATION "/OpenMS/CDash/submit.php?project=OpenMS")
 set(CTEST_DROP_SITE_CDASH TRUE)
 
-
-http://index.php?project=OpenMS
