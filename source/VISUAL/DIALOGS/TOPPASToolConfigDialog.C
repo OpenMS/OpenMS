@@ -54,7 +54,6 @@ namespace OpenMS
 			instance_nr_(instance_nr)			
 	{
 		QGridLayout *main_grid=new QGridLayout(this);
-		QLabel *label=NULL;
 
 		//Add advanced mode check box		
 		editor_=new ParamEditor(this);
