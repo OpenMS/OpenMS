@@ -37,16 +37,7 @@
 #include <iostream>
 #include <string>
 
-//ZLIB example:
-//#include <boost/iostreams/filter/gzip.hpp>
-//#include <boost/iostreams/filtering_streambuf.hpp>
-//#include <boost/iostreams/copy.hpp>
-//
-//ifstream filein("/share_pride/usr/sturm/contrib/test/text.txt.gz", ios_base::in | ios_base::binary);
-//boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
-//in.push(boost::iostreams::gzip_decompressor());
-//in.push(filein);
-//boost::iostreams::copy(in, cout);
+#include <QtCore/QString>
 
 using namespace std;
 
@@ -56,7 +47,23 @@ START_TEST(Base64, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
-using std::string;
+
+START_SECTION(Base64 and zlib - with Qt)
+	QByteArray original = "abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";
+	QByteArray compressed = qCompress(original);
+	QByteArray base64_compressed = compressed.toBase64();
+	QByteArray base64_uncompressed = QByteArray::fromBase64(base64_compressed);
+	QByteArray uncompressed = qUncompress(base64_uncompressed); 
+	
+	std::cout << std::endl;
+	std::cout << "original             : " << QString(original).toStdString()  << " (" << original.size() << ")" << std::endl;
+	std::cout << "compressed           : " << QString(compressed).toStdString()  << " (" << compressed.size() << ")" << std::endl;
+	std::cout << "base64_compressed    : " << QString(base64_compressed).toStdString()  << " (" << base64_compressed.size() << ")" << std::endl;
+	std::cout << "base64_uncompressed  : " << QString(base64_uncompressed).toStdString()  << " (" << base64_uncompressed.size() << ")" << std::endl;
+	std::cout << "uncompressed         : " << QString(uncompressed).toStdString()  << " (" << uncompressed.size() << ")" << std::endl;
+		
+	TEST_EQUAL(original==uncompressed,true)
+END_SECTION
 
 // default ctor
 Base64* ptr = 0;
