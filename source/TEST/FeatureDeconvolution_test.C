@@ -83,7 +83,7 @@ START_SECTION(void compute)
 	c1.store(out_file,cm);
 
 	FuzzyStringComparator fsc;
-	fsc.setWhitelist (StringList::create("xml-stylesheet"));
+	fsc.setWhitelist (StringList::create("xml-stylesheet,map id"));
 	bool cmp = fsc.compareFiles(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"));
 	
 	TEST_EQUAL(cmp, true);

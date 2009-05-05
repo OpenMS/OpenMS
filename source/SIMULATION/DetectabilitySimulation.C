@@ -64,8 +64,7 @@ namespace OpenMS {
   
   void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
   {
-    Int is_filter_active = param_.getValue("dt_simulation_on");
-    if(is_filter_active == 1)
+    if (param_.getValue("dt_simulation_on") == "true")
     {
       svm_filter(features);
     }
@@ -215,8 +214,9 @@ namespace OpenMS {
   void DetectabilitySimulation::setDefaultParams_() 
   {
     defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
-    defaults_.setValue("dt_model_file","<file>","SVM model for peptide detectability prediction");
-    defaults_.setValue("dt_simulation_on",1, "Modelling detectibility (0 = disabled, 1 = enabled)");
+    defaults_.setValue("dt_model_file","","SVM model for peptide detectability prediction");
+		defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility");
+    defaults_.setValidStrings("dt_simulation_on", StringList::create("true,false"));
     defaultsToParam_();
   }
   

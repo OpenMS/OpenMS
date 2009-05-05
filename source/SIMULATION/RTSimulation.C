@@ -80,8 +80,7 @@ namespace OpenMS {
    */
   void RTSimulation::predict_rt(FeatureMapSim & features)
   {
-    Int doPredict = param_.getValue("rt_column_on");
-    if(doPredict == 1)
+    if (isRTColumnOn())
     {
       svm_predict(features);
     }
@@ -108,14 +107,7 @@ namespace OpenMS {
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
     
-    if (! File::readable( rtModelFile_ ) )
-    {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation got invalid parameter. 'rt_model_file' " + rtModelFile_ + " is not readable");
-    }
-    else
-    {
-      cout << "Predicting RT..    " << endl;
-    }   
+		std::cout << "Predicting RT..    " << endl;
     
     // not that elegant...
     vector< String > peptidesVector(features.size());
@@ -220,8 +212,8 @@ namespace OpenMS {
   
   void RTSimulation::updateMembers_()
   {
-    rtModelFile_ = param_.getValue("rt_model_file");
-    gradientTime_ = param_.getValue("total_gradient_time");
+		rtModelFile_ = File::find( param_.getValue("rt_model_file") );
+		gradientTime_ = param_.getValue("total_gradient_time");
   }
   
   void RTSimulation::setDefaultParams_() 
@@ -229,12 +221,13 @@ namespace OpenMS {
     // we need to further integrate this .. currently it is ignored
     // TODO: we need to propagate this also to the product model which generates the signal
     // but how
-    defaults_.setValue("rt_column_on",1,"Modelling of a rt column (0 = disabled, 1 = enabled)");
+		defaults_.setValue("rt_column_on", "true", "Modelling of a rt column");
+    defaults_.setValidStrings("rt_column_on", StringList::create("true,false"));
     
-    // Column settings
+		// Column settings
     defaults_.setValue("total_gradient_time",2800.0,"the duration (in seconds) of the gradient");
     defaults_.setMinFloat("total_gradient_time", 800);
-    defaults_.setValue("rt_model_file","file","SVM model for retention time prediction");
+    defaults_.setValue("rt_model_file","examples/SIMULATION/RTPredict.model","SVM model for retention time prediction");
     
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
@@ -245,8 +238,7 @@ namespace OpenMS {
   
   bool RTSimulation::isRTColumnOn() const
   {
-    Int isRTColumnOn = param_.getValue("rt_column_on");
-    return (isRTColumnOn == 1);
+    return (param_.getValue("rt_column_on") == "true");
   }
   
   SimCoordinateType RTSimulation::getGradientTime() const

@@ -1,0 +1,8 @@
+Default retention time model used during map simulation (via MSSimulator).
+Feel free to train your own model, depending on your column conditions.
+
+This model is trained from the supplementary material from the article:
+Improved Peptide Elution Time Prediction for Reversed-Phase Liquid Chromatography-MS by Incorporating Peptide Sequence Information
+Konstantinos Petritis,, Lars J. Kangas,, Bo Yan,, Matthew E. Monroe,, Eric F. Strittmatter,, Wei-Jun Qian,, Joshua N. Adkins,, Ronald J. Moore,, Ying Xu,, Mary S. Lipton,, David G. Camp, II, and, Richard D. Smith,
+Analytical Chemistry 2006 78 (14), 5026-5039
+http://pubs.acs.org/doi/suppl/10.1021/ac060143p

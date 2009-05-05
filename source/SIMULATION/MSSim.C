@@ -100,7 +100,7 @@ namespace OpenMS {
       
     
 		// convert
-    createFeatureMap_(peptides);
+    createFeatureMap_(peptides, features_);
 
     // debug
 		for(FeatureMapSim::const_iterator feature = features_.begin();
@@ -139,7 +139,7 @@ namespace OpenMS {
     
     RawSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
-    createExperiment_(rt_sim.getGradientTime(), raw_sim.getRTSamplingRate());
+    createExperiment_(rt_sim.getGradientTime(), raw_sim.getRTSamplingRate(), experiment_);
     
     raw_sim.generateRawSignals(features_, experiment_);
 
@@ -153,10 +153,10 @@ namespace OpenMS {
     
   }
 
-	void MSSim::createFeatureMap_(const SamplePeptides& peptides)
+	void MSSim::createFeatureMap_(const SamplePeptides& peptides, FeatureMapSim& features)
 	{
-    features_.clear();
-		features_.reserve(peptides.size());
+    features.clear();
+		features.reserve(peptides.size());
 
 		for (SamplePeptides::const_iterator it=peptides.begin(); it!=peptides.end(); ++it)
 		{
@@ -165,19 +165,19 @@ namespace OpenMS {
 			pep_id.insertHit(PeptideHit(1.0, 1, 1, it->first));
 			f.getPeptideIdentifications().push_back(pep_id);
 			f.setIntensity(it->second);
-			features_.push_back(f);
+			features.push_back(f);
 		}
 	}
 
-  void MSSim::createExperiment_(const DoubleReal gradient_time, const DoubleReal rt_sampling_rate)
+  void MSSim::createExperiment_(const DoubleReal& gradient_time, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment)
   {
-    experiment_.clear();
-    Size number_of_scans = static_cast<Size>(gradient_time / rt_sampling_rate);
-    experiment_.resize(number_of_scans);
+    experiment.clear();
+    Size number_of_scans = Size(gradient_time / rt_sampling_rate);
+    experiment.resize(number_of_scans);
     
     DoubleReal current_scan_rt = rt_sampling_rate;
-    for(MSSimExperiment::iterator exp_it = experiment_.begin();
-        exp_it != experiment_.end();
+    for(MSSimExperiment::iterator exp_it = experiment.begin();
+        exp_it != experiment.end();
         ++exp_it)
     {
       // TODO: maybe we should also apply an error here like Ole did it in the original MapSimulator

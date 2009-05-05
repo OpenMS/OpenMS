@@ -92,10 +92,10 @@ namespace OpenMS
 	protected:
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
-		void createFeatureMap_(const SamplePeptides& peptides);
+		void createFeatureMap_(const SamplePeptides& peptides, FeatureMapSim& features);
 
     /// Generates a MSSimExperiment of correct size in m/z and retention time dimension
-    void createExperiment_(const DoubleReal gradient_time, const DoubleReal rt_sampling_rate);
+    void createExperiment_(const DoubleReal& gradient_time, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment);
 
   private:
     /// Set default parameters
