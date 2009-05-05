@@ -25,8 +25,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
@@ -34,7 +32,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <coin/OsiClpSolverInterface.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,19 +45,13 @@ using namespace std;
 
    @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
 
-   The Decharger uses a hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
+   The Decharger uses an ILP approach to group charge variants (including undesired adducts like K+) of the same peptide, which
    usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
-   are written to a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
+   are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
    variant is the average of all clustered peptides in each dimension.
-   If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
-   <ul>
-   <li>cluster consists of only one charge variant (but several peptides) -> split cluster into single elements</li>
-   <li>cluster consists of several charge variants -> dispose cluster</li>
-   </ul>
-   
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_DBImporter.cli
+	 <B>The command line parameters of this tool are:</B>
+   @verbinclude TOPP_Decharger.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -126,9 +117,7 @@ class TOPPDecharger
     typedef FeatureMap<> FeatureMapType;
     FeatureMapType map;
     FeatureXMLFile().load(infile, map);
-    //map.sortByPosition();
 
-		OsiClpSolverInterface solver;
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------

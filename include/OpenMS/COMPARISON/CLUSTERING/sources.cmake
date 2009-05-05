@@ -9,7 +9,6 @@ ClusterFunctor.h
 ClusterHierarchical.h
 CompleteLinkage.h
 EuclideanSimilarity.h
-HierarchicalClustering.h
 SingleLinkage.h
 )
 

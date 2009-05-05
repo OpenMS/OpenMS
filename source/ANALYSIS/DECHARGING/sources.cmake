@@ -3,7 +3,6 @@ set(directory source/ANALYSIS/DECHARGING)
 
 ### list all filenames of the directory here
 set(sources_list
-FeatureDecharger.C
 FeatureDeconvolution.C
 MIPWrapper.C
 )

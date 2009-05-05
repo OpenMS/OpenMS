@@ -3,7 +3,6 @@ set(directory include/OpenMS/ANALYSIS/DECHARGING)
 
 ### list all header files of the directory here
 set(sources_list_h
-FeatureDecharger.h
 FeatureDeconvolution.h
 MIPWrapper.h
 )
