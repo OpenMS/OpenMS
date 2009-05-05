@@ -81,19 +81,26 @@ class TOPPSemanticValidator
 		CVMappingFile().load(mapping_file, mappings, false);
 
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI-PI", File::find("/CV/psi-pi.obo"));
+		cv.loadFromOBO("PSI-MOD", File::find("/CHEMISTRY/PSI-MOD.obo"));
 		cv.loadFromOBO("PSI-MS",File::find("/CV/psi-ms.obo"));
 	  cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 		cv.loadFromOBO("UNIMOD",File::find("/CV/unimod.obo"));
-		//cv.loadFromOBO("NCBITaxon", "ncbi_taxonomy.obo");
 
 		// check cv params
 		Internal::SemanticValidator semantic_validator(mappings, cv);
 		semantic_validator.setCheckTermValueTypes(true);
 		semantic_validator.setCheckUnits(true);
+
+		// mzIdentML uses different namespaces, so we need a different tag name
+		FileTypes::Type file_type = FileHandler::getType(in_file);
+ 		if (file_type == FileTypes::MZIDENTML)
+		{ 	 
+			semantic_validator.setTag("pf:cvParam");
+		}
+
 		StringList errors, warnings;
 
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);

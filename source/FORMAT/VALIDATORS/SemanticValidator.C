@@ -162,7 +162,7 @@ namespace OpenMS
 		void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	  {
 	    String tag = sm_.convert(qname);
-		  String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
+		  String path = getPath_()+ "/" + cv_tag_ + "/@" + accession_att_;
 			
 			//look up rules and fulfilled rules/terms
 			vector<CVMappings::CVMappingRule>& rules = rules_[path];
@@ -183,7 +183,7 @@ namespace OpenMS
 			//check if all required rules are fulfilled
 			for (Size r=0; r<rules.size(); ++r)
 			{
-				//Count the number of distince matched terms
+				//Count the number of distinct matched terms
 				Size terms_count = rules[r].getCVTerms().size();
 				UInt match_count = 0;
 				for (Size t=0; t<terms_count; ++t)
@@ -199,7 +199,7 @@ namespace OpenMS
 				{
 					if (match_count!=terms_count)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "'");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + String(terms_count) + " should be present, " + String(match_count) + " found!");
 					}
 				}
 				//MUST / OR - at lest one terms must be matched
@@ -207,7 +207,7 @@ namespace OpenMS
 				{
 					if (match_count==0)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "'");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', at least one term must be present!");
 					}
 				}
 				//MUST / XOR - exactly one term must be matched
@@ -215,7 +215,7 @@ namespace OpenMS
 				{
 					if (match_count!=1)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "'");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "' exactly one of the allowed terms must be used!");
 					}
 				}
 				//MAY(SHOULD) / AND - none or all terms must be matched
@@ -223,7 +223,7 @@ namespace OpenMS
 				{
 					if (match_count!=0 && match_count!=terms_count)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "'");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
 					}
 				}
 				//MAY(SHOULD) / XOR - zero or one terms must be matched
@@ -231,7 +231,7 @@ namespace OpenMS
 				{
 					if (match_count>1)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "'");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, only exactly one of the allowed terms can be used!");
 					}
 				}
 				//MAY(SHOULD) / OR - none to all terms must be matched => always true

@@ -111,7 +111,7 @@ namespace OpenMS
 				{
 					if (line.has('!'))
 					{
-						term.parents.insert(line.substr(line.find(':')+1).prefix('!').trim());
+						term.parents.insert(line.substr(line.find(':') + 1).prefix('!').trim());
 					}
 					else
 					{
