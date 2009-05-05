@@ -21,6 +21,7 @@ ToolsDialog.C
 TheoreticalSpectrumGenerationDialog.C
 SpectrumAlignmentDialog.C
 TOPPASInputFilesDialog.C
+TOPPASToolConfigDialog.C
 )
 
 ### add path to the filenames

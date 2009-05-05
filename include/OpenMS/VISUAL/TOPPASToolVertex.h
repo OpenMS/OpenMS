@@ -30,6 +30,9 @@
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+
 namespace OpenMS
 {
 	class OPENMS_DLLAPI TOPPASToolVertex
@@ -50,6 +53,9 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
+			/// The static instance counter (for unique instance numbers)
+			static UInt instance_counter;
+			
 		protected:
 		
 			///@name reimplemented Qt events
@@ -57,7 +63,10 @@ namespace OpenMS
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
 			
-			
+			/// The parameters of the tool
+			Param param_;
+			/// The instance number
+			UInt instance_nr_;
 	};
 }
 

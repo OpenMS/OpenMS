@@ -52,9 +52,11 @@ namespace OpenMS
 			TOPPASOutputVertex& operator= (const TOPPASOutputVertex& rhs);
 			
 		protected:
-			
-			/// Moves the target pos of the edge which is just being created to @p pos
-			virtual void moveNewEdgeTo_(const QPointF& /*pos*/);
+		
+			///@name reimplemented Qt events
+      //@{
+      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+			//@}
 	};
 }
 

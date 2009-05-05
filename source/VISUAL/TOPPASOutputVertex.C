@@ -62,9 +62,9 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void TOPPASOutputVertex::moveNewEdgeTo_(const QPointF& /*pos*/)
-	{	
-		// do nothing, no outedges allowed here
+	void TOPPASOutputVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		// ...
 	}
 }
 

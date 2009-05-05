@@ -57,9 +57,9 @@ namespace OpenMS
 			typedef VertexContainer::iterator VertexIterator;
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
-			/// Standard constructor
-			TOPPASScene();
-		
+			/// Constructor
+			TOPPASScene(QObject* parent);
+			
 			/// Destructor
 			virtual ~TOPPASScene();
 			

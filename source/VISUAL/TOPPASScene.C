@@ -28,13 +28,14 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
 namespace OpenMS
 {
 	
-	TOPPASScene::TOPPASScene()
-		:	QGraphicsScene(),
+	TOPPASScene::TOPPASScene(QObject* parent)
+		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
 			edges_(),
@@ -145,6 +146,11 @@ namespace OpenMS
 			hover_edge_->setColor(Qt::black);
 			potential_target_ = 0;
 		}
+		
+		if (qobject_cast<TOPPASOutputVertex*>(hover_edge_->getSourceVertex()))
+		{
+			hover_edge_->setColor(Qt::red);
+		}
 	}
 	
 	void TOPPASScene::addHoveringEdge(const QPointF& pos)
@@ -250,7 +256,11 @@ namespace OpenMS
 	
 	TOPPASScene::EdgeValidity TOPPASScene::getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v)
 	{
-		if (u == 0 || v == 0 || u == v || qobject_cast<TOPPASInputVertex*>(v))
+		if (u == 0 ||
+				v == 0 ||
+				u == v ||
+				qobject_cast<TOPPASInputVertex*>(v) ||
+				qobject_cast<TOPPASOutputVertex*>(u))
 		{
 			return EV_RED;
 		}
