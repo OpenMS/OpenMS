@@ -150,8 +150,6 @@ namespace OpenMS
       QTreeWidget* tools_tree_view_;
       /// List of ready analysis pipelines
       QListWidget* blocks_list_;
-      /// List of miscellaneous stuff...
-      QListWidget* misc_list_;
       
       /** @name Status bar
       */

@@ -188,13 +188,6 @@ namespace OpenMS
     blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
     blocks_bar->setWidget(blocks_list_);
 
-		//Misc window
-		QDockWidget* misc_bar = new QDockWidget("Misc", this);
-    addDockWidget(Qt::LeftDockWidgetArea, misc_bar);
-    misc_list_ = new QListWidget(misc_bar);
-    misc_list_->setWhatsThis("Miscellaneous<BR><BR>This and that...");
-    misc_bar->setWidget(misc_list_);
-
 		//log window
 		QDockWidget* log_bar = new QDockWidget("Log", this);
 		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
@@ -247,7 +240,7 @@ namespace OpenMS
 	
 	void TOPPASBase::saveFileDialog()
 	{
-	
+		
 	}
 	
 	void TOPPASBase::preferencesDialog()

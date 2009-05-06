@@ -61,29 +61,24 @@ namespace OpenMS
 				@brief Constructor
 				
 				@param parent Qt parent widget
-				@param ini_file The file name of the temporary INI file created by this dialog
+				@param param The param we are editing
 				@param default_dir The default directory for loading and storing INI files
 				@param tool_name The name of the tool
 				@param tool_type The type of the tool
-				@param instance_nr The (unique) instance number
 			*/
-			TOPPASToolConfigDialog(QWidget* parent, String ini_file, String default_dir, String tool_name, String tool_type, UInt instance_nr);
+			TOPPASToolConfigDialog(QWidget* parent, Param& param, String default_dir, String tool_name, String tool_type);
 			///Desctructor
 			~TOPPASToolConfigDialog();
 	
 		private:		
 			/// ParamEditor for reading ini-files
-			ParamEditor *editor_;
+			ParamEditor* editor_;
+			/// The param we are editing
+			Param* param_;
 			/// Param for loading the ini-file
 			Param arg_param_;
-			/// Param for loading configuration information in the ParamEditor
-			Param vis_param_;
 			/// ok-button connected with slot ok_()
 			QPushButton* ok_button_;
-			/// map for getting the parameter name from the full path in arg_param
-			std::map<String,String> arg_map_;
-			/// Location of the temporary INI file this dialog works on 
-			String ini_file_;
 			/// default-dir of ini-file to open
 			String default_dir_;
 			/// name of ini-file
@@ -92,8 +87,6 @@ namespace OpenMS
 			String tool_name_;
 			/// The type of the tool
 			String tool_type_;
-			/// The instance number of this specific node
-			UInt instance_nr_;
 			
 		protected slots:
 			/// Slot for OK button

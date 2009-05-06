@@ -45,13 +45,12 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, String ini_file, String default_dir, String tool_name, String tool_type, UInt instance_nr )
+	TOPPASToolConfigDialog::TOPPASToolConfigDialog( QWidget * parent, Param& param, String default_dir, String tool_name, String tool_type )
 		: QDialog(parent),
-			ini_file_(ini_file),
+			param_(&param),
 			default_dir_(default_dir),
 			tool_name_(tool_name),
-			tool_type_(tool_type),
-			instance_nr_(instance_nr)			
+			tool_type_(tool_type)
 	{
 		QGridLayout *main_grid=new QGridLayout(this);
 
@@ -79,24 +78,9 @@ namespace OpenMS
 		
 		setLayout(main_grid);
 		
-		arg_param_.load((ini_file_).c_str());
-		
-		vis_param_=arg_param_.copy(tool_name_+":1:",true);
-		vis_param_.remove("log");
-		vis_param_.remove("no_progress");
-		vis_param_.remove("debug");
-		
-		editor_->load(vis_param_);
+		editor_->load(*param_);
 		
 		String str;
-		for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
-		{
-			str=iter.getName().substr(iter.getName().rfind("1:")+2,iter.getName().size());
-			if(str.size()!=0 && str.find(":")==String::npos)
-			{
-				arg_map_.insert(make_pair(str,iter.getName()));
-			}
-		}
 		
 		editor_->setFocus(Qt::MouseFocusReason);
 		
@@ -110,14 +94,9 @@ namespace OpenMS
 
 	void TOPPASToolConfigDialog::ok_()
 	{
-			editor_->store();
-			arg_param_.insert(tool_name_ + ":" + instance_nr_ + ":",vis_param_);
-			if(!File::writable(ini_file_))
-			{
-				QMessageBox::critical(this,"Error",(String("Could not write to '")+ini_file_+"'!").c_str());
-			}
-			arg_param_.store(ini_file_);
-			accept();
+		editor_->store();
+		
+		accept();
 	}
 	
 	void TOPPASToolConfigDialog::loadINI_()
@@ -132,9 +111,8 @@ namespace OpenMS
 		if(!arg_param_.empty())
 		{
 			arg_param_.clear();
-			vis_param_.clear();
+			param_->clear();
 			editor_->clear();
-			arg_map_.clear();
 		}
 		try
 		{
@@ -147,12 +125,12 @@ namespace OpenMS
 			return;
 		}
 		//Extract the required parameters
-		vis_param_=arg_param_.copy(tool_name_ + ":" + instance_nr_ + ":", true);
-		vis_param_.remove("log");
-		vis_param_.remove("no_progress");
-		vis_param_.remove("debug");
+		*param_=arg_param_.copy(tool_name_ + ":1:", true);
+		param_->remove("log");
+		param_->remove("no_progress");
+		param_->remove("debug");
 		//load data into editor
-		editor_->load(vis_param_);
+		editor_->load(*param_);
 	}
 	
 	void TOPPASToolConfigDialog::storeINI_()
@@ -167,7 +145,7 @@ namespace OpenMS
 		}
 		if(!filename_.endsWith(".ini")) filename_.append(".ini");
 		editor_->store();
-		arg_param_.insert(tool_name_ + ":" + instance_nr_ + ":", vis_param_);
+		arg_param_.insert(tool_name_ + ":1:", *param_);
 		try
 		{
 			arg_param_.store(filename_.toStdString());

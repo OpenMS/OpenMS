@@ -81,35 +81,41 @@ namespace OpenMS
 	{
 		QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
 		String default_dir = "";
-		String ini_file = name_ + "__";
-		if (type_ != "")
-		{
-			ini_file += type_ + "__";
-		}
-		ini_file += QString::number(instance_nr_) + ".ini";
+		Param tmp_param;
 		
-		String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
-		if (type_ != "")
+		if (param_.empty())
 		{
-			call += " -type " + type_;
-		}
-		
-		if (system(call.c_str()) != 0)
-		{
-			QMessageBox::critical(parent_widget,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
-		}
-		else if(!File::exists(ini_file))
-		{
-			QMessageBox::critical(parent_widget,"Error",(String("Could not open '")+ini_file+"'!").c_str());
-		}
-		else
-		{
-			TOPPASToolConfigDialog dialog(parent_widget, ini_file, default_dir, name_, type_, instance_nr_);
-			if (dialog.exec())
+			String ini_file = "TOPPAS_" + name_ + "_";
+			if (type_ != "")
 			{
-				// ...
+				ini_file += type_ + "_";
 			}
+			ini_file += QString::number(instance_nr_) + ".tmp.ini";
+			
+			String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
+			if (type_ != "")
+			{
+				call += " -type " + type_;
+			}
+			
+			if (system(call.c_str()) != 0)
+			{
+				QMessageBox::critical(parent_widget,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
+			}
+			else if(!File::exists(ini_file))
+			{
+				QMessageBox::critical(parent_widget,"Error",(String("Could not open '")+ini_file+"'!").c_str());
+			}
+			
+			tmp_param.load((ini_file).c_str());
+			param_=tmp_param.copy(name_+":1:",true);
+			param_.remove("log");
+			param_.remove("no_progress");
+			param_.remove("debug");
 		}
+		
+		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
+		dialog.exec();
 	}
 }
 
