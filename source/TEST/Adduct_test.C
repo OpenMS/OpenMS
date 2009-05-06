@@ -59,9 +59,9 @@ START_SECTION((Adduct(Int charge)))
 }
 END_SECTION
 
-START_SECTION((Adduct(Int charge, Int amount, float singleMass, String formula, float log_prob)))
+START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob)))
 {
-	Adduct a(123, 43, 123.456f, "SECRET", -0.3453f);
+	Adduct a(123, 43, 123.456f, "SECRET", -0.3453);
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43);
 	TEST_REAL_SIMILAR(a.getSingleMass(), 123.456);
@@ -99,27 +99,27 @@ START_SECTION((void setAmount(const Int &amount)))
 }
 END_SECTION
 
-START_SECTION((const float& getSingleMass() const))
+START_SECTION((const DoubleReal& getSingleMass() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setSingleMass(const float &singleMass)))
+START_SECTION((void setSingleMass(const DoubleReal &singleMass)))
 {
 	Adduct a;
-	a.setSingleMass(43.21f);
+	a.setSingleMass(43.21);
   TEST_REAL_SIMILAR(a.getSingleMass(), 43.21);
 }
 END_SECTION
 
-START_SECTION((const float& getLogProb() const))
+START_SECTION((const DoubleReal& getLogProb() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setLogProb(const float &log_prob)))
+START_SECTION((void setLogProb(const DoubleReal &log_prob)))
 {
 	Adduct a;
 	a.setLogProb(43.21f);
@@ -144,7 +144,7 @@ END_SECTION
 
 START_SECTION((Adduct operator *(Int m)))
 {
-	Adduct a_p(123, 43, 123.456f, "SECRET", -0.3453f);
+	Adduct a_p(123, 43, 123.456, "SECRET", -0.3453);
 	Adduct a = a_p*4;
 	TEST_EQUAL(a.getCharge(), 123);
 	TEST_EQUAL(a.getAmount(), 43*4);

@@ -77,7 +77,7 @@ namespace OpenMS
 		}
 
 		/// Constructor
-		MassExplainer(Int q_min, Int q_max, Int max_span, float thresh_logp)
+		MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)
 			:	explanations_(),
 				adduct_base_(),
 				q_min_(q_min),
@@ -89,7 +89,7 @@ namespace OpenMS
 		}
 
 		/// Constructor
-		MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, float thresh_logp)
+		MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)
 			:	explanations_(),
 				adduct_base_(adduct_base),
 				q_min_(q_min),
@@ -261,7 +261,7 @@ namespace OpenMS
 		/// search the mass database for explanations
 		/// @param thresh_log_p minimal log probability required
 		/// @return iterator range with candidates according to net_charge and mass
-		Int query(const Int net_charge, 
+		SignedSize query(const Int net_charge, 
 						  const float mass_to_explain, 
 							const float mass_delta,
 							const float thresh_log_p,
@@ -316,7 +316,7 @@ namespace OpenMS
 		/// maximal span (in terms of charge) for co-features, e.g. a cluster with q={3,6} has span=4
 		Int max_span_;
 		/// minimum required probability of a compound (all other compounds are discarded)
-		float thresh_p_;
+		DoubleReal thresh_p_;
   };
 
 

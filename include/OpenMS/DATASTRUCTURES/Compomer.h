@@ -57,7 +57,7 @@ public:
 	}
 
 	/// Constructor with net-charge and mass
-	Compomer(Int net_charge, float mass, float log_p)
+	Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p)
 		: cmp_(),
 		net_charge_(net_charge),
 		mass_(mass),
@@ -132,11 +132,11 @@ public:
 			return net_charge_;
 	}
 
-	void setMass(const float& mass)
+	void setMass(const DoubleReal& mass)
 	{
 			mass_ = mass;
 	}
-	const float& getMass() const
+	const DoubleReal& getMass() const
 	{
 			return mass_;
 	}
@@ -159,11 +159,11 @@ public:
 			return neg_charges_;
 	}
 	
-	void setLogP(const float& log_p)
+	void setLogP(const DoubleReal& log_p)
 	{
 			log_p_ = log_p;
 	}
-	const float& getLogP() const
+	const DoubleReal& getLogP() const
 	{
 			return log_p_;
 	}	
@@ -232,10 +232,10 @@ private:
 	
 	CompomerComponents cmp_;
 	Int net_charge_;
-	float mass_;
+	DoubleReal mass_;
 	Int pos_charges_;
 	Int neg_charges_;
-	float log_p_;   // log probability of compomer
+	DoubleReal log_p_;   // log probability of compomer
 	Size id_;
 	//bool final_;
 

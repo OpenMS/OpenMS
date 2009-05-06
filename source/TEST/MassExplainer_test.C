@@ -54,7 +54,7 @@ END_SECTION
 	
 	
 	MassExplainer::CompomerIterator s,e;
-	Int hits = me.query(3, 23.0, 3.0,  -100,s,e);
+	SignedSize hits = me.query(3, 23.0, 3.0,  -100,s,e);
 	
 	std::cout << "hits: " << hits << std::endl;
 	for (; s!=e; ++s)

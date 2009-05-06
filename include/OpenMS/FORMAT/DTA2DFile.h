@@ -195,7 +195,7 @@ namespace OpenMS
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}
-					p.setIntensity(strings[int_dim].toDouble());
+					p.setIntensity(strings[int_dim].toFloat());
 					p.setMZ(strings[mz_dim].toDouble());
 					rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
 				}

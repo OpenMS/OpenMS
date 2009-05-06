@@ -52,7 +52,7 @@ START_SECTION(~Compomer())
 }
 END_SECTION
 
-START_SECTION((Compomer(Int net_charge, float mass, float log_p)))
+START_SECTION((Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p)))
 {
 	Compomer c(34, 45.32f, 12.34f);
 	TEST_EQUAL(c.getNetCharge(), 34);
@@ -63,7 +63,7 @@ END_SECTION
 
 START_SECTION((void add(const Adduct &a)))
 {
-	//Adduct(Int charge, Int amount, float singleMass, String formula, float log_prob
+	//Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob
 	Adduct a1(123, 43, 123.456f, "SECRET", -0.3453f);
 	Adduct a2(123,  3, 123.456f, "SECRET", -0.3453f);
 
@@ -99,7 +99,7 @@ END_SECTION
 START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left_other) const))
 {
 	EmpiricalFormula ef("H");
-	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7));
+	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f));
 
 	{
 	Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
@@ -168,13 +168,13 @@ START_SECTION((const Int& getNetCharge() const))
 }
 END_SECTION
 
-START_SECTION((void setMass(const float &mass)))
+START_SECTION((void setMass(const DoubleReal &mass)))
 {
   NOT_TESTABLE //well.. tested below...	
 }
 END_SECTION
 
-START_SECTION((const float& getMass() const))
+START_SECTION((const DoubleReal& getMass() const))
 {
   Compomer c;
 	c.setMass(-123.12f);
@@ -210,13 +210,13 @@ START_SECTION((const Int& getNegativeCharges() const))
 }
 END_SECTION
 
-START_SECTION((void setLogP(const float &log_p)))
+START_SECTION((void setLogP(const DoubleReal &log_p)))
 {
   NOT_TESTABLE //well.. tested below...	
 }
 END_SECTION
 
-START_SECTION((const float& getLogP() const))
+START_SECTION((const DoubleReal& getLogP() const))
 {
   Compomer c;
 	c.setLogP(-123.12f);

@@ -173,11 +173,11 @@ namespace OpenMS
 				
 				//holds query results for a mass difference
 				MassExplainer::CompomerIterator md_s, md_e, md_tmp;
-				Int hits = 0;
+				SignedSize hits = 0;
 				
 				CoordinateType mz1,mz2, m1;
 				
-				UInt possibleEdges = 0, overallHits = 0;
+				Size possibleEdges = 0, overallHits = 0;
 				
 				PairsType feature_relation;
 				
@@ -215,7 +215,8 @@ namespace OpenMS
 									
 									// find possible adduct combinations
 									hits = me.query(q2-q1, mz2*q2-m1, mz_diff_max, thresh_logp, md_s, md_e);
-									
+									OPENMS_PRECONDITION(hits>=0,"FeatureDeconvolution querying #hits got negative result!");
+
 									overallHits+=hits;
 									// choose most probable hit (TODO think of something clever here)
 									// for now, we take the one that has highest p in terms of the compomer structure

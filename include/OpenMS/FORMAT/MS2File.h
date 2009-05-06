@@ -158,7 +158,7 @@ namespace OpenMS
 
 					// TODO catch exceptions
 					p.setPosition(split[0].toDouble());
-					p.setIntensity(split[1].toDouble());
+					p.setIntensity(split[1].toFloat());
 					spec.push_back(p);
 				}
 

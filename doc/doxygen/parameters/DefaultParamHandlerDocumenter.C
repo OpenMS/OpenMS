@@ -34,7 +34,6 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
@@ -48,7 +47,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -104,7 +102,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -294,7 +291,6 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeFitter1D);
 	DOCME(ExtendedIsotopeModel);
 	DOCME(FalseDiscoveryRate);
-	DOCME(FeatureDecharger);
 	DOCME(FeatureGroupingAlgorithmLabeled);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
@@ -360,7 +356,6 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
-	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
