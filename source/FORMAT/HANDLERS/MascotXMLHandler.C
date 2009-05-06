@@ -171,6 +171,14 @@ namespace OpenMS
 			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
+		else if (tag_ == "pep_scan_title") 
+		{
+			String title = ((String) sm_.convert(chars)).trim();
+			if(title.hasSubstring("_")) 
+			{
+				id_data_[peptide_identification_index_].setMetaValue("RT", (title.suffix('_').toDouble()));
+			}
+		}
 		else if (tag_ == "pep_exp_z")
 		{
 			actual_peptide_hit_.setCharge(((String) sm_.convert(chars)).trim().toInt());
