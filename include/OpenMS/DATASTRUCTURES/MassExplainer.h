@@ -156,7 +156,17 @@ namespace OpenMS
 		
 	public:
 		/// Assignment operator
-		MassExplainer& operator = (const MassExplainer& rhs);
+		MassExplainer& operator = (const MassExplainer& rhs)
+		{
+				if (this == &rhs) return *this;
+
+				explanations_ = rhs.explanations_;
+				adduct_base_ = rhs.adduct_base_;
+				q_min_ = rhs.q_min_;
+				q_max_ = rhs.q_max_;
+				max_span_ = rhs.max_span_;
+				thresh_p_ = rhs.thresh_p_;
+		}
 		
 		/// Destructor
 		virtual ~MassExplainer()
