@@ -212,7 +212,11 @@ namespace OpenMS {
   
   void RTSimulation::updateMembers_()
   {
-		rtModelFile_ = File::find( param_.getValue("rt_model_file") );
+		rtModelFile_ = param_.getValue("rt_model_file");
+		if (! File::readable( rtModelFile_ ) )
+    { // look in OPENMS_DATA_PATH
+      rtModelFile_ = File::find( rtModelFile_ );
+    }
 		gradientTime_ = param_.getValue("total_gradient_time");
   }
   

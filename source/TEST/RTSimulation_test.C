@@ -97,7 +97,7 @@ START_SECTION((void predict_rt(FeatureMapSim &)))
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
   Param p = no_rt_sim.getParameters();
-  p.setValue("rt_column_on",0);
+  p.setValue("rt_column_on","false");
   p.setValue("total_gradient_time",4000.0);
   no_rt_sim.setParameters(p);  
 
@@ -124,7 +124,7 @@ START_SECTION((void predict_rt(FeatureMapSim &)))
   // no rt scan
   RTSimulation svm_rt_sim(rnd_gen);
   Param svm_params = svm_rt_sim.getParameters();
-  svm_params.setValue("rt_column_on",1);
+  svm_params.setValue("rt_column_on","true");
   svm_params.setValue("total_gradient_time",4000.0);
   svm_params.setValue("rt_model_file",OPENMS_GET_TEST_DATA_PATH("LCMSSim_test.svm"));
   svm_params.setValue("rt_shift_mean", 0);
@@ -180,12 +180,12 @@ START_SECTION((bool isRTColumnOn() const ))
   RTSimulation rt_sim(NULL);
 
   Param p = rt_sim.getParameters();
-  p.setValue("rt_column_on",1);
+  p.setValue("rt_column_on","true");
   rt_sim.setParameters(p);  
   
   TEST_EQUAL(rt_sim.isRTColumnOn(), true);
   
-  p.setValue("rt_column_on",0);
+  p.setValue("rt_column_on","false");
   rt_sim.setParameters(p);  
   
   TEST_EQUAL(rt_sim.isRTColumnOn(), false);
