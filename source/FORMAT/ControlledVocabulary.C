@@ -118,6 +118,31 @@ namespace OpenMS
 						term.parents.insert(line.substr(line.find(':') + 1).trim());
 					}
 				}
+				// brenda tissue special relationships, DRV (derived and part of)
+				else if (line_wo_spaces.hasPrefix("relationship:DRV") && name == "brenda")
+				{
+					if (line.has('!'))
+					{
+						// e.g. relationship: DRV BTO:0000142 ! brain
+						term.parents.insert(line.substr(line.find("DRV") + 4).prefix(':') + ":" + line.suffix(':').prefix('!').trim());
+					}
+					else
+					{
+						// e.g. relationship: DRV BTO:0000142
+						term.parents.insert(line.substr(line.find("DRV") + 4).prefix(':') + ":" + line.suffix(':').trim());
+					}
+				}
+				else if (line_wo_spaces.hasPrefix("relationship:part_of") && name == "brenda")
+				{
+					if (line.has('!'))
+					{
+						term.parents.insert(line.substr(line.find("part_of") + 8).prefix(':') + ":" + line.suffix(':').prefix('!').trim());
+					}
+					else
+					{
+						 term.parents.insert(line.substr(line.find("part_of") + 8).prefix(':') + ":" + line.suffix(':').trim());
+					}
+				}
 				else if (line_wo_spaces.hasPrefix("relationship:has_units"))
 				{
 					String unit_id;
