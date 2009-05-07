@@ -31,6 +31,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <limits>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
@@ -427,7 +428,7 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks,  Data& d
 				// all peaks shall have the same width
 				DoubleReal wl = data.peaks[0].left_width;
 				DoubleReal wr = data.peaks[0].right_width;
-				if (isnan(wl))
+				if (boost::math::isnan(wl))
 					{
 						for(Size i=0;i<data.peaks.size();++i)
 							{
@@ -435,7 +436,7 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks,  Data& d
 							}
 						wl = 1.;
 					}
-				if (isnan(wr))
+				if (boost::math::isnan(wr))
 					{
 						for(Size i=0;i<data.peaks.size();++i)
 							{
@@ -500,7 +501,7 @@ bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks,  Data& d
 						std::cout << "Number of parms: " << data.peaks.size() + 3 << std::endl;
 						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
-						if (isnan(gsl_blas_dnrm2(fit->dx)))
+						if (boost::math::isnan(gsl_blas_dnrm2(fit->dx)))
 						{
 #ifdef DEBUG_DECONV
 								std::cout << "norm is not a number" << std::endl;

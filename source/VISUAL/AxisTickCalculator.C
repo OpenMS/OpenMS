@@ -34,6 +34,7 @@
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
@@ -45,7 +46,7 @@ namespace OpenMS
 	{		
 		grid.clear();
 		
-		if (isnan(x1) || isnan(x2)) return;
+		if (boost::math::isnan(x1) || boost::math::isnan(x2)) return;
 		
 		if (x1 > -0.0001 && x1 < 0.0001) 
 		{

@@ -39,6 +39,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <numeric>
@@ -582,7 +584,7 @@ namespace OpenMS
         else quality = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
 			}
 
-			if (isnan(quality)) quality = -1.0;
+			if (boost::math::isnan(quality)) quality = -1.0;
 
 			return quality;
 		}
@@ -624,7 +626,7 @@ namespace OpenMS
 			// Construct model for rt
 			quality = fitter->fit1d(rt_input_data_, model);
 			// Check quality
-			if (isnan(quality) ) quality = -1.0;
+			if (boost::math::isnan(quality) ) quality = -1.0;
 
 			delete(fitter);
 
@@ -682,7 +684,7 @@ namespace OpenMS
 			//std::cout << "model after fitting: " << model->getParameters() << std::endl << std::endl;
 
 			// Check quality
-			if (isnan(quality) ) quality = -1.0;
+			if (boost::math::isnan(quality) ) quality = -1.0;
 
 			delete(fitter);
 

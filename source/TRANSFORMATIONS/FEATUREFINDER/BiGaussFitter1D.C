@@ -27,7 +27,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-
+#include <boost/math/special_functions/fpclassify.hpp>
 namespace OpenMS
 {
     BiGaussFitter1D::BiGaussFitter1D()			
@@ -94,7 +94,7 @@ namespace OpenMS
         // fit offset
         QualityType quality;
         quality = fitOffset_(model, set, stdev1_, stdev2_, interpolation_step_);
-        if (isnan(quality) ) quality = -1.0;
+        if (boost::math::isnan(quality) ) quality = -1.0;
         
         return quality;
     }

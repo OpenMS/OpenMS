@@ -29,6 +29,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
@@ -229,7 +230,7 @@ namespace OpenMS
         }
 
         QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-        if (isnan(correlation)) correlation = -1.0;
+        if (boost::math::isnan(correlation)) correlation = -1.0;
 
         return correlation;
     }
@@ -262,7 +263,7 @@ namespace OpenMS
       symmetry_ = fabs( set[set.size()-1].getPos() - set[median].getPos() ) / fabs( set[median].getPos() - set[0].getPos() );
 
       // check the symmetry
-      if ( isinf( symmetry_ ) || isnan( symmetry_ ) )
+      if ( boost::math::isinf( symmetry_ ) || boost::math::isnan( symmetry_ ) )
       {
         symmetric_ = true;
         symmetry_ = 10;

@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
@@ -91,7 +92,7 @@ namespace OpenMS
         // fit offset
         QualityType quality;
         quality = fitOffset_(model, set, stdev1_, stdev2_, interpolation_step_);
-	      if (isnan(quality) ) quality = -1.0;
+	      if (boost::math::isnan(quality) ) quality = -1.0;
         
         return quality;
     }

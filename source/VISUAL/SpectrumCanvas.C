@@ -32,6 +32,8 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 // QT
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
@@ -934,7 +936,7 @@ namespace OpenMS
 		QStringList lines;
 		if (print_rt) lines.push_back("RT delta : " + QString::number(rt,'f',2));
 		lines.push_back("m/z delta: " + QString::number(mz,'f',6));
-		if (isinf(rt) || isnan(rt))
+		if (boost::math::isinf(rt) || boost::math::isnan(rt))
 		{
 			lines.push_back("int ratio: n/a");
 		}

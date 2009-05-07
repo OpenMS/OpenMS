@@ -36,6 +36,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 #include <numeric>
 #include <fstream>
 
@@ -1916,7 +1918,7 @@ namespace OpenMS
 						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end && isotopes.size()-b-e>1))
 						{
 							DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin()+b, isotopes.intensity.end()-e, pattern.intensity.begin()+b, pattern.intensity.end()-e);	
-							if (isnan(int_score)) int_score = 0.0;
+							if (boost::math::isnan(int_score)) int_score = 0.0;
 							if (isotopes.size()-b-e==2 && int_score>min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
 							if (debug) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
 							if (int_score/best_int_score>=1.0+optional_fit_improvement_)

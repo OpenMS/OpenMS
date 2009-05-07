@@ -33,6 +33,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #ifdef _OPENMP 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -858,7 +859,7 @@ namespace OpenMS
 				std::cout << "h: " << lorentz.height << std::endl;
 #endif
 
-				if ((lorentz.r_value > sech.r_value) && isnan(sech.r_value))
+				if ((lorentz.r_value > sech.r_value) && boost::math::isnan(sech.r_value))
 					{
 						return lorentz;
 					}
@@ -1145,7 +1146,7 @@ namespace OpenMS
 					}
 				dif /= peaks-1;
 				charge = (Int) Math::round(1/dif);
-				if(isnan((DoubleReal)charge) || isinf((DoubleReal)charge)) charge = 0;
+				if(boost::math::isnan((DoubleReal)charge) || boost::math::isinf((DoubleReal)charge)) charge = 0;
 #ifdef DEBUG_DECONV
 				std::cout<<"1/dif = "<<1/dif<<";\tcharge = "<<charge<<std::endl;
 #endif

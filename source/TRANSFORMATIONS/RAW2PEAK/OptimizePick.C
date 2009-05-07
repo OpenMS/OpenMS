@@ -27,6 +27,7 @@
 
 #include <cmath>
 #include <boost/math/special_functions/acosh.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -344,12 +345,12 @@ void OptimizePick::optimize(std::vector<PeakShape>& peaks,Data& data)
       double wl = current_peak.left_width;
       double wr = current_peak.right_width;
       double p  = current_peak.mz_position;
-      if (isnan(wl))
+      if (boost::math::isnan(wl))
       {
         data.peaks[i].left_width = 1;
         wl = 1.;
       }
-      if (isnan(wr))
+      if (boost::math::isnan(wr))
       {
         data.peaks[i].right_width = 1;
         wr = 1.;
@@ -397,7 +398,7 @@ void OptimizePick::optimize(std::vector<PeakShape>& peaks,Data& data)
       std::cout << "Number of parms: " << data.peaks.size() * 4 << std::endl;
       std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
-      if (isnan(gsl_blas_dnrm2(fit->dx)))
+      if (boost::math::isnan(gsl_blas_dnrm2(fit->dx)))
         break;
 
       // We use the gsl function gsl_multifit_test_delta to decide if we can finish the iteration.

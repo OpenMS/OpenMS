@@ -37,6 +37,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 #include <vector>
 #include <algorithm>
 
@@ -76,7 +78,7 @@ namespace OpenMS
       std::ostream &
       printValueOrNan( std::ostream & os, NumberT thing )
       {
-        if ( !isnan(thing) )
+        if ( !boost::math::isnan(thing) )
         {
           return os << thing;
         }
