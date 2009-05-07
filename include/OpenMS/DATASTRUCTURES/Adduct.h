@@ -37,6 +37,8 @@ class OPENMS_DLLAPI Adduct
 {
 public:
 
+		typedef std::vector< Adduct > AdductsType;
+
     Adduct()
     : charge_(0),
     amount_(0),

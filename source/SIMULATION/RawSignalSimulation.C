@@ -181,22 +181,21 @@ namespace OpenMS {
     addBaseLine_(experiment);
   }
   
-  void RawSignalSimulation::addMSSignal(Feature & activeFeature, MSSimExperiment & expirement)
+  void RawSignalSimulation::addMSSignal(Feature & active_feature, MSSimExperiment & experiment)
   {
     ProductModel<2> pm;
     Param p1;
 
     // was: 3000 TODO: ???? why 1500
-    SimIntensityType scale = activeFeature.getIntensity() * 1500;
+    SimIntensityType scale = active_feature.getIntensity() * 1500;
     mean_scaling_ += scale;
     ++ion_count_;
 
-    SimChargeType charge = activeFeature.getCharge();
+    SimChargeType charge = active_feature.getCharge();
 
-    //TODO use H+ weight instead of 1*c ?
-    EmpiricalFormula feature_ef = activeFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
-    SimCoordinateType mz = ( (feature_ef.getMonoWeight() + charge) / charge) ;
+    SimCoordinateType mz = ( (feature_ef.getMonoWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass") ) / charge) ;
 
     // TODO: this should not be necessary, check ...
     /*
@@ -214,19 +213,18 @@ namespace OpenMS {
       // ignore the current feature
       return;
     }
-    activeFeature.setMZ(mz);
+    active_feature.setMZ(mz);
 
-    //TODO use H+ weight instead of 1*c ?
-    p1.setValue("statistics:mean",((feature_ef.getAverageWeight()+charge)/charge));
-    p1.setValue("interpolation_step",0.001);
-    p1.setValue("isotope:stdev",peak_std_);
-    p1.setValue("charge",(int) charge);
+    p1.setValue("statistics:mean", (feature_ef.getAverageWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass"))/charge );
+    p1.setValue("interpolation_step", 0.001);
+    p1.setValue("isotope:stdev", peak_std_);
+    p1.setValue("charge", charge);
 
     IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
     isomodel->setSamples(feature_ef);
     isomodel->setParameters(p1);
 
-    chooseElutionProfile_(pm,activeFeature.getRT(),scale);
+    chooseElutionProfile_(pm,active_feature.getRT(),scale);
     pm.setModel(1,isomodel);
     pm.setScale(scale);
 
@@ -235,7 +233,7 @@ namespace OpenMS {
     // TODO: remove this current_feature_ dependency
     // TODO: store all simulated features in a separate FeatureMap ..
 
-    samplePeptideModel_(pm, (mz - 2.5),(mz + 5.0), (activeFeature.getRT() - 160.0),(activeFeature.getRT() + 280.0), expirement, activeFeature);
+    samplePeptideModel_(pm, (mz - 2.5),(mz + 5.0), (active_feature.getRT() - 160.0),(active_feature.getRT() + 280.0), experiment, active_feature);
     /*
     if (current_feature_.getConvexHulls().begin()->getPoints().size() > 0)
     {
@@ -247,7 +245,7 @@ namespace OpenMS {
   void RawSignalSimulation::samplePeptideModel_(const ProductModel<2> & pm,
                                     const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                                     SimCoordinateType rt_start, SimCoordinateType rt_end,
-                                    MSSimExperiment & expirement, Feature & activeFeature)
+                                    MSSimExperiment & experiment, Feature & active_feature)
   {
     // start and end points of the sampling are entirely arbitrary
     // and should be modified at some point
@@ -256,7 +254,7 @@ namespace OpenMS {
     // (ost) Why should this happen ?
     if (rt_start <=0) rt_start = 0;
 
-    MSExperiment<Peak1D>::iterator exp_iter = expirement.RTBegin(rt_start);
+    MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(rt_start);
 
     SimIntensityType intensity_sum = 0.0;
     vector< DPosition<2> > points;
@@ -267,7 +265,7 @@ namespace OpenMS {
 //#endif
 
     /// TODO: think of better error checking
-    if(exp_iter == expirement.end() )
+    if(exp_iter == experiment.end() )
     {
       std::cout << "error ! " << std::endl; // ;-) should not happen
       return;
@@ -281,7 +279,7 @@ namespace OpenMS {
     //UInt it = 0;
     //UInt pit = 0;
 
-    for (SimCoordinateType rt = rt_start; rt < rt_end && exp_iter != expirement.end(); rt += rt_sampling_rate_, ++exp_iter)
+    for (SimCoordinateType rt = rt_start; rt < rt_end && exp_iter != experiment.end(); rt += rt_sampling_rate_, ++exp_iter)
     {
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
@@ -294,13 +292,13 @@ namespace OpenMS {
         {
           if (start_scan == -5)
           {
-            start_scan = exp_iter - expirement.begin();
+            start_scan = exp_iter - experiment.begin();
             //std::cout << "start_scan: " << start_scan << std::endl;
           }
 
-          if (! changed_scans_.at( exp_iter - expirement.begin() ) )
+          if (! changed_scans_.at( exp_iter - experiment.begin() ) )
           {
-            changed_scans_.at( exp_iter - expirement.begin() )  = true;
+            changed_scans_.at( exp_iter - experiment.begin() )  = true;
           }
           //++pit;
 
@@ -321,7 +319,7 @@ namespace OpenMS {
           //std::cout << "Sampling intensity: " << point.getIntensity() << std::endl;
 
           //update last scan
-          end_scan = exp_iter - expirement.begin();
+          end_scan = exp_iter - experiment.begin();
         }
       }
     }
@@ -337,14 +335,14 @@ namespace OpenMS {
     // This is a clear misuse of the Feature data structure
     // but at this point, we couldn't care less ;-)
     // TODO: this was currentFeature -> reimplement
-    activeFeature.setQuality(0,start_scan);
-    activeFeature.setQuality(1,end_scan);
+    active_feature.setQuality(0,start_scan);
+    active_feature.setQuality(1,end_scan);
 
-    activeFeature.setIntensity(intensity_sum);
+    active_feature.setIntensity(intensity_sum);
     // store convex hull
-    activeFeature.getConvexHulls().clear();
-    activeFeature.getConvexHulls().resize( activeFeature.getConvexHulls().size()+1);
-    activeFeature.getConvexHulls()[ activeFeature.getConvexHulls().size()-1] = points;
+    active_feature.getConvexHulls().clear();
+    active_feature.getConvexHulls().resize( active_feature.getConvexHulls().size()+1);
+    active_feature.getConvexHulls()[ active_feature.getConvexHulls().size()-1] = points;
 
 //#ifdef DEBUG_SIM
 //    current_feature_.setModelDescription( ModelDescription<2>( &pm ) );

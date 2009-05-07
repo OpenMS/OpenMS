@@ -123,28 +123,28 @@ START_SECTION((void ionize(FeatureMapSim &)))
   
   esi_sim.ionize(esi_features);
     
-  TEST_EQUAL(esi_features.size(), 12)
+  TEST_EQUAL(esi_features.size(), 18)
   
-  TEST_EQUAL(esi_features[0].getIntensity(), 9)
   TEST_EQUAL(esi_features[0].getCharge(), 1)
+  TEST_EQUAL(esi_features[0].getIntensity(), 8)
 
-  TEST_EQUAL(esi_features[1].getCharge(), 3)
+  TEST_EQUAL(esi_features[1].getCharge(), 1)
   TEST_EQUAL(esi_features[1].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[2].getCharge(), 4)
-  TEST_EQUAL(esi_features[2].getIntensity(), 1)
+  TEST_EQUAL(esi_features[2].getCharge(), 6)
+  TEST_EQUAL(esi_features[2].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[3].getCharge(), 5)
-  TEST_EQUAL(esi_features[3].getIntensity(), 1)
+  TEST_EQUAL(esi_features[3].getCharge(), 4)
+  TEST_EQUAL(esi_features[3].getIntensity(), 2)
   
-  TEST_EQUAL(esi_features[4].getCharge(), 6)
-  TEST_EQUAL(esi_features[4].getIntensity(), 4)
+  TEST_EQUAL(esi_features[4].getCharge(), 10)
+  TEST_EQUAL(esi_features[4].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[5].getCharge(), 7)
-  TEST_EQUAL(esi_features[5].getIntensity(), 3)
+  TEST_EQUAL(esi_features[5].getCharge(), 8)
+  TEST_EQUAL(esi_features[5].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[6].getCharge(), 1)
-  TEST_EQUAL(esi_features[6].getIntensity(), 3)
+  TEST_EQUAL(esi_features[6].getCharge(), 7)
+  TEST_EQUAL(esi_features[6].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[7].getCharge(), 2)
   TEST_EQUAL(esi_features[7].getIntensity(), 4)
@@ -152,22 +152,45 @@ START_SECTION((void ionize(FeatureMapSim &)))
   TEST_EQUAL(esi_features[8].getCharge(), 3)
   TEST_EQUAL(esi_features[8].getIntensity(), 3)
 
-  TEST_EQUAL(esi_features[9].getCharge(), 1)
+  TEST_EQUAL(esi_features[9].getCharge(), 3)
   TEST_EQUAL(esi_features[9].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[10].getCharge(), 3)
-  TEST_EQUAL(esi_features[10].getIntensity(), 2)
+  TEST_EQUAL(esi_features[10].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[11].getCharge(), 4)
-  TEST_EQUAL(esi_features[11].getIntensity(), 7)
+  TEST_EQUAL(esi_features[11].getCharge(), 1)
+  TEST_EQUAL(esi_features[11].getIntensity(), 1)
   
-  /*
-  for(FeatureMapSim::const_iterator fmIt = features.begin(); fmIt != features.end();
+  TEST_EQUAL(esi_features[12].getCharge(), 4)
+  TEST_EQUAL(esi_features[12].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[13].getCharge(), 3)
+  TEST_EQUAL(esi_features[13].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[14].getCharge(), 3)
+  TEST_EQUAL(esi_features[14].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[15].getCharge(), 5)
+  TEST_EQUAL(esi_features[15].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[16].getCharge(), 4)
+  TEST_EQUAL(esi_features[16].getIntensity(), 1)
+
+	TEST_EQUAL(esi_features[17].getCharge(), 3)
+  TEST_EQUAL(esi_features[17].getIntensity(), 1)
+
+
+  for(FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
       ++fmIt)
   {
-    std::cout << (*fmIt).getCharge() << " " << (*fmIt).getIntensity() << " " << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl;
+    std::cout << (*fmIt).getCharge() << " " 
+							<< (*fmIt).getIntensity() << " " 
+							<< (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() 
+							<< " Adducts: " << (*fmIt).getMetaValue("charge_adducts")
+							<< " Parent: " << (*fmIt).getMetaValue("parent_feature_number")
+							<< std::endl;
   }
-  */
+  
   
   // reinit rnd_gen
   gsl_rng_free (rnd_gen);
@@ -196,37 +219,36 @@ START_SECTION((void ionize(FeatureMapSim &)))
   
   maldi_sim.ionize(maldi_features);
 
+  TEST_EQUAL(maldi_features.size(), 7)
+
   TEST_EQUAL(maldi_features[0].getCharge(), 1)
-  TEST_EQUAL(maldi_features[0].getIntensity(), 9)
+  TEST_EQUAL(maldi_features[0].getIntensity(), 7)
   
   TEST_EQUAL(maldi_features[1].getCharge(), 2)
-  TEST_EQUAL(maldi_features[1].getIntensity(), 1)
+  TEST_EQUAL(maldi_features[1].getIntensity(), 3)
 
   TEST_EQUAL(maldi_features[2].getCharge(), 1)
-  TEST_EQUAL(maldi_features[2].getIntensity(), 8)
+  TEST_EQUAL(maldi_features[2].getIntensity(), 10)
 
-  TEST_EQUAL(maldi_features[3].getCharge(), 2)
-  TEST_EQUAL(maldi_features[3].getIntensity(), 2)
+  TEST_EQUAL(maldi_features[3].getCharge(), 1)
+  TEST_EQUAL(maldi_features[3].getIntensity(), 9)
 
-  TEST_EQUAL(maldi_features[4].getCharge(), 1)
-  TEST_EQUAL(maldi_features[4].getIntensity(), 7)
+  TEST_EQUAL(maldi_features[4].getCharge(), 2)
+  TEST_EQUAL(maldi_features[4].getIntensity(), 1)
 
-  TEST_EQUAL(maldi_features[5].getCharge(), 2)
-  TEST_EQUAL(maldi_features[5].getIntensity(), 3)
+  TEST_EQUAL(maldi_features[5].getCharge(), 1)
+  TEST_EQUAL(maldi_features[5].getIntensity(), 9)
 
-  TEST_EQUAL(maldi_features[6].getCharge(), 1)
-  TEST_EQUAL(maldi_features[6].getIntensity(), 9)
+  TEST_EQUAL(maldi_features[6].getCharge(), 2)
+  TEST_EQUAL(maldi_features[6].getIntensity(), 1)
   
-  TEST_EQUAL(maldi_features[7].getCharge(), 2)
-  TEST_EQUAL(maldi_features[7].getIntensity(), 1)
-  
-  /*
+ 
   for(FeatureMapSim::const_iterator fmIt = maldi_features.begin(); fmIt != maldi_features.end();
       ++fmIt)
   {
     std::cout << (*fmIt).getCharge() << " " << (*fmIt).getIntensity() << " " << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl;
   }
-  */
+  
   // free resources
   gsl_rng_free (rnd_gen);
 }

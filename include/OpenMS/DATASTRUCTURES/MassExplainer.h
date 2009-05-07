@@ -49,7 +49,7 @@ namespace OpenMS
 
 	 public:
 			 
-		typedef std::vector< Adduct > AdductsType;
+		typedef Adduct::AdductsType AdductsType;
 		typedef std::vector<Compomer>::const_iterator CompomerIterator;
 		
     ///@name Constructors and destructor

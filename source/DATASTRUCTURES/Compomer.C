@@ -54,14 +54,10 @@ namespace OpenMS
 	///Print the contents of a Compomer to a stream.
 	std::ostream& operator << (std::ostream& os, const Compomer & cmp)
 	{
-		os  << "Compomer: ";
-		os  << "Da " << cmp.mass_ << "; q_net " << cmp.net_charge_  << "; logP " << cmp.log_p_ << "[[ ";
-		std::map<String,Adduct>::const_iterator it=cmp.cmp_.begin();
-		for (; it!=cmp.cmp_.end(); ++it)
-		{
-			os << it->second.getAmount() << "(" << it->first << ")" << " ";
-		}
-		os << "]]\n";
+		os << "Compomer: ";
+		os << "Da " << cmp.mass_ << "; q_net " << cmp.net_charge_  << "; logP " << cmp.log_p_ << "[[ ";
+		os << cmp.getAdductsAsString();
+		os << " ]]\n";
 		return os;
 	}    
 }

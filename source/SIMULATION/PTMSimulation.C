@@ -144,7 +144,7 @@ namespace OpenMS {
 				// dice how many are modified
 				ptms_[it_aa->first].rnd_amount = gsl_ran_binomial (rnd_gen_, 1-ptms_[it_aa->first].probability_none, (UInt)aa_table[it_aa->first]);
 
-				// map index to AA name
+				// map AA index to AA name
 				index2AA[index] = it_aa->first;
 				// add AA indizes for later shuffling
 				AAcandidates.insert(AAcandidates.end(), ptms_[it_aa->first].rnd_amount, index);

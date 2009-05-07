@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -102,15 +103,18 @@ namespace OpenMS {
     /// Synchronize members with param class
 		void updateMembers_();        
     
-    /// ESI or MALDI ionization
-    IonizationType ionization_type;
-    
     /**
      @brief counts all basic residues inside the amino acid sequence to give an upper bound on the maximal charge during ESI ionization
     */
     UInt countIonizedResidues_(const AASequence & ) const;
     
-    /*
+		
+		// Members //
+
+		/// ESI or MALDI ionization
+    IonizationType ionization_type_;
+
+		/*
      @brief List of residues that are counted as basic during execution of countBasicResidues_
     */
     std::set<String> basic_residues_;
@@ -118,13 +122,31 @@ namespace OpenMS {
     /**
      @brief Probability for the binomial distribution of ESI charge states
      */
-    DoubleReal esi_probability;
-    
-    /**
-     @brief List of probabilities for each charge state during MALDI ionization
-     */
-    DoubleList maldi_probabilities;
-    
+    DoubleReal esi_probability_;
+
+		/**
+		 @brief Discrete distribution of impure charge adducts like Na+, K+, Ca++ etc besides the usual H+
+		*/
+		// important: leave that as vector<double> because gsl expects 'double' and not 'DoubleReal' (which might be something different)
+		std::vector<double> esi_impurity_probabilities_;
+
+   
+		/**
+		 @brief Corresponding table to @p esi_impurity_probabilities_ holding the actual element and its charge
+		*/
+		Adduct::AdductsType esi_adducts_;
+
+		/**
+		 @brief Maximal charge that any impure adduct from parameter list has
+		*/
+		Size max_adduct_charge_;
+
+		/**
+		 @brief Preprocessed table of discrete distribution (MALDI charges)
+		*/
+		// important: leave that as vector<double> because gsl expects 'double' and not 'DoubleReal' (which might be something different)
+		std::vector<double> maldi_probabilities_;
+
   protected:
 		/// Random number generator
 		const gsl_rng* rnd_gen_;
