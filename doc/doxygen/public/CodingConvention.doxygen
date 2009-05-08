@@ -233,26 +233,6 @@ Importing a whole namespace in a header files is forbidden. E.g.:
 This could lead to name clashes when %OpenMS is used together with other libraries.
 In source files (.C) it is however allowed.
 
-<H2 style="margin-top:20px; border-top:1px solid grey;">Special functions</H2>
-
-Not all platforms support useful functions like log2(), isnan() or isinf()
-
-<H3>isnan(), isinf()</H3>
-Use the boost library for those.
-You need to include 
-
-@code #include <boost/math/special_functions/fpclassify.hpp> @endcode
-
-Then use
-
-<code>boost::math::isinf(myNumber)</code>
-and
-<code>boost::math::isnan(myNumber)</code>.
-
-<H3>log()</H3>
-
-Windows does not support <code>log2()</code>, so use <code>log(x)/log(2)</code> instead.
-
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
 Accessors to protected or private members of a class are implemented as a pair

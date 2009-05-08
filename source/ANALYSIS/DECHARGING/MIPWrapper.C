@@ -86,17 +86,15 @@ namespace OpenMS {
 			std::cout << "slice (" << i << "-" << (i+allowedPairs) << ")score: " << scorel << std::endl; 
 		}
     #endif
-    score = compute_slice(me, pairs, 0, pairs.size(), 0,0);
+    score = compute_slice_(me, pairs, 0, pairs.size());
 
 		return score;
 	}
 		
-	DoubleReal MIPWrapper::compute_slice(const MassExplainer& me, 
+	DoubleReal MIPWrapper::compute_slice_(const MassExplainer& me, 
 																				PairsType& pairs, 
 																				const PairsIndex margin_left, 
-																				const PairsIndex margin_right, 
-																				const PairsIndex safety_margin_left, 
-																				const PairsIndex safety_margin_right)
+																				const PairsIndex margin_right)
 	{
 
 		std::cout << "compute .." << std::endl;

@@ -54,14 +54,13 @@ namespace OpenMS {
 		///		and @p pairs will have all realized edges set to "active"
 		DoubleReal compute(const MassExplainer& me, PairsType& pairs);
 		
-		DoubleReal compute_slice(const MassExplainer& me, 
-																				PairsType& pairs, 
-																				const PairsIndex margin_left, 
-																				const PairsIndex margin_right, 
-																				const PairsIndex safety_margin_left, 
-																				const PairsIndex safety_margin_right);
-		
 	private:
+		/// slicing the problem into subproblems
+		DoubleReal compute_slice_(const MassExplainer& me, 
+															PairsType& pairs, 
+															const PairsIndex margin_left, 
+															const PairsIndex margin_right);
+
 		/// calculate a score for the i_th edge
 		float getScore(const PairsIndex& i, const PairsType& pairs, const MassExplainer& me);
 

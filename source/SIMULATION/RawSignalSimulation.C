@@ -359,8 +359,8 @@ namespace OpenMS {
       // Exponentially modified Gaussian
       const DoubleReal decay_stretch = 5.0;
       // it doesn't matter what bounding box I set here, it always cuts of the fronting !!! :-(
-      p.setValue("bounding_box:min",rt - decay_stretch*(width+abs(symmetry)) );
-      p.setValue("bounding_box:max",rt + decay_stretch*(width+abs(symmetry)) );
+      p.setValue("bounding_box:min",rt - decay_stretch*(width+fabs(symmetry)) );
+      p.setValue("bounding_box:max",rt + decay_stretch*(width+fabs(symmetry)) );
       p.setValue("interpolation_step", rt_sampling_rate_ / 3.0);
       p.setValue("statistics:variance",1.0);
       p.setValue("statistics:mean",rt );
