@@ -36,16 +36,35 @@
 
 namespace OpenMS {
 
-  void verbosePrintFeature(Feature feat)
+  void verbosePrintFeatureMap(FeatureMapSim feature_map)
   {
-    std::cout << " RT: " << (feat).getRT() << " MZ: " << (feat).getMZ() << " INT: " << (feat).getIntensity() << " CHARGE: " << (feat).getCharge() << " Det: " << (feat).getMetaValue("detectibility") << ::std::endl;
-    for(std::vector<String>::const_iterator it = (feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
-        it != (feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
-        ++it)
-    { 
-      std::cout << (*it) << std::endl;
+    std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
+
+    std::cout << "contained proteins" << std::endl;
+    ProteinIdentification protIdent = feature_map.getProteinIdentifications()[0];
+    for(std::vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
+        proteinHit != protIdent.getHits().end();
+        ++proteinHit)
+    {
+      std::cout << "- " << proteinHit->getAccession() << std::endl;
     }
-    std::cout << "----------------------------------------------" << std::endl;  
+    std::cout << "----------------------------------------------" << std::endl;
+    for(FeatureMapSim::const_iterator feat = feature_map.begin();
+        feat != feature_map.end();
+        ++feat)
+    {
+      std::cout << " RT: " << (*feat).getRT() << " MZ: " << (*feat).getMZ() << " INT: " << (*feat).getIntensity() << " CHARGE: " << (*feat).getCharge() << " Det: " << (*feat).getMetaValue("detectibility") << ::std::endl;
+      std::cout << "derived from protein(s): ";
+      for(std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
+          it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
+          ++it)
+      { 
+        std::cout << (*it) << " ";
+      } 
+      std::cout << std::endl << "----------------------------------------------" << std::endl;
+    } 
+
+    std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
   }
   
   MSSim::MSSim()
@@ -108,43 +127,47 @@ namespace OpenMS {
     digest_sim.digest(features_);
 		
     // debug
-		for(FeatureMapSim::const_iterator feature = features_.begin();
-        feature != features_.end();
-        ++feature)
-    {
-      verbosePrintFeature(*feature);
-    }
+    std::cout << "digested" << std::endl;
+    verbosePrintFeatureMap(features_);
     
 		// add PTM's
 		PTMSimulation ptm_sim(rnd_gen);
 		ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
 		ptm_sim.predict_ptms(features_);
 
+    // debug
+    std::cout << "ptms added" << std::endl;
+    verbosePrintFeatureMap(features_);
+    
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
 		rt_sim.setParameters(param_.copy("RTSimulation:",true));
 		rt_sim.predict_rt(features_);
        
+    // debug
+    std::cout << "rt simulated" << std::endl;
+    verbosePrintFeatureMap(features_);
+    
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
 		dt_sim.filterDetectability(features_);
+
+    // debug
+    std::cout << "pd filtered" << std::endl;
+    verbosePrintFeatureMap(features_);
     
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
     ion_sim.ionize(features_, consensus_map_);
     
     // debug
-		for(FeatureMapSim::const_iterator feature = features_.begin();
-        feature != features_.end();
-        ++feature)
-    {
-      verbosePrintFeature(*feature);
-    }
+    std::cout << "ionized" << std::endl;
+    verbosePrintFeatureMap(features_);
     
     RawSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
-    createExperiment_(rt_sim.getGradientTime(), raw_sim.getRTSamplingRate(), experiment_);
+    createExperiment_(rt_sim.getGradientTime(), rt_sim.isRTColumnOn(),raw_sim.getRTSamplingRate(), experiment_);
     
     raw_sim.generateRawSignals(features_, experiment_);
 
@@ -171,41 +194,41 @@ namespace OpenMS {
       // add new ProteinHit to ProteinIdentification
       ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
       protHit.setMetaValue("intensity", it->second);
+      protHit.setMetaValue("description", it->first.description);
       protIdent.insertHit(protHit);
 			
-      
-      /*
-      Feature f;
-			PeptideIdentification pep_id;
-			pep_id.insertHit(PeptideHit(1.0, 1, 1, it->first));
-			f.getPeptideIdentifications().push_back(pep_id);
-			f.setIntensity(it->second);
-      
-			features.push_back(f);
-      */
 		}
     std::vector<ProteinIdentification> vec_protIdent;
     vec_protIdent.push_back(protIdent);
     feature_map.setProteinIdentifications(vec_protIdent);
-    std::cout << "finished creating feature map" << ::std::endl;
 	}
 
-  void MSSim::createExperiment_(const DoubleReal& gradient_time, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment)
+  void MSSim::createExperiment_(const DoubleReal& gradient_time, bool is_rt_column_on, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment)
   {
+    std::cout << "create experiment .. ";
     experiment.clear();
-    Size number_of_scans = Size(gradient_time / rt_sampling_rate);
-    experiment.resize(number_of_scans);
-    
-    DoubleReal current_scan_rt = rt_sampling_rate;
-    for(MSSimExperiment::iterator exp_it = experiment.begin();
-        exp_it != experiment.end();
-        ++exp_it)
+    if(is_rt_column_on)
     {
-      // TODO: maybe we should also apply an error here like Ole did it in the original MapSimulator
-      // double n = gsl_ran_gaussian(rand_gen_, 0.05);
-      (*exp_it).setRT(current_scan_rt);
-      current_scan_rt += rt_sampling_rate;
+      Size number_of_scans = Size(gradient_time / rt_sampling_rate);
+      experiment.resize(number_of_scans);
+        
+      DoubleReal current_scan_rt = rt_sampling_rate;
+      for(MSSimExperiment::iterator exp_it = experiment.begin();
+          exp_it != experiment.end();
+          ++exp_it)
+      {
+        // TODO: maybe we should also apply an error here like Ole did it in the original MapSimulator
+        // double n = gsl_ran_gaussian(rand_gen_, 0.05);
+        (*exp_it).setRT(current_scan_rt);
+        current_scan_rt += rt_sampling_rate;
+      }
     }
+    else
+    {
+      experiment.resize(1);
+      experiment[0].setRT(-1);
+    }
+    std::cout << "done";
   }
   
   void MSSim::setDefaultParams_()

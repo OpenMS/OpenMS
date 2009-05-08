@@ -316,7 +316,9 @@ namespace OpenMS {
 
 		try
 		{
-			FeatureMap< > copy_map;
+			FeatureMapSim copy_map = features;
+      copy_map.clear();
+      
 			for(FeatureMap< >::iterator feature_it = features.begin();
 					feature_it != features.end();
 					++feature_it)
@@ -344,7 +346,8 @@ namespace OpenMS {
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") ) / c) ;
+            DoubleReal charged_adduct_mass = (chargedFeature.metaValueExists("charge_adduct_mass") ? (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") : 0.0);
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + charged_adduct_mass ) / c) ;
 						chargedFeature.setCharge(c);
 						chargedFeature.setIntensity(charge_states[c]);
 						copy_map.push_back(chargedFeature);

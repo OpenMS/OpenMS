@@ -113,7 +113,7 @@ class TOPPMSSimulator
         {
           stringstream strm ((it->identifier).substr(0, index));
           // we clean the identifier for later use
-          it->identifier = (it->identifier).substr(index);
+          it->identifier = (it->identifier).suffix('#');
           strm >> relativeQuantity;
         }
         else

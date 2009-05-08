@@ -168,15 +168,28 @@ namespace OpenMS {
   void RawSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
     changed_scans_.resize(experiment.size());
-    for(FeatureMap< >::iterator feature_it = features.begin();
-        feature_it != features.end();
-        ++feature_it)
+
+    if(experiment.size() == 1)
     {
-      add2DSignal(*feature_it, experiment);
+      for(FeatureMap< >::iterator feature_it = features.begin();
+          feature_it != features.end();
+          ++feature_it)
+      {
+        add1DSignal(*feature_it,experiment);
+      }        
     }
-    addShotNoise_(experiment);
+    else 
+    {
+      for(FeatureMap< >::iterator feature_it = features.begin();
+          feature_it != features.end();
+          ++feature_it)
+      {
+        add2DSignal(*feature_it, experiment);
+      }      
+      addShotNoise_(experiment);
+      addBaseLine_(experiment);      
+    }
     compressSignals_(experiment);
-    addBaseLine_(experiment);
   }
   
   void RawSignalSimulation::add1DSignal(Feature & active_feature, MSSimExperiment & experiment)
@@ -189,9 +202,7 @@ namespace OpenMS {
     ++ion_count_;
     
     SimChargeType charge = active_feature.getCharge();
-    
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-    
     SimCoordinateType mz = active_feature.getMZ();
     
     // don't show ions with m/z higher than the MS detection limit
@@ -225,11 +236,9 @@ namespace OpenMS {
     ++ion_count_;
 
     SimChargeType charge = active_feature.getCharge();
-
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-
-    SimCoordinateType mz = ( (feature_ef.getMonoWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass") ) / charge) ;
-
+    SimCoordinateType mz = active_feature.getMZ();
+    
     // TODO: this should not be necessary, check ...
     /*
     allow_overlaps_ = (unsigned int) param_.getValue("allow_overlaps");
@@ -285,29 +294,13 @@ namespace OpenMS {
     // (cg) commented this out since it cuts off fronted elution profiles!!
     // (ost) Why should this happen ?
     
-    MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(-1);
-    
     SimIntensityType intensity_sum = 0.0;
-    vector< DPosition<1> > points;
     
-    //#ifdef DEBUG_SIM
-    std::cout << "Sampling at: " << mz_start << " " << mz_end << " " << std::endl;
-    //#endif
+    std::cout << "Sampling (1D) at: " << mz_start << " " << mz_end << " " << std::endl;
     
     /// TODO: think of better error checking
-    if( exp_iter == experiment.end() )
-    {
-      std::cout << "error ! " << std::endl; // ;-) should not happen
-      return;
-    }
     
     SimPointType point;
-    
-    Int start_scan = -5;
-    Int end_scan  = -5;
-    
-    //UInt it = 0;
-    //UInt pit = 0;
     
     for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
     {
@@ -317,19 +310,6 @@ namespace OpenMS {
         
       if ( point.getIntensity() > 10.0)
       {
-        if (start_scan == -5)
-        {
-          start_scan = exp_iter - experiment.begin();
-          //std::cout << "start_scan: " << start_scan << std::endl;
-        }
-        
-        /*
-        if (! changed_scans_.at( exp_iter - experiment.begin() ) )
-        {
-          changed_scans_.at( exp_iter - experiment.begin() )  = true;
-        }
-         */
-        
         // add m/z and itensity error (both Gaussian distributed)
         double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
         
@@ -340,41 +320,12 @@ namespace OpenMS {
         
         double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
         point.setMZ( point.getMZ() + mz_err );
-        
+       
         intensity_sum += point.getIntensity();
-        points.push_back( DPosition<1>( mz ) );		// store position
-        exp_iter->push_back(point);
-        //std::cout << "Sampling intensity: " << point.getIntensity() << std::endl;
-        
-        //update last scan
-        end_scan = exp_iter - experiment.begin();
+        experiment[0].push_back(point);
       }
-    }
-    
-    //cout << "End of sampling: " << it << " vs " << pit << endl;
-    
-    // do not set this here, because it might include low intensity points and is inconsistent with the convex hull
-    //end_scan = exp_iter - exp_.begin();
-    
-    
-    //cout << "end_scan: " << end_scan << endl;
-    
-    // This is a clear misuse of the Feature data structure
-    // but at this point, we couldn't care less ;-)
-    // TODO: this was currentFeature -> reimplement
-    active_feature.setQuality(0,start_scan);
-    active_feature.setQuality(1,end_scan);
-    
+    }   
     active_feature.setIntensity(intensity_sum);
-    // store convex hull
-    /*
-    active_feature.getConvexHulls().clear();
-    active_feature.getConvexHulls().resize( active_feature.getConvexHulls().size()+1);
-    active_feature.getConvexHulls()[ active_feature.getConvexHulls().size()-1] = points;
-    */
-    //#ifdef DEBUG_SIM
-    //    current_feature_.setModelDescription( ModelDescription<2>( &pm ) );
-    //#endif
   }
   
   

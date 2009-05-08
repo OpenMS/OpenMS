@@ -72,7 +72,7 @@ namespace OpenMS {
     for(FeatureMapSim::iterator fIt = features.begin(); fIt != features.end();
         ++fIt)
     {
-      (*fIt).setRT(-1);
+      (*fIt).setRT(0);
     }
   }
   /**
