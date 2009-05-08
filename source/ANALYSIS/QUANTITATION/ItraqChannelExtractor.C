@@ -177,7 +177,7 @@ namespace OpenMS
 			ConsensusMap::FileDescription channel_as_map;
 			// label is the channel + description provided in the Params
 			channel_as_map.label = "iTRAQ_" + String(cm_it->second.name) + "_" + String(cm_it->second.description);
-			channel_as_map.size = (UInt) ms_exp_MS2.size();
+			channel_as_map.size = ms_exp_MS2.size();
 			//TODO what about .filename? leave empty?
 			// add some more MetaInfo
 			channel_as_map.setMetaValue ("channel_name", cm_it->second.name);

@@ -187,7 +187,7 @@ namespace OpenMS {
         ++gfIt)
     {
       // TODO: document the rounding
-      (gfIt->second).setIntensity(round((gfIt->second).getIntensity()));
+      (gfIt->second).setIntensity(ceil((gfIt->second).getIntensity()));
       feature_map.push_back(gfIt->second);
     }
 

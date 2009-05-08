@@ -30,9 +30,11 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
+
 
   /**
    @brief Central class for simulation of mass spectrometry experiments
@@ -89,6 +91,9 @@ namespace OpenMS
     
     /// Access the simulated features
     FeatureMapSim const & getSimulatedFeatures() const;
+
+		/// Access the charge consensus map of simulated features
+		ConsensusMap const & MSSim::getSimulatedConsensus() const;
 	protected:
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
@@ -107,6 +112,8 @@ namespace OpenMS
     MSSimExperiment experiment_;
     
     FeatureMapSim features_;
+
+		ConsensusMap consensus_map_;
   };
 
 }

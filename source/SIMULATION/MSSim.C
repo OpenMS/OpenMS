@@ -49,17 +49,22 @@ namespace OpenMS {
   }
   
   MSSim::MSSim()
-    : DefaultParamHandler("MSSim"), experiment_(), features_()
+    : DefaultParamHandler("MSSim"), 
+			experiment_(),
+			features_(),
+			consensus_map_()
   {
     setDefaultParams_();
   }
 
   MSSim::MSSim(const MSSim& source)
-    : DefaultParamHandler(source)
+    : DefaultParamHandler(source),
+			experiment_(source.experiment_),
+			features_(source.features_),
+			consensus_map_(source.consensus_map_)
   {
     setParameters( source.getParameters() );
-    experiment_ = source.experiment_;
-    features_ = source.features_;
+    
     updateMembers_();  
   }
 
@@ -68,6 +73,7 @@ namespace OpenMS {
     setParameters( source.getParameters() );
     experiment_ = source.experiment_;
     features_ = source.features_;
+		consensus_map_ = source.consensus_map_;
     updateMembers_();    
     return *this;
   }
@@ -126,7 +132,7 @@ namespace OpenMS {
     
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
-    ion_sim.ionize(features_);
+    ion_sim.ionize(features_, consensus_map_);
     
     // debug
 		for(FeatureMapSim::const_iterator feature = features_.begin();
@@ -225,6 +231,11 @@ namespace OpenMS {
   FeatureMapSim const & MSSim::getSimulatedFeatures() const
   {
     return features_;
+  }
+
+  ConsensusMap const & MSSim::getSimulatedConsensus() const
+  {
+		return consensus_map_;
   }
   
 }

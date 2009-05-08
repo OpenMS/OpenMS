@@ -110,6 +110,7 @@ START_SECTION((void ionize(FeatureMapSim &)))
   esi_sim.setParameters(esi_param);
   
   FeatureMapSim esi_features;
+	ConsensusMap cm;
   StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
 	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
 	{
@@ -121,7 +122,7 @@ START_SECTION((void ionize(FeatureMapSim &)))
 		esi_features.push_back(f);
 	}
   
-  esi_sim.ionize(esi_features);
+  esi_sim.ionize(esi_features, cm);
     
   TEST_EQUAL(esi_features.size(), 18)
   
@@ -217,7 +218,7 @@ START_SECTION((void ionize(FeatureMapSim &)))
     maldi_features.push_back(f);
 	}
   
-  maldi_sim.ionize(maldi_features);
+  maldi_sim.ionize(maldi_features, cm);
 
   TEST_EQUAL(maldi_features.size(), 7)
 

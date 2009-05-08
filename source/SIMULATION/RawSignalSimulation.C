@@ -249,7 +249,7 @@ namespace OpenMS {
     }
     active_feature.setMZ(mz);
 
-    p1.setValue("statistics:mean", (feature_ef.getAverageWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass"))/charge );
+    p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
     p1.setValue("charge", charge);

@@ -21,13 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Chris Bielow$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
+
 
 namespace OpenMS {
 
@@ -80,16 +81,26 @@ namespace OpenMS {
   IonizationSimulation::~IonizationSimulation()
   {}
 
-  void IonizationSimulation::ionize(FeatureMapSim & features)
+  void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus)
   {
-    switch (ionization_type_) {
+		// clear the consensus map
+		charge_consensus.swap(ConsensusMap());
+		charge_consensus.setProteinIdentifications(features.getProteinIdentifications());
+
+    switch (ionization_type_) 
+		{
       case MALDI:
-        ionize_maldi(features);
+        ionizeMaldi_(features, charge_consensus);
         break;
       case ESI:
-        ionize_esi(features);
+        ionizeEsi_(features, charge_consensus);
         break;
     }
+
+		ConsensusMap::FileDescription map_description;
+		map_description.label = "Simulation";
+		map_description.size = features.size();
+		charge_consensus.getFileDescriptions()[0] = map_description;
   }
   
   void IonizationSimulation::setDefaultParams_()
@@ -162,15 +173,17 @@ namespace OpenMS {
     esi_probability_ = param_.getValue("esi:ionization_probability");
   }
   
-  void IonizationSimulation::ionize_esi(FeatureMapSim & features)
+  void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
   {
 		// we need to do this locally to avoid memory leaks (copying this stuff in C'tors is not wise)
 		gsl_ran_discrete_t * gsl_ran_lookup_esi_charge_impurity = gsl_ran_discrete_preproc (esi_impurity_probabilities_.size(), &esi_impurity_probabilities_[0]);
 
 		try
 		{
-
-			FeatureMapSim copyMap;
+			// map for charged features
+			FeatureMapSim copy_map = features;
+			// but leave meta information & other stuff intact
+			copy_map.clear();
 
 			UInt feature_index=0;
 			// iterate over all features
@@ -178,6 +191,8 @@ namespace OpenMS {
 					feature_it != features.end();
 					++feature_it)
 			{
+				ConsensusFeature cf;
+
 				// iterate on abundance
 				Int abundance = ceil( (*feature_it).getIntensity() );
 				UInt basic_residues_c = countIonizedResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
@@ -185,6 +200,7 @@ namespace OpenMS {
 				// assumption: each basic residue can hold one charged adduct
 				Map<Compomer, UInt> charge_states;
 	      
+				Int zeros_samples=0;
 				// sample different charge states (dice for each molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
@@ -194,6 +210,7 @@ namespace OpenMS {
 
 					if (charge==0)
 					{
+						++zeros_samples;
 						continue;
 					}
 
@@ -216,6 +233,13 @@ namespace OpenMS {
 					charge_states_sorted.insert( std::make_pair(it_m->second,it_m->first) );
 				}
 
+				// no charges > 0 selected (this should be really rare)
+				if (charge_states_sorted.size()==0) 
+				{
+					OPENMS_POSTCONDITION(zeros_samples==abundance,"something went wrong");
+					continue;
+				}
+
 				UInt max_observed_charge = charge_states_sorted.rbegin()->first;
 				Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
 				std::vector<Int> allowed_entities_of_charge(max_observed_charge, max_compomer_types);
@@ -236,18 +260,23 @@ namespace OpenMS {
 						chargedFeature.setMetaValue("charge_adducts", it_s->second.getAdductsAsString() );
 						chargedFeature.setMetaValue("parent_feature_number", feature_index);
 
-						copyMap.push_back(chargedFeature);
+						copy_map.push_back(chargedFeature);
+						// add to consensus
+						cf.insert(0, copy_map.size()-1,chargedFeature);
 
 						// decrease # of allowed compomers of current compomer's charge
 						--allowed_entities_of_charge[charge_locations];
 					}
 				}
 
+				// add consensus element containing all charge variants just created
+				charge_consensus.push_back(cf);
+
 				++feature_index;
 			} // ! feature iterator
 	    
 			// swap feature maps
-			features.swap(copyMap);
+			features.swap(copy_map);
 		}
 		catch (std::exception& e)
 		{
@@ -277,13 +306,13 @@ namespace OpenMS {
     return count;
   }
   
-  void IonizationSimulation::ionize_maldi(FeatureMapSim & features)
+  void IonizationSimulation::ionizeMaldi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
   {
 		gsl_ran_discrete_t * gsl_ran_lookup_maldi = gsl_ran_discrete_preproc (maldi_probabilities_.size(), &maldi_probabilities_[0]);
 
 		try
 		{
-			FeatureMap< > copyMap;
+			FeatureMap< > copy_map;
 			for(FeatureMap< >::iterator feature_it = features.begin();
 					feature_it != features.end();
 					++feature_it)
@@ -300,6 +329,7 @@ namespace OpenMS {
 					++charge_states[ charge ];
 				}
 	      
+				ConsensusFeature cf;
 				// only consider charged (charge >= 1) ions
 				for(UInt c = 1 ; c < charge_states.size() ; ++c)
 				{
@@ -310,14 +340,17 @@ namespace OpenMS {
 						Feature chargedFeature((*feature_it));
 						chargedFeature.setCharge(c);
 						chargedFeature.setIntensity(charge_states[c]);
-						copyMap.push_back(chargedFeature);
+						copy_map.push_back(chargedFeature);
+						
+						cf.insert(0, copy_map.size()-1,chargedFeature);
 					}
-	        
 				}
+				// add consensus element containing all charge variants just created
+				charge_consensus.push_back(cf);	        
 			}
 	    
 			// swap feature maps
-			features.swap(copyMap);
+			features.swap(copy_map);
 
 		}
 		catch (std::exception& e)
