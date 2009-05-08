@@ -34,10 +34,20 @@
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
-#define _VFeature(feat) std::cout << __LINE__ << " RT: " << (feat).getRT() << " MZ: " << (feat).getMZ() << " INT: " << (feat).getIntensity() << " CHARGE: " << (feat).getCharge() << " Det: " << (feat).getMetaValue("detectibility") << ::std::endl; 
-
 namespace OpenMS {
 
+  void verbosePrintFeature(Feature feat)
+  {
+    std::cout << " RT: " << (feat).getRT() << " MZ: " << (feat).getMZ() << " INT: " << (feat).getIntensity() << " CHARGE: " << (feat).getCharge() << " Det: " << (feat).getMetaValue("detectibility") << ::std::endl;
+    for(std::vector<String>::const_iterator it = (feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
+        it != (feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
+        ++it)
+    { 
+      std::cout << (*it) << std::endl;
+    }
+    std::cout << "----------------------------------------------" << std::endl;  
+  }
+  
   MSSim::MSSim()
     : DefaultParamHandler("MSSim"), experiment_(), features_()
   {
@@ -82,32 +92,21 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
     
+    // convert sample proteins into an empty FeatureMap with ProteinHits
+    // convert
+    createFeatureMap_(proteins, features_);
+    
 		// digest
     DigestSimulation digest_sim;
     digest_sim.setParameters(param_.copy("Digestion:",true)); 
-    
-    // read proteins from protein file  
-		SamplePeptides peptides;
-		digest_sim.digest(proteins, peptides);
+    digest_sim.digest(features_);
 		
-    // debug
-    for (SamplePeptides::const_iterator peptide = peptides.begin();
-         peptide != peptides.end();
-         ++peptide)
-    {
-      std::cout << "Generated " << (*peptide).first << " with abundance " << (*peptide).second << " via tryptic digestion" << std::endl; 
-    }
-      
-    
-		// convert
-    createFeatureMap_(peptides, features_);
-
     // debug
 		for(FeatureMapSim::const_iterator feature = features_.begin();
         feature != features_.end();
         ++feature)
     {
-      _VFeature(*feature)
+      verbosePrintFeature(*feature);
     }
     
 		// add PTM's
@@ -134,7 +133,7 @@ namespace OpenMS {
         feature != features_.end();
         ++feature)
     {
-      _VFeature(*feature)
+      verbosePrintFeature(*feature);
     }
     
     RawSignalSimulation raw_sim(rnd_gen);
@@ -153,20 +152,36 @@ namespace OpenMS {
     
   }
 
-	void MSSim::createFeatureMap_(const SamplePeptides& peptides, FeatureMapSim& features)
+	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
 	{
-    features.clear();
-		features.reserve(peptides.size());
+    // clear feature map 
+    feature_map.clear();
+    ProteinIdentification protIdent;
 
-		for (SamplePeptides::const_iterator it=peptides.begin(); it!=peptides.end(); ++it)
+    // TODO: currently the protein sequence is the ProteinAccession -> think of something better?
+		for (SampleProteins::const_iterator it=proteins.begin(); it!=proteins.end(); ++it)
 		{
-			Feature f;
+      //std::cout << (it->first).identifier << " " << (it->first).sequence << " " << (it->second) << ::std::endl;
+      // add new ProteinHit to ProteinIdentification
+      ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
+      protHit.setMetaValue("intensity", it->second);
+      protIdent.insertHit(protHit);
+			
+      
+      /*
+      Feature f;
 			PeptideIdentification pep_id;
 			pep_id.insertHit(PeptideHit(1.0, 1, 1, it->first));
 			f.getPeptideIdentifications().push_back(pep_id);
 			f.setIntensity(it->second);
+      
 			features.push_back(f);
+      */
 		}
+    std::vector<ProteinIdentification> vec_protIdent;
+    vec_protIdent.push_back(protIdent);
+    feature_map.setProteinIdentifications(vec_protIdent);
+    std::cout << "finished creating feature map" << ::std::endl;
 	}
 
   void MSSim::createExperiment_(const DoubleReal& gradient_time, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment)

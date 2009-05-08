@@ -77,11 +77,12 @@ namespace OpenMS {
   void DetectabilitySimulation::no_filter(FeatureMapSim & features)
   {  
     // set detectibility to 1.0 for all given peptides
+    DoubleReal defaultDetectibility = 1.0;
+    
     for(FeatureMapSim::iterator feature_it = features.begin();
         feature_it != features.end();
         ++feature_it) 
     {
-      DoubleReal defaultDetectibility = 1.0;
       (*feature_it).setMetaValue("detectibility", defaultDetectibility );
     }     
   }
@@ -194,7 +195,10 @@ namespace OpenMS {
     cout << "Predicted detectabilities:" << endl;
 #endif
     
-    FeatureMap< > tempCopy; 
+    // copy all meta data stored in the feature map
+    FeatureMap< > tempCopy(features); 
+    tempCopy.clear();
+    
     for (Size i = 0; i < peptidesVector.size(); ++i)
     {
 

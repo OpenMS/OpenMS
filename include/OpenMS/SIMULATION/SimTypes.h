@@ -31,11 +31,13 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <utility>
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -55,10 +57,8 @@ namespace OpenMS
   /// 
 	typedef Peak1D SimPointType;
   
-	/// Sequence -> Intensity container
-	typedef std::map< AASequence, SimIntensityType > SampleProteins;
-	/// Peptides and Proteins are the same structurewise
-	typedef SampleProteins SamplePeptides;
+	/// FASTAEntry -> Intensity container
+	typedef std::vector< std::pair<FASTAFile::FASTAEntry, SimIntensityType> > SampleProteins;
 
 	/// Sim FeatureMap
 	typedef FeatureMap<> FeatureMapSim;

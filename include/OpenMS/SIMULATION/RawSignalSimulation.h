@@ -31,6 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 
 // GSL includes (random number generation)
@@ -87,15 +88,37 @@ namespace OpenMS {
     void setDefaultParams_();
 
     /** 
-     @brief Add a MS signal for a single feature
+     @brief Add a 2D signal for a single feature
      
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
      */
-    void addMSSignal(Feature & feature, MSSimExperiment & experiment);
+    void add2DSignal(Feature & feature, MSSimExperiment & experiment);
 
+    
+    /** 
+     @brief Add a 1D signal for a single feature
+     
+     @param feature The feature which should be simulated
+     @param experiment The experiment to which the simulated signals should be added
+     */
+    void add1DSignal(Feature & feature, MSSimExperiment & experiment);
+    
     /**
-     @brief Samples signales for the given product model
+     @brief Samples signales for the given 1D model
+     
+     @param pm The isotope model from which the signales will be sampled
+     @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
+     @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
+     @param experiment Experiment to which the sampled signales will be added
+     @param activeFeature The current feature that is simulated
+     */
+    void samplePeptideModel1D_(const IsotopeModelGeneral & iso,
+                               const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
+                               MSSimExperiment & experiment, Feature & activeFeature);
+    
+    /**
+     @brief Samples signales for the given 2D model
      
      @param pm The product model from which the signales will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
@@ -105,7 +128,7 @@ namespace OpenMS {
      @param experiment Experiment to which the sampled signales will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel_(const ProductModel<2> & pm,
+    void samplePeptideModel2D_(const ProductModel<2> & pm,
                              const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                              SimCoordinateType rt_start, SimCoordinateType rt_end,
                              MSSimExperiment & experiment, Feature & activeFeature);

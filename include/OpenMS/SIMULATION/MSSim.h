@@ -82,7 +82,7 @@ namespace OpenMS
      @param rnd_gen GSL random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */   
-    void simulate(const gsl_rng* rnd_gen, const SamplePeptides& peptides);
+    void simulate(const gsl_rng* rnd_gen, const SampleProteins& peptides);
 	
     /// Access the simulated experiment
     MSSimExperiment const & getExperiment() const;
@@ -92,7 +92,7 @@ namespace OpenMS
 	protected:
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
-		void createFeatureMap_(const SamplePeptides& peptides, FeatureMapSim& features);
+		void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features);
 
     /// Generates a MSSimExperiment of correct size in m/z and retention time dimension
     void createExperiment_(const DoubleReal& gradient_time, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment);

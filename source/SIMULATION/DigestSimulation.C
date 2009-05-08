@@ -55,16 +55,39 @@ namespace OpenMS {
   {
 	}
   
-  void DigestSimulation::digest(const SampleProteins & proteins, SamplePeptides & peptides)
+  void DigestSimulation::digest(FeatureMapSim & feature_map)
   {
 		if ((String)defaults_.getValue("enzyme") == String("none"))
 		{
-			peptides = proteins;
+      ProteinIdentification protIdent = feature_map.getProteinIdentifications()[0];
+      // for each ProteinHit in the FeatureMap
+      for(std::vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
+          proteinHit != protIdent.getHits().end();
+          ++proteinHit)
+      {
+        // generate a PeptideHit hit with the correct link to the protein      
+        PeptideHit pep_hit(1.0, 1, 1, proteinHit->getSequence());
+        std::vector<String> prot_accessions(1);
+        prot_accessions.push_back(proteinHit->getAccession());
+        pep_hit.setProteinAccessions(prot_accessions);
+
+        // add the PeptideHit to the PeptideIdentification
+        PeptideIdentification pep_id;
+        pep_id.insertHit(pep_hit);
+        
+        // generate Feature with correct Intensity and corresponding PeptideIdentification
+        Feature f;        
+        f.getPeptideIdentifications().push_back(pep_id);
+        f.setIntensity(proteinHit->getMetaValue("intesity"));
+        
+        // add Feature to FeatureMapSim
+        feature_map.push_back(f);     
+      }
+      
+			//peptides = proteins;
+      // convert all proteins into peptides
 			return;
 		}
-
-		// empty return map
-		peptides.clear();
 
 		EnzymaticDigestion digestion;
 		digestion.setEnzyme(digestion.getEnzymeByName((String)defaults_.getValue("enzyme")));
@@ -74,10 +97,17 @@ namespace OpenMS {
 		
 		std::vector<AASequence> digestion_products;
 
-    // Iterate through proteins and digest them
-		for (SampleProteins::const_iterator protein = proteins.begin();
+    // keep track of generated features
+    std::map<AASequence, Feature> generated_features;
+    
+    // Iterate through ProteinHits in the FeatureMap and digest them
+		/*
+    for (SampleProteins::const_iterator protein = proteins.begin();
          protein != proteins.end();
-         ++protein)
+         ++protein)*/
+    for(std::vector<ProteinHit>::iterator proteinHit = feature_map.getProteinIdentifications()[0].getHits().begin();
+        proteinHit != feature_map.getProteinIdentifications()[0].getHits().end();
+        ++proteinHit)
     {
 			// determine abundance of each digestion product (this is quite long now...)
 			// we assume that each digestion product will have the same abundance
@@ -85,7 +115,7 @@ namespace OpenMS {
 
 			// how many "atomic"(i.e. non-cleavable) peptides are created?
 			digestion.setMissedCleavages( 0 );
-			Size complete_digest_count = digestion.peptideCount(protein->first);
+			Size complete_digest_count = digestion.peptideCount(proteinHit->getSequence());
 			// compute average numer of "atomic" peptides summed from all digestion products
 			Size number_atomic_whole = 0;
 			Size number_of_digestion_products = 0;
@@ -98,13 +128,13 @@ namespace OpenMS {
 			// mean number of "atomic" peptides per digestion product is now: number_atomic_whole / number_of_digestion_products
 			// -> thus abundance of a digestion product is: #proteins / avg#of"atomic"peptides
 			//																				i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
-			SimIntensityType abundance = std::max(SimIntensityType(1), SimIntensityType(protein->second) 
+			SimIntensityType abundance = std::max(SimIntensityType(1), SimIntensityType(proteinHit->getMetaValue("intensity")) 
 																																*SimIntensityType(number_of_digestion_products) 
 																																/SimIntensityType(number_atomic_whole) ); // order changed for numeric stability
 			
 			// do real digest
 			digestion.setMissedCleavages( missed_cleavages );
-      digestion.digest(AASequence(protein->first), digestion_products);
+      digestion.digest(AASequence(proteinHit->getSequence()), digestion_products);
 			
 			for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
@@ -113,9 +143,53 @@ namespace OpenMS {
         if (dp_it->size() < min_peptide_length) continue;
 				
 				// sum equal peptide's intensities
-				peptides[*dp_it] += abundance;
+        // *dp_it -> peptide
+        // If we see this Peptide the first time -> generate corresponding feature
+        if(generated_features.count(*dp_it) == 0) {
+          PeptideHit pep_hit(1.0, 1, 1, *dp_it);
+
+          PeptideIdentification pep_id;
+          pep_id.insertHit(pep_hit);
+          
+          // create feature
+          Feature f;
+          f.getPeptideIdentifications().push_back(pep_id);
+          // set intensity to 0 to avoid problems when summing up
+          f.setIntensity(0.0);
+          
+          // insert into map
+          generated_features.insert(std::make_pair(*dp_it, f));
+        }
+        
+        // sum up intesity values
+        generated_features[*dp_it].setIntensity(generated_features[*dp_it].getIntensity() + abundance);
+
+        // add current protein accession
+        // generate new vector of accessions
+        std::vector<String> prot_accessions;
+
+        // copy old values into new vector
+        prot_accessions.assign(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin(), 
+                               generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end());
+        prot_accessions.push_back(proteinHit->getAccession());
+
+        std::vector<PeptideIdentification> pepIdents = generated_features[*dp_it].getPeptideIdentifications();
+        std::vector<PeptideHit> pepHits = pepIdents[0].getHits();
+        pepHits[0].setProteinAccessions(prot_accessions);
+        pepIdents[0].setHits(pepHits);
+        generated_features[*dp_it].setPeptideIdentifications(pepIdents);
       }
 		}
+    
+    // add generated_features to FeatureMap
+    for(std::map<AASequence, Feature>::iterator gfIt = generated_features.begin();
+        gfIt != generated_features.end();
+        ++gfIt)
+    {
+      // TODO: document the rounding
+      (gfIt->second).setIntensity(round((gfIt->second).getIntensity()));
+      feature_map.push_back(gfIt->second);
+    }
 
   }
   

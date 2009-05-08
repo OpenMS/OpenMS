@@ -43,8 +43,6 @@ namespace OpenMS {
    TODO:
     * add removeDuplicate Points
     * review Ole's methods for improvment/changes
-    * add shot noise
-    * add base line
   */
   RawSignalSimulation::RawSignalSimulation(const gsl_rng * random_generator)
   : DefaultParamHandler("RawSignalSimulation"), rnd_gen_(random_generator)
@@ -174,14 +172,50 @@ namespace OpenMS {
         feature_it != features.end();
         ++feature_it)
     {
-      addMSSignal(*feature_it, experiment);
+      add2DSignal(*feature_it, experiment);
     }
     addShotNoise_(experiment);
     compressSignals_(experiment);
     addBaseLine_(experiment);
   }
   
-  void RawSignalSimulation::addMSSignal(Feature & active_feature, MSSimExperiment & experiment)
+  void RawSignalSimulation::add1DSignal(Feature & active_feature, MSSimExperiment & experiment)
+  {
+    Param p1;
+    
+    // was: 3000 TODO: ???? why 1500
+    SimIntensityType scale = active_feature.getIntensity() * 1500;
+    mean_scaling_ += scale;
+    ++ion_count_;
+    
+    SimChargeType charge = active_feature.getCharge();
+    
+    EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    
+    SimCoordinateType mz = ( (feature_ef.getMonoWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass") ) / charge) ;
+    
+    // don't show ions with m/z higher than the MS detection limit
+    // TODO: integrate map ranges
+    if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
+    {
+      // ignore the current feature
+      return;
+    }
+    active_feature.setMZ(mz);
+    
+    p1.setValue("statistics:mean", (feature_ef.getAverageWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass"))/charge );
+    p1.setValue("interpolation_step", 0.001);
+    p1.setValue("isotope:stdev", peak_std_);
+    p1.setValue("charge", charge);
+    
+    IsotopeModelGeneral isomodel;
+    isomodel.setSamples(feature_ef);
+    isomodel.setParameters(p1);    
+  
+    samplePeptideModel1D_(isomodel, (mz - 2.5),(mz + 5.0), experiment, active_feature);    
+  }
+  
+  void RawSignalSimulation::add2DSignal(Feature & active_feature, MSSimExperiment & experiment)
   {
     ProductModel<2> pm;
     Param p1;
@@ -233,7 +267,7 @@ namespace OpenMS {
     // TODO: remove this current_feature_ dependency
     // TODO: store all simulated features in a separate FeatureMap ..
 
-    samplePeptideModel_(pm, (mz - 2.5),(mz + 5.0), (active_feature.getRT() - 160.0),(active_feature.getRT() + 280.0), experiment, active_feature);
+    samplePeptideModel2D_(pm, (mz - 2.5),(mz + 5.0), (active_feature.getRT() - 160.0),(active_feature.getRT() + 280.0), experiment, active_feature);
     /*
     if (current_feature_.getConvexHulls().begin()->getPoints().size() > 0)
     {
@@ -242,7 +276,110 @@ namespace OpenMS {
     */
   }
 
-  void RawSignalSimulation::samplePeptideModel_(const ProductModel<2> & pm,
+  void RawSignalSimulation::samplePeptideModel1D_(const IsotopeModelGeneral & pm,
+                                                  const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
+                                                  MSSimExperiment & experiment, Feature & active_feature)
+  {
+    // start and end points of the sampling are entirely arbitrary
+    // and should be modified at some point
+    
+    // (cg) commented this out since it cuts off fronted elution profiles!!
+    // (ost) Why should this happen ?
+    
+    MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(-1);
+    
+    SimIntensityType intensity_sum = 0.0;
+    vector< DPosition<1> > points;
+    
+    //#ifdef DEBUG_SIM
+    std::cout << "Sampling at: " << mz_start << " " << mz_end << " " << std::endl;
+    //#endif
+    
+    /// TODO: think of better error checking
+    if( exp_iter == experiment.end() )
+    {
+      std::cout << "error ! " << std::endl; // ;-) should not happen
+      return;
+    }
+    
+    SimPointType point;
+    
+    Int start_scan = -5;
+    Int end_scan  = -5;
+    
+    //UInt it = 0;
+    //UInt pit = 0;
+    
+    for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
+    {
+      //++it;
+      point.setMZ(mz);
+      point.setIntensity( pm.getIntensity( DPosition<1>( mz ) ) );
+        
+      if ( point.getIntensity() > 10.0)
+      {
+        if (start_scan == -5)
+        {
+          start_scan = exp_iter - experiment.begin();
+          //std::cout << "start_scan: " << start_scan << std::endl;
+        }
+        
+        /*
+        if (! changed_scans_.at( exp_iter - experiment.begin() ) )
+        {
+          changed_scans_.at( exp_iter - experiment.begin() )  = true;
+        }
+         */
+        
+        // add m/z and itensity error (both Gaussian distributed)
+        double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
+        
+        // this is a quick fix only, should be improved to prevent simulation of negative intensities
+        if (it_err < 0.0) it_err = fabs(it_err);
+        
+        point.setIntensity( point.getIntensity( ) + it_err );
+        
+        double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
+        point.setMZ( point.getMZ() + mz_err );
+        
+        intensity_sum += point.getIntensity();
+        points.push_back( DPosition<1>( mz ) );		// store position
+        exp_iter->push_back(point);
+        //std::cout << "Sampling intensity: " << point.getIntensity() << std::endl;
+        
+        //update last scan
+        end_scan = exp_iter - experiment.begin();
+      }
+    }
+    
+    //cout << "End of sampling: " << it << " vs " << pit << endl;
+    
+    // do not set this here, because it might include low intensity points and is inconsistent with the convex hull
+    //end_scan = exp_iter - exp_.begin();
+    
+    
+    //cout << "end_scan: " << end_scan << endl;
+    
+    // This is a clear misuse of the Feature data structure
+    // but at this point, we couldn't care less ;-)
+    // TODO: this was currentFeature -> reimplement
+    active_feature.setQuality(0,start_scan);
+    active_feature.setQuality(1,end_scan);
+    
+    active_feature.setIntensity(intensity_sum);
+    // store convex hull
+    /*
+    active_feature.getConvexHulls().clear();
+    active_feature.getConvexHulls().resize( active_feature.getConvexHulls().size()+1);
+    active_feature.getConvexHulls()[ active_feature.getConvexHulls().size()-1] = points;
+    */
+    //#ifdef DEBUG_SIM
+    //    current_feature_.setModelDescription( ModelDescription<2>( &pm ) );
+    //#endif
+  }
+  
+  
+  void RawSignalSimulation::samplePeptideModel2D_(const ProductModel<2> & pm,
                                     const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                                     SimCoordinateType rt_start, SimCoordinateType rt_end,
                                     MSSimExperiment & experiment, Feature & active_feature)

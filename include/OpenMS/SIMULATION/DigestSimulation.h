@@ -75,10 +75,9 @@ namespace OpenMS
 			created sibling peptides (this also applies for peptides with missed cleavages).
 			Should a peptide be non-unique the abundances of its instances from proteins are summed up.
 			
-			@param proteins Input protein list with abundance
-			@param peptides Output peptide list with abundance
+			@param feature_map Input FeatureMap containing the proteins that should be digested as ProteinIdentification
 		**/
-    void digest(const SampleProteins & proteins, SamplePeptides & peptides);    
+    void digest(FeatureMapSim & feature_map);    
     
   private:
     /// set defaults
