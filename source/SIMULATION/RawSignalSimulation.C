@@ -192,7 +192,7 @@ namespace OpenMS {
     
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     
-    SimCoordinateType mz = ( (feature_ef.getMonoWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass") ) / charge) ;
+    SimCoordinateType mz = active_feature.getMZ();
     
     // don't show ions with m/z higher than the MS detection limit
     // TODO: integrate map ranges
@@ -201,9 +201,8 @@ namespace OpenMS {
       // ignore the current feature
       return;
     }
-    active_feature.setMZ(mz);
-    
-    p1.setValue("statistics:mean", (feature_ef.getAverageWeight() + (DoubleReal) active_feature.getMetaValue("charge_adduct_mass"))/charge );
+
+    p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
     p1.setValue("charge", charge);

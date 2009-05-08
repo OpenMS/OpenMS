@@ -253,6 +253,9 @@ namespace OpenMS {
 					if (allowed_entities_of_charge[charge_locations]>0)
 					{
 						Feature chargedFeature((*feature_it));
+						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") ) / charge) ;
 						chargedFeature.setCharge(charge);
 						chargedFeature.setIntensity(it_s->first);
 						// add meta information on compomer (mass)
@@ -270,6 +273,7 @@ namespace OpenMS {
 				}
 
 				// add consensus element containing all charge variants just created
+				cf.computeConsensus();
 				charge_consensus.push_back(cf);
 
 				++feature_index;
@@ -338,14 +342,18 @@ namespace OpenMS {
 					else
 					{
 						Feature chargedFeature((*feature_it));
+						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") ) / c) ;
 						chargedFeature.setCharge(c);
 						chargedFeature.setIntensity(charge_states[c]);
 						copy_map.push_back(chargedFeature);
 						
-						cf.insert(0, copy_map.size()-1,chargedFeature);
+						cf.insert(0, copy_map.size()-1, chargedFeature);
 					}
 				}
 				// add consensus element containing all charge variants just created
+				cf.computeConsensus();
 				charge_consensus.push_back(cf);	        
 			}
 	    
