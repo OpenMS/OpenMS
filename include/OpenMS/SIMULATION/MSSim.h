@@ -93,7 +93,7 @@ namespace OpenMS
     FeatureMapSim const & getSimulatedFeatures() const;
 
 		/// Access the charge consensus map of simulated features
-		ConsensusMap const & MSSim::getSimulatedConsensus() const;
+		ConsensusMap const & getSimulatedConsensus() const;
 	protected:
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap

@@ -88,23 +88,24 @@ END_SECTION
 START_SECTION((void digest(const SampleProteins &proteins, SamplePeptides &peptides)))
 {
   SampleProteins in,out;
-	in["ACDKDDLDDFRLNN"] = 100;
-	in["ACDKDDLASSRL"] = 50;
-
-	// test if "out" is deleted
-	out["AALA"] = 10000;
-
-	DigestSimulation a;
-	a.digest(in,out);
-
-	TEST_REAL_SIMILAR(out["ACDK"], 107.143);
-	TEST_REAL_SIMILAR(out["ACDKDDLASSR"], 35.7143);
-	TEST_REAL_SIMILAR(out["ACDKDDLDDFR"], 71.4286);
-	TEST_REAL_SIMILAR(out["DDLASSR"], 35.7143);
-	TEST_REAL_SIMILAR(out["DDLASSRL"], 35.7143);
-	TEST_REAL_SIMILAR(out["DDLDDFR"], 71.4286);
-	TEST_REAL_SIMILAR(out["DDLDDFRLNN"], 71.4286);
-	TEST_REAL_SIMILAR(out["LNN"], 71.4286);
+/* 	in["ACDKDDLDDFRLNN"] = 100;
+ * 	in["ACDKDDLASSRL"] = 50;
+ * 
+ * 	// test if "out" is deleted
+ * 	out["AALA"] = 10000;
+ * 
+ * 	DigestSimulation a;
+ * 	a.digest(in,out);
+ * 
+ * 	TEST_REAL_SIMILAR(out["ACDK"], 107.143);
+ * 	TEST_REAL_SIMILAR(out["ACDKDDLASSR"], 35.7143);
+ * 	TEST_REAL_SIMILAR(out["ACDKDDLDDFR"], 71.4286);
+ * 	TEST_REAL_SIMILAR(out["DDLASSR"], 35.7143);
+ * 	TEST_REAL_SIMILAR(out["DDLASSRL"], 35.7143);
+ * 	TEST_REAL_SIMILAR(out["DDLDDFR"], 71.4286);
+ * 	TEST_REAL_SIMILAR(out["DDLDDFRLNN"], 71.4286);
+ * 	TEST_REAL_SIMILAR(out["LNN"], 71.4286);
+ */
 
  //for (SampleProteins::const_iterator protein = out.begin();
  //        protein != out.end();
