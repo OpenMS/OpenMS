@@ -153,7 +153,7 @@ namespace OpenMS {
 			esi_adducts_.push_back(a);
 			esi_impurity_probabilities_.push_back(components[1].toDouble());
 
-			max_adduct_charge_ = max(max_adduct_charge_, l_charge);
+			max_adduct_charge_ = std::max(max_adduct_charge_, l_charge);
     }
 
     // MALDI charge distribution
