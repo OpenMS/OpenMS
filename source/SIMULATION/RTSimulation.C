@@ -231,7 +231,7 @@ namespace OpenMS {
 		// Column settings
     defaults_.setValue("total_gradient_time",2800.0,"the duration (in seconds) of the gradient");
     defaults_.setMinFloat("total_gradient_time", 800);
-    defaults_.setValue("rt_model_file","examples/SIMULATION/RTPredict.model","SVM model for retention time prediction");
+    defaults_.setValue("rt_model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
     
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
