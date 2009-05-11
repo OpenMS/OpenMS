@@ -102,6 +102,7 @@ class TOPPFileFilter
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
+			
 			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
 			StringList mode_list;
 			for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
@@ -109,6 +110,15 @@ class TOPPFileFilter
 				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
 			}
 			setValidStrings_("remove_mode",mode_list);
+
+			registerStringOption_("remove_activation","<activation>","","Remove MSn scans where any of its precursors features a certain activation method\n",false);
+			StringList activation_list;
+			for (Size i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+			{
+				activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
+			}
+			setValidStrings_("remove_activation",activation_list);
+			
 			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
       registerFlag_("sort","sorts the output data according to RT and m/z."
       										 "\nNote: Spectrum meta data arrays are erased, as they would be invalid after sorting by m/z.");
@@ -246,7 +256,24 @@ class TOPPFileFilter
   				}
   			}
 
-  			//remove zoom scans (might be a lot of spectra)
+  			//remove by activation mode (might be a lot of spectra)
+  			bool rem_activation = setByUser_("remove_activation");
+  			writeDebug_(String("Remove scans with activation mode: ") + String(rem_activation),3);
+  			if (rem_activation)
+  			{
+  				String mode = getStringOption_("remove_activation");
+  				writeDebug_(String("Removing scans with activation mode: ") + mode,3);
+					for (Size i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+  				{
+  					if (Precursor::NamesOfActivationMethod[i]==mode)
+  					{
+							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(mode))), exp.end());
+  					}
+  				}
+  			}
+				
+
+				//remove zoom scans (might be a lot of spectra)
   			if (getFlag_("remove_zoom"))
   			{
   				writeDebug_("Removing zoom scans",3);

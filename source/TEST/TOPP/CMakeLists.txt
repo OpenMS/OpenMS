@@ -126,6 +126,8 @@ add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/Fi
 add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter_8_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
 add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzData -out FileFilter_9_out.tmp -remove_mode SelectedIonMonitoring)
 add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter_9_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzData)
+## TODO (Chris): test -remove_activation <activation> switch once mzML is our default
+
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type DTA -no_progress -out FileInfo.tmp)

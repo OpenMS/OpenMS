@@ -271,6 +271,59 @@ namespace OpenMS
 			bool reverse_;
 	};
 
+
+	/**
+		@brief Predicate that determines if a spectrum was generated using any activation method given in the C'tor list
+		
+		SpectrumType must have a getPrecursors() method
+		
+		@ingroup RangeUtils
+	*/	
+	template <class SpectrumType>
+	class HasActivationMethod
+		: std::unary_function<SpectrumType, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param methods List of methods that is compared against precursor activation methods
+				@param reverse if @p reverse is true, operator() return true if the spectrum is not using one of the specified activation methods
+			*/
+			HasActivationMethod(const StringList& methods, bool reverse = false)
+				: methods_(methods),
+					reverse_(reverse)
+			{
+			}
+		
+			inline bool operator()(const SpectrumType& s) const
+			{
+				bool result = false;
+				
+				for (std::vector< Precursor >::const_iterator it = s.getPrecursors().begin(); it!=s.getPrecursors().end(); ++it)
+				{
+					for (std::set< Precursor::ActivationMethod >::const_iterator it_a = it->getActivationMethods().begin();
+							 it_a != it->getActivationMethods().end();
+							 ++it_a)
+					{
+						if (methods_.contains(Precursor::NamesOfActivationMethod[*it_a]))
+						{
+							// found matching activation method
+							if (reverse_)	return false;
+							else return true; 
+						}
+					}
+				}
+				
+				if (reverse_)	return true;
+				else return false; 
+			}
+		
+		protected:
+			bool reverse_;
+			StringList methods_;
+	};
+
 	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		

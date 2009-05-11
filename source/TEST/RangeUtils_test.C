@@ -251,6 +251,69 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	TEST_EQUAL(s2(spec), false);	
 END_SECTION
 
+//HasActivationMethod
+
+HasActivationMethod<MSSpectrum<> >* ptr49 = 0;
+START_SECTION((HasActivationMethod(const StringList& methods, bool reverse = false)))
+	ptr49 = new HasActivationMethod<MSSpectrum<> >(StringList::create(""));
+	TEST_NOT_EQUAL(ptr49, 0)
+END_SECTION
+
+START_SECTION(([EXTRA]~HasActivationMethod()))
+	delete ptr49;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+	HasActivationMethod<MSSpectrum<> > s(StringList::create(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
+	HasActivationMethod<MSSpectrum<> > s2(StringList::create(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
+	MSSpectrum<> spec;
+	std::vector<Precursor> pc;
+	Precursor p;
+	set <Precursor::ActivationMethod> sa1;
+	sa1.insert( Precursor::PSD ); //occurs
+	sa1.insert( Precursor::BIRD );//just a dummy
+
+	p.setActivationMethods(sa1);
+	pc.push_back(p);
+	spec.setPrecursors(pc);
+
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);
+	
+	// does not occur as activation method
+	set <Precursor::ActivationMethod> sa2;
+	sa2.insert( Precursor::BIRD );
+	p.setActivationMethods(sa2);
+	pc[0] = p;
+	spec.setPrecursors(pc);
+
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);	
+
+	// multiple precursors:
+	// adding another dummy
+	set <Precursor::ActivationMethod> sa3;
+	sa3.insert( Precursor::LCID );
+	p.setActivationMethods(sa3);
+	pc.push_back(p);
+	spec.setPrecursors(pc);
+	
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);	
+	
+	// adding a matching precursor
+	set <Precursor::ActivationMethod> sa4;
+	sa4.insert( Precursor::PD );
+	p.setActivationMethods(sa4);
+	pc.push_back(p);
+	spec.setPrecursors(pc);
+	
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);	
+	
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
