@@ -33,6 +33,7 @@
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/IntList.h>
+#include <OpenMS/METADATA/Precursor.h>
 
 namespace OpenMS 
 {	
