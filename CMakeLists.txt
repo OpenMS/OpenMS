@@ -312,16 +312,7 @@ if (MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
 	link_directories(${CONTRIB_LIB_DIR})
 else()
-	set(CONTRIB_ENABLE_BOOST OFF CACHE BOOL "Enable Boost iostreams lib support")
-	if(CONTRIB_ENABLE_BOOST)
-		#determine boost library suffix
-		file(GLOB BOOST_IO_LIB_PATH "${CONTRIB_LIB_DIR}/*boost_iostreams*[^0-9].*")
-		string(REGEX MATCH "-[^/]*-[^.]*" BOOST_LIB_SUFFIX ${BOOST_IO_LIB_PATH})
-		message(STATUS "Boost library suffix: ${BOOST_LIB_SUFFIX}")
-		
-		#find libs
-		OPENMS_CHECKLIB(CONTRIB_BOOST_IO "boost_iostreams${BOOST_LIB_SUFFIX}" "boost_iostreams${BOOST_LIB_SUFFIX}" "Boost iostreams")
-	endif()
+	## nothing to do for unix, currently we need those boost parts only which work with the headers
 endif()
 
 

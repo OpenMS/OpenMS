@@ -299,8 +299,6 @@ namespace OpenMS
 		
 			inline bool operator()(const SpectrumType& s) const
 			{
-				bool result = false;
-				
 				for (std::vector< Precursor >::const_iterator it = s.getPrecursors().begin(); it!=s.getPrecursors().end(); ++it)
 				{
 					for (std::set< Precursor::ActivationMethod >::const_iterator it_a = it->getActivationMethods().begin();
@@ -321,8 +319,8 @@ namespace OpenMS
 			}
 		
 		protected:
-			bool reverse_;
 			StringList methods_;
+			bool reverse_;
 	};
 
 	/**
