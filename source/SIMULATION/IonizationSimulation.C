@@ -141,7 +141,7 @@ namespace OpenMS {
     
     // get basic residues from params
     basic_residues_.clear();
-    StringList basic_residues = (StringList) defaults_.getValue("esi:ionized_residues");
+    StringList basic_residues = (StringList) param_.getValue("esi:ionized_residues");
     for(StringList::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
     {
       basic_residues_.insert(*it);

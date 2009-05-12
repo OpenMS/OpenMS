@@ -132,7 +132,10 @@ namespace OpenMS {
 
 		// add PTM's
 		PTMSimulation ptm_sim(rnd_gen);
-		ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
+    
+    std::cout << param_.copy("PostTranslationalModifications:",true) << std::endl;
+		
+    ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
 		ptm_sim.predict_ptms(features_);
 
     // debug

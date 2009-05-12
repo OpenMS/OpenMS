@@ -73,7 +73,7 @@ namespace OpenMS {
 		ptms_.clear();
 
 		// test if modification exists; will throw exception otherwise
-		StringList mods = (StringList) defaults_.getValue("potential_modifications");
+		StringList mods = (StringList) param_.getValue("potential_modifications");
 		StringList mod_info;
 		ProbabilityType p;
 
@@ -114,7 +114,7 @@ namespace OpenMS {
   {
 		if (ptms_.size()==0) return;
 
-		Size max_mod_count = (UInt) defaults_.getValue("modification_bound");
+		Size max_mod_count = (UInt) param_.getValue("modification_bound");
 		if (max_mod_count == 0) return;
 
 		FeatureMapSim map_ptm;

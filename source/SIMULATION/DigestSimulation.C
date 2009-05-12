@@ -57,7 +57,7 @@ namespace OpenMS {
   
   void DigestSimulation::digest(FeatureMapSim & feature_map)
   {
-		if ((String)defaults_.getValue("enzyme") == String("none"))
+		if ((String)param_.getValue("enzyme") == String("none"))
 		{
       ProteinIdentification protIdent = feature_map.getProteinIdentifications()[0];
       // for each ProteinHit in the FeatureMap
@@ -90,7 +90,7 @@ namespace OpenMS {
 		}
 
 		EnzymaticDigestion digestion;
-		digestion.setEnzyme(digestion.getEnzymeByName((String)defaults_.getValue("enzyme")));
+		digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
 
     UInt min_peptide_length = param_.getValue("min_peptide_length");
 		UInt missed_cleavages   = param_.getValue("missed_cleavages");

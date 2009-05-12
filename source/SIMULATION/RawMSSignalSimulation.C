@@ -206,7 +206,6 @@ namespace OpenMS {
     SimCoordinateType mz = active_feature.getMZ();
 
     // don't show ions with m/z higher than the MS detection limit
-    // TODO: integrate map ranges
     if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
     {
       // ignore the current feature
@@ -216,12 +215,13 @@ namespace OpenMS {
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
+    p1.setValue("intensity_scaling", scale);
     p1.setValue("charge", charge);
 
     IsotopeModelGeneral isomodel;
     isomodel.setSamples(feature_ef);
     isomodel.setParameters(p1);
-
+    
     samplePeptideModel1D_(isomodel, (mz - 2.5),(mz + 5.0), experiment, active_feature);
   }
 
@@ -249,7 +249,6 @@ namespace OpenMS {
     */
 
     // don't show ions with m/z higher than the MS detection limit
-    // TODO: integrate map ranges
     if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
     {
       // ignore the current feature
@@ -273,7 +272,6 @@ namespace OpenMS {
     // add peptide to global MS map
     // TODO: use flexible boundaries for rt/mz depending on abundance/charge?
     // TODO: remove this current_feature_ dependency
-    // TODO: store all simulated features in a separate FeatureMap ..
 
     samplePeptideModel2D_(pm, (mz - 2.5),(mz + 5.0), (active_feature.getRT() - 160.0),(active_feature.getRT() + 280.0), experiment, active_feature);
     /*
