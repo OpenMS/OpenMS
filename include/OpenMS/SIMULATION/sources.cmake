@@ -14,7 +14,7 @@ MSSim.h
 MixtureModel.h
 PTMSimulation.h
 RTSimulation.h
-RawSignalSimulation.h
+RawMSSignalSimulation.h
 SimTypes.h
 )
 

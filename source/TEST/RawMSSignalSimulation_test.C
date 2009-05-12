@@ -28,53 +28,53 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/SIMULATION/RawSignalSimulation.h>
+#include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(RawSignalSimulation, "$Id$")
+START_TEST(RawMSSignalSimulation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RawSignalSimulation* ptr = 0;
-START_SECTION((RawSignalSimulation(const gsl_rng *random_generator)))
+RawMSSignalSimulation* ptr = 0;
+START_SECTION((RawMSSignalSimulation(const gsl_rng *random_generator)))
 {
-	ptr = new RawSignalSimulation(NULL);
+	ptr = new RawMSSignalSimulation(NULL);
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(~RawSignalSimulation())
+START_SECTION(~RawMSSignalSimulation())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((RawSignalSimulation(const RawSignalSimulation &source)))
+START_SECTION((RawMSSignalSimulation(const RawMSSignalSimulation &source)))
 {
-  RawSignalSimulation source(NULL);
+  RawMSSignalSimulation source(NULL);
   Param p = source.getParameters();
   p.setValue("peak_fwhm",0.3);
   source.setParameters(p);
   
-  RawSignalSimulation target(source);
+  RawMSSignalSimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
 
-START_SECTION((virtual ~RawSignalSimulation()))
+START_SECTION((virtual ~RawMSSignalSimulation()))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((RawSignalSimulation& operator=(const RawSignalSimulation &source)))
+START_SECTION((RawMSSignalSimulation& operator=(const RawMSSignalSimulation &source)))
 {
-  RawSignalSimulation source(NULL);
-  RawSignalSimulation target(source);
+  RawMSSignalSimulation source(NULL);
+  RawMSSignalSimulation target(source);
   
   Param p = source.getParameters();
   p.setValue("peak_fwhm",0.3);
@@ -95,7 +95,7 @@ END_SECTION
 
 START_SECTION((SimCoordinateType getRTSamplingRate() const ))
 {
-  RawSignalSimulation raw_sim(NULL);
+  RawMSSignalSimulation raw_sim(NULL);
   Param p = raw_sim.getParameters();
   p.setValue("rt:sampling_rate",3.0);
   raw_sim.setParameters(p);

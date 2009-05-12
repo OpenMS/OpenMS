@@ -149,7 +149,6 @@ namespace OpenMS {
 
 		// parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
-		DoubleReal p_cumul(0);
 		StringList components;
 		max_adduct_charge_ = 0;
     // cumulate probabilities in list
@@ -255,7 +254,7 @@ namespace OpenMS {
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") ) / charge) ;
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + it_s->second.getMass() ) / charge) ;
 						chargedFeature.setCharge(charge);
 						chargedFeature.setIntensity(it_s->first);
 						// add meta information on compomer (mass)
@@ -318,6 +317,8 @@ namespace OpenMS {
 		{
 			FeatureMapSim copy_map = features;
       copy_map.clear();
+      EmpiricalFormula h_ef("H");
+      DoubleReal h_mono_weight = h_ef.getMonoWeight();
       
 			for(FeatureMap< >::iterator feature_it = features.begin();
 					feature_it != features.end();
@@ -345,9 +346,8 @@ namespace OpenMS {
 					{
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-
-            DoubleReal charged_adduct_mass = (chargedFeature.metaValueExists("charge_adduct_mass") ? (DoubleReal) chargedFeature.getMetaValue("charge_adduct_mass") : 0.0);
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + charged_adduct_mass ) / c) ;
+           
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + h_mono_weight ) / c) ;
 						chargedFeature.setCharge(c);
 						chargedFeature.setIntensity(charge_states[c]);
 						copy_map.push_back(chargedFeature);

@@ -25,8 +25,8 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_DETECTIBILITYSIMULATION_H
-#define OPENMS_SIMULATION_DETECTIBILITYSIMULATION_H
+#ifndef OPENMS_SIMULATION_DETECTABILITYSIMULATION_H
+#define OPENMS_SIMULATION_DETECTABILITYSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -35,12 +35,12 @@ namespace OpenMS
 {
   /**
    @brief Simulates peptide detectability
-   
-   The peptide detectability is predicted based on a support-vector machine. Alternativly 
+
+   The peptide detectability is predicted based on a support-vector machine. Alternativly
    the detectability can be set to a default value for all peptides if no model is given.
-   
+
    @htmlinclude OpenMS_DetectibilitySimulation.parameters
-   
+
    @ingroup Simulation
   */
   class OPENMS_DLLAPI DetectabilitySimulation
@@ -63,37 +63,37 @@ namespace OpenMS
 
     /// Assignment operator
     DetectabilitySimulation& operator = (const DetectabilitySimulation& source);
-    
+
     /**
      @brief Filters the given peptide features for detectibility
-     
-     Based on the provided method (SVM or simple) all peptide features are 
+
+     Based on the provided method (SVM or simple) all peptide features are
      removed that do not have a sufficient peptide detectibility.
-     
+
      @param features Feature map that will be filtered for detectibility
      */
     void filterDetectability(FeatureMapSim & features);
-    
+
   private:
     /// Set default parameters
     void setDefaultParams_();
-    
+
     /// Synchronize members with param class
-		void updateMembers_();    
-    
+		void updateMembers_();
+
     /// Minimum allowed detectability likelihood of a peptide
-		DoubleReal min_detect_;    
-		
+		DoubleReal min_detect_;
+
 		/// Name of the svm model file
 		OpenMS::String dtModelFile_;
 
   protected:
     /// Filter the feature map using a svm model
     void svm_filter(FeatureMapSim &);
-    
+
     /// Do not filter the feature map, just set the detectability to a default values
     void no_filter(FeatureMapSim &);
-    
+
   };
 
 }

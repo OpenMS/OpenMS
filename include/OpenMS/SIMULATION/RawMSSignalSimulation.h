@@ -25,8 +25,8 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_RAWSIGNALSIMULATION_H
-#define OPENMS_SIMULATION_RAWSIGNALSIMULATION_H
+#ifndef OPENMS_SIMULATION_RAWMSSIGNALSIMULATION_H
+#define OPENMS_SIMULATION_RAWMSSIGNALSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -42,15 +42,15 @@ namespace OpenMS {
 
   /**
    @brief Simulates MS signales for a given set of peptides
-   
+
    Simulates MS signales for a given set of peptides, with charge annotation,
    given detectabilities, predicted retention times and charge values.
-   
+
    @htmlinclude OpenMS_RawSignalSimulation.parameters
-   
+
    @ingroup Simulation
   */
-  class OPENMS_DLLAPI RawSignalSimulation
+  class OPENMS_DLLAPI RawMSSignalSimulation
     : public DefaultParamHandler
   {
 
@@ -59,19 +59,19 @@ namespace OpenMS {
       */
     //@{
     /// Constructor taking a random generator
-    RawSignalSimulation(const gsl_rng * random_generator);
+    RawMSSignalSimulation(const gsl_rng * random_generator);
 
     /// Copy constructor
-    RawSignalSimulation(const RawSignalSimulation& source);
+    RawMSSignalSimulation(const RawMSSignalSimulation& source);
 
     /// Destructor
-    virtual ~RawSignalSimulation();
+    virtual ~RawMSSignalSimulation();
     //@}
 
-    RawSignalSimulation& operator = (const RawSignalSimulation& source);
+    RawMSSignalSimulation& operator = (const RawMSSignalSimulation& source);
 
     /**
-     
+
      */
     void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
@@ -79,7 +79,7 @@ namespace OpenMS {
     SimCoordinateType getRTSamplingRate() const;
   private:
     /// Default constructor
-    RawSignalSimulation();
+    RawMSSignalSimulation();
 
     /// Synchronize members with param class
 		void updateMembers_();
@@ -87,26 +87,26 @@ namespace OpenMS {
     /// Set default parameters
     void setDefaultParams_();
 
-    /** 
+    /**
      @brief Add a 2D signal for a single feature
-     
+
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
      */
     void add2DSignal(Feature & feature, MSSimExperiment & experiment);
 
-    
-    /** 
+
+    /**
      @brief Add a 1D signal for a single feature
-     
+
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
      */
     void add1DSignal(Feature & feature, MSSimExperiment & experiment);
-    
+
     /**
      @brief Samples signales for the given 1D model
-     
+
      @param pm The isotope model from which the signales will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
@@ -116,10 +116,10 @@ namespace OpenMS {
     void samplePeptideModel1D_(const IsotopeModelGeneral & iso,
                                const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
                                MSSimExperiment & experiment, Feature & activeFeature);
-    
+
     /**
      @brief Samples signales for the given 2D model
-     
+
      @param pm The product model from which the signales will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
@@ -140,19 +140,19 @@ namespace OpenMS {
 
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment);
-    
+
     /// Add a base line to the experiment
     void addBaseLine_(MSSimExperiment & experiment);
-    
+
     /// Compress signales in a single RT scan given the m/z bin size
     void compressSignals_(MSSimExperiment & experiment);
-     
+
     /// worker function for compressSignals_
     Size compressSignalsRun_(MSSimExperiment & experiment);
 
     // TODO: the following parameters are imported -> revise
     // TODO: we need to incorporate those parameters into constructors etc.
-    
+
 		/// bin size in m/z dimension
 		SimCoordinateType mz_sampling_rate_;
     /// bin size in rt dimension
@@ -184,12 +184,12 @@ namespace OpenMS {
 
 		/// Remembers which scans were changed after the last call to removeDuplicatePoints_()
 		std::vector<bool> changed_scans_;
-    
+
     /// LC conditions (noise parameter for EMG)
 		DoubleReal distortion_;
     DoubleReal symmetry_up_;
     DoubleReal symmetry_down_;
-    
+
   protected:
 		/// Random number generator
 		const gsl_rng* rnd_gen_;

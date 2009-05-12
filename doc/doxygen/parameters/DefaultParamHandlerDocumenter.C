@@ -367,7 +367,7 @@ int main (int argc , char** argv)
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
 	DOCME2(PTMSimulation, PTMSimulation(NULL));
   DOCME2(IonizationSimulation, IonizationSimulation(NULL));
-  DOCME2(RawSignalSimulation, RawSignalSimulation(NULL));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(NULL));
   
   return 0;
 }

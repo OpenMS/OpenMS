@@ -52,7 +52,7 @@ namespace OpenMS
    @see DigestSimulation
    @see IonizationSimulation
    @see PTMSimulation
-   @see RawSignalSimulation
+   @see RawMSSignalSimulation
    @see RTSimulation
    
    @ingroup Simulation

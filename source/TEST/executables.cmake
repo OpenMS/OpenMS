@@ -356,7 +356,7 @@ set(simulation_executables_list
   IonizationSimulation_test
   DetectabilitySimulation_test
   RTSimulation_test
-  RawSignalSimulation_test
+  RawMSSignalSimulation_test
   MSSim_test
   ElutionModel_test
   IsotopeModelGeneral_test

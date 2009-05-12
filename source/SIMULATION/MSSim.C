@@ -29,7 +29,7 @@
 
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
-#include <OpenMS/SIMULATION/RawSignalSimulation.h>
+#include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
@@ -58,17 +58,17 @@ namespace OpenMS {
       for(std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
           it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
           ++it)
-      { 
+      {
         std::cout << (*it) << " ";
-      } 
+      }
       std::cout << std::endl << "----------------------------------------------" << std::endl;
-    } 
+    }
 
     std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
   }
-  
+
   MSSim::MSSim()
-    : DefaultParamHandler("MSSim"), 
+    : DefaultParamHandler("MSSim"),
 			experiment_(),
 			features_(),
 			consensus_map_()
@@ -83,8 +83,8 @@ namespace OpenMS {
 			consensus_map_(source.consensus_map_)
   {
     setParameters( source.getParameters() );
-    
-    updateMembers_();  
+
+    updateMembers_();
   }
 
   MSSim& MSSim::operator = (const MSSim& source)
@@ -93,43 +93,43 @@ namespace OpenMS {
     experiment_ = source.experiment_;
     features_ = source.features_;
 		consensus_map_ = source.consensus_map_;
-    updateMembers_();    
+    updateMembers_();
     return *this;
   }
-  
+
   MSSim::~MSSim()
   {}
-  
+
   void MSSim::simulate(const gsl_rng* rnd_gen, const SampleProteins& proteins)
   {
     // TODO: add method to read contaminants
     // TODO: add method to select contaminants
-    
+
     /*
-      General progress should be 
+      General progress should be
         1. Digest Proteins
-        2. add Post Translational modifications 
+        2. add Post Translational modifications
         3. Predict retention times
-        4. predict detectibility 
+        4. predict detectibility
         5. simulate ionization
         6. simulate the (lc)ms signal -> TODO: integrate parameter for signal in lc direction
         7. select features for MS2
         8. generate MS2 signals for selected features
      */
-    
+
     // convert sample proteins into an empty FeatureMap with ProteinHits
     // convert
     createFeatureMap_(proteins, features_);
-    
+
 		// digest
     DigestSimulation digest_sim;
-    digest_sim.setParameters(param_.copy("Digestion:",true)); 
+    digest_sim.setParameters(param_.copy("Digestion:",true));
     digest_sim.digest(features_);
-		
+
     // debug
     std::cout << "digested" << std::endl;
     verbosePrintFeatureMap(features_);
-    
+
 		// add PTM's
 		PTMSimulation ptm_sim(rnd_gen);
 		ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
@@ -138,16 +138,16 @@ namespace OpenMS {
     // debug
     std::cout << "ptms added" << std::endl;
     verbosePrintFeatureMap(features_);
-    
+
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
 		rt_sim.setParameters(param_.copy("RTSimulation:",true));
 		rt_sim.predict_rt(features_);
-       
+
     // debug
     std::cout << "rt simulated" << std::endl;
     verbosePrintFeatureMap(features_);
-    
+
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
 		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
@@ -156,19 +156,19 @@ namespace OpenMS {
     // debug
     std::cout << "pd filtered" << std::endl;
     verbosePrintFeatureMap(features_);
-    
+
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
     ion_sim.ionize(features_, consensus_map_);
-    
+
     // debug
     std::cout << "ionized" << std::endl;
     verbosePrintFeatureMap(features_);
-    
-    RawSignalSimulation raw_sim(rnd_gen);
+
+    RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     createExperiment_(rt_sim.getGradientTime(), rt_sim.isRTColumnOn(),raw_sim.getRTSamplingRate(), experiment_);
-    
+
     raw_sim.generateRawSignals(features_, experiment_);
 
 /**
@@ -177,13 +177,13 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
 **/
 
-    
-    
+
+
   }
 
 	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
 	{
-    // clear feature map 
+    // clear feature map
     feature_map.clear();
     ProteinIdentification protIdent;
 
@@ -196,7 +196,7 @@ namespace OpenMS {
       protHit.setMetaValue("intensity", it->second);
       protHit.setMetaValue("description", it->first.description);
       protIdent.insertHit(protHit);
-			
+
 		}
     std::vector<ProteinIdentification> vec_protIdent;
     vec_protIdent.push_back(protIdent);
@@ -211,7 +211,7 @@ namespace OpenMS {
     {
       Size number_of_scans = Size(gradient_time / rt_sampling_rate);
       experiment.resize(number_of_scans);
-        
+
       DoubleReal current_scan_rt = rt_sampling_rate;
       for(MSSimExperiment::iterator exp_it = experiment.begin();
           exp_it != experiment.end();
@@ -230,19 +230,19 @@ namespace OpenMS {
     }
     std::cout << "done";
   }
-  
+
   void MSSim::setDefaultParams_()
-  {   
-    defaults_.insert("Digestion:", DigestSimulation().getDefaults());  
+  {
+    defaults_.insert("Digestion:", DigestSimulation().getDefaults());
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
     defaults_.insert("PeptideDetectibilitySimulation:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
-    defaults_.insert("RawSignal:",RawSignalSimulation(NULL).getDefaults());
-    
-    defaultsToParam_();  
+    defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
+
+    defaultsToParam_();
   }
-  
+
   void MSSim::updateMembers_()
   {}
 
@@ -250,7 +250,7 @@ namespace OpenMS {
   {
     return experiment_;
   }
-  
+
   FeatureMapSim const & MSSim::getSimulatedFeatures() const
   {
     return features_;
@@ -260,5 +260,5 @@ namespace OpenMS {
   {
 		return consensus_map_;
   }
-  
+
 }

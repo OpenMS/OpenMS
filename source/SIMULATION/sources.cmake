@@ -14,7 +14,7 @@ MSSim.C
 MixtureModel.C
 PTMSimulation.C
 RTSimulation.C
-RawSignalSimulation.C
+RawMSSignalSimulation.C
 )
 
 ### add path to the filenames
