@@ -175,7 +175,7 @@ namespace OpenMS {
           feature_it != features.end();
           ++feature_it)
       {
-        add1DSignal(*feature_it,experiment);
+        add1DSignal_(*feature_it,experiment);
       }
     }
     else
@@ -184,7 +184,7 @@ namespace OpenMS {
           feature_it != features.end();
           ++feature_it)
       {
-        add2DSignal(*feature_it, experiment);
+        add2DSignal_(*feature_it, experiment);
       }
       addShotNoise_(experiment);
       addBaseLine_(experiment);
@@ -192,7 +192,7 @@ namespace OpenMS {
     compressSignals_(experiment);
   }
 
-  void RawMSSignalSimulation::add1DSignal(Feature & active_feature, MSSimExperiment & experiment)
+  void RawMSSignalSimulation::add1DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
     Param p1;
 
@@ -225,7 +225,7 @@ namespace OpenMS {
     samplePeptideModel1D_(isomodel, (mz - 2.5),(mz + 5.0), experiment, active_feature);
   }
 
-  void RawMSSignalSimulation::add2DSignal(Feature & active_feature, MSSimExperiment & experiment)
+  void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
     ProductModel<2> pm;
     Param p1;

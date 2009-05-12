@@ -15,7 +15,9 @@ MixtureModel.h
 PTMSimulation.h
 RTSimulation.h
 RawMSSignalSimulation.h
+RawTandemMSSignalSimulation.h
 SimTypes.h
+sources.cmake
 )
 
 ### add path to the filenames
@@ -26,6 +28,7 @@ endforeach(i)
 
 ### source group definition
 source_group("Header Files\\OpenMS\\SIMULATION" FILES ${sources_h})
+set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 

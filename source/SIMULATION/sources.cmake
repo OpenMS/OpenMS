@@ -15,6 +15,8 @@ MixtureModel.C
 PTMSimulation.C
 RTSimulation.C
 RawMSSignalSimulation.C
+RawTandemMSSignalSimulation.C
+sources.cmake
 )
 
 ### add path to the filenames
@@ -28,4 +30,4 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\SIMULATION" FILES ${sources})
-
+set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)

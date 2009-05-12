@@ -46,7 +46,7 @@ namespace OpenMS {
    Simulates MS signales for a given set of peptides, with charge annotation,
    given detectabilities, predicted retention times and charge values.
 
-   @htmlinclude OpenMS_RawSignalSimulation.parameters
+   @htmlinclude OpenMS_RawMSSignalSimulation.parameters
 
    @ingroup Simulation
   */
@@ -88,21 +88,20 @@ namespace OpenMS {
     void setDefaultParams_();
 
     /**
-     @brief Add a 2D signal for a single feature
-
-     @param feature The feature which should be simulated
-     @param experiment The experiment to which the simulated signals should be added
-     */
-    void add2DSignal(Feature & feature, MSSimExperiment & experiment);
-
-
-    /**
      @brief Add a 1D signal for a single feature
 
      @param feature The feature which should be simulated
      @param experiment The experiment to which the simulated signals should be added
      */
-    void add1DSignal(Feature & feature, MSSimExperiment & experiment);
+    void add1DSignal_(Feature & feature, MSSimExperiment & experiment);
+
+    /**
+     @brief Add a 2D signal for a single feature
+
+     @param feature The feature which should be simulated
+     @param experiment The experiment to which the simulated signals should be added
+     */
+    void add2DSignal_(Feature & feature, MSSimExperiment & experiment);
 
     /**
      @brief Samples signales for the given 1D model
