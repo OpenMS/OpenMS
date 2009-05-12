@@ -81,8 +81,8 @@ namespace OpenMS
 			static DoubleList create(const String& list);
 			///Returns a list that is created by converting every string element of the given StringList
 			static DoubleList create(const StringList& list);
-			/// Returns if a string is contains in the list
-			bool contains(DoubleReal s) const;
+			/// Returns if @p s is contains in the list, allowing a deviation of @p tolerance.
+			bool contains(DoubleReal s, DoubleReal tolerance=0.00001) const;
 			
 			
 			/// output stream operator

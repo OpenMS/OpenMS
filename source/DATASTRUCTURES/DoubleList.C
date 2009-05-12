@@ -107,11 +107,11 @@ namespace OpenMS
 		return ret;
 	}
 	
-	bool DoubleList::contains(DoubleReal s) const
+	bool DoubleList::contains(DoubleReal s, DoubleReal tolerance) const
 	{
 		for (Size i=0; i<this->size(); ++i)
 		{
-			if (this->operator[](i)==s) return true;
+			if (std::fabs(this->operator[](i)-s)<tolerance) return true;
 		}
 		return false;
 	}

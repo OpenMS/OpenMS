@@ -150,9 +150,13 @@ START_SECTION((template<typename DoubleType> DoubleList& operator<<(DoubleType v
 	TEST_EQUAL(list[3],1.2);
 END_SECTION
 
-START_SECTION(bool contains(DoubleReal s) const)
+START_SECTION(bool contains(DoubleReal s, DoubleReal tolerance) const)
 	DoubleList list = DoubleList::create("1.2,3.4");
 	TEST_EQUAL(list.contains(1.2),true)
+	TEST_EQUAL(list.contains(1.21),false)
+	TEST_EQUAL(list.contains(1.19),false)
+	TEST_EQUAL(list.contains(1.21,0.02),true)
+	TEST_EQUAL(list.contains(1.19,0.02),true)
 	TEST_EQUAL(list.contains(3.4),true)
 	TEST_EQUAL(list.contains(4.2),false)
 	TEST_EQUAL(list.contains(2),false)
