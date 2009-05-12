@@ -39,7 +39,7 @@
 namespace OpenMS
 {
     Fitter1D::Fitter1D()
-    : FactoryProduct("Fitter1D")
+    : DefaultParamHandler("Fitter1D")
     {
       defaults_.setValue("interpolation_step",0.2,"Sampling rate for the interpolation of the model function.", StringList::create("advanced"));
       defaults_.setValue("statistics:mean",1.0,"Centroid position of the model.", StringList::create("advanced"));
@@ -50,7 +50,7 @@ namespace OpenMS
     }
     
     Fitter1D::Fitter1D(const Fitter1D& source)
-    : FactoryProduct(source)
+    : DefaultParamHandler(source)
     {
       setParameters( source.getParameters() );
       updateMembers_();
@@ -60,7 +60,7 @@ namespace OpenMS
     {
       if (&source == this) return *this;
                 
-      FactoryProduct::operator = (source);
+      DefaultParamHandler::operator = (source);
       setParameters( source.getParameters() );
       updateMembers_();
     

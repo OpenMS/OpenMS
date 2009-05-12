@@ -44,6 +44,11 @@ namespace OpenMS
   /**
   	@brief Returns FactoryProduct* based on the name of the desired concrete FactoryProduct
  		
+ 		Every factory product base class T has to implement the static function registerChildren that registers all classes S derived from T at Factory<T>.
+
+		Every class S derived from T has to implement the function "static T* create()" which is going to be registered at Factory<T>.
+		Additionally the function "static String getProductName()" is required, which returns the name the class is registered by.
+ 		
  		@ingroup Concept
   */
   template <typename FactoryProduct>

@@ -80,7 +80,7 @@ namespace OpenMS
 	///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSumAgreeingIntensities(); }
 
-	/// get the identifier for this FactoryProduct
+	/// get the identifier for this DefaultParamHandler
 	static const String getProductName()
 	{
 		return "BinnedSumAgreeingIntensities";

@@ -82,7 +82,7 @@ namespace OpenMS
   }
 
 	
-  ///@todo violates FactoryProduct interface (Andreas)
+  ///@todo violates DefaultParamHandler interface (Andreas)
   void MarkerMower::insertmarker(PeakMarker* pm)
   {
     markers_.push_back(pm);

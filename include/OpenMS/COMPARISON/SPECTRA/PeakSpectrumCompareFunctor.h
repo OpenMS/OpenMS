@@ -28,7 +28,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -44,7 +44,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
   class OPENMS_DLLAPI PeakSpectrumCompareFunctor 
-  	: public FactoryProduct
+  	: public DefaultParamHandler
   {
 
   public:

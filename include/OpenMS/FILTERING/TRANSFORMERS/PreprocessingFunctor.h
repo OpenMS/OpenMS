@@ -28,7 +28,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 #define OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -40,7 +40,7 @@ namespace OpenMS
   	      that remove part of the peaks!
   */
   class OPENMS_DLLAPI PreprocessingFunctor
-  	: public FactoryProduct
+  	: public DefaultParamHandler
   {
   public:
 

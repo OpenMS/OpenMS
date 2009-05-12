@@ -38,12 +38,12 @@ using namespace std;
 namespace OpenMS
 {
   BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor()
-		: FactoryProduct(BinnedSpectrumCompareFunctor::getProductName())
+		: DefaultParamHandler(BinnedSpectrumCompareFunctor::getProductName())
   {
   }
   
   BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor& source)
-		:	FactoryProduct(source)
+		:	DefaultParamHandler(source)
   {
   }
  
@@ -55,7 +55,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }

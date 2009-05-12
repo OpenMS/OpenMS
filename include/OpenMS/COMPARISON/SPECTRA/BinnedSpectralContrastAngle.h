@@ -82,7 +82,7 @@ namespace OpenMS
 		///
 		static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
 
-		/// get the identifier for this FactoryProduct
+		/// get the identifier for this DefaultParamHandler
 		static const String getProductName()
 		{
 			return "BinnedSpectralContrastAngle";

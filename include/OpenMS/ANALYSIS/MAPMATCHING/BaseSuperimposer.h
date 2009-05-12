@@ -46,7 +46,7 @@ namespace OpenMS
 	elements of the maps as near as possible to each other.
 	*/
 	class OPENMS_DLLAPI BaseSuperimposer
-		: public FactoryProduct,
+		: public DefaultParamHandler,
 			public ProgressLogger
 	{
 
@@ -54,7 +54,7 @@ namespace OpenMS
 
 		/// Constructor
 		BaseSuperimposer()
-			: FactoryProduct("BaseSuperimposer"),
+			: DefaultParamHandler("BaseSuperimposer"),
 				ProgressLogger()
 		{
 		}

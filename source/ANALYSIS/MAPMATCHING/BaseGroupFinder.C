@@ -37,7 +37,7 @@ namespace OpenMS
 {
 
 	BaseGroupFinder::BaseGroupFinder()
-		: FactoryProduct("BaseGroupFinder")
+		: DefaultParamHandler("BaseGroupFinder")
 	{
 	}
 

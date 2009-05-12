@@ -41,7 +41,7 @@ namespace OpenMS
 	}
 
 	FeatureGroupingAlgorithm::FeatureGroupingAlgorithm()
-		: FactoryProduct("FeatureGroupingAlgorithm")
+		: DefaultParamHandler("FeatureGroupingAlgorithm")
 	{
 	}
 

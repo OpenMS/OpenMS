@@ -149,7 +149,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	virtual bool isDigestingEnd (char aa1, char aa2);
 	
 	/**
-	@brief needed by FactoryProduct
+	@brief needed by DefaultParamHandler
 	@return const string name of class
 	*/
 	static const String getProductName()
@@ -158,7 +158,7 @@ class OPENMS_DLLAPI TrypticIterator : public PepIterator
 	}
 
 	/**
-	@brief needed by FactoryProduct
+	@brief needed by DefaultParamHandler
 	@return poiter to new object
 	*/
 	static PepIterator* create()

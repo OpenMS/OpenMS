@@ -28,7 +28,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 #define OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -36,7 +36,7 @@ namespace OpenMS
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   */
   class OPENMS_DLLAPI FilterFunctor 
-  	: public FactoryProduct
+  	: public DefaultParamHandler
   {
   public:
 

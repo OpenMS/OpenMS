@@ -73,7 +73,7 @@ namespace OpenMS
 	///
 	static PeakSpectrumCompareFunctor* create() { return new PeakAlignment(); }
 
-	/// get the identifier for this FactoryProduct
+	/// get the identifier for this DefaultParamHandler
 	static const String getProductName()
 	{
 		return "PeakAlignment";

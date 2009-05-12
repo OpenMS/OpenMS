@@ -29,7 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 
@@ -45,7 +45,7 @@ namespace OpenMS
 
 		@ingroup SpectraClustering
 	*/
-	class OPENMS_DLLAPI ClusterFunctor : public FactoryProduct
+	class OPENMS_DLLAPI ClusterFunctor : public DefaultParamHandler
 	{
 
 			public:
@@ -94,7 +94,7 @@ namespace OpenMS
 		static void registerChildren();
 
 
-		/// get the identifier for this FactoryProduct
+		/// get the identifier for this DefaultParamHandler
 		static const String getProductName()
 		{
 			return "ClusterFunctor";

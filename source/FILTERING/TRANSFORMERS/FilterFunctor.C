@@ -39,12 +39,12 @@
 namespace OpenMS
 {
   FilterFunctor::FilterFunctor()
-    : FactoryProduct("FilterFunctor")
+    : DefaultParamHandler("FilterFunctor")
   {	
   }
   
   FilterFunctor::FilterFunctor(const FilterFunctor& source)
-    : FactoryProduct(source)
+    : DefaultParamHandler(source)
   {
   }
   
@@ -52,7 +52,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }

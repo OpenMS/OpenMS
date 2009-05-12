@@ -6,7 +6,6 @@ set(concept_executables_list
 	Exception_Base_test
 	FactoryBase_test
 	Factory_test
-	FactoryProduct_test
 	SingletonRegistry_test
 	VersionInfo_test
 	FuzzyStringComparator_test

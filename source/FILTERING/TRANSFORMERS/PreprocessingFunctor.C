@@ -40,12 +40,12 @@
 namespace OpenMS
 {
   PreprocessingFunctor::PreprocessingFunctor()
-    : FactoryProduct("PreprocessingFunctor")
+    : DefaultParamHandler("PreprocessingFunctor")
   {
   }
 
   PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
-    : FactoryProduct(source)
+    : DefaultParamHandler(source)
   {
 		
   }
@@ -71,7 +71,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-   		FactoryProduct::operator=(source);
+   		DefaultParamHandler::operator=(source);
 		}
     return *this;
   }

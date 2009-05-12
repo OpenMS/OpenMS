@@ -30,7 +30,6 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
@@ -49,7 +48,7 @@ using namespace std;
 START_SECTION(static FactoryProduct* create(const String& name))
 	FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
 	TICFilter reducer;
-	TEST_EQUAL(*p,reducer);
+	TEST_EQUAL(*p==reducer,true);
 END_SECTION
 
 START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )

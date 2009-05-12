@@ -72,7 +72,7 @@ namespace OpenMS
 
   public:
     
-		/// return FactoryProduct according to unique identifier @p name  
+		/// return DefaultParamHandler according to unique identifier @p name  
     static FactoryBase* getFactory(const String& name)
     {
     	MapIterator it = instance_()->inventory_.find(name);

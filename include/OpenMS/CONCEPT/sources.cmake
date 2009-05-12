@@ -8,7 +8,6 @@ Constants.h
 Exception.h
 Factory.h
 FactoryBase.h
-FactoryProduct.h
 FuzzyStringComparator.h
 Macros.h
 ProgressLogger.h

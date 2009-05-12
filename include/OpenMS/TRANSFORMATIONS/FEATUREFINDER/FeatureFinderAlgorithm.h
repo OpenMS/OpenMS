@@ -28,7 +28,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -64,7 +64,7 @@ namespace OpenMS
 
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithm : 
-		public FactoryProduct
+		public DefaultParamHandler
 	{
 		public:
 			/// Input map type
@@ -78,7 +78,7 @@ namespace OpenMS
 
 			/// default constructor
 			FeatureFinderAlgorithm() :
-				FactoryProduct("FeatureFinderAlgorithm"),
+				DefaultParamHandler("FeatureFinderAlgorithm"),
 				map_(0),
 				features_(0),
 				ff_(0)

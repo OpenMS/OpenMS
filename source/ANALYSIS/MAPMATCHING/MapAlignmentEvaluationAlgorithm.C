@@ -56,7 +56,7 @@ namespace OpenMS
 }
 
 	MapAlignmentEvaluationAlgorithm::MapAlignmentEvaluationAlgorithm()
-		: FactoryProduct("MapAlignmentEvaluationAlgorithm")
+		: DefaultParamHandler("MapAlignmentEvaluationAlgorithm")
 	{
 	}
 

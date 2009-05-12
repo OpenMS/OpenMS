@@ -6,7 +6,6 @@ set(sources_list
 ClassTest.C
 Constants.C
 Exception.C
-FactoryProduct.C
 FuzzyStringComparator.C
 ProgressLogger.C
 SingletonRegistry.C

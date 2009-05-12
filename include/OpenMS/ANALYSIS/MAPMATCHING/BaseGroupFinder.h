@@ -30,7 +30,7 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <utility>
 #include <fstream>
@@ -50,7 +50,7 @@ namespace OpenMS
 		input maps. The map indices of the result consensus features are are the indices in the input map vector.
   */
   class OPENMS_DLLAPI BaseGroupFinder
-  	: public FactoryProduct,
+  	: public DefaultParamHandler,
 			public ProgressLogger
   {
 	  public:

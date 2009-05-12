@@ -152,7 +152,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	virtual bool isAtEnd ();
 
 	/**
-	@brief needed by FactoryProduct
+	@brief needed by DefaultParamHandler
 	@return const string name of class
 	*/
 	static const std::string getProductName()
@@ -161,7 +161,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	}
 
 	/**
-	@brief needed by FactoryProduct
+	@brief needed by DefaultParamHandler
 	@return poiter to new object
 	*/
 	static PepIterator * create()

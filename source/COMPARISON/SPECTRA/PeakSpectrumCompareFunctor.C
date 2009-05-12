@@ -44,12 +44,12 @@ using namespace std;
 namespace OpenMS
 {
   PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor()
-		: FactoryProduct(PeakSpectrumCompareFunctor::getProductName())
+		: DefaultParamHandler(PeakSpectrumCompareFunctor::getProductName())
   {
   }
   
   PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source)
-		:	FactoryProduct(source)
+		:	DefaultParamHandler(source)
   {
   }
  
@@ -61,7 +61,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator=(source);
+    	DefaultParamHandler::operator=(source);
 		}
     return *this;
   }

@@ -29,7 +29,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -43,12 +43,12 @@ namespace OpenMS
 	@brief Abstract base class for all 1D-dimensional model fitter.
 
 	Every derived class has to implement the static functions
-	"T* create()" and "const String getProductName()" (see FactoryProduct for details)
+	"T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
 		  
 	@ingroup FeatureFinder
 	*/
 	class OPENMS_DLLAPI Fitter1D
-    : public FactoryProduct,
+    : public DefaultParamHandler,
       public FeatureFinderDefs
 	{
 	 public:

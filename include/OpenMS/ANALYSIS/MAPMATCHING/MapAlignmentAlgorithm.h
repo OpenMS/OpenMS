@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -48,7 +48,7 @@ namespace OpenMS
 		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Clemens)
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithm
-		: public FactoryProduct,
+		: public DefaultParamHandler,
 			public ProgressLogger
 	{
 	 public:

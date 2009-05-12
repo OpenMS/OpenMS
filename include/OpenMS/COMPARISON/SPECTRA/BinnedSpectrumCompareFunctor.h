@@ -28,7 +28,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 
@@ -48,7 +48,7 @@ namespace OpenMS
 		
 		@ingroup SpectraComparison
   */
-  class OPENMS_DLLAPI BinnedSpectrumCompareFunctor : public FactoryProduct
+  class OPENMS_DLLAPI BinnedSpectrumCompareFunctor : public DefaultParamHandler
   {
 	  
   private:
@@ -90,7 +90,7 @@ namespace OpenMS
 	/// registers all derived products 
 	static void registerChildren();
 
-	/// get the identifier for a FactoryProduct
+	/// get the identifier for a DefaultParamHandler
 	static const String getProductName()
 	{
 		return "BinnedSpectrumCompareFunctor";

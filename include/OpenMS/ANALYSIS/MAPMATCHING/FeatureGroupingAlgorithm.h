@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
 #define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -41,7 +41,7 @@ namespace OpenMS
 		These algorithms group corresponding features in one map or across maps.
 	*/
 	class OPENMS_DLLAPI FeatureGroupingAlgorithm
-	 : public FactoryProduct
+	 : public DefaultParamHandler
 	{
 		public:
 			/// Default constructor

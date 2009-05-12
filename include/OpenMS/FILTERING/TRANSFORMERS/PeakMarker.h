@@ -30,7 +30,7 @@
 
 #include <map>
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -39,7 +39,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI PeakMarker
-    : public FactoryProduct
+    : public DefaultParamHandler
   {
   public:
 

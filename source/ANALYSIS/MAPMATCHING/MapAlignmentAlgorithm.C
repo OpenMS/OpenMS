@@ -43,7 +43,7 @@ namespace OpenMS
 	}
 
 	MapAlignmentAlgorithm::MapAlignmentAlgorithm()
-		: FactoryProduct("MapAlignmentAlgorithm"),
+		: DefaultParamHandler("MapAlignmentAlgorithm"),
 			ProgressLogger()
 	{
 	}

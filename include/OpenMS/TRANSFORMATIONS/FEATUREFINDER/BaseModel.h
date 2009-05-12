@@ -28,7 +28,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
 namespace OpenMS
@@ -38,11 +38,11 @@ namespace OpenMS
 	@brief Abstract base class for all D-dimensional models.
 
 	Every derived class has to implement the static functions
-	"T* create()" and "const String getProductName()" (see FactoryProduct for details)
+	"T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
   */
   template <UInt D>
 	class BaseModel
-    : public FactoryProduct
+    : public DefaultParamHandler
 	{
 
 	 public:
@@ -56,14 +56,14 @@ namespace OpenMS
 
 		/// Default constructor.
 		BaseModel()
-			: FactoryProduct("BaseModel")
+			: DefaultParamHandler("BaseModel")
 		{
 			defaults_.setValue("cutoff",0.0,"Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
 		}
 
 		/// copy constructor
 		BaseModel(const BaseModel& source)
-			: FactoryProduct(source),
+			: DefaultParamHandler(source),
 				cut_off_(source.cut_off_)
 		{
 		}
@@ -78,7 +78,7 @@ namespace OpenMS
 		{
 			if (&source == this) return *this;
 
-			FactoryProduct::operator = (source);
+			DefaultParamHandler::operator = (source);
 			cut_off_ = source.cut_off_;
 
 			return *this;
