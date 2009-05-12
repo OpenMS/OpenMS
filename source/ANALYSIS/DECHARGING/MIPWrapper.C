@@ -37,6 +37,8 @@
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
 #	pragma warning( disable : 4267 )
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 // useful docu: https://projects.coin-or.org/Cbc
 // useful example: https://projects.coin-or.org/Cbc/browser/trunk/Cbc/examples/sample5.cpp
@@ -60,6 +62,8 @@
 #include "coin/CoinTime.hpp"
 #ifdef _MSC_VER
 #	pragma warning( pop )  // restore old warning state
+#else
+# pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
 
 
