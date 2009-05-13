@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_ID_PILISCROSSVALIDATION_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <iostream>
 #include <vector>
