@@ -119,7 +119,7 @@
 #include<OpenMS/SIMULATION/PTMSimulation.h>
 #include<OpenMS/SIMULATION/IonizationSimulation.h>
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
-#include<OpenMS/SIMULATION/RawSignalSimulation.h>
+#include<OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include<OpenMS/SIMULATION/MSSim.h>
 
 using namespace std;
