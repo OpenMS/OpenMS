@@ -36,6 +36,7 @@
 #include <QtNetwork/QHostInfo>
 
 #include <iostream>
+#include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE

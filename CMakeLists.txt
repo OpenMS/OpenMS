@@ -471,6 +471,7 @@ CHECK_INCLUDE_FILE_CXX("time.h" OPENMS_HAS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
+CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
 
 include(CheckFunctionExists)
 ## in MinGW we have the signal.h header, but no kill() as in Linux, so we need to check for the kill() function

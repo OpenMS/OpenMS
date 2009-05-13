@@ -88,6 +88,7 @@
 
 #cmakedefine OPENMS_HAS_UNISTD_H
 #cmakedefine OPENMS_HAS_PROCESS_H
+#cmakedefine OPENMS_HAS_STDINT_H
 
 #cmakedefine OPENMS_HAS_TIME_H
 #cmakedefine OPENMS_HAS_SYS_TYPES_H

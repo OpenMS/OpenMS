@@ -1,7 +1,7 @@
 #ifndef NNLS_H
 #define NNLS_H
 
-#include <cstdio>
+//#include <cstdio>
 #include <cmath>
 #define nnls_max(a,b) ((a) >= (b) ? (a) : (b))
 #define nnls_abs(x) ((x) >= 0 ? (x) : -(x))
