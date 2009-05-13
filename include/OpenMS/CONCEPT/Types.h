@@ -38,10 +38,6 @@
 #include <iostream>
 #include <iomanip>
 
-#ifdef OPENMS_HAS_BASETSD_H
-#include <basetsd.h>
-#endif
-
 // If possible use the ISO C99-compliant header stdint.h
 // to define the portable integer types.
 #ifdef OPENMS_HAS_STDINT_H

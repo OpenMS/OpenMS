@@ -29,7 +29,7 @@
 #define OPENMS_SIMULATION_RAWTANDEMMSSIGNALSIMULATION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
 // GSL includes (random number generation)
@@ -52,6 +52,10 @@ namespace OpenMS {
     : public DefaultParamHandler
   {
 
+		typedef ItraqConstants::ChannelInfo ChannelInfo;
+		typedef ItraqConstants::ChannelMapType ChannelMapType;
+		typedef ItraqConstants::IsotopeMatrices IsotopeMatrices;
+
   public:
     /** @name Constructors and Destructors
       */
@@ -71,17 +75,32 @@ namespace OpenMS {
     /**
 
      */
-    void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
+    void generateRawTandemSignals(FeatureMapSim &, MSSimExperiment &);
 
   private:
     /// Default constructor
     RawTandemMSSignalSimulation();
+
+		/// init object (members, defaults etc)
+		void init_();
 
     /// Synchronize members with param class
 		void updateMembers_();
 
     /// Set default parameters
     void setDefaultParams_();
+
+		// Members:
+
+		/// set to either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
+		Int itraq_type_;
+		
+		/// map the channel-name (eg 114) onto its description and the centroid mass
+		/// the channel-name is also the id-string in the mapList section of the ConsensusMap
+		ChannelMapType channel_map_;	
+
+		/// Matrixes with isotope correction values (one for each plex-type)
+		IsotopeMatrices isotope_corrections_;
 
   protected:
 		/// Random number generator

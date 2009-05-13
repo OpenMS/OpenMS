@@ -38,8 +38,7 @@ namespace OpenMS
 	ItraqChannelExtractor::ItraqChannelExtractor()
 		:DefaultParamHandler("ItraqChannelExtractor"),
 		 itraq_type_(ItraqConstants::FOURPLEX),
-		 channel_map_(),
-		 channel_names_()
+		 channel_map_()
 	{
 		init_();
 		setDefaultParams_();
@@ -49,8 +48,7 @@ namespace OpenMS
 	ItraqChannelExtractor::ItraqChannelExtractor(Int itraq_type)
 		:DefaultParamHandler("ItraqChannelExtractor"),
 		 itraq_type_(itraq_type),
-		 channel_map_(),
-		 channel_names_()
+		 channel_map_()
 	{
 		init_();
 		setDefaultParams_();
@@ -60,8 +58,7 @@ namespace OpenMS
 	ItraqChannelExtractor::ItraqChannelExtractor(Int itraq_type, const Param& param)
 		:DefaultParamHandler("ItraqChannelExtractor"),
 		 itraq_type_(itraq_type),
-		 channel_map_(),
-		 channel_names_()
+		 channel_map_()
 	{
 		init_();
 		setDefaultParams_();
@@ -74,8 +71,7 @@ namespace OpenMS
 	: DefaultParamHandler(cp),
 		ItraqConstants(cp),
 		itraq_type_(cp.itraq_type_), 
-		channel_map_(cp.channel_map_),
-		channel_names_(cp.channel_names_)
+		channel_map_(cp.channel_map_)
 	{
 
 	}
@@ -89,7 +85,6 @@ namespace OpenMS
 		ItraqConstants::operator = (rhs);
 		itraq_type_ = rhs.itraq_type_; 
 		channel_map_ = rhs.channel_map_;
-		channel_names_ = rhs.channel_names_;
 
 		return *this;
 	}
@@ -190,7 +185,7 @@ namespace OpenMS
 
 		// create consensusElements
 
-		Peak2D::CoordinateType allowed_deviation = (Peak2D::CoordinateType) param_.getValue("reporter_mass_deviation");
+		Peak2D::CoordinateType allowed_deviation = (Peak2D::CoordinateType) param_.getValue("reporter_mass_shift");
 		// now we have picked data
 		// --> assign peaks to channels
 		UInt element_index = 0;
@@ -264,9 +259,9 @@ namespace OpenMS
 
 	void ItraqChannelExtractor::setDefaultParams_()
 	{
-		defaults_.setValue("reporter_mass_deviation", 0.1, "Allowed deviation in Da from the expected postion (of e.g. 114.1, 115.1)"); 
-		defaults_.setMinFloat ("reporter_mass_deviation", 0.00000001);
-		defaults_.setMaxFloat ("reporter_mass_deviation", 0.5);
+		defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected postion (of e.g. 114.1, 115.1)"); 
+		defaults_.setMinFloat ("reporter_mass_shift", 0.00000001);
+		defaults_.setMaxFloat ("reporter_mass_shift", 0.5);
 
 		defaults_.setValue("intensity_method", "sum", "which method to use for collecting peaks for each channel", StringList::create("advanced")); 
 		defaults_.setValidStrings("intensity_method", StringList::create("sum, peak_picker"));
@@ -292,63 +287,15 @@ namespace OpenMS
 	void ItraqChannelExtractor::updateMembers_()
 	{
 
-		if (channel_map_.empty()) return;
-
 		// extract channel names
 		StringList channels = StringList(param_.getValue("channel_active"));
-
-		// split the channels key:name pairs apart
-		for (StringList::const_iterator it=channels.begin();it!=channels.end();++it)
-		{
-			StringList result;
-			it->split(':',result);
-			if (result.size()!=2)
-			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
-			}
-			result[0] = result[0].trim();
-			result[1] = result[1].trim();
-			if (result[0]==String::EMPTY || result[1]==String::EMPTY)
-			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
-			}
-			Int channel = result[0].toInt();
-			if (channel_map_.find(channel) == channel_map_.end())
-			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
-			}
-			// update name (description) of channel
-			channel_map_[channel].description = result[1];
-			channel_map_[channel].active = true;
-
-			#ifdef ITRAQ_DEBUG
-			std::cout << "Channel " << channel << " has description " << channel_map_[channel].description << " and center " << channel_map_[channel].center << std::endl;
-			#endif
-		}
+		ItraqConstants::updateChannelMap(channels, channel_map_);
 	}
 
 	/// initialize
 	void ItraqChannelExtractor::init_() 
 	{
-		channel_names_.resize(2);
-		channel_names_[0].setMatrix<4,1>(CHANNELS_FOURPLEX);
-		channel_names_[1].setMatrix<8,1>(CHANNELS_EIGHTPLEX);
-
-		channel_map_.clear();
-		for (Size i=0; i < channel_names_[itraq_type_].rows(); ++i)
-		{
-			ChannelInfo info;
-			info.description = "";
-			info.name = channel_names_[itraq_type_].getValue(i,0);
-			info.id = (Int)i;
-			info.center = double(info.name) + 0.1;
-			info.active = false;
-			channel_map_[info.name] = info;
-		}
-
-		#ifdef ITRAQ_DEBUG
-		std::cout << "INIT: channel_map_ has " << channel_map_.size() << " entries!" << std::endl;
-		#endif
+		ItraqConstants::initChannelMap(itraq_type_, channel_map_);
 	}
 
 } // ! namespace

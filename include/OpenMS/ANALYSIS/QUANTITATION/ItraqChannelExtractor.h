@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_QUANTITATION_CHANNELEXTRACTOR_H
 
 #include <vector>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
@@ -97,9 +96,6 @@ namespace OpenMS
 		/// map the channel-name (eg 114) onto its description and the centroid mass
 		/// the channel-name is also the id-string in the mapList section of the ConsensusMap
 		ChannelMapType channel_map_;	
-		
-		/// valid names for 4 and 8plex, ie 114,115,116,117 for 4plex
-		std::vector< Matrix<Int> > channel_names_;
 
 	}; // !class
 

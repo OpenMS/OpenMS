@@ -31,7 +31,6 @@
 #include <vector>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -56,20 +55,15 @@ namespace OpenMS
 
 		typedef ItraqConstants::ChannelInfo ChannelInfo;
 		typedef ItraqConstants::ChannelMapType ChannelMapType;
-
-		
-		/// default isotope correction factors
-		static const double ISOTOPECORRECTIONS_FOURPLEX[4][4];
-		static const double ISOTOPECORRECTIONS_EIGHTPLEX[8][4];
-		static const Int CHANNEL_COUNT[];
+		typedef ItraqConstants::IsotopeMatrices IsotopeMatrices;
 		
 		/// Constructor (assuming 4-plex experiment)
 		ItraqQuantifier();
 		
-		/// Constructor with iTRAQ-type (either ItraqQuantifier::FOURPLEX or ItraqQuantifier::EIGHTPLEX)
+		/// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX)
 		ItraqQuantifier(Int itraq_type);
 
-		/// Constructor with iTRAQ-type (either ItraqQuantifier::FOURPLEX or ItraqQuantifier::EIGHTPLEX) and Param
+		/// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX) and Param
 		ItraqQuantifier(Int itraq_type, const Param& param);
 
 		/// copy constructor
@@ -121,7 +115,7 @@ namespace OpenMS
 		
 		void reconstruct_channel_info_(const ConsensusMap& consensus_map);
 			
-		/// either ItraqQuantifier::FOURPLEX or ItraqQuantifier::EIGHTPLEX
+		/// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
 		Int itraq_type_;
 		
 		/// map the channel-name (eg 114) onto its channel_info
@@ -129,7 +123,7 @@ namespace OpenMS
 		ChannelMapType channel_map_;	
 
 		/// Matrixes with isotope correction values (one for each plex-type)
-		std::vector< Matrix<double> > isotope_corrections_;
+		IsotopeMatrices isotope_corrections_;
 		
 	}; // !class
 

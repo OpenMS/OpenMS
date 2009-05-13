@@ -512,22 +512,8 @@ namespace OpenMS
 		defaults_.setValue("do_normalization", "false", "normalize channels?", StringList::create("advanced")); 
 		defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
 
-		StringList isotopes;
-		std::vector< Matrix<Int> > channel_names(2);
-		channel_names[0].setMatrix<4,1>(CHANNELS_FOURPLEX);
-		channel_names[1].setMatrix<8,1>(CHANNELS_EIGHTPLEX);
-		for (Int i=0;i<ItraqQuantifier::CHANNEL_COUNT[itraq_type_];++i)
-		{
-			String line = String(channel_names[itraq_type_].getValue(i,0)) + ":";
-			for (Int j=0;j<3;++j)
-			{
-				line += String(isotope_corrections_[itraq_type_].getValue(i,j)) + "/";
-			}
-			line += String(isotope_corrections_[itraq_type_].getValue(i,3));
-			isotopes.push_back(line);
-		} 
+		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(itraq_type_, isotope_corrections_);
 		defaults_.setValue("isotope_correction_values", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
-		
 
 		if (itraq_type_ == ItraqConstants::FOURPLEX)
 		{
@@ -542,70 +528,26 @@ namespace OpenMS
 			defaults_.setMaxInt("channel_reference",121);			
 		}			
 
-		
-
 		defaultsToParam_();
 	}
 
 
 	void ItraqQuantifier::updateMembers_()
 	{
-
 		// update isotope_corrections_ Matrix with custom values
 		StringList channels = param_.getValue("isotope_correction_values");
 		if (channels.size()>0)
 		{
-			// split the channels key:name pairs apart
-			for (StringList::const_iterator it=channels.begin();it!=channels.end();++it)
-			{
-				StringList result;
-				it->split(':',result);
-				if (result.size()!=2)
-				{
-					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
-				}
-				result[0] = result[0].trim(); // hold channel name
-				result[1] = result[1].trim(); // holds 4 values
-
-				Int channel = result[0].toInt();
-				Int line = (itraq_type_ == FOURPLEX ? channel-114 : channel-113);
-				if ((itraq_type_ == FOURPLEX && (line<0 || line>3))
-						|| 
-						((itraq_type_ == EIGHTPLEX && (line<0 || line>8)) || channel==120))
-				{
-					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ") + String(itraq_type_==FOURPLEX ? "4plex": "8plex") + String(": '") + result[0] + String("'"));
-				}
-				// if set to 121 we still want to change line 7 of the matrix
-				if (line==8) line=7;
-
-				StringList corrections;
-				result[1].split('/',corrections);
-				if (corrections.size()!=4)
-				{
-					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected four correction values separated by '&', got this: '" + result[1] + "'");
-				}
-
-				// overwrite line in Matrix with custom values
-				isotope_corrections_[itraq_type_].setValue(line,0, corrections[0].toDouble());
-				isotope_corrections_[itraq_type_].setValue(line,1, corrections[1].toDouble());
-				isotope_corrections_[itraq_type_].setValue(line,2, corrections[2].toDouble());
-				isotope_corrections_[itraq_type_].setValue(line,3, corrections[3].toDouble());
-
-				#ifdef ITRAQ_DEBUG
-				std::cout << "Channel " << channel << " has values " << corrections << std::endl;
-				#endif
-
-
-			}
+			ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type_, channels, isotope_corrections_);
 		}
-	} // ! update_members_
+	}
 
 	/// initialize
 	void ItraqQuantifier::initIsotopeCorrections_() 
 	{
 		isotope_corrections_.resize(2);
-		isotope_corrections_[0].setMatrix<4,4>(ISOTOPECORRECTIONS_FOURPLEX);
-		isotope_corrections_[1].setMatrix<8,4>(ISOTOPECORRECTIONS_EIGHTPLEX);
+		isotope_corrections_[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+		isotope_corrections_[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
 	}
 
 	/// extract channel information (active channels, names, etc) from ConsensusMap
@@ -637,29 +579,6 @@ namespace OpenMS
 			}
 		}
 	}
-		
-	// currently from http://www.matrixscience.com/help/quant_config_help.html
-	const double ItraqQuantifier::ISOTOPECORRECTIONS_FOURPLEX[4][4] = {
-		{0.0, 1.0, 5.9, 0.2},		//114
-		{0.0, 2.0, 5.6, 0.1},
-		{0.0, 3.0, 4.5, 0.1},
-		{0.1, 4.0, 3.5, 0.0}		//117
-	};
-	
-	//taken from Applied Biosystems Website
-	// http://faqs.appliedbiosystems.com/cgi-bin/appliedbio.cfg/php/enduser/std_adp.php?p_faqid=3671
-	const double ItraqQuantifier::ISOTOPECORRECTIONS_EIGHTPLEX[8][4] = {
-		{0.00, 2.50, 6.89, 0.22},		//113
-		{0.00, 0.94, 5.90, 0.16},
-		{0.00, 1.88, 4.90, 0.10},
-		{0.00, 2.82, 3.90, 0.07},
-		{0.06, 3.77, 2.88, 0.00},
-		{0.09, 4.71, 1.88, 0.00},
-		{0.14, 5.66, 0.87, 0.00},
-		{0.27, 7.44, 0.18, 0.00}		//121
-	};
  
-	// number of channels for iTRAQ types. (make sure it corresponds to enum ITRAQ_TYPES)
-	const Int ItraqQuantifier::CHANNEL_COUNT[2] = {4, 8};
 }
  
