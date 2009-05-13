@@ -226,6 +226,11 @@ namespace OpenMS
 						term.xref_type = CVTerm::XSD_DATE; 
 						continue; 
 					}
+					if (line_wo_spaces.hasSubstring("value-type:xsd:anyURI"))
+					{
+						term.xref_type = CVTerm::XSD_ANYURI;
+						continue;
+					}
 					cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << endl;
 				}
 				else if (line!="")

@@ -64,6 +64,7 @@ namespace OpenMS
 					XSD_NON_POSITIVE_INTEGER, // xsd:nonPositiveInteger Any integer < 0 
 					XSD_BOOLEAN, 						 	// xsd:boolean True or false 
 					XSD_DATE,								 	// xsd:date An XML-Schema date
+					XSD_ANYURI,								// xsd:anyURI uniform resource identifier
 					NONE
 				};
 
@@ -80,6 +81,7 @@ namespace OpenMS
 						case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
 						case XSD_BOOLEAN: return "xsd:boolean";
 						case XSD_DATE: return "xsd:date";
+						case XSD_ANYURI: return "xsd:anyURI";
 						default: return "none";
 					}
 					return "";
