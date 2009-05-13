@@ -61,7 +61,7 @@ ptr = new SingleLinkage();
 START_SECTION((SingleLinkage(const SingleLinkage &source)))
 {
 	SingleLinkage copy(*ptr);
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -69,7 +69,7 @@ START_SECTION((SingleLinkage& operator=(const SingleLinkage &source)))
 {
 	SingleLinkage copy;
 	copy = *ptr;
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -136,8 +136,7 @@ END_SECTION
 START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = SingleLinkage::create();
-	SingleLinkage sl;
-	TEST_EQUAL(cf->getName(), sl.getName())
+	TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cf) , 0)
 }
 END_SECTION
 

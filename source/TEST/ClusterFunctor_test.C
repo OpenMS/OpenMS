@@ -27,9 +27,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Factory.h>
-
-///////////////////////////
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -52,8 +53,6 @@ START_SECTION(~ClusterFunctor())
 }
 END_SECTION
 
-//interface class is not testable
-
 START_SECTION((ClusterFunctor(const ClusterFunctor &source)))
 {
   NOT_TESTABLE
@@ -75,17 +74,11 @@ END_SECTION
 START_SECTION((static void registerChildren()))
 {
   ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
-	TEST_EQUAL( cfp->getName() , "AverageLinkage")
+	TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cfp) , 0)
   cfp = Factory<ClusterFunctor>::create("SingleLinkage");
-	TEST_EQUAL( cfp->getName() , "SingleLinkage")
+	TEST_NOT_EQUAL( dynamic_cast<SingleLinkage*>(cfp) , 0)
   cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
-	TEST_EQUAL( cfp->getName() , "CompleteLinkage")
-}
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-{
-  TEST_EQUAL(ClusterFunctor::getProductName(),"ClusterFunctor")
+	TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cfp) , 0)
 }
 END_SECTION
 

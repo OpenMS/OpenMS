@@ -61,7 +61,7 @@ START_SECTION((AverageLinkage(const AverageLinkage &source)))
 {
 	AverageLinkage al1;
 	AverageLinkage copy(al1);
-	TEST_EQUAL(copy.getName(), al1.getName());
+	TEST_EQUAL(copy.getProductName(), al1.getProductName());
 }
 END_SECTION
 
@@ -69,7 +69,7 @@ START_SECTION((AverageLinkage& operator=(const AverageLinkage &source)))
 {
 	AverageLinkage copy,al2;
 	copy = al2;
-	TEST_EQUAL(copy.getName(), al2.getName());
+	TEST_EQUAL(copy.getProductName(), al2.getProductName());
 }
 END_SECTION
 
@@ -142,8 +142,7 @@ END_SECTION
 START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = AverageLinkage::create();
-	AverageLinkage al;
-	TEST_EQUAL(cf->getName(), al.getName())
+	TEST_NOT_EQUAL( dynamic_cast<AverageLinkage*>(cf) , 0)
 }
 END_SECTION
 

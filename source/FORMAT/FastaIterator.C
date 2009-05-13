@@ -36,7 +36,6 @@ typedef std::pair <String, String> FASTAEntry;
 
 FastaIterator::FastaIterator() :  PepIterator()
 {
-	setName(FastaIterator::getProductName());
 	actual_seq_ = "";
 	is_at_end_ = false;
 	const String ff = "";

@@ -28,7 +28,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTEVALUATIONALGORITHM_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
@@ -40,7 +39,6 @@ namespace OpenMS
 		These algorithms evaluates alignment results against a ground truth.
 	*/
 	class OPENMS_DLLAPI MapAlignmentEvaluationAlgorithm
-	 : public DefaultParamHandler
 	{
 
 		protected:

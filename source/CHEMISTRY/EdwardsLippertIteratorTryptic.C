@@ -32,7 +32,6 @@ namespace OpenMS
 	EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic()
 		: EdwardsLippertIterator()
 	{
-		setName(EdwardsLippertIteratorTryptic::getProductName());
 	}
 
 	EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs)

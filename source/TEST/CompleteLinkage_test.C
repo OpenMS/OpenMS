@@ -61,7 +61,7 @@ ptr = new CompleteLinkage();
 START_SECTION((CompleteLinkage(const CompleteLinkage &source)))
 {
   CompleteLinkage copy(*ptr);
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -69,7 +69,7 @@ START_SECTION((CompleteLinkage& operator=(const CompleteLinkage &source)))
 {
 	CompleteLinkage copy;
 	copy = *ptr;
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getProductName(), ptr->getProductName());
 }
 END_SECTION
 
@@ -142,8 +142,7 @@ END_SECTION
 START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = CompleteLinkage::create();
-	CompleteLinkage cl;
-	TEST_EQUAL(cf->getName(), cl.getName())
+	TEST_NOT_EQUAL( dynamic_cast<CompleteLinkage*>(cf) , 0)
 }
 END_SECTION
 

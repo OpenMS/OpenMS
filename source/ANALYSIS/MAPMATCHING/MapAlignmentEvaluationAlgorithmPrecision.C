@@ -36,7 +36,6 @@ namespace OpenMS
 	MapAlignmentEvaluationAlgorithmPrecision::MapAlignmentEvaluationAlgorithmPrecision()
 		: MapAlignmentEvaluationAlgorithm()
 	{
-		setName("MapAlignmentEvaluationAlgorithmPrecision");
 	}
 
 	MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision()

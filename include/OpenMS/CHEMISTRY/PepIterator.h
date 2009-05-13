@@ -28,121 +28,115 @@
 #ifndef OPENMS_CHEMISTRY_PEPITERATOR_H
 #define OPENMS_CHEMISTRY_PEPITERATOR_H
 
-#include <vector>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
  
-namespace OpenMS{
+namespace OpenMS
+{
  
-/**
-@brief Abstract base class for different peptide iterators
-
-@note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see DefaultParamHandler for details)
-*/
-class OPENMS_DLLAPI PepIterator : public DefaultParamHandler
+	/**
+	@brief Abstract base class for different peptide iterators
+	
+	@note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see Factory for details)
+	*/
+	class OPENMS_DLLAPI PepIterator
 	{
  	
-	public:
+		public:
+				
+			typedef std::pair <String, String> FASTAEntry;
+			
+			/**
+			@brief constructor
+			*/
+			PepIterator();
+			
+			/**
+			@brief destructor
+			*/
+			virtual ~PepIterator();
+			
+			/**
+			@brief copy constructor
+			*/
+			PepIterator(const PepIterator & source);
 		
-	typedef std::pair <String, String> FASTAEntry;
-	
-	/**
-	@brief constructor
-	*/
-	PepIterator();
-	
-	/**
-	@brief destructor
-	*/
-	virtual ~PepIterator();
-	
-	/**
-	@brief copy constructor
-	*/
-	PepIterator(const PepIterator & source);
-
-	/**
-	@brief * operator for accessing the value of the iterator
-	@return FASTAEntry representing a peptide
-	@throw InvalidIterator if iterator has not been initialized
-	*/
-	virtual FASTAEntry operator*() = 0;
-	
-	/**
-	@brief opperator ++ for postincrement
-	@return Reference to PepIterator
-	@throw InvalidIterator if iterator has not been initialized
-	*/		
-	virtual PepIterator & operator++() = 0;
-	
-	/**
-	@brief opperator ++ for preincrement
-	@return pointer to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
-	*/
-	virtual PepIterator * operator++(int) = 0;
-
-	/**
-	@brief setter for FASTA file
-	@param f const String reference representing file location
-	@throw Exception::FileNotFound
-	@throw Exception::ParseError
-	*/
-	virtual void setFastaFile (const String & f) = 0;
-	
-	/**
-	@brief getter for FASTA file
-	@return String with file location
-	*/
-	virtual String getFastaFile() = 0;
-	
-	/**
-	@brief setter for spectrum
-	@param s ms spectrum given as vector of DoubleReals
-	@throw Exception::InvalidValue if spectrum is not sorted acendingly
-	*/
-	virtual void setSpectrum (const std::vector<DoubleReal> & s) = 0;
- 
-	/**
-	@brief getter for spectrum
-	@return the used spectrum
-	*/
-	virtual const std::vector<DoubleReal> & getSpectrum ()=0;
-
-	/**
-	@brief setter for tolerance
-	@param t tolerance value
-	@throw Exception::InvalidValue if tolerance is negative
-	*/
-	virtual void setTolerance (DoubleReal t) = 0;
-	
-	/**
-	@brief getter for tolerance
-	@return tolerance
-	*/
-	virtual DoubleReal getTolerance()=0;
-	
-	/**
-	@brief initializing iterator
-	*/
-	virtual bool begin()=0;
-	
-	/**
-	@brief idicator where iterator is at end
-	*/
-	virtual bool isAtEnd()=0;
-	
-	/**
-	@brief all children has to be registered here
-	@see DefaultParamHandler
-	*/
-	static void registerChildren();
-
-	static String getProductName()
-	{
-		return "PepIterator";
-	}
-
+			/**
+			@brief * operator for accessing the value of the iterator
+			@return FASTAEntry representing a peptide
+			@throw InvalidIterator if iterator has not been initialized
+			*/
+			virtual FASTAEntry operator*() = 0;
+			
+			/**
+			@brief opperator ++ for postincrement
+			@return Reference to PepIterator
+			@throw InvalidIterator if iterator has not been initialized
+			*/		
+			virtual PepIterator & operator++() = 0;
+			
+			/**
+			@brief opperator ++ for preincrement
+			@return pointer to PepIterator
+			@throw Exception::InvalidIterator if iterator has not been initialized
+			*/
+			virtual PepIterator * operator++(int) = 0;
+		
+			/**
+			@brief setter for FASTA file
+			@param f const String reference representing file location
+			@throw Exception::FileNotFound
+			@throw Exception::ParseError
+			*/
+			virtual void setFastaFile (const String & f) = 0;
+			
+			/**
+			@brief getter for FASTA file
+			@return String with file location
+			*/
+			virtual String getFastaFile() = 0;
+			
+			/**
+			@brief setter for spectrum
+			@param s ms spectrum given as vector of DoubleReals
+			@throw Exception::InvalidValue if spectrum is not sorted acendingly
+			*/
+			virtual void setSpectrum (const std::vector<DoubleReal> & s) = 0;
+		 
+			/**
+			@brief getter for spectrum
+			@return the used spectrum
+			*/
+			virtual const std::vector<DoubleReal> & getSpectrum ()=0;
+		
+			/**
+			@brief setter for tolerance
+			@param t tolerance value
+			@throw Exception::InvalidValue if tolerance is negative
+			*/
+			virtual void setTolerance (DoubleReal t) = 0;
+			
+			/**
+			@brief getter for tolerance
+			@return tolerance
+			*/
+			virtual DoubleReal getTolerance()=0;
+			
+			/**
+			@brief initializing iterator
+			*/
+			virtual bool begin()=0;
+			
+			/**
+			@brief idicator where iterator is at end
+			*/
+			virtual bool isAtEnd()=0;
+			
+			/**
+				@brief all children has to be registered here
+				@see Factory
+			*/
+			static void registerChildren();
+		
 	};
 }
 #endif // OPENMS_CHEMISTRY_PEPITERATOR_H

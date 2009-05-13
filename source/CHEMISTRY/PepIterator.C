@@ -39,12 +39,10 @@ namespace OpenMS{
 	typedef std::pair <String, String> FASTAEntry;
 	
 	PepIterator::PepIterator()
-		: DefaultParamHandler(PepIterator::getProductName())
 	{
 	}
 
-	PepIterator::PepIterator(const PepIterator & source) 
-		: DefaultParamHandler(source)
+	PepIterator::PepIterator(const PepIterator& /*source*/) 
 	{
 	}
 	

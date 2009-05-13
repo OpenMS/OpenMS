@@ -33,7 +33,6 @@ namespace OpenMS
 	CompleteLinkage::CompleteLinkage()
 	  : ClusterFunctor()
 	{
-			setName(CompleteLinkage::getProductName());
 	}
 
 	CompleteLinkage::CompleteLinkage(const CompleteLinkage& source)

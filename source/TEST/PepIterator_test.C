@@ -27,10 +27,12 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Factory.h>
-
-///////////////////////////
 #include <OpenMS/CHEMISTRY/PepIterator.h>
-///////////////////////////
+#include <OpenMS/FORMAT/FastaIterator.h>
+#include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
+#include <OpenMS/FORMAT/FastaIteratorIntern.h>
+#include <OpenMS/CHEMISTRY/EdwardsLippertIteratorTryptic.h>
+#include <OpenMS/CHEMISTRY/TrypticIterator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -127,21 +129,18 @@ END_SECTION
 START_SECTION((void registerChildren()))
 {
 	PepIterator* p1 = Factory<PepIterator>::create("EdwardsLippertIterator");
-	TEST_STRING_EQUAL(p1->getName(), "EdwardsLippertIterator")
+	TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIterator*>(p1),0)
 	p1 = Factory<PepIterator>::create("EdwardsLippertIteratorTryptic");
-	TEST_STRING_EQUAL(p1->getName(), "EdwardsLippertIteratorTryptic")
+	TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIteratorTryptic*>(p1),0)
 	p1 = Factory<PepIterator>::create("TrypticIterator");
-	TEST_STRING_EQUAL(p1->getName(), "TrypticIterator")
+	TEST_NOT_EQUAL(dynamic_cast<TrypticIterator*>(p1),0)
 	p1 = Factory<PepIterator>::create("FastaIterator");
-	TEST_STRING_EQUAL(p1->getName(), "FastaIterator")
+	TEST_NOT_EQUAL(dynamic_cast<FastaIterator*>(p1),0)
 	p1 = Factory<PepIterator>::create("FastaIteratorIntern");
-	TEST_STRING_EQUAL(p1->getName(), "FastaIteratorIntern")
+	TEST_NOT_EQUAL(dynamic_cast<FastaIteratorIntern*>(p1),0)
 }
 END_SECTION
 
-START_SECTION(String getProductName())
-	TEST_STRING_EQUAL(PepIterator::getProductName(), "PepIterator")
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

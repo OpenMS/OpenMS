@@ -59,7 +59,7 @@ class OPENMS_DLLAPI EdwardsLippertIteratorTryptic : public EdwardsLippertIterato
 		virtual bool isDigestingEnd (char aa1, char aa2);
 	
 		/**
-		@brief needed by DefaultParamHandler
+		@brief needed by Factory
 		@return const string name of class
 		*/
 		static const String getProductName()
@@ -68,7 +68,7 @@ class OPENMS_DLLAPI EdwardsLippertIteratorTryptic : public EdwardsLippertIterato
 		}
 
 		/**
-		@brief needed by DefaultParamHandler
+		@brief needed by Factory
 		@return poiter to new object
 		*/
 		static PepIterator * create()

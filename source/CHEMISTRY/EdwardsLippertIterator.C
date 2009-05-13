@@ -26,11 +26,13 @@
 // --------------------------------------------------------------------------
  
 #include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
-#include <fstream>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <cstring>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -75,7 +77,6 @@ struct FloatsWithTolLess : public binary_function<DoubleReal , DoubleReal, bool>
 	EdwardsLippertIterator::EdwardsLippertIterator ()
 		: PepIterator()
 	{
-		setName(EdwardsLippertIterator::getProductName());
 		ResidueDB* rdb = ResidueDB::getInstance();
 		
 		char aa[] = "ARNDCEQGHILKMFPSTWYV";

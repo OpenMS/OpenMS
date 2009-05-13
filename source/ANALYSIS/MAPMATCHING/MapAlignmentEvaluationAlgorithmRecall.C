@@ -36,7 +36,6 @@ namespace OpenMS
 	MapAlignmentEvaluationAlgorithmRecall::MapAlignmentEvaluationAlgorithmRecall()
 		: MapAlignmentEvaluationAlgorithm()
 	{
-		setName("MapAlignmentEvaluationAlgorithmRecall");
 	}
 
 	MapAlignmentEvaluationAlgorithmRecall::~MapAlignmentEvaluationAlgorithmRecall()

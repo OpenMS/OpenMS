@@ -33,7 +33,6 @@ namespace OpenMS
 	AverageLinkage::AverageLinkage()
 	  : ClusterFunctor()
 	{
-			setName(AverageLinkage::getProductName());
 	}
 
 	AverageLinkage::AverageLinkage(const AverageLinkage& source)

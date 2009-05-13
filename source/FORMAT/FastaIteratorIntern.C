@@ -31,14 +31,14 @@
 
 #include <vector>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
 	typedef std::pair<String,String> FASTAEntry;
 	
 	FastaIteratorIntern::FastaIteratorIntern() :
 		fasta_file_("")
 	{
-		setName(FastaIteratorIntern::getProductName());
 	}
 	
 	FastaIteratorIntern::~FastaIteratorIntern()

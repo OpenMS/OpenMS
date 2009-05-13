@@ -33,7 +33,6 @@ namespace OpenMS
 	SingleLinkage::SingleLinkage()
 	  : ClusterFunctor()
 	{
-		setName(SingleLinkage::getProductName());
 	}
 
 	SingleLinkage::SingleLinkage(const SingleLinkage& source)
