@@ -12,7 +12,13 @@
     </CvReferenceList>
 
     <CvMappingRuleList>
-    
+
+
+				<!-- run -->
+				<CvMappingRule id="run_may" cvElementPath="/mzML/run/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzML/run" cvTermsCombinationLogic="OR">
+					<CvTerm termAccession="MS:1000857" useTerm="false" termName="run attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+				</CvMappingRule> 
+
         <!-- file content -->
         <CvMappingRule id="filecontent_must" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MUST"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />

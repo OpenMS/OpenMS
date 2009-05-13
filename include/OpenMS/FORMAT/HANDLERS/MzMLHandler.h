@@ -855,9 +855,19 @@ namespace OpenMS
 					return;
 	   		}
 			}
-			
+
+			//------------------------- run ----------------------------
+			if (parent_tag=="run")
+			{
+				//MS:1000857 ! run attribute
+				if (accession=="MS:1000858") //fraction identifier
+				{
+					exp_->setFractionIdentifier(value);
+				}
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			}
 			//------------------------- binaryDataArray ----------------------------
-			if (parent_tag=="binaryDataArray")
+			else if (parent_tag=="binaryDataArray")
 			{
 				if ( in_spectrum_list_)
 				{
@@ -2134,16 +2144,17 @@ namespace OpenMS
 			}
 			else if (parent_tag=="software")
 			{
-				//Using an enum for software names is not really practical in my (Marc) opinion
-				// => we simply store the name as string
-				software_[current_id_].setName(name);
+				if (cv_.isChildOf(accession,"MS:1000531")) //software as string
+				{
+					software_[current_id_].setName(name);
+				}
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="chromatogram" || parent_tag=="target")
 			{
 				//allowed but, not needed
 			}
 			else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
-			
 		}
 
 		template <typename MapType>
@@ -3316,6 +3327,12 @@ namespace OpenMS
 				os << " defaultSourceFileRef=\"sf_ru_0\"";
 			}
 			os  << ">\n";
+			
+			//run attributes
+			if (exp.getFractionIdentifier()!="")
+			{
+				os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getFractionIdentifier() << "\" />\n";
+			}
 			
 			writeUserParam_(os, exp, 2);
 

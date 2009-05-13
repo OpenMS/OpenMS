@@ -194,6 +194,7 @@
 
   
   <run id="Exp01" defaultSourceFileRef="sf1" defaultInstrumentConfigurationRef="LCQDeca" sampleRef="sample1" startTimeStamp="2007-06-27T15:23:45.00035">
+  	<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever"/>
   	<userParam name="int" type="xsd:integer" value="5"/>
   	<userParam name="string" value="bla"/>
   	<userParam name="flag"/>

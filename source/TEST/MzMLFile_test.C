@@ -89,6 +89,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp.size(),4)
 	//run
 	TEST_EQUAL(exp.getIdentifier(),"document_accession")
+	TEST_EQUAL(exp.getFractionIdentifier(),"the_best_fraction_ever")
 	TEST_EQUAL(exp.getDateTime().get(),"2007-06-27 15:23:45")
 	//contacts
 	TEST_EQUAL(exp.getContacts().size(),2)

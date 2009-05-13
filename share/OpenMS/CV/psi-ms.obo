@@ -1,11 +1,11 @@
 format-version: 1.2
 date: 30:04:2009 11:14
-saved-by: luisa
+saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.18.2
-remark: release date: 2009-03-25
+remark: version: 2.1.0
+remark: release date: 2009-05-05
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>, Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de> 
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -5509,6 +5509,193 @@ def: "The extent of the isolation window in m/z above the isolation window targe
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
 relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000831
+name: sample preparation
+def: "Properties of the preparation steps which took place before the measurement was performed." [PSI:MS]
+is_a: MS:1000547 ! object attribute
+relationship: part_of MS:1000548 ! sample
+
+[Term]
+id: MS:1000832
+name: MALDI matrix application
+def: "Attributes to describe the technique how the sample is prepared with the matrix solution." [PSI:MS]
+relationship: part_of MS:1000831 ! Matrix-Assisted Laser Desorption Ionisation
+
+[Term]
+id: MS:1000833
+name: matrix application type
+def: "Describes the technique how the matrix is put on the sample target." [PSI:MS]
+relationship: part_of MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+
+[Term]
+id: MS:1000834
+name: matrix solution
+def: "Describes the chemical solution used as matrix." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+relationship: is_a MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+
+[Term]
+id: MS:1000835
+name: matrix solution concentration
+def: "Concentration of the chemical solution used as matrix." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+relationship: has_units UO:0000051 ! Concentration Unit
+
+[Term]
+id: MS:1000836
+name: dried dropplet
+def: "Def." [PSI:MS]
+relationship: is_a MS:1000833 ! Matrix Application Type
+
+[Term]
+id: MS:1000837
+name: printed
+def: "Def." [PSI:MS]
+relationship: is_a MS:1000833 ! Matrix Application Type
+
+[Term]
+id: MS:1000838
+name: sprayed
+def: "Def." [PSI:MS]
+relationship: is_a MS:1000833 ! Matrix Application Type
+
+[Term]
+id: MS:1000839
+name: precoated plate
+def: "Def." [PSI:MS]
+relationship: is_a MS:1000833 ! Matrix Application Type
+
+[Term]
+id: MS:1000840
+name: laser
+def: "Device that emits light (electromagnetic radiation) through a process called stimulated emission. The term is an acronym for Light Amplification by Stimulated Emission of Radiation." [PSI:MS]
+relationship: part_of MS:1000482 ! source attribute
+
+[Term]
+id: MS:1000841
+name: laser attribute
+def: "Laser properties that are associated with a value." [PSI:MS]
+relationship: part_of MS:1000840 ! Laser
+
+[Term]
+id: MS:1000842
+name: laser type
+def: "Type of laser used used fpr desorption purpose." [PSI:MS]
+relationship: part_of MS:1000840 ! Laser
+
+[Term]
+id: MS:1000843
+name: wavelength
+def: "The distance between two peaks of the emitted laser beam." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000001 ! Lenght Unit
+
+[Term]
+id: MS:1000844
+name: focus diameter x
+def: "Describes the diameter of the laser beam in x direction." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000001 ! Lenght Unit
+
+[Term]
+id: MS:1000845
+name: focus diameter y
+def: "Describes the diameter of the laser beam in y direction." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000001 ! Lenght Unit
+
+[Term]
+id: MS:1000846
+name: pulse energy
+def: "Describes output energy of the laser system. May be attenuated by filters or other means." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000111 ! Energy Unit
+
+[Term]
+id: MS:1000847
+name: pulse duration
+def: "Describes how long the laser beam was emitted from the laser device." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000003 ! Time Unit
+
+[Term]
+id: MS:1000848
+name: attenuation
+def: "Describes the reduction of the intensity of the laser beam energy." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000003 ! Time Unit
+
+[Term]
+id: MS:1000849
+name: impact angle
+def: "Describes the angle between the laser beam and the sample target." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: is_a MS:1000841 ! Laser Attribute
+relationship: has_units UO:0000121 ! Angle Unit
+
+[Term]
+id: MS:1000850
+name: gas laser
+def: "Laser which is powered by a gaseous medium." [PSI:MS]
+relationship: is_a MS:1000842 ! Laser Type
+
+[Term]
+id: MS:1000851
+name: solid-state laser
+def: "Solid state laser materials are commonly made by doping a crystalline solid host with ions that provide the required energy states." [PSI:MS]
+relationship: is_a MS:1000842 ! Laser Type
+
+[Term]
+id: MS:1000852
+name: dye-laser
+def: "Dye lasers use an organic dye as the gain medium." [PSI:MS]
+relationship: is_a MS:1000842 ! Laser Type
+
+[Term]
+id: MS:1000853
+name: free electron laser
+def: "Free electron laser uses a relativistic electron beam as the lasing medium which move freely through a magnetic structure, hence the term." [PSI:MS]
+relationship: is_a MS:1000842 ! Laser Type
+
+[Term]
+id: MS:1000854
+name: LTQ XL
+def: "Thermo Scientific LTQ XL MS." [PSI:MS]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1000855
+name: LTQ Velos
+def: "Thermo Scientific LTQ Velos MS." [PSI:MS]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1000856
+name: LTQ Velos ETD
+def: "Thermo Scientific LTQ Velos MS with ETD." [PSI:MS]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1000857
+name: run attribute
+def: "Properties of the described run." [PSI:MS]
+
+[Term]
+id: MS:1000858
+name: fraction identifier
+def: "Identier string that describes the sample fraction. This identifer should contain the fraction number(s) or similar information." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1000857 ! run attribute
+
 
 [Term]
 id: MS:1001000
