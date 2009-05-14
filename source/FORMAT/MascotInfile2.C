@@ -178,10 +178,10 @@ namespace OpenMS
 				fixed_mod_split.push_back(fixed_mods);
 			}
 
-			for(vector<String>::const_iterator it = fixed_mod_split.begin(); it != fixed_mod_split.end(); ++it)
+			for(vector<String>::iterator it = fixed_mod_split.begin(); it != fixed_mod_split.end(); ++it)
 			{
 				writeParameterHeader_("MODS", os);
-				os << *it << endl;
+				os << it->trim() << endl;
 			}
 		}
 
