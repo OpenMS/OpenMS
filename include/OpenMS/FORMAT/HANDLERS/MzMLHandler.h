@@ -42,10 +42,9 @@
 #include <iostream>
 
 //TODO:
-// - scanSettingsList
-// - fraction identifier
-// - DataProcessing of binaryDataArray
-// - InstrumentConfiguration of Scan
+// - scanSettingsList - what is to do?
+// - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
+// - InstrumentConfiguration of Scan - that's that?
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)

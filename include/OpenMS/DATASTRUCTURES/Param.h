@@ -57,6 +57,8 @@ namespace OpenMS
  
 		@see DefaultParamHandler
 		
+		@todo setValue with DataValue? (Marc)
+		
 		@ingroup Datastructures
 	*/
 	class OPENMS_DLLAPI Param
