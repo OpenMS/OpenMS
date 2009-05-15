@@ -60,6 +60,11 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 		add_definitions(-fmessage-length=0)
 	endif()
 
+	## CGAL needs extra definitions to avoid pre and postconditions 
+	## (see mails on open-ms-general of Hendrik Weisser. Thx very much!)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCGAL_NO_PRECONDITIONS -DCGAL_NO_POSTCONDITIONS -DCGAL_NO_ASSERTIONS")
+
+
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
@@ -696,10 +701,6 @@ configure_file(
 	@ONLY
 )
 
-include(CMakeExportBuildSettings)
-cmake_export_build_settings(${PROJECT_BINARY_DIR}/OpenMSBuildSettings.cmake)
-export_library_dependencies(${PROJECT_BINARY_DIR}/OpenMSLibraryDepends.cmake)
-## TODO install these files to a specific location to have a standard way to be used with external code
 
 ##### targets list #####
 if (MSVC)
@@ -898,6 +899,8 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
 else()
 
-	CMAKE_EXPORT_BUILD_SETTINGS(cmake/OpenMSBuildSettings.cmake)
-
+	# build settings and  configs for external code
+	include(CMakeExportBuildSettings)
+	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
+	export_library_dependencies(${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryDepends.cmake)
 endif()
