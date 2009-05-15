@@ -99,13 +99,13 @@ namespace OpenMS
 				{
 					Real dik = original_distance.getValue(min.first,k);
 					Real djk = original_distance.getValue(min.second,k);
-					original_distance.setValueQuick(min.second,k, (0.5* dik + 0.5* djk + 0.5* std::fabs(dik-djk)));
+					original_distance.setValueQuick(min.second,k, (0.5f* dik + 0.5f* djk + 0.5f* std::fabs(dik-djk)));
 				}
 				for (Size k = min.second+1; k < original_distance.dimensionsize(); ++k)
 				{
 					Real dik = original_distance.getValue(min.first,k);
 					Real djk = original_distance.getValue(min.second,k);
-					original_distance.setValueQuick(k,min.second, (0.5* dik + 0.5* djk + 0.5* std::fabs(dik-djk)));
+					original_distance.setValueQuick(k,min.second, (0.5f* dik + 0.5f* djk + 0.5f* std::fabs(dik-djk)));
 				}
 
 				//reduce
