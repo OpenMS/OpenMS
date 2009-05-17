@@ -1,4 +1,7 @@
-### use file for external projects
+# - Use Module for external projects using OpenMS
+# Sets up C and C++ to use OpenMS.  It is assumed that find_package(OpenMS)
+# has already been loaded.
+
 include(CMakeImportBuildSettings)
 
 cmake_import_build_settings(${OpenMS_BUILD_SETTINGS_FILE})

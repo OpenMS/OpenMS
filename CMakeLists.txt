@@ -580,7 +580,7 @@ endif()
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 set(OPENMS_LIBRARIES OpenMS)
 if (NOT APPLE)
-	set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES})
+	set(OPENMS_LIBRARIES optimized OpenMS debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
 endif()
 
 ####### TOPP #########

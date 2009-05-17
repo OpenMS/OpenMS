@@ -3,8 +3,9 @@
 ### Find the OpenMS includes and library
 set(OPENMS_FOUND 1)
 set(OPENMS_INCLUDE_DIRS "@CONTRIB_INCLUDE_DIR@" "@QT_INCLUDE_DIR@" "@PROJECT_SOURCE_DIR@/include" "@PROJECT_BINARY_DIR@/include")
-set(OPENMS_LIBRARIES_DIRS "@CONTRIB_LIB_DIR@" "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@")
+# Linux: libOpenMS.so will be in ./lib, Windows: OpenMS.lib will be directly in the binary tree
+set(OPENMS_LIBRARIES_DIRS "@CONTRIB_LIB_DIR@" "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@" "@PROJECT_BINARY_DIR@")
 set(OPENMS_LIBRARIES "@OPENMS_LIBRARIES@")
 set(OpenMS_BUILD_SETTINGS_FILE "@PROJECT_BINARY_DIR@/cmake/OpenMSBuildSettings.cmake")
-set(OpenMS_USE_FILE "@PROJECT_BINARY_DIR@/cmake/OpenMSUse.cmake")
+set(OpenMS_USE_FILE "@PROJECT_SOURCE_DIR@/cmake/OpenMSUse.cmake")
 
