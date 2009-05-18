@@ -57,18 +57,6 @@ END_SECTION
 START_SECTION(void compute)
 //_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
-
-	CoinMessageHandler a;
-	{
-	CoinMessageHandler bb;
-	}
-
-	/*CoinMessageHandler * handler_ =	new CoinMessageHandler();
-	delete handler_;
-	handler_ =	new CoinMessageHandler();
-	delete handler_;
-*/
-
 	FeatureDeconvolution fd;
 	FeatureMap<> fm;
 	ConsensusMap cm, cm2;

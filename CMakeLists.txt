@@ -69,7 +69,7 @@ elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
 	## disable dll-interface warning
-	add_definitions(/wd4251)
+	add_definitions(/wd4251 /wd4275)
 	
 	## disable deprecated functions warning (e.g. for POSIX functions)
 	add_definitions(/wd4996)
@@ -79,7 +79,7 @@ elseif (MSVC)
 
 	
 	## don't warn about unchecked std::copy()
-	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)
+	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations
@@ -903,7 +903,18 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	endif()
 
 else()
-
+	## grep definitions that were set using 'add_definitions()'
+	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
+	
+	## convert to CXX flags
+	set(OPENMS_ADDCXX_FLAGS)
+	#
+	foreach(i ${OPENMS_CMP_DEFS})
+		set(OPENMS_ADDCXX_FLAGS "${OPENMS_ADDCXX_FLAGS} -D${i}")
+	endforeach(i)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
+	Message(STATUS "Definitions: ${OPENMS_ADDCXX_FLAGS}")
+	
 	# build settings and  configs for external code
 	include(CMakeExportBuildSettings)
 	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
