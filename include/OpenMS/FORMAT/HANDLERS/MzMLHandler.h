@@ -1103,15 +1103,11 @@ namespace OpenMS
 			//------------------------- activation ----------------------------
 			else if(parent_tag=="activation")
 			{
+				//precursor activation attribute
 				if (accession=="MS:1000245") //charge stripping
 				{
 					//No member => meta data
 					spec_.getPrecursors().back().setMetaValue("charge stripping",String("true"));
-				}
-				else if (accession=="MS:1000246") //delayed extraction
-				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("delayed extraction",String("true"));
 				}
 				else if (accession=="MS:1000045") //collision energy (ev)
 				{
@@ -1131,6 +1127,21 @@ namespace OpenMS
 				else if (accession=="MS:1000509") //activation energy (ev)
 				{
 					spec_.getPrecursors().back().setActivationEnergy(value.toDouble());
+				}
+				else if (accession=="MS:1000138") //percent collision energy
+				{
+					//No member => meta data
+					spec_.getPrecursors().back().setMetaValue("percent collision energy",value);
+				}
+				else if (accession=="MS:1000869") //collision gas pressure
+				{
+					//No member => meta data
+					spec_.getPrecursors().back().setMetaValue("collision gas pressure",value);
+				}
+				//dissociation method
+				else if (accession=="MS:1000044") //dissociation method
+				{
+					//nothing to do here
 				}
 				else if (accession=="MS:1000133") //collision-induced dissociation
 				{
@@ -1296,7 +1307,12 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("mass resolving power",value);
 				}
-				
+				else if (accession=="MS:1000880")//interchannel delay
+				{
+					//No member => meta data
+					spec_.setMetaValue("interchannel delay",value);
+				}
+
 				//scan direction
 				else if (accession=="MS:1000092")//decreasing m/z scan
 				{
@@ -1508,6 +1524,10 @@ namespace OpenMS
 					instruments_[current_id_].setMetaValue("transmission",value);
 				}
 				//ion optics type
+				else if (accession=="MS:1000246") //delayed extraction
+				{
+					instruments_[current_id_].setIonOptics(Instrument::DELAYED_EXTRACTION);
+				}
 				else if (accession=="MS:1000221") //magnetic deflection
 				{
 					instruments_[current_id_].setIonOptics(Instrument::MAGNETIC_DEFLECTION);
@@ -1842,6 +1862,21 @@ namespace OpenMS
 				{
 					//No member => meta data
 					instruments_[current_id_].getIonSources().back().setMetaValue("source potential",value);
+				}
+				else if (accession=="MS:1000875") // declustering potential
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("declustering potential",value);
+				}
+				else if (accession=="MS:1000876") // cone voltage
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("cone voltage",value);
+				}
+				else if (accession=="MS:1000877") // tube lens
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("tube lens",value);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -3632,6 +3667,10 @@ namespace OpenMS
 							if (precursor.getActivationMethods().count(Precursor::PQD)!=0)
 							{
 								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
+							}
+							if (precursor.getActivationMethods().size()==0)
+							{
+								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
 							}
 							//as "precursor" has no own user param its userParam is stored here
 							writeUserParam_(os, precursor, 6);
