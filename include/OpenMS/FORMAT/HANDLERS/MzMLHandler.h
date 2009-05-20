@@ -971,6 +971,10 @@ namespace OpenMS
 				{
 					spec_.setType(SpectrumSettings::RAWDATA);
 				}
+				else if (accession=="MS:1000525") //spectrum representation
+				{
+					spec_.setType(SpectrumSettings::UNKNOWN);
+				}
 				
 				//spectrum attribute
 				else if (accession=="MS:1000511") //ms level
@@ -1484,7 +1488,7 @@ namespace OpenMS
 			else if (parent_tag=="instrumentConfiguration")
 			{
 				//instrument model
-				if (cv_.isChildOf(accession,"MS:1000031")) //instrument name as string
+				if (accession=="MS:1000031" || cv_.isChildOf(accession,"MS:1000031")) //instrument name as string
 				{
 					instruments_[current_id_].setName(cv_.getTerm(accession).name);
 				}
@@ -2103,15 +2107,15 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING_MAX);
 				}
-				else if (accession=="MS:1000592" || cv_.isChildOf(accession,"MS:1000592")) //smoothing (or child terms, we make no difference
+				else if (accession=="MS:1000592" || cv_.isChildOf(accession,"MS:1000592")) //smoothing (or child terms, we make no difference)
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::SMOOTHING);
 				}
-				else if (accession=="MS:1000778" || cv_.isChildOf(accession,"MS:1000778")) //charge state calculation (or child terms, we make no difference
+				else if (accession=="MS:1000778" || cv_.isChildOf(accession,"MS:1000778")) //charge state calculation (or child terms, we make no difference)
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CHARGE_CALCULATION);
 				}
-				else if (accession=="MS:1000780" || cv_.isChildOf(accession,"MS:1000780")) //precursor recalculation (or child terms, we make no difference
+				else if (accession=="MS:1000780" || cv_.isChildOf(accession,"MS:1000780")) //precursor recalculation (or child terms, we make no difference)
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PRECURSOR_RECALCULATION);
 				}
@@ -2136,6 +2140,10 @@ namespace OpenMS
 			else if (parent_tag=="fileContent")
 			{
 				if (cv_.isChildOf(accession,"MS:1000524")) //data file content
+				{
+					//ignored
+				}
+				else if (cv_.isChildOf(accession,"MS:1000525")) //spectrum representation
 				{
 					//ignored
 				}
@@ -3339,10 +3347,33 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			//spectrum
 			//--------------------------------------------------------------------------------------------
+			
+			//check native ids
+			bool renew_native_ids = false;
+			for (Size s=0; s<exp.size(); ++s)
+			{
+				if (!exp[s].getNativeID().has('='))
+				{
+					renew_native_ids = true;
+					break;
+				}
+			}
+			//issue warning if something is wrong
+			if (renew_native_ids)
+			{
+				warning(STORE, String("Invalid native IDs detected. Using spectrum identifier nativeID format (spectrum=xsd:nonNegativeInteger) for all spectra."));
+			}
+			
+			//write actual data
 			for (Size s=0; s<exp.size(); ++s)
 			{
 				const SpectrumType& spec = exp[s];
-				os	<< "			<spectrum id=\"" << spec.getNativeID() << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
+				
+				//native id
+				String native_id = spec.getNativeID();
+				if (renew_native_ids) native_id = String("spectrum=") + s;
+				
+				os	<< "			<spectrum id=\"" << native_id << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
 				if (spec.getSourceFile()!=SourceFile())
 				{
 					os << " sourceFileRef=\"sf_sp_" << s << "\"";
@@ -3487,7 +3518,7 @@ namespace OpenMS
 				}
 				if (spec.getAcquisitionInfo().size()==0)
 				{
-					os	<< "					<scan externalSpectrumID=\"0\">\n";
+					os	<< "					<scan>\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 				
 					//scan windows
