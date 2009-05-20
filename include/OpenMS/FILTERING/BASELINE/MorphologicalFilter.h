@@ -24,7 +24,6 @@
 // $Maintainer: Clemens Groepl $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_FILTERING_BASELINE_MORPHOLOGICALFILTER_H
 #define OPENMS_FILTERING_BASELINE_MORPHOLOGICALFILTER_H
@@ -35,39 +34,69 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
+#include <iterator>
 
 namespace OpenMS
 {
 
 	namespace Internal
 	{
-		/**@brief An iterator wrapper to access peak intensities using unary
-		operator *, and the like.  This is not really an implementation of the
-		iterator concept, it can only do what is needed for MorphologicalFilter.
+		/**
+			@brief An iterator wrapper to access peak intensities instead of the peak itself.
+			
+			It is using unary operator *, and the like.  This is not a full implementation of the
+			iterator concept, it can only do what is needed for MorphologicalFilter.
 		*/
 		template <typename IteratorT>
-		struct /* OPENMS_DLLAPI */ IntensityIteratorWrapper : IteratorT
+		class /* OPENMS_DLLAPI */ IntensityIteratorWrapper
+			: public std::iterator<std::forward_iterator_tag, typename IteratorT::value_type::IntensityType>
 		{
-			typedef typename IteratorT::value_type::IntensityType value_type;
+			public:
+				typedef typename IteratorT::value_type::IntensityType value_type;
+				typedef typename IteratorT::value_type::IntensityType& reference;
+				typedef typename IteratorT::value_type::IntensityType* pointer;
+				typedef typename IteratorT::difference_type difference_type;
 
-			IntensityIteratorWrapper( const IteratorT& rhs ) : IteratorT(rhs) {}
+				IntensityIteratorWrapper( const IteratorT& rhs )
+					: base(rhs)
+				{
+				}
 
-			// To avoid further complication this provides mutable access even if IteratorT is const.
-			value_type operator*()
-			{
-				return IteratorT::operator*().getIntensity();
-			}
+				value_type operator*()
+				{
+					return base->getIntensity();
+				}
+				
+				template <typename IndexT> value_type operator[](const IndexT& index)
+				{
+					return base[index].getIntensity();
+				}
 
-			// To avoid further complication this provides mutable access even if IteratorT is const.
-			template <typename IndexT> value_type operator[](const IndexT& rhs)
-			{
-				return (IteratorT::operator[](rhs)).getIntensity();
-			}
+				difference_type operator-(IntensityIteratorWrapper& rhs) const
+				{
+					return base - rhs.base;
+				}
 
-			template <typename IndexT> IntensityIteratorWrapper operator+(const IndexT& rhs) const
-			{
-				return IntensityIteratorWrapper(IteratorT::operator+(rhs));
-			}
+				IntensityIteratorWrapper& operator++()
+				{
+					++base;
+					return *this;
+				}
+
+				IntensityIteratorWrapper operator++(int)
+				{
+					IteratorT tmp = *this;
+					++(*this);
+					return tmp;
+				}
+
+				bool operator!=(const IntensityIteratorWrapper&	rhs) const
+				{
+					return base!=rhs.base;
+				}
+
+			protected:
+				IteratorT base;
 		};
 
 		/// make-function so that we need no write out all those type names to get the wrapped iterator.
@@ -271,7 +300,7 @@ namespace OpenMS
 				if ( ! Math::isOdd(struct_size_in_datapoints_) ) ++struct_size_in_datapoints_;
 				
 				//apply the filtering and overwrite the input data
-				std::vector<DoubleReal> output(spectrum.size());
+				std::vector<typename PeakType::IntensityType> output(spectrum.size());
 				filterRange( Internal::intensityIteratorWrapper(spectrum.begin()),
 										 Internal::intensityIteratorWrapper(spectrum.end()),
 										 output.begin()
