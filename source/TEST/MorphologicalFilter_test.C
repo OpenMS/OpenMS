@@ -267,7 +267,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 			raw.push_back(peak);
 			inputf.push_back(i-offset);
 		}
-		std::vector<Peak1D> filtered;
+		std::vector<Peak1D::IntensityType> filtered;
 		std::vector<Peak1D::IntensityType> simple_filtered_1;
 		MorphologicalFilter mf;
 
@@ -289,7 +289,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
-												 intensityIteratorWrapper(filtered.begin())
+												 filtered.begin()
 											 );
 				STHF::erosion( inputf,
 											 simple_filtered_1,
@@ -298,7 +298,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				for ( Int i = 0; i != data_size; ++i )
 				{
 					STATUS(i);
-					TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+					TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 				}
 			}
 
@@ -316,7 +316,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
-												 intensityIteratorWrapper(filtered.begin())
+												 filtered.begin()
 											 );
 				STHF::dilation( inputf,
 												simple_filtered_1,
@@ -325,7 +325,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				for ( Int i = 0; i != data_size; ++i )
 				{
 					STATUS(i);
-					TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+					TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 				}
 			}
 
@@ -346,7 +346,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 			raw.push_back(peak);
 			inputf.push_back(offset-i);
 		}
-		std::vector<Peak1D> filtered;
+		std::vector<Peak1D::IntensityType> filtered;
 		std::vector<Peak1D::IntensityType> simple_filtered_1;
 		MorphologicalFilter mf;
 
@@ -368,7 +368,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
-												 intensityIteratorWrapper(filtered.begin())
+												 filtered.begin()
 											 );
 				STHF::erosion( inputf,
 											 simple_filtered_1,
@@ -377,7 +377,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				for ( Int i = 0; i != data_size; ++i )
 				{
 					STATUS(i);
-					TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+					TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 				}
 			}
 
@@ -395,7 +395,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 												 intensityIteratorWrapper(raw.end()),
-												 intensityIteratorWrapper(filtered.begin())
+												 filtered.begin()
 											 );
 				STHF::dilation( inputf,
 												simple_filtered_1,
@@ -404,7 +404,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 				for ( Int i = 0; i != data_size; ++i )
 				{
 					STATUS(i);
-					TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+					TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 				}
 			}
 
@@ -427,7 +427,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 	}
 	inputf.clear();
 	for ( UInt i = 0; i != data_size; ++i ) inputf.push_back(data[i]);
-	std::vector<Peak1D> filtered;
+	std::vector<Peak1D::IntensityType> filtered;
 	std::vector<Peak1D::IntensityType> simple_filtered_1;
 	std::vector<Peak1D::IntensityType> simple_filtered_2;
 	std::vector<Peak1D::IntensityType> simple_filtered_3;
@@ -452,13 +452,13 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange( intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::erosion(inputf,simple_filtered_1,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
 				STATUS(i);
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 			}
 
 			STATUS("erosion_simple");
@@ -473,12 +473,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::erosion(inputf,simple_filtered_1,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 			}
 
 			STATUS("opening");
@@ -493,12 +493,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
  			STHF::dilation(simple_filtered_1,simple_filtered_2,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_2[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
 			}
 
 			STATUS("tophat");
@@ -513,12 +513,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::tophat(inputf,simple_filtered_3,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_3[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_3[i]);
 			}
 		}
 
@@ -536,12 +536,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::dilation(inputf,simple_filtered_1,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 			}
 
 			STATUS("dilation_simple");
@@ -556,12 +556,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::dilation(inputf,simple_filtered_1,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_1[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
 			}
 
 			STATUS("closing");
@@ -576,12 +576,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::erosion(simple_filtered_1,simple_filtered_2,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_2[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
 			}
 
 			STATUS("bothat");
@@ -596,12 +596,12 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
 											 intensityIteratorWrapper(raw.end()),
-											 intensityIteratorWrapper(filtered.begin())
+											 filtered.begin()
 										 );
 			STHF::bothat(inputf,simple_filtered_3,struc_length);
 			for ( UInt i = 0; i != data_size; ++i )
 			{
-				TEST_REAL_SIMILAR(filtered[i].getIntensity(),simple_filtered_3[i]);
+				TEST_REAL_SIMILAR(filtered[i],simple_filtered_3[i]);
 			}
 		}
 
