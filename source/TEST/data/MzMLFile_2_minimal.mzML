@@ -26,6 +26,5 @@
 	</dataProcessingList>
 	
 	<run id="ID_9" defaultInstrumentConfigurationRef="ID_1">
-		<spectrumList count="0" defaultDataProcessingRef="ID_3" />
 	</run>
 </mzML>

@@ -1,120 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<xs:schema xmlns="http://http://psi.hupo.org/ms/mzml" xmlns:dx="http://psi.hupo.org/ms/mzml" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://psi.hupo.org/ms/mzml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1.0">
-	<xs:element name="indexedmzML">
-		<xs:annotation>
-			<xs:documentation>Container element for mzML which allows the addition of an index.</xs:documentation>
-		</xs:annotation>
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element ref="dx:mzML"/>
-				<xs:element name="indexList">
-					<xs:annotation>
-						<xs:documentation>List of indices.</xs:documentation>
-					</xs:annotation>
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="index" maxOccurs="unbounded">
-								<xs:annotation>
-									<xs:documentation>Index element containing one or more offsets for random data access for the entity described in the 'name' attribute.</xs:documentation>
-								</xs:annotation>
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element name="offset" maxOccurs="unbounded">
-											<xs:annotation>
-												<xs:documentation>File pointer offset (in bytes) of the element identified by the 'id' attribute.</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:simpleContent>
-													<xs:extension base="xs:long">
-														<xs:attribute name="idRef" type="xs:string" use="required">
-															<xs:annotation>
-																<xs:documentation>Reference to the 'id' attribute of the indexed element.</xs:documentation>
-															</xs:annotation>
-														</xs:attribute>
-														<xs:attribute name="spotID" type="xs:string" use="optional">
-															<xs:annotation>
-																<xs:documentation>The identifier for the spot from which this spectrum was derived, if a MALDI or similar run.</xs:documentation>
-															</xs:annotation>
-														</xs:attribute>
-														<xs:attribute name="scanTime" type="xs:double" use="optional">
-															<xs:annotation>
-																<xs:documentation>In the case of a spectrum representing a single scan, this attribute may be used to reference it by the time at which the scan was acquired (a.k.a. scan time or retention time).</xs:documentation>
-															</xs:annotation>
-														</xs:attribute>
-													</xs:extension>
-												</xs:simpleContent>
-											</xs:complexType>
-										</xs:element>
-									</xs:sequence>
-									<xs:attribute name="name" type="xs:string" use="required">
-										<xs:annotation>
-											<xs:documentation>The name of the entity the index entries are pointing to.</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-						<xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
-							<xs:annotation>
-								<xs:documentation>Number of indices in this list.</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="indexListOffset" type="xs:long" nillable="true">
-					<xs:annotation>
-						<xs:documentation>File pointer offset (in bytes) of the 'indexList' element.</xs:documentation>
-					</xs:annotation>
-				</xs:element>
-				<xs:element name="fileChecksum" type="xs:string">
-					<xs:annotation>
-						<xs:documentation>SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.</xs:documentation>
-					</xs:annotation>
-				</xs:element>
-			</xs:sequence>
-		</xs:complexType>
-		<xs:key name="KEY_ID_IDX">
-			<xs:selector xpath=".//dx:indexedmzML/dx:mzML/dx:run/dx:spectrumList/dx:spectrum | .//dx:indexedmzML/dx:mzML/dx:run/dx:chromatogramList/dx:chromatogram"/>
-			<xs:field xpath="@id"/>
-		</xs:key>
-		<xs:keyref name="FKNID" refer="dx:KEY_ID_IDX">
-			<xs:selector xpath=".//dx:indexedmzML/dx:indexList/dx:index/dx:offset"/>
-			<xs:field xpath="@id"/>
-		</xs:keyref>
-	</xs:element>
-	<xs:complexType name="mzMLType">
-		<xs:annotation>
-			<xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
-		</xs:annotation>
-		<xs:sequence>
-			<xs:element name="cvList" type="dx:CVListType"/>
-			<xs:element name="fileDescription" type="dx:FileDescriptionType"/>
-			<xs:element name="referenceableParamGroupList" type="dx:ReferenceableParamGroupListType" minOccurs="0"/>
-			<xs:element name="sampleList" type="dx:SampleListType" minOccurs="0"/>
-			<xs:element name="softwareList" type="dx:SoftwareListType"/>
-			<xs:element name="scanSettingsList" type="dx:ScanSettingsListType" minOccurs="0"/>
-			<xs:element name="instrumentConfigurationList" type="dx:InstrumentConfigurationListType"/>
-			<xs:element name="dataProcessingList" type="dx:DataProcessingListType"/>
-			<xs:element name="run" type="dx:RunType"/>
-		</xs:sequence>
-		<xs:attribute name="accession" type="xs:string" use="optional">
-			<xs:annotation>
-				<xs:documentation>An optional accession number for the mzML document used for storage, e.g. in PRIDE.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="version" type="xs:string" use="required">
-			<xs:annotation>
-				<xs:documentation>The version of this mzML document.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="id" type="xs:string" use="optional">
-			<xs:annotation>
-				<xs:documentation>An optional id for the mzML document used for referencing from external files. It is recommended to use LSIDs when possible.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-	</xs:complexType>
+<!-- Created with Liquid XML Studio 1.0.8.0 (http://www.liquid-technologies.com) -->
+<xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://psi.hupo.org/ms/mzml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1.0">
 	<xs:complexType name="FileDescriptionType">
 		<xs:annotation>
 			<xs:documentation>Information pertaining to the entire mzML file (i.e. not specific to any part of the data set) is stored here.</xs:documentation>
@@ -610,7 +497,7 @@
 		<xs:complexContent mixed="false">
 			<xs:extension base="dx:ParamGroupType">
 				<xs:sequence>
-					<xs:element name="spectrumList" type="dx:SpectrumListType">
+					<xs:element name="spectrumList" type="dx:SpectrumListType" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>All mass spectra and the acquisitions underlying them are described and attached here. Subsidiary data arrays are also both described and attached here.</xs:documentation>
 						</xs:annotation>
@@ -688,61 +575,11 @@
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
-	<xs:complexType name="SpectrumType" mixed="false">
-		<xs:annotation>
-			<xs:documentation>The structure that captures the generation of a peak list (including the underlying acquisitions). Also describes some of the parameters for the mass spectrometer for a given acquisition (or list of acquisitions).</xs:documentation>
-		</xs:annotation>
-		<xs:complexContent mixed="false">
-			<xs:extension base="dx:ParamGroupType">
-				<xs:sequence>
-					<xs:element name="scanList" type="dx:ScanListType" minOccurs="0"/>
-					<xs:element name="precursorList" type="dx:PrecursorListType" minOccurs="0"/>
-					<xs:element name="productList" type="dx:ProductListType" minOccurs="0"/>
-					<xs:element name="binaryDataArrayList" type="dx:BinaryDataArrayListType" minOccurs="0"/>
-				</xs:sequence>
-				<xs:attribute name="id" use="required">
-					<xs:annotation>
-						<xs:documentation>The native identifier for a spectrum. For unmerged native spectra or spectra from older open file formats, the format of the identifier is defined in the PSI-MS CV and referred to in the mzML header. External documents may use this identifier together with the mzML filename or accession to reference a particular spectrum.</xs:documentation>
-					</xs:annotation>
-					<xs:simpleType>
-						<xs:restriction base="xs:string">
-							<xs:pattern value="\S+=\S+( \S+=\S+)*"/>
-						</xs:restriction>
-					</xs:simpleType>
-				</xs:attribute>
-				<xs:attribute name="spotID" type="xs:string" use="optional">
-					<xs:annotation>
-						<xs:documentation>The identifier for the spot from which this spectrum was derived, if a MALDI or similar run.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="index" type="xs:nonNegativeInteger" use="required">
-					<xs:annotation>
-						<xs:documentation>The zero-based, consecutive index of  the spectrum in the SpectrumList.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="defaultArrayLength" type="xs:int" use="required">
-					<xs:annotation>
-						<xs:documentation>Default length of binary data arrays contained in this element.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="dataProcessingRef" type="xs:IDREF" use="optional">
-					<xs:annotation>
-						<xs:documentation>This attribute can optionally reference the 'id' of the appropriate dataProcessing.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="sourceFileRef" type="xs:IDREF" use="optional">
-					<xs:annotation>
-						<xs:documentation>This attribute can optionally reference the 'id' of the appropriate sourceFile.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
 	<xs:complexType name="ScanWindowListType">
 		<xs:sequence>
 			<xs:element name="scanWindow" type="dx:ParamGroupType" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>A range of m/z values over which the instrument scans and aquires a spectrum.</xs:documentation>
+					<xs:documentation>A range of m/z values over which the instrument scans and acquires a spectrum.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -751,6 +588,15 @@
 				<xs:documentation>The number of scan windows defined in this list.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ScanWindowType">
+		<xs:sequence>
+			<xs:element name="cvParam" type="dx:CVParamType" minOccurs="2" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Two or more CV parameters defining the scan window.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="ScanListType" mixed="false">
 		<xs:annotation>
@@ -942,6 +788,56 @@
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+	<xs:complexType name="SpectrumType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The structure that captures the generation of a peak list (including the underlying acquisitions). Also describes some of the parameters for the mass spectrometer for a given acquisition (or list of acquisitions).</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="dx:ParamGroupType">
+				<xs:sequence>
+					<xs:element name="scanList" type="dx:ScanListType" minOccurs="0"/>
+					<xs:element name="precursorList" type="dx:PrecursorListType" minOccurs="0"/>
+					<xs:element name="productList" type="dx:ProductListType" minOccurs="0"/>
+					<xs:element name="binaryDataArrayList" type="dx:BinaryDataArrayListType" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="id" use="required">
+					<xs:annotation>
+						<xs:documentation>The native identifier for a spectrum. For unmerged native spectra or spectra from older open file formats, the format of the identifier is defined in the PSI-MS CV and referred to in the mzML header. External documents may use this identifier together with the mzML filename or accession to reference a particular spectrum.</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:pattern value="\S+=\S+( \S+=\S+)*"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="spotID" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>The identifier for the spot from which this spectrum was derived, if a MALDI or similar run.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="index" type="xs:nonNegativeInteger" use="required">
+					<xs:annotation>
+						<xs:documentation>The zero-based, consecutive index of  the spectrum in the SpectrumList.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="defaultArrayLength" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Default length of binary data arrays contained in this element.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="dataProcessingRef" type="xs:IDREF" use="optional">
+					<xs:annotation>
+						<xs:documentation>This attribute can optionally reference the 'id' of the appropriate dataProcessing.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="sourceFileRef" type="xs:IDREF" use="optional">
+					<xs:annotation>
+						<xs:documentation>This attribute can optionally reference the 'id' of the appropriate sourceFile.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
 	<xs:complexType name="ChromatogramListType">
 		<xs:annotation>
 			<xs:documentation>List of chromatograms.</xs:documentation>
@@ -967,6 +863,8 @@
 		<xs:complexContent mixed="false">
 			<xs:extension base="dx:ParamGroupType">
 				<xs:sequence>
+					<xs:element name="precursor" type="dx:PrecursorType" minOccurs="0"/>
+					<xs:element name="product" type="dx:ProductType" minOccurs="0"/>
 					<xs:element name="binaryDataArrayList" type="dx:BinaryDataArrayListType"/>
 				</xs:sequence>
 				<xs:attribute name="id" type="xs:string" use="required">
@@ -1110,7 +1008,7 @@
           This is a reference to a source file in sourceFileList. It ensures that an id is present in the file and is one of the values defined in KEY_SOURCEFILE_ID.
         </xs:documentation>
 			</xs:annotation>
-			<xs:selector xpath=".//dx:precursor | .//dx:scan"/>
+			<xs:selector xpath=".//dx:precursor |.//dx:scan"/>
 			<xs:field xpath="@sourceFileRef"/>
 		</xs:keyref>
 		<xs:keyref name="KEYREF_RUN_SAMPLEREF" refer="dx:KEY_SAMPLE_ID">
@@ -1137,7 +1035,7 @@
           This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
         </xs:documentation>
 			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
+			<xs:selector xpath="./dx:run/dx:spectrumList |./dx:run/dx:chromatogramList"/>
 			<xs:field xpath="@defaultDataProcessingRef"/>
 		</xs:keyref>
 		<xs:keyref name="KEYREF_DPREF" refer="dx:KEY_DP_ID">
@@ -1146,7 +1044,7 @@
           This is a reference to a data processing element in dataProcessingList. It ensures that an id is present in the file and is one of the values defined in KEY_DP_ID.
         </xs:documentation>
 			</xs:annotation>
-			<xs:selector xpath=".//dx:spectrum | .//dx:chromatogram | .//dx:binaryDataArray"/>
+			<xs:selector xpath=".//dx:spectrum |.//dx:chromatogram |.//dx:binaryDataArray"/>
 			<xs:field xpath="@dataProcessingRef"/>
 		</xs:keyref>
 		<xs:keyref name="KEYREF_CVREF" refer="dx:KEY_CV_ID">
@@ -1164,7 +1062,7 @@
           This is a reference to the CV in cvList used for unit terms. It ensures that an id is present in the file and is one of the values defined in KEY_CV_ID.
         </xs:documentation>
 			</xs:annotation>
-			<xs:selector xpath=".//dx:cvParam | .//dx:userParam"/>
+			<xs:selector xpath=".//dx:cvParam |.//dx:userParam"/>
 			<xs:field xpath="@unitCvRef"/>
 		</xs:keyref>
 		<xs:keyref name="KEYREF_RPGREF" refer="dx:KEY_RPG_ID">
@@ -1182,7 +1080,7 @@
           This is a reference to an instrument configuration in instrumentConfigurationList. It ensures that an id is present in the file and is one of the values defined in KEY_IC_ID.
         </xs:documentation>
 			</xs:annotation>
-			<xs:selector xpath="./dx:run/dx:spectrumList | ./dx:run/dx:chromatogramList"/>
+			<xs:selector xpath="./dx:run/dx:spectrumList |./dx:run/dx:chromatogramList"/>
 			<xs:field xpath="@defaultInstrumentConfigurationRef"/>
 		</xs:keyref>
 		<xs:keyref name="KEYREF_ICREF" refer="dx:KEY_IC_ID">
@@ -1193,6 +1091,119 @@
 			</xs:annotation>
 			<xs:selector xpath=".//dx:scan"/>
 			<xs:field xpath="@instrumentConfigurationRef"/>
+		</xs:keyref>
+	</xs:element>
+	<xs:complexType name="mzMLType">
+		<xs:annotation>
+			<xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvList" type="dx:CVListType"/>
+			<xs:element name="fileDescription" type="dx:FileDescriptionType"/>
+			<xs:element name="referenceableParamGroupList" type="dx:ReferenceableParamGroupListType" minOccurs="0"/>
+			<xs:element name="sampleList" type="dx:SampleListType" minOccurs="0"/>
+			<xs:element name="softwareList" type="dx:SoftwareListType"/>
+			<xs:element name="scanSettingsList" type="dx:ScanSettingsListType" minOccurs="0"/>
+			<xs:element name="instrumentConfigurationList" type="dx:InstrumentConfigurationListType"/>
+			<xs:element name="dataProcessingList" type="dx:DataProcessingListType"/>
+			<xs:element name="run" type="dx:RunType"/>
+		</xs:sequence>
+		<xs:attribute name="accession" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>An optional accession number for the mzML document used for storage, e.g. in PRIDE.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The version of this mzML document.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="id" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>An optional id for the mzML document used for referencing from external files. It is recommended to use LSIDs when possible.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="IndexListType">
+		<xs:sequence>
+			<xs:element name="index" type="dx:IndexType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Index element containing one or more offsets for random data access for the entity described in the 'name' attribute.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
+			<xs:annotation>
+				<xs:documentation>Number of indices in this list.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="IndexType">
+		<xs:sequence>
+			<xs:element name="offset" type="dx:OffsetType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>File pointer offset (in bytes) of the element identified by the 'id' attribute.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>The name of the entity the index entries are pointing to.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="OffsetType">
+		<xs:simpleContent>
+			<xs:extension base="xs:long">
+				<xs:attribute name="idRef" type="xs:string" use="required">
+					<xs:annotation>
+						<xs:documentation>Reference to the 'id' attribute of the indexed element.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="spotID" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>The identifier for the spot from which this spectrum was derived, if a MALDI or similar run.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="scanTime" type="xs:double" use="optional">
+					<xs:annotation>
+						<xs:documentation>In the case of a spectrum representing a single scan, this attribute may be used to reference it by the time at which the scan was acquired (a.k.a. scan time or retention time).</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="indexedmzML">
+		<xs:annotation>
+			<xs:documentation>Container element for mzML which allows the addition of an index.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="dx:mzML"/>
+				<xs:element name="indexList" type="dx:IndexListType">
+					<xs:annotation>
+						<xs:documentation>List of indices.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="indexListOffset" type="xs:long" nillable="true">
+					<xs:annotation>
+						<xs:documentation>File pointer offset (in bytes) of the 'indexList' element.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="fileChecksum" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+		<xs:key name="KEY_ID_IDX">
+			<xs:selector xpath=".//dx:indexedmzML/dx:mzML/dx:run/dx:spectrumList/dx:spectrum | .//dx:indexedmzML/dx:mzML/dx:run/dx:chromatogramList/dx:chromatogram"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:keyref name="FKNID" refer="dx:KEY_ID_IDX">
+			<xs:selector xpath=".//dx:indexedmzML/dx:indexList/dx:index/dx:offset"/>
+			<xs:field xpath="@id"/>
 		</xs:keyref>
 	</xs:element>
 </xs:schema>

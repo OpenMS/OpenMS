@@ -4,8 +4,8 @@ saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.1.0
-remark: release date: 2009-05-05
+remark: version: 2.4.0
+remark: release date: 2009-05-19
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>, Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de> 
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -2247,6 +2247,7 @@ id: MS:1000336
 name: neutral loss
 def: "The loss of an uncharged species during a rearrangement process." [PSI:MS]
 is_a: MS:1000445 ! sequential m/z separation method ?
+is_a: MS:1001055 ! modification parameters
 
 [Term]
 id: MS:1000337
@@ -3798,7 +3799,7 @@ is_a: MS:1000125 ! Thermo Finnigan instrument model
 [Term]
 id: MS:1000579
 name: MS1 spectrum
-def: "MS1 refers to single-stage MS/MS experiments designed to record the first stage of the product ion spectra." [PSI:MS]
+def: "Mass spectrum created by a single-stage MS experiment or the first stage of a multi-stage experiment." [PSI:MS]
 synonym: "full spectrum" EXACT []
 synonym: "Q1 spectrum" EXACT []
 synonym: "Q3 spectrum" EXACT []
@@ -4915,6 +4916,7 @@ id: MS:1000742
 name: Bioworks SRF file
 def: "Thermo Finnigan SRF file format." [PSI:MS]
 is_a: MS:1000560 ! mass spectrometer file format
+is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1000743
@@ -5275,25 +5277,28 @@ is_a: MS:1000570 ! spectra combination
 id: MS:1000796
 name: spectrum title
 def: "A free-form text title describing a spectrum." [PSI:MS]
-comment: This is the preferred storage place for the spectrum TITLE from an MGF peak list. This term corresponds to Protein Informatics CV term PI:00416
+comment: This is the preferred storage place for the spectrum TITLE from an MGF peak list.
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1000797
 name: peak list scans
 def: "A list of scan numbers and or scan ranges associated with a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term." [PSI:MS]
-comment: This is the preferred storage place for the spectrum SCANS attribute from an MGF peak list. This term corresponds to CV term MS:1001414.
+comment: This is the preferred storage place for the spectrum SCANS attribute from an MGF peak list.
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1000798
 name: peak list raw scans
 def: "A list of raw scans and or scan ranges used to generate a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term." [PSI:MS]
-comment: This is the preferred storage place for the spectrum RAWSCANS attribute from an MGF peak list. This term corresponds to CV term MS:1001415.
+comment: This is the preferred storage place for the spectrum RAWSCANS attribute from an MGF peak list.
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1000799
@@ -5696,6 +5701,156 @@ def: "Identier string that describes the sample fraction. This identifer should 
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000857 ! run attribute
 
+[Term]
+id: MS:1000859
+name: molecule
+def: "A molecules is a fundamental component of a chemical compound that is the smallest part of the compound that can participate in a chemical reaction." [PSI:MS]
+relationship: part_of MS:1000881 ! chemical compound
+
+[Term]
+id: MS:1000860
+name: peptide
+def: "A compound of low molecular weight that is composed of two or more amino acids." [PSI:MS]
+is_a: MS:1000881 ! chemical compound
+
+[Term]
+id: MS:1000861
+name: chemical compound attribute
+def: "A describable property of a chemical compound." [PSI:MS]
+relationship: part_of MS:1000881 ! chemical compound
+
+[Term]
+id: MS:1000862
+name: isoelectric point
+def: "The pH of a solution at which a charged molecule does not migrate in an electric field." [PSI:MS]
+exact_synonym: "pI" []
+is_a: MS:1000861 ! chemical compound attribute
+
+[Term]
+id: MS:1000863
+name: predicted isoelectric point
+def: "The pH of a solution at which a charged molecule would not migrate in an electric field, as predicted by a software algorithm." [PSI:MS]
+exact_synonym: "predicted pI" []
+is_a: MS:1000862 ! isoelectric point
+
+[Term]
+id: MS:1000864
+name: chemical compound formula
+def: "A combination of symbols used to express the chemical composition of a compound." [PSI:MS]
+relationship: part_of MS:1000881 ! chemical compound
+
+[Term]
+id: MS:1000865
+name: empirical formula
+def: "A chemical formula which expresses the proportions of the elements present in a substance." [PSI:MS]
+is_a: MS:1000864 ! chemical compound formula
+
+[Term]
+id: MS:1000866
+name: molecular formula
+def: "A chemical compound formula expressing the number of atoms of each element present in a compound, without indicating how they are linked." [PSI:MS]
+is_a: MS:1000864 ! chemical compound formula
+
+[Term]
+id: MS:1000867
+name: structural formula
+def: "A chemical formula showing the number of atoms of each element in a molecule, their spatial arrangement, and their linkage to each other." [PSI:MS]
+is_a: MS:1000864 ! chemical compound formula
+
+[Term]
+id: MS:1000868
+name: SMILES string
+def: "The simplified molecular input line entry specification or SMILES is a specification for unambiguously describing the structure of a chemical compound using a short ASCII string." [PSI:MS]
+is_a: MS:1000864 ! chemical compound formula
+
+[Term]
+id: MS:1000869
+name: collision gas pressure
+def: "The gas pressure of the collision gas used for collisional excitation." [PSI:MS]
+xref_analog: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000510 ! precursor activation attribute
+relationship: has_units UO:0000110 ! pascal
+
+[Term]
+id: MS:1000870
+name: 4000 QTRAP
+def: "AB SCIEX or Applied Biosystems|MDS SCIEX QTRAP 4000." [PSI:MS]
+is_a: MS:1000121 ! AB SCIEX instrument model
+
+[Term]
+id: MS:1000871
+name: SRM software
+def: "Software used to predict, select, or optimize transitions or analyze the results of selected reaction monitoring runs." [PSI:MS]
+is_a: MS:1000531 ! software
+
+[Term]
+id: MS:1000872
+name: MaRiMba
+def: "SRM software used to select candidate SRM transitions from a spectral library." [PSI:MS]
+is_a: MS:1000711 ! SRM software
+
+[Term]
+id: MS:1000873
+name: peptide attribute calculation software
+def: "Software used to predict or calculate numberical attributes of peptides." [PSI:MS]
+is_a: MS:1000531 ! software
+
+[Term]
+id: MS:1000874
+name: SSRCalc
+def: "Sequence Specific Retention Calculator esimates the retention time of peptides based on their sequence. It is available at http://hs2.proteome.ca/SSRCalc/SSRCalc.html." [PSI:MS]
+is_a: MS:1000873 ! peptide attribute calculation software
+
+[Term]
+id: MS:1000875
+name: declustering potential
+def: "Potential difference between the orifice and the skimmer in volts." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000482 ! source attribute
+relationship: has_units UO:0000218 ! volt
+
+[Term]
+id: MS:1000876
+name: cone voltage
+def: "Potential difference between the sampling cone/orifice and the what? in volts." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000482 ! source attribute
+relationship: has_units UO:0000218 ! volt
+
+[Term]
+id: MS:1000877
+name: tube lens
+def: "No ideas." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000482 ! source attribute
+relationship: has_units UO:0000218 ! volt
+
+[Term]
+id: MS:1000878
+name: external reference identifier
+def: "An identifier/accession number to an external reference database." [PSI:MS]
+relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
+
+[Term]
+id: MS:1000879
+name: PubMed identifier
+def: "A unique identifier for a publication in the PubMed database (MIR:00000015)." [PSI:MS]
+xref: value-type:xsd\:integer "The allowed value-type for this CV term."
+is_a: MS:1000878 ! external reference
+
+[Term]
+id: MS:1000880
+name: interchannel delay
+def: "The duration of intervals between scanning, during which the instrument configuration is switched." [PSI:MS]
+xref_analog: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute
+relationship: has_units UO:0000010 ! second
+
+[Term]
+id: MS:1000881
+name: chemical compound
+def: "A substance formed by chemical union of two or more elements or ingredients in definite proportion by weight." [PSI:MS]
+relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
 
 [Term]
 id: MS:1001000
@@ -5898,7 +6053,7 @@ is_a: MS:1001006 ! sequest:ViewCV
 [Term]
 id: MS:1001040
 name: intermediate analysis format
-def: "Type of the source file, the  AnalysisXML was created from." [PSI:PI]
+def: "Type of the source file, the  mzIdentML was created from." [PSI:PI]
 is_a: MS:1001459 ! file format
 
 [Term]
@@ -6012,8 +6167,10 @@ is_a: MS:1001249 ! search input details
 [Term]
 id: MS:1001061
 name: neutral loss
-def: "Leave this to PSI-MOD?" [PSI:PI]
+def: "OBSOLETE: replaced by MS:1000336 (neutral loss): Leave this to PSI-MOD?" [PSI:PI]
 is_a: MS:1001055 ! modification parameters
+is_obsolete: true
+replaced_by: MS:1000336 ! neutral loss
 
 [Term]
 id: MS:1001062
@@ -6107,7 +6264,7 @@ is_a: MS:1001013 ! database name
 id: MS:1001085
 name: protein result details
 def: "Protein level information." [PSI:PI]
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001086
@@ -6131,8 +6288,8 @@ is_a: MS:1001342 ! database sequence details
 
 [Term]
 id: MS:1001089
-name: protein taxonomy
-def: "The taxonomy of the resultant protein from the search." [PSI:PI]
+name: molecule taxonomy
+def: "The taxonomy of the resultant molecule from the search." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001085 ! protein result details
 
@@ -6232,7 +6389,7 @@ is_a: MS:1001013 ! database name
 id: MS:1001105
 name: peptide result details
 def: "Peptide level information." [PSI:PI]
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001106
@@ -6243,7 +6400,7 @@ is_a: MS:1001087 ! sequest:ProcessCV
 [Term]
 id: MS:1001107
 name: data stored in database
-def: "Source file for this AnalysisXML was a data set in a database." [PSI:PI]
+def: "Source file for this mzIdentML was a data set in a database." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -6526,7 +6683,7 @@ is_a: MS:1001066 ! ions series considered in search
 id: MS:1001153
 name: search engine specific score
 def: "Search engine specific scores." [PSI:PI]
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001154
@@ -6697,7 +6854,7 @@ is_a: MS:1001127 ! peptide sharing details
 [Term]
 id: MS:1001176
 name: (?<=[KR])(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001177
@@ -6712,15 +6869,15 @@ is_a: MS:1001013 ! database name
 
 [Term]
 id: MS:1001180
-name: regular expression
+name: Cleavage agent regular expression
 def: "Branch containing regular expressions for cleavage enzymes." [PSI:PI]
-relationship: part_of MS:1001000 ! spectrum interpretation
+relationship: part_of MS:1001044 ! cleavage agent details
 
 [Term]
 id: MS:1001184
 name: search statistics
 def: "The details of the actual run of the search." [PSI:PI]
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001189
@@ -6791,13 +6948,13 @@ is_a: MS:1001085 ! protein result details
 [Term]
 id: MS:1001199
 name: Mascot DAT file
-def: "Source file for this AnalysisXML was a Mascot DAT file." [PSI:PI]
+def: "Source file for this mzIdentML was a Mascot DAT file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001200
 name: Sequest out file
-def: "Source file for this AnalysisXML was ONE Sequest out file." [PSI:PI]
+def: "Source file for this mzIdentML was ONE Sequest out file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -6854,16 +7011,10 @@ def: "Mass type setting for parent mass was average isotopic." [PSI:PI]
 is_a: MS:1001210 ! mass type settings
 
 [Term]
-id: MS:1001213
-name: search result details
-def: "Scores and global result characteristics." [PSI:PI]
-relationship: part_of MS:1001000 ! spectrum interpretation
-
-[Term]
 id: MS:1001214
 name: prot:global FDR
 def: "Estimation of global false discovery rate of the proteins." [PSI:PI]
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001215
@@ -7032,13 +7183,13 @@ is_a: MS:1001221 ! fragmentation information
 [Term]
 id: MS:1001242
 name: Sequest out folder
-def: "Source file for this AnalysisXML was a Sequest folder with its out files." [PSI:PI]
+def: "Source file for this mzIdentML was a Sequest folder with its out files." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001243
 name: Sequest summary
-def: "Source file for this AnalysisXML was a Sequest summary page (proteins)." [PSI:PI]
+def: "Source file for this mzIdentML was a Sequest summary page (proteins)." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -7177,28 +7328,28 @@ is_a: MS:1001266 ! role type
 [Term]
 id: MS:1001272
 name: (?<=R)(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001273
 name: (?=[BD])
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001274
 name: (?=[DE])
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001275
 name: ProteinScape SearchEvent
-def: "Source data for this AnalysisXML was a ProteinScape SearchEvent." [PSI:PI]
+def: "Source data for this mzIdentML was a ProteinScape SearchEvent." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001276
 name: ProteinScape Gel
-def: "Source data for this AnalysisXML was a ProteinScape Gel." [PSI:PI]
+def: "Source data for this mzIdentML was a ProteinScape Gel." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -7469,7 +7620,7 @@ is_a: MS:1001153 ! search engine specific score
 [Term]
 id: MS:1001330
 name: xtandem:expect
-def: "The Xtandem expectation value." [PSI:PI]
+def: "The X!Tandem expectation value." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001143 ! search engine specific score for peptides
 is_a: MS:1001153 ! search engine specific score
@@ -7477,7 +7628,7 @@ is_a: MS:1001153 ! search engine specific score
 [Term]
 id: MS:1001331
 name: xtandem:hyperscore
-def: "The tandem hyperscore." [PSI:PI]
+def: "The X!Tandem hyperscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001143 ! search engine specific score for peptides
 is_a: MS:1001153 ! search engine specific score
@@ -7485,52 +7636,52 @@ is_a: MS:1001153 ! search engine specific score
 [Term]
 id: MS:1001332
 name: (?<=[FYWL])(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001333
 name: (?<=M)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001334
 name: ((?<=D))|((?=D))
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001335
 name: (?<=K)(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001336
 name: (?<=K)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001337
 name: (?<=[FL])
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001338
 name: (?<=[FYWLKR])(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001339
 name: (?<=[KR])
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001340
 name: (?<=[BDEZ])(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001341
 name: (?<=[EZ])(?\!P)
-is_a: MS:1001180 ! regular expression
+is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001342
@@ -7661,7 +7812,7 @@ name: number of unmatched peaks
 def: "The number of unmatched peaks." [PSI:PI]
 xref: value-type:xsd\:nonNegativeInteger "The allowed value-type for this CV term."
 is_a: MS:1001116 ! single protein result details
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001363
@@ -7673,7 +7824,7 @@ id: MS:1001364
 name: pep:global FDR
 def: "Estimation of global false discovery rate of the peptides." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001213 ! search result details
+is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
 id: MS:1001365
@@ -7901,19 +8052,19 @@ is_a: MS:1001153 ! search engine specific score
 [Term]
 id: MS:1001399
 name: OMSSA csv file
-def: "Source file for this AnalysisXML was an OMSSA csv file." [PSI:PI]
+def: "Source file for this mzIdentML was an OMSSA csv file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001400
 name: OMSSA xml file
-def: "Source file for this AnalysisXML was an OMSSA xml file." [PSI:PI]
+def: "Source file for this mzIdentML was an OMSSA xml file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001401
-name: tandem xml file
-def: "Source file for this AnalysisXML was an tandem xml file." [PSI:PI]
+name: xtandem xml file
+def: "Source file for this mzIdentML was an X!Tandem xml file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -7975,23 +8126,29 @@ relationship: has_units UO:0000221 ! dalton
 [Term]
 id: MS:1001414
 name: MGF scans
-def: "This term can hold the scans attribute from an MGF input file." [PSI:PI]
+def: "OBSOLETE: replaced by MS:1000797 (peak list scans): This term can hold the scans attribute from an MGF input file." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001405 ! spectrum identification result details
+is_obsolete: true
+replaced_by: MS:1000797 ! peak list scans
 
 [Term]
 id: MS:1001415
 name: MGF raw scans
-def: "This term can hold the raw scans attribute from an MGF input file." [PSI:PI]
+def: "OBSOLETE: replaced by MS:1000798 (peak list raw scans): This term can hold the raw scans attribute from an MGF input file." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001405 ! spectrum identification result details
+is_obsolete: true
+replaced_by: MS:1000798 ! peak list raw scans
 
 [Term]
 id: MS:1001416
 name: spectrum title
-def: "Holds the spectrum title from different input file formats, e.g. MGF TITLE." [PSI:PI]
+def: "OBSOLETE: replaced by MS:1000796 (spectrum title): Holds the spectrum title from different input file formats, e.g. MGF TITLE." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001405 ! spectrum identification result details
+is_obsolete: true
+replaced_by: MS:1000796 ! spectrum title
 
 [Term]
 id: MS:1001417
@@ -8028,13 +8185,13 @@ is_a: MS:1001153 ! search engine specific score
 [Term]
 id: MS:1001421
 name: pepXML file
-def: "Source file for this AnalysisXML was a pepXML file." [PSI:PI]
+def: "Source file for this mzIdentML was a pepXML file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
 id: MS:1001422
 name: protXML file
-def: "Source file for this AnalysisXML was a protXML file." [PSI:PI]
+def: "Source file for this mzIdentML was a protXML file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
 
 [Term]
@@ -8260,6 +8417,42 @@ id: MS:1001459
 name: file format
 def: "Format of data files." [PSI:MS]
 relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
+
+[Term]
+id: MS:1001460
+name: unknown modification
+def: "This term should be given if the modification was unknown." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001000 ! spectrum interpretation
+
+[Term]
+id: MS:1001461
+name: greylag
+def: "greylag identification software, wee greylag.org." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001462
+name: PEFF format
+def: "The sequence database was stored in the PEFF (PSI enhanced FastA file) format." [PSI:PI]
+is_a: MS:1001347 ! database file formats
+
+[Term]
+id: MS:1001463
+name: Phenyx XML format
+is_a: MS:1000560 ! mass spectrometer file format
+is_a: MS:1001040 ! intermediate analysis format
+
+[Term]
+id: MS:1001464
+name: DTASelect file
+is_a: MS:1001040 ! intermediate analysis format
+
+[Term]
+id: MS:1001466
+name: MS2 file
+def: "MS2 file." [PSI:PI]
+is_a: MS:1001040 ! intermediate analysis format
 
 [Typedef]
 id: has_regexp
