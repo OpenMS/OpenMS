@@ -289,4 +289,13 @@ namespace OpenMS
 		dfs_parent_ = parent;
 	}
 	
+	Size TOPPASVertex::incomingEdgesCount()
+	{
+		return in_edges_.size();
+	}
+	
+	Size TOPPASVertex::outgoingEdgesCount()
+	{
+		return out_edges_.size();
+	}
 }

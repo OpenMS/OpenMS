@@ -34,12 +34,12 @@
 
 namespace OpenMS
 {
-	UInt TOPPASToolVertex::instance_counter = 1;
+	UInt TOPPASToolVertex::id_counter = 1;
 
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
 			param_(),
-			instance_nr_(instance_counter++)
+			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(250,200,0);
@@ -48,7 +48,7 @@ namespace OpenMS
 	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type)
 		: TOPPASVertex(name, type),
 			param_(),
-			instance_nr_(instance_counter++)
+			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(250,200,0);
@@ -57,7 +57,7 @@ namespace OpenMS
 	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
 		:	TOPPASVertex(rhs),
 			param_(rhs.param_),
-			instance_nr_(instance_counter++)
+			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(250,200,0);
@@ -90,7 +90,7 @@ namespace OpenMS
 			{
 				ini_file += type_ + "_";
 			}
-			ini_file += QString::number(instance_nr_) + ".tmp.ini";
+			ini_file += QString::number(id_) + ".tmp.ini";
 			
 			String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
 			if (type_ != "")
@@ -117,5 +117,6 @@ namespace OpenMS
 		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
 		dialog.exec();
 	}
+
 }
 

@@ -87,6 +87,10 @@ namespace OpenMS
 			EdgeIterator inEdgesBegin();
 			/// Returns end() iterator of incoming edges
 			EdgeIterator inEdgesEnd();
+			/// Returns the number of incoming edges
+			Size incomingEdgesCount();
+			/// Returns the number of outgoing edges
+			Size outgoingEdgesCount();
 			/// Adds an incoming edge
 			void addInEdge(TOPPASEdge* edge);
 			/// Adds an outgoing edge

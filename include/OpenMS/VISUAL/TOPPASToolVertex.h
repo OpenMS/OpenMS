@@ -54,7 +54,7 @@ namespace OpenMS
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
 			/// The static instance counter (for unique instance numbers)
-			static UInt instance_counter;
+			static UInt id_counter;
 			
 		protected:
 		
@@ -65,8 +65,8 @@ namespace OpenMS
 			
 			/// The parameters of the tool
 			Param param_;
-			/// The instance number
-			UInt instance_nr_;
+			/// The unique ID
+			UInt id_;
 	};
 }
 

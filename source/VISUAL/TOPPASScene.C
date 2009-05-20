@@ -29,7 +29,7 @@
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 namespace OpenMS
 {
@@ -126,12 +126,12 @@ namespace OpenMS
 			if (target != potential_target_)
 			{
 				potential_target_ = target;
-				EdgeValidity ev = getEdgeValidity_(hover_edge_->getSourceVertex(), target);
-				if (ev == EV_GREEN)
+				TOPPASEdge::EdgeValidity ev = getEdgeValidity_(hover_edge_->getSourceVertex(), target);
+				if (ev == TOPPASEdge::EV_GREEN)
 				{
 					hover_edge_->setColor(Qt::green);
 				}
-				else if (ev == EV_YELLOW)
+				else if (ev == TOPPASEdge::EV_YELLOW)
 				{
 					hover_edge_->setColor(Qt::yellow);
 				}
@@ -171,7 +171,7 @@ namespace OpenMS
 		
 		if (target && 
 				target != hover_edge_->getSourceVertex() &&
-				!(getEdgeValidity_(hover_edge_->getSourceVertex(), target) == EV_RED))
+				!(getEdgeValidity_(hover_edge_->getSourceVertex(), target) == TOPPASEdge::EV_RED))
 		{
 			hover_edge_->setTargetVertex(target);
 			TOPPASVertex* source = hover_edge_->getSourceVertex();
@@ -189,6 +189,7 @@ namespace OpenMS
 			}
 		}
 		
+		updateEdgeColors_();
 		update();
 	}
 	
@@ -252,9 +253,12 @@ namespace OpenMS
 			removeItem(vertex); // remove from scene
 			delete vertex;
 		}
+		
+		updateEdgeColors_();
+		update();
 	}
 	
-	TOPPASScene::EdgeValidity TOPPASScene::getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v)
+	TOPPASEdge::EdgeValidity TOPPASScene::getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v)
 	{
 		if (u == 0 ||
 				v == 0 ||
@@ -262,7 +266,7 @@ namespace OpenMS
 				qobject_cast<TOPPASInputVertex*>(v) ||
 				qobject_cast<TOPPASOutputVertex*>(u))
 		{
-			return EV_RED;
+			return TOPPASEdge::EV_RED;
 		}
 		
 		//insert edge between u and v for testing, is removed afterwards
@@ -297,15 +301,31 @@ namespace OpenMS
 		
 		if (graph_has_cycles)
 		{
-			return EV_RED;
+			return TOPPASEdge::EV_RED;
 		}
-		else if (false)
+		else if (u->incomingEdgesCount() > 1)
 		{
-			return EV_YELLOW;
+			return TOPPASEdge::EV_YELLOW;
 		}
 		else
 		{
-			return EV_GREEN;
+			return TOPPASEdge::EV_GREEN;
+		}
+	}
+	
+	void TOPPASScene::updateEdgeColors_()
+	{
+		foreach (TOPPASEdge* edge, edges_)
+		{
+			TOPPASToolVertex* tool_vertex = qobject_cast<TOPPASToolVertex*>(edge->getSourceVertex());
+			if (tool_vertex && tool_vertex->incomingEdgesCount() > 1)
+			{
+				edge->setColor(Qt::yellow);
+			}
+			else
+			{
+				edge->setColor(Qt::green);
+			}
 		}
 	}
 	

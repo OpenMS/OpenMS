@@ -44,6 +44,13 @@ namespace OpenMS
 		
 		public:
 			
+			/// Is a hypothetical edge valid or not? Does something have to be configured?
+			enum EdgeValidity
+			{
+				EV_RED,			// not allowed
+				EV_YELLOW,	// allowed, but must be configured first
+				EV_GREEN		// allowed and unambiguous
+			};
 			
 			/// Standard constructor
 			TOPPASEdge();

@@ -29,6 +29,7 @@
 #define OPENMS_VISUAL_TOPPASSCENE_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 
 #include <QtGui/QGraphicsScene>
 
@@ -97,14 +98,6 @@ namespace OpenMS
 			
 		protected:
 			
-			/// Is a hypothetical edge valid or not? Does something have to be configured?
-			enum EdgeValidity
-			{
-				EV_RED,			// not allowed
-				EV_YELLOW,	// allowed, but must be configured first
-				EV_GREEN		// allowed and unambiguous
-			};
-			
 			/// The current action mode
 			ActionMode action_mode_;
 			/// The list of all vertices
@@ -119,7 +112,9 @@ namespace OpenMS
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);
 			/// Returns if edge (u,v) would be a valid edge if inserted into the graph
-			EdgeValidity getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v);
+			TOPPASEdge::EdgeValidity getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v);
+			/// Updates all edge colors (color of green and yellow edges can change when edges are added/removed)
+			void updateEdgeColors_();
 			/// DFS helper method. Returns true, if a back edge has been discovered
 			bool dfsVisit_(TOPPASVertex* vertex);
 	};
