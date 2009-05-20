@@ -50,24 +50,18 @@ namespace OpenMS
 		{
 			typedef typename IteratorT::value_type::IntensityType value_type;
 
-			/// "Why this?" - We need getIntensity return a reference, not a value.
-			struct Peak1D_ : Peak1D
-			{
-				Peak1D::IntensityType& getIntensity() { return intensity_; }
-			};
-
 			IntensityIteratorWrapper( const IteratorT& rhs ) : IteratorT(rhs) {}
 
 			// To avoid further complication this provides mutable access even if IteratorT is const.
-			value_type & operator*()
+			value_type operator*()
 			{
-				return static_cast<Peak1D_&>(const_cast<Peak1D&>(IteratorT::operator*())).getIntensity();
+				return IteratorT::operator*().getIntensity();
 			}
 
 			// To avoid further complication this provides mutable access even if IteratorT is const.
-			template <typename IndexT> value_type & operator[](const IndexT& rhs)
+			template <typename IndexT> value_type operator[](const IndexT& rhs)
 			{
-				return static_cast<Peak1D_&>(const_cast<Peak1D&>(IteratorT::operator[](rhs))).getIntensity();
+				return (IteratorT::operator[](rhs)).getIntensity();
 			}
 
 			template <typename IndexT> IntensityIteratorWrapper operator+(const IndexT& rhs) const
