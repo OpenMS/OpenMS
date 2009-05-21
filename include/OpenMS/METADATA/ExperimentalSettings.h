@@ -76,11 +76,11 @@ namespace OpenMS
       /// sets the sample description
       void setSample(const Sample& sample);
 
-			/// returns a const reference to the source date file
+			/// returns a const reference to the source data file
       const std::vector<SourceFile>& getSourceFiles() const;
-      /// returns a mutable reference to the source date file
+      /// returns a mutable reference to the source data file
       std::vector<SourceFile>& getSourceFiles();
-      /// sets the source date file
+      /// sets the source data file
       void setSourceFiles(const std::vector<SourceFile>& source_files);
 
 			/// returns a const reference to the list of contact persons
