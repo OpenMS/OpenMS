@@ -18,7 +18,6 @@ MetaDataBrowser.C
 MultiGradient.C
 MultiGradientSelector.C
 ParamEditor.C
-PeakIcon.C
 Spectrum1DCanvas.C
 Spectrum1DWidget.C
 Spectrum2DCanvas.C

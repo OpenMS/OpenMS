@@ -1,4 +1,35 @@
 ------------------------------------------------------------------------------------------
+----                                  OpenMS 1.5                                      ----
+------------------------------------------------------------------------------------------
+
+Main improvements of TOPPView:
+
+Main improvements of TOPP:
+
+Main improvements of OpenMS C++ library:
+- mzML 1.1.0 support
+
+
+Changes to OpenMS XML formats:
+
+Detailed list of changes to specific OpenMS classes
+- New classes
+- Removed classes
+  - PeakIcon was removed as it is not needed anymore
+  - FactoryProduct was removed as it is not needed anymore (replaced by DefaultParamHandler) 
+- Changes to Classes
+  - Moved DataProcessing from ExperimentalSettings to SpectrumSettings (for mzML)
+  - Precursor now supports multiple dissociation methods
+Changes to the contrib package:
+- Added CoinMP 1.3.3
+
+Bug fixes:
+- [2778461]: mzData files containing 'supDataArray' elements no longer crash OpenMS 
+- [2777173]: TOPPView 2D view projections no longer forget the draw mode on repaint
+- [2776386]: TOPPView snap-to-max intensity mode no longer crashes with empty spectra
+- [2775912]: PeakPickerCWT no longer assigns RT=-1 to MS/MS spectra
+
+------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.4                                      ----
 ------------------------------------------------------------------------------------------
 

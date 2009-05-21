@@ -37,7 +37,6 @@
 #include <QtGui/QInputDialog>
  
 // OpenMS
-#include <OpenMS/VISUAL/PeakIcon.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>

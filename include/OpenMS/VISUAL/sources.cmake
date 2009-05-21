@@ -61,7 +61,6 @@ MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
 ParamEditor.h
-PeakIcon.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
