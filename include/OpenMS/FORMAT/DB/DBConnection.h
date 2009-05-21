@@ -46,7 +46,9 @@ namespace OpenMS
   	@brief A class for connecting to a SQL database
     
     @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
-    
+   	
+		@todo Do not call first in the executeQuery method (HiWi)
+
     @ingroup DatabaseIO
   */
   class OPENMS_DLLAPI DBConnection
@@ -108,7 +110,11 @@ namespace OpenMS
 			/// returns if a connection is established.
 			bool isConnected() const;
 			
-      ///disconnects from the SQL database.
+      /**
+				@brief disconnects from the SQL database
+
+				@note In order to disconnect, all queries running on a database must be closed. See the QSqlDatabase::removeDatabase(...) documentation.
+			*/
       void disconnect();
 
       /**
