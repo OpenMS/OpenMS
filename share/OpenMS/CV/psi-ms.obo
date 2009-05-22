@@ -4,13 +4,13 @@ saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.4.0
-remark: release date: 2009-05-19
+remark: version: 2.6.0
+remark: release date: 2009-05-22
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>, Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de> 
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
-import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.20
+import: import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.20
 
 [Term]
 id: MS:0000000
@@ -6296,8 +6296,13 @@ is_a: MS:1001085 ! protein result details
 [Term]
 id: MS:1001090
 name: taxonomy nomenclature
-def: "The system used to indicate taxonomy. There should be an enumerated list of options: latin name, NCBI TaxID, common name, Swiss-Prot species ID (ex. RABIT from the full protein ID ALBU_RABIT)." [PSI:PI]
+def: "OBSOLETE: The system used to indicate taxonomy. There should be an enumerated list of options: latin name, NCBI TaxID, common name, Swiss-Prot species ID (ex. RABIT from the full protein ID ALBU_RABIT)." [PSI:PI]
 is_a: MS:1001089 ! protein taxonomy
+is_obsolete: true
+replaced_by: MS:1001467 ! taxonomy: NCBI TaxID
+replaced_by: MS:1001468 ! taxonomy: common name
+replaced_by: MS:1001469 ! taxonomy: scientific name
+replaced_by: MS:1001470 ! taxonomy: Swiss-Prot ID
 
 [Term]
 id: MS:1001091
@@ -7011,6 +7016,13 @@ def: "Mass type setting for parent mass was average isotopic." [PSI:PI]
 is_a: MS:1001210 ! mass type settings
 
 [Term]
+id: MS:1001213 	 
+name: search result details 	 
+def: "OBSOLETE: Scores and global result characteristics." [PSI:PI]
+relationship: part_of MS:1000479 ! purgatory
+is_obsolete: true
+
+[Term]
 id: MS:1001214
 name: prot:global FDR
 def: "Estimation of global false discovery rate of the proteins." [PSI:PI]
@@ -7295,7 +7307,7 @@ is_a: MS:1001066 ! ions series considered in search
 id: MS:1001266
 name: role type
 def: "Role of a Person or Organization." [PSI:PI]
-relationship: part_of MS:1001000 ! spectrum interpretation
+is_a: MS:1000585 ! contact person attribute
 
 [Term]
 id: MS:1001267
@@ -8423,7 +8435,7 @@ id: MS:1001460
 name: unknown modification
 def: "This term should be given if the modification was unknown." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001000 ! spectrum interpretation
+is_a: MS:1001471 ! peptide modification details
 
 [Term]
 id: MS:1001461
@@ -8453,6 +8465,42 @@ id: MS:1001466
 name: MS2 file
 def: "MS2 file." [PSI:PI]
 is_a: MS:1001040 ! intermediate analysis format
+
+[Term]
+id: MS:1001467
+name: taxonomy: NCBI TaxID
+def: "This term is used if a NCBI TaxID is specified, e.g. 9606 for Homo sapiens." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001089 ! protein taxonomy
+
+[Term]
+id: MS:1001468
+name: taxonomy: common name
+def: "This term is used if a common name is specified, e.g. human." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001089 ! protein taxonomy
+
+
+[Term]
+id: MS:1001469
+name: taxonomy: scientific name
+def: "This term is used if a scientific name is specified, e.g. Homo sapiens." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001089 ! protein taxonomy
+
+
+[Term]
+id: MS:1001470
+name: taxonomy: Swiss-Prot ID
+def: "This term is used if a swiss prot taxonomy id is specified, e.g. Human." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001089 ! protein taxonomy
+
+[Term]
+id: MS:1001471
+name: peptide modification details
+def: "The children of this term can be used to describe modifications." [PSI:PI]
+relationship: part_of MS:1001000 ! spectrum interpretation
 
 [Typedef]
 id: has_regexp
