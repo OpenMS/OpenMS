@@ -72,6 +72,8 @@ namespace OpenMS
 			@brief XML handler for MzMLFile
 			
 			MapType has to be a MSExperiment or have the same interface.
+			
+			@todo Store intensity array with 32 bit precision (Marc)
 
 			@note Do not use this class. It is only needed in MzMLFile.
 		*/

@@ -40,7 +40,9 @@ namespace OpenMS
   	
   	Interface for all classes that can be stored persistently in the OpenMS DB.
   	
-  	@ingroup Format
+		@todo Move to DB folder (Marc)
+
+  	@ingroup DatabaseIO
   */
   class OPENMS_DLLAPI PersistentObject
   {
