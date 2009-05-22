@@ -81,11 +81,13 @@ namespace OpenMS {
   {
 
 		// Tandem MS params
+		defaults_.setValue("enabled", "true", "Create Tandem-MS scans?"); 
+		defaults_.setValidStrings("enabled", StringList::create("true,false"));
 
 		//TODO: we should think of more ways to select precursors
-		defaults_.setValue("PrecursorSelectionCount", 4, "Maximal number of precursors selected in each scan."); 
-		defaults_.setMinFloat ("PrecursorSelectionCount", 1);
-		defaults_.setMaxFloat ("PrecursorSelectionCount", 10);
+		defaults_.setValue("Precursor:ChargeFilter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation."); 
+		defaults_.setMinInt("Precursor:ChargeFilter",1);
+		defaults_.setMaxInt("Precursor:ChargeFilter",30);
 
 
 		// iTRAQ
@@ -137,21 +139,77 @@ namespace OpenMS {
   void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
 
-		// precursor selection:
+	struct RT_lower {
+		
+		bool operator()(MSSimExperiment::SpectrumType x, DoubleReal y) 
+    { return x.getRT() > y; }
 
+	};
+
+		if (param_.getValue("enabled") == "false") return;
+
+		// will hold the selected precursors
+		MSSimExperiment ms2;
+		IntList qs = (IntList) param_.getValue("Precursor:ChargeFilter");
+		std::set<Int> qs_set(qs.begin(),qs.end());
+
+		//** precursor selection **//
+
+		//TODO: introduce white & blacklists?
+		//TODO: introduce some notion of MALDI spot capacity
+		
+		// current dummy function: naively select 40 highest intensity features
+		features.sortByIntensity(true);
+		for (Size i=0; i<40 && i<features.size(); ++i)
+		{
+
+			// charge not in "ChargeFilter" list
+			if (qs_set.count(features[i].getCharge())<1) continue;
+			
+
+			MSSimExperiment::iterator scan = lower_bound( experiment.begin(), experiment.end(), features[i].getRT(), RT_lower());
+			MSSimExperiment::SpectrumType ms2_spec;
+			Precursor p;
+			std::vector< Precursor > pcs;
+			p.setIntensity(features[i].getIntensity());
+			p.setMZ(features[i].getMZ());
+			p.setCharge(features[i].getCharge());
+			pcs.push_back(p);
+			ms2_spec.setPrecursors(pcs);
+			ms2_spec.setRT(scan->getRT());
+			ms2.push_back(ms2_spec);
+			// link ms2 spectrum with features overlapping its precursor
+			// Warning: this depends on the current order of features in the map
+			ms2.setMetaValue("parent_feature_ids", String(i));
+			std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
+		}
+
+		//** actual MS2 signal **//
 
 		// TODO: Sandro, your turn :)
 
 
-		// iTRAQ stuff
+		//** iTRAQ reporters **//
 		if (param_.getValue("iTRAQ:enable_iTRAQ") == "true")
 		{
 				// apply isotope matrix to active channels
 
 				// add signal...
 
+			for (MSSimExperiment::iterator it=ms2.begin(); it!=ms2.end();++it)
+			{
+				MSSimExperiment::SpectrumType::PeakType p;
+				// dummy
+				p.setMZ(114.1);
+				p.setIntensity(100);
+				it->push_back(p);
+			}
 		}
 		
+
+		// append MS2 to experiment
+		experiment.insert(experiment.end(), ms2.begin(), ms2.end());
+
   }
   
 }
