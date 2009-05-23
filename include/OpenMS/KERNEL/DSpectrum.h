@@ -49,6 +49,8 @@ namespace OpenMS
 
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		intensity of the peaks is provided by RangeManager.
+		
+		@todo Remove and along with DRichPeak, update OpenMS tutorial (Marc)
 
 		@ingroup Kernel
 	*/

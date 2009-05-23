@@ -84,13 +84,13 @@
 
 @page tutorial_structure Structure of %OpenMS
 
-The following	image shows the overall structure of OpenMS:
+The following	image shows the overall structure of %OpenMS:
 
 @image html Structure.png "Overall design of OpenMS."
 @image latex Structure.png "Overall design of OpenMS." width=14cm
 
-Without looking into the details of OpenMS the situation is very simple. Applications
-can be implemented using OpenMS, which in turn relies on several external
+Without looking into the details of %OpenMS the situation is very simple. Applications
+can be implemented using %OpenMS, which in turn relies on several external
 libraries: <i>Qt</i> provides visualization, database support and a
 platform abstraction layer. <i>Xerces</i> allows XML file parsing.
 <i>libSVM</i> is used for machine learning tasks. The <i>Computational
@@ -98,7 +98,7 @@ Geometry Algorithms Library</i> (CGAL) provides data structures and
 algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL)
 is used for different mathematical and statistical tasks.
 
-OpenMS can itself be subdivided into several layers. At the very
+%OpenMS can itself be subdivided into several layers. At the very
 bottom are the foundation classes which implement low-level concepts and
 data structures. They include basic concepts (e.g. factory pattern, exception
 handling), basic data structures (e.g. string, points, ranges) and
@@ -536,13 +536,12 @@ file formats, data reduction functionality and all other analysis algorithms.
 @section metadata_experiment Meta data of a map
 
   This class holds meta information about the experiment that is valid for the whole experiment:
-  - protein identifications
-  - MS instrument
+  - sample description
   - source files
   - contact persons
-  - sample description
-  - processing performed on the data
+  - MS instrument
   - HPLC settings
+  - protein identifications
 
   @image html ExperimentalSettings.png "Map meta information"
   @image latex ExperimentalSettings.png "Map meta information" width=10cm
@@ -553,13 +552,15 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   This class contains meta information about settings specific to one spectrum:
   - spectrum-specific instrument settings
-  - peptide and protein identifications
-  - precursor information (of MS/MS spectra)
-  - information on the acquisition
   - source file
+  - information on the acquisition
+  - precursor information (e.g. for MS/MS spectra)
+  - product information (e.g. for SRM spectra)
+  - processing performed on the data
+  - peptide identifications
 
   @image html SpectrumSettings.png "Spectrum meta information"
-  @image latex SpectrumSettings.png "Spectrum meta information" width=7cm
+  @image latex SpectrumSettings.png "Spectrum meta information" width=10cm
 
 @section metadata_peaks Meta data associated to peaks
 
