@@ -27,7 +27,8 @@
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const gsl_rng * random_generator)
   : DefaultParamHandler("RawTandemMSSignalSimulation"), rnd_gen_(random_generator),
@@ -138,14 +139,6 @@ namespace OpenMS {
 
   void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
-
-	struct RT_lower {
-		
-		bool operator()(MSSimExperiment::SpectrumType x, DoubleReal y) 
-    { return x.getRT() > y; }
-
-	};
-
 		if (param_.getValue("enabled") == "false") return;
 
 		// will hold the selected precursors
@@ -167,7 +160,7 @@ namespace OpenMS {
 			if (qs_set.count(features[i].getCharge())<1) continue;
 			
 
-			MSSimExperiment::iterator scan = lower_bound( experiment.begin(), experiment.end(), features[i].getRT(), RT_lower());
+			MSSimExperiment::iterator scan = experiment.RTBegin(features[i].getRT());
 			MSSimExperiment::SpectrumType ms2_spec;
 			Precursor p;
 			std::vector< Precursor > pcs;
