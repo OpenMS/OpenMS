@@ -589,33 +589,73 @@ END_SECTION
 
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
+	
+	//test with full file
+	{
+		//load map
+		MSExperiment<> exp_original;
+		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+	 	//store map
+		std::string tmp_filename;
+	 	NEW_TMP_FILE(tmp_filename);
+		file.store(tmp_filename,exp_original);
+		//load written map
+		MSExperiment<> exp;
+		file.load(tmp_filename,exp);
+		//test if everything worked
+		TEST_EQUAL(exp==exp_original,true)
+		//NOTE: If it does not work, use this code to find out where the difference is
+//		TEST_EQUAL(exp.size()==exp_original.size(),true)
+//		TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
+//		TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
+//		TEST_EQUAL(exp[0]==exp_original[0],true);
+//		TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
+//		TEST_EQUAL(exp[1]==exp_original[1],true);
+//		TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
+//		TEST_EQUAL(exp[2]==exp_original[2],true);
+//		TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
+//		TEST_EQUAL(exp[3]==exp_original[3],true);
+	}
+	
+	//test with empty map
+	{
+		
+		MSExperiment<> empty, exp;
+		
+		//this will be set when writing (forced by mzML)
+		empty.getInstrument().getSoftware().setName("custom unreleased software tool");
+		
+		std::string tmp_filename;
+		NEW_TMP_FILE(tmp_filename);
+		file.store(tmp_filename,empty);
+		file.load(tmp_filename,exp);
+		TEST_EQUAL(exp==empty,true)
+	}
+	
+	//test with one empty spectrum
+	{
+		MSExperiment<> empty, exp;
+		empty.resize(1);
+		
+		//this will be set when writing (forced by mzML)
+		empty.getInstrument().getSoftware().setName("custom unreleased software tool");
+		empty[0].setNativeID("spectrum=0");
+		empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+		empty[0].getDataProcessing().resize(1);
+		empty[0].getDataProcessing()[0].getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
+		empty[0].getDataProcessing()[0].getSoftware().setName("custom unreleased software tool");
+		
+		std::string tmp_filename;
+		NEW_TMP_FILE(tmp_filename);
+		file.store(tmp_filename,empty);
+		file.load(tmp_filename,exp);
+		TEST_EQUAL(exp==empty,true)
 
-	//load map
-	MSExperiment<> exp_original;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
-
- 	//store map
-	std::string tmp_filename;
- 	NEW_TMP_FILE(tmp_filename);
-	file.store(tmp_filename,exp_original);
-
-	//load written map
-	MSExperiment<> exp;
-	file.load(tmp_filename,exp);
-
-	//test if everything worked
-	TEST_EQUAL(exp==exp_original,true)
-//NOTE: If it does not work, use this code to find out where the difference is
-//	TEST_EQUAL(exp.size()==exp_original.size(),true)
-//	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-//	TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
-//	TEST_EQUAL(exp[0]==exp_original[0],true);
-//	TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
-//	TEST_EQUAL(exp[1]==exp_original[1],true);
-//	TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
-//	TEST_EQUAL(exp[2]==exp_original[2],true);
-//	TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
-//	TEST_EQUAL(exp[3]==exp_original[3],true);
+		TEST_EQUAL(exp.size()==empty.size(),true)
+		TEST_EQUAL(exp.ExperimentalSettings::operator==(empty),true)
+		TEST_EQUAL(exp[0].SpectrumSettings::operator==(empty[0]),true)
+		TEST_EQUAL(exp[0]==empty[0],true);
+	}
 
 END_SECTION
 

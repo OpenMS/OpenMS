@@ -1506,7 +1506,11 @@ namespace OpenMS
 			else if (parent_tag=="instrumentConfiguration")
 			{
 				//instrument model
-				if (accession=="MS:1000031" || cv_.isChildOf(accession,"MS:1000031")) //instrument name as string
+				if (accession=="MS:1000031")
+				{
+					//unknown instrument => notthing to do
+				}
+				else if (cv_.isChildOf(accession,"MS:1000031")) //instrument name as string
 				{
 					instruments_[current_id_].setName(cv_.getTerm(accession).name);
 				}
@@ -2363,7 +2367,7 @@ namespace OpenMS
 		{
 			os  << "		<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
 			ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531",software.getName());
-			if (so_term.id!="")
+			if (so_term.id!="" && software.getName()!="custom unreleased software tool")
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
 			}
@@ -3516,67 +3520,50 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//scan list
 					//--------------------------------------------------------------------------------------------
-					os	<< "				<scanList count=\"" << std::max((Size)1,spec.getAcquisitionInfo().size()) << "\">\n";
-					ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570",spec.getAcquisitionInfo().getMethodOfCombination());
-					if (ai_term.id!="")
+					if (spec.getAcquisitionInfo().size()!=0)
 					{
-						os  << "					<cvParam cvRef=\"MS\" accession=\"" << ai_term.id <<"\" name=\"" << ai_term.name << "\" />\n";
-					}
-					else
-					{
-						os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\" />\n";
-					}
-					writeUserParam_(os, spec.getAcquisitionInfo(), 5);
-					//--------------------------------------------------------------------------------------------
-					//scan
-					//--------------------------------------------------------------------------------------------
-					for (Size j=0; j<spec.getAcquisitionInfo().size(); ++j)
-					{
-						const Acquisition& ac = spec.getAcquisitionInfo()[j];
-						os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
-						if (j==0)
+						os	<< "				<scanList count=\"" << spec.getAcquisitionInfo().size() << "\">\n";
+						ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570",spec.getAcquisitionInfo().getMethodOfCombination());
+						if (ai_term.id!="")
 						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+							os  << "					<cvParam cvRef=\"MS\" accession=\"" << ai_term.id <<"\" name=\"" << ai_term.name << "\" />\n";
 						}
-						writeUserParam_(os, ac, 6);
-						//scan windows
-						if (j==0 && spec.getInstrumentSettings().getScanWindows().size()!=0)
+						else
 						{
-							os	<< "						<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
-							for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+							os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\" />\n";
+						}
+						writeUserParam_(os, spec.getAcquisitionInfo(), 5);
+						
+						//--------------------------------------------------------------------------------------------
+						//scan
+						//--------------------------------------------------------------------------------------------
+						for (Size j=0; j<spec.getAcquisitionInfo().size(); ++j)
+						{
+							const Acquisition& ac = spec.getAcquisitionInfo()[j];
+							os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
+							if (j==0)
 							{
-								os	<< "							<scanWindow>\n";
-								os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-								os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-								writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
-								os	<< "							</scanWindow>\n";
+								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 							}
-							os	<< "						</scanWindowList>\n";
-						}
-						os	<< "					</scan>\n";
-					}
-					if (spec.getAcquisitionInfo().size()==0)
-					{
-						os	<< "					<scan>\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-					
-						//scan windows
-						if (spec.getInstrumentSettings().getScanWindows().size()!=0)
-						{
-							os	<< "					<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
-							for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+							writeUserParam_(os, ac, 6);
+							//scan windows
+							if (j==0 && spec.getInstrumentSettings().getScanWindows().size()!=0)
 							{
-								os	<< "						<scanWindow>\n";
-								os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-								os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-								writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
-								os	<< "						</scanWindow>\n";
+								os	<< "						<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
+								for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+								{
+									os	<< "							<scanWindow>\n";
+									os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+									os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+									writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
+									os	<< "							</scanWindow>\n";
+								}
+								os	<< "						</scanWindowList>\n";
 							}
-							os	<< "						</scanWindowList>\n";
+							os	<< "					</scan>\n";
 						}
-						os	<< "					</scan>\n";
+						os	<< "				</scanList>\n";
 					}
-					os	<< "				</scanList>\n";
 					//--------------------------------------------------------------------------------------------
 					//precursor list
 					//--------------------------------------------------------------------------------------------
