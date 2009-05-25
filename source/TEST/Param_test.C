@@ -615,7 +615,7 @@ START_SECTION((const ParamEntry& getEntry(const String &key) const))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 END_SECTION
 
-START_SECTION((void setValue(const String &key, const String &value, const String &description="", const StringList &tags=StringList())))
+START_SECTION((void setValue(const String &key, const DataValue& value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.exists("key"), true)
@@ -638,69 +638,6 @@ START_SECTION((void setValue(const String &key, const String &value, const Strin
 	TEST_EQUAL(p.getValue("key:key"), "value2")
 	TEST_EQUAL(p.getDescription("key:key"), "description2")
 	TEST_EQUAL(p.hasTag("key:key","advanced"), false)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, Int value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",-5,"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL((Int)p.getValue("key"),-5)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, UInt value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",5u,"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL((Int)p.getValue("key"),5u)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, Real value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",11.4f,"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_REAL_SIMILAR(p.getValue("key"), 11.4f)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, DoubleReal value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",11.5,"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_REAL_SIMILAR(p.getValue("key"), 11.5)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, const StringList &value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",StringList::create("a,b,c,d"),"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL(p.getValue("key"), StringList::create("a,b,c,d"))
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, const IntList &value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",IntList::create("1,2,3"),"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL(p.getValue("key"), IntList::create("1,2,3"))
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-END_SECTION
-
-START_SECTION((void setValue(const String &key, const DoubleList &value, const String &description="", const StringList &tags=StringList())))
-	Param p;
-	p.setValue("key",DoubleList::create("11.5,3.44"),"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL(p.getValue("key"), DoubleList::create("11.5,3.44"))
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
 START_SECTION((StringList getTags(const String& key) const))

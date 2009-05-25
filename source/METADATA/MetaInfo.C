@@ -88,57 +88,6 @@ namespace OpenMS
 		return DataValue::EMPTY;
 	}
 
-
-	void MetaInfo::setValue(const String& name, const String& value)
-	{
-		index_to_value_[registry_.getIndex(name)] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(UInt index, const String& value)
-	{
-		index_to_value_[index] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(const String& name, Int value)
-	{
-		index_to_value_[registry_.getIndex(name)] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(UInt index, Int value)
-	{
-		index_to_value_[index] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(const String& name, UInt value)
-	{
-		index_to_value_[registry_.getIndex(name)] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(UInt index, UInt value)
-	{
-		index_to_value_[index] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(const String& name, Real value)
-	{
-		index_to_value_[registry_.getIndex(name)] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(UInt index, Real value)
-	{
-		index_to_value_[index] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(const String& name, DoubleReal value)
-	{
-		index_to_value_[registry_.getIndex(name)] = DataValue(value);
-	}
-
-	void MetaInfo::setValue(UInt index, DoubleReal value)
-	{
-		index_to_value_[index] = DataValue(value);
-	}
-
 	void MetaInfo::setValue(const String& name, const DataValue& value)
 	{
 		index_to_value_[registry_.getIndex(name)] = value;

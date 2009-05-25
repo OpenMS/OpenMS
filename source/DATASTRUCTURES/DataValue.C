@@ -118,6 +118,16 @@ namespace OpenMS
 	{ 
 		data_.str_ = new String(p);
 	}
+
+	DataValue::DataValue(const string& p): value_type_(STRING_VALUE)
+	{ 
+		data_.str_ = new String(p);
+	}
+
+	DataValue::DataValue(const QString& p): value_type_(STRING_VALUE)
+	{ 
+		data_.str_ = new String(p);
+	}
 	
 	DataValue::DataValue(const String& p): value_type_(STRING_VALUE)
 	{ 

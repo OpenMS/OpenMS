@@ -57,8 +57,6 @@ namespace OpenMS
  
 		@see DefaultParamHandler
 		
-		@todo setValue with DataValue? (Marc)
-		
 		@ingroup Datastructures
 	*/
 	class OPENMS_DLLAPI Param
@@ -233,78 +231,14 @@ namespace OpenMS
 			///@name Accessors for single parameters
 			//@{
 			/**
-				@brief Set an Int value.
+				@brief Sets a value.
 				
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param tags list of tags associated to this parameter
 			*/
-			void setValue(const String& key, Int value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a UInt value.
-				
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, UInt value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a float value.
-
-				@param key String key. Can contain ':'which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, Real value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a double value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, DoubleReal value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a string value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const String& value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a string list value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const StringList& value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a integer list value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const IntList& value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a double list value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const DoubleList& value, const String& description="", const StringList& tags=StringList());
-
+			void setValue(const String& key, const DataValue& value, const String& description="", const StringList& tags=StringList());
 			/**
 				@brief Returns a value of a parameter.
 			

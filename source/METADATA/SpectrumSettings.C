@@ -87,6 +87,17 @@ namespace OpenMS
 
   bool SpectrumSettings::operator== (const SpectrumSettings& rhs) const
   {
+//		if (type_ != rhs.type_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (native_id_ != rhs.native_id_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (comment_ != rhs.comment_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (instrument_settings_ != rhs.instrument_settings_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (acquisition_info_ != rhs.acquisition_info_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (source_file_ != rhs.source_file_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (precursors_ != rhs.precursors_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (identification_ != rhs.identification_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (products_ != rhs.products_) cout << "SpectrumSettings - " << __LINE__ << endl;
+//		if (data_processing_ != rhs.data_processing_) cout << "SpectrumSettings - " << __LINE__ << endl;
+
   	return
 	   	type_ == rhs.type_ &&
 	 		native_id_ == rhs.native_id_ &&

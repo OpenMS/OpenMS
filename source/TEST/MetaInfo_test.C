@@ -61,7 +61,11 @@ START_SECTION((static MetaInfoRegistry& registry()))
 	TEST_EQUAL (mi.registry().getIndex("testname"),1024);
 END_SECTION
 
-START_SECTION((void setValue(UInt index, const String& value)))
+START_SECTION((void setValue(const String& name, const DataValue& value)))
+	NOT_TESTABLE //tested in the get method
+END_SECTION
+
+START_SECTION((void setValue(UInt index, const DataValue& value)))
 	NOT_TESTABLE //tested in the get method
 END_SECTION
 
@@ -72,10 +76,6 @@ START_SECTION((const DataValue& getValue(UInt index) const))
 	TEST_EQUAL(tmp,"testtesttest")
 END_SECTION
 
-START_SECTION((void setValue(const String& name, const String& value)))
-	NOT_TESTABLE //tested in the get method
-END_SECTION
-
 START_SECTION((const DataValue& getValue(const String& name) const))
 	string tmp;
 	mi.setValue("testname",String("testtesttest2"));
@@ -83,61 +83,8 @@ START_SECTION((const DataValue& getValue(const String& name) const))
 	TEST_EQUAL(tmp,"testtesttest2")
 END_SECTION
 
-START_SECTION((void setValue(const String& name, Int value)))
-	Int tmp;
-	mi.setValue("cluster_id",-4711);
-	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,-4711)
-END_SECTION
-
-START_SECTION((void setValue(const String& name, DoubleReal value)))
-	double tmp;
-	mi.setValue("cluster_id",4711.1234);
-	tmp = double(mi.getValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4711.1234)
-END_SECTION
-
-START_SECTION((void setValue(UInt index, Int value)))
-	Int tmp;
-	mi.setValue(2,-4712);
-	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,-4712)
-END_SECTION
-
-START_SECTION((void setValue(UInt index, DoubleReal value)))
-	double tmp;
-	mi.setValue(2,4712.1234);
-	tmp = double(mi.getValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4712.1234)
-END_SECTION
-
-START_SECTION((void setValue(const String& name, UInt value)))
-	Int tmp;
-	mi.setValue("cluster_id",4711u);
-	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,4711u)
-END_SECTION
-
-START_SECTION((void setValue(const String& name, Real value)))
-	double tmp;
-	mi.setValue("cluster_id",4711.12f);
-	tmp = double(mi.getValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4711.12f)
-END_SECTION
-
-START_SECTION((void setValue(UInt index, UInt value)))
-	Int tmp;
-	mi.setValue(2,4712u);
-	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,4712u)
-END_SECTION
-
-START_SECTION((void setValue(UInt index, Real value)))
-	double tmp;
-	mi.setValue(2,4712.12f);
-	tmp = double(mi.getValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4712.12f)
-END_SECTION
+mi.setValue("cluster_id",4711.12f);
+mi.setValue(2,4712.12f);
 
 START_SECTION((bool empty() const))
 	MetaInfo tmp;
@@ -157,20 +104,6 @@ START_SECTION((MetaInfo& operator = (const MetaInfo& rhs)))
 	mi3 = mi;
 	TEST_REAL_SIMILAR(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
 	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
-END_SECTION
-
-START_SECTION((void setValue(const String& name, const DataValue& value)))
-	DataValue tmp("testtesttest3");
-	mi.setValue("testname",tmp);
-	tmp = String(mi.getValue("testname"));
-	TEST_EQUAL(tmp,"testtesttest3")
-END_SECTION
-
-START_SECTION((void setValue(UInt index, const DataValue& value)))
-	DataValue tmp("testtesttest3");
-	mi.setValue(2,tmp);
-	tmp = String(mi.getValue(2));
-	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void getKeys(std::vector<String>& keys) const))

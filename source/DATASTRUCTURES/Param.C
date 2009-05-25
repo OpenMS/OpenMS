@@ -339,44 +339,9 @@ namespace OpenMS
 		return root_ == rhs.root_;
 	}	
 	
-	void Param::setValue(const String& key, Int value, const String& description, const StringList& tags)
+	void Param::setValue(const String& key, const DataValue& value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, UInt value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-	
-	void Param::setValue(const String& key, Real value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, DoubleReal value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, const String& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, const StringList& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, const DoubleList& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, const IntList& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
+		root_.insert(ParamEntry("",value,description,tags),key);
 	}
 
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)

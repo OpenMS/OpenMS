@@ -138,66 +138,6 @@ namespace OpenMS
 		return meta_->exists(index);
 	}
 
-	void MetaInfoInterface::setMetaValue(const String& name, const String& value)
-	{
-		createIfNotExists_();
-		meta_->setValue(name,value);
-	}
-
-	void MetaInfoInterface::setMetaValue(UInt index, const String& value)
-	{
-		createIfNotExists_();
-		meta_->setValue(index,value);			
-	}
-
-	void MetaInfoInterface::setMetaValue(const String& name, Int value)
-	{
-		createIfNotExists_();
-		meta_->setValue(name,value);			
-	}
-
-	void MetaInfoInterface::setMetaValue(UInt index, Int value)
-	{
-		createIfNotExists_();
-		meta_->setValue(index,value);				
-	}
-
-	void MetaInfoInterface::setMetaValue(const String& name, UInt value)
-	{
-		createIfNotExists_();
-		meta_->setValue(name,value);			
-	}
-
-	void MetaInfoInterface::setMetaValue(UInt index, UInt value)
-	{
-		createIfNotExists_();
-		meta_->setValue(index,value);				
-	}
-
-	void MetaInfoInterface::setMetaValue(const String& name, Real value)
-	{
-		createIfNotExists_();
-		meta_->setValue(name,value);			
-	}
-
-	void MetaInfoInterface::setMetaValue(UInt index, Real value)
-	{
-		createIfNotExists_();
-		meta_->setValue(index,value);				
-	}
-
-	void MetaInfoInterface::setMetaValue(const String& name, DoubleReal value)
-	{
-		createIfNotExists_();
-		meta_->setValue(name,value);			
-	}
-
-	void MetaInfoInterface::setMetaValue(UInt index, DoubleReal value)
-	{
-		createIfNotExists_();
-		meta_->setValue(index,value);				
-	}
-	
 	void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
 	{
 		createIfNotExists_();

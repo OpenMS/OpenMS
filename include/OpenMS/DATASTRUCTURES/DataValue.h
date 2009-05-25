@@ -73,8 +73,12 @@ namespace OpenMS
 			DataValue();
 			/// specific constructor for char* (converted to string)
 			DataValue(const char*);
+			/// specific constructor for std::string values
+			DataValue(const std::string&);
 			/// specific constructor for string values
 			DataValue(const String&);
+			/// specific constructor for QString values
+			DataValue(const QString&);
 			/// specific constructor for string lists
 			DataValue(const StringList&);
 			/// specific constructor for integer lists

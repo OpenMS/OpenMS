@@ -61,11 +61,11 @@ START_SECTION((static MetaInfoRegistry& metaRegistry()))
 	TEST_EQUAL(mi.metaRegistry().getIndex("testname"),1024);
 END_SECTION
 
-START_SECTION((void setMetaValue(UInt index, const String& value)))
+START_SECTION((void setMetaValue(const String& name, const DataValue& value)))
 	NOT_TESTABLE //tested in the get method
 END_SECTION
 
-START_SECTION((void setMetaValue(const String& name, const String& value)))
+START_SECTION((void setMetaValue(UInt index, const DataValue& value)))
 	NOT_TESTABLE //tested in the get method
 END_SECTION
 
@@ -79,61 +79,8 @@ START_SECTION((const DataValue& getMetaValue(const String& name) const))
 	TEST_STRING_EQUAL(mi.getMetaValue("testname"),"testtesttest2");
 END_SECTION
 
-START_SECTION((void setMetaValue(const String& name, Int value)))
-	Int tmp;
-	mi.setMetaValue("cluster_id",-4711);
-	tmp = Int(mi.getMetaValue("cluster_id"));
-	TEST_EQUAL(tmp,-4711)
-END_SECTION
-
-START_SECTION((void setMetaValue(const String& name, DoubleReal value)))
-	double tmp;
-	mi.setMetaValue("cluster_id",4711.1234);
-	tmp = double(mi.getMetaValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4711.1234)
-END_SECTION
-
-START_SECTION((void setMetaValue(UInt index, Int value)))
-	Int tmp;
-	mi.setMetaValue(2,-4712);
-	tmp = Int(mi.getMetaValue("cluster_id"));
-	TEST_EQUAL(tmp,-4712)
-END_SECTION
-
-START_SECTION((void setMetaValue(UInt index, DoubleReal value)))
-	double tmp;
-	mi.setMetaValue(2,4712.1234);
-	tmp = double(mi.getMetaValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4712.1234)
-END_SECTION
-
-START_SECTION((void setMetaValue(const String& name, UInt value)))
-	Int tmp;
-	mi.setMetaValue("cluster_id",4711u);
-	tmp = Int(mi.getMetaValue("cluster_id"));
-	TEST_EQUAL(tmp,4711u)
-END_SECTION
-
-START_SECTION((void setMetaValue(const String& name, Real value)))
-	double tmp;
 	mi.setMetaValue("cluster_id",4711.12f);
-	tmp = double(mi.getMetaValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4711.12f)
-END_SECTION
-
-START_SECTION((void setMetaValue(UInt index, UInt value)))
-	Int tmp;
-	mi.setMetaValue(2,4712u);
-	tmp = Int(mi.getMetaValue("cluster_id"));
-	TEST_EQUAL(tmp,4712u)
-END_SECTION
-
-START_SECTION((void setMetaValue(UInt index, Real value)))
-	double tmp;
 	mi.setMetaValue(2,4712.12f);
-	tmp = double(mi.getMetaValue("cluster_id"));
-	TEST_REAL_SIMILAR(tmp,4712.12f)
-END_SECTION
 
 START_SECTION((bool isMetaEmpty() const))
 	MetaInfoInterface tmp;
@@ -173,20 +120,6 @@ START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 	//test what happens when source is empty
 	mi3 = mi4;
 	TEST_EQUAL(mi3.isMetaEmpty(),true)
-END_SECTION
-
-START_SECTION((void setMetaValue(const String& name, const DataValue& value)))
-	DataValue tmp("testtesttest3");
-	mi.setMetaValue("testname",tmp);
-	tmp = String(mi.getMetaValue("testname"));
-	TEST_EQUAL(tmp,"testtesttest3")
-END_SECTION
-
-START_SECTION((void setMetaValue(UInt index, const DataValue& value)))
-	DataValue tmp("testtesttest3");
-	mi.setMetaValue(2,tmp);
-	tmp = String(mi.getMetaValue(2));
-	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void getKeys(std::vector<String>& keys) const))

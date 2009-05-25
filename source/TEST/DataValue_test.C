@@ -40,6 +40,7 @@ START_TEST(DataValue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
 // default ctor
 DataValue* dv_ptr = 0;
@@ -117,6 +118,18 @@ START_SECTION((DataValue(const char*)))
 	const char* s = "test char";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test char")
+END_SECTION
+
+START_SECTION((DataValue(const std::string&)))
+	string s = "test string";
+	DataValue d(s);
+	TEST_EQUAL((String)d, "test string")
+END_SECTION
+
+START_SECTION((DataValue(const QString&)))
+	QString s = "test string";
+	DataValue d(s);
+	TEST_EQUAL((String)d, "test string")
 END_SECTION
 
 START_SECTION((DataValue(const String&)))
