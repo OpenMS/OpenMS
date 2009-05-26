@@ -193,6 +193,13 @@ namespace OpenMS
 			bool isChildOf(const String& child, const String& parent) const;
 			
 		protected:
+			/**
+				@brief checks if a name corresponds to an id
+				
+				If the term is not known, 'true' is returned!				
+			*/
+			bool checkName_(const String& id, const String& name, bool ignore_case=true);
+			
 			///Map from ID to CVTerm
 			Map<String, CVTerm> terms_;
 			///Name set in the load method

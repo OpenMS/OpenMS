@@ -111,7 +111,12 @@ namespace OpenMS
 				{
 					if (line.has('!'))
 					{
-						term.parents.insert(line.substr(line.find(':') + 1).prefix('!').trim());
+						String parent_id = line.substr(line.find(':') + 1).prefix('!').trim();
+						term.parents.insert(parent_id);
+
+						//check if the parent term name is correct
+						String parent_name = line.suffix('!').trim();
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': parent term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
 					}
 					else
 					{
@@ -124,7 +129,12 @@ namespace OpenMS
 					if (line.has('!'))
 					{
 						// e.g. relationship: DRV BTO:0000142 ! brain
-						term.parents.insert(line.substr(line.find("DRV") + 4).prefix(':') + ":" + line.suffix(':').prefix('!').trim());
+						String parent_id = line.substr(line.find("DRV") + 4).prefix(':') + ":" + line.suffix(':').prefix('!').trim();
+						term.parents.insert(parent_id);
+
+						//check if the parent term name is correct
+						String parent_name = line.suffix('!').trim();
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': DRV relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
 					}
 					else
 					{
@@ -136,7 +146,12 @@ namespace OpenMS
 				{
 					if (line.has('!'))
 					{
-						term.parents.insert(line.substr(line.find("part_of") + 8).prefix(':') + ":" + line.suffix(':').prefix('!').trim());
+						String parent_id = line.substr(line.find("part_of") + 8).prefix(':') + ":" + line.suffix(':').prefix('!').trim();
+						term.parents.insert(parent_id);
+
+						//check if the parent term name is correct
+						String parent_name = line.suffix('!').trim();
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
 					}
 					else
 					{
@@ -145,16 +160,19 @@ namespace OpenMS
 				}
 				else if (line_wo_spaces.hasPrefix("relationship:has_units"))
 				{
-					String unit_id;
 					if (line.has('!'))
 					{
-						unit_id = line.substr(line.find("has_units")+10).prefix(':') + ":" + line.suffix(':').prefix('!').trim();
+						String unit_id = line.substr(line.find("has_units")+10).prefix(':') + ":" + line.suffix(':').prefix('!').trim();
+						term.units.insert(unit_id);
+
+						//check if the parent term name is correct
+						String unit_name = line.suffix('!').trim();
+						if (!checkName_(unit_id,unit_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << endl;
 					}
 					else
 					{
-						unit_id = line.substr(line.find("has_units")+10).prefix(':') + ":" + line.suffix(':').trim();
+						term.units.insert(line.substr(line.find("has_units")+10).prefix(':') + ":" + line.suffix(':').trim());
 					}
-					term.units.insert(unit_id);
 				}
 				else if (line_wo_spaces.hasPrefix("def:"))
 				{
@@ -331,6 +349,22 @@ namespace OpenMS
 	const String& ControlledVocabulary::name() const
 	{
 		return name_;
+	}
+	
+	bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+	{
+		if (!exists(id)) return true;
+		
+		String parent_name = name;
+		String real_parent_name = getTerm(id).name;
+		
+		if (ignore_case)
+		{
+			parent_name.toLower();
+			real_parent_name.toLower();
+		}	
+
+		return (real_parent_name==parent_name);
 	}
 	
 } // namespace OpenMS

@@ -82,12 +82,12 @@ class TOPPSemanticValidator
 
 		ControlledVocabulary cv;
 		cv.loadFromOBO("PSI-MOD", File::find("/CHEMISTRY/PSI-MOD.obo"));
-		cv.loadFromOBO("PSI-MS",File::find("/CV/psi-ms.obo"));
 	  cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 		cv.loadFromOBO("UNIMOD",File::find("/CV/unimod.obo"));
+		cv.loadFromOBO("PSI-MS",File::find("/CV/psi-ms.obo"));
 
 		// check cv params
 		Internal::SemanticValidator semantic_validator(mappings, cv);

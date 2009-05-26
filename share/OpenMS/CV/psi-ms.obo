@@ -5532,46 +5532,46 @@ relationship: part_of MS:1000831 ! Matrix-Assisted Laser Desorption Ionisation
 id: MS:1000833
 name: matrix application type
 def: "Describes the technique how the matrix is put on the sample target." [PSI:MS]
-relationship: part_of MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+relationship: part_of MS:1000832 ! MALDI matrix application
 
 [Term]
 id: MS:1000834
 name: matrix solution
 def: "Describes the chemical solution used as matrix." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: is_a MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+is_a: MS:1000832 ! MALDI matrix application
 
 [Term]
 id: MS:1000835
 name: matrix solution concentration
 def: "Concentration of the chemical solution used as matrix." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000832 ! Matrix-Assisted Laser Desorption Ionisation Attributes
+is_a: MS:1000832 ! MALDI matrix application
 relationship: has_units UO:0000051 ! Concentration Unit
 
 [Term]
 id: MS:1000836
 name: dried dropplet
 def: "Def." [PSI:MS]
-relationship: is_a MS:1000833 ! Matrix Application Type
+is_a: MS:1000833 ! matrix application type
 
 [Term]
 id: MS:1000837
 name: printed
 def: "Def." [PSI:MS]
-relationship: is_a MS:1000833 ! Matrix Application Type
+is_a: MS:1000833 ! matrix application type
 
 [Term]
 id: MS:1000838
 name: sprayed
 def: "Def." [PSI:MS]
-relationship: is_a MS:1000833 ! Matrix Application Type
+is_a: MS:1000833 ! matrix application type
 
 [Term]
 id: MS:1000839
 name: precoated plate
 def: "Def." [PSI:MS]
-relationship: is_a MS:1000833 ! Matrix Application Type
+is_a: MS:1000833 ! matrix application type
 
 [Term]
 id: MS:1000840
@@ -5583,20 +5583,20 @@ relationship: part_of MS:1000482 ! source attribute
 id: MS:1000841
 name: laser attribute
 def: "Laser properties that are associated with a value." [PSI:MS]
-relationship: part_of MS:1000840 ! Laser
+relationship: part_of MS:1000840 ! laser
 
 [Term]
 id: MS:1000842
 name: laser type
 def: "Type of laser used used fpr desorption purpose." [PSI:MS]
-relationship: part_of MS:1000840 ! Laser
+relationship: part_of MS:1000840 ! laser
 
 [Term]
 id: MS:1000843
 name: wavelength
 def: "The distance between two peaks of the emitted laser beam." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000001 ! Lenght Unit
 
 [Term]
@@ -5604,7 +5604,7 @@ id: MS:1000844
 name: focus diameter x
 def: "Describes the diameter of the laser beam in x direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000001 ! Lenght Unit
 
 [Term]
@@ -5612,7 +5612,7 @@ id: MS:1000845
 name: focus diameter y
 def: "Describes the diameter of the laser beam in y direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000001 ! Lenght Unit
 
 [Term]
@@ -5620,7 +5620,7 @@ id: MS:1000846
 name: pulse energy
 def: "Describes output energy of the laser system. May be attenuated by filters or other means." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000111 ! Energy Unit
 
 [Term]
@@ -5628,7 +5628,7 @@ id: MS:1000847
 name: pulse duration
 def: "Describes how long the laser beam was emitted from the laser device." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000003 ! Time Unit
 
 [Term]
@@ -5636,7 +5636,7 @@ id: MS:1000848
 name: attenuation
 def: "Describes the reduction of the intensity of the laser beam energy." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000003 ! Time Unit
 
 [Term]
@@ -5644,32 +5644,32 @@ id: MS:1000849
 name: impact angle
 def: "Describes the angle between the laser beam and the sample target." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-relationship: is_a MS:1000841 ! Laser Attribute
+is_a: MS:1000841 ! laser attribute
 relationship: has_units UO:0000121 ! Angle Unit
 
 [Term]
 id: MS:1000850
 name: gas laser
 def: "Laser which is powered by a gaseous medium." [PSI:MS]
-relationship: is_a MS:1000842 ! Laser Type
+is_a: MS:1000842 ! laser type
 
 [Term]
 id: MS:1000851
 name: solid-state laser
 def: "Solid state laser materials are commonly made by doping a crystalline solid host with ions that provide the required energy states." [PSI:MS]
-relationship: is_a MS:1000842 ! Laser Type
+is_a: MS:1000842 ! laser type
 
 [Term]
 id: MS:1000852
 name: dye-laser
 def: "Dye lasers use an organic dye as the gain medium." [PSI:MS]
-relationship: is_a MS:1000842 ! Laser Type
+is_a: MS:1000842 ! laser type
 
 [Term]
 id: MS:1000853
 name: free electron laser
 def: "Free electron laser uses a relativistic electron beam as the lasing medium which move freely through a magnetic structure, hence the term." [PSI:MS]
-relationship: is_a MS:1000842 ! Laser Type
+is_a: MS:1000842 ! laser type
 
 [Term]
 id: MS:1000854
@@ -5787,7 +5787,7 @@ is_a: MS:1000531 ! software
 id: MS:1000872
 name: MaRiMba
 def: "SRM software used to select candidate SRM transitions from a spectral library." [PSI:MS]
-is_a: MS:1000711 ! SRM software
+is_a: MS:1000711 ! ClinProTools
 
 [Term]
 id: MS:1000873
@@ -5836,7 +5836,7 @@ id: MS:1000879
 name: PubMed identifier
 def: "A unique identifier for a publication in the PubMed database (MIR:00000015)." [PSI:MS]
 xref: value-type:xsd\:integer "The allowed value-type for this CV term."
-is_a: MS:1000878 ! external reference
+is_a: MS:1000878 ! external reference identifier
 
 [Term]
 id: MS:1000880
@@ -6297,7 +6297,7 @@ is_a: MS:1001085 ! protein result details
 id: MS:1001090
 name: taxonomy nomenclature
 def: "OBSOLETE: The system used to indicate taxonomy. There should be an enumerated list of options: latin name, NCBI TaxID, common name, Swiss-Prot species ID (ex. RABIT from the full protein ID ALBU_RABIT)." [PSI:PI]
-is_a: MS:1001089 ! protein taxonomy
+is_a: MS:1001089 ! molecule taxonomy
 is_obsolete: true
 replaced_by: MS:1001467 ! taxonomy: NCBI TaxID
 replaced_by: MS:1001468 ! taxonomy: common name
@@ -8471,14 +8471,14 @@ id: MS:1001467
 name: taxonomy: NCBI TaxID
 def: "This term is used if a NCBI TaxID is specified, e.g. 9606 for Homo sapiens." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001089 ! protein taxonomy
+is_a: MS:1001089 ! molecule taxonomy
 
 [Term]
 id: MS:1001468
 name: taxonomy: common name
 def: "This term is used if a common name is specified, e.g. human." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001089 ! protein taxonomy
+is_a: MS:1001089 ! molecule taxonomy
 
 
 [Term]
@@ -8486,7 +8486,7 @@ id: MS:1001469
 name: taxonomy: scientific name
 def: "This term is used if a scientific name is specified, e.g. Homo sapiens." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001089 ! protein taxonomy
+is_a: MS:1001089 ! molecule taxonomy
 
 
 [Term]
@@ -8494,7 +8494,7 @@ id: MS:1001470
 name: taxonomy: Swiss-Prot ID
 def: "This term is used if a swiss prot taxonomy id is specified, e.g. Human." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001089 ! protein taxonomy
+is_a: MS:1001089 ! molecule taxonomy
 
 [Term]
 id: MS:1001471
