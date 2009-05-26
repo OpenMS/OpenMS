@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Created with Liquid XML Studio 1.0.8.0 (http://www.liquid-technologies.com) -->
 <xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://psi.hupo.org/ms/mzml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1.0">
 	<xs:complexType name="mzMLType">
@@ -619,15 +620,6 @@
 				<xs:documentation>The number of scan windows defined in this list.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-	</xs:complexType>
-	<xs:complexType name="ScanWindowType">
-		<xs:sequence>
-			<xs:element name="cvParam" type="dx:CVParamType" minOccurs="2" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>Two or more CV parameters defining the scan window.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="ScanListType" mixed="false">
 		<xs:annotation>

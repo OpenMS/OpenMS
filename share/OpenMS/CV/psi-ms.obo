@@ -4,7 +4,7 @@ saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.6.0
+remark: version: 2.6.1
 remark: release date: 2009-05-22
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>, Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de> 
