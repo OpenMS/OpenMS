@@ -49,24 +49,46 @@
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
 
-			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B>
-			<BR> If a error message similar to
-			@code OpenMS::File::find(...) of File.C error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
-			is shown, you have probably moved your %OpenMS installation after compiling it.
-			Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
-			
-			Either of the following actions should fix your problem:
-			- Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installtion directory.
-			  Run '<i>make %OpenMS TOPP UTILS</i>' again.
-			- Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
-			- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
+			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
+				If a error message similar to
+				@code OpenMS::File::find(...) of File.C error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
+				is shown, you have probably moved your %OpenMS installation after compiling it.
+				Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
+				
+				Either of the following actions should fix your problem:
+				- Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installtion directory.
+				  Run '<i>make %OpenMS TOPP UTILS</i>' again.
+				- Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
+				- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
 
 
-			<LI><B>A TOPP tool chrashes when loading a certain input file. Other files work properly.</B>
-			<BR> If an XML input file is used, please check if the file is valid.
-					 @n For the most important XML data formats, this can be done using the TOPP tool <i>FileInfo</i> with the  
-			     option <i>-v</i>.
+			<LI><B>A TOPP tool chrashes when loading a certain input file. Other files work properly.</B><BR>
+				If an XML input file is used, please check if the file is valid.
+				
+				For the most important XML data formats, this can be done using the TOPP tool <i>FileInfo</i> with the  
+				option <i>-v</i>.
 			
+		</UL>
+
+	<H2 style="border-top:2px solid grey;">Contributing</H2>
+		<UL>
+		
+			<LI><B>I have written a class for %OpenMS I want to contribute. What should I do?</B><BR>
+				Basically, you must conform to the %OpenMS @subpage coding_conventions :
+				<OL>
+					<LI> Coding style (brackets, variable names, etc.) must conform to the conventions.
+					<LI> The class and all the members must be documented thoroughly.
+					<LI> A class test must exists, which tests each public member function.
+					<LI> You can check your code with the tool <tt>tools/checker.php</tt>.
+					     Call <tt>php tools/checker.php</tt> for detailed instructions.
+				</OL>
+				
+				When this is done, you can either 
+				<UL>
+					<LI>post a patch to the mailing list or 
+					<LI>become a developer and commit your code to the SVN directly.
+				</UL>
+
 		</UL>
 
 */

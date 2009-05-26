@@ -244,13 +244,13 @@ class Test
 {
   public:
   	// always implement a non-mutable get-method
-    const UInt& getMember() const
+    UInt getMember() const
     {
       return member_;
     }
     
 		// always implement a set-method
-    void setMember(const UInt& name)
+    void setMember(UInt name)
     {
       name_ = member_;
     }
