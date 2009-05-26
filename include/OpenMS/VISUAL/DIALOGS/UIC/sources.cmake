@@ -16,6 +16,7 @@ TOPPViewOpenDialog.ui
 TOPPViewPrefDialog.ui
 SpectrumAlignmentDialog.ui
 TheoreticalSpectrumGenerationDialog.ui
+TOPPASInputFileDialog.ui
 TOPPASInputFilesDialog.ui
 )
 

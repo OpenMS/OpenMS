@@ -25,40 +25,38 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASINPUTVERTEX_H
-#define OPENMS_VISUAL_TOPPASINPUTVERTEX_H
+#ifndef OPENMS_VISUAL_TOPPASOUTPUTFILELISTVERTEX_H
+#define OPENMS_VISUAL_TOPPASOUTPUTFILELISTVERTEX_H
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 namespace OpenMS
 {
-	class OPENMS_DLLAPI TOPPASInputVertex
+	class OPENMS_DLLAPI TOPPASOutputFileListVertex
 		: public TOPPASVertex
 	{
 		Q_OBJECT
 		
 		public:
 			
+			
 			/// Default constructor
-			TOPPASInputVertex();
+			TOPPASOutputFileListVertex();
 			/// Constructor
-			TOPPASInputVertex(const String& name, const String& type = "");
+			TOPPASOutputFileListVertex(const String& name, const String& type = "");
 			/// Copy constructor
-			TOPPASInputVertex(const TOPPASInputVertex& rhs);
+			TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs);
 			/// Destructor
-			virtual ~TOPPASInputVertex();
+			virtual ~TOPPASOutputFileListVertex();
 			/// Assignment operator
-			TOPPASInputVertex& operator= (const TOPPASInputVertex& rhs);
+			TOPPASOutputFileListVertex& operator= (const TOPPASOutputFileListVertex& rhs);
 			
 		protected:
-		
-			QStringList files_;
 		
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
-			
 	};
 }
 

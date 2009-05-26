@@ -20,6 +20,7 @@ TOPPViewPrefDialog.h
 ToolsDialog.h
 SpectrumAlignmentDialog.h
 TheoreticalSpectrumGenerationDialog.h
+TOPPASInputFileDialog.h
 TOPPASInputFilesDialog.h
 TOPPASToolConfigDialog.h
 )

@@ -32,8 +32,10 @@ TOPPASWidget.C
 TOPPASScene.C
 TOPPASVertex.C
 TOPPASToolVertex.C
-TOPPASInputVertex.C
-TOPPASOutputVertex.C
+TOPPASInputFileVertex.C
+TOPPASInputFileListVertex.C
+TOPPASOutputFileVertex.C
+TOPPASOutputFileListVertex.C
 TOPPASEdge.C
 EnhancedWorkspace.C
 )

@@ -25,44 +25,44 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 
 namespace OpenMS
 {
-	TOPPASOutputVertex::TOPPASOutputVertex()
+	TOPPASOutputFileVertex::TOPPASOutputFileVertex()
 		:	TOPPASVertex()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
-	TOPPASOutputVertex::TOPPASOutputVertex(const String& name, const String& type)
+	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const String& name, const String& type)
 		: TOPPASVertex(name, type)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
-	TOPPASOutputVertex::TOPPASOutputVertex(const TOPPASOutputVertex& rhs)
+	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs)
 		:	TOPPASVertex(rhs)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
-	TOPPASOutputVertex::~TOPPASOutputVertex()
+	TOPPASOutputFileVertex::~TOPPASOutputFileVertex()
 	{
 	
 	}
 	
-	TOPPASOutputVertex& TOPPASOutputVertex::operator= (const TOPPASOutputVertex& rhs)
+	TOPPASOutputFileVertex& TOPPASOutputFileVertex::operator= (const TOPPASOutputFileVertex& rhs)
 	{
 		TOPPASVertex::operator=(rhs);		
 		
 		return *this;
 	}
 	
-	void TOPPASOutputVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 		// ...
 	}

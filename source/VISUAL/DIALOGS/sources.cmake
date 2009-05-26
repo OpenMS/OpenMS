@@ -20,6 +20,7 @@ TOPPViewPrefDialog.C
 ToolsDialog.C
 TheoreticalSpectrumGenerationDialog.C
 SpectrumAlignmentDialog.C
+TOPPASInputFileDialog.C
 TOPPASInputFilesDialog.C
 TOPPASToolConfigDialog.C
 )

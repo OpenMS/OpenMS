@@ -27,8 +27,10 @@
 
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
-#include <OpenMS/VISUAL/TOPPASInputVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 namespace OpenMS
@@ -147,7 +149,8 @@ namespace OpenMS
 			potential_target_ = 0;
 		}
 		
-		if (qobject_cast<TOPPASOutputVertex*>(hover_edge_->getSourceVertex()))
+		if (qobject_cast<TOPPASOutputFileVertex*>(hover_edge_->getSourceVertex())
+				|| qobject_cast<TOPPASOutputFileListVertex*>(hover_edge_->getSourceVertex()))
 		{
 			hover_edge_->setColor(Qt::red);
 		}
@@ -263,8 +266,10 @@ namespace OpenMS
 		if (u == 0 ||
 				v == 0 ||
 				u == v ||
-				qobject_cast<TOPPASInputVertex*>(v) ||
-				qobject_cast<TOPPASOutputVertex*>(u))
+				qobject_cast<TOPPASInputFileVertex*>(v) ||
+				qobject_cast<TOPPASInputFileListVertex*>(v) ||
+				qobject_cast<TOPPASOutputFileVertex*>(u) ||
+				qobject_cast<TOPPASOutputFileListVertex*>(u))
 		{
 			return TOPPASEdge::EV_RED;
 		}
@@ -277,7 +282,7 @@ namespace OpenMS
 		addEdge(test_edge);
 		
 		bool graph_has_cycles = false;
-		//DFS
+		//find backedges via DFS
 		foreach (TOPPASVertex* vertex, vertices_)
 		{
 			vertex->setDFSColor(TOPPASVertex::DFS_WHITE);

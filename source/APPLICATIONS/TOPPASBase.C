@@ -33,8 +33,10 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASInputVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 //Qt
@@ -139,8 +141,8 @@ namespace OpenMS
     //create toolbars and connect signals
 
   	//--Basic tool bar--
-    tool_bar_ = addToolBar("Basic tool bar");
-    tool_bar_->show();
+    //tool_bar_ = addToolBar("Basic tool bar");
+    //tool_bar_->show();
 
 		//################## Dock widgets #################
     
@@ -156,10 +158,16 @@ namespace OpenMS
     topp_tools_bar->setWidget(tools_tree_view_);
     
     QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Input files >>");
+    item->setText(0, "<< Input file >>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Output files >>");
+    item->setText(0, "<< Input file list >>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<< Output file >>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<< Output file list >>");
     tools_tree_view_->addTopLevelItem(item);
     
     
@@ -535,13 +543,21 @@ namespace OpenMS
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
 		
-		if (tool_name == "<< Input files >>")
+		if (tool_name == "<< Input file list >>")
 		{
-			tv = new TOPPASInputVertex(tool_name, String(""));
+			tv = new TOPPASInputFileListVertex(tool_name, String(""));
 		}
-		else if (tool_name == "<< Output files >>")
+		else if (tool_name == "<< Input file >>")
 		{
-			tv = new TOPPASOutputVertex(tool_name, String(""));
+			tv = new TOPPASInputFileVertex(tool_name, String(""));
+		}
+		else if (tool_name == "<< Output file list >>")
+		{
+			tv = new TOPPASOutputFileListVertex(tool_name, String(""));
+		}
+		else if (tool_name == "<< Output file >>")
+		{
+			tv = new TOPPASOutputFileVertex(tool_name, String(""));
 		}
 		else // node is a TOPP tool
 		{	

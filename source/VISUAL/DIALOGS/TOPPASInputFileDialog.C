@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,59 +21,44 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Maintainer: Marc Sturm$
+// $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASInputVertex.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+// OpenMS includes
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+
+#include <QtGui/QFileDialog>
+
+#include <iostream>
 
 namespace OpenMS
 {
-	TOPPASInputVertex::TOPPASInputVertex()
-		:	TOPPASVertex(),
-			files_()
+	TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file)
 	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASInputVertex::TOPPASInputVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type),
-			files_()
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASInputVertex::TOPPASInputVertex(const TOPPASInputVertex& rhs)
-		:	TOPPASVertex(rhs),
-			files_(rhs.files_)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASInputVertex::~TOPPASInputVertex()
-	{
-	
-	}
-	
-	TOPPASInputVertex& TOPPASInputVertex::operator= (const TOPPASInputVertex& rhs)
-	{
-		TOPPASVertex::operator=(rhs);
+		setupUi(this);
 		
-		files_ = rhs.files_;
+		line_edit->setText(file);
 		
-		return *this;
+		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
+		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
+		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 	}
 	
-	void TOPPASInputVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	void TOPPASInputFileDialog::showFileDialog()
 	{
-		TOPPASInputFilesDialog tifd(files_);
-		if (tifd.exec())
+		QFileDialog fd;
+		fd.setFileMode(QFileDialog::ExistingFile);
+		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
+		if (fd.exec() && !fd.selectedFiles().empty())
 		{
-			tifd.getFilenames(files_);
+			line_edit->setText(fd.selectedFiles().first());
 		}
 	}
-}
+	
+	QString TOPPASInputFileDialog::getFilename()
+	{
+		return line_edit->text();
+	}
+	
+} // namespace

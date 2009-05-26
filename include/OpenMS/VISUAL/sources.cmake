@@ -24,8 +24,10 @@ TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h
 TOPPASToolVertex.h
-TOPPASInputVertex.h
-TOPPASOutputVertex.h
+TOPPASInputFileVertex.h
+TOPPASInputFileListVertex.h
+TOPPASOutputFileVertex.h
+TOPPASOutputFileListVertex.h
 TOPPASEdge.h
 EnhancedWorkspace.h
 )

@@ -25,39 +25,55 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASOUTPUTVERTEX_H
-#define OPENMS_VISUAL_TOPPASOUTPUTVERTEX_H
-
-#include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 
 namespace OpenMS
 {
-	class OPENMS_DLLAPI TOPPASOutputVertex
-		: public TOPPASVertex
+	TOPPASInputFileListVertex::TOPPASInputFileListVertex()
+		:	TOPPASVertex(),
+			files_()
 	{
-		Q_OBJECT
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
+	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const String& name, const String& type)
+		: TOPPASVertex(name, type),
+			files_()
+	{
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
+	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs)
+		:	TOPPASVertex(rhs),
+			files_(rhs.files_)
+	{
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
+	TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
+	{
+	
+	}
+	
+	TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator= (const TOPPASInputFileListVertex& rhs)
+	{
+		TOPPASVertex::operator=(rhs);
 		
-		public:
-			
-			
-			/// Default constructor
-			TOPPASOutputVertex();
-			/// Constructor
-			TOPPASOutputVertex(const String& name, const String& type = "");
-			/// Copy constructor
-			TOPPASOutputVertex(const TOPPASOutputVertex& rhs);
-			/// Destructor
-			virtual ~TOPPASOutputVertex();
-			/// Assignment operator
-			TOPPASOutputVertex& operator= (const TOPPASOutputVertex& rhs);
-			
-		protected:
+		files_ = rhs.files_;
 		
-			///@name reimplemented Qt events
-      //@{
-      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-			//@}
-	};
+		return *this;
+	}
+	
+	void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		TOPPASInputFilesDialog tifd(files_);
+		if (tifd.exec())
+		{
+			tifd.getFilenames(files_);
+		}
+	}
 }
-
-#endif
