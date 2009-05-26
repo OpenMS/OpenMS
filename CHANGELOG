@@ -7,8 +7,7 @@ Main improvements of TOPPView:
 Main improvements of TOPP:
 
 Main improvements of OpenMS C++ library:
-- mzML 1.1.0 support
-
+- mzML 1.1.0 support (final)
 
 Changes to OpenMS XML formats:
 
@@ -24,6 +23,7 @@ Detailed list of changes to specific OpenMS classes
   - Param: setValue method takes only DataValue now
   - Moved DataProcessing from ExperimentalSettings to SpectrumSettings (for mzML)
   - Precursor now supports multiple dissociation methods
+
 Changes to the contrib package:
 - Added CoinMP 1.3.3
 
