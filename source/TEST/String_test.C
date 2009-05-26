@@ -798,7 +798,7 @@ START_SECTION((String& operator+= (long double d)))
 	<CONCEPT/Types.h>.  I am leaving this code here because it will help to
 	clarify how to set writtenDigits on new platforms.
 	*/
-#if 1
+#if 0
 #define ECHO_AND_DO(bla) STATUS(""#bla); bla
 #define ECHO_AND_VALUE(bla) STATUS(""#bla << ": " << bla);
   typedef long double longdouble;

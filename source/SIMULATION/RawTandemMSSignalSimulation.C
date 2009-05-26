@@ -31,10 +31,11 @@ namespace OpenMS
 {
 
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const gsl_rng * random_generator)
-  : DefaultParamHandler("RawTandemMSSignalSimulation"), rnd_gen_(random_generator),
+  : DefaultParamHandler("RawTandemMSSignalSimulation"),
 		itraq_type_(),
 		channel_map_(),
-		isotope_corrections_()
+		isotope_corrections_(),
+		rnd_gen_(random_generator)
   {
     init_();
   }
