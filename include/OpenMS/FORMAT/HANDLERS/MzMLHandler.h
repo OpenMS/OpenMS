@@ -44,7 +44,7 @@
 //TODO:
 // - scanSettingsList - what is to do?
 // - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
-// - InstrumentConfiguration of Scan - that's that?
+// - InstrumentConfiguration of Scan - what's that?
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -73,8 +73,6 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			
-			@todo Store intensity array with 32 bit precision (Marc)
-
 			@note Do not use this class. It is only needed in MzMLFile.
 		*/
 		template <typename MapType>
@@ -1884,6 +1882,100 @@ namespace OpenMS
 					//No member => meta data
 					instruments_[current_id_].getIonSources().back().setMetaValue("tube lens",value);
 				}
+				
+				//laser attribute
+				else if (accession=="MS:1000843") // wavelength
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("wavelength",value);
+				}
+				else if (accession=="MS:1000844") // focus diameter x
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("focus diameter x",value);
+				}
+				else if (accession=="MS:1000845") // focus diameter y
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("focus diameter y",value);
+				}
+				else if (accession=="MS:1000846") // pulse energy
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("pulse energy",value);
+				}
+				else if (accession=="MS:1000847") // pulse duration
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("pulse duration",value);
+				}
+				else if (accession=="MS:1000848") // attenuation
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("attenuation",value);
+				}
+				else if (accession=="MS:1000849") // impact angle
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("impact angle",value);
+				}
+				
+				//laser type
+				else if (accession=="MS:1000850") // gas laser
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("laser type","gas laser");
+				}
+				else if (accession=="MS:1000851") // solid-state laser
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("laser type","solid-state laser");
+				}
+				else if (accession=="MS:1000852") // dye-laser
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("laser type","dye-laser");
+				}
+				else if (accession=="MS:1000853") // free electron laser
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("laser type","free electron laser");
+				}
+				
+				//MALDI matrix application
+				else if (accession=="MS:1000834") // matrix solution
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix solution",value);
+				}
+				else if (accession=="MS:1000835") // matrix solution concentration
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix solution concentration",value);
+				}
+
+				// matrix application type
+				else if (accession=="MS:1000836") // dried dropplet
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type","dried dropplet");
+				}
+				else if (accession=="MS:1000837") // printed
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type","printed");
+				}
+				else if (accession=="MS:1000838") // sprayed
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type","sprayed");
+				}
+				else if (accession=="MS:1000839") //  precoated plate
+				{
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type"," precoated plate");
+				}
+				
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="analyzer")
@@ -3693,12 +3785,12 @@ namespace OpenMS
 					if (spec.size()!=0)
 					{
 						String encoded_string;
-						std::vector<DoubleReal> data_to_encode;
+						std::vector<DoubleReal> data64_to_encode;
 						os	<< "				<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
 						//write m/z array
-						data_to_encode.resize(spec.size());
-						for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
-						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+						data64_to_encode.resize(spec.size());
+						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
+						decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
@@ -3706,21 +3798,25 @@ namespace OpenMS
 						os	<< "						<binary>" << encoded_string << "</binary>\n";
 						os	<< "					</binaryDataArray>\n";
 						//write intensity array
-						for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
-						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
-						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
-						os	<< "						<binary>" << encoded_string << "</binary>\n";
-						os	<< "					</binaryDataArray>\n";
+						{
+							std::vector<Real> data32_to_encode;
+							data32_to_encode.resize(spec.size());
+							for (Size p=0; p<spec.size(); ++p) data32_to_encode[p] = spec[p].getIntensity();
+							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
+						}
 						//write meta data array
 						for (Size m=0; m<spec.getMetaDataArrays().size(); ++m)
 						{
 							const typename SpectrumType::MetaDataArray& array = spec.getMetaDataArrays()[m];
-							data_to_encode.resize(array.size());
-							for (Size p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
-							decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+							data64_to_encode.resize(array.size());
+							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
+							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";

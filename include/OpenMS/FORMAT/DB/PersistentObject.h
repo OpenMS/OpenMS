@@ -39,8 +39,6 @@ namespace OpenMS
   	@brief Base class for all persistent objects.
   	
   	Interface for all classes that can be stored persistently in the OpenMS DB.
-  	
-		@todo Move to DB folder (Marc)
 
   	@ingroup DatabaseIO
   */

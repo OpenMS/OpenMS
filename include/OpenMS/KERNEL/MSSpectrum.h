@@ -30,7 +30,7 @@
 
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/FORMAT/PersistentObject.h>
+#include <OpenMS/FORMAT/DB/PersistentObject.h>
 
 #include <map>
 

@@ -58,7 +58,6 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 ProtXMLFile.h
-PersistentObject.h
 SequestInfile.h
 SequestOutfile.h
 TextFile.h

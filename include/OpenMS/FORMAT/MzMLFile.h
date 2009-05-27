@@ -52,6 +52,8 @@ namespace OpenMS
 		
 		@todo Implement chromatograms (Hiwi)
 		
+		@todo Implement missing functionality - see Handler for details (Marc)
+		
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzMLFile

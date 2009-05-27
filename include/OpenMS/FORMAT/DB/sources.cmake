@@ -3,6 +3,7 @@ set(directory include/OpenMS/FORMAT/DB)
 
 ### list all header files of the directory here
 set(sources_list_h
+PersistentObject.h
 DBAdapter.h
 DBConnection.h
 )

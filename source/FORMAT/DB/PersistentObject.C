@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/PersistentObject.h>
+#include <OpenMS/FORMAT/DB/PersistentObject.h>
 
 namespace OpenMS
 {

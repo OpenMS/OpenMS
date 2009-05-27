@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/FORMAT/PersistentObject.h>
+#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 
