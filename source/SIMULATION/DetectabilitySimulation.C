@@ -162,10 +162,10 @@ namespace OpenMS {
       throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
     }
     // transform featuremap to peptides vector
-    vector< String > peptidesVector(features.size());
+    vector< String > peptides_vector(features.size());
     for(Size i = 0; i < features.size(); ++i)
     {
-      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+      peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
     }
     
     
@@ -175,9 +175,9 @@ namespace OpenMS {
     
     // Encoding test data
     vector<DoubleReal> probs;
-    probs.resize(peptidesVector.size(), 0);
+    probs.resize(peptides_vector.size(), 0);
 
-    svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, probs,
+    svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
                                                                                      k_mer_length,
                                                                                      allowed_amino_acid_characters,
                                                                                      svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
@@ -196,23 +196,23 @@ namespace OpenMS {
 #endif
     
     // copy all meta data stored in the feature map
-    FeatureMap< > tempCopy(features); 
-    tempCopy.clear();
+    FeatureMapSim temp_copy(features); 
+    temp_copy.clear();
     
-    for (Size i = 0; i < peptidesVector.size(); ++i)
+    for (Size i = 0; i < peptides_vector.size(); ++i)
     {
 
       if (detectabilities[i] > min_detect_)
       {
-        features[i].setMetaValue("detectibility", detectabilities[i] );
-        tempCopy.push_back(features[i]);
+        features[i].setMetaValue("detectability", detectabilities[i] );
+        temp_copy.push_back(features[i]);
       }
 #ifdef DEBUG_SIM
       cout << detectabilities[i] << " " << min_detect_ << endl;
 #endif
     } 
     
-    features.swap(tempCopy);
+    features.swap(temp_copy);
   }
 
   void DetectabilitySimulation::setDefaultParams_() 

@@ -112,6 +112,8 @@ namespace OpenMS {
  
   void PTMSimulation::predict_ptms(FeatureMapSim & map)
   {
+		// TODO: handle fixed modifications (they need to show up in every feature)
+  
 		if (ptms_.size()==0) return;
 
 		Size max_mod_count = (UInt) param_.getValue("modification_bound");

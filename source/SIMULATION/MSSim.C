@@ -30,6 +30,7 @@
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
+#include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
@@ -171,15 +172,15 @@ namespace OpenMS {
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     createExperiment_(rt_sim.getGradientTime(), rt_sim.isRTColumnOn(),raw_sim.getRTSamplingRate(), experiment_);
-
     raw_sim.generateRawSignals(features_, experiment_);
 
-/**
-			...
-        7. select features for MS2
-        8. generate MS2 signals for selected features
-**/
+    // debug
+    std::cout << "ionized" << std::endl;
+    verbosePrintFeatureMap(features_);
 
+    RawTandemMSSignalSimulation raw_tandemsim(rnd_gen);
+    raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));
+    raw_tandemsim.generateRawTandemSignals(features_, experiment_);
 
 
   }
@@ -190,14 +191,17 @@ namespace OpenMS {
     feature_map.clear();
     ProteinIdentification protIdent;
 
-    // TODO: currently the protein sequence is the ProteinAccession -> think of something better?
 		for (SampleProteins::const_iterator it=proteins.begin(); it!=proteins.end(); ++it)
 		{
-      //std::cout << (it->first).identifier << " " << (it->first).sequence << " " << (it->second) << ::std::endl;
+      std::cout << (it->first).identifier << " " << (it->first).sequence << " " << (it->second["intensity"]) << ::std::endl;
       // add new ProteinHit to ProteinIdentification
       ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
-      protHit.setMetaValue("intensity", it->second);
       protHit.setMetaValue("description", it->first.description);
+      // add intensity (global, iTRAQ,...) to Protein
+			for (FASTAEntryEnhanced::const_iterator it_q = it->second.begin(); it_q!=it->second.end(); ++it_q)
+			{
+				protHit.setMetaValue(it_q->first, it_q->second);
+			}
       protIdent.insertHit(protHit);
 
 		}
@@ -236,12 +240,18 @@ namespace OpenMS {
 
   void MSSim::setDefaultParams_()
   {
+		// global params
+		defaults_.setValue("Global:iTRAQ","off","iTRAQ simulation?");
+		defaults_.setValidStrings("Global:iTRAQ",StringList::create("off,4plex,8plex"));
+  
+		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
     defaults_.insert("PeptideDetectibilitySimulation:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
+		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
 
     defaultsToParam_();
   }
@@ -263,5 +273,7 @@ namespace OpenMS {
   {
 		return consensus_map_;
   }
+  
+ 
 
 }

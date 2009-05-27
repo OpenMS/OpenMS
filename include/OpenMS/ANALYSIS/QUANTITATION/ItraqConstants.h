@@ -62,14 +62,20 @@ namespace OpenMS
 			bool active; // channel actually added to the experiment?
 		};
 
+		/// maps iTRAQ channel (e.g. 117) to more information
 		typedef Map<Int, ChannelInfo > ChannelMapType;
+
+		/// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
 		typedef std::vector< Matrix<double> > IsotopeMatrices;
 		
+		/// channel names for 4plex( 114, 115, 116, 117)
 		static const Int CHANNELS_FOURPLEX[4][1];
+		/// channel names for 8plex( 113, 114, 115, 116, 117, 118, 119, 121)
 		static const Int CHANNELS_EIGHTPLEX[8][1];
 
-		/// default isotope correction matrices
+		/// default isotope correction matrix (4 plex)
 		static const double ISOTOPECORRECTIONS_FOURPLEX[4][4];
+		/// default isotope correction matrix (8 plex)
 		static const double ISOTOPECORRECTIONS_EIGHTPLEX[8][4];
 
 		/**
@@ -118,6 +124,17 @@ namespace OpenMS
 		**/
 		static void updateChannelMap(StringList active_channels, ChannelMapType& map);
 
+		/**
+			@brief translate isotope correction matrix in -2,-1,+1,+2 form into 114,115,116,117 format
+			
+			Translates e.g. ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX matrix into a 8x8 matrix which
+			maps how channel (row) distributes its tags onto other channels (columns).
+			
+			@param itraq_type Should be of values from enum ITRAQ_TYPES
+			@param isotope_corrections isotope correction matrix in -2...+2 form
+		**/
+		static Matrix<double> translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections);
+		
 	}; // !class
 	
 } // !namespace

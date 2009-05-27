@@ -143,48 +143,15 @@ namespace OpenMS
 		if (String(param_.getValue("isotope_correction")) == "true")
 		{
 			// translate isotope_corrections_ to a channel_frequency matrix
-			Matrix<double> channel_frequency(CHANNEL_COUNT[itraq_type_], CHANNEL_COUNT[itraq_type_]);
-			for (Int i=0; i < CHANNEL_COUNT[itraq_type_]; ++i)
-			{
-				for (Int j=0; j < CHANNEL_COUNT[itraq_type_]; ++j)
-				{
-					// diagonal (should be close to 1 = 100%)
-					if (i==j)
-					{
-						double val = 1.0;
-
-						// subtract all isotope deviations of row i
-						for (Int col_idx=0; col_idx < 4; ++col_idx) 
-						{
-							val += -isotope_corrections_[itraq_type_].getValue(i,col_idx) / 100;
-						}
-						channel_frequency.setValue(i,j,val);
-					}
-					else
-					{ // from mass i to mass j (directly copy the deviation)
-						if (i-j<=2 && i-j>0)
-						{
-							channel_frequency.setValue(j,i, isotope_corrections_[itraq_type_].getValue(i,j-i+2) / 100);
-						}
-						else if (j-i<=2 && j-i>0)
-						{
-							channel_frequency.setValue(j,i, isotope_corrections_[itraq_type_].getValue(i,j-i+1) / 100);
-						}
-					}
-				}
-			}
-
+			Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_);
+			
 			#ifdef ITRAQ_DEBUG
 			std::cout << "channel_frequency matrix: \n" << channel_frequency << "\n" << std::endl;
 			#endif
 
 #ifdef ITRAQ_NAIVECORRECTION
 			std::cout << "SOLVING isotope correction via Matrix\n";
-#else
-			std::cout << "SOLVING isotope correction via NNLS\n";
-#endif
 
-#ifdef ITRAQ_NAIVECORRECTION
 			// this solves the system naively
 			int gsl_status = 0;
 			gsl_matrix* gsl_m = channel_frequency.toGslMatrix();
@@ -199,6 +166,8 @@ namespace OpenMS
 				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
 			}
 #else
+			std::cout << "SOLVING isotope correction via NNLS\n";
+
 			Matrix<double> m_b(CHANNEL_COUNT[itraq_type_], 1);
 			Matrix<double> m_x(CHANNEL_COUNT[itraq_type_], 1);
 #endif

@@ -158,18 +158,18 @@ namespace OpenMS {
 			it->split(':',result);
 			if (result.size()!=2)
 			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
 			}
 			result[0] = result[0].trim();
 			result[1] = result[1].trim();
 			if (result[0]==String::EMPTY || result[1]==String::EMPTY)
 			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
 			}
 			Int channel = result[0].toInt();
 			if (map.find(channel) == map.end())
 			{
-				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqChannelExtractor: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
 			}
 			// update name (description) of channel
 			map[channel].description = result[1];
@@ -181,5 +181,41 @@ namespace OpenMS {
 		}
 	}
 
+	Matrix<double> ItraqConstants::translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections)
+	{
+		// translate isotope_corrections to a channel_frequency matrix
+		Matrix<double> channel_frequency(CHANNEL_COUNT[itraq_type], CHANNEL_COUNT[itraq_type]);
+		for (Int i=0; i < CHANNEL_COUNT[itraq_type]; ++i)
+		{
+			for (Int j=0; j < CHANNEL_COUNT[itraq_type]; ++j)
+			{
+				// diagonal (should be close to 1 = 100%)
+				if (i==j)
+				{
+					double val = 1.0;
+
+					// subtract all isotope deviations of row i
+					for (Int col_idx=0; col_idx < 4; ++col_idx) 
+					{
+						val += -isotope_corrections[itraq_type].getValue(i,col_idx) / 100;
+					}
+					channel_frequency.setValue(i,j,val);
+				}
+				else
+				{ // from mass i to mass j (directly copy the deviation)
+					if (i-j<=2 && i-j>0)
+					{
+						channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i,j-i+2) / 100);
+					}
+					else if (j-i<=2 && j-i>0)
+					{
+						channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i,j-i+1) / 100);
+					}
+				}
+			}
+		}
+		
+		return channel_frequency;
+	}
 
 } // !namespace

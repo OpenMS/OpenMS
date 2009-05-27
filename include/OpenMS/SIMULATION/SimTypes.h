@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 
 // GSL includes (random number generation)
 #include <gsl/gsl_rng.h>
@@ -54,19 +55,22 @@ namespace OpenMS
   /// Charge of a peptide
   typedef Feature::ChargeType SimChargeType;
   
-  /// 
+  /// Raw data point
 	typedef Peak1D SimPointType;
-  
-	/// FASTAEntry -> Intensity container
-	typedef std::vector< std::pair<FASTAFile::FASTAEntry, SimIntensityType> > SampleProteins;
+	
+	/// stores abundance information supported by the simulator
+	typedef Map<String, SimIntensityType> FASTAEntryEnhanced;
+
+	/// Container for FASTAEntry & addtional sim specific information
+	typedef std::vector< std::pair<FASTAFile::FASTAEntry, FASTAEntryEnhanced> > SampleProteins;
 
 	/// Sim FeatureMap
 	typedef FeatureMap<> FeatureMapSim;
 
-  /// sim MSExperiment type
+  /// Sim MSExperiment type
   typedef MSExperiment< Peak1D > MSSimExperiment;
   
-	/// probability of a modification to occur
+	/// Probability of a modification to occur
 	typedef Real ProbabilityType;
 
   /// A posttranslational modification
@@ -133,6 +137,7 @@ namespace OpenMS
 
 	};
 
+	/// mapping from AA-one letter code to list of possible PTM's
 	typedef Map<String, PTMRow> PTMTable;
 
 }

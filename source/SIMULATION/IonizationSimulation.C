@@ -185,6 +185,8 @@ namespace OpenMS {
 			copy_map.clear();
 
 			UInt feature_index=0;
+			// features which are not ionized
+			Size uncharged_feature_count = 0;
 			// iterate over all features
 			for(FeatureMapSim::iterator feature_it = features.begin();
 					feature_it != features.end();
@@ -199,7 +201,6 @@ namespace OpenMS {
 				// assumption: each basic residue can hold one charged adduct
 				Map<Compomer, UInt> charge_states;
 	      
-				Int zeros_samples=0;
 				// sample different charge states (dice for each molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
@@ -209,7 +210,6 @@ namespace OpenMS {
 
 					if (charge==0)
 					{
-						++zeros_samples;
 						continue;
 					}
 
@@ -225,38 +225,51 @@ namespace OpenMS {
 					++charge_states[ cmp ];
 				}
 
+				Int max_observed_charge=0;
 				// transform into a set (for sorting by abundance)
 				std::set< std::pair<UInt, Compomer > > charge_states_sorted;
 				for (Map<Compomer, UInt>::const_iterator it_m=charge_states.begin(); it_m!=charge_states.end();++it_m)
 				{ // create set of pair(value, key)
 					charge_states_sorted.insert( std::make_pair(it_m->second,it_m->first) );
+					// update maximal observed charge
+					max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
 				}
 
 				// no charges > 0 selected (this should be really rare)
 				if (charge_states_sorted.size()==0) 
 				{
-					OPENMS_POSTCONDITION(zeros_samples==abundance,"something went wrong");
+					++uncharged_feature_count;
 					continue;
 				}
 
-				UInt max_observed_charge = charge_states_sorted.rbegin()->first;
 				Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
-				std::vector<Int> allowed_entities_of_charge(max_observed_charge, max_compomer_types);
+				std::vector<Int> allowed_entities_of_charge(max_observed_charge+1, max_compomer_types);
 				// start at highest abundant ions
 				for(std::set< std::pair<UInt, Compomer > >::reverse_iterator it_s=charge_states_sorted.rbegin();
 						it_s!=charge_states_sorted.rend();
 						++it_s)
 				{
-					Int charge_locations = it_s->first - 1;
 					Int charge = it_s->second.getNetCharge();
-					if (allowed_entities_of_charge[charge_locations]>0)
+					if (allowed_entities_of_charge[charge]>0)
 					{
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
 						chargedFeature.setMZ( (feature_ef.getMonoWeight() + it_s->second.getMass() ) / charge) ;
 						chargedFeature.setCharge(charge);
+						
+						// adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
+						DoubleReal factor = it_s->first / feature_it->getIntensity();
+						StringList keys;
+						feature_it->getKeys(keys);
+						for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+						{
+							if (!it_key->hasPrefix("intensity")) continue;
+							chargedFeature.setMetaValue(*it_key, SimIntensityType(feature_it->getMetaValue(*it_key)) * factor);
+						}					
+						// set "main" intensity
 						chargedFeature.setIntensity(it_s->first);
+						
 						// add meta information on compomer (mass)
 						chargedFeature.setMetaValue("charge_adduct_mass", it_s->second.getMass() );
 						chargedFeature.setMetaValue("charge_adducts", it_s->second.getAdductsAsString() );
@@ -267,7 +280,7 @@ namespace OpenMS {
 						cf.insert(0, copy_map.size()-1,chargedFeature);
 
 						// decrease # of allowed compomers of current compomer's charge
-						--allowed_entities_of_charge[charge_locations];
+						--allowed_entities_of_charge[charge];
 					}
 				}
 
@@ -277,6 +290,8 @@ namespace OpenMS {
 
 				++feature_index;
 			} // ! feature iterator
+	    
+	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
 	    
 			// swap feature maps
 			features.swap(copy_map);

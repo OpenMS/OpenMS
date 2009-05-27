@@ -83,7 +83,7 @@ namespace OpenMS
 	class OPENMS_DLLAPI DefaultParamHandler
 	{
 		public:
-			/// Constructor with name that is diplayed in error messages
+			/// Constructor with name that is displayed in error messages
 			DefaultParamHandler(const String& name);
 
 			/// Copy constructor
@@ -165,7 +165,7 @@ namespace OpenMS
 			bool check_defaults_;
 
 		private:
-			/// Hidden as a name is required!
+			/// Hidden default C'tor (class name parameter is required!)
 			DefaultParamHandler();
 
 	}; //class

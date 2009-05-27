@@ -28,6 +28,7 @@
 #include<OpenMS/SIMULATION/DigestSimulation.h>
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS {
 
@@ -128,9 +129,17 @@ namespace OpenMS {
 			// mean number of "atomic" peptides per digestion product is now: number_atomic_whole / number_of_digestion_products
 			// -> thus abundance of a digestion product is: #proteins / avg#of"atomic"peptides
 			//																				i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
-			SimIntensityType abundance = std::max(SimIntensityType(1), SimIntensityType(proteinHit->getMetaValue("intensity")) 
+			
+			Map<String, SimIntensityType> intensities;
+			StringList keys;
+			proteinHit->getKeys(keys);
+			for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+			{
+				if (!it_key->hasPrefix("intensity")) continue;
+				intensities[*it_key] = std::max(SimIntensityType(1), SimIntensityType(proteinHit->getMetaValue(*it_key)) 
 																																*SimIntensityType(number_of_digestion_products) 
 																																/SimIntensityType(number_atomic_whole) ); // order changed for numeric stability
+			}
 			
 			// do real digest
 			digestion.setMissedCleavages( missed_cleavages );
@@ -161,8 +170,20 @@ namespace OpenMS {
           generated_features.insert(std::make_pair(*dp_it, f));
         }
         
-        // sum up intesity values
-        generated_features[*dp_it].setIntensity(generated_features[*dp_it].getIntensity() + abundance);
+        // sum up intensity values
+        generated_features[*dp_it].setIntensity(generated_features[*dp_it].getIntensity() + intensities["intensity"]);
+        // ... same for other intensities (iTRAQ...)
+        for (Map<String, SimIntensityType>::const_iterator it_other=intensities.begin(); it_other!=intensities.end(); ++it_other)
+        {
+					if (!generated_features[*dp_it].metaValueExists(it_other->first))
+					{
+						generated_features[*dp_it].setMetaValue(it_other->first, it_other->second);
+					}
+					else
+					{
+						generated_features[*dp_it].setMetaValue(it_other->first, SimIntensityType(generated_features[*dp_it].getMetaValue(it_other->first)) + it_other->second);
+					}
+        }
 
         // add current protein accession
         // generate new vector of accessions

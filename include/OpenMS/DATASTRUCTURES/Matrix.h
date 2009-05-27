@@ -331,8 +331,10 @@ namespace OpenMS
 		}
 
 		/**
+		 *  @brief create gsl_matrix*
+		 *
 		 *	allocate and return an equivalent GSL matrix
-		 *  @note Works only for Matrix<double>
+		 *  @note Works only for Matrix<double> and Matrix<float>
 		 *	@note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
 		 */
 		gsl_matrix* toGslMatrix();
@@ -350,6 +352,7 @@ namespace OpenMS
 	}; // class Matrix
 
 	template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
+	template<> OPENMS_DLLAPI gsl_matrix* Matrix<float>::toGslMatrix();
 
 	/**@brief Print the contents to a stream.
 

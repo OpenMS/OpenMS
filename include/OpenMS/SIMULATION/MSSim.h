@@ -94,6 +94,7 @@ namespace OpenMS
 
 		/// Access the charge consensus map of simulated features
 		ConsensusMap const & getSimulatedConsensus() const;
+		
 	protected:
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap

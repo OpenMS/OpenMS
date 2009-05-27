@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
+#include <gsl/gsl_blas.h>
 
 namespace OpenMS
 {
@@ -93,15 +94,13 @@ namespace OpenMS
 
 
 		// iTRAQ
-		defaults_.setValue("iTRAQ:enable_iTRAQ", "false", "enable iTRAQ reporter ion simulation");
-		defaults_.setValidStrings("iTRAQ:enable_iTRAQ", StringList::create("true,false"));
 
 		defaults_.setValue("iTRAQ:reporter_mass_shift", 0.1, "Allowed shift (uniformly distributed - left to right) in Da from the expected postion (of e.g. 114.1, 115.1)"); 
 		defaults_.setMinFloat ("iTRAQ:reporter_mass_shift", 0);
 		defaults_.setMaxFloat ("iTRAQ:reporter_mass_shift", 0.5);
 
-		defaults_.setValue("iTRAQ:iTRAQ_type", "4plex", "4plex or 8plex iTRAQ?");
-		defaults_.setValidStrings("iTRAQ:iTRAQ_type", StringList::create("4plex,8plex"));
+		defaults_.setValue("iTRAQ:iTRAQ_status", "4plex", "off,4plex or 8plex iTRAQ?");
+		defaults_.setValidStrings("iTRAQ:iTRAQ_status", StringList::create("off,4plex,8plex"));
 		defaults_.setValue("iTRAQ:channel_active_4plex", StringList::create("114:myReference"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
 		defaults_.setValue("iTRAQ:channel_active_8plex", StringList::create("113:myReference"), "Eight-plex only: Each channel that was used in the experiment and its description (113-121) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
 
@@ -114,12 +113,16 @@ namespace OpenMS
   void RawTandemMSSignalSimulation::updateMembers_()
   {
 		StringList channels_active;
-		if (param_.getValue("iTRAQ:iTRAQ_type") == "4plex") 
+		if (param_.getValue("iTRAQ:iTRAQ_status") == "off") 
+		{
+			return;
+		}
+		if (param_.getValue("iTRAQ:iTRAQ_status") == "4plex") 
 		{
 			itraq_type_ = ItraqConstants::FOURPLEX;
 			channels_active = param_.getValue("iTRAQ:channel_active_4plex");
 		}
-		else
+		else if (param_.getValue("iTRAQ:iTRAQ_status") == "8plex") 
 		{
 			itraq_type_ = ItraqConstants::EIGHTPLEX;
 			channels_active = param_.getValue("iTRAQ:channel_active_8plex");
@@ -174,7 +177,8 @@ namespace OpenMS
 			ms2.push_back(ms2_spec);
 			// link ms2 spectrum with features overlapping its precursor
 			// Warning: this depends on the current order of features in the map
-			ms2.setMetaValue("parent_feature_ids", String(i));
+			// Attention: make sure to name ALL features that overlap, not only one!
+			ms2.setMetaValue("parent_feature_ids", IntList::create(String(i)));
 			std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 		}
 
@@ -184,26 +188,96 @@ namespace OpenMS
 
 
 		//** iTRAQ reporters **//
-		if (param_.getValue("iTRAQ:enable_iTRAQ") == "true")
+		if (param_.getValue("iTRAQ:iTRAQ_status") != "off")
 		{
-				// apply isotope matrix to active channels
+			
+			gsl_matrix* channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
+			gsl_matrix* itraq_intensity_observed = Matrix<SimIntensityType>(1,ItraqConstants::CHANNEL_COUNT[itraq_type_]).toGslMatrix();
+			gsl_matrix* itraq_intensity_sum = Matrix<SimIntensityType>(1,ItraqConstants::CHANNEL_COUNT[itraq_type_]).toGslMatrix();
+			
+			std::vector< Matrix<Int> > channel_names(2);
+			channel_names[0].setMatrix<4,1>(ItraqConstants::CHANNELS_FOURPLEX);
+			channel_names[1].setMatrix<8,1>(ItraqConstants::CHANNELS_EIGHTPLEX);
 
-				// add signal...
-
+			// add signal...
 			for (MSSimExperiment::iterator it=ms2.begin(); it!=ms2.end();++it)
 			{
-				MSSimExperiment::SpectrumType::PeakType p;
-				// dummy
-				p.setMZ(114.1);
-				p.setIntensity(100);
-				it->push_back(p);
+				// reset sum matrix to 0
+				gsl_matrix_scale (itraq_intensity_sum, 0);
+				
+				// add up signal of all features
+				// TODO: take care of actual position of feature relative to precursor!
+				IntList parent_fs = ms2.getMetaValue("parent_feature_ids");
+				for (Int i_f=0; i_f < parent_fs.size(); ++i_f)
+				{
+					// apply isotope matrix to active channels
+					gsl_matrix* row = getItraqIntensity(features[i_f]).toGslMatrix();
+					// row * channel_frequency = observed iTRAQ intensities
+					gsl_blas_dgemm (CblasNoTrans, CblasNoTrans,
+													1.0, row, channel_frequency,
+													0.0, itraq_intensity_observed);
+          // add result to sum
+          gsl_matrix_add (itraq_intensity_sum, itraq_intensity_observed);
+					gsl_matrix_free (row);
+				}
+				
+				// add signal to MS2 spectrum
+				for (Size i_channel=0; i_channel< ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i_channel)
+				{
+					MSSimExperiment::SpectrumType::PeakType p;
+					// dummy
+					p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1);
+					p.setIntensity(gsl_matrix_get(itraq_intensity_sum, 0, i_channel));
+					it->push_back(p);
+				}
 			}
+			
+			gsl_matrix_free (channel_frequency);
+			gsl_matrix_free (itraq_intensity_observed);
+			gsl_matrix_free (itraq_intensity_sum);
 		}
 		
 
 		// append MS2 to experiment
 		experiment.insert(experiment.end(), ms2.begin(), ms2.end());
 
+  }
+  
+  Matrix<SimIntensityType> RawTandemMSSignalSimulation::getItraqIntensity(const Feature & f) const
+  {
+		StringList keys;
+		f.getKeys(keys);
+
+		// prepare map
+		Map <Int, SimIntensityType> channel_intensities;
+		std::vector< Matrix<Int> > channel_names(2);
+		channel_names[0].setMatrix<4,1>(ItraqConstants::CHANNELS_FOURPLEX);
+		channel_names[1].setMatrix<8,1>(ItraqConstants::CHANNELS_EIGHTPLEX);
+		for (Int i=0; i<ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i)
+		{
+			channel_intensities[channel_names[itraq_type_].getValue(i,0)] = 0;
+		}		
+		
+		// fill map with values present (all missing ones remain 0)
+		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+		{
+			if (!it_key->hasPrefix("intensity_itraq")) continue;
+			Int ch = it_key->substr(String("intensity_itraq").length()).toInt();
+			channel_intensities[ch] = f.getMetaValue(*it_key);
+			std::cout << "raw itraq intensity: " << ch << "->" << f.getMetaValue(*it_key) << "\n";
+		}	
+		
+		// fill the matrix
+		Matrix<SimIntensityType> m(1,ItraqConstants::CHANNEL_COUNT[itraq_type_],0);
+		Size index=0;
+		for (Map <Int, SimIntensityType>::const_iterator it=channel_intensities.begin(); it!=channel_intensities.end(); ++it)
+		{
+			m.setValue(0,index,it->second);
+			++index;
+		}
+
+		return m;
+		
   }
   
 }
