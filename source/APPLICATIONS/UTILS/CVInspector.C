@@ -195,7 +195,7 @@ class TOPPCVInspector
 				}
 				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::SHOULD)
 				{
-					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"yellow\">SHOULD</FONT></TD></TR>");
+					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"orange\">SHOULD</FONT></TD></TR>");
 				}
 				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::MAY)
 				{
