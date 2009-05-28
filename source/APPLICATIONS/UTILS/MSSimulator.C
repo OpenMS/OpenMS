@@ -159,12 +159,12 @@ class TOPPMSSimulator
 							if (parts[0].hasPrefix("itraq"))
 							{
 								Int channel = parts[0].substr(1).toInt();
-								if (abundance_itraq_8.find(channel) == map.end())
+								if (abundance_itraq_8.find(channel) == abundance_itraq_8.end())
 								{
 									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
 								}
 								
-								if (abundance_itraq.find(channel) != map.end())
+								if (abundance_itraq.find(channel) != abundance_itraq_8.end())
 								{	// current iTRAQ supports this channel --> save it
 									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
 											
