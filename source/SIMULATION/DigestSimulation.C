@@ -60,16 +60,18 @@ namespace OpenMS {
   {
 		if ((String)param_.getValue("enzyme") == String("none"))
 		{
-      ProteinIdentification protIdent = feature_map.getProteinIdentifications()[0];
-      // for each ProteinHit in the FeatureMap
-      for(std::vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
-          proteinHit != protIdent.getHits().end();
-          ++proteinHit)
+      //peptides = proteins;
+      // convert all proteins into peptides
+      
+      // for each protein_hit in the FeatureMap
+      for(std::vector<ProteinHit>::iterator protein_hit = feature_map.getProteinIdentifications()[0].getHits().begin();
+          protein_hit != feature_map.getProteinIdentifications()[0].getHits().end();
+          ++protein_hit)
       {
         // generate a PeptideHit hit with the correct link to the protein      
-        PeptideHit pep_hit(1.0, 1, 1, proteinHit->getSequence());
-        std::vector<String> prot_accessions(1);
-        prot_accessions.push_back(proteinHit->getAccession());
+        PeptideHit pep_hit(1.0, 1, 0, protein_hit->getSequence());
+        std::vector<String> prot_accessions;
+        prot_accessions.push_back(protein_hit->getAccession());
         pep_hit.setProteinAccessions(prot_accessions);
 
         // add the PeptideHit to the PeptideIdentification
@@ -79,14 +81,20 @@ namespace OpenMS {
         // generate Feature with correct Intensity and corresponding PeptideIdentification
         Feature f;        
         f.getPeptideIdentifications().push_back(pep_id);
-        f.setIntensity(proteinHit->getMetaValue("intesity"));
-        
+        f.setIntensity(protein_hit->getMetaValue("intensity"));
+				// copy intensity meta-values from Protein to Feature
+				StringList keys;
+				protein_hit->getKeys(keys);
+				for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+				{
+					if (!it_key->hasPrefix("intensity")) continue;
+					f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key)); 
+				}
+			        
         // add Feature to FeatureMapSim
         feature_map.push_back(f);     
       }
       
-			//peptides = proteins;
-      // convert all proteins into peptides
 			return;
 		}
 
@@ -106,9 +114,9 @@ namespace OpenMS {
     for (SampleProteins::const_iterator protein = proteins.begin();
          protein != proteins.end();
          ++protein)*/
-    for(std::vector<ProteinHit>::iterator proteinHit = feature_map.getProteinIdentifications()[0].getHits().begin();
-        proteinHit != feature_map.getProteinIdentifications()[0].getHits().end();
-        ++proteinHit)
+    for(std::vector<ProteinHit>::iterator protein_hit = feature_map.getProteinIdentifications()[0].getHits().begin();
+        protein_hit != feature_map.getProteinIdentifications()[0].getHits().end();
+        ++protein_hit)
     {
 			// determine abundance of each digestion product (this is quite long now...)
 			// we assume that each digestion product will have the same abundance
@@ -116,7 +124,7 @@ namespace OpenMS {
 
 			// how many "atomic"(i.e. non-cleavable) peptides are created?
 			digestion.setMissedCleavages( 0 );
-			Size complete_digest_count = digestion.peptideCount(proteinHit->getSequence());
+			Size complete_digest_count = digestion.peptideCount(protein_hit->getSequence());
 			// compute average numer of "atomic" peptides summed from all digestion products
 			Size number_atomic_whole = 0;
 			Size number_of_digestion_products = 0;
@@ -132,18 +140,18 @@ namespace OpenMS {
 			
 			Map<String, SimIntensityType> intensities;
 			StringList keys;
-			proteinHit->getKeys(keys);
+			protein_hit->getKeys(keys);
 			for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
 			{
 				if (!it_key->hasPrefix("intensity")) continue;
-				intensities[*it_key] = std::max(SimIntensityType(1), SimIntensityType(proteinHit->getMetaValue(*it_key)) 
+				intensities[*it_key] = std::max(SimIntensityType(1), SimIntensityType(protein_hit->getMetaValue(*it_key)) 
 																																*SimIntensityType(number_of_digestion_products) 
 																																/SimIntensityType(number_atomic_whole) ); // order changed for numeric stability
 			}
 			
 			// do real digest
 			digestion.setMissedCleavages( missed_cleavages );
-      digestion.digest(AASequence(proteinHit->getSequence()), digestion_products);
+      digestion.digest(AASequence(protein_hit->getSequence()), digestion_products);
 			
 			for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
@@ -154,8 +162,9 @@ namespace OpenMS {
 				// sum equal peptide's intensities
         // *dp_it -> peptide
         // If we see this Peptide the first time -> generate corresponding feature
-        if(generated_features.count(*dp_it) == 0) {
-          PeptideHit pep_hit(1.0, 1, 1, *dp_it);
+        if (generated_features.count(*dp_it) == 0)
+        {
+          PeptideHit pep_hit(1.0, 1, 0, *dp_it);
 
           PeptideIdentification pep_id;
           pep_id.insertHit(pep_hit);
@@ -186,30 +195,28 @@ namespace OpenMS {
         }
 
         // add current protein accession
-        // generate new vector of accessions
-        std::vector<String> prot_accessions;
+        // existing proteins accessions ...
+        std::vector<String> prot_accessions(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
 
-        // copy old values into new vector
-        prot_accessions.assign(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin(), 
-                               generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end());
-        prot_accessions.push_back(proteinHit->getAccession());
+        // ... add accession of current protein
+        prot_accessions.push_back(protein_hit->getAccession());
 
-        std::vector<PeptideIdentification> pepIdents = generated_features[*dp_it].getPeptideIdentifications();
-        std::vector<PeptideHit> pepHits = pepIdents[0].getHits();
-        pepHits[0].setProteinAccessions(prot_accessions);
-        pepIdents[0].setHits(pepHits);
-        generated_features[*dp_it].setPeptideIdentifications(pepIdents);
+        std::vector<PeptideIdentification> pep_idents = generated_features[*dp_it].getPeptideIdentifications();
+        std::vector<PeptideHit> pep_hits = pep_idents[0].getHits();
+        pep_hits[0].setProteinAccessions(prot_accessions);
+        pep_idents[0].setHits(pep_hits);
+        generated_features[*dp_it].setPeptideIdentifications(pep_idents);
       }
 		}
     
     // add generated_features to FeatureMap
-    for(std::map<AASequence, Feature>::iterator gfIt = generated_features.begin();
-        gfIt != generated_features.end();
-        ++gfIt)
+    for(std::map<AASequence, Feature>::iterator it_gf = generated_features.begin();
+        it_gf != generated_features.end();
+        ++it_gf)
     {
       // TODO: document the rounding
-      (gfIt->second).setIntensity(ceil((gfIt->second).getIntensity()));
-      feature_map.push_back(gfIt->second);
+      (it_gf->second).setIntensity(ceil((it_gf->second).getIntensity()));
+      feature_map.push_back(it_gf->second);
     }
 
   }

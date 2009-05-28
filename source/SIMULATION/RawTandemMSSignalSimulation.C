@@ -92,6 +92,10 @@ namespace OpenMS
 		defaults_.setMinInt("Precursor:ChargeFilter",1);
 		defaults_.setMaxInt("Precursor:ChargeFilter",30);
 
+		// sync'ed Param (also appears in IonizationSimulation)
+    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
+    StringList valid_ionization_type_s = StringList::create("MALDI,ESI");
+    defaults_.setValidStrings("ionization_type", valid_ionization_type_s);
 
 		// iTRAQ
 

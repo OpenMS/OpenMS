@@ -253,11 +253,16 @@ namespace OpenMS {
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
 
+		//TODO: sync params, e.g. sync(String global_target, StringList synced)
+
     defaultsToParam_();
   }
 
   void MSSim::updateMembers_()
-  {}
+  {
+		//TODO: redistribute synced params
+		
+  }
 
   MSSimExperiment const & MSSim::getExperiment() const
   {
