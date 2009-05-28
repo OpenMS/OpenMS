@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "analysisXML"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -124,6 +124,14 @@ namespace OpenMS
 		{
 			return FileTypes::MZIDENTML;
 		}
+		else if (tmp == "GELML")
+		{
+			return FileTypes::GELML;
+		}
+		else if (tmp == "TRAML")
+		{
+			return FileTypes::TRAML;
+		}
 
 		return FileTypes::UNKNOWN;
 
@@ -187,6 +195,9 @@ namespace OpenMS
 			return true;
 		case FileTypes::MZIDENTML:
 			return true;
+		case FileTypes::GELML:
+			return true;
+		case FileTypes::TRAML:
 		default:
 			return false;
 		}
@@ -231,6 +242,12 @@ namespace OpenMS
 
     //mzData (all lines)
     if (all_simple.hasSubstring("<TrafoXML")) return FileTypes::TRANSFORMATIONXML;
+
+		//GelML (all lines)
+		if (all_simple.hasSubstring("<GelML")) return FileTypes::GELML;
+
+		//traML (all lines)
+		if (all_simple.hasSubstring("<TraML")) return FileTypes::TRAML;
 
 		//tokenize lines two to five
 		vector<String> parts;
