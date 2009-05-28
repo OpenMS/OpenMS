@@ -145,7 +145,7 @@ namespace OpenMS
 						{
 							double sn(sne.getSignalToNoise(sit));
 							sit->setMetaValue("SN", sn);
-							//std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+							////std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
 							if (sn > min_signal_to_noise_ratio)
 							{
 								sn_chrom.push_back(*sit);
@@ -158,7 +158,8 @@ namespace OpenMS
 						for (RichPeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
 						{
 							this_rt = sit->getMZ();
-							if ((this_rt - last_rt) > min_rt_distance)
+							//std::cerr << this_rt << " " << last_rt << std::endl;
+							if (sections.size() == 0 || (this_rt - last_rt) > min_rt_distance)
 							{
 								// new section
 								std::vector<DPosition<2> > section;
