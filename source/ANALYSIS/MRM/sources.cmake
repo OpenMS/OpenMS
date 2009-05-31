@@ -4,6 +4,10 @@ set(directory source/ANALYSIS/MRM)
 ### list all filenames of the directory here
 set(sources_list
 MRMFragmentSelection.C
+ReactionMonitoringTransition.C
+TransitionInterpretation.C
+TransitionPrediction.C
+MRMExperiment.C
 )
 
 ### add path to the filenames
