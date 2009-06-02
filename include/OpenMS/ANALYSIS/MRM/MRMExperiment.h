@@ -41,6 +41,7 @@ namespace OpenMS
 	*/
 	class MRMExperiment
 	{
+		public:
 
 		struct CV
 		{
@@ -50,7 +51,15 @@ namespace OpenMS
 			String URI;
 		};
 
-		public:
+		struct Protein
+		{
+			String id;
+			String accession;
+			String name;
+			String description;
+			String comment;
+			String sequence;
+		};
 
 		/** @name Constructors and destructors
 		*/
@@ -113,6 +122,11 @@ namespace OpenMS
 		void addSoftware(const Software& software);
 
 		// protein list
+	  void setProteins(const std::vector<Protein>& proteins);
+
+    const std::vector<Protein>& getProteins() const;
+
+    void addProtein(const Protein& protein);
 
 		// compound list
 
@@ -138,7 +152,7 @@ namespace OpenMS
 
 		std::vector<Software> software_;
 
-		//std::vector<> proteins_;
+		std::vector<Protein> proteins_;
 		//std::vector<> compounds_;
 
 		std::vector<ReactionMonitoringTransition> transitions_;

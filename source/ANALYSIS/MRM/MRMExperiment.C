@@ -120,6 +120,21 @@ namespace OpenMS
     software_.push_back(software);
   }
 
+  void MRMExperiment::setProteins(const vector<Protein>& proteins)
+  {
+    proteins_ = proteins;
+  }
+
+  const vector<MRMExperiment::Protein>& MRMExperiment::getProteins() const
+  {
+    return proteins_;
+  }
+
+  void MRMExperiment::addProtein(const Protein& protein)
+  {
+    proteins_.push_back(protein);
+  }
+
 	void MRMExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
 	{
 		transitions_ = transitions;

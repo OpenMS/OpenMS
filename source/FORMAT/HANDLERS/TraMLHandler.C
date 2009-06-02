@@ -235,13 +235,19 @@ namespace OpenMS
 		}
 
     // protein list
-		/*
 		if (exp.getProteins().size() > 0)
 		{
 			os << "  <proteinList>" << endl;
+			for (vector<MRMExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
+			{
+				os << "    <protein id=\"" << it->id << "\" accession=\"" << it->accession << "\" name=" << it->name << "\" description=\"" << it->description << "\" comment=\"" << it->comment << "\"" << endl;
+				os << "      <sequence>" << endl;
+				os << "        " << it->sequence << endl;
+				os << "      </sequence>" << endl;
+				os << "    </protein>" << endl;
+			}
 			os << "  </proteinList>" << endl;
 		}
-		*/
 
     // compound list
 		/*
