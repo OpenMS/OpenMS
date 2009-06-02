@@ -14,6 +14,7 @@ UnimodXMLHandler.h
 XMLHandler.h
 XTandemInfileXMLHandler.h
 MzIdentMLHandler.h
+TraMLHandler.h
 )
 
 ### add path to the filenames

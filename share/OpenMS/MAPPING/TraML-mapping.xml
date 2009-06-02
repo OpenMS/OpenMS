@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CvMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvMapping.xsd" modelName="TraML.xsd" modelURI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/TraML/schema/TraML1.0.0.xsd" modelVersion="1.0.0">
+
+    <CvReferenceList>
+        <CvReference cvName="PSI-MS" cvIdentifier="MS"/>
+        <CvReference cvName="UO" cvIdentifier="UO"/>
+    </CvReferenceList>
+
+    <CvMappingRuleList>
+
+        <!-- contact -->
+        <CvMappingRule id="contact_must" cvElementPath="/TraML/contactList/contact/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/contactList/contact" cvTermsCombinationLogic="AND" >
+            <CvTerm termAccession="MS:1000586" useTermName="false" useTerm="true" termName="contact name" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1000590" useTermName="false" useTerm="true" termName="contact organization" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+        </CvMappingRule>
+        <CvMappingRule id="contact_may" cvElementPath="/TraML/contactList/contact/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/contactList/contact/cvParam" cvTermsCombinationLogic="OR" >
+            <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- publication  -->
+        <CvMappingRule id="publication_must" cvElementPath="/TraML/publicationList/publication/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/publicationList/publication" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000879" useTerm="true" termName="PubMed identifier" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- instrument  -->
+        <CvMappingRule id="instrument_must" cvElementPath="/TraML/instrumentList/instrument/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/instrumentList/instrument" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000031" useTerm="false" termName="instrument model" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- software-->
+        <CvMappingRule id="software_must" cvElementPath="/TraML/softwareList/software/cvParam/@accession" requirementLevel="MUST" scopePath="/TraML/softwareList/software" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000531" useTerm="false" termName="software" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- peptide -->
+        <CvMappingRule id="peptide_may" cvElementPath="/TraML/compoundList/peptide/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/compoundList/peptide" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- compound -->
+        <CvMappingRule id="compound_may" cvElementPath="/TraML/compoundList/compound/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/compoundList/compound" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000864" useTerm="false" termName="chemical compound formula" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- evidence -->
+        <CvMappingRule id="evidence_may" cvElementPath="/TraML/compoundList/peptide/evidence/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/compoundList/peptide/evidence" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001100" useTerm="true" termName="confident peptide" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+        <!-- configuration -->
+        <CvMappingRule id="configuration_may" cvElementPath="/TraML/transitionList/transition/configurationList/configuration/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/transitionList/transition/configurationList/configuration" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000502" useTerm="true" termName="dwell time" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000482" useTerm="false" termName="source attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
+
+
+
+
+    </CvMappingRuleList>
+</CvMapping>

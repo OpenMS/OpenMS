@@ -55,6 +55,71 @@ namespace OpenMS
 		return *this;
 	}
 
+	bool MRMExperiment::operator == (const MRMExperiment& rhs) const
+	{
+		return transitions_ == rhs.transitions_;
+	}
+
+	void MRMExperiment::setCVs(const vector<CV>& cvs)
+	{
+		cvs_ = cvs;
+	}
+
+	const vector<MRMExperiment::CV>& MRMExperiment::getCVs() const
+	{
+		return cvs_;
+	}
+
+	void MRMExperiment::addCV(const CV& cv)
+	{
+		cvs_.push_back(cv);
+	}
+
+	void MRMExperiment::setPublications(const vector<MetaInfoInterface>& publications)
+	{
+		publications_ = publications;
+	}
+
+	const vector<MetaInfoInterface>& MRMExperiment::getPublications() const
+	{
+		return publications_;
+	}
+
+	void MRMExperiment::addPublication(const MetaInfoInterface& publication)
+	{
+		publications_.push_back(publication);
+	}
+
+  void MRMExperiment::setInstruments(const vector<MetaInfoInterface>& instruments)
+  {
+    instruments_ = instruments;
+  }
+
+  const vector<MetaInfoInterface>& MRMExperiment::getInstruments() const
+  {
+    return instruments_;
+  }
+
+  void MRMExperiment::addInstrument(const MetaInfoInterface& instrument)
+  {
+    instruments_.push_back(instrument);
+  }
+
+	void MRMExperiment::setSoftware(const vector<Software>& software)
+  {
+    software_ = software;
+  }
+
+  const vector<Software>& MRMExperiment::getSoftware() const
+  {
+    return software_;
+  }
+
+  void MRMExperiment::addSoftware(const Software& software)
+  {
+    software_.push_back(software);
+  }
+
 	void MRMExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
 	{
 		transitions_ = transitions;

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TraML version="0.20" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML0.2.xsd">
+  <cvList>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
+    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+  </cvList>
+
+  <contactList>
+    <contact id="CS">
+      <cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Carly Sherwood"/>
+      <cvParam cvRef="MS" accession="MS:1000587" name="contact organization" value="Institute for Systems Biology"/>
+      <cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="1441 NE 34th St, Seattle WA 98103, USA"/>
+      <cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.systemsbiology.org/"/>
+      <cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="example@systemsbiology.org"/>
+    </contact>
+  </contactList>
+
+  <publicationList>
+    <publication id="PMID12748199">
+      <cvParam cvRef="MS" accession="MS:1000879" name="PubMed identifier" value="12748199"/>
+    </publication>
+  </publicationList>
+
+  <instrumentList>
+    <instrument id="LCQ_Deca">
+      <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca"/>
+    </instrument>
+    <instrument id="QTRAP">
+      <cvParam cvRef="MS" accession="MS:1000870" name="4000 QTRAP"/>
+    </instrument>
+  </instrumentList>
+
+  <softwareList>
+    <software id="MaRiMba" version="1.0">
+      <cvParam cvRef="MS" accession="MS:1000872" name="MaRiMba"/>
+    </software>
+    <software id="SSRCalc3.0" version="3.0">
+      <cvParam cvRef="MS" accession="MS:1000874" name="SSRCalc"/>
+    </software>
+  </softwareList>
+
+  <proteinList>
+    <protein id="Q12149" accession="Q12149" name="Q12149" description="Heat shock protein 1, alpha" comment="">
+      <sequence>MSTEMETKAEDVETFAFQAEIAQLMSLIINTFYSNKEIFLRELISNSSDALDKIRYESLTDPSKLDNGKE</sequence>
+    </protein>
+  </proteinList>
+
+  <compoundList>
+    <peptide id="ADTHFLLNIYDQLR-M1" proteinRef="Q12149"
+        unmodifiedSequence="ADTHFLLNIYDQLR" modifiedSequence="ADTHFLLNIYDQLR[162.10111]"
+        labelingCategory="heavy" groupLabel="1">
+      <cvParam cvRef="MS" accession="MS:1000863" name="predicted pI" value="5.22"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22"/>
+      <retentionTime
+          localRetentionTime="40.02"
+          normalizedRetentionTime="38.43" normalizationStandard="H-PINS"
+          predictedRetentionTime="44.07" predictedRetentionTimeSoftwareRef="SSRCalc3.0"/>
+      <evidence>
+       <cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
+      </evidence>
+    </peptide>
+    <compound id="glyoxylate">
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39"/>
+      <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C2HO3"/>
+      <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
+      <retentionTime
+          localRetentionTime="23.56"/>
+    </compound>
+  </compoundList>
+
+  <transitionList>
+    <transition
+        name="ADTHFLLNIYDQLR[162.10111]-T1"
+        peptideRef="ADTHFLLNIYDQLR-M1">
+      <precursor mz="862.9467" charge="2"/>
+      <product mz="1040.57" charge="1"/>
+      <interpretationList>
+        <interpretation productSeries="y" productOrdinal="8" productAdjustment="" mzDelta="0.03" primary="true"/>
+	<interpretation productSeries="b" productOrdinal="9" productAdjustment="-18^2" mzDelta="-0.43"/>
+      </interpretationList>
+      <prediction
+          transitionSource="transition predicted from consensus spectrum from ion trap spectra"
+          softwareRef="MaRiMba"
+          contactRef="CS"
+          relativeIntensity="10000"
+          recommendedTransitionRank="1"
+          intensityRank="1"/>
+      <configurationList>
+        <configuration instrumentRef="QTRAP" contactRef="CS">
+          <cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="0.12"/>
+          <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26"/>
+          <cvParam cvRef="MS" accession="MS:1000875" name="declustering potential" value="64"/>
+          <cvParam cvRef="MS" accession="MS:1000419" name="collision gas" value="argon"/>
+          <cvParam cvRef="MS" accession="MS:1000869" name="collision gas pressure" value="12"/>
+          <cvParam cvRef="MS" accession="MS:1000876" name="cone voltage" value="1200"/>
+          <cvParam cvRef="MS" accession="MS:1000857" name="interchannel delay" value="0.01"/>
+          <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23"/>
+          <validation
+              transitionSource="transition optimized on triple-quad"
+              relativeIntensity="4072"
+              recommendedTransitionRank="1"
+              intensityRank="1"/>
+        </configuration>
+      </configurationList>
+    </transition>
+  </transitionList>
+</TraML>

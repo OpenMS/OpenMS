@@ -30,6 +30,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/METADATA/Software.h>
 
 namespace OpenMS
 {
@@ -40,6 +41,14 @@ namespace OpenMS
 	*/
 	class MRMExperiment
 	{
+
+		struct CV
+		{
+			String id;
+			String fullname;
+			String version;
+			String URI;
+		};
 
 		public:
 
@@ -59,31 +68,81 @@ namespace OpenMS
 		/// assignment operator 
 		MRMExperiment& operator = (const MRMExperiment& rhs);
 
+		/** @name Predicates
+		*/
+		//@{
+		bool operator == (const MRMExperiment& rhs) const;
+		//@}
+
 		/** @name Accessors
 		*/
 		//@{
 		// cv list
+		void setCVs(const std::vector<CV>& cvs);
+	
+		const std::vector<CV>& getCVs() const;
 
-		// publications list
+		void addCV(const CV& cv);
+
+		// contact list
+		void setContacts(const std::vector<MetaInfoInterface>& contacts);
+
+		const std::vector<MetaInfoInterface>& getContacts() const;
+
+		void addContact(const MetaInfoInterface& contact);
+
+		// publication list
+    void setPublications(const std::vector<MetaInfoInterface>& publications);
+
+    const std::vector<MetaInfoInterface>& getPublications() const;
+
+    void addPublication(const MetaInfoInterface& publication);
 
 		// instrument list
+		void setInstruments(const std::vector<MetaInfoInterface>& instruments);
+
+		const std::vector<MetaInfoInterface>& getInstruments() const;
+
+		void addInstrument(const MetaInfoInterface& instrument);
 
 		// software list
+		void setSoftware(const std::vector<Software>& software);
+
+		const std::vector<Software>& getSoftware() const;
+
+		void addSoftware(const Software& software);
 
 		// protein list
 
 		// compound list
 
+		/// set transition list
 		void setTransitions(const std::vector<ReactionMonitoringTransition>& transitions);
 		
+		/// returns the transition list
 		const std::vector<ReactionMonitoringTransition>& getTransitions() const;
 
+		/// adds a transition to the list
 		void addTransition(const ReactionMonitoringTransition& transition);
 		//@}
 
 		protected:
 
+		std::vector<CV> cvs_;
+
+		std::vector<ContactPerson> contacts_;
+
+		std::vector<MetaInfoInterface> publications_;
+
+		std::vector<MetaInfoInterface> instruments_;
+
+		std::vector<Software> software_;
+
+		//std::vector<> proteins_;
+		//std::vector<> compounds_;
+
 		std::vector<ReactionMonitoringTransition> transitions_;
+
 	};
 }
 

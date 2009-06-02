@@ -13,6 +13,7 @@ set(sources_list
 	XMLHandler.C
 	XTandemInfileXMLHandler.C
 	MzIdentMLHandler.C
+	TraMLHandler.C
 )
 
 if (USE_ANDIMS) 	 
