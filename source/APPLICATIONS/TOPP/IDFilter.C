@@ -151,6 +151,7 @@ class TOPPIDFilter
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 		registerFlag_("first_dim_rt","If this flag is set rt filtering will be pursued for first_dim.");
+		registerFlag_("unique","If this flag is set and a peptide hit occurs more than once, only one instance is kept.");
 	}
 
 	ExitCodes main_(int , const char**)
@@ -176,6 +177,7 @@ class TOPPIDFilter
 		bool first_dim_rt = false;
 		DoubleReal p_value = 0.05;
 		UInt min_length = 1;
+		bool unique = false;
 		
 		
 		//-------------------------------------------------------------
@@ -200,6 +202,7 @@ class TOPPIDFilter
 		p_value = getDoubleOption_("p_value");
 		rt_filtering = getFlag_("rt_filtering");
 		first_dim_rt = getFlag_("first_dim_rt");
+		unique = getFlag_("unique");
 
 		bool strict = getFlag_("best_hits");
 		bool no_protein_identifiers = getFlag_("no_protein_identifiers_in_seq_filter");
@@ -269,7 +272,13 @@ class TOPPIDFilter
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification); 				
 			}
-	
+			
+			if (unique)
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsUnique(temp_identification, filtered_identification); 				
+			}
+			
 			if (strict)
 			{
 				PeptideIdentification temp_identification = filtered_identification;

@@ -41,6 +41,24 @@ namespace OpenMS
   {
   }
   
+  void IDFilter::filterIdentificationsUnique(const PeptideIdentification& identification,
+  																					 PeptideIdentification& 			filtered_identification)
+ 	{
+ 		vector<PeptideHit> hits;
+		filtered_identification = identification;		
+ 		vector<PeptideHit> temp_hits = identification.getHits();
+ 		
+ 		for(vector<PeptideHit>::iterator it = temp_hits.begin();
+ 				it != temp_hits.end();
+ 				++it)
+ 		{
+ 			if (find(hits.begin(), hits.end(), *it) == hits.end())
+ 			{
+ 				hits.push_back(*it);
+ 			}
+ 		}
+ 		filtered_identification.setHits(hits); 		
+ 	}  
 
 	void IDFilter::filterIdentificationsByBestHits(const PeptideIdentification& 	identification,
 																								 PeptideIdentification& 				filtered_identification, 
