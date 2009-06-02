@@ -5,9 +5,9 @@
 			<position dim="0">1623.68755681818</position>
 			<position dim="1">656.356</position>
 			<intensity>3.3892e+06</intensity>
-			<quality dim="0">0</quality>
+			<quality dim="0">0.965176743998265</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<overallquality>0.965176743998265</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<hullpoint>
@@ -19,15 +19,15 @@
 					<hposition dim="1">656.356</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="float" name="MZ" value="443.707"/>
+			<userParam type="float" name="MZ" value="443.706"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">2165.87950310559</position>
 			<position dim="1">722.403</position>
 			<intensity>1.50286e+07</intensity>
-			<quality dim="0">0</quality>
+			<quality dim="0">0.992970614798272</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<overallquality>0.992970614798272</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<hullpoint>
@@ -39,15 +39,15 @@
 					<hposition dim="1">722.403</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="float" name="MZ" value="461.743"/>
+			<userParam type="float" name="MZ" value="461.742"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">2310.60907590759</position>
 			<position dim="1">600.33</position>
 			<intensity>2.93928e+06</intensity>
-			<quality dim="0">0</quality>
+			<quality dim="0">0.969432180824566</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<overallquality>0.969432180824566</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<hullpoint>
@@ -59,7 +59,7 @@
 					<hposition dim="1">600.33</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="float" name="MZ" value="554.256"/>
+			<userParam type="float" name="MZ" value="554.255"/>
 		</feature>
 	</featureList>
 </featureMap>

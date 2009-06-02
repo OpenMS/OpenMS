@@ -22,15 +22,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMMRM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMMRM_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
@@ -179,7 +183,21 @@ namespace OpenMS
 						{
 							if (sections[i].size() > min_num_peaks_per_feature)
 							{
+								std::vector<PeakType> data_to_fit;
+								for (Size j = 0; j != sections[i].size(); ++j)
+								{
+									PeakType p;
+									p.setPosition(sections[i][j].getX());
+									p.setIntensity(sections[i][j].getY());
+									data_to_fit.push_back(p);
+								}
+								InterpolationModel* model_rt = 0;
+								double quality = fitRT_(data_to_fit, model_rt);
+
 								Feature f;
+								f.setQuality(0, quality);
+								f.setOverallQuality(quality);
+
 								ConvexHull2D::PointArrayType hull_points(sections[i].size());
 								double intensity_sum(0.0), rt_sum(0.0);
 			          for (Size j = 0; j < sections[i].size(); ++j)
@@ -220,6 +238,36 @@ namespace OpenMS
 			}
 	
 		protected:
+
+			DoubleReal fitRT_(std::vector<PeakType>& rt_input_data, InterpolationModel*& model) const
+    	{
+      	DoubleReal quality;
+      	Param param;
+      	EmgFitter1D fitter;
+
+				/*
+      	param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
+      	param.setValue( "statistics:mean", rt_stat_.mean() );
+      	param.setValue( "statistics:variance", rt_stat_.variance() );
+      	param.setValue( "interpolation_step", interpolation_step_rt_ );
+      	param.setValue( "max_iteration", max_iteration_);
+      	param.setValue( "deltaAbsError", deltaAbsError_);
+      	param.setValue( "deltaRelError", deltaRelError_);
+				*/
+
+      	// Set parameter for fitter
+      	fitter.setParameters( param );
+
+      	// Construct model for rt
+      	quality = fitter.fit1d(rt_input_data, model);
+      
+				// Check quality
+      	if (boost::math::isnan(quality) ) quality = -1.0;
+
+      	return quality;
+    	}
+
+
 
 			//Docu in base class
 			virtual void updateMembers_()
