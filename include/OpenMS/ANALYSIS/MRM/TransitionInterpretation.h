@@ -41,7 +41,7 @@ namespace OpenMS
 		the type of ion and different other values.
 
 	*/
-	class TransitionInterpretation : public MetaInfoInterface
+	class OPENMS_DLLAPI TransitionInterpretation : public MetaInfoInterface
 	{
 
 		public:

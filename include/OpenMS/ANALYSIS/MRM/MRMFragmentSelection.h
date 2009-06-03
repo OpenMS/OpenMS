@@ -46,7 +46,7 @@ namespace OpenMS
 		the most abundant peaks in a specified m/z range.
 
 	*/
-	class MRMFragmentSelection : public DefaultParamHandler
+	class OPENMS_DLLAPI MRMFragmentSelection : public DefaultParamHandler
 	{
 
 		public:

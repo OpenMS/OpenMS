@@ -39,7 +39,7 @@ namespace OpenMS
 
 
 	*/
-	class MRMExperiment
+	class OPENMS_DLLAPI MRMExperiment
 	{
 		public:
 

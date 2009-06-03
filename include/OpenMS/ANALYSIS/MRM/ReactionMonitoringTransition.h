@@ -41,7 +41,7 @@ namespace OpenMS
 
 		bla
 	*/
-	class ReactionMonitoringTransition : public MetaInfoInterface
+	class OPENMS_DLLAPI ReactionMonitoringTransition : public MetaInfoInterface
 	{
 
 		public:

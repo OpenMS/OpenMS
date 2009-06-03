@@ -38,7 +38,7 @@ namespace OpenMS
 
 
 	*/
-	class TransitionPrediction : public MetaInfoInterface
+	class OPENMS_DLLAPI TransitionPrediction : public MetaInfoInterface
 	{
 
 		public:
