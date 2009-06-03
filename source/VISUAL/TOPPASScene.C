@@ -269,7 +269,9 @@ namespace OpenMS
 				qobject_cast<TOPPASInputFileVertex*>(v) ||
 				qobject_cast<TOPPASInputFileListVertex*>(v) ||
 				qobject_cast<TOPPASOutputFileVertex*>(u) ||
-				qobject_cast<TOPPASOutputFileListVertex*>(u))
+				qobject_cast<TOPPASOutputFileListVertex*>(u) ||
+					((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u)) &&
+					(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))))
 		{
 			return TOPPASEdge::EV_RED;
 		}

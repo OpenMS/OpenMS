@@ -43,6 +43,7 @@ namespace OpenMS
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(250,200,0);
+		initParam_();
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type)
@@ -52,6 +53,7 @@ namespace OpenMS
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(250,200,0);
+		initParam_();
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
@@ -77,45 +79,129 @@ namespace OpenMS
 		return *this;
 	}
 	
+	void TOPPASToolVertex::initParam_()
+	{
+		Param tmp_param;
+		String ini_file = "TOPPAS_" + name_ + "_";
+		if (type_ != "")
+		{
+			ini_file += type_ + "_";
+		}
+		ini_file += QString::number(id_) + ".tmp.ini";
+		
+		String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
+		if (type_ != "")
+		{
+			call += " -type " + type_;
+		}
+		
+		if (system(call.c_str()) != 0)
+		{
+			QMessageBox::critical(0,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
+			return;
+		}
+		else if(!File::exists(ini_file))
+		{
+			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file+"'!").c_str());
+			return;
+		}
+		
+		tmp_param.load((ini_file).c_str());
+		param_=tmp_param.copy(name_+":1:",true);
+		param_.remove("log");
+		param_.remove("no_progress");
+		param_.remove("debug");
+		
+		//// (JJ)
+		std::cout << "### " << name_ << " ###" << std::endl;
+		puts("-- INPUT --");
+		QVector<IOInfo> bla;
+		getRequiredInputFiles(bla);
+		puts("-- OUTPUT --");
+		getRequiredOutputFiles(bla);
+		puts("");
+		////
+	}
+	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 		QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
 		String default_dir = "";
-		Param tmp_param;
-		
-		if (param_.empty())
-		{
-			String ini_file = "TOPPAS_" + name_ + "_";
-			if (type_ != "")
-			{
-				ini_file += type_ + "_";
-			}
-			ini_file += QString::number(id_) + ".tmp.ini";
-			
-			String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
-			if (type_ != "")
-			{
-				call += " -type " + type_;
-			}
-			
-			if (system(call.c_str()) != 0)
-			{
-				QMessageBox::critical(parent_widget,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
-			}
-			else if(!File::exists(ini_file))
-			{
-				QMessageBox::critical(parent_widget,"Error",(String("Could not open '")+ini_file+"'!").c_str());
-			}
-			
-			tmp_param.load((ini_file).c_str());
-			param_=tmp_param.copy(name_+":1:",true);
-			param_.remove("log");
-			param_.remove("no_progress");
-			param_.remove("debug");
-		}
 		
 		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
 		dialog.exec();
+	}
+	
+	void TOPPASToolVertex::getRequiredInputFiles(QVector<IOInfo>& input_infos)
+	{
+		getRequiredFiles_(input_infos,true);
+	}
+	
+	void TOPPASToolVertex::getRequiredOutputFiles(QVector<IOInfo>& output_infos)
+	{
+		getRequiredFiles_(output_infos,false);
+	}
+	
+	void TOPPASToolVertex::getRequiredFiles_(QVector<IOInfo>& io_infos, bool input_files)
+	{
+		String search_tag = input_files ? "input file" : "output file";
+		
+		io_infos.clear();
+		
+		for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
+		{
+			if (it->tags.count(search_tag))
+			{
+				StringList valid_types;
+				
+				const String& desc = it->description;
+				String::SizeType index = desc.find("valid formats",0);
+				if (index != String::npos)
+				{
+					String::SizeType types_start_pos = desc.find("'",index) + 1;
+					String::SizeType types_length = desc.find("'",types_start_pos) - types_start_pos;
+					String types_string = desc.substr(types_start_pos, types_length);
+					if (types_string.find(",",0) == String::npos)
+					{
+						valid_types.push_back(types_string.trim());
+					}
+					else
+					{
+						types_string.split(',', valid_types);
+					}
+				}
+				
+				IOInfo io_info;
+				io_info.param_name = it->name;
+				io_info.valid_types = valid_types;
+				if (it->value.valueType() == DataValue::STRING_LIST)
+				{
+					io_info.type = IOInfo::IOT_LIST;
+				}
+				else if (it->value.valueType() == DataValue::STRING_VALUE)
+				{
+					io_info.type = IOInfo::IOT_FILE;
+				}
+				else
+				{
+					std::cerr << "this should not happen\n" << std::endl;
+				}
+				io_infos.push_back(io_info);
+				
+				//// (JJ)
+				if (io_info.type == IOInfo::IOT_LIST)
+				{
+					std::cout << "List: '";
+				}
+				else if (io_info.type == IOInfo::IOT_FILE)
+				{
+					std::cout << "File: '";
+				}
+				std::cout << io_info.param_name << "': " << io_info.valid_types << std::endl;
+				////
+			}
+		}
+		
 	}
 
 }

@@ -26,36 +26,67 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_TOPPASIOMAPPINGDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_TOPPASIOMAPPINGDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFileDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASIOMappingDialog.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+
+#include <QtCore/QVector>
+
 
 namespace OpenMS 
 {
+	class TOPPASEdge;
+	
 	/**
 		@brief Dialog which allows to specify a list of input files
 		
 		@ingroup Dialogs
 	*/
-	class TOPPASInputFileDialog
+	class TOPPASIOMappingDialog
 		: public QDialog,
-			public Ui::TOPPASInputFileDialogTemplate
+			public Ui::TOPPASIOMappingDialogTemplate
 	{
 		Q_OBJECT
 				
 		public:
 			
 			/// Constructor
-			TOPPASInputFileDialog(const QString& file);
-			
-			/// Returns the filename
-			QString getFilename();
+			TOPPASIOMappingDialog(TOPPASEdge* parent);
 			
 		public slots:
 		
-			/// Lets the user select the file via a file dialog
-			void showFileDialog();
+		protected:
+		
+		enum EdgeType_
+		{
+			ET_FILE_TO_TOOL,
+			ET_LIST_TO_TOOL,
+			ET_TOOL_TO_FILE,
+			ET_TOOL_TO_LIST,
+			ET_TOOL_TO_TOOL,
+			ET_INVALID
+		};
+		
+		///@name reimplemented Qt events
+		//@{
+		void resizeEvent(QResizeEvent* /*event*/);
+		
+		/// Determines the type of this edge
+		void determineEdgeType_();
+		/// Fills the table
+		void fillTable_();
+		
+		/// The edge we are configuring
+		TOPPASEdge* edge_;
+		/// The type of this edge
+		EdgeType_ edge_type_;
+		/// The output parameters of the source tool
+		QVector<TOPPASToolVertex::IOInfo> source_output_files_;
+		/// The input parameters of the target tool
+		QVector<TOPPASToolVertex::IOInfo> target_input_files_;
+		
 	};
 	
 }

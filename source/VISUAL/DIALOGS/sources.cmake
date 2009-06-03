@@ -23,6 +23,7 @@ SpectrumAlignmentDialog.C
 TOPPASInputFileDialog.C
 TOPPASInputFilesDialog.C
 TOPPASToolConfigDialog.C
+TOPPASIOMappingDialog.C
 )
 
 ### add path to the filenames

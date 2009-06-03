@@ -89,7 +89,12 @@ namespace OpenMS
 			void setColor(const QColor& color);
 			
 		protected:
-		
+			
+			///@name reimplemented Qt events
+      //@{
+      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+			//@}
+			
 			/// Returns the point in the @p list that is nearest to @p origin
 			QPointF nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const;
 		

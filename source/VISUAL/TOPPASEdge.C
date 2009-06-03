@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
@@ -294,7 +295,12 @@ namespace OpenMS
 		color_ = color;
 	}
 
-
+	void TOPPASEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		TOPPASIOMappingDialog dialog(this);
+		dialog.exec();
+	}
+	
 } //namespace
 
 

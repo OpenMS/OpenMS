@@ -29,9 +29,9 @@
 #define OPENMS_VISUAL_TOPPASTOOLVERTEX_H
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <QtCore/QVector>
 
 namespace OpenMS
 {
@@ -41,6 +41,20 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			
+			/// Stores the information for input/output files/lists
+			struct IOInfo
+			{
+				enum IOType
+				{
+					IOT_FILE,
+					IOT_LIST
+				};
+				
+				IOType type;
+				String param_name;
+				StringList valid_types;
+			};
 			
 			/// Default constructor
 			TOPPASToolVertex();
@@ -53,6 +67,11 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
+			/// Fills @p input_infos with the required input files/lists together with their valid types.
+			void getRequiredInputFiles(QVector<IOInfo>& input_infos);
+			/// Fills @p output_infos with the required output files/lists together with their valid types.
+			void getRequiredOutputFiles(QVector<IOInfo>& output_infos);
+			
 			/// The static instance counter (for unique instance numbers)
 			static UInt id_counter;
 			
@@ -62,6 +81,10 @@ namespace OpenMS
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
+			/// Initializes the parameters with standard values (from -write_ini)
+			void initParam_();
+			/// Fills @p io_infos with the required input/output files/lists. If @p input_files is true, input files are returned, otherwise output files.
+			void getRequiredFiles_(QVector<IOInfo>& io_infos, bool input_files);
 			
 			/// The parameters of the tool
 			Param param_;
