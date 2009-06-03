@@ -106,8 +106,7 @@ namespace OpenMS {
   void IonizationSimulation::setDefaultParams_()
   {
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    StringList valid_ionization_type_s = StringList::create("MALDI,ESI");
-    defaults_.setValidStrings("ionization_type", valid_ionization_type_s);
+    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
     defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ESI ionization. This parameter will be ignored during MALDI ionization.");
     StringList valid_ionized_residues = StringList::create("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");

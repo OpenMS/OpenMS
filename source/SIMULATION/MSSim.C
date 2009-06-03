@@ -118,6 +118,10 @@ namespace OpenMS {
         8. generate MS2 signals for selected features
      */
 
+		// re-distribute synced parameters:
+		syncParams_(param_, false);
+		//param_.store("c:/mssim_param.ini"); // test reconstruction
+
     // convert sample proteins into an empty FeatureMap with ProteinHits
     // convert
     createFeatureMap_(proteins, features_);
@@ -240,10 +244,6 @@ namespace OpenMS {
 
   void MSSim::setDefaultParams_()
   {
-		// global params
-		defaults_.setValue("Global:iTRAQ","off","iTRAQ simulation?");
-		defaults_.setValidStrings("Global:iTRAQ",StringList::create("off,4plex,8plex"));
-  
 		// section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
@@ -253,15 +253,57 @@ namespace OpenMS {
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());
 
-		//TODO: sync params, e.g. sync(String global_target, StringList synced)
+		//sync params (remove duplicates from modules and put them in a global module)
+		syncParams_(defaults_, true);
 
     defaultsToParam_();
+  }
+  
+  void MSSim::syncParams_(Param& p, bool to_outer)
+  {
+		std::vector<StringList> globals;
+		// here the globals params are listed that require to be in sync across several modules
+		// - first the global param name and following that the module names where this param occurs
+		// - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
+		globals.push_back(StringList::create("iTRAQ,PostTranslationalModifications,RawTandemSignal:iTRAQ"));
+		globals.push_back(StringList::create("ionization_type,Ionization,RawTandemSignal"));
+		
+		String global_prefix = "Global";
+		// remove or add local params
+		if (to_outer)
+		{	// remove local params and merge to global
+			for (Size i = 0; i < globals.size(); ++i)
+			{
+				// set the global param:
+				OPENMS_PRECONDITION(globals[i].size()>=2, "Param synchronisation aborting due to missing local parameters!");
+				p.insert(global_prefix+":"+globals[i][0], p.copy(globals[i][1]+":"+globals[i][0],true));
+				// remove local params
+				for (Size i_local=1;i_local<globals[i].size(); ++i_local)
+				{
+					p.remove(globals[i][i_local]+":"+globals[i][0]);
+				}
+			}
+		}
+		else // restore local params from global one
+		{
+			for (Size i = 0; i < globals.size(); ++i)
+			{
+				// get the global param:
+				OPENMS_PRECONDITION(globals[i].size()>=2, "Param synchronisation aborting due to missing local parameters!");
+
+				Param p_global = p.copy(global_prefix + ":" + globals[i][0],true);
+				// insert into local params
+				for (Size i_local=1;i_local<globals[i].size(); ++i_local)
+				{
+					p.insert(globals[i][i_local]+":"+globals[i][0], p_global);
+				}
+			}		
+		}
+		
   }
 
   void MSSim::updateMembers_()
   {
-		//TODO: redistribute synced params
-		
   }
 
   MSSimExperiment const & MSSim::getExperiment() const

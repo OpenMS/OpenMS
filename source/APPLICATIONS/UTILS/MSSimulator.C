@@ -72,6 +72,20 @@ class TOPPMSSimulator
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format",false);
 
+			addEmptyLine_();
+  		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
+			addEmptyLine_();
+  		addText_("- add '[# xx]' at the end of the > line to specify");
+  		addText_("  xx total abundance units.");
+  		addText_("- add '[# xx, itraq113:yy, itraq115:zz]' to specify");
+  		addText_("  xx total abundance units and yy itraq(channel 113) units");
+  		addText_("  and zz itraq(channel 115) units. All Itraq is normalized");
+  		addText_("  to 1 and xx is distributed accordingly.");
+			addEmptyLine_();
+			addText_("e.g. >seq2 optional comment [#45, itraq119:20, itraq121:25]");
+			addText_("     ASQKRPSQRHGSKYLATASTMDHARHGFLPRHRDTGILDSIGRFFGGDRGAPK");
+
+
       registerSubsection_("algorithm","Algorithm parameters section");    
     }
   
@@ -108,7 +122,7 @@ class TOPPMSSimulator
 			}
 			//
       ItraqConstants::ChannelMapType abundance_itraq_8;
-      ItraqConstants::initChannelMap(ItraqConstants::EIGHTPLEX, abundance_itraq);
+      ItraqConstants::initChannelMap(ItraqConstants::EIGHTPLEX, abundance_itraq_8);
 
       
       // re-parse fasta description to obtain quantitation info
@@ -122,16 +136,15 @@ class TOPPMSSimulator
         
         // Look for a relative quantity given in the first line of a FASTA entry
 				// e.g. [#120,itraq117:34,itraq119:23]
-				// TODO: properly document in --help
-				index = (it->description).find_last_of("[#");
+				index = (it->description).find("[#");
         // if found, extract and set relative quantity accordingly
         if (index != string::npos)
         {
 					String::size_type index_end = (it->description).find(']', index);
 					if (index_end == string::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
 					
-					std::cout << (it->description).substr(index+1,index_end-index-1) << std::endl;
-					StringList abundances = StringList::create((it->description).substr(index+1,index_end-index-1));
+					std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
+					StringList abundances = StringList::create((it->description).substr(index+2,index_end-index-2));
 					if (abundances.size() == 0) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section is missing abundance value.");
 					quant_info["intensity"] = abundances[0].toDouble();
 					
@@ -155,19 +168,18 @@ class TOPPMSSimulator
 								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; key or value is empty ('" + abundances[i] + "')");
 							}
 							
+							const string itraq_prefix = "itraq";
 							// iTRAQ specific stuff
-							if (parts[0].hasPrefix("itraq"))
+							if (parts[0].hasPrefix(itraq_prefix))
 							{
-								Int channel = parts[0].substr(1).toInt();
+								Int channel = parts[0].substr(itraq_prefix.length()).toInt();
 								if (abundance_itraq_8.find(channel) == abundance_itraq_8.end())
 								{
-									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
+									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MSSimulator (line ") + __LINE__ + "): Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
 								}
 								
-								if (abundance_itraq.find(channel) != abundance_itraq_8.end())
+								if (abundance_itraq.find(channel) != abundance_itraq.end())
 								{	// current iTRAQ supports this channel --> save it
-									throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; channel is not valid ('" + String(channel) + "')");
-											
 									quant_info["intensity_itraq"+String(channel)]	= parts[1].toDouble();
 									itraq_abundance_sum += quant_info["intensity_itraq"+String(channel)];
 								}
@@ -176,21 +188,24 @@ class TOPPMSSimulator
 							/* else if (parts[0].hasPrefix("heavy"))  */
 							else
 							{
-								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; quantitation method not supported (" + parts[0] + "))");
+								throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; quantitation method not supported (" + parts[0] + ")");
 							}							
 							
 							
 						} // ! abundance values
 						
-						// normalize iTRAQ abundances to 1 and distribute overall abundance onto channels
-						for (FASTAEntryEnhanced::iterator it_q = quant_info.begin(); it_q!=quant_info.end(); ++it_q)
+						if (itraq_abundance_sum>0) // signals found
 						{
-							if (it_q->first.hasPrefix("intensity_itraq"))
+							// normalize iTRAQ abundances to 1 and distribute overall abundance onto channels
+							for (FASTAEntryEnhanced::iterator it_q = quant_info.begin(); it_q!=quant_info.end(); ++it_q)
 							{
-								it_q->second = quant_info["intensity"] * (it_q->second / itraq_abundance_sum);
+								if (it_q->first.hasPrefix("intensity_itraq"))
+								{
+									it_q->second = quant_info["intensity"] * (it_q->second / itraq_abundance_sum);
+								}
 							}
 						}
-
+						
 					}
 		    }
         else

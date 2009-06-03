@@ -96,6 +96,8 @@ namespace OpenMS
 		ConsensusMap const & getSimulatedConsensus() const;
 		
 	protected:
+		/// handle global params
+		void syncParams_(Param& p, bool to_outer);
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
 		void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features);

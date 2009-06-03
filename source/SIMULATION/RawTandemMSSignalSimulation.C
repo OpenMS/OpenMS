@@ -94,17 +94,16 @@ namespace OpenMS
 
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    StringList valid_ionization_type_s = StringList::create("MALDI,ESI");
-    defaults_.setValidStrings("ionization_type", valid_ionization_type_s);
+    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
 
 		// iTRAQ
+		defaults_.setValue("iTRAQ:iTRAQ", "off", "off,4plex or 8plex iTRAQ?");
+		defaults_.setValidStrings("iTRAQ:iTRAQ", StringList::create("off,4plex,8plex"));
 
 		defaults_.setValue("iTRAQ:reporter_mass_shift", 0.1, "Allowed shift (uniformly distributed - left to right) in Da from the expected postion (of e.g. 114.1, 115.1)"); 
 		defaults_.setMinFloat ("iTRAQ:reporter_mass_shift", 0);
 		defaults_.setMaxFloat ("iTRAQ:reporter_mass_shift", 0.5);
 
-		defaults_.setValue("iTRAQ:iTRAQ_status", "4plex", "off,4plex or 8plex iTRAQ?");
-		defaults_.setValidStrings("iTRAQ:iTRAQ_status", StringList::create("off,4plex,8plex"));
 		defaults_.setValue("iTRAQ:channel_active_4plex", StringList::create("114:myReference"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
 		defaults_.setValue("iTRAQ:channel_active_8plex", StringList::create("113:myReference"), "Eight-plex only: Each channel that was used in the experiment and its description (113-121) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
 
@@ -117,16 +116,16 @@ namespace OpenMS
   void RawTandemMSSignalSimulation::updateMembers_()
   {
 		StringList channels_active;
-		if (param_.getValue("iTRAQ:iTRAQ_status") == "off") 
+		if (param_.getValue("iTRAQ:iTRAQ") == "off") 
 		{
 			return;
 		}
-		if (param_.getValue("iTRAQ:iTRAQ_status") == "4plex") 
+		if (param_.getValue("iTRAQ:iTRAQ") == "4plex") 
 		{
 			itraq_type_ = ItraqConstants::FOURPLEX;
 			channels_active = param_.getValue("iTRAQ:channel_active_4plex");
 		}
-		else if (param_.getValue("iTRAQ:iTRAQ_status") == "8plex") 
+		else if (param_.getValue("iTRAQ:iTRAQ") == "8plex") 
 		{
 			itraq_type_ = ItraqConstants::EIGHTPLEX;
 			channels_active = param_.getValue("iTRAQ:channel_active_8plex");
@@ -192,7 +191,7 @@ namespace OpenMS
 
 
 		//** iTRAQ reporters **//
-		if (param_.getValue("iTRAQ:iTRAQ_status") != "off")
+		if (param_.getValue("iTRAQ:iTRAQ") != "off")
 		{
 			
 			gsl_matrix* channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
