@@ -156,11 +156,11 @@
   &gt; make
   </pre>
 
-  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
+  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
+  
+  @note  The TOPP tools are ready to use in the <i>&lt;path_to_OpenMS&gt;/bin/</i> folder. To use the TOPP tools from TOPPView, you have to add this path to the environment variable <b>PATH</b> (do not use the tilde character @em ~ to abbreviate your home folder).
   
   @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
-
-  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory.
 
 <HR>
 
