@@ -26,9 +26,9 @@
 // --------------------------------------------------------------------------
 //
 
-//#define ITRAQ_NAIVECORRECTION 1
-
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+
+//#define ITRAQ_NAIVECORRECTION 1
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>

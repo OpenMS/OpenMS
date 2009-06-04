@@ -590,7 +590,6 @@ if (MSVC)
 endif()
 
 ####### TOPP #########
-set(TOPP_executables)
 include(source/APPLICATIONS/TOPP/executables.cmake)
 
 set(TOPP_DIR source/APPLICATIONS/TOPP/)

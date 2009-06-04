@@ -76,8 +76,6 @@ namespace OpenMS {
      */
     void generateRawTandemSignals(FeatureMapSim &, MSSimExperiment &);
 
-		Matrix<SimIntensityType> getItraqIntensity(const Feature & f) const;
-		
   private:
 		/// Default constructor (hidden)
     RawTandemMSSignalSimulation();
@@ -90,6 +88,9 @@ namespace OpenMS {
 
     /// Set default parameters
     void setDefaultParams_();
+
+		/// convert meta information from feature into intensity values for iTRAQ
+		Matrix<SimIntensityType> getItraqIntensity_(const Feature & f) const;
 
 		// Members:
 

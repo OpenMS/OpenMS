@@ -123,7 +123,6 @@ namespace OpenMS {
 		//param_.store("c:/mssim_param.ini"); // test reconstruction
 
     // convert sample proteins into an empty FeatureMap with ProteinHits
-    // convert
     createFeatureMap_(proteins, features_);
 
 		// digest

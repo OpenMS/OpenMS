@@ -30,8 +30,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
