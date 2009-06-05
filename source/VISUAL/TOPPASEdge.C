@@ -26,7 +26,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 
 #include <QtGui/QPainter>
@@ -41,7 +44,8 @@ namespace OpenMS
 			from_(0),
 			to_(0),
 			hover_pos_(),
-			color_()
+			color_(),
+			edge_type_(ET_INVALID)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -52,7 +56,8 @@ namespace OpenMS
 			from_(from),
 			to_(0),
 			hover_pos_(hover_pos),
-			color_()
+			color_(),
+			edge_type_(ET_INVALID)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -63,7 +68,8 @@ namespace OpenMS
 			from_(rhs.from_),
 			to_(rhs.to_),
 			hover_pos_(rhs.hover_pos_),
-			color_(rhs.color_)
+			color_(rhs.color_),
+			edge_type_(rhs.edge_type_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -74,6 +80,7 @@ namespace OpenMS
 		to_ = rhs.to_;
 		hover_pos_ = rhs.hover_pos_;
 		color_ = rhs.color_;
+		edge_type_ = rhs.edge_type_;
 		
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		
@@ -299,6 +306,66 @@ namespace OpenMS
 	{
 		TOPPASIOMappingDialog dialog(this);
 		dialog.exec();
+	}
+	
+	void TOPPASEdge::determineEdgeType()
+	{
+		bool source_vertex_is_a_tool = false;
+		bool source_vertex_is_a_list = false;
+		TOPPASVertex* source = getSourceVertex();
+		TOPPASVertex* target = getTargetVertex();
+		
+		if (source == 0 || target == 0)
+		{
+			return;
+		}
+		
+		if (qobject_cast<TOPPASToolVertex*>(source))
+		{
+			source_vertex_is_a_tool = true;
+		}
+		else if (qobject_cast<TOPPASInputFileListVertex*>(source))
+		{
+			source_vertex_is_a_list = true;
+			// fill that
+		}
+		if (source_vertex_is_a_tool)
+		{
+			if (qobject_cast<TOPPASToolVertex*>(target))
+			{
+				edge_type_ = ET_TOOL_TO_TOOL;
+			}
+			else if (qobject_cast<TOPPASOutputFileListVertex*>(target))
+			{
+				edge_type_ = ET_TOOL_TO_LIST;
+				// here too
+			}
+			else
+			{
+				edge_type_ = ET_TOOL_TO_FILE;
+				// and so on
+			}
+		}
+		else if (qobject_cast<TOPPASToolVertex*>(target))
+		{			
+			if (source_vertex_is_a_list)
+			{
+				edge_type_ = ET_LIST_TO_TOOL;
+			}
+			else
+			{
+				edge_type_ = ET_FILE_TO_TOOL;
+			}
+		}
+		else
+		{
+			edge_type_ = ET_INVALID;
+		}
+	}
+	
+	TOPPASEdge::EdgeType TOPPASEdge::getEdgeType()
+	{
+		return edge_type_;
 	}
 	
 } //namespace

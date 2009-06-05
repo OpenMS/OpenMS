@@ -111,16 +111,6 @@ namespace OpenMS
 		param_.remove("log");
 		param_.remove("no_progress");
 		param_.remove("debug");
-		
-		//// (JJ)
-		std::cout << "### " << name_ << " ###" << std::endl;
-		puts("-- INPUT --");
-		QVector<IOInfo> bla;
-		getRequiredInputFiles(bla);
-		puts("-- OUTPUT --");
-		getRequiredOutputFiles(bla);
-		puts("");
-		////
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -187,18 +177,6 @@ namespace OpenMS
 					std::cerr << "this should not happen\n" << std::endl;
 				}
 				io_infos.push_back(io_info);
-				
-				//// (JJ)
-				if (io_info.type == IOInfo::IOT_LIST)
-				{
-					std::cout << "List: '";
-				}
-				else if (io_info.type == IOInfo::IOT_FILE)
-				{
-					std::cout << "File: '";
-				}
-				std::cout << io_info.param_name << "': " << io_info.valid_types << std::endl;
-				////
 			}
 		}
 		

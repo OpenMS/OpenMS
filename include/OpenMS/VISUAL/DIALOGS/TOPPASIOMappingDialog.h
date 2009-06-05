@@ -59,29 +59,11 @@ namespace OpenMS
 		
 		protected:
 		
-		enum EdgeType_
-		{
-			ET_FILE_TO_TOOL,
-			ET_LIST_TO_TOOL,
-			ET_TOOL_TO_FILE,
-			ET_TOOL_TO_LIST,
-			ET_TOOL_TO_TOOL,
-			ET_INVALID
-		};
-		
-		///@name reimplemented Qt events
-		//@{
-		void resizeEvent(QResizeEvent* /*event*/);
-		
-		/// Determines the type of this edge
-		void determineEdgeType_();
 		/// Fills the table
-		void fillTable_();
+		void fillComboBoxes_();
 		
 		/// The edge we are configuring
 		TOPPASEdge* edge_;
-		/// The type of this edge
-		EdgeType_ edge_type_;
 		/// The output parameters of the source tool
 		QVector<TOPPASToolVertex::IOInfo> source_output_files_;
 		/// The input parameters of the target tool

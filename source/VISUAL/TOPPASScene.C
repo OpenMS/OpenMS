@@ -180,6 +180,7 @@ namespace OpenMS
 			TOPPASVertex* source = hover_edge_->getSourceVertex();
 			source->addOutEdge(hover_edge_);
 			target->addInEdge(hover_edge_);
+			hover_edge_->determineEdgeType();
 		}
 		else
 		{

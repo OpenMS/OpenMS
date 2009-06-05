@@ -33,9 +33,9 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
-#include <QtGui/QTableWidgetItem>
-
 #include <iostream>
+#include <string>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -45,149 +45,109 @@ namespace OpenMS
 		setupUi(this);
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
-		resizeEvent(0);
 		
-		fillTable_();
+		fillComboBoxes_();
 	}
 	
-	void TOPPASIOMappingDialog::resizeEvent(QResizeEvent* /*event*/)
+	void TOPPASIOMappingDialog::fillComboBoxes_()
 	{
-		if (table->columnCount() == 2)
-		{
-			int width = table->width() / 2;
-			table->setColumnWidth(0, width);
-			table->setColumnWidth(1, width);
-		}
-	}
-	
-	void TOPPASIOMappingDialog::determineEdgeType_()
-	{
-		bool source_vertex_is_a_tool = false;
-		bool source_vertex_is_a_list = false;
 		TOPPASVertex* source = edge_->getSourceVertex();
 		TOPPASVertex* target = edge_->getTargetVertex();
-		
 		if (qobject_cast<TOPPASToolVertex*>(source))
 		{
-			source_vertex_is_a_tool = true;
 			qobject_cast<TOPPASToolVertex*>(source)->getRequiredOutputFiles(source_output_files_);
-		}
-		else if (qobject_cast<TOPPASInputFileListVertex*>(source))
-		{
-			source_vertex_is_a_list = true;
-			// fill that
-		}
-		if (source_vertex_is_a_tool)
-		{
-			if (qobject_cast<TOPPASToolVertex*>(target))
+			source_label->setText(source->getName().toQString());
+			if (source->getType() != "")
 			{
-				edge_type_ = ET_TOOL_TO_TOOL;
-				qobject_cast<TOPPASToolVertex*>(target)->getRequiredInputFiles(target_input_files_);
-			}
-			else if (qobject_cast<TOPPASOutputFileListVertex*>(target))
-			{
-				edge_type_ = ET_TOOL_TO_LIST;
-				// here too
+				source_type_label->setText("(" + source->getType().toQString() + ")");
 			}
 			else
 			{
-				edge_type_ = ET_TOOL_TO_FILE;
-				// and so on
+				source_type_label->setVisible(false);
+			}
+			source_combo->addItem("<select>");
+			foreach (TOPPASToolVertex::IOInfo info, source_output_files_)
+			{
+				String item_name;
+				if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
+				{
+					item_name = "File: ";
+				}
+				else
+				{
+					item_name = "List: ";
+				}
+				item_name += info.param_name + " ";
+				std::ostringstream ss;
+				ss << info.valid_types;
+				item_name += ss.str();
+				
+				source_combo->addItem(item_name.toQString());
 			}
 		}
-		else if (qobject_cast<TOPPASToolVertex*>(target))
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_FILE_TO_TOOL)
+		{
+			source_label->setText("File");
+			source_type_label->setVisible(false);
+			source_combo->setVisible(false);
+			source_parameter_label->setVisible(false);
+		}
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_LIST_TO_TOOL)
+		{
+			source_label->setText("List");
+			source_type_label->setVisible(false);
+			source_combo->setVisible(false);
+			source_parameter_label->setVisible(false);
+		}
+		
+		if (qobject_cast<TOPPASToolVertex*>(target))
 		{
 			qobject_cast<TOPPASToolVertex*>(target)->getRequiredInputFiles(target_input_files_);
-			
-			if (source_vertex_is_a_list)
+			target_label->setText(target->getName().toQString());
+			if (target->getType() != "")
 			{
-				edge_type_ = ET_LIST_TO_TOOL;
+				target_type_label->setText("(" + target->getType().toQString() + ")");
 			}
 			else
 			{
-				edge_type_ = ET_FILE_TO_TOOL;
+				target_type_label->setVisible(false);
+			}
+			target_combo->addItem("<select>");
+			foreach (TOPPASToolVertex::IOInfo info, target_input_files_)
+			{
+				String item_name;
+				if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
+				{
+					item_name = "File: ";
+				}
+				else
+				{
+					item_name = "List: ";
+				}
+				item_name += info.param_name + " ";
+				std::ostringstream ss;
+				ss << info.valid_types;
+				item_name += ss.str();
+				
+				target_combo->addItem(item_name.toQString());
 			}
 		}
-		else
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_FILE)
 		{
-			edge_type_ = ET_INVALID;
+			target_label->setText("File");
+			target_type_label->setVisible(false);
+			target_combo->setVisible(false);
+			target_parameter_label->setVisible(false);
 		}
-	}
-	
-	void TOPPASIOMappingDialog::fillTable_()
-	{
-		determineEdgeType_();
-		
-		int counter;
-		Size overall_size, i;
-		switch (edge_type_)
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_LIST)
 		{
-			case ET_FILE_TO_TOOL:
-				//bla
-				break;
-			
-			case ET_LIST_TO_TOOL:
-				//bla
-				break;
-			
-			case ET_TOOL_TO_FILE:
-				//bla
-				break;
-			
-			case ET_TOOL_TO_LIST:
-				//bla
-				break;
-			
-			case ET_TOOL_TO_TOOL:
-				// future: store mapping of IOInfos / index (row) and vice versa [store this in edge itself?]
-				overall_size = source_output_files_.size() > target_input_files_.size() ?
-					source_output_files_.size() : target_input_files_.size();
-				for (i = 0; i < overall_size; ++i)
-				{
-					table->insertRow(i);
-				}
-				counter = 0;
-				foreach (TOPPASToolVertex::IOInfo info, source_output_files_)
-				{
-					String item_name;
-					if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
-					{
-						item_name = "File: ";
-					}
-					else
-					{
-						item_name = "List: ";
-					}
-					item_name += info.param_name;
-					
-					QTableWidgetItem* item = new QTableWidgetItem(item_name.toQString());
-					table->setItem(counter++,0,item);
-				}
-				counter = 0;
-				foreach (TOPPASToolVertex::IOInfo info, target_input_files_)
-				{
-					String item_name;
-					if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
-					{
-						item_name = "File: ";
-					}
-					else
-					{
-						item_name = "List: ";
-					}
-					item_name += info.param_name;
-					
-					QTableWidgetItem* item = new QTableWidgetItem(item_name.toQString());
-					table->setItem(counter++,1,item);
-				}
-				break;
-				
-			case ET_INVALID:
-				break;
-			default:
-				break;
-				// error message
+			target_label->setText("List");
+			target_type_label->setVisible(false);
+			target_combo->setVisible(false);
+			target_parameter_label->setVisible(false);
 		}
+		resize(width(),0);
+		//updateGeometry();
 	}
 	
 } // namespace
