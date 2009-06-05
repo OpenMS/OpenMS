@@ -70,7 +70,7 @@ namespace OpenMS
 		/** @brief Default Constructor */
 		FeatureFinderAlgorithmIsotopeWavelet() 
 		{ 
-				this->defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.");
+				this->defaults_.setValue ("max_charge", 3, "The maximal charge state to be considered.");
 				this->defaults_.setMinInt ("max_charge", 1);
 
 				this->defaults_.setValue ("intensity_threshold", 2., "The final threshold t' is build upon the formula: t' = av+t*sd," 

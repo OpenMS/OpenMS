@@ -82,7 +82,7 @@ namespace OpenMS
             {
               Param tmp;
 
-              tmp.setValue("max_charge", 1, "The maximal charge state to be considered.");
+              tmp.setValue("max_charge", 3, "The maximal charge state to be considered.");
               tmp.setValue("intensity_threshold", 2.0, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.");
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.");
               tmp.setValue ("rt_interleave", 2, "Defines the maximum number of "
