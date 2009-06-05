@@ -112,10 +112,18 @@ namespace OpenMS
 		///returns the set MS levels
 		const std::vector<Int>& getMSLevels() const;
 		//@}
-		//set when compression is required
+
+		/**
+			@name Compression options
+
+			@note This option is ignored if the format does not support compression
+		*/
+		//@{
+		//Sets if data should be compressed when writing
 		void setCompression(bool compress);
-		//returns true if compression required
+		//returns @c true, if data should be compressed when writing
 		bool getCompression();
+		//@}
 		
 	private:
 		bool metadata_only_;

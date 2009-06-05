@@ -638,7 +638,6 @@ namespace OpenMS
 				if (data_[i].precision=="64" && data_[i].compression =="zlib")
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true);
-					options_.setCompression(true);
 				}
 				else if(data_[i].precision=="64")
 				{
@@ -647,7 +646,6 @@ namespace OpenMS
 				else if (data_[i].precision=="32" && data_[i].compression =="zlib")
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true);
-					options_.setCompression(true);
 				}
 				else if(data_[i].precision =="32")
 				{
@@ -902,7 +900,6 @@ namespace OpenMS
 					else if (accession=="MS:1000574")//zlib compression
 					{
 						data_.back().compression = "zlib";
-						//!*!*!*throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					}
 					else if (accession=="MS:1000576")// no compression
 					{
@@ -3794,14 +3791,14 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					if (spec.size()!=0)
 					{
-						String compressed;
+						String compression_term;
 						if(options_.getCompression())
 						{
-							compressed = "zlib compression";
+							compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
 						}
 						else
 						{
-							compressed ="no compression";
+							compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
 						}
 						String encoded_string;
 						std::vector<DoubleReal> data64_to_encode;
@@ -3813,7 +3810,7 @@ namespace OpenMS
 						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
+						os  << "						" << compression_term << "\n";
 						os	<< "						<binary>" << encoded_string << "</binary>\n";
 						os	<< "					</binaryDataArray>\n";
 						//write intensity array
@@ -3825,7 +3822,7 @@ namespace OpenMS
 							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
+							os  << "						" << compression_term << "\n";
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
@@ -3838,7 +3835,7 @@ namespace OpenMS
 							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
+							os  << "						" << compression_term << "\n";
 							ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
 							if (bi_term.id!="")
 							{
@@ -3848,7 +3845,7 @@ namespace OpenMS
 							{
 								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
 							}
-							writeUserParam_(os, array, 8);
+							writeUserParam_(os, array, 6);
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}

@@ -587,6 +587,16 @@ START_SECTION([EXTRA] load intensity range)
 	TEST_EQUAL(exp[3].size(),0)
 END_SECTION
 
+START_SECTION([EXTRA] load with zlib functionality)
+	MzMLFile file;
+	MSExperiment<> compressed, uncompressed;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_compressed.mzML"),compressed);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_uncompressed.mzML"),uncompressed);
+	TEST_EQUAL(compressed==uncompressed,true);
+END_SECTION
+
+
+
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
 	
@@ -657,18 +667,23 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		TEST_EQUAL(exp[0]==empty[0],true);
 	}
 
-END_SECTION
+	//test with compression 
+	{
+		//load map
+		MSExperiment<> exp_original;
+		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+	 	//store map
+		std::string tmp_filename;
+	 	NEW_TMP_FILE(tmp_filename);
+		file.getOptions().setCompression(true);
+		file.store(tmp_filename,exp_original);
+		//load written map
+		MSExperiment<> exp;
+		file.load(tmp_filename,exp);
+		//test if everything worked
+		TEST_EQUAL(exp==exp_original,true)
+	}
 
-START_SECTION([EXRA] zlib functionality)
-	MzMLFile file;
-	//load map
-	MSExperiment<> no_compression;
-	MSExperiment<> zlib_compression;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zlib_compressed.mzML"),no_compression);
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zlib_notcompressed2.mzML"),zlib_compression);
-	
-	TEST_EQUAL(no_compression==zlib_compression,true);
-	
 END_SECTION
 
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))

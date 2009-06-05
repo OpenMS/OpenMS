@@ -37,11 +37,6 @@
 #include <iostream>
 #include <string>
 
-//ZLIB example:
-//#include <boost/iostreams/filter/gzip.hpp>
-//#include <boost/iostreams/filtering_streambuf.hpp>
-//#include <boost/iostreams/copy.hpp>
-#include <zlib.h>
 #include <QtCore/QString>
 #include <OpenMS/CONCEPT/Types.h>
 
