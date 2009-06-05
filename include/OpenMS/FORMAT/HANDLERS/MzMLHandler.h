@@ -82,7 +82,7 @@ namespace OpenMS
 		 public:
       /**@name Constructors and destructor */
       //@{
-      /// Constructor for a write-only handler
+      /// Constructor for a read-only  handler
       MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger)
 				: XMLHandler(filename, version),
 					exp_(&exp),
@@ -99,7 +99,7 @@ namespace OpenMS
 				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 			}
 
-      /// Constructor for a read-only handler
+      /// Constructor for a write-only handler
       MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
 				: XMLHandler(filename, version),
 					exp_(0),
@@ -635,11 +635,21 @@ namespace OpenMS
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
 				data_[i].base64.removeWhitespaces();
 
-				if (data_[i].precision=="64")
+				if (data_[i].precision=="64" && data_[i].compression =="zlib")
+				{
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true);
+					options_.setCompression(true);
+				}
+				else if(data_[i].precision=="64")
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64);
 				}
-				else if (data_[i].precision=="32")
+				else if (data_[i].precision=="32" && data_[i].compression =="zlib")
+				{
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true);
+					options_.setCompression(true);
+				}
+				else if(data_[i].precision =="32")
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32);
 				}
@@ -892,7 +902,7 @@ namespace OpenMS
 					else if (accession=="MS:1000574")//zlib compression
 					{
 						data_.back().compression = "zlib";
-						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+						//!*!*!*throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					}
 					else if (accession=="MS:1000576")// no compression
 					{
@@ -3784,17 +3794,26 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					if (spec.size()!=0)
 					{
+						String compressed;
+						if(options_.getCompression())
+						{
+							compressed = "zlib compression";
+						}
+						else
+						{
+							compressed ="no compression";
+						}
 						String encoded_string;
 						std::vector<DoubleReal> data64_to_encode;
 						os	<< "				<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
 						//write m/z array
 						data64_to_encode.resize(spec.size());
 						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
-						decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+						decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
 						os	<< "						<binary>" << encoded_string << "</binary>\n";
 						os	<< "					</binaryDataArray>\n";
 						//write intensity array
@@ -3802,11 +3821,11 @@ namespace OpenMS
 							std::vector<Real> data32_to_encode;
 							data32_to_encode.resize(spec.size());
 							for (Size p=0; p<spec.size(); ++p) data32_to_encode[p] = spec[p].getIntensity();
-							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
@@ -3816,10 +3835,10 @@ namespace OpenMS
 							const typename SpectrumType::MetaDataArray& array = spec.getMetaDataArrays()[m];
 							data64_to_encode.resize(array.size());
 							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
-							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\""<<compressed<<"\" />\n";
 							ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
 							if (bi_term.id!="")
 							{

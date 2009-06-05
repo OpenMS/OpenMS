@@ -659,6 +659,18 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 END_SECTION
 
+START_SECTION([EXRA] zlib functionality)
+	MzMLFile file;
+	//load map
+	MSExperiment<> no_compression;
+	MSExperiment<> zlib_compression;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zlib_compressed.mzML"),no_compression);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_zlib_notcompressed2.mzML"),zlib_compression);
+	
+	TEST_EQUAL(no_compression==zlib_compression,true);
+	
+END_SECTION
+
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
 	std::string tmp_filename;
   MzMLFile file;

@@ -38,7 +38,8 @@ namespace OpenMS
 			write_supplemental_data_(true),
 			has_rt_range_(false),
 			has_mz_range_(false),
-			has_intensity_range_(false)
+			has_intensity_range_(false),
+			zlib_compression_(false)
 	{
 	}
 	
@@ -142,5 +143,14 @@ namespace OpenMS
 	const vector<Int>& PeakFileOptions::getMSLevels() const
 	{
 		return ms_levels_;
+	}
+	
+	void PeakFileOptions::setCompression(bool compress)
+	{
+		zlib_compression_ = compress;
+	}
+	bool PeakFileOptions::getCompression()
+	{
+		return zlib_compression_;
 	}
 } // namespace OpenMS
