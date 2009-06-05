@@ -56,7 +56,7 @@ namespace OpenMS
 	    public:
 	      /**@name Constructors and destructor */
 	      //@{
-	      /// Constructor for a write-only handler
+	      /// Constructor for a read-only handler
 	      MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger)
 				: XMLHandler(filename,version),
 					exp_(&exp),	
@@ -83,7 +83,7 @@ namespace OpenMS
 					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
 				}
 	
-	      /// Constructor for a read-only handler
+	      /// Constructor for a write-only handler
 	      MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
 				: XMLHandler(filename,version),
 					exp_(0), 
