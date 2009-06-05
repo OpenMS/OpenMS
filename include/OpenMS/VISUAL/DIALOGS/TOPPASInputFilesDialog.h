@@ -29,6 +29,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
 
+#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFilesDialog.h>
 
 namespace OpenMS 
@@ -36,9 +37,10 @@ namespace OpenMS
 	/**
 		@brief Dialog which allows to specify a list of input files
 		
+		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class TOPPASInputFilesDialog
+	class OPENMS_DLLAPI TOPPASInputFilesDialog
 		: public QDialog,
 			public Ui::TOPPASInputFilesDialogTemplate
 	{

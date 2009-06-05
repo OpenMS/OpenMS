@@ -39,6 +39,11 @@ namespace OpenMS
 {
 	class TOPPASEdge;
 
+	/**
+		@brief The base class of all different kinds of vertices
+	
+		@ingroup TOPPAS_elements
+	*/
 	class OPENMS_DLLAPI TOPPASVertex
 		: public QObject,
 			public QGraphicsItem

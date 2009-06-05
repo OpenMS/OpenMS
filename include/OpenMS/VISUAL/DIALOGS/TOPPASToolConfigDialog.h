@@ -49,6 +49,7 @@ namespace OpenMS
 	
 		This information can then be used to execute the tool.
 	
+		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
 	class OPENMS_DLLAPI TOPPASToolConfigDialog

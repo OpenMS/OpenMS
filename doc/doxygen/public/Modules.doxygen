@@ -299,6 +299,17 @@
 */
 
 /**
+	@defgroup TOPPAS_elements  TOPPAS
+	
+	@brief GUI elements for TOPPAS
+	
+	Some GUI classes were designed for TOPPAS only and are probably not usable in any other application.
+	These classes are listed in this module.
+	
+	@ingroup Visual
+*/
+
+/**
 	@defgroup Dialogs Dialogs
 
 	@brief Dialogs for user interaction.

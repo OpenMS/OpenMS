@@ -38,6 +38,11 @@ namespace OpenMS
 	class TOPPASVertex;
 	class TOPPASEdge;
 	
+	/**
+		@brief A container for all visual items of a TOPPAS workflow
+	
+		@ingroup TOPPAS_elements
+	*/
 	class OPENMS_DLLAPI TOPPASScene
 		:	public QGraphicsScene
 	{

@@ -35,6 +35,11 @@
 
 namespace OpenMS
 {
+	/**
+		@brief A vertex representing a TOPP tool
+	
+		@ingroup TOPPAS_elements
+	*/
 	class OPENMS_DLLAPI TOPPASToolVertex
 		: public TOPPASVertex
 	{

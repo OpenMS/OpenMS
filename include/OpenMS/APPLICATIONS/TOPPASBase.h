@@ -51,7 +51,7 @@ namespace OpenMS
 	class EnhancedTabBar;
 
   /**
-  	@brief Main window of TOPPAS tool
+  	@brief Main window of the TOPPAS tool
   
     @ingroup TOPPAS_elements
   */

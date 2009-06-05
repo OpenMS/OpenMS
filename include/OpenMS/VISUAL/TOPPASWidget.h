@@ -40,6 +40,8 @@ namespace OpenMS
 
   /**
   	@brief Widget visualizing and allowing to edit TOPP pipelines.
+		
+		@ingroup TOPPAS_elements
   */
   class OPENMS_DLLAPI TOPPASWidget
   	: public QGraphicsView

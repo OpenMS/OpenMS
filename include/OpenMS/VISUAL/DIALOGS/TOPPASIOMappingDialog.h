@@ -42,9 +42,10 @@ namespace OpenMS
 	/**
 		@brief Dialog which allows to specify a list of input files
 		
+		@ingroup TOPPAS_elements
 		@ingroup Dialogs
 	*/
-	class TOPPASIOMappingDialog
+	class OPENMS_DLLAPI TOPPASIOMappingDialog
 		: public QDialog,
 			public Ui::TOPPASIOMappingDialogTemplate
 	{

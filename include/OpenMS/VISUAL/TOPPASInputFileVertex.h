@@ -32,6 +32,11 @@
 
 namespace OpenMS
 {
+	/**
+		@brief A vertex representing an input file
+	
+		@ingroup TOPPAS_elements
+	*/
 	class OPENMS_DLLAPI TOPPASInputFileVertex
 		: public TOPPASVertex
 	{
