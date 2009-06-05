@@ -805,7 +805,7 @@ namespace OpenMS
 
 		if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button()==Qt::LeftButton)
 		{
-			canvas_3d_.rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+			canvas_3d_.rubber_band_.setGeometry(QRect(e->pos(),QSize()));
 			canvas_3d_.rubber_band_.show();
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
@@ -818,7 +818,7 @@ namespace OpenMS
 		{
 		  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
 		  {
-				canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
+				canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()).normalized());
 				canvas_3d_.update_(__PRETTY_FUNCTION__);
 			}
 			else if(canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)

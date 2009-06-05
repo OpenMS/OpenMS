@@ -266,7 +266,7 @@ namespace OpenMS
 			
 			if (action_mode_ == AM_ZOOM)
 			{
-				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+				rubber_band_.setGeometry(QRect(e->pos(),QSize()));
 				rubber_band_.show();
 			}
 			else if (action_mode_ == AM_MEASURE)
@@ -399,14 +399,14 @@ namespace OpenMS
 			else if (action_mode_ == AM_ZOOM)
 			{
 				PointType pos = widgetToData(p);
-
+				
 				if (isMzToXAxis())
 				{
-					rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+					rubber_band_.setGeometry(QRect(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height()).normalized());
 				}
 				else
 				{
-					rubber_band_.setGeometry(0, last_mouse_pos_.y(), width(), p.y() - last_mouse_pos_.y());
+					rubber_band_.setGeometry(QRect(0, last_mouse_pos_.y(), width(), p.y() - last_mouse_pos_.y()).normalized());
 				}
 				rubber_band_.show(); //if the mouse button is pressed before the zoom key is pressed
 				

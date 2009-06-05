@@ -1218,7 +1218,7 @@ namespace OpenMS
 				//translate (if not moving features)
 				if (!getCurrentLayer().type==LayerData::DT_FEATURE || !selected_peak_.isValid())
 				{
-					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+					rubber_band_.setGeometry(QRect(e->pos(),QSize()));
 					rubber_band_.show();
 				}
 			}
@@ -1305,7 +1305,7 @@ namespace OpenMS
 			//if mouse button is held down, enlarge the selection
 			if (e->buttons() & Qt::LeftButton)
 			{
-				rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
+				rubber_band_.setGeometry(QRect(last_mouse_pos_,pos).normalized());
 				rubber_band_.show(); //if the mouse button is pressed before the zoom key is pressed
 
 				update_(__PRETTY_FUNCTION__);
