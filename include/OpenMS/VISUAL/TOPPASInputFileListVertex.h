@@ -54,6 +54,8 @@ namespace OpenMS
 			virtual ~TOPPASInputFileListVertex();
 			/// Assignment operator
 			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
+			/// Returns the list of files
+			const QStringList& getFilenames();
 			
 		protected:
 		

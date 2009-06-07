@@ -150,6 +150,7 @@ namespace OpenMS
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
     tools_tree_view_ = new QTreeWidget(topp_tools_bar);
+		connect (tools_tree_view_, SIGNAL(itemPressed(QTreeWidgetItem*, int)), this, SLOT(treeViewItemPressed_(QTreeWidgetItem*, int)));
     tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
     tools_tree_view_->setColumnCount(1);
   	QStringList header_labels;
@@ -187,7 +188,6 @@ namespace OpenMS
    		}
     }
     tools_tree_view_->resizeColumnToContents(0);
-    tools_tree_view_->setDragEnabled(true);
     
     //Blocks window
     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
@@ -592,6 +592,25 @@ namespace OpenMS
 		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),activeWindow_()->getScene(),SLOT(addHoveringEdge(const QPointF&)));
 		connect(tv,SIGNAL(finishHoveringEdge()),activeWindow_()->getScene(),SLOT(finishHoveringEdge()));
 	}
+	
+	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)
+	{
+		if (item == 0)
+		{
+			return;
+		}
+		
+		if (item->childCount() > 0)
+		{
+			// a tool with types was pressed but only its types are allowed to be dragged
+			tools_tree_view_->setDragEnabled(false);
+		}
+		else
+		{
+			tools_tree_view_->setDragEnabled(true);
+		}
+	}
+
 
 } //namespace OpenMS
 

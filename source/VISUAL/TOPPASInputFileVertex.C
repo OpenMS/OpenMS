@@ -76,4 +76,9 @@ namespace OpenMS
 			file_ = tifd.getFilename();
 		}
 	}
+	
+	const QString& TOPPASInputFileVertex::getFilename()
+	{
+		return file_;
+	}
 }

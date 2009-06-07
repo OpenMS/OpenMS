@@ -33,8 +33,9 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
+#include <QtGui/QMessageBox>
+
 #include <iostream>
-#include <string>
 #include <sstream>
 
 namespace OpenMS
@@ -43,7 +44,7 @@ namespace OpenMS
 	{
 		edge_ = parent;
 		setupUi(this);
-		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
+		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		
 		fillComboBoxes_();
@@ -148,6 +149,143 @@ namespace OpenMS
 		}
 		resize(width(),0);
 		//updateGeometry();
+	}
+	
+	void TOPPASIOMappingDialog::checkValidity_()
+	{
+		TOPPASVertex* source = edge_->getSourceVertex();
+		TOPPASVertex* target = edge_->getTargetVertex();
+		const QString& source_text = source_combo->currentText();
+		const QString& target_text = target_combo->currentText();
+
+		if (source_text == "<select>" || target_text == "<select>")
+		{
+			QMessageBox::information(0,"Invalid selection","You must specify the output and input parameter!");
+			return;
+		}
+		
+		StringList source_param_types;
+		StringList target_param_types;
+		bool source_param_has_list_type = false;
+		bool target_param_has_list_type = false;
+		bool valid = false;
+		if (qobject_cast<TOPPASToolVertex*>(source))
+		{
+			int source_param_index = source_combo->currentIndex()-1;
+			TOPPASToolVertex::IOInfo& source_param = source_output_files_[source_param_index];
+			source_param_types = source_param.valid_types;
+			source_param_has_list_type = source_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
+		}
+		if (qobject_cast<TOPPASToolVertex*>(target))
+		{
+			int target_param_index = target_combo->currentIndex()-1;
+			TOPPASToolVertex::IOInfo& target_param = target_input_files_[target_param_index];
+			target_param_types = target_param.valid_types;
+			target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
+		}
+		if (edge_->getEdgeType() == TOPPASEdge::ET_FILE_TO_TOOL)
+		{
+			if (target_param_has_list_type)
+			{
+				QMessageBox::information(0,"Invalid selection","The selected target input parameter is of type 'list', but must be 'file'");
+				return;
+			}
+			if (target_param_types.empty())
+			{
+				// no restrictions specified
+				valid = true;
+			}
+			else
+			{
+				const String& file_name = String(qobject_cast<TOPPASInputFileVertex*>(source)->getFilename());
+				String::SizeType extension_start_index = file_name.rfind(".");
+				if (extension_start_index != String::npos)
+				{
+					const String& extension = file_name.substr(extension_start_index+1);
+					for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+					{
+						if (*it == extension)
+						{
+							valid = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_LIST_TO_TOOL)
+		{
+			if (!target_param_has_list_type)
+			{
+				QMessageBox::information(0,"Invalid selection","The selected target input parameter is of type 'file', but must be 'list'");
+				return;
+			}
+			if (target_param_types.empty())
+			{
+				// no restrictions specified
+				valid = true;
+			}
+			else
+			{
+				const QStringList& file_names = qobject_cast<TOPPASInputFileListVertex*>(source)->getFilenames();
+				foreach (const QString& q_file_name, file_names)
+				{
+					const String& file_name = String(q_file_name);
+					String::SizeType extension_start_index = file_name.rfind(".");
+					if (extension_start_index != String::npos)
+					{
+						const String& extension = file_name.substr(extension_start_index+1);
+						for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+						{
+							if (*it == extension)
+							{
+								valid = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_FILE)
+		{
+			if (source_param_has_list_type)
+			{
+				QMessageBox::information(0,"Invalid selection","The selected source output parameter is of type 'list', but must be 'file'");
+				return;
+			}
+			
+			valid = true;
+		}
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_LIST)
+		{
+			if (!source_param_has_list_type)
+			{
+				QMessageBox::information(0,"Invalid selection","The selected source output parameter is of type 'file', but must be 'list'");
+				return;
+			}
+			
+			valid = true;
+		}
+		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_TOOL)
+		{
+			// check
+			valid = true;
+		}
+		else
+		{
+			QMessageBox::critical(0,"Invalid edge type","This should not have happened. Please contact the OpenMS mailing list and report this bug.");
+			return;
+		}
+		
+		if (valid)
+		{
+			accept();
+		}
+		else
+		{
+			QMessageBox::information(0,"Invalid selection","The file types/extensions of output and input do not match!");
+		}
 	}
 	
 } // namespace

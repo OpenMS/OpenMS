@@ -54,6 +54,8 @@ namespace OpenMS
 			virtual ~TOPPASInputFileVertex();
 			/// Assignment operator
 			TOPPASInputFileVertex& operator= (const TOPPASInputFileVertex& rhs);
+			/// Returns the file name
+			const QString& getFilename();
 			
 		protected:
 		
