@@ -298,15 +298,16 @@ namespace OpenMS
 			file = empty_sourcefile;
 			return;
 		}
-		
-		query << "SELECT FileName, FilePath, Size, `Type`, sha1 FROM META_File WHERE id='" << id << "'";
+
+		query << "SELECT FileName, FilePath, Size, `Type`, sha1, ChecksumType-1,NativeIDType-1 FROM META_File WHERE id='" << id << "'";
 		result = db_con_.executeQuery(query.str());
 
 		file.setNameOfFile(result.value(0).toString());
 		file.setPathToFile(result.value(1).toString());
 		file.setFileSize(result.value(2).toDouble());
 		file.setFileType(result.value(3).toString());
-		file.setChecksum(result.value(4).toString(), SourceFile::UNKNOWN_CHECKSUM);
+		file.setChecksum(result.value(4).toString(), (SourceFile::ChecksumType)result.value(5).toInt());
+		file.setNativeIDType((SourceFile::NativeIDType)result.value(6).toInt());
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)
@@ -359,6 +360,8 @@ namespace OpenMS
 		query << "Size=" << file.getFileSize() << ",";
 		query << "sha1='" << file.getChecksum() << "',";
 		query << "`Type`='" << file.getFileType() << "'";
+		query << ",ChecksumType='" << 1u+file.getChecksumType() << "'";
+		query << ",NativeIDType='" << 1u+file.getNativeIDType() << "'";
 		query << end;
 
 		if (debug) cout << query.str() << endl;
@@ -677,7 +680,20 @@ namespace OpenMS
 
 		// load sql queries
 		TextFile sql(sql_path);
-		
+
+		/*
+		// delete existing tables
+		QSqlQuery result, dummy;
+		result = db_con_.executeQuery("SHOW TABLES;");
+		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;");
+		while (result.isValid())
+		{
+			dummy = db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString() + "`;");
+			result.next();
+		}
+		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;");
+		*/
+
 		// Conversion of phpMyAdmin output to required format
 		// concatenate lines so that one line is one query
 		vector<String> queries;

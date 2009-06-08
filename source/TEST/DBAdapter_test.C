@@ -54,7 +54,7 @@ START_TEST(DBAdapter, "$Id$")
    - store 1st experiment (overwrite)
    - load experiment
    - store empty experiment
-   
+
    So at the end of the test there should be 2 experiments stored in the database:
    - 1 full one, 2 spectra
    - 1 empty one.
@@ -83,7 +83,7 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 	{
 		continue;
 	}
-	
+
 	//extract connection info
 	if (it->hasPrefix("Host:")) host = it->suffix(':').trim();
 	if (it->hasPrefix("Port:")) port = it->suffix(':').trim();
@@ -100,14 +100,14 @@ if (do_tests)
 	con.connect(db, user, password, host, port.toInt());
 	DBConnection con2;
 	con2.connect(db, user, password, host, port.toInt(), DB_PLUGIN, "alternateConnection");
-	
+
 	DBAdapter* ptr = 0;
 
 	START_SECTION((DBAdapter(DBConnection& db_con)))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
-		
+
 	START_SECTION((~DBAdapter()))
 		delete ptr;
 END_SECTION
@@ -115,7 +115,7 @@ END_SECTION
 	START_SECTION((void createDB()))
   	DBAdapter a(con);
 		a.createDB();
-		
+
 		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),0)
 END_SECTION
@@ -127,14 +127,14 @@ END_SECTION
 		db_up_to_date = a.checkDBVersion(true);
 		TEST_EQUAL(db_up_to_date,true)
 END_SECTION
-	
+
 	if (db_up_to_date)
 	{
-	
+
 		// create test data - one experiment containing 2 spectra.
 		RichPeakMap exp_original;
 		exp_original.setComment("bla");
-		
+
 		exp_original.getSample().setName("fruity loops");
 		exp_original.getSample().setNumber("007");
 		exp_original.getSample().setMass(30.1);
@@ -190,32 +190,32 @@ END_SECTION
 		ph.setAccession("1001001");
 		ph.setSequence("ZXY");
 		vector_ph.push_back(ph);
-		pi.setHits(vector_ph);	
+		pi.setHits(vector_ph);
 		exp_original.getProteinIdentifications().push_back(pi);
 
 		// setting experiment's second protein identification (+ no proteine hits)
 		pi = ProteinIdentification();
 		pi.setHigherScoreBetter(false);
 		exp_original.getProteinIdentifications().push_back(pi);
-		
+
 		ContactPerson contact;
 		contact.setFirstName("Ferdinand");
 		contact.setLastName("Piech");
 		contact.setInstitution("aff");
 		exp_original.getContacts().push_back(contact);
-		contact = ContactPerson();	
+		contact = ContactPerson();
 		contact.setEmail("ferdi@porsche.de");
 		contact.setContactInfo("ttss");
 		contact.setMetaValue("label", String("polka-dotted"));
 		exp_original.getContacts().push_back(contact);
-		
+
 		exp_original.getHPLC().setInstrument("guitar");
 		exp_original.getHPLC().setColumn("bigone");
 		exp_original.getHPLC().setComment("fhth");
 		exp_original.getHPLC().setFlux(1);
 		exp_original.getHPLC().setPressure(2);
 		exp_original.getHPLC().setTemperature(3);
-		
+
 		exp_original.getHPLC().getGradient().addEluent("C2H5OH");
 		exp_original.getHPLC().getGradient().addEluent("H2O");
 		exp_original.getHPLC().getGradient().addTimepoint(1);
@@ -227,7 +227,7 @@ END_SECTION
 		exp_original.getHPLC().getGradient().setPercentage("H2O", 1, 80);
 		exp_original.getHPLC().getGradient().setPercentage("H2O", 5, 60);
 		exp_original.getHPLC().getGradient().setPercentage("H2O", 7, 40);
-		
+
 		exp_original.getInstrument().setModel("Porsche 911");
 		exp_original.getInstrument().setVendor("Porsche K.G. Zuffenhausen");
 		exp_original.getInstrument().setCustomizations("340 PS");
@@ -243,7 +243,7 @@ END_SECTION
 		exp_original.getInstrument().getIonSources()[0].setIonizationMethod(IonSource::ESI);
 		exp_original.getInstrument().getIonSources()[0].setPolarity(IonSource::POSITIVE);
 		exp_original.getInstrument().getIonSources()[0].setMetaValue("label", String("blue"));
-			
+
 		MassAnalyzer analyzer;
 		analyzer.setAccuracy(1.2687);
 		analyzer.setFinalMSExponent(8);
@@ -253,7 +253,7 @@ END_SECTION
 		analyzer.setResolution(7.444);
 		analyzer.setResolutionMethod(MassAnalyzer::FWHM);
 		analyzer.setResolutionType(MassAnalyzer::CONSTANT);
-		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);	
+		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);
 		analyzer = MassAnalyzer();
 		analyzer.setScanDirection(MassAnalyzer::UP);
 		analyzer.setScanLaw(MassAnalyzer::LINEAR);
@@ -263,7 +263,7 @@ END_SECTION
 		analyzer.setType(MassAnalyzer::TOF);
 		analyzer.setMetaValue("label", String("pink"));
 		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);
-		
+
 		// MS spectrum
 		RichPeakMap::SpectrumType spec;
 		RichPeakMap::SpectrumType::PeakType p;
@@ -279,8 +279,8 @@ END_SECTION
 		p.getPosition()[0] = 800.1;
 		spec.push_back(p);
 		spec.setRT(1.98);
-		spec.setMSLevel(1);	
-		
+		spec.setMSLevel(1);
+
 		InstrumentSettings settings;
 		settings.getScanWindows().resize(1);
 		settings.getScanWindows()[0].begin = 3.456;
@@ -288,11 +288,11 @@ END_SECTION
 		settings.setPolarity(IonSource::NEGATIVE);
 		settings.setScanMode(InstrumentSettings::SIM);
 		spec.setInstrumentSettings (settings);
-		
+
 		// set a spectrum source file
 		SourceFile source_file;
 		source_file.setNameOfFile("westberlin");
-		source_file.setPathToFile("/osten/");	
+		source_file.setPathToFile("/osten/");
 		spec.setSourceFile(source_file);
 
 		RichPeakSpectrum::MetaDataArray meta_data_array;
@@ -311,7 +311,7 @@ END_SECTION
 		source_file.setChecksum("6132b58967cf1ebc05062492c17145e5ee9f82a8",SourceFile::SHA1);
 		meta_data_array.setSourceFile(source_file);
 		spec.getMetaDataArrays().push_back(meta_data_array);
-		
+
 		// set acquisition info with 1 acquisition
 		AcquisitionInfo info;
 		info.setMethodOfCombination("combo");
@@ -319,7 +319,7 @@ END_SECTION
 		acquisition.setIdentifier("1");
 		acquisition.setMetaValue ("icon", String("yet another icon"));
 		info.push_back(acquisition);
-		
+
 		spec.setAcquisitionInfo(info);
 
 		PeptideIdentification pei;
@@ -328,10 +328,10 @@ END_SECTION
 		std::vector<PeptideIdentification> vec_pei;
 		pei.setSignificanceThreshold(1.235);
 		pei.setScoreType("ScoreType");
-		pei.setHigherScoreBetter(true);		
+		pei.setHigherScoreBetter(true);
 //needs getter and setter methods first
 //		source_file.setNameOfFile("testberlin");
-//		source_file.setPathToFile("/testen/");	
+//		source_file.setPathToFile("/testen/");
 //		pei.setSourceFile(source_file);
 		std::vector<PeptideHit> vec_peh;
 		peh.setScore(2.345);
@@ -345,16 +345,16 @@ END_SECTION
 		peh.setAAAfter('e');
 		vec_peh.push_back(peh);
 		pei.setHits(vec_peh);
-		vec_pei.push_back(pei);		
+		vec_pei.push_back(pei);
 
 		// second PeptideIdentification (+ no PeptideHits) for 1st Spectrum
 		pei = PeptideIdentification();
-		pei.setHigherScoreBetter(false);		
+		pei.setHigherScoreBetter(false);
 		vec_pei.push_back(pei);
 		spec.setPeptideIdentifications(vec_pei);
 
 		exp_original.push_back(spec);
-			
+
 		//MSMS spectrum
 		spec.clear();
 		p.setIntensity(210.0f);
@@ -368,37 +368,62 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
-		spec.getPrecursors().resize(1);
+		//spectrum 2 gets 2 precursors
+		spec.getPrecursors().resize(2);
+		//1st precursor for spectrum 2
 		spec.getPrecursors()[0].setMZ(600.1);
 		spec.getPrecursors()[0].setIntensity(4711.0f);
 		spec.getPrecursors()[0].setCharge(2);
-		spec.getPrecursors()[0].setMetaValue("icon",String("Precursor"));
-		spec.setComment("bla");
-
+		spec.getPrecursors()[0].setActivationEnergy(9.99);
+		spec.getPrecursors()[0].setMetaValue("icon",String("Precursor1"));
+		std::vector<Int> pcs;
+		pcs.push_back(1);
+		pcs.push_back(2);
+		pcs.push_back(3);
+		spec.getPrecursors()[0].setPossibleChargeStates(pcs);
+		std::set<Precursor::ActivationMethod> am;
+		am.insert(Precursor::LCID);
+		am.insert(Precursor::CID);
+		am.insert(Precursor::HCID);
+		spec.getPrecursors()[0].setActivationMethods(am);
 		spec.getMetaDataArrays().clear();
-		
+		//2nd precursor for spectrum 2
+		spec.getPrecursors()[1].setMZ(600.1);
+		spec.getPrecursors()[1].setIntensity(4711.0f);
+		spec.getPrecursors()[1].setCharge(2);
+		spec.getPrecursors()[1].setActivationEnergy(9.99);
+		spec.getPrecursors()[1].setMetaValue("icon",String("Precursor2"));
+		pcs[0]=(4);
+		pcs[1]=(5);
+		pcs[2]=(6);
+		spec.getPrecursors()[1].setPossibleChargeStates(pcs);
+		am.erase(Precursor::CID);
+		spec.getPrecursors()[1].setActivationMethods(am);
+		spec.setComment("bla");
+		spec.getMetaDataArrays().clear();
+
 		// set empty AcquisitionInfo for spectrum 2
 		spec.setAcquisitionInfo(AcquisitionInfo());
-		
+
 		exp_original.push_back(spec);
-		
+
 		//meta info
 		exp_original.setMetaValue("label",5.55);
 		exp_original.setMetaValue("icon",String("MSExperiment"));
 		exp_original.setMetaValue("color",5);
 		exp_original[0].setMetaValue("icon",String("Spectrum1"));
 		exp_original[1].setMetaValue("icon",String("Spectrum2"));
-		
+
 		// to store the id of reading and writing
 		UID tmp_id,spec_tmp_id,tmp_id2,spec_tmp_id2;
-		
+
 		// create a Peak1D experiment (raw data)
 		// Peak1Ds are no MetaInfoInterfaces --> peak meta data should not be
 		// tried to be stored in DB
 		MSExperiment<Peak1D> exp_peak1d;
 		MSSpectrum<Peak1D> spec_peak1d;
 		Peak1D peak1d;
-		
+
 		peak1d.setIntensity(565.0f);
 		peak1d.getPosition()[0] = 600.1;
 		spec_peak1d.push_back(peak1d);
@@ -409,10 +434,10 @@ END_SECTION
 		peak1d.getPosition()[0] = 800.1;
 		spec_peak1d.push_back(peak1d);
 		spec_peak1d.setRT(1.98);
-		spec_peak1d.setMSLevel(1);	
-		
+		spec_peak1d.setMSLevel(1);
+
 		exp_peak1d.push_back(spec_peak1d);
-		
+
 		// save newly created experiments - should be added to database.
 		// success is implicitly checked later when loading from database.
 	START_SECTION((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
@@ -426,23 +451,23 @@ END_SECTION
 		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),2)
 END_SECTION
-	
+
 	// add another experiment to the database (for TOPPView tests etc.)
 	DBAdapter a(con);
 	RichPeakMap exp_2;
 	FileHandler fh;
 	fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("SimpleExtender_test.mzData"), exp_2);
 	a.storeExperiment(exp_2);
-	
-	
+
+
 	// check if first spectrum of the first saved experiment can be loaded correctly
 	START_SECTION((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
 	  	DBAdapter a2(con2);
-		  
+
 			RichPeakSpectrum spec;
 			a.loadSpectrum(spec_tmp_id, spec);
-						
+
 		  TEST_EQUAL( spec.getRT() , exp_original.begin()->getRT() )
 			TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
 			TEST_EQUAL( spec.size() , exp_original.begin()->size() )
@@ -455,14 +480,14 @@ END_SECTION
 			// and how do we check	info.setSpectrumType("type"); ?
 			TEST_EQUAL( spec.getAcquisitionInfo()[0].getIdentifier(), "1");
 			TEST_EQUAL( spec.getAcquisitionInfo()[0].getMetaValue("icon"), "yet another icon");
-	
+
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile() , exp_original.begin()->getSourceFile().getNameOfFile() )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile() , exp_original.begin()->getSourceFile().getPathToFile() )
 			TEST_EQUAL( spec.getSourceFile().getChecksum() , exp_original.begin()->getSourceFile().getChecksum() )
-			
+
 			// make sure storing/loading of meta data works for RichPeaks
 			TEST_EQUAL( spec[0].getMetaValue("label"), "peaklabel");
-			
+
 			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
 			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
@@ -474,10 +499,10 @@ END_SECTION
 			TEST_REAL_SIMILAR( meta_data_arrays[0][1], 3.1 )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][2], 3 )
 
-			
+
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile(), "westberlin" )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile(), "/osten/" )
-			
+
 			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( spec[i].getIntensity() , exp_original.begin()->operator[](i).getIntensity() )
@@ -488,7 +513,7 @@ END_SECTION
 			options.setIntensityRange(DRange<1> (600, 1000));
 			a.getOptions() = options;
 			a.loadSpectrum(spec_tmp_id, spec);
-			
+
 			// check if the Intensity restriction worked - first peak (565) should have been skipped
 			TEST_REAL_SIMILAR( spec[0].getIntensity() , 620 )
 			TEST_REAL_SIMILAR( spec[1].getIntensity() , 701 )
@@ -506,18 +531,18 @@ END_SECTION
 			a2.loadSpectrum(spec_tmp_id, spec);
 			TEST_REAL_SIMILAR( spec[0].getIntensity() , 565 )
 END_SECTION
-		
+
 	// load first two experiments from database
 	// (this implicitly checks if the new experiments were stored correctly)
 	START_SECTION((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
 		  RichPeakMap exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
-			
+
 			a.loadExperiment(tmp_id, exp_new);
 			TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
 			TEST_EQUAL(exp_new.getComment() , "bla" )
-			
+
 			TEST_EQUAL(exp_new.getSample().getName(), "fruity loops" )
 			TEST_EQUAL(exp_new.getSample().getNumber(), "007" )
 			TEST_REAL_SIMILAR(exp_new.getSample().getMass(), 30.1 )
@@ -540,7 +565,7 @@ END_SECTION
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getAccession(), "1001001" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getSequence(), "ZXY" )
 
-			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getSignificanceThreshold(), 1.235 )	
+			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getSignificanceThreshold(), 1.235 )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getScoreType(), "ScoreType" )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].isHigherScoreBetter(), true )
 // needs getter and setter methods first
@@ -548,14 +573,14 @@ END_SECTION
 //			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSourceFile().getPathToFile(), "/testen/" )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[1].isHigherScoreBetter(), false )
 
-			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "AACD" )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), 7 )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAABefore(), 'b' )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAAAfter(), 'c' )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAABefore(), 'd' )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAAAfter(), 'e' )	
-			
+			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "AACD" )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), 7 )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAABefore(), 'b' )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAAAfter(), 'c' )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAABefore(), 'd' )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAAAfter(), 'e' )
+
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getState(), Sample::GAS )
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getOrganism(), "isistius brasiliensis (cookiecutter shar" )
 			const Modification* modification = dynamic_cast<const Modification*>(&exp_new.getSample().getSubsamples()[1].getTreatment(0));
@@ -570,21 +595,21 @@ END_SECTION
 
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[2].getComment(), "nice" )
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[2].getMetaValue("label"), "pink" )
-			
+
 			TEST_EQUAL(exp_new.getContacts()[0].getFirstName() , "Ferdinand" )
 			TEST_EQUAL(exp_new.getContacts()[0].getLastName() , "Piech" )
 			TEST_EQUAL(exp_new.getContacts()[0].getInstitution() , "aff" )
 			TEST_EQUAL(exp_new.getContacts()[1].getEmail() , "ferdi@porsche.de" )
 			TEST_EQUAL(exp_new.getContacts()[1].getContactInfo() , "ttss" )
 			TEST_EQUAL(exp_new.getContacts()[1].getMetaValue("label") , "polka-dotted" )
-			
+
 			TEST_EQUAL(exp_new.getHPLC().getInstrument() , "guitar" )
 			TEST_EQUAL(exp_new.getHPLC().getColumn() , "bigone" )
 			TEST_EQUAL(exp_new.getHPLC().getComment() , "fhth" )
 			TEST_EQUAL(exp_new.getHPLC().getFlux() , 1 )
 			TEST_EQUAL(exp_new.getHPLC().getPressure() , 2 )
 			TEST_EQUAL(exp_new.getHPLC().getTemperature() , 3 )
-			
+
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getPercentages()[0][0] , 20 )
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getPercentages()[0][1] , 40 )
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getPercentages()[0][2] , 60 )
@@ -596,7 +621,7 @@ END_SECTION
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getTimepoints()[0] , 1 )
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getTimepoints()[1] , 5 )
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getTimepoints()[2] , 7 )
-			
+
 			TEST_EQUAL(exp_new.getInstrument().getModel() , "Porsche 911" )
 			TEST_EQUAL(exp_new.getInstrument().getVendor() , "Porsche K.G. Zuffenhausen" )
 			TEST_EQUAL(exp_new.getInstrument().getCustomizations() , "340 PS" )
@@ -612,7 +637,7 @@ END_SECTION
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getIonizationMethod() , IonSource::ESI )
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getPolarity() , IonSource::POSITIVE )
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getMetaValue("label") , "blue" )
-			
+
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getAccuracy() , 1.2687 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getFinalMSExponent() , 8 )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getIsolationWidth() , 8.456 )
@@ -628,13 +653,13 @@ END_SECTION
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getTOFTotalPathLength() , 7.777 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getType() , MassAnalyzer::TOF )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getMetaValue("label") , "pink" )
-			
+
 			//------ test if values are correct ------
-			
+
 			//SPECTRUM 1
 			RichPeakMap::const_iterator itn(exp_new.begin());
 			RichPeakMap::const_iterator ito(exp_original.begin());
-				
+
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
@@ -643,19 +668,34 @@ END_SECTION
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
-		
+
 			//SPECTRUM 2
 			++itn;
 			++ito;
-				
+
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
+
 			TEST_EQUAL( itn->getPrecursors().size() , ito->getPrecursors().size() )
-			TEST_EQUAL( itn->getPrecursors()[0].getMZ() , ito->getPrecursors()[0].getMZ() )
-			TEST_EQUAL( itn->getPrecursors()[0].getIntensity() , ito->getPrecursors()[0].getIntensity() )
-			TEST_EQUAL( itn->getPrecursors()[0].getCharge() , ito->getPrecursors()[0].getCharge() )
-			TEST_EQUAL( itn->getPrecursors()[0].getMetaValue("icon") , "Precursor" )
-	
+			for(Size i = 0; i < itn->getPrecursors().size(); ++i)
+			{
+				TEST_EQUAL( itn->getPrecursors()[i].getMZ() , ito->getPrecursors()[i].getMZ() )
+				TEST_EQUAL( itn->getPrecursors()[i].getIntensity() , ito->getPrecursors()[i].getIntensity() )
+				TEST_EQUAL( itn->getPrecursors()[i].getCharge() , ito->getPrecursors()[i].getCharge() )
+				TEST_EQUAL( itn->getPrecursors()[i].getActivationEnergy() , ito->getPrecursors()[i].getActivationEnergy() )
+				TEST_EQUAL( itn->getPrecursors()[i].getMetaValue("icon") , ito->getPrecursors()[i].getMetaValue("icon") )
+				TEST_EQUAL( itn->getPrecursors()[i].getPossibleChargeStates().size() , ito->getPrecursors()[i].getPossibleChargeStates().size() )
+				for (Size j=0; j<itn->getPrecursors()[i].getPossibleChargeStates().size(); ++j)
+				{
+					TEST_EQUAL( itn->getPrecursors()[i].getPossibleChargeStates()[j] , ito->getPrecursors()[i].getPossibleChargeStates()[j] )
+				}
+				TEST_EQUAL( itn->getPrecursors()[i].getActivationMethods().size() , ito->getPrecursors()[i].getActivationMethods().size() )
+				for ( std::set<Precursor::ActivationMethod>::iterator amn_it(itn->getPrecursors()[i].getActivationMethods().begin()), amo_it(ito->getPrecursors()[i].getActivationMethods().begin()); amn_it != itn->getPrecursors()[i].getActivationMethods().end(); ++amn_it,++amo_it)
+				{
+					TEST_EQUAL( *amn_it , *amo_it )
+				}
+			}
+
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (Size i=0; i<3; ++i)
@@ -663,7 +703,7 @@ END_SECTION
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
-			
+
 			//META INFO
 			TEST_REAL_SIMILAR((double)exp_new.getMetaValue("label"),5.55)
 			TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
@@ -692,12 +732,12 @@ END_SECTION
 			// check if the MSLevel restriction worked - first spectrum should have been skipped
 			TEST_REAL_SIMILAR( exp_new[0][0].getPosition()[0] , 100.155 )
 END_SECTION
-	
+
 		// save modified version of already existing experiment - old records should be updated.
 		// no checks are run, results are implicitly checked later when loading
 		START_SECTION([EXTRA] updating of an existing dataset)
 			exp_original.setComment("blubb");
-	
+
 			// modify first spectrum
 			RichPeakMap::SpectrumType & modified_spec = exp_original[0];
 			modified_spec[0].setIntensity(566.0f);
@@ -713,7 +753,7 @@ END_SECTION
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
-			
+
 			info.clear();
 			acquisition.setIdentifier("1");
 			acquisition.setMetaValue ("icon", String("one more icon"));
@@ -721,7 +761,7 @@ END_SECTION
 			acquisition.setIdentifier("2");
 			acquisition.setMetaValue ("label", String("yet another label"));
 			info.push_back(acquisition);
-			
+
 			modified_spec.setAcquisitionInfo(info);
 			// adding a meta data array
 			modified_spec.getMetaDataArrays().clear();
@@ -740,29 +780,29 @@ END_SECTION
 			source_file.setFileSize(1.234f);
 			source_file.setFileType("RAWDATA");
 			meta_data_array.setSourceFile(source_file);
-			
+
 			modified_spec.getMetaDataArrays().push_back(meta_data_array);
-			
+
 			// modify 2nd spectrum
 			exp_original[1].getPrecursors()[0].setMetaValue("icon", String("NewPrecursor"));
-	
+
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
-			
+
 			////////////PART 2 => LOADING
-			
+
 		  RichPeakMap exp_new;
-			
+
 			a.loadExperiment(tmp_id, exp_new);
 			TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
 			TEST_EQUAL(exp_new.getComment() , "blubb" )
-			
+
 			//------ test if values are correct ------
-			
+
 			//SPECTRUM 1
 			RichPeakMap::const_iterator itn(exp_new.begin());
 			RichPeakMap::const_iterator ito(exp_original.begin());
-				
+
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
@@ -776,11 +816,11 @@ END_SECTION
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
-		
+
 			//SPECTRUM 2
 			++itn;
 			++ito;
-				
+
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->getPrecursors().size() , ito->getPrecursors().size() )
@@ -795,14 +835,14 @@ END_SECTION
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
-			
+
 			//META INFO
 			TEST_REAL_SIMILAR((double)exp_new.getMetaValue("label"),5.55)
 			TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
 			TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
 			TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
-			
+
 			//load the Peak1D experiment
 			//(peak meta data should not be tried to be loaded, because
 			//Peak1D is no MetaInfoInterface)
@@ -818,9 +858,9 @@ END_SECTION
 				TEST_REAL_SIMILAR( spec2[i].getIntensity(), spec2_original[i].getIntensity() )
 				TEST_REAL_SIMILAR( spec2[i].getPosition()[0], spec2_original[i].getPosition()[0] )
 			}
-						
+
 END_SECTION
-	
+
 		START_SECTION(([EXTRA] load and store of empty map))
 			DBAdapter a(con);
 		  RichPeakMap in, out;
@@ -833,7 +873,7 @@ END_SECTION
 			DBAdapter a(con);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
 END_SECTION
-		
+
 	START_SECTION((PeakFileOptions& getOptions()))
 			DBAdapter a(con);
 			a.getOptions().addMSLevel(1);
@@ -847,7 +887,7 @@ END_SECTION
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_tmp);
 		  TEST_NOT_EQUAL(exp_tmp[0].getPersistenceId(),0);
-END_SECTION		
+END_SECTION
 
 	} // DB up-to-date
 
