@@ -362,18 +362,25 @@ namespace OpenMS
 			}
 			else if (tag=="peaks")
 			{
-				precision_ = attributeAsString_(attributes, s_precision_);
+				//TODO: add optinal "compressionType" -- "none" (default) or "zlib"
+				//...
+				
+				//precision
+				precision_ = "32";
+				optionalAttributeAsString_(precision_, attributes, s_precision_);
 				if (precision_!="32" && precision_!="64")
 				{
 					error(LOAD, String("Invalid precision '") + precision_ + "' in element 'peaks'");
 				}
-				String byte_order;
+				//byte order
+				String byte_order="network";
 				optionalAttributeAsString_(byte_order, attributes, s_byteorder_);
 				if (byte_order!="network")
 				{
 					error(LOAD, String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
 				}
-				String pair_order;
+				//pair order
+				String pair_order="m/z-int";
 				optionalAttributeAsString_(pair_order, attributes, s_pairorder_);
 				if (pair_order!="m/z-int")
 				{
