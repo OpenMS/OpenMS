@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotInfile2.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #ifdef USE_ANDIMS
@@ -135,6 +136,14 @@ namespace OpenMS
 			//load right file
 			switch(type)
 			{
+				case FileTypes::XMASS:
+					{
+					  exp.reset();
+					  exp.resize(1);
+					  XMassFile().load(filename,exp[0]);
+						return true;
+					}
+					break;			
 				case FileTypes::DTA:
 					exp.reset();
 					exp.resize(1);

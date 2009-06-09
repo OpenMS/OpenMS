@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML"};
+	const std::string FileHandler::NamesOfTypes[] = {"txt", "fid", "Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -49,6 +49,9 @@ namespace OpenMS
 
 	FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
 	{
+    if(filename.suffix(3) == String("fid"))
+      return FileTypes::XMASS;
+      	
 		String tmp;
 		try
 		{
@@ -60,7 +63,16 @@ namespace OpenMS
 			return FileTypes::UNKNOWN;
 		}
 		tmp.toUpper();
-		if (tmp == "MZDATA")
+		
+		if (tmp == "TXT")
+		{
+			return FileTypes::AUTOEXECUTE;
+		}
+		else if (tmp == "FID")
+		{
+			return FileTypes::XMASS;
+		}
+		else if (tmp == "MZDATA")
 		{
 			return FileTypes::MZDATA;
 		}
@@ -165,6 +177,10 @@ namespace OpenMS
 	{
 		switch (type)
 		{
+		case FileTypes::AUTOEXECUTE:
+			return true;		
+		case FileTypes::XMASS:
+			return true;		
 		case FileTypes::DTA:
 			return true;
 		case FileTypes::DTA2D:

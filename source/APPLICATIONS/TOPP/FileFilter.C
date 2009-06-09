@@ -90,10 +90,10 @@ class TOPPFileFilter
 		void registerOptionsAndFlags_()
 		{
       registerInputFile_("in","<file>","","input file ");
-   		setValidFormats_("in",StringList::create("mzData,featureXML,consensusXML"));
+   		setValidFormats_("in",StringList::create("mzData,featureXML,consensusXML,fid"));
 
       registerOutputFile_("out","<file>","","output file");
-	  	setValidFormats_("out",StringList::create("mzData,featureXML,consensusXML"));
+	  	setValidFormats_("out",StringList::create("mzData,featureXML,consensusXML,fid"));
 
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);

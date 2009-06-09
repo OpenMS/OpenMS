@@ -23,6 +23,7 @@ source_group("Source Files\\OpenMS\\FORMAT" FILES ${mocced_sources})
 ### list all header files of the directory here
 set(sources_list_h
 ANDIFile.h
+AutoExecuteFile.h
 Base64.h
 CVMappingFile.h
 CVMappings.h
@@ -63,6 +64,7 @@ SequestOutfile.h
 TextFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
+XMassFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
