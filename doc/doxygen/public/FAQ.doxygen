@@ -36,7 +36,9 @@
 	
 	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
 		<UL>
-			<LI><B>(Linux) When executing 'make test', all tests fail.</B>
+
+
+			<LI><B>(Linux) When executing 'make test', all tests fail.</B><BR>
 			
 			Please check the LD_LIBRARY_PATH environment variable:
 			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
@@ -45,9 +47,9 @@
 
 		
 		</UL>
-
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
+
 
 			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
 				If a error message similar to
@@ -67,28 +69,7 @@
 				
 				For the most important XML data formats, this can be done using the TOPP tool <i>FileInfo</i> with the  
 				option <i>-v</i>.
-			
-		</UL>
 
-	<H2 style="border-top:2px solid grey;">Contributing</H2>
-		<UL>
-		
-			<LI><B>I have written a class for %OpenMS I want to contribute. What should I do?</B><BR>
-				Basically, you must conform to the %OpenMS @subpage coding_conventions :
-				<OL>
-					<LI> Coding style (brackets, variable names, etc.) must conform to the conventions.
-					<LI> The class and all the members must be documented thoroughly.
-					<LI> A class test must exists, which tests each public member function.
-					<LI> You can check your code with the tool <tt>tools/checker.php</tt>.
-					     Call <tt>php tools/checker.php</tt> for detailed instructions.
-				</OL>
-				
-				When this is done, you can either 
-				<UL>
-					<LI>post a patch to the mailing list or 
-					<LI>become a developer and commit your code to the SVN directly.
-				</UL>
 
 		</UL>
-
 */

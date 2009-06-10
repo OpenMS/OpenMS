@@ -65,6 +65,7 @@
 				<UL>
 				  <LI> @subpage UTILS
 					<LI> @subpage FAQ
+					<LI> @subpage Contributing
 				</UL>
 			</TD>
 				
@@ -88,6 +89,7 @@
 				Misc:
 				<UL>
 					<LI> @subpage FAQ
+					<LI> @subpage Contributing
 				</UL>
 				
 				@if INTERNAL_INFO
