@@ -3,7 +3,6 @@ set(directory source/FORMAT)
 
 ### list all filenames of the directory here
 set(sources_list
-AutoExecuteFile.C
 Base64.C
 CVMappingFile.C
 CVMappings.C
@@ -44,7 +43,6 @@ SequestOutfile.C
 TextFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C
-XMassFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C

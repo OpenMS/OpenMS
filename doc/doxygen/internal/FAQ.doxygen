@@ -304,8 +304,15 @@ svn propset svn:eol-style native MyClass.C
 		<UL>
 
 	    <LI><b>The $id$ string in my test is not expanded to the SVN id. Why?</b><BR>
-	      In Subversion you have to set the keyword expansion explicitly:<BR>
-	      <TT>svn propset svn:keywords Id &lt;file&gt;</TT>
+	      In Subversion you have to set the keyword expansion explicitly:
+	      <BR><TT>svn propset svn:keywords Id &lt;file&gt;</TT>
+
+	    <LI><b>How do I undo a commit?</b><BR>
+	    	Suppose you want to undo the revision 25 in the head branch. Go to your working copy of the head branch and merge in
+	    	the reversed changes of revision 25:
+	    	<BR><TT>svn merge -r  25:24 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/ .</TT>
+	    	<BR><TT>svn commit -m "Removed revision 25"</TT>
+
 
 	    <LI><b>How do I create a branch?</b><BR>
 	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/ReleaseX.Y/</TT>

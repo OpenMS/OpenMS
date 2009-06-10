@@ -40,8 +40,6 @@ namespace OpenMS
 		//if you change here, do not forget to change FileHandler::NameOfTypes[]
 		enum Type
 		{
-			AUTOEXECUTE,     		///< AutoExecute file (.txt)
-			XMASS,           		///< XMass Analysis file (fid)
 			UNKNOWN,        		///< Unknown file extension
 			DTA,            		///< DTA file (.dta)
 			DTA2D,          		///< DTA2D file (.dta2d)
