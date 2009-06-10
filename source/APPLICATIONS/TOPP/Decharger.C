@@ -106,7 +106,7 @@ class TOPPDecharger
 
     writeDebug_("Parameters passed to Decharger", dc_param, 3);
     
-    fdc.setParameters(dc_param); 
+    fdc.setParameters(dc_param);
 
     //-------------------------------------------------------------
     // loading input

@@ -92,8 +92,13 @@ public:
       this->amount_ += rhs.amount_;
     }
 
-    friend std::ostream& operator << (std::ostream& os, const Adduct& a);          
+		
+		/// Print the contents of an Adduct to a stream.
+    friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a);
 
+		/// Comparator
+		friend OPENMS_DLLAPI bool operator==(const Adduct& a, const Adduct& b);
+	
     //@{ Accessors
     const Int& getCharge() const
     {

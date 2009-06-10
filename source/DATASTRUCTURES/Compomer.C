@@ -31,11 +31,11 @@ using namespace std;
 
 namespace OpenMS
 {
-	/// sort compomer by (in order of importance): net-charge, mass, probability
-	bool operator< (const Compomer &c1, const Compomer &c2)
+	/// Sort compomer by (in order of importance): net-charge, mass, probability
+	OPENMS_DLLAPI bool operator< (const Compomer &c1, const Compomer &c2)
 	{  
-		//how to sort Compomers:
-		//first by net_charge
+		// how to sort Compomers:
+		// first by net_charge
 		if (c1.net_charge_ < c2.net_charge_) return true;
 		else if (c1.net_charge_ > c2.net_charge_) return false;
 		else
@@ -51,15 +51,28 @@ namespace OpenMS
 		}
 	} 
 	
-	///Print the contents of a Compomer to a stream.
-	std::ostream& operator << (std::ostream& os, const Compomer & cmp)
+	/// Print the contents of a Compomer to a stream.
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Compomer & cmp)
 	{
 		os << "Compomer: ";
 		os << "Da " << cmp.mass_ << "; q_net " << cmp.net_charge_  << "; logP " << cmp.log_p_ << "[[ ";
 		os << cmp.getAdductsAsString();
 		os << " ]]\n";
 		return os;
-	}    
+	}
+	
+	
+	bool operator==(const Compomer& a, const  Compomer& b)
+	{
+		return (a.cmp_ == b.cmp_ 
+						&& a.net_charge_ == b.net_charge_
+						&& a.mass_ == b.mass_
+						&& a.pos_charges_ == b.pos_charges_
+						&& a.neg_charges_ == b.neg_charges_
+						&& a.log_p_ == b.log_p_
+						&& a.id_ == b.id_);
+				
+	}
 }
 
 

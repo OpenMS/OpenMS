@@ -188,7 +188,7 @@ namespace OpenMS
 				
 				for (AdductsType::const_iterator it=adduct_base_.begin(); it!=adduct_base_.end(); ++it)
 				{
-					std::vector <Adduct> new_Adducts; 
+					std::vector <Adduct> new_adducts; 
 					//create new compomers
 					Int i=1;
 					//warning: the following code assumes that max_nq == max_pq!!
@@ -199,19 +199,19 @@ namespace OpenMS
 							// positive amount
 							a.setAmount(i);
 							cmp.add(a);
-							if (compomer_valid(cmp)) new_Adducts.push_back(a);
+							if (compomer_valid(cmp)) new_adducts.push_back(a);
 							Compomer cmp2;
-							//negative amount
+							// negative amount
 							a.setAmount(-i);
 							cmp2.add(a);
-							if (compomer_valid(cmp2)) new_Adducts.push_back(a);
+							if (compomer_valid(cmp2)) new_adducts.push_back(a);
 							++i;
 					}
 					
 					// combine all new compomers with existing compomers
 					std::vector <Adduct>::const_iterator new_it;
-					std::vector <Adduct>::const_iterator new_begin = new_Adducts.begin();
-					std::vector <Adduct>::const_iterator new_end   = new_Adducts.end();
+					std::vector <Adduct>::const_iterator new_begin = new_adducts.begin();
+					std::vector <Adduct>::const_iterator new_end   = new_adducts.end();
 					
 					std::size_t idx_last=explanations_.size();
 					for (size_t ci=0; ci < idx_last; ++ci)
@@ -235,7 +235,9 @@ namespace OpenMS
 					
 				} // END adduct add
 				
+				// sort according to (in-order) net-charge, mass, probability
 				std::sort(explanations_.begin(), explanations_.end());
+				
 				// set Id´s of compomers, which allows to uniquely identify them (for later lookup)
 				for (size_t i=0;i<explanations_.size(); ++i) explanations_[i].setID(i);
 				

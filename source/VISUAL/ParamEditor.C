@@ -99,21 +99,21 @@ namespace OpenMS
 					return editor;
 				}
 				else if(dtype =="string list" || dtype =="int list" || dtype=="double list" || dtype =="input file list" || dtype =="output file list" ) // for lists
-					{
-						QString str = "<"+ index.sibling(index.row(),0).data(Qt::DisplayRole).toString() + "> " +"(<" + dtype + ">)";
-						ListEditor *editor = new ListEditor(0,str);
-						editor->setTypeName(index.sibling(index.row(),0).data(Qt::DisplayRole).toString());
-						editor->setModal(true);
-						connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor()));
-						connect(editor,SIGNAL(rejected()),this,SLOT(closeListEditor()));
-						return editor;
-					}						
-					else //LineEditor for rest
-					{
+				{
+					QString str = "<"+ index.sibling(index.row(),0).data(Qt::DisplayRole).toString() + "> " +"(<" + dtype + ">)";
+					ListEditor *editor = new ListEditor(0,str);
+					editor->setTypeName(index.sibling(index.row(),0).data(Qt::DisplayRole).toString());
+					editor->setModal(true);
+					connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor()));
+					connect(editor,SIGNAL(rejected()),this, SLOT(closeListEditor()));
+					return editor;
+				}						
+				else //LineEditor for rest
+				{
 					QLineEdit *editor = new QLineEdit(parent);
 					editor->setFocusPolicy(Qt::StrongFocus);
 					return editor;
-					}
+				}
 			}
 			return 0;
 		}

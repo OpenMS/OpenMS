@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMS
 {
 	///Print the contents of an Adduct to a stream.
-	std::ostream& operator << (std::ostream& os, const Adduct& a)
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a)
 	{
 					os  << "---------- Adduct -----------------\n";
 					os << "Charge: " << a.charge_ << std::endl;
@@ -41,6 +41,17 @@ namespace OpenMS
 					os << "Formula: " << a.formula_ << std::endl;
 					os << "log P: " << a.log_prob_ << std::endl;
 					return os;
-	}        
+	}
+	
+	OPENMS_DLLAPI bool operator==(const Adduct& a, const  Adduct& b)
+	{
+		return (a.charge_ == b.charge_ 
+						&& a.amount_ == b.amount_
+						&& a.singleMass_ == b.singleMass_
+						&& a.log_prob_ == b.log_prob_
+						&& a.formula_ == b.formula_);
+				
+	}
+
 }
 

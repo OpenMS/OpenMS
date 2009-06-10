@@ -70,7 +70,7 @@ class TOPPMSSimulator
       registerInputFile_("in","<file>","","Input protein sequences in FASTA format",true);
       registerOutputFile_("out","<file>","","output (simulated MS map) in mzData format",true);
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
-      registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format",false);
+      registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
 
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");

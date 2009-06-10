@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		public:
 			/// menu is created here
-			 INIFileEditorWindow(QWidget *parent = 0);
+			INIFileEditorWindow(QWidget *parent = 0);
 			/// when user closes window a message box asks the user if he wants to save
 			void closeEvent(QCloseEvent *event);
 			

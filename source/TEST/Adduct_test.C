@@ -71,6 +71,19 @@ START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String form
 }
 END_SECTION
 
+START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Adduct& a, const Adduct& b))
+{
+	
+	Adduct a(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct b(a);
+
+	TEST_EQUAL(a==b, true);
+	a.setAmount(22);
+	TEST_EQUAL(a==b, false);
+	
+}
+END_SECTION
+
 START_SECTION((const Int& getCharge() const))
 {
 	NOT_TESTABLE //well.. tested below...

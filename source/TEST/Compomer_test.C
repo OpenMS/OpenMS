@@ -61,6 +61,43 @@ START_SECTION((Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p)))
 }
 END_SECTION
 
+
+START_SECTION((Compomer(const Compomer& p) ))
+{
+	Compomer c(34, 45.32f, 12.34f);
+	Adduct a1(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	c.setID(434);
+	c.add(a1);
+	c.add(b1);
+
+	Compomer c2(c);
+	TEST_EQUAL(c2.getNetCharge(), c.getNetCharge());
+	TEST_REAL_SIMILAR(c2.getMass(), c.getMass());	
+	TEST_EQUAL(c2.getPositiveCharges(), c.getPositiveCharges());	
+	TEST_EQUAL(c2.getNegativeCharges(), c.getNegativeCharges());
+	TEST_REAL_SIMILAR(c2.getLogP(), c.getLogP());
+	TEST_EQUAL(c2.getID(), c.getID());
+	
+}
+END_SECTION
+
+START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b))
+{
+	Compomer c(34, 45.32f, 12.34f);
+	Adduct a1(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	c.setID(434);
+	c.add(a1);
+	
+	Compomer c2(c);
+	TEST_EQUAL(c==c2, true);
+	c.setID(2);
+	TEST_EQUAL(c==c2, false);
+	
+}
+END_SECTION
+
 START_SECTION((void add(const Adduct &a)))
 {
 	//Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob
