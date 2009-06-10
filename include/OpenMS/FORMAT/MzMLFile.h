@@ -48,6 +48,8 @@ namespace OpenMS
 
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 		
+		@todo Implement 32/64 bit integer arrays and null-terminated string arrays (Hiwi)
+		
 		@todo Implement chromatograms (Hiwi)
 		
 		@todo Implement missing functionality - see Handler for details (Marc)

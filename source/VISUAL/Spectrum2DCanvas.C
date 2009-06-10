@@ -292,7 +292,7 @@ namespace OpenMS
 						}
 						if (map[i].getMSLevel()==1 && map[i].size()>0)
 						{
-							scan_indices.push_back(scan_index);
+							scan_indices.push_back(i);
 							peak_indices.push_back(0);
 						}
 						//set the scan index past the end. Otherwise the last scan will be repeated for all following RTs
@@ -309,7 +309,7 @@ namespace OpenMS
 						DoubleReal mz_end = mz_start + mz_step_size; 
 						
 						//iterate over all relevant peaks in all relevant scans
-						DoubleReal max = -1.0;
+						Real max = -1.0;
 						for (Size i=0; i<scan_indices.size(); ++i)
 						{
 							Size s = scan_indices[i];
