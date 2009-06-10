@@ -692,7 +692,6 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			//------------------------------------ store PRECURSOR -----------------------------------
 			//----------------------------------------------------------------------------------------
-			std::vector<Precursor> precs = exp_it->getPrecursors();
 
 			// first delete all old values, no matter whether we're updating or not
 			// do we have to delete the MetaInfo as well?
@@ -702,7 +701,7 @@ namespace OpenMS
 			result = db_con_.executeQuery(query.str());
 
 
-			for (Size precs_it = 0; precs_it < precs.size(); precs_it++)
+			for (Size precs_it = 0; precs_it < exp_it->getPrecursors().size(); precs_it++)
 			{
 				query.str("");
 				query << "INSERT INTO DATA_Precursor SET ";
@@ -750,7 +749,6 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			//------------------------------------- store PRODUCTS -----------------------------------
 			//----------------------------------------------------------------------------------------
-			std::vector<Product> prods = exp_it->getProducts();
 
 			// first delete all old values, no matter whether we're updating or not
 			// do we have to delete the MetaInfo as well?
@@ -759,21 +757,21 @@ namespace OpenMS
 			query << exp_it->getPersistenceId() << "'";
 			result = db_con_.executeQuery(query.str());
 
-			for (Size precs_it = 0; precs_it < precs.size(); precs_it++)
+			for (Size precs_it = 0; precs_it < exp_it->getProducts().size(); precs_it++)
 			{
 				query.str("");
 				query << "INSERT INTO DATA_Products SET ";
 				query << "fid_Spectrum='"+ String(exp_it->getPersistenceId()) + "'";
 				//mz
-				query << ",WindowMz='" << exp_it->getProducts()[0].getMZ() << "'";
+				query << ",WindowMz='" << exp_it->getProducts()[precs_it].getMZ() << "'";
 				//IsolationWindowLow
-				query << ",WindowLow='" << exp_it->getProducts()[0].getIsolationWindowLowerOffset() << "'";
+				query << ",WindowLow='" << exp_it->getProducts()[precs_it].getIsolationWindowLowerOffset() << "'";
 				//IsolationWindowUp
-				query << ",WindowUp='" << exp_it->getProducts()[0].getIsolationWindowUpperOffset() << "'";
+				query << ",WindowUp='" << exp_it->getProducts()[precs_it].getIsolationWindowUpperOffset() << "'";
 
 				result = db_con_.executeQuery(query.str());
 				parent_id = db_con_.getAutoId();
-				storeMetaInfo_("DATA_Products",parent_id, exp_it->getPrecursors()[precs_it]);
+				storeMetaInfo_("DATA_Products",parent_id, exp_it->getProducts()[precs_it]);
 			}
 
 			//----------------------------------------------------------------------------------------
@@ -1074,13 +1072,19 @@ namespace OpenMS
 		query << "SELECT Date,fid_MetaInfo,Description,FractionIdentifier FROM META_MSExperiment WHERE id='" << id << "'";
 		result = db_con_.executeQuery(query.str());
 		result.first();
+		
+		std::cout << "LINE: " << __LINE__ << std::endl;
 
 		//Experiment meta info
-		if (result.value(0).toDate().isValid())
+		try
 		{
 			DateTime d;
 			d.set(result.value(0).toDateTime().toString(Qt::ISODate));
 			exp.setDateTime(d);
+		}
+		catch(Exception::ParseError& )
+		{
+			//no nothing, the date is simply unset
 		}
 		exp.setComment(result.value(2).toString());
 		exp.setFractionIdentifier(result.value(3).toString());

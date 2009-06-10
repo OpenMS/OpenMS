@@ -833,7 +833,7 @@ END_SECTION
 					TEST_EQUAL( itn->getPrecursors()[i].getPossibleChargeStates()[j] , ito->getPrecursors()[i].getPossibleChargeStates()[j] )
 				}
 				TEST_EQUAL( itn->getPrecursors()[i].getActivationMethods().size() , ito->getPrecursors()[i].getActivationMethods().size() )
-				for ( std::set<Precursor::ActivationMethod>::iterator amn_it(itn->getPrecursors()[i].getActivationMethods().begin()), amo_it(ito->getPrecursors()[i].getActivationMethods().begin()); amn_it != itn->getPrecursors()[i].getActivationMethods().end(); ++amn_it,++amo_it)
+				for ( std::set<Precursor::ActivationMethod>::const_iterator amn_it(itn->getPrecursors()[i].getActivationMethods().begin()), amo_it(ito->getPrecursors()[i].getActivationMethods().begin()); amn_it != itn->getPrecursors()[i].getActivationMethods().end(); ++amn_it,++amo_it)
 				{
 					TEST_EQUAL( *amn_it , *amo_it )
 				}
