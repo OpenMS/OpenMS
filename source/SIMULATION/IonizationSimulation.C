@@ -111,7 +111,7 @@ namespace OpenMS {
     defaults_.setValue("esi:ionized_residues", StringList::create("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ESI ionization. This parameter will be ignored during MALDI ionization.");
     StringList valid_ionized_residues = StringList::create("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
-		defaults_.setValue("esi:charge_impurity", StringList::create("H+:1,NH4+:0.2,Ca++:0.1"), "List of charged ions that contribute to charge with adjacent probability of occurence (which must sum to 1), e.g. ['H:1'] is valid, or ['H:0.7' 'Na:0.3']");
+		defaults_.setValue("esi:charge_impurity", StringList::create("H+:1,NH4+:0.2,Ca++:0.1"), "List of charged ions that contribute to charge with weight of occurence (which must not sum to 1), e.g. ['H:1'] or ['H:0.7' 'Na:0.3']");
 
 		defaults_.setValue("esi:max_impurity_set_size", 3, "Maximal #combinations of charge impurities allowed (each generating one feature) per charge state. E.g. assuming charge=3 and this parameter is 2, then we could choose to allow '3H+, 2H+Na+' features (given certain 'charge_impurity' constaints), but no '3H+, 2H+Na+, 3Na+'", StringList::create("advanced"));
 
@@ -155,6 +155,7 @@ namespace OpenMS {
     {
 			esi_charge_impurity[i].split(':',components);
 			if (components.size() != 2) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ")with " + components.size() + " components instead of 2.");
+			// determine charge of adduct (by # of '+')
 			Size l_charge = components[0].size();
 			l_charge -= components[0].remove('+').size();
 			EmpiricalFormula ef(components[0]);

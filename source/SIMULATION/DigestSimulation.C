@@ -228,14 +228,14 @@ namespace OpenMS {
 		enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
 		for (UInt i=0;i<EnzymaticDigestion::SIZE_OF_ENZYMES;++i) enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
 		enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-		defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion");
+		defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
 		defaults_.setValidStrings("enzyme", enzymes);
 		
 		// cleavages
-		defaults_.setValue("missed_cleavages",1,"maximum number of missed cleavages");
+		defaults_.setValue("missed_cleavages",1,"Maximum number of missed cleavages");
     
 		// pep length
-		defaults_.setValue("min_peptide_length",3,"minimum peptide length after digestion");
+		defaults_.setValue("min_peptide_length",3,"Minimum peptide length after digestion (shorter ones will be discarded)");
     
 		defaultsToParam_();		    
   }

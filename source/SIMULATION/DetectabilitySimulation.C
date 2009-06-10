@@ -217,10 +217,10 @@ namespace OpenMS {
 
   void DetectabilitySimulation::setDefaultParams_() 
   {
-    defaults_.setValue("min_detect",0.5,"minimum peptide detectability accepted");
-    defaults_.setValue("dt_model_file","","SVM model for peptide detectability prediction");
 		defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility");
     defaults_.setValidStrings("dt_simulation_on", StringList::create("true,false"));
+    defaults_.setValue("min_detect",0.5,"Minimum peptide detectability accepted");
+    defaults_.setValue("dt_model_file","","SVM model for peptide detectability prediction");
     defaultsToParam_();
   }
   

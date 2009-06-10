@@ -216,7 +216,7 @@ namespace OpenMS
 	{
 		if (string::size()<size)
 		{
-			string::operator=(string(size-string::size(),c)+*this);
+			string::operator=(String(size-string::size(),c)+*this);
 		}
 		return *this;
 	}
@@ -225,7 +225,7 @@ namespace OpenMS
 	{
 		if (string::size()<size)
 		{
-			string::operator=(*this+string(size-string::size(),c));
+			string::operator=(*this+String(size-string::size(),c));
 		}		
 		return *this;
 	}

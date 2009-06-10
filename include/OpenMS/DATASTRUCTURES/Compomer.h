@@ -210,7 +210,9 @@ private:
       }
 
       if (normal_amount + extra_amount > 0)
-      side.insert(std::make_pair<String, Int>(it->first, normal_amount + extra_amount));
+      {
+				side.insert(std::make_pair<String, Int>(it->first, normal_amount + extra_amount));
+			}
 
 		}
 
