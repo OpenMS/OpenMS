@@ -1073,8 +1073,6 @@ namespace OpenMS
 		result = db_con_.executeQuery(query.str());
 		result.first();
 		
-		std::cout << "LINE: " << __LINE__ << std::endl;
-
 		//Experiment meta info
 		try
 		{
@@ -1441,11 +1439,13 @@ namespace OpenMS
 			++i;
 			result.next();
 		}
+		
 	}
 
 	template <class SpectrumType>
 	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
 	{
+		
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION ---------------------------------------
 		//----------------------------------------------------------------------------------------
@@ -1604,7 +1604,17 @@ namespace OpenMS
 		{
 			DataProcessing processings;
 
-			processings.setCompletionTime(result.value(0).toString());
+			try
+			{
+				DateTime d;
+				d.set(result.value(0).toDateTime().toString(Qt::ISODate));
+				processings.setCompletionTime(d);
+			}
+			catch(Exception::ParseError& )
+			{
+				//no nothing, the date is simply unset
+			}
+
 			loadMetaInfo_(result.value(1).toInt(),processings);
 
 			query.str("");
@@ -1736,7 +1746,7 @@ namespace OpenMS
 				loadMetaInfo_(result.value(3).toInt(),spec.getProducts()[res]);
 				result.next();
 			}
-
+		
 		//----------------------------------------------------------------------------------------
 		//--------------------------- load PEAKS/METADATAARRAYS	----------------------------------
 		//----------------------------------------------------------------------------------------

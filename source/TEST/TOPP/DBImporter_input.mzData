@@ -65,6 +65,8 @@
 				<name></name>
 				<version></version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="2">
