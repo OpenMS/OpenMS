@@ -189,8 +189,38 @@ END_SECTION
 		ph.setScore(4.567);
 		ph.setAccession("1001001");
 		ph.setSequence("ZXY");
+		ph.setRank(4u);
 		vector_ph.push_back(ph);
 		pi.setHits(vector_ph);
+		pi.setMetaValue("label", String("proteinidentificationmetainfo"));
+
+		ProteinIdentification::SearchParameters sp;
+		sp.db = "register";
+		sp.db_version = "0.0";
+		sp.taxonomy = "bundesadler";
+		sp.charges = "high";
+		sp.mass_type = ProteinIdentification::AVERAGE;
+		sp.enzyme = ProteinIdentification::TRYPSIN;
+		sp.missed_cleavages = 6;
+		sp.peak_mass_tolerance = 0.44;
+		sp.precursor_tolerance = 0.55;
+		sp.setMetaValue("label", String("searchparametersmetainfo"));
+
+		std::vector<String> fm (3,"a");
+		for(Size i = 0; i < fm.size(); ++i)
+		{
+			fm[i]+=i;
+		}
+		std::vector<String> vm (fm);
+		for(Size i = 0; i < vm.size(); ++i)
+		{
+			vm[i]+=i;
+		}
+
+		sp.fixed_modifications = fm;
+		sp.variable_modifications = vm;
+		pi.setSearchParameters(sp);
+
 		exp_original.getProteinIdentifications().push_back(pi);
 
 		// setting experiment's second protein identification (+ no proteine hits)
@@ -228,6 +258,11 @@ END_SECTION
 		exp_original.getHPLC().getGradient().setPercentage("H2O", 5, 60);
 		exp_original.getHPLC().getGradient().setPercentage("H2O", 7, 40);
 
+		Software sw;
+		sw.setName("tolle instrument-software");
+		sw.setVersion("alpha");
+		sw.setMetaValue("label", String("neu fuer msinstrument"));
+		exp_original.getInstrument().setSoftware(sw);
 		exp_original.getInstrument().setModel("Porsche 911");
 		exp_original.getInstrument().setVendor("Porsche K.G. Zuffenhausen");
 		exp_original.getInstrument().setCustomizations("340 PS");
@@ -237,12 +272,15 @@ END_SECTION
 		exp_original.getInstrument().getIonDetectors()[0].setType(IonDetector::PHOTOMULTIPLIER);
 		exp_original.getInstrument().getIonDetectors()[0].setResolution(6.7677);
 		exp_original.getInstrument().getIonDetectors()[0].setADCSamplingFrequency(7.6766);
+		exp_original.getInstrument().getIonDetectors()[0].setOrder(3);
 		exp_original.getInstrument().getIonDetectors()[0].setMetaValue("label", String("black"));
 		exp_original.getInstrument().getIonSources().resize(1);
 		exp_original.getInstrument().getIonSources()[0].setInletType(IonSource::DIRECT);
 		exp_original.getInstrument().getIonSources()[0].setIonizationMethod(IonSource::ESI);
 		exp_original.getInstrument().getIonSources()[0].setPolarity(IonSource::POSITIVE);
 		exp_original.getInstrument().getIonSources()[0].setMetaValue("label", String("blue"));
+		exp_original.getInstrument().getIonSources()[0].setOrder(0);
+		exp_original.getInstrument().setIonOptics(Instrument::FRINGING_FIELD);
 
 		MassAnalyzer analyzer;
 		analyzer.setAccuracy(1.2687);
@@ -253,6 +291,7 @@ END_SECTION
 		analyzer.setResolution(7.444);
 		analyzer.setResolutionMethod(MassAnalyzer::FWHM);
 		analyzer.setResolutionType(MassAnalyzer::CONSTANT);
+		analyzer.setOrder(1);
 		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);
 		analyzer = MassAnalyzer();
 		analyzer.setScanDirection(MassAnalyzer::UP);
@@ -262,6 +301,7 @@ END_SECTION
 		analyzer.setTOFTotalPathLength(7.777);
 		analyzer.setType(MassAnalyzer::TOF);
 		analyzer.setMetaValue("label", String("pink"));
+		analyzer.setOrder(2);
 		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);
 
 		// MS spectrum
@@ -281,18 +321,36 @@ END_SECTION
 		spec.setRT(1.98);
 		spec.setMSLevel(1);
 
+		std::vector<Product> eier;
+		Product ei;
+		ei.setMZ(1.0);
+		ei.setIsolationWindowLowerOffset(2.0);
+		ei.setIsolationWindowUpperOffset(3.0);
+		ei.setMetaValue("farbe", String("lilablassblau"));
+		eier.push_back(ei);
+		spec.setProducts(eier);
+		ei.setMZ(4.0);
+		ei.setIsolationWindowLowerOffset(5.0);
+		ei.setIsolationWindowUpperOffset(6.0);
+		ei.removeMetaValue("farbe");
+		eier.push_back(ei);
+		spec.setProducts(eier);
+
 		InstrumentSettings settings;
 		settings.getScanWindows().resize(1);
 		settings.getScanWindows()[0].begin = 3.456;
 		settings.getScanWindows()[0].end = 7.89;
+		settings.getScanWindows()[0].setMetaValue("metavalue", String("info"));
 		settings.setPolarity(IonSource::NEGATIVE);
 		settings.setScanMode(InstrumentSettings::SIM);
+		settings.setZoomScan(true);
 		spec.setInstrumentSettings (settings);
 
 		// set a spectrum source file
 		SourceFile source_file;
 		source_file.setNameOfFile("westberlin");
 		source_file.setPathToFile("/osten/");
+		source_file.setNativeIDType(SourceFile::WATERS);
 		spec.setSourceFile(source_file);
 
 		RichPeakSpectrum::MetaDataArray meta_data_array;
@@ -368,6 +426,22 @@ END_SECTION
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
+
+		DataProcessing dp;
+		dp.setCompletionTime("2006-12-12 00:00:00");
+		sw.setName("tolle software");
+		sw.setVersion("alpha");
+		sw.setMetaValue("label", String("echt"));
+		dp.setSoftware(sw);
+		spec.getDataProcessing().push_back(dp);
+		dp.setCompletionTime("2006-12-12 00:00:00");
+		dp.getSoftware().setName("nicht so tolle software");
+		dp.getSoftware().setVersion("alpha");
+		dp.setMetaValue("label", String("prozessiert"));
+		dp.getProcessingActions().insert(DataProcessing::ALIGNMENT);
+		dp.getProcessingActions().insert(DataProcessing::SMOOTHING);
+		spec.getDataProcessing().push_back(dp);
+
 		//spectrum 2 gets 2 precursors
 		spec.getPrecursors().resize(2);
 		//1st precursor for spectrum 2
@@ -476,6 +550,15 @@ END_SECTION
 			TEST_REAL_SIMILAR( spec.getInstrumentSettings().getScanWindows()[0].end , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].end )
 			TEST_EQUAL( spec.getInstrumentSettings().getPolarity() , exp_original.begin()->getInstrumentSettings().getPolarity() )
 			TEST_EQUAL( spec.getInstrumentSettings().getScanMode() , exp_original.begin()->getInstrumentSettings().getScanMode() )
+			TEST_EQUAL( spec.getInstrumentSettings().getZoomScan() , exp_original.begin()->getInstrumentSettings().getZoomScan() )
+			TEST_EQUAL( spec.getInstrumentSettings().getScanWindows()[0].getMetaValue("metavalue") , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].getMetaValue("metavalue"))
+			for(Size ps = 0; ps < spec.getProducts().size(); ++ps)
+			{
+				TEST_EQUAL( spec.getProducts()[ps].getMZ() , exp_original.begin()->getProducts()[ps].getMZ() )
+				TEST_EQUAL( spec.getProducts()[ps].getIsolationWindowLowerOffset() , exp_original.begin()->getProducts()[ps].getIsolationWindowLowerOffset() )
+				TEST_EQUAL( spec.getProducts()[ps].getIsolationWindowUpperOffset() , exp_original.begin()->getProducts()[ps].getIsolationWindowUpperOffset() )
+				TEST_EQUAL( spec.getProducts()[ps].getMetaValue("farbe") , exp_original.begin()->getProducts()[ps].getMetaValue("farbe"))
+			}
 			TEST_EQUAL( spec.getAcquisitionInfo().getMethodOfCombination(), "combo");
 			// and how do we check	info.setSpectrumType("type"); ?
 			TEST_EQUAL( spec.getAcquisitionInfo()[0].getIdentifier(), "1");
@@ -483,6 +566,7 @@ END_SECTION
 
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile() , exp_original.begin()->getSourceFile().getNameOfFile() )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile() , exp_original.begin()->getSourceFile().getPathToFile() )
+			TEST_EQUAL( spec.getSourceFile().getNativeIDType() , exp_original.begin()->getSourceFile().getNativeIDType())
 			TEST_EQUAL( spec.getSourceFile().getChecksum() , exp_original.begin()->getSourceFile().getChecksum() )
 
 			// make sure storing/loading of meta data works for RichPeaks
@@ -494,6 +578,7 @@ END_SECTION
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )
 			TEST_REAL_SIMILAR( meta_data_arrays[0].getSourceFile().getFileSize(), 1.234 )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getFileType(), "RAWDATA" )
+			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getChecksumType(), SourceFile::SHA1 )
 			TEST_EQUAL( meta_data_arrays[0].getMetaValue("icon"), "an icon is an icon is an icon" )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][0], 3.14 )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][1], 3.1 )
@@ -554,6 +639,8 @@ END_SECTION
 			TEST_REAL_SIMILAR(digestion->getPh(), 7.2 )
 			TEST_REAL_SIMILAR(digestion->getTemperature(), 37.7 )
 
+			//test for products
+
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngine(), "google" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngineVersion(), "beta" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getDateTime().get(), "2006-12-12 00:00:00" )
@@ -580,6 +667,32 @@ END_SECTION
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAAAfter(), 'c' )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAABefore(), 'd' )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAAAfter(), 'e' )
+
+
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getMetaValue("label"), exp_original.getProteinIdentifications()[0].getMetaValue("label"))
+
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().db, exp_original.getProteinIdentifications()[0].getSearchParameters().db)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().db_version, exp_original.getProteinIdentifications()[0].getSearchParameters().db_version)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().taxonomy, exp_original.getProteinIdentifications()[0].getSearchParameters().taxonomy)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().charges, exp_original.getProteinIdentifications()[0].getSearchParameters().charges)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().mass_type, exp_original.getProteinIdentifications()[0].getSearchParameters().mass_type)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().enzyme, exp_original.getProteinIdentifications()[0].getSearchParameters().enzyme)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().missed_cleavages, exp_original.getProteinIdentifications()[0].getSearchParameters().missed_cleavages)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().peak_mass_tolerance, exp_original.getProteinIdentifications()[0].getSearchParameters().peak_mass_tolerance)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().precursor_tolerance, exp_original.getProteinIdentifications()[0].getSearchParameters().precursor_tolerance)
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().getMetaValue("label"), exp_original.getProteinIdentifications()[0].getSearchParameters().getMetaValue("label"))
+
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().fixed_modifications.size(), exp_original.getProteinIdentifications()[0].getSearchParameters().fixed_modifications.size())
+		for(Size i = 0; i < exp_original.getProteinIdentifications()[0].getSearchParameters().fixed_modifications.size(); ++i)
+		{
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().fixed_modifications[i], exp_original.getProteinIdentifications()[0].getSearchParameters().fixed_modifications[i])
+		}
+		TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().variable_modifications.size(), exp_original.getProteinIdentifications()[0].getSearchParameters().variable_modifications.size())
+		for(Size i = 0; i < exp_original.getProteinIdentifications()[0].getSearchParameters().variable_modifications.size(); ++i)
+		{
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().variable_modifications[i], exp_original.getProteinIdentifications()[0].getSearchParameters().variable_modifications[i])
+		}
+
 
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getState(), Sample::GAS )
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getOrganism(), "isistius brasiliensis (cookiecutter shar" )
@@ -622,6 +735,10 @@ END_SECTION
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getTimepoints()[1] , 5 )
 			TEST_EQUAL(exp_new.getHPLC().getGradient().getTimepoints()[2] , 7 )
 
+			TEST_EQUAL(exp_new.getInstrument().getSoftware().getName() , exp_original.getInstrument().getSoftware().getName() )
+			TEST_EQUAL(exp_new.getInstrument().getSoftware().getVersion() , exp_original.getInstrument().getSoftware().getVersion() )
+			TEST_EQUAL(exp_new.getInstrument().getSoftware().getMetaValue("label") , exp_original.getInstrument().getSoftware().getMetaValue("label") )
+
 			TEST_EQUAL(exp_new.getInstrument().getModel() , "Porsche 911" )
 			TEST_EQUAL(exp_new.getInstrument().getVendor() , "Porsche K.G. Zuffenhausen" )
 			TEST_EQUAL(exp_new.getInstrument().getCustomizations() , "340 PS" )
@@ -632,6 +749,8 @@ END_SECTION
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getIonDetectors()[0].getResolution() , 6.7677 )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getIonDetectors()[0].getADCSamplingFrequency() , 7.6766 )
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getMetaValue("label") , "black" )
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getOrder(), 3)
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getOrder(), 0)
 			TEST_EQUAL(exp_new.getInstrument().getIonSources().size(),1)
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getInletType() , IonSource::DIRECT )
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getIonizationMethod() , IonSource::ESI )
@@ -646,6 +765,7 @@ END_SECTION
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getResolution() , 7.444 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionMethod() , MassAnalyzer::FWHM )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionType() , MassAnalyzer::CONSTANT )
+			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getOrder() , 1 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanDirection() , MassAnalyzer::UP )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanLaw() , MassAnalyzer::LINEAR )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanRate() , 5.555 )
@@ -653,6 +773,9 @@ END_SECTION
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getTOFTotalPathLength() , 7.777 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getType() , MassAnalyzer::TOF )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getMetaValue("label") , "pink" )
+			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getOrder() , 2 )
+
+			TEST_EQUAL(exp_new.getInstrument().getIonOptics() , Instrument::FRINGING_FIELD )
 
 			//------ test if values are correct ------
 
@@ -667,6 +790,26 @@ END_SECTION
 			{
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
+			}
+			//~ TEST_EQUAL( itn->getPrecursors()[0].getMetaValue("icon") , "Precursor" )
+
+
+
+			TEST_EQUAL(itn->getDataProcessing().size(), ito->getDataProcessing().size())
+			for (Size i=0; i<itn->getDataProcessing().size(); ++i)
+			{
+				TEST_EQUAL(itn->getDataProcessing()[i].getSoftware().getName(), ito->getDataProcessing()[i].getSoftware().getName())
+				TEST_EQUAL(itn->getDataProcessing()[i].getSoftware().getVersion(), ito->getDataProcessing()[i].getSoftware().getVersion())
+				TEST_EQUAL(itn->getDataProcessing()[i].getCompletionTime().get(), ito->getDataProcessing()[i].getCompletionTime().get())
+				TEST_EQUAL(itn->getDataProcessing()[i].getMetaValue("label"), ito->getDataProcessing()[i].getMetaValue("label"))
+				TEST_EQUAL(itn->getDataProcessing()[i].getProcessingActions().size(), ito->getDataProcessing()[i].getProcessingActions().size())
+				std::set< DataProcessing::ProcessingAction >::iterator set_it_original, set_it_new;
+				set_it_new = (itn->getDataProcessing()[i].getProcessingActions()).begin();
+				set_it_original = ito->getDataProcessing()[i].getProcessingActions().begin();
+				for (set_it_new=set_it_new; set_it_new!=itn->getDataProcessing()[i].getProcessingActions().end() && set_it_original!=ito->getDataProcessing()[i].getProcessingActions().end() ; (++set_it_new), (++set_it_original))
+				{
+					TEST_EQUAL(*set_it_new, *set_it_original)
+				}
 			}
 
 			//SPECTRUM 2
@@ -752,7 +895,13 @@ END_SECTION
 			modified_spec.getInstrumentSettings().getScanWindows()[0].end = 7.91;
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+			modified_spec.getInstrumentSettings().setZoomScan(false);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
+
+			modified_spec.getProducts()[1].setMZ(5);
+			modified_spec.getProducts()[1].setIsolationWindowLowerOffset(6);
+			modified_spec.getProducts()[1].setIsolationWindowUpperOffset(7);
+			modified_spec.getProducts()[1].setMetaValue("farbe", String("erbrochengruengelb"));
 
 			info.clear();
 			acquisition.setIdentifier("1");
@@ -777,14 +926,28 @@ END_SECTION
 			SourceFile source_file;
 			source_file.setNameOfFile("this is the filename");
 			source_file.setPathToFile("/slashdot/");
+			source_file.setNativeIDType(SourceFile::WIFF);
 			source_file.setFileSize(1.234f);
 			source_file.setFileType("RAWDATA");
+			source_file.setChecksum("chksm", SourceFile::MD5);
 			meta_data_array.setSourceFile(source_file);
 
 			modified_spec.getMetaDataArrays().push_back(meta_data_array);
 
+
 			// modify 2nd spectrum
 			exp_original[1].getPrecursors()[0].setMetaValue("icon", String("NewPrecursor"));
+
+			// update others
+			exp_original.getProteinIdentifications()[0].getHits()[1].setRank( 5u );
+			exp_original.getInstrument().getMassAnalyzers()[0].setOrder(2);
+			exp_original.getInstrument().getMassAnalyzers()[1].setOrder(3);
+			exp_original.getInstrument().getIonDetectors()[0].setOrder(4);
+			exp_original.getInstrument().getIonSources()[0].setOrder(1);
+			exp_original.getInstrument().setIonOptics(Instrument::EINZEL_LENS);
+			ProteinIdentification::SearchParameters s = exp_original.getProteinIdentifications()[0].getSearchParameters();
+			s.missed_cleavages = 66;
+			exp_original.getProteinIdentifications()[0].setSearchParameters(s);
 
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
@@ -816,6 +979,15 @@ END_SECTION
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
+			TEST_EQUAL( itn->getInstrumentSettings().getZoomScan() , ito->getInstrumentSettings().getZoomScan() )
+			for(Size ps = 0; ps < itn->getProducts().size(); ++ps)
+			{
+				TEST_EQUAL( itn->getProducts()[ps].getMZ() , ito->getProducts()[ps].getMZ() )
+				TEST_EQUAL( itn->getProducts()[ps].getIsolationWindowLowerOffset() , ito->getProducts()[ps].getIsolationWindowLowerOffset() )
+				TEST_EQUAL( itn->getProducts()[ps].getIsolationWindowUpperOffset() , ito->getProducts()[ps].getIsolationWindowUpperOffset() )
+				TEST_EQUAL( itn->getProducts()[ps].getMetaValue("farbe") , ito->getProducts()[ps].getMetaValue("farbe"))
+			}
+
 
 			//SPECTRUM 2
 			++itn;
@@ -858,6 +1030,20 @@ END_SECTION
 				TEST_REAL_SIMILAR( spec2[i].getIntensity(), spec2_original[i].getIntensity() )
 				TEST_REAL_SIMILAR( spec2[i].getPosition()[0], spec2_original[i].getPosition()[0] )
 			}
+
+			//test update of others
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getRank(), 5u )
+			TEST_EQUAL(exp_new[0].getSourceFile().getChecksumType(), SourceFile::MD5 )
+			TEST_EQUAL(exp_new[0].getSourceFile().getNativeIDType(), SourceFile::WIFF )
+			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getOrder() , 2 )
+			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getOrder() , 3 )
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getOrder(), 4)
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getOrder(), 1)
+			TEST_EQUAL(exp_new.getInstrument().getIonOptics() , Instrument::EINZEL_LENS )
+
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().missed_cleavages, 66)
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchParameters().peak_mass_tolerance, exp_original.getProteinIdentifications()[0].getSearchParameters().peak_mass_tolerance)
+
 
 END_SECTION
 
