@@ -323,7 +323,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithmIsotopeWavelet_test
-  FeatureFinderAlgorithmWatershed_test
   SimpleSeeder_test
   SimpleExtender_test
   GaussFitter1D_test

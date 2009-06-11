@@ -36,7 +36,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWatershed.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
 namespace OpenMS
@@ -70,13 +69,6 @@ namespace OpenMS
 			 FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::getProductName(),
 			 &FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::create
 			);
-		
-//This FF is not ready for release => remove it from the factory so it will not show up in the TOPP tool
-//		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-//			(
-//			 FeatureFinderAlgorithmWatershed<PeakType,FeatureType>::getProductName(),
-//			 &FeatureFinderAlgorithmWatershed<PeakType,FeatureType>::create
-//			);
 		
 			Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 			  (

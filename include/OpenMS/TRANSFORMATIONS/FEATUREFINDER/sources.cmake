@@ -18,7 +18,6 @@ FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmSimple.h
 FeatureFinderAlgorithmSimplest.h
-FeatureFinderAlgorithmWatershed.h
 FeatureFinderAlgorithmWavelet.h
 FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithm_impl.h
