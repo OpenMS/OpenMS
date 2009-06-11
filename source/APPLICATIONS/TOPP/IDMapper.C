@@ -115,7 +115,12 @@ class TOPPIDMapper
 				ConsensusXMLFile file;
 				ConsensusMap map;
 				file.load(in,map);
+				
 				mapper.annotate(map,peptide_ids,protein_ids);
+				
+				//annotate output with data processing info
+				addDataProcessing_(map, DataProcessing::FEATURE_GROUPING);
+				
 				file.store(out,map);
 			}
 
@@ -127,7 +132,12 @@ class TOPPIDMapper
 				FeatureMap<> map;
 				FeatureXMLFile file;
 				file.load(in,map);
+				
 				mapper.annotate(map,peptide_ids,protein_ids);
+				
+				//annotate output with data processing info
+				addDataProcessing_(map, DataProcessing::FEATURE_GROUPING);
+				
 				file.store(out,map);
 			}
 

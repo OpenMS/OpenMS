@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-11T17:49:07">
+		<software name="FileFilter" version="1.4" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: in" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FileFilter_5_input.featureXML"/>
+		<userParam type="string" name="parameter: out" value="FileFilter_5_out.tmp"/>
+		<userParam type="string" name="parameter: rt" value=":1000"/>
+		<userParam type="string" name="parameter: mz" value=":480"/>
+		<userParam type="string" name="parameter: int" value=":79000"/>
+		<userParam type="string" name="parameter: charge" value=":3"/>
+		<userParam type="string" name="parameter: q" value=":0.6"/>
+	</dataProcessing>
 	<featureList count="1">
 		<feature id="f_0">
 			<position dim="0">945.103</position>

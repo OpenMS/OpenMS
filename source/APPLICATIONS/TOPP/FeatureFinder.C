@@ -189,6 +189,10 @@ class TOPPFeatureFinder
 		//-------------------------------------------------------------
 		// writing files
 		//-------------------------------------------------------------
+
+		//annotate output with data processing info
+		addDataProcessing_(features, DataProcessing::QUANTITATION);
+
 		FeatureXMLFile map_file;
 		map_file.store(out,features);			
 			

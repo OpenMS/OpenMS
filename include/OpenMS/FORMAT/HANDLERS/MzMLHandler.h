@@ -51,6 +51,7 @@
 // - Linking of binary data value type and content type (Matt)
 // - Integer and string binary array types (Matt)
 // - MALDI term untis (Marc, Andreas Römp)
+// - Add new data processing actions (Marc)
 // - Final release => obsolete 1.0 on the website !!
 //
 //MISSING:
@@ -2217,6 +2218,10 @@ namespace OpenMS
 					processing_[current_id_].back().setCompletionTime(asDateTime_(value));
 				}
 				//file format conversion
+				else if (accession=="MS:1000530") //file format conversion
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::FORMAT_CONVERSION);
+				}
 				else if (accession=="MS:1000544") //Conversion to mzML
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
@@ -2234,6 +2239,10 @@ namespace OpenMS
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_DTA);
 				}
 				//data processing action
+				else if (accession=="MS:1000543") //data processing action
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::DATA_PROCESSING);
+				}
 				else if (accession=="MS:1000033") //deisotoping
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
@@ -2242,17 +2251,9 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
-				else if (accession=="MS:1000035") //peak picking
+				else if (accession=="MS:1000035" || cv_.isChildOf(accession,"MS:1000035"))  //peak picking (or child terms, we make no difference)
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
-				}
-				else if (accession=="MS:1000801") //area peak picking
-				{
-					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING_SUM);
-				}
-				else if (accession=="MS:1000802") //height peak picking
-				{
-					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING_MAX);
 				}
 				else if (accession=="MS:1000592" || cv_.isChildOf(accession,"MS:1000592")) //smoothing (or child terms, we make no difference)
 				{
@@ -2581,7 +2582,12 @@ namespace OpenMS
 			
 			for (Size i=0; i<dps.size(); ++i)
 			{
+				//data processing action
 				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << spectrum_index << "_pm_" << i << "\">\n";
+				if (dps[i].getProcessingActions().count(DataProcessing::DATA_PROCESSING)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000543\" name=\"data processing action\" />\n";
+				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
@@ -2610,18 +2616,6 @@ namespace OpenMS
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
 				}
-				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING_SUM)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000801\" name=\"area peak picking\" />\n";
-				}
-				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING_MAX)==1)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"height peak picking\" />\n";
-				}
-				if (dps[i].getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
-				{
-					//no CV term for this
-				}
 				if (dps[i].getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
@@ -2633,6 +2627,11 @@ namespace OpenMS
 				if (dps[i].getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\" />\n";
+				}
+				//file format conversion
+				if (dps[i].getProcessingActions().count(DataProcessing::FORMAT_CONVERSION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000530\" name=\"file format conversion\" />\n";
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
 				{

@@ -30,7 +30,8 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -146,9 +147,19 @@ class TOPPBaseTest
       outputFileWritable_(filename);
     }
 
-    void addDataProcessing(MSExperiment<>& map, const std::set<DataProcessing::ProcessingAction>& actions)
+    void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
     {
-      addDataProcessing_(map, actions);
+      addDataProcessing_(map, action);
+      
+      //additionally test MSSpectrum, FeatureMap, ConsensusMap
+      MSSpectrum<> spectrum;
+      addDataProcessing_(spectrum, action);
+
+      FeatureMap<> f_map;
+      addDataProcessing_(f_map, action);
+      
+      ConsensusMap c_map;
+      addDataProcessing_(c_map, action);
     }
 
     void parseRange(const String& text, double& low, double& high) const
@@ -588,14 +599,12 @@ START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const))
+START_SECTION(([EXTRA] data processing methods))
 	MSExperiment<> exp;
 	exp.resize(2);
-	std::set<DataProcessing::ProcessingAction> actions;
-	actions.insert(DataProcessing::ALIGNMENT);
 
 	TOPPBaseTest topp;
-	topp.addDataProcessing(exp, actions);
+	topp.addDataProcessing(exp, DataProcessing::ALIGNMENT);
 	
 	for (Size i=0; i<exp.size(); ++i)
 	{

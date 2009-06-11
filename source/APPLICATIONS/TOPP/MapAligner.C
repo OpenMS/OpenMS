@@ -190,10 +190,17 @@ protected:
 			}
 
 			// write output
+			progresslogger.startProgress(0,outs.size(),"writing output files");
 			for (Size i=0; i<outs.size(); ++i)
 			{
+				progresslogger.setProgress(i);
+				
+				//annotate output with data processing info
+				addDataProcessing_(peak_maps[i], DataProcessing::ALIGNMENT);
+
 		    f.store(outs[i], peak_maps[i]);
 			}
+			progresslogger.endProgress();
 		}
     //-------------------------------------------------------------
     // perform feature alignment
@@ -204,13 +211,12 @@ protected:
 			std::vector< FeatureMap<> > feat_maps(ins.size());
 			FeatureXMLFile f;
 			// f.setLogType(log_type_); // TODO
-			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
+			progresslogger.startProgress(0,ins.size(),"loading input files");
 			for (Size i=0; i<ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.load(ins[i], feat_maps[i]);
 			}
-			progresslogger.setProgress(ins.size());
 			progresslogger.endProgress();
 
 			// try to align
@@ -225,13 +231,16 @@ protected:
 			}
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
+			progresslogger.startProgress(0,outs.size(),"writing output files");
 			for (Size i=0; i<outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
+				
+				//annotate output with data processing info
+				addDataProcessing_(feat_maps[i], DataProcessing::ALIGNMENT);
+
 		    f.store(outs[i], feat_maps[i]);
 			}
-			progresslogger.setProgress(outs.size());
 			progresslogger.endProgress();
 		}
     //-------------------------------------------------------------
@@ -246,14 +255,13 @@ protected:
 			IdXMLFile f;
 			// f.setLogType_(log_type_);
 
-			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
+			progresslogger.startProgress(0,ins.size(),"loading input files");
 			for (Size i=0; i<ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				String document_id;
 		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i], document_id);
 			}
-			progresslogger.setProgress(ins.size());
 			progresslogger.endProgress();
 
 			// try to align
@@ -268,13 +276,12 @@ protected:
 			}
 
 			// write output
-			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
+			progresslogger.startProgress(0,outs.size(),"writing output files");
 			for (Size i=0; i<outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.store( outs[i], protein_ids_vec[i], peptide_ids_vec[i] );
 			}
-			progresslogger.setProgress(outs.size());
 			progresslogger.endProgress();
 		}
 		else
@@ -288,14 +295,10 @@ protected:
 
 		if (trafos.size()!=0)
 		{
-			progresslogger.startProgress(0,transformations.size(),"writing output files (transformations)");
 			for (Size i=0; i<transformations.size(); ++i)
 			{
-				progresslogger.setProgress(i);
 				TransformationXMLFile().store(trafos[i],transformations[i]);
 			}
-			progresslogger.setProgress(transformations.size());
-			progresslogger.endProgress();
 		}
 
 		return EXECUTION_OK;

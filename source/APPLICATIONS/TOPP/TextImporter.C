@@ -126,7 +126,7 @@ namespace OpenMS
         // processing
         //-------------------------------------------------------------
 				if (out_type==FileTypes::FEATUREXML)
-					{
+				{
 					//-------------------------------------------------------------
 					// parsing header line
 					//-------------------------------------------------------------
@@ -228,6 +228,10 @@ namespace OpenMS
 					//-------------------------------------------------------------
 					// write output
 					//-------------------------------------------------------------
+					
+					//annotate output with data processing info
+					addDataProcessing_(feature_map, DataProcessing::FORMAT_CONVERSION);
+					
 					FeatureXMLFile().store(out, feature_map);
 				}
 				else // PARAM

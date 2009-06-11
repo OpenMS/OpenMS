@@ -5,6 +5,7 @@
 Main improvements of TOPPView:
 
 Main improvements of TOPP:
+- Added data processing information to all tool to improve tracability of processing
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support (final)

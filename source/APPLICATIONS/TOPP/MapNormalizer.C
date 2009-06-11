@@ -109,6 +109,9 @@ class TOPPMapNormalizer
 			// writing output
 			//-------------------------------------------------------------
 			
+			//annotate output with data processing info
+			addDataProcessing_(exp, DataProcessing::NORMALIZATION);
+			
 			f.store(out,exp);
 			
 			return EXECUTION_OK;

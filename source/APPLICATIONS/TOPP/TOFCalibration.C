@@ -174,6 +174,7 @@ class TOPPTOFCalibration
 		calib.setML1s(ml1);
 		calib.setML2s(ml2);
 		if(!ml3.empty()) calib.setML3s(ml3);
+		
     //-------------------------------------------------------------
     // perform calibration
     //-------------------------------------------------------------
@@ -189,6 +190,10 @@ class TOPPTOFCalibration
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+
+		//annotate output with data processing info
+		addDataProcessing_(ms_exp_raw, DataProcessing::CALIBRATION);
+
 		mz_data_file.store(out,ms_exp_raw);
 
     return EXECUTION_OK;

@@ -166,8 +166,12 @@ class TOPPITRAQAnalyzer
 		// writing output 
 		//-------------------------------------------------------------
 		ConsensusXMLFile cm_file;
-		cm_file.store(out,consensus_map_raw);
+		
+		//annotate output with data processing info
+		addDataProcessing_(consensus_map_raw, DataProcessing::QUANTITATION);
+		addDataProcessing_(consensus_map_quant, DataProcessing::QUANTITATION);
 
+		cm_file.store(out,consensus_map_raw);
 		cm_file.store(out+"_quant",consensus_map_quant);
 
 		return EXECUTION_OK;

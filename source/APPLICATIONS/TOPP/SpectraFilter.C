@@ -139,6 +139,9 @@ class TOPPSpectraFilter
 			// writing output
 			//-------------------------------------------------------------
 			
+			//annotate output with data processing info
+			addDataProcessing_(exp, DataProcessing::FILTERING);
+			
 			f.store(out, exp);
 			
 			return EXECUTION_OK;

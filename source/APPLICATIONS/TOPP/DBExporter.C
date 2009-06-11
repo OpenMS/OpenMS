@@ -150,7 +150,10 @@ class TOPPDBExporter
 					writeDebug_("Writing single file...",1);	
 					//load from db
 					a.loadExperiment(*(ids.begin()),exp);
-					
+
+					//annotate output with data processing info
+					addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+
 					//write to file
 					f.store(out, exp);
 				}
@@ -161,7 +164,10 @@ class TOPPDBExporter
 					{
 						//load from db
 						a.loadExperiment(*it,exp);
-					
+						
+						//annotate output with data processing info
+						addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+						
 						//write to file
 						stringstream ss;
 						ss << *it;

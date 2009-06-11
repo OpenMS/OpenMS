@@ -133,6 +133,10 @@ class TOPPDecharger
     cm.getFileDescriptions()[0].filename = infile;
     cm2.getFileDescriptions()[0].filename = infile;
 
+		//annotate output with data processing info
+		addDataProcessing_(cm, DataProcessing::CHARGE_DECONVOLUTION);
+		addDataProcessing_(cm2, DataProcessing::CHARGE_DECONVOLUTION);
+
     ConsensusXMLFile f;
     f.store(outfile, cm);
     f.store(outfile_p, cm2);

@@ -152,6 +152,9 @@ protected:
 		//group
 		algorithm->group(maps,out_map);
 
+		//annotate output with data processing info
+		addDataProcessing_(out_map, DataProcessing::FEATURE_GROUPING);
+		
 		//write output
 		ConsensusXMLFile().store(out,out_map);
 

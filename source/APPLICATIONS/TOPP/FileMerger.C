@@ -233,6 +233,9 @@ class TOPPFileMerger
 		// writing output
 		//-------------------------------------------------------------
 
+		//annotate output with data processing info
+		addDataProcessing_(out, DataProcessing::FORMAT_CONVERSION);
+
 		MzDataFile f;
 		f.setLogType(log_type_);
 		f.store(out_file,out);

@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/IDTagger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <iostream>
 #include <fstream>
@@ -101,6 +102,8 @@ namespace OpenMS
   	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
     @todo Add 'instr' parameter for instrument defaults (Marc, Andreas)
+
+		@todo Make mzML the default format of TOPP tools, when mzML is finished (Marc)
   */
   class OPENMS_DLLAPI TOPPBase
   {
@@ -796,10 +799,12 @@ namespace OpenMS
 
       ///Type of progress logging
       ProgressLogger::LogType log_type_;
-      
-      ///Convenience function that adds a set of processing actions to a peak, feature or consensus map
-      template<typename MapType>
-      void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const
+
+			///@name Data processing auxilary functions
+      //@{
+      ///Generic data processing setter for objects that have a @em getDataProcessing() method, e.g. FeatureMap, ConsensusMap, MSSpectrum
+      template<typename ObjectType>
+      void addDataProcessing_(ObjectType& object, const std::set<DataProcessing::ProcessingAction>& actions) const
       {
         DataProcessing p;
         //actions
@@ -815,21 +820,57 @@ namespace OpenMS
         {
            p.setMetaValue(String("parameter: ") + it.getName() , it->value);
         }
-        //add processing to each spectrum
-        for (Size i=0; i<map.size(); ++i)
-        {
-          map[i].getDataProcessing().push_back(p);          
-        }
+        
+        //add data processing
+        object.getDataProcessing().push_back(p);          
       }
 
-      ///Convenience function that add a single processing action to a peak, feature or consensus map
-      template<typename MapType>
-      void addDataProcessing_(MapType& map, DataProcessing::ProcessingAction action) const
+      ///Generic data processing setter for objects that have a @em getDataProcessing() method, e.g. FeatureMap, ConsensusMap, MSSpectrum
+      template<typename ObjectType>
+      void addDataProcessing_(ObjectType& object, DataProcessing::ProcessingAction action) const
       {
         std::set<DataProcessing::ProcessingAction> actions;
         actions.insert(action);
+        
+        addDataProcessing_(object, actions);
+      }
+			
+			///Data processing setter for MSExperiment
+      template<typename PeakType>
+      void addDataProcessing_(MSExperiment<PeakType>& map, const std::set<DataProcessing::ProcessingAction>& actions) const
+      {
+        DataProcessing p;
+        //actions
+        p.setProcessingActions(actions);
+        //software
+        p.getSoftware().setName(tool_name_);
+        p.getSoftware().setVersion(VersionInfo::getVersion());
+        //time
+        p.setCompletionTime(DateTime::now());
+        //parameters
+        const Param& param = getParam_();
+        for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+        {
+           p.setMetaValue(String("parameter: ") + it.getName() , it->value);
+        }
+        
+        //add data processing
+        for (Size i=0; i<map.size(); ++i)
+        {
+        	map[i].getDataProcessing().push_back(p);          
+      	}
+      }
+
+      ///Data processing setter for MSExperiment
+      template<typename PeakType>
+      void addDataProcessing_(MSExperiment<PeakType>& map, DataProcessing::ProcessingAction action) const
+      {
+        std::set<DataProcessing::ProcessingAction> actions;
+        actions.insert(action);
+        
         addDataProcessing_(map, actions);
       }
+      //@}
       
 			/// get IDTagger to assign DocumentIDs to maps
 			const IDTagger& getIDTagger_() const;

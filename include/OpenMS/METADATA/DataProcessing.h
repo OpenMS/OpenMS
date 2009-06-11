@@ -50,6 +50,7 @@ namespace OpenMS
     	//The different processing types
     	enum ProcessingAction
     	{
+    		DATA_PROCESSING,          ///< General data processing (if no other term applies)
     		CHARGE_DECONVOLUTION,		  ///< Charge deconvolution
     		DEISOTOPING, 						  ///< Deisotoping
     		SMOOTHING, 							  ///< Smoothing of the signal to reduce noise
@@ -57,18 +58,20 @@ namespace OpenMS
     		PRECURSOR_RECALCULATION,	///< Recalculation of precursor m/z
     		BASELINE_REDUCTION, 		  ///< Baseline reduction
     		PEAK_PICKING, 					  ///< Peak picking (conversion from raw to peak data)
-    		PEAK_PICKING_SUM,					///< Specialized peak picking that reports the sums of raw data point intensities belonging to one peak
-    		PEAK_PICKING_MAX,					///< Specialized Peak picking that reports the maximum raw data point intensity belonging to one peak
-    		FEATURE_FINDING, 				  ///< Feature findng (conversion from raw/peak to feature data)
     		ALIGNMENT, 							  ///< Retention time alignment of different maps
+    		CALIBRATION, 							///< Calibration of m/z positions
+    		NORMALIZATION, 						///< Normalization of intensity values
+    		FILTERING, 							  ///< Data filtering or extraction
     		LOW_INTENSITY_REMOVAL,	  ///< The removal of very low intensity data points
     		HIGH_INTENSITY_REMOVAL,	  ///< The removal of very high intensity data points
+    		QUANTITATION, 						///< Quantitation
+    		FEATURE_GROUPING, 				///< Feature grouping
+    		IDENTIFICATION_MAPPING,		///< Identification mapping
+    		FORMAT_CONVERSION,        ///< General file format conversion (if no other term applies)
     		CONVERSION_MZDATA,			  ///< Convertion to mzData format
     		CONVERSION_MZML,				  ///< Conversion to mzML format
     		CONVERSION_MZXML,				  ///< Conversion to mzXML format
     		CONVERSION_DTA,           ///< Conversion to DTA format
-        CONVERSION_FEATUREXML,    ///< Conversion to featureXML
-        CONVERSION_CONSENSUSXML,  ///< Conversion to consensusXML
     		SIZE_OF_PROCESSINGACTION
     	};
     	/// Names of inlet types

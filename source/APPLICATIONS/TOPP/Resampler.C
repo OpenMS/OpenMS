@@ -249,6 +249,11 @@ class TOPPResampler
         //clear meta data because they are no longer meaningful
         exp[i].getMetaDataArrays().clear();
       }
+      
+      //annotate output with data processing info
+			addDataProcessing_(exp, DataProcessing::DATA_PROCESSING);
+      
+      //store output
 			MzDataFile f;
 			f.setLogType(log_type_);
 			f.store(out, exp);

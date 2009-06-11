@@ -120,8 +120,7 @@ class TOPPFileFilter
 			setValidStrings_("remove_activation",activation_list);
 			
 			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
-      registerFlag_("sort","sorts the output data according to RT and m/z."
-      										 "\nNote: Spectrum meta data arrays are erased, as they would be invalid after sorting by m/z.");
+      registerFlag_("sort","sorts the output data according to RT and m/z.");
 
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
@@ -236,7 +235,7 @@ class TOPPFileFilter
   			//-------------------------------------------------------------
   			// calculations
   			//-------------------------------------------------------------
-
+				
   			//remove ms level first (might be a lot of spectra)
   			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
 
@@ -283,17 +282,7 @@ class TOPPFileFilter
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
-  			if (sort)
-  			{
-  				//if meta data arrays are present, remove them and warn
-  				if (exp.clearMetaDataArrays())
-  				{
-  					writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
-  				}
-
-  				//sort
-  				exp.sortSpectra(true);
-  			}
+  			if (sort) exp.sortSpectra(true);
 
 				// calculate S/N values and write them instead
 				if (sn > 0)
@@ -315,6 +304,9 @@ class TOPPFileFilter
   			//-------------------------------------------------------------
   			// writing output
   			//-------------------------------------------------------------
+
+				//annotate output with data processing info
+				addDataProcessing_(exp, DataProcessing::FILTERING);
 
   			f.store(out,exp);
       }
@@ -373,6 +365,9 @@ class TOPPFileFilter
         // writing output
         //-------------------------------------------------------------
 
+				//annotate output with data processing info
+				addDataProcessing_(map_sm, DataProcessing::FILTERING);
+
         f.store(out,map_sm);
       }
       else if (out_type == FileTypes::CONSENSUSXML)
@@ -418,6 +413,9 @@ class TOPPFileFilter
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
+
+				//annotate output with data processing info
+				addDataProcessing_(consensus_map_filtered, DataProcessing::FILTERING);
 
         f.store(out,consensus_map_filtered);
       }

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-11T18:06:25">
+		<software name="TextImporter" version="1.4" />
+		<processingAction name="Identification mapping" />
+		<userParam type="string" name="parameter: in" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/TextImporter_1_input.csv"/>
+		<userParam type="string" name="parameter: no_progress" value="true"/>
+		<userParam type="string" name="parameter: out" value="TextImporter.tmp"/>
+		<userParam type="string" name="parameter: out_type" value="featureXML"/>
+	</dataProcessing>
 	<featureList count="6">
 		<feature id="f_0">
 			<position dim="0">10</position>

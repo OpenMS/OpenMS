@@ -194,27 +194,33 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileTypes::MZDATA)
 		{
+			//annotate output with data processing info
+			addDataProcessing_(exp, DataProcessing::CONVERSION_MZDATA);
+			
 			MzDataFile f;
 			f.setLogType(log_type_);
 			f.store(out,exp);
 		}
 		else if (out_type == FileTypes::MZXML)
 		{
+			//annotate output with data processing info
+			addDataProcessing_(exp, DataProcessing::CONVERSION_MZXML);
+			
 			MzXMLFile f;
 			f.setLogType(log_type_);
 			f.store(out,exp);
 		}
 		else if (out_type == FileTypes::DTA2D)
 		{
+			//add data processing entry
+			addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+			
 			DTA2DFile f;
 			f.setLogType(log_type_);
 			f.store(out,exp);
 		}
 		else if (out_type == FileTypes::FEATUREXML)
 		{
-			//add data processing entry
-			addDataProcessing_(exp, DataProcessing::CONVERSION_FEATUREXML);
-
 			// The feature specific information is only defaulted. Enough reasons to issue a warning!
 			writeLog_("Warning: Converting peaks to features results in incomplete features!");
 			FeatureMapType feature_map;
@@ -241,10 +247,17 @@ class TOPPFileConverter
 				}
 			}
 			feature_map.updateRanges();
+			
+			//add data processing entry
+			addDataProcessing_(feature_map, DataProcessing::FORMAT_CONVERSION);
+			
 			FeatureXMLFile().store(out,feature_map);
 		}
 		else if (out_type == FileTypes::MGF)
 		{
+			//add data processing entry
+			addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+				
 			MascotInfile2 f;
 			Param p(f.getParameters());
 			p.setValue("peaklists_only", "true");

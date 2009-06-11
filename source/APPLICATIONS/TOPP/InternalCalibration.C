@@ -96,58 +96,60 @@ class TOPPInternalCalibration
 	 
 	 ExitCodes main_(int , const char**)
 	 {
-
-	  //-------------------------------------------------------------
-	  // parameter handling
-	  //-------------------------------------------------------------
-
-	  String in = getStringOption_("in");
-	  String out = getStringOption_("out");
-	  String ref = getStringOption_("ref_masses");
-	  //-------------------------------------------------------------
-	  // init InternalCalibration
-	  //-------------------------------------------------------------
-
-	  InternalCalibration calib;
-	  Param param = getParam_().copy("algorithm:",true);
-	  calib.setParameters(param);
-	
-	  //-------------------------------------------------------------
-	  // loading input
-	  //-------------------------------------------------------------
-	  MSExperiment<Peak1D > ms_exp_raw;
-	
-	  MzDataFile mz_data_file;
-	  mz_data_file.setLogType(log_type_);
-	  mz_data_file.load(in,ms_exp_raw);
-
-
-	
-	  vector<double> ref_masses;
-	  TextFile ref_file;
-
-
-	  ref_file.load(ref,true);
-
-	  for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-	    {
-		  ref_masses.push_back(atof(iter->c_str()));
+		//-------------------------------------------------------------
+		// parameter handling
+		//-------------------------------------------------------------
+		
+		String in = getStringOption_("in");
+		String out = getStringOption_("out");
+		String ref = getStringOption_("ref_masses");
+		//-------------------------------------------------------------
+		// init InternalCalibration
+		//-------------------------------------------------------------
+		
+		InternalCalibration calib;
+		Param param = getParam_().copy("algorithm:",true);
+		calib.setParameters(param);
+		
+		//-------------------------------------------------------------
+		// loading input
+		//-------------------------------------------------------------
+		MSExperiment<Peak1D > ms_exp_raw;
+		
+		MzDataFile mz_data_file;
+		mz_data_file.setLogType(log_type_);
+		mz_data_file.load(in,ms_exp_raw);
+		
+		
+		
+		vector<double> ref_masses;
+		TextFile ref_file;
+		
+		
+		ref_file.load(ref,true);
+		
+		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+		{
+			ref_masses.push_back(atof(iter->c_str()));
 		}
 		
-	  //-------------------------------------------------------------
-	  // perform calibration
-	  //-------------------------------------------------------------
+		//-------------------------------------------------------------
+		// perform calibration
+		//-------------------------------------------------------------
 		
-	  calib.calibrate(ms_exp_raw,ref_masses,getFlag_("peak_data"));
-	
-	  //-------------------------------------------------------------
-	  // writing output
-	  //-------------------------------------------------------------
-	  mz_data_file.store(out,ms_exp_raw);
-
+		calib.calibrate(ms_exp_raw,ref_masses,getFlag_("peak_data"));
 		
-	  return EXECUTION_OK;
-    }
+		//-------------------------------------------------------------
+		// writing output
+		//-------------------------------------------------------------
+		
+		//annotate output with data processing info
+		addDataProcessing_(ms_exp_raw, DataProcessing::CALIBRATION);
+		
+		mz_data_file.store(out,ms_exp_raw);
+		
+		return EXECUTION_OK;
+  }
 
 };
 

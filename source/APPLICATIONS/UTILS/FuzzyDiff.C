@@ -73,10 +73,7 @@ class TOPPFuzzyDiff
 		setMinFloat_("absdiff",0);
 		addText_("Only one of the criteria has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".");
 		addEmptyLine_();
-		// TODO  Support for string lists  is currently (2008-11-21) experimental.
-		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
-		// registerStringList_("whitelist_","<string list>",StringList::create("&lt;?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
-		// registerStringList_("whitelist_","<string list>",StringList(),"Lines containing one of these strings are skipped over",false,true);
+		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet,<dataProcessing completion_time,<software completionTime"),"Lines containing one of these strings are skipped",false,true);
 		addEmptyLine_();
 		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"

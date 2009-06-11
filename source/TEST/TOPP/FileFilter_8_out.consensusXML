@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///some/path/to/ConsensusXML.xsl?>
+<?xml-stylesheet type="text/xsl" href="file:////share_pride/usr/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-11T17:47:46">
+		<software name="FileFilter" version="1.4" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: in" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FileFilter_8_input.consensusXML"/>
+		<userParam type="string" name="parameter: out" value="FileFilter_8_out.tmp"/>
+		<userParam type="string" name="parameter: rt" value="600:1400"/>
+		<userParam type="string" name="parameter: mz" value="700:2300"/>
+		<userParam type="string" name="parameter: int" value="1100:6000"/>
+	</dataProcessing>
 	<mapList count="3">
 		<map id="0" name="FeatureLinker_2_input1.featureXML" label="" size="21">
 		</map>

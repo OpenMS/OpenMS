@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-11T17:09:39">
+		<software name="FeatureFinder" version="1.4" />
+		<processingAction name="File format conversion" />
+		<userParam type="string" name="parameter: ini" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FeatureFinder_3_parameters.ini"/>
+		<userParam type="string" name="parameter: in" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FeatureFinder_1_input.mzData"/>
+		<userParam type="string" name="parameter: out" value="FeatureFinder_3_output.tmp"/>
+		<userParam type="string" name="parameter: type" value="wavelet"/>
+		<userParam type="string" name="parameter: log" value="TOPP.log"/>
+		<userParam type="int" name="parameter: debug" value="0"/>
+		<userParam type="string" name="parameter: no_progress" value="false"/>
+		<userParam type="int" name="parameter: algorithm:max_charge" value="2"/>
+		<userParam type="float" name="parameter: algorithm:intensity_threshold" value="3"/>
+		<userParam type="int" name="parameter: algorithm:rt_votes_cutoff" value="6"/>
+		<userParam type="int" name="parameter: algorithm:rt_interleave" value="2"/>
+		<userParam type="int" name="parameter: algorithm:recording_mode" value="1"/>
+		<userParam type="float" name="parameter: algorithm:charge_threshold" value="0.1"/>
+		<userParam type="float" name="parameter: algorithm:fitter:tolerance_stdev_bounding_box" value="3"/>
+		<userParam type="float" name="parameter: algorithm:fitter:intensity_cutoff_factor" value="0.03"/>
+		<userParam type="int" name="parameter: algorithm:fitter:feature_intensity_sum" value="1"/>
+		<userParam type="int" name="parameter: algorithm:fitter:min_num_peaks:final" value="5"/>
+		<userParam type="int" name="parameter: algorithm:fitter:min_num_peaks:extended" value="10"/>
+		<userParam type="float" name="parameter: algorithm:fitter:mz:interpolation_step" value="0.03"/>
+		<userParam type="int" name="parameter: algorithm:fitter:mz:model_type:first" value="1"/>
+		<userParam type="int" name="parameter: algorithm:fitter:mz:model_type:last" value="2"/>
+		<userParam type="string" name="parameter: algorithm:fitter:quality:type" value="Correlation"/>
+		<userParam type="float" name="parameter: algorithm:fitter:quality:minimum" value="0.65"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:stdev:first" value="0.04"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:stdev:last" value="0.16"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:stdev:step" value="0.04"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:averagines:C" value="0.0443"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:averagines:H" value="0.007"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:averagines:N" value="0.0012"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:averagines:O" value="0.013"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:averagines:S" value="0.00037"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:isotope:trim_right_cutoff" value="0.001"/>
+		<userParam type="int" name="parameter: algorithm:fitter:isotope_model:isotope:maximum" value="4"/>
+		<userParam type="float" name="parameter: algorithm:fitter:isotope_model:isotope:distance" value="1.000495"/>
+	</dataProcessing>
 	<featureList count="2">
 		<feature id="f_0">
 			<position dim="0">1245.63644234902</position>
