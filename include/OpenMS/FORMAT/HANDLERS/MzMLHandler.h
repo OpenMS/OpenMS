@@ -46,6 +46,13 @@
 // - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
 // - InstrumentConfiguration of Scan - what's that?
 //
+//TODO (DEFINITION):
+// - Update mapping file for chromatogram terms => validate SRM examples (Matt)
+// - Linking of binary data value type and content type (Matt)
+// - Integer and string binary array types (Matt)
+// - MALDI term untis (Marc, Andreas Römp)
+// - Final release => obsolete 1.0 on the website !!
+//
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
