@@ -147,7 +147,7 @@ OPENMS_DLLAPI is also required for structs, global variables and global function
 Never prefix templates with OPENMS_DLLAPI!<br>
 The only exeption to this rule is when a template is fully specialized (i.e. it can be instantiated).
 
-A prominent global function is "operator <<", which is overloaded quite often for OpenMS classes.
+A prominent global function is "operator <<", which is overloaded quite often for %OpenMS classes.
 Unless it is templatized, prefix it with OPENMS_DLLAPI. If the operator is declared a friend of some class, also make sure the
 friend statement also contains the OPENMS_DLLAPI keyword. Otherwise you will get inconsistent DLL-linkage, e.g use:
 @code
@@ -159,7 +159,7 @@ class OPENMS_DLLAPI Adduct
 	...
 }
 
-//Adduct.C
+// Adduct.C
 namespace OpenMS
 {
 	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a)
