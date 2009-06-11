@@ -107,7 +107,7 @@ START_SECTION(void CompareFouriertransform::transform(PeakSpectrum & spec) )
 	      
 	    }
 	ptr->transform(spectrum);
-	DSpectrum<>::MetaDataArrays& temp = spectrum.getMetaDataArrays();
+	MSSpectrum<>::MetaDataArrays& temp = spectrum.getMetaDataArrays();
 	TEST_STRING_SIMILAR("Fouriertransformation", temp[temp.size()-1].getName())  
 	
 END_SECTION

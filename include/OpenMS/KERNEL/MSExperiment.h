@@ -64,35 +64,35 @@ namespace OpenMS
 			public PersistentObject
 	{
 		public:
-			/// Spectrum Type
-			typedef MSSpectrum<PeakT> SpectrumType;
-			/// STL base class type
-			typedef std::vector<SpectrumType> Base;
-			/// Mutable iterator
-			typedef typename std::vector<SpectrumType>::iterator Iterator;
-			/// Non-mutable iterator
-			typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
-
-			/// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-			typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, typename SpectrumType::Iterator> AreaIterator;
-			/// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-			typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, typename SpectrumType::ConstIterator> ConstAreaIterator;
-
+			/// @name Base type definitions
+			//@{
 			/// Peak type
 			typedef PeakT PeakType;
 			/// Area type
 			typedef DRange<2> AreaType;
 			/// Coordinate type of peak positions
-			typedef DoubleReal CoordinateType;
+			typedef typename PeakType::CoordinateType CoordinateType;
 			/// Intenstiy type of peaks
-			typedef DoubleReal IntensityType;
+			typedef typename PeakType::IntensityType IntensityType;
 			/// RangeManager type
 			typedef RangeManager<2> RangeManagerType;
-			/// const peak reference type
-			typedef typename SpectrumType::const_reference ConstPeakReference;
-			/// peak reference type
-			typedef typename SpectrumType::reference PeakReference;
+			/// Spectrum Type
+			typedef MSSpectrum<PeakType> SpectrumType;
+			/// STL base class type
+			typedef std::vector<SpectrumType> Base;
+			//@}
 
+			/// @name Iterator type definitions
+			//@{
+			/// Mutable iterator
+			typedef typename std::vector<SpectrumType>::iterator Iterator;
+			/// Non-mutable iterator
+			typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
+			/// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
+			typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, typename SpectrumType::Iterator> AreaIterator;
+			/// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
+			typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, typename SpectrumType::ConstIterator> ConstAreaIterator;
+			//@}
       
 			/// Constructor
 			MSExperiment() :
@@ -105,12 +105,7 @@ namespace OpenMS
 			{
 			}
 
-      
-      /* allow templated ctors to access private members */
-      //template < typename Ua, typename Ub > friend class MSExperiment;
-      
 			/// Copy constructor
-      //template <class U2>
 			MSExperiment(const MSExperiment& source) :
 				std::vector<MSSpectrum<PeakT> >(source),
 				RangeManagerType(source),
@@ -122,7 +117,6 @@ namespace OpenMS
 			}
 
 			/// Assignment operator
-      //template <class U2>
 			MSExperiment& operator= (const MSExperiment& source)
 			{
 				if (&source == this) return *this;
@@ -159,7 +153,9 @@ namespace OpenMS
 			{
 				return !(operator==(rhs));
 			}
-
+			
+			///@name Conversion to/from 2D data
+			//@{
 			/**
 				@brief Reads out a 2D Spectrum
 
@@ -167,23 +163,23 @@ namespace OpenMS
 				supports push_back(), end() and back()
 			*/
 			template <class Container>
-				void get2DData(Container& cont) const
+			void get2DData(Container& cont) const
+			{
+				for (typename Base::const_iterator spec = Base::begin(); spec != Base::end(); ++spec)
 				{
-					for (typename Base::const_iterator spec = Base::begin(); spec != Base::end(); ++spec)
+					if (spec->getMSLevel()!=1)
 					{
-						if (spec->getMSLevel()!=1)
-						{
-							continue;
-						}
-						for (typename SpectrumType::const_iterator it = spec-> begin(); it!=spec->end(); ++it)
-						{
-							cont.push_back(typename Container::value_type());
-							cont.back().setRT(spec->getRT());
-							cont.back().setMZ(it->getMZ());
-							cont.back().setIntensity(it->getIntensity());
-						}
+						continue;
+					}
+					for (typename SpectrumType::const_iterator it = spec-> begin(); it!=spec->end(); ++it)
+					{
+						cont.push_back(typename Container::value_type());
+						cont.back().setRT(spec->getRT());
+						cont.back().setMZ(it->getMZ());
+						cont.back().setIntensity(it->getIntensity());
 					}
 				}
+			}
 
 			/**
 				@brief Assignment of a 2D spectrum to MSExperiment
@@ -193,37 +189,40 @@ namespace OpenMS
 				@exception Exception::Precondition is thrown if the container is not sorted according to retention time (not only in debug mode)
 			*/
 			template <class Container>
-				void set2DData(const Container& cont)
+			void set2DData(const Container& cont)
+			{
+				SpectrumType* spectrum = 0;
+				// If the container is empty, nothing will happen
+				if (cont.size() == 0) return;
+
+				typename PeakType::CoordinateType current_rt = - (std::numeric_limits<typename PeakType::CoordinateType>::max)();
+
+				for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
 				{
-					SpectrumType* spectrum = 0;
-					// If the container is empty, nothing will happen
-					if (cont.size() == 0) return;
-
-					typename PeakType::CoordinateType current_rt = - (std::numeric_limits<typename PeakType::CoordinateType>::max)();
-
-					for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
+					// check if the retention time time has changed
+					if (current_rt != iter->getRT() || spectrum == 0)
 					{
-						// check if the retention time time has changed
-						if (current_rt != iter->getRT() || spectrum == 0)
+						if (current_rt > iter->getRT())
 						{
-							if (current_rt > iter->getRT())
-							{
-								throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
-							}
-							current_rt =  iter->getRT();
-							Base::insert(Base::end(),SpectrumType());
-							spectrum = &(Base::back());
-							spectrum->setRT(current_rt);
-							spectrum->setMSLevel(1);
+							throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
 						}
-
-						// create temporary peak and insert it into spectrum
-						spectrum->insert(spectrum->end(), PeakType());
-						spectrum->back().setIntensity(iter->getIntensity());
-						spectrum->back().setPosition(iter->getMZ());
+						current_rt =  iter->getRT();
+						Base::insert(Base::end(),SpectrumType());
+						spectrum = &(Base::back());
+						spectrum->setRT(current_rt);
+						spectrum->setMSLevel(1);
 					}
-				}
 
+					// create temporary peak and insert it into spectrum
+					spectrum->insert(spectrum->end(), PeakType());
+					spectrum->back().setIntensity(iter->getIntensity());
+					spectrum->back().setPosition(iter->getMZ());
+				}
+			}
+			//@}
+
+			///@name Iterating ranges and areas
+			//@{
 			///Returns an area iterator for @p area
 			AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)
 			{
@@ -301,7 +300,7 @@ namespace OpenMS
 				s.setRT(rt);
 				return upper_bound(Base::begin(),Base::end(), s, typename SpectrumType::RTLess());
 			}
-
+			//@}
 
 			/**
 				@name Range methods  
@@ -530,6 +529,7 @@ namespace OpenMS
 				ms_levels_.swap(from.ms_levels_);
 				std::swap(total_size_,from.total_size_);
 			}
+			
 		protected:
 	
 	    // Docu in base class

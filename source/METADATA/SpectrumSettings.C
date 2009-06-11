@@ -36,7 +36,8 @@ namespace OpenMS
 	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown","Peak data","Raw data"};
 
 	SpectrumSettings::SpectrumSettings()
-		: type_(UNKNOWN),
+		: MetaInfoInterface(),
+			type_(UNKNOWN),
 			native_id_(),
 			comment_(),
 			instrument_settings_(),
@@ -50,7 +51,8 @@ namespace OpenMS
 	}
 
 	SpectrumSettings::SpectrumSettings(const SpectrumSettings& source)
-		: type_(source.type_),
+		: MetaInfoInterface(source),
+			type_(source.type_),
 			native_id_(source.native_id_),
 			comment_(source.comment_),
 			instrument_settings_(source.instrument_settings_),
@@ -71,6 +73,7 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
+	  MetaInfoInterface::operator=(source);
 	  type_ = source.type_;
 	  native_id_ = source.native_id_;
     comment_ = source.comment_;
@@ -99,6 +102,7 @@ namespace OpenMS
 //		if (data_processing_ != rhs.data_processing_) cout << "SpectrumSettings - " << __LINE__ << endl;
 
   	return
+	  	MetaInfoInterface::operator==(rhs) &&
 	   	type_ == rhs.type_ &&
 	 		native_id_ == rhs.native_id_ &&
 	    comment_ == rhs.comment_ &&

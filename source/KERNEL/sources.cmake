@@ -8,7 +8,6 @@ ConsensusFeature.C
 ConsensusMap.C
 DPeak.C
 DRichPeak.C
-DSpectrum.C
 Feature.C
 FeatureHandle.C
 FeatureMap.C

@@ -372,16 +372,12 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 @section kernel_spectra Spectra
 
-  @par one-dimensional spectrum
   The most important container for raw data and peaks is @a MSSpectrum. It is a template
   class that takes the peak type as template argument. The default peak type is @a RichPeak1D. Possible other peak types
   are classes derived from @a Peak1D or classes providing the same interface. @n
-  @a MSSpectrum is derived from two base classes: @a DSpectrum, a generic container for d-dimensional peak data, and from
+  @a MSSpectrum is a container for 1-dimensional peak data. It is derived from
   @a SpectrumSettings, a container for the meta data of a spectrum. Here, only MS data handling is explained,
   @a SpectrumSettings is described in section @ref metadata_spectrum.
-
-  @par d-dimensional spectrum
-  The base class of @a MSSpectrum is @a DSpectrum. This class provides a generic container for d-dimensional data.
 
   In the following example (Tutorial_MSSpectrum.C) program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
   ratio and a selection of peak positions is displayed.
@@ -390,8 +386,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   @dontinclude Tutorial_MSSpectrum.C
   @skip main
   @until }
-  Then we sort the peaks according to ascending mass-to-charge ratio. As the method used for sorting is not wrapped by
-  @a DSpectrum, we need to access the container to sort it.
+  Then we sort the peaks according to ascending mass-to-charge ratio.
   @until sort
   Finally we print the peak positions of those peaks between 800 and 1000 Thomson. For printing all the peaks in the
   spectrum, we simply would have used the STL-conform methods @a begin() and @a end().
@@ -420,14 +415,12 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par MSExperiment
   The following figure shows the big picture of the kernel datastructures. @a MSExperiment is
   derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
-  The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum)
-  and from @a DSpectrum<1>. @n
-  Since DSpectrum can store all types of peaks derived from @a Peak, all the data containers
-  are template classes that take the peak type as template argument. This is omitted in the diagram for
-  simplicity.
+  The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum. @n
+  Since MSSpectrum can store different peak types derived from @a Peak1D, all the data containers
+  are template classes that take the peak type as template argument.
 
   @image html Kernel.png "Overview of the main kernel datastructures"
-  @image latex Kernel.png "Overview of the main kernel datastructures" width=6cm
+  @image latex Kernel.png "Overview of the main kernel datastructures" width=12cm
 
   @par Typedefs
   For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
@@ -471,7 +464,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   @until end of main
 
   @par RangeManager
-  All peak and feature containers (@a DSpectrum, @a MSExperiment, @a FeatureMap) are also derived from @a RangeManager.
+  All peak and feature containers (@a MSSpectrum, @a MSExperiment, @a FeatureMap) are also derived from @a RangeManager.
   This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range
   and the intensity range of the container.
 
@@ -566,7 +559,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 	there are three different ways to do this with different advantages and disadvantages.
 
 	If each peak is annotated with the same type of information (e.g. width of a peak):
-	- Use the meta data arrays provided by DSpectrum (recommended)
+	- Use the meta data arrays provided by MSSpectrum (recommended)
 	  - Advantages: Independent of peak type, information automatically stored in mzData files
 	  - Disadvantages: Information can be accessed through index only
 	- Derive a new peak type that contains members for the additional information

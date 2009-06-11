@@ -92,7 +92,6 @@ set(kernel_executables_list
   RichPeak2D_test
   DRichPeak_test
   ConstRefVector_test
-  DSpectrum_test
   ComparatorUtils_test
   StandardTypes_test
   Feature_test

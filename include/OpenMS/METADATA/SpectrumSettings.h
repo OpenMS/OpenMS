@@ -54,7 +54,8 @@ namespace OpenMS
 	
 		@ingroup Metadata
 	*/
-  class OPENMS_DLLAPI SpectrumSettings 
+  class OPENMS_DLLAPI SpectrumSettings
+  	: public MetaInfoInterface
   {
   	
     public:

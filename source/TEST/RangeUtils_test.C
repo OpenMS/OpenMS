@@ -44,9 +44,9 @@ using namespace std;
 
 //InRTRange
 
-InRTRange<DSpectrum<> >* ptr = 0;
+InRTRange<MSSpectrum<> >* ptr = 0;
 START_SECTION((InRTRange(double min, double max, bool reverse = false)))
-	ptr = new InRTRange<DSpectrum<> >(5,10,false);
+	ptr = new InRTRange<MSSpectrum<> >(5,10,false);
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
@@ -55,9 +55,9 @@ START_SECTION(([EXTRA]~InRTRange()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	InRTRange<DSpectrum<> > r(5,10,false);
-	InRTRange<DSpectrum<> > r2(5,10,true);
-	DSpectrum<> s;
+	InRTRange<MSSpectrum<> > r(5,10,false);
+	InRTRange<MSSpectrum<> > r2(5,10,true);
+	MSSpectrum<> s;
 	s.setRT(4.9);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -78,10 +78,10 @@ END_SECTION
 
 //MSLevelRange
 
-InMSLevelRange<DSpectrum<> >* ptr2 = 0;
+InMSLevelRange<MSSpectrum<> >* ptr2 = 0;
 START_SECTION((MSLevelRange(const IntList& levels, bool reverse = false)))
 	IntList tmp;
-	ptr2 = new InMSLevelRange<DSpectrum<> >(tmp,false);
+	ptr2 = new InMSLevelRange<MSSpectrum<> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 END_SECTION
 
@@ -94,9 +94,9 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	tmp.push_back(2);
 	tmp.push_back(3);
 	tmp.push_back(4);
-	InMSLevelRange<DSpectrum<> > r(tmp,false);
-	InMSLevelRange<DSpectrum<> > r2(tmp,true);
-	DSpectrum<> s;
+	InMSLevelRange<MSSpectrum<> > r(tmp,false);
+	InMSLevelRange<MSSpectrum<> > r2(tmp,true);
+	MSSpectrum<> s;
 	s.setMSLevel(1);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -207,9 +207,9 @@ END_SECTION
 
 //IsEmptySpectrum
 
-IsEmptySpectrum<DSpectrum<> >* ptr47 = 0;
+IsEmptySpectrum<MSSpectrum<> >* ptr47 = 0;
 START_SECTION((IsEmptySpectrum(bool reverse = false)))
-	ptr47 = new IsEmptySpectrum<DSpectrum<> >();
+	ptr47 = new IsEmptySpectrum<MSSpectrum<> >();
 	TEST_NOT_EQUAL(ptr47, 0)
 END_SECTION
 
@@ -218,9 +218,9 @@ START_SECTION(([EXTRA]~IsEmptySpectrum()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	IsEmptySpectrum<DSpectrum<> > s;
-	IsEmptySpectrum<DSpectrum<> > s2(true);
-	DSpectrum<> spec;
+	IsEmptySpectrum<MSSpectrum<> > s;
+	IsEmptySpectrum<MSSpectrum<> > s2(true);
+	MSSpectrum<> spec;
 	TEST_EQUAL(s(spec), true);
 	TEST_EQUAL(s2(spec), false);
 	spec.resize(5);

@@ -57,7 +57,7 @@ END_SECTION
 
 START_SECTION(void getTransform(MSSpectrum<PeakType> &c_trans, const MSSpectrum<PeakType> &c_ref, const UInt c))
 	iw->getTransform (*spec, map[0], 0);
-	TEST_NOT_EQUAL (*spec, map[0])
+	TEST_EQUAL (*spec!= map[0], true)
 END_SECTION
 
 START_SECTION(void identifyCharge(const MSSpectrum< PeakType > &candidates, const MSSpectrum< PeakType > &ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs))

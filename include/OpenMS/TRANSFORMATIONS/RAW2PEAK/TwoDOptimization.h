@@ -166,7 +166,7 @@ namespace OpenMS
 		/**
 			@brief Find two dimensional peak clusters and optimize their peak parameters
 						
-			@note For the peak spectra, the following meta data arrays (see DSpectrum) have to be present and have to be named just as listed here:
+			@note For the peak spectra, the following meta data arrays (see MSSpectrum) have to be present and have to be named just as listed here:
 			- area (index:1)
 			- leftWidth (index:3)
 			- rightWidth (index:4)

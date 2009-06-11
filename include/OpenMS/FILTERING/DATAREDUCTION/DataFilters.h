@@ -41,7 +41,7 @@ namespace OpenMS
 		@brief DataFilter array providing some convenience functions
 		
 		@note For features the meta data filtering works on the MetaDataInterface of the Feature.
-		For peaks it works on the MetaDataArrays definded in DSpectrum.
+		For peaks it works on the MetaDataArrays definded in MSSpectrum.
 	*/
 	class OPENMS_DLLAPI DataFilters
 	{

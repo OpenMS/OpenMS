@@ -51,7 +51,7 @@ namespace OpenMS
 		are extracted.
 		In an optional step these parameters can be optimized using a non-linear opimization method.
 			
-		The peak parameters are stored in the meta data arrays of the spectra (see DSpectrum) in this order:
+		The peak parameters are stored in the meta data arrays of the spectra (see MSSpectrum) in this order:
 		- rValue
 		- area
 		- fwhm

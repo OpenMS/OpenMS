@@ -30,7 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
 
 using namespace OpenMS;

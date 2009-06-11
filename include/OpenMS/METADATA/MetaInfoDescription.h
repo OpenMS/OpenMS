@@ -35,7 +35,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Description of the meta data arrays of DSpectrum.
+		@brief Description of the meta data arrays of MSSpectrum.
 		
 		@ingroup Metadata
 	*/

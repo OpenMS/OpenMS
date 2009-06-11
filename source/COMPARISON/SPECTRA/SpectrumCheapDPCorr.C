@@ -36,6 +36,8 @@
 	#include <iostream>
 #endif
 
+#include <gsl/gsl_randist.h>
+
 using namespace std;
 
 namespace OpenMS

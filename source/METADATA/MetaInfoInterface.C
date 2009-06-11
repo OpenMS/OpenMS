@@ -32,7 +32,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MetaInfoInterface::MetaInfoInterface(): meta_(0)
+	MetaInfoInterface::MetaInfoInterface()
+		: meta_(0)
 	{
 		
 	}

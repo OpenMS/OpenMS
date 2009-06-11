@@ -58,7 +58,7 @@ namespace OpenMS
  				@brief Loads a DTA file to a spectrum.
  				
  				The content of the file is stored in @p spectrum.
- 				@p spectrum has to be a DSpectrum<1>/MSSpectrum<> or have the same interface.
+ 				@p spectrum has to be a MSSpectrum or have the same interface.
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
@@ -162,7 +162,7 @@ namespace OpenMS
       	@brief Stores a spectrum in a DTA file.
       	
       	The content of @p spectrum is stored in a file.
-      	@p spectrum has to be a DSpectrum<1>/MSSpectrum<> or have the same interface.
+      	@p spectrum has to be a MSSpectrum or have the same interface.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
       */

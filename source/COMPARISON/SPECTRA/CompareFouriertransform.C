@@ -64,7 +64,7 @@ namespace OpenMS
 	}
 	double CompareFouriertransform::operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const
 	{
-		const DSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
+		const MSSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
 		if(temp1.size()== 0)
 		{
  
@@ -74,7 +74,7 @@ namespace OpenMS
 	
 		UInt i=	searchTransformation_(spec1);
 		
-		const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
+		const MSSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
 		if(temp2.size()== 0)
 		{
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");
@@ -164,7 +164,7 @@ namespace OpenMS
   	gsl_fft_real_wavetable_free (real);
   	gsl_fft_real_workspace_free (work);
   	
-  	DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
+  	MSSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
   	i= temp.size();
   	temp.resize(i+1);
   	temp[i].setName("Fouriertransformation");

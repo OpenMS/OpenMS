@@ -9,7 +9,6 @@ ConsensusFeature.h
 ConsensusMap.h
 DPeak.h
 DRichPeak.h
-DSpectrum.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
