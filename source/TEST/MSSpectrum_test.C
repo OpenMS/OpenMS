@@ -235,6 +235,10 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 	edit.setMSLevel(5);
 	TEST_EQUAL(empty==edit, false);
 
+	edit = empty;
+	edit.getMetaDataArrays().resize(5);
+	TEST_EQUAL(empty==edit, false);
+
 	//name is not checked => no change
 	edit = empty;
 	edit.setName("bla");
@@ -263,26 +267,31 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 
 	edit = empty;
 	edit.setMetaValue("label",String("bla"));
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(edit!=empty,true);
 
 	edit.setRT(5);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
 	edit.setMSLevel(5);
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(edit!=empty,true);
+
+	edit = empty;
+	edit.getMetaDataArrays().resize(5);
+	TEST_EQUAL(edit!=empty,true);
+
 
 	//name is not checked => no change
 	edit = empty;
 	edit.setName("bla");
-	TEST_EQUAL(empty==edit, true);
+	TEST_EQUAL(edit!=empty,false);
 
 	edit = empty;
 	edit.push_back(p1);
 	edit.push_back(p2);
 	edit.updateRanges();
 	edit.clear();
-	TEST_EQUAL(empty==edit, false);
+	TEST_EQUAL(edit!=empty,true);
 
 END_SECTION
 

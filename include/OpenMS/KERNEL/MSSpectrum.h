@@ -166,9 +166,9 @@ namespace OpenMS
 					SpectrumSettings::operator==(rhs)  &&
 					
 					retention_time_ == rhs.retention_time_ &&
-					ms_level_ == rhs.ms_level_
+					ms_level_ == rhs.ms_level_ &&
+					meta_data_arrays_ == rhs.meta_data_arrays_
 					;
-					//meta_data_arrays_ can differ => do not check them
 					//name_ can differ => it is not checked
 			}
 			/// Equality operator
