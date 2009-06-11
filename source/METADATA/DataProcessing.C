@@ -110,11 +110,6 @@ namespace OpenMS
 	  completion_time_ = completion_time;
 	}
 
-	void DataProcessing::setCompletionTime(const String& completion_time)
-	{
-		completion_time_.set(completion_time);
-	}
-
   const set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions() const
 	{
 		return processing_actions_;

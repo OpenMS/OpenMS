@@ -107,8 +107,6 @@ namespace OpenMS
 	    const DateTime& getCompletionTime() const;
       /// sets the time of completition taking a DateTime object
       void setCompletionTime(const DateTime& completion_time);
-      /// sets the time of completition taking a String object (for convenience)
-      void setCompletionTime(const String& completion_time);
 
     protected:
 

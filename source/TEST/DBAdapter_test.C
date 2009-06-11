@@ -428,13 +428,15 @@ END_SECTION
 		spec.setMSLevel(2);
 
 		DataProcessing dp;
-		dp.setCompletionTime("2006-12-12 00:00:00");
+		DateTime d;
+		d.set("2006-12-12 00:00:00");
+		dp.setCompletionTime(d);
 		sw.setName("tolle software");
 		sw.setVersion("alpha");
 		sw.setMetaValue("label", String("echt"));
 		dp.setSoftware(sw);
 		spec.getDataProcessing().push_back(dp);
-		dp.setCompletionTime("2006-12-12 00:00:00");
+		dp.setCompletionTime(d);
 		dp.getSoftware().setName("nicht so tolle software");
 		dp.getSoftware().setVersion("alpha");
 		dp.setMetaValue("label", String("prozessiert"));
@@ -803,7 +805,7 @@ END_SECTION
 				TEST_EQUAL(itn->getDataProcessing()[i].getCompletionTime().get(), ito->getDataProcessing()[i].getCompletionTime().get())
 				TEST_EQUAL(itn->getDataProcessing()[i].getMetaValue("label"), ito->getDataProcessing()[i].getMetaValue("label"))
 				TEST_EQUAL(itn->getDataProcessing()[i].getProcessingActions().size(), ito->getDataProcessing()[i].getProcessingActions().size())
-				std::set< DataProcessing::ProcessingAction >::iterator set_it_original, set_it_new;
+				std::set< DataProcessing::ProcessingAction >::const_iterator set_it_original, set_it_new;
 				set_it_new = (itn->getDataProcessing()[i].getProcessingActions()).begin();
 				set_it_original = ito->getDataProcessing()[i].getProcessingActions().begin();
 				for (set_it_new=set_it_new; set_it_new!=itn->getDataProcessing()[i].getProcessingActions().end() && set_it_original!=ito->getDataProcessing()[i].getProcessingActions().end() ; (++set_it_new), (++set_it_original))

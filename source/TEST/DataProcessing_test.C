@@ -63,12 +63,6 @@ START_SECTION(void setCompletionTime(const DateTime& completion_time))
   TEST_EQUAL(tmp.getCompletionTime()==time,true);
 END_SECTION
 
-START_SECTION(void setCompletionTime(const String& completion_time))
-  DataProcessing tmp;
-  tmp.setCompletionTime("2000-10-09 08:07:40");
-  TEST_EQUAL(tmp.getCompletionTime()==time,true);
-END_SECTION
-
 START_SECTION(Software& getSoftware())
   DataProcessing tmp;
   TEST_EQUAL(tmp.getSoftware()==Software(),true)
