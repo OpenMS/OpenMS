@@ -45,10 +45,27 @@ namespace OpenMS
 
 		struct CV
 		{
+			CV(const String& new_id, const String& new_fullname, const String& new_version, const String& new_URI)
+				:	id(new_id),
+					fullname(new_fullname),
+					version(new_version),
+					URI(new_URI)
+			{
+
+			}
 			String id;
 			String fullname;
 			String version;
 			String URI;
+			
+			bool operator == (const CV& cv) const
+			{
+				return 	id == cv.id &&
+								fullname == cv.fullname &&
+								version == cv.version &&
+								URI == cv.URI;
+			}
+
 		};
 
 		struct Protein
@@ -59,7 +76,181 @@ namespace OpenMS
 			String description;
 			String comment;
 			String sequence;
+
+			bool operator == (const Protein& rhs) const
+			{
+				return  id == rhs.id &&
+								accession == rhs.accession &&
+								name == rhs.name &&
+								description == rhs.description &&
+								comment == rhs.comment && 
+								sequence == rhs.sequence;
+			}
 		};
+
+		class OPENMS_DLLAPI RetentionTime
+		{
+			public: 
+
+			RetentionTime()
+				: local_retention_time(0),
+					normalization_standard(0),
+					normalized_retention_time(0),
+					predicted_retention_time(0)
+			{
+			}
+
+			RetentionTime(const RetentionTime& rhs)
+        : local_retention_time(rhs.local_retention_time),
+					normalization_standard(rhs.normalization_standard),
+					normalized_retention_time(rhs.normalized_retention_time),
+					predicted_retention_time(rhs.predicted_retention_time),
+					predicted_retention_time_software_ref(rhs.predicted_retention_time_software_ref),
+					cvs(rhs.cvs)
+      {
+      }
+
+			virtual ~RetentionTime()
+			{
+			}
+
+			RetentionTime& operator = (const RetentionTime& rhs)
+			{
+				if (&rhs != this)
+				{
+					local_retention_time = rhs.local_retention_time;
+					normalization_standard = rhs.normalization_standard;
+					normalized_retention_time = rhs.normalized_retention_time;
+					predicted_retention_time = rhs.predicted_retention_time;
+					predicted_retention_time_software_ref = rhs.predicted_retention_time_software_ref;
+					cvs = rhs.cvs;
+				}
+				return *this;
+			}
+
+      bool operator == (const RetentionTime& rhs) const
+      {
+				return	local_retention_time == rhs.local_retention_time &&
+			          normalization_standard == rhs.normalization_standard &&
+          			normalized_retention_time == rhs.normalized_retention_time &&
+          			predicted_retention_time == rhs.predicted_retention_time &&
+          			predicted_retention_time_software_ref == rhs.predicted_retention_time_software_ref &&
+          			cvs == rhs.cvs;
+      }
+
+
+			DoubleReal local_retention_time;
+			DoubleReal normalization_standard;
+			DoubleReal normalized_retention_time;
+			DoubleReal predicted_retention_time;
+			String predicted_retention_time_software_ref;
+			std::vector<MetaInfoInterface> cvs;
+		};
+
+		class OPENMS_DLLAPI Compound
+		{
+			public:
+				
+			Compound()
+			{
+			}
+
+			Compound(const Compound& rhs)
+				:	id(rhs.id),
+					rts(rhs.rts),
+					cvs(rhs.cvs)
+			{
+			}
+			
+			Compound& operator = (const Compound& rhs)
+			{
+				if (this != &rhs)
+				{
+					id = rhs.id;
+					rts = rhs.rts;
+					cvs = rhs.cvs;
+				}
+				return *this;
+			}
+
+      bool operator == (const Compound& rhs) const
+      {
+				return	id == rhs.id &&
+			         	rts == rhs.rts &&
+			          cvs == rhs.cvs;
+      }
+
+			String id;
+			std::vector<RetentionTime> rts;
+			std::vector<MetaInfoInterface> cvs;
+		};
+		
+
+    class OPENMS_DLLAPI Peptide
+    {
+      public:
+
+      Peptide()
+      {
+      }
+
+      Peptide(const Peptide& rhs)
+        : rts(rhs.rts),
+					id(rhs.id),
+					group_label(rhs.group_label),
+					labeling_category(rhs.labeling_category),
+					modified_sequence(rhs.modified_sequence),
+					unmodified_sequence(rhs.unmodified_sequence),
+					protein_ref(rhs.protein_ref),
+					evidence(rhs.evidence),
+					cvs(rhs.cvs)
+      {
+      }
+
+      Peptide& operator = (const Peptide& rhs)
+      {
+        if (this != &rhs)
+        {
+          rts = rhs.rts;
+					id = rhs.id;
+					group_label = rhs.group_label;
+					labeling_category = rhs.labeling_category;
+					modified_sequence = rhs.modified_sequence;
+					unmodified_sequence = rhs.unmodified_sequence;
+					protein_ref = rhs.protein_ref;
+					evidence = rhs.evidence;
+					cvs = rhs.cvs;
+        }
+        return *this;
+      }
+
+      bool operator == (const Peptide& rhs) const
+      {
+				return	rts == rhs.rts &&
+          			id == rhs.id &&
+          			group_label == rhs.group_label &&
+          			labeling_category == rhs.labeling_category &&
+          			modified_sequence == rhs.modified_sequence &&
+          			unmodified_sequence == rhs.unmodified_sequence &&
+          			protein_ref == rhs.protein_ref &&
+          			evidence == rhs.evidence &&
+          			cvs == rhs.cvs;
+      }
+
+
+
+      std::vector<RetentionTime> rts;
+			String id;
+			String group_label;
+			String labeling_category;
+			String modified_sequence;
+			String unmodified_sequence;
+			String protein_ref;
+			std::vector<MetaInfoInterface> evidence;
+			std::vector<MetaInfoInterface> cvs;
+    };
+
+
 
 		/** @name Constructors and destructors
 		*/
@@ -129,6 +320,17 @@ namespace OpenMS
     void addProtein(const Protein& protein);
 
 		// compound list
+		void setCompounds(const std::vector<Compound>& rhs);
+
+		const std::vector<Compound>& getCompounds() const;
+
+		void addCompound(const Compound& rhs);
+
+    void setPeptides(const std::vector<Peptide>& rhs);
+
+    const std::vector<Peptide>& getPeptides() const;
+
+    void addPeptide(const Peptide& rhs);
 
 		/// set transition list
 		void setTransitions(const std::vector<ReactionMonitoringTransition>& transitions);
@@ -153,7 +355,10 @@ namespace OpenMS
 		std::vector<Software> software_;
 
 		std::vector<Protein> proteins_;
-		//std::vector<> compounds_;
+		
+		std::vector<Compound> compounds_;
+
+		std::vector<Peptide> peptides_;
 
 		std::vector<ReactionMonitoringTransition> transitions_;
 

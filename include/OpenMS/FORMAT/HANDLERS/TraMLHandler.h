@@ -78,7 +78,7 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 			
-			///Controlled vocabulary (psi-pi from OpenMS/share/OpenMS/CV/psi-pi.obo)
+			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
 		
 			String tag_;
@@ -86,6 +86,12 @@ namespace OpenMS
 			MRMExperiment* exp_;
 
 			const MRMExperiment* cexp_;
+
+			MetaInfoInterface actual_publication_;
+
+			MetaInfoInterface actual_contact_;
+
+			MetaInfoInterface actual_instrument_;
 
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
@@ -95,13 +101,15 @@ namespace OpenMS
 			
 			/// Writes user terms
 			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
+
+			void writeUserParams_(std::ostream& os, const std::vector<MetaInfoInterface>& meta, UInt indent) const;
+
 			
 			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
 			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 			
 			/// Helper method that writes a source file
 			//void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
-
 
 			private:
 

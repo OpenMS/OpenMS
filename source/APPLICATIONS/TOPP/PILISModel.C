@@ -81,8 +81,9 @@ class TOPPPILISModel
 			addEmptyLine_();		
 			registerDoubleOption_("precursor_mass_tolerance", "<double>", 1.5, "precursor mass tolerance for the training", false);
 			registerDoubleOption_("peak_mass_tolerance", "<double>", 0.3, "peak mass tolerance of the MS/MS spectra", false);
-			registerFlag_("duplicates_by_tic", "duplicate sequence/charge combinations are filtered not by score but by TIC of the spectra");
+			
 
+			registerFlag_("duplicates_by_tic", "duplicate sequence/charge combinations are filtered not by score but by TIC of the spectra");
 			registerFlag_("use_tic_filtering", "Only use spectra filtered by the given TIC threshold");
 			registerDoubleOption_("tic_threshold", "<double>", 10e10, "only spectra with TIC greater than the given threshold are used for training", false);
 			registerFlag_("use_score_filtering", "Only use spectra filtered by the given score threshold");

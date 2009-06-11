@@ -82,7 +82,6 @@ namespace OpenMS
 			new_mods.insert((*it)->getId());
 		}
 		return new_mods;
-		
 	}
 
 	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const

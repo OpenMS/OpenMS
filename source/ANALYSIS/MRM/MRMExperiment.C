@@ -38,7 +38,15 @@ namespace OpenMS
 	}
 
   MRMExperiment::MRMExperiment(const MRMExperiment& rhs)
-		:	transitions_(rhs.transitions_)
+		: cvs_(rhs.cvs_),
+			contacts_(rhs.contacts_),
+			publications_(rhs.publications_),
+			instruments_(rhs.instruments_),
+			software_(rhs.software_),
+			proteins_(rhs.proteins_),
+			compounds_(rhs.compounds_),
+			peptides_(rhs.peptides_),
+			transitions_(rhs.transitions_)
 	{
 	}
 
@@ -50,14 +58,31 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
+			cvs_ = rhs.cvs_;
+      contacts_ = rhs.contacts_;
+      publications_ = rhs.publications_;
+      instruments_ = rhs.instruments_;
+      software_ = rhs.software_;
+      proteins_ = rhs.proteins_;
+      compounds_ = rhs.compounds_;
+      peptides_ = rhs.peptides_;
 			transitions_ = rhs.transitions_;
 		}
 		return *this;
 	}
 
+
 	bool MRMExperiment::operator == (const MRMExperiment& rhs) const
 	{
-		return transitions_ == rhs.transitions_;
+		return 	cvs_ == rhs.cvs_ &&
+      			contacts_ == rhs.contacts_ &&
+			      publications_ == rhs.publications_ &&
+			      instruments_ == rhs.instruments_ &&
+      			software_ == rhs.software_ &&
+      			proteins_ == rhs.proteins_ &&
+      			compounds_ == rhs.compounds_ &&
+      			peptides_ == rhs.peptides_ &&
+      			transitions_ == rhs.transitions_;
 	}
 
 	void MRMExperiment::setCVs(const vector<CV>& cvs)
@@ -133,6 +158,36 @@ namespace OpenMS
   void MRMExperiment::addProtein(const Protein& protein)
   {
     proteins_.push_back(protein);
+  }
+
+	void MRMExperiment::setCompounds(const vector<Compound>& compounds)
+	{
+		compounds_ = compounds;
+	}
+
+	const vector<MRMExperiment::Compound>& MRMExperiment::getCompounds() const
+	{
+		return compounds_;
+	}
+
+	void MRMExperiment::addCompound(const Compound& rhs)
+	{
+		compounds_.push_back(rhs);
+	}
+
+  void MRMExperiment::setPeptides(const vector<Peptide>& peptides)
+  {
+    peptides_ = peptides;
+  }
+
+  const vector<MRMExperiment::Peptide>& MRMExperiment::getPeptides() const
+  {
+    return peptides_;
+  }
+
+  void MRMExperiment::addPeptide(const Peptide& rhs)
+  {
+    peptides_.push_back(rhs);
   }
 
 	void MRMExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
