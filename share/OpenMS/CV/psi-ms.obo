@@ -4,13 +4,13 @@ saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.6.1
-remark: release date: 2009-05-22
+remark: version: 2.7.0
+remark: release date: 2009-05-27
 remark: coverage: Mass spectrometer output files and spectra interpretation
-remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>, Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de> 
+remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
-import: import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.20
+import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.20
 
 [Term]
 id: MS:0000000
@@ -5597,7 +5597,7 @@ name: wavelength
 def: "The distance between two peaks of the emitted laser beam." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! Lenght Unit
+relationship: has_units UO:0000001 ! length unit
 
 [Term]
 id: MS:1000844
@@ -5605,7 +5605,7 @@ name: focus diameter x
 def: "Describes the diameter of the laser beam in x direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! Lenght Unit
+relationship: has_units UO:0000001 ! length unit
 
 [Term]
 id: MS:1000845
@@ -5613,7 +5613,7 @@ name: focus diameter y
 def: "Describes the diameter of the laser beam in y direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! Lenght Unit
+relationship: has_units UO:0000001 ! length unit
 
 [Term]
 id: MS:1000846
@@ -7016,7 +7016,7 @@ def: "Mass type setting for parent mass was average isotopic." [PSI:PI]
 is_a: MS:1001210 ! mass type settings
 
 [Term]
-id: MS:1001213 	 
+id: MS:1001213
 name: search result details 	 
 def: "OBSOLETE: Scores and global result characteristics." [PSI:PI]
 relationship: part_of MS:1000479 ! purgatory
@@ -8501,6 +8501,56 @@ id: MS:1001471
 name: peptide modification details
 def: "The children of this term can be used to describe modifications." [PSI:PI]
 relationship: part_of MS:1001000 ! spectrum interpretation
+
+[Term]
+id: MS:1001472
+name: selected ion monitoring chromatogram
+def: "Chromatogram created by creating an array of the measurements of a selectively monitored ion at each time point." [PSI:MS]
+synonym: "SIM chromatogram" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000810 ! mass chromatogram
+
+[Term]
+id: MS:1001473
+name: selected reaction monitoring chromatogram
+def: "Chromatogram created by creating an array of the measurements of a selectively monitored reaction at each time point." [PSI:MS]
+synonym: "SRM chromatogram" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000810 ! mass chromatogram
+
+[Term]
+id: MS:1001474
+name: consecutive reaction monitoring chromatogram
+def: "OBSOLETE Chromatogram created by creating an array of the measurements of a series of monitored reactions at each time point." [PSI:MS]
+comment: This term was made obsolete because, by design, it can't be properly represented in mzML 1.1. CRM experiments must be represented in a spectrum-centric way.
+synonym: "CRM chromatogram" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000810 ! mass chromatogram
+is_obsolete: true
+
+[Term]
+id: MS:1001475
+name: OMSSA
+def: "Open Mass Spectrometry Search Algorithm was used to analyze the spectra." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001476
+name: xtandem
+def: "X!Tandem was used to analyze the spectra." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001477
+name: SpectraST
+def: "SpectraST was used to analyze the spectra." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001477
+name: Mascot Parser
+def: "Mascot Parser was used to analyze the spectra." [PSI:PI]
+is_a: MS:1001456 ! analysis software
 
 [Typedef]
 id: has_regexp
