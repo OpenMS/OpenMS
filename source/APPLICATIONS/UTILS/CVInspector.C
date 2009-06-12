@@ -244,6 +244,12 @@ class TOPPCVInspector
 					if (cv.exists(tit->getAccession()))
 					{
 						term_line += "</span>";
+						//check if term accession and term name correspond to the CV
+						const ControlledVocabulary::CVTerm& main_term = cv.getTerm(tit->getAccession());
+						if (main_term.name!=tit->getTermName())
+						{
+								cerr << "Warning: Accession '" << tit->getAccession() << "' and name '" << tit->getTermName() << "' do not match. Name should be '" << main_term.name << "'." << endl;
+						}
 					}
 					//tags
 					StringList tags;

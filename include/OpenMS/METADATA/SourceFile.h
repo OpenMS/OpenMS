@@ -67,6 +67,7 @@ namespace OpenMS
     		SINGLE_PEAK_LIST,			///< file=xsd:IDREF @n The nativeID must be the same as the source file ID. Used for conversion of peak list files with one spectrum per file, typically folder of PKL or DTAs, each sourceFileRef is different.
     		SCAN_NUMBER,					///< scan=xsd:nonNegativeInteger @n Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
     		SPECTRUM_IDENTIFIER,	///< spectrum=xsd:nonNegativeInteger @n Used for conversion from mzData. The spectrum id attribute is referenced.
+    		AB_SCIEX,             ///< jobRun=xsd:nonNegativeInteger spotLabel=xsd:string spectrum=xsd:nonNegativeInteger
     		SIZE_OF_NATIVEIDTYPE
     	};
 			/// Names of native ID types

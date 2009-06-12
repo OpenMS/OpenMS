@@ -35,7 +35,19 @@ namespace OpenMS
 {
 	const std::string SourceFile::NamesOfChecksumType[] = {"Unknown","SHA-1","MD5"};
 
-	const std::string SourceFile::NamesOfNativeIDType[] = {"Unknown","Thermo","Waters","WIFF","Bruker/Agilent","Bruker BAF","Bruker FID","Bruker U2","multiple peak lists","single peak list","scan number","spectrum identifier"};
+	const std::string SourceFile::NamesOfNativeIDType[] = {"Unknown",
+																												 "Thermo",
+																												 "Waters",
+																												 "WIFF",
+																												 "Bruker/Agilent",
+																												 "Bruker BAF",
+																												 "Bruker FID",
+																												 "Bruker U2",
+																												 "multiple peak lists",
+																												 "single peak list",
+																												 "scan number",
+																												 "spectrum identifier",
+																												 "AB SCIEX TOF/TOF nativeID format"};
 
 	SourceFile::SourceFile()
 		: MetaInfoInterface(),

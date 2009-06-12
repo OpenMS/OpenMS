@@ -4,8 +4,8 @@ saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.7.0
-remark: release date: 2009-05-27
+remark: version: 2.01.0
+remark: release date: 2009-06-11
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -3365,6 +3365,8 @@ relationship: part_of MS:1000625 ! chromatogram
 id: MS:1000514
 name: m/z array
 def: "A data array of m/z values." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000040 ! m/z
 
@@ -3372,6 +3374,8 @@ relationship: has_units MS:1000040 ! m/z
 id: MS:1000515
 name: intensity array
 def: "A data array of intensity values." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000814 ! counts per second
@@ -3380,27 +3384,29 @@ relationship: has_units MS:1000814 ! counts per second
 id: MS:1000516
 name: charge array
 def: "A data array of charge values." [PSI:MS]
+xref: binary-data-type:MS\:1000519 ! 32-bit integer
 is_a: MS:1000513 ! binary data array
 
 [Term]
 id: MS:1000517
 name: signal to noise array
 def: "A data array of signal-to-noise values." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 
 [Term]
 id: MS:1000518
 name: binary data type
-def: "Encoding type of binary data, e.g. 64-bit float." [PSI:MS]
+def: "Encoding type of binary data specifying the binary representation and precision, e.g. 64-bit float." [PSI:MS]
 relationship: part_of MS:1000442 ! spectrum
 relationship: part_of MS:1000625 ! chromatogram
 
 [Term]
 id: MS:1000519
 name: 32-bit integer
-def: "OBSOLETE Signed 32-bit integer." [PSI:MS]
+def: "Signed 32-bit little-endian integer." [PSI:MS]
 is_a: MS:1000518 ! binary data type
-is_obsolete: true
 
 [Term]
 id: MS:1000520
@@ -3412,20 +3418,19 @@ is_obsolete: true
 [Term]
 id: MS:1000521
 name: 32-bit float
-def: "Signed 32-bit float. IEEE-754." [PSI:MS]
+def: "32-bit precision little-endian floating point conforming to IEEE-754." [PSI:MS]
 is_a: MS:1000518 ! binary data type
 
 [Term]
 id: MS:1000522
 name: 64-bit integer
-def: "OBSOLETE Signed 64-bit integer." [PSI:MS]
+def: "Signed 64-bit little-endian integer." [PSI:MS]
 is_a: MS:1000518 ! binary data type
-is_obsolete: true
 
 [Term]
 id: MS:1000523
 name: 64-bit float
-def: "Signed 64-bit float. IEEE-754." [PSI:MS]
+def: "64-bit precision little-endian floating point conforming to IEEE-754." [PSI:MS]
 is_a: MS:1000518 ! binary data type
 
 [Term]
@@ -3921,6 +3926,8 @@ is_a: MS:1000543 ! data processing action
 id: MS:1000595
 name: time array
 def: "A data array of relative time offset values from a reference time." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
@@ -4065,6 +4072,8 @@ is_a: MS:1000503 ! scan attribute
 id: MS:1000617
 name: wavelength array
 def: "A data array of electromagnetic radiation wavelength values." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units UO:0000018 ! nanometer
 
@@ -5196,6 +5205,11 @@ id: MS:1000786
 name: non-standard data array
 def: "A data array that contains data not covered by any other term in this group. Please do not use this term, if the binary data array type might be commonly used - contact the PSI-MS working group in order to have another CV term added." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: binary-data-type:MS\:1000519 ! 32-bit integer
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000522 ! 64-bit integer
+xref: binary-data-type:MS\:1000523 ! 64-bit float
+xref: binary-data-type:MS\:1001479 ! null-terminated ASCII string
 is_a: MS:1000513 ! binary data array
 
 [Term]
@@ -5448,12 +5462,16 @@ is_a: MS:1000126 ! Waters instrument model
 id: MS:1000820
 name: flow rate array
 def: "A data array of flow rate measurements." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 
 [Term]
 id: MS:1000821
 name: pressure array
 def: "A data array of pressure measurements." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units UO:0000110 ! pascal
 
@@ -5461,6 +5479,8 @@ relationship: has_units UO:0000110 ! pascal
 id: MS:1000822
 name: temperature array
 def: "A data array of temperature measurements." [PSI:MS]
+xref: binary-data-type:MS\:1000521 ! 32-bit float
+xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units UO:0000012 ! kelvin
 
@@ -8547,10 +8567,34 @@ def: "SpectraST was used to analyze the spectra." [PSI:PI]
 is_a: MS:1001456 ! analysis software
 
 [Term]
-id: MS:1001477
+id: MS:1001478
 name: Mascot Parser
 def: "Mascot Parser was used to analyze the spectra." [PSI:PI]
 is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001479
+name: null-terminated ASCII string
+def: "Sequence of zero or more non-zero ASCII characters terminated by a single null (0) byte." [PSI:MS]
+is_a: MS:1000518 ! binary data type
+
+[Term]
+id: MS:1001480
+name: AB SCIEX TOF/TOF nativeID format
+def: "jobRun=xsd:nonNegativeInteger spotLabel=xsd:string spectrum=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+ 
+[Term]
+id: MS:1001481
+name: AB SCIEX TOF/TOF database
+def: "Applied Biosystems/MDS Analytical Technologies TOF/TOF instrument database." [PSI:MS]
+is_a: MS:1000560 ! mass spectrometer file format
+ 
+[Term]
+id: MS:1001482
+name: AB SCIEX TOF/TOF 5800
+def: "AB SCIEX or Applied Biosystems|MDS Analytical Technologies AB SCIEX TOF/TOF 5800 Analyzer" [PSI:MS]
+is_a: MS:1000121 ! AB SCIEX instrument model
 
 [Typedef]
 id: has_regexp

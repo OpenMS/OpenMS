@@ -45,14 +45,12 @@
 // - scanSettingsList - what is to do?
 // - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
 // - InstrumentConfiguration of Scan - what's that?
+// - Add generic parsing of xref to ControlledVocabulary class => check binary data array types
 //
 //TODO (DEFINITION):
-// - Update mapping file for chromatogram terms => validate SRM examples (Matt)
-// - Linking of binary data value type and content type (Matt)
-// - Integer and string binary array types (Matt)
 // - MALDI term untis (Marc, Andreas Römp)
 // - Add new data processing actions (Marc)
-// - Final release => obsolete 1.0 on the website !!
+// - Validate all example files BEFORE Final release
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -1448,6 +1446,10 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setNativeIDType(SourceFile::UNKNOWN_NATIVEID);
 				}
+				else if (accession=="MS:1001480") //AB SCIEX TOF/TOF nativeID format
+				{
+					source_files_[current_id_].setNativeIDType(SourceFile::AB_SCIEX);
+				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
@@ -2557,6 +2559,10 @@ namespace OpenMS
 			else if (source_file.getNativeIDType()==SourceFile::BRUKER_U2)
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000823\" name=\"Bruker U2 nativeID format\" />\n";
+			}
+			else if (source_file.getNativeIDType()==SourceFile::AB_SCIEX)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001480\" name=\"AB SCIEX TOF/TOF nativeID format\" />\n";
 			}
 			else
 			{
