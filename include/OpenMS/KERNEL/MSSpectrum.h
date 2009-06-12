@@ -41,15 +41,14 @@ namespace OpenMS
 	/**
 		@brief The representation of a 1D spectrum.
 		
-		It contains the peak data of the spectrum and metadata about specific instrument settings,
+		It contains peak data and metadata about specific instrument settings,
 		aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
 		
-		Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
+		Several MSSpectrum instances are contained in a peak map (MSExperiment), which is essentially
 		a vector of spectra with additional information about the experiment.
 		
 		Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS spectrum.
-		The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than
-		the current spectrum.
+		The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than the current spectrum.
 		
 		@note For range operations, see \ref RangeUtils "RangeUtils module"!
 		
