@@ -152,7 +152,7 @@ class TOPPDBExporter
 					a.loadExperiment(*(ids.begin()),exp);
 
 					//annotate output with data processing info
-					addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+					addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
 					//write to file
 					f.store(out, exp);
@@ -166,7 +166,7 @@ class TOPPDBExporter
 						a.loadExperiment(*it,exp);
 						
 						//annotate output with data processing info
-						addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+						addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 						
 						//write to file
 						stringstream ss;

@@ -130,7 +130,7 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		
 		//annotate output with data processing info
-		addDataProcessing_(ms_exp, DataProcessing::BASELINE_REDUCTION);
+		addDataProcessing_(ms_exp, getProcessingInfo_(DataProcessing::BASELINE_REDUCTION));
 
 		mz_data_file.store(out,ms_exp);
 

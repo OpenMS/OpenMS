@@ -144,7 +144,7 @@ class TOPPInternalCalibration
 		//-------------------------------------------------------------
 		
 		//annotate output with data processing info
-		addDataProcessing_(ms_exp_raw, DataProcessing::CALIBRATION);
+		addDataProcessing_(ms_exp_raw, getProcessingInfo_(DataProcessing::CALIBRATION));
 		
 		mz_data_file.store(out,ms_exp_raw);
 		

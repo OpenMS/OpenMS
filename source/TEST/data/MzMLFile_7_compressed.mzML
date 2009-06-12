@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
  <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" id="" version="1.1">
    <cvList count="2">
      <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.1.0" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -11,7 +10,9 @@
      </fileContent>
      <sourceFileList count="1">
        <sourceFile id="dummy_v3.mzML" name="dummy_v3.mzML" location="file:///.">
-         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="f2625a380b1c26d34efc7a08b9ed8e7f46420833"/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+      	<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
        </sourceFile>
      </sourceFileList>
    </fileDescription>
@@ -36,8 +37,6 @@
    <instrumentConfigurationList count="1">
      <instrumentConfiguration id="ic_0">
        <cvParam cvRef="MS" accession="MS:1000031" name="instrument model" value=""/>
-       <componentList count="0">
-       </componentList>
        <softwareRef ref="so_in_0"/>
      </instrumentConfiguration>
    </instrumentConfigurationList>
@@ -132,19 +131,5 @@
          </binaryDataArrayList>
        </spectrum>
      </spectrumList>
-     <chromatogramList count="0" defaultDataProcessingRef="pwiz_Reader_conversion">
-     </chromatogramList>
    </run>
  </mzML>
- <indexList count="2">
-   <index name="spectrum">
-     <offset idRef="index=0">3566</offset>
-     <offset idRef="index=1">6169</offset>
-     <offset idRef="index=2">8749</offset>
-   </index>
-   <index name="chromatogram">
-   </index>
- </indexList>
- <indexListOffset>11485</indexListOffset>
- <fileChecksum>b78c9f0b40575d09bc42dcce034e12d1d96d7419</fileChecksum>
-</indexedmzML>

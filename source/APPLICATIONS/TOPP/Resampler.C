@@ -251,7 +251,7 @@ class TOPPResampler
       }
       
       //annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::DATA_PROCESSING);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
       
       //store output
 			MzDataFile f;

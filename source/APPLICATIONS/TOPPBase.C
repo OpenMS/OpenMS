@@ -57,7 +57,8 @@ namespace OpenMS
 			instance_number_(-1),
 			debug_level_(-1),
 			version_(version),
-			log_type_(ProgressLogger::NONE)
+			log_type_(ProgressLogger::NONE),
+			test_mode_(false)
 	{
 		// if version is empty, use the OpenMS/TOPP version and date/time
 		if (version_=="")
@@ -117,6 +118,7 @@ namespace OpenMS
 														String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")"
 														,false);
 		}
+		registerFlag_("test","Enables the test mode (needed for software testing only)");
 		registerFlag_("-help","Shows this help");
 
 		// prepare options and flags for command line parsing
@@ -175,6 +177,12 @@ namespace OpenMS
 		{
 			printUsage_();
 			return EXECUTION_OK;
+		}
+
+		// '-test' given
+		if (param_cmdline_.exists("test"))
+		{
+			test_mode_ = true;
 		}
 
 		// test if unknown options were given
@@ -1916,6 +1924,64 @@ namespace OpenMS
 		
 		return tools_map;
 	}
+
+  DataProcessing TOPPBase::getProcessingInfo_(DataProcessing::ProcessingAction action) const
+  {
+		std::set<DataProcessing::ProcessingAction> actions;
+		actions.insert(action);
+		
+		return getProcessingInfo_(actions);
+  }
+  
+	DataProcessing TOPPBase::getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const
+	{
+		DataProcessing p;
+		//actions
+		p.setProcessingActions(actions);
+		//software
+		p.getSoftware().setName(tool_name_);
+		
+		if (test_mode_)
+		{
+			//version
+			p.getSoftware().setVersion("version_string");
+			//time
+			DateTime date_time;
+			date_time.set("1999-12-31 23:59:59");
+			p.setCompletionTime(date_time);
+			//parameters
+			p.setMetaValue("parameter: mode" , "test_mode");
+		}
+		else
+		{
+			//version
+			p.getSoftware().setVersion(VersionInfo::getVersion());
+			//time
+			p.setCompletionTime(DateTime::now());
+			//parameters
+			const Param& param = getParam_();
+			for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+			{
+			   p.setMetaValue(String("parameter: ") + it.getName() , it->value);
+			}
+		}
+		
+		return p;
+	}
+
+  void TOPPBase::addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const
+  {
+  	map.getDataProcessing().push_back(dp);
+  	
+  	//remove abolute map paths
+  	if (test_mode_)
+		{
+			for (Size d=0; d<map.getFileDescriptions().size(); ++d)
+			{
+				map.getFileDescriptions()[d].filename = File::basename(map.getFileDescriptions()[d].filename);
+			}
+		}
+  }
 
 } // namespace OpenMS
 

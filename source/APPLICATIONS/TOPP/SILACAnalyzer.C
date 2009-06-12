@@ -754,7 +754,7 @@ class TOPPSILACAnalyzer
   		if (out!="")
   		{
 				//annotate output with data processing info
-				addDataProcessing_(all_pairs, DataProcessing::QUANTITATION);
+				addDataProcessing_(all_pairs, getProcessingInfo_(DataProcessing::QUANTITATION));
 
 	  		ConsensusXMLFile c_file;
 	  		c_file.store(out,all_pairs);

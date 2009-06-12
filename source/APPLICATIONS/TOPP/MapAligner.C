@@ -196,7 +196,7 @@ protected:
 				progresslogger.setProgress(i);
 				
 				//annotate output with data processing info
-				addDataProcessing_(peak_maps[i], DataProcessing::ALIGNMENT);
+				addDataProcessing_(peak_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
 
 		    f.store(outs[i], peak_maps[i]);
 			}
@@ -237,7 +237,7 @@ protected:
 				progresslogger.setProgress(i);
 				
 				//annotate output with data processing info
-				addDataProcessing_(feat_maps[i], DataProcessing::ALIGNMENT);
+				addDataProcessing_(feat_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
 
 		    f.store(outs[i], feat_maps[i]);
 			}

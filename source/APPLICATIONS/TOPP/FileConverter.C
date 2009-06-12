@@ -186,7 +186,7 @@ class TOPPFileConverter
 		if (out_type == FileTypes::MZML)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, DataProcessing::CONVERSION_MZML);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
 			MzMLFile f;
 			f.setLogType(log_type_);
@@ -195,7 +195,7 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::MZDATA)
 		{
 			//annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::CONVERSION_MZDATA);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZDATA));
 			
 			MzDataFile f;
 			f.setLogType(log_type_);
@@ -204,7 +204,7 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::MZXML)
 		{
 			//annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::CONVERSION_MZXML);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZXML));
 			
 			MzXMLFile f;
 			f.setLogType(log_type_);
@@ -213,7 +213,7 @@ class TOPPFileConverter
 		else if (out_type == FileTypes::DTA2D)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 			
 			DTA2DFile f;
 			f.setLogType(log_type_);
@@ -249,14 +249,14 @@ class TOPPFileConverter
 			feature_map.updateRanges();
 			
 			//add data processing entry
-			addDataProcessing_(feature_map, DataProcessing::FORMAT_CONVERSION);
+			addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 			
 			FeatureXMLFile().store(out,feature_map);
 		}
 		else if (out_type == FileTypes::MGF)
 		{
 			//add data processing entry
-			addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 				
 			MascotInfile2 f;
 			Param p(f.getParameters());

@@ -230,7 +230,7 @@ namespace OpenMS
 					//-------------------------------------------------------------
 					
 					//annotate output with data processing info
-					addDataProcessing_(feature_map, DataProcessing::FORMAT_CONVERSION);
+					addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 					
 					FeatureXMLFile().store(out, feature_map);
 				}

@@ -60,8 +60,8 @@ if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter_input.ini)
 endif()
 
 ### Decharger tests
-add_test("TOPP_Decharger_1" ${TOPP_BIN_PATH}/Decharger  -ini ${DATA_DIR_TOPP}/Decharger.ini -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -out Decharger_output.tmp -outpairs Decharger_p_output.tmp)
-add_test("TOPP_Decharger_1_out1" ${DIFF} -whitelist "map id" "xml-stylesheet" -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML)
+add_test("TOPP_Decharger_1" ${TOPP_BIN_PATH}/Decharger -test -ini ${DATA_DIR_TOPP}/Decharger.ini -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -out Decharger_output.tmp -outpairs Decharger_p_output.tmp)
+add_test("TOPP_Decharger_1_out1" ${DIFF} -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML)
 
 ### DTAExtractor tests
 add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzData -out DTAExtractor -rt :61)
@@ -72,15 +72,15 @@ add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP
 add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140_MZ5.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta)
 
 ### FeatureFinder tests
-add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
+add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
 add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
-add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
+add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
 add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
-add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_TOPP}/FeatureFinder_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
+add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
 add_test("TOPP_FeatureFinder_3_out1" ${DIFF} -in1 FeatureFinder_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_3_output.featureXML)
-add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder  -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
+add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
 add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
-add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder_5_output.tmp)
+add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder_5_output.tmp)
 add_test("TOPP_FeatureFinder_5_out1" ${DIFF} -in1 FeatureFinder_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_5_output.featureXML)
 
 ### FileConverter tests
@@ -102,29 +102,29 @@ add_test("TOPP_FileConverter_7_out1" ${DIFF} -in1 FileConverter2.tmp -in2 ${DATA
 add_test("TOPP_FileConverter_8" ${TOPP_BIN_PATH}/FileConverter -in ${DATA_DIR_TOPP}/FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzData)
 add_test("TOPP_FileConverter_9" ${TOPP_BIN_PATH}/FileConverter -in FileConverter.tmp -in_type mzData -out FileConverter2.tmp -out_type DTA2D)
 add_test("TOPP_FileConverter_9_out1" ${DIFF} -in1 FileConverter2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_6_input.dta2d)
-add_test("TOPP_FileConverter_10" ${TOPP_BIN_PATH}/FileConverter -in ${DATA_DIR_TOPP}/FileConverter_7_input.consensusXML -out FileConverter_7_output.tmp -out_type featureXML)
+add_test("TOPP_FileConverter_10" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_7_input.consensusXML -out FileConverter_7_output.tmp -out_type featureXML)
 add_test("TOPP_FileConverter_10_out1" ${DIFF} -in1 FileConverter_7_output.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_7_output.featureXML)
 add_test("TOPP_FileConverter_11" ${TOPP_BIN_PATH}/FileConverter -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_8_output.tmp -out_type mzData)
 add_test("TOPP_FileConverter_11_out1" ${DIFF} -in1 FileConverter_8_output.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_8_output.mzData)
 
 ### FileFilter tests
-add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_1_out.tmp -rt :30 -mz :1000 -int :20000)
+add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_1_out.tmp -rt :30 -mz :1000 -int :20000)
 add_test("TOPP_FileFilter_1_out1" ${DIFF} -in1 FileFilter_1_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_1_output.mzData)
-add_test("TOPP_FileFilter_2" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_2_out.tmp -rt 30: -mz 1000: -int 100:)
+add_test("TOPP_FileFilter_2" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_2_out.tmp -rt 30: -mz 1000: -int 100:)
 add_test("TOPP_FileFilter_2_out1" ${DIFF} -in1 FileFilter_2_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_2_output.mzData)
-add_test("TOPP_FileFilter_3" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
+add_test("TOPP_FileFilter_3" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
 add_test("TOPP_FileFilter_3_out1" ${DIFF} -in1 FileFilter_3_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_3_output.mzData)
-add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
+add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
 add_test("TOPP_FileFilter_4_out1" ${DIFF} -in1 FileFilter_4_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_4_output.mzData)
-add_test("TOPP_FileFilter_5" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
+add_test("TOPP_FileFilter_5" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
 add_test("TOPP_FileFilter_5_out1" ${DIFF} -in1 FileFilter_5_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_5_out.featureXML)
-add_test("TOPP_FileFilter_6" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
+add_test("TOPP_FileFilter_6" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
 add_test("TOPP_FileFilter_6_out1" ${DIFF} -in1 FileFilter_6_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_6_out.featureXML)
-add_test("TOPP_FileFilter_7" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_7_input.mzData -out FileFilter_7_out.tmp -int 7000: -level 1 2 3)
+add_test("TOPP_FileFilter_7" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_7_input.mzData -out FileFilter_7_out.tmp -int 7000: -level 1 2 3)
 add_test("TOPP_FileFilter_7_out1" ${DIFF} -in1 FileFilter_7_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_7_out.mzData)
-add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int 1100:6000)
+add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int 1100:6000)
 add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter_8_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
-add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzData -out FileFilter_9_out.tmp -remove_mode SelectedIonMonitoring)
+add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzData -out FileFilter_9_out.tmp -remove_mode SelectedIonMonitoring)
 add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter_9_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzData)
 ## TODO (Chris): test -remove_activation <activation> switch once mzML is our default
 
@@ -152,21 +152,21 @@ add_test("TOPP_FileInfo_9" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileIn
 add_test("TOPP_FileInfo_9_out1" ${DIFF} -whitelist "file name" -in1 FileInfo.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_9_output.txt)
 
 ### FileMerger tests
-add_test("TOPP_FileMerger_1" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_1_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_1_input2.dta ${DATA_DIR_TOPP}/FileMerger_1_input3.dta2d -out FileMerger.tmp -rt_custom 1 2 3)
+add_test("TOPP_FileMerger_1" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_1_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_1_input2.dta ${DATA_DIR_TOPP}/FileMerger_1_input3.dta2d -out FileMerger.tmp -rt_custom 1 2 3)
 add_test("TOPP_FileMerger_2" ${TOPP_BIN_PATH}/FileConverter -in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 add_test("TOPP_FileMerger_2_out1" ${DIFF} -in1 FileMerger2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_1_output.txt)
-add_test("TOPP_FileMerger_3" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_2_input1.txt ${DATA_DIR_TOPP}/FileMerger_2_input2.txt -in_type DTA -out FileMerger.tmp -rt_custom 5 10)
+add_test("TOPP_FileMerger_3" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_2_input1.txt ${DATA_DIR_TOPP}/FileMerger_2_input2.txt -in_type DTA -out FileMerger.tmp -rt_custom 5 10)
 add_test("TOPP_FileMerger_4" ${TOPP_BIN_PATH}/FileConverter -in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 add_test("TOPP_FileMerger_4_out1" ${DIFF} -in1 FileMerger2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_2_output.txt)
-add_test("TOPP_FileMerger_5" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_3_input1.dta ${DATA_DIR_TOPP}/FileMerger_3_input2.dta -out FileMerger.tmp -rt_auto)
+add_test("TOPP_FileMerger_5" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_3_input1.dta ${DATA_DIR_TOPP}/FileMerger_3_input2.dta -out FileMerger.tmp -rt_auto)
 add_test("TOPP_FileMerger_6" ${TOPP_BIN_PATH}/FileConverter -in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 add_test("TOPP_FileMerger_6_out1" ${DIFF} -in1 FileMerger2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_3_output.txt)
-add_test("TOPP_FileMerger_7" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_4_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_4_input2.dta2d -out FileMerger.tmp)
+add_test("TOPP_FileMerger_7" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_4_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_4_input2.dta2d -out FileMerger.tmp)
 add_test("TOPP_FileMerger_8" ${TOPP_BIN_PATH}/FileConverter -in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 add_test("TOPP_FileMerger_8_out1" ${DIFF} -in1 FileMerger2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_4_output.txt)
-add_test("TOPP_FileMerger_9" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_5_input_rt1023.331.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt2044.334.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt889.32.dta -rt_filename -user_ms_level -ms_level 2 -out FileMerger5.tmp)
+add_test("TOPP_FileMerger_9" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_5_input_rt1023.331.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt2044.334.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt889.32.dta -rt_filename -user_ms_level -ms_level 2 -out FileMerger5.tmp)
 add_test("TOPP_FileMerger_9_out1" ${DIFF} -in1 FileMerger5.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_5_output.txt)
-add_test("TOPP_FileMerger_10" ${TOPP_BIN_PATH}/FileMerger -in ${DATA_DIR_TOPP}/FileMerger_6_input1.mzML ${DATA_DIR_TOPP}/FileMerger_6_input2.mzML -out FileMerger6.tmp)
+add_test("TOPP_FileMerger_10" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_6_input1.mzML ${DATA_DIR_TOPP}/FileMerger_6_input2.mzML -out FileMerger6.tmp)
 add_test("TOPP_FileMerger_10_out1" ${DIFF} -in1 FileMerger6.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_6_output.mzData)
 
 ### IDRTCalibration tests
@@ -190,25 +190,25 @@ add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilt
 add_test("TOPP_IDFilter_7_out1" ${DIFF} -in1 IDFilter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_7_output.idXML)
 
 ### MapAligner tests
-add_test("TOPP_MapAligner_1" ${TOPP_BIN_PATH}/MapAligner -ini ${DATA_DIR_TOPP}/MapAligner_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_1_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input2.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input3.featureXML)
+add_test("TOPP_MapAligner_1" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_1_input1.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input2.featureXML ${DATA_DIR_TOPP}/MapAligner_1_input3.featureXML)
 add_test("TOPP_MapAligner_1_out1" ${DIFF} -in1 MapAligner_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output1.featureXML)
 add_test("TOPP_MapAligner_1_out2" ${DIFF} -in1 MapAligner_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output2.featureXML)
 add_test("TOPP_MapAligner_1_out3" ${DIFF} -in1 MapAligner_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_output3.featureXML)
 add_test("TOPP_MapAligner_1_out4" ${DIFF} -in1 MapAligner_1_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo1.trafoXML)
 add_test("TOPP_MapAligner_1_out5" ${DIFF} -in1 MapAligner_1_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo2.trafoXML)
 add_test("TOPP_MapAligner_1_out6" ${DIFF} -in1 MapAligner_1_trafo3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo3.trafoXML)
-add_test("TOPP_MapAligner_2" ${TOPP_BIN_PATH}/MapAligner -ini ${DATA_DIR_TOPP}/MapAligner_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_2_input1.mzData ${DATA_DIR_TOPP}/MapAligner_2_input2.mzData ${DATA_DIR_TOPP}/MapAligner_2_input3.mzData)
+add_test("TOPP_MapAligner_2" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_2_input1.mzData ${DATA_DIR_TOPP}/MapAligner_2_input2.mzData ${DATA_DIR_TOPP}/MapAligner_2_input3.mzData)
 add_test("TOPP_MapAligner_2_out1" ${DIFF} -in1 MapAligner_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output1.mzData)
 add_test("TOPP_MapAligner_2_out2" ${DIFF} -in1 MapAligner_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output2.mzData)
 add_test("TOPP_MapAligner_2_out3" ${DIFF} -in1 MapAligner_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output3.mzData)
-add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzData ${DATA_DIR_TOPP}/MapAligner_3_input2.mzData ${DATA_DIR_TOPP}/MapAligner_3_input3.mzData)
+add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzData ${DATA_DIR_TOPP}/MapAligner_3_input2.mzData ${DATA_DIR_TOPP}/MapAligner_3_input3.mzData)
 add_test("TOPP_MapAligner_3_out1" ${DIFF} -in1 MapAligner_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output1.mzData)
 add_test("TOPP_MapAligner_3_out2" ${DIFF} -in1 MapAligner_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output2.mzData)
 add_test("TOPP_MapAligner_3_out3" ${DIFF} -in1 MapAligner_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output3.mzData)
-add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -given_transformations ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
+add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -given_transformations ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
 add_test("TOPP_MapAligner_4_out1" ${DIFF} -in1 MapAligner_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output1.featureXML)
 add_test("TOPP_MapAligner_4_out2" ${DIFF} -in1 MapAligner_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output2.featureXML)
-add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzData -given_transformations ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
+add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzData -given_transformations ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
 add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzData)
 
 ### MascotAdapter tests
@@ -354,39 +354,35 @@ add_test("TOPP_TextExporter_7" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP
 add_test("TOPP_TextExporter_7_out1" ${DIFF} -whitelist "extracted from" -in1 TextExporter_7_consensus_tsv.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_7_consensus_tsv.tsv)
 
 ### TextImporter tests
-add_test("TOPP_TextImporter_1" ${TOPP_BIN_PATH}/TextImporter -in ${DATA_DIR_TOPP}/TextImporter_1_input.csv -no_progress -out TextImporter.tmp -out_type featureXML)
+add_test("TOPP_TextImporter_1" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_1_input.csv -no_progress -out TextImporter.tmp -out_type featureXML)
 add_test("TOPP_TextImporter_1_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_1_output.featureXML)
 
-add_test("TOPP_TextImporter_2" ${TOPP_BIN_PATH}/TextImporter -in ${DATA_DIR_TOPP}/TextImporter_2_input.csv -template_ini ${DATA_DIR_TOPP}/TextImporter_2_input.ini -no_progress -out TextImporter.tmp -out_type ini)
+add_test("TOPP_TextImporter_2" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_2_input.csv -template_ini ${DATA_DIR_TOPP}/TextImporter_2_input.ini -no_progress -out TextImporter.tmp -out_type ini)
 add_test("TOPP_TextImporter_2_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_2_output.ini)
 
-
-
 ### SILACAnalyzer tests
-add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "SILACAnalyzer_1_input.mzData" "?xml-stylesheet" -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
-add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -ini ${DATA_DIR_TOPP}/SILACAnalyzer_2_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_2_input.mzData)
-add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -whitelist "SILACAnalyzer_2_input.mzData" "?xml-stylesheet" -in1 SILACAnalyzer_2_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output.consensusXML)
-add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -whitelist "SILACAnalyzer_2_input.mzData" "?xml-stylesheet" -in1 SILACAnalyzer_2_output_vis.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output_vis.featureXML)
-
-
+add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_2_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_2_input.mzData)
+add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_2_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_2_output_vis.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output_vis.featureXML)
 
 ### FeatureLinker tests
-add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)
-add_test("TOPP_FeatureLinker_1_out1" ${DIFF} -whitelist "FeatureLinker_1_" "?xml-stylesheet" -in1 FeatureLinker_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_1_output.consensusXML)
-add_test("TOPP_FeatureLinker_2" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML)
-add_test("TOPP_FeatureLinker_2_out1" ${DIFF} -whitelist "FeatureLinker_2_" "?xml-stylesheet" -in1 FeatureLinker_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_2_output.consensusXML)
-add_test("TOPP_FeatureLinker_3" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_3_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input3.featureXML)
-add_test("TOPP_FeatureLinker_3_out1" ${DIFF} -whitelist "FeatureLinker_3_" "?xml-stylesheet" -in1 FeatureLinker_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_3_output.consensusXML)
-add_test("TOPP_FeatureLinker_4" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_4_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_4_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_4_input2.featureXML)
-add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -whitelist "FeatureLinker_4_" "?xml-stylesheet" -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
-add_test("TOPP_FeatureLinker_5" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_5_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_5_input.featureXML)
-add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -whitelist "FeatureLinker_5_" "?xml-stylesheet" -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
+add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)
+add_test("TOPP_FeatureLinker_1_out1" ${DIFF} -in1 FeatureLinker_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_1_output.consensusXML)
+add_test("TOPP_FeatureLinker_2" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML)
+add_test("TOPP_FeatureLinker_2_out1" ${DIFF} -in1 FeatureLinker_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_2_output.consensusXML)
+add_test("TOPP_FeatureLinker_3" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_3_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input3.featureXML)
+add_test("TOPP_FeatureLinker_3_out1" ${DIFF} -in1 FeatureLinker_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_3_output.consensusXML)
+add_test("TOPP_FeatureLinker_4" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_4_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_4_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_4_input2.featureXML)
+add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
+add_test("TOPP_FeatureLinker_5" ${TOPP_BIN_PATH}/FeatureLinker -test -ini ${DATA_DIR_TOPP}/FeatureLinker_5_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_5_input.featureXML)
+add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
 
 ### IDMapper tests
-add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML)
+add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML)
 add_test("TOPP_IDMapper_1_out1" ${DIFF} -in1 IDMapper_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML)
-add_test("TOPP_IDMapper_2" ${TOPP_BIN_PATH}/IDMapper -in ${DATA_DIR_TOPP}/IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_2_input.idXML)
+add_test("TOPP_IDMapper_2" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_2_input.idXML)
 add_test("TOPP_IDMapper_2_out1" ${DIFF} -in1 IDMapper_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_2_output.consensusXML)
 
 ### ConsensusID tests

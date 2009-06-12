@@ -168,8 +168,8 @@ class TOPPITRAQAnalyzer
 		ConsensusXMLFile cm_file;
 		
 		//annotate output with data processing info
-		addDataProcessing_(consensus_map_raw, DataProcessing::QUANTITATION);
-		addDataProcessing_(consensus_map_quant, DataProcessing::QUANTITATION);
+		addDataProcessing_(consensus_map_raw, getProcessingInfo_(DataProcessing::QUANTITATION));
+		addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));
 
 		cm_file.store(out,consensus_map_raw);
 		cm_file.store(out+"_quant",consensus_map_quant);

@@ -166,7 +166,7 @@ class TOPPNoiseFilter
       mz_data_file.store(out,exp);
 
 			//annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::SMOOTHING);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
       return EXECUTION_OK;
     }

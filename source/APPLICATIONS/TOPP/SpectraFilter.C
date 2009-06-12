@@ -140,7 +140,7 @@ class TOPPSpectraFilter
 			//-------------------------------------------------------------
 			
 			//annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::FILTERING);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
 			
 			f.store(out, exp);
 			

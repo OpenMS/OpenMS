@@ -149,17 +149,16 @@ class TOPPBaseTest
 
     void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
     {
-      addDataProcessing_(map, action);
+    	DataProcessing dp = getProcessingInfo_(action);
+    	
+      addDataProcessing_(map, dp);
       
-      //additionally test MSSpectrum, FeatureMap, ConsensusMap
-      MSSpectrum<> spectrum;
-      addDataProcessing_(spectrum, action);
-
+      //additionally test FeatureMap and ConsensusMap
       FeatureMap<> f_map;
-      addDataProcessing_(f_map, action);
+      addDataProcessing_(f_map, dp);
       
       ConsensusMap c_map;
-      addDataProcessing_(c_map, action);
+      addDataProcessing_(c_map, dp);
     }
 
     void parseRange(const String& text, double& low, double& high) const
@@ -391,6 +390,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
 	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
+	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
 	//with restriction
 	p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("1,2,3"),"stringlist with restrictions");
 	vector<String> rest;

@@ -73,7 +73,7 @@ class TOPPFuzzyDiff
 		setMinFloat_("absdiff",0);
 		addText_("Only one of the criteria has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".");
 		addEmptyLine_();
-		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet,<dataProcessing completion_time,<software completionTime"),"Lines containing one of these strings are skipped",false,true);
+		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet"),"Lines containing one of these strings are skipped",false,true);
 		addEmptyLine_();
 		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"

@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2009-06-11T18:00:58">
-		<software name="MapAligner" version="1.4" />
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="MapAligner" version="version_string" />
 		<processingAction name="Retention time alignment" />
-		<userParam type="string" name="parameter: ini" value="/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_1_parameters.ini"/>
-		<userParam type="string" name="parameter: in" value="[/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_1_input1.featureXML, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_1_input2.featureXML, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_1_input3.featureXML]"/>
-		<userParam type="string" name="parameter: out" value="[MapAligner_1_output1.tmp, MapAligner_1_output2.tmp, MapAligner_1_output3.tmp]"/>
-		<userParam type="string" name="parameter: transformations" value="[MapAligner_1_trafo1.tmp, MapAligner_1_trafo2.tmp, MapAligner_1_trafo3.tmp]"/>
-		<userParam type="string" name="parameter: type" value="pose_clustering_affine"/>
-		<userParam type="string" name="parameter: log" value="TOPP.log"/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: algorithm:symmetric_regression" value="false"/>
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="144">
 		<feature id="f_0">

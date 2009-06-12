@@ -189,7 +189,7 @@ class TOPPPeakPicker
 		//-------------------------------------------------------------
 		
 		//annotate output with data processing info
-		addDataProcessing_(ms_exp_peaks, DataProcessing::PEAK_PICKING);
+		addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
 		mz_data_file.store(out,ms_exp_peaks);
 		

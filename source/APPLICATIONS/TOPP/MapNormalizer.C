@@ -110,7 +110,7 @@ class TOPPMapNormalizer
 			//-------------------------------------------------------------
 			
 			//annotate output with data processing info
-			addDataProcessing_(exp, DataProcessing::NORMALIZATION);
+			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::NORMALIZATION));
 			
 			f.store(out,exp);
 			

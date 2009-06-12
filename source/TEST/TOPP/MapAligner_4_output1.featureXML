@@ -10,13 +10,10 @@
 		<processingAction name="Smoothing" />
 		<processingAction name="Baseline reduction" />
 	</dataProcessing>
-	<dataProcessing completion_time="2009-06-11T17:59:05">
-		<software name="MapAligner" version="1.4" />
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="MapAligner" version="version_string" />
 		<processingAction name="Retention time alignment" />
-		<userParam type="string" name="parameter: type" value="apply_given_trafo"/>
-		<userParam type="string" name="parameter: in" value="[/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_4_input.featureXML, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_4_input.featureXML]"/>
-		<userParam type="string" name="parameter: given_transformations" value="[/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_4_trafo1.trafoXML, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/MapAligner_4_trafo2.trafoXML]"/>
-		<userParam type="string" name="parameter: out" value="[MapAligner_4_output1.tmp, MapAligner_4_output2.tmp]"/>
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="3">
 		<feature id="f_0">

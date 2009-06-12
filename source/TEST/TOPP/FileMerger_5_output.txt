@@ -20,16 +20,12 @@
 			</detector>
 		</instrument>
 		<dataProcessing>
-			<software completionTime="2009-06-11T17:50:19">
+			<software completionTime="1999-12-31T23:59:59">
 				<name>FileMerger</name>
-				<version>1.4</version>
+				<version>version_string</version>
 			</software>
 			<processingMethod>
-				<userParam name="parameter: in" value="[/share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FileMerger_5_input_rt1023.331.dta, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FileMerger_5_input_rt2044.334.dta, /share_pride/usr/sturm/OpenMS/source/TEST/TOPP/FileMerger_5_input_rt889.32.dta]"/>
-				<userParam name="parameter: rt_filename" value="true"/>
-				<userParam name="parameter: user_ms_level" value="true"/>
-				<userParam name="parameter: ms_level" value="2"/>
-				<userParam name="parameter: out" value="FileMerger5.tmp"/>
+				<userParam name="parameter: mode" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>

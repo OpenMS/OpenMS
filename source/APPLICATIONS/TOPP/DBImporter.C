@@ -118,7 +118,7 @@ class TOPPDBImporter
 				f.load(in,exp);			
 				
 				//annotate output with data processing info
-				addDataProcessing_(exp, DataProcessing::FORMAT_CONVERSION);
+				addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 				
 				//store data
 				a.storeExperiment(exp);

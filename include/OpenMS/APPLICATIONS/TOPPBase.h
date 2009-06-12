@@ -40,15 +40,18 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/IDTagger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <iostream>
 #include <fstream>
 #include <limits>
+
 class QStringList;
 
 
 namespace OpenMS
 {
+	class ConsensusMap;
 
   namespace Exception
   {
@@ -802,79 +805,51 @@ namespace OpenMS
 
 			///@name Data processing auxilary functions
       //@{
-      ///Generic data processing setter for objects that have a @em getDataProcessing() method, e.g. FeatureMap, ConsensusMap, MSSpectrum
-      template<typename ObjectType>
-      void addDataProcessing_(ObjectType& object, const std::set<DataProcessing::ProcessingAction>& actions) const
-      {
-        DataProcessing p;
-        //actions
-        p.setProcessingActions(actions);
-        //software
-        p.getSoftware().setName(tool_name_);
-        p.getSoftware().setVersion(VersionInfo::getVersion());
-        //time
-        p.setCompletionTime(DateTime::now());
-        //parameters
-        const Param& param = getParam_();
-        for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
-        {
-           p.setMetaValue(String("parameter: ") + it.getName() , it->value);
-        }
-        
-        //add data processing
-        object.getDataProcessing().push_back(p);          
-      }
+      
+      ///Data processing setter for consensus maps
+      void addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const;
 
-      ///Generic data processing setter for objects that have a @em getDataProcessing() method, e.g. FeatureMap, ConsensusMap, MSSpectrum
-      template<typename ObjectType>
-      void addDataProcessing_(ObjectType& object, DataProcessing::ProcessingAction action) const
+      ///Data processing setter for feature maps
+      template<typename FeatureType>
+      void addDataProcessing_(FeatureMap<FeatureType>& map, const DataProcessing& dp) const
       {
-        std::set<DataProcessing::ProcessingAction> actions;
-        actions.insert(action);
-        
-        addDataProcessing_(object, actions);
+        map.getDataProcessing().push_back(dp);          
       }
 			
-			///Data processing setter for MSExperiment
+			///Data processing setter for peak maps
       template<typename PeakType>
-      void addDataProcessing_(MSExperiment<PeakType>& map, const std::set<DataProcessing::ProcessingAction>& actions) const
+      void addDataProcessing_(MSExperiment<PeakType>& map, const DataProcessing& dp) const
       {
-        DataProcessing p;
-        //actions
-        p.setProcessingActions(actions);
-        //software
-        p.getSoftware().setName(tool_name_);
-        p.getSoftware().setVersion(VersionInfo::getVersion());
-        //time
-        p.setCompletionTime(DateTime::now());
-        //parameters
-        const Param& param = getParam_();
-        for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
-        {
-           p.setMetaValue(String("parameter: ") + it.getName() , it->value);
-        }
-        
-        //add data processing
         for (Size i=0; i<map.size(); ++i)
         {
-        	map[i].getDataProcessing().push_back(p);          
+        	map[i].getDataProcessing().push_back(dp);          
       	}
       }
+      
+      ///Returns the the data processing information 
+      DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;
 
-      ///Data processing setter for MSExperiment
-      template<typename PeakType>
-      void addDataProcessing_(MSExperiment<PeakType>& map, DataProcessing::ProcessingAction action) const
-      {
-        std::set<DataProcessing::ProcessingAction> actions;
-        actions.insert(action);
-        
-        addDataProcessing_(map, actions);
-      }
+      ///Returns the the data processing information 
+      DataProcessing getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const;
+
       //@}
       
 			/// get IDTagger to assign DocumentIDs to maps
 			const IDTagger& getIDTagger_() const;
-
+			
+			/**
+				@brief Test mode 
+			
+				Test mode is enabled using the command line parameter @em -test .
+				
+				It disables writing of data, which would corrupt tests:
+				- abolute paths (e.g. in consensus maps)
+				- processing parameters (input/output files contain abolute paths as well)
+				- current date
+				- current OpenMS version
+			*/
+			bool test_mode_;
+			
   };
 
 } // namespace OpenMS

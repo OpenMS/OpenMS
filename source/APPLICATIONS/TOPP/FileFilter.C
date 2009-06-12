@@ -306,7 +306,7 @@ class TOPPFileFilter
   			//-------------------------------------------------------------
 
 				//annotate output with data processing info
-				addDataProcessing_(exp, DataProcessing::FILTERING);
+				addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
 
   			f.store(out,exp);
       }
@@ -366,7 +366,7 @@ class TOPPFileFilter
         //-------------------------------------------------------------
 
 				//annotate output with data processing info
-				addDataProcessing_(map_sm, DataProcessing::FILTERING);
+				addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
 
         f.store(out,map_sm);
       }
@@ -415,7 +415,7 @@ class TOPPFileFilter
         //-------------------------------------------------------------
 
 				//annotate output with data processing info
-				addDataProcessing_(consensus_map_filtered, DataProcessing::FILTERING);
+				addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 
         f.store(out,consensus_map_filtered);
       }
