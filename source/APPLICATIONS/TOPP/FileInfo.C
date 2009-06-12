@@ -216,7 +216,7 @@ class TOPPFileInfo
 
 			if (valid)
 			{
-				os << "Success: fhe file is valid!" << endl;
+				os << "Success: the file is valid!" << endl;
 			}
 			else
 			{
@@ -244,7 +244,7 @@ class TOPPFileInfo
 					}
 					if (valid)
 					{
-						os << "Success: fhe file is semantically valid!" << endl;
+						os << "Success: the file is semantically valid!" << endl;
 					}
 					else
 					{
@@ -273,7 +273,7 @@ class TOPPFileInfo
 					}
 					if (valid)
 					{
-						os << "Success: fhe file is semantically valid!" << endl;
+						os << "Success: the file is semantically valid!" << endl;
 					}
 					else
 					{

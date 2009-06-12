@@ -48,9 +48,8 @@
 // - Add generic parsing of xref to ControlledVocabulary class => check binary data array types
 //
 //TODO (DEFINITION):
-// - MALDI term untis (Marc, Andreas Römp)
-// - Add new data processing actions (Marc)
-// - Validate all example files BEFORE Final release
+// - MALDI term untis
+// - Add new data processing actions
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
