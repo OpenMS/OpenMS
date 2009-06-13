@@ -3920,7 +3920,7 @@ id: MS:1000594
 name: low intensity data point removal
 def: "The removal of very low intensity data points that are likely to be spurious noise rather than real signal." [PSI:MS]
 synonym: "thresholding" EXACT []
-is_a: MS:1000543 ! data processing action
+is_a: MS:1001486 ! data filtering
 
 [Term]
 id: MS:1000595
@@ -4951,7 +4951,7 @@ is_a: MS:1000543 ! data processing action
 id: MS:1000746
 name: high intensity data point removal
 def: "The removal of very high intensity data points." [PSI:MS]
-is_a: MS:1000543 ! data processing action
+is_a: MS:1001486 ! data filtering
 
 [Term]
 id: MS:1000747
@@ -8595,6 +8595,33 @@ id: MS:1001482
 name: AB SCIEX TOF/TOF 5800
 def: "AB SCIEX or Applied Biosystems|MDS Analytical Technologies AB SCIEX TOF/TOF 5800 Analyzer" [PSI:MS]
 is_a: MS:1000121 ! AB SCIEX instrument model
+
+[Term]
+id: MS:1001483
+name: AB SCIEX TOF/TOF Series Explorer Software
+def: "AB SCIEX or Applied Biosystems software for TOF/TOF data acquisition and analysis." [PSI:MS]
+is_a: MS:1000690 ! AB SCIEX software
+is_a: MS:1001455 ! acquisition software
+is_a: MS:1001456 ! analysis software
+is_a: MS:1001457 ! data processing software
+
+[Term]
+id: MS:1001484
+name: intensity normalization
+def: "Normalization of data point intensities." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:1001485
+name: m/z calibration
+def: "Calibration of data point m/z positions." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:1001486
+name: data filtering
+def: "Filtering out part of the data." [PSI:MS]
+is_a: MS:1000543 ! data processing action 
 
 [Typedef]
 id: has_regexp

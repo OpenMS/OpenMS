@@ -62,11 +62,9 @@ namespace OpenMS
     		CALIBRATION, 							///< Calibration of m/z positions
     		NORMALIZATION, 						///< Normalization of intensity values
     		FILTERING, 							  ///< Data filtering or extraction
-    		LOW_INTENSITY_REMOVAL,	  ///< The removal of very low intensity data points
-    		HIGH_INTENSITY_REMOVAL,	  ///< The removal of very high intensity data points
     		QUANTITATION, 						///< Quantitation
-    		FEATURE_GROUPING, 				///< Feature grouping
-    		IDENTIFICATION_MAPPING,		///< Identification mapping
+    		FEATURE_GROUPING, 				///< %Feature grouping
+    		IDENTIFICATION_MAPPING,		///< %Identification mapping
     		FORMAT_CONVERSION,        ///< General file format conversion (if no other term applies)
     		CONVERSION_MZDATA,			  ///< Convertion to mzData format
     		CONVERSION_MZML,				  ///< Conversion to mzML format

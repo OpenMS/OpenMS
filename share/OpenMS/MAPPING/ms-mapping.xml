@@ -142,17 +142,11 @@
         <CvMappingRule id="precursor_activation_may" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/activation" cvTermsCombinationLogic="OR">
           <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <CvMappingRule id="precursor_isolationwindow_must" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
-          <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
         <CvMappingRule id="precursor_isolationwindow_may" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
           <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         
         <!-- spectrum product list-->
-        <CvMappingRule id="product_isolationwindow_must" cvElementPath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow" cvTermsCombinationLogic="AND">
-          <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
         <CvMappingRule id="product_isolationwindow_may" cvElementPath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow" cvTermsCombinationLogic="AND">
           <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
@@ -173,17 +167,11 @@
         </CvMappingRule>
 
         <!-- chromatogram precursor -->
-        <CvMappingRule id="chromatogram_precursor_isolationwindow_must" cvElementPath="/mzML/run/chromatogramList/chromatogram/precursor/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
-          <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
         <CvMappingRule id="chromatogram_precursor_isolationwindow_may" cvElementPath="/mzML/run/chromatogramList/chromatogram/precursor/isolationWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
           <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         
         <!-- chromatogram product -->
-        <CvMappingRule id="chromatogram_product_isolationwindow_must" cvElementPath="/mzML/run/chromatogramList/chromatogram/product/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow" cvTermsCombinationLogic="AND">
-          <CvTerm termAccession="MS:1000827" useTerm="true" termName="isolation window target m/z" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
         <CvMappingRule id="chromatogram_product_isolationwindow_may" cvElementPath="/mzML/run/chromatogramList/chromatogram/product/isolationWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow" cvTermsCombinationLogic="AND">
           <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>

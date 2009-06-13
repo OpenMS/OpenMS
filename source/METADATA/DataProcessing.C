@@ -44,8 +44,6 @@ namespace OpenMS
 																																 "Calibration of m/z positions",
 																																 "Intensity normalization",
 																																 "Data filtering",
-																																 "Low intensity data removal",
-																																 "High intensity data removal",
 																																 "File format conversion",
 																																 "Quantitation",
 																																 "Feature grouping",

@@ -2272,17 +2272,21 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
 				}
-				else if (accession=="MS:1000594") //low intensity data point removal
-				{
-					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
-				}
 				else if (accession=="MS:1000745") //retention time alignment
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::ALIGNMENT);
 				}
-				else if (accession=="MS:1000746") //high intensity data point removal
+				else if (accession=="MS:1001484") //intensity normalization
 				{
-					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::HIGH_INTENSITY_REMOVAL);
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::NORMALIZATION);
+				}
+				else if (accession=="MS:1001485") //m/z calibration
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CALIBRATION);
+				}
+				else if (accession=="MS:1001486" || cv_.isChildOf(accession,"MS:1001486")) //data filtering (or child terms, we make no difference)
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::FILTERING);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2585,6 +2589,7 @@ namespace OpenMS
 				os  << "			</processingMethod>\n";
 			}
 			
+			bool written = false;
 			for (Size i=0; i<dps.size(); ++i)
 			{
 				//data processing action
@@ -2592,68 +2597,94 @@ namespace OpenMS
 				if (dps[i].getProcessingActions().count(DataProcessing::DATA_PROCESSING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000543\" name=\"data processing action\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::SMOOTHING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_CALCULATION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
+					written = true;
 				}
-				if (dps[i].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
+				if (dps[i].getProcessingActions().count(DataProcessing::CALIBRATION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000594\" name=\"low intensity data point removal\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1001485\" name=\"m/z calibration\" />\n";
+					written = true;
 				}
-				if (dps[i].getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
+				if (dps[i].getProcessingActions().count(DataProcessing::NORMALIZATION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1001484\" name=\"intensity normalization\" />\n";
+					written = true;
+				}
+				if (dps[i].getProcessingActions().count(DataProcessing::FILTERING)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1001486\" name=\"data filtering\" />\n";
+					written = true;
 				}
 				//file format conversion
 				if (dps[i].getProcessingActions().count(DataProcessing::FORMAT_CONVERSION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000530\" name=\"file format conversion\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZML)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZXML)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\" />\n";
+					written = true;
 				}
 				if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_DTA)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\" />\n";
+					written = true;
 				}
+				if (!written)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000543\" name=\"data processing action\" />\n";
+				}
+				
 				//data processing attribute
 				if (dps[i].getCompletionTime().isValid())
 				{
