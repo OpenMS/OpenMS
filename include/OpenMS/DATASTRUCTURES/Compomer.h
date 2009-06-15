@@ -120,7 +120,7 @@ public:
 		}
     //
 		std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
-							<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n\n";
+							<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
 		return true; 
 	}
 

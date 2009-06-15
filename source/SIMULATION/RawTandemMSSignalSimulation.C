@@ -216,7 +216,7 @@ namespace OpenMS
 				// add up signal of all features
 				// TODO: take care of actual position of feature relative to precursor!
 				IntList parent_fs = ms2.getMetaValue("parent_feature_ids");
-				for (Int i_f=0; i_f < parent_fs.size(); ++i_f)
+				for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 				{
 					// apply isotope matrix to active channels
 					gsl_matrix* row = getItraqIntensity_(features[i_f]).toGslMatrix();
@@ -230,7 +230,7 @@ namespace OpenMS
 				}
 				
 				// add signal to MS2 spectrum
-				for (Size i_channel=0; i_channel< ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i_channel)
+				for (Int i_channel=0; i_channel< ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i_channel)
 				{
 					MSSimExperiment::SpectrumType::PeakType p;
 					// dummy

@@ -206,7 +206,7 @@ namespace OpenMS
 		
 		if (zlib_compression)
 		{
-			QByteArray original = QByteArray::fromRawData((const char*)byteBuffer, size);
+			QByteArray original = QByteArray::fromRawData((const char*)byteBuffer, (int) size);
 			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
 			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
 			QByteArray base64_compressed = extern_compressed.toBase64();
@@ -257,7 +257,7 @@ namespace OpenMS
 	}
 	
 	template<typename ToType>
-	void Base64::decode(const std::string& in,ByteOrder from_byte_order,std::vector<ToType>& out, bool zlib_compression)
+	void Base64::decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression)
 	{
 		if(zlib_compression)
 		{
@@ -284,8 +284,8 @@ namespace OpenMS
 		
 		String decompressed;
 		if (zlib_compression)
-			{
-			QByteArray herewego = QByteArray::fromRawData(in.c_str(),in.size());
+		{
+			QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
 			QByteArray bazip = QByteArray::fromBase64(herewego);
 			QByteArray czip;
 			czip.resize(4);
