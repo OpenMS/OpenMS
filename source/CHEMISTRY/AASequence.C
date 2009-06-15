@@ -136,7 +136,7 @@ namespace OpenMS
 	{
 		if (!valid_)
 		{
-			if (!rhs.valid_)
+		if (!rhs.valid_)
 			{
 				return sequence_string_ < rhs.sequence_string_;
 			}
@@ -169,7 +169,76 @@ namespace OpenMS
 		{
 			ef += H;
 		}
-	
+
+
+    // terminal modifications
+    if (n_term_mod_ != "" && 
+				(type == Residue::Full || type == Residue::AIon || type == Residue::BIon || type == Residue::CIon || type == Residue::NTerminal)
+			 )
+    {
+      // TODO replace this when EmpiricalFormula is reported (with diff allowed)
+      String formula = ModificationsDB::getInstance()->getModification(n_term_mod_).getDiffFormula();
+      vector<String> split;
+      formula.split(' ', split);
+      if (split.size()%2 != 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
+      }
+      for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+      {
+        String element = *it;
+        if (element.has(')'))
+        {
+          element = element.suffix(')');
+        }
+        Int number = (++it)->toInt();
+
+        if (number < 0)
+        {
+          ef -= element + String(abs(number));
+        }
+        else
+        {
+          ef += element + *it;
+        }
+      }
+    }
+
+
+    if (c_term_mod_ != "" &&
+				(type == Residue::Full || type == Residue::XIon || type == Residue::YIon || type == Residue::ZIon || type == Residue::CTerminal)
+			 )
+    {
+      String formula = ModificationsDB::getInstance()->getModification(c_term_mod_).getDiffFormula();
+      vector<String> split;
+      formula.split(' ', split);
+      if (split.size()%2 != 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
+      }
+      EmpiricalFormula ef = getFormula();
+      for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+      {
+        String element = *it;
+        if (element.has(')'))
+        {
+          element = element.suffix(')');
+        }
+        Int number = (++it)->toInt();
+
+        if (number < 0)
+        {
+          ef -= element + String(abs(number));
+        }
+        else
+        {
+          ef += element + *it;
+        }
+      }
+    }
+
+
+
 		if (peptide_.size() > 0)
 		{
 			if (peptide_.size() == 1)
@@ -211,6 +280,7 @@ namespace OpenMS
 				}
 			}			
 		}
+
 		return ef;
 	}
 	
@@ -561,12 +631,6 @@ namespace OpenMS
 	
 	bool AASequence::operator == (const AASequence& peptide) const
 	{
-#ifdef CHEMISTRY_AASEQUENCE_DEBUG
-		cerr << "Valid:  " << valid_ << " " << peptide.valid_ << endl;
-		cerr << "#aa:    " << peptide_.size()  << " " << peptide.peptide_.size() << endl;
-		cerr << "N-term: '" << n_term_mod_ << "' '" << peptide.n_term_mod_ << "'" << endl;
-		cerr << "C-term: '" << c_term_mod_ << "' '" << peptide.c_term_mod_ << "'" << endl;
-#endif
 		if (!valid_)
 		{
 			if (peptide.valid_)
@@ -778,7 +842,7 @@ namespace OpenMS
 		
 		// push_back last residue
 		split.push_back(peptide.substr(pos, peptide.size()-pos));
-		
+
 		if (split.size() > 0 && split[0].size() > 0 && split[0][0] == '(')
 		{
 			String mod = split[0];

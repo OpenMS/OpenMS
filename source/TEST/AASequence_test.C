@@ -169,6 +169,10 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 	TOLERANCE_ABSOLUTE(0.01)
 	TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.49))
 	TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
+
+	// test N-term modification
+	AASequence seq2("(MOD:09998)DFPIANGER");
+	TEST_REAL_SIMILAR(seq2.getMonoWeight(), double(1122.51));
 END_SECTION
 
 START_SECTION(const Residue& operator [] (SignedSize index) const)

@@ -23762,7 +23762,7 @@ id: MOD:09998
 name: NIC
 def: "NIC light label as defined in NBT"
 property_value: DiffAvg: "105.0941"
-property_value: DiffFormula: "H 3 C 6 N O"
+property_value: DiffFormula: "H 3 C 6 N 1 O 1"
 property_value: DiffMono: "105.021464"
 property_value: Formula: "none"
 property_value: MassAvg: "none"
@@ -23776,7 +23776,7 @@ id: MOD:09999
 name: dNIC
 def: "NIC heavy label as defined in NBT"
 property_value: DiffAvg: "109.1205"
-property_value: DiffFormula: "H (2)H 3 C 6 N O"
+property_value: DiffFormula: "H (2)H 3 C 6 N 1 O 1"
 property_value: DiffMono: "109.048119"
 property_value: Formula: "none"
 property_value: MassAvg: "none"
