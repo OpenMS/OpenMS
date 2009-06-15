@@ -36,20 +36,24 @@ namespace OpenMS
 {
 	ReactionMonitoringTransition::ReactionMonitoringTransition()
 		:	MetaInfoInterface(),
-			precursor_mz_(0),
-			precursor_charge_(0),
-			product_mz_(0),
-			product_charge_(0)
+			precursor_mz_(numeric_limits<DoubleReal>::max()),
+			precursor_charge_(numeric_limits<Int>::max()),
+			product_mz_(numeric_limits<DoubleReal>::max()),
+			product_charge_(numeric_limits<Int>::max())
 	{
 	}
 
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition& rhs)
 		:	MetaInfoInterface(rhs),
+			name_(rhs.name_),
 			precursor_mz_(rhs.precursor_mz_),
       precursor_charge_(rhs.precursor_charge_),
       product_mz_(rhs.product_mz_),
       product_charge_(rhs.product_charge_),
-      interpretation_list_(rhs.interpretation_list_)
+      interpretation_list_(rhs.interpretation_list_),
+			peptide_ref_(rhs.peptide_ref_),
+			compound_ref_(rhs.compound_ref_),
+			configurations_(rhs.configurations_)
 	{
 	}
 
@@ -61,13 +65,47 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
+			name_ = rhs.name_;
 			precursor_mz_ = rhs.precursor_mz_;
 			precursor_charge_ = rhs.precursor_charge_;
 			product_mz_ = rhs.product_mz_;
 			product_charge_ = rhs.product_charge_;
 			interpretation_list_ = rhs.interpretation_list_;
+			peptide_ref_ = rhs.peptide_ref_;
+			compound_ref_ = rhs.compound_ref_;
+			configurations_ = rhs.configurations_;
 		}
 		return *this;
+	}
+
+	void ReactionMonitoringTransition::setName(const String& name)
+	{
+		name_ = name;
+	}
+
+	const String& ReactionMonitoringTransition::getName() const
+	{
+		return name_;
+	}
+
+	void ReactionMonitoringTransition::setPeptideRef(const String& peptide_ref)
+	{
+		peptide_ref_ = peptide_ref;
+	}
+
+	const String& ReactionMonitoringTransition::getPeptideRef() const
+	{
+		return peptide_ref_;
+	}
+
+	void ReactionMonitoringTransition::setCompoundRef(const String& compound_ref)
+	{
+		compound_ref_ = compound_ref;
+	}
+
+	const String& ReactionMonitoringTransition::getCompoundRef() const
+	{
+		return compound_ref_;
 	}
 
 	void ReactionMonitoringTransition::setPrecursorMZ(DoubleReal mz)
@@ -110,12 +148,12 @@ namespace OpenMS
     return product_charge_;
   }
 
-	void ReactionMonitoringTransition::setInterpretationList(const vector<TransitionInterpretation>& interpretations)
+	void ReactionMonitoringTransition::setInterpretations(const vector<TransitionInterpretation>& interpretations)
 	{
 		interpretation_list_ = interpretations;
 	}
 
-	const vector<TransitionInterpretation>& ReactionMonitoringTransition::getInterpretationList() const
+	const vector<TransitionInterpretation>& ReactionMonitoringTransition::getInterpretations() const
 	{
 		return interpretation_list_;
 	}
@@ -123,6 +161,21 @@ namespace OpenMS
 	void ReactionMonitoringTransition::addInterpretation(const TransitionInterpretation& interpretation)
 	{
 		interpretation_list_.push_back(interpretation);
+	}
+
+	void ReactionMonitoringTransition::setConfigurations(const vector<Configuration>& configurations)
+	{
+		configurations_ = configurations;
+	}
+
+	const vector<ReactionMonitoringTransition::Configuration>& ReactionMonitoringTransition::getConfigurations() const
+	{
+		return configurations_;
+	}
+
+	void ReactionMonitoringTransition::addConfiguration(const Configuration& configuration)
+	{
+		configurations_.push_back(configuration);
 	}
 
   void ReactionMonitoringTransition::updateMembers_()

@@ -100,6 +100,21 @@ namespace OpenMS
 		cvs_.push_back(cv);
 	}
 
+  void MRMExperiment::setContacts(const vector<MetaInfoInterface>& contacts)
+  {
+    contacts_ = contacts;
+  }
+
+  const vector<MetaInfoInterface>& MRMExperiment::getContacts() const
+  {
+    return contacts_;
+  }
+
+  void MRMExperiment::addContact(const MetaInfoInterface& contact)
+  {
+    contacts_.push_back(contact);
+  }
+
 	void MRMExperiment::setPublications(const vector<MetaInfoInterface>& publications)
 	{
 		publications_ = publications;

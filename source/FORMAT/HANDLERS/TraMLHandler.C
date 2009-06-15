@@ -64,6 +64,25 @@ namespace OpenMS
 		tag_ = sm_.convert(qname);
     open_tags_.push_back(tag_);
 
+    static set<String> tags_to_ignore;
+    if (tags_to_ignore.size() == 0)
+    {
+			tags_to_ignore.insert("TraML");
+      tags_to_ignore.insert("contactList");
+      tags_to_ignore.insert("cvList");
+      tags_to_ignore.insert("instrumentList");
+      tags_to_ignore.insert("softwareList");
+      tags_to_ignore.insert("publicationList");
+			tags_to_ignore.insert("proteinList");
+    }
+
+    // skip tags where nothing is to do
+    if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
+    {
+      return;
+    }
+
+
     //determine parent tag
     String parent_tag;
     if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
@@ -80,25 +99,9 @@ namespace OpenMS
 			return;
 		}
 
-		if (tag_ == "TraML")
-		{
-			// TODO handle version
-			return;
-		}
-
-		if (tag_ == "cvList")
-		{
-			return;
-		}
-
 		if (tag_ == "cv")
 		{
 			exp_->addCV(MRMExperiment::CV(attributeAsString_(attributes, "id"), attributeAsString_(attributes, "fullName"), attributeAsString_(attributes, "version"), attributeAsString_(attributes, "URI")));
-			return;
-		}
-
-		if (tag_ == "contactList")
-		{
 			return;
 		}
 
@@ -111,22 +114,12 @@ namespace OpenMS
 			return;
 		}
 
-    if (tag_ == "publicationList")
-    {
-      return;
-    }
-
     if (tag_ == "publication")
     {
       MetaInfoInterface meta;
 			String id = attributeAsString_(attributes, "id");
 			meta.setMetaValue("id", id);
 			actual_publication_ = meta;
-      return;
-    }
-
-    if (tag_ == "instumentList")
-    {
       return;
     }
 
@@ -139,29 +132,145 @@ namespace OpenMS
       return;
     }
 
-    if (tag_ == "softwareList")
-    {
-      // TODO
-      return;
-    }
-
     if (tag_ == "software")
     {
-      // TODO
-      return;
-    }
-
-    if (tag_ == "proteinList")
-    {
-      // TODO
+      actual_software_ = Software();
+			actual_software_.setName(attributeAsString_(attributes, "id"));
+			actual_software_.setVersion(attributeAsString_(attributes, "version"));
       return;
     }
 
     if (tag_ == "protein")
     {
-      // TODO
+      actual_protein_ = MRMExperiment::Protein();
+			//<protein id="Q12149" accession="Q12149" name="Q12149" description="Heat shock protein 1, alpha" comment="">
+			actual_protein_.id = attributeAsString_(attributes, "id");
+			actual_protein_.accession = attributeAsString_(attributes, "accession");
+			actual_protein_.name = attributeAsString_(attributes, "name");
+			actual_protein_.description = attributeAsString_(attributes, "description");
+			actual_protein_.comment = attributeAsString_(attributes, "comment");
       return;
     }
+
+		if (tag_ == "peptide")
+		{
+			actual_peptide_ = MRMExperiment::Peptide();
+			actual_peptide_.id = attributeAsString_(attributes, "id");
+			actual_peptide_.protein_ref = attributeAsString_(attributes, "proteinRef");
+			actual_peptide_.unmodified_sequence = attributeAsString_(attributes, "unmodifiedSequence");
+			actual_peptide_.modified_sequence = attributeAsString_(attributes, "modifiedSequence");
+			actual_peptide_.labeling_category = attributeAsString_(attributes, "labelingCategory");
+			actual_peptide_.group_label = attributeAsString_(attributes, "groupLabel");
+		}
+
+		if (tag_ == "compound")
+		{
+			actual_compound_ = MRMExperiment::Compound();
+			actual_compound_.id = attributeAsString_(attributes, "id");
+		}
+
+		if (tag_ == "retentionTime")
+		{
+			actual_rt_ = MRMExperiment::RetentionTime();
+			DoubleReal local_retention_time(0);
+			if (optionalAttributeAsDouble_(local_retention_time, attributes, "localRetentionTime"))
+			{
+				actual_rt_.local_retention_time = local_retention_time;
+			}
+			DoubleReal normalized_retention_time(0);
+			if (optionalAttributeAsDouble_(normalized_retention_time, attributes, "normalizedRetentionTime"))
+			{
+				actual_rt_.normalized_retention_time = normalized_retention_time;
+			}
+			String normalization_standard;
+			if (optionalAttributeAsString_(normalization_standard, attributes, "normalizationStandard"))
+			{
+				actual_rt_.normalization_standard = normalization_standard;
+			}
+			
+			DoubleReal predicted_retention_time(0);
+			if (optionalAttributeAsDouble_(predicted_retention_time, attributes, "predictedRetentionTime"))
+			{
+				actual_rt_.predicted_retention_time = predicted_retention_time;
+			}
+
+			String predicted_retention_time_software_ref;
+			if (optionalAttributeAsString_(predicted_retention_time_software_ref, attributes, "predictedRetentionTimeSoftwareRef"))
+			{
+				actual_rt_.predicted_retention_time_software_ref = predicted_retention_time_software_ref;
+			}
+		}
+
+		if (tag_ == "transition")
+		{
+			actual_transition_ = ReactionMonitoringTransition();
+			String name;
+			if (optionalAttributeAsString_(name, attributes, "name"))
+			{
+				actual_transition_.setName(name);
+			}
+			String peptide_ref;
+			if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
+			{
+				actual_transition_.setPeptideRef(peptide_ref);
+			}
+			String compound_ref;
+			if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
+			{
+				actual_transition_.setCompoundRef(compound_ref);
+			}
+		}
+
+		if (tag_ == "precursor")
+		{
+			actual_transition_.setPrecursorMZ(attributeAsDouble_(attributes, "mz"));
+			Int charge(0);
+			if (optionalAttributeAsInt_(charge, attributes, "charge"))
+			{
+				actual_transition_.setPrecursorCharge(charge);
+			}
+		}
+
+    if (tag_ == "product")
+    {
+      actual_transition_.setProductMZ(attributeAsDouble_(attributes, "mz"));
+      Int charge(0);
+      if (optionalAttributeAsInt_(charge, attributes, "charge"))
+      {
+        actual_transition_.setProductCharge(charge);
+      }
+    }
+
+		if (tag_ == "interpretation")
+		{
+			actual_interpretation_ = TransitionInterpretation();
+			String product_series;
+			if (optionalAttributeAsString_(product_series, attributes, "productSeries"))
+			{
+				actual_interpretation_.setProductSeries(product_series);
+			}
+			Int product_ordinal;
+			if (optionalAttributeAsInt_(product_ordinal, attributes, "productOrdinal"))
+			{
+				actual_interpretation_.setProductOrdinal((Size)product_ordinal);
+			}
+			String product_adjustment;
+			if (optionalAttributeAsString_(product_adjustment, attributes, "productAdjustment"))
+			{
+				actual_interpretation_.setProductAdjustment(product_adjustment);
+			}
+			DoubleReal mz_delta(0);
+			if (optionalAttributeAsDouble_(mz_delta, attributes, "mzDelta"))
+			{
+				actual_interpretation_.setMZDelta(mz_delta);
+			}
+			String primary("false");
+			if (optionalAttributeAsString_(primary, attributes, "primary"))
+			{
+				actual_interpretation_.setPrimary(DataValue(primary).toBool());
+			}
+		}
+
 
 		cerr << "TraMLHandler: unknown tag opening: '" << tag_ << "'" << endl;
 		return;
@@ -169,9 +278,10 @@ namespace OpenMS
 
 	void TraMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 	{
-		if (open_tags_.back() == "protein")
+		if (open_tags_.back() == "sequence")
 		{
 			String protein_sequence = sm_.convert(chars);
+			actual_protein_.sequence = protein_sequence;
 			return;
 		}
 		return;
@@ -180,34 +290,46 @@ namespace OpenMS
 	void TraMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		tag_ = sm_.convert(qname);
+
+		//determine parent tag
+    String parent_tag;
+    if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
+    String parent_parent_tag;
+    if (open_tags_.size()>2) parent_parent_tag = *(open_tags_.end()-3);
+
 		open_tags_.pop_back();
 
-		if (tag_ == "cvParam")
+		static set<String> tags_to_ignore;
+		if (tags_to_ignore.size() == 0)
+		{
+			tags_to_ignore.insert("contactList");
+			tags_to_ignore.insert("cvList");
+			tags_to_ignore.insert("instrumentList");
+			tags_to_ignore.insert("softwareList");
+			tags_to_ignore.insert("publicationList");
+			tags_to_ignore.insert("proteinList");
+			tags_to_ignore.insert("precursor");
+			tags_to_ignore.insert("product");
+		}
+
+		// skip tags where nothing is to do
+		if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
 		{
 			return;
 		}
-		if (tag_ == "contactList")
+
+		if (tag_ == "cvParam")
 		{
 			return;
 		}
 
 		if (tag_ == "contact")
 		{
-			// TODO
+			exp_->addContact(actual_contact_);
 			return;
 		}
 
-		if (tag_ == "cvList")
-		{
-			return;
-		}
-		
 		if (tag_ == "cv")
-		{
-			return;
-		}
-
-		if (tag_ == "instrumentList")
 		{
 			return;
 		}
@@ -223,12 +345,54 @@ namespace OpenMS
 			exp_->addPublication(actual_publication_);
 			return;
 		}
-		if (tag_ == "publicationList")
+
+		if (tag_ == "software")
 		{
-			// nothing to do here
+			exp_->addSoftware(actual_software_);
 			return;
 		}
 
+		if (tag_ == "protein")
+		{
+			exp_->addProtein(actual_protein_);
+			return;
+		}
+
+		if (tag_ == "retentionTime")
+		{
+			if (parent_tag == "peptide")
+			{
+				actual_peptide_.rts.push_back(actual_rt_);
+				return;
+			}
+			if (parent_tag == "compound")
+			{
+				actual_compound_.rts.push_back(actual_rt_);
+				return;
+			}
+			cerr << "TraMLHandler: tag 'retentionTime' no allowed at parent tag '" << parent_tag << "'" << endl;
+		}
+
+		if (tag_ == "peptide")
+		{
+			exp_->addPeptide(actual_peptide_);
+		}
+
+		if (tag_ == "compound")
+		{
+			exp_->addCompound(actual_compound_);
+		}
+
+		if (tag_ == "transition")
+		{
+			exp_->addTransition(actual_transition_);
+		}
+	
+		if (tag_ == "interpretation")
+		{
+			actual_transition_.addInterpretation(actual_interpretation_);
+		}
+	
 		cerr << "TraMLHandler: unknown tag closing: '" << tag_ << "'" << endl;
 		return;
 	}
@@ -259,25 +423,62 @@ namespace OpenMS
 		}
     os  << "  </cvList>" << endl;
 
+		// contact list
+		if (exp.getContacts().size() > 0)
+		{
+			os << "  <contactList>" << endl;
+			for (vector<MetaInfoInterface>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
+      {
+        os << "    <contact id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
+        MetaInfoInterface meta = *it;
+        meta.removeMetaValue("id");
+        writeUserParam_(os, meta, 3);
+        os << "    </contact>" << endl;
+      }
+      os << "  </contactList>" << endl;
+		}
+
     // publication list
 		if (exp.getPublications().size() > 0)
 		{
-			//os << "  <publicationList>"  << endl;
-			//os << "  </publicationList>" << endl;
+			os << "  <publicationList>"  << endl;
+			for (vector<MetaInfoInterface>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
+			{	
+				os << "    <publication id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
+				MetaInfoInterface meta = *it;
+				meta.removeMetaValue("id");
+				writeUserParam_(os, meta, 3);
+				os << "    </publication>" << endl;
+			}
+			os << "  </publicationList>" << endl;
 		}
 
     // instrument list
 		if (exp.getInstruments().size() > 0)
 		{
-			//os << "  <instrumentList>" << endl;
-			//os << "  </instrumentList>" << endl;
+			os << "  <instrumentList>" << endl;
+			for (vector<MetaInfoInterface>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
+			{
+				os << "    <instrument id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
+				MetaInfoInterface meta = *it;
+				meta.removeMetaValue("id");
+				writeUserParam_(os, meta, 3);
+				os << "    </instrument>" << endl;
+			}
+			os << "  </instrumentList>" << endl;
 		}
 
     // software list
 		if (exp.getSoftware().size() > 0)
 		{
-			//os << "  <softwareList>" << endl;
-			//os << "  </softwareList>" << endl;
+			os << "  <softwareList>" << endl;
+			for (vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
+			{
+				os << "    <software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << endl;
+				writeUserParam_(os, *it, 3);
+				os << "    </software>" << endl;
+			}
+			os << "  </softwareList>" << endl;
 		}
 
     // protein list
@@ -286,10 +487,8 @@ namespace OpenMS
 			os << "  <proteinList>" << endl;
 			for (vector<MRMExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
 			{
-				os << "    <protein id=\"" << it->id << "\" accession=\"" << it->accession << "\" name=" << it->name << "\" description=\"" << it->description << "\" comment=\"" << it->comment << "\"" << endl;
-				os << "      <sequence>" << endl;
-				os << "        " << it->sequence << endl;
-				os << "      </sequence>" << endl;
+				os << "    <protein id=\"" << it->id << "\" accession=\"" << it->accession << "\" name=\"" << it->name << "\" description=\"" << it->description << "\" comment=\"" << it->comment << "\" >" << endl;
+				os << "      <sequence>" << it->sequence << "</sequence>" << endl;
 				os << "    </protein>" << endl;
 			}
 			os << "  </proteinList>" << endl;
@@ -299,19 +498,6 @@ namespace OpenMS
 		if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
 		{
 			os << "  <compoundList>" << endl;
-			for (vector<MRMExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
-			{
-				os << "    <compound id=\"" << it->id << "\">" << endl;
-				writeUserParams_(os, it->cvs, 3);
-        for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
-        {
-          os << "      <retentionTime localRetentionTime=\"" << rit->local_retention_time << "\" normalizedRetentionTime=\"" << rit->normalized_retention_time << "\" << normalizationStandard=\"" << rit->normalization_standard << "\" predictedRetentionTime=\"" << rit->predicted_retention_time << "\" predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\" >" << endl;
-          writeUserParams_(os, rit->cvs, 5);
-          os << "      </retentionTime>" << endl;
-        }
-				os << "    </compound>" << endl;
-			}
-
 			for (vector<MRMExperiment::Peptide>::const_iterator it = exp.getPeptides().begin(); it != exp.getPeptides().end(); ++it)
 			{
 				os << "    <peptide id=\"" << it->id << "\" proteinRef=\"" << it->protein_ref << "\" unmodifiedSequence=\"" << it->unmodified_sequence << "\" modifiedSequence=\"" << it->modified_sequence << "\" labelingCategory=\"" << it->labeling_category << "\" groupLabel=\"" << it->group_label << "\">" << endl;
@@ -319,22 +505,180 @@ namespace OpenMS
 				
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
 				{
-					os << "      <retentionTime localRetentionTime=\"" << rit->local_retention_time << "\" normalizedRetentionTime=\"" << rit->normalized_retention_time << "\" << normalizationStandard=\"" << rit->normalization_standard << "\" predictedRetentionTime=\"" << rit->predicted_retention_time << "\" predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\" >" << endl;
+					os << "       <retentionTime";
+					if (rit->local_retention_time > 0)
+					{
+						os << " localRetentionTime=\"" << rit->local_retention_time << "\"";
+					}
+					if (rit->normalized_retention_time > 0)
+					{
+						os << " normalizedRetentionTime=\"" << rit->normalized_retention_time << "\"";
+					}
+					if (rit->normalization_standard != "")
+					{
+						os << " normalizationStandard=\"" << rit->normalization_standard << "\"";
+					}
+					if (rit->predicted_retention_time > 0)
+					{
+						os << " predictedRetentionTime=\"" << rit->predicted_retention_time << "\"";
+					}
+					if (rit->predicted_retention_time_software_ref != "")
+					{
+						os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
+					}
+					os << " >" << endl;
 					writeUserParams_(os, rit->cvs, 5);
-					os << "      </retentionTime>" << endl;
+					os << "       </retentionTime>" << endl;
 				}
 
 				os << "    </peptide>" << endl;
 			}
+
+      for (vector<MRMExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
+      {
+        os << "    <compound id=\"" << it->id << "\">" << endl;
+        writeUserParams_(os, it->cvs, 3);
+
+				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
+        {
+          os << "       <retentionTime";
+          if (rit->local_retention_time > 0)
+          {
+            os << " localRetentionTime=\"" << rit->local_retention_time << "\"";
+          }
+          if (rit->normalized_retention_time > 0)
+          {
+            os << " normalizedRetentionTime=\"" << rit->normalized_retention_time << "\"";
+          }
+          if (rit->normalization_standard != "")
+          {
+            os << " normalizationStandard=\"" << rit->normalization_standard << "\"";
+          }
+          if (rit->predicted_retention_time > 0)
+          {
+            os << " predictedRetentionTime=\"" << rit->predicted_retention_time << "\"";
+          }
+          if (rit->predicted_retention_time_software_ref != "")
+          {
+            os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
+          }
+          os << " >" << endl;
+          writeUserParams_(os, rit->cvs, 5);
+          os << "       </retentionTime>" << endl;
+        }
+
+				os << "    </compound>" << endl;
+			}
+
 			os << "  </compoundList>" << endl;
 		}
 
     // transition list
 		if (exp.getTransitions().size() > 0)
 		{
+			/*
 			os << "  <transitionList>" << endl;
-			// TODO
+			for (vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
+			{
+				os << "    <transition";
+				if (it->getName() != "")
+				{
+					os << " name=\"" << it->getName() << "\"";
+				}
+
+				if (it->getPeptideRef() != "")
+				{
+					os << " peptideRef=\"" << it->getPeptideRef() << "\"";
+				}
+
+				if (it->getCompoundRef() != "")
+				{
+					os << " compoundRef=\"" << it->getCompoundRef() << "\"";
+				}
+				os << " >" << endl;
+
+				os << "      <precursor mz=\"" << it->getPrecursorMZ() << "\"";
+				if (it->getPrecursorCharge() != numeric_limits<Int>::max())
+				{
+					os << " charge=\"" << it->getPrecursorCharge() << "\"";
+				}
+				os << " />" << endl;
+			
+				os << "      <product mz=\"" << it->getProductMZ() << "\"";
+				if (it->getProductCharge() != numeric_limits<Int>::max())
+				{
+				 	os << "  charge=\"" << it->getProductCharge() << "\"";
+				}
+				os << " />" << endl;
+				os << "      <interpretationList>" << endl;
+				for (vector<TransitionInterpretation>::const_iterator tit = it->getInterpretations().begin(); tit != it->getInterpretations().end(); ++tit)
+				{
+					os << "        <interpretation";
+					//<interpretation productSeries="y" productOrdinal="8" productAdjustment="" mzDelta="0.03" primary="true"/>
+					if (tit->getProductSeries() != "")
+					{
+						os << " productSeries=\"" << tit->getProductSeries() << "\"";
+					}
+					if (tit->getProductOrdinal() != numeric_limits<Size>::max())
+					{
+						os << " productOrdinal=\"" << tit->getProductOrdinal() << "\"";
+					}
+					if (tit->getProductAdjustment() != "")
+					{
+						os << " productAdjustment=\"" << tit->getProductAdjustment() << "\"";
+					}
+					if (tit->getMZDelta() != numeric_limits<DoubleReal>::max())
+					{
+						os << " mzDelta=\"" << tit->getMZDelta() << "\"";
+					}
+					if (tit->getPrimary() == 1)
+					{
+						os << " primary=\"true\"";
+					}
+
+					if (tit->getPrimary() == 0)
+					{
+						os << " primary=\"false\"";
+					}
+					os << " >" << endl; 
+
+					writeUserParams_(os, tit->getCVs(), 4);
+
+					os << "        </interpretation>" << endl;
+				}
+				os << "      </interpretationList>" << endl;
+
+				// TODO
+				//os << "      <predictions>
+
+				
+				if (it->getConfigurations().size() > 0)
+				{
+					os << "      <configurationList>" << endl;
+					for (vector<ReactionMonitoring::Configuration>::const_iterator cit = it->getConfigurations().begin(); cit != it->getConfigurations().end(); ++cit)
+					{
+						os << "       <configuration instrumentRef=\"" << cit->instrument_ref;
+						if (cit->contact_ref != "")
+						{
+							os << " contactRef=\"" << cit->contact_ref;
+						}
+						os << " >" << endl;
+
+						writeUserParams_(os, cit->cvs, 4);
+
+						//for ()
+
+
+						os << "       </configuration>" << endl;
+					}
+					os << "      </configurationList>" << endl;
+				}
+				
+
+				os << "    </transition>" << endl;
+			}
 			os << "  </transitionList>" << endl;
+			*/
 		}
 
 
@@ -352,10 +696,10 @@ namespace OpenMS
 			if (cv_.exists(key))
 			{
 				ControlledVocabulary::CVTerm term = cv_.getTerm(key);
-				os << String('\t', indent) << "<cvParam cvRef=\"" << key.prefix(':') << "\" accession=\"" << key << "\" name=\"" << term.name;
+				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << key.prefix(':') << "\" accession=\"" << key << "\" name=\"" << term.name << "\"";
 				if (term.xref_type != ControlledVocabulary::CVTerm::NONE)
 				{
-					os << "\" value=\"" << (String)meta.getMetaValue(key) << "\"";
+					os << " value=\"" << (String)meta.getMetaValue(key) << "\"";
 				}
 				os << " />" << endl;
 			}
@@ -474,9 +818,53 @@ namespace OpenMS
 
 
 		// now handle the CVTerm and add it to the object
+		if (parent_tag == "software")
+		{
+			actual_software_.setMetaValue(accession, value);
+		}
 
+		if (parent_tag == "publication")
+		{
+			actual_publication_.setMetaValue(accession, value);
+		}
 
+		if (parent_tag == "instrument")
+		{
+			actual_instrument_.setMetaValue(accession, value);
+		}
+
+		if (parent_tag == "contact")
+		{
+			actual_contact_.setMetaValue(accession, value);
+		}
+
+		if (parent_tag == "retentionTime")
+		{
+			MetaInfoInterface meta;
+			meta.setMetaValue(accession, value);
+			actual_rt_.cvs.push_back(meta);
+		}
 		
+		if (parent_tag == "evidence")
+		{
+			MetaInfoInterface meta;
+			meta.setMetaValue(accession, value);
+			actual_peptide_.evidence.push_back(meta);
+		}
+
+		if (parent_tag == "peptide")
+		{
+			MetaInfoInterface meta;
+			meta.setMetaValue(accession, value);
+			actual_peptide_.cvs.push_back(meta);
+		}
+
+    if (parent_tag == "compound")
+    {
+      MetaInfoInterface meta;
+      meta.setMetaValue(accession, value);
+      actual_compound_.cvs.push_back(meta);
+    }
 	}
 
 	} //namespace Internal

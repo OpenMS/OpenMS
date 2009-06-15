@@ -39,12 +39,56 @@ namespace OpenMS
 	/**
 		@brief This class stores a SRM/MRM transition
 
-		bla
+		The default values for precursor and product m/z values are
+		set to numeric_limits<DoubleReal>::max(). Default values for 
+		precursor an product charge is set to numeric_limits<Int>::max().
 	*/
 	class OPENMS_DLLAPI ReactionMonitoringTransition : public MetaInfoInterface
 	{
 
 		public:
+
+		struct Validation
+		{
+			String transition_source;
+			DoubleReal relative_intensity;
+			Size recommended_transition_rank;
+			Size intensity_rank;
+			std::vector<MetaInfoInterface> cvs;
+
+			Validation& operator = (const Validation& rhs)
+			{
+				if (this != &rhs)
+				{
+					transition_source = rhs.transition_source;
+					relative_intensity = rhs.relative_intensity;
+					recommended_transition_rank = rhs.recommended_transition_rank;
+					intensity_rank = rhs.intensity_rank;
+					cvs = rhs.cvs;
+				}
+				return *this;
+			}
+		};
+
+		struct Configuration
+		{
+			String contact_ref;
+			String instrument_ref;
+			std::vector<Validation> validations;
+			std::vector<MetaInfoInterface> cvs;
+
+			Configuration& operator = (const Configuration& rhs)
+			{
+				if (this != &rhs)
+				{
+					contact_ref = rhs.contact_ref;
+					instrument_ref = rhs.instrument_ref;
+					validations = rhs.validations;
+					cvs = rhs.cvs;
+				}
+				return *this;
+			}
+		};
 
 		/** @name Constructors and destructors
 		*/
@@ -65,6 +109,18 @@ namespace OpenMS
 		/** @name Accessors
 		*/
 		//@{
+		void setName(const String& name);
+
+		const String& getName() const;
+
+		void setPeptideRef(const String& peptide_ref);
+
+		const String& getPeptideRef() const;
+
+		void setCompoundRef(const String& compound_ref);
+
+		const String& getCompoundRef() const;
+
 		/// sets the precursor mz (Q1 value)
 		void setPrecursorMZ(DoubleReal mz);
 
@@ -82,16 +138,24 @@ namespace OpenMS
 
 		Int getProductCharge() const;
 
-		void setInterpretationList(const std::vector<TransitionInterpretation>& interpretations);
+		void setInterpretations(const std::vector<TransitionInterpretation>& interpretations);
 
-		const std::vector<TransitionInterpretation>& getInterpretationList() const;
+		const std::vector<TransitionInterpretation>& getInterpretations() const;
 
 		void addInterpretation(const TransitionInterpretation& interpretation);
+
+		void setConfigurations(const std::vector<Configuration>& configuration);
+		
+		const std::vector<Configuration>& getConfigurations() const;
+
+		void addConfiguration(const Configuration& configuration);
 		//@}
 
 		protected:
 
 		void updateMembers_();
+
+		String name_;
 
 		DoubleReal precursor_mz_;
 
@@ -103,7 +167,13 @@ namespace OpenMS
 
 		std::vector<TransitionInterpretation> interpretation_list_;
 	
-		//vector<Configurations> configurations_list_; why multiple configuration per transition????
+		//vector<Configuration> configurations_list_; why multiple configuration per transition????
+
+		String peptide_ref_;
+
+		String compound_ref_;
+
+		std::vector<Configuration> configurations_;
 	};
 }
 

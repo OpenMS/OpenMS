@@ -41,7 +41,7 @@ namespace OpenMS
 		the type of ion and different other values.
 
 	*/
-	class OPENMS_DLLAPI TransitionInterpretation : public MetaInfoInterface
+	class OPENMS_DLLAPI TransitionInterpretation
 	{
 
 		public:
@@ -73,17 +73,23 @@ namespace OpenMS
 
 		bool getPrimary() const;
 
-		void setProductAdjustment(DoubleReal adjustment);
+		void setProductAdjustment(const String& adjustment);
 
-		DoubleReal getProductAdjustment() const;
+		const String& getProductAdjustment() const;
 
-		void setProductOrdinal(Int ordinal);
+		void setProductOrdinal(Size ordinal);
 	
-		Int getProductOrdinal() const;
+		Size getProductOrdinal() const;
 
 		void setProductSeries(const String& series);
 
 		const String& getProductSeries() const;
+
+		void setCVs(const std::vector<MetaInfoInterface>& cvs);
+		
+		void addCV(const MetaInfoInterface& cv);
+
+		const std::vector<MetaInfoInterface>& getCVs() const;
 		//@}
 
 		protected:
@@ -92,12 +98,13 @@ namespace OpenMS
 		
 		bool is_primary_;
 		
-		DoubleReal product_adjustment_;
+		String product_adjustment_;
 		
-		Int product_ordinal_;
+		Size product_ordinal_;
 		
 		String product_series_;
 
+		std::vector<MetaInfoInterface> cvs_;
 	};
 }
 

@@ -35,21 +35,19 @@ using namespace std;
 namespace OpenMS
 {
 	TransitionInterpretation::TransitionInterpretation()
-		: MetaInfoInterface(),
-			mz_delta_(0),
+		:	mz_delta_(numeric_limits<DoubleReal>::max()),
 			is_primary_(false),
-			product_adjustment_(0),
-			product_ordinal_(0)
+			product_ordinal_(numeric_limits<Size>::max())
 	{
 	}
 
   TransitionInterpretation::TransitionInterpretation(const TransitionInterpretation& rhs)
-		: MetaInfoInterface(rhs),
-			mz_delta_(rhs.mz_delta_),
+		:	mz_delta_(rhs.mz_delta_),
       is_primary_(rhs.is_primary_),
       product_adjustment_(rhs.product_adjustment_),
       product_ordinal_(rhs.product_ordinal_),
-      product_series_(rhs.product_series_)
+      product_series_(rhs.product_series_),
+			cvs_(rhs.cvs_)
 	{
 	}
 
@@ -66,6 +64,7 @@ namespace OpenMS
 			product_adjustment_ = rhs.product_adjustment_;
 			product_ordinal_ = rhs.product_ordinal_;
 			product_series_ = rhs.product_series_;
+			cvs_ = rhs.cvs_;
 		}
 		return *this;
 	}
@@ -90,22 +89,22 @@ namespace OpenMS
 		return is_primary_;
 	}
 
-	void TransitionInterpretation::setProductAdjustment(DoubleReal adjustment)
+	void TransitionInterpretation::setProductAdjustment(const String& adjustment)
 	{
 		product_adjustment_ = adjustment;
 	}
 
-	DoubleReal TransitionInterpretation::getProductAdjustment() const
+	const String& TransitionInterpretation::getProductAdjustment() const
 	{
 		return product_adjustment_;
 	}
 
-	void TransitionInterpretation::setProductOrdinal(Int ordinal)
+	void TransitionInterpretation::setProductOrdinal(Size ordinal)
 	{
 		product_ordinal_ = ordinal;
 	}
 
-	Int TransitionInterpretation::getProductOrdinal() const
+	Size TransitionInterpretation::getProductOrdinal() const
 	{
 		return product_ordinal_;
 	}
@@ -118,6 +117,21 @@ namespace OpenMS
 	const String& TransitionInterpretation::getProductSeries() const
 	{
 		return product_series_;
+	}
+
+	void TransitionInterpretation::addCV(const MetaInfoInterface& cv)
+	{
+		cvs_.push_back(cv);
+	}
+
+	void TransitionInterpretation::setCVs(const vector<MetaInfoInterface>& cvs)
+	{
+		cvs_ = cvs;
+	}
+
+	const vector<MetaInfoInterface>& TransitionInterpretation::getCVs() const
+	{
+		return cvs_;
 	}
 	
 }

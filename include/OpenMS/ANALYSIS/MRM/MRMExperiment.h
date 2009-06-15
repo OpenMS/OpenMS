@@ -70,6 +70,10 @@ namespace OpenMS
 
 		struct Protein
 		{
+			Protein()
+			{
+			}
+
 			String id;
 			String accession;
 			String name;
@@ -86,6 +90,21 @@ namespace OpenMS
 								comment == rhs.comment && 
 								sequence == rhs.sequence;
 			}
+
+      Protein& operator = (const Protein& rhs)
+      {
+				if (&rhs != this)
+				{
+        	id = rhs.id;
+          accession = rhs.accession;
+          name = rhs.name;
+          description = rhs.description;
+          comment = rhs.comment;
+          sequence = rhs.sequence;
+				}
+				return *this;
+      }
+
 		};
 
 		class OPENMS_DLLAPI RetentionTime
@@ -94,7 +113,6 @@ namespace OpenMS
 
 			RetentionTime()
 				: local_retention_time(0),
-					normalization_standard(0),
 					normalized_retention_time(0),
 					predicted_retention_time(0)
 			{
@@ -140,7 +158,7 @@ namespace OpenMS
 
 
 			DoubleReal local_retention_time;
-			DoubleReal normalization_standard;
+			String normalization_standard;
 			DoubleReal normalized_retention_time;
 			DoubleReal predicted_retention_time;
 			String predicted_retention_time_software_ref;
@@ -346,7 +364,7 @@ namespace OpenMS
 
 		std::vector<CV> cvs_;
 
-		std::vector<ContactPerson> contacts_;
+		std::vector<MetaInfoInterface> contacts_;
 
 		std::vector<MetaInfoInterface> publications_;
 

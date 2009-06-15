@@ -93,6 +93,20 @@ namespace OpenMS
 
 			MetaInfoInterface actual_instrument_;
 
+			Software actual_software_;
+
+			MRMExperiment::Protein actual_protein_;
+
+			MRMExperiment::RetentionTime actual_rt_;
+
+			MRMExperiment::Peptide actual_peptide_;
+
+			MRMExperiment::Compound actual_compound_;
+			
+			ReactionMonitoringTransition actual_transition_;
+	
+			TransitionInterpretation actual_interpretation_;
+
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
 
