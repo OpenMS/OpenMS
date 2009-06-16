@@ -10,8 +10,20 @@
 			<NODE name="Isotopes">
 				<ITEM name="1" value="99.9885" type="float" />
 				<ITEM name="2" value="0.0115" type="float" />
+				<ITEM name="3" value="0" type="float" />
 			</NODE>
 		</NODE>
+    <NODE name="Lihium">
+      <ITEM name="Name" value="Lithium" type="string" />
+      <ITEM name="Symbol" value="Li" type="string" />
+      <ITEM name="AtomicNumber" value="3" type="int" />
+      <ITEM name="AverageWeight" value="6.941" type="float" />
+      <ITEM name="MonoWeight" value="6.0759" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="6" value="0.759" type="float" />
+        <ITEM name="7" value="92.41" type="float" />
+      </NODE>
+    </NODE>
 		<NODE name="Carbon">
 			<ITEM name="Name" value="Carbon" type="string" />
 			<ITEM name="Symbol" value="C" type="string" />
@@ -34,6 +46,55 @@
 				<ITEM name="15" value="0.368" type="float" />
 			</NODE>
 		</NODE>
+		<NODE name="Manganese">
+      <ITEM name="Name" value="Manganese" type="string" />
+      <ITEM name="Symbol" value="Mn" type="string" />
+      <ITEM name="AtomicNumber" value="25" type="int" />
+      <ITEM name="AverageWeight" value="54.938049" type="float" />
+      <ITEM name="MonoWeight" value="54.938 0493" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="55" value="100" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Nickel">
+      <ITEM name="Name" value="Nickel" type="string" />
+      <ITEM name="Symbol" value="Ni" type="string" />
+      <ITEM name="AtomicNumber" value="28" type="int" />
+      <ITEM name="AverageWeight" value="58.6934" type="float" />
+      <ITEM name="MonoWeight" value="57.9353477" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="58" value="68.0169" type="float" />
+        <ITEM name="60" value="26.2231" type="float" />
+        <ITEM name="61" value="1.1399" type="float" />
+        <ITEM name="62" value="3.6345" type="float" />
+        <ITEM name="64" value="0.9256" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Copper">
+      <ITEM name="Name" value="Copper" type="string" />
+      <ITEM name="Symbol" value="Cu" type="string" />
+      <ITEM name="AtomicNumber" value="29" type="int" />
+      <ITEM name="AverageWeight" value="63.546" type="float" />
+      <ITEM name="MonoWeight" value="62.9296007" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="63" value="62.9296007" type="float" />
+        <ITEM name="65" value="64.9277938" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Zinc">
+      <ITEM name="Name" value="Zinc" type="string" />
+      <ITEM name="Symbol" value="Zn" type="string" />
+      <ITEM name="AtomicNumber" value="30" type="int" />
+      <ITEM name="AverageWeight" value="65.409" type="float" />
+      <ITEM name="MonoWeight" value="63.9291461(" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="64" value="48.268" type="float" />
+        <ITEM name="66" value="27.975" type="float" />
+        <ITEM name="67" value="4.102" type="float" />
+        <ITEM name="68" value="19.024" type="float" />
+        <ITEM name="70" value="0.631" type="float" />
+      </NODE>
+    </NODE>
 		<NODE name="Oxygen">
 			<ITEM name="Name" value="Oxygen" type="string" />
 			<ITEM name="Symbol" value="O" type="string" />
@@ -69,6 +130,33 @@
 				<ITEM name="36" value="0.02" type="float" />
 			</NODE>
 		</NODE>
+    <NODE name="Molybdenum">
+      <ITEM name="Name" value="Molybdenum" type="string" />
+      <ITEM name="Symbol" value="Mo" type="string" />
+      <ITEM name="AtomicNumber" value="42" type="int" />
+      <ITEM name="AverageWeight" value="95.94" type="float" />
+      <ITEM name="MonoWeight" value="91.906810" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="92" value="14.84" type="float" />
+        <ITEM name="94" value="9.25" type="float" />
+        <ITEM name="95" value="15.92" type="float" />
+        <ITEM name="96" value="16.68" type="float" />
+        <ITEM name="97" value="9.55" type="float" />
+        <ITEM name="98" value="24.13" type="float" />
+        <ITEM name="100" value="9.63" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Silver">
+      <ITEM name="Name" value="Silver" type="string" />
+      <ITEM name="Symbol" value="Ag" type="string" />
+      <ITEM name="AtomicNumber" value="47" type="int" />
+      <ITEM name="AverageWeight" value="107.8682" type="float" />
+      <ITEM name="MonoWeight" value="106.905 093" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="107" value="51.839" type="float" />
+        <ITEM name="109" value="48.161" type="float" />
+      </NODE>
+    </NODE>
 		<NODE name="Iodine">
 			<ITEM name="Name" value="Iodine" type="string" />
 			<ITEM name="Symbol" value="I" type="string" />
@@ -142,6 +230,17 @@
 				<ITEM name="82" value="8.731" type="float" />
 			</NODE>
 		</NODE>
+    <NODE name="Vanadium">
+      <ITEM name="Name" value="Vanadium" type="string" />
+      <ITEM name="Symbol" value="V" type="string" />
+      <ITEM name="AtomicNumber" value="23" type="int" />
+      <ITEM name="AverageWeight" value="50.9415" type="float" />
+      <ITEM name="MonoWeight" value="49.9471627" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="50" value="0.25" type="float" />
+        <ITEM name="51" value="99.75" type="float" />
+      </NODE>
+    </NODE>	
 		<NODE name="Cobalt">
 			<ITEM name="Name" value="Cobalt" type="string" />
 			<ITEM name="Symbol" value="Co" type="string" />
@@ -198,5 +297,45 @@
 				<ITEM name="30" value="3.10" type="float" />
 			</NODE>
 		</NODE>	
-	</NODE>
+		<NODE name="Tungsten">
+      <ITEM name="Name" value="Tungsten" type="string" />
+      <ITEM name="Symbol" value="W" type="string" />
+      <ITEM name="AtomicNumber" value="74" type="int" />
+      <ITEM name="AverageWeight" value="183.84" type="float" />
+      <ITEM name="MonoWeight" value="179.946706" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="180" value="0.12" type="float" />
+        <ITEM name="182" value="26.50" type="float" />
+        <ITEM name="183" value="14.31" type="float" />
+        <ITEM name="184" value="30.64" type="float" />
+        <ITEM name="186" value="28.43" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Gold">
+      <ITEM name="Name" value="Gold" type="string" />
+      <ITEM name="Symbol" value="Au" type="string" />
+      <ITEM name="AtomicNumber" value="79" type="int" />
+      <ITEM name="AverageWeight" value="196.966551" type="float" />
+      <ITEM name="MonoWeight" value="196.966551" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="197" value="100" type="float" />
+      </NODE>
+    </NODE>
+    <NODE name="Mercury">
+      <ITEM name="Name" value="Mercury" type="string" />
+      <ITEM name="Symbol" value="Hg" type="string" />
+      <ITEM name="AtomicNumber" value="80" type="int" />
+      <ITEM name="AverageWeight" value="200.59" type="float" />
+      <ITEM name="MonoWeight" value="195.965814" type="float" />
+      <NODE name="Isotopes">
+        <ITEM name="196" value="0.15" type="float" />
+				<ITEM name="198" value="9.97" type="float" />
+				<ITEM name="199" value="16.87" type="float" />
+				<ITEM name="200" value="23.10" type="float" />
+				<ITEM name="201" value="13.18" type="float" />
+				<ITEM name="202" value="29.86" type="float" />
+				<ITEM name="204" value="6.87" type="float" />
+      </NODE>
+    </NODE>
+  </NODE>
 </PARAMETERS>

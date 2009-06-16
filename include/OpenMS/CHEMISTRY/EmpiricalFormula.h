@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
@@ -51,8 +51,8 @@ namespace OpenMS
 		 	frequency is set to one. Examples are CH3OH or CarbonHydrogen3OH.
 		 	The names must start with an capital letter (symbols always have
 		 	an upper-case letter at the beginning). Additionally charges can
-			be used with '+' or '-' followed by a number, if no number follows
-		 	the charge of +/- 1 is set.
+			be used with '+' followed by a number, if no number follows
+		 	the charge of +1 is set.
 	*/
 
 	class OPENMS_DLLAPI EmpiricalFormula
@@ -64,8 +64,8 @@ namespace OpenMS
 			*/
 			//@{
 			/// Iterators
-			typedef Map<const Element*, UInt>::ConstIterator ConstIterator;
-			typedef Map<const Element*, UInt>::ConstIterator const_iterator;
+			typedef Map<const Element*, SignedSize>::ConstIterator ConstIterator;
+			typedef Map<const Element*, SignedSize>::ConstIterator const_iterator;
 
 			/** @name Constructors and Destructors
 			*/
@@ -83,7 +83,7 @@ namespace OpenMS
 			EmpiricalFormula(const String& rhs);
 
 			/// constructor with element pointer and number
-			EmpiricalFormula(UInt number, const Element* element, Int charge = 0);
+			EmpiricalFormula(SignedSize number, const Element* element, Size charge = 0);
 
 			/// destructor
 			virtual ~EmpiricalFormula();
@@ -115,22 +115,22 @@ namespace OpenMS
 			const ElementDB* getElementDB() const;
 
 			/// returns the number of atoms with the given atomic_number
-			UInt getNumberOf(UInt atomic_number) const;
+			Size getNumberOf(UInt atomic_number) const;
 
 			/// returns the number of atoms with the given name
-			UInt getNumberOf(const String& name) const;
+			Size getNumberOf(const String& name) const;
 
 			/// returns the number of atoms
-			UInt getNumberOf(const Element* element) const;
+			Size getNumberOf(const Element* element) const;
 
 			/// returns the atoms total
-			UInt getNumberOfAtoms() const;
+			Size getNumberOfAtoms() const;
 
 			/// returns the charge
-			Int getCharge() const;
+			Size getCharge() const;
 
 			/// sets the charge
-			void setCharge(Int charge);
+			void setCharge(Size charge);
 
 			/// returns the formula as a string
 			String getString() const;
@@ -243,13 +243,13 @@ namespace OpenMS
 
 		protected:
 
-			Map<const Element*, UInt> formula_;
+			Map<const Element*, SignedSize> formula_;
 
-			Int charge_;
+			Size charge_;
 
 			void readElementsFromFile_(const String& file_name);
 
-			Int parseFormula_(Map<const Element*, UInt>& ef,const String& formula) const;
+			Size parseFormula_(Map<const Element*, SignedSize>& ef,const String& formula) const;
 
 			const ElementDB* element_db_;
 	};

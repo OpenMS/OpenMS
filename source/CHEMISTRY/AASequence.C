@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -176,32 +176,7 @@ namespace OpenMS
 				(type == Residue::Full || type == Residue::AIon || type == Residue::BIon || type == Residue::CIon || type == Residue::NTerminal)
 			 )
     {
-      // TODO replace this when EmpiricalFormula is reported (with diff allowed)
-      String formula = ModificationsDB::getInstance()->getModification(n_term_mod_).getDiffFormula();
-      vector<String> split;
-      formula.split(' ', split);
-      if (split.size()%2 != 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
-      }
-      for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
-      {
-        String element = *it;
-        if (element.has(')'))
-        {
-          element = element.suffix(')');
-        }
-        Int number = (++it)->toInt();
-
-        if (number < 0)
-        {
-          ef -= element + String(abs(number));
-        }
-        else
-        {
-          ef += element + *it;
-        }
-      }
+      ef += ModificationsDB::getInstance()->getModification(n_term_mod_).getDiffFormula();
     }
 
 
@@ -209,32 +184,7 @@ namespace OpenMS
 				(type == Residue::Full || type == Residue::XIon || type == Residue::YIon || type == Residue::ZIon || type == Residue::CTerminal)
 			 )
     {
-      String formula = ModificationsDB::getInstance()->getModification(c_term_mod_).getDiffFormula();
-      vector<String> split;
-      formula.split(' ', split);
-      if (split.size()%2 != 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
-      }
-      EmpiricalFormula ef = getFormula();
-      for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
-      {
-        String element = *it;
-        if (element.has(')'))
-        {
-          element = element.suffix(')');
-        }
-        Int number = (++it)->toInt();
-
-        if (number < 0)
-        {
-          ef -= element + String(abs(number));
-        }
-        else
-        {
-          ef += element + *it;
-        }
-      }
+      ef += ModificationsDB::getInstance()->getModification(c_term_mod_).getDiffFormula();
     }
 
 

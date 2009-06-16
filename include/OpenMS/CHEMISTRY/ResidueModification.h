@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -30,6 +30,7 @@
 #define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <set>
 
@@ -192,10 +193,10 @@ namespace OpenMS
 			const String& getFormula() const;
 
 			/// sets diff formula
-			void setDiffFormula(const String& diff_formula);
+			void setDiffFormula(const EmpiricalFormula& diff_formula);
 
 			/// returns the diff formula if one was set
-			const String& getDiffFormula() const;
+			const EmpiricalFormula& getDiffFormula() const;
 			
 			/// sets the synonyms of that modification
 			void setSynonyms(const std::set<String>& synonyms);
@@ -241,7 +242,7 @@ namespace OpenMS
 			
 			String formula_;
 
-			String diff_formula_;
+			EmpiricalFormula diff_formula_;
 
 			//std::vector<String> valid_residues_;
 

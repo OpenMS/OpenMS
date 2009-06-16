@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -136,10 +136,26 @@ namespace OpenMS
 				distribution.clear();
 
 				// new element to be build
-				Element * e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
+				Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
 				names_[name] = e;
 				symbols_[symbol] = e;
 				atomic_numbers_[an] = e;
+
+				// add all the individual isotopes as separat elements
+				for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
+				{
+					String iso_name = "(" + String(iit->first) + ")" + name;
+					String iso_symbol = "(" + String(iit->first) + ")" + symbol;
+					DoubleReal iso_avg_weight = mono_weight + (iit->first - isotopes.begin()->first); // TODO exact masses
+					DoubleReal iso_mono_weight = iso_avg_weight;
+					IsotopeDistribution iso_isotopes;
+					vector<pair<Size, double> > iso_container;
+					iso_container.push_back(make_pair(iit->first, 1.0));
+					iso_isotopes.set(iso_container);
+					Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+					names_[iso_name] = iso_e;
+					names_[iso_symbol] = iso_e;
+				}
 			}
 
 			// read the contents of the element section

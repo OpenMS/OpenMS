@@ -108,7 +108,7 @@ START_SECTION(void setMaxIsotope(Size max_isotope))
 	IsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
 	TEST_EQUAL(iso->getMaxIsotope(), 0)
-	TEST_EQUAL(iso2.getContainer().size(), 189)
+	TEST_EQUAL(iso2.getContainer().size(), 275)
 	iso->setMaxIsotope(117);
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 END_SECTION
@@ -177,7 +177,7 @@ END_SECTION
 
 START_SECTION(Size getMax() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
-	TEST_EQUAL(iso.getMax(), 4)
+	TEST_EQUAL(iso.getMax(), 6)
 END_SECTION
 
 START_SECTION(Size getMin() const)

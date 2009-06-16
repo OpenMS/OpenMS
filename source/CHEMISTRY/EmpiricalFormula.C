@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -54,7 +54,7 @@ namespace OpenMS
 		charge_ = parseFormula_(formula_, formula);
 	}
 
-	EmpiricalFormula::EmpiricalFormula(UInt number, const Element* element, Int charge)
+	EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, Size charge)
 	{
 		formula_[element] = number;
 		charge_ = charge;
@@ -67,7 +67,7 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getMonoWeight() const
 	{
 		DoubleReal weight(0);
-		Map<const Element*, UInt>::ConstIterator it=formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
 			weight += it->first->getMonoWeight() * it->second;
@@ -78,7 +78,7 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getAverageWeight() const 
 	{
 		DoubleReal weight(0);
-		Map<const Element*, UInt>::ConstIterator it=formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
 			weight += it->first->getAverageWeight() * it->second;
@@ -89,7 +89,7 @@ namespace OpenMS
 	IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
 	{
 		IsotopeDistribution result(max_depth);
-		Map<const Element*, UInt>::ConstIterator it=formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it!=formula_.end(); ++it)
 		{
 			IsotopeDistribution tmp = it->first->getIsotopeDistribution(); 
@@ -115,7 +115,7 @@ namespace OpenMS
 		return element_db_;
 	}
 
-	UInt EmpiricalFormula::getNumberOf(UInt atomic_number) const
+	Size EmpiricalFormula::getNumberOf(UInt atomic_number) const
 	{
 		if (element_db_->hasElement(atomic_number))
 		{
@@ -127,7 +127,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	UInt EmpiricalFormula::getNumberOf(const String& name) const
+	Size EmpiricalFormula::getNumberOf(const String& name) const
 	{
 		if (element_db_->hasElement(name))
 		{
@@ -139,7 +139,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	UInt EmpiricalFormula::getNumberOf(const Element* element) const
+	Size EmpiricalFormula::getNumberOf(const Element* element) const
 	{
 		if (formula_.has(element))
 		{
@@ -148,10 +148,10 @@ namespace OpenMS
 		return 0;
 	}
 	
-	UInt EmpiricalFormula::getNumberOfAtoms() const
+	Size EmpiricalFormula::getNumberOfAtoms() const
 	{
-		UInt num_atoms(0);
-		Map<const Element*, UInt>::ConstIterator it = formula_.begin();
+		Size num_atoms(0);
+		Map<const Element*, SignedSize>::ConstIterator it = formula_.begin();
 		for (; it!=formula_.end(); ++it)
 		{
 			num_atoms += it->second;
@@ -159,12 +159,12 @@ namespace OpenMS
 		return num_atoms;
 	}
 	
-	void EmpiricalFormula::setCharge(Int charge)
+	void EmpiricalFormula::setCharge(Size charge)
 	{
 		charge_ = charge;
 	}
 	
-	Int EmpiricalFormula::getCharge() const
+	Size EmpiricalFormula::getCharge() const
 	{
 		return charge_;
 	}
@@ -172,14 +172,14 @@ namespace OpenMS
 	String EmpiricalFormula::getString() const
 	{
 		String formula;
-		Map<String, UInt> new_formula;
+		Map<String, SignedSize> new_formula;
 		
-		for (Map<const Element*, UInt>::ConstIterator it = formula_.begin(); it!=formula_.end(); ++it)
+		for (Map<const Element*, SignedSize>::ConstIterator it = formula_.begin(); it!=formula_.end(); ++it)
 		{
 			new_formula[it->first->getSymbol()] = it->second;
 		}
 
-		for (Map<String, UInt>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+		for (Map<String, SignedSize>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
 		{						
 			formula += it->first + String(it->second);
 		}
@@ -208,7 +208,7 @@ namespace OpenMS
 	{
 		EmpiricalFormula ef;
 		ef.formula_ = formula.formula_;
-		Map<const Element*, UInt>::ConstIterator it=formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (;it!=formula_.end();++it)
 		{
 			if (ef.formula_.has(it->first))
@@ -227,8 +227,8 @@ namespace OpenMS
 	EmpiricalFormula EmpiricalFormula::operator + (const String& formula) const
 	{
 		EmpiricalFormula ef;
-		Int charge = parseFormula_(ef.formula_, formula);
-		Map<const Element*, UInt>::ConstIterator it=formula_.begin();
+		Size charge = parseFormula_(ef.formula_, formula);
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (;it!=formula_.end();++it)
 		{
 			if (ef.formula_.has(it->first))
@@ -246,7 +246,7 @@ namespace OpenMS
 	
 	EmpiricalFormula& EmpiricalFormula::operator += (const EmpiricalFormula& formula)
 	{
-		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula.formula_.begin();
 		for (;it!=formula.formula_.end();++it)
 		{
 			if (formula_.has(it->first))
@@ -264,10 +264,10 @@ namespace OpenMS
 
 	EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
 	{
-		Map<const Element*, UInt> str_formula;
-		Int charge = parseFormula_(str_formula, formula);
+		Map<const Element*, SignedSize> str_formula;
+		UInt charge = parseFormula_(str_formula, formula);
 		charge_ += charge;
-		Map<const Element*, UInt>::ConstIterator it;
+		Map<const Element*, SignedSize>::ConstIterator it;
 		for (it=str_formula.begin(); it!=str_formula.end(); ++it)
 		{
 			if (formula_.has(it->first))
@@ -285,21 +285,21 @@ namespace OpenMS
 	EmpiricalFormula EmpiricalFormula::operator - (const EmpiricalFormula& formula) const
 	{
 		EmpiricalFormula ef;
-		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
 		{
 			const Element * e = it->first;
-			UInt num = it->second;
-			if (formula_.has(e) && formula_[e] >= num) 
+			SignedSize num = it->second;
+			if (formula_.has(e))
 			{
-				if (formula_[e] - num > 0)
+				if (formula_[e] - num != 0)
 				{
 					ef.formula_[e] = formula_[e] - num;
 				}
 			}
 			else
 			{
-				throw Exception::SizeUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, num);
+				ef.formula_[e] = -num;
 			}
 		}
 
@@ -318,24 +318,24 @@ namespace OpenMS
 	EmpiricalFormula EmpiricalFormula::operator - (const String& formula) const
 	{
 		EmpiricalFormula ef;
-		Map<const Element*, UInt> str_formula;
-		Int charge = parseFormula_(str_formula, formula);
+		Map<const Element*, SignedSize> str_formula;
+		Size charge = parseFormula_(str_formula, formula);
 		ef.charge_ = charge_ - charge;
-		Map<const Element*, UInt>::ConstIterator it=str_formula.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=str_formula.begin();
 		for (; it!=str_formula.end(); ++it)
 		{
 			const Element * e = it->first;
-			UInt num = it->second;
-			if (formula_.has(e) && formula_[e] >= num)
+			SignedSize num = it->second;
+			if (formula_.has(e))
 			{
-				if (formula_[e] - num > 0)
+				if (formula_[e] - num != 0)
 				{
 					ef.formula_[e] = formula_[e] - num;
 				}
 			}
 			else
 			{
-				throw Exception::SizeUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, num);
+				ef.formula_[e] = -num;
 			}
 		}
 
@@ -352,12 +352,12 @@ namespace OpenMS
 	
 	EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
 	{
-		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
+		Map<const Element*, SignedSize>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
 		{
-			if (formula_.has(it->first) && formula_[it->first] >= it->second)
+			if (formula_.has(it->first))
 			{
-				if (formula_[it->first] - it->second > 0)
+				if (formula_[it->first] != it->second)
 				{
 					formula_[it->first] -= it->second;
 				}
@@ -368,7 +368,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::SizeUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, it->second);
+				formula_[it->first] = -it->second;
 			}
 		}
 		charge_ -= formula.charge_;
@@ -377,15 +377,15 @@ namespace OpenMS
 
 	EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
 	{
-		Map<const Element*, UInt> str_formula;
-		Int charge = parseFormula_(str_formula, formula);
+		Map<const Element*, SignedSize> str_formula;
+		Size charge = parseFormula_(str_formula, formula);
 		charge_ -= charge;
-		Map<const Element*, UInt>::ConstIterator it = str_formula.begin();
+		Map<const Element*, SignedSize>::ConstIterator it = str_formula.begin();
 		for (; it!=str_formula.end(); ++it)
 		{
-			if (formula_.has(it->first) && formula_[it->first] >= it->second)
+			if (formula_.has(it->first))
 			{
-				if (formula_[it->first] - it->second > 0)
+				if (formula_[it->first] != it->second)
 				{
 					formula_[it->first] -= it->second;
 				}
@@ -396,7 +396,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::SizeUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, it->second);
+				formula_[it->first] = -it->second;
 			}
 		}
 		return *this;
@@ -456,8 +456,8 @@ namespace OpenMS
 	
 	bool EmpiricalFormula::operator == (const String& formula) const
 	{
-		Map<const Element*, UInt> str_formula;
-		Int charge = parseFormula_(str_formula, formula);
+		Map<const Element*, SignedSize> str_formula;
+		Size charge = parseFormula_(str_formula, formula);
 		return (formula_ == str_formula && charge_ == charge);
 	}
 	
@@ -468,20 +468,20 @@ namespace OpenMS
 	
 	bool EmpiricalFormula::operator != (const String& formula) const
 	{
-		Map<const Element *, UInt> str_formula;
-		Int charge = parseFormula_(str_formula, formula);
+		Map<const Element *, SignedSize> str_formula;
+		Size charge = parseFormula_(str_formula, formula);
 		return (formula_ != str_formula || charge_ != charge);
 	}
 	
 	ostream& operator << (ostream& os, const EmpiricalFormula& formula)
 	{
-		Map<String, UInt> new_formula;
-		for (Map<const Element*, UInt>::ConstIterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
+		Map<String, SignedSize> new_formula;
+		for (Map<const Element*, SignedSize>::ConstIterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
 		{
 			new_formula[it->first->getSymbol()] = it->second;
 		}
 
-		for (Map<String, UInt>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+		for (Map<String, SignedSize>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
 		{
 			os << it->first;
 			if (it->second > 1)
@@ -497,29 +497,22 @@ namespace OpenMS
 			}
 			else
 			{
-				if (formula.charge_ == -1)
+				if (formula.charge_ == 1)
 				{
-					os << "-";
+					os << "+";
 				}
 				else
 				{
-					if (formula.charge_ > 0)
-					{
-						os << "+" << formula.charge_;
-					}
-					else
-					{
-						os << "-" << formula.charge_;
-					}
+					os << "+" << formula.charge_;
 				}
 			}
 		}
 		return os;
 	}
 
-	Int EmpiricalFormula::parseFormula_(Map<const Element*, UInt>& ef, const String& formula) const 
+	Size EmpiricalFormula::parseFormula_(Map<const Element*, SignedSize>& ef, const String& formula) const 
 	{
-		Int charge = 0;
+		Size charge = 0;
 		
 		String symbol;
 		String number;
@@ -528,22 +521,35 @@ namespace OpenMS
 		vector<String> splitter;	
 		if (formula.size() > 0)
 		{
-			if (!isdigit(formula[0]))
+			if (!isdigit(formula[0]) || formula[0] == '(')
 			{
+				bool is_isotope(false), is_symbol(false);
 				String split;
 				for (Size i=0; i<formula.size(); ++i)
 				{
-					if (isupper(formula[i]) || formula[i] == '+' || formula[i] == '-')
+					if ((isupper(formula[i]) && (!is_isotope || is_symbol))
+							|| formula[i] == '(' 
+							|| formula[i] == '+')
 					{
 						if (split != "")
 						{
 							splitter.push_back(split);
+							is_isotope = false;
+							is_symbol = false;
 						}
 						split = String(1, formula[i]);
 					}
 					else
 					{
 						split += String(1, formula[i]);
+					}
+					if (formula[i] == '(')
+          {
+            is_isotope = true;
+          }
+					if (isupper(formula[i]))
+					{
+						is_symbol = true;
 					}
 				}
 				splitter.push_back(split);
@@ -557,37 +563,43 @@ namespace OpenMS
 		// add up the elements and charge
 		for (Size i=0;i!=splitter.size();++i)
 		{
+			//cerr << "splitter[" << i << "]='" << splitter[i] << "'" << endl;
 			String split = splitter[i];
 			String number;
 			String symbol;
-			for (SignedSize j=split.size()-1;j>=0;--j)
+			bool had_symbol(false);
+			for (SignedSize j = split.size() - 1; j >= 0; --j)
 			{
-				if (isdigit(split[j]))
+				if (!had_symbol && (isdigit(split[j]) || split[j] == '-'))
 				{
 					number = split[j] + number;
 				}
 				else
 				{
 					symbol = split[j] + symbol;
+					had_symbol = true;
 				}
 			}
 
-			UInt num(1);
+			SignedSize num(1);
 			if (number != "")
 			{
-				num = UInt(number.toInt());
+				num = number.toInt();
 			}
 			
 			if (element_db_->hasElement(symbol))
 			{
-				const Element* e = element_db_->getElement(symbol);
-				if (ef.has(e))
+				if (num != 0)
 				{
-					ef[e] += num;
-				}
-				else
-				{
-					ef[e] = num;
+					const Element* e = element_db_->getElement(symbol);
+					if (ef.has(e))
+					{
+						ef[e] += num;
+					}
+					else
+					{
+						ef[e] = num;
+					}
 				}
 			}
 			else
@@ -598,14 +610,7 @@ namespace OpenMS
 				}
 				else
 				{
-					if (symbol == "-")
-					{
-						charge -= num;
-					}
-					else
-					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, split, symbol);
-					}
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, split, symbol);
 				}
 			}
 		}

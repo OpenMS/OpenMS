@@ -310,6 +310,7 @@ namespace OpenMS
 				{
 					vector<String> tmp_split;
 					line.split('"', tmp_split);
+					tmp_split[1].removeWhitespaces();
 					mod.setDiffFormula(tmp_split[1]);
 				}
 				else if (val.hasPrefix("DiffMono:"))

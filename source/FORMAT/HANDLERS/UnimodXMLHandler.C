@@ -73,12 +73,13 @@ namespace OpenMS
 		if (tag_ == "umod:specificity" || tag_ == "specificity")
 		{
 			// classification of mod
-			String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
-			modification_->setSourceClassification(classification);
+			//String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
+			//modification_->setSourceClassification(classification);
+			//TODO
 
 			// allowed site
 			String site(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("site")))));
-			modification_->setTermSpecificity(site);
+			modification_->setOrigin(site);
 
 			// allowed positions
 			ResidueModification::Term_Specificity position = ResidueModification::ANYWHERE;
@@ -138,8 +139,38 @@ namespace OpenMS
 			// avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
 			avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
 			mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass"))))).toDouble();
-			composition_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("composition")))));
 			return;
+		}
+
+		// <umod:element symbol="H" number="1"/>
+		if (tag_ == "umod:element")
+		{
+			String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol"))));
+			String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number"))));
+			String isotope, tmp_symbol;
+      for (Size i = 0; i != symbol.size(); ++i)
+      {
+      	if (isdigit(symbol[i]))
+        {
+        	isotope += symbol[i];
+        }
+        else
+        {
+          tmp_symbol += symbol[i];
+      	}
+			}
+      
+      String formula;
+      if (isotope != "")
+      {
+        formula = '(' + isotope + ')' + tmp_symbol + String(num);
+      }
+      else
+      {
+        formula = tmp_symbol + num;
+      }
+      diff_formula_ += formula;			
+			
 		}
 		
 	}
@@ -155,13 +186,53 @@ namespace OpenMS
 			{
 				(*it)->setAverageMass(avge_mass_);
 				(*it)->setMonoMass(mono_mass_);
-				(*it)->setFormula(composition_);
+/*
+				// O(-2) 18O(2)
+				EmpiricalFormula ef;
+				vector<String> split;
+				composition_.split(' ', split);
+				for (Size i = 0; i != split.size(); ++i)
+				{
+					String tmp = split[i];
+					String symbol;
+					Size num;
+					if (tmp.has('('))
+					{
+						symbol = tmp.prefix('(');
+						num = ((String)tmp.suffix('(').prefix(')')).toInt();
+					}
+					String isotope;
+					String tmp_symbol;
+					for (Size j = 0; j != symbol.size(); ++j)
+					{
+						if (isdigit(symbol[j]))
+						{
+							isotope += symbol[i];
+						}
+						else
+						{
+							tmp_symbol += symbol[i];
+						}
+					}
+					
+					String formula;
+					if (isotope != "")
+					{
+						formula = '(' + isotope + ')' + tmp_symbol + String(num);
+					}
+					else
+					{
+						formula = tmp_symbol + String(num);
+					}
+					ef += formula;
+				}*/
+				(*it)->setDiffFormula(diff_formula_);
 				modifications_.push_back(*it);
 			}
 			
 			avge_mass_ = 0.0;
 			mono_mass_ = 0.0;
-			composition_ = "";
+			diff_formula_ = EmpiricalFormula();
 			new_mods_.clear();
 		}
  	} 

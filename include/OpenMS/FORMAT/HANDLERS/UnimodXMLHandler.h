@@ -29,6 +29,7 @@
 #define OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <vector>
 
@@ -65,11 +66,11 @@ namespace OpenMS
   
 			String tag_;
 
-			double avge_mass_;
+			DoubleReal avge_mass_;
 
-			double mono_mass_;
+			DoubleReal mono_mass_;
 
-			String composition_;
+			EmpiricalFormula diff_formula_;
 
 			ResidueModification* modification_;
 			

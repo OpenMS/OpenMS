@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -300,12 +300,12 @@ namespace OpenMS
 		return formula_;
 	}
 
-	void ResidueModification::setDiffFormula(const String& diff_formula)
+	void ResidueModification::setDiffFormula(const EmpiricalFormula& diff_formula)
 	{
 		diff_formula_ = diff_formula;
 	}
 
-	const String& ResidueModification::getDiffFormula() const
+	const EmpiricalFormula& ResidueModification::getDiffFormula() const
 	{
 		return diff_formula_;
 	}

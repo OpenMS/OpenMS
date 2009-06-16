@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -63,7 +63,7 @@ START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 END_SECTION
 
-START_SECTION((EmpiricalFormula(UInt number, const Element* element, Int charge=0)))
+START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Int charge=0)))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)
@@ -79,24 +79,24 @@ START_SECTION(const Element* getElement(const String& name) const)
 	TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
 
-START_SECTION(UInt getNumberOf(UInt atomic_number) const)
-	UInt num1 = e_ptr->getNumberOf(6);
+START_SECTION(Size getNumberOf(UInt atomic_number) const)
+	Size num1 = e_ptr->getNumberOf(6);
 	TEST_EQUAL(num1, 4);
 END_SECTION
 
-START_SECTION(UInt getNumberOf(const String& name) const)
-	UInt num2 = e_ptr->getNumberOf("C");
+START_SECTION(Size getNumberOf(const String& name) const)
+	Size num2 = e_ptr->getNumberOf("C");
 	TEST_EQUAL(num2, 4);
 END_SECTION
 
-START_SECTION(UInt getNumberOf(const Element* element) const)
+START_SECTION(Size getNumberOf(const Element* element) const)
 	const Element* e = e_ptr->getElement(6);
-	UInt num3 = e_ptr->getNumberOf(e);
+	Size num3 = e_ptr->getNumberOf(e);
 	TEST_EQUAL(num3, 4);
 END_SECTION
 
-START_SECTION(UInt getNumberOfAtoms() const)
-	UInt num4 = e_ptr->getNumberOfAtoms();
+START_SECTION(Size getNumberOfAtoms() const)
+	Size num4 = e_ptr->getNumberOfAtoms();
 	TEST_EQUAL(num4, 4);
 END_SECTION
 
@@ -144,20 +144,21 @@ START_SECTION(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	ef1 -= ef2;
 	TEST_EQUAL(*e_ptr == ef1, true)
-	TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= ef2)
+	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= ef2)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator -= (const String& rhs))
 	EmpiricalFormula ef1("C5H12");
 	ef1 -= "CH12";
 	TEST_EQUAL(*e_ptr == ef1, true)
-	TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= "CH12")
+	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= "CH12")
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	EmpiricalFormula ef3, ef4;
 	ef3 = ef1 - ef2;
+	cerr << *e_ptr << " " << ef3 << endl;
 	TEST_EQUAL(*e_ptr == ef3, true)
 END_SECTION
 
@@ -165,9 +166,9 @@ START_SECTION(EmpiricalFormula operator - (const String& rhs) const)
 	EmpiricalFormula ef1("C5H12"), ef2("CH12"), ef4;
 	ef4 = ef1 - "CH12";
 	TEST_EQUAL(*e_ptr == ef4, true)
-	TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"O3")
-	TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"C6")
-	TEST_EXCEPTION(Exception::SizeUnderflow, ef2-ef1)
+	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"O3")
+	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"C6")
+	//TEST_EXCEPTION(Exception::SizeUnderflow, ef2-ef1)
 	TEST_EXCEPTION(Exception::ParseError, ef1-"BLUBB")
 END_SECTION
 
@@ -201,6 +202,10 @@ END_SECTION
 
 START_SECTION(Int getCharge() const)
 	TEST_EQUAL(e_ptr->getCharge(), 1)
+	EmpiricalFormula ef1("C2+");
+	TEST_EQUAL(ef1.getCharge(), 1)
+	EmpiricalFormula ef2("C2+3");
+	TEST_EQUAL(ef2.getCharge(), 3)
 END_SECTION
 
 START_SECTION(bool isCharged() const)
@@ -273,7 +278,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
 	EmpiricalFormula ef("C6H12O6");
-	Map<String, UInt> formula;
+	Map<String, SignedSize> formula;
 	formula["C"] = 6;
 	formula["H"] = 12;
 	formula["O"] = 6;
@@ -292,7 +297,7 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
 	EmpiricalFormula ef("C");
 	IsotopeDistribution iso = ef.getIsotopeDistribution(20);
 	double result[] = { 0.9893, 0.0107};
-	UInt i = 0;
+	Size i = 0;
 	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
 	{
 		TEST_REAL_SIMILAR(it->second, result[i])

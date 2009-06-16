@@ -51,6 +51,8 @@ namespace OpenMS
 			doi:10.1351/pac200375060683	
 
 			@todo update references (Andreas)
+			@todo include exact mass values for the isotopes and update IsotopeDistribution (Andreas)
+			@todo add exact isotope distribution based on exact isotope values
 */
 	
 	class OPENMS_DLLAPI ElementDB

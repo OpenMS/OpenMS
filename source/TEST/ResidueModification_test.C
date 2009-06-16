@@ -215,12 +215,13 @@ START_SECTION(const String& getFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffFormula(const String &diff_formula))
-	ptr->setDiffFormula("blubb_new_diff_formula");
-	TEST_STRING_EQUAL(ptr->getDiffFormula(), "blubb_new_diff_formula")
+START_SECTION(void setDiffFormula(const EmpiricaFormula& diff_formula))
+	EmpiricalFormula ef("C3H4S-3");
+	ptr->setDiffFormula(ef);
+	TEST_EQUAL(ptr->getDiffFormula() == ef, true)
 END_SECTION
 
-START_SECTION(const String& getDiffFormula() const)
+START_SECTION(const EmpiricalFormula& getDiffFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -298,9 +299,9 @@ START_SECTION(bool operator==(const ResidueModification &modification) const)
 	mod2.setFormula("C 3 H 4");
 	TEST_EQUAL(mod1 == mod2, true)
 
-	mod1.setDiffFormula("C 0 H -2 N 0 O 0");
+	mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
 	TEST_EQUAL(mod1 == mod2, false)
-	mod2.setDiffFormula("C 0 H -2 N 0 O 0");
+	mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
 	TEST_EQUAL(mod1 == mod2, true)
 
 	mod1.addSynonym("new_syn");
@@ -367,9 +368,9 @@ START_SECTION(bool operator!=(const ResidueModification &modification) const)
   mod2.setFormula("C 3 H 4");
   TEST_EQUAL(mod1 != mod2, false)
 
-  mod1.setDiffFormula("C 0 H -2 N 0 O 0");
+  mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
   TEST_EQUAL(mod1 != mod2, true)
-  mod2.setDiffFormula("C 0 H -2 N 0 O 0");
+  mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.addSynonym("new_syn");

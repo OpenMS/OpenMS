@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -173,6 +173,10 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 	// test N-term modification
 	AASequence seq2("(MOD:09998)DFPIANGER");
 	TEST_REAL_SIMILAR(seq2.getMonoWeight(), double(1122.51));
+
+	// test heavy modification
+	AASequence seq3("(MOD:09999)DFPIANGER");
+	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1125.51));
 END_SECTION
 
 START_SECTION(const Residue& operator [] (SignedSize index) const)
