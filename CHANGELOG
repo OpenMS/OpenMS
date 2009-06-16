@@ -28,6 +28,8 @@ Detailed list of changes to specific OpenMS classes
   - Param: setValue method takes only DataValue now
   - ExperimentalSettings: Moved DataProcessing to SpectrumSettings (for mzML)
   - Precursor: supports multiple dissociation methods now (for mzML)
+	- ElementDB: Isotopes are now possible
+	- EmpiricalFormula: Isotopes are now possible (e.g. (2)HO for deuterium)
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3
