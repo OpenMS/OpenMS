@@ -29,6 +29,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMMRM_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
@@ -69,7 +70,15 @@ namespace OpenMS
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::defaults_;
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::map_;
 				
-		public:			
+		public:
+
+			enum
+      {
+        RT = Peak2D::RT,
+        MZ = Peak2D::MZ
+      };
+
+
 			/// default constructor 
 			FeatureFinderAlgorithmMRM() 
 				: FeatureFinderAlgorithm<PeakType,FeatureType>()
@@ -214,6 +223,13 @@ namespace OpenMS
 								f.setIntensity(intensity_sum);
 								f.getConvexHulls().push_back(hull_points);
 								f.setMetaValue("MZ", (double)it1->first / binning_factor);
+
+
+								// add the model to the feature
+								ProductModel<2> prod_model;
+								prod_model.setModel(RT, model_rt);
+								f.setModelDescription(ModelDescription<2>(&prod_model));
+
 								features_->push_back(f);
 							}
 						}
