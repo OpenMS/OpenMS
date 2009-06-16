@@ -87,18 +87,6 @@ namespace OpenMS
 
   bool ExperimentalSettings::operator== (const ExperimentalSettings& rhs) const
   {
-//		if (sample_ != rhs.sample_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (source_files_ != rhs.source_files_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (contacts_ != rhs.contacts_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (instrument_ != rhs.instrument_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (hplc_ != rhs.hplc_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (datetime_ != rhs.datetime_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (protein_identifications_ != rhs.protein_identifications_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (comment_ != rhs.comment_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (fraction_identifier_ != rhs.fraction_identifier_) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (MetaInfoInterface::operator!=(rhs)) cout << "ExperimentalSettings - " << __LINE__ << endl;
-//		if (!DocumentIdentifier::operator==(rhs)) cout << "ExperimentalSettings - " << __LINE__ << endl;
-
   	return
 	    sample_ == rhs.sample_ &&
 	    source_files_ == rhs.source_files_ &&

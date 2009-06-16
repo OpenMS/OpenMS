@@ -769,7 +769,7 @@ namespace OpenMS
 					
 				if (parent_tag=="msInstrument")
 				{
-					exp_->getInstrument().setMetaValue("#Comment" , String(transcoded_chars));
+					exp_->getInstrument().setMetaValue("#comment" , String(transcoded_chars));
 				}
 				else if (parent_tag=="dataProcessing")
 				{
@@ -915,15 +915,12 @@ namespace OpenMS
 					os << "/>\n";
 				}
 				writeUserParam_(os,inst,3);
-				try
+				
+				if (inst.metaValueExists("#comment"))
 				{
-					DataValue com = inst.getMetaValue("#Comment");
-					if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
+					os << "\t\t\t<comment>" << inst.getMetaValue("#comment") << "</comment>\n";
 				}
-				catch(Exception::InvalidValue exception)
-				{
-	
-				}
+				
 				os << "\t\t</msInstrument>\n";
 			}
 			

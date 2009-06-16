@@ -54,6 +54,7 @@ namespace OpenMS
 		
 		Base64 supports two precisions: 32 Bit (float) and 64 Bit (double).
 		
+		@todo Check assign code / replace unsigned long long (HiWi)
   */
   class OPENMS_DLLAPI Base64
   {

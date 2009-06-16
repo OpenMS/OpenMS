@@ -180,7 +180,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getModel(), "MS 1")
 	TEST_EQUAL(inst.getMetaValue("URL1"), "www.open-ms.de")
 	TEST_EQUAL(inst.getMetaValue("URL2"), "www.uni-tuebingen.de")
-	TEST_EQUAL(inst.getMetaValue("#Comment"), "Instrument Comment")
+	TEST_EQUAL(inst.getMetaValue("#comment"), "Instrument Comment")
   TEST_EQUAL(inst.getName(), "")
 	TEST_EQUAL(inst.getCustomizations(), "")
 	TEST_EQUAL(inst.getIonSources().size(),1)
@@ -543,7 +543,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 
   //Note: empty mzXML files are not valid, thus this test is omitted
 
-	//test if fill file is valid
+	//test if full file is valid
 	NEW_TMP_FILE(tmp_filename);
 	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
   f.store(tmp_filename,e);
