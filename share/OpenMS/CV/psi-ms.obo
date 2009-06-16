@@ -1,11 +1,11 @@
 format-version: 1.2
 date: 30:04:2009 11:14
-saved-by: edeutsch
+saved-by: abertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.01.0
-remark: release date: 2009-06-11
+remark: version: 2.14.0
+remark: release date: 2009-06-16
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -8583,17 +8583,17 @@ id: MS:1001480
 name: AB SCIEX TOF/TOF nativeID format
 def: "jobRun=xsd:nonNegativeInteger spotLabel=xsd:string spectrum=xsd:nonNegativeInteger." [PSI:MS]
 is_a: MS:1000767 ! native spectrum identifier format
- 
+
 [Term]
 id: MS:1001481
 name: AB SCIEX TOF/TOF database
 def: "Applied Biosystems/MDS Analytical Technologies TOF/TOF instrument database." [PSI:MS]
 is_a: MS:1000560 ! mass spectrometer file format
- 
+
 [Term]
 id: MS:1001482
 name: AB SCIEX TOF/TOF 5800
-def: "AB SCIEX or Applied Biosystems|MDS Analytical Technologies AB SCIEX TOF/TOF 5800 Analyzer" [PSI:MS]
+def: "AB SCIEX or Applied Biosystems|MDS Analytical Technologies AB SCIEX TOF/TOF 5800 Analyzer." [PSI:MS]
 is_a: MS:1000121 ! AB SCIEX instrument model
 
 [Term]
@@ -8622,6 +8622,59 @@ id: MS:1001486
 name: data filtering
 def: "Filtering out part of the data." [PSI:MS]
 is_a: MS:1000543 ! data processing action 
+
+[Term]
+id: MS:1001487
+name: ProteinExtractor
+def: "An algorithm for protein determination/assembly integrated into Bruker's ProteinScape." [PSI:MS]
+is_a: MS:1001456 ! analysis software
+is_a: MS:1000692 ! Bruker software
+
+[Term]
+id: MS:1001488
+name: Mascot Distiller 
+def: "Mascot Distiller." [PSI:MS]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001489
+name: Mascot Integra 
+def: "Mascot Integra." [PSI:MS]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001490
+name: Percolator 
+def: "Percolator." [PSI:MS]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1001491
+name: percolator:Q value
+def: "percolator:Q value." [PSI:MS]
+is_a: MS:1001153 ! search engine specific score 
+is_a: MS:1001143 ! search engine specific score for peptides    
+
+[Term]
+id: MS:1001492
+name: percolator:score 
+def: "percolator:score." [PSI:MS]
+is_a: MS:1001153 ! search engine specific score 
+is_a: MS:1001143 ! search engine specific score for peptides    
+
+[Term]
+id: MS:1001493
+name: percolaror:PEP 
+def: "Posterior error probability." [PSI:MS]
+is_a: MS:1001153 ! search engine specific score 
+is_a: MS:1001143 ! search engine specific score for peptides    
+
+[Term]
+id: MS:1001494
+name: no threshold
+def: "In case no threshold was used." [PSI:MS]
+is_a: MS:1001060 ! quality estimation details
+
 
 [Typedef]
 id: has_regexp
