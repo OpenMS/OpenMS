@@ -14,6 +14,23 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.965176743998265</overallquality>
 			<charge>0</charge>
+			<model name="ProductModel2D">
+				<param name="cutoff" value="0"/>
+				<param name="RT" value="EmgModel"/>
+				<param name="MZ" value="GaussModel"/>
+				<param name="intensity_scaling" value="1"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:bounding_box:min" value="1589.59"/>
+				<param name="RT:bounding_box:max" value="1659.64"/>
+				<param name="RT:statistics:variance" value="1"/>
+				<param name="RT:statistics:mean" value="1"/>
+				<param name="RT:emg:height" value="19469.3856202367"/>
+				<param name="RT:emg:width" value="11.251330374544"/>
+				<param name="RT:emg:symmetry" value="10.4129716930987"/>
+				<param name="RT:emg:retention" value="1617.83756487515"/>
+			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1592.59</hposition>
@@ -34,6 +51,23 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.992970614798271</overallquality>
 			<charge>0</charge>
+			<model name="ProductModel2D">
+				<param name="cutoff" value="0"/>
+				<param name="RT" value="EmgModel"/>
+				<param name="MZ" value="GaussModel"/>
+				<param name="intensity_scaling" value="1"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:bounding_box:min" value="2136.18"/>
+				<param name="RT:bounding_box:max" value="2198.14"/>
+				<param name="RT:statistics:variance" value="1"/>
+				<param name="RT:statistics:mean" value="1"/>
+				<param name="RT:emg:height" value="140608.486846538"/>
+				<param name="RT:emg:width" value="7.26713560371381"/>
+				<param name="RT:emg:symmetry" value="10.5321645595717"/>
+				<param name="RT:emg:retention" value="2152.36604971214"/>
+			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2139.18</hposition>
@@ -54,6 +88,23 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.969432180824566</overallquality>
 			<charge>0</charge>
+			<model name="ProductModel2D">
+				<param name="cutoff" value="0"/>
+				<param name="RT" value="EmgModel"/>
+				<param name="MZ" value="GaussModel"/>
+				<param name="intensity_scaling" value="1"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:bounding_box:min" value="2281.01"/>
+				<param name="RT:bounding_box:max" value="2342.97"/>
+				<param name="RT:statistics:variance" value="1"/>
+				<param name="RT:statistics:mean" value="1"/>
+				<param name="RT:emg:height" value="20649.9189848473"/>
+				<param name="RT:emg:width" value="10.13963168232"/>
+				<param name="RT:emg:symmetry" value="11.5727746080402"/>
+				<param name="RT:emg:retention" value="2299.86458075305"/>
+			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2284.01</hposition>
