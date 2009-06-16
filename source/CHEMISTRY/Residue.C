@@ -559,7 +559,7 @@ namespace OpenMS
 		if (mod.getDiffFormula() != "")
 		{
 			updated_formula = true;
-			setFormula(getFormula() - mod.getDiffFormula());
+			setFormula(getFormula() + mod.getDiffFormula());
 			/*String formula = mod.getDiffFormula();
 			// format look like "C -1 H 0 N 0 O 2"
 			// sometimes specific isotopes are described using brackets

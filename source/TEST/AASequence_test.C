@@ -176,7 +176,7 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 
 	// test heavy modification
 	AASequence seq3("(MOD:09999)DFPIANGER");
-	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1125.51));
+	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.51));
 END_SECTION
 
 START_SECTION(const Residue& operator [] (SignedSize index) const)
