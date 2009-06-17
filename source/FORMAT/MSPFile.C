@@ -311,9 +311,75 @@ namespace OpenMS
 			if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
 			{
 				PeptideHit hit = *it->getPeptideIdentifications().begin()->getHits().begin();
-				out << "Name: " << hit.getSequence().toUnmodifiedString() << "/" << hit.getCharge() << endl;
+				String peptide;
+				for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
+				{
+					if (pit->isModified() && pit->getOneLetterCode() == "M" &&
+							fabs(ModificationsDB::getInstance()->getModification(pit->getModification()).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+					{
+						peptide += "M(O)";
+					}
+					else
+					{
+						peptide += pit->getOneLetterCode();
+					}
+				}
+				out << "Name: " << peptide << "/" << hit.getCharge() << endl;
 				out << "MW: " << hit.getSequence().getMonoWeight() << endl;
-				out << "Comment: Mods=0 Inst=it" << endl; // TODO write mods, instrument type protein ...
+				out << "Comment:";
+			
+				// modifications
+				// e.g. 2/9,C,Carbamidomethyl/12,C,Carbamidomethyl
+				Size num_mods(0);
+				vector<String> modifications;
+				if (hit.getSequence().hasNTerminalModification())
+				{
+					String mod = hit.getSequence().getNTerminalModification();
+					if (ModificationsDB::getInstance()->getModification(mod).getSynonyms().find("Acetyl") != 
+							ModificationsDB::getInstance()->getModification(mod).getSynonyms().end())
+					{
+						++num_mods;
+						String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",Acetyl";
+						modifications.push_back(modification);
+					}
+
+				}
+				
+				UInt pos(0);
+				for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit, ++pos)
+				{
+					if (!pit->isModified())
+					{
+						continue;	
+					}
+					String mod = pit->getModification();
+					if (mod == "MOD:00425" || mod == "MOD:00719")
+					{
+						++num_mods;
+						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Oxidation";
+						modifications.push_back(modification);
+						continue;
+					}
+					if (mod == "MOD:00399" || mod == "MOD:01061" || mod == "MOD:01062")
+					{
+						++num_mods;
+						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Carboxymethyl";
+						modifications.push_back(modification);
+						continue;
+					}
+					if (mod == "MOD:01214" || mod == "MOD:00397")
+					{
+						++num_mods;
+						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Carbamidomethyl";
+						continue;
+					}
+					cerr << "MSPFile: modification '" << mod << "' not handled so far" << endl;
+				}
+			
+				String mods;
+				mods.concatenate(modifications.begin(), modifications.end(), "/");
+				out << " Mods=" << String(num_mods)  << "/" << mods;
+				out << " Inst=it" << endl; // TODO write mods, instrument type protein ...
 				out << "Num peaks: " << it->size() << endl;
 				// TODO normalize to 10000
 				for (RichPeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
