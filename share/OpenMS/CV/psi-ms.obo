@@ -4,8 +4,8 @@ saved-by: abertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.14.0
-remark: release date: 2009-06-16
+remark: version: 2.14.2
+remark: release date: 2009-06-17
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -4874,6 +4874,7 @@ id: MS:1000734
 name: ProteinScape
 def: "Bruker ProteinScape software." [PSI:MS]
 is_a: MS:1000692 ! Bruker software
+is_a: MS:1001456 ! analysis software
 
 [Term]
 id: MS:1000735
@@ -8375,18 +8376,21 @@ is_a: MS:1001302 ! search engine specific input parameter
 id: MS:1001447
 name: prot:FDR threshold
 def: "False-discovery rate threshold for proteins." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001060 ! quality estimation details
 
 [Term]
 id: MS:1001448
 name: pep:FDR threshold
 def: "False-discovery rate threshold for peptides." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001060 ! quality estimation details
 
 [Term]
 id: MS:1001449
 name: OMSSA e-value threshold
 def: "Threshold for OMSSA e-value for quality estimation." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001302 ! search engine specific input parameter
 
 [Term]
