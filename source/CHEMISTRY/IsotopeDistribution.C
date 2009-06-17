@@ -220,7 +220,7 @@ namespace OpenMS
 		result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair<Size, double>(left[0].first + right[0].first + i, 0);
+      result[i] = make_pair(left[0].first + right[0].first + i, 0);
     }
 
 		// we loop backwards because then the small products tend to come first
@@ -307,7 +307,7 @@ namespace OpenMS
     result.resize(r_max);
 		for (ContainerType::size_type i = 0; i != r_max; ++i)
 		{
-			result[i] = make_pair<Size, double>(2 * input[0].first + i, 0);
+			result[i] = make_pair(2 * input[0].first + i, 0);
 		}
 
     // we loop backwards because then the small products tend to come first

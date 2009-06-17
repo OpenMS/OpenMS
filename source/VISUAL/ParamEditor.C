@@ -674,7 +674,7 @@ namespace OpenMS
 		}
 		else
 		{
-			path = path + ":" + child->text(0).toStdString();	
+			path += String(":") + String(child->text(0).toStdString());	
 		}
 		
 		String description = child->data(1, Qt::UserRole).toString();

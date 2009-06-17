@@ -222,7 +222,7 @@ namespace OpenMS
 		IsotopeDistribution::ContainerType dist;
 		for (Map<UInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)
 		{
-			dist.push_back(make_pair<UInt, double>(it->first, it->second));
+			dist.push_back(make_pair(it->first, it->second));
 		}
 	
 		IsotopeDistribution iso_dist;

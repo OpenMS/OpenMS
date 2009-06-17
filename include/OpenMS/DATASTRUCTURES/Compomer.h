@@ -33,6 +33,7 @@
 #include <set>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 namespace OpenMS {
 
@@ -201,11 +202,7 @@ private:
 			if (it->first == implicit.getFormula())
 			{
 				extra_amount = implicit.getAmount();
-        if (extra_amount<0)
-        {
-          std::cout << "Compomer: implicit H+ is negative!!\n)";
-					//TODO - replace by exception!? - exit(0);
-        }
+        OPENMS_POSTCONDITION(extra_amount > 1, "Compomer.h::getCompomerSide_() has invalid implicit adduct!");
 			}
 			else extra_amount=0;
 				
@@ -220,13 +217,12 @@ private:
 			}
       else if(it->second.getAmount()==0)
       {
-        std::cout << "This should not happen, amount of an adduct is 0\n";
-				//TODO - replace by exception!? - exit(0);
+        OPENMS_POSTCONDITION(extra_amount > 1, "Compomer.h::getCompomerSide_() has invalid adduct amount of 0!");
       }
 
       if (normal_amount + extra_amount > 0)
       {
-				side.insert(std::make_pair<String, Int>(it->first, normal_amount + extra_amount));
+				side.insert(std::make_pair(it->first, normal_amount + extra_amount));
 			}
 
 		}
@@ -241,7 +237,6 @@ private:
 	Int neg_charges_;
 	DoubleReal log_p_;   // log probability of compomer
 	Size id_;
-	//bool final_;
 
 }; // \Compomer
 

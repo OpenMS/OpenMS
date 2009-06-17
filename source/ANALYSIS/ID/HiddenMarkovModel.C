@@ -377,9 +377,9 @@ namespace OpenMS
     {
       cerr << "state '" << synonym2 << "' unknown" << endl;
     }
-		synonym_trans_names_[synonym1][synonym2] = make_pair<String, String>(name1, name2);
+		synonym_trans_names_[synonym1][synonym2] = make_pair(name1, name2);
 
-		synonym_trans_[name_to_state_[synonym1]][name_to_state_[synonym2]] = make_pair<HMMState*, HMMState*>(name_to_state_[name1], name_to_state_[name2]);
+		synonym_trans_[name_to_state_[synonym1]][name_to_state_[synonym2]] = make_pair(name_to_state_[name1], name_to_state_[name2]);
 
 /*
 		for (Map<String, Map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
@@ -387,7 +387,7 @@ namespace OpenMS
       for (Map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
       {
         synonym_trans_[name_to_state_[it->first]][name_to_state_[it2->first]] =
-            make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
+            make_pair(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
       }
     }
 	*/	
@@ -580,7 +580,7 @@ namespace OpenMS
 						cerr << "\tadding from " << (*it2)->getName() << " " << getForwardVariable_(*it2) << " * " << getTransitionProbability(*it2, *it) << endl;
 						#endif
 						sum += getForwardVariable_(*it2) * getTransitionProbability(*it2, *it);
-						trained_trans_.insert(make_pair<HMMState*, HMMState*>(*it2, *it));
+						trained_trans_.insert(make_pair(*it2, *it));
 					}
 					forward_[*it] = sum;
 					succ_new.insert((*it)->getSuccessorStates().begin(), (*it)->getSuccessorStates().end());
@@ -622,7 +622,7 @@ namespace OpenMS
 						cerr << "\tadding from " << (*it2)->getName() << " " << getBackwardVariable_(*it2) << " * " << getTransitionProbability(*it, *it2) << endl;
 						#endif
 						sum += getBackwardVariable_(*it2) * getTransitionProbability(*it, *it2);
-						trained_trans_.insert(make_pair<HMMState*, HMMState*>(*it, *it2));
+						trained_trans_.insert(make_pair(*it, *it2));
 					}
 					backward_[*it] = sum;
 					pre_new.insert((*it)->getPredecessorStates().begin(), (*it)->getPredecessorStates().end());
@@ -1111,7 +1111,7 @@ namespace OpenMS
       for (Map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
       {
         synonym_trans_[name_to_state_[it->first]][name_to_state_[it2->first]] =
-            make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
+            make_pair(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
       }
     }
 
