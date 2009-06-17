@@ -206,6 +206,11 @@ class TOPPIDMassAccuracy
 						if (it->getHits().size() > 0)
 						{
 							PeptideHit hit = *it->getHits().begin();
+
+							if (!hit.getSequence().isValid())
+							{
+								continue;
+							}
 							RichPeakSpectrum theo_spec;
 							tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
 							tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
