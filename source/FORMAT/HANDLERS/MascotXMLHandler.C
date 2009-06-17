@@ -233,13 +233,13 @@ namespace OpenMS
 					it->split(' ', mod_split);
 					if (mod_split.size() == 2)
 					{
-						if (mod_split[1] == "(C-term)")
+						if (mod_split[1] == "(C-term)" || mod_split[1] == "(Protein C-term)")
 						{
 							temp_aa_sequence.setCTerminalModification(mod_split[0]);
 						}
 						else
 						{
-							if (mod_split[1] == "(N-term)")
+							if (mod_split[1] == "(N-term)" || mod_split[1] == "(Protein N-term)")
 							{
 								temp_aa_sequence.setNTerminalModification(mod_split[0]);
 							}
@@ -295,6 +295,7 @@ namespace OpenMS
 			temp_string.split('.', parts);
 			if (parts.size() == 3)
 			{
+				// handle internal modifications
 				temp_string = parts[1];
 				for (Size i = 0; i < temp_string.size(); ++i)
 				{
@@ -309,29 +310,51 @@ namespace OpenMS
 
 						if (mod_split.size() == 2)
 						{
-							if (mod_split[1] == "(C-term)")
-							{
-								temp_aa_sequence.setCTerminalModification(mod_split[0]);
-							}
-							else
-							{
-								if (mod_split[1] == "(N-term)")
-								{
-									temp_aa_sequence.setNTerminalModification(mod_split[0]);
-								}
-								else
-								{
-									// search this mod, if not directly use a general one
-									temp_aa_sequence.setModification(i, mod_split[0]);
-								}
-							}
+							// search this mod, if not directly use a general one
+							temp_aa_sequence.setModification(i, mod_split[0]);
 						}
 						else
 						{
-							error(LOAD, String("Cannot parse fixed modification '") + temp_modification  + "'");
+							error(LOAD, String("Cannot parse variable modification '") + temp_modification  + "'");
 						}
 					}
 				}
+
+				temp_string = parts[0]; // N-term
+				if (temp_string[0] != '0')
+				{
+					UInt temp_modification_index = String(temp_string[0]).toInt() - 1;
+					String& temp_modification = search_parameters_.variable_modifications[temp_modification_index];
+					vector<String> mod_split;
+					temp_modification.split(' ', mod_split);
+
+					if (mod_split.size() == 2)
+					{
+						temp_aa_sequence.setNTerminalModification(mod_split[0]);
+					}
+					else
+					{
+						error(LOAD, String("Cannot parse variable N-term modification '") + temp_modification  + "'");
+					}
+				}
+				temp_string = parts[2]; // C-term
+        if (temp_string[0] != '0')
+        {
+          UInt temp_modification_index = String(temp_string[0]).toInt() - 1;
+          String& temp_modification = search_parameters_.variable_modifications[temp_modification_index];
+          vector<String> mod_split;
+          temp_modification.split(' ', mod_split);
+
+          if (mod_split.size() == 2)
+          {
+            temp_aa_sequence.setCTerminalModification(mod_split[0]);
+          }
+          else
+          {
+            error(LOAD, String("Cannot parse variable C-term modification '") + temp_modification  + "'");
+          }
+        }
+				
 				actual_peptide_hit_.setSequence(temp_aa_sequence);
 			}
 			
