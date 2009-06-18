@@ -34,9 +34,6 @@
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#include <OpenMS/SIMULATION/LCMSSample.h>
-#include <OpenMS/SIMULATION/LCMSSim.h>
-
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
