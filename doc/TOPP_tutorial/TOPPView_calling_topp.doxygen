@@ -32,7 +32,7 @@
 	
 	First we load the spectrum to be analyzed in TOPPView. If you want to
 	test the described tools, you can open the tutorial data via the File-menu
-	(@a File > @a Open @a example @a file, then select @a peakpicker_tutorial_1.mzData).
+	(@a File > @a Open @a example @a file, then select @a peakpicker_tutorial_1.mzML).
 	The BaselineFilter can be called via the Tools-menu
 	(@a Tools > @a Apply @a TOPP @a tool), then select BaselineFilter as TOPPtool (red rectangle).
 	One can choose between different types of filters (green rectangle),
@@ -85,7 +85,7 @@
 
 	We have two types of PeakPickers, the Wavelet-PeakPicker and one especially suited for
 	high resolution data (select type high_res). In this tutorial we consider the Wavelet-PeakPicker.
-	We use the file @a peakpicker_tutorial_2.mzData from the examples data (@a File > @a Open @a example @a data).
+	We use the file @a peakpicker_tutorial_2.mzML from the examples data (@a File > @a Open @a example @a data).
 
 
 	The main parameters are the peak width and the minimal signal to noise ratio for a peak to be picked.
@@ -112,7 +112,7 @@
 	To quantify peptide features, TOPP offers the @b FeatureFinder tool. In this section the @b centroided algorithm is
 	used, which works on centroided data only. There are other FeatureFinder algorithms for profile data.
 	
-	For this example the file @a LCMS-centroided.mzData from the examples data is used (@a File > @a Open @a example @a data).
+	For this example the file @a LCMS-centroided.mzML from the examples data is used (@a File > @a Open @a example @a data).
 	In order to adapt the algorithm to our data, some parameters have to be set.
 	
 	@b Intensity
