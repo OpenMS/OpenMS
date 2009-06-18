@@ -30,7 +30,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
@@ -86,7 +86,7 @@ class TOPPIDMassAccuracy
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFileList_("in","<file list>", StringList(), "Input mzData file list, containing the spectra.");
+			registerInputFileList_("in","<file list>", StringList(), "Input mzML file list, containing the spectra.");
 			registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
 
 			registerOutputFile_("precursor_out","<file>","","Output file which contains the deviations from the precursors", false, false);
@@ -126,7 +126,7 @@ class TOPPIDMassAccuracy
     		idxmlfile.load(id_in[i], prot_ids[i], pep_ids[i], doc_id);
   		}
 
-  		// read mzData files
+  		// read mzML files
   		vector<RichPeakMap> maps;
   		maps.resize(in.size());
 
@@ -136,10 +136,10 @@ class TOPPIDMassAccuracy
     		return ILLEGAL_PARAMETERS;
   		}
 
-  		MzDataFile mzdata_file;
+  		MzMLFile mzml_file;
   		for (Size i = 0; i != in.size(); ++i)
   		{
-    		mzdata_file.load(in[i], maps[i]);
+    		mzml_file.load(in[i], maps[i]);
   		}
 
 			//-------------------------------------------------------------

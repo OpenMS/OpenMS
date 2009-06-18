@@ -36,17 +36,17 @@
 
 	@section TOPP_fileformats File formats
 
-		The TOPP tools use the HUPO-PSI standard format mzData 1.05 as input format.
-		In order to convert other open formats (DTA, mzXML, ANDI/MS) to mzData, a file converter
+		The TOPP tools use the HUPO-PSI standard format mzML 1.1.0 as input format.
+		In order to convert other open formats (mzData, mzXML, DTA, ANDI/MS) to mzML, a file converter
 		is provided by TOPP.
 
 		Proprietary MS machine formats are not supported. If you need to convert these formats to
-		mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
+		mzML, mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
 		or contact your MS machine vendor.
 
-		mzData covers only the output of a mass spectrometry experiment. For further analysis of this data
+		mzML covers only the output of a mass spectrometry experiment. For further analysis of this data
 		several other file formats are needed. The main file formats used by TOPP are:
-		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
+		- @b mzML The HUPO-PSI standard format for mass spectrometry data.
 		- @b featureXML The %OpenMS format for quantitation results.
 		- @b consensusXML The %OpenMS format for grouping features in one map or across several maps.
 		- @b idXML The %OpenMS format for protein and peptide identification.
@@ -192,41 +192,41 @@
 			If you are experiencing problems while processing an XML file you can check if the file 
 			does validate against the XML schema using the @b FileInfo tool.
 			
-			Validation is available for several file formats including MzData, FeatureXML, IdXML.
+			Validation is available for several file formats including mzML, mzData, FeatureXML, IdXML.
 			
-		@section TOPP_files_conversion Converting your files to mzData
+		@section TOPP_files_conversion Converting your files to mzML
 
-			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS
-			data to @a mzData, you can do that using the @b FileConverter, e.g.
+			The TOPP tools work only on the HUPO-PSI @a mzML format. If you need to convert @a mzData, @a mzXML or @a ANDI/MS
+			data to @a mzML, you can do that using the @b FileConverter, e.g.
 			@code
-FileConverter -in infile.mzXML -out outfile.mzData
+FileConverter -in infile.mzXML -out outfile.mzML
 			@endcode
 			If you use the format names as file extension, the tool derives the format from the extension.
 			For other extensions, the file formats of the input and output file can be given explicitly.
 
-		@section TOPP_files_dta Converting between DTA and mzData
+		@section TOPP_files_dta Converting between DTA and mzML
 
-			Sequest DTA files can be extracted from a mzData file using the @b DTAExtractor:
+			Sequest DTA files can be extracted from a mzML file using the @b DTAExtractor:
 			@code
-DTAExtractor -in infile.mzData -out outfile
+DTAExtractor -in infile.mzML -out outfile
 			@endcode
 			The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
 			extension are appended to the output file name.
 
-			To combine several files (e.g. DTA files) to an mzData file use the @b FileMerger:
+			To combine several files (e.g. DTA files) to an mzML file use the @b FileMerger:
 			@code
-FileMerger -in infile_list.txt -out outfile.mzData
+FileMerger -in infile_list.txt -out outfile.mzML
 			@endcode
 			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
 			from the DTA file names. See the FileMerger documentation for details.
 
 		@section TOPP_files_filter Extracting part of the data from a file
 
-			If you want to extract part of the data from an mzData file, you can use the
+			If you want to extract part of the data from an mzML file, you can use the
 			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
 			To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
 			@code
-FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
+FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			@endcode
 */
 
@@ -642,11 +642,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 	In a typical setting one would first pick the TOF-data, then perform the TOFCalibration and then the InternalCalibration:
 	@code
-	PeakPicker -in raw_tof.mzData -out picked_tof.mzData -ini pp.ini
-	TOFCalibration -in picked_tof.mzData -out picked.mzData -ext_calibrants ext_cal.mzData
+	PeakPicker -in raw_tof.mzML -out picked_tof.mzML -ini pp.ini
+	TOFCalibration -in picked_tof.mzML -out picked.mzML -ext_calibrants ext_cal.mzML
 	               -ref_masses ext_cal_masses
 	               -tof_const tof_conv_consts -peak_data
-	InternalCalibration -in picked.mzData -out picked_calibrated.mzData
+	InternalCalibration -in picked.mzML -out picked_calibrated.mzML
 	                    -ref_masses internal_calibrant_masses -peak_data
 	@endcode
 
@@ -673,19 +673,19 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	A typical sequence of TOPP tools would look like this:
 	@code
 
-	./MapAligner -in Run1.mzData,...,Run4.mzData -out Run1_aligned.mzData,...,Run4_aligned.mzData
-	./MascotAdapter -in Run1_aligned.mzData -out Run1_aligned.IdXML -ini Mascot.ini
-	./MascotAdapter -in Run2_aligned.mzData -out Run2_aligned.IdXML -ini Mascot.ini
-	./MascotAdapter -in Run3_aligned.mzData -out Run3_aligned.IdXML -ini Mascot.ini
-	./MascotAdapter -in Run4_aligned.mzData -out Run4_aligned.IdXML -ini Mascot.ini
+	./MapAligner -in Run1.mzML,...,Run4.mzML -out Run1_aligned.mzML,...,Run4_aligned.mzML
+	./MascotAdapter -in Run1_aligned.mzML -out Run1_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run2_aligned.mzML -out Run2_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run3_aligned.mzML -out Run3_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run4_aligned.mzML -out Run4_aligned.IdXML -ini Mascot.ini
 	./IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
 	./RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
-	./RTPredict -in Run2_aligned.mzData -out Run2_predicted.mzData
-	./RTPredict -in Run3_aligned.mzData -out Run3_predicted.mzData
-	./RTPredict -in Run4_aligned.mzData -out Run4_predicted.mzData
-	./IDFilter -in Run2_predicted.mzData -out Run2_filtered.mzData -rt_filtering
-	./IDFilter -in Run3_predicted.mzData -out Run3_filtered.mzData -rt_filtering
-	./IDFilter -in Run4_predicted.mzData -out Run4_filtered.mzData -rt_filtering
+	./RTPredict -in Run2_aligned.mzML -out Run2_predicted.mzML
+	./RTPredict -in Run3_aligned.mzML -out Run3_predicted.mzML
+	./RTPredict -in Run4_aligned.mzML -out Run4_predicted.mzML
+	./IDFilter -in Run2_predicted.mzML -out Run2_filtered.mzML -rt_filtering
+	./IDFilter -in Run3_predicted.mzML -out Run3_filtered.mzML -rt_filtering
+	./IDFilter -in Run4_predicted.mzML -out Run4_filtered.mzML -rt_filtering
 
 	@endcode
 

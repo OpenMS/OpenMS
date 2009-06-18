@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -10,8 +10,8 @@ Int main()
 {
   InternalCalibration ic;
   PeakMap exp_raw;
-  MzDataFile mzdata_file;
-  mzdata_file.load("data/Tutorial_InternalCalibration.mzData",exp_raw);
+  MzMLFile mzml_file;
+  mzml_file.load("data/Tutorial_InternalCalibration.mzML",exp_raw);
 
   std::vector<double> ref_masses;
   ref_masses.push_back(1296.68476942);

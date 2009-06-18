@@ -29,7 +29,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
@@ -45,7 +45,7 @@ using namespace std;
 
 	The PILISModel can be trained with spectra and identifications to gain information about 
 	the fragmentation of a specific instrument. Training spectra are read from the in parameter
-	which should be in mzData format. The identifications of the spectra are read from file 
+	which should be in mzML format. The identifications of the spectra are read from file 
 	given in the id_in parameter. The spectra and the identifications should be in the same order.
 	
 	The default parameters of the model are given in the model_file parameter, this can either be
@@ -74,7 +74,7 @@ class TOPPPILISModel
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file for the spectra in MzData format");
+			registerInputFile_("in", "<file>", "", "input file for the spectra in MzML format");
 			registerInputFile_("id_in", "<file>", "", "input file for the annotations in IdXML format");
 			registerOutputFile_("trained_model_file", "<file>", "", "the output file of the trained model");
 		
@@ -124,7 +124,7 @@ class TOPPPILISModel
       //-------------------------------------------------------------
 
       RichPeakMap exp;
-      MzDataFile f;
+      MzMLFile f;
       f.setLogType(log_type_);
       f.load(in, exp);
 

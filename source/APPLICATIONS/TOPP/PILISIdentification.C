@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
 #include <typeinfo>
@@ -76,7 +76,7 @@ class TOPPPILISIdentification
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in MzData format", true);
+			registerInputFile_("in", "<file>", "", "input file in MzML format", true);
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
 			registerInputFile_("model_file", "<file", "", "the model file of the PILISModel", true);
 			registerInputFile_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
@@ -135,7 +135,7 @@ class TOPPPILISIdentification
       //-------------------------------------------------------------
 
       RichPeakMap exp;
-      MzDataFile f;
+      MzMLFile f;
       f.setLogType(log_type_);
       f.load(in, exp);
 

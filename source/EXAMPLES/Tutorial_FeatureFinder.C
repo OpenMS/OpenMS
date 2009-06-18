@@ -9,7 +9,7 @@ Int main()
   FeatureFinder ff;
   // ... set parameters (e.g. from INI file)
   Param parameters;
-  // ... set input data (e.g. from mzData file)
+  // ... set input data (e.g. from mzML file)
   MSExperiment<> input;
   // ... set output data structure
   FeatureMap<> output;

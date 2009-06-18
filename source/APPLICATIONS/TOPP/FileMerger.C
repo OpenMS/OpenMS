@@ -43,7 +43,7 @@ using namespace std;
 /**
 	@page TOPP_FileMerger FileMerger
 
-	@brief Merges several files into an mzData file.
+	@brief Merges several files into an mzML file.
 
 	The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
 	is taken from the first file.

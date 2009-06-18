@@ -5,6 +5,7 @@
 Main improvements of TOPPView:
 
 Main improvements of TOPP:
+- Made mzML 1.1.0 the default format for all TOPP tools
 - Added data processing information to all tool to improve tracability of processing
 
 Main improvements of OpenMS C++ library:

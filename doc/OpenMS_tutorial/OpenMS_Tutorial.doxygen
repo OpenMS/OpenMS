@@ -560,16 +560,16 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 	If each peak is annotated with the same type of information (e.g. width of a peak):
 	- Use the meta data arrays provided by MSSpectrum (recommended)
-	  - Advantages: Independent of peak type, information automatically stored in mzData files
+	  - Advantages: Independent of peak type, information automatically stored in mzML files
 	  - Disadvantages: Information can be accessed through index only
 	- Derive a new peak type that contains members for the additional information
 	  - Advantages: Very fast
-	  - Disadvantages: Information not automatically stored in mzData files, Custom peak type are not supported by all algorithms
+	  - Disadvantages: Information not automatically stored in mzML files, Custom peak type are not supported by all algorithms
 
 	If you need to annotate only a small subset of the peaks with meta information:
 	- Use the MetaInfoInterface of RichPeak1D
 	  - Advantages: Each peak can be annotated with individual information
-	  - Disadvantages: Quite slow, Information not automatically stored in mzData files
+	  - Disadvantages: Quite slow, Information not automatically stored in mzML files
 
 
 */
@@ -588,7 +588,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   a @a load and a @a store method, that take a file name and the appropriate
   data structure.
 
-  The following example (Tutorial_FileIO.C) demonstrates the use of @a MzDataFile
+  The following example (Tutorial_FileIO.C) demonstrates the use of @a MzMLFile
   and @a MzXMLFile to convert one format into another using @a MSExperiment to hold the temporary data:
   @dontinclude Tutorial_FileIO.C
   @skip main
@@ -602,7 +602,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   @code
   MSExperiment<> in;
   FileHandler handler();
-  handler.loadExperiment("input.mzData",in);
+  handler.loadExperiment("input.mzML",in);
   @endcode
 
 @section format_db DB access
@@ -647,7 +647,7 @@ The classes described in this section can be found in the @a TRANSFORMATIONS fol
 For peak picking, the class @a PeakPickerCWT or @a PeakPickerHiRes is used. Because this class detects and
 extracts mass spectrometric peaks it is applicable to LC-MS as well as MALDI raw data.
 
-The following example (Tutorial_PeakPickerCWT.C) shows how to open a raw map (in mzData format), initialize a
+The following example (Tutorial_PeakPickerCWT.C) shows how to open a raw map, initialize a
  PeakPickerCWT object, set the most important parameters (the scale of the wavelet,
  a peak's minimal height and fwhm), and start the peak picking process.
 

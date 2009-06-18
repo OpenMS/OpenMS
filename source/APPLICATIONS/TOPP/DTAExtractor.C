@@ -40,7 +40,7 @@ using namespace std;
 /**
 	@page TOPP_DTAExtractor DTAExtractor
 	
-	@brief Extracts scans of an mzData file to several files in DTA format.
+	@brief Extracts scans of an mzML file to several files in DTA format.
 	
 	The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
 	

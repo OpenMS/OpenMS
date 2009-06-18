@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -10,8 +10,8 @@ Int main()
 {
   PeakMap exp;
   
-  MzDataFile mzdata_file;
-  mzdata_file.load("data/Tutorial_MorphologicalFilter.mzData",exp);
+  MzMLFile mzml_file;
+  mzml_file.load("data/Tutorial_MorphologicalFilter.mzML",exp);
 
   Param parameters;
   parameters.setValue("struc_elem_length", 1.0);

@@ -29,7 +29,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -75,7 +75,7 @@ class TOPPITRAQAnalyzer
 		setValidStrings_("type", getToolList()[toolName_()] );
 
 		registerInputFile_("in","<file>","","input raw/picked data file ");
-		setValidFormats_("in",StringList::create("mzData"));
+		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output consensusXML file with quantitative information");
 		setValidFormats_("out",StringList::create("consensusXML"));
 
@@ -117,7 +117,7 @@ class TOPPITRAQAnalyzer
 		// loading input
 		//-------------------------------------------------------------
 
-		MzDataFile mz_data_file;
+		MzMLFile mz_data_file;
 		MSExperiment<Peak1D > exp;
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,exp);

@@ -31,7 +31,7 @@
 /**
 	@page TOPPView_introduction Introduction
 	
-	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
+	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML, ANDI/MS
 	  and several other text-based file formats. It also supports viewing data from an %OpenMS database.
 	 	
 	 	In each view, several datasets can be displayed using the layer concept. This allows visual comparison
@@ -91,13 +91,13 @@
     Several files can be opened in one layer from the command line by putting a 
     '+' character between the file names. The following command opens three
     files in three layers of the same window:
-    @code TOPPView file1.mzData + file2.mzData + file3.mzData@endcode
+    @code TOPPView file1.mzML + file2.mzML + file3.mzML@endcode
     Without the '+' the files would be opened in three different windows.
     
     The color gradient used to display a file can be changed by adding one of
     several '@' commands. The following commad opens the file with a white-to-black
     gradient:
-    @code TOPPView file1.mzData @bw@endcode
+    @code TOPPView file1.mzML @bw@endcode
     
     For more information on command line parameters call:
     @code TOPPView --help@endcode

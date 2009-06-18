@@ -47,13 +47,13 @@ using namespace std;
 /**
 	@page TOPP_FileFilter FileFilter
 
-	@brief Extracts portions of the data from an mzData, featureXML or consensusXML file.
+	@brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
 
 	With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
 	and to write all data that lies within the given ranges to an output file.
 
 	Depending on the input file type, additional specific operations are possible:
-	- mzData
+	- mzML
 		- extract spectra of a certain MS level
 		- filter by signal-to-noise estimation
 		- filter by scan mode of the spectra

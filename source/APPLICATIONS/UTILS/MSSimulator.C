@@ -44,7 +44,7 @@
 // file types
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 using namespace OpenMS;
@@ -65,7 +65,7 @@ class TOPPMSSimulator
     {
       // I/O settings
       registerInputFile_("in","<file>","","Input protein sequences in FASTA format",true);
-      registerOutputFile_("out","<file>","","output (simulated MS map) in mzData format",true);
+      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
 
@@ -252,7 +252,7 @@ class TOPPMSSimulator
 			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
       
       writeLog_(String("Storing simulated map in: ") + outputfile_name);
-      MzDataFile().store(outputfile_name, ms_simulation.getExperiment());
+      MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
       
       String fxml_out = getStringOption_("out_fm");
 			if (File::writable(fxml_out))

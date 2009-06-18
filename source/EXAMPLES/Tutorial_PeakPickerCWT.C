@@ -1,5 +1,5 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -11,8 +11,8 @@ Int main()
   PeakMap exp_raw;
   PeakMap exp_picked;
   
-  MzDataFile mzdata_file;
-  mzdata_file.load("data/Tutorial_PeakPickerCWT.mzData",exp_raw);
+  MzMLFile mzml_file;
+  mzml_file.load("data/Tutorial_PeakPickerCWT.mzML",exp_raw);
 
   PeakPickerCWT pp;
   Param param;

@@ -29,7 +29,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -1238,7 +1238,7 @@ namespace OpenMS
 					{
 						map_[s].getMetaDataArrays().erase(map_[s].getMetaDataArrays().begin()+2);
 					}					
-					MzDataFile().store("debug/input.mzData", map_);
+					MzMLFile().store("debug/input.mzML", map_);
 				}
 
 				//Execution time

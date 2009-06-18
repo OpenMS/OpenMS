@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
@@ -11,9 +11,9 @@ Int main()
 {
   TOFCalibration ec;
   PeakMap exp_raw,calib_exp;
-  MzDataFile mzdata_file;
-  mzdata_file.load("data/Tutorial_TOFCalibration_peak.mzData",calib_exp);
-  mzdata_file.load("data/Tutorial_TOFCalibration_raw.mzData",exp_raw);
+  MzMLFile mzml_file;
+  mzml_file.load("data/Tutorial_TOFCalibration_peak.mzML",calib_exp);
+  mzml_file.load("data/Tutorial_TOFCalibration_raw.mzML",exp_raw);
   
   vector<DoubleReal> ref_masses;
   TextFile ref_file;

@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -10,8 +10,8 @@ Int main()
 {
   PeakMap exp;
   
-  MzDataFile mzdata_file;
-  mzdata_file.load("data/Tutorial_GaussFilter.mzData",exp);
+  MzMLFile mzdata_file;
+  mzdata_file.load("data/Tutorial_GaussFilter.mzML",exp);
 
   GaussFilter g;
   Param param;

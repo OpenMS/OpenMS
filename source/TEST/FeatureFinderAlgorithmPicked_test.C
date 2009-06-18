@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 ///////////////////////////
