@@ -96,6 +96,9 @@
     <software id="Xcalibur" version="2.0.5">
       <cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur"/>
     </software>
+    <software id="TOPP_FileFilter" version="1.6.1">
+      <cvParam cvRef="MS" accession="MS:1000757" name="FileFilter"/>
+    </software>
   </softwareList>
   
   <scanSettingsList count="1">
@@ -188,7 +191,13 @@
         <userParam name="p2" value="value2"/>
       </processingMethod>
     </dataProcessing>
-
+    <dataProcessing id="dp_sp_1_bi_0">
+      <processingMethod order="1" softwareRef="TOPP_FileFilter">
+        <cvParam cvRef="MS" accession="MS:1000779" name="below precursor intensity dominance charge state calculation" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:15"/>
+        <userParam name="p3" value="value3"/>
+      </processingMethod>
+    </dataProcessing>
 </dataProcessingList>
   
 
@@ -355,7 +364,7 @@
         		<userParam name="itname" value="itarray2"/>
             <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
           </binaryDataArray>
-          <binaryDataArray encodedLength="108" >
+          <binaryDataArray encodedLength="108" dataProcessingRef="dp_sp_1_bi_0">
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
             <cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" value=""/>
@@ -363,7 +372,7 @@
             <userParam name="name2" value="binaryDataArray_sn2"/>
             <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
           </binaryDataArray>
-          <binaryDataArray encodedLength="108" >
+          <binaryDataArray encodedLength="108">
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
             <cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name"/>

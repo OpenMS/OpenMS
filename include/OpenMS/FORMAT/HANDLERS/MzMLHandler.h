@@ -42,7 +42,6 @@
 #include <iostream>
 
 //TODO:
-// - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
 // - Add generic parsing of xref to ControlledVocabulary class => check binary data array types
 //
 //MISSING:
@@ -233,7 +232,7 @@ namespace OpenMS
 			void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
 			/// Helper method that writes a data processing list
-			void writeDataProcessing_(std::ostream& os, Size spectrum_index, const std::vector<DataProcessing>& dps);
+			void writeDataProcessing_(std::ostream& os, const String& id, const std::vector<DataProcessing>& dps);
 		};
 
 		//--------------------------------------------------------------------------------
@@ -368,11 +367,11 @@ namespace OpenMS
 				String data_processing_ref;
 				if(optionalAttributeAsString_(data_processing_ref,attributes, s_data_processing_ref))
 				{
-					//TODO
+					data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
 				}
 				else
 				{
-					//TODO
+					data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
 				}
 			}
 			else if (tag=="cvParam")
@@ -2590,9 +2589,9 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, Size spectrum_index, const std::vector<DataProcessing>& dps)
+		void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, const String& id, const std::vector<DataProcessing>& dps)
 		{
-			os  << "		<dataProcessing id=\"dp_sp_" << spectrum_index << "\">\n";
+			os  << "		<dataProcessing id=\"" << id << "\">\n";
 			
 			//FORCED
 			if (dps.size()==0)
@@ -2607,7 +2606,7 @@ namespace OpenMS
 			for (Size i=0; i<dps.size(); ++i)
 			{
 				//data processing action
-				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << spectrum_index << "_pm_" << i << "\">\n";
+				os  << "			<processingMethod order=\"0\" softwareRef=\"so_" << id << "_pm_" << i << "\">\n";
 				if (dps[i].getProcessingActions().count(DataProcessing::DATA_PROCESSING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000543\" name=\"data processing action\" />\n";
@@ -2900,7 +2899,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// software
 			//--------------------------------------------------------------------------------------------
-			os  << "	<softwareList count=\"" << (2+exp.size()) << "\">\n"; //TODO fix this number when everyting works			
+			os  << "	<softwareList count=\"" << (2+exp.size()) << "\">\n"; //TODO fix this number			
 			//write instrument software
 			writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
 			//write fallback software
@@ -2913,7 +2912,18 @@ namespace OpenMS
 				{
 					for (Size i=0; i<exp[s].getDataProcessing().size(); ++i)
 					{
-						writeSoftware_(os, String("so_dp_") + s + "_pm_" + i, exp[s].getDataProcessing()[i].getSoftware());
+						writeSoftware_(os, String("so_dp_sp_") + s + "_pm_" + i, exp[s].getDataProcessing()[i].getSoftware());
+					}
+				}
+			}
+			//write data processing (for each binary data array)
+			for (Size s=0; s<exp.size(); ++s)
+			{
+				for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+				{
+					for (Size i=0; i<exp[s].getMetaDataArrays()[m].getDataProcessing().size(); ++i)
+					{
+						writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getMetaDataArrays()[m].getDataProcessing()[i].getSoftware());
 					}
 				}
 			}
@@ -3492,23 +3502,32 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// data processing
 			//--------------------------------------------------------------------------------------------
-			os  << "	<dataProcessingList count=\"" << std::max((Size)1,exp.size()) << "\">\n";
+			os  << "	<dataProcessingList count=\"" << std::max((Size)1,exp.size()) << "\">\n"; //TODO fix this number
 			//default (first spectrum data or fictional data)
 			if (exp.size()==0)
 			{
 				std::vector<DataProcessing> dummy;
-				writeDataProcessing_(os, 0 , dummy);
+				writeDataProcessing_(os, "dp_sp_0" , dummy);
 			}
 			else
 			{
-				writeDataProcessing_(os, 0 , exp[0].getDataProcessing());
+				writeDataProcessing_(os, "dp_sp_0" , exp[0].getDataProcessing());
 			}
 			//for each spectrum
 			for (Size s=1; s<exp.size(); ++s)
 			{
 				if (exp[s].getDataProcessing()!=exp[0].getDataProcessing())
 				{
-					writeDataProcessing_(os, s, exp[s].getDataProcessing());
+					writeDataProcessing_(os, String("dp_sp_") + s, exp[s].getDataProcessing());
+				}
+			}
+
+			//for each binary data array
+			for (Size s=0; s<exp.size(); ++s)
+			{
+				for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+				{
+					writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getMetaDataArrays()[m].getDataProcessing());
 				}
 			}
 
@@ -3907,7 +3926,12 @@ namespace OpenMS
 							data64_to_encode.resize(array.size());
 							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
 							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+							String data_processing_ref_string = "";
+							if (array.getDataProcessing().size()!=0)
+							{
+								data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+							}
+							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
 							os  << "						" << compression_term << "\n";
 							ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());

@@ -29,7 +29,7 @@
 #define OPENMS_METADATA_METAINFODESCRIPTION_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS 
@@ -55,18 +55,23 @@ namespace OpenMS
 
       /// Equality operator
       bool operator== (const MetaInfoDescription& rhs) const;
-			
-
 
 			/// returns the name of the peak annotations
       const String& getName() const;
       /// sets the name of the peak annotations
       void setName(const String& name);
-      
+
+			/// returns a const reference to the description of the applied processing
+      const std::vector<DataProcessing>& getDataProcessing() const;
+      /// returns a mutable reference to the description of the applied processing
+      std::vector<DataProcessing>& getDataProcessing();
+      /// sets the description of the applied processing
+      void setDataProcessing(const std::vector<DataProcessing>& data_processing);
+
     protected:
       String comment_;
       String name_;
-      SourceFile source_file_;
+      std::vector<DataProcessing> data_processing_;
   };
 } // namespace OpenMS
 

@@ -235,7 +235,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise array")
 		TEST_EQUAL(spec.getMetaDataArrays()[0].size(),10)
+		TEST_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing().size(),1)
+		TEST_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing()[0].getSoftware().getName(), "FileFilter")
+		TEST_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing()[0].getSoftware().getVersion(), "1.6.1")
+		TEST_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing()[0].getProcessingActions().size(), 1)
+		TEST_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_CALCULATION), 1)
+		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:15:00")
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[1].getName(),"user-defined name")
+		TEST_EQUAL(spec.getMetaDataArrays()[1].getDataProcessing().size(),0)
 		TEST_EQUAL(spec.getMetaDataArrays()[1].size(),10)
 		//precursors
 		TEST_EQUAL(spec.getPrecursors().size(),2)
@@ -433,6 +440,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp[1].getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
 	TEST_STRING_EQUAL(exp[2].getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
 	TEST_STRING_EQUAL(exp[3].getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
+	TEST_STRING_EQUAL(exp[1].getMetaDataArrays()[0].getDataProcessing()[0].getMetaValue("p3").toString(),"value3")
 	//precursor
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("iwname").toString(),"isolationwindow1")
 	TEST_STRING_EQUAL(exp[1].getPrecursors()[0].getMetaValue("siname").toString(),"selectedion1")

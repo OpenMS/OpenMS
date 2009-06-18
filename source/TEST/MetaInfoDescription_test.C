@@ -60,28 +60,52 @@ START_SECTION(void setName(const String& name))
   TEST_EQUAL(tmp.getName(),"name");
 END_SECTION
 
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
+  MetaInfoDescription tmp;
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+END_SECTION
+
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
+  MetaInfoDescription tmp;
+  std::vector<DataProcessing> dummy;
+  dummy.resize(1);
+  tmp.setDataProcessing(dummy);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+END_SECTION
+
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
+  MetaInfoDescription tmp;
+  tmp.getDataProcessing().resize(1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+END_SECTION
+
 START_SECTION(MetaInfoDescription(const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
+  tmp.getDataProcessing().resize(1);
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2(tmp);
   TEST_EQUAL(tmp2.getName(),"bla2");
+	TEST_EQUAL(tmp.getDataProcessing().size(),1);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
 START_SECTION(MetaInfoDescription& operator= (const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
+  tmp.getDataProcessing().resize(1);
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getName(),"bla2");
+	TEST_EQUAL(tmp.getDataProcessing().size(),1);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-
+	
   tmp2 = MetaInfoDescription();
   TEST_EQUAL(tmp2.getName(),"");
+	TEST_EQUAL(tmp2.getDataProcessing().size(),0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 END_SECTION
 

@@ -35,7 +35,8 @@ namespace OpenMS
 	MetaInfoDescription::MetaInfoDescription():
 		MetaInfoInterface(),
 		comment_(),
-		name_()
+		name_(),
+		data_processing_()
 	{
 	  
 	}
@@ -44,7 +45,7 @@ namespace OpenMS
 		MetaInfoInterface(source),
 	  comment_(source.comment_),
 	  name_(source.name_),
-	  source_file_(source.source_file_)
+		data_processing_(source.data_processing_)
 	{
 	  
 	}
@@ -54,24 +55,24 @@ namespace OpenMS
 	  
 	}
 	
-	MetaInfoDescription& MetaInfoDescription::operator = (const MetaInfoDescription& source)
+	MetaInfoDescription& MetaInfoDescription::operator=(const MetaInfoDescription& source)
 	{
 	  if (&source == this) return *this;
 	  
 	  MetaInfoInterface::operator=(source);
 	  comment_ = source.comment_;
 	  name_ = source.name_;
-	  source_file_ = source.source_file_;
+		data_processing_ = source.data_processing_;
 	  
 	  return *this;
 	}
 
-  bool MetaInfoDescription::operator== (const MetaInfoDescription& rhs) const
+  bool MetaInfoDescription::operator==(const MetaInfoDescription& rhs) const
   {
   	return 
 		  comment_ == rhs.comment_ &&
 		  name_ == rhs.name_ &&
-		  source_file_ == rhs.source_file_ &&
+		  data_processing_ == rhs.data_processing_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -85,6 +86,20 @@ namespace OpenMS
   {
   	return name_;
   }
+	const vector<DataProcessing>& MetaInfoDescription::getDataProcessing() const 
+	{
+	  return data_processing_; 
+	}
+	
+	vector<DataProcessing>&  MetaInfoDescription::getDataProcessing()
+	{
+	  return data_processing_; 
+	}
+	
+	void MetaInfoDescription::setDataProcessing(const vector<DataProcessing>& processing_method)
+	{
+	  data_processing_ = processing_method; 
+	}
 
 }
 
