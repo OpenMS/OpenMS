@@ -184,10 +184,10 @@ namespace OpenMS {
 				}
 
 
-          if(i==2796 && j==2797) // every conflict involving the missing edge...
-          {
-            std::cout << "debug point";
-          }
+        if(i==2796 && j==2797) // every conflict involving the missing edge...
+        {
+          std::cout << "debug point";
+        }
 
 				//outgoing edges (from one feature)
 				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
@@ -240,16 +240,23 @@ namespace OpenMS {
           {
             ChargePair ti =  pairs[i];
             ChargePair tj =  pairs[j];
+            
             std::cout << "conflicting egde!";
           }
 
 					namebuf.str("");
-					namebuf<<"x1#"<<i<<"x2#"<<j;
+					//namebuf <<"cp"<<i<<"("<<pairs[i].getElementIndex(0)<<"[q"<<pairs[i].getCharge(0)<<"]-"<<pairs[i].getElementIndex(1)<<"[q"<<pairs[i].getCharge(1)<<"]"<<") vs. "
+					//				<<"cp"<<j<<"("<<pairs[j].getElementIndex(0)<<"[q"<<pairs[j].getCharge(0)<<"]-"<<pairs[j].getElementIndex(1)<<"[q"<<pairs[j].getCharge(1)<<"]"<<")";
+					namebuf << "C" << i << "." << j;
+					String s = namebuf.str();
+					//std::cout << "<-- conflict between " << s << "\n\n";
+
 
 					double element[] = {1.0,1.0};
 					int columns[] = {int(i-margin_left),int(j-margin_left)};
 					// Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
-					build.addRow(2, columns, element, 0, 1);
+
+					build.addRow(2, columns, element, 0, 1, s.c_str());
 
 					//std::cout << "Added row#" << i << " " << j << std::endl;
 				}
@@ -259,6 +266,9 @@ namespace OpenMS {
 		solver.loadFromCoinModel(build);
 
 		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0!) \n";
+
+		// write the model (for debug)
+		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
 
 		//---------------------------------------------------------------------------------------------------------
 		//----------------------------------------Solving and querying result--------------------------------------

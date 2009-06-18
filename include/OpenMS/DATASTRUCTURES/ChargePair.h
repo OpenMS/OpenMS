@@ -33,17 +33,19 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+
 namespace OpenMS
 {
 
   /**
     @brief Representation of a (putative) link between two Features, which stem from the same compound
-	 *but have different charge (including different adduct ions (H+, Na+, ..)
+	  but have different charge (including different adduct ions (H+, Na+, ..)
     
-    Only the referenced features are stored in the base class Peak2D.
-    The original datapoint is referenced by the map and element index.
+    A ChargePair represents an edge between two Features and specifies their respective charge and adducts,
+    so that when decharged they can be explained as stemming from the same compound.
+    
   	
-  	@ingroup Kernel
+  	@ingroup Datastructures
   */
   class OPENMS_DLLAPI ChargePair
   {

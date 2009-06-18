@@ -122,7 +122,7 @@ namespace OpenMS
           EmpiricalFormula ef(adduct_formula);
           Adduct a((Int)l_charge, 1, ef.getMonoWeight(), ef.getString(), log(prob));
           prob_sum += prob;
-          //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << l_charge << ", pr:" << prob << "]\n";
+          //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << ")" << "]\n";
           potential_adducts_.push_back(a);
         }
         
@@ -358,9 +358,11 @@ namespace OpenMS
 				Size f0, f1, aedges=0;
 //				myfile.open ("pairs.info");
 				//write related features
-				for (UInt i=0; i<feature_relation.size(); ++i)
+				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           if (!feature_relation[i].isActive()) continue;
+					
+					//std::cout << "active charge_pair #" << i << "\n";
 
           f0 = feature_relation[i].getElementIndex(0);
           f1 = feature_relation[i].getElementIndex(1);
@@ -499,9 +501,10 @@ namespace OpenMS
 					if (it->getFeatures().size()==0) continue;
 					cons_map_tmp.push_back(*it);					
 					// set a centroid
-					cons_map_tmp.back().setRT(map[it->getFeatures().begin()->getElementIndex()].getRT());
-					cons_map_tmp.back().setMZ(map[it->getFeatures().begin()->getElementIndex()].getMZ());
-					cons_map_tmp.back().setIntensity(map[it->getFeatures().begin()->getElementIndex()].getIntensity());
+					//cons_map_tmp.back().setRT(map[it->getFeatures().begin()->getElementIndex()].getRT());
+					//cons_map_tmp.back().setMZ(map[it->getFeatures().begin()->getElementIndex()].getMZ());
+					//cons_map_tmp.back().setIntensity(map[it->getFeatures().begin()->getElementIndex()].getIntensity());
+					cons_map_tmp.back().computeConsensus();
 
 				}
 				cons_map_tmp.swap(cons_map);

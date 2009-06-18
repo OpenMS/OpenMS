@@ -199,12 +199,14 @@ namespace OpenMS
 							// positive amount
 							a.setAmount(i);
 							cmp.add(a);
-							if (compomer_valid(cmp)) new_adducts.push_back(a);
+							// this might not be a valid compomer (e.g. due to net_charge excess)
+							// ... but when combined with other adducts it might become feasible again
+							new_adducts.push_back(a);
 							Compomer cmp2;
 							// negative amount
 							a.setAmount(-i);
 							cmp2.add(a);
-							if (compomer_valid(cmp2)) new_adducts.push_back(a);
+							new_adducts.push_back(a);
 							++i;
 					}
 					
@@ -228,7 +230,7 @@ namespace OpenMS
 					{
 						Compomer cmp;
 						cmp.add(*new_it);
-						explanations_.push_back(cmp); 
+						if (compomer_valid(cmp)) explanations_.push_back(cmp); 
 					}
 					
 					//std::cout << "valid explanations: " << explanations_.size() << " after " << it->formula_ << std::endl;
