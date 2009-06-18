@@ -42,18 +42,14 @@
 #include <iostream>
 
 //TODO:
-// - scanSettingsList - what is to do?
 // - DataProcessing of binaryDataArray - simply assign to spectrum / chromatogram data processing
-// - InstrumentConfiguration of Scan - what's that?
 // - Add generic parsing of xref to ControlledVocabulary class => check binary data array types
-//
-//TODO (DEFINITION):
-// - MALDI term untis
-// - Add new data processing actions
 //
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
+// - instrumentConfigurationRef attribute for scan (why should the instrument change between scans? - warning if used)
+// - scanSettingsRef attribute for instrumentConfiguration tag (currently no information there because of missing mapping file entry - warning if used)
 
 // xs:id/xs:idref prefix list
 // - sf_ru : sourceFile (run)
@@ -157,12 +153,11 @@ namespace OpenMS
 			{
 				String base64;
 				String precision;
-				String name;
 				UInt size;
 				String compression;
 				std::vector<Real> decoded_32;
 				std::vector<DoubleReal> decoded_64;
-				MetaInfo meta;
+				MetaInfoDescription meta;
 			};
 			
 			/// map pointer for reading
@@ -293,11 +288,13 @@ namespace OpenMS
 			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
 			static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
+			static const XMLCh* s_instrument_configuration_ref = xercesc::XMLString::transcode("instrumentConfigurationRef");
 			static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
 			static const XMLCh* s_data_processing_ref = xercesc::XMLString::transcode("dataProcessingRef");
 			static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
 			static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
 			static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
+			static const XMLCh* s_scan_settings_ref = xercesc::XMLString::transcode("scanSettingsRef");
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -361,10 +358,22 @@ namespace OpenMS
 			else if (tag=="binaryDataArray" && in_spectrum_list_)
 			{
 				data_.push_back(BinaryData());
-				//set array length
+				
+				//array length
 				Int array_length = default_array_length_;
 				optionalAttributeAsInt_(array_length, attributes, s_array_length);
 				data_.back().size = array_length;
+				
+				//data processing
+				String data_processing_ref;
+				if(optionalAttributeAsString_(data_processing_ref,attributes, s_data_processing_ref))
+				{
+					//TODO
+				}
+				else
+				{
+					//TODO
+				}
 			}
 			else if (tag=="cvParam")
 			{
@@ -416,6 +425,15 @@ namespace OpenMS
 				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
 				{
 					tmp.setIdentifier(external_spectrum_id);
+				}
+				
+				//spectrumRef - not really needed
+				
+				//instrumentConfigurationRef - not really needed: why should a scan have a different instrument?
+				String instrument_configuration_ref;
+				if(optionalAttributeAsString_(instrument_configuration_ref, attributes, s_instrument_configuration_ref))
+				{
+					warning(LOAD, "Unhandled attribute 'instrumentConfigurationRef' in 'scan' tag.");
 				}
 				
 				spec_.getAcquisitionInfo().push_back(tmp);
@@ -496,11 +514,6 @@ namespace OpenMS
 				current_id_ = attributeAsString_(attributes, s_id);
 				software_[current_id_].setVersion(attributeAsString_(attributes, s_version));
 			}
-			else if (tag=="dataProcessingRef")
-			{
-			  //"spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessing too
-			  //Currently this is not implemented
-			}
 			else if (tag=="dataProcessing")
 			{
 				current_id_ = attributeAsString_(attributes, s_id);
@@ -515,6 +528,13 @@ namespace OpenMS
 			else if (tag=="instrumentConfiguration")
 			{
 				current_id_ = attributeAsString_(attributes, s_id);
+				
+				//scan settings
+				String scan_settings_ref;
+				if(optionalAttributeAsString_(scan_settings_ref, attributes, s_scan_settings_ref))
+				{
+					warning(LOAD, "Unhandled attribute 'scanSettingsRef' in 'instrumentConfiguration' tag.");
+				}
 			}
 			else if (tag=="softwareRef")
 			{
@@ -665,12 +685,12 @@ namespace OpenMS
 			SignedSize int_index = -1;
 			for (Size i=0; i<data_.size(); i++)
 			{
-				if (data_[i].name=="m/z array")
+				if (data_[i].meta.getName()=="m/z array")
 				{
 					mz_index = i;
 					mz_precision_64 = (data_[i].precision=="64");
 				}
-				if (data_[i].name=="intensity array")
+				if (data_[i].meta.getName()=="intensity array")
 				{
 					int_index = i;
 					int_precision_64 = (data_[i].precision=="64");
@@ -708,17 +728,11 @@ namespace OpenMS
 				UInt meta_array_index = 0;
 				for (Size i=0; i<data_.size(); i++)
 				{
-					if (data_[i].name!="m/z array" && data_[i].name!="intensity array")
+					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 					{
-						spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
 						spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
 						//copy meta info into MetaInfoDescription
-						std::vector<UInt> keys;
-						data_[i].meta.getKeys(keys);
-						for (Size k=0;k<keys.size(); ++k)
-						{
-							spec_.getMetaDataArrays()[meta_array_index].setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
-						}
+						spec_.getMetaDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
 						//go to next meta data array
 						++meta_array_index;
 					}
@@ -729,13 +743,13 @@ namespace OpenMS
 			//We don't have this as a separate location => store it in spectrum
 			for (Size i=0; i<data_.size(); i++)
 			{
-				if (data_[i].name=="m/z array" || data_[i].name=="intensity array")
+				if (data_[i].meta.getName()=="m/z array" || data_[i].meta.getName()=="intensity array")
 				{
 					std::vector<UInt> keys;
 					data_[i].meta.getKeys(keys);
 					for (Size k=0;k<keys.size(); ++k)
 					{
-						spec_.setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
+						spec_.setMetaValue(keys[k],data_[i].meta.getMetaValue(keys[k]));
 					}
 				}
 			}
@@ -759,7 +773,7 @@ namespace OpenMS
 					UInt meta_array_index = 0;
 					for (Size i=0; i<data_.size(); i++)
 					{
-						if (n<data_[i].size && data_[i].name!="m/z array" && data_[i].name!="intensity array")
+						if (n<data_[i].size && data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 						{
 							DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
 							spec_.getMetaDataArrays()[meta_array_index].push_back(value);
@@ -895,11 +909,11 @@ namespace OpenMS
 					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
 					{
-						data_.back().name = value;
+						data_.back().meta.setName(value);
 					}
 					else if (cv_.isChildOf(accession,"MS:1000513")) //other array names as string
 					{
-						data_.back().name = cv_.getTerm(accession).name;
+						data_.back().meta.setName(cv_.getTerm(accession).name);
 					}
 					//MS:1000572 ! binary data compression type
 					else if (accession=="MS:1000574")//zlib compression
@@ -2377,7 +2391,7 @@ namespace OpenMS
 			}
 			else if (parent_tag=="binaryDataArray")
 			{
-				data_.back().meta.setValue(name,data_value);
+				data_.back().meta.setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="spectrum")
 			{

@@ -49,36 +49,6 @@ START_SECTION(~MetaInfoDescription())
 	delete ptr;
 END_SECTION
 
-START_SECTION(const SourceFile& getSourceFile() const)
-  MetaInfoDescription tmp;
-  TEST_EQUAL(tmp.getSourceFile()==SourceFile(),true);
-END_SECTION
-
-START_SECTION(void setSourceFile(const SourceFile& source_file))
-  MetaInfoDescription tmp;
-	SourceFile sf;
-	sf.setFileType("rm");
-	tmp.setSourceFile(sf);
-  TEST_EQUAL(tmp.getSourceFile().getFileType(),"rm");
-END_SECTION
-
-START_SECTION(SourceFile& getSourceFile())
-  MetaInfoDescription tmp;
-	tmp.getSourceFile().setFileType("rm");
-  TEST_EQUAL(tmp.getSourceFile().getFileType(),"rm");
-END_SECTION
-
-START_SECTION(const String& getComment() const)
-  MetaInfoDescription tmp;
-  TEST_EQUAL(tmp.getComment(),"");
-END_SECTION
-
-START_SECTION(void setComment(const String& comment))
-  MetaInfoDescription tmp;
-  tmp.setComment("comment");
-  TEST_EQUAL(tmp.getComment(),"comment");
-END_SECTION
-
 START_SECTION(const String& getName() const)
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getName(),"");
@@ -92,35 +62,25 @@ END_SECTION
 
 START_SECTION(MetaInfoDescription(const MetaInfoDescription& source))
   MetaInfoDescription tmp;
-  tmp.getSourceFile().setFileType("wma");
-  tmp.setComment("bla");
   tmp.setName("bla2");
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2(tmp);
-  TEST_EQUAL(tmp2.getSourceFile().getFileType(),"wma");
-  TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getName(),"bla2");
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
 START_SECTION(MetaInfoDescription& operator= (const MetaInfoDescription& source))
   MetaInfoDescription tmp;
-  tmp.getSourceFile().setFileType("wma");
-  tmp.setComment("bla");
   tmp.setName("bla2");
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getSourceFile().getFileType(),"wma");
-  TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getName(),"bla2");
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 
   tmp2 = MetaInfoDescription();
-  TEST_EQUAL(tmp2.getSourceFile().getFileType(),"");
-  TEST_EQUAL(tmp2.getComment(),"");
   TEST_EQUAL(tmp2.getName(),"");
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 END_SECTION
@@ -130,13 +90,6 @@ START_SECTION(bool operator== (const MetaInfoDescription& rhs) const)
   
   TEST_EQUAL(edit==empty, true);
   
-  edit.getSourceFile().setFileType("wma");
-  TEST_EQUAL(edit==empty, false);
-  
-  edit = empty;
-  edit.setComment("bla");
-	TEST_EQUAL(edit==empty, false);
-
   edit = empty;
   edit.setName("bla2");
 	TEST_EQUAL(edit==empty, false);

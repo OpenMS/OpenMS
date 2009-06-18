@@ -75,37 +75,17 @@ namespace OpenMS
   		MetaInfoInterface::operator==(rhs)
   		;
   }
-	
-	const String& MetaInfoDescription::getComment() const 
-	{
-	  return comment_; 
-	}
-	
-	void MetaInfoDescription::setComment(const String& comment)
-	{
-	  comment_ = comment; 
-	}
-	
-	const SourceFile& MetaInfoDescription::getSourceFile() const 
-	{
-	  return source_file_; 
-	}
-	
-	SourceFile&  MetaInfoDescription::getSourceFile()
-	{
-	  return source_file_; 
-	}
-	
-	void MetaInfoDescription::setSourceFile(const SourceFile& source_file)
-	{
-	  source_file_ = source_file; 
-	}
 
 	void MetaInfoDescription::setName(const String& name)
 	{
 	  name_ = name; 
 	}
-	
+
+  const String& MetaInfoDescription::getName() const
+  {
+  	return name_;
+  }
+
 }
 
 

@@ -67,7 +67,6 @@ namespace OpenMS
 			///@name Edit fields and buttons
 			//@{
 	   	QLineEdit* metainfodescription_name_;
-			QTextEdit* metainfodescription_comment_;
 			//@}
 			
 			//Docu in base class

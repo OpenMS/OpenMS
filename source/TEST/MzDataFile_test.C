@@ -100,52 +100,28 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	//---------------------------------------------------------------------------
 	//meta data array meta data
 	//---------------------------------------------------------------------------
-	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getNameOfFile(),"area.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaDataArrays()[0].getComment(),"bla|comment|bla")
 	TEST_EQUAL(e[0].getMetaDataArrays()[0].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[0].getMetaValue("Comment"),"Area of the peak")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getMetaValue("comment"),"bla|comment|bla")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getNameOfFile(),"fwhm.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[1].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[1].getMetaValue("Comment"),"Full width at half max")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getNameOfFile(),"leftWidth.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[2].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[2].getMetaValue("Comment"),"Left width")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getNameOfFile(),"rightWidth.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[3].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[3].getMetaValue("Comment"),"Right width")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getNameOfFile(),"charge.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[4].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[4].getMetaValue("Comment"),"Peak charge")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getNameOfFile(),"signalToNoise.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[5].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[5].getMetaValue("Comment"),"Signal to noise ratio")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getNameOfFile(),"rValue.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[6].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[6].getMetaValue("Comment"),"Correlation value")
 
-	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getNameOfFile(),"peakShape.raw")
-	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getFileType(),"aux")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("Comment"),"Peak shape")
 	  

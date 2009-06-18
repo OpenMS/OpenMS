@@ -86,14 +86,11 @@ DROP TABLE IF EXISTS META_MetaInfoDescription;
 CREATE TABLE META_MetaInfoDescription (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
-  fid_File bigint(20) unsigned default NULL,
   fid_MetaInfo bigint(20) unsigned default NULL,
   Name varchar(30) collate latin1_general_ci NOT NULL default '',
-  Description text collate latin1_general_ci NOT NULL,
   PRIMARY KEY  (id),
   KEY fid_Spectrum (fid_Spectrum),
-  KEY fid_MetaInfo (fid_MetaInfo),
-  KEY fid_File (fid_File)
+  KEY fid_MetaInfo (fid_MetaInfo)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
 -- --------------------------------------------------------
@@ -875,8 +872,7 @@ ALTER TABLE `DATA_PeakMetaData`
 --
 ALTER TABLE `META_MetaInfoDescription`
   ADD CONSTRAINT META_MetaInfoDescription_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
-  ADD CONSTRAINT META_MetaInfoDescription_ibfk_2 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT META_MetaInfoDescription_ibfk_3 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL;
+  ADD CONSTRAINT META_MetaInfoDescription_ibfk_2 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `DATA_Precursor`

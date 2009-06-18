@@ -1812,9 +1812,9 @@ namespace OpenMS
 				    }
 				    else if (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
 				    {
-							while(i2 < y_size - 1 && y[i2++].second == y[i2].second)
+							while(i2 < y_size - 1 && y[i2].second == y[i2+1].second)
 							{
-							    ;
+								++i2;
 							}
 							++i1;
 							c1 = 0;

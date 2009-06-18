@@ -44,7 +44,6 @@ namespace OpenMS
 		addLabel_("Modify MetaInfoDescription information");		
 		addSeparator_();
 		addLineEdit_(metainfodescription_name_, "Name of peak annotations" );
-		addTextEdit_(metainfodescription_comment_, "Comment" );
 			
 		finishAdding_();
 	}
@@ -52,13 +51,11 @@ namespace OpenMS
 	void MetaInfoDescriptionVisualizer::update_()
 	{
 	  metainfodescription_name_->setText(temp_.getName().c_str() );
-		metainfodescription_comment_->setText(temp_.getComment().c_str() );
 	}
 	
 	void MetaInfoDescriptionVisualizer::store()
 	{
 		ptr_->setName(metainfodescription_name_->text().toStdString());
-		ptr_->setComment(metainfodescription_comment_->toPlainText().toStdString());
 					
 		temp_ = (*ptr_);
 	}

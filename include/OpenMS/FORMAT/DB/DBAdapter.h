@@ -51,7 +51,8 @@ namespace OpenMS
 
     It can be used to create objects from the DB or store them in the DB.
 
-			@todo Check if test is really complete (Hiwi)
+		@todo Add DataProcessing to MetaInfoDescription (Hiwi)
+		@todo Check if test is really complete (Hiwi)
 
     @ingroup DatabaseIO
   */
@@ -819,7 +820,6 @@ namespace OpenMS
 				query << "SELECT id FROM META_MetaInfoDescription WHERE fid_Spectrum=";
 				query << exp_it->getPersistenceId();
 				query << " AND Name='" << mdarrays_it->getName() << "'";
-
 				result = db_con_.executeQuery(query.str());
 
 				query.str("");
@@ -829,6 +829,7 @@ namespace OpenMS
 					parent_id = result.value(0).toInt();
 					new_entry = false;
 					query << "UPDATE META_MetaInfoDescription SET ";
+					query << "Name='" + mdarrays_it->getName() + "' "; //TODO
 					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
 					end += " AND Name='" + mdarrays_it->getName() + "'";
 				}
@@ -837,11 +838,10 @@ namespace OpenMS
 					new_entry = true;
 					query << "INSERT INTO META_MetaInfoDescription SET ";
 					query << "fid_Spectrum=" << exp_it->getPersistenceId() << ", ";
-					query << "Name='" << mdarrays_it->getName() << "',";
+					query << "Name='" << mdarrays_it->getName() << "'";
 					end = "";
 				}
 
-				query << "Description='" << mdarrays_it->getComment() << "'";
 				query << end;
 
 				result = db_con_.executeQuery(query.str());
@@ -850,7 +850,6 @@ namespace OpenMS
 					parent_id = db_con_.getAutoId();
 				}
 
-				storeFile_("META_MetaInfoDescription", parent_id, mdarrays_it->getSourceFile());
 				storeMetaInfo_("META_MetaInfoDescription", parent_id, *mdarrays_it);
 
 				// store meta data contained in the MetaDataArrays
@@ -1652,8 +1651,7 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 
 		query.str("");
-		query << "SELECT Name, Description, fid_MetaInfo, fid_File ";
-		query << "FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
+		query << "SELECT Name, fid_MetaInfo FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
 
 		result = db_con_.executeQuery(query.str());
 		result.first();
@@ -1662,10 +1660,8 @@ namespace OpenMS
 		{
 			typename SpectrumType::MetaDataArray meta_array;
 			meta_array.setName(result.value(0).toString());
-			meta_array.setComment(result.value(1).toString());
-			loadMetaInfo_(result.value(2).toInt(), meta_array);
-			loadFile_(result.value(3).toInt(),meta_array.getSourceFile());
-
+			loadMetaInfo_(result.value(1).toInt(), meta_array);
+			
 			spec.getMetaDataArrays().push_back(meta_array);
 			result.next();
 		}

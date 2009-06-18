@@ -119,7 +119,6 @@ namespace OpenMS
 				//MetaInfoDescriptions
 	      for (Size i=0; i<spectrum.getMetaDataArrays().size();++i)
 	      {
-	      	// add(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
 	      	add(spectrum.getMetaDataArrays()[i]);
 	      }
 

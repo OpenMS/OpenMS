@@ -423,7 +423,7 @@ namespace OpenMS
 			}
 			else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
 			{
-				meta_id_descs_.back().second.getSourceFile().setNameOfFile( transcoded_chars );
+				//ignored
 			}
 			else if (current_tag=="pathToFile" && parent_tag == "sourceFile")
 			{
@@ -431,7 +431,7 @@ namespace OpenMS
 			}
 			else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
 			{
-				meta_id_descs_.back().second.getSourceFile().setPathToFile( transcoded_chars );
+				//ignored
 			}
 			else if (current_tag=="fileType" && parent_tag == "sourceFile")
 			{
@@ -439,7 +439,7 @@ namespace OpenMS
 			}
 			else if (current_tag == "fileType" && parent_tag == "supSourceFile")
 			{
-				meta_id_descs_.back().second.getSourceFile().setFileType( transcoded_chars );
+				//ignored
 			}
 			else
 			{
@@ -528,8 +528,10 @@ namespace OpenMS
 			else if (tag=="supDataDesc")
 			{
 				String comment;
-				optionalAttributeAsString_(comment, attributes, s_comment);
-				meta_id_descs_.back().second.setComment(comment);
+				if (optionalAttributeAsString_(comment, attributes, s_comment))
+				{
+					meta_id_descs_.back().second.setMetaValue("comment",comment);
+				}
 			}
 			else if (tag=="userParam")
 			{
@@ -1230,25 +1232,9 @@ namespace OpenMS
 							os << "\t\t\t<supDesc supDataArrayRef=\"" << (i+1) << "\">\n";
 							if (!desc.isMetaEmpty())
 							{
-								os << "\t\t\t\t<supDataDesc";
-								if (desc.getComment()!="")
-								{
-									os << " comment=\"" << desc.getComment() << "\"";
-								}
-								os << ">\n";
+								os << "\t\t\t\t<supDataDesc>\n";
 								writeUserParam_(os, desc, 5);
 								os << "\t\t\t\t</supDataDesc>\n";
-							}
-							if (desc.getSourceFile()!=SourceFile())
-							{
-								os << "\t\t\t\t<supSourceFile>\n"
-						 				<< "\t\t\t\t\t<nameOfFile>" << desc.getSourceFile().getNameOfFile()
-										<< "</nameOfFile>\n"
-						 				<< "\t\t\t\t\t<pathToFile>" << desc.getSourceFile().getPathToFile()
-										<< "</pathToFile>\n";
-								if (desc.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
-									<< desc.getSourceFile().getFileType()	<< "</fileType>\n";
-								os << "\t\t\t\t</supSourceFile>\n";
 							}
 							os << "\t\t\t</supDesc>\n";
 						}

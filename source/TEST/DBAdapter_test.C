@@ -354,20 +354,11 @@ END_SECTION
 		spec.setSourceFile(source_file);
 
 		RichPeakSpectrum::MetaDataArray meta_data_array;
-		meta_data_array.setName ("label");
-		meta_data_array.setComment ("This represents some artful kind of label.");
-		meta_data_array.setName ("icon");
-		meta_data_array.setComment ("little icon with colors and stuff");
+		meta_data_array.setName("icon");
 		meta_data_array.setMetaValue ("icon", String("an icon is an icon is an icon"));
 		meta_data_array.push_back(3.14f);
 		meta_data_array.push_back(3.1f);
 		meta_data_array.push_back(3.0f);
-		source_file.setNameOfFile("this is the filename");
-		source_file.setPathToFile("/slashdot/");
-		source_file.setFileSize(1.234f);
-		source_file.setFileType("RAWDATA");
-		source_file.setChecksum("6132b58967cf1ebc05062492c17145e5ee9f82a8",SourceFile::SHA1);
-		meta_data_array.setSourceFile(source_file);
 		spec.getMetaDataArrays().push_back(meta_data_array);
 
 		// set acquisition info with 1 acquisition
@@ -387,10 +378,6 @@ END_SECTION
 		pei.setSignificanceThreshold(1.235);
 		pei.setScoreType("ScoreType");
 		pei.setHigherScoreBetter(true);
-//needs getter and setter methods first
-//		source_file.setNameOfFile("testberlin");
-//		source_file.setPathToFile("/testen/");
-//		pei.setSourceFile(source_file);
 		std::vector<PeptideHit> vec_peh;
 		peh.setScore(2.345);
 		peh.setSequence("AACD");
@@ -575,12 +562,7 @@ END_SECTION
 			TEST_EQUAL( spec[0].getMetaValue("label"), "peaklabel");
 
 			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
-			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
-			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
-			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )
-			TEST_REAL_SIMILAR( meta_data_arrays[0].getSourceFile().getFileSize(), 1.234 )
-			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getFileType(), "RAWDATA" )
-			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getChecksumType(), SourceFile::SHA1 )
+			TEST_STRING_EQUAL( meta_data_arrays[0].getName(),"icon")
 			TEST_EQUAL( meta_data_arrays[0].getMetaValue("icon"), "an icon is an icon is an icon" )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][0], 3.14 )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][1], 3.1 )
@@ -917,22 +899,10 @@ END_SECTION
 			// adding a meta data array
 			modified_spec.getMetaDataArrays().clear();
 			RichPeakSpectrum::MetaDataArray meta_data_array;
-			meta_data_array.setName ("label");
-			meta_data_array.setComment ("This represents some artful kind of label.");
-			meta_data_array.setName ("icon");
-			meta_data_array.setComment ("little icon with colors and stuff");
+			meta_data_array.setName("icon");
 			meta_data_array.push_back(23.0f);
 			meta_data_array.push_back(42.0f);
 			meta_data_array.push_back(100.001f);
-			// setting a source file
-			SourceFile source_file;
-			source_file.setNameOfFile("this is the filename");
-			source_file.setPathToFile("/slashdot/");
-			source_file.setNativeIDType(SourceFile::WIFF);
-			source_file.setFileSize(1.234f);
-			source_file.setFileType("RAWDATA");
-			source_file.setChecksum("chksm", SourceFile::MD5);
-			meta_data_array.setSourceFile(source_file);
 
 			modified_spec.getMetaDataArrays().push_back(meta_data_array);
 
@@ -1035,8 +1005,8 @@ END_SECTION
 
 			//test update of others
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getRank(), 5u )
-			TEST_EQUAL(exp_new[0].getSourceFile().getChecksumType(), SourceFile::MD5 )
-			TEST_EQUAL(exp_new[0].getSourceFile().getNativeIDType(), SourceFile::WIFF )
+			TEST_EQUAL(exp_new[0].getSourceFile().getChecksumType(), SourceFile::UNKNOWN_CHECKSUM )
+			TEST_EQUAL(exp_new[0].getSourceFile().getNativeIDType(), SourceFile::WATERS )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getOrder() , 2 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getOrder() , 3 )
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getOrder(), 4)
