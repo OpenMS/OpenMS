@@ -63,7 +63,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmPrecision::getProductName(),"precision")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)))
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& out)))
 	MapAlignmentEvaluationAlgorithmPrecision maea;
 	ConsensusMap in;
 	ConsensusMap gt;

@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& out)
 	{
 		//Recall = 1/N * sum( gt_subtend_tilde_tool_i / ( m_i * gt_i ) )
 

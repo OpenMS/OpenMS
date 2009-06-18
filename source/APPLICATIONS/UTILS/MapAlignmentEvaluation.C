@@ -79,7 +79,7 @@ protected:
 		setValidStrings_("type",Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts());
 		registerDoubleOption_("rt_dev","<double>",0.1,"Maximum allowed deviation of the retention time", false);
 		registerDoubleOption_("mz_dev","<double>",0.1,"Maximum allowed deviation of m/z", false);
-		registerIntOption_("int_dev","<int>",100,"Maximum allowed deviation of Intensity", false);
+		registerDoubleOption_("int_dev","<double>",100,"Maximum allowed deviation of Intensity", false);
 
 		addEmptyLine_();
 		addText_("This tool implements the evaluation measures from our paper:\n"
@@ -103,7 +103,7 @@ protected:
 
 		DoubleReal rt_dev = getDoubleOption_("rt_dev");
 		DoubleReal mz_dev = getDoubleOption_("mz_dev");
-		Int int_dev = getIntOption_("int_dev");
+		DoubleReal int_dev = getDoubleOption_("int_dev");
 
 		DoubleReal out = 0;
 

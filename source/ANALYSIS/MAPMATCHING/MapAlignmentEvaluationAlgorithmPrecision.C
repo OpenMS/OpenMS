@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& out)
+	void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& out)
 	{
 		//Precision = 1/N * sum ( gt_subtend_tilde_tool_i / tilde_tool_i )
 

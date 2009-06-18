@@ -43,7 +43,7 @@ namespace OpenMS
 	 : public MapAlignmentEvaluationAlgorithm
 	{
 		public:
-			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Int&, DoubleReal& real)
+			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Peak2D::IntensityType&, DoubleReal& real)
 			{
 				real = 1.5;
 			}
@@ -65,12 +65,12 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Int& int_dev, DoubleReal& realin)=0))
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& realin)=0))
 	MAEA maea;
 	ConsensusMap map1;
 	ConsensusMap map2;
 	DoubleReal rt_dev, mz_dev;
-	Int int_dev;
+	Peak2D::IntensityType int_dev;
 	DoubleReal real;
 	maea.evaluate(map1, map2, rt_dev, mz_dev, int_dev, real);
 	TEST_EQUAL(real, 1.5)
