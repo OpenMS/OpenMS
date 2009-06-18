@@ -1,2 +1,0 @@
-FileMerger_2_input1.txt	5
-FileMerger_2_input2.txt	10

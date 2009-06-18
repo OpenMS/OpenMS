@@ -1,2 +1,0 @@
-FileMerger_3_input1.dta	5
-FileMerger_3_input2.dta	10

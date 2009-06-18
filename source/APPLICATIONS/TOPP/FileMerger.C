@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -77,7 +77,7 @@ class TOPPFileMerger
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));
 		registerOutputFile_("out","<file>","","output file");
-		setValidFormats_("out",StringList::create("mzData"));
+		setValidFormats_("out",StringList::create("mzML"));
 
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerDoubleList_("rt_custom","<rt>",DoubleList(),"List of custom retention times that are assigned to the files.\n"
@@ -236,7 +236,7 @@ class TOPPFileMerger
 		//annotate output with data processing info
 		addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-		MzDataFile f;
+		MzMLFile f;
 		f.setLogType(log_type_);
 		f.store(out_file,out);
 
