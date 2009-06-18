@@ -36,26 +36,25 @@ add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -ini ${DATA_DIR_TOPP}/IDMer
 add_test("TOPP_IDMerger_1_out1" ${DIFF} -in1 IDMerger_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_1_output.idXML)
 
 ### BaselineFilter tests
-add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter  -in ${DATA_DIR_TOPP}/RawData_input.mzData -out BaselineFilter_output.tmp -struc_elem_length 1.5)
-add_test("TOPP_BaselineFilter_1_out1" ${DIFF} -in1 BaselineFilter_output.tmp -in2 ${DATA_DIR_TOPP}/BaselineFilter_output.mzData)
+add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out BaselineFilter.tmp -struc_elem_length 1.5)
+add_test("TOPP_BaselineFilter_1_out1" ${DIFF} -in1 BaselineFilter.tmp -in2 ${DATA_DIR_TOPP}/BaselineFilter_output.mzML)
 
 ### MapNormalizer tests
-add_test("TOPP_MapNormalizer_1" ${TOPP_BIN_PATH}/MapNormalizer  -in ${DATA_DIR_TOPP}/MapNormalizer_input.mzData -out MapNormalizer_output.tmp)
-add_test("TOPP_MapNormalizer_1_out1" ${DIFF} -in1 MapNormalizer_output.tmp -in2 ${DATA_DIR_TOPP}/MapNormalizer_output.mzData)
+add_test("TOPP_MapNormalizer_1" ${TOPP_BIN_PATH}/MapNormalizer -test -in ${DATA_DIR_TOPP}/MapNormalizer_input.mzML -out MapNormalizer.tmp)
+add_test("TOPP_MapNormalizer_1_out1" ${DIFF} -in1 MapNormalizer.tmp -in2 ${DATA_DIR_TOPP}/MapNormalizer_output.mzML)
 
 ### DBImporter tests
 if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter_input.ini)
-	add_test("TOPP_DBImporter_1" ${TOPP_BIN_PATH}/DBImporter  -init -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
-	add_test("TOPP_DBImporter_2" ${TOPP_BIN_PATH}/DBImporter  -in ${DATA_DIR_TOPP}/DBImporter_input.mzData -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
-	add_test("TOPP_DBImporter_3" ${TOPP_BIN_PATH}/DBImporter  -in ${DATA_DIR_TOPP}/DBImporter_input2.mzData -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
+	add_test("TOPP_DBImporter_1" ${TOPP_BIN_PATH}/DBImporter -init -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
+	add_test("TOPP_DBImporter_2" ${TOPP_BIN_PATH}/DBImporter -test -in ${DATA_DIR_TOPP}/DBImporter_input.mzML -ini ${DATA_DIR_TOPP}/DBImporter_input.ini)
 endif()
 
 ### DBExporter tests
 if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter_input.ini)
-	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -id 1)
-	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter_output.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
-	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output2.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query "SELECT 1")
-	add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter_output2.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
+	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -id 1)
+	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzML)
+	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query "SELECT 1")
+	add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzML)
 endif()
 
 ### Decharger tests
@@ -63,24 +62,24 @@ add_test("TOPP_Decharger_1" ${TOPP_BIN_PATH}/Decharger -test -ini ${DATA_DIR_TOP
 add_test("TOPP_Decharger_1_out1" ${DIFF} -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML)
 
 ### DTAExtractor tests
-add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzData -out DTAExtractor -rt :61)
+add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -rt :61)
 add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta)
-add_test("TOPP_DTAExtractor_2" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzData -out DTAExtractor -level 1)
+add_test("TOPP_DTAExtractor_2" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 1)
 add_test("TOPP_DTAExtractor_2_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_2_output.dta)
-add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzData -out DTAExtractor -level 2 -mz :1000)
+add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 2 -mz :1000)
 add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140_MZ5.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta)
 
 ### FeatureFinder tests
-add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
-add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
-add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
-add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
-add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
-add_test("TOPP_FeatureFinder_3_out1" ${DIFF} -in1 FeatureFinder_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_3_output.featureXML)
-add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
-add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
-add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder_5_output.tmp)
-add_test("TOPP_FeatureFinder_5_out1" ${DIFF} -in1 FeatureFinder_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_5_output.featureXML)
+add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
+add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
+add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
+add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
+add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
+add_test("TOPP_FeatureFinder_3_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_3_output.featureXML)
+add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzML -out FeatureFinder.tmp)
+add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
+add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder.tmp)
+add_test("TOPP_FeatureFinder_5_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_5_output.featureXML)
 
 ### FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter.tmp -out_type mzML)
@@ -103,24 +102,24 @@ add_test("TOPP_FileConverter_8" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_
 add_test("TOPP_FileConverter_8_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_8_output.mzData)
 
 ### FileFilter tests
-add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_1_out.tmp -rt :30 -mz :1000 -int :20000)
-add_test("TOPP_FileFilter_1_out1" ${DIFF} -in1 FileFilter_1_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_1_output.mzData)
-add_test("TOPP_FileFilter_2" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_2_out.tmp -rt 30: -mz 1000: -int 100:)
-add_test("TOPP_FileFilter_2_out1" ${DIFF} -in1 FileFilter_2_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_2_output.mzData)
-add_test("TOPP_FileFilter_3" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
-add_test("TOPP_FileFilter_3_out1" ${DIFF} -in1 FileFilter_3_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_3_output.mzData)
-add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
-add_test("TOPP_FileFilter_4_out1" ${DIFF} -in1 FileFilter_4_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_4_output.mzData)
-add_test("TOPP_FileFilter_5" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
-add_test("TOPP_FileFilter_5_out1" ${DIFF} -in1 FileFilter_5_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_5_out.featureXML)
-add_test("TOPP_FileFilter_6" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
-add_test("TOPP_FileFilter_6_out1" ${DIFF} -in1 FileFilter_6_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_6_out.featureXML)
-add_test("TOPP_FileFilter_7" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_7_input.mzData -out FileFilter_7_out.tmp -int 7000: -level 1 2 3)
-add_test("TOPP_FileFilter_7_out1" ${DIFF} -in1 FileFilter_7_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_7_out.mzData)
-add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int 1100:6000)
-add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter_8_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
-add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzData -out FileFilter_9_out.tmp -remove_mode SelectedIonMonitoring)
-add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter_9_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzData)
+add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter.tmp -rt :30 -mz :1000 -int :20000)
+add_test("TOPP_FileFilter_1_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_1_output.mzML)
+add_test("TOPP_FileFilter_2" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter.tmp -rt 30: -mz 1000: -int 100:)
+add_test("TOPP_FileFilter_2_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_2_output.mzML)
+add_test("TOPP_FileFilter_3" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter.tmp -level 2)
+add_test("TOPP_FileFilter_3_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_3_output.mzML)
+add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzML -out FileFilter.tmp -remove_zoom)
+add_test("TOPP_FileFilter_4_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_4_output.mzML)
+add_test("TOPP_FileFilter_5" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
+add_test("TOPP_FileFilter_5_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_5_out.featureXML)
+add_test("TOPP_FileFilter_6" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
+add_test("TOPP_FileFilter_6_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_6_out.featureXML)
+add_test("TOPP_FileFilter_7" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_7_input.mzML -out FileFilter.tmp -int 7000: -level 1 2 3)
+add_test("TOPP_FileFilter_7_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_7_output.mzML)
+add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_8_input.consensusXML -out FileFilter.tmp -rt 600:1400 -mz 700:2300 -int 1100:6000)
+add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
+add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzML -out FileFilter.tmp -remove_mode SelectedIonMonitoring)
+add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzML)
 ## TODO (Chris): test -remove_activation <activation> switch once mzML is our default
 
 
@@ -188,19 +187,19 @@ add_test("TOPP_MapAligner_1_out3" ${DIFF} -in1 MapAligner_1_output3.tmp -in2 ${D
 add_test("TOPP_MapAligner_1_out4" ${DIFF} -in1 MapAligner_1_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo1.trafoXML)
 add_test("TOPP_MapAligner_1_out5" ${DIFF} -in1 MapAligner_1_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo2.trafoXML)
 add_test("TOPP_MapAligner_1_out6" ${DIFF} -in1 MapAligner_1_trafo3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_1_trafo3.trafoXML)
-add_test("TOPP_MapAligner_2" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_2_input1.mzData ${DATA_DIR_TOPP}/MapAligner_2_input2.mzData ${DATA_DIR_TOPP}/MapAligner_2_input3.mzData)
-add_test("TOPP_MapAligner_2_out1" ${DIFF} -in1 MapAligner_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output1.mzData)
-add_test("TOPP_MapAligner_2_out2" ${DIFF} -in1 MapAligner_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output2.mzData)
-add_test("TOPP_MapAligner_2_out3" ${DIFF} -in1 MapAligner_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output3.mzData)
-add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzData ${DATA_DIR_TOPP}/MapAligner_3_input2.mzData ${DATA_DIR_TOPP}/MapAligner_3_input3.mzData)
-add_test("TOPP_MapAligner_3_out1" ${DIFF} -in1 MapAligner_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output1.mzData)
-add_test("TOPP_MapAligner_3_out2" ${DIFF} -in1 MapAligner_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output2.mzData)
-add_test("TOPP_MapAligner_3_out3" ${DIFF} -in1 MapAligner_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output3.mzData)
+add_test("TOPP_MapAligner_2" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_2_input1.mzML ${DATA_DIR_TOPP}/MapAligner_2_input2.mzML ${DATA_DIR_TOPP}/MapAligner_2_input3.mzML)
+add_test("TOPP_MapAligner_2_out1" ${DIFF} -in1 MapAligner_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output1.mzML)
+add_test("TOPP_MapAligner_2_out2" ${DIFF} -in1 MapAligner_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output2.mzML)
+add_test("TOPP_MapAligner_2_out3" ${DIFF} -in1 MapAligner_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_2_output3.mzML)
+add_test("TOPP_MapAligner_3" ${TOPP_BIN_PATH}/MapAligner -test -ini ${DATA_DIR_TOPP}/MapAligner_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAligner_3_input1.mzML ${DATA_DIR_TOPP}/MapAligner_3_input2.mzML ${DATA_DIR_TOPP}/MapAligner_3_input3.mzML)
+add_test("TOPP_MapAligner_3_out1" ${DIFF} -in1 MapAligner_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output1.mzML)
+add_test("TOPP_MapAligner_3_out2" ${DIFF} -in1 MapAligner_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output2.mzML)
+add_test("TOPP_MapAligner_3_out3" ${DIFF} -in1 MapAligner_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_3_output3.mzML)
 add_test("TOPP_MapAligner_4" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML ${DATA_DIR_TOPP}/MapAligner_4_input.featureXML -given_transformations ${DATA_DIR_TOPP}/MapAligner_4_trafo1.trafoXML ${DATA_DIR_TOPP}/MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
 add_test("TOPP_MapAligner_4_out1" ${DIFF} -in1 MapAligner_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output1.featureXML)
 add_test("TOPP_MapAligner_4_out2" ${DIFF} -in1 MapAligner_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_4_output2.featureXML)
-add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzData -given_transformations ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
-add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzData)
+add_test("TOPP_MapAligner_5" ${TOPP_BIN_PATH}/MapAligner -test -type apply_given_trafo -in ${DATA_DIR_TOPP}/MapAligner_5_input.mzML -given_transformations ${DATA_DIR_TOPP}/MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
+add_test("TOPP_MapAligner_5_out1" ${DIFF} -in1 MapAligner_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapAligner_5_output.mzML)
 
 ### MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
@@ -209,24 +208,24 @@ add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -in ${DATA_DIR_TO
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML)
 
 ### NoiseFilter tests
-add_test("TOPP_NoiseFilter_1" ${TOPP_BIN_PATH}/NoiseFilter  -ini ${DATA_DIR_TOPP}/NoiseFilter_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilter_1_input.mzData -out NoiseFilter_1_output.tmp)
-add_test("TOPP_NoiseFilter_1_out1" ${DIFF} -in1 NoiseFilter_1_output.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_1_output.mzData)
-add_test("TOPP_NoiseFilter_2" ${TOPP_BIN_PATH}/NoiseFilter  -ini ${DATA_DIR_TOPP}/NoiseFilter_2_parameters.ini -in ${DATA_DIR_TOPP}/RawData_input.mzData -out NoiseFilter_2_output.tmp)
-add_test("TOPP_NoiseFilter_2_out1" ${DIFF} -in1 NoiseFilter_2_output.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_2_output.mzData)
+add_test("TOPP_NoiseFilter_1" ${TOPP_BIN_PATH}/NoiseFilter -test -ini ${DATA_DIR_TOPP}/NoiseFilter_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilter_1_input.mzML -out NoiseFilter.tmp)
+add_test("TOPP_NoiseFilter_1_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_1_output.mzML)
+add_test("TOPP_NoiseFilter_2" ${TOPP_BIN_PATH}/NoiseFilter -test -ini ${DATA_DIR_TOPP}/NoiseFilter_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilter_2_input.mzML -out NoiseFilter.tmp)
+add_test("TOPP_NoiseFilter_2_out1" ${DIFF} -in1 NoiseFilter.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilter_2_output.mzML)
 
 ### PeakPicker tests
-add_test("TOPP_PeakPicker_1" ${TOPP_BIN_PATH}/PeakPicker  -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/RawData_input.mzData -out PeakPicker_output.tmp)
-add_test("TOPP_PeakPicker_1_out1" ${DIFF} -in1 PeakPicker_output.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_output.mzData)
-add_test("TOPP_PeakPicker_2" ${TOPP_BIN_PATH}/PeakPicker  -ini ${DATA_DIR_TOPP}/PeakPicker_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
-add_test("TOPP_PeakPicker_2_out1" ${DIFF} -in1 PeakPicker_deconv_output.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_deconv_output.mzData)
-add_test("TOPP_PeakPicker_3" ${TOPP_BIN_PATH}/PeakPicker  -ini ${DATA_DIR_TOPP}/PeakPicker_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/RawData_input.mzData -out PeakPicker_2Dopt_output.tmp)
-add_test("TOPP_PeakPicker_3_out1" ${DIFF} -in1 PeakPicker_2Dopt_output.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_2Dopt_output.mzData)
+add_test("TOPP_PeakPicker_1" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_input.mzML -out PeakPicker.tmp)
+add_test("TOPP_PeakPicker_1_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_output.mzML)
+add_test("TOPP_PeakPicker_2" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_deconv_input.mzML -out PeakPicker.tmp)
+add_test("TOPP_PeakPicker_2_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_deconv_output.mzML)
+add_test("TOPP_PeakPicker_3" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_2Dopt_input.mzML -out PeakPicker.tmp)
+add_test("TOPP_PeakPicker_3_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_2Dopt_output.mzML)
 
 ### Resampler tests
-add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -in ${DATA_DIR_TOPP}/Resampler_1_input.mzData -out Resampler_1_output.tmp -sampling_rate 0.3)
-add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler_1_output.tmp -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzData)
-add_test("TOPP_Resampler_2" ${TOPP_BIN_PATH}/Resampler -in ${DATA_DIR_TOPP}/Resampler_2_input.mzData -out Resampler_2_output.tmp -image -width 20 -height 15)
-add_test("TOPP_Resampler_2_out1" ${DIFF} -in1 Resampler_2_output.tmp -in2 ${DATA_DIR_TOPP}/Resampler_2_output.png)
+add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.tmp -sampling_rate 0.3)
+add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler.tmp -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML)
+add_test("TOPP_Resampler_2" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_2_input.mzML -out Resampler.tmp -image -width 20 -height 15)
+add_test("TOPP_Resampler_2_out1" ${DIFF} -in1 Resampler.tmp -in2 ${DATA_DIR_TOPP}/Resampler_2_output.png)
 
 ### RTModel tests
 add_test("TOPP_RTModel_1" ${TOPP_BIN_PATH}/RTModel -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
@@ -300,24 +299,24 @@ add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR
 add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
 
 ### SpectraFilter tests
-add_test("TOPP_SpectraFilter_1" ${TOPP_BIN_PATH}/SpectraFilter -in ${DATA_DIR_TOPP}/SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -type SqrtMower)
-add_test("TOPP_SpectraFilter_1_out1" ${DIFF} -in1 SpectraFilter_1_output.mzData.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_1_output.mzData)
-add_test("TOPP_SpectraFilter_2" ${TOPP_BIN_PATH}/SpectraFilter -in ${DATA_DIR_TOPP}/SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -type WindowMower)
-add_test("TOPP_SpectraFilter_2_out1" ${DIFF} -in1 SpectraFilter_2_output.mzData.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_2_output.mzData)
-add_test("TOPP_SpectraFilter_3" ${TOPP_BIN_PATH}/SpectraFilter -in ${DATA_DIR_TOPP}/SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini ${DATA_DIR_TOPP}/SpectraFilter_3_parameters.ini -type WindowMower)
-add_test("TOPP_SpectraFilter_3_out1" ${DIFF} -in1 SpectraFilter_3_output.mzData.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_3_output.mzData)
+add_test("TOPP_SpectraFilter_1" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_1_input.mzML -out SpectraFilter.tmp -type SqrtMower)
+add_test("TOPP_SpectraFilter_1_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_1_output.mzML)
+add_test("TOPP_SpectraFilter_2" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_2_input.mzML -out SpectraFilter.tmp -type WindowMower)
+add_test("TOPP_SpectraFilter_2_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_2_output.mzML)
+add_test("TOPP_SpectraFilter_3" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_DIR_TOPP}/SpectraFilter_3_input.mzML -out SpectraFilter.tmp -ini ${DATA_DIR_TOPP}/SpectraFilter_3_parameters.ini -type WindowMower)
+add_test("TOPP_SpectraFilter_3_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_3_output.mzML)
 
 ### InternalCalibration tests
-add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -in ${DATA_DIR_TOPP}/InternalCalibration_1_input.mzData -out InternalCalibration_1_output.tmp -ref_masses ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -ini ${DATA_DIR_TOPP}/InternalCalibration_parameters.ini)
-add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration_1_output.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_output.mzData)
-add_test("TOPP_InternalCalibration_2" ${TOPP_BIN_PATH}/InternalCalibration -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -peak_data)
-add_test("TOPP_InternalCalibration_2_out1" ${DIFF} -in1 InternalCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzData)
+add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_1_input.mzML -out InternalCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -ini ${DATA_DIR_TOPP}/InternalCalibration_parameters.ini)
+add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_output.mzML)
+add_test("TOPP_InternalCalibration_2" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -peak_data)
+add_test("TOPP_InternalCalibration_2_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzML)
 
 ### TOFCalibration tests
-add_test("TOPP_TOFCalibration_1" ${TOPP_BIN_PATH}/TOFCalibration -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzData -out TOFCalibration_1_output.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzData)
-add_test("TOPP_TOFCalibration_1_out1" ${DIFF} -in1 TOFCalibration_1_output.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzData)
-add_test("TOPP_TOFCalibration_2" ${TOPP_BIN_PATH}/TOFCalibration -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzData -out TOFCalibration_2_output.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzData -peak_data)
-add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzData)
+add_test("TOPP_TOFCalibration_1" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzML)
+add_test("TOPP_TOFCalibration_1_out1" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzML)
+add_test("TOPP_TOFCalibration_2" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzML -peak_data)
+add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzML)
 
 ### TextExporter tests
 add_test("TOPP_TextExporter_1" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_1_input.featureXML -no_progress -out TextExporter.tmp)
@@ -352,10 +351,10 @@ add_test("TOPP_TextImporter_2" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DI
 add_test("TOPP_TextImporter_2_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_2_output.ini)
 
 ### SILACAnalyzer tests
-add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
-add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_2_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_2_input.mzData)
-add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer_2_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzML -out SILACAnalyzer.tmp)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_2_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_2_input.mzML)
+add_test("TOPP_SILACAnalyzer_2_out1" ${DIFF} -in1 SILACAnalyzer.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output.consensusXML)
 add_test("TOPP_SILACAnalyzer_2_out2" ${DIFF} -in1 SILACAnalyzer_2_output_vis.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_2_output_vis.featureXML)
 
 ### FeatureLinker tests

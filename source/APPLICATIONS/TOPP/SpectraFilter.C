@@ -31,7 +31,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <typeinfo>
 
@@ -79,9 +79,9 @@ class TOPPSpectraFilter
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
-	  	setValidFormats_("out",StringList::create("mzData"));
+	  	setValidFormats_("out",StringList::create("mzML"));
 			registerStringOption_("type","<name>","","Filter type",true);
 			setValidStrings_("type", getToolList()[toolName_()] );
 						
@@ -114,7 +114,7 @@ class TOPPSpectraFilter
       //-------------------------------------------------------------
 
       MSExperiment<> exp;
-      MzDataFile f;
+      MzMLFile f;
       f.setLogType(log_type_);
       f.load(in, exp);
 

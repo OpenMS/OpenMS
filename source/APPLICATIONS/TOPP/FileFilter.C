@@ -28,7 +28,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -90,10 +90,10 @@ class TOPPFileFilter
 		void registerOptionsAndFlags_()
 		{
       registerInputFile_("in","<file>","","input file ");
-   		setValidFormats_("in",StringList::create("mzData,featureXML,consensusXML"));
+   		setValidFormats_("in",StringList::create("mzML,featureXML,consensusXML"));
 
       registerOutputFile_("out","<file>","","output file");
-	  	setValidFormats_("out",StringList::create("mzData,featureXML,consensusXML"));
+	  	setValidFormats_("out",StringList::create("mzML,featureXML,consensusXML"));
 
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
@@ -218,14 +218,14 @@ class TOPPFileFilter
  			bool sort = getFlag_("sort");
 			writeDebug_(String("Sorting output data: ") + String(sort),3);
 
-      if (in_type == FileTypes::MZDATA)
+      if (in_type == FileTypes::MZML)
       {
   			//-------------------------------------------------------------
   			// loading input
   			//-------------------------------------------------------------
 
   			MapType exp;
-  			MzDataFile f;
+  			MzMLFile f;
   			f.setLogType(log_type_);
   			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
   			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));

@@ -105,8 +105,6 @@ namespace OpenMS
   	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
     @todo Add 'instr' parameter for instrument defaults (Marc, Andreas)
-
-		@todo Make mzML the default format of TOPP tools, when mzML is finished (Marc)
   */
   class OPENMS_DLLAPI TOPPBase
   {

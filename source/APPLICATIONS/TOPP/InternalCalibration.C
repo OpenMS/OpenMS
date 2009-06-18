@@ -25,15 +25,13 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 
 using namespace OpenMS;
 using namespace std;
-
-
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -73,9 +71,9 @@ class TOPPInternalCalibration
 	 void registerOptionsAndFlags_()
 	 {
 		 registerInputFile_("in","<file>","","input raw data or peak file ");
-		 setValidFormats_("in",StringList::create("mzData"));
+		 setValidFormats_("in",StringList::create("mzML"));
 		 registerOutputFile_("out","<file>","","output file ");
-	   setValidFormats_("out",StringList::create("mzData"));
+	   setValidFormats_("out",StringList::create("mzML"));
 		 registerInputFile_("ref_masses","<file>","","input file containing reference masses (one per line)",true);
 		 registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
 		 addEmptyLine_();
@@ -116,7 +114,7 @@ class TOPPInternalCalibration
 		//-------------------------------------------------------------
 		MSExperiment<Peak1D > ms_exp_raw;
 		
-		MzDataFile mz_data_file;
+		MzMLFile mz_data_file;
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp_raw);
 		

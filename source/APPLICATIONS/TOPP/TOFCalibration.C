@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
@@ -74,11 +74,11 @@ class TOPPTOFCalibration
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","input peak or raw data file ");
-		setValidFormats_("in",StringList::create("mzData"));
+		setValidFormats_("in",StringList::create("mzML"));
     registerOutputFile_("out","<file>","","output file ");
-	  setValidFormats_("out",StringList::create("mzData"));
+	  setValidFormats_("out",StringList::create("mzML"));
 		registerInputFile_("ext_calibrants","<file>","","input file containing the external calibrant spectra (peak or raw data)\n");
-		setValidFormats_("ext_calibrants",StringList::create("mzData"));
+		setValidFormats_("ext_calibrants",StringList::create("mzML"));
     registerInputFile_("ref_masses","<file>","","input file containing reference masses of the external calibrant spectra (one per line)",true);
 		registerInputFile_("tof_const","<file>","","File containing TOF conversion constants."
 													" These can be either two or three constants\n" 
@@ -127,7 +127,7 @@ class TOPPTOFCalibration
     // loading input
     //-------------------------------------------------------------
     MSExperiment<Peak1D> ms_exp_calib,ms_exp_raw;
-		MzDataFile mz_data_file;
+		MzMLFile mz_data_file;
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in_calib,ms_exp_calib);
 		mz_data_file.load(in,ms_exp_raw);

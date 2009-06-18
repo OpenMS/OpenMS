@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -63,9 +63,9 @@ class TOPPMapNormalizer
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","output file ");
-	  	setValidFormats_("out",StringList::create("mzData"));
+	  	setValidFormats_("out",StringList::create("mzML"));
 		}
 	
 		ExitCodes main_(int , const char**)
@@ -83,7 +83,7 @@ class TOPPMapNormalizer
 			//-------------------------------------------------------------
 			
 			MSExperiment<Peak1D> exp;
-			MzDataFile f;
+			MzMLFile f;
 			f.load(in,exp);						
 		
 			//-------------------------------------------------------------

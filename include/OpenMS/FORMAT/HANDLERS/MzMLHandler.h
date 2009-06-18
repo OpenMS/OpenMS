@@ -2319,7 +2319,14 @@ namespace OpenMS
 			{
 				if (cv_.isChildOf(accession,"MS:1000531")) //software as string
 				{
-					software_[current_id_].setName(name);
+					if (accession=="MS:1000799") //custom unreleased software tool => use value as name
+					{
+						software_[current_id_].setName(value);					
+					}
+					else //use name as name
+					{
+						software_[current_id_].setName(name);
+					}
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2492,9 +2499,13 @@ namespace OpenMS
 		{
 			os  << "		<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
 			ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531",software.getName());
-			if (so_term.id!="" && software.getName()!="custom unreleased software tool")
+			if (so_term.id=="MS:1000799")
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\" />\n";				
+			}
+			else if (so_term.id!="")
+			{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
 			}
 			else
 			{
@@ -3712,7 +3723,9 @@ namespace OpenMS
 					for (Size j=0; j<spec.getAcquisitionInfo().size(); ++j)
 					{
 						const Acquisition& ac = spec.getAcquisitionInfo()[j];
-						os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
+						os << "					<scan ";
+						if (ac.getIdentifier()!="") os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
+						os << ">\n";
 						if (j==0)
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";

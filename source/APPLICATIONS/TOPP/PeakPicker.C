@@ -24,7 +24,7 @@
 // $Maintainer: Eva Lange $
 // $Authors: $
 // --------------------------------------------------------------------------
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -105,9 +105,9 @@ class TOPPPeakPicker
   void registerOptionsAndFlags_()
   {
   	registerInputFile_("in","<file>","","input profile data file ");
-		setValidFormats_("in",StringList::create("mzData"));
+		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output peak file ");
-	  setValidFormats_("out",StringList::create("mzData"));
+	  setValidFormats_("out",StringList::create("mzML"));
 		registerStringOption_("type","<name>","","peak detection algorithm type",true);
 		setValidStrings_("type", getToolList()[toolName_()] );
 		addEmptyLine_();
@@ -145,7 +145,7 @@ class TOPPPeakPicker
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzDataFile mz_data_file;
+    MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
     MSExperiment<Peak1D > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);

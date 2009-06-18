@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // $Authors: $
 // --------------------------------------------------------------------------
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -71,9 +71,9 @@ protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
-		setValidFormats_("in",StringList::create("mzData,featureXML,idXML"));
+		setValidFormats_("in",StringList::create("mzML,featureXML,idXML"));
 		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",false);
-		setValidFormats_("out",StringList::create("mzData,featureXML,idXML"));
+		setValidFormats_("out",StringList::create("mzML,featureXML,idXML"));
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type", getToolList()[toolName_()] );
@@ -167,11 +167,11 @@ protected:
     // perform peak alignment
     //-------------------------------------------------------------
 		std::vector<TransformationDescription> transformations;
-		if (in_type == FileTypes::MZDATA)
+		if (in_type == FileTypes::MZML)
 		{
 			// load input
 			std::vector< MSExperiment<> > peak_maps(ins.size());
-			MzDataFile f;
+			MzMLFile f;
 			f.setLogType(log_type_);
 			for (Size i=0; i<ins.size(); ++i)
 			{

@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 
@@ -37,7 +37,7 @@ using namespace std;
 /**
 	@page TOPP_DBImporter DBImporter
 	
-	@brief Imports an mzData file to an %OpenMS database.
+	@brief Imports an mzML file to an %OpenMS database.
 	
 	Besides the file to import, only the connection data has to be given.
 	The data can then be retrieved by the @ref TOPP_DBExporter.
@@ -70,7 +70,7 @@ class TOPPDBImporter
 			registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
 			registerInputFile_("in", "<file>", "", "input file ", false);
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerFlag_("init", "Deletes all tables and sets up a new OpenMS database.\n"
 														"The data of 'in' is not imported!");
 		}
@@ -113,7 +113,7 @@ class TOPPDBImporter
 			{
 				//load input file data
 				MSExperiment<Peak1D> exp;
-				MzDataFile f;
+				MzMLFile f;
 				f.setLogType(log_type_);
 				f.load(in,exp);			
 				

@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -78,9 +78,9 @@ class TOPPNoiseFilter
     void registerOptionsAndFlags_()
     {
 	  	registerInputFile_("in","<file>","","input raw data file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","output raw data file ");
-	  	setValidFormats_("out",StringList::create("mzData"));
+	  	setValidFormats_("out",StringList::create("mzML"));
       registerStringOption_("type","<type>","","smoothing filter type", true);
 			setValidStrings_("type", StringList::create("sgolay,gaussian"));
 			addEmptyLine_();
@@ -121,7 +121,7 @@ class TOPPNoiseFilter
       // loading input
       //-------------------------------------------------------------
 
-      MzDataFile mz_data_file;
+      MzMLFile mz_data_file;
       mz_data_file.setLogType(log_type_);
       MSExperiment<Peak1D> exp;
       mz_data_file.load(in,exp);

@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -87,13 +87,13 @@ using namespace OpenMS;
 	<b>Parameter Tuning</b>
 	
 	<i>input:</i>
-	@n -in [*.mzData] - LC-MS data set to be analyzed
+	@n -in [*.mzML] - LC-MS data set to be analyzed
 	
 	<i>standard output:</i>
 	- out [*.consensusXML] - contains the list of identified peptide pairs (retention time and m/z of the lighter peptide, heavy-to-light ratio)
 	- out_visual [*.featureXML] - contains the complete set of data points (retention time, m/z, intensity) of all peptide pairs
 
-	The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzData.
+	The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 	
 	<i>optional output:</i>
 	@n If -silac_debug is enabled, SILACAnalyzer generates a number of further files:
@@ -236,7 +236,7 @@ class TOPPSILACAnalyzer
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","output file", false);
 			setValidFormats_("out",StringList::create("consensusXML"));
 			registerOutputFile_("out_visual","<file>","","output file containing cluster information",false);
@@ -323,7 +323,7 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				// loading input
 				//-------------------------------------------------------------
-				MzDataFile file;
+				MzMLFile file;
 				MSExperiment<Peak1D> exp;
 
 				file.setLogType(log_type_);

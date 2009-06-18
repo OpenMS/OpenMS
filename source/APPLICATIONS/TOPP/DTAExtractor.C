@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -67,7 +67,7 @@ class TOPPDTAExtractor
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerStringOption_("out","<file>","","base name of DTA output files (RT, m/z and extension are appended)");
 			registerStringOption_("mz","[min]:[max]",":","m/z range of precursor peaks to extract.\n"
 																									 "This option is ignored for MS level 1", false);
@@ -144,7 +144,7 @@ class TOPPDTAExtractor
 			//-------------------------------------------------------------
 			
 			MSExperiment<Peak1D> exp;
-			MzDataFile f;
+			MzMLFile f;
 			f.setLogType(log_type_);
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.load(in,exp);						
