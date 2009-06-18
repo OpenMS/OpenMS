@@ -93,7 +93,7 @@ add_test("TOPP_FileConverter_4" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA
 add_test("TOPP_FileConverter_4_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
 if (USE_ANDIMS)
 	add_test("TOPP_FileConverter_5" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_5_input.cdf -out FileConverter.tmp -out_type mzML)
-	add_test("TOPP_FileConverter_5_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_5_output.dta2d)
+	add_test("TOPP_FileConverter_5_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_5_output.mzML)
 endif()
 add_test("TOPP_FileConverter_6" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_6_input.mzML -out FileConverter.tmp -out_type mzXML)
 add_test("TOPP_FileConverter_6_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_6_output.mzXML)
