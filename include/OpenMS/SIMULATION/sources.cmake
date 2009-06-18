@@ -8,8 +8,6 @@ DigestSimulation.h
 ElutionModel.h
 IonizationSimulation.h
 IsotopeModelGeneral.h
-LCMSSample.h
-LCMSSim.h
 MSSim.h
 MixtureModel.h
 PTMSimulation.h

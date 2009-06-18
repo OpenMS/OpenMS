@@ -8,8 +8,6 @@ DigestSimulation.C
 ElutionModel.C
 IonizationSimulation.C
 IsotopeModelGeneral.C
-LCMSSample.C
-LCMSSim.C
 MSSim.C
 MixtureModel.C
 PTMSimulation.C

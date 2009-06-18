@@ -74,6 +74,45 @@ END_SECTION
 START_SECTION((void simulate(const gsl_rng *rnd_gen, const SamplePeptides &peptides)))
 {
   // TODO
+#if 0 // core from old LCMSSim_test
+
+	LCMSSample smp;
+	smp.loadFASTA(OPENMS_GET_TEST_DATA_PATH("LCMSSim_test.fasta"));
+	smp.setPdModelFile(OPENMS_GET_TEST_DATA_PATH("LCMSSim_test_pd.svm"));
+	smp.digest();
+
+	Param p;
+	p.setValue("ion_model",0);
+	p.setValue("total_gradient_time",20.0f);
+	p.setValue("random_seed",42);
+
+	LCMSSim sim;
+	sim.setParameters(p);
+	sim.setRTModelFile(OPENMS_GET_TEST_DATA_PATH("LCMSSim_test.svm"));
+	sim.setSample(smp);
+	sim.run();	
+
+	std::string tmp_mzdata;
+	NEW_TMP_FILE(tmp_mzdata);
+	sim.exportMzData(tmp_mzdata);
+	
+	//test if stored data is equal to created data
+	MSExperiment<> exp, exp_orig;
+	MzDataFile().load(tmp_mzdata, exp);
+	MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("LCMSSim_test_out.mzData"), exp_orig);
+	
+	TEST_EQUAL(exp.size(), exp_orig.size())
+	for (Size s=0; s<exp.size(); ++s)
+	{
+		TEST_EQUAL(exp[s].size(), exp_orig[s].size())
+		for (Size p=0; p<exp[s].size(); ++p)
+		{
+			TEST_REAL_SIMILAR(exp[s][p].getMZ(), exp_orig[s][p].getMZ())
+			TEST_REAL_SIMILAR(exp[s][p].getIntensity(), exp_orig[s][p].getIntensity())
+		}
+	}
+
+#endif  
 }
 END_SECTION
 

@@ -349,17 +349,15 @@ set(transformations_executables_list
 )
 
 set(simulation_executables_list
+  MSSim_test
   DigestSimulation_test
   PTMSimulation_test
-  IonizationSimulation_test
   DetectabilitySimulation_test
   RTSimulation_test
+  IonizationSimulation_test
   RawMSSignalSimulation_test
-  MSSim_test
   ElutionModel_test
   IsotopeModelGeneral_test
-  LCMSSample_test
-  LCMSSim_test
   MixtureModel_test
 )
 
