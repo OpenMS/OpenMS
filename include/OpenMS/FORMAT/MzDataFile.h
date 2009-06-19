@@ -39,7 +39,6 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzData files
 		
-		@todo Fix validation errors of our implementation, when mzML is finished (Marc)
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzDataFile

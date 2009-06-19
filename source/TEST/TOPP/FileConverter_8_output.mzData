@@ -53,7 +53,7 @@
 				<cvParam cvLabel="psi" accession="PSI:1000026" name="DetectorType" value="EM"/>
 				<cvParam cvLabel="psi" accession="PSI:1000027" name="DetectorAcquisitionMode" value="TDC"/>
 				<cvParam cvLabel="psi" accession="PSI:1000028" name="DetectorResolution" value="5.1"/>
-				<cvParam cvLabel="psi" accession="PSI:1000029" name="ADCSamplingFrequency" value="1.1"/>
+				<cvParam cvLabel="psi" accession="PSI:1000029" name="SamplingFrequency" value="1.1"/>
 				<userParam name="name" value="detector1"/>
 			</detector>
 			<additional>
@@ -123,7 +123,7 @@
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="5.5555"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
 							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="120053"/>
-							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnit" value="NumberOfCounts"/>
 							<userParam name="source_file_name" value="pr.dta"/>
 							<userParam name="source_file_path" value="file:///F:/data/Exp03"/>
 							<userParam name="iwname" value="isolationwindow1"/>
@@ -134,21 +134,21 @@
 							<userParam name="acname" value="activation1"/>
 						</ionSelection>
 						<activation>
-							<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="CID"/>
+							<cvParam cvLabel="psi" accession="PSI:1000044" name="ActivationMethod" value="CID"/>
 							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="35"/>
-							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnit" value="eV"/>
 						</activation>
 					</precursor>
 					<precursor msLevel="1" spectrumRef="1">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="15.55"/>
-							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
+							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnit" value="NumberOfCounts"/>
 							<userParam name="iwname" value="isolationwindow2"/>
 							<userParam name="acname" value="activation2"/>
 						</ionSelection>
 						<activation>
 							<cvParam cvLabel="psi" accession="PSI:1000045" name="CollisionEnergy" value="36"/>
-							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnits" value="eV"/>
+							<cvParam cvLabel="psi" accession="PSI:1000046" name="EnergyUnit" value="eV"/>
 						</activation>
 					</precursor>
 				</precursorList>

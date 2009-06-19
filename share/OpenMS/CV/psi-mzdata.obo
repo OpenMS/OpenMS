@@ -225,7 +225,7 @@ relationship: part_of PSI:1000452 ! Data Processing Method
 id: PSI:1000036
 name: Scan Mode
 def: "TODO: Add definition." [PSI:GPS]
-is_obsolete: true
+#is_obsolete: true THIS TERM SHOULD NOT BE OBSOLETE, BECAUSE THERE IS NO REPLACEMENT...
 
 [Term]
 id: PSI:1000037
