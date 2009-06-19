@@ -195,7 +195,7 @@ namespace OpenMS {
 				ConsensusFeature cf;
 
 				// iterate on abundance
-				Int abundance = ceil( (*feature_it).getIntensity() );
+				Int abundance = (Int) ceil( (*feature_it).getIntensity() );
 				UInt basic_residues_c = countIonizedResidues_((*feature_it).getPeptideIdentifications()[0].getHits()[0].getSequence());
 	      
 				// assumption: each basic residue can hold one charged adduct
@@ -339,7 +339,7 @@ namespace OpenMS {
 					feature_it != features.end();
 					++feature_it)
 			{
-				Int abundance = ceil( (*feature_it).getIntensity() );
+				Int abundance = (Int) ceil( (*feature_it).getIntensity() );
 				std::vector<UInt> charge_states(((DoubleList) param_.getValue("maldi:ionization_probabilities")).size() + 1);
 				// sample different charge states
 				for(Int j = 0; j < abundance ; ++j)
