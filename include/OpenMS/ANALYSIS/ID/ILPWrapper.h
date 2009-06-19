@@ -27,8 +27,9 @@
 
 #ifndef OPENMS_ANALYSIS_ID_ILPWRAPPER_H
 #define OPENMS_ANALYSIS_ID_ILPWRAPPER_H
-#include "coin/CoinModel.hpp"
+
 #include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include "coin/CoinModel.hpp"
 
 namespace OpenMS
 {
