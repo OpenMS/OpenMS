@@ -315,19 +315,19 @@ namespace OpenMS
 	const std::vector<PeptideIdentification>& ConsensusFeature::getPeptideIdentifications() const
 	{
 		return peptide_identifications_;
-	};
+	}
 
 	/// returns a mutable reference to the PeptideIdentification vector
 	std::vector<PeptideIdentification>& ConsensusFeature::getPeptideIdentifications()
 	{
 		return peptide_identifications_;
-	};
+	}
 
 	/// sets the PeptideIdentification vector
 	void ConsensusFeature::setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications )
 	{
 		peptide_identifications_ = peptide_identifications;
-	};
+	}
 
   std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons)
   {
