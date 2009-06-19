@@ -353,7 +353,7 @@ void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(Feature
 			std::vector<std::vector<std::pair<Size,DoubleReal> > > xics;			
 			calculateXICs_(features,indices,xics,experiment,charges_set);
 
-			Size max_spec = (Size)param_.getValue("ms2_spectra_per_rt_bin");
+			Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
 			// get best x signals for each scan
 			for(Size i = 0; i < experiment.size();++i)
 				{
@@ -435,7 +435,7 @@ void OfflinePrecursorIonSelection::computeOptimalSolution(std::vector<ProteinIde
 					filtered_features.push_back(features[i]);
 
 					// enter index in filtered_features in rt_bins_
-					rt_bins_[floor((features[i].getRT()-min_rt) / rt_bin_span)].push_back(filtered_features.size()-1);
+					rt_bins_[floor((features[i].getRT()-min_rt) / rt_bin_span)].push_back((Int)filtered_features.size()-1);
 
 					// find protein id for peptide id
 					for(Size id = 0; id < features[i].getPeptideIdentifications().size();++id)

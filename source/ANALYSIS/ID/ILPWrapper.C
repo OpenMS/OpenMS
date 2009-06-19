@@ -126,7 +126,7 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 	//                    column_index, feature_index,scan
 	
 	//
-	Size counter = 0;
+	Int counter = 0;
 	for(Size i = 0; i < features.size(); ++i)
 		{
 			// first check if charge state is allowed
@@ -225,7 +225,7 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 #endif
 			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			model_.addRow(stop-start,indices,entries,-COIN_DBL_MAX,1,name.c_str());
+			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
@@ -269,7 +269,7 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			model_.addRow(stop-start,indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
@@ -302,7 +302,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 	
 	//
 	std::vector<IndexTriple> variable_indices;
-	Size counter = 0;
+	Int counter = 0;
 	for(Size i = 0; i < features.size(); ++i)
 		{
 			if(features[i].getPeptideIdentifications().size()==0 || mass_ranges[i].size()==0) continue;
@@ -390,7 +390,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 #endif
 			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			model_.addRow(stop-start,indices,entries,-COIN_DBL_MAX,1,name.c_str());
+			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
@@ -434,7 +434,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			model_.addRow(stop-start,indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
@@ -452,7 +452,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 	std::map<String,std::vector<Size> >::iterator map_iter = protein_precursor_map.begin();	
 	for(; map_iter != protein_precursor_map.end();++map_iter)
 		{
-			std::vector<Size> indices_vec;
+			std::vector<Int> indices_vec;
 			std::vector<Size>::iterator f_index_iter = map_iter->second.begin();
 			// go through all feature that have ids belonging to this protein
 			for(; f_index_iter != map_iter->second.end(); ++f_index_iter)
@@ -480,7 +480,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 #endif
 			Int i = distance(protein_precursor_map.begin(),map_iter);
 			// at the moment we want maximally 2 precursors for each protein
-			model_.addRow(indices_vec.size(),indices,entries,-COIN_DBL_MAX,2,(String("PROT_COV")+i).c_str());
+			model_.addRow((int) indices_vec.size(),indices,entries,-COIN_DBL_MAX,2,(String("PROT_COV")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif

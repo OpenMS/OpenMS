@@ -96,7 +96,7 @@ namespace OpenMS
 		{
 			Size feature;
 			Size scan;
-			Size variable;
+			Int variable;
 			DoubleReal rt_probability;
 			DoubleReal signal_weight;
 		};
