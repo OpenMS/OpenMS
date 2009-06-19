@@ -203,6 +203,18 @@ namespace OpenMS
 		charge_ = parseFormula_(formula_, formula);
 		return *this;
 	}
+
+	EmpiricalFormula EmpiricalFormula::operator * (const SignedSize& times) const
+	{
+		EmpiricalFormula ef(*this);
+		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
+		for (;it!=formula_.end();++it)
+		{
+				ef.formula_[it->first] *= times;
+		}
+		ef.charge_ *= times;
+		return ef;
+	}	
 	
 	EmpiricalFormula EmpiricalFormula::operator + (const EmpiricalFormula& formula) const
 	{
@@ -265,7 +277,7 @@ namespace OpenMS
 	EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
 	{
 		Map<const Element*, SignedSize> str_formula;
-		UInt charge = parseFormula_(str_formula, formula);
+		Size charge = parseFormula_(str_formula, formula);
 		charge_ += charge;
 		Map<const Element*, SignedSize>::ConstIterator it;
 		for (it=str_formula.begin(); it!=str_formula.end(); ++it)

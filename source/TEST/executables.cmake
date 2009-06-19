@@ -283,7 +283,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmUnlabeled_test
-  FeatureDeconvolution_test
+#  FeatureDeconvolution_test
   ConsensusID_test
   ProteinInference_test
   PILISScoring_test

@@ -126,7 +126,7 @@ START_SECTION((void predict_rt(FeatureMapSim &)))
   Param svm_params = svm_rt_sim.getParameters();
   svm_params.setValue("rt_column_on","true");
   svm_params.setValue("total_gradient_time",4000.0);
-  svm_params.setValue("rt_model_file",OPENMS_GET_TEST_DATA_PATH("LCMSSim_test.svm"));
+  svm_params.setValue("rt_model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"));
   svm_params.setValue("rt_shift_mean", 0);
   svm_params.setValue("rt_shift_stddev", 50);
   

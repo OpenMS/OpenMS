@@ -157,6 +157,9 @@ namespace OpenMS
 			*/
 			EmpiricalFormula& operator += (const String& rhs);
 
+			/// multiplies the elements and charge with a factor
+			EmpiricalFormula operator * (const SignedSize& times) const;
+			
 			/// adds the elements of the given formula and returns a new formula
 			EmpiricalFormula operator + (const EmpiricalFormula& rhs) const;
 

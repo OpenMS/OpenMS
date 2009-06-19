@@ -54,15 +54,15 @@ START_SECTION(~FeatureDeconvolution())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void compute)
+START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, ConsensusMap &cons_map, ConsensusMap &cons_map_p))
 //_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
 	FeatureDeconvolution fd;
-	FeatureMap<> fm;
+	FeatureMap<> fm_in, fm_out;
 	ConsensusMap cm, cm2;
 	FeatureXMLFile fl;
-	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"),fm);
-	fd.compute(fm, cm, cm2);
+	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);
+	fd.compute(fm_in, fm_out, cm, cm2);
 
 	String out_file;
 	NEW_TMP_FILE(out_file)

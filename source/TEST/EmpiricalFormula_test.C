@@ -114,6 +114,13 @@ START_SECTION(EmpiricalFormula& operator = (const String& rhs))
 END_SECTION
 
 
+START_SECTION(EmpiricalFormula operator * (const SignedSize& times) const)
+	EmpiricalFormula ef("C3H8");
+	ef = ef * 3;
+	TEST_EQUAL(ef, "C9H24")
+END_SECTION
+
+
 START_SECTION(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef("C3");
 	ef += ef;

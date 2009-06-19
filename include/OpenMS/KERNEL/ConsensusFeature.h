@@ -28,16 +28,17 @@
 #ifndef OPENMS_KERNEL_CONSENSUSFEATURE_H
 #define OPENMS_KERNEL_CONSENSUSFEATURE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <set>
 
 namespace OpenMS
 {
+	class PeptideIdentification;
+
 	/**
 		@brief A 2-dimensional consensus feature.
 
@@ -119,69 +120,26 @@ namespace OpenMS
 		///@name Constructors and Destructor
 		//@{
 		/// Default constructor
-		ConsensusFeature()
-			: RichPeak2D(),
-				HandleSetType(),
-				quality_(0.0),
-				charge_(0),
-				peptide_identifications_()
-		{
-		}
+		ConsensusFeature();
 
 		/// Copy constructor
-		ConsensusFeature(const ConsensusFeature& rhs)
-			: RichPeak2D(rhs),
-				HandleSetType(rhs),
-				quality_(rhs.quality_),
-				charge_(rhs.charge_),
-				peptide_identifications_(rhs.peptide_identifications_)
-		{
-		}
+		ConsensusFeature(const ConsensusFeature& rhs);
 
 		/// Constructor from raw data point
-		ConsensusFeature(const RichPeak2D& point)
-			: RichPeak2D(point),
-				HandleSetType(),
-				quality_(0.0),
-				charge_(0),
-				peptide_identifications_()
-		{
-		}
+		ConsensusFeature(const RichPeak2D& point);
 
 		///Constructor from raw data point
-		ConsensusFeature(const Peak2D& point)
-			: RichPeak2D(point),
-				HandleSetType(),
-				quality_(0.0),
-				charge_(0),
-				peptide_identifications_()
-		{
-		}
+		ConsensusFeature(const Peak2D& point);
 
 		///Constructor from raw data point
-		ConsensusFeature(const Feature& feature)
-			: RichPeak2D(feature),
-				HandleSetType(),
-				quality_(0.0),
-				charge_(0),
-				peptide_identifications_(feature.getPeptideIdentifications())
-		{
-		}
+		ConsensusFeature(const Feature& feature);
 
 		/**
 			@brief Constructor with map and element index for a singleton consensus
 			feature. Sets the consensus feature position and intensity to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const Peak2D& element)
-			: RichPeak2D(element),
-				HandleSetType(),
-				quality_(0.0),
-				charge_(0),
-				peptide_identifications_()
-		{
-			insert(map_index,element_index,element);
-		}
+		ConsensusFeature(Size map_index,	Size element_index, const Peak2D& element);
 
 
 		/**
@@ -189,50 +147,21 @@ namespace OpenMS
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const Feature& element)
-			: RichPeak2D(element),
-				HandleSetType(),
-				quality_(element.getOverallQuality()),
-				charge_(element.getCharge()),
-				peptide_identifications_()
-		{
-			insert(map_index,element_index,element);
-		}
+		ConsensusFeature(Size map_index,	Size element_index, const Feature& element);
 
 		/**
 			@brief Constructor with map and element index for a singleton consensus
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const ConsensusFeature& element)
-			: RichPeak2D(element),
-				HandleSetType(),
-				quality_(element.getQuality()),
-				charge_(element.getCharge()),
-				peptide_identifications_()
-		{
-			insert(map_index,element_index,element);
-		}
+		ConsensusFeature(Size map_index,	Size element_index, const ConsensusFeature& element);
 
 
 		/// Assignment operator
-		ConsensusFeature& operator=(const ConsensusFeature& rhs)
-		{
-			if (&rhs==this) return *this;
-
-			HandleSetType::operator=(rhs);
-			RichPeak2D::operator=(rhs);
-			quality_ = rhs.quality_;
-			charge_ = rhs.charge_;
-			peptide_identifications_ =  rhs.peptide_identifications_;
-
-			return *this;
-		}
+		ConsensusFeature& operator=(const ConsensusFeature& rhs);
 
 		/// Destructor
-		virtual ~ConsensusFeature()
-		{
-		}
+		virtual ~ConsensusFeature();
 		//@}
 
 
@@ -243,111 +172,51 @@ namespace OpenMS
 
 		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(const FeatureHandle& handle)
-		{
-			if (!(HandleSetType::insert(handle).second))
-			{
-				String key = String("map") + handle.getMapIndex() + "/feature" + handle.getElementIndex();
-				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",key) ;
-			}
-		}
+		void insert(const FeatureHandle& handle);
 
 		/// Adds all feature handles in @p handle_set to this consensus feature.
-		void insert(const HandleSetType& handle_set)
-		{
-			for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
-			{
-				insert(*it);
-			}
-		}
+		void insert(const HandleSetType& handle_set);
 
 		/**
 			@brief Creates a FeatureHandle and adds it
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const Peak2D& element)
-		{
-			insert(FeatureHandle(map_index,element_index,element));
-		}
+		void insert(Size map_index, Size element_index, const Peak2D& element);
 
 		/**
 			@brief Creates a FeatureHandle and adds it
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const Feature& element)
-		{
-			insert(FeatureHandle(map_index,element_index,element));
-			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
-		}
+		void insert(Size map_index, Size element_index, const Feature& element);
 
 		/**
 			@brief Creates a FeatureHandle and adds it
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const ConsensusFeature& element)
-		{
-			insert(FeatureHandle(map_index,element_index,element));
-			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
-		}
+		void insert(Size map_index, Size element_index, const ConsensusFeature& element);
 
 		/// Non-mutable access to the contained feature handles
-		const HandleSetType& getFeatures() const
-		{
-			return *this;
-		}
+		const HandleSetType& getFeatures() const;
 		//@}
 
 		///@name Accessors
 		//@{
 		/// Returns the quality
-		QualityType getQuality() const
-		{
-			return quality_;
-		}
+		QualityType getQuality() const;
 		/// Sets the quality
-		void setQuality(QualityType quality)
-		{
-			quality_ = quality;
-		}
+		void setQuality(QualityType quality);
 		/// Sets the charge
-		void setCharge(Int charge)
-		{
-			charge_ = charge;
-		}
+		void setCharge(Int charge);
 		/// Returns the charge
-		Int getCharge() const
-		{
-			return charge_;
-		}
+		Int getCharge() const;
 		/// Returns the position range of the contained elements
-		DRange<2> getPositionRange() const
-		{
-			DPosition<2> min = DPosition<2>::max();
-			DPosition<2> max = DPosition<2>::min();
-			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
-			{
-				if (it->getRT()<min[0]) min[0]=it->getRT();
-				if (it->getRT()>max[0]) max[0]=it->getRT();
-				if (it->getMZ()<min[1]) min[1]=it->getMZ();
-				if (it->getMZ()>max[1]) max[1]=it->getMZ();
-			}
-			return DRange<2>(min,max);
-		}
+		DRange<2> getPositionRange() const;
 		/// Returns the intensity range of the contained elements
-		DRange<1> getIntensityRange() const
-		{
-			DPosition<1> min = DPosition<1>::max();
-			DPosition<1> max = DPosition<1>::min();
-			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
-			{
-				if (it->getIntensity()<min[0]) min[0]=it->getIntensity();
-				if (it->getIntensity()>max[0]) max[0]=it->getIntensity();
-			}
-			return DRange<1>(min,max);
-		}
+		DRange<1> getIntensityRange() const;
+		
 		//@}
 
 		/**
@@ -361,23 +230,27 @@ namespace OpenMS
        */
 		void computeConsensus();
 
+		/**
+       @brief Computes the uncharged parent RT & mass, assuming the handles are charge variants.
+
+       The position of the feature handles (decharged) is averaged.
+       Intensities are summed up.
+       Charge is set to 0.
+       Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this will be used as adduct mass instead of
+       weight(H+) * charge.
+
+       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
+       */
+		void computeDechargeConsensus(const FeatureMap<>& fm);
+
 		/// returns a const reference to the PeptideIdentification vector
-		const std::vector<PeptideIdentification>& getPeptideIdentifications() const
-		{
-			return peptide_identifications_;
-		};
+		const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
 		/// returns a mutable reference to the PeptideIdentification vector
-		std::vector<PeptideIdentification>& getPeptideIdentifications()
-		{
-			return peptide_identifications_;
-		};
+		std::vector<PeptideIdentification>& getPeptideIdentifications();
 
 		/// sets the PeptideIdentification vector
-		void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications )
-		{
-			peptide_identifications_ = peptide_identifications;
-		};
+		void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications );
 
 	 protected:
 		/// Quality of the consensus feature

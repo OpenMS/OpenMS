@@ -71,9 +71,11 @@ class TOPPDecharger
   {
     registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("FeatureXML"));
-    registerOutputFile_("out","<file>","","output file");
+    registerOutputFile_("out_fm","<file>","","output feature map");
+    registerOutputFile_("out_cm","<file>","","output consensus map");
     registerOutputFile_("outpairs","<file>","","output file");
-	  setValidFormats_("out",StringList::create("ConsensusXML"));
+	  setValidFormats_("out_fm",StringList::create("FeatureXML"));
+	  setValidFormats_("out_cm",StringList::create("ConsensusXML"));
 	  setValidFormats_("outpairs",StringList::create("ConsensusXML"));
 
     addEmptyLine_();
@@ -98,7 +100,8 @@ class TOPPDecharger
     // parameter handling
     //-------------------------------------------------------------
     String infile = getStringOption_("in");
-    String outfile = getStringOption_("out");
+    String outfile_fm = getStringOption_("out_fm");
+    String outfile_cm = getStringOption_("out_cm");
     String outfile_p = getStringOption_("outpairs");
 
     FeatureDeconvolution fdc;
@@ -115,14 +118,14 @@ class TOPPDecharger
     writeDebug_("Loading input file", 1);
     
     typedef FeatureMap<> FeatureMapType;
-    FeatureMapType map;
-    FeatureXMLFile().load(infile, map);
+    FeatureMapType map_in, map_out;
+    FeatureXMLFile().load(infile, map_in);
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     ConsensusMap cm, cm2;
-    fdc.compute(map, cm,cm2);
+    fdc.compute(map_in, map_out, cm, cm2);
     
     //-------------------------------------------------------------
     // writing output
@@ -134,12 +137,15 @@ class TOPPDecharger
     cm2.getFileDescriptions()[0].filename = infile;
 
 		//annotate output with data processing info
+		addDataProcessing_(map_out, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 		addDataProcessing_(cm, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 		addDataProcessing_(cm2, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 
+		FeatureXMLFile().store(outfile_fm, map_out);
     ConsensusXMLFile f;
-    f.store(outfile, cm);
+    f.store(outfile_cm, cm);
     f.store(outfile_p, cm2);
+    
 
     return EXECUTION_OK;
   }

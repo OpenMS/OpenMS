@@ -238,14 +238,14 @@ START_SECTION((const DoubleReal& getLogP() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString()))
+START_SECTION((String getAdductsAsString(Int side=0)))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
 	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
 	Compomer c;
 	c.add(a1);
 	c.add(a2);
-	TEST_EQUAL(c.getAdductsAsString(), "-1(H1) 2(NH4)");
+	TEST_EQUAL(c.getAdductsAsString(), "-1(H1)2(NH4)");
 }
 END_SECTION
 

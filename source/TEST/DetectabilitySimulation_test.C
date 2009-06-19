@@ -119,7 +119,7 @@ START_SECTION((void filterDetectability(FeatureMapSim &)))
   Param svm_params = detect_svm.getParameters();
   svm_params.setValue("dt_simulation_on","true");
   svm_params.setValue("min_detect", 0.4);
-  svm_params.setValue("dt_model_file",OPENMS_GET_TEST_DATA_PATH("LCMSSim_test_pd.svm"));
+  svm_params.setValue("dt_model_file",OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm"));
   detect_svm.setParameters(svm_params);
   
   FeatureMapSim svm_features;

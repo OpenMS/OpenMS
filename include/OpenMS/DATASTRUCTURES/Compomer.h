@@ -34,6 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS {
 
@@ -165,16 +166,30 @@ public:
 			return log_p_;
 	}	
 
-	/// get adducts with their abundance as compact string
-	String getAdductsAsString() const
+	/// get adducts with their abundance as compact string (amounts are absolute unless side=0)
+	/// @param side Use -1 for left, +1 for right and 0 for both
+	String getAdductsAsString(Int side=0) const
 	{
 		String r;
 		std::map<String,Adduct>::const_iterator it=cmp_.begin();
 		for (; it!=cmp_.end(); ++it)
 		{
-			if (it!=cmp_.begin()) r+= " ";
-			r += String(it->second.getAmount()) + "(" + it->first + ")";
+			Int f = it->second.getAmount();
+			//if (it!=cmp_.begin()) r+= " ";
+			EmpiricalFormula ef(it->first);
+			ef = ef * abs(f);
+
+			if ( (f < 0 && side==-1) ||
+					 (f > 0 && side==+1))
+			{
+			  r += ef.getString();
+			}
+			else if (side==0)
+			{
+				r += String(it->second.getAmount()) + "(" + it->first + ")";
+			}
 		}
+
 		return r;
 	}
 	
@@ -202,7 +217,7 @@ private:
 			if (it->first == implicit.getFormula())
 			{
 				extra_amount = implicit.getAmount();
-        OPENMS_POSTCONDITION(extra_amount > 1, "Compomer.h::getCompomerSide_() has invalid implicit adduct!");
+        OPENMS_POSTCONDITION(extra_amount >= 0, "Compomer.h::getCompomerSide_() has invalid implicit adduct!");
 			}
 			else extra_amount=0;
 				
@@ -217,7 +232,7 @@ private:
 			}
       else if(it->second.getAmount()==0)
       {
-        OPENMS_POSTCONDITION(extra_amount > 1, "Compomer.h::getCompomerSide_() has invalid adduct amount of 0!");
+        OPENMS_POSTCONDITION(extra_amount > 0, "Compomer.h::getCompomerSide_() has invalid adduct amount of 0!");
       }
 
       if (normal_amount + extra_amount > 0)

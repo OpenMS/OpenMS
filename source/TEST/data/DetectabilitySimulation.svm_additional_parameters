@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ITEM name="kernel_type" value="19" type="int" description="" advanced="false" />
+  <ITEM name="border_length" value="22" type="int" description="" advanced="false" />
+  <ITEM name="k_mer_length" value="1" type="int" description="" advanced="false" />
+  <ITEM name="sigma" value="3.2" type="float" description="" advanced="false" />
+</PARAMETERS>

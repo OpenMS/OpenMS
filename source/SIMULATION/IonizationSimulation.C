@@ -285,7 +285,7 @@ namespace OpenMS {
 				}
 
 				// add consensus element containing all charge variants just created
-				cf.computeConsensus();
+				cf.computeDechargeConsensus(copy_map);
 				charge_consensus.push_back(cf);
 
 				++feature_index;

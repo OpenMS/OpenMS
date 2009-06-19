@@ -31,6 +31,9 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -346,6 +349,61 @@ START_SECTION((void computeConsensus()))
 	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
 	TEST_REAL_SIMILAR(cons.getRT(),2.0)
 	TEST_REAL_SIMILAR(cons.getMZ(),3.0)
+END_SECTION
+
+START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm)))
+  
+  DoubleReal proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
+  DoubleReal natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
+  
+  DoubleReal m = 1000;
+  DoubleReal mz1 = (m+3*proton_mass) / 3;
+  DoubleReal mz2 = (m+1*proton_mass + 2*natrium_mass) / 3;
+  DoubleReal mz3 = (m+4*proton_mass + natrium_mass) / 5;
+  
+  FeatureMap<> fm;
+  
+  //one point  
+  ConsensusFeature cons;
+  Feature tmp_feature;
+	tmp_feature.setRT(100);
+	tmp_feature.setMZ(mz1);
+	tmp_feature.setIntensity(200.0f);
+	tmp_feature.setCharge(3);
+	fm.push_back(tmp_feature);
+  cons.insert(2,0,tmp_feature);
+	cons.computeDechargeConsensus(fm);
+	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
+	TEST_REAL_SIMILAR(cons.getRT(),100)
+	TEST_REAL_SIMILAR(cons.getMZ(), m);
+	
+	//two points
+  Feature tmp_feature2;
+	tmp_feature2.setRT(102);
+	tmp_feature2.setMZ(mz2);
+	tmp_feature2.setIntensity(250.0f);
+	tmp_feature2.setCharge(3);
+	tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
+	fm.push_back(tmp_feature2);
+	cons.insert(4,1,tmp_feature2);
+	cons.computeDechargeConsensus(fm);
+	TEST_REAL_SIMILAR(cons.getIntensity(),450.0)
+	TEST_REAL_SIMILAR(cons.getRT(),101)
+	TEST_REAL_SIMILAR(cons.getMZ(), m)
+	
+	//three points
+  Feature tmp_feature3;
+	tmp_feature3.setRT(101);
+	tmp_feature3.setMZ(mz3);
+	tmp_feature3.setIntensity(350.0f);
+	tmp_feature3.setCharge(5);
+	tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
+	fm.push_back(tmp_feature3);
+	cons.insert(4,2,tmp_feature3);
+	cons.computeDechargeConsensus(fm);
+	TEST_REAL_SIMILAR(cons.getIntensity(),800.0)
+	TEST_REAL_SIMILAR(cons.getRT(),101)
+	TEST_REAL_SIMILAR(cons.getMZ(), m)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
