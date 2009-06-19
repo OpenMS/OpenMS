@@ -31,10 +31,13 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cstdlib>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
+using namespace std;
 
 namespace OpenMS {
 
@@ -177,7 +180,7 @@ public:
 			Int f = it->second.getAmount();
 			//if (it!=cmp_.begin()) r+= " ";
 			EmpiricalFormula ef(it->first);
-			ef = ef * abs(f);
+			ef = ef * std::abs(f);
 
 			if ( (f < 0 && side==-1) ||
 					 (f > 0 && side==+1))
