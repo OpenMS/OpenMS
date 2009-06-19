@@ -31,6 +31,7 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -918,6 +919,28 @@ namespace OpenMS
 		/// start peak of measuring mode
     PeakIndex measurement_start_;
 
+		///Data processing setter for peak maps
+		template<typename PeakType>
+		void addDataProcessing_(MSExperiment<PeakType>& map, DataProcessing::ProcessingAction action) const
+		{
+			std::set<DataProcessing::ProcessingAction> actions;
+			actions.insert(action);
+			
+			DataProcessing p;
+			//actions
+			p.setProcessingActions(actions);
+			//software
+			p.getSoftware().setName("SpectrumCanvas");
+			//version
+			p.getSoftware().setVersion(VersionInfo::getVersion());
+			//time
+			p.setCompletionTime(DateTime::now());
+			
+			for (Size i=0; i<map.size(); ++i)
+			{
+				map[i].getDataProcessing().push_back(p);          
+			}
+		}
 
 	};
 }

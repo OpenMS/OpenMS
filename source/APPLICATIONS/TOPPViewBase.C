@@ -2128,7 +2128,7 @@ namespace OpenMS
 		topp_.spectrum_id = layer.current_spectrum;
 		if (layer.type==LayerData::DT_PEAK)
 		{
-			MzDataFile f;
+			MzMLFile f;
 			f.setLogType(ProgressLogger::GUI);
 			if (topp_.visible)
 			{

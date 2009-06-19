@@ -28,7 +28,7 @@
 /**
   @page TOPP_TOPPView TOPPView
   
-  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, mzML, ANDI/MS
+  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML, ANDI/MS
   and several other file formats. It also supports viewing data from an OpenMS database.
   The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
  	
@@ -84,7 +84,7 @@ void print_usage()
 			 << " - '@r'  after a map file displays the dots in red." << endl
 			 << " - '@g'  after a map file displays the dots in green." << endl
 			 << " - '@m'  after a map file displays the dots in magenta." << endl
-			 << " - Example: 'TOPPView 1.mzData + 2.mzData @bw + 3.mzData @bg'" << endl
+			 << " - Example: 'TOPPView 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
 			 << endl ;
 }
 
