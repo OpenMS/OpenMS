@@ -380,7 +380,7 @@ namespace OpenMS
 						ef_l += "H" + String(feature_relation[i].getCharge(0) - c.getNegativeCharges());
 						if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
     				{
-    					OPENMS_POSTCONDITION (ef_l.toString() == fm_out[f0_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
+    					OPENMS_POSTCONDITION (ef_l.getString() == fm_out[f0_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
     				}
     				else
     				{
@@ -392,7 +392,7 @@ namespace OpenMS
 						ef_r += "H" + String(feature_relation[i].getCharge(1) - c.getPositiveCharges());
 						if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
     				{
-    					OPENMS_POSTCONDITION (ef_r.toString() == fm_out[f1_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
+    					OPENMS_POSTCONDITION (ef_r.getString() == fm_out[f1_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
     				}
     				else
     				{
