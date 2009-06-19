@@ -52,9 +52,9 @@ endif()
 ### DBExporter tests
 if (EXISTS ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter_input.ini)
 	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -id 1)
-	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzML)
+	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBExporter_output.mzML)
 	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query "SELECT 1")
-	add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzML)
+	add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBExporter_output.mzML)
 endif()
 
 ### Decharger tests

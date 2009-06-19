@@ -53,6 +53,7 @@ namespace OpenMS
 
 		@todo Add DataProcessing to MetaInfoDescription (Hiwi)
 		@todo Check if test is really complete (Hiwi)
+		@todo Check that all values are quoted (Hiwi)
 
     @ingroup DatabaseIO
   */
@@ -952,7 +953,7 @@ namespace OpenMS
 
 			if (new_entry)
 			{
-				query << "INSERT INTO META_AcquisitionInfo SET fid_Spectrum=" << exp_it->getPersistenceId() << ",";
+				query << "INSERT INTO META_AcquisitionInfo SET fid_Spectrum='" << exp_it->getPersistenceId() << "',";
 				end = "";
 			}
 			else
@@ -981,15 +982,15 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 
 			query.str("");
-			deleteMetaInfo_("META_Acquisition", "fid_AcquisitionInfo=" + String(parent_id));
-			query << "DELETE FROM META_Acquisition WHERE fid_AcquisitionInfo=" << parent_id;
+			deleteMetaInfo_("META_Acquisition", "fid_AcquisitionInfo='" + String(parent_id) + "'");
+			query << "DELETE FROM META_Acquisition WHERE fid_AcquisitionInfo='" << parent_id << "'";
 			result = db_con_.executeQuery(query.str());
 
 			for (std::vector<Acquisition>::const_iterator info_it = info.begin(); info_it != info.end(); info_it++)
 			{
 				query.str("");
-				query << "INSERT INTO META_Acquisition SET fid_AcquisitionInfo=" << acquisition_info_id << ",";
-				query << "Number=" << info_it->getIdentifier();
+				query << "INSERT INTO META_Acquisition SET fid_AcquisitionInfo='" << acquisition_info_id << "',";
+				query << "Number='" << info_it->getIdentifier() << "'";
 
 				result = db_con_.executeQuery(query.str());
 				parent_id = db_con_.getAutoId();
