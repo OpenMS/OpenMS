@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: FileInfo_3_input.featureXML
+file name: /home/sturm/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
 file type: FeatureXML
 Number of features: 10
 
@@ -15,7 +15,17 @@ charge 3: 6
 
 -- Meta information --
 
-Document id      : feat
+Document id       : feat
+
+
+-- Data processing information --
+
+Processing 1:
+  Software name    : FileFilter
+  Software version : 1.4
+  Completion time  : 2009-06-19 10:31:17
+  Actions          : Data filtering
+
 
 -- Statistics --
 

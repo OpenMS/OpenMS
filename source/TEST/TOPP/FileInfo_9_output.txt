@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: FileInfo_9_input.mzML
+file name: /home/sturm/OpenMS/source/TEST/TOPP/FileInfo_9_input.mzML
 file type: mzML
 
 peak type (metadata) : Unknown
@@ -44,6 +44,43 @@ Contact Person
   First Name       : William
   Last Name        : Pennington
   Email            : wpennington@higglesworth.edu
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  Software name    : ProteoWizard
+  Software version : 1.0
+  Completion time  : 0000-00-00 00:00:00
+  Actions          : Conversion to mzML format
+
+
+-- Statistics --
+
+Intensities:
+  mean: 8
+  min: 1
+  lower quartile: 4.25
+  median: 8
+  upper quartile: 11.75
+  max: 15
+  variance: 19.3103
+
+Meta data: charge array
+  count: 10
+  min: 2.00
+  max: 20.00
+  mean: 11.00
+  median: 12.00
+
+Meta data: signal to noise array
+  count: 10
+  min: 2.00
+  max: 20.00
+  mean: 11.00
+  median: 12.00
 
 
 

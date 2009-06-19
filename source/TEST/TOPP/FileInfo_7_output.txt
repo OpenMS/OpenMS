@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: FileInfo_7_input.consensusXML
+file name: /home/sturm/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML
 file type: ConsensusXML
 
 Number of consensus features:
@@ -26,6 +26,15 @@ File descriptions:
 -- Meta information --
 
 Document id       : cons
+
+
+-- Data processing information --
+
+Processing 1:
+  Software name    : FileFilter
+  Software version : 1.4
+  Completion time  : 2009-06-19 10:33:33
+  Actions          : Data filtering
 
 
 -- Statistics --

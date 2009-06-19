@@ -134,6 +134,7 @@ class TOPPFileInfo
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");
+		registerFlag_("p","Shows data processing information");
 		registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 		registerFlag_("d","Show detailed listing of all spectra (peak files only)");
 		registerFlag_("c","Check for corrupt data in the file (peak files only)");
@@ -672,7 +673,66 @@ class TOPPFileInfo
 			}
 		}
 
-		// '-s' show statistics
+
+		//-------------------------------------------------------------
+		// data processing
+		//-------------------------------------------------------------
+		if (getFlag_("p"))
+		{
+			//basic info
+			os << endl
+				 << "-- Data processing information --" << endl
+				 << endl;
+			
+			//get data processing info
+			vector<DataProcessing> dp;
+			if (in_type==FileTypes::FEATUREXML) //features
+			{
+				dp = feat.getDataProcessing();
+			}
+			else if (in_type==FileTypes::CONSENSUSXML) //consensus features
+			{
+				dp = cons.getDataProcessing();
+			}
+			else if (in_type==FileTypes::IDXML) //identifications
+			{
+			}
+			else //peaks
+			{
+				if (exp.size()!=0)
+				{
+					os << "Note: The data is taken from the first spectrum!" << endl << endl;
+					dp = exp[0].getDataProcessing();
+				}
+			}
+			
+			//print data
+			if (dp.size()==0)
+			{
+					os << "No information about data processing available!" << endl << endl;
+			}
+			else
+			{
+				for (Size i=0; i<dp.size(); ++i)
+				{
+					os << "Processing " << (i+1) << ":" << endl;
+					os << "  Software name    : " << dp[i].getSoftware().getName() << endl;
+					os << "  Software version : " << dp[i].getSoftware().getVersion() << endl;
+					os << "  Completion time  : " << dp[i].getCompletionTime().get() << endl;
+					os << "  Actions          :";
+					for (set<DataProcessing::ProcessingAction>::const_iterator it=dp[i].getProcessingActions().begin(); it!=dp[i].getProcessingActions().end(); ++it)
+					{
+						if (it!=dp[i].getProcessingActions().begin()) os << ",";
+						os << " " << DataProcessing::NamesOfProcessingAction[*it];
+					}
+					os << endl << endl;
+				}
+			}
+		}
+
+		//-------------------------------------------------------------
+		// statistics
+		//-------------------------------------------------------------
 		if (getFlag_("s"))
 		{
 			os << endl
@@ -864,7 +924,6 @@ class TOPPFileInfo
 							 << endl;
 				}
 			}
-
 		}
 
 		os << endl << endl;

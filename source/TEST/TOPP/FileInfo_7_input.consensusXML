@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<consensusXML version="1.2" id="cons" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////home/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.3" id="cons" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2009-06-19T10:33:33">
+		<software name="FileFilter" version="1.4" />
+		<processingAction name="Data filtering" />
+		<userParam type="string" name="parameter: in" value="/home/sturm/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML"/>
+		<userParam type="string" name="parameter: out" value="/home/sturm/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML"/>
+	</dataProcessing>
 	<mapList count="2">
 		<map id="0" name="FeatureLinker_1_input.featureXML" label="light" size="16">
 		</map>
@@ -21,7 +28,7 @@
 				<element map="1" id="6" rt="10" mz="566" it="102"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_2" quality="1.0">
+		<consensusElement id="e_2" quality="1">
 			<centroid rt="10.5" mz="562" it="1000"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="11" mz="558" it="900"/>

@@ -2874,10 +2874,6 @@ namespace OpenMS
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\" />\n";
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000175\" unitName=\"gram per liter\" unitCvRef=\"UO\" />\n";
-			if (sa.getComment()!="")
-			{
-				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
-			}
 			if (sa.getState()==Sample::EMULSION)
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000047\" name=\"emulsion\" />\n";
@@ -2902,7 +2898,10 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000052\" name=\"suspension\" />\n";
 			}
-
+			if (sa.getComment()!="")
+			{
+				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
+			}
 			writeUserParam_(os, sa, 3);
 			os  << "		</sample>\n";
 			os  << "	</sampleList>\n";

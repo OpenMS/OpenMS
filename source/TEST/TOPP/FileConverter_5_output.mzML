@@ -33,8 +33,8 @@
 			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="0" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
-			<userParam name="comment" type="xsd:string" value="42" />
 			<cvParam cvRef="MS" accession="MS:1000050" name="solid" />
+			<userParam name="comment" type="xsd:string" value="42" />
 		</sample>
 	</sampleList>
 	<softwareList count="5">
