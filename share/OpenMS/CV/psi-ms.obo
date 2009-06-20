@@ -4,7 +4,7 @@ saved-by: abertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.14.2
+remark: version: 2.14.3
 remark: release date: 2009-06-17
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
@@ -6961,8 +6961,8 @@ is_a: MS:1001450 ! decoy DB details
 
 [Term]
 id: MS:1001197
-name: DB composition forward+decoy
-def: "Decoy database composition: database contains original (forward) and decoy entries." [PSI:PI]
+name: DB composition target+decoy
+def: "Decoy database composition: database contains original (target) and decoy entries." [PSI:PI]
 is_a: MS:1001450 ! decoy DB details
 
 [Term]
@@ -7047,6 +7047,7 @@ is_obsolete: true
 id: MS:1001214
 name: prot:global FDR
 def: "Estimation of global false discovery rate of the proteins." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001405 ! spectrum identification result details
 
 [Term]
@@ -8657,12 +8658,14 @@ id: MS:1001491
 name: percolator:Q value
 def: "percolator:Q value." [PSI:MS]
 is_a: MS:1001153 ! search engine specific score 
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001143 ! search engine specific score for peptides    
 
 [Term]
 id: MS:1001492
 name: percolator:score 
 def: "percolator:score." [PSI:MS]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001153 ! search engine specific score 
 is_a: MS:1001143 ! search engine specific score for peptides    
 
@@ -8670,6 +8673,7 @@ is_a: MS:1001143 ! search engine specific score for peptides
 id: MS:1001493
 name: percolaror:PEP 
 def: "Posterior error probability." [PSI:MS]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001153 ! search engine specific score 
 is_a: MS:1001143 ! search engine specific score for peptides    
 

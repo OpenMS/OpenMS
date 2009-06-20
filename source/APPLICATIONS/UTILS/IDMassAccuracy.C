@@ -168,6 +168,10 @@ class TOPPIDMassAccuracy
 						if (it->getHits().size() > 0)
 						{
 							PeptideHit hit = *it->getHits().begin();
+							if (!hit.getSequence().isValid())
+							{
+								continue;
+							}
 							MassDifference md;
 							Int charge = hit.getCharge();
 							if (charge == 0)
