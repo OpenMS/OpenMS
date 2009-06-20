@@ -156,6 +156,7 @@ namespace OpenMS
 				Base64 decoder_;
 				UInt peak_count_;
 				String precision_;
+				String compressionType_;
 				String char_rest_;
 				//@}
 				
@@ -202,6 +203,7 @@ namespace OpenMS
 	  		static const XMLCh* s_precision_;
 	  		static const XMLCh* s_byteorder_;
 	  		static const XMLCh* s_pairorder_;
+				static const XMLCh* s_compressionType_;
 	  		static const XMLCh* s_precursorintensity_;
 	  		static const XMLCh* s_precursorcharge_;
 	  		static const XMLCh* s_windowwideness_;
@@ -241,6 +243,7 @@ namespace OpenMS
 		      s_precision_ = xercesc::XMLString::transcode("precision");
 		      s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
 		      s_pairorder_ = xercesc::XMLString::transcode("pairOrder");
+					s_compressionType_ = xercesc::XMLString::transcode("compressionType");
 		      s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
 		      s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
 		      s_windowwideness_ = xercesc::XMLString::transcode("windowWideness");
@@ -284,6 +287,7 @@ namespace OpenMS
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precision_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_byteorder_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_pairorder_ = 0;
+		template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_compressionType_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precursorintensity_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precursorcharge_ = 0;
   	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_windowwideness_ = 0;
@@ -385,6 +389,13 @@ namespace OpenMS
 				if (pair_order!="m/z-int")
 				{
 					error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
+				}
+				//compressionType
+				compressionType_ = "none";
+				optionalAttributeAsString_(compressionType_,attributes,s_compressionType_);
+				if(compressionType_!="none" && compressionType_ != "zlib")
+				{
+					 error(LOAD,String("Invalid compression type ")+  compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! "); 
 				}
 			}
 			else if (tag=="precursorMz")
@@ -693,7 +704,14 @@ namespace OpenMS
 				if (precision_=="64")
 				{
 					std::vector<DoubleReal> data;
-					decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+					if(compressionType_ =="zlib")
+					{
+						decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data,true);
+					}
+					else
+					{
+						decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+					}
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container
@@ -712,7 +730,14 @@ namespace OpenMS
 				else	//precision 32
 				{
 					std::vector<Real> data;
-					decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+					if(compressionType_ =="zlib")
+					{
+						decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data,true);
+					}
+					else
+					{
+						decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+					}
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container

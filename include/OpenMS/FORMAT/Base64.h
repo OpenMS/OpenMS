@@ -41,9 +41,8 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
-#include <string>
 #include <vector>
-#include <cstring>
+#include <iostream>
 
 
 #include <QtCore/QString>
@@ -79,68 +78,48 @@ namespace OpenMS
 		   @brief Decodes a Base64 string to a vector of floating point numbers
 		     @note @p in will be emtpy after this method
 		*/
-
 		template <typename ToType>
 		void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression = false);
 		
-
-		
-		inline unsigned int endianize32(unsigned int n);
-
-
-		inline unsigned long long endianize64(unsigned long long n);
-		
-		union endian64
-		{
-			DoubleReal value;
-			char bytes[sizeof(DoubleReal)];
-		};
-
-		inline double SwapBytes(DoubleReal& value,unsigned int size)
-		{
-			endian64 in;
-			endian64 out;
-	
-			in.value = value;
-	
-			for (unsigned int i = 0; i < size / 2; ++i)
-			{
-				out.bytes[i] = in.bytes[size - 1 - i];
-				out.bytes[size - 1 - i] = in.bytes[i];
-			}
-	
-			return out.value;
-		}
-
-		union endian32
-		{
-			Real value;
-			char bytes[sizeof(Real)];
-		};
-		
-		inline double SwapBytes(Real& value,unsigned int size);
-
-	
 	private:
 		static const char encoder_[];
 		static const char old_decoder_[];
 		char decoder_[256];
-		bool tableInitialized_;
-		//this is the old decode function which doesn't suport compression but is faster.
-		template <typename ToType>
+		bool table_initialized_;
+		///this is the old decode function which doesn't suport compression but is faster.
+	/**
+			@brief Decodes a Base64 string to a vector of floating point numbers 
+			@note this function is not able to decode compresed data
+	*/
+	template <typename ToType>
 	  void decode_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);
-	 //new decode function does support compression and no compression but is only used if compression needed because of performance
-			template <typename ToType>
-		  void newdecode_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression = false);
+	 ///new decode function does support compression and no compression but is only used if compression needed because of performance
+	/**
+		@brief Decodes a compressed Base64 string to a vector of floating point numbers 
+	*/
+		template <typename ToType>
+		  void decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression );
+		
+		/**
+		@brief endianizes an unsigned integer. From BigEndian to LittleEndian and vice versa
+		@return returns the endianized number
+		*/
+			inline UInt endianize32_(UInt n);
+
+	/**
+		@brief endianizes an unsigned long long. From BigEndian to LittleEndian and vice versa
+		@return returns the endianized number
+	*/
+		inline unsigned long long endianize64_(unsigned long long n);
   };
 
-	inline unsigned int Base64::endianize32(unsigned int n)
+	inline UInt Base64::endianize32_(UInt n)
 	{
 		return ((n&0xff)<<24) | ((n&0xff00)<<8) | ((n&0xff0000)>>8) | ((n&0xff000000)>>24);
 		
 	}
 	
-	inline unsigned long long Base64::endianize64(unsigned long long n)
+	inline UInt64 Base64::endianize64_(UInt64 n)
 	{
 		return ((n&0x00000000000000ffll)<<56) | 
 		((n&0x000000000000ff00ll)<<40) | 
@@ -153,20 +132,6 @@ namespace OpenMS
 		
 	}
 	
-	inline double Base64::SwapBytes(Real& value,unsigned int size)
-	{
-			endian32 in;
-			endian32 out;
-			in.value = value;
-		
-			for (unsigned int i = 0; i < size / 2; ++i)
-			{
-				out.bytes[i] = in.bytes[size - 1 - i];
-				out.bytes[size - 1 - i] = in.bytes[i];
-			}
-	
-			return out.value;
-		}
 	template <typename FromType>
 	void Base64::encode(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out, bool zlib_compression )
 	{
@@ -179,29 +144,54 @@ namespace OpenMS
 		Size element_size = sizeof (FromType);
 		Size size = element_size * in.size();
 			
-		
+		std::vector<DoubleReal>  data_64_endianized_(in.size());
 		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) ||
 			(!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
+			//this part has to be replaced with endianzie one day	
 			if(element_size == sizeof(Real))
 			{
-				//unsigned int* p = reinterpret_cast<unsigned int*>(&in[0]);
-				UInt i = 0;
-				while(i < in.size())
-				{
-					in[i] = SwapBytes(in[i],sizeof(in[i]));
-					i++;
+					Size i = 0;
+				while (i < in.size())
+				{	
+						union endian32
+						{
+							Real value;
+							char bytes[sizeof(DoubleReal)];
+						};
+						endian32 in_endian;
+						endian32 out_endian;
+						in_endian.value = in[i];
+						for (Size s = 0; s < element_size / 2; ++s)
+						{
+						out_endian.bytes[s] = in_endian.bytes[element_size - 1 - s];
+						out_endian.bytes[element_size - 1 - s] = in_endian.bytes[s];
+						}		
+						in[i]  = out_endian.value;
+						++i;
 				}
-				//while (p != p+in.size())
-				//{*p++ = endianize32(*p++);  }
-				//OpenMS::transform(p, p+in.size(), p , endianize32);
 			}
 			else
 			{
-				//unsigned long long* p = reinterpret_cast<unsigned long long*>(&in[0]);
-				UInt i=0;
+				Size i = 0;
 				while (i < in.size())
-				{in[i] = SwapBytes(in[i],sizeof(in[i]));i++;  }			
+				{	
+						union endian64
+						{
+							DoubleReal value;
+							char bytes[sizeof(DoubleReal)];
+						};
+						endian64 in_endian;
+						endian64 out_endian;
+						in_endian.value = in[i];
+						for (Size s = 0; s < element_size / 2; ++s)
+						{
+						out_endian.bytes[s] = in_endian.bytes[element_size - 1 - s];
+						out_endian.bytes[element_size - 1 - s] = in_endian.bytes[s];
+						}	
+						in[i]  = out_endian.value;
+						++i;
+				}
 			}
 		}
 		
@@ -262,7 +252,7 @@ namespace OpenMS
 	{
 		if(zlib_compression)
 		{
-			newdecode_(in,from_byte_order,out,zlib_compression);
+			decodeCompressed_(in,from_byte_order,out,zlib_compression);
 		}
 		else
 		{
@@ -271,7 +261,7 @@ namespace OpenMS
 	}
 	
 	template <typename ToType>
-	void Base64::newdecode_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression)
+	void Base64::decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression)
 	{
 		if(zlib_compression)
 		out.clear();
@@ -315,13 +305,13 @@ namespace OpenMS
 		{
 		binary.resize((Size)ceil(src_size/4.) * 3);
 
-			if(!tableInitialized_)
+			if(!table_initialized_)
 			{
 				for (UInt i=0; i<64; i++)
 				{
 					decoder_[static_cast<int>(encoder_[i])] = static_cast<char>(i);
 				}
-				tableInitialized_ = true;
+				table_initialized_ = true;
 			}
 
 			Byte* it = (Byte*)&in[0];
@@ -390,7 +380,7 @@ namespace OpenMS
 				unsigned int* p = reinterpret_cast<unsigned int*> (byteBuffer);
 				while(i < floatCount)
 				{
-					*p = endianize32(*p);
+					*p = endianize32_(*p);
 					++p;
 					++i;
 				}
@@ -412,7 +402,7 @@ namespace OpenMS
 				unsigned long long* p = reinterpret_cast<unsigned long long*> (byteBuffer);
 				while(i < floatCount)
 				{
-					*p = endianize64(*p);
+					*p = endianize64_(*p);
 					++p;
 					++i;
 				}
