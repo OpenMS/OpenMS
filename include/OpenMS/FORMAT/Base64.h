@@ -110,7 +110,7 @@ namespace OpenMS
 		@brief endianizes an unsigned long long. From BigEndian to LittleEndian and vice versa
 		@return returns the endianized number
 	*/
-		inline unsigned long long endianize64_(unsigned long long n);
+		inline UInt64 endianize64_(UInt64 n);
   };
 
 	inline UInt Base64::endianize32_(UInt n)
