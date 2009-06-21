@@ -91,6 +91,9 @@ elseif (MSVC)
 	## compile such that GSL is in DLL mode
 	add_definitions(/DGSL_DLL)
 
+	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
+	add_definitions(/bigobj)
+	
 	## minimal code rebuild
 	#add_definitions(/Gm /Zi)
 
