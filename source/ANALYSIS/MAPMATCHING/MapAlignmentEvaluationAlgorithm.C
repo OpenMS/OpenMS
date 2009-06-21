@@ -41,14 +41,14 @@ namespace OpenMS
 	}
 
 	// TODO consider using (RT,MZ,IT) as a unique identifier ?
-	bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev)
+	bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge)
 	{
 #if 1
 		// use (RT,MZ,IT) as "unique" identifier 
 		if ( fabs ( lhs.getRT() - rhs.getRT() ) > rt_dev ) return false;  // TODO MAGIC_ALERT
 		if ( fabs ( lhs.getMZ() - rhs.getMZ() ) > mz_dev ) return false;  // TODO MAGIC_ALERT
 		if ( fabs ( lhs.getIntensity() - rhs.getIntensity() ) > int_dev ) return false;  // TODO MAGIC_ALERT
-		if ( lhs.getCharge() != rhs.getCharge()) return false;
+		if ( use_charge && (lhs.getCharge() != rhs.getCharge())) return false;
 		return true;
 #else
 		// use (map index, element index) as unique identifier

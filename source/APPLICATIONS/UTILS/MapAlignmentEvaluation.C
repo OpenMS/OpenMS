@@ -42,13 +42,13 @@ using namespace std;
 		
 	@brief Evaluate alignment results against a ground truth.
 	
-	This tool implements the evaluation measures from our paper \n
-	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements", \n
-	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375. \n
-	doi:10.1186/1471-2105-9-375. \n
+	This tool implements the evaluation measures published in\n
+	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",\n
+	Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl. BMC Bioinformatics 2008, 9:375.\n
+	doi:10.1186/1471-2105-9-375.\n
 
-	Input is a ground truth file as described on the CAAP web page \n
-	Output is a recall- or a precision-value. \n
+	Input is a ground truth file as described on the CAAP web page\n
+	Output is a recall- or a precision-value.\n
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_MapAlignmentEvaluation.cli
@@ -80,9 +80,10 @@ protected:
 		registerDoubleOption_("rt_dev","<double>",0.1,"Maximum allowed deviation of the retention time", false);
 		registerDoubleOption_("mz_dev","<double>",0.1,"Maximum allowed deviation of m/z", false);
 		registerDoubleOption_("int_dev","<double>",100,"Maximum allowed deviation of Intensity", false);
+		registerFlag_("use_charge", "Use charge criterion when assesing if two features are identical.", false);
 
 		addEmptyLine_();
-		addText_("This tool implements the evaluation measures from our paper:\n"
+		addText_("This tool implements the evaluation measures published in:\n"
 			"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
 			"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
 			"BMC Bioinformatics 2008, 9:375.\n"
@@ -104,6 +105,10 @@ protected:
 		DoubleReal rt_dev = getDoubleOption_("rt_dev");
 		DoubleReal mz_dev = getDoubleOption_("mz_dev");
 		DoubleReal int_dev = getDoubleOption_("int_dev");
+
+		bool use_charge = getFlag_("use_charge");
+
+		std::cout << " Flag: " << use_charge << "\n";
 
 		DoubleReal out = 0;
 
@@ -147,7 +152,7 @@ protected:
 		
 
 		//evaluate
-		algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, out);
+		algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out);
 
 		//write output
 		cout << type << ": " << out << "\n";

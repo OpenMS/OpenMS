@@ -54,7 +54,7 @@ namespace OpenMS
 			/**
 				@brief Applies the algorithm
 			*/
-			virtual void evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& out);
+			virtual void evaluate(const ConsensusMap& consensus_map_in, const ConsensusMap& consensus_map_gt, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge, DoubleReal& out);
 
 			/// Creates a new instance of this class (for Factory)
 			static MapAlignmentEvaluationAlgorithm* create()

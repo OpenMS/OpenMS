@@ -63,7 +63,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmPrecision::getProductName(),"precision")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& out)))
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge, DoubleReal& out)))
 	MapAlignmentEvaluationAlgorithmPrecision maea;
 	ConsensusMap in;
 	ConsensusMap gt;
@@ -75,7 +75,7 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	ConsensusXMLFile consensus_xml_file_gt;
 	consensus_xml_file_gt.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_gt.consensusXML"), gt );
 	
-	maea.evaluate(in, gt, 0.1, 0.1, 100, out);
+	maea.evaluate(in, gt, 0.1, 0.1, 100, true, out);
 
 	TEST_REAL_SIMILAR(out, 0.757143)
 END_SECTION

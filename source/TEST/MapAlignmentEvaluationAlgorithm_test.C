@@ -43,7 +43,7 @@ namespace OpenMS
 	 : public MapAlignmentEvaluationAlgorithm
 	{
 		public:
-			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Peak2D::IntensityType&, DoubleReal& real)
+			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Peak2D::IntensityType&, const bool use_charge, DoubleReal& real)
 			{
 				real = 1.5;
 			}
@@ -65,18 +65,47 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, DoubleReal& realin)=0))
+START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge, DoubleReal& realin)=0))
 	MAEA maea;
 	ConsensusMap map1;
 	ConsensusMap map2;
 	DoubleReal rt_dev, mz_dev;
 	Peak2D::IntensityType int_dev;
 	DoubleReal real;
-	maea.evaluate(map1, map2, rt_dev, mz_dev, int_dev, real);
+	maea.evaluate(map1, map2, rt_dev, mz_dev, int_dev, false, real);
 	TEST_EQUAL(real, 1.5)
 END_SECTION
 
-//isSameHandle testen!?
+START_SECTION((bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge)))
+{
+	Feature tmp_feature;
+	tmp_feature.setRT(100);
+	tmp_feature.setMZ(555);
+	tmp_feature.setIntensity(200.0f);
+	tmp_feature.setCharge(3);
+
+  Feature tmp_feature2;
+	tmp_feature2.setRT(101);
+	tmp_feature2.setMZ(556);
+	tmp_feature2.setIntensity(1199.0f);
+	tmp_feature2.setCharge(4);
+
+	FeatureHandle a(0,1, tmp_feature);
+	FeatureHandle b(0,2, tmp_feature2);
+
+	MAEA maea;
+
+	TEST_EQUAL(maea.isSameHandle(a, b, 2, 1.5, 1000, false), true);
+	TEST_EQUAL(maea.isSameHandle(a, b, 2, 1.5, 1000, true), false);
+
+	tmp_feature2.setCharge(3); // now charge is equal
+	FeatureHandle b2(0,1, tmp_feature2);
+
+	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, false), true);
+	TEST_EQUAL(maea.isSameHandle(a, b2, 2, 1.5, 1000, true), true);
+
+}
+END_SECTION
 
 START_SECTION((static void registerChildren()))
 {
