@@ -39,8 +39,6 @@ namespace OpenMS
 
 	/**
 		@brief File adapter for MzXML 2.1 files
-
-		@todo Implement loading of compressed data arrays from mzXML 3.0 and add test case (Hiwi)
 		
 		@ingroup FileIO
 	*/

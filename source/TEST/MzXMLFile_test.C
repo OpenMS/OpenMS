@@ -314,6 +314,13 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e_rich);
+
+	//zllib funcionality
+	MSExperiment<> zlib;
+	MSExperiment<> none;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),none);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1_compressed.mzXML"),zlib);
+	TEST_EQUAL(zlib==none,true)
 END_SECTION
 
 START_SECTION(([EXTRA] load with metadata only flag))
@@ -335,16 +342,6 @@ START_SECTION(([EXTRA] load with metadata only flag))
 	TEST_STRING_EQUAL( e.getContacts()[0].getLastName(),"LastName")
 	TEST_STRING_EQUAL(e.getSample().getName(), "")
 	TEST_STRING_EQUAL(e.getSample().getNumber(), "")
-	
-	//----------------------------------------------------
-	//zllib funcionality
-	//----------------------------------------------------
-	MSExperiment<> zlib;
-	MSExperiment<> none;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),none);
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1_compressed.mzXML"),zlib);
-	TEST_EQUAL(zlib==none,true)
-	
 END_SECTION
 
 START_SECTION(([EXTRA] load with selected MS levels))

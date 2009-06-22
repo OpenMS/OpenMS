@@ -499,7 +499,7 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">Profiling and memory leaks</H2>
 		<UL>
 
-			<LI><B>How can a profile my code?</B>
+			<LI><B>How can I profile my code?</B>
 				<UL>
           <LI> Windows: this is directly supported by Vidual Studio. Follow their documentation.
           <LI> Linux:

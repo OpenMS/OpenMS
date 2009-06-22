@@ -33,10 +33,10 @@
 			<comment>Scan Comment</comment>
 		</scan>
 		<scan num="11" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT120S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int"compressionType="zlib">eJxzusPA4HQCiD8wMDh7ADEThA8AS/4FNQ==</peaks>
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int" compressionType="zlib">eJxzusPA4HQCiD8wMDh7ADEThA8AS/4FNQ==</peaks>
 		</scan>
 		<scan num="12" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int"compressionType="zlib">eJxzOsHA4ATCdxgYnD2A9AcgPQ2ImSB8Zx6IPAC71Afy</peaks>
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int" compressionType="zlib">eJxzOsHA4ATCdxgYnD2A9AcgPQ2ImSB8Zx6IPAC71Afy</peaks>
 			<scan num="13" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
 				<precursorMz precursorIntensity="100.0" precursorCharge="1" windowWideness="10">101.0</precursorMz>
 				<precursorMz precursorIntensity="200.0" precursorCharge="2" windowWideness="20">201.0</precursorMz>

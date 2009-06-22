@@ -366,9 +366,6 @@ namespace OpenMS
 			}
 			else if (tag=="peaks")
 			{
-				//TODO: add optinal "compressionType" -- "none" (default) or "zlib"
-				//...
-				
 				//precision
 				precision_ = "32";
 				optionalAttributeAsString_(precision_, attributes, s_precision_);

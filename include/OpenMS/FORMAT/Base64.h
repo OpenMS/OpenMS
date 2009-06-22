@@ -52,8 +52,6 @@ namespace OpenMS
   	@brief Class to encode and decode Base64
 		
 		Base64 supports two precisions: 32 Bit (float) and 64 Bit (double).
-		
-		@todo Check assign code / replace unsigned long long (HiWi)
   */
   class OPENMS_DLLAPI Base64
   {
@@ -116,7 +114,6 @@ namespace OpenMS
 	inline UInt Base64::endianize32_(UInt n)
 	{
 		return ((n&0xff)<<24) | ((n&0xff00)<<8) | ((n&0xff0000)>>8) | ((n&0xff000000)>>24);
-		
 	}
 	
 	inline UInt64 Base64::endianize64_(UInt64 n)
@@ -129,7 +126,6 @@ namespace OpenMS
 		((n&0x0000ff0000000000ll)>>24) |
 		((n&0x00ff000000000000ll)>>40) | 
 		((n&0xff00000000000000ll)>>56);
-		
 	}
 	
 	template <typename FromType>
@@ -144,53 +140,47 @@ namespace OpenMS
 		Size element_size = sizeof (FromType);
 		Size size = element_size * in.size();
 			
-		std::vector<DoubleReal>  data_64_endianized_(in.size());
-		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) ||
-			(!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
+		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
 			//this part has to be replaced with endianzie one day	
 			if(element_size == sizeof(Real))
 			{
-					Size i = 0;
-				while (i < in.size())
+				for (Size i = 0; i < in.size(); ++i)
 				{	
-						union endian32
-						{
-							Real value;
-							char bytes[sizeof(DoubleReal)];
-						};
-						endian32 in_endian;
-						endian32 out_endian;
-						in_endian.value = in[i];
-						for (Size s = 0; s < element_size / 2; ++s)
-						{
+					union endian32
+					{
+						Real value;
+						char bytes[sizeof(Real)];
+					};
+					endian32 in_endian;
+					endian32 out_endian;
+					in_endian.value = in[i];
+					for (Size s = 0; s < element_size / 2; ++s)
+					{
 						out_endian.bytes[s] = in_endian.bytes[element_size - 1 - s];
 						out_endian.bytes[element_size - 1 - s] = in_endian.bytes[s];
-						}		
-						in[i]  = out_endian.value;
-						++i;
+					}		
+					in[i]  = out_endian.value;
 				}
 			}
 			else
 			{
-				Size i = 0;
-				while (i < in.size())
+				for (Size i = 0; i < in.size(); ++i)
 				{	
-						union endian64
-						{
-							DoubleReal value;
-							char bytes[sizeof(DoubleReal)];
-						};
-						endian64 in_endian;
-						endian64 out_endian;
-						in_endian.value = in[i];
-						for (Size s = 0; s < element_size / 2; ++s)
-						{
+					union endian64
+					{
+						DoubleReal value;
+						char bytes[sizeof(DoubleReal)];
+					};
+					endian64 in_endian;
+					endian64 out_endian;
+					in_endian.value = in[i];
+					for (Size s = 0; s < element_size / 2; ++s)
+					{
 						out_endian.bytes[s] = in_endian.bytes[element_size - 1 - s];
 						out_endian.bytes[element_size - 1 - s] = in_endian.bytes[s];
-						}	
-						in[i]  = out_endian.value;
-						++i;
+					}	
+					in[i]  = out_endian.value;
 				}
 			}
 		}
@@ -303,7 +293,7 @@ namespace OpenMS
 		}
 		else
 		{
-		binary.resize((Size)ceil(src_size/4.) * 3);
+		  binary.resize((Size)ceil(src_size/4.) * 3);
 
 			if(!table_initialized_)
 			{
