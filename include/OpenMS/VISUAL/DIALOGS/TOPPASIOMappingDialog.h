@@ -65,10 +65,6 @@ namespace OpenMS
 			
 			/// The edge we are configuring
 			TOPPASEdge* edge_;
-			/// The output parameters of the source tool
-			QVector<TOPPASToolVertex::IOInfo> source_output_files_;
-			/// The input parameters of the target tool
-			QVector<TOPPASToolVertex::IOInfo> target_input_files_;
 		
 		protected slots:
 		

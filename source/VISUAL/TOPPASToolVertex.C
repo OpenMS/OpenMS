@@ -122,17 +122,17 @@ namespace OpenMS
 		dialog.exec();
 	}
 	
-	void TOPPASToolVertex::getRequiredInputFiles(QVector<IOInfo>& input_infos)
+	void TOPPASToolVertex::getInputFiles(QVector<IOInfo>& input_infos)
 	{
-		getRequiredFiles_(input_infos,true);
+		getFiles_(input_infos,true);
 	}
 	
-	void TOPPASToolVertex::getRequiredOutputFiles(QVector<IOInfo>& output_infos)
+	void TOPPASToolVertex::getOutputFiles(QVector<IOInfo>& output_infos)
 	{
-		getRequiredFiles_(output_infos,false);
+		getFiles_(output_infos,false);
 	}
 	
-	void TOPPASToolVertex::getRequiredFiles_(QVector<IOInfo>& io_infos, bool input_files)
+	void TOPPASToolVertex::getFiles_(QVector<IOInfo>& io_infos, bool input_files)
 	{
 		String search_tag = input_files ? "input file" : "output file";
 		

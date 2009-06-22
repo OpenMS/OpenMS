@@ -45,7 +45,9 @@ namespace OpenMS
 			to_(0),
 			hover_pos_(),
 			color_(),
-			edge_type_(ET_INVALID)
+			edge_type_(ET_INVALID),
+			source_out_param_(-1),
+			target_in_param_(-1)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -57,7 +59,9 @@ namespace OpenMS
 			to_(0),
 			hover_pos_(hover_pos),
 			color_(),
-			edge_type_(ET_INVALID)
+			edge_type_(ET_INVALID),
+			source_out_param_(-1),
+			target_in_param_(-1)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -69,7 +73,9 @@ namespace OpenMS
 			to_(rhs.to_),
 			hover_pos_(rhs.hover_pos_),
 			color_(rhs.color_),
-			edge_type_(rhs.edge_type_)
+			edge_type_(rhs.edge_type_),
+			source_out_param_(rhs.source_out_param_),
+			target_in_param_(rhs.target_in_param_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 	}
@@ -81,6 +87,8 @@ namespace OpenMS
 		hover_pos_ = rhs.hover_pos_;
 		color_ = rhs.color_;
 		edge_type_ = rhs.edge_type_;
+		source_out_param_ = rhs.source_out_param_;
+		target_in_param_ = rhs.target_in_param_;
 		
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		
@@ -366,6 +374,148 @@ namespace OpenMS
 	TOPPASEdge::EdgeType TOPPASEdge::getEdgeType()
 	{
 		return edge_type_;
+	}
+	
+	bool TOPPASEdge::getValidity()
+	{
+		TOPPASVertex* source = getSourceVertex();
+		TOPPASVertex* target = getTargetVertex();
+		QVector<TOPPASToolVertex::IOInfo> source_output_files;
+		QVector<TOPPASToolVertex::IOInfo> target_input_files;
+		StringList source_param_types;
+		StringList target_param_types;
+		bool source_param_has_list_type = false;
+		bool target_param_has_list_type = false;
+		bool valid = false;
+		
+		TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+		if (source_tool && source_out_param_ >= 0)
+		{
+			source_tool->getOutputFiles(source_output_files);
+			TOPPASToolVertex::IOInfo& source_param = source_output_files[(Size)(source_out_param_)];
+			source_param_types = source_param.valid_types;
+			source_param_has_list_type = source_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
+		}
+		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
+		if (target_tool && target_in_param_ >= 0)
+		{
+			target_tool->getInputFiles(target_input_files);
+			TOPPASToolVertex::IOInfo& target_param = target_input_files[(Size)(target_in_param_)];
+			target_param_types = target_param.valid_types;
+			target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
+		}
+		if (edge_type_ == ET_FILE_TO_TOOL)
+		{
+			if (target_param_has_list_type)
+			{
+				return false;
+			}
+			else if (target_param_types.empty())
+			{
+				// no restrictions specified
+				valid = true;
+			}
+			else
+			{
+				const String& file_name = String(qobject_cast<TOPPASInputFileVertex*>(source)->getFilename());
+				String::SizeType extension_start_index = file_name.rfind(".");
+				if (extension_start_index != String::npos)
+				{
+					const String& extension = file_name.substr(extension_start_index+1);
+					for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+					{
+						if (*it == extension)
+						{
+							valid = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		else if (edge_type_ == ET_LIST_TO_TOOL)
+		{
+			if (!target_param_has_list_type)
+			{
+				return false;
+			}
+			else if (target_param_types.empty())
+			{
+				// no restrictions specified
+				valid = true;
+			}
+			else
+			{
+				const QStringList& file_names = qobject_cast<TOPPASInputFileListVertex*>(source)->getFilenames();
+				foreach (const QString& q_file_name, file_names)
+				{
+					const String& file_name = String(q_file_name);
+					String::SizeType extension_start_index = file_name.rfind(".");
+					if (extension_start_index != String::npos)
+					{
+						const String& extension = file_name.substr(extension_start_index+1);
+						for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+						{
+							if (*it == extension)
+							{
+								valid = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (edge_type_ == ET_TOOL_TO_FILE)
+		{
+			if (source_param_has_list_type)
+			{
+				return false;
+			}
+			
+			valid = true;
+		}
+		else if (edge_type_ == ET_TOOL_TO_LIST)
+		{
+			if (!source_param_has_list_type)
+			{
+				return false;
+			}
+			
+			valid = true;
+		}
+		else if (edge_type_ == ET_TOOL_TO_TOOL)
+		{
+			// check
+			valid = true;
+		}
+		else
+		{
+			// should not happen
+			return false;
+		}
+		
+		return valid;
+	}
+	
+	void TOPPASEdge::setSourceOutParam(int out)
+	{
+		source_out_param_ = out;
+	}
+	
+	int TOPPASEdge::getSourceOutParam()
+	{
+		return source_out_param_;
+	}
+	
+	void TOPPASEdge::setTargetInParam(int in)
+	{
+		target_in_param_ = in;
+	}
+	
+	int TOPPASEdge::getTargetInParam()
+	{
+		return target_in_param_;
 	}
 	
 } //namespace

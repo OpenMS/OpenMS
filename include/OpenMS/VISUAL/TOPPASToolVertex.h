@@ -73,9 +73,9 @@ namespace OpenMS
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
 			/// Fills @p input_infos with the required input files/lists together with their valid types.
-			void getRequiredInputFiles(QVector<IOInfo>& input_infos);
+			void getInputFiles(QVector<IOInfo>& input_infos);
 			/// Fills @p output_infos with the required output files/lists together with their valid types.
-			void getRequiredOutputFiles(QVector<IOInfo>& output_infos);
+			void getOutputFiles(QVector<IOInfo>& output_infos);
 			
 			/// The static instance counter (for unique instance numbers)
 			static UInt id_counter;
@@ -89,7 +89,7 @@ namespace OpenMS
 			/// Initializes the parameters with standard values (from -write_ini)
 			void initParam_();
 			/// Fills @p io_infos with the required input/output files/lists. If @p input_files is true, input files are returned, otherwise output files.
-			void getRequiredFiles_(QVector<IOInfo>& io_infos, bool input_files);
+			void getFiles_(QVector<IOInfo>& io_infos, bool input_files);
 			
 			/// The parameters of the tool
 			Param param_;

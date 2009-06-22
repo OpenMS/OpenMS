@@ -107,7 +107,17 @@ namespace OpenMS
 			void determineEdgeType();
 			/// Returns the type of this edge
 			EdgeType getEdgeType();
-			
+			/// Determines whether this edge is valid with respect to file types of input and output parameters
+			bool getValidity();
+			/// Sets the source output parameter index
+			void setSourceOutParam(int out);
+			/// Returns the source output parameter index
+			int getSourceOutParam();
+			/// Sets the target input parameter index
+			void setTargetInParam(int in);
+			/// Returns the target input parameter index
+			int getTargetInParam();
+
 		protected:
 			
 			///@name reimplemented Qt events
@@ -127,6 +137,10 @@ namespace OpenMS
 			QColor color_;
 			/// The type of this edge
 			EdgeType edge_type_;
+			/// The source output parameter index
+			int source_out_param_;
+			/// The target input parameter index
+			int target_in_param_;
 	};
 }
 
