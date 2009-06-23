@@ -60,7 +60,9 @@ namespace OpenMS
 		- peakShape
 		- SignalToNoise
 		.
-	
+
+		@note The peaks must be sorted according to ascending m/z!
+		 
 		@htmlinclude OpenMS_PeakPickerCWT.parameters
 	  
 		@ingroup PeakPicking

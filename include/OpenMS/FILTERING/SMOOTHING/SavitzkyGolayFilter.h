@@ -91,6 +91,8 @@ namespace OpenMS
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the profile data.
     
+		@note The data must be sorted according to ascending m/z!
+    
 		@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
     
     @ingroup SignalProcessing

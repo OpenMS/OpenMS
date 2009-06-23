@@ -120,16 +120,25 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
-
       MzMLFile mz_data_file;
       mz_data_file.setLogType(log_type_);
       MSExperiment<Peak1D> exp;
       mz_data_file.load(in,exp);
 
-			//check for peak type (raw data required)
+			//check for peak type (profile data required)
 			if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
 			{
-				writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
+				writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
+			}
+			
+			//check if spectra are sorted
+			for (Size i=0; i< exp.size(); ++i)
+			{
+				if (!exp[i].isSorted())
+				{
+					writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+					return INCOMPATIBLE_INPUT_DATA;
+				}
 			}
 
       //-------------------------------------------------------------

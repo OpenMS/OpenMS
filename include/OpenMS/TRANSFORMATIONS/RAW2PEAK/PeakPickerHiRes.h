@@ -51,6 +51,8 @@ namespace OpenMS
 		 So far, this peak picker was mainly tested on high resolution data. With appropriate preprocessing steps (e.g. noise reduction and baseline subtraction), it might be also applied to low resolution data.
 		 
 		 @htmlinclude OpenMS_PeakPickerHiRes.parameters
+
+		 @note The peaks must be sorted according to ascending m/z!
 		 
 		 @ingroup PeakPicking
 

@@ -99,6 +99,8 @@ class TOPPFileFilter
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
 
+      registerFlag_("sort","sorts the output according to RT and m/z.");
+      
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
@@ -120,7 +122,7 @@ class TOPPFileFilter
 			setValidStrings_("remove_activation",activation_list);
 			
 			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
-      registerFlag_("sort","sorts the output data according to RT and m/z.");
+      registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
@@ -281,8 +283,16 @@ class TOPPFileFilter
 
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
-
+				
+				//sort
   			if (sort) exp.sortSpectra(true);
+				if (getFlag_("sort_peaks"))
+				{
+					for (Size i=0; i<exp.size(); ++i)
+					{
+						exp[i].sortByPosition();
+					}
+				}
 
 				// calculate S/N values and write them instead
 				if (sn > 0)

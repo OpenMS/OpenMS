@@ -54,6 +54,8 @@ namespace OpenMS
 
 		 @note The input spectra need to contain flight times.
 
+		 @note The peaks must be sorted according to ascending m/z!
+
 	   @ingroup SignalProcessing
   */
   class OPENMS_DLLAPI TOFCalibration 

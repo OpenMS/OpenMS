@@ -427,8 +427,29 @@ START_SECTION((void sortByPosition()))
 		else{ /* fail */ TEST_EQUAL(true,false) }
 	}
 
-	END_SECTION
+END_SECTION
 
+START_SECTION(bool isSorted() const)
+	//make test dataset
+	MSSpectrum<> spec;
+	Peak1D p;
+	p.setIntensity(1.0);
+	p.setMZ(1000.0);
+	spec.push_back(p);
+	
+	p.setIntensity(1.0);
+	p.setMZ(1001.0);
+	spec.push_back(p);
+	
+	p.setIntensity(1.0);
+	p.setMZ(1002.0);
+	spec.push_back(p);
+	
+	TEST_EQUAL(spec.isSorted(),true)
+	
+	reverse(spec.begin(), spec.end());
+	TEST_EQUAL(spec.isSorted(),false)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 // Finding peaks or peak ranges

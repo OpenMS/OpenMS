@@ -135,9 +135,10 @@ namespace OpenMS
 	
 		@image html MorphologicalFilter_all.png
 	
-		@note The class #MorphologicalFilter is designed for uniformly spaced raw
-		data.
-	
+		@note The class #MorphologicalFilter is designed for uniformly spaced profile data.
+		
+		@note The data must be sorted according to ascending m/z!
+		
 		@htmlinclude OpenMS_MorphologicalFilter.parameters
 	
 		@ingroup SignalProcessing

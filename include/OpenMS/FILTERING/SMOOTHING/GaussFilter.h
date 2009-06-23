@@ -54,6 +54,8 @@ namespace OpenMS
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
 
+		@note The data must be sorted according to ascending m/z!
+
 		@htmlinclude OpenMS_GaussFilter.parameters
 
     @ingroup SignalProcessing
@@ -126,7 +128,9 @@ namespace OpenMS
 
       /**
       	@brief Smoothes an MSExperiment containing profile data.
-      */
+ 
+	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
+			*/
       template <typename PeakType>
       void filterExperiment(MSExperiment<PeakType>& map)
       {

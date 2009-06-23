@@ -44,6 +44,8 @@ namespace OpenMS
      This class implements a simle calibration method: given a list of reference masses,
      the relative errors of the peaks in the data are approximated by linear interpolation and
      subtracted from the data. If the input data is raw data peak picking is done first.
+		
+		 @note The peaks must be sorted according to ascending m/z!
 
 	   @htmlinclude OpenMS_InternalCalibration.parameters
 
@@ -129,9 +131,6 @@ namespace OpenMS
 			{
 				exp_peaks_.clear();
 				monoiso_peaks_.clear();
-				
-				// sort data
-				exp.sortSpectra(true);
 				
 				// pick peaks (only in a certain distance to the reference masses)
 				PeakPickerCWT pp;

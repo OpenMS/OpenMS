@@ -171,7 +171,6 @@ namespace OpenMS
 		this->defaults_.insert ("SignalToNoiseEstimationParameter:", param_sne_defaults);
 		
 		defaultsToParam_();
-		updateMembers_(); //TODO remove
   }
 
   PeakPickerCWT::~PeakPickerCWT()
@@ -1252,9 +1251,6 @@ namespace OpenMS
 			TwoDOptimization my_2d;
 			my_2d.setParameters(param_.copy("optimization:",true));
 			my_2d.optimize(input.begin(),input.end(),output,two_d_optimization_);
-
-			//sort spectra TODO: is this necessary?
-			output.sortSpectra(true);
 		}
 		endProgress();
 	}

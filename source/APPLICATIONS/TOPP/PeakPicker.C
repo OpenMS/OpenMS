@@ -155,16 +155,22 @@ class TOPPPeakPicker
 		{
 			writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
 		}
-		
-    //-------------------------------------------------------------
-    // init output
-    //-------------------------------------------------------------
 
-    MSExperiment<> ms_exp_peaks;
+		//check if spectra are sorted
+		for (Size i=0; i<ms_exp_raw.size(); ++i)
+		{
+			if (!ms_exp_raw[i].isSorted())
+			{
+				writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+				return INCOMPATIBLE_INPUT_DATA;
+			}
+		}
 
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
+    MSExperiment<> ms_exp_peaks;
+    
 		Param pepi_param = getParam_().copy("algorithm:",true);		
 		writeDebug_("Parameters passed to PeakPicker", pepi_param,3);
 		

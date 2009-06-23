@@ -111,6 +111,16 @@ class TOPPBaselineFilter
 			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
 		}
 
+		//check if spectra are sorted
+		for (Size i=0; i< ms_exp.size(); ++i)
+		{
+			if (!ms_exp[i].isSorted())
+			{
+				writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+				return INCOMPATIBLE_INPUT_DATA;
+			}
+		}
+
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------

@@ -345,6 +345,15 @@ namespace OpenMS
 					}
 				}
 			}
+			///Checks if all peaks are sorted with respect to ascending m/z
+			bool isSorted() const
+			{
+				for (Size i=1; i<this->size(); ++i)
+				{
+					if (this->operator[](i-1).getMZ()>this->operator[](i).getMZ()) return false;
+				}
+				return true;
+			}
 			//@}
 
 			///@name Searching a peak or peak range

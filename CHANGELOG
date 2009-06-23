@@ -7,7 +7,10 @@ Main improvements of TOPPView:
 Main improvements of TOPP:
 - Made mzML 1.1.0 the default format for all TOPP tools
 - Added data processing information to all output files to improve tracability
-- FileInfo: added flag for data processing output
+- FileFilter: added 'sort_peaks' option
+- FileInfo: 
+  - added flag for data processing output
+  - corrupt data checks: sorting is checked now and improved speed
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support
@@ -24,6 +27,8 @@ Detailed list of changes to specific OpenMS classes
 - Renamed and moved classes
   - Moved PersistentObject from FORMAT/ to FORMAT/DB/
 - Changes to Classes
+	- MSExperiment: added 'isSorted' method
+	- MSSpectrum: added 'isSorted' method
   - DataValue: added constructor for std::string and QString
   - MetaInfo: setValue method takes only DataValue now
   - MetaInfoInterface: setMetaValue method takes only DataValue now

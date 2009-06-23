@@ -417,13 +417,13 @@ namespace OpenMS
 			 	return ms_levels_;
 		 	}
 			//@}
-
+			
+			///@name Sorting spectra and peaks
+			//@{
 			/**
 				@brief Sorts the data points by retention time
 				
-				@param sort_mz : indicates whether the points should be sorted by m/z as well			
-				
-				@note Sorting by m/z invalidates the meta data arrays!
+				@param sort_mz if @em true, spectra are sorted by m/z position as well
 			*/
 			void sortSpectra(bool sort_mz = true)
 			{
@@ -438,7 +438,30 @@ namespace OpenMS
 					}
 				}
 			}
-
+			/**
+				@brief Checks if all spectra are sorted with respect to ascending RT
+				
+				@param check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
+			*/
+			bool isSorted(bool check_mz = true ) const
+			{
+				//check RT positions
+				for (Size i=1; i<this->size(); ++i)
+				{
+					if (this->operator[](i-1).getRT()>this->operator[](i).getRT()) return false;
+				}
+				//check spectra
+				if (check_mz)
+				{
+					for (Size i=0; i<this->size(); ++i)
+					{
+						if (!this->operator[](i).isSorted()) return false;
+					}
+				}
+				return true;
+			}
+			//@}
+			
 			/// Resets all internal values
 			void reset()
 			{

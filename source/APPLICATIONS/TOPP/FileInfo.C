@@ -542,23 +542,19 @@ class TOPPFileInfo
 				os << endl
 						 << "-- Checking for corrupt data --" << endl
 						 << endl;
-				std::vector<DoubleReal> rts;
-				rts.reserve(exp.size());
+				//RTs sorted?
+				if (!exp.isSorted(false))
+				{
+					os << "Error: Spectrum retention times are not sorted in ascending order" << std::endl;
+				}
+				std::vector<DoubleReal> ms1_rts;
+				ms1_rts.reserve(exp.size());
 				for (Size s=0; s<exp.size();++s)
 				{
 					//ms level = 0
 					if (exp[s].getMSLevel()==0)
 					{
 						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
-					}
-					//duplicate scans
-					if (exp[s].getMSLevel()==1)
-					{
-						if (find(rts.begin(),rts.end(),exp[s].getRT())!=rts.end())
-						{
-							os << "Error: Duplicate spectrum retention time: " << exp[s].getRT() << std::endl;
-						}
-						rts.push_back(exp[s].getRT());
 					}
 					//scan size = 0
 					if (exp[s].size()==0)
@@ -579,7 +575,23 @@ class TOPPFileInfo
 							names[name] = 0;
 						}
 					}
-					//check peaks
+					//duplicate scans (part 1)
+					if (exp[s].getMSLevel()==1) ms1_rts.push_back(exp[s].getRT());
+				}
+				//duplicate scans (part 2)
+				std::sort(ms1_rts.begin(), ms1_rts.end());
+				for (Size i=1; i<ms1_rts.size(); ++i)
+				{
+					if (ms1_rts[i-1]==ms1_rts[i]) os << "Error: Duplicate spectrum retention time: " << ms1_rts[i] << std::endl;
+				}
+				//check peaks
+				for (Size s=0; s<exp.size();++s)
+				{
+					//peaks sorted?
+					if (!exp[s].isSorted())
+					{
+						os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+					}
 					std::vector<DoubleReal> mzs;
 					mzs.reserve(exp[s].size());
 					for (Size p=0; p<exp[s].size();++p)
@@ -587,14 +599,16 @@ class TOPPFileInfo
 						//negative intensity
 						if (exp[s][p].getIntensity()<0.0)
 						{
-							os << "Warning: Negative intensity of peak (RT: " << exp[s].getRT() << " RT: " << exp[s][p].getMZ() << ")" << std::endl;
+							os << "Warning: Negative peak intensity peak (RT: " << exp[s].getRT() << " MZ: " << exp[s][p].getMZ() << " intensity: " << exp[s][p].getIntensity() << ")" << std::endl;
 						}
-						//duplicate m/z
-						if (find(mzs.begin(),mzs.end(),exp[s][p].getMZ())!=mzs.end())
-						{
-							os << "Warning: Duplicate peak m/z " << exp[s][p].getMZ() << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
-						}
+						//duplicate m/z (part 1)
 						mzs.push_back(exp[s][p].getMZ());
+					}
+					//duplicate m/z (part 2)
+					std::sort(mzs.begin(), mzs.end());
+					for (Size i=1; i<mzs.size(); ++i)
+					{
+						if (mzs[i-1]==mzs[i]) os << "Error: Duplicate peak m/z " << mzs[i] << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
 					}
 				}
 			}

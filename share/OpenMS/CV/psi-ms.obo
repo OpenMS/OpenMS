@@ -5568,7 +5568,7 @@ name: matrix solution concentration
 def: "Concentration of the chemical solution used as matrix." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000832 ! MALDI matrix application
-relationship: has_units UO:0000051 ! Concentration Unit
+relationship: has_units UO:0000175 ! milligram per milliliter 
 
 [Term]
 id: MS:1000836
@@ -5618,7 +5618,7 @@ name: wavelength
 def: "The distance between two peaks of the emitted laser beam." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! length unit
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000844
@@ -5626,7 +5626,7 @@ name: focus diameter x
 def: "Describes the diameter of the laser beam in x direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! length unit
+relationship: has_units UO:0000017 ! micrometer
 
 [Term]
 id: MS:1000845
@@ -5634,7 +5634,7 @@ name: focus diameter y
 def: "Describes the diameter of the laser beam in y direction." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000001 ! length unit
+relationship: has_units UO:0000017 ! micrometer
 
 [Term]
 id: MS:1000846
@@ -5642,7 +5642,7 @@ name: pulse energy
 def: "Describes output energy of the laser system. May be attenuated by filters or other means." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000111 ! Energy Unit
+relationship: has_units UO:0000112 ! joule
 
 [Term]
 id: MS:1000847
@@ -5650,7 +5650,7 @@ name: pulse duration
 def: "Describes how long the laser beam was emitted from the laser device." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000003 ! Time Unit
+relationship: has_units UO:0000150 ! nanosecond
 
 [Term]
 id: MS:1000848
@@ -5658,7 +5658,7 @@ name: attenuation
 def: "Describes the reduction of the intensity of the laser beam energy." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000003 ! Time Unit
+relationship: has_units UO:0000187 ! percent
 
 [Term]
 id: MS:1000849
@@ -5666,7 +5666,7 @@ name: impact angle
 def: "Describes the angle between the laser beam and the sample target." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000841 ! laser attribute
-relationship: has_units UO:0000121 ! Angle Unit
+relationship: has_units UO:0000185 ! degree
 
 [Term]
 id: MS:1000850
