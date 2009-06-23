@@ -4,8 +4,8 @@ saved-by: abertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.14.3
-remark: release date: 2009-06-17
+remark: version: 2.14.4
+remark: release date: 2009-06-23
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
@@ -6313,6 +6313,7 @@ name: molecule taxonomy
 def: "The taxonomy of the resultant molecule from the search." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001085 ! protein result details
+is_a: MS:1001342 ! database sequence details
 
 [Term]
 id: MS:1001090
