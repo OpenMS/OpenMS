@@ -5568,7 +5568,7 @@ name: matrix solution concentration
 def: "Concentration of the chemical solution used as matrix." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000832 ! MALDI matrix application
-relationship: has_units UO:0000175 ! milligram per milliliter 
+relationship: has_units UO:0000175 ! gram per liter 
 
 [Term]
 id: MS:1000836
