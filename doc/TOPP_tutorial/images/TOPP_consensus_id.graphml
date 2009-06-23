@@ -25,7 +25,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="116.6708984375" x="19.16455078125" y="7.57373046875">HPLC-MS/MS data
-(mzData)</y:NodeLabel>
+(mzML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>

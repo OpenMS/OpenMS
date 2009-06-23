@@ -25,7 +25,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">map 1
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
@@ -38,7 +38,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">map 2
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
@@ -51,7 +51,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">map 3
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
@@ -64,7 +64,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">transformed map 2
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
@@ -77,7 +77,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">transformed map 3
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
@@ -90,7 +90,7 @@
           <y:Fill color="#FFFFFF" color2="#FFFFFF" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="35.8525390625" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="133.29541015625" x="10.852294921875" y="7.57373046875">transformed map 1
-(mzData/featureXML)</y:NodeLabel>
+(mzML/featureXML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>

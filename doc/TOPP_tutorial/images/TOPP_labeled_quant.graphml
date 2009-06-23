@@ -26,7 +26,7 @@
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="51.77880859375" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="99.34814453125" x="27.825927734375" y="-0.389404296875">isotope-labeled
 HPLC-MS data
-(mzData)</y:NodeLabel>
+(mzML)</y:NodeLabel>
           <y:Shape type="rectangle"/>
         </y:ShapeNode>
       </data>
