@@ -40,21 +40,21 @@ START_TEST(MetaInfoDescription, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MetaInfoDescription* ptr = 0;
-START_SECTION(MetaInfoDescription())
+START_SECTION((MetaInfoDescription()))
 	ptr = new MetaInfoDescription();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~MetaInfoDescription())
+START_SECTION((~MetaInfoDescription()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION((const String& getName() const))
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getName(),"");
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION((void setName(const String& name)))
   MetaInfoDescription tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");
@@ -65,7 +65,7 @@ START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
-START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
   MetaInfoDescription tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
@@ -79,7 +79,7 @@ START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION(MetaInfoDescription(const MetaInfoDescription& source))
+START_SECTION((MetaInfoDescription(const MetaInfoDescription& source)))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
@@ -91,7 +91,7 @@ START_SECTION(MetaInfoDescription(const MetaInfoDescription& source))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
-START_SECTION(MetaInfoDescription& operator= (const MetaInfoDescription& source))
+START_SECTION((MetaInfoDescription& operator= (const MetaInfoDescription& source)))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
@@ -109,7 +109,7 @@ START_SECTION(MetaInfoDescription& operator= (const MetaInfoDescription& source)
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 END_SECTION
 
-START_SECTION(bool operator== (const MetaInfoDescription& rhs) const)
+START_SECTION((bool operator== (const MetaInfoDescription& rhs) const))
   MetaInfoDescription edit, empty;
   
   TEST_EQUAL(edit==empty, true);

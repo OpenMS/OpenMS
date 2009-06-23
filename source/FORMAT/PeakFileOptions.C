@@ -149,7 +149,8 @@ namespace OpenMS
 	{
 		zlib_compression_ = compress;
 	}
-	bool PeakFileOptions::getCompression()
+	
+	bool PeakFileOptions::getCompression() const
 	{
 		return zlib_compression_;
 	}

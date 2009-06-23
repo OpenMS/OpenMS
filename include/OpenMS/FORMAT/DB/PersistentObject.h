@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PERSISTENTOBJECT_H
-#define OPENMS_FORMAT_PERSISTENTOBJECT_H
+#ifndef OPENMS_FORMAT_DB_PERSISTENTOBJECT_H
+#define OPENMS_FORMAT_DB_PERSISTENTOBJECT_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>

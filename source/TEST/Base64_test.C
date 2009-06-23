@@ -63,11 +63,11 @@ START_SECTION((Base64()))
 END_SECTION
 
 // destructor
-START_SECTION((~Base64()))
+START_SECTION((virtual ~Base64()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(( template <typename FromType> void encode(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out)))
+START_SECTION((template < typename FromType > void encode(std::vector< FromType > &in, ByteOrder to_byte_order, std::string &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
@@ -105,7 +105,7 @@ START_SECTION(( template <typename FromType> void encode(std::vector<FromType>& 
 	
 END_SECTION
 
-START_SECTION(( template <typename ToType> void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)))
+START_SECTION((template < typename ToType > void decode(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;

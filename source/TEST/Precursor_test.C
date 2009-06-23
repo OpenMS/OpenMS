@@ -66,7 +66,7 @@ START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
 END_SECTION
 
 
-START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
+START_SECTION((set<ActivationMethod>& getActivationMethods()))
   Precursor tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);

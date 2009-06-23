@@ -825,7 +825,10 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(tmp_filename),true);
 END_SECTION
 
-
+START_SECTION(bool isSemanticallyValid(const String &filename, StringList &errors, StringList &warnings))
+	//This is not officially supported - the mapping file was hand-crafted by Marc Sturm
+	NOT_TESTABLE
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -111,6 +111,10 @@ START_SECTION((static String getUniqueName()))
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 END_SECTION
 
+START_SECTION((static String getOpenMSDataPath()))
+	NOT_TESTABLE
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

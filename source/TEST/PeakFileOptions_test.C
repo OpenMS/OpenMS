@@ -68,89 +68,100 @@ START_TEST(PeakFileOptions, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakFileOptions* ptr = 0;
-START_SECTION(PeakFileOptions())
+START_SECTION((PeakFileOptions()))
 	ptr = new PeakFileOptions();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~PeakFileOptions())
+START_SECTION((~PeakFileOptions()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(void setMetadataOnly(bool only))
+START_SECTION((void setCompression(bool compress)))
+	PeakFileOptions tmp;
+	tmp.setCompression(true);
+	TEST_EQUAL(tmp.getCompression(), true);
+END_SECTION
+
+START_SECTION((bool getCompression() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.getCompression(), false);
+END_SECTION
+
+START_SECTION((void setMetadataOnly(bool only)))
 	PeakFileOptions tmp;
 	tmp.setMetadataOnly(true);
 	TEST_EQUAL(tmp.getMetadataOnly(), true);
 END_SECTION
 
-START_SECTION(bool getMetadataOnly() const)
+START_SECTION((bool getMetadataOnly() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getMetadataOnly(), false);
 END_SECTION
 
-START_SECTION(void setWriteSupplementalData(bool write))
+START_SECTION((void setWriteSupplementalData(bool write)))
 	PeakFileOptions tmp;
 	tmp.setWriteSupplementalData(false);
 	TEST_EQUAL(tmp.getWriteSupplementalData(), false);
 END_SECTION
 
-START_SECTION(bool getWriteSupplementalData() const)
+START_SECTION((bool getWriteSupplementalData() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getWriteSupplementalData(), true);
 END_SECTION
 
-START_SECTION(void setRTRange(const DRange<1>& range))
+START_SECTION((void setRTRange(const DRange<1>& range)))
 	PeakFileOptions tmp;
 	tmp.setRTRange(makeRange(2, 4));
 	TEST_EQUAL(tmp.hasRTRange(), true);
 	TEST_EQUAL(tmp.getRTRange(), makeRange(2, 4));
 END_SECTION
 
-START_SECTION(bool hasRTRange() const)
+START_SECTION((bool hasRTRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.hasRTRange(), false);
 END_SECTION
 
-START_SECTION(const DRange<1>& getRTRange() const)
+START_SECTION((const DRange<1>& getRTRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getRTRange(), DRange<1>());
 END_SECTION
 
-START_SECTION(void setMZRange(const DRange<1>& range))
+START_SECTION((void setMZRange(const DRange<1>& range)))
 	PeakFileOptions tmp;
 	tmp.setMZRange(makeRange(3, 5));
 	TEST_EQUAL(tmp.hasMZRange(), true);
 	TEST_EQUAL(tmp.getMZRange(), makeRange(3, 5));
 END_SECTION
 
-START_SECTION(bool hasMZRange() const)
+START_SECTION((bool hasMZRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.hasMZRange(), false);
 END_SECTION
 
-START_SECTION(const DRange<1>& getMZRange() const)
+START_SECTION((const DRange<1>& getMZRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getMZRange(), DRange<1>());
 END_SECTION
 
-START_SECTION(void setIntensityRange(const DRange<1>& range))
+START_SECTION((void setIntensityRange(const DRange<1>& range)))
 	PeakFileOptions tmp;
 	tmp.setIntensityRange(makeRange(3, 5));
 	TEST_EQUAL(tmp.hasIntensityRange(), true);
 	TEST_EQUAL(tmp.getIntensityRange(), makeRange(3, 5));
 END_SECTION
 
-START_SECTION(bool hasIntensityRange() const)
+START_SECTION((bool hasIntensityRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.hasIntensityRange(), false);
 END_SECTION
 
-START_SECTION(const DRange<1>& getIntensityRange() const)
+START_SECTION((const DRange<1>& getIntensityRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getIntensityRange(), DRange<1>());
 END_SECTION
 
-START_SECTION(void setMSLevels(const vector<Int>& levels))
+START_SECTION((void setMSLevels(const vector<Int>& levels)))
 	PeakFileOptions tmp;
 	vector<Int> levels;
 	levels.push_back(1);
@@ -161,7 +172,7 @@ START_SECTION(void setMSLevels(const vector<Int>& levels))
 	TEST_EQUAL(tmp.getMSLevels()==levels,true);
 END_SECTION
 
-START_SECTION(void addMSLevel(int level))
+START_SECTION((void addMSLevel(int level)))
 	PeakFileOptions tmp;
 	tmp.addMSLevel(1);
 	tmp.addMSLevel(3);
@@ -175,7 +186,7 @@ START_SECTION(void addMSLevel(int level))
 	TEST_EQUAL(tmp.getMSLevels()==levels,true);
 END_SECTION
 
-START_SECTION(void clearMSLevels())
+START_SECTION((void clearMSLevels()))
 	PeakFileOptions tmp;
 	vector<Int> levels;
 	levels.push_back(1);
@@ -190,12 +201,12 @@ START_SECTION(void clearMSLevels())
 	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
 END_SECTION
 
-START_SECTION(bool hasMSLevels() const)
+START_SECTION((bool hasMSLevels() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.hasMSLevels(), false);
 END_SECTION
 
-START_SECTION(bool containsMSLevel(int level) const)
+START_SECTION((bool containsMSLevel(int level) const))
 	PeakFileOptions tmp;
 	vector<Int> levels;
 	levels.push_back(1);
@@ -206,7 +217,7 @@ START_SECTION(bool containsMSLevel(int level) const)
 	TEST_EQUAL(tmp.containsMSLevel(2), false);
 END_SECTION
 
-START_SECTION(const vector<Int>& getMSLevels() const)
+START_SECTION((const vector<Int>& getMSLevels() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
 END_SECTION
