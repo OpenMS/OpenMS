@@ -284,7 +284,7 @@ class TOPPXTandemAdapter
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
 				UInt id = (Int)it->getMetaValue("spectrum_id");
-				if (id <= exp.size())
+				if (id <= exp.size() && id != 0)
 				{
 					it->setMetaValue("RT", exp[id - 1].getRT());
 					DoubleReal pre_mz = 0.0;
