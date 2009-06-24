@@ -32,6 +32,7 @@
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 
 namespace OpenMS
 {
@@ -128,16 +129,12 @@ namespace OpenMS
 			if (target != potential_target_)
 			{
 				potential_target_ = target;
-				TOPPASEdge::EdgeValidity ev = getEdgeValidity_(hover_edge_->getSourceVertex(), target);
-				if (ev == TOPPASEdge::EV_GREEN)
+				bool ev = isEdgeAllowed_(hover_edge_->getSourceVertex(), target);
+				if (ev)
 				{
 					hover_edge_->setColor(Qt::green);
 				}
-				else if (ev == TOPPASEdge::EV_YELLOW)
-				{
-					hover_edge_->setColor(Qt::yellow);
-				}
-				else // EV_RED
+				else
 				{
 					hover_edge_->setColor(Qt::red);
 				}
@@ -174,13 +171,17 @@ namespace OpenMS
 		
 		if (target && 
 				target != hover_edge_->getSourceVertex() &&
-				!(getEdgeValidity_(hover_edge_->getSourceVertex(), target) == TOPPASEdge::EV_RED))
+				isEdgeAllowed_(hover_edge_->getSourceVertex(), target))
 		{
 			hover_edge_->setTargetVertex(target);
 			TOPPASVertex* source = hover_edge_->getSourceVertex();
 			source->addOutEdge(hover_edge_);
 			target->addInEdge(hover_edge_);
 			hover_edge_->determineEdgeType();
+			
+			hover_edge_->setColor(Qt::yellow);
+			TOPPASIOMappingDialog dialog(hover_edge_);
+			dialog.exec();
 		}
 		else
 		{
@@ -262,7 +263,7 @@ namespace OpenMS
 		update();
 	}
 	
-	TOPPASEdge::EdgeValidity TOPPASScene::getEdgeValidity_(TOPPASVertex* u, TOPPASVertex* v)
+	bool TOPPASScene::isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v)
 	{
 		if (u == 0 ||
 				v == 0 ||
@@ -274,7 +275,7 @@ namespace OpenMS
 					((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u)) &&
 					(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))))
 		{
-			return TOPPASEdge::EV_RED;
+			return false;
 		}
 		
 		//insert edge between u and v for testing, is removed afterwards
@@ -307,33 +308,14 @@ namespace OpenMS
 		removeItem(test_edge);
 		delete test_edge;
 		
-		if (graph_has_cycles)
-		{
-			return TOPPASEdge::EV_RED;
-		}
-		else if (u->incomingEdgesCount() > 1)
-		{
-			return TOPPASEdge::EV_YELLOW;
-		}
-		else
-		{
-			return TOPPASEdge::EV_GREEN;
-		}
+		return !graph_has_cycles;
 	}
 	
 	void TOPPASScene::updateEdgeColors_()
 	{
 		foreach (TOPPASEdge* edge, edges_)
 		{
-			TOPPASToolVertex* tool_vertex = qobject_cast<TOPPASToolVertex*>(edge->getSourceVertex());
-			if (tool_vertex && tool_vertex->incomingEdgesCount() > 1)
-			{
-				edge->setColor(Qt::yellow);
-			}
-			else
-			{
-				edge->setColor(Qt::green);
-			}
+			edge->updateColor();
 		}
 	}
 	

@@ -113,6 +113,7 @@ namespace OpenMS
 			void enable_();
 			
 		protected slots:
+		
 			/// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox 
 			void ok_();
 			/// Slot that handles changing of the tool

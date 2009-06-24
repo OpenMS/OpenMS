@@ -60,12 +60,15 @@ namespace OpenMS
 				ET_INVALID
 			};
 			
-			/// Is a hypothetical edge valid or not? Does something have to be configured?
-			enum EdgeValidity
+			/// The status of this edge
+			enum EdgeStatus
 			{
-				EV_RED,			// not allowed
-				EV_YELLOW,	// allowed, but must be configured first
-				EV_GREEN		// allowed and unambiguous
+				ES_VALID,
+				ES_MISMATCH_FILE_LIST,
+				ES_MISMATCH_LIST_FILE,
+				ES_NO_TARGET_PARAM,
+				ES_NO_SOURCE_PARAM,
+				ES_UNKNOWN
 			};
 			
 			/// Standard constructor
@@ -107,8 +110,8 @@ namespace OpenMS
 			void determineEdgeType();
 			/// Returns the type of this edge
 			EdgeType getEdgeType();
-			/// Determines whether this edge is valid with respect to file types of input and output parameters
-			bool getValidity();
+			/// Returns the status of this edge
+			EdgeStatus getEdgeStatus();
 			/// Sets the source output parameter index
 			void setSourceOutParam(int out);
 			/// Returns the source output parameter index
@@ -117,6 +120,8 @@ namespace OpenMS
 			void setTargetInParam(int in);
 			/// Returns the target input parameter index
 			int getTargetInParam();
+			/// Updates the edge color
+			void updateColor();
 
 		protected:
 			

@@ -149,6 +149,18 @@ namespace OpenMS
 			target_combo->setVisible(false);
 			target_parameter_label->setVisible(false);
 		}
+		
+		int source_out = edge_->getSourceOutParam();
+		int target_in = edge_->getTargetInParam();
+		if (source_out != -1)
+		{
+			source_combo->setCurrentIndex(source_out + 1);
+		}
+		if (target_in != -1)
+		{
+			target_combo->setCurrentIndex(target_in + 1);
+		}
+		
 		resize(width(),0);
 	}
 	
@@ -165,10 +177,10 @@ namespace OpenMS
 		
 		edge_->setSourceOutParam(source_combo->currentIndex()-1);
 		edge_->setTargetInParam(target_combo->currentIndex()-1);
-		if (!edge_->getValidity())
+		edge_->updateColor();
+		
+		if (!(edge_->getEdgeStatus() == TOPPASEdge::ES_VALID)) // TODO: check reason, better error message
 		{
-			edge_->setSourceOutParam(-1);
-			edge_->setTargetInParam(-1);
 			QMessageBox::warning(0,"Invalid selection","The types of source output and target input parameters do not match!");
 			return;
 		}
