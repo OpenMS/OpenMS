@@ -93,6 +93,20 @@ namespace OpenMS
 			
 		private:
 			
+			///Internal class needed for type-punning
+			union Reinterpreter64_
+			{
+				DoubleReal f;
+				Int64 i;
+			};
+
+			///Internal class needed for type-punning
+			union Reinterpreter32_
+			{
+				Real f;
+				Int32 i;
+			};
+
 			static const char encoder_[];
 			static const char old_decoder_[];
 			char decoder_[256];
@@ -151,16 +165,20 @@ namespace OpenMS
 			{
 				for (Size i = 0; i < in.size(); ++i)
 				{
-					Int32 tmp = endianize32_(reinterpret_cast<Int32&>(in[i]));
-					in[i] = reinterpret_cast<FromType&>(tmp);
+					Reinterpreter32_ tmp;
+					tmp.f = in[i];
+					tmp.i = endianize32_(tmp.i);
+					in[i] = tmp.f;
 				}
 			}
 			else if (element_size == 8)
 			{
 				for (Size i = 0; i < in.size(); ++i)
 				{
-					Int64 tmp = endianize64_(reinterpret_cast<Int64&>(in[i]));
-					in[i] = reinterpret_cast<FromType&>(tmp);
+					Reinterpreter64_ tmp;
+					tmp.f = in[i];
+					tmp.i = endianize64_(tmp.i);
+					in[i] = tmp.f;
 				}
 			}
 		}
@@ -349,13 +367,11 @@ namespace OpenMS
 
 				out.resize(floatCount);
 
-				UInt i = 0;
 				Int32* p = reinterpret_cast<Int32*> (byteBuffer);
-				while(i < floatCount)
+				for(UInt i=0; i<floatCount; ++i)
 				{
 					*p = endianize32_(*p);
 					++p;
-					++i;
 				}
 				out.assign(floatBuffer,floatBuffer+floatCount);	
 
@@ -370,13 +386,11 @@ namespace OpenMS
 
 				out.resize(floatCount);
 
-				UInt i = 0;
 				Int64* p = reinterpret_cast<Int64*> (byteBuffer);
-				while(i < floatCount)
+				for(UInt i=0; i<floatCount; ++i)
 				{
 					*p = endianize64_(*p);
 					++p;
-					++i;
 				}
 				out.assign(floatBuffer,floatBuffer+floatCount);	
 			}			
