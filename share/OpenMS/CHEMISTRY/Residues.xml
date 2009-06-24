@@ -323,5 +323,61 @@
 				<ITEM name="Tyr" value="Tyr" type="string" />
 			</NODE>
 		</NODE>
+
+
+		<NODE name="Ambiguous_ASN_or_ASP" >
+			<ITEM name="Name" value="Asparagine/Aspartate" type="string" />
+			<ITEM name="ShortName" value="Asx" type="string" />
+			<ITEM name="ThreeLetterCode" value="ASX" type="string" />
+			<ITEM name="OneLetterCode" value="B" type="string" />
+			<ITEM name="Formula" value="" type="string" />
+			<ITEM name="GB_SC" value="0" type="string" />
+			<ITEM name="GB_BB_L" value="0" type="string" />
+			<ITEM name="GB_BB_R" value="0" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Asx" value="Asx" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Ambiguous_GLN_or_GLU" >
+			<ITEM name="Name" value="Glutamine/Glutamate" type="string" />
+			<ITEM name="ShortName" value="Glx" type="string" />
+			<ITEM name="ThreeLetterCode" value="GLX" type="string" />
+			<ITEM name="OneLetterCode" value="Z" type="string" />
+			<ITEM name="Formula" value="" type="string" />
+			<ITEM name="GB_SC" value="0" type="string" />
+			<ITEM name="GB_BB_L" value="0" type="string" />
+			<ITEM name="GB_BB_R" value="0" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Glx" value="Glx" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Ambiguous_ILE_or_LEU" >
+			<ITEM name="Name" value="Isoleucine/Leucine" type="string" />
+			<ITEM name="ShortName" value="Xle" type="string" />
+			<ITEM name="ThreeLetterCode" value="XLE" type="string" />
+			<ITEM name="OneLetterCode" value="J" type="string" />
+			<ITEM name="Formula" value="C6H13NO2" type="string" />
+			<ITEM name="GB_SC" value="0" type="string" />
+			<ITEM name="GB_BB_L" value="0" type="string" />
+			<ITEM name="GB_BB_R" value="0" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Xle" value="Xle" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Ambiguous_Unspecified_or_Unknown" >
+			<ITEM name="Name" value="Unspecified/Unknown" type="string" />
+			<ITEM name="ShortName" value="Xaa" type="string" />
+			<ITEM name="ThreeLetterCode" value="XAA" type="string" />
+			<ITEM name="OneLetterCode" value="X" type="string" />
+			<ITEM name="Formula" value="" type="string" />
+			<ITEM name="GB_SC" value="0" type="string" />
+			<ITEM name="GB_BB_L" value="0" type="string" />
+			<ITEM name="GB_BB_R" value="0" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Xaa" value="Xaa" type="string" />
+				<ITEM name="Unk" value="Unk" type="string" />
+			</NODE>
+		</NODE>
+	
 	</NODE>
 </PARAMETERS>
