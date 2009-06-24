@@ -293,7 +293,7 @@ namespace OpenMS
 						if (map[i].getMSLevel()==1 && map[i].size()>0)
 						{
 							scan_indices.push_back(i);
-							peak_indices.push_back(0);
+							peak_indices.push_back(map[i].MZBegin(mz_min) - map[i].begin());
 						}
 						//set the scan index past the end. Otherwise the last scan will be repeated for all following RTs
 						if (i==map.size()-1) scan_index=i+1;
