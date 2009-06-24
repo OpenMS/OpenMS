@@ -173,7 +173,8 @@ namespace OpenMS
 		if (add_to_stack)
 		{
 			// if we scrolled in between zooming we want to store the last position before zomming as well
-			if (new_area!=visible_area_ && visible_area_!=AreaType::empty)
+			if (	 (zoom_stack_.size()>0)
+					&& (zoom_stack_.back()!=visible_area_))
 			{
 				zoomAdd_(visible_area_);
 			}
@@ -985,5 +986,4 @@ namespace OpenMS
 	}
 
 } //namespace
-
 
