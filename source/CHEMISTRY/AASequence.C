@@ -906,8 +906,8 @@ namespace OpenMS
 					if (res_ptr == 0)
 					{
 						Residue res(tag, String(""), String(""), EmpiricalFormula(""));
-						res.setMonoWeight(tag.toFloat(), Residue::Internal);
-						res.setAverageWeight(tag.toFloat(), Residue::Internal);
+						res.setMonoWeight(tag.toDouble(), Residue::Internal);
+						res.setAverageWeight(tag.toDouble(), Residue::Internal);
 						getResidueDB_()->addResidue(res);
 						sequence.push_back(getResidueDB_()->getResidue(tag));
 					}

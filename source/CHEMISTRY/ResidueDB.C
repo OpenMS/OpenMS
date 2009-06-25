@@ -366,17 +366,17 @@ namespace OpenMS
 			}
 			if (key.hasSubstring("GB_SC"))
 			{
-				res_ptr->setSideChainBasicity(value.toFloat());
+				res_ptr->setSideChainBasicity(value.toDouble());
 				continue;
 			}
 			if (key.hasSubstring("GB_BB_L"))
 			{
-				res_ptr->setBackboneBasicityLeft(value.toFloat());
+				res_ptr->setBackboneBasicityLeft(value.toDouble());
 				continue;
 			}
 			if (key.hasSubstring("GB_BB_R"))
 			{
-				res_ptr->setBackboneBasicityRight(value.toFloat());
+				res_ptr->setBackboneBasicityRight(value.toDouble());
 				continue;
 			}
 			cerr << "unknown key: " << key << ", with value: " << value << endl;

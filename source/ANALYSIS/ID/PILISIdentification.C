@@ -449,7 +449,7 @@ namespace OpenMS
 				{
 					if (mod_split[i][j] == '@')
 					{
-						float mass_diff(mod_split[i].substr(0, j).toFloat());
+						DoubleReal mass_diff(mod_split[i].substr(0, j).toFloat());
 						if (j != mod_split[i].size() - 2)
 						{
 							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification in wrong format", "weight@one_letter_code");

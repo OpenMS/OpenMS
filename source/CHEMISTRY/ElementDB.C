@@ -172,13 +172,13 @@ namespace OpenMS
 			{
 				if (key == "AverageWeight")
 				{
-					avg_weight = value.toFloat();
+					avg_weight = value.toDouble();
 				}
 				else
 				{
 					if (key == "Isotopes")
 					{
-						distribution[UInt(split[3].toInt())] = double(value.toFloat()/100);
+						distribution[UInt(split[3].toInt())] = double(value.toDouble()/100);
 					}
 					else
 					{
@@ -196,7 +196,7 @@ namespace OpenMS
 							{
 								if (key == "MonoWeight")
 								{
-									mono_weight = value.toFloat();
+									mono_weight = value.toDouble();
 								}
 								else
 								{

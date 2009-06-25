@@ -439,7 +439,7 @@ START_SECTION(void setCTerminalModification(const String &modification))
 
 	AASequence seq5("DABCDER(MOD:00177)");
 	AASequence seq6("DABCDER(MOD:00177)(ArgN)");
-	TEST_EQUAL(seq5.isModified(), false)
+	TEST_EQUAL(seq5.isModified(), true)
 	TEST_EQUAL(seq6.isModified(), true)
 	seq5.setCTerminalModification("ArgN");	
 	TEST_EQUAL(seq5 == seq6, true)
@@ -493,10 +493,16 @@ START_SECTION(bool isValid() const)
 	AASequence seq3("(MOD:00051)DFPIANGER");
 	AASequence seq4("DFPIANGER");
 
-	TEST_EQUAL(seq1.isValid(), false)
-	TEST_EQUAL(seq2.isValid(), false)
+	TEST_EQUAL(seq1.isValid(), true)
+	TEST_EQUAL(seq2.isValid(), true)
 	TEST_EQUAL(seq3.isValid(), true)
 	TEST_EQUAL(seq4.isValid(), true)
+
+
+	AASequence seq5("blDABCDEF");
+	AASequence seq6("a");
+	TEST_EQUAL(seq5.isValid(), false)
+	TEST_EQUAL(seq6.isValid(), false)
 END_SECTION
 
 START_SECTION(bool hasNTerminalModification() const)

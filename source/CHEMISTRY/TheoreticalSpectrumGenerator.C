@@ -102,10 +102,10 @@ namespace OpenMS
 
 	void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{
-		Map<float, AASequence> ions;
-		Map<float, String> names;
+		Map<DoubleReal, AASequence> ions;
+		Map<DoubleReal, String> names;
 		AASequence ion;
-		double intensity(0);
+		DoubleReal intensity(0);
 		
 		// generate the ion peaks
 		switch(res_type)
@@ -114,66 +114,66 @@ namespace OpenMS
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
-					double pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "a"+String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("a_intensity");
+				intensity = (DoubleReal)param_.getValue("a_intensity");
 				break;
 				
 			case Residue::BIon:
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
-					double pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "b"+String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("b_intensity");
+				intensity = (DoubleReal)param_.getValue("b_intensity");
 				break;
 				
 			case Residue::CIon:
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
-					double pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "c"+String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("c_intensity");
+				intensity = (DoubleReal)param_.getValue("c_intensity");
 				break;
 				
 			case Residue::XIon:
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
-					double pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "x"+String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("x_intensity");
+				intensity = (DoubleReal)param_.getValue("x_intensity");
 				break;
 				
 			case Residue::YIon:
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
-					double pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "y"+String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("y_intensity");
+				intensity = (DoubleReal)param_.getValue("y_intensity");
 				break;
 				
 			case Residue::ZIon:
 				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
-					double pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;
+					DoubleReal pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;
 					ions[pos] = ion;
 					names[pos] = "z" + String(i) + String(charge, '+');
 				}
-				intensity = (double)param_.getValue("z_intensity");
+				intensity = (DoubleReal)param_.getValue("z_intensity");
 				break;
 				
 			default:
@@ -185,12 +185,12 @@ namespace OpenMS
 		bool add_metainfo((int)param_.getValue("add_metainfo"));
 		bool add_isotopes((int)param_.getValue("add_isotopes"));
 		int max_isotope((int)param_.getValue("max_isotope"));
-		double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));		
+		DoubleReal rel_loss_intensity((DoubleReal)param_.getValue("relative_loss_intensity"));		
 
-		for (Map<float, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
+		for (Map<DoubleReal, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
 		{
 			ion = cit->second;
-			double pos = cit->first;
+			DoubleReal pos = cit->first;
 			String ion_name = names[pos];
 			if (add_isotopes)
 			{
@@ -242,7 +242,7 @@ namespace OpenMS
 				for (set<String>::const_iterator it=losses.begin(); it!=losses.end(); ++it)
 				{
 					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
-					double loss_pos = loss_ion.getMonoWeight() / charge;
+					DoubleReal loss_pos = loss_ion.getMonoWeight() / charge;
 					String loss_name = *it;
 					
 					if (add_isotopes)
@@ -287,9 +287,9 @@ namespace OpenMS
 	void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge)
 	{
 		bool add_metainfo((int)param_.getValue("add_metainfo"));
-		double pre_int((double)param_.getValue("precursor_intensity"));
-		double pre_int_H2O((double)param_.getValue("precursor_H2O_intensity"));
-		double pre_int_NH3((double)param_.getValue("precursor_NH3_intensity"));
+		DoubleReal pre_int((DoubleReal)param_.getValue("precursor_intensity"));
+		DoubleReal pre_int_H2O((DoubleReal)param_.getValue("precursor_H2O_intensity"));
+		DoubleReal pre_int_NH3((DoubleReal)param_.getValue("precursor_NH3_intensity"));
 		bool add_isotopes((int)param_.getValue("add_isotopes"));
     //int max_isotope((int)param_.getValue("max_isotope"));
 		
@@ -300,7 +300,7 @@ namespace OpenMS
 		else
 		{
 			// precursor peak
-			p_.setMZ(peptide.getAverageWeight(Residue::Full, charge)/double(charge));
+			p_.setMZ(peptide.getAverageWeight(Residue::Full, charge)/DoubleReal(charge));
 			p_.setIntensity(pre_int);
 			if (add_metainfo)
 			{
@@ -315,8 +315,8 @@ namespace OpenMS
 			spec.push_back(p_);
 
 			// loss peaks of the precursor
-			static const double h2o_weight = EmpiricalFormula("H2O").getAverageWeight();
-			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - h2o_weight)/double(charge));
+			static const DoubleReal h2o_weight = EmpiricalFormula("H2O").getAverageWeight();
+			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - h2o_weight)/DoubleReal(charge));
 			p_.setIntensity(pre_int_H2O);
 			
 			if (add_metainfo)
@@ -330,8 +330,8 @@ namespace OpenMS
 			}
 			spec.push_back(p_);
 
-			static const double nh3_weight = EmpiricalFormula("NH3").getAverageWeight();
-      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - nh3_weight)/double(charge));
+			static const DoubleReal nh3_weight = EmpiricalFormula("NH3").getAverageWeight();
+      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - nh3_weight)/DoubleReal(charge));
       p_.setIntensity(pre_int_NH3);
 
       if (add_metainfo)
