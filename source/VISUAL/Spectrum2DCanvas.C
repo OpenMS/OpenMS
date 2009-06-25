@@ -1275,7 +1275,7 @@ namespace OpenMS
 					}
 					emit sendStatusMessage(status, 0);
 				}
-				else
+				else // ConsensusFeature
 				{
 					//additional feature info
 					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
@@ -1284,6 +1284,13 @@ namespace OpenMS
 					if (f.getCharge()!=0)
 					{
 						status = status + " Charge: " + f.getCharge();
+					}
+					//add meta info
+					std::vector<String> keys;
+					f.getKeys(keys);
+					for (Size m=0; m<keys.size(); ++m)
+					{
+						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
 					emit sendStatusMessage(status, 0);
 				}
