@@ -1235,7 +1235,7 @@ namespace OpenMS
       	dm_hull_2d_->setVisible(false);
       	dm_numbers_2d_->setVisible(false);
       	dm_elements_2d_->setVisible(true);
-      	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
+      	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
 			}
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
