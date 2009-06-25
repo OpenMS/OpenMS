@@ -177,17 +177,22 @@ class TOPPXTandemAdapter
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
 
+			// we need to replace the native id with a simple numbering schema, to be able to
+			// map the IDs back to the spectra (RT, and MZ infomration)
+			Size native_id(0);
+			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+			{
+				it->setNativeID(native_id++);
+			}
+
 			// We store the file in mzData file format, because mgf file somehow produce in most 
 			// of the cases ids with charge 2+. We do not use the input file of this TOPP-tools
 			// because XTandem sometimes stumbles over misleading substrings in the filename,
 			// e.g. mzXML ...
 			MzDataFile mzdata_outfile;
 			mzdata_outfile.store(tandem_input_filename, exp);
-			//MascotInfile mgf_file;
-			//mgf_file.store(tandem_input_filename, exp, "XTandemSearch");
 
 			infile.setInputFilename(tandem_input_filename);
-			//infile.setInputFilename(inputfile_name);
 			infile.setOutputFilename(tandem_output_filename);
 
 			
@@ -284,13 +289,17 @@ class TOPPXTandemAdapter
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
 				UInt id = (Int)it->getMetaValue("spectrum_id");
-				if (id <= exp.size() && id != 0)
+				if (id < exp.size())
 				{
-					it->setMetaValue("RT", exp[id - 1].getRT());
+					it->setMetaValue("RT", exp[id].getRT());
 					DoubleReal pre_mz = 0.0;
-					if (!exp[id - 1].getPrecursors().empty()) pre_mz = exp[id - 1].getPrecursors()[0].getMZ();
+					if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
 					it->setMetaValue("MZ", pre_mz);
 					it->removeMetaValue("spectrum_id");
+				}
+				else
+				{
+					cerr << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
 				}
 			}
 
