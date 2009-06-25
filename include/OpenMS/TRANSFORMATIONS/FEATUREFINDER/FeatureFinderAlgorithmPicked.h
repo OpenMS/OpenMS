@@ -397,9 +397,11 @@ namespace OpenMS
 				defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:min_trace_score",0.0);
 				defaults_.setMaxFloat("feature:min_trace_score",1.0);
-				defaults_.setValue("feature:min_rt_span",0.333, "Mimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
+				defaults_.setValue("feature:min_rt_span",0.333, "Minimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:min_rt_span",0.0);
 				defaults_.setMaxFloat("feature:min_rt_span",1.0);
+				defaults_.setValue("feature:max_rt_span",2.5, "Maximum RT span in relation to extended area that the model is allowed to have.", StringList::create("advanced"));
+				defaults_.setMinFloat("feature:max_rt_span",0.5);
 				defaults_.setValue("feature:max_intersection",0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:max_intersection",0.0);
 				defaults_.setMaxFloat("feature:max_intersection",1.0);
@@ -766,7 +768,7 @@ namespace OpenMS
 						const size_t data_count = traces.getPeakCount();
 					  gsl_multifit_function_fdf func;
 
-						//TODO try baseline fit once more
+						//TODO fit with baseline term once more
 						//baseline estimate
 						traces.updateBaseline();
 						traces.baseline = 0.75 * traces.baseline;
@@ -775,7 +777,8 @@ namespace OpenMS
 						traces[traces.max_trace].updateMaximum();
 						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
 						DoubleReal x0 = traces[traces.max_trace].max_rt;
-						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/10.0;
+						const DoubleReal region_rt_span = traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first;
+						DoubleReal sigma = region_rt_span/20.0;
 					  double x_init[param_count] = {height, x0, sigma};
 						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 						
@@ -892,11 +895,20 @@ namespace OpenMS
 						//------------------------------------------------------------------
 					  bool feature_ok = true;
 					  String error_msg = "";
+						//check if the sigma fit was ok (if it is larger than 'max_rt_span')
+						if (feature_ok)
+						{
+							if (5.0*sigma > max_rt_span_*region_rt_span )
+							{
+						  	feature_ok = false;
+						  	error_msg = "Invalid fit: Fitted model is bigger than 'max_rt_span'";
+							}
+						}
 					  //check if the feature is valid
 					  if (!new_traces.isValid(seed_mz, trace_tolerance_))
 					  {
 					  	feature_ok = false;
-					  	error_msg = "Invalid feature after fit";
+					  	error_msg = "Invalid feature after fit - too few traces or peaks left";
 					  }
 						//check if x0 is inside feature bounds
 						if (feature_ok)
@@ -912,7 +924,7 @@ namespace OpenMS
 						if (feature_ok)
 						{
 							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
-							if ((rt_bounds.second-rt_bounds.first)<min_rt_span_*(2.0*2.5)*sigma )
+							if ((rt_bounds.second-rt_bounds.first) < min_rt_span_*5.0*sigma )
 							{
 						  	feature_ok = false;
 						  	error_msg = "Invalid fit: Less than 'min_rt_span' left after fit";
@@ -1281,7 +1293,8 @@ namespace OpenMS
 			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
 			DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
 			DoubleReal min_trace_score_; ///< Minimum quality of a traces
-			DoubleReal min_rt_span_; ///< Mimum RT range that has to be left after the fit
+			DoubleReal min_rt_span_; ///< Minimum RT range that has to be left after the fit
+			DoubleReal max_rt_span_; ///< Maximum RT range the model is allowed to span
 			DoubleReal max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
 			//@}
 
@@ -1314,6 +1327,7 @@ namespace OpenMS
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
 				min_trace_score_ = param_.getValue("feature:min_trace_score");
 				min_rt_span_ = param_.getValue("feature:min_rt_span");
+				max_rt_span_ = param_.getValue("feature:max_rt_span");
 				max_feature_intersection_ = param_.getValue("feature:max_intersection");
 			}
 			

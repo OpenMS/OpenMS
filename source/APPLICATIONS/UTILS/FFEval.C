@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -67,16 +68,17 @@ class TOPPFFEVal
 		setValidFormats_("in", StringList::create("featureXML"));
 		registerInputFile_("truth","<file>","","Truth feature file that defines what features should be found.");
 		setValidFormats_("truth", StringList::create("featureXML"));
-		registerOutputFile_("out","<file>","","Feature output file. If given, an annotated input file is written.", false);
-		setValidFormats_("out", StringList::create("featureXML"));
-		registerInputFile_("abort_reasons","<file>","","Feature file containing seeds with abort reasons.",false);
-		setValidFormats_("abort_reasons", StringList::create("featureXML"));
-		registerDoubleOption_("rt_tol","<double>",0.15,"Allowed tolerance of RT relative to average feature RT span.", false);
+		registerDoubleOption_("rt_tol","<double>",0.3,"Allowed tolerance of RT relative to average feature RT span.", false);
 		setMinFloat_("rt_tol",0);
 		registerDoubleOption_("rt_tol_abs","<double>",-1.0,"Allowed absolute tolerance of RT (overwrites 'rt_tol' if set above zero).", false);
 		setMinFloat_("rt_tol_abs",-1);
 		registerDoubleOption_("mz_tol","<double>",0.25,"Allowed tolerance in m/z (is divided by charge).", false);
 		setMinFloat_("mz_tol",0);
+		registerOutputFile_("out","<file>","","Feature output file. If given, an annotated input file is written.", false);
+		setValidFormats_("out", StringList::create("featureXML"));
+		registerInputFile_("abort_reasons","<file>","","Feature file containing seeds with abort reasons.",false);
+		setValidFormats_("abort_reasons", StringList::create("featureXML"));
+		registerOutputFile_("out_roc","<file>","","If given, a ROC curve file is created", false);
 	}
 	
 	/// Counts the number of features with meta value @p name equal to @p value
@@ -164,14 +166,14 @@ class TOPPFFEVal
 		std::vector<DoubleReal> ints_found;
 		std::vector<DoubleReal> ints_missed;
 		Map<String,UInt> abort_strings;
-
+		
 		for (Size m=0; m<features_truth.size(); ++m)
 		{
 			Feature& f_t =  features_truth[m];
 			UInt match_count = 0;
 			bool correct_charge = false;
 			bool exact_centroid_match = false;
-			Feature last_match;
+			Size last_match_index = features_in.size()+1;
 			for (Size a=0; a<features_in.size(); ++a)
 			{
 				const Feature& f_i =  features_in[a];
@@ -183,9 +185,9 @@ class TOPPFFEVal
 					if (fabs(f_i.getMZ()-f_t.getMZ())<charge_mz_tol)
 					{
 						++match_count;
-						last_match = f_i;
 						exact_centroid_match = true;
 						if(f_i.getCharge()==f_t.getCharge()) correct_charge = true;
+						last_match_index = a;
 					}
 					//Centroid is one trace off, but still contained in the convex hull
 					else if (f_i.getConvexHull().encloses(f_t.getPosition())
@@ -198,7 +200,7 @@ class TOPPFFEVal
 						      )
 					{
 						++match_count;
-						last_match = f_i;
+						last_match_index = a;
 						if(f_i.getCharge()==f_t.getCharge()) correct_charge = true;
 					}
 				}
@@ -211,7 +213,8 @@ class TOPPFFEVal
 				if (correct_charge)
 				{
 					f_t.setMetaValue("correct_charge",String("true"));
-					f_t.setMetaValue("intensity_ratio",last_match.getIntensity()/f_t.getIntensity());
+					f_t.setMetaValue("intensity_ratio",features_in[last_match_index].getIntensity()/f_t.getIntensity());
+					features_in[last_match_index].setMetaValue("correct_hit", "true"); //flag the feature for ROC curve
 				}
 				else
 				{
@@ -231,7 +234,7 @@ class TOPPFFEVal
 			if (match_count==1 && correct_charge)
 			{
 				ints_t.push_back(f_t.getIntensity());
-				ints_i.push_back(last_match.getIntensity());
+				ints_i.push_back(features_in[last_match_index].getIntensity());
 				ints_found.push_back(f_t.getIntensity());
 			}
 			else
@@ -306,13 +309,25 @@ class TOPPFFEVal
 		if (ints_i.size()==0)
 		{
 			cout << "correlation of found features: nan" << endl;
-			cout << "intensity distribution of found: 0.0 0.0 0.0 0.0 0.0" << endl;
-			cout << "intensity distribution of missed: 0.0 0.0 0.0 0.0 0.0" << endl;
 		}
 		else
 		{
 			cout << "correlation of found features: " << pearsonCorrelationCoefficient(ints_i.begin(),ints_i.end(),ints_t.begin(),ints_t.end()) << endl;
+		}
+		if (ints_found.size()==0)
+		{
+			cout << "intensity distribution of found: 0.0 0.0 0.0 0.0 0.0" << endl;
+		}
+		else
+		{
 			cout << "intensity distribution of found: " << fiveNumbers(ints_found,1) << endl;
+		}
+		if (ints_missed.size()==0)
+		{
+			cout << "intensity distribution of missed: 0.0 0.0 0.0 0.0 0.0" << endl;
+		}
+		else
+		{
 			cout << "intensity distribution of missed: " << fiveNumbers(ints_missed,1) << endl;
 		}
 		
@@ -339,6 +354,32 @@ class TOPPFFEVal
 		if (getStringOption_("out")!="")
 		{
 			FeatureXMLFile().store(getStringOption_("out"),features_truth);
+		}
+		
+		//ROC curve
+		if (getStringOption_("out_roc")!="")
+		{
+			TextFile tf;
+			tf.push_back("false	correct	FDR	TPR");
+			
+			features_in.sortByIntensity(true);
+			UInt f_correct = 0;
+			UInt f_false = 0;
+			DoubleReal found = features_in.size();
+			DoubleReal correct = features_truth.size();
+			for (Size i=0; i<features_in.size(); ++i)
+			{
+				if (features_in[i].metaValueExists("correct_hit"))
+				{
+					++f_correct;
+				}
+				else
+				{
+					++f_false;
+				}
+				tf.push_back(String(f_false) + "	" + f_correct + "	" + String::number(f_false/found,3) + "	" + String::number(f_correct/correct,3));
+			}
+			tf.store(getStringOption_("out_roc"));
 		}
 		
 		return EXECUTION_OK;
