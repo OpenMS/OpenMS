@@ -373,9 +373,7 @@ namespace OpenMS
 					*p = endianize32_(*p);
 					++p;
 				}
-				//TODO: did you mean std::copy(...) ??
-				//out.assign(floatBuffer,floatBuffer+floatCount);	
-				std::copy(floatBuffer, floatBuffer+floatCount, out.begin());
+				out.assign(floatBuffer,floatBuffer+floatCount);	
 			}
 			else if(element_size==8)
 			{
@@ -394,12 +392,9 @@ namespace OpenMS
 					++p;
 				}
 				
-				// TODO: assuming this is wrong, and it should be std::copy(...)
-				//out.assign(floatBuffer,floatBuffer+floatCount);	
-				// ... this is the new (warning free code:)
-				
 				// to avoid nasty warnings when using std::copy() (due to Double->Float conversion)
 				// we do this manually:
+				out.resize(floatCount);
 				for (Size i=0;i<floatCount;++i)
 				{
 					out[i]=(ToType) *floatBuffer;
@@ -416,9 +411,7 @@ namespace OpenMS
 
 				Size floatCount = bufferSize / element_size;
 
-				out.resize(floatCount);
-
-				std::copy(floatBuffer, floatBuffer+floatCount, out.begin());
+				out.assign(floatBuffer, floatBuffer+floatCount);
 			}
 			else if(element_size==8)
 			{
@@ -428,15 +421,14 @@ namespace OpenMS
 
 				Size floatCount = bufferSize / element_size;
 
-				out.resize(floatCount);
 				// to avoid nasty warnings when using std::copy() (due to Double->Float conversion)
 				// we do this manually:
+				out.resize(floatCount);
 				for (Size i=0;i<floatCount;++i)
 				{
 					out[i]=(ToType) *floatBuffer;
 					++floatBuffer;
 				}
-				//std::copy(floatBuffer, floatBuffer+floatCount, out.begin());
 
 			}					
 		}
