@@ -451,7 +451,7 @@ namespace OpenMS
 				// set custom pool file if given
 				if (!(getStringOption_("id_pool")==String("main"))) id_tagger_.setPoolFile(getStringOption_("id_pool"));
 
-				//check if there are enough IDs in the pool (we require at least one and warn below 5) 
+				//check if there are enough IDs in the pool (we require at least one and warn below 5)
 				Int id_count(0);
 				if (!id_tagger_.countFreeIDs(id_count))
 				{
@@ -1875,7 +1875,7 @@ namespace OpenMS
 	Map<String,StringList> TOPPBase::getToolList()
 	{
 		Map<String,StringList> tools_map;
-		
+
 		tools_map["AdditiveSeries"] = StringList::create("");
 		tools_map["BaselineFilter"] = StringList::create("");
 		tools_map["ConsensusID"] = StringList::create("");
@@ -1891,6 +1891,7 @@ namespace OpenMS
 		tools_map["FileInfo"] = StringList::create("");
 		tools_map["FileMerger"] = StringList::create("");
 		tools_map["IDDecoyProbability"] = StringList::create("");
+		tools_map["IDFileConverter"] = StringList::create("sequest");
 		tools_map["IDFilter"] = StringList::create("");
 		tools_map["IDMapper"] = StringList::create("");
 		tools_map["IDMerger"] = StringList::create("");
@@ -1921,7 +1922,7 @@ namespace OpenMS
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["PrecursorIonSelector"] = StringList::create("");
-		
+
 		return tools_map;
 	}
 
@@ -1929,10 +1930,10 @@ namespace OpenMS
   {
 		std::set<DataProcessing::ProcessingAction> actions;
 		actions.insert(action);
-		
+
 		return getProcessingInfo_(actions);
   }
-  
+
 	DataProcessing TOPPBase::getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const
 	{
 		DataProcessing p;
@@ -1940,7 +1941,7 @@ namespace OpenMS
 		p.setProcessingActions(actions);
 		//software
 		p.getSoftware().setName(tool_name_);
-		
+
 		if (test_mode_)
 		{
 			//version
@@ -1965,14 +1966,14 @@ namespace OpenMS
 			   p.setMetaValue(String("parameter: ") + it.getName() , it->value);
 			}
 		}
-		
+
 		return p;
 	}
 
   void TOPPBase::addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const
   {
   	map.getDataProcessing().push_back(dp);
-  	
+
   	//remove abolute map paths
   	if (test_mode_)
 		{

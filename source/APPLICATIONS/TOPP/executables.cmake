@@ -51,6 +51,7 @@ IDMapper
 IDRTCalibration
 SILACAnalyzer
 PrecursorIonSelector
+IDFileConverter
 )
 
 ### add filenames to Visual Studio solution tree

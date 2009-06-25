@@ -43,13 +43,13 @@ namespace OpenMS
 
 	/**
     @brief Representation of a Sequest output file
-    
+
     This class serves to read in a Sequest outfile. The information can be
     retrieved via the load function.
 
   	@todo Handle Modifications (Andreas)
 		@todo Complete rewrite of the parser (and those of InsPecT and PepNovo), the code is bullshit... (Andreas)
-  	
+
   	@ingroup FileIO
   */
 	class OPENMS_DLLAPI SequestOutfile
@@ -69,17 +69,18 @@ namespace OpenMS
 
 			/// equality operator
 			bool operator==(const SequestOutfile& sequest_outfile) const;
-			
+
 			 /**
 				@brief loads data from a Sequest outfile
-				
+
 				@param result_filename the file to be loaded
 				@param peptide_identifications the identifications
 				@param protein_identification the protein identifications
 				@param p_value_threshold the significance level (for the peptide hit scores)
 				@param pvalues a list with the pvalues of the peptides (pvalues computed with peptide prophet)
 				@param database the database used for the search
-				
+				@param ignore_proteins_per_peptide this is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
+
 				@throw Exception::FileNotFound is thrown if the given result file could not be found
 				@throw Exception::ParseError is thrown if the given result file could not be parsed
 				@throw Exception::IllegalArgument
@@ -87,7 +88,7 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "");
+			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "", const bool ignore_proteins_per_peptide = false);
 
 //			/// retrieve the p-values from the out files
 // 			void getPValuesFromOutFiles(vector< pair < String, vector< DoubleReal > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
@@ -96,10 +97,10 @@ namespace OpenMS
 			bool getColumns(const String& line, std::vector<String>& substrings, Size number_of_columns, Size reference_column);
 
 			/** retrieve sequences from a FASTA database
-					@param database_filename 
+					@param database_filename
 					@param ac_position_map
 					@param sequences
-					@param found 
+					@param found
 					@param not_found
 					@throw Exception::FileNotFound is thrown if the database filen could not be found
 			*/
@@ -110,12 +111,12 @@ namespace OpenMS
 			void getACAndACType(String line, String& accession, String& accession_type);
 
 			/** read the header of an out file and retrieve various information
-					
+
 					@throw Exception::FileNotFound is thrown if the results file could not be found
 					@throw Exception::ParseError is thrown if the results file could not be parsed
 			*/
 			void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns);
-			
+
 		private:
 
 			static DoubleReal const_weights_[];
@@ -126,7 +127,7 @@ namespace OpenMS
 			static Size max_pep_lens_[];
 			static Size num_frags_[];
    };
-	
+
 } //namespace OpenMS
 
 #endif // OPENMS_FORMAT_SEQUESTOUTFILE_H

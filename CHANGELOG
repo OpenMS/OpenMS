@@ -11,6 +11,8 @@ Main improvements of TOPP:
 - FileInfo: 
   - added flag for data processing output
   - corrupt data checks: sorting is checked now and improved speed
+- Added new tool IDFileConverter, which can convert results from identification engines to IdXML
+  - supports Sequest .out files
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support

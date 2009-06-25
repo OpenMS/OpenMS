@@ -36,8 +36,25 @@
 
 using namespace std;
 
-namespace OpenMS 
+namespace OpenMS
 {
+
+#if 0 // useful for debugging
+  template <typename ContainerType>
+  void printContainer( std::ostream & os, ContainerType rhs, const String & separator = " ", const String & suffix = "\n", const String & prefix = "\n" )
+  {
+    os << prefix;
+    for ( typename ContainerType::const_iterator cit = rhs.begin() ;; )
+    {
+      os << *cit;
+      ++cit;
+      if ( cit == rhs.end() ) break;
+      os << separator;
+    }
+    os << suffix;
+  }
+#endif
+
 	SequestOutfile::SequestOutfile() {}
 
 	SequestOutfile::SequestOutfile(const SequestOutfile&) {}
@@ -54,24 +71,27 @@ namespace OpenMS
 	{
 		return true;
 	}
-	
+
 	void SequestOutfile::load(const String& result_filename,
 		vector<PeptideIdentification>& peptide_identifications,
 		ProteinIdentification& protein_identification,
 		const DoubleReal p_value_threshold,
 		vector<DoubleReal>& pvalues,
-		const String& database)
+		const String& database,
+    const bool ignore_proteins_per_peptide
+	)
 	{
+
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
 		}
-		
+
 		// if no p_values were computed take all peptides
 		bool no_pvalues = pvalues.empty();
 		if (no_pvalues) pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
-		
+
   	// generally used variables
 		String
 			line,
@@ -80,12 +100,12 @@ namespace OpenMS
 			sequest_version,
 			database_type,
 			identifier;
-			
+
 		vector<String> substrings;
-		
+
 		// map the protein hits according to their accession number in the result file
 		map<String, Size> ac_position_map;
-		
+
 		// get the protein hits that have already been found in another out-file
 		vector<ProteinHit> protein_hits = protein_identification.getHits();
 
@@ -94,9 +114,9 @@ namespace OpenMS
 		{
 			ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
 		}
-		
+
 		String accession, accession_type,	score_type;
-		
+
 		DateTime datetime;
 		DoubleReal precursor_mz_value(0.0);
 		Size
@@ -106,7 +126,7 @@ namespace OpenMS
 			displayed_peptides(0),
 			proteins_per_peptide(0),
 			line_number(0);
-		
+
 		Int
 			charge(-1),
 			number_column(-1),
@@ -121,28 +141,28 @@ namespace OpenMS
 			reference_column(-1),
 			peptide_column(-1),
 			score_column(-1);
-		
+
 		String::size_type
 			start(0),
 			end(0);
-		
+
 		readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
-		
+
 		identifier = sequest + "_" + datetime.getDate();
-		
+
 		// set the search engine and its version and the score type
 		protein_identification.setSearchEngine(sequest);
 		protein_identification.setSearchEngineVersion(sequest_version);
 		protein_identification.setIdentifier(identifier);
 // 		protein_identification.setScoreType("SEQUEST");
-		
+
 		// open the result
 		ifstream result_file(result_filename.c_str());
 		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
-		
+
 		while (getline(result_file, line)) // skip all lines until the one with '---'
 		{
 			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length()-1);
@@ -150,27 +170,27 @@ namespace OpenMS
 			++line_number;
 			if (line.hasPrefix("---")) break;
 		}
-		
+
 		PeptideIdentification peptide_identification;
 		peptide_identification.setMetaValue("MZ", precursor_mz_value);
 		peptide_identification.setIdentifier(identifier);
 		peptide_identification.setSignificanceThreshold(p_value_threshold);
-		
+
 		vector<String> databases;
 		databases.push_back(database);
-		
+
 		score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
 		peptide_identification.setScoreType(score_type);
-		
+
 		if (no_pvalues) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
-		
+
 		vector<DoubleReal>::const_iterator p_value = pvalues.begin();
-		
+
 		for (Size viewed_peptides = 0; viewed_peptides < displayed_peptides; )
 		{
 			PeptideHit peptide_hit;
 			ProteinHit protein_hit;
-			
+
 			++line_number;
 			// if less peptides were found than may be displayed, break
 			if (!getline(result_file, line)) break;
@@ -178,11 +198,11 @@ namespace OpenMS
 			line.trim();
 			if (line.empty()) continue; // skip empty lines
 			++viewed_peptides;
-			
+
 			getColumns(line, substrings, number_of_columns, reference_column);
-			
+
 			// check whether the line has enough columns
-			if (substrings.size() < number_of_columns)
+			if (substrings.size() != number_of_columns)
 			{
 				stringstream error_message;
 				error_message <<"Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
@@ -190,7 +210,7 @@ namespace OpenMS
 				result_file.clear();
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 			}
-			
+
 			// check whether there are multiple proteins that belong to this peptide
 			if (substrings[reference_column].find_last_of('+') != String::npos)
 			{
@@ -200,53 +220,55 @@ namespace OpenMS
 				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
 			}
 			else  proteins_per_peptide = 0;
-			
+
 			// get the peptide information and insert it
 			if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
 			{
 				peptide_hit.setScore(atof(substrings[score_column].c_str()));
-				
-				if (rank_sp_column != (-1))
+
 				{
-					peptide_hit.setMetaValue("RankSp", substrings[rank_sp_column] );
-				}
-				if (id_column != (-1))
-				{
-					peptide_hit.setMetaValue("SequestId", atoi(substrings[id_column].c_str()) );
-				}
-				if (mh_column != (-1))
-				{
-					peptide_hit.setMetaValue("MH", atof(substrings[mh_column].c_str()) );
-				}
-				if (delta_cn_column != (-1))
-				{
-					peptide_hit.setMetaValue("DeltCn", atof(substrings[delta_cn_column].c_str()) );
-				}
-				if (xcorr_column != (-1))
-				{
-					peptide_hit.setMetaValue("XCorr", atof(substrings[xcorr_column].c_str()) );
-				}
-				if (sp_column != (-1))
-				{
-					peptide_hit.setMetaValue("Sp", atof(substrings[sp_column].c_str()) );
-				}
-				if (sf_column != (-1))
-				{
-					peptide_hit.setMetaValue("Sf", atof(substrings[sf_column].c_str()) );
-				}
-				if (ions_column != (-1))
-				{
-					peptide_hit.setMetaValue("Ions", substrings[ions_column] );
-				}
-				
+          if ( rank_sp_column != (-1) )
+          {
+            peptide_hit.setMetaValue("RankSp", substrings [rank_sp_column]);
+          }
+          if ( id_column != (-1) )
+          {
+            peptide_hit.setMetaValue("SequestId", atoi(substrings [id_column].c_str()));
+          }
+          if ( mh_column != (-1) )
+          {
+            peptide_hit.setMetaValue("MH", atof(substrings [mh_column].c_str()));
+          }
+          if ( delta_cn_column != (-1) )
+          {
+            peptide_hit.setMetaValue("DeltCn", atof(substrings [delta_cn_column].c_str()));
+          }
+          if ( xcorr_column != (-1) )
+          {
+            peptide_hit.setMetaValue("XCorr", atof(substrings [xcorr_column].c_str()));
+          }
+          if ( sp_column != (-1) )
+          {
+            peptide_hit.setMetaValue("Sp", atof(substrings [sp_column].c_str()));
+          }
+          if ( sf_column != (-1) )
+          {
+            peptide_hit.setMetaValue("Sf", atof(substrings [sf_column].c_str()));
+          }
+          if ( ions_column != (-1) )
+          {
+            peptide_hit.setMetaValue("Ions", substrings [ions_column]);
+          }
+        }
+
 				peptide_hit.setCharge(charge);
-				
+
 				String sequence_with_mods = substrings[peptide_column];
 				start = sequence_with_mods.find('.') + 1;
 				end = sequence_with_mods.find_last_of('.');
 				if ( start >= 2 ) peptide_hit.setAABefore(sequence_with_mods[start - 2]);
 				if ( end < sequence_with_mods.length() + 1 ) peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
-				
+
 				//remove modifications (small characters and everything that's not in the alphabet)
 				String sequence;
 				sequence_with_mods = substrings[peptide_column].substr(start, end-start);
@@ -255,67 +277,75 @@ namespace OpenMS
 					if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
 				}
 				peptide_hit.setSequence(sequence);
-				
+
 				peptide_hit.setRank(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).toInt());
-				
+
 				// get the protein information
 				getACAndACType(substrings[reference_column], accession, accession_type);
 				protein_hit.setAccession(accession);
 // 				protein_hit.setRank(ac_position_map.size());
 				/// @todo score einfach zusammenrechnen? (Martin)
-				
+
 				if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
-				
+
 				peptide_hit.addProteinAccession(accession);
-				
-				for (Size i = 0; i < proteins_per_peptide; ++i)
-				{
-					getline(result_file, line);
-					if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
-					line.trim();
-					// all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
-					/*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
-					{
-						stringstream error_message;
-						error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
-						result_file.close();
-						result_file.clear();
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
-					}*/
-					line.erase(0, 3);
-					
-					getACAndACType(line, accession, accession_type);
-					protein_hit.setAccession(accession);
-// 					protein_hit.setRank(ac_position_map.size());
-					/// @todo score einfach zusammenrechnen? (Martin)
-	//				protein_hit.setScore(0.0);
-					
-					if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second) protein_hits.push_back(protein_hit);
-					
-					peptide_hit.addProteinAccession(accession);
-				}
+
+				if ( !ignore_proteins_per_peptide )
+        {
+          for ( Size i = 0; i < proteins_per_peptide; ++i )
+          {
+            getline(result_file, line);
+            if ( !line.empty() && (line [line.length() - 1] < 33) )
+              line.resize(line.length() - 1);
+            line.trim();
+            // all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
+            /*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
+             {
+             stringstream error_message;
+             error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
+             result_file.close();
+             result_file.clear();
+             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
+             }*/
+            line.erase(0, 3);
+
+            getACAndACType(line, accession, accession_type);
+            protein_hit.setAccession(accession);
+            // 					protein_hit.setRank(ac_position_map.size());
+            /// @todo score einfach zusammenrechnen? (Martin)
+            //				protein_hit.setScore(0.0);
+
+            if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second )
+              protein_hits.push_back(protein_hit);
+
+            peptide_hit.addProteinAccession(accession);
+          }
+        }
 
 				peptide_identification.insertHit(peptide_hit);
 			}
 			else // if the pvalue is higher than allowed
 			{
-				for (Size i = 0; i < proteins_per_peptide; ++i) getline(result_file, line);
+        if ( !ignore_proteins_per_peptide )
+        {
+          for (Size i = 0; i < proteins_per_peptide; ++i) getline(result_file, line);
+        }
 			}
 
 			++p_value;
 		}
 		result_file.close();
 		result_file.clear();
-		
+
 		if (no_pvalues) pvalues.clear();
 		if ( !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
-		
+
 		protein_identification.setHits(protein_hits);
 		protein_identification.setDateTime(datetime);
-		
+
 		ac_position_map.clear();
 	}
-	
+
 	// get the columns from a line
 	bool
 	SequestOutfile::getColumns(
@@ -327,7 +357,7 @@ namespace OpenMS
 		String buffer;
 
 		if (line.empty()) return false;
-		
+
 		line.split(' ', substrings);
 
 		// remove any empty strings
@@ -380,7 +410,7 @@ namespace OpenMS
 			s_i->append(*(s_i + 1));
 			substrings.erase(s_i + 1);
 		}
-		
+
 		return true;
 	}
 
@@ -392,13 +422,13 @@ namespace OpenMS
 		vector<String>& sequences,
 		vector<pair<String, Size> >& found,
 		map<String, Size>& not_found)
-	{	
+	{
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
-		
+
 		String line, accession, accession_type, sequence;
 		not_found = ac_position_map;
 		map<String, Size>::iterator nf_i = not_found.end();
@@ -406,7 +436,7 @@ namespace OpenMS
 		{
 			if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
 			line.trim();
-			
+
 			// empty and comment lines are skipped
 			if (line.empty() || line.hasPrefix(";")) continue;
 
@@ -431,7 +461,7 @@ namespace OpenMS
 			found.push_back(*nf_i);
 			not_found.erase(nf_i);
 		}
-		
+
 		database_file.close();
 		database_file.clear();
 	}
@@ -447,7 +477,7 @@ namespace OpenMS
 		if ( line.hasPrefix(">") ) line.erase(0,1);
 		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 		line.trim();
-		
+
 		// if it's a swissprot accession
 		if ( line.hasPrefix("tr") || line.hasPrefix("sp") )
 		{
@@ -461,7 +491,7 @@ namespace OpenMS
 			if ( snd != String::npos )
 			{
 				third = line.find('|', ++snd) + 1;
-				
+
 				accession = line.substr(third, line.find('|', third)-third);
 				accession_type = line.substr(snd, third-1-snd);
 			}
@@ -596,7 +626,7 @@ namespace OpenMS
 		charge = 0;
 		precursor_mz_value = 0.0;
 		precursor_mass_type = ion_mass_type = 0;
-		
+
 		// open the result
 		ifstream result_file( result_filename.c_str());
 		if ( !result_file )
@@ -606,18 +636,18 @@ namespace OpenMS
 
 		String line, buffer;
 		vector<String> substrings;
-		
+
 		// get the date and time
 		DateTime datetime_empty;
 		datetime.clear();
 		datetime_empty.clear();
-		
+
 		while ( getline(result_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.trim();
 			line.split(',', substrings);
-			
+
 			if ( line.hasSuffix(".out") ) // next line is the sequest version
 			{
 				// \\bude\langwisc\temp\Inspect_Sequest.mzXML.13.1.d.out
@@ -630,7 +660,7 @@ namespace OpenMS
 				}
 				if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 				line.trim();
-				
+
 				if ( line.hasSubstring(",") ) line = line.substr(0, line.find(',', 0));
 				buffer = line;
 				buffer.toUpper();
@@ -698,7 +728,7 @@ namespace OpenMS
 			}
 			else if ( line.hasPrefix("#") ) break; // the header is read
 		}
-		
+
 		if ( datetime == datetime_empty )
 		{
 			result_file.close();
@@ -729,14 +759,14 @@ namespace OpenMS
 			result_file.clear();
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No charge found!" , result_filename);
 		}
-		
+
 		if ( !line.hasPrefix("#") ) // check whether the header line was found
 		{
 			result_file.close();
 			result_file.clear();
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough lines in file (no table header found)!" , result_filename);
 		}
-		
+
 		// retrieve the number of lines and get the needed column numbers
 		number_column = -1;
 		rank_sp_column = -1;
@@ -750,10 +780,10 @@ namespace OpenMS
 		ions_column = -1;
 		reference_column = -1;
 		peptide_column = -1;
-		
+
 		// get the single columns
 		line.split(' ', substrings);
-		
+
 		// remove the empty strings
 		for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
 		{
@@ -762,7 +792,7 @@ namespace OpenMS
 			else ++i;
 		}
 		number_of_columns = substrings.size();
-		
+
 		// get the numbers of the columns
 		for ( vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
 		{
@@ -818,9 +848,9 @@ namespace OpenMS
 			result_file.clear();
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#', 'Rank/Sp', 'Id#', '(M+H)+', 'deltCn', 'XCorr', 'Sp', 'Ions', 'Reference' or 'Peptide' is missing!" , result_filename);
 		}
-		
+
 		score_column = (sf_column == -1) ? sp_column : sf_column;
-		
+
 		result_file.close();
 		result_file.clear();
 	}
@@ -835,7 +865,7 @@ namespace OpenMS
 // 			xcorr,
 // 			rank_sp,
 // 			delta_mass;
-// 
+//
 // 		Size
 // 			precursor_mass_type(0),
 // 			ion_mass_type(0),
@@ -844,7 +874,7 @@ namespace OpenMS
 // 			line_number(0),
 // 			proteins_per_peptide(0),
 // 			peptide_length(0);
-// 
+//
 // 		Int
 // 			charge(0),
 // 			number_column(0),
@@ -859,40 +889,40 @@ namespace OpenMS
 // 			reference_column(0),
 // 			peptide_column(0),
 // 			score_column(0);
-// 
+//
 // 		String
 // 			line,
 // 			sequence,
 // 			buffer,
 // 			out_filename,
 // 			database_type;
-// 
+//
 // 		vector< String > substrings;
 // 		vector< DoubleReal >
 // 			delta_cns,
 // 			current_discriminant_scores,
 // 			pvalues;
-// 			
+//
 // // 		map< String, vector< DoubleReal > > out_filenames_and_discriminant_scores;
 // 		vector< vector< DoubleReal > > discriminant_scores;
 // 		map< DoubleReal, Size > discriminant_scores_histogram;
-// 			
+//
 // 		for ( vector< pair < String, vector< DoubleReal > > >::const_iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i )
 // 		{
 // 			current_discriminant_scores.clear();
 // 			readOutHeader(fp_i->first, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, line, line, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
-// 			
+//
 // 			// the charge is allowed from 1 to 3 only
 // 			if ( charge < 0 ) charge *= -1;
 // 			if ( charge > 3 ) charge = 3;
-// 			
+//
 // 			// reopen the result file
 // 			ifstream out_file(out_filename.c_str());
 // 			if ( !out_file )
 // 			{
 // 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_filename);
 // 			}
-// 			
+//
 // 			while ( getline(out_file, line) ) // skip all lines until the one with '---'
 // 			{
 // 				if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -900,7 +930,7 @@ namespace OpenMS
 // 				++line_number;
 // 				if ( line.hasPrefix("---") ) break;
 // 			}
-// 			
+//
 // 			// needed: XCorr, peptide length, delta Cn, rankSp, delta Mass
 // 			for ( Size viewed_peptides = 0 ; viewed_peptides < displayed_peptides; )
 // 			{
@@ -909,10 +939,10 @@ namespace OpenMS
 // 				if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 // 				line.trim();
 // 				if ( line.empty() ) continue;
-// 				
+//
 // 				getColumns(line, substrings, number_of_columns, reference_column);
 // 				++viewed_peptides;
-// 				
+//
 // 				// check whether the line has enough columns
 // 				if (substrings.size() < number_of_columns )
 // 				{
@@ -930,7 +960,7 @@ namespace OpenMS
 // 				{
 // 					if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
 // 				}
-// 				
+//
 // 				// compute the discriminant score
 // 				peptide_length = min(max_pep_lens_[charge], sequence.length());
 // 				discriminant_score = xcorr_weights_[charge] * (log(xcorr) / log(peptide_length * num_frags_[charge]));
@@ -938,7 +968,7 @@ namespace OpenMS
 // 				discriminant_score += delta_mass_weights_[charge] * abs(delta_mass);
 // 				discriminant_score += const_weights_[charge];
 // 				current_discriminant_scores.push_back(discriminant_score);
-// 				
+//
 // 				// if there are multiple proteins that belong to this peptide, skip these lines
 // 				if ( substrings[reference_column].find_last_of('+') != String::npos )
 // 				{
@@ -947,13 +977,13 @@ namespace OpenMS
 // 					line_number += proteins_per_peptide;
 // 				}
 // 			}
-// 			
+//
 // 			// close and clear the stream for further use
 // 			out_file.close();
 // 			out_file.clear();
-// 			
+//
 // 			// if only one delta cn is found, it is set to 1
-// 			
+//
 // 			if ( delta_cns.size() == 1 ) current_discriminant_scores.back() += delta_cn_weights_[charge];
 // 			else if ( delta_cns.size() > 1 )
 // 			{
@@ -969,7 +999,7 @@ namespace OpenMS
 // 			discriminant_scores.push_back(current_discriminant_scores);
 // // 			out_filenames_and_discriminant_scores[out_filename] = current_discriminant_scores;
 // 		}
-// 		
+//
 // 		// now the p-values can be computed
 // 		// fit two normal distributions to the data
 // 		Math::BasicStatistics< >
@@ -980,7 +1010,7 @@ namespace OpenMS
 // 		correct.setVariance();
 // 		incorrect.setMean();
 // 		incorrect.setVariance();
-// 		
+//
 // // 		for ( map< String, vector< DoubleReal > >::const_iterator fnds_i = out_filenames_and_discriminant_scores.begin(); fnds_i != out_filenames_and_discriminant_scores.end(); ++fnds_i )
 // 		vector< vector< DoubleReal >::const_iterator dss_i = discriminant_scores.begin();
 // 		for ( vector< pair < String, vector< DoubleReal > > >::iterator fp_i = out_filenames_and_pvalues.begin(); fp_i != out_filenames_and_pvalues.end(); ++fp_i, ++dss_i )
@@ -997,7 +1027,7 @@ namespace OpenMS
 // 			fp_i->second = pvalues;
 // 		}
 // 	}
-	
+
 	DoubleReal SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
 	DoubleReal SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};
 	DoubleReal SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
