@@ -49,7 +49,6 @@ using namespace std;
 	@verbinclude TOPP_IDFileConverter.cli
 
 	@todo Write tests (Clemens, Chris, Hendrik)
-	@todo remove p_value (Clemens)
 */
 
 // We do not want this class to show up in the docu:
@@ -78,10 +77,10 @@ protected:
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("out_type",StringList::create("idXML,pepXML"));
 			
+		addEmptyLine_();
 		addText_("Sequest options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
     																							 "Note: Sequest .out files do not contain retention times, but only scan numbers.", false);
-    registerDoubleOption_("p_value", "<prob>", 1.0, "Filtering: Annotations with inferior p-value are ignored", false);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
     registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
     																						 "but do not list extra references in subsequent lines", true);
@@ -125,7 +124,6 @@ protected:
 
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const String mz_file = getStringOption_("mz_file");
-      const DoubleReal p_value = getDoubleOption_("p_value");
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
 
       UInt i = 0;
@@ -172,7 +170,7 @@ protected:
 
         try
         {
-          sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, p_value, pvalues_seq, "Sequest",
+          sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest",
               ignore_proteins_per_peptide);
 
           in_files_it->split('.', in_file_vec);
