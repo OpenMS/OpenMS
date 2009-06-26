@@ -167,8 +167,8 @@ START_SECTION([EXTRA] zlib functionality)
 	TEST_REAL_SIMILAR(res_double[2],304.6);
 	
 	data.clear();
-	data.push_back(120);
-	data.push_back(100);
+	data.push_back(120.0f);
+	data.push_back(100.0f);
 	b64.encode(data,Base64::BYTEORDER_BIGENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN,res,true);
 
@@ -176,12 +176,12 @@ START_SECTION([EXTRA] zlib functionality)
 	TEST_REAL_SIMILAR(res[1], 100)	
 	//real -big endian
 	data.clear();
-	data.push_back(471.568);
-	data.push_back(80363);
-	data.push_back(474.439);
-	data.push_back(123815);
-	data.push_back(475.715);
-	data.push_back(33733);
+	data.push_back(471.568f);
+	data.push_back(80363.0f);
+	data.push_back(474.439f);
+	data.push_back(123815.0f);
+	data.push_back(475.715f);
+	data.push_back(33733.0f);
 
 	b64.encode(data,Base64::BYTEORDER_BIGENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN, res,true);
@@ -197,7 +197,7 @@ START_SECTION([EXTRA] zlib functionality)
 	data.clear();
 	data.push_back(300.15f);
 	data.push_back(303.998f);
-	data.push_back(304.61);
+	data.push_back(304.61f);
 	
 	b64.encode(data,Base64::BYTEORDER_BIGENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN, res,true);
@@ -211,9 +211,9 @@ START_SECTION([EXTRA] zlib functionality)
 	b64.encode(res,Base64::BYTEORDER_LITTLEENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_LITTLEENDIAN,data,true);
 
-	TEST_REAL_SIMILAR(data[0], 300.15)
-	TEST_REAL_SIMILAR(data[1], 303.998)
-	TEST_REAL_SIMILAR(data[2], 304.6)	
+	TEST_REAL_SIMILAR(data[0], 300.15f)
+	TEST_REAL_SIMILAR(data[1], 303.998f)
+	TEST_REAL_SIMILAR(data[2], 304.6f)	
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
