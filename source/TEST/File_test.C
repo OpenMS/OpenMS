@@ -122,6 +122,14 @@ START_SECTION(static String removeExtension(const String& file))
 	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
 END_SECTION
 
+START_SECTION(static bool isDirectory(const String& path))
+	TEST_EQUAL(File::isDirectory(""),false)
+	TEST_EQUAL(File::isDirectory("."),true)
+	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("")),true)
+	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("does_not_exists.txt")),false)
+	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")),false)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

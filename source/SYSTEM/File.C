@@ -59,13 +59,13 @@ namespace OpenMS
 	
 	bool File::exists(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return fi.exists();
 	}
 
 	bool File::empty(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return (!fi.exists() || fi.size()==0);
 	}
 
@@ -79,37 +79,37 @@ namespace OpenMS
 	
 	String File::absolutePath(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return fi.absoluteFilePath();
 	}
 
 	String File::basename(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return fi.fileName();
 	}
 
 	String File::path(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return fi.path();
 	}
 
 	bool File::readable(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		return (fi.exists() && fi.isReadable());
 	}
 
 	bool File::writable(const String& file)
 	{
-		QFileInfo fi(file.c_str());
+		QFileInfo fi(file.toQString());
 		
 		bool tmp(false);
 		if (!fi.exists())
 		{
 			QFile f;
-			f.setFileName(file.c_str());
+			f.setFileName(file.toQString());
 			f.open(QIODevice::WriteOnly);
 			tmp = f.isWritable();
 			f.close();
@@ -163,7 +163,7 @@ namespace OpenMS
 	
 	bool File::fileList(const String& dir, const String& file_pattern, StringList& output)
 	{
-		QDir d(dir.c_str(), file_pattern.c_str(), QDir::Name, QDir::Files);
+		QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
 		QStringList list = d.entryList();
 
 		//clear and check if empty
@@ -215,6 +215,12 @@ namespace OpenMS
 		
 		SignedSize ext_length = file.suffix('.').size() + 1;
 		return file.substr(0, - ext_length);
+	}
+
+	bool File::isDirectory(const String& path)
+	{
+		QFileInfo fi(path.toQString());
+		return fi.isDir();
 	}
 
 } // namespace OpenMS

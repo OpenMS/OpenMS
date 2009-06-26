@@ -88,6 +88,9 @@ namespace OpenMS
 			/// Return true if the file is writable
 			static bool writable(const String& file);
 
+			/// Return true if the given path specifies a directory
+			static bool isDirectory(const String& path);
+
 			/**
 				@brief Looks up the location of the file @p filename
 				

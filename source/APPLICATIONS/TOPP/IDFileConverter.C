@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -46,6 +47,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
+
+	@todo Write tests (Clemens, Chris, Hendrik)
 */
 
 // We do not want this class to show up in the docu:
@@ -57,45 +60,69 @@ class TOPPIDFileConverter
 {
 public:
   TOPPIDFileConverter() :
-    TOPPBase("IDFileConverter", "Converts identification engine output to an idXML file.", true)
+    TOPPBase("IDFileConverter", "Converts identification engine file formats.", true)
   {
   }
 
 protected:
-  void
-  registerOptionsAndFlags_()
+  void registerOptionsAndFlags_()
   {
-
-    registerStringOption_("in", "<dir>", "", "Input directory containing the .out-Files", true); // TODO description should be generic for all search engines. Is -in always a directory?
-    registerStringOption_("out", "<file>", "", "Output file in IdXML-Format", true);
-
-    registerStringOption_("type", "<type>", "", "Search engine", true);
-    setValidStrings_("type", StringList::create("sequest")); // TODO implement support for mascot and more ...
-
-    registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n[Note: Sequest .out files do not record retention times, but scan numbers.]", false);
+    registerInputFile_("in", "<path>", "", "Input file/directory containing the output of the search engine.\n"
+                                          "Sequest: Directory containing the .out files\n"
+                                          "PepXML: Single PepXML file.\n"
+                                          "idXML: Single idXML file.\n"
+                                          , true);
+    registerOutputFile_("out", "<file>", "", "Output file", true);
+		setValidFormats_("out", StringList::create("idXML,PepXML"));
+		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+		setValidStrings_("out_type",StringList::create("idXML,pepXML"));
+			
+		addText_("Sequest options:");
+    registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
+    																							 "Note: Sequest .out files do not contain retention times, but only scan numbers.", false);
     registerDoubleOption_("p_value", "<prob>", 1.0, "Filtering: Annotations with inferior p-value are ignored", false);
-
-    registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column but do not list extra references in subsequent lines", true);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
+    registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
+    																						 "but do not list extra references in subsequent lines", true);
+		
+		addEmptyLine_();
+		addText_("PepXML options:");
+    registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
+    																							 "Note: PepXML files do not contain retention times, but only scan numbers.", false);    
+    
   }
 
-  ExitCodes
-  main_(int, const char**)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
-    // variables
+    // general variables and data
     //-------------------------------------------------------------
-
+    FileHandler fh;
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
-    const String outputfile_name = getStringOption_("out");
-
-    const String type = getStringOption_("type");
-
-    if ( type == "sequest" )
+    
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+		const String in = getStringOption_("in");
+		FileTypes::Type in_type = fh.getTypeByFileName(in);
+		
+    if (in_type==FileTypes::PEPXML)
+  	{
+  		String exp_name = getStringOption_("mz_file");
+  		MSExperiment<> exp;
+  		fh.loadExperiment(exp_name,exp);
+  		protein_identifications.resize(1);
+  		PepXMLFile().load(in, protein_identifications[0], peptide_identifications, exp, exp_name);
+  	}
+    else if ( in_type==FileTypes::IDXML)
+  	{
+  		IdXMLFile().load(in, protein_identifications, peptide_identifications);
+  	}
+    else if ( in_type==FileTypes::UNKNOWN && File::isDirectory(in) )
     {
 
-      const String in_directory = File::absolutePath(getStringOption_("in")).ensureLastChar('/');
+      const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const String mz_file = getStringOption_("mz_file");
       const DoubleReal p_value = getDoubleOption_("p_value");
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
@@ -107,9 +134,6 @@ protected:
       map<String, Real> num_and_rt;
       vector<String> NativeID;
 
-      //-------------------------------------------------------------
-      // reading input
-      //-------------------------------------------------------------
 
       // The mz-File (if given)
       if ( !mz_file.empty() )
@@ -190,23 +214,49 @@ protected:
       writeDebug_("All files processed.", 3);
 
     }
-    else
-    {
-      // Actually, this should be trapped far above when the valid strings are checked, but who knows...
-      writeLog_(String("Support for -type ") + type + " is not yet implemented, sorry!");
-    }
-
+		else
+		{
+			writeLog_("Unknown input file type given. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+		}
+		
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
+		const String out = getStringOption_("out");
+		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			out_type = fh.getTypeByFileName(out);
+		}
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine output file type!");
+			return PARSE_ERROR;
+		}
+		
+		
+		if (out_type==FileTypes::PEPXML)
+		{
+			PepXMLFile().store(out, protein_identifications, peptide_identifications);
+		}
+		else if (out_type==FileTypes::IDXML)
+		{
+			 IdXMLFile().store(out, protein_identifications, peptide_identifications);
+		}
+		else
+		{
+			writeLog_("Unknown output file type given. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+		}
 
     return EXECUTION_OK;
   }
 };
 
-int
-main(int argc, const char** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);

@@ -57,6 +57,7 @@ PeakTypeEstimator.h
 PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
+PepXMLFileMascot.h
 ProtXMLFile.h
 SequestInfile.h
 SequestOutfile.h

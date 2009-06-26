@@ -31,8 +31,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -76,14 +74,14 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,idXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2,idXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
 
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,pepXML"));
+		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML,pepXML"));
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 	}
 
 	ExitCodes main_(int , const char**)
@@ -129,13 +127,6 @@ class TOPPFileConverter
 
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 
-		// validate input-output combination
-		if ((in_type == FileTypes::IDXML) && !(out_type == FileTypes::PEPXML))
-		{
-			writeLog_("Error: Input type idXML can only be written to pepXML (.pepXML), nothing else!");
-			return INCOMPATIBLE_INPUT_DATA;
-		}
-
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
@@ -168,10 +159,6 @@ class TOPPFileConverter
 			ConsensusXMLFile().load(in,cm);
 			cm.sortByPosition();
 			exp.set2DData(cm);
-		}
-		else if (in_type == FileTypes::IDXML)
-		{
-			IdXMLFile().load(in, prot_ids, pep_ids);
 		}
 		else
 		{
@@ -263,13 +250,6 @@ class TOPPFileConverter
 			p.setValue("peaklists_only", "true");
 			f.setParameters(p);
 			f.store(out, exp);
-		}
-		else if (out_type == FileTypes::PEPXML)
-		{
-			// Converter is incomplete. Enough reasons to issue a warning!
-			writeLog_("Warning: Converting idXML to pepXML. Converter is incomplete and experimental!");
-			PepXMLFile f;
-			f.store(out, prot_ids, pep_ids);
 		}
 		else
 		{

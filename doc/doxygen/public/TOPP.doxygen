@@ -66,7 +66,7 @@
 	- @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
 
   <b>Protein/peptide Identification</b>
-  - @subpage TOPP_IDFileConverter - Converts identification engine output to an idXML file.
+  - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_InspectAdapter - Annotates MS/MS spectra using Inspect.

@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -253,7 +253,7 @@ class TOPPMascotAdapter
 			MSExperiment<> experiment;
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;
-			PepXMLFile pepXML_file;
+			PepXMLFileMascot pepXML_file;
 			MascotInfile mascot_infile;
 			ContactPerson contact_person;
 			StringList mods;
