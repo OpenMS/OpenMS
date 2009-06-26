@@ -213,7 +213,7 @@ namespace OpenMS
 	{
 		if (!file.has('.')) return file;
 		
-		Size ext_length = file.suffix('.').size() + 1;
+		SignedSize ext_length = file.suffix('.').size() + 1;
 		return file.substr(0, - ext_length);
 	}
 
