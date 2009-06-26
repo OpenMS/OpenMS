@@ -157,7 +157,7 @@ namespace OpenMS
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline DoubleReal scale_(DoubleReal x)
 			{
-				return (is_log_)? Math::round_decimal(pow(x,10),-8) : Math::round_decimal(x,-8);
+				return (is_log_)? Math::roundDecimal(pow(x,10),-8) : Math::roundDecimal(x,-8);
 			}
 			
 			/// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number

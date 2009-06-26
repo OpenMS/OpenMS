@@ -52,7 +52,7 @@ namespace OpenMS
 
 			@ingroup MathFunctionsMisc
 		*/
-		inline static double ceil_decimal(double x, int decPow)
+		inline static double ceilDecimal(double x, int decPow)
 		{
 			return (ceil(x/pow(10.0,decPow)))*pow(10.0,decPow); // decimal shift right, ceiling, decimal shift left
 		}
@@ -67,7 +67,7 @@ namespace OpenMS
 
 			@ingroup MathFunctionsMisc
 		*/
-		inline static double round_decimal(double x, int decPow)
+		inline static double roundDecimal(double x, int decPow)
 		{
 			if (x>0) return (floor(0.5+x/pow(10.0,decPow)))*pow(10.0,decPow);
 			return -((floor(0.5+fabs(x)/pow(10.0,decPow)))*pow(10.0,decPow));

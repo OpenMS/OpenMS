@@ -98,6 +98,6 @@
 	- @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 	- @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
 	
-	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
+	@todo Remove conversion functionality from the search engine adapters and move it to IDFileConverter (Andreas)
 
 */

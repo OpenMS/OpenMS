@@ -395,7 +395,7 @@ namespace OpenMS
 		}
 		else if (number < 1000000.0)
 		{
-			short_num = QString("%1k").arg(Math::round_decimal(number/1000.0, -1));
+			short_num = QString("%1k").arg(Math::roundDecimal(number/1000.0, -1));
 		}
 		else if (number < 1000000000.0)
 		{

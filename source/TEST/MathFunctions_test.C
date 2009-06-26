@@ -43,20 +43,20 @@ START_TEST(Distribution, "$Id$")
 
 // ///////////////////////////////////////////////////////////
 
-START_SECTION((ceil_decimal))
-	TEST_REAL_SIMILAR(ceil_decimal(12345.671,-2),12345.68)
-	TEST_REAL_SIMILAR(ceil_decimal(12345.67,-1),12345.7)
-	TEST_REAL_SIMILAR(ceil_decimal(12345.67,0),12346.0)
-	TEST_REAL_SIMILAR(ceil_decimal(12345.67,1),12350.0)
-	TEST_REAL_SIMILAR(ceil_decimal(12345.67,2),12400.0)
+START_SECTION((ceilDecimal))
+	TEST_REAL_SIMILAR(ceilDecimal(12345.671,-2),12345.68)
+	TEST_REAL_SIMILAR(ceilDecimal(12345.67,-1),12345.7)
+	TEST_REAL_SIMILAR(ceilDecimal(12345.67,0),12346.0)
+	TEST_REAL_SIMILAR(ceilDecimal(12345.67,1),12350.0)
+	TEST_REAL_SIMILAR(ceilDecimal(12345.67,2),12400.0)
 END_SECTION
 
-START_SECTION((round_decimal))
-	TEST_REAL_SIMILAR(round_decimal(12345.671,-2),12345.67)
-	TEST_REAL_SIMILAR(round_decimal(12345.67,-1),12345.7)
-	TEST_REAL_SIMILAR(round_decimal(12345.67,0),12346.0)
-	TEST_REAL_SIMILAR(round_decimal(12345.67,1),12350.0)
-	TEST_REAL_SIMILAR(round_decimal(12345.67,2),12300.0)
+START_SECTION((roundDecimal))
+	TEST_REAL_SIMILAR(roundDecimal(12345.671,-2),12345.67)
+	TEST_REAL_SIMILAR(roundDecimal(12345.67,-1),12345.7)
+	TEST_REAL_SIMILAR(roundDecimal(12345.67,0),12346.0)
+	TEST_REAL_SIMILAR(roundDecimal(12345.67,1),12350.0)
+	TEST_REAL_SIMILAR(roundDecimal(12345.67,2),12300.0)
 END_SECTION
 
 START_SECTION((intervalTransformation))

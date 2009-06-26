@@ -64,7 +64,7 @@ namespace OpenMS
 		DoubleReal sDecPow = floor(log10(dx));
 		DoubleReal sDec = pow(10.0,sDecPow);
 		std::vector<DoubleReal> big;
-		DoubleReal currGL = ceil_decimal(x1, (UInt)sDecPow);
+		DoubleReal currGL = ceilDecimal(x1, (UInt)sDecPow);
 		while (currGL < (x2+epsilon) )
 		{			
 			big.push_back(currGL);
