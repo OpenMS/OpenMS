@@ -43,12 +43,13 @@ using namespace std;
 /**
 	@page TOPP_IDFileConverter IDFileConverter
 
-	@brief Converts Sequest's .out-Files to .IdXML-Files.
+	@brief Converts identification engine file formats.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
 
 	@todo Write tests (Clemens, Chris, Hendrik)
+	@todo remove p_value (Clemens)
 */
 
 // We do not want this class to show up in the docu:
