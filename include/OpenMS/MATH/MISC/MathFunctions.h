@@ -134,6 +134,16 @@ namespace OpenMS
 				return T(ceil(x-T(0.5)));
 			}
 		}
+		
+		/**
+			@brief Returns if @p a is approximately equal @p, allowing a tolerance of @p tol
+		
+			@ingroup MathFunctionsMisc
+		*/
+		inline static bool approximatelyEqual(DoubleReal a, DoubleReal b, DoubleReal tol)
+		{
+			return std::abs(a - b) <= tol;
+		}
 
 	} // namespace Math
 } // namespace OpenMS

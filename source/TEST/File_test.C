@@ -115,6 +115,13 @@ START_SECTION((static String getOpenMSDataPath()))
 	NOT_TESTABLE
 END_SECTION
 
+START_SECTION(static String removeExtension(const String& file))
+	TEST_STRING_EQUAL(File::removeExtension(""),"")
+	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
+	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
+	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
