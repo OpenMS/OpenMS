@@ -40,21 +40,24 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_IDFileConverter IDFileConverter
+	@page TOPP_IDFileConverter IDFileConverter
 
- @brief Converts Sequest's .out-Files to .IdXML-Files.
+	@brief Converts Sequest's .out-Files to .IdXML-Files.
 
- */
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDFileConverter.cli
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 
-class TOPPIDFileConverter : public TOPPBase
+class TOPPIDFileConverter
+	: public TOPPBase
 {
 public:
   TOPPIDFileConverter() :
-    TOPPBase("IDFileConverter", "Converts a collection of Sequest's .out-Files to an .idXML-File.", true)
+    TOPPBase("IDFileConverter", "Converts identification engine output to an idXML file.", true)
   {
   }
 
@@ -69,12 +72,10 @@ protected:
     registerStringOption_("type", "<type>", "", "Search engine", true);
     setValidStrings_("type", StringList::create("sequest")); // TODO implement support for mascot and more ...
 
-    registerStringOption_("mz_file", "<file>", "",
-        "Retention times will be looked up in this file, if supplied.\n[Note: Sequest .out files do not record retention times, but scan numbers.]", false);
+    registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n[Note: Sequest .out files do not record retention times, but scan numbers.]", false);
     registerDoubleOption_("p_value", "<prob>", 1.0, "Filtering: Annotations with inferior p-value are ignored", false);
 
-    registerFlag_("ignore_proteins_per_peptide",
-        "Workaround to deal with .out files that contain e.g. \"+1\" in references column but do not list extra references in subsequent lines", true);
+    registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column but do not list extra references in subsequent lines", true);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
   }
 
