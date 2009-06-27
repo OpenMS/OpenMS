@@ -383,14 +383,16 @@ namespace OpenMS
   	QStringList header_labels;
   	header_labels.append(QString("MS level"));
   	header_labels.append(QString("RT"));
-  	header_labels.append(QString("m/z"));
+  	header_labels.append(QString("precursor m/z"));
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar_->setWidget(spectrum_selection_);
     spectrum_selection_->setDragEnabled(true);
+    spectrum_selection_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
-    windows->addAction(spectrum_bar_->toggleViewAction());
-
+    connect(spectrum_selection_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumContextMenu(const QPoint&)));
+		windows->addAction(spectrum_bar_->toggleViewAction());
+		
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
@@ -1391,9 +1393,14 @@ namespace OpenMS
 
 				item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
-				DoubleReal mz_pos = 0.0;
-				if (!cl.peaks[i].getPrecursors().empty()) mz_pos = cl.peaks[i].getPrecursors()[0].getMZ();
-				item->setText(2, QString::number(mz_pos));
+				if (!cl.peaks[i].getPrecursors().empty())
+				{
+					item->setText(2,QString::number(cl.peaks[i].getPrecursors()[0].getMZ()));
+				}
+				else
+				{
+					item->setText(2, "-");
+				}
 				item->setText(3, QString::number(i));
 
 				if (i == cl.current_spectrum)
@@ -1418,9 +1425,14 @@ namespace OpenMS
 					item = new QTreeWidgetItem((QTreeWidget*)0);
 					item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
 					item->setText(1, QString::number(cl.peaks[i].getRT()));
-					DoubleReal mz_pos = 0.0;
-					if (!cl.peaks[i].getPrecursors().empty()) mz_pos = cl.peaks[i].getPrecursors()[0].getMZ();
-					item->setText(2, QString::number(mz_pos));
+					if (!cl.peaks[i].getPrecursors().empty())
+					{
+						item->setText(2,QString::number(cl.peaks[i].getPrecursors()[0].getMZ()));
+					}
+					else
+					{
+						item->setText(2, "-");
+					}
 					item->setText(3, QString::number(i));
 					toplevel_items.push_back(item);
 					if (i == cl.current_spectrum)
@@ -1441,7 +1453,7 @@ namespace OpenMS
   	else
   	{
   		item = new QTreeWidgetItem((QTreeWidget*)0);
-  		item->setText(0, QString("Feature map"));
+  		item->setText(0, QString("No peak map"));
   		item->setText(1, QString("-"));
   		item->setText(2, QString("-"));
   		item->setText(3, QString::number(0));
@@ -1532,6 +1544,10 @@ namespace OpenMS
 			{
 				new_action->setEnabled(false);
 			}
+			
+			context_menu->addSeparator();
+			context_menu->addAction("Preferences");
+			
 			QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
 			//delete layer
 			if (selected!=0 && selected->text()=="Delete")
@@ -1559,7 +1575,11 @@ namespace OpenMS
 				bool b = active1DWindow_()->canvas()->flippedLayersExist();
 				active1DWindow_()->canvas()->setMirrorModeActive(b);
 			}
-
+			else if (selected != 0 && selected->text() == "Preferences")
+			{
+				activeCanvas_()->showCurrentLayerPreferences();
+			}
+			
 			//Update tab bar and window title
 			if (activeCanvas_()->getLayerCount()!=0)
 			{
@@ -1577,6 +1597,44 @@ namespace OpenMS
 			updateSpectrumBar();
 			updateFilterBar();
 			updateMenu();
+
+			delete (context_menu);
+		}
+	}
+
+	void TOPPViewBase::spectrumContextMenu(const QPoint & pos)
+	{
+		QTreeWidgetItem* item = spectrum_selection_->itemAt(pos);
+		if (item)
+		{
+			//create menu
+			int spectrum_index = item->text(3).toInt();
+			QMenu* context_menu = new QMenu(spectrum_selection_);
+			context_menu->addAction("Show in 1D view");
+			context_menu->addAction("Meta data");
+
+			QAction* selected = context_menu->exec(spectrum_selection_->mapToGlobal(pos));
+			
+			if (selected!=0 && selected->text()=="Show in 1D view")
+			{
+				//add a copy of the current data as 1D view
+				LayerData cl = activeCanvas_()->getCurrentLayer();
+				addData_(cl.features, cl.consensus, cl.peaks, false, true, true, false, cl.filename, cl.name);
+				
+				//set properties for the new 1D view
+				if (active1DWindow_())
+				{
+					active1DWindow_()->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+					active1DWindow_()->canvas()->activateSpectrum(spectrum_index);
+				}
+				updateToolBar();
+				updateSpectrumBar();
+			}
+			
+			else if (selected!=0 && selected->text()=="Meta data")
+			{
+				activeCanvas_()->showMetaData(true, spectrum_index);
+			}
 
 			delete (context_menu);
 		}
@@ -2787,7 +2845,6 @@ namespace OpenMS
 	      return;
 			}
 			MetaDataBrowser dlg(false, this);
-			dlg.setWindowTitle("Meta data");
 			dlg.add(exp);
 	 	 	dlg.exec();
 		}
@@ -2818,7 +2875,6 @@ namespace OpenMS
 			      return;
 					}
 					MetaDataBrowser dlg(false, this);
-					dlg.setWindowTitle("Meta data");
 					dlg.add(exp);
 			 	 	dlg.exec();
 				}

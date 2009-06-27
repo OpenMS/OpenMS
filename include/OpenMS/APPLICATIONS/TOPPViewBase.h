@@ -234,6 +234,8 @@ namespace OpenMS
     	void layerFilterVisibilityChange(bool);
     	/// slot for layer manager context menu
     	void layerContextMenu(const QPoint& pos);
+    	/// slot for spectrum manager context menu
+    	void spectrumContextMenu(const QPoint& pos);
     	/// slot for log window context menu
     	void logContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)

@@ -80,6 +80,8 @@ namespace OpenMS
 	: QDialog(parent),
 		editable_(editable)
 	{
+		setWindowTitle("Meta data");
+		
 	  setModal(modal);
 
 	  //splitter to hold treewidget and the right part (on a dummy widget)

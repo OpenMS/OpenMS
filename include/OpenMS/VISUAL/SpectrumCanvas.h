@@ -504,8 +504,13 @@ namespace OpenMS
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
 
-		/// Shows a dialog with the meta data, which can be @p modifiable or not
-		virtual void showMetaData(bool modifiable=false);
+		/**
+			@rief Shows a dialog with the meta data
+			
+			@param modifiable indicates if the data can be modified.
+			@param index If given, the meta data of the corresponding element (spectrum, feature, consensus feature) is shown instead of the layer meta data.
+		*/
+		virtual void showMetaData(bool modifiable=false, UInt index = -1);
 
 		/**
 			@brief Saves the current layer data.

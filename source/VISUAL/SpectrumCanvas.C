@@ -818,29 +818,46 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumCanvas::showMetaData(bool modifiable)
+	void SpectrumCanvas::showMetaData(bool modifiable, UInt index)
   {
 		LayerData& layer = getCurrentLayer_();
 		
 		MetaDataBrowser dlg(modifiable, this);
-    dlg.setWindowTitle("Layer meta data");
-		if (layer.type==LayerData::DT_PEAK)
-  	{
-  		dlg.add(layer.peaks);
-			//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
-			if (getName()=="Spectrum1DCanvas")
+		if (index==-1)
+		{
+			if (layer.type==LayerData::DT_PEAK)
 			{
-				dlg.add(layer.peaks[layer.current_spectrum]);
+				dlg.add(layer.peaks);
+				//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
+				if (getName()=="Spectrum1DCanvas")
+				{
+					dlg.add(layer.peaks[layer.current_spectrum]);
+				}
 			}
-  	}
-  	else if (layer.type==LayerData::DT_FEATURE)
-  	{
-  		dlg.add(layer.features);
-  	}
-  	else if (layer.type==LayerData::DT_CONSENSUS)
-  	{
-  		dlg.add(layer.consensus);
-  	}
+			else if (layer.type==LayerData::DT_FEATURE)
+			{
+				dlg.add(layer.features);
+			}
+			else if (layer.type==LayerData::DT_CONSENSUS)
+			{
+				dlg.add(layer.consensus);
+			}
+		}
+		else //show element meta data
+		{
+			if (layer.type==LayerData::DT_PEAK)
+			{
+					dlg.add(layer.peaks[index]);
+			}
+			else if (layer.type==LayerData::DT_FEATURE)
+			{
+				dlg.add(layer.features[index]);
+			}
+			else if (layer.type==LayerData::DT_CONSENSUS)
+			{
+				dlg.add(layer.consensus[index]);
+			}
+		}
   	
   	//if the meta data was modified, set the flag
     if (modifiable && dlg.exec())
