@@ -722,20 +722,49 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 //##############################################################################
 
 /**
-	@page TOPP_example_export Export of results from OpenMS
+	@page TOPP_example_convert Conversion between OpenMS XML formats and text formats 
 
-	As TOPP offers no functionality for statistical analysis, this step is
-	normally done using external statistics packages. In order to export the
-	%OpenMS XML formats into an appropriate format for these packages the
-	TOPP @b TextExporter can be used.
-	
-	It converts the the following %OpenMS XML formats to text files:
-	- FeatureXML
-	- IdXML
-	- ConsensusXML
-	
-	The use of the @b TextExporter is very simple:
-	@code
-TextExporter -in infile.idXML -out infile.txt
-	@endcode
+	@section TOPP_example_convert_export Export of OpenMS XML formats
+		
+		As TOPP offers no functionality for statistical analysis, this step is normally done using external statistics packages.
+		@n In order to export the %OpenMS XML formats into an appropriate format for these packages the
+		TOPP @b TextExporter can be used.
+		
+		It converts the the following %OpenMS XML formats to text files:
+		- FeatureXML
+		- IdXML
+		- ConsensusXML
+		
+		The use of the @b TextExporter is very simple:
+		@code
+TextExporter -in infile.idXML -out outfile.txt
+		@endcode
+
+
+	@section TOPP_example_convert_import_feature Import of feature data to OpenMS
+
+		%OpenMS offers a lot of visualization and analysis functionality for feature data.
+		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter:
+		@code
+TextImporter -in infile.txt -out outfile.featureXML
+		@endcode
+
+
+	@section TOPP_example_convert_import_id Import of protein/peptide identification data to OpenMS
+		
+		Peptide/protein identification data from several identification engines can be converted to idXML format using the @b IDFileConverter tool.
+		
+		It can currently read the following formats:
+		- Sequest output folder
+		- pepXML file
+		- idXML file
+
+		It can currently write the folling formats:
+		- pepXML
+		- idXML
+		
+		This example shows how to convert pepXML to idXML:
+		@code
+IDFileConverter -in infile.pepXML -out outfile.idXML
+		@endcode
 */

@@ -171,7 +171,7 @@ namespace OpenMS
         setValidFormats_("in", StringList::create(
           "featureXML,consensusXML,idXML"));
         registerOutputFile_("out", "<file>", "",
-          "Output file. Mandatory for FeatureXML and IdXML.", false);
+          "Output file (mandatory for FeatureXML and IdXML).", false);
         registerStringOption_(
           "separator",
           "<sep>",
@@ -194,16 +194,15 @@ namespace OpenMS
 
         addText_("Options for ConsensusXML files:");
         registerOutputFile_("consensus_centroids", "<file>", "",
-          "Centroids of consensus features", false);
+          "Output file for centroids of consensus features", false);
         registerOutputFile_("consensus_elements", "<file>", "",
-          "Elements of consensus features", false);
+          "Output file for elements of consensus features", false);
         registerOutputFile_(
           "consensus_features",
           "<file>",
           "",
-          "Consensus features and contained elements from all maps (writes 'nan's if element is missing)",
+          "Output file for consensus features and contained elements from all maps (writes 'nan's if element is missing)",
           false);
-        addText_("Each of the consensus_... files is created as requested.");
         registerStringOption_("sorting_method", "<method>", "none",
           "Sorting method", false);
         setValidStrings_(
