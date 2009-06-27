@@ -46,6 +46,7 @@ namespace OpenMS
 			void evaluate(const ConsensusMap&, const ConsensusMap&, const DoubleReal&, const DoubleReal&, const Peak2D::IntensityType&, const bool use_charge, DoubleReal& real)
 			{
 				bool x = use_charge;
+				x=!x;
 				real = 1.5;
 			}
 	};
