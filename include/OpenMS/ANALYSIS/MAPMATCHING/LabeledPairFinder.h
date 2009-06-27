@@ -41,6 +41,9 @@ namespace OpenMS
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 	
 		@htmlinclude OpenMS_LabeledPairFinder.parameters
+
+		@todo Implement support for labled MRM experiments, Q1 m/z value and charges. (Andreas)
+		@todo Implement support for more than one mass delta, e.g. from missed cleavages and so on (Andreas)
 		
 		@ingroup FeatureGrouping
 	*/

@@ -51,9 +51,11 @@ namespace OpenMS
 		defaults_.setValue("rt_dev_high", 15.0, "maximum allowed deviation above optimal retention time distance");
 		defaults_.setMinFloat("rt_dev_high",0.0);
 		
-		defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
+		defaults_.setValue("mz_pair_dists", DoubleList::create(4.0), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
 		defaults_.setValue("mz_dev", 0.05, "maximum allowed deviation from optimal m/z distance\n");
 		defaults_.setMinFloat("mz_dev",0.0);
+		defaults_.setValue("mrm", "false", "this option should be used if the features correspond mrm chromatograms (additionally the precursor is taken into account)", StringList::create("advanced"));
+		defaults_.setValidStrings("mrm", StringList::create("true,false"));
 
 		defaultsToParam_();
 	}
@@ -100,7 +102,8 @@ namespace OpenMS
 		DoubleReal rt_dev_low = param_.getValue("rt_dev_low");
 		DoubleReal rt_dev_high = param_.getValue("rt_dev_high");
 		DoubleReal mz_dev = param_.getValue("mz_dev");
-		DoubleReal mz_pair_dist = param_.getValue("mz_pair_dist");
+		DoubleList mz_pair_dists = param_.getValue("mz_pair_dists");
+		bool mrm = param_.getValue("mrm").toBool();
 		
 		//estimate RT parameters
 		if (param_.getValue("rt_estimate")=="true")
@@ -112,11 +115,15 @@ namespace OpenMS
 			{
 				for (RefMap::const_iterator it2=model_ref.begin(); it2!=model_ref.end(); ++it2)
 				{
-					if (it2->getCharge() == it->getCharge()
-						&& it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
-						&& it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
+					for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
 					{
-						dists.push_back(it2->getRT()-it->getRT());
+						DoubleReal mz_pair_dist = *dist_it;
+						if (it2->getCharge() == it->getCharge()
+							&& it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
+							&& it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
+						{
+							dists.push_back(it2->getRT()-it->getRT());
+						}
 					}
 				}
 			}
@@ -207,27 +214,62 @@ namespace OpenMS
 		// check each feature
 		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
 		{
-			RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
-			while (it2!=model_ref.end() && it2->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
+			for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
 			{
-				if ( it2->getCharge() == it->getCharge() &&
-						 it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev &&
-						 it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev
-					 )
+				DoubleReal mz_pair_dist = *dist_it;
+				RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
+				while (it2!=model_ref.end() && it2->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
 				{
-					
-					DoubleReal score = sqrt(
-																	PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev) *
-																	PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
-																 );
-					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
-					matches.back().clearMetaInfo();
-					matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
-					matches.back().setQuality(score);
-					matches.back().setCharge(it->getCharge());
-					matches.back().computeConsensus();
+					// if in mrm mode, we need to compare precursor mass difference and fragment mass difference, charge remains the same
+				
+					DoubleReal prec_mz_diff(0);
+					if (mrm)
+					{
+						prec_mz_diff = fabs((double)it2->getMetaValue("MZ") - (double)it->getMetaValue("MZ"));
+						if (it->getCharge() != 0)
+						{
+							prec_mz_diff = fabs(prec_mz_diff - mz_pair_dist / it->getCharge());
+						}
+						else
+						{
+							prec_mz_diff = fabs(prec_mz_diff - mz_pair_dist);
+						}
+					}
+
+					bool mrm_correct_dist(false);
+					DoubleReal frag_mz_diff = fabs(it->getMZ() - it2->getMZ());
+
+					//cerr << it->getRT() << " charge1=" << it->getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
+
+					if (mrm &&
+							it2->getCharge() == it->getCharge() &&
+							prec_mz_diff < mz_dev &&
+							(frag_mz_diff < mz_dev || fabs(frag_mz_diff - mz_pair_dist) < mz_dev))
+					{
+						mrm_correct_dist = true;
+						//cerr << "mrm_correct_dist" << endl;
+					}
+
+					if ((mrm && mrm_correct_dist) || (!mrm &&
+							 it2->getCharge() == it->getCharge() &&
+							 it2->getMZ() >= it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev &&
+						 	it2->getMZ() <= it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev
+					 	))
+					{
+						//cerr << "dist correct" << endl;
+						DoubleReal score = sqrt(
+																		PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev) *
+																		PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
+																	 );
+						matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
+						matches.back().clearMetaInfo();
+						matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
+						matches.back().setQuality(score);
+						matches.back().setCharge(it->getCharge());
+						matches.back().computeConsensus();
+					}
+					++it2;
 				}
-				++it2;
 			}
 		}
 		
@@ -241,7 +283,7 @@ namespace OpenMS
 			//check if features are not used yet
 			if ( used_features.find(match->begin()->getElementIndex())==used_features.end() && 
 					 used_features.find(match->rbegin()->getElementIndex())==used_features.end()
-				 )
+			 	)
 			{
 				//if unused, add it to the final set of elements
 				result_map.push_back(*match);

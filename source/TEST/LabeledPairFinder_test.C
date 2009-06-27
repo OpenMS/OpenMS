@@ -128,7 +128,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_dev_low",1.0);
 	p.setValue("rt_dev_high",2.0);
-	p.setValue("mz_pair_dist",4.0);
+	p.setValue("mz_pair_dists",DoubleList::create(4.0));
 	p.setValue("mz_dev",0.6);
 	pm.setParameters(p);
 
@@ -156,7 +156,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	LabeledPairFinder pm2;
 	Param p2;
 	p2.setValue("rt_estimate","true");
-	p2.setValue("mz_pair_dist",4.0);
+	p2.setValue("mz_pair_dists", DoubleList::create(4.0));
 	p2.setValue("mz_dev",0.2);
 	pm2.setParameters(p2);
 	
