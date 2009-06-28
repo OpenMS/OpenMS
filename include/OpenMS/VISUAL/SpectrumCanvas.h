@@ -510,7 +510,7 @@ namespace OpenMS
 			@param modifiable indicates if the data can be modified.
 			@param index If given, the meta data of the corresponding element (spectrum, feature, consensus feature) is shown instead of the layer meta data.
 		*/
-		virtual void showMetaData(bool modifiable=false, UInt index = -1);
+		virtual void showMetaData(bool modifiable=false, Int index = -1);
 
 		/**
 			@brief Saves the current layer data.

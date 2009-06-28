@@ -818,7 +818,7 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumCanvas::showMetaData(bool modifiable, UInt index)
+	void SpectrumCanvas::showMetaData(bool modifiable, Int index)
   {
 		LayerData& layer = getCurrentLayer_();
 		
