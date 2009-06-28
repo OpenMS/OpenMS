@@ -246,8 +246,10 @@ namespace OpenMS
 		defaults->addAction("grey - black");
 		defaults->addAction("yellow - red - purple - blue - black");
 		defaults->addAction("orange - red - purple - blue - black");
+		defaults->addAction("yellow - orange - red");
 		defaults->addSeparator();
 		defaults->addAction("black");
+		defaults->addAction("white");
 		defaults->addAction("red");
 		defaults->addAction("green");
 		defaults->addAction("magenta");
@@ -275,9 +277,17 @@ namespace OpenMS
 			{
 				gradient_.fromString("Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");			
 			}
+			else if (result->text()=="yellow - orange - red")
+			{
+				gradient_.fromString("Linear|0,#ffea00;6,#ffaa00;100,#ff0000");			
+			}
 			else if (result->text()=="black")
 			{
 				gradient_.fromString("Linear|0,#000000;100,#000000");
+			}
+			else if (result->text()=="white")
+			{
+				gradient_.fromString("Linear|0,#FFFFFF;100,#FFFFFF");
 			}
 			else if (result->text()=="red")
 			{
