@@ -72,8 +72,12 @@ class TOPPFalseDiscoveryRate
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward");
-			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run");
+			registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence databse", false);
+			setValidFormats_("in", StringList::create("idXML"));
+			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward", false);
+			setValidFormats_("fwd_in", StringList::create("idXML"));
+			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
+			setValidFormats_("rev_in", StringList::create("idXML"));
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
 			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
 			registerFlag_("peptides_only", "if set, the FDR of the peptides only is caluclated");
@@ -98,7 +102,29 @@ class TOPPFalseDiscoveryRate
 			}
 
 			//input/output files
-			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in"));
+			// either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
+			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
+			bool combined(false);
+			if (fwd_in != "" && rev_in != "")
+			{
+				if (in != "")
+				{
+					writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
+					return ILLEGAL_PARAMETERS;
+				}
+			}
+			else
+			{
+				if (in != "")
+				{
+					combined = true;
+				}
+				else
+				{
+					writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
+					return ILLEGAL_PARAMETERS;
+				}
+			}
 			String out(getStringOption_("out"));
 			bool proteins_only(getFlag_("proteins_only"));
 			bool peptides_only(getFlag_("peptides_only"));
@@ -107,33 +133,52 @@ class TOPPFalseDiscoveryRate
       // loading input
       //-------------------------------------------------------------
 
-			vector<PeptideIdentification> fwd_pep, rev_pep;
-			vector<ProteinIdentification> fwd_prot, rev_prot;
-			String document_id;
-			IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
-			IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
+			if (!combined)
+			{
+				vector<PeptideIdentification> fwd_pep, rev_pep;
+				vector<ProteinIdentification> fwd_prot, rev_prot;
+				String document_id;
+				IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
+				IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
 			
-      //-------------------------------------------------------------
-      // calculations
-      //-------------------------------------------------------------
+      	//-------------------------------------------------------------
+      	// calculations
+      	//-------------------------------------------------------------
 			
-			writeDebug_("Starting calculations", 1);
+				writeDebug_("Starting calculations", 1);
 
-			if (!proteins_only)
-			{
-				fdr.apply(fwd_pep, rev_pep);
+				if (!proteins_only)
+				{
+					fdr.apply(fwd_pep, rev_pep);
+				}
+				if (!peptides_only)
+				{
+					fdr.apply(fwd_prot, rev_prot);
+				}
+
+				//-------------------------------------------------------------
+      	// writing output
+      	//-------------------------------------------------------------
+
+      	IdXMLFile().store(out, fwd_prot, fwd_pep);
 			}
-			if (!peptides_only)
+			else
 			{
-				fdr.apply(fwd_prot, rev_prot);
+				vector<PeptideIdentification> pep_ids;
+				vector<ProteinIdentification> prot_ids;
+				IdXMLFile().load(in, prot_ids, pep_ids);
+				if (!proteins_only)
+				{
+					fdr.apply(pep_ids);
+				}
+				if (!peptides_only)
+				{
+					fdr.apply(prot_ids);
+				}
+
+				IdXMLFile().store(out, prot_ids, pep_ids);
 			}
-			
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
-		
-			IdXMLFile().store(out, fwd_prot, fwd_pep);
-			
+
 			return EXECUTION_OK;
 		}
 };

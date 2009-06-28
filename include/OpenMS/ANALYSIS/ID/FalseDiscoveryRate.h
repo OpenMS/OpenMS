@@ -63,6 +63,13 @@ namespace OpenMS
   		void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids);
 
 			/**
+				@brief Calculates the FDR of one run from a concatenated sequence db search
+
+				@param ids peptide identifications, containing target and decoy hits
+			*/
+			void apply(std::vector<PeptideIdentification>& ids);
+
+			/**
 			 	@brief Calculates the FDR of two runs, a forward run and decoy run on protein level
 
 				@param fwd_ids forward protein identifications
@@ -70,13 +77,20 @@ namespace OpenMS
 			*/
 			void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids);
 
+			/** 
+				@brief Calculate the FDR of one run from a concatenated sequence db search
+				
+				@param ids protein identifications, containing target and decoy hits
+			*/
+			void apply(std::vector<ProteinIdentification>& ids);
+
   	private:
   		///Not implemented
   		FalseDiscoveryRate(const FalseDiscoveryRate&);
   		
 			///Not implemented
 			FalseDiscoveryRate& operator = (const FalseDiscoveryRate&);
-			
+
   };
  
 } // namespace OpenMS
