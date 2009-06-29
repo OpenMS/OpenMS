@@ -169,22 +169,26 @@ namespace OpenMS
 		const QString& source_text = source_combo->currentText();
 		const QString& target_text = target_combo->currentText();
 
-		if (source_text == "<select>" || target_text == "<select>")
+		if (source_text == "<select>")
 		{
-			QMessageBox::warning(0,"Invalid selection","You must specify the source output and target input parameter!");
+			QMessageBox::warning(0,"Invalid selection","You must specify the source output parameter!");
+			return;
+		}
+		if (target_text == "<select>")
+		{
+			QMessageBox::warning(0,"Invalid selection","You must specify the target input parameter!");
 			return;
 		}
 		
 		edge_->setSourceOutParam(source_combo->currentIndex()-1);
 		edge_->setTargetInParam(target_combo->currentIndex()-1);
+		
 		edge_->updateColor();
 		
-		if (!(edge_->getEdgeStatus() == TOPPASEdge::ES_VALID)) // TODO: check reason, better error message
+		if (edge_->getEdgeStatus() == TOPPASEdge::ES_VALID ||
+				edge_->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET)
 		{
-			QMessageBox::warning(0,"Invalid selection","The types of source output and target input parameters do not match!");
-			return;
+			accept();
 		}
-		
-		accept();
 	}
 } // namespace

@@ -34,6 +34,7 @@
 
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
+#include <QtGui/QMessageBox>
 
 namespace OpenMS
 {	
@@ -439,8 +440,13 @@ namespace OpenMS
 				}
 				else if (file_name == "")
 				{
-					// allow edge if file name is not specified yet
-					valid = true;
+					// file name is not specified yet
+					return ES_NOT_READY_YET;
+				}
+				
+				if (!valid)
+				{
+					return ES_FILE_EXT_MISMATCH;
 				}
 			}
 		}
@@ -467,8 +473,8 @@ namespace OpenMS
 				
 				if (file_names.empty())
 				{
-					// allow edge if file names are not specified yet
-					valid = true;
+					// file names are not specified yet
+					return ES_NOT_READY_YET;
 				}
 				else
 				{
@@ -493,6 +499,10 @@ namespace OpenMS
 					if (!type_mismatch)
 					{
 						valid = true;
+					}
+					else
+					{
+						return ES_FILE_EXT_MISMATCH;
 					}
 				}
 			}
@@ -576,13 +586,44 @@ namespace OpenMS
 	
 	void TOPPASEdge::updateColor()
 	{
-		if (getEdgeStatus() == ES_VALID)
+		EdgeStatus es = getEdgeStatus();
+		
+		if (es == ES_VALID)
 		{
 			setColor(Qt::green);
+		}
+		else if (es == ES_NOT_READY_YET)
+		{
+			setColor(Qt::yellow);
 		}
 		else
 		{
 			setColor(Qt::red);
+			
+			if (es == ES_MISMATCH_FILE_LIST)
+			{
+				QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
+			}
+			else if (es == ES_MISMATCH_LIST_FILE)
+			{
+				QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
+			}
+			else if (es == ES_NO_TARGET_PARAM)
+			{
+				QMessageBox::warning(0,"Invalid selection","You must specify the target input parameter!");
+			}
+			else if (es == ES_NO_SOURCE_PARAM)
+			{
+				QMessageBox::warning(0,"Invalid selection","You must specify the source output parameter!");
+			}
+			else if (es == ES_FILE_EXT_MISMATCH)
+			{
+				QMessageBox::warning(0,"Invalid selection","The file types of source output and target input parameter do not match!");
+			}
+			else
+			{
+				QMessageBox::warning(0,"Ooops","This should not have happened. Please contact the OpenMS mailing list and report this bug.");
+			}
 		}
 		update(boundingRect());
 	}
