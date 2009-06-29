@@ -358,7 +358,9 @@ namespace OpenMS
       QToolBar* tool_bar_1d_;
       QButtonGroup* draw_group_1d_;
       //2D specific stuff
-      QToolBar* tool_bar_2d_;
+      QToolBar* tool_bar_2d_peak_;
+      QToolBar* tool_bar_2d_feat_;
+      QToolBar* tool_bar_2d_cons_;
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;

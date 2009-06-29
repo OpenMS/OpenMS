@@ -318,40 +318,43 @@ namespace OpenMS
     connect(draw_group_1d_,SIGNAL(buttonClicked(int)),this,SLOT(setDrawMode1D(int)));
     tool_bar_->addSeparator();
 
-    //--2D toolbar--
-    tool_bar_2d_ = addToolBar("2D tool bar");
+    //--2D peak toolbar--
+    tool_bar_2d_peak_ = addToolBar("2D peak tool bar");
 
-    dm_precursors_2d_ = tool_bar_2d_->addAction(QIcon(":/precursors.png"),"Show fragment scan precursors");
+    dm_precursors_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/precursors.png"),"Show fragment scan precursors");
     dm_precursors_2d_->setCheckable(true);
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked.<BR>(Hotkey: 1)");
 		dm_precursors_2d_->setShortcut(Qt::Key_1);
 
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    projections_2d_ = tool_bar_2d_->addAction(QIcon(":/projections.png"), "Show Projections" ,this, SLOT(toggleProjections()));
+    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections" ,this, SLOT(toggleProjections()));
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
 		projections_2d_->setShortcut(Qt::Key_2);
-
-    dm_hull_2d_ = tool_bar_2d_->addAction(QIcon(":/convexhull.png"),"Show feature convex hull");
+		
+		//--2D feature toolbar--
+    tool_bar_2d_feat_ = addToolBar("2D peak tool bar");
+		
+    dm_hull_2d_ = tool_bar_2d_feat_->addAction(QIcon(":/convexhull.png"),"Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
     dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed.<BR>(Hotkey: 5)");
 		dm_hull_2d_->setShortcut(Qt::Key_5);
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_hulls_2d_ = tool_bar_2d_->addAction(QIcon(":/convexhulls.png"),"Show feature convex hulls");
+    dm_hulls_2d_ = tool_bar_2d_feat_->addAction(QIcon(":/convexhulls.png"),"Show feature convex hulls");
     dm_hulls_2d_->setCheckable(true);
     dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.<BR>(Hotkey: 6)");
 		dm_hulls_2d_->setShortcut(Qt::Key_6);
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 		
-		dm_label_2d_ = new QToolButton(tool_bar_2d_);
+		dm_label_2d_ = new QToolButton(tool_bar_2d_feat_);
 		dm_label_2d_->setPopupMode(QToolButton::MenuButtonPopup);	
 		QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature label", dm_label_2d_);
     action2->setCheckable(true);
     action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>The feature label is displayed next to the feature. <BR>(Hotkey: 7)");
 		action2->setShortcut(Qt::Key_7);
 		dm_label_2d_->setDefaultAction(action2);
-		tool_bar_2d_->addWidget(dm_label_2d_);
+		tool_bar_2d_feat_->addWidget(dm_label_2d_);
     connect(dm_label_2d_, SIGNAL(triggered(QAction*)), this, SLOT(changeLabel(QAction*)));
 		//button menu
 		QMenu* menu = new QMenu(dm_label_2d_);
@@ -359,8 +362,11 @@ namespace OpenMS
 		menu->addAction("Index");
 		menu->addAction("Peptide identification");
 		dm_label_2d_->setMenu(menu);
-		
-    dm_elements_2d_ = tool_bar_2d_->addAction(QIcon(":/elements.png"),"Show consensus feature element positions");
+
+		//--2D feature toolbar--
+    tool_bar_2d_cons_ = addToolBar("2D peak tool bar");
+    
+    dm_elements_2d_ = tool_bar_2d_cons_->addAction(QIcon(":/elements.png"),"Show consensus feature element positions");
     dm_elements_2d_->setCheckable(true);
     dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.<BR>(Hotkey: 9)");
 		dm_elements_2d_->setShortcut(Qt::Key_9);
@@ -1232,51 +1238,42 @@ namespace OpenMS
 
       //show/hide toolbars and buttons
       tool_bar_1d_->show();
-      tool_bar_2d_->hide();
+      tool_bar_2d_peak_->hide();
+      tool_bar_2d_feat_->hide();
+      tool_bar_2d_cons_->hide();
     }
 
     //2d
     Spectrum2DWidget* w2 = active2DWindow_();
     if (w2)
     {
+      tool_bar_1d_->hide();
       //peak draw modes
       if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
       {
-      	dm_precursors_2d_->setVisible(true);
-      	projections_2d_->setVisible(true);
-      	dm_hulls_2d_->setVisible(false);
-      	dm_hull_2d_->setVisible(false);
-      	dm_label_2d_->defaultAction()->setVisible(false);
-      	dm_elements_2d_->setVisible(false);
 				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
+	      tool_bar_2d_peak_->show();
+ 	    	tool_bar_2d_feat_->hide();
+	      tool_bar_2d_cons_->hide();
 			}
 			//feature draw modes
 			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
 			{
-      	dm_precursors_2d_->setVisible(false);
-      	projections_2d_->setVisible(false);
-      	dm_hulls_2d_->setVisible(true);
-      	dm_hull_2d_->setVisible(true);
-      	dm_label_2d_->defaultAction()->setVisible(true);
-      	dm_elements_2d_->setVisible(false);
       	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
       	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
       	dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label!=LayerData::L_NONE);
+	      tool_bar_2d_peak_->hide();
+	      tool_bar_2d_feat_->show();
+	      tool_bar_2d_cons_->hide();
 			}
 			//consensus feature draw modes
 			else
 			{
-      	dm_precursors_2d_->setVisible(false);
-      	projections_2d_->setVisible(false);
-      	dm_hulls_2d_->setVisible(false);
-      	dm_hull_2d_->setVisible(false);
-      	dm_label_2d_->defaultAction()->setVisible(false);
-      	dm_elements_2d_->setVisible(true);
       	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
+	      tool_bar_2d_peak_->hide();
+	      tool_bar_2d_feat_->hide();
+	      tool_bar_2d_cons_->show();
 			}
-      //show/hide toolbars and buttons
-      tool_bar_1d_->hide();
-      tool_bar_2d_->show();
     }
 
     //1D
@@ -1285,7 +1282,9 @@ namespace OpenMS
     {
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
-      tool_bar_2d_->hide();
+      tool_bar_2d_peak_->hide();
+      tool_bar_2d_feat_->hide();
+      tool_bar_2d_cons_->hide();
     }
   }
 
