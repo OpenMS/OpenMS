@@ -108,8 +108,6 @@ protected:
 
 		bool use_charge = getFlag_("use_charge");
 
-		std::cout << " Flag: " << use_charge << "\n";
-
 		DoubleReal out = 0;
 
 		//-------------------------------------------------------------
