@@ -65,6 +65,7 @@ class TOPPDecoyDatabase
 			registerInputFile_("in","<file>","","Input fasta file containing the database.");
 			registerOutputFile_("out","<file>","","Output fasta file were the decoy database will be written to.");
 			registerStringOption_("decoy_string", "<string>", "_ref", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
+			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -73,7 +74,8 @@ class TOPPDecoyDatabase
 			// parsing parameters
 			//-------------------------------------------------------------
 			String in(getStringOption_("in"));
-			String out(getStringOption_("out"));			
+			String out(getStringOption_("out"));
+			bool append = getFlag_("append");
 			
 			//-------------------------------------------------------------
 			// reading input
@@ -88,10 +90,28 @@ class TOPPDecoyDatabase
 			//-------------------------------------------------------------					
 
 			String decoy_string(getStringOption_("decoy_string"));
-			for (vector<FASTAFile::FASTAEntry>::iterator it = proteins.begin(); it != proteins.end(); ++it)
+			Size num_proteins = proteins.size();
+			set<String> identifiers;
+			for (Size i = 0; i < num_proteins; ++i)
 			{
-				it->sequence.reverse();
-				it->identifier += decoy_string;
+				if (identifiers.find(proteins[i].identifier) != identifiers.end())
+				{
+					cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+				}
+				identifiers.insert(proteins[i].identifier);
+
+				if (append)
+				{
+					FASTAFile::FASTAEntry entry = proteins[i];
+					entry.sequence.reverse();
+					entry.identifier += decoy_string;
+					proteins.push_back(entry);
+				}
+				else
+				{
+					proteins[i].sequence.reverse();
+					proteins[i].identifier += decoy_string;
+				}
 			}
 			
 			//-------------------------------------------------------------
