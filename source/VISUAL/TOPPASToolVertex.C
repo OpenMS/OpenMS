@@ -28,6 +28,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
@@ -120,6 +121,7 @@ namespace OpenMS
 		
 		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
 		dialog.exec();
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	void TOPPASToolVertex::getInputFiles(QVector<IOInfo>& input_infos)

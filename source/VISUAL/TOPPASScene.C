@@ -145,12 +145,6 @@ namespace OpenMS
 			hover_edge_->setColor(Qt::black);
 			potential_target_ = 0;
 		}
-		
-		if (qobject_cast<TOPPASOutputFileVertex*>(hover_edge_->getSourceVertex())
-				|| qobject_cast<TOPPASOutputFileListVertex*>(hover_edge_->getSourceVertex()))
-		{
-			hover_edge_->setColor(Qt::red);
-		}
 	}
 	
 	void TOPPASScene::addHoveringEdge(const QPointF& pos)
@@ -194,8 +188,7 @@ namespace OpenMS
 			}
 		}
 		
-		updateEdgeColors_();
-		update();
+		updateEdgeColors();
 	}
 	
 	TOPPASVertex* TOPPASScene::getVertexAt_(const QPointF& pos)
@@ -259,8 +252,7 @@ namespace OpenMS
 			delete vertex;
 		}
 		
-		updateEdgeColors_();
-		update();
+		updateEdgeColors();
 	}
 	
 	bool TOPPASScene::isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v)
@@ -311,12 +303,13 @@ namespace OpenMS
 		return !graph_has_cycles;
 	}
 	
-	void TOPPASScene::updateEdgeColors_()
+	void TOPPASScene::updateEdgeColors()
 	{
 		foreach (TOPPASEdge* edge, edges_)
 		{
 			edge->updateColor();
 		}
+		update();
 	}
 	
 	bool TOPPASScene::dfsVisit_(TOPPASVertex* vertex)

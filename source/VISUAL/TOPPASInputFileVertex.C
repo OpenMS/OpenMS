@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 namespace OpenMS
 {
@@ -75,6 +76,7 @@ namespace OpenMS
 		{
 			file_ = tifd.getFilename();
 		}
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	const QString& TOPPASInputFileVertex::getFilename()

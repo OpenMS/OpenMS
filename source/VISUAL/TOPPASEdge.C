@@ -472,6 +472,7 @@ namespace OpenMS
 				}
 				else
 				{
+					bool type_mismatch = false;
 					foreach (const QString& q_file_name, file_names)
 					{
 						const String& file_name = String(q_file_name);
@@ -481,13 +482,17 @@ namespace OpenMS
 							const String& extension = file_name.substr(extension_start_index+1);
 							for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
 							{
-								if (*it == extension)
+								if (*it != extension)
 								{
-									valid = true;
+									type_mismatch = true;
 									break;
 								}
 							}
 						}
+					}
+					if (!type_mismatch)
+					{
+						valid = true;
 					}
 				}
 			}
