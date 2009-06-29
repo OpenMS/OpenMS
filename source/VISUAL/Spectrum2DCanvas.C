@@ -390,7 +390,7 @@ namespace OpenMS
 		}
 		else if (layer.type==LayerData::DT_FEATURE) //features
 		{
-			bool numbers = getLayerFlag(layer_index,LayerData::F_NUMBERS);
+			bool show_label = (layer.label!=LayerData::L_NONE);
 			UInt num=0;
 			for (FeatureMapType::ConstIterator i = layer.features.begin();
 				   i != layer.features.end();
@@ -406,7 +406,7 @@ namespace OpenMS
 					QRgb color;
 					if (i->metaValueExists(5))
 					{
-						color = QColor(i->getMetaValue(5).toString().c_str()).rgb();
+						color = QColor(i->getMetaValue(5).toQString()).rgb();
 					}
 					else
 					{
@@ -423,16 +423,24 @@ namespace OpenMS
 						buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
 						buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
 					}
-					//number and label
-					if (numbers)
+					//labels
+					if (show_label)
 					{
-						//paint label of feature number
-						QString label = QString::number(num);
-						if (i->metaValueExists(3))
+						if (layer.label==LayerData::L_INDEX)
 						{
-							label.append(" (").append(i->getMetaValue(3).toString().c_str()).append(")");
+							painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
 						}
-						painter.drawText(pos.x()+10,pos.y()+10,label);
+						else if (layer.label==LayerData::L_ID)
+						{
+							if (i->getPeptideIdentifications().size() && i->getPeptideIdentifications()[0].getHits().size())
+							{
+								painter.drawText(pos.x()+10,pos.y()+10,i->getPeptideIdentifications()[0].getHits()[0].getSequence().toString().toQString());
+							}
+						}
+						else if (layer.label==LayerData::L_META_LABEL)
+						{
+							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue(3).toQString());
+						}
 					}
 				}
 				++num;
@@ -1686,7 +1694,14 @@ namespace OpenMS
 			}
 			else if (result->text()=="Show/hide numbers/labels")
 			{
-				setLayerFlag(LayerData::F_NUMBERS,!getLayerFlag(LayerData::F_NUMBERS));
+				if (layer.label==LayerData::L_NONE) 
+				{
+					getCurrentLayer_().label=LayerData::L_META_LABEL;
+				}
+				else 
+				{
+					getCurrentLayer_().label=LayerData::L_NONE;
+				}
 			}
 			else if (result->text()=="Show/hide elements")
 			{

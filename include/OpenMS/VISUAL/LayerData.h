@@ -63,12 +63,20 @@ namespace OpenMS
 		{
 			F_HULL,       ///< Features: Overall convex hull
 			F_HULLS,      ///< Features: Convex hulls of single mass traces 
-			F_NUMBERS,    ///< Features: Number
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS,///< Peaks: Show projections
 			C_ELEMENTS    ///< Consensus features: Show elements
 		};
-				
+		
+		///Label used in visualization
+		enum LabelType
+		{
+			L_NONE,        ///< No label is displayed
+			L_META_LABEL,   ///< The 'label' meta information is used
+			L_INDEX,      ///< The element number is used
+			L_ID          ///< The best peptide hit of the first identification run is used
+		};
+		
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
@@ -95,7 +103,8 @@ namespace OpenMS
 				gradient(),
 				filters(),
 				annotations_1d(),
-				modified(false)
+				modified(false),
+				label(L_NONE)
 		{
 			annotations_1d.resize(1);
 		}
@@ -161,6 +170,9 @@ namespace OpenMS
 		
 		///Flag that indicates that the input data was modified since loading it
 		bool modified;
+		
+		///Label type
+		LabelType label;
 	};
 
 	///Print the contents to a stream.

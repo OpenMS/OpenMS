@@ -343,13 +343,23 @@ namespace OpenMS
     dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.<BR>(Hotkey: 6)");
 		dm_hulls_2d_->setShortcut(Qt::Key_6);
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
-    dm_numbers_2d_ = tool_bar_2d_->addAction(QIcon(":/numbers.png"),"Show feature identifiers");
-    dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.<BR>(Hotkey: 7)");
-		dm_numbers_2d_->setShortcut(Qt::Key_7);
-    connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
+		
+		dm_label_2d_ = new QToolButton(tool_bar_2d_);
+		dm_label_2d_->setPopupMode(QToolButton::MenuButtonPopup);	
+		QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature label", dm_label_2d_);
+    action2->setCheckable(true);
+    action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>The feature label is displayed next to the feature. <BR>(Hotkey: 7)");
+		action2->setShortcut(Qt::Key_7);
+		dm_label_2d_->setDefaultAction(action2);
+		tool_bar_2d_->addWidget(dm_label_2d_);
+    connect(dm_label_2d_, SIGNAL(triggered(QAction*)), this, SLOT(changeLabel(QAction*)));
+		//button menu
+		QMenu* menu = new QMenu(dm_label_2d_);
+		menu->addAction("Label meta data");
+		menu->addAction("Index");
+		menu->addAction("Peptide identification");
+		dm_label_2d_->setMenu(menu);
+		
     dm_elements_2d_ = tool_bar_2d_->addAction(QIcon(":/elements.png"),"Show consensus feature element positions");
     dm_elements_2d_->setCheckable(true);
     dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.<BR>(Hotkey: 9)");
@@ -1147,6 +1157,35 @@ namespace OpenMS
   	}
   }
 
+	void TOPPViewBase::changeLabel(QAction* action)
+	{
+		if (action->text()=="Index")
+		{
+			active2DWindow_()->canvas()->setLabel(LayerData::L_INDEX);
+		}
+		else if (action->text()=="Peptide identification")
+		{
+			active2DWindow_()->canvas()->setLabel(LayerData::L_ID);
+		}
+		else if (action->text()=="Label meta data")
+		{
+			active2DWindow_()->canvas()->setLabel(LayerData::L_META_LABEL);
+		}
+		else //button is simply pressed
+		{
+			if (active2DWindow_()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
+			{
+				active2DWindow_()->canvas()->setLabel(LayerData::L_META_LABEL);
+			}
+			else
+			{
+				active2DWindow_()->canvas()->setLabel(LayerData::L_NONE);
+			}
+		}
+		
+		updateToolBar();
+	}
+	
   void TOPPViewBase::changeLayerFlag(bool on)
   {
 		QAction* action = qobject_cast<QAction *>(sender());
@@ -1165,10 +1204,6 @@ namespace OpenMS
 			else if (action == dm_hull_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_HULL,on);
-			}
-			else if (action == dm_numbers_2d_)
-			{
-		    win->canvas()->setLayerFlag(LayerData::F_NUMBERS,on);
 			}
 			//consensus features
 			else if (action == dm_elements_2d_)
@@ -1211,7 +1246,7 @@ namespace OpenMS
       	projections_2d_->setVisible(true);
       	dm_hulls_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(false);
-      	dm_numbers_2d_->setVisible(false);
+      	dm_label_2d_->defaultAction()->setVisible(false);
       	dm_elements_2d_->setVisible(false);
 				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
 			}
@@ -1222,11 +1257,11 @@ namespace OpenMS
       	projections_2d_->setVisible(false);
       	dm_hulls_2d_->setVisible(true);
       	dm_hull_2d_->setVisible(true);
-      	dm_numbers_2d_->setVisible(true);
+      	dm_label_2d_->defaultAction()->setVisible(true);
       	dm_elements_2d_->setVisible(false);
       	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
       	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
-      	dm_numbers_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_NUMBERS));
+      	dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label!=LayerData::L_NONE);
 			}
 			//consensus feature draw modes
 			else
@@ -1235,7 +1270,7 @@ namespace OpenMS
       	projections_2d_->setVisible(false);
       	dm_hulls_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(false);
-      	dm_numbers_2d_->setVisible(false);
+      	dm_label_2d_->defaultAction()->setVisible(false);
       	dm_elements_2d_->setVisible(true);
       	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
 			}

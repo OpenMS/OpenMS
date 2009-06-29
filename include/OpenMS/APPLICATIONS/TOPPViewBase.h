@@ -57,6 +57,7 @@ class QTextEdit;
 class QCheckBox;
 class QSplashScreen;
 class QWorkspace;
+class QToolButton;
 
 namespace OpenMS
 {
@@ -75,8 +76,6 @@ namespace OpenMS
     
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Johannes)
       
-    @todo Make feature label configurable: index, label meta data, annotated peptide sequence (Hiwi)
-  
     @todo Add "load instrument defaults" button to tools dialog (Marc)
   	
   	@todo Add TOPPView live-tutorial (Stephan, Marc)
@@ -277,6 +276,7 @@ namespace OpenMS
       void setDrawMode1D(int);
       void setIntensityMode(int);
       void changeLayerFlag(bool);
+      void changeLabel(QAction*);
       void resetZoom();
       void toggleProjections();
       //@}
@@ -362,7 +362,7 @@ namespace OpenMS
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;
-      QAction* dm_numbers_2d_;
+      QToolButton* dm_label_2d_;
       QAction* dm_elements_2d_;
       QAction* projections_2d_;
       //@}
