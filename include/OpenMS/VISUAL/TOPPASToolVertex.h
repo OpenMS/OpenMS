@@ -72,11 +72,20 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
+			/// Returns the name of the tool
+			const String& getName();
+			/// Returns the type of the tool
+			const String& getType();
 			/// Fills @p input_infos with the required input files/lists together with their valid types.
 			void getInputFiles(QVector<IOInfo>& input_infos);
 			/// Fills @p output_infos with the required output files/lists together with their valid types.
 			void getOutputFiles(QVector<IOInfo>& output_infos);
-			
+			// documented in base class
+			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+			// documented in base class
+			virtual QRectF boundingRect() const;
+			// documented in base class
+			virtual QPainterPath shape () const;
 			/// The static instance counter (for unique instance numbers)
 			static UInt id_counter;
 			
@@ -91,6 +100,10 @@ namespace OpenMS
 			/// Fills @p io_infos with the required input/output files/lists. If @p input_files is true, input files are returned, otherwise output files.
 			void getFiles_(QVector<IOInfo>& io_infos, bool input_files);
 			
+			/// The name of the tool
+			String name_;
+			/// The type of the tool, or "" if it does not have a type
+			String type_;
 			/// The parameters of the tool
 			Param param_;
 			/// The unique ID

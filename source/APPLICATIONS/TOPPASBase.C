@@ -107,6 +107,7 @@ namespace OpenMS
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
     file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
+		file->addAction("Save &As",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 
@@ -115,9 +116,9 @@ namespace OpenMS
     file->addAction("&Quit",qApp,SLOT(quit()));
 
     //Advanced menu
-    QMenu* advanced = new QMenu("&Advanced",this);
-    menuBar()->addMenu(advanced);
-    advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
+    //QMenu* advanced = new QMenu("&Advanced",this);
+    //menuBar()->addMenu(advanced);
+    //advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
 
 		//Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -126,8 +127,8 @@ namespace OpenMS
 		//Help menu
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
-		help->addAction(QWhatsThis::createAction(help));
-		help->addSeparator();
+		//help->addAction(QWhatsThis::createAction(help));
+		//help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
 		help->addSeparator();
@@ -159,16 +160,16 @@ namespace OpenMS
     topp_tools_bar->setWidget(tools_tree_view_);
     
     QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Input file >>");
+    item->setText(0, "<Input file>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Input file list >>");
+    item->setText(0, "<Input file list>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Output file >>");
+    item->setText(0, "<Output file>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<< Output file list >>");
+    item->setText(0, "<Output file list>");
     tools_tree_view_->addTopLevelItem(item);
     
     
@@ -189,12 +190,14 @@ namespace OpenMS
     }
     tools_tree_view_->resizeColumnToContents(0);
     
+		windows->addAction(topp_tools_bar->toggleViewAction());
+		
     //Blocks window
-    QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
-    addDockWidget(Qt::LeftDockWidgetArea, blocks_bar);
-    blocks_list_ = new QListWidget(blocks_bar);
-    blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
-    blocks_bar->setWidget(blocks_list_);
+//     QDockWidget* blocks_bar = new QDockWidget("Blocks", this);
+//     addDockWidget(Qt::LeftDockWidgetArea, blocks_bar);
+//     blocks_list_ = new QListWidget(blocks_bar);
+//     blocks_list_->setWhatsThis("Blocks list<BR><BR>Custom analysis pipelines are shown here. They can be used as if they were TOPP tools themselves.");
+//     blocks_bar->setWidget(blocks_list_);
 
 		//log window
 		QDockWidget* log_bar = new QDockWidget("Log", this);
@@ -203,8 +206,8 @@ namespace OpenMS
 		log_->setReadOnly(true);
 		log_bar->setWidget(log_);
 		log_bar->hide();
-    windows->addAction("&Show log window",log_bar,SLOT(show()));
-
+    //windows->addAction("&Show log window",log_bar,SLOT(show()));
+		windows->addAction(log_bar->toggleViewAction());
 		//################## DEFAULTS #################
     //general
    	defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
@@ -543,21 +546,21 @@ namespace OpenMS
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
 		
-		if (tool_name == "<< Input file list >>")
+		if (tool_name == "<Input file list>")
 		{
-			tv = new TOPPASInputFileListVertex(tool_name, String(""));
+			tv = new TOPPASInputFileListVertex();
 		}
-		else if (tool_name == "<< Input file >>")
+		else if (tool_name == "<Input file>")
 		{
-			tv = new TOPPASInputFileVertex(tool_name, String(""));
+			tv = new TOPPASInputFileVertex();
 		}
-		else if (tool_name == "<< Output file list >>")
+		else if (tool_name == "<Output file list>")
 		{
-			tv = new TOPPASOutputFileListVertex(tool_name, String(""));
+			tv = new TOPPASOutputFileListVertex();
 		}
-		else if (tool_name == "<< Output file >>")
+		else if (tool_name == "<Output file>")
 		{
-			tv = new TOPPASOutputFileVertex(tool_name, String(""));
+			tv = new TOPPASOutputFileVertex();
 		}
 		else // node is a TOPP tool
 		{	

@@ -36,13 +36,6 @@ namespace OpenMS
 		brush_color_ = Qt::lightGray;
 	}
 	
-	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs)
 		:	TOPPASVertex(rhs)
 	{
@@ -65,6 +58,41 @@ namespace OpenMS
 	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 		// ...
+	}
+	
+	void TOPPASOutputFileVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+	{
+		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		if (isSelected())
+		{
+			pen.setWidth(2);
+			painter->setBrush(brush_color_.darker(130));
+		}
+		else
+		{
+			painter->setBrush(brush_color_);
+		}
+		painter->setPen(pen);
+	
+		QPainterPath path;
+		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
+ 		painter->drawPath(path);
+ 		
+		QString text = "Output file";
+		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+	}
+	
+	QRectF TOPPASOutputFileVertex::boundingRect() const
+	{
+		return QRectF(-71,-41,142,82);
+	}
+	
+	QPainterPath TOPPASOutputFileVertex::shape () const
+	{
+		QPainterPath shape;
+		shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
+		return shape;
 	}
 }
 

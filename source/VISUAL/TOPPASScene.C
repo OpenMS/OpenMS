@@ -173,7 +173,7 @@ namespace OpenMS
 			target->addInEdge(hover_edge_);
 			hover_edge_->determineEdgeType();
 			
-			hover_edge_->setColor(Qt::yellow);
+			hover_edge_->setColor(QColor(255,165,0));
 			TOPPASIOMappingDialog dialog(hover_edge_);
 			dialog.exec();
 		}

@@ -65,8 +65,6 @@ namespace OpenMS
 			
 			/// Default Constructor
 			TOPPASVertex();
-			/// Constructor
-			TOPPASVertex(const String& name, const String& type = "");
 			/// Copy constructor
 			TOPPASVertex(const TOPPASVertex& rhs);
 			/// Destructor
@@ -74,16 +72,12 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASVertex& operator= (const TOPPASVertex& rhs);
 			
-			/// Returns the name of the tool
-			const String& getName();
-			/// Returns the type of the tool
-			const String& getType();
 			/// Returns the bounding rectangle of this item
-			QRectF boundingRect() const;
+			virtual QRectF boundingRect() const = 0;
 			/// Returns a more precise shape
-			QPainterPath shape () const;
+			virtual QPainterPath shape () const = 0;
 			/// Paints the item
-			void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) = 0;
 			/// Returns begin() iterator of outgoing edges
 			EdgeIterator outEdgesBegin();
 			/// Returns end() iterator of outgoing edges
@@ -128,10 +122,6 @@ namespace OpenMS
 			
 		protected:
 			
-			/// The name of the tool
-			String name_;
-			/// The type of the tool, or "" if it does not have a type
-			String type_;
 			/// The list of incoming edges
 			EdgeContainer in_edges_;
 			/// The list of outgoing edges

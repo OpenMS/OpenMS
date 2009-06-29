@@ -39,31 +39,37 @@ namespace OpenMS
 
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
+			name_(),
+			type_(),
 			param_(),
 			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
-		brush_color_ = QColor(250,200,0);
+		brush_color_ = QColor(245,245,245);
 		initParam_();
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type)
-		: TOPPASVertex(name, type),
+		: TOPPASVertex(),
+			name_(name),
+			type_(type),
 			param_(),
 			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
-		brush_color_ = QColor(250,200,0);
+		brush_color_ = QColor(245,245,245);
 		initParam_();
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
 		:	TOPPASVertex(rhs),
+			name_(rhs.name_),
+			type_(rhs.type_),
 			param_(rhs.param_),
 			id_(id_counter++)
 	{
 		pen_color_ = Qt::black;
-		brush_color_ = QColor(250,200,0);
+		brush_color_ = QColor(245,245,245);
 	}
 
 	TOPPASToolVertex::~TOPPASToolVertex()
@@ -76,6 +82,8 @@ namespace OpenMS
 		TOPPASVertex::operator=(rhs);
 		
 		param_ = rhs.param_;
+		name_ = rhs.name_;
+		type_ = rhs.type_;
 		
 		return *this;
 	}
@@ -181,8 +189,60 @@ namespace OpenMS
 				io_infos.push_back(io_info);
 			}
 		}
-		
 	}
 
+	void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+	{
+		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		if (isSelected())
+		{
+			pen.setWidth(2);
+			painter->setBrush(brush_color_.darker(130));
+		}
+		else
+		{
+			painter->setBrush(brush_color_);
+		}
+		painter->setPen(pen);
+		
+		QPainterPath path;
+		path.addRect(-70.0, -60.0, 140.0, 120.0);		
+ 		painter->drawPath(path);
+ 		
+		if (type_ == "")
+		{
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), name_.toQString());
+		}
+		else
+		{
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), -(int)(text_boundings.height()/3.0), name_.toQString());
+			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
+			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.33), type_.toQString());
+		}
+	}
+	
+	QRectF TOPPASToolVertex::boundingRect() const
+	{
+		return QRectF(-71,-61,142,122);
+	}
+	
+	QPainterPath TOPPASToolVertex::shape () const
+	{
+		QPainterPath shape;
+		shape.addRect(-71.0, -61.0, 142.0, 122.0);				
+		return shape;
+	}
+	
+	const String& TOPPASToolVertex::getName()
+	{
+		return name_;
+	}
+	
+	const String& TOPPASToolVertex::getType()
+	{
+		return type_;
+	}
 }
 

@@ -594,7 +594,7 @@ namespace OpenMS
 		}
 		else if (es == ES_NOT_READY_YET)
 		{
-			setColor(Qt::yellow);
+			setColor(QColor(255,165,0));
 		}
 		else
 		{

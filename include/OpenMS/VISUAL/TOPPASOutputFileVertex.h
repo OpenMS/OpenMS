@@ -47,14 +47,18 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASOutputFileVertex();
-			/// Constructor
-			TOPPASOutputFileVertex(const String& name, const String& type = "");
 			/// Copy constructor
 			TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs);
 			/// Destructor
 			virtual ~TOPPASOutputFileVertex();
 			/// Assignment operator
 			TOPPASOutputFileVertex& operator= (const TOPPASOutputFileVertex& rhs);
+			// documented in base class
+			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+			// documented in base class
+			virtual QRectF boundingRect() const;
+			// documented in base class
+			virtual QPainterPath shape () const;
 			
 		protected:
 		

@@ -54,14 +54,18 @@ namespace OpenMS
 	{
 		TOPPASVertex* source = edge_->getSourceVertex();
 		TOPPASVertex* target = edge_->getTargetVertex();
-		if (qobject_cast<TOPPASToolVertex*>(source))
+		
+		TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
+		
+		if (source_tool)
 		{
 			QVector<TOPPASToolVertex::IOInfo> source_output_files;
-			qobject_cast<TOPPASToolVertex*>(source)->getOutputFiles(source_output_files);
-			source_label->setText(source->getName().toQString());
-			if (source->getType() != "")
+			source_tool->getOutputFiles(source_output_files);
+			source_label->setText(source_tool->getName().toQString());
+			if (source_tool->getType() != "")
 			{
-				source_type_label->setText("(" + source->getType().toQString() + ")");
+				source_type_label->setText("(" + source_tool->getType().toQString() + ")");
 			}
 			else
 			{
@@ -102,14 +106,14 @@ namespace OpenMS
 			source_parameter_label->setVisible(false);
 		}
 		
-		if (qobject_cast<TOPPASToolVertex*>(target))
+		if (target_tool)
 		{
 			QVector<TOPPASToolVertex::IOInfo> target_input_files;
-			qobject_cast<TOPPASToolVertex*>(target)->getInputFiles(target_input_files);
-			target_label->setText(target->getName().toQString());
-			if (target->getType() != "")
+			target_tool->getInputFiles(target_input_files);
+			target_label->setText(target_tool->getName().toQString());
+			if (target_tool->getType() != "")
 			{
-				target_type_label->setText("(" + target->getType().toQString() + ")");
+				target_type_label->setText("(" + target_tool->getType().toQString() + ")");
 			}
 			else
 			{
