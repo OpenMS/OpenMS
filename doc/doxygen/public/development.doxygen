@@ -17,6 +17,7 @@ cmake_minimum_required(VERSION 2.6)
 
 # set the OpenMS_DIR variable to the path were
 # OpenMS is installed, ending with cmake!
+# Windows Users Note: use forward slashes for paths e.g. C:/path/to/OpenMS/cmake
 set(OpenMS_DIR /path/to/OpenMS/cmake)
 find_package(OpenMS)
 

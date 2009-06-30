@@ -61,6 +61,7 @@ namespace OpenMS
 				feature1_charge_(0),
 				compomer_id_(),
 				mass_diff_(0),
+				score_(0),
 				is_active_(false)
 		{
 		}
@@ -78,6 +79,7 @@ namespace OpenMS
 				feature1_charge_(charge1),
 				compomer_id_(compomer_id),
 				mass_diff_(mass_diff),
+				score_(0),
 				is_active_(active)
 		{
 		}
@@ -89,6 +91,7 @@ namespace OpenMS
 				feature1_charge_(rhs.feature1_charge_),
 				compomer_id_(rhs.compomer_id_),
 				mass_diff_(rhs.mass_diff_),
+				score_(rhs.score_),
 				is_active_(rhs.is_active_)
 		{
 		}
@@ -103,6 +106,7 @@ namespace OpenMS
 				feature1_charge_ = rhs.feature1_charge_;
 				compomer_id_ = rhs.compomer_id_;
 				mass_diff_ = rhs.mass_diff_;
+				score_ = rhs.score_;
 				is_active_ = rhs.is_active_;
 
 				return *this;
@@ -166,6 +170,17 @@ namespace OpenMS
 		{
 			mass_diff_ = mass_diff;
 		}
+		
+		/// Returns the ILP edge score
+		Real getEdgeScore() const
+		{
+			return score_;
+		}
+		/// Sets the ILP edge score
+		void setEdgeScore(Real score)
+		{
+			score_ = score;
+		}		
 
 		/// is this pair realized?
 		bool isActive() const
@@ -213,6 +228,8 @@ namespace OpenMS
 		Size compomer_id_;
 		/// mass difference (after explanation by compomer)
 		DoubleReal mass_diff_;
+		/// Score of this edge used in ILP
+		Real score_;
 		/// was this pair realized by ILP?
 		bool is_active_;
   };

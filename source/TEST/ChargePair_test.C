@@ -74,7 +74,8 @@ START_SECTION((ChargePair(const ChargePair &rhs)))
 	TEST_EQUAL(cp.getCharge(0), 4);
 	TEST_EQUAL(cp.getCharge(1), 5);	
 	TEST_EQUAL(cp.getCompomerId(), 99);
-	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);	
+	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);
+	TEST_EQUAL(cp.getEdgeScore(), 0);	
 	TEST_EQUAL(cp.isActive(), false);	
 }
 END_SECTION
@@ -88,7 +89,8 @@ START_SECTION((ChargePair& operator=(const ChargePair &rhs)))
 	TEST_EQUAL(cp.getCharge(0), 4);
 	TEST_EQUAL(cp.getCharge(1), 5);	
 	TEST_EQUAL(cp.getCompomerId(), 99);
-	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);	
+	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);
+	TEST_EQUAL(cp.getEdgeScore(), 0);
 	TEST_EQUAL(cp.isActive(), false);	
 }
 END_SECTION
@@ -158,6 +160,21 @@ START_SECTION((void setMassDiff(DoubleReal mass_diff)))
 	TEST_REAL_SIMILAR(cp.getMassDiff(), 123.432)
 }
 END_SECTION
+
+START_SECTION((Real getEdgeScore() const))
+{
+	NOT_TESTABLE //well.. tested below...
+}
+END_SECTION
+
+START_SECTION((void setEdgeScore(Real score)))
+{
+  ChargePair cp;
+	cp.setEdgeScore(1123.432f);
+	TEST_REAL_SIMILAR(cp.getEdgeScore(), 1123.432)
+}
+END_SECTION
+		
 
 START_SECTION((bool isActive() const))
 {

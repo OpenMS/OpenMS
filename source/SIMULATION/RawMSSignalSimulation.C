@@ -488,6 +488,7 @@ namespace OpenMS {
         const int num_rounds = 10;
         for ( int rounds = 0; rounds < num_rounds; ++rounds)
         {
+        //TODO: WTF!
           data.swap(tmp);
           for ( Size i = 1; i < data.size() - 1; ++i )
           {
