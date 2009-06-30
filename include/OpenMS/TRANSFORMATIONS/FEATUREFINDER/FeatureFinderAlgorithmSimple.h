@@ -217,7 +217,7 @@ namespace OpenMS
 					}
 				}
 			}
-			return;
+			this->ff_->endProgress();
 		} // run
 
 		static FeatureFinderAlgorithm<PeakType,FeatureType>* create()

@@ -176,7 +176,6 @@ namespace OpenMS
 				current_peak_ = indices_.begin();
 
 				initialized_ = true;
-				return;
 			}
 
 			/// contains the indizes 
