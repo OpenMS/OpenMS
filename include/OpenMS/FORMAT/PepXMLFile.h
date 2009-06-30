@@ -67,15 +67,24 @@ namespace OpenMS
 				@brief Loads peptide sequences with modifications out of a PepXML file
 				
 				@param filename PepXML file to load
+				@param protein Protein identification output
 				@param peptides Peptide identification output
-				@param experiment MS run to extract the retention times from (PepXML contains only scan numbers). If the experiment is empty, it is read from @a experiment_name.
 				@param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file. 
+				@param experiment MS run to extract the retention times from (PepXML contains only scan numbers). If the experiment is empty, it is read from @a experiment_name.
 				
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, MSExperiment<>& experiment, const String& experiment_name = "");
+			void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment);
 									
+			/**
+				@brief @a load function with empty defaults for some parameters (see above)
+				
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
+
 			/**
 				@brief Stores idXML as PepXML file
 

@@ -195,6 +195,8 @@ namespace OpenMS
 			return true;
 		case FileTypes::MZIDENTML:
 			return true;
+		case FileTypes::PEPXML:
+			return true;
 		case FileTypes::GELML:
 			return true;
 		case FileTypes::TRAML:
@@ -224,6 +226,9 @@ namespace OpenMS
 		//analysisXML (all lines)
 		if (all_simple.hasSubstring("<mzIdentML")) return FileTypes::MZIDENTML;
 
+		//pepXML (all lines)
+		if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\"")) return FileTypes::PEPXML;
+
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;
 
@@ -248,6 +253,7 @@ namespace OpenMS
 
 		//traML (all lines)
 		if (all_simple.hasSubstring("<TraML")) return FileTypes::TRAML;
+		
 
 		//tokenize lines two to five
 		vector<String> parts;
@@ -315,9 +321,6 @@ namespace OpenMS
 				return FileTypes::MS2;
 			}
 		}
-
-		// pep XML
-		// we cannot read it .. so no need to check
 
 		return FileTypes::UNKNOWN;
 	}

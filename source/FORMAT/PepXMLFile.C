@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-widt: 2; -*-
+// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -42,8 +42,8 @@ namespace OpenMS
 {
 
 	PepXMLFile::PepXMLFile()
-		: XMLHandler("","1.8"),
-			XMLFile("/SCHEMAS/PepXML_1_8.xsd","1.8"),
+		: XMLHandler("","1.12"),
+			XMLFile("/SCHEMAS/pepXML_v112.xsd","1.12"),
 			protein_(0), 
 			peptides_(0),
 			experiment_(0),
@@ -62,8 +62,14 @@ namespace OpenMS
 	}
 	
 
+	void PepXMLFile::load(const String& filename, ProteinIdentification& protein, vector<PeptideIdentification>& peptides, const String& experiment_name)
+	{
+		MSExperiment<> exp;
+		load(filename, protein, peptides, experiment_name, exp);
+	}
+
 	
-  void PepXMLFile::load(const String& filename, ProteinIdentification& protein, vector<PeptideIdentification>& peptides, MSExperiment<>& experiment, const String& experiment_name)
+  void PepXMLFile::load(const String& filename, ProteinIdentification& protein, vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment)
   { 
   	//initialize, load could be called several times
   	experiment_ = 0;
@@ -73,7 +79,7 @@ namespace OpenMS
   	
   	file_ = filename;	// filename for error messages in XMLHandler
 
-		if (experiment_name!="") 
+		if (experiment_name != "") 
 		{
 			// try and load the experiment now
 			if (experiment.empty()) 
@@ -399,8 +405,10 @@ namespace OpenMS
 		
 		else if (wrong_experiment_)
 		{
-			//TODO?
+			// do nothing here (this case exists to prevent parsing of elements for
+			// experiments we're not interested in)
 		}
+		
 		// now, elements occurring more frequently are generally closer to the top
 		else if (element == "search_score")
 		{

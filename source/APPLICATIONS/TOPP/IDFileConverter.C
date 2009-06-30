@@ -88,7 +88,8 @@ protected:
 		addEmptyLine_();
 		addText_("PepXML options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-    																							 "Note: PepXML files do not contain retention times, but only scan numbers.", false);    
+    																							 "Note: PepXML files do not contain retention times, but only scan numbers.", false);
+		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the PepXML file ('base_name' attribute);\nonly necessary if different from 'mz_file'.", false);
     
   }
 
@@ -105,15 +106,32 @@ protected:
     // reading input
     //-------------------------------------------------------------
 		const String in = getStringOption_("in");
-		FileTypes::Type in_type = fh.getTypeByFileName(in);
+		FileTypes::Type in_type = fh.getType(in);
 		
     if (in_type==FileTypes::PEPXML)
   	{
-  		String exp_name = getStringOption_("mz_file");
-  		MSExperiment<> exp;
-  		fh.loadExperiment(exp_name,exp);
+  		String exp_name = getStringOption_("mz_file"),
+				orig_name =	getStringOption_("mz_name");
+
+			// no extension present => add one (will be removed by PepXMLFile)
+			if (!orig_name.empty() && !orig_name.has('.')) {
+				orig_name = orig_name + ".mzXML";
+			}
+			
   		protein_identifications.resize(1);
-  		PepXMLFile().load(in, protein_identifications[0], peptide_identifications, exp, exp_name);
+			if (exp_name.empty()) {
+				PepXMLFile().load(in, protein_identifications[0],
+													peptide_identifications, orig_name);
+			}
+			else {
+				MSExperiment<> exp;
+				fh.loadExperiment(exp_name, exp);
+				if (!orig_name.empty()) {
+					exp_name = orig_name;
+				}
+				PepXMLFile().load(in, protein_identifications[0],
+													peptide_identifications, exp_name, exp);
+			}
   	}
     else if ( in_type==FileTypes::IDXML)
   	{
