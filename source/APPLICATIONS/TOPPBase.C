@@ -118,7 +118,7 @@ namespace OpenMS
 														String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")"
 														,false);
 		}
-		registerFlag_("test","Enables the test mode (needed for software testing only)");
+		registerFlag_("test","Enables the test mode (needed for software testing only)", true);
 		registerFlag_("-help","Shows this help");
 
 		// prepare options and flags for command line parsing

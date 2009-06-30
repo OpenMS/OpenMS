@@ -105,18 +105,18 @@ namespace OpenMS
 	{
 		QFileInfo fi(file.toQString());
 		
-		bool tmp(false);
-		if (!fi.exists())
+		bool tmp = false ;
+		if (fi.exists())
+		{
+			tmp = fi.isWritable();
+		}
+		else
 		{
 			QFile f;
 			f.setFileName(file.toQString());
 			f.open(QIODevice::WriteOnly);
 			tmp = f.isWritable();
-			f.close();
-		}
-		else
-		{
-			tmp = fi.isWritable();
+			f.remove();
 		}
 		
 		return tmp;

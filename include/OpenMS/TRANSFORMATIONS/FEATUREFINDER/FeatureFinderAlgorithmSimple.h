@@ -178,6 +178,9 @@ namespace OpenMS
 			catch(NoSuccessor ex)
 			{
 			}
+			
+			this->ff_->endProgress();
+			
 			// print fitting summary
 			{
 				Size size = this->features_->size();
@@ -217,7 +220,6 @@ namespace OpenMS
 					}
 				}
 			}
-			this->ff_->endProgress();
 		} // run
 
 		static FeatureFinderAlgorithm<PeakType,FeatureType>* create()

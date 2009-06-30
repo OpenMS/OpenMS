@@ -73,7 +73,10 @@ START_SECTION((static bool readable(const String &file)))
 END_SECTION
 
 START_SECTION((static bool writable(const String &file)))
-	TEST_EQUAL(File::writable("/this/file/cannot/be/written/does_not_exists.txt"), false)
+	TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
+	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
+		
 	String filename;
 	NEW_TMP_FILE(filename);
 	TEST_EQUAL(File::writable(filename), true)
