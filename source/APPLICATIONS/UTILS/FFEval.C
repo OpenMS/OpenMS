@@ -284,16 +284,18 @@ class TOPPFFEVal
 		cout << endl;
 		cout << "feature matching statistics:" << endl;
 		cout << "============================" << endl;
-		Size tmp = count(features_truth,"matches","0");
-		cout << "no match: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = count(features_truth,"matches","1");
-		cout << "one match: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = count(features_truth,"correct_charge","true");
-		cout << " - correct charge: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = count(features_truth,"exact_centroid_match","true");
-		cout << " - exact centroid match: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = features_truth.size() - count(features_truth,"matches","0") - count(features_truth,"matches","1");
-		cout << "multiple matches: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		Size no_match = count(features_truth,"matches","0");
+		cout << "no match: " << no_match << percentage(no_match,features_truth.size()) << endl;
+		Size one_match = count(features_truth,"matches","1");
+		cout << "one match: " << one_match << percentage(one_match,features_truth.size()) << endl;
+		Size charge_match = count(features_truth,"correct_charge","true");
+		cout << " - correct charge: " << charge_match << percentage(charge_match,features_truth.size()) << endl;
+		Size centroid_match = count(features_truth,"exact_centroid_match","true");
+		cout << " - exact centroid match: " << centroid_match << percentage(centroid_match,features_truth.size()) << endl;
+		Size multi_match = features_truth.size() - count(features_truth,"matches","0") - count(features_truth,"matches","1");
+		cout << "multiple matches: " << multi_match << percentage(multi_match,features_truth.size()) << endl;
+		Size incorrect_match = multi_match + one_match - charge_match;
+		cout << "incorrect matches: " << incorrect_match << percentage(incorrect_match,features_truth.size()) << endl;
 		if (abort_reasons.size())
 		{
 			cout << "reasons for unmatched features:" << endl;
