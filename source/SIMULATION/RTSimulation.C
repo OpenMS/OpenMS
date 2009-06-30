@@ -180,7 +180,7 @@ namespace OpenMS {
     SimCoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
     SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      
     
-    for (UInt i = 0; i < peptidesVector.size(); i++)
+    for (Size i = 0; i < peptidesVector.size(); ++i)
     {
       // TODO: remove those peptides + debug out removed ones??
       if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;

@@ -43,6 +43,7 @@ namespace OpenMS {
    TODO:
     * add removeDuplicate Points
     * review Ole's methods for improvment/changes
+    * BIG TODO: initialize members!!!!
   */
   RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
   : DefaultParamHandler("RawSignalSimulation"), rnd_gen_(random_generator)
@@ -126,6 +127,8 @@ namespace OpenMS {
     peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
+		// TODO: this needs to be known to IonizationsSim as well...
+		// or every signal outside the range must be discarded here (favoring the first - use param-mirroring in MSSim)
     maximal_mz_measurement_limit_ = param_.getValue("mz:upper_measurement_limit");
     minimal_mz_measurement_limit_ = param_.getValue("mz:lower_measurement_limit");
 
@@ -198,6 +201,7 @@ namespace OpenMS {
 
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 1500;
+    // TODO: ahhh. Does that mean every time I use this funtion (luckily we only do it once, mean_scaling_ is increased?)
     mean_scaling_ += scale;
     ++ion_count_;
 
@@ -254,7 +258,6 @@ namespace OpenMS {
       // ignore the current feature
       return;
     }
-    active_feature.setMZ(mz);
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
@@ -265,6 +268,9 @@ namespace OpenMS {
     isomodel->setSamples(feature_ef);
     isomodel->setParameters(p1);
 
+		// TODO: this is big CR*P! RT elution profiles should be done in RTSimulation, but way BEFORE Ionization!!!!
+		// we just need to figure out how to change the size (not position) for less intense sibling ions - maybe storing a
+		// model with a width param (depending on intensity) is the way to go...
     chooseElutionProfile_(pm,active_feature.getRT(),scale);
     pm.setModel(1,isomodel);
     pm.setScale(scale);
@@ -358,7 +364,9 @@ namespace OpenMS {
 
     SimPointType point;
 
-    Int start_scan = -5;
+    Int start_scan = exp_iter - experiment.begin();
+    //std::cout << "start_scan: " << start_scan << std::endl;
+    
     Int end_scan  = -5;
 
     //UInt it = 0;
@@ -375,12 +383,6 @@ namespace OpenMS {
 
         if ( point.getIntensity() > 10.0)
         {
-          if (start_scan == -5)
-          {
-            start_scan = exp_iter - experiment.begin();
-            //std::cout << "start_scan: " << start_scan << std::endl;
-          }
-
           if (! changed_scans_.at( exp_iter - experiment.begin() ) )
           {
             changed_scans_.at( exp_iter - experiment.begin() )  = true;
@@ -410,10 +412,6 @@ namespace OpenMS {
     }
 
     //cout << "End of sampling: " << it << " vs " << pit << endl;
-
-    // do not set this here, because it might include low intensity points and is inconsistent with the convex hull
-    //end_scan = exp_iter - exp_.begin();
-
 
     //cout << "end_scan: " << end_scan << endl;
 
@@ -563,6 +561,7 @@ namespace OpenMS {
       for ( Size j = 0 ; j < experiment[i].size() ; ++j )
       {
         SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit_);
+        // TODO: what is this?! Baseline up to 1000Th and then what?
         if (x >= 1000.0) continue; // speed-up
 
         DoubleReal b = gsl_ran_exponential_pdf(x,125.0);
