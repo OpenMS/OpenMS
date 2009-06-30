@@ -3,7 +3,7 @@
 <consensusXML version="1.3" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IDMapper" version="version_string" />
-		<processingAction name="Quantitation" />
+		<processingAction name="Identification mapping" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2008-10-29T10:17:55" search_engine="InsPecT" search_engine_version="20080404">

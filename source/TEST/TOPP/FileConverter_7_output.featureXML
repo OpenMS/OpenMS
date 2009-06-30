@@ -2,7 +2,7 @@
 <featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FileConverter" version="version_string" />
-		<processingAction name="Identification mapping" />
+		<processingAction name="File format conversion" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="33">

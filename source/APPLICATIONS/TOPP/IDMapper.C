@@ -119,7 +119,7 @@ class TOPPIDMapper
 				mapper.annotate(map,peptide_ids,protein_ids);
 				
 				//annotate output with data processing info
-				addDataProcessing_(map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+				addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 				
 				file.store(out,map);
 			}
@@ -136,7 +136,7 @@ class TOPPIDMapper
 				mapper.annotate(map,peptide_ids,protein_ids);
 				
 				//annotate output with data processing info
-				addDataProcessing_(map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+				addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 				
 				file.store(out,map);
 			}
