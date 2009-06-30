@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -76,7 +76,9 @@ protected:
 		setValidFormats_("gt",StringList::create("consensusXML"));
 		//registerOutputFile_("out","<file>","","output file ");
 		registerStringOption_("type","<name>","","Caap Evaluation type",true);
-		setValidStrings_("type",Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts());
+		StringList types = Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts();
+		types.push_back("F1");
+		setValidStrings_("type", types);
 		registerDoubleOption_("rt_dev","<double>",0.1,"Maximum allowed deviation of the retention time", false);
 		registerDoubleOption_("mz_dev","<double>",0.1,"Maximum allowed deviation of m/z", false);
 		registerDoubleOption_("int_dev","<double>",100,"Maximum allowed deviation of Intensity", false);
@@ -108,7 +110,8 @@ protected:
 
 		bool use_charge = getFlag_("use_charge");
 
-		DoubleReal out = 0;
+		DoubleReal out1 = 0;
+		DoubleReal out2 = 0;
 
 		//-------------------------------------------------------------
 		// check for valid input
@@ -125,12 +128,6 @@ protected:
 			writeLog_("Error: The groundtruth file must be of type ConsensusXML!");
 			return ILLEGAL_PARAMETERS;
 		}
-
-		//-------------------------------------------------------------
-		// set up algorithm
-		//-------------------------------------------------------------
-		MapAlignmentEvaluationAlgorithm* algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
-
 		
 		//-------------------------------------------------------------
 		// read input files
@@ -149,11 +146,32 @@ protected:
 		consensus_xml_file_in.load( gt, consensus_map_gt );
 		
 
-		//evaluate
-		algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out);
+		//-------------------------------------------------------------
+		// set up algorithm
+		//-------------------------------------------------------------
+		if (type == "F1")
+		{
+			MapAlignmentEvaluationAlgorithm* algorithm_p = Factory<MapAlignmentEvaluationAlgorithm>::create("precision");
+			MapAlignmentEvaluationAlgorithm* algorithm_r = Factory<MapAlignmentEvaluationAlgorithm>::create("recall");
+			//evaluate
+			algorithm_p->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out1);
+			algorithm_r->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out2);
 
-		//write output
-		cout << type << ": " << out << "\n";
+			//write output
+			cout << "precision" << ": " << out1 << "\n";
+			cout << "   recall" << ": " << out2 << "\n";
+			cout << "-->    F1" << ": " << (2*out1*out2)/(out1+out2) << " (2*precision*recall)/(precision+recall)\n";
+			
+		}
+		else
+		{
+			MapAlignmentEvaluationAlgorithm* algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
+			//evaluate
+			algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out1);
+
+			//write output
+			cout << type << ": " << out1 << "\n";
+		}
 
 		return EXECUTION_OK;
 	}
