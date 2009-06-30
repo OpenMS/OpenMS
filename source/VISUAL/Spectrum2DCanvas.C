@@ -1163,7 +1163,7 @@ namespace OpenMS
 			highlightPeak_(painter, measurement_start_);
 		}
 		
-		//draw convex hulls or consensus feeature elements
+		//draw convex hulls or consensus feature elements
 		if (selected_peak_.isValid())
 		{
 			if (getCurrentLayer().type==LayerData::DT_FEATURE)
@@ -1305,7 +1305,7 @@ namespace OpenMS
 		}
 		else if (action_mode_==AM_ZOOM)
 		{
-			//Zoom mode => no peak should be select
+			//Zoom mode => no peak should be selected
 			selected_peak_.clear();
 			update_(__PRETTY_FUNCTION__);
 		}
