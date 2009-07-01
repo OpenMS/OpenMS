@@ -121,7 +121,10 @@ add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TO
 add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
 add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzML -out FileFilter.tmp -remove_mode SelectedIonMonitoring)
 add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzML)
-## TODO (Chris): test -remove_activation <activation> switch once mzML is our default
+add_test("TOPP_FileFilter_10" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_10_input.mzML -out FileFilter.tmp -remove_activation "Collision-induced dissociation")
+add_test("TOPP_FileFilter_10_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_10_output.mzML)
+add_test("TOPP_FileFilter_11" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_11_input.mzML -out FileFilter.tmp -remove_activation "Plasma desorption")
+add_test("TOPP_FileFilter_11_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_11_output.mzML)
 
 
 ### FileInfo tests

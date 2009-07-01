@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="lsid" version="1.1">
+	<cvList count="2">
+		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent>
+			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+			<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
+		</fileContent>
+		<sourceFileList count="1">
+			<sourceFile id="sf_ru_0" name="MzDataFile_test_1.raw" location="/share/data/">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+			<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+			</sourceFile>
+		</sourceFileList>
+		<contact>
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Doe, John" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="department 1" />
+			<userParam name="contact_info" type="xsd:string" value="www.john.doe"/>
+		</contact>
+		<contact>
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Doe, Jane" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="department 2" />
+			<userParam name="contact_info" type="xsd:string" value="www.jane.doe"/>
+		</contact>
+	</fileDescription>
+	<sampleList count="1">
+		<sample id="sa_0" name="MS-Sample">
+			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="0-815" />
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="1.01"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="2.02" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="3.03" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000048" name="gas" />
+			<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+			<userParam name="SampleComment" type="xsd:string" value="Sample"/>
+		</sample>
+	</sampleList>
+	<softwareList count="8">
+		<software id="so_in_0" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_default" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_dp_sp_0_pm_0" version="1.0" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="MS-X" />
+			<userParam name="comment" type="xsd:string" value="SoftwareComment"/>
+		</software>
+		<software id="so_dp_sp_0_pm_1" version="1.4" >
+			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
+		</software>
+	</softwareList>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ic_0">
+			<cvParam cvRef="MS" accession="MS:1000031" name="instrument model" />
+			<cvParam cvRef="MS" accession="MS:1000032" name="customization" value="tuned" />
+			<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+			<userParam name="AdditionalComment" type="xsd:string" value="Additional"/>
+			<componentList count="4">
+				<source order="0">
+					<cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" />
+					<cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" />
+					<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+					<userParam name="SourceComment" type="xsd:string" value="Source"/>
+				</source>
+				<analyzer order="0">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="33.44" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="66.77" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="2" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="88.99" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000105" name="reflectron off" />
+					<cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" />
+					<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+					<userParam name="AnalyzerComment" type="xsd:string" value="Analyzer 1"/>
+				</analyzer>
+				<analyzer order="0">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="13.4" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="16.7" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="-2" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="18.9" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000106" name="reflectron on" />
+					<cvParam cvRef="MS" accession="MS:1000081" name="quadrupole" />
+					<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+					<userParam name="AnalyzerComment" type="xsd:string" value="Analyzer 2"/>
+				</analyzer>
+				<detector order="0">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0.815" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="11.22" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" />
+					<cvParam cvRef="MS" accession="MS:1000112" name="faraday cup" />
+					<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+					<userParam name="DetectorComment" type="xsd:string" value="Detector"/>
+				</detector>
+			</componentList>
+			<softwareRef ref="so_in_0" />
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+	<dataProcessingList count="6">
+		<dataProcessing id="dp_sp_0">
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
+				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
+				<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+				<userParam name="comment" type="xsd:string" value="ProcessingComment"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2009-07-01+14:14" />
+				<userParam name="parameter: in" type="xsd:string" value="MzDataFile_1.mzData"/>
+				<userParam name="parameter: out" type="xsd:string" value="MzDataFile_1.mzML"/>
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_1_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_2_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_3_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_1">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_2">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_3">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_4">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_5">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_6">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_5_bi_7">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
+		<spectrumList count="6" defaultDataProcessingRef="dp_sp_0">
+			<spectrum id="spectrum=10" index="0" defaultArrayLength="1" dataProcessingRef="dp_sp_0">
+				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="12">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAXkA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="8">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQg==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="comment" type="xsd:string" value="bla|comment|bla"/>
+						<userParam name="Comment" type="xsd:string" value="Area of the peak"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Full width at half max"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Left width"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Right width"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Peak charge"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Signal to noise ratio"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Correlation value"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="Comment" type="xsd:string" value="Peak shape"/>
+						<binary>AAAAAAAAWUA=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="spectrum=11" index="1" defaultArrayLength="3">
+				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<scanList count="2">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="501">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="120" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 1"/>
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+					<scan externalSpectrumID="502">
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
+					</scan>
+				</scanList>
+				<precursorList count="2">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="3.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active"/>
+					</activation>
+				</precursor>
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="4.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected2"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active2"/>
+					</activation>
+				</precursor>
+			</precursorList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="32">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAACAW0AAAAAAAABeQAAAAAAAQGBA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="16">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQgAASEMAAMhC</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="spectrum=12" index="2" defaultArrayLength="5">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000129" name="negative scan" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="601">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="160" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="140" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="28">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="spectrum=13" index="3" defaultArrayLength="3">
+				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<scanList count="2">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="501">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="180" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 1"/>
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+					<scan externalSpectrumID="502">
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
+					</scan>
+				</scanList>
+				<precursorList count="2">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="3.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000598" name="electron transfer dissociation" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active"/>
+					</activation>
+				</precursor>
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="4.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected2"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active2"/>
+					</activation>
+				</precursor>
+			</precursorList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="32">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAACAW0AAAAAAAABeQAAAAAAAQGBA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="16">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQgAASEMAAMhC</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="spectrum=14" index="4" defaultArrayLength="5">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000129" name="negative scan" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="601">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="181" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="140" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="28">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="5" encodedLength="56" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="spectrum=15" index="5" defaultArrayLength="3">
+				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<scanList count="2">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan externalSpectrumID="501">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="182" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 1"/>
+						<scanWindowList count="1">
+							<scanWindow>
+								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</scanWindow>
+						</scanWindowList>
+					</scan>
+					<scan externalSpectrumID="502">
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
+					</scan>
+				</scanList>
+				<precursorList count="2">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="3.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000134" name="plasma desorption" />
+						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active"/>
+					</activation>
+				</precursor>
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="4.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000136" name="surface-induced dissociation" />
+						<userParam name="IonSelectionComment" type="xsd:string" value="selected2"/>
+						<userParam name="ActivationComment" type="xsd:string" value="active2"/>
+					</activation>
+				</precursor>
+			</precursorList>
+				<binaryDataArrayList count="10">
+					<binaryDataArray encodedLength="32">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAACAW0AAAAAAAABeQAAAAAAAQGBA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="16">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AADIQgAASEMAAMhC</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+		</spectrumList>
+	</run>
+</mzML>
