@@ -64,8 +64,7 @@ using namespace std;
 	- consensusXML
 		- filter by size (number of elements in consensus features)
 
-	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
-	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
+	@improvement MS2 and higher spectra should be filtered according to precursor m/z and RT. The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileFilter.cli

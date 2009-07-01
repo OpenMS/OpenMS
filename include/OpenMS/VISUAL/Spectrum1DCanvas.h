@@ -47,6 +47,8 @@ namespace OpenMS
 		
 		The example image shows %Spectrum1DCanvas displaying a raw data layer and a peak data layer. 
 		
+		@todo Use spectrum StringDataArray with name 'label' for peak annotations (Hiwi, Johannes)
+		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
 				
 		@ingroup SpectrumWidgets

@@ -79,7 +79,7 @@ namespace OpenMS
     
     @improvement Add log mode (Hiwi)
 
-    @improvement Make layer container a list and allow reordering by drag-and-drop in layer bar (Hiwi)
+    @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
 
 		@ingroup SpectrumWidgets
 	*/
