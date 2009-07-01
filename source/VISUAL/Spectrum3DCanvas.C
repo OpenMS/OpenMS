@@ -119,9 +119,14 @@ namespace OpenMS
 		}
 		
 		recalculateRanges_(0,1,2);
-	
 		resetZoom(false);
 		
+		//Warn if negative intensities are contained
+		if (getMinIntensity(current_layer_)<0.0)
+		{
+			QMessageBox::warning(this,"Warning","This dataset contains negative intensities. Use it at your own risk!");
+		}
+			
 		emit layerActivated(this);
 		openglwidget()->recalculateDotGradient_(current_layer_);
 		update_buffer_ = true;

@@ -51,9 +51,9 @@ namespace OpenMS
 
     It can be used to create objects from the DB or store them in the DB.
 
-		@todo Add DataProcessing to MetaInfoDescription (Hiwi)
-		@todo Check if test is really complete (Hiwi)
-		@todo Check that all values are quoted (Hiwi)
+		@todo Add DataProcessing to MetaInfoDescription (Hiwi, Mathias)
+		@todo Check if test is really complete (Hiwi, Mathias)
+		@todo Check that all values are quoted (Hiwi, Mathias)
 
     @ingroup DatabaseIO
   */

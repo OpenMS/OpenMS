@@ -1017,7 +1017,7 @@ namespace OpenMS
 			QMessageBox::critical(this,"Error","Cannot add an empty dataset. Aborting!");
 			return false;
 		}
-				
+		
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
 		//estimate peak type
@@ -1068,8 +1068,13 @@ namespace OpenMS
 		overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
 		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
-		
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+		
+		//Warn if negative intensities are contained
+		if (getMinIntensity(current_layer_)<0.0)
+		{
+			QMessageBox::warning(this,"Warning","This dataset contains negative intensities. Use it at your own risk!");
+		}
 		
 		if (getLayerCount()==2)
 		{

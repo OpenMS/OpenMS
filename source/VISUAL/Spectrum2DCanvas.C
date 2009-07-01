@@ -824,10 +824,14 @@ namespace OpenMS
 			}
 		}
 
+		//Warn if negative intensities are contained
+		if (getMinIntensity(current_layer_)<0.0)
+		{
+			QMessageBox::warning(this,"Warning","This dataset contains negative intensities. Use it at your own risk!");
+		}
+
 		//overall values update
 		recalculateRanges_(0,1,2);
-		//cout << "New data range: " << overall_data_range_ << endl;
-
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 
 		if (getLayerCount()==2)
