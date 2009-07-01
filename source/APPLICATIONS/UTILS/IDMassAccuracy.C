@@ -34,6 +34,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
+#include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -247,23 +248,34 @@ class TOPPIDMassAccuracy
 			String precursor_out_file(getStringOption_("precursor_out"));
 			if (precursor_out_file != "")
 			{
+				vector<DoubleReal> errors;
 				ofstream precursor_out(precursor_out_file.c_str());
 				for (Size i = 0; i != precursor_diffs.size(); ++i)
 				{
 					precursor_out << precursor_diffs[i].exp_mz - precursor_diffs[i].theo_mz << endl;
+					errors.push_back(precursor_diffs[i].exp_mz - precursor_diffs[i].theo_mz);
 				}
 				precursor_out.close();
+
+				cout << "Precursor mean error: " << gsl_stats_mean(&errors.front(), 1, errors.size()) << endl;
+				cout << "Precursor abs. dev.:  " << gsl_stats_absdev(&errors.front(), 1, errors.size()) << endl;
+				cout << "Precursor std. dev.:  " << gsl_stats_sd(&errors.front(), 1, errors.size()) << endl;
 			}
 
 			String fragment_out_file(getStringOption_("fragment_out"));
 			if (fragment_out_file != "")
 			{
+				vector<DoubleReal> errors;
 				ofstream fragment_out(fragment_out_file.c_str());
 				for (Size i = 0; i != fragment_diffs.size(); ++i)
 				{
 					fragment_out << fragment_diffs[i].exp_mz - fragment_diffs[i].theo_mz << endl;
+					errors.push_back(fragment_diffs[i].exp_mz - fragment_diffs[i].theo_mz);
 				}
 				fragment_out.close();
+				cout << "Fragment mean error:  " << gsl_stats_mean(&errors.front(), 1, errors.size()) << endl;
+				cout << "Fragment abs. dev.:   " << gsl_stats_absdev(&errors.front(), 1, errors.size()) << endl;
+				cout << "Fragment std. dev.:   " << gsl_stats_sd(&errors.front(), 1, errors.size()) << endl;
 			}
 	
 			return EXECUTION_OK;
