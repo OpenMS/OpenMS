@@ -247,7 +247,7 @@ class TOPPResampler
       {
         lin_resampler.raster(exp[i]);
         //clear meta data because they are no longer meaningful
-        exp[i].getMetaDataArrays().clear();
+        exp[i].getFloatDataArrays().clear();
       }
       
       //annotate output with data processing info

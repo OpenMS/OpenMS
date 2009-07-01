@@ -94,7 +94,7 @@ namespace OpenMS
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
-			for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+			for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
 			{
 				if (it->getName()==name)
 				{
@@ -114,7 +114,7 @@ namespace OpenMS
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
-			for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+			for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
 			{
 				if (it->getName()==name)
 				{

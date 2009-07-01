@@ -810,9 +810,9 @@ namespace OpenMS
 			//-------------------- store METAINFODESCRIPTION / METADATAARRAYS  -----------------------
 			//----------------------------------------------------------------------------------------
 
-			const typename ExperimentType::SpectrumType::MetaDataArrays& meta_data_arrays = exp_it->getMetaDataArrays();
+			const typename ExperimentType::SpectrumType::FloatDataArrays& meta_data_arrays = exp_it->getFloatDataArrays();
 
-			for (typename ExperimentType::SpectrumType::MetaDataArrays::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
+			for (typename ExperimentType::SpectrumType::FloatDataArrays::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
 			{
 				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
 				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs
@@ -853,7 +853,7 @@ namespace OpenMS
 
 				storeMetaInfo_("META_MetaInfoDescription", parent_id, *mdarrays_it);
 
-				// store meta data contained in the MetaDataArrays
+				// store meta data contained in the FloatDataArrays
 				query.str("");
 				query << "DELETE FROM DATA_PeakMetaData WHERE fid_MetaInfoDescription=";
 				query << parent_id;
@@ -866,7 +866,7 @@ namespace OpenMS
 
 				query.str("");
 				query << "INSERT INTO DATA_PeakMetaData (fid_Peak,fid_MetaInfoDescription,Value) VALUES ";
-				for (typename ExperimentType::SpectrumType::MetaDataArray::const_iterator meta_array_it = mdarrays_it->begin(); meta_array_it != mdarrays_it->end(); meta_array_it++)
+				for (typename ExperimentType::SpectrumType::FloatDataArray::const_iterator meta_array_it = mdarrays_it->begin(); meta_array_it != mdarrays_it->end(); meta_array_it++)
 				{
 					if(result.isValid())
 					{
@@ -1659,11 +1659,11 @@ namespace OpenMS
 
 		while(result.isValid())
 		{
-			typename SpectrumType::MetaDataArray meta_array;
+			typename SpectrumType::FloatDataArray meta_array;
 			meta_array.setName(result.value(0).toString());
 			loadMetaInfo_(result.value(1).toInt(), meta_array);
 			
-			spec.getMetaDataArrays().push_back(meta_array);
+			spec.getFloatDataArrays().push_back(meta_array);
 			result.next();
 		}
 
@@ -1769,7 +1769,7 @@ namespace OpenMS
 			p.setIntensity(result.value(1).toDouble());
 			loadMetaInfo_(result.value(2).toInt(), p);
 			spec.push_back(p);
-			for (typename SpectrumType::MetaDataArrays::iterator mdarrays_it = spec.getMetaDataArrays().begin(); mdarrays_it != spec.getMetaDataArrays().end(); mdarrays_it++)
+			for (typename SpectrumType::FloatDataArrays::iterator mdarrays_it = spec.getFloatDataArrays().begin(); mdarrays_it != spec.getFloatDataArrays().end(); mdarrays_it++)
 			{
 				query.str("");
 				query << "SELECT id FROM META_MetaInfoDescription WHERE Name='";

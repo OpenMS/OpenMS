@@ -1276,9 +1276,9 @@ namespace OpenMS
 					//meta info
 					String status;
 					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-					for (Size m=0; m<s.getMetaDataArrays().size();++m)
+					for (Size m=0; m<s.getFloatDataArrays().size();++m)
 					{
-						status += s.getMetaDataArrays()[m].getName() + ": " + s.getMetaDataArrays()[m][selected_peak_.peak] + " ";
+						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
 					}
 					emit sendStatusMessage(status, 0);
 				}

@@ -41,7 +41,7 @@ namespace OpenMS
 		@brief DataFilter array providing some convenience functions
 		
 		@note For features the meta data filtering works on the MetaDataInterface of the Feature.
-		For peaks it works on the MetaDataArrays definded in MSSpectrum.
+		For peaks it works on the FloatDataArrays definded in MSSpectrum.
 	*/
 	class OPENMS_DLLAPI DataFilters
 	{
@@ -200,7 +200,7 @@ namespace OpenMS
 					}
 					else if (filter.field==META_DATA)
 					{
-						const typename MSSpectrum<PeakType>::MetaDataArrays& mdas = spectrum.getMetaDataArrays();
+						const typename MSSpectrum<PeakType>::FloatDataArrays& mdas = spectrum.getFloatDataArrays();
 						//find the right meta data array
 						SignedSize mda_index = -1;
 						for (Size j=0; j<mdas.size(); ++j)

@@ -1271,15 +1271,15 @@ namespace OpenMS
 		if(input.size()<2) return;
 
 		//set up meta data arrays
-		output.getMetaDataArrays().clear();
-		output.getMetaDataArrays().resize(7);
-		output.getMetaDataArrays()[0].setName("rValue");
-		output.getMetaDataArrays()[1].setName("maximumIntensity");
-		output.getMetaDataArrays()[2].setName("fwhm");
-		output.getMetaDataArrays()[3].setName("leftWidth");
-		output.getMetaDataArrays()[4].setName("rightWidth");
-		output.getMetaDataArrays()[5].setName("peakShape");
-		output.getMetaDataArrays()[6].setName("SignalToNoise");
+		output.getFloatDataArrays().clear();
+		output.getFloatDataArrays().resize(7);
+		output.getFloatDataArrays()[0].setName("rValue");
+		output.getFloatDataArrays()[1].setName("maximumIntensity");
+		output.getFloatDataArrays()[2].setName("fwhm");
+		output.getFloatDataArrays()[3].setName("leftWidth");
+		output.getFloatDataArrays()[4].setName("rightWidth");
+		output.getFloatDataArrays()[5].setName("peakShape");
+		output.getFloatDataArrays()[6].setName("SignalToNoise");
 
 		/// The continuous wavelet "transformer"
 		ContinuousWaveletTransformNumIntegration wt;
@@ -1562,13 +1562,13 @@ namespace OpenMS
 			//reserve space in the output container
 			Size number_of_peaks = peak_shapes.size()-peaks_to_skip.size();
 			output.reserve(number_of_peaks);
-			output.getMetaDataArrays()[0].reserve(number_of_peaks);
-			output.getMetaDataArrays()[1].reserve(number_of_peaks);
-			output.getMetaDataArrays()[2].reserve(number_of_peaks);
-			output.getMetaDataArrays()[3].reserve(number_of_peaks);
-			output.getMetaDataArrays()[4].reserve(number_of_peaks);
-			output.getMetaDataArrays()[5].reserve(number_of_peaks);
-			output.getMetaDataArrays()[6].reserve(number_of_peaks);
+			output.getFloatDataArrays()[0].reserve(number_of_peaks);
+			output.getFloatDataArrays()[1].reserve(number_of_peaks);
+			output.getFloatDataArrays()[2].reserve(number_of_peaks);
+			output.getFloatDataArrays()[3].reserve(number_of_peaks);
+			output.getFloatDataArrays()[4].reserve(number_of_peaks);
+			output.getFloatDataArrays()[5].reserve(number_of_peaks);
+			output.getFloatDataArrays()[6].reserve(number_of_peaks);
 			
 			// write the picked peaks to the output container
 			for (Size i = 0; i < peak_shapes.size(); ++i)
@@ -1582,13 +1582,13 @@ namespace OpenMS
 					picked_peak.setMZ(peak_shapes[i].mz_position);
 					output.push_back(picked_peak);
 					//store meta data
-					output.getMetaDataArrays()[0].push_back(peak_shapes[i].r_value);
-					output.getMetaDataArrays()[1].push_back(peak_shapes[i].area);
-					output.getMetaDataArrays()[2].push_back(peak_shapes[i].getFWHM());
-					output.getMetaDataArrays()[3].push_back(peak_shapes[i].left_width);
-					output.getMetaDataArrays()[4].push_back(peak_shapes[i].right_width);
-					output.getMetaDataArrays()[5].push_back(peak_shapes[i].type);
-					output.getMetaDataArrays()[6].push_back(peak_shapes[i].signal_to_noise);
+					output.getFloatDataArrays()[0].push_back(peak_shapes[i].r_value);
+					output.getFloatDataArrays()[1].push_back(peak_shapes[i].area);
+					output.getFloatDataArrays()[2].push_back(peak_shapes[i].getFWHM());
+					output.getFloatDataArrays()[3].push_back(peak_shapes[i].left_width);
+					output.getFloatDataArrays()[4].push_back(peak_shapes[i].right_width);
+					output.getFloatDataArrays()[5].push_back(peak_shapes[i].type);
+					output.getFloatDataArrays()[6].push_back(peak_shapes[i].signal_to_noise);
 				}
 			}
 		} // if (peak_shapes.size() > 0)		
@@ -1645,7 +1645,7 @@ namespace OpenMS
 								DoubleReal fwhm = 0.;
 								for(Size p = 0; p < spec.size();++p)
 									{
-										fwhm += spec.getMetaDataArrays()[2][p];
+										fwhm += spec.getFloatDataArrays()[2][p];
 									}
 								fwhm /= (DoubleReal) spec.size();
 

@@ -131,33 +131,33 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 // test for 2D optimization
   TOLERANCE_ABSOLUTE(0.01)
   MSSpectrum<> peaks;
-  peaks.getMetaDataArrays().resize(6);
-  peaks.getMetaDataArrays()[1].setName("maximumIntensity");
-  peaks.getMetaDataArrays()[1].push_back(100.); //area
-  peaks.getMetaDataArrays()[3].setName("leftWidth");
-	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
-  peaks.getMetaDataArrays()[4].setName("rightWidth");
-	peaks.getMetaDataArrays()[4].push_back(2.6f); //right width
-  peaks.getMetaDataArrays()[5].setName("peakShape");
-	peaks.getMetaDataArrays()[5].push_back(0); //shape
-  peaks.getMetaDataArrays()[1].push_back(100.); //area
-	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
-	peaks.getMetaDataArrays()[4].push_back(2.5f); //right width
-	peaks.getMetaDataArrays()[5].push_back(0); //shape
+  peaks.getFloatDataArrays().resize(6);
+  peaks.getFloatDataArrays()[1].setName("maximumIntensity");
+  peaks.getFloatDataArrays()[1].push_back(100.); //area
+  peaks.getFloatDataArrays()[3].setName("leftWidth");
+	peaks.getFloatDataArrays()[3].push_back(2.5f); //left width
+  peaks.getFloatDataArrays()[4].setName("rightWidth");
+	peaks.getFloatDataArrays()[4].push_back(2.6f); //right width
+  peaks.getFloatDataArrays()[5].setName("peakShape");
+	peaks.getFloatDataArrays()[5].push_back(0); //shape
+  peaks.getFloatDataArrays()[1].push_back(100.); //area
+	peaks.getFloatDataArrays()[3].push_back(2.5f); //left width
+	peaks.getFloatDataArrays()[4].push_back(2.5f); //right width
+	peaks.getFloatDataArrays()[5].push_back(0); //shape
   MSSpectrum<> peaks2;
-  peaks2.getMetaDataArrays().resize(6);
-  peaks2.getMetaDataArrays()[1].setName("maximumIntensity");
-  peaks2.getMetaDataArrays()[1].push_back(100.); //area
-  peaks2.getMetaDataArrays()[3].setName("leftWidth");
-	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
-  peaks2.getMetaDataArrays()[4].setName("rightWidth");
-	peaks2.getMetaDataArrays()[4].push_back(2.6f); //right width
-  peaks2.getMetaDataArrays()[5].setName("peakShape");
-	peaks2.getMetaDataArrays()[5].push_back(0); //shape
-  peaks2.getMetaDataArrays()[1].push_back(100.); //area
-	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
-	peaks2.getMetaDataArrays()[4].push_back(2.5f); //right width
-	peaks2.getMetaDataArrays()[5].push_back(0); //shape
+  peaks2.getFloatDataArrays().resize(6);
+  peaks2.getFloatDataArrays()[1].setName("maximumIntensity");
+  peaks2.getFloatDataArrays()[1].push_back(100.); //area
+  peaks2.getFloatDataArrays()[3].setName("leftWidth");
+	peaks2.getFloatDataArrays()[3].push_back(2.5f); //left width
+  peaks2.getFloatDataArrays()[4].setName("rightWidth");
+	peaks2.getFloatDataArrays()[4].push_back(2.6f); //right width
+  peaks2.getFloatDataArrays()[5].setName("peakShape");
+	peaks2.getFloatDataArrays()[5].push_back(0); //shape
+  peaks2.getFloatDataArrays()[1].push_back(100.); //area
+	peaks2.getFloatDataArrays()[3].push_back(2.5f); //left width
+	peaks2.getFloatDataArrays()[4].push_back(2.5f); //right width
+	peaks2.getFloatDataArrays()[5].push_back(0); //shape
 	
 	Peak1D peak;
   PeakShape peak_shape,peak_shape2;
@@ -243,21 +243,21 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
  	opt_2d.setParameters(param);
   opt_2d.optimize(first,last,ms_exp,true);
   TEST_REAL_SIMILAR(ms_exp[0][0].getMZ(),500)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[3][0],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[4][0],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[1][0],100)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[3][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[4][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[1][0],100)
 	TEST_REAL_SIMILAR(ms_exp[0][1].getMZ(),501)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[3][1],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[4][1],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[1][1],100)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[3][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[4][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getFloatDataArrays()[1][1],100)
 	TEST_REAL_SIMILAR(ms_exp[1][0].getMZ(),500)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[3][0],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[4][0],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[1][0],100)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[3][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[4][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[1][0],100)
 	TEST_REAL_SIMILAR(ms_exp[1][1].getMZ(),501)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[3][1],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[4][1],2.5)
- 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[1][1],100)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[3][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[4][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getFloatDataArrays()[1][1],100)
 
 END_SECTION
 

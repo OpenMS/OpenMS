@@ -305,14 +305,14 @@ namespace OpenMS
 		for (Size i=0; i<ms_exp.size(); ++i)
 		{
 			//check if enough meta data arrays are present
-			if (ms_exp[i].getMetaDataArrays().size()<6)
+			if (ms_exp[i].getFloatDataArrays().size()<6)
 			{
 				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
 			}
-			bool area = ms_exp[i].getMetaDataArrays()[1].getName() == "maximumIntensity";
-			bool wleft = ms_exp[i].getMetaDataArrays()[3].getName() == "leftWidth";
-			bool wright = ms_exp[i].getMetaDataArrays()[4].getName() == "rightWidth";
-			bool shape = ms_exp[i].getMetaDataArrays()[5].getName() == "peakShape";
+			bool area = ms_exp[i].getFloatDataArrays()[1].getName() == "maximumIntensity";
+			bool wleft = ms_exp[i].getFloatDataArrays()[3].getName() == "leftWidth";
+			bool wright = ms_exp[i].getFloatDataArrays()[4].getName() == "rightWidth";
+			bool shape = ms_exp[i].getFloatDataArrays()[5].getName() == "peakShape";
 
 			if (!area || !wleft || !wright || !shape)
 			{
@@ -642,8 +642,8 @@ namespace OpenMS
 								height = (iter_iter)->getPeak(ms_exp).getIntensity();
 								avr_height += height;
 								av_mz += (iter_iter)->getPeak(ms_exp).getMZ() * height;
-								av_lw += ms_exp[(iter_iter)->spectrum].getMetaDataArrays()[3][(iter_iter)->peak]* height; //left width
-								av_rw +=	ms_exp[(iter_iter)->spectrum].getMetaDataArrays()[4][(iter_iter)->peak]* height;//right width
+								av_lw += ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[3][(iter_iter)->peak]* height; //left width
+								av_rw +=	ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[4][(iter_iter)->peak]* height;//right width
 								gsl_vector_set(start_value,peak_counter,height);
 								++peak_counter;
 							}
@@ -747,24 +747,24 @@ namespace OpenMS
 
 #ifdef DEBUG_2D
 								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getPeak(ms_exp).getIntensity()
-													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getMetaDataArrays()[3][it->second[j].peak]
-													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getMetaDataArrays()[4][it->second[j].peak] << "\n";
+													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
+													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
 
 #endif
 
 								ms_exp[it->second[j].spectrum][it->second[j].peak].setMZ(gsl_vector_get(fit->x,d.total_nr_peaks+3*i));
 
 								ms_exp[it->second[j].spectrum][it->second[j].peak].setIntensity(gsl_vector_get(fit->x,peak_idx));
-								ms_exp[it->second[j].spectrum].getMetaDataArrays()[3][it->second[j].peak] =
+								ms_exp[it->second[j].spectrum].getFloatDataArrays()[3][it->second[j].peak] =
 									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+1);
-								ms_exp[it->second[j].spectrum].getMetaDataArrays()[4][it->second[j].peak] =
+								ms_exp[it->second[j].spectrum].getFloatDataArrays()[4][it->second[j].peak] =
 									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+2);
 
 
 #ifdef DEBUG_2D
 								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getPeak(ms_exp).getIntensity()
-													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getMetaDataArrays()[3][it->second[j].peak]
-													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getMetaDataArrays()[4][it->second[j].peak] << "\n";
+													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
+													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
 
 // 								std::cout << "pos: "<<it->second[j]->getMZ()<<"\nint: "<<it->second[j]->getIntensity()
 // 													<<"\nlw: "<<it->second[j]->getLeftWidthParameter()
@@ -924,12 +924,12 @@ namespace OpenMS
 								const MSSpectrum<>& spec = ms_exp[set_iter->first];
 								PeakShape shape(spec[peak_index].getIntensity(),
 																spec[peak_index].getMZ(),
-																spec.getMetaDataArrays()[3][peak_index], //left width
-																spec.getMetaDataArrays()[4][peak_index], //right width
-																spec.getMetaDataArrays()[1][peak_index], //area
+																spec.getFloatDataArrays()[3][peak_index], //left width
+																spec.getFloatDataArrays()[4][peak_index], //right width
+																spec.getFloatDataArrays()[1][peak_index], //area
 																std::vector<Peak1D>::iterator(),
 																std::vector<Peak1D>::iterator(),
-																PeakShape::Type(Int(spec.getMetaDataArrays()[5][peak_index]))); //shape
+																PeakShape::Type(Int(spec.getFloatDataArrays()[5][peak_index]))); //shape
 								peak_shapes.push_back(shape);
 								++set_iter;
 							}
@@ -969,8 +969,8 @@ namespace OpenMS
 								MSSpectrum<>& spec = ms_exp[set_iter->first];
 								spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
 								spec[set_iter->second].setIntensity(peak_shapes[p].height);
-								spec.getMetaDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
-								spec.getMetaDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
+								spec.getFloatDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
+								spec.getFloatDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
 
 								++set_iter;
 								++p;

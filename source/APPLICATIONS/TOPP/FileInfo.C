@@ -495,9 +495,9 @@ class TOPPFileInfo
 			//show meta data array names
 			for (MSExperiment<Peak1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 			{
-				for (i=0; i<it->getMetaDataArrays().size();++i)
+				for (i=0; i<it->getFloatDataArrays().size();++i)
 				{
-					String name = it->getMetaDataArrays()[i].getName();
+					String name = it->getFloatDataArrays()[i].getName();
 					if (meta_names.has(name))
 					{
 						meta_names[name]++;
@@ -563,9 +563,9 @@ class TOPPFileInfo
 					}
 					//duplicate meta data array names
 					Map<String,int> names;
-					for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+					for (Size m=0; m<exp[s].getFloatDataArrays().size(); ++m)
 					{
-						String name = exp[s].getMetaDataArrays()[m].getName();
+						String name = exp[s].getFloatDataArrays()[m].getName();
 						if (names.has(name))
 						{
 							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
@@ -919,13 +919,13 @@ class TOPPFileInfo
 					DoubleReal sum = 0.0;
 					for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
 					{
-						for (Size meta=0; meta<spec->getMetaDataArrays().size(); ++meta)
+						for (Size meta=0; meta<spec->getFloatDataArrays().size(); ++meta)
 						{
-							if (spec->getMetaDataArrays()[meta].getName()!=name) continue;
+							if (spec->getFloatDataArrays()[meta].getName()!=name) continue;
 							for (Size peak=0; peak < spec->size(); ++peak)
 							{
-								m_values.push_back(spec->getMetaDataArrays()[meta][peak]);
-								sum += spec->getMetaDataArrays()[meta][peak];
+								m_values.push_back(spec->getFloatDataArrays()[meta][peak]);
+								sum += spec->getFloatDataArrays()[meta][peak];
 							}
 						}
 					}

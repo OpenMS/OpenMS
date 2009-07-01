@@ -415,7 +415,7 @@ namespace OpenMS
 			}
 			else if (current_tag == "arrayName" && parent_tag=="supDataArrayBinary")
 			{
-				spec_.getMetaDataArrays().back().setName(transcoded_chars);
+				spec_.getFloatDataArrays().back().setName(transcoded_chars);
 			}
 			else if (current_tag=="nameOfFile" && parent_tag == "sourceFile")
 			{
@@ -591,8 +591,8 @@ namespace OpenMS
 			else if (tag=="supDataArrayBinary")
 			{
 				
-				//create MetaDataArray
-				typename MapType::SpectrumType::MetaDataArray mda;
+				//create FloatDataArray
+				typename MapType::SpectrumType::FloatDataArray mda;
 				//Assign the right MetaInfoDescription ("supDesc" tag)
 				String id = attributeAsString_(attributes, s_id);
 				for (Size i=0;i<meta_id_descs_.size(); ++i)
@@ -603,8 +603,8 @@ namespace OpenMS
 						break;
 					}
 				}
-				//append MetaDataArray
-				spec_.getMetaDataArrays().push_back(mda);
+				//append FloatDataArray
+				spec_.getFloatDataArrays().push_back(mda);
 			}
 			else if (tag=="spectrum")
 			{
@@ -803,9 +803,9 @@ namespace OpenMS
 				}
 				
 				//reserve space for meta data arrays (peak count)
-				for (Size i=0;i<spec_.getMetaDataArrays().size();++i)
+				for (Size i=0;i<spec_.getFloatDataArrays().size();++i)
 				{
-					spec_.getMetaDataArrays()[i].reserve(peak_count_);
+					spec_.getFloatDataArrays()[i].reserve(peak_count_);
 				}
 				
 				//push_back the peaks into the container				
@@ -821,9 +821,9 @@ namespace OpenMS
 						tmp.setPosition(mz);
 						spec_.push_back(tmp);
 						//load data from meta data arrays
-						for (Size i=0;i<spec_.getMetaDataArrays().size();++i)
+						for (Size i=0;i<spec_.getFloatDataArrays().size();++i)
 						{
-							spec_.getMetaDataArrays()[i].push_back(precisions_[2+i]=="64" ? decoded_double_list_[2+i][n] : decoded_list_[2+i][n]);
+							spec_.getFloatDataArrays()[i].push_back(precisions_[2+i]=="64" ? decoded_double_list_[2+i][n] : decoded_list_[2+i][n]);
 						}
 					}
 				}
@@ -1226,9 +1226,9 @@ namespace OpenMS
 					if (options_.getWriteSupplementalData())
 					{
 						//write meta data array descriptions
-						for (Size i=0; i<spec.getMetaDataArrays().size(); ++i)
+						for (Size i=0; i<spec.getFloatDataArrays().size(); ++i)
 						{
-							const MetaInfoDescription& desc = spec.getMetaDataArrays()[i];
+							const MetaInfoDescription& desc = spec.getFloatDataArrays()[i];
 							os << "\t\t\t<supDesc supDataArrayRef=\"" << (i+1) << "\">\n";
 							if (!desc.isMetaEmpty())
 							{
@@ -1262,9 +1262,9 @@ namespace OpenMS
 					if (options_.getWriteSupplementalData())
 					{
 						//write supplemental data arrays
-						for (Size i=0; i<spec.getMetaDataArrays().size(); ++i)
+						for (Size i=0; i<spec.getFloatDataArrays().size(); ++i)
 						{
-							const typename MapType::SpectrumType::MetaDataArray& mda = spec.getMetaDataArrays()[i];
+							const typename MapType::SpectrumType::FloatDataArray& mda = spec.getFloatDataArrays()[i];
 							//check if spectrum and meta data array have the same length
 							if (mda.size()!=spec.size())
 							{

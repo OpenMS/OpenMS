@@ -121,8 +121,8 @@ namespace OpenMS
 	Histogram<> Spectrum1DWidget::createMetaDistribution_(const String& name) const
 	{	
 		Histogram<> tmp;
-		const ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = canvas_->getCurrentLayer().peaks[0].getMetaDataArrays();
-		for(ExperimentType::SpectrumType::MetaDataArrays::const_iterator it = meta_arrays.begin(); it != meta_arrays.end(); it++)
+		const ExperimentType::SpectrumType::FloatDataArrays& meta_arrays = canvas_->getCurrentLayer().peaks[0].getFloatDataArrays();
+		for(ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = meta_arrays.begin(); it != meta_arrays.end(); it++)
 		{
 			if (it->getName()==name)
 			{

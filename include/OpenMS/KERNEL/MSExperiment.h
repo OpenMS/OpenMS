@@ -475,16 +475,16 @@ namespace OpenMS
 				
 				@return @em true if meta data arrays were present and removed. @em false otherwise.
 			*/
-			bool clearMetaDataArrays()
+			bool clearFloatDataArrays()
 			{
 				bool meta_present = false;
 				for (Size i=0; i< this->size(); ++i)
 				{
-					if (this->operator[](i).getMetaDataArrays().size()!=0)
+					if (this->operator[](i).getFloatDataArrays().size()!=0)
 					{
 						meta_present = true;
 					}
-					this->operator[](i).getMetaDataArrays().clear();
+					this->operator[](i).getFloatDataArrays().clear();
 				}
 				return meta_present;
 			}

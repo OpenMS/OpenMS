@@ -117,9 +117,9 @@ namespace OpenMS
 				add(static_cast<SpectrumSettings&>(spectrum));
 
 				//MetaInfoDescriptions
-	      for (Size i=0; i<spectrum.getMetaDataArrays().size();++i)
+	      for (Size i=0; i<spectrum.getFloatDataArrays().size();++i)
 	      {
-	      	add(spectrum.getMetaDataArrays()[i]);
+	      	add(spectrum.getFloatDataArrays()[i]);
 	      }
 
 				add(static_cast<MetaInfoInterface&>(spectrum));

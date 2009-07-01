@@ -31,7 +31,10 @@ Detailed list of changes to specific OpenMS classes
   - Renamed PepXMLFile to PepXMLFileMascot
 - Changes to Classes
 	- MSExperiment: added 'isSorted' method
-	- MSSpectrum: added 'isSorted' method
+	- MSSpectrum
+	  - added 'isSorted' method
+	  - renamed MetaDataArray to FloatDataArray
+	  - added StringDataArray
   - DataValue: added constructor for std::string and QString
   - MetaInfo: setValue method takes only DataValue now
   - MetaInfoInterface: setMetaValue method takes only DataValue now

@@ -61,7 +61,7 @@ namespace OpenMS
 			//@{
 			typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
 			typedef typename MapType::SpectrumType SpectrumType;
-			typedef typename SpectrumType::MetaDataArrays MetaDataArrays;
+			typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
 			//@}
 			
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::param_;

@@ -837,13 +837,13 @@ START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 
 END_SECTION
 
-START_SECTION((bool clearMetaDataArrays()))
+START_SECTION((bool clearFloatDataArrays()))
 	MSExperiment<> exp;
 	exp.resize(5);
-	exp[0].getMetaDataArrays().resize(5);
-	TEST_EQUAL(exp[0].getMetaDataArrays().size(),5)
-	exp.clearMetaDataArrays();
-	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
+	exp[0].getFloatDataArrays().resize(5);
+	TEST_EQUAL(exp[0].getFloatDataArrays().size(),5)
+	exp.clearFloatDataArrays();
+	TEST_EQUAL(exp[0].getFloatDataArrays().size(),0)
 END_SECTION
 
 START_SECTION((void swap(MSExperiment &from)))

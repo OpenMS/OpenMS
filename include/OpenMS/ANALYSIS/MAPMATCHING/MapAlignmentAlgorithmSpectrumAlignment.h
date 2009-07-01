@@ -166,7 +166,7 @@ namespace OpenMS
 		  	@brief calculate the Discrete Cosines Fourier Transformation.
 		     				
 		 		This Function transforms a given MSSpectrum to a Discrete Cosines Fourier Transformation. It stores only the part of the cosines of the FFT in
-		 		the MetaDataArray which is a container from the MSSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same MSSpectrum, because it isn't checked if there already exists a transformation.
+		 		the FloatDataArray which is a container from the MSSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same MSSpectrum, because it isn't checked if there already exists a transformation.
 		  */			
 			void transform_(MSSpectrum<> & spec);
 
@@ -289,11 +289,11 @@ namespace OpenMS
 			void debugFileCreator_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned);
 			
 			/**
-				@brief Delete entries of the MetaDataArray which was made from CompareFouriertransform 
+				@brief Delete entries of the FloatDataArray which was made from CompareFouriertransform 
 
 				This function erase the entries with was done by the CompareFouriertransform function.
 			*/
-			void eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
+			void eraseFloatDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
 			
 			/**
 				@brief Rounding the score of two spectras, only necessary for debugging

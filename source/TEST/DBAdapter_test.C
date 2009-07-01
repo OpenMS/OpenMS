@@ -353,13 +353,13 @@ END_SECTION
 		source_file.setNativeIDType(SourceFile::WATERS);
 		spec.setSourceFile(source_file);
 
-		RichPeakSpectrum::MetaDataArray meta_data_array;
+		RichPeakSpectrum::FloatDataArray meta_data_array;
 		meta_data_array.setName("icon");
 		meta_data_array.setMetaValue ("icon", String("an icon is an icon is an icon"));
 		meta_data_array.push_back(3.14f);
 		meta_data_array.push_back(3.1f);
 		meta_data_array.push_back(3.0f);
-		spec.getMetaDataArrays().push_back(meta_data_array);
+		spec.getFloatDataArrays().push_back(meta_data_array);
 
 		// set acquisition info with 1 acquisition
 		AcquisitionInfo info;
@@ -449,7 +449,7 @@ END_SECTION
 		am.insert(Precursor::CID);
 		am.insert(Precursor::HCID);
 		spec.getPrecursors()[0].setActivationMethods(am);
-		spec.getMetaDataArrays().clear();
+		spec.getFloatDataArrays().clear();
 		//2nd precursor for spectrum 2
 		spec.getPrecursors()[1].setMZ(600.1);
 		spec.getPrecursors()[1].setIntensity(4711.0f);
@@ -463,7 +463,7 @@ END_SECTION
 		am.erase(Precursor::CID);
 		spec.getPrecursors()[1].setActivationMethods(am);
 		spec.setComment("bla");
-		spec.getMetaDataArrays().clear();
+		spec.getFloatDataArrays().clear();
 
 		// set empty AcquisitionInfo for spectrum 2
 		spec.setAcquisitionInfo(AcquisitionInfo());
@@ -561,7 +561,7 @@ END_SECTION
 			// make sure storing/loading of meta data works for RichPeaks
 			TEST_EQUAL( spec[0].getMetaValue("label"), "peaklabel");
 
-			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
+			RichPeakSpectrum::FloatDataArrays& meta_data_arrays = spec.getFloatDataArrays();
 			TEST_STRING_EQUAL( meta_data_arrays[0].getName(),"icon")
 			TEST_EQUAL( meta_data_arrays[0].getMetaValue("icon"), "an icon is an icon is an icon" )
 			TEST_REAL_SIMILAR( meta_data_arrays[0][0], 3.14 )
@@ -897,14 +897,14 @@ END_SECTION
 
 			modified_spec.setAcquisitionInfo(info);
 			// adding a meta data array
-			modified_spec.getMetaDataArrays().clear();
-			RichPeakSpectrum::MetaDataArray meta_data_array;
+			modified_spec.getFloatDataArrays().clear();
+			RichPeakSpectrum::FloatDataArray meta_data_array;
 			meta_data_array.setName("icon");
 			meta_data_array.push_back(23.0f);
 			meta_data_array.push_back(42.0f);
 			meta_data_array.push_back(100.001f);
 
-			modified_spec.getMetaDataArrays().push_back(meta_data_array);
+			modified_spec.getFloatDataArrays().push_back(meta_data_array);
 
 
 			// modify 2nd spectrum

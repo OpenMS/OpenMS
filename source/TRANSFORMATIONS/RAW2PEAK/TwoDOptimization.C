@@ -126,7 +126,7 @@ namespace OpenMS
 
 
 									//is it a Lorentz or a Sech - Peak?
-									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
+									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getFloatDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 #ifdef DEBUG_2D
 											std::cout << "p_height "<< p_height << "\tp_position "<< p_position << "\tcurrent_position "
@@ -178,8 +178,8 @@ namespace OpenMS
 							old_height = (vec_iter)->getPeak(picked_peaks).getIntensity();
 							weight += old_height;
 							old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
-							old_width_l += picked_peaks[vec_iter->spectrum].getMetaDataArrays()[3][vec_iter->peak]* old_height;
-							old_width_r += picked_peaks[vec_iter->spectrum].getMetaDataArrays()[4][vec_iter->peak]* old_height;
+							old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak]* old_height;
+							old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak]* old_height;
 	
 							p_height     = gsl_vector_get(x, peak);
 							++peak;
@@ -332,7 +332,7 @@ namespace OpenMS
 									DoubleReal ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+2);
 									//is it a Lorentz or a Sech - Peak?
 									
-									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
+									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getFloatDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 											diff      = current_position - p_position;
 											// partial derivative with respect to the height,...
@@ -466,8 +466,8 @@ namespace OpenMS
 							old_height = (vec_iter)->getPeak(picked_peaks).getIntensity();
 							weight += old_height;
 							old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
-							old_width_l += picked_peaks[vec_iter->spectrum].getMetaDataArrays()[3][vec_iter->peak]* old_height;
-							old_width_r += picked_peaks[vec_iter->spectrum].getMetaDataArrays()[4][vec_iter->peak]* old_height;
+							old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak]* old_height;
+							old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak]* old_height;
 	
 							p_height     = gsl_vector_get(x, peak);
 

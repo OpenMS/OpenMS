@@ -178,7 +178,7 @@ namespace OpenMS
 		connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
 		
 		
-		// add computed stats about meta infos in the MetaDataArrays of the spectra to the table
+		// add computed stats about meta infos in the FloatDataArrays of the spectra to the table
 		for(std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
 		{
 			table_->setRowCount(table_->rowCount()+1);
@@ -276,8 +276,8 @@ namespace OpenMS
 				avg_intensity_ += it_peak->getIntensity();
 				divisor++;
 			}
-			// collect stats about the MetaDataArray of this spectrum
-			computeMetaDataArrayStats_(it_rt);
+			// collect stats about the FloatDataArray of this spectrum
+			computeFloatDataArrayStats_(it_rt);
 		}
 		if (divisor != 0) avg_intensity_ /= (DoubleReal)divisor;
 		computeMetaAverages_();
@@ -366,10 +366,10 @@ namespace OpenMS
 		}
 	}
 
-	void LayerStatisticsDialog::computeMetaDataArrayStats_(RTIterator_ spectrum_it)
+	void LayerStatisticsDialog::computeFloatDataArrayStats_(RTIterator_ spectrum_it)
 	{
-		const LayerData::ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = spectrum_it->getMetaDataArrays();
-		for(LayerData::ExperimentType::SpectrumType::MetaDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
+		const LayerData::ExperimentType::SpectrumType::FloatDataArrays& meta_arrays = spectrum_it->getFloatDataArrays();
+		for(LayerData::ExperimentType::SpectrumType::FloatDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
 		{
 			String meta_name = meta_array_it->getName();
 			MetaStatsValue_ meta_stats_value;

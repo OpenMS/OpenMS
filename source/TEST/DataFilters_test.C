@@ -287,7 +287,7 @@ spec.push_back(peak);
 peak.setIntensity(0.001f);
 spec.push_back(peak);
 
-MSSpectrum<Peak1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
+MSSpectrum<Peak1D>::FloatDataArrays& mdas = spec.getFloatDataArrays();
 mdas.resize(3);
 
 mdas[0].setName("test_int");

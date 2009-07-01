@@ -723,15 +723,15 @@ namespace OpenMS
 			if (data_.size()>2)
 			{
 				//create meta data arrays and assign meta data
-				spec_.getMetaDataArrays().resize(data_.size()-2);
+				spec_.getFloatDataArrays().resize(data_.size()-2);
 				UInt meta_array_index = 0;
 				for (Size i=0; i<data_.size(); i++)
 				{
 					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 					{
-						spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
+						spec_.getFloatDataArrays()[meta_array_index].reserve(data_[i].size);
 						//copy meta info into MetaInfoDescription
-						spec_.getMetaDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
+						spec_.getFloatDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
 						//go to next meta data array
 						++meta_array_index;
 					}
@@ -775,7 +775,7 @@ namespace OpenMS
 						if (n<data_[i].size && data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 						{
 							DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
-							spec_.getMetaDataArrays()[meta_array_index].push_back(value);
+							spec_.getFloatDataArrays()[meta_array_index].push_back(value);
 							++meta_array_index;
 						}
 					}
@@ -2929,11 +2929,11 @@ namespace OpenMS
 			//write data processing (for each binary data array)
 			for (Size s=0; s<exp.size(); ++s)
 			{
-				for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+				for (Size m=0; m<exp[s].getFloatDataArrays().size(); ++m)
 				{
-					for (Size i=0; i<exp[s].getMetaDataArrays()[m].getDataProcessing().size(); ++i)
+					for (Size i=0; i<exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
 					{
-						writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getMetaDataArrays()[m].getDataProcessing()[i].getSoftware());
+						writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getFloatDataArrays()[m].getDataProcessing()[i].getSoftware());
 					}
 				}
 			}
@@ -3535,9 +3535,9 @@ namespace OpenMS
 			//for each binary data array
 			for (Size s=0; s<exp.size(); ++s)
 			{
-				for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+				for (Size m=0; m<exp[s].getFloatDataArrays().size(); ++m)
 				{
-					writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getMetaDataArrays()[m].getDataProcessing());
+					writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getFloatDataArrays()[m].getDataProcessing());
 				}
 			}
 
@@ -3907,7 +3907,7 @@ namespace OpenMS
 						}
 						String encoded_string;
 						std::vector<DoubleReal> data64_to_encode;
-						os	<< "				<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
+						os	<< "				<binaryDataArrayList count=\"" << (spec.getFloatDataArrays().size()+2) << "\">\n";
 						//write m/z array
 						data64_to_encode.resize(spec.size());
 						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
@@ -3932,9 +3932,9 @@ namespace OpenMS
 							os	<< "					</binaryDataArray>\n";
 						}
 						//write meta data array
-						for (Size m=0; m<spec.getMetaDataArrays().size(); ++m)
+						for (Size m=0; m<spec.getFloatDataArrays().size(); ++m)
 						{
-							const typename SpectrumType::MetaDataArray& array = spec.getMetaDataArrays()[m];
+							const typename SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
 							data64_to_encode.resize(array.size());
 							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
 							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());

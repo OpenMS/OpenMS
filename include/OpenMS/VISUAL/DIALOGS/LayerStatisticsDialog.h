@@ -99,8 +99,8 @@ namespace OpenMS
 			void computeFeatureStats_();
 			/// Computes the statistics of a consensus feature layer
 			void computeConsensusStats_();
-			/// Computes the statistics of all meta data contained in the MetaDataArray of a @p spectrum
-			void computeMetaDataArrayStats_(RTIterator_ spectrum);
+			/// Computes the statistics of all meta data contained in the FloatDataArray of a @p spectrum
+			void computeFloatDataArrayStats_(RTIterator_ spectrum);
 			/// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
 			void bringInMetaStats_(const MetaInfoInterface& meta_interface);
 			/// Computes the averages of all meta values stored in meta_stats and meta_array_stats
@@ -108,7 +108,7 @@ namespace OpenMS
 			
 			/// Map containing the statistics about all meta information of the peaks/features in the layer
 			std::map<UInt,MetaStatsValue_> meta_stats_;
-			/// Map containing the statistics about the MetaDataArrays of all spectra in this layer
+			/// Map containing the statistics about the FloatDataArrays of all spectra in this layer
 			std::map<String, MetaStatsValue_> meta_array_stats_;
 			/// The canvas of the layer
 			SpectrumCanvas* canvas_;

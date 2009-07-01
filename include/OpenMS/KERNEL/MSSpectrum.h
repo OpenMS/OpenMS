@@ -64,10 +64,17 @@ namespace OpenMS
 
 		public:
 
-		  ///Meta data array class
-			class OPENMS_DLLAPI MetaDataArray
+		  ///Float data array class
+			class OPENMS_DLLAPI FloatDataArray
 		    : public MetaInfoDescription,
 		    	public std::vector<Real>
+		  {
+		  };
+
+		  ///String data array class
+			class OPENMS_DLLAPI StringDataArray
+		    : public MetaInfoDescription,
+		    	public std::vector<String>
 		  {
 		  };
 
@@ -89,8 +96,10 @@ namespace OpenMS
 			typedef typename PeakType::CoordinateType CoordinateType;
 			/// Spectrum base type
 			typedef std::vector<PeakType> ContainerType;
-			/// Metadata array vector type
-			typedef std::vector<MetaDataArray> MetaDataArrays;
+			/// Float data array vector type
+			typedef std::vector<FloatDataArray> FloatDataArrays;
+			/// String data array vector type
+			typedef std::vector<StringDataArray> StringDataArrays;
 			//@}
 
 			///@name Peak container iterator type definitions
@@ -115,7 +124,8 @@ namespace OpenMS
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				ms_level_(1),
 				name_(),
-				meta_data_arrays_()
+				float_data_arrays_(),
+				string_data_arrays_()
 			{
 			}
 			
@@ -128,7 +138,8 @@ namespace OpenMS
 				retention_time_(source.retention_time_),
 				ms_level_(source.ms_level_),
 				name_(source.name_),
-				meta_data_arrays_(source.meta_data_arrays_)
+				float_data_arrays_(source.float_data_arrays_),
+				string_data_arrays_(source.string_data_arrays_)
 			{
 			}
 	    
@@ -150,7 +161,8 @@ namespace OpenMS
 				retention_time_ = source.retention_time_;
 				ms_level_ = source.ms_level_;
 				name_ = source.name_;
-				meta_data_arrays_ = source.meta_data_arrays_;
+				float_data_arrays_ = source.float_data_arrays_;
+				string_data_arrays_ = source.string_data_arrays_;
 				
 				return *this;
 			}
@@ -166,7 +178,8 @@ namespace OpenMS
 					
 					retention_time_ == rhs.retention_time_ &&
 					ms_level_ == rhs.ms_level_ &&
-					meta_data_arrays_ == rhs.meta_data_arrays_
+					float_data_arrays_ == rhs.float_data_arrays_ &&
+					string_data_arrays_ == rhs.string_data_arrays_
 					;
 					//name_ can differ => it is not checked
 			}
@@ -222,7 +235,7 @@ namespace OpenMS
 			//@}
 
 			/**
-				@name Peak meta data array methods
+				@name Peak data array methods
 	
 				These methods are used to annotate each peak in a spectrum with meta information.
 				It is an intermediate way between storing the information in the peak's MetaInfoInterface
@@ -235,14 +248,23 @@ namespace OpenMS
 			*/
 			//@{
 			/// Returns a const reference to the integer meta arrays
-			inline const MetaDataArrays& getMetaDataArrays() const
+			inline const FloatDataArrays& getFloatDataArrays() const
 			{
-				return meta_data_arrays_;
+				return float_data_arrays_;
 			}
 			/// Returns a mutable reference to the integer meta arrays
-			inline MetaDataArrays& getMetaDataArrays()
+			inline FloatDataArrays& getFloatDataArrays()
 			{
-				return meta_data_arrays_;
+				return float_data_arrays_;
+			}
+			inline const StringDataArrays& getStringDataArrays() const
+			{
+				return string_data_arrays_;
+			}
+			/// Returns a mutable reference to the integer meta arrays
+			inline StringDataArrays& getStringDataArrays()
+			{
+				return string_data_arrays_;
 			}
 			//@}
 
@@ -255,7 +277,7 @@ namespace OpenMS
 			*/
 			void sortByIntensity(bool reverse=false)
 			{
-				if(meta_data_arrays_.size() == 0)
+				if(float_data_arrays_.size() == 0 && string_data_arrays_.size())
 				{
 					if (reverse)
 					{
@@ -271,7 +293,7 @@ namespace OpenMS
 					//sort index list
 					std::vector< std::pair<typename PeakType::IntensityType,Size> > sorted_indices;
 					sorted_indices.reserve(ContainerType::size());
-					for (Size i(0); i < ContainerType::size(); ++i)
+					for (Size i=0; i < ContainerType::size(); ++i)
 					{
 						sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(),i));
 					}
@@ -287,20 +309,30 @@ namespace OpenMS
 	
 					//apply sorting to ContainerType and to meta data arrays
 					ContainerType tmp;
-					for (Size i(0); i < sorted_indices.size(); ++i)
+					for (Size i=0; i < sorted_indices.size(); ++i)
 					{
 						tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
 					}
 					ContainerType::swap(tmp);
 	
-					for (Size i(0); i < meta_data_arrays_.size(); ++i)
+					for (Size i=0; i < float_data_arrays_.size(); ++i)
 					{
 						std::vector<Real> mda_tmp;
-						for (Size j(0); j < meta_data_arrays_[i].size(); ++j)
+						for (Size j=0; j < float_data_arrays_[i].size(); ++j)
 						{
-							mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
+							mda_tmp.push_back(*(float_data_arrays_[i].begin()+(sorted_indices[j].second)));
 						}
-						meta_data_arrays_[i].swap(mda_tmp);
+						float_data_arrays_[i].swap(mda_tmp);
+					}
+					
+					for (Size i=0; i < string_data_arrays_.size(); ++i)
+					{
+						std::vector<String> mda_tmp;
+						for (Size j=0; j < string_data_arrays_[i].size(); ++j)
+						{
+							mda_tmp.push_back(*(string_data_arrays_[i].begin()+(sorted_indices[j].second)));
+						}
+						string_data_arrays_[i].swap(mda_tmp);
 					}
 				}
 			}
@@ -311,7 +343,7 @@ namespace OpenMS
 			*/
 			void sortByPosition()
 			{
-				if(meta_data_arrays_.size() == 0)
+				if(float_data_arrays_.size() == 0)
 				{
 					std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
 				}
@@ -320,7 +352,7 @@ namespace OpenMS
 					//sort index list
 					std::vector< std::pair<typename PeakType::PositionType,Size> > sorted_indices;
 					sorted_indices.reserve(ContainerType::size());
-					for (Size i(0); i < ContainerType::size(); ++i)
+					for (Size i=0; i < ContainerType::size(); ++i)
 					{
 						sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(),i));
 					}
@@ -328,21 +360,32 @@ namespace OpenMS
 	
 					//apply sorting to ContainerType and to metadataarrays
 					ContainerType tmp;
-					for (Size i(0); i < sorted_indices.size(); ++i)
+					for (Size i=0; i < sorted_indices.size(); ++i)
 					{
 						tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
 					}
 					ContainerType::swap(tmp);
 	
-					for (Size i(0); i < meta_data_arrays_.size(); ++i)
+					for (Size i=0; i < float_data_arrays_.size(); ++i)
 					{
 						std::vector<Real> mda_tmp;
-						for (Size j(0); j < meta_data_arrays_[i].size(); ++j)
+						for (Size j=0; j < float_data_arrays_[i].size(); ++j)
 						{
-							mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
+							mda_tmp.push_back(*(float_data_arrays_[i].begin()+(sorted_indices[j].second)));
 						}
-						std::swap(meta_data_arrays_[i],mda_tmp);
+						std::swap(float_data_arrays_[i],mda_tmp);
 					}
+					
+					for (Size i=0; i < string_data_arrays_.size(); ++i)
+					{
+						std::vector<String> mda_tmp;
+						for (Size j=0; j < string_data_arrays_[i].size(); ++j)
+						{
+							mda_tmp.push_back(*(string_data_arrays_[i].begin()+(sorted_indices[j].second)));
+						}
+						std::swap(string_data_arrays_[i],mda_tmp);
+					}
+					
 				}
 			}
 			///Checks if all peaks are sorted with respect to ascending m/z
@@ -498,8 +541,11 @@ namespace OpenMS
 			/// Name
 			String name_;
 			
-			///Meta info arrays
-			MetaDataArrays meta_data_arrays_;
+			///Float data arrays
+			FloatDataArrays float_data_arrays_;
+
+			///String data arrays
+			StringDataArrays string_data_arrays_;
 	};
 
 	///Print the contents to a stream.

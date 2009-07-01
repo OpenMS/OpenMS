@@ -105,14 +105,14 @@ namespace OpenMS
 	    	@brief calculate the Discrete Cosines Fourier Transformation.
 	       				
 	   		This function transforms a given PeakSpectrum to a Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
-	   		the MetaDataArray which is a container from the PeakSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same PeakSpectrum, because it isn't checked if there already exists a transformation.
+	   		the FloatDataArray which is a container from the PeakSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same PeakSpectrum, because it isn't checked if there already exists a transformation.
 	    */
       void transform(PeakSpectrum & spec);
 	protected:
 			/**
 			 	@brief Search in the PeakSpectrum, if a Discrete Fourier transformation occurs, if not an error is going to be thrown, else the index 				of the occurrence is returned.
 				
-				This function gives back the position, where the transformation was saved in a MetaDataArray. If there is no entry, an error is thrown to indicate that a transformation has to be calculated before calling this comparison operator.
+				This function gives back the position, where the transformation was saved in a FloatDataArray. If there is no entry, an error is thrown to indicate that a transformation has to be calculated before calling this comparison operator.
 			*/
 			UInt searchTransformation_(const PeakSpectrum&  spec) const;
 

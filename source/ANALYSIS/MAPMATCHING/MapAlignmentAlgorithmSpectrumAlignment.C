@@ -76,7 +76,7 @@ namespace OpenMS
 				prepareAlign_(spectrum_pointers,peakmaps[i],transformation);
 				setProgress(i);
 			}
-			eraseMetaDataArrayEntry_(spectrum_pointers);
+			eraseFloatDataArrayEntry_(spectrum_pointers);
 			endProgress();
 		}
 		catch (Exception::OutOfRange& /*e*/) 
@@ -200,7 +200,7 @@ namespace OpenMS
 			std::cout << (*tempalign[i]).getRT()<< " " << std::endl;
 		}
 		*/
-		eraseMetaDataArrayEntry_(tempalign);
+		eraseFloatDataArrayEntry_(tempalign);
 	}
 
 	void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern)
@@ -453,16 +453,16 @@ namespace OpenMS
 		}
 	}
 
-	inline void MapAlignmentAlgorithmSpectrumAlignment::eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container)
+	inline void MapAlignmentAlgorithmSpectrumAlignment::eraseFloatDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 	{
 		if(c1_->getName()=="CompareFouriertransform")
 		{
 			for (Size i=0; i <spectrum_pointer_container.size();++i)
 			{
-				MSSpectrum<>::MetaDataArrays& temp = (*spectrum_pointer_container[i]).getMetaDataArrays();		
+				MSSpectrum<>::FloatDataArrays& temp = (*spectrum_pointer_container[i]).getFloatDataArrays();		
 				if(temp.size()>0)
 				{
-					MSSpectrum<>::MetaDataArrays::iterator iter;
+					MSSpectrum<>::FloatDataArrays::iterator iter;
 					iter = temp.begin();
 					while(iter!= temp.end())
 					{
@@ -480,7 +480,7 @@ namespace OpenMS
 		
 	void MapAlignmentAlgorithmSpectrumAlignment::transform_(MSSpectrum<> & spec)
 	{
-		MSSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
+		MSSpectrum<>::FloatDataArrays& temp = spec.getFloatDataArrays();
 		Size i=0;
 		if(temp.size()>0)
 		{
