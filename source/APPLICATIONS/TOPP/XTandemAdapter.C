@@ -179,7 +179,7 @@ class TOPPXTandemAdapter
 
 			// we need to replace the native id with a simple numbering schema, to be able to
 			// map the IDs back to the spectra (RT, and MZ infomration)
-			Size native_id(0);
+			Size native_id(1);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				it->setNativeID(native_id++);
@@ -289,6 +289,7 @@ class TOPPXTandemAdapter
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
 				UInt id = (Int)it->getMetaValue("spectrum_id");
+				id -= 1; // native IDs were written 1-based
 				if (id < exp.size())
 				{
 					it->setMetaValue("RT", exp[id].getRT());
