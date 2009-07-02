@@ -41,22 +41,21 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_IDFileConverter IDFileConverter
+ @page TOPP_IDFileConverter IDFileConverter
 
-	@brief Converts identification engine file formats.
+ @brief Converts identification engine file formats.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_IDFileConverter.cli
+ <B>The command line parameters of this tool are:</B>
+ @verbinclude TOPP_IDFileConverter.cli
 
-	@todo Write tests (Clemens, Chris, Hendrik)
-*/
+ @todo Write tests (Clemens, Chris, Hendrik)
+ */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 
-class TOPPIDFileConverter
-	: public TOPPBase
+class TOPPIDFileConverter : public TOPPBase
 {
 public:
   TOPPIDFileConverter() :
@@ -65,35 +64,35 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void
+  registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<path>", "", "Input file/directory containing the output of the search engine.\n"
-                                          "Sequest: Directory containing the .out files\n"
-                                          "PepXML: Single PepXML file.\n"
-                                          "idXML: Single idXML file.\n"
-                                          , true);
+      "Sequest: Directory containing the .out files\n"
+      "PepXML: Single PepXML file.\n"
+      "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
-		setValidFormats_("out", StringList::create("idXML,PepXML"));
-		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("idXML,pepXML"));
-			
-		addEmptyLine_();
-		addText_("Sequest options:");
+    setValidFormats_("out", StringList::create("idXML,PepXML"));
+    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("out_type", StringList::create("idXML,pepXML"));
+
+    addEmptyLine_();
+    addText_("Sequest options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-    																							 "Note: Sequest .out files do not contain retention times, but only scan numbers.", false);
+      "Note: Sequest .out files do not contain retention times, but only scan numbers.", false);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
     registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
-    																						 "but do not list extra references in subsequent lines", true);
-		
-		addEmptyLine_();
-		addText_("PepXML options:");
+      "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
+
+    addEmptyLine_();
+    addText_("PepXML options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
     																							 "Note: PepXML files do not contain retention times, but only scan numbers.", false);
 		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the PepXML file ('base_name' attribute);\nonly necessary if different from 'mz_file'.", false);
-    
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes
+  main_(int, const char**)
   {
     //-------------------------------------------------------------
     // general variables and data
@@ -101,13 +100,13 @@ protected:
     FileHandler fh;
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
-    
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 		const String in = getStringOption_("in");
 		FileTypes::Type in_type = fh.getType(in);
-		
+
     if (in_type==FileTypes::PEPXML)
   	{
   		String exp_name = getStringOption_("mz_file"),
@@ -117,7 +116,7 @@ protected:
 			if (!orig_name.empty() && !orig_name.has('.')) {
 				orig_name = orig_name + ".mzXML";
 			}
-			
+
   		protein_identifications.resize(1);
 			if (exp_name.empty()) {
 				PepXMLFile().load(in, protein_identifications[0],
@@ -148,9 +147,9 @@ protected:
       FileHandler fh;
       FileTypes::Type type;
       MSExperiment<Peak1D> msexperiment;
-      map<String, Real> num_and_rt;
+      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, Real> num_and_rt;)  However, now String::toInt() might throw.
+      map<Int, Real> num_and_rt;
       vector<String> NativeID;
-
 
       // The mz-File (if given)
       if ( !mz_file.empty() )
@@ -161,8 +160,15 @@ protected:
         for ( MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it )
         {
           String(spectra_it->getNativeID()).split('=', NativeID);
-          num_and_rt[NativeID[1]] = spectra_it->getRT();
-
+          try
+          {
+            num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
+            // std::cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << std::endl; // CG debuggging 2009-07-01
+          }
+          catch ( Exception::ConversionError &e )
+          {
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+          }
         }
       }
 
@@ -199,16 +205,30 @@ protected:
             // We have to explicitly set the identifiers, because the normal set ones are composed of search engine name and date, which is the same for a bunch of sequest out-files.
             peptide_ids_seq[j].setIdentifier(*in_files_it + "_" + i);
 
-            writeDebug_(String("RT: ") + String(peptide_ids_seq[j].getMetaValue("RT")) + "  MZ: " + String(peptide_ids_seq[j].getMetaValue("MZ")) + "  Ident: "
-                + peptide_ids_seq[j].getIdentifier(), 4);
-
+            Int scan_number = 0;
             if ( !mz_file.empty() )
             {
-              peptide_ids_seq[j].setMetaValue("RT", num_and_rt[in_file_vec[2]]);
+              try
+              {
+                scan_number = in_file_vec.at(2).toInt();
+                peptide_ids_seq[j].setMetaValue("RT", num_and_rt[scan_number]);
+              }
+              catch ( Exception::ConversionError &e )
+              {
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+              }
+              catch ( std::exception &e )
+              {
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+              }
               //	DoubleReal real_mz = ( (DoubleReal)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (DoubleReal)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
               const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMetaValue("MZ") / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
               peptide_ids_seq[j].setMetaValue("MZ", real_mz);
             }
+
+            writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getMetaValue("RT")) + "  MZ: " + String(
+                peptide_ids_seq[j].getMetaValue("MZ")) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+
             peptide_identifications.push_back(peptide_ids_seq[j]);
           }
 
@@ -231,49 +251,49 @@ protected:
       writeDebug_("All files processed.", 3);
 
     }
-		else
-		{
-			writeLog_("Unknown input file type given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
-		
+    else
+    {
+      writeLog_("Unknown input file type given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-		const String out = getStringOption_("out");
-		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
-		if (out_type==FileTypes::UNKNOWN)
-		{
-			out_type = fh.getTypeByFileName(out);
-		}
-		if (out_type==FileTypes::UNKNOWN)
-		{
-			writeLog_("Error: Could not determine output file type!");
-			return PARSE_ERROR;
-		}
-		
-		
-		if (out_type==FileTypes::PEPXML)
-		{
-			PepXMLFile().store(out, protein_identifications, peptide_identifications);
-		}
-		else if (out_type==FileTypes::IDXML)
-		{
-			 IdXMLFile().store(out, protein_identifications, peptide_identifications);
-		}
-		else
-		{
-			writeLog_("Unknown output file type given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
+    const String out = getStringOption_("out");
+    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    if (out_type==FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+    if (out_type==FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
+    if (out_type==FileTypes::PEPXML)
+    {
+      PepXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+    else if (out_type==FileTypes::IDXML)
+    {
+      IdXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+    else
+    {
+      writeLog_("Unknown output file type given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
     return EXECUTION_OK;
   }
 };
 
-int main(int argc, const char** argv)
+int
+main(int argc, const char** argv)
 {
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);

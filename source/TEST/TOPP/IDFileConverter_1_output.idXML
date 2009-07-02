@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/groepl/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2008-01-13T02:50:00" search_engine="SEQUEST" search_engine_version="v.27 (rev. 0)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="P00432" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="AAC22634.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="AAC23329.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="AAC22337.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="P02188" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="669.807983398438" RT="1700.39001464844" >
+			<PeptideHit score="668" sequence="LVNADGEAVYCK" charge="2" aa_before="K" aa_after="F" protein_refs="PH_0" >
+				<UserParam type="string" name="RankSp" value="1/1"/>
+				<UserParam type="float" name="MH" value="1338.6149"/>
+				<UserParam type="float" name="DeltCn" value="0"/>
+				<UserParam type="float" name="XCorr" value="2.6641"/>
+				<UserParam type="float" name="Sp" value="668"/>
+				<UserParam type="string" name="Ions" value="15/22"/>
+			</PeptideHit>
+			<PeptideHit score="273.8" sequence="IVLSIIMLGMHL" charge="2" aa_before="T" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="RankSp" value="2/17"/>
+				<UserParam type="float" name="MH" value="1339.7846"/>
+				<UserParam type="float" name="DeltCn" value="0.4011"/>
+				<UserParam type="float" name="XCorr" value="1.5955"/>
+				<UserParam type="float" name="Sp" value="273.8"/>
+				<UserParam type="string" name="Ions" value="11/22"/>
+			</PeptideHit>
+			<PeptideHit score="258" sequence="ALITAGLMSLAFM" charge="2" aa_before="I" aa_after="G" protein_refs="PH_2" >
+				<UserParam type="string" name="RankSp" value="3/22"/>
+				<UserParam type="float" name="MH" value="1338.7165"/>
+				<UserParam type="float" name="DeltCn" value="0.4236"/>
+				<UserParam type="float" name="XCorr" value="1.5355"/>
+				<UserParam type="float" name="Sp" value="258"/>
+				<UserParam type="string" name="Ions" value="12/24"/>
+			</PeptideHit>
+			<PeptideHit score="164.7" sequence="NVKGAFTGDISTE" charge="2" aa_before="I" aa_after="M" protein_refs="PH_3" >
+				<UserParam type="string" name="RankSp" value="4/157"/>
+				<UserParam type="float" name="MH" value="1338.6541"/>
+				<UserParam type="float" name="DeltCn" value="0.4354"/>
+				<UserParam type="float" name="XCorr" value="1.5042"/>
+				<UserParam type="float" name="Sp" value="164.7"/>
+				<UserParam type="string" name="Ions" value="8/24"/>
+			</PeptideHit>
+			<PeptideHit score="169.9" sequence="VWGKVEADIAGHG" charge="2" aa_before="N" aa_after="Q" protein_refs="PH_4" >
+				<UserParam type="string" name="RankSp" value="5/139"/>
+				<UserParam type="float" name="MH" value="1338.6806"/>
+				<UserParam type="float" name="DeltCn" value="0.4375"/>
+				<UserParam type="float" name="XCorr" value="1.4984"/>
+				<UserParam type="float" name="Sp" value="169.9"/>
+				<UserParam type="string" name="Ions" value="9/24"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2008-01-13T02:50:00" search_engine="SEQUEST" search_engine_version="v.27 (rev. 0)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_5" accession="AAC23341.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="AAC21694.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="AAC23003.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="SW:K2CA_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="SW:UBA1_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="566.529174804688" RT="1856.97998046875" >
+			<PeptideHit score="335.4" sequence="TQKRCPFNHMTVAYQKSAV" charge="4" aa_before="F" aa_after="I" protein_refs="PH_5" >
+				<UserParam type="string" name="RankSp" value="1/234"/>
+				<UserParam type="float" name="MH" value="2266.101"/>
+				<UserParam type="float" name="DeltCn" value="0"/>
+				<UserParam type="float" name="XCorr" value="1.6544"/>
+				<UserParam type="float" name="Sp" value="335.4"/>
+				<UserParam type="string" name="Ions" value="25/108"/>
+			</PeptideHit>
+			<PeptideHit score="352.6" sequence="ARSTVKQLRKNVLAKCYGGD" charge="4" aa_before="I" aa_after="V" protein_refs="PH_6" >
+				<UserParam type="string" name="RankSp" value="2/177"/>
+				<UserParam type="float" name="MH" value="2264.2083"/>
+				<UserParam type="float" name="DeltCn" value="0.0508"/>
+				<UserParam type="float" name="XCorr" value="1.5703"/>
+				<UserParam type="float" name="Sp" value="352.6"/>
+				<UserParam type="string" name="Ions" value="27/114"/>
+			</PeptideHit>
+			<PeptideHit score="335.2" sequence="LNGEVLKQKYDQRVMDKQA" charge="4" aa_before="I" aa_after="L" protein_refs="PH_7" >
+				<UserParam type="string" name="RankSp" value="3/236"/>
+				<UserParam type="float" name="MH" value="2263.1869"/>
+				<UserParam type="float" name="DeltCn" value="0.0587"/>
+				<UserParam type="float" name="XCorr" value="1.5572"/>
+				<UserParam type="float" name="Sp" value="335.2"/>
+				<UserParam type="string" name="Ions" value="25/108"/>
+			</PeptideHit>
+			<PeptideHit score="382.1" sequence="GFGGGAGIGFGLGGGAGLAGGFGGPGFP" charge="4" aa_before="F" aa_after="V" protein_refs="PH_8" >
+				<UserParam type="string" name="RankSp" value="4/100"/>
+				<UserParam type="float" name="MH" value="2266.1045"/>
+				<UserParam type="float" name="DeltCn" value="0.0874"/>
+				<UserParam type="float" name="XCorr" value="1.5098"/>
+				<UserParam type="float" name="Sp" value="382.1"/>
+				<UserParam type="string" name="Ions" value="33/162"/>
+			</PeptideHit>
+			<PeptideHit score="331.3" sequence="PFWSGPKRCPHPLTFDVNN" charge="4" aa_before="A" aa_after="P" protein_refs="PH_9" >
+				<UserParam type="string" name="RankSp" value="5/258"/>
+				<UserParam type="float" name="MH" value="2269.0762"/>
+				<UserParam type="float" name="DeltCn" value="0.0982"/>
+				<UserParam type="float" name="XCorr" value="1.4919"/>
+				<UserParam type="float" name="Sp" value="331.3"/>
+				<UserParam type="string" name="Ions" value="28/108"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2008-01-13T02:51:00" search_engine="SEQUEST" search_engine_version="v.27 (rev. 0)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_10" accession="SW:K2CA_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="AAC21854.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="AAC22388.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="AAC23046.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="AAC23163.1" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="585.606486002604" RT="2521.72998046875" >
+			<PeptideHit score="275.9" sequence="KKQCANLQAAIADAEQ" charge="3" aa_before="V" aa_after="R" protein_refs="PH_10" >
+				<UserParam type="string" name="RankSp" value="1/178"/>
+				<UserParam type="float" name="MH" value="1758.8594"/>
+				<UserParam type="float" name="DeltCn" value="0"/>
+				<UserParam type="float" name="XCorr" value="1.8195"/>
+				<UserParam type="float" name="Sp" value="275.9"/>
+				<UserParam type="string" name="Ions" value="18/60"/>
+			</PeptideHit>
+			<PeptideHit score="289.5" sequence="KQFGATDCLNPNDYD" charge="3" aa_before="A" aa_after="K" protein_refs="PH_11" >
+				<UserParam type="string" name="RankSp" value="2/138"/>
+				<UserParam type="float" name="MH" value="1757.7226"/>
+				<UserParam type="float" name="DeltCn" value="0.04"/>
+				<UserParam type="float" name="XCorr" value="1.7467"/>
+				<UserParam type="float" name="Sp" value="289.5"/>
+				<UserParam type="string" name="Ions" value="16/56"/>
+			</PeptideHit>
+			<PeptideHit score="230.9" sequence="QKYAEELYRTLQSQ" charge="3" aa_before="V" aa_after="G" protein_refs="PH_12" >
+				<UserParam type="string" name="RankSp" value="3/437"/>
+				<UserParam type="float" name="MH" value="1756.887"/>
+				<UserParam type="float" name="DeltCn" value="0.0697"/>
+				<UserParam type="float" name="XCorr" value="1.6926"/>
+				<UserParam type="float" name="Sp" value="230.9"/>
+				<UserParam type="string" name="Ions" value="14/52"/>
+			</PeptideHit>
+			<PeptideHit score="317.8" sequence="GQAFKRYLGQGKSAFV" charge="3" aa_before="D" aa_after="K" protein_refs="PH_13" >
+				<UserParam type="string" name="RankSp" value="4/79"/>
+				<UserParam type="float" name="MH" value="1756.9499"/>
+				<UserParam type="float" name="DeltCn" value="0.0765"/>
+				<UserParam type="float" name="XCorr" value="1.6803"/>
+				<UserParam type="float" name="Sp" value="317.8"/>
+				<UserParam type="string" name="Ions" value="20/60"/>
+			</PeptideHit>
+			<PeptideHit score="408.5" sequence="GAGWNYNVGSAAFGTDVA" charge="3" aa_before="V" aa_after="V" protein_refs="PH_14" >
+				<UserParam type="string" name="RankSp" value="5/14"/>
+				<UserParam type="float" name="MH" value="1756.7931"/>
+				<UserParam type="float" name="DeltCn" value="0.1075"/>
+				<UserParam type="float" name="XCorr" value="1.6238"/>
+				<UserParam type="float" name="Sp" value="408.5"/>
+				<UserParam type="string" name="Ions" value="22/68"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2008-01-13T02:51:00" search_engine="SEQUEST" search_engine_version="v.27 (rev. 0)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_15" accession="AAC22787.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="SW:K2C5_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="AAC22740.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="AAC23248.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="AAC23108.1" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="955.811340332031" RT="3249.89990234375" >
+			<PeptideHit score="347.4" sequence="VGYTDIDGNGIEGIEKSF" charge="2" aa_before="V" aa_after="N" protein_refs="PH_15" >
+				<UserParam type="string" name="RankSp" value="1/1"/>
+				<UserParam type="float" name="MH" value="1913.9133"/>
+				<UserParam type="float" name="DeltCn" value="0"/>
+				<UserParam type="float" name="XCorr" value="1.85"/>
+				<UserParam type="float" name="Sp" value="347.4"/>
+				<UserParam type="string" name="Ions" value="12/34"/>
+			</PeptideHit>
+			<PeptideHit score="188.8" sequence="GVGPVNISVVTSSVSSGYGSG" charge="2" aa_before="E" aa_after="S" protein_refs="PH_16" >
+				<UserParam type="string" name="RankSp" value="2/43"/>
+				<UserParam type="float" name="MH" value="1909.9507"/>
+				<UserParam type="float" name="DeltCn" value="0.1675"/>
+				<UserParam type="float" name="XCorr" value="1.5401"/>
+				<UserParam type="float" name="Sp" value="188.8"/>
+				<UserParam type="string" name="Ions" value="10/40"/>
+			</PeptideHit>
+			<PeptideHit score="209.9" sequence="YFKWRKGNKSGEWKV" charge="2" aa_before="L" aa_after="Y" protein_refs="PH_17" >
+				<UserParam type="string" name="RankSp" value="3/25"/>
+				<UserParam type="float" name="MH" value="1913.0186"/>
+				<UserParam type="float" name="DeltCn" value="0.1933"/>
+				<UserParam type="float" name="XCorr" value="1.4924"/>
+				<UserParam type="float" name="Sp" value="209.9"/>
+				<UserParam type="string" name="Ions" value="9/28"/>
+			</PeptideHit>
+			<PeptideHit score="199.9" sequence="KSKIFTQSANKGTFGAVE" charge="2" aa_before="F" aa_after="K" protein_refs="PH_18" >
+				<UserParam type="string" name="RankSp" value="4/30"/>
+				<UserParam type="float" name="MH" value="1913.0132"/>
+				<UserParam type="float" name="DeltCn" value="0.1935"/>
+				<UserParam type="float" name="XCorr" value="1.4921"/>
+				<UserParam type="float" name="Sp" value="199.9"/>
+				<UserParam type="string" name="Ions" value="9/34"/>
+			</PeptideHit>
+			<PeptideHit score="233.8" sequence="IGDSYQASLEDYKQYE" charge="2" aa_before="N" aa_after="E" protein_refs="PH_19" >
+				<UserParam type="string" name="RankSp" value="5/15"/>
+				<UserParam type="float" name="MH" value="1908.8503"/>
+				<UserParam type="float" name="DeltCn" value="0.2268"/>
+				<UserParam type="float" name="XCorr" value="1.4304"/>
+				<UserParam type="float" name="Sp" value="233.8"/>
+				<UserParam type="string" name="Ions" value="10/30"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2008-01-13T02:51:00" search_engine="SEQUEST" search_engine_version="v.27 (rev. 0)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_20" accession="P00722" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="AAC22592.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="AAC22979.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="AAC22500.1" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="AAC22339.1" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="822.061116536458" RT="3427.9599609375" >
+			<PeptideHit score="366.6" sequence="IDGSGQMAITVDVEVASDTPHPAR" charge="3" aa_before="R" aa_after="I" protein_refs="PH_20" >
+				<UserParam type="string" name="RankSp" value="1/6"/>
+				<UserParam type="float" name="MH" value="2466.1935"/>
+				<UserParam type="float" name="DeltCn" value="0"/>
+				<UserParam type="float" name="XCorr" value="2.5112"/>
+				<UserParam type="float" name="Sp" value="366.6"/>
+				<UserParam type="string" name="Ions" value="22/92"/>
+			</PeptideHit>
+			<PeptideHit score="297.9" sequence="NRQYQQAGMYLQQLLDSGNAAV" charge="3" aa_before="E" aa_after="D" protein_refs="PH_21" >
+				<UserParam type="string" name="RankSp" value="2/23"/>
+				<UserParam type="float" name="MH" value="2468.1992"/>
+				<UserParam type="float" name="DeltCn" value="0.3196"/>
+				<UserParam type="float" name="XCorr" value="1.7087"/>
+				<UserParam type="float" name="Sp" value="297.9"/>
+				<UserParam type="string" name="Ions" value="19/84"/>
+			</PeptideHit>
+			<PeptideHit score="205.2" sequence="EDEGEVFLGRSMAKAKHMSDET" charge="3" aa_before="T" aa_after="A" protein_refs="PH_22" >
+				<UserParam type="string" name="RankSp" value="3/240"/>
+				<UserParam type="float" name="MH" value="2467.1233"/>
+				<UserParam type="float" name="DeltCn" value="0.3973"/>
+				<UserParam type="float" name="XCorr" value="1.5135"/>
+				<UserParam type="float" name="Sp" value="205.2"/>
+				<UserParam type="string" name="Ions" value="15/84"/>
+			</PeptideHit>
+			<PeptideHit score="289.7" sequence="ISWGHWFAFFNIIVAIFIGAR" charge="3" aa_before="K" aa_after="Y" protein_refs="PH_23" >
+				<UserParam type="string" name="RankSp" value="4/27"/>
+				<UserParam type="float" name="MH" value="2465.3286"/>
+				<UserParam type="float" name="DeltCn" value="0.4023"/>
+				<UserParam type="float" name="XCorr" value="1.5009"/>
+				<UserParam type="float" name="Sp" value="289.7"/>
+				<UserParam type="string" name="Ions" value="20/80"/>
+			</PeptideHit>
+			<PeptideHit score="346.8" sequence="FKGILVSLLASFLFGYMYYFS" charge="3" aa_before="M" aa_after="T" protein_refs="PH_24" >
+				<UserParam type="string" name="RankSp" value="5/8"/>
+				<UserParam type="float" name="MH" value="2466.2823"/>
+				<UserParam type="float" name="DeltCn" value="0.4249"/>
+				<UserParam type="float" name="XCorr" value="1.4442"/>
+				<UserParam type="float" name="Sp" value="346.8"/>
+				<UserParam type="string" name="Ions" value="20/80"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
