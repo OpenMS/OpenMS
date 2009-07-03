@@ -71,15 +71,19 @@ namespace OpenMS
 	
   void PepXMLFile::load(const String& filename, ProteinIdentification& protein, vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment)
   { 
-  	//initialize, load could be called several times
+  	// initialize, load could be called several times
   	experiment_ = 0;
   	exp_name_ = "";
   	rt_tol_ = 0.5;
   	mz_tol_ = 0.5;
+		// assume mass type "average" (in case element "search_summary" is missing)
+		const ElementDB* db = ElementDB::getInstance();
+		Element hydrogen = *db->getElement("Hydrogen");
+		hydrogen_mass_ = hydrogen.getAverageWeight();	
   	
   	file_ = filename;	// filename for error messages in XMLHandler
 
-		if (experiment_name != "") 
+		if (experiment_name != "")
 		{
 			// try and load the experiment now
 			if (experiment.empty()) 
@@ -469,7 +473,7 @@ namespace OpenMS
 
 					// check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
 					// (otherwise, precursor mapping is wrong)
-					if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz, mz_tol_) && (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt, rt_tol_)))
+					if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz, mz_tol_)	&& (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt, rt_tol_)))
 					{
 // 						DoubleReal diff;
 // 						diff = mz - prec_mz;
@@ -532,7 +536,10 @@ namespace OpenMS
 			if (!has_desc)
 			{ // generate a dummy description
 				String sign, massdiff = attributeAsString_(attributes, "massdiff");
-				if (!massdiff.hasPrefix("-")) sign = "+";
+				if (!massdiff.hasPrefix("-") && !massdiff.hasPrefix("+"))
+				{
+					sign = "+";
+				}
 				desc = attributeAsString_(attributes, "aminoacid") + sign + massdiff;
 			}
 			if (is_variable == "Y")
@@ -606,6 +613,9 @@ namespace OpenMS
 			}
 			date_ = asDateTime_(date);
 			protein_->setDateTime(date_);
+			// "prot_id_" will be overwritten if element "search_summary" is present
+			prot_id_ = "unknown_" + date_.getDate();
+			protein_->setIdentifier(prot_id_);
 		}
 		
 	}
