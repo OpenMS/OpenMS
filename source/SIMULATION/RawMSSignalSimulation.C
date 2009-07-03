@@ -96,9 +96,6 @@ namespace OpenMS {
     defaults_.setValue("int:error_mean",0,"Average systematic intensity error.");
     defaults_.setValue("int:error_stddev",0.0,"Standard deviation for peak intensities (relative to peak height). Set to 0 to disable intensity errors.");
 
-    // rt parameters
-    defaults_.setValue("rt:sampling_rate",2.0,"Time interval (in seconds) between consecutive scans");
-
     // peak and instrument parameter
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
 
@@ -108,15 +105,6 @@ namespace OpenMS {
 
     // baseline
     defaults_.setValue("baseline_scaling",0.0,"Scale of baseline (zero disables baseline simulation)");
-
-    // column conditions
-    defaults_.setValue("column_condition:preset","medium","LC condition (none|good|medium|poor) if set to none the explicit values will be used.");
-    StringList valid_presets = StringList::create("none,good,medium,poor");
-    defaults_.setValidStrings("column_condition:preset", valid_presets);
-
-    defaults_.setValue("column_condition:distortion", 1.0, "LC distortion (ignored if preset is not set to none)");
-    defaults_.setValue("column_condition:symetry_up", -60.0, "LC symetry up (ignored if preset is not set to none)");
-    defaults_.setValue("column_condition:symetry_down", +60.0, "LC symetry down (ignored if preset is not set to none)");
 
     defaultsToParam_();
   }
@@ -138,40 +126,10 @@ namespace OpenMS {
     intensity_error_mean_   = param_.getValue("int:error_mean");
     intensity_error_stddev_ = param_.getValue("int:error_stddev");
 
-    rt_sampling_rate_ = param_.getValue("rt:sampling_rate");
-
-    String column_preset = param_.getValue("column_condition:preset");
-    if (column_preset == "poor")
-    {
-      distortion_    = 2.0;
-      symmetry_down_ = -100;
-      symmetry_up_   = +100;
-    }
-    else if (column_preset == "medium")
-    {
-      distortion_    = 1.0;
-      symmetry_down_ = -60;
-      symmetry_up_   = +60;
-    }
-    else if (column_preset == "good")
-    {
-      distortion_    = 0.0;
-      symmetry_down_ = -15;
-      symmetry_up_   = +15;
-    }
-    else 	// default is "none" so get user set parameters
-    {
-      distortion_    = param_.getValue("column_condition:distortion");
-      symmetry_up_   = param_.getValue("column_condition:symetry_up");
-      symmetry_down_ = param_.getValue("column_condition:symetry_down");
-    }
-
   }
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
-    changed_scans_.resize(experiment.size());
-
     if(experiment.size() == 1)
     {
       for(FeatureMap< >::iterator feature_it = features.begin();
@@ -212,8 +170,7 @@ namespace OpenMS {
     // don't show ions with m/z higher than the MS detection limit
     if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
     {
-      // ignore the current feature
-      return;
+      return; // ignore the current feature
     }
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
@@ -225,72 +182,67 @@ namespace OpenMS {
     IsotopeModelGeneral isomodel;
     isomodel.setSamples(feature_ef);
     isomodel.setParameters(p1);
-    
-    samplePeptideModel1D_(isomodel, (mz - 2.5),(mz + 5.0), experiment, active_feature);
+
+    SimCoordinateType mz_start = isomodel.getInterpolation().supportMin();
+    SimCoordinateType mz_end = isomodel.getInterpolation().supportMax();
+        
+    samplePeptideModel1D_(isomodel, mz_start, mz_end, experiment, active_feature);
   }
 
   void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
-    ProductModel<2> pm;
-    Param p1;
-
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 1500;
     mean_scaling_ += scale;
     ++ion_count_;
 
-    SimChargeType charge = active_feature.getCharge();
-    EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     SimCoordinateType mz = active_feature.getMZ();
-
-    // TODO: this should not be necessary, check ...
-    /*
-    allow_overlaps_ = (unsigned int) param_.getValue("allow_overlaps");
-    if ( (allow_overlaps_ == 0) && checkForOverlaps_( DPosition<2>(mz,rt) ) )
-    {
-      return;
-    }
-    */
 
     // don't show ions with m/z higher than the MS detection limit
     if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
     {
-      // ignore the current feature
-      return;
+      return; // ignore the current feature
     }
-
+    
+    Param p1;
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
-    p1.setValue("charge", charge);
+    p1.setValue("charge", active_feature.getCharge());
 
     IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
-    isomodel->setSamples(feature_ef);
+    isomodel->setSamples(active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula());
     isomodel->setParameters(p1);
 
-		// TODO: this is big CR*P! RT elution profiles should be done in RTSimulation, but way BEFORE Ionization!!!!
-		// we just need to figure out how to change the size (not position) for less intense sibling ions - maybe storing a
-		// model with a width param (depending on intensity) is the way to go...
-    chooseElutionProfile_(pm,active_feature.getRT(),scale);
-    pm.setModel(1,isomodel);
+		if (experiment.size()<2)
+		{
+			throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment.size());
+		}
+		DoubleReal rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
+		ElutionModel* elutionmodel = new ElutionModel();
+    chooseElutionProfile_(elutionmodel, active_feature, scale, rt_sampling_rate, experiment);
+    ProductModel<2> pm;
+    pm.setModel(0, elutionmodel); // new'ed models will be deleted by the pm! no need to delete them manually
+		pm.setModel(1, isomodel);			// new'ed models will be deleted by the pm! no need to delete them manually
     pm.setScale(scale);
 
+    // start and end points of the sampling are entirely arbitrary
+    // and should be modified at some point
+    SimCoordinateType rt_start = elutionmodel->getInterpolation().supportMin();
+    SimCoordinateType rt_end = elutionmodel->getInterpolation().supportMax();
+    SimCoordinateType mz_start = isomodel->getInterpolation().supportMin();
+    SimCoordinateType mz_end = isomodel->getInterpolation().supportMax();
+    std::cout << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:min")-rt_start) << " - " << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:max")-rt_end) << "\n";
+		std::cout <<  mz_start << " - " << mz_end << " [mz] \n";
+		    
     // add peptide to global MS map
-    // TODO: use flexible boundaries for rt/mz depending on abundance/charge?
-    // TODO: remove this current_feature_ dependency
-
-    samplePeptideModel2D_(pm, (mz - 2.5),(mz + 5.0), (active_feature.getRT() - 160.0),(active_feature.getRT() + 280.0), experiment, active_feature);
-    /*
-    if (current_feature_.getConvexHulls().begin()->getPoints().size() > 0)
-    {
-      features_.push_back(current_feature_);
-    }
-    */
+    samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
   }
 
+
   void RawMSSignalSimulation::samplePeptideModel1D_(const IsotopeModelGeneral & pm,
-                                                  const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
-                                                  MSSimExperiment & experiment, Feature & active_feature)
+																										const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
+																										MSSimExperiment & experiment, Feature & active_feature)
   {
     // start and end points of the sampling are entirely arbitrary
     // and should be modified at some point
@@ -300,7 +252,7 @@ namespace OpenMS {
 
     SimIntensityType intensity_sum = 0.0;
 
-    std::cout << "Sampling (1D) at: " << mz_start << " " << mz_end << " " << std::endl;
+    std::cout << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
 
     /// TODO: think of better error checking
 
@@ -338,42 +290,30 @@ namespace OpenMS {
                                     SimCoordinateType rt_start, SimCoordinateType rt_end,
                                     MSSimExperiment & experiment, Feature & active_feature)
   {
-    // start and end points of the sampling are entirely arbitrary
-    // and should be modified at some point
-
-    // (cg) commented this out since it cuts off fronted elution profiles!!
-    // (ost) Why should this happen ?
     if (rt_start <=0) rt_start = 0;
 
     MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(rt_start);
-
-    SimIntensityType intensity_sum = 0.0;
-    vector< DPosition<2> > points;
-
-//#ifdef DEBUG_SIM
-    std::cout << "Sampling at: " << mz_start << " " << mz_end << " ";
-    std::cout << rt_start << " " << rt_end << std::endl;
-//#endif
-
-    /// TODO: think of better error checking
     if(exp_iter == experiment.end() )
     {
-      std::cout << "error ! " << std::endl; // ;-) should not happen
-      return;
+      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
-    SimPointType point;
 
-    Int start_scan = exp_iter - experiment.begin();
-    //std::cout << "start_scan: " << start_scan << std::endl;
+    SimIntensityType intensity_sum = 0.0;
+    std::cout << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
+
+    SimPointType point;
+    vector< DPosition<2> > points;
     
+    Int start_scan = exp_iter - experiment.begin();
     Int end_scan  = -5;
 
-    //UInt it = 0;
-    //UInt pit = 0;
+		SimCoordinateType rt = rt_start;
 
-    for (SimCoordinateType rt = rt_start; rt < rt_end && exp_iter != experiment.end(); rt += rt_sampling_rate_, ++exp_iter)
+    for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
     {
+			rt = exp_iter->getRT();
+			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
         //++it;
@@ -383,13 +323,7 @@ namespace OpenMS {
 
         if ( point.getIntensity() > 10.0)
         {
-          if (! changed_scans_.at( exp_iter - experiment.begin() ) )
-          {
-            changed_scans_.at( exp_iter - experiment.begin() )  = true;
-          }
-          //++pit;
-
-          // add m/z and itensity error (both Gaussian distributed)
+          // add m/z and intensity error (both Gaussian distributed)
           double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
 
           // this is a quick fix only, should be improved to prevent simulation of negative intensities
@@ -405,15 +339,11 @@ namespace OpenMS {
           exp_iter->push_back(point);
           //std::cout << "Sampling intensity: " << point.getIntensity() << std::endl;
 
-          //update last scan
+          //update last scan affected
           end_scan = exp_iter - experiment.begin();
         }
       }
     }
-
-    //cout << "End of sampling: " << it << " vs " << pit << endl;
-
-    //cout << "end_scan: " << end_scan << endl;
 
     // This is a clear misuse of the Feature data structure
     // but at this point, we couldn't care less ;-)
@@ -424,91 +354,50 @@ namespace OpenMS {
     active_feature.setIntensity(intensity_sum);
     // store convex hull
     active_feature.getConvexHulls().clear();
-    active_feature.getConvexHulls().resize( active_feature.getConvexHulls().size()+1);
-    active_feature.getConvexHulls()[ active_feature.getConvexHulls().size()-1] = points;
+    // adding ALL points of the feature, the ConvexHull2D assignment operator will take care of the rest
+    active_feature.getConvexHulls().push_back(points);
 
-//#ifdef DEBUG_SIM
-//    current_feature_.setModelDescription( ModelDescription<2>( &pm ) );
-//#endif
   }
 
-  void RawMSSignalSimulation::chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale)
+  void RawMSSignalSimulation::chooseElutionProfile_(ElutionModel*& elutionmodel, const Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment)
   {
-      Param p;
-      double symmetry = gsl_ran_flat (rnd_gen_, symmetry_down_, symmetry_up_);
+    SimCoordinateType f_rt = feature.getRT();
+    DoubleReal f_symmetry = (DoubleReal) feature.getMetaValue("rt_symmetry");
+    DoubleReal f_width = (DoubleReal) feature.getMetaValue("rt_width");
 
-      double width = gsl_ran_flat (rnd_gen_, 5, 15);
+    // Exponentially modified Gaussian
+    const DoubleReal decay_stretch = 5.0;
+    // it doesn't matter what bounding box I set here, it always cuts of the fronting !!! :-(
+    Param p;
+    p.setValue("bounding_box:min", f_rt - decay_stretch*(f_width+fabs(f_symmetry)) );
+    p.setValue("bounding_box:max", f_rt + decay_stretch*(f_width+fabs(f_symmetry)) );
+    // WARNING: step used to be 'rt_sampling_rate / 3.0', but distortion is not part of RT sim, and thus only
+    //          modelled 1:1
+    p.setValue("interpolation_step", rt_sampling_rate );
+    p.setValue("statistics:variance", 1.0);
+    p.setValue("statistics:mean", f_rt);
+    p.setValue("emg:height", scale);
+    p.setValue("emg:width", f_width);
+    p.setValue("emg:symmetry", f_symmetry);
+    p.setValue("emg:retention", f_rt);
+    elutionmodel->setParameters(p); // does the calculation
 
-      // Exponentially modified Gaussian
-      const DoubleReal decay_stretch = 5.0;
-      // it doesn't matter what bounding box I set here, it always cuts of the fronting !!! :-(
-      p.setValue("bounding_box:min",rt - decay_stretch*(width+fabs(symmetry)) );
-      p.setValue("bounding_box:max",rt + decay_stretch*(width+fabs(symmetry)) );
-      p.setValue("interpolation_step", rt_sampling_rate_ / 3.0);
-      p.setValue("statistics:variance",1.0);
-      p.setValue("statistics:mean",rt );
-      p.setValue("emg:height",scale);
-      p.setValue("emg:width",width);
-      p.setValue("emg:symmetry",symmetry);
-      p.setValue("emg:retention",rt);
-      ElutionModel* elutionmodel = new ElutionModel();
-      elutionmodel->setParameters(p);
-      elutionmodel->setScalingFactor(scale);
+    //----------------------------------------------------------------------
 
-      //----------------------------------------------------------------------
+    // Hack away constness :-P   We know what we want.
+    ElutionModel::ContainerType &data = const_cast<ElutionModel::ContainerType &>(elutionmodel->getInterpolation().getData());
 
-      // So far we had randomness in the parameters of the EMG.  Now let us add
-      // some random ups and downs within the elution profile.
-
-      // Hack away constness :-P   We know what we want.
-      ElutionModel::ContainerType &data = const_cast<ElutionModel::ContainerType &>(elutionmodel->getInterpolation().getData());
-
-      // Member distortion_ is the logarithm of the maximal factor which can be applied to
-      // each point. But note that elution profile is smoothed again afterward.
-
-      // first and last entry shall not be changed
-      for ( Size i = 1; i < data.size() - 1; ++i )
-      {
-        data[i] *= exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
-      }
-      // moving average filter (width 3), implemented very inefficiently (guess why!)
-      if ( distortion_ != 0.0 ) // otherwise we want perfect EMG shape!
-      {
-        ElutionModel::ContainerType tmp;
-        tmp.resize(data.size());
-        for ( Size i = 1; i < data.size() - 1; ++i )
-        {
-          tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-        }
-        for ( Size i = 1; i < data.size() - 1; ++i )
-        {
-          data[i] = tmp[i];
-        }
-
-        const int num_rounds = 10;
-        for ( int rounds = 0; rounds < num_rounds; ++rounds)
-        {
-        //TODO: WTF!
-          data.swap(tmp);
-          for ( Size i = 1; i < data.size() - 1; ++i )
-          {
-            tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-          }
-          for ( Size i = 1; i < data.size() - 1; ++i )
-          {
-            data[i] = tmp[i];
-          }
-        }
-
-      }
-      pm.setModel(0,elutionmodel);
+		SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
+	
+		// find scan in experiment at which our elution starts
+		MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
+    for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i )
+    { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
+			data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
+    }
+  
+      
   }
-
-  SimCoordinateType RawMSSignalSimulation::getRTSamplingRate() const
-  {
-    return rt_sampling_rate_;
-  }
-
 
   void RawMSSignalSimulation::addShotNoise_(MSSimExperiment & experiment)
   {
@@ -563,6 +452,7 @@ namespace OpenMS {
       {
         SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit_);
         // TODO: what is this?! Baseline up to 1000Th and then what?
+        // We should consider using an exp() for MALDI and nothing(?) for ESI?
         if (x >= 1000.0) continue; // speed-up
 
         DoubleReal b = gsl_ran_exponential_pdf(x,125.0);
@@ -574,9 +464,14 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::compressSignals_(MSSimExperiment & experiment)
   {
+		// assume we changed every scan a priori
+    //changed_scans_.resize(experiment.size(), true);
+  
     Size count = 0;
     do
-    {
+    { // TODO here we can improve on speed a lot by better compression! check if running times are significant
+      // TODO: either use in compressSignalsRun_ or delete the member
+	    //changed_scans_[ i ]  = false;
       count = compressSignalsRun_(experiment);
     } while (count != 0);
   }
@@ -592,7 +487,6 @@ namespace OpenMS {
     for( Size i = 0 ; i < experiment.size() ; ++i )
     {
       experiment[i].sortByPosition();
-      if (experiment[i].size() <= 2) continue;
 
       // copy Spectrum and remove Peaks ..
       MSSimExperiment::SpectrumType cont = experiment[i];

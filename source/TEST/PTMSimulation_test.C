@@ -85,7 +85,7 @@ START_SECTION((PTMSimulation& operator=(const PTMSimulation &source)))
 }
 END_SECTION
 
-START_SECTION((void predict_ptms(FeatureMapSim &map)))
+START_SECTION((void predictPTMs(FeatureMapSim &map)))
 {
 	gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
 
@@ -104,7 +104,7 @@ START_SECTION((void predict_ptms(FeatureMapSim &map)))
 		map.push_back(f);
 	}
 
-	a.predict_ptms(map);
+	a.predictPTMs(map);
 
 	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
 	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAAHTKLRTTIPPEFG")

@@ -40,6 +40,8 @@
 
 namespace OpenMS {
 
+	class ElutionModel;
+
   /**
    @brief Simulates MS signales for a given set of peptides
 
@@ -135,7 +137,7 @@ namespace OpenMS {
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(ProductModel<2>& pm, const SimCoordinateType rt,const double scale);
+    void chooseElutionProfile_(ElutionModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
 
     /// Add shot noise to the experimet
     void addShotNoise_(MSSimExperiment & experiment);
@@ -154,8 +156,6 @@ namespace OpenMS {
 
 		/// bin size in m/z dimension
 		SimCoordinateType mz_sampling_rate_;
-    /// bin size in rt dimension
-    SimCoordinateType rt_sampling_rate_;
 
 		/// Mean of peak m/z error
 		SimCoordinateType mz_error_mean_;
@@ -183,11 +183,6 @@ namespace OpenMS {
 
 		/// Remembers which scans were changed after the last call to removeDuplicatePoints_()
 		std::vector<bool> changed_scans_;
-
-    /// LC conditions (noise parameter for EMG)
-		DoubleReal distortion_;
-    DoubleReal symmetry_up_;
-    DoubleReal symmetry_down_;
 
   protected:
 		/// Random number generator

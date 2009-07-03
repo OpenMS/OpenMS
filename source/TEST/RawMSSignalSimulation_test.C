@@ -93,23 +93,6 @@ START_SECTION((void generateRawSignals(FeatureMapSim &, MSSimExperiment &)))
 }
 END_SECTION
 
-START_SECTION((SimCoordinateType getRTSamplingRate() const ))
-{
-  RawMSSignalSimulation raw_sim(NULL);
-  Param p = raw_sim.getParameters();
-  p.setValue("rt:sampling_rate",3.0);
-  raw_sim.setParameters(p);
-
-  TEST_EQUAL(raw_sim.getRTSamplingRate(), 3.0)
-  
-  p.setValue("rt:sampling_rate",0.3);
-  raw_sim.setParameters(p);
-  
-  TEST_EQUAL(raw_sim.getRTSamplingRate(), 0.3)
-  
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -75,13 +75,14 @@ namespace OpenMS
      @brief Predict retention times for given peptide features based on a SVM Model
      
      @param features Feature map for which the retention times will be predicted
+     @param features Experiment map which will be build from scratch
      */
-    void predict_rt(FeatureMapSim & features);
+    void predictRT(FeatureMapSim & features, MSSimExperiment & experiment);
  
     /**
      @brief Set retention times randomly for given contaminants
      */
-    void predict_contaminants_rt(FeatureMapSim &);
+    void predictContaminantsRT(FeatureMapSim &);
     
     /**
      @brief Returns true if a RT column was simulated
@@ -96,22 +97,36 @@ namespace OpenMS
     /// Set default parameters
     void setDefaultParams_();
 
-		// Name of the svm model file
-		OpenMS::String rtModelFile_;
+    /// Simply set all retention times to -1
+    void noRTColumn_(FeatureMapSim &);
+    
+    /// Predict all retention times based on a svm model
+    void predictFeatureRT_(FeatureMapSim &);
+  
+		/// Size experiment and assign retention time grid
+		void createExperiment_(MSSimExperiment & experiment);
+    
+    // MEMBERS:
+    
+    // Name of the svm model file
+		OpenMS::String rt_model_file_;
     
     /// Total gradient time
-    SimCoordinateType gradientTime_;
+    SimCoordinateType gradient_time_;
+
+    /// bin size in rt dimension
+    SimCoordinateType rt_sampling_rate_;
+
+    /// LC conditions (noise parameter for EMG)
+		DoubleReal distortion_;
+    DoubleReal symmetry_up_;
+    DoubleReal symmetry_down_;
     
     /// Front part of the LC gradient that will not be directly assigned to guarantee a full elution profile
     static const DoubleReal gradient_front_offset_;
     /// Total part (front + back) of the LC gradient that will not be directly assigned
     static const DoubleReal gradient_total_offset_;
     
-    /// Simply set all retention times to -1
-    void no_rt_column(FeatureMapSim &);
-    
-    /// Predict all retention times based on a svm model
-    void svm_predict(FeatureMapSim &);
   protected:  
 		/// Random number generator
 		const gsl_rng* rnd_gen_;    

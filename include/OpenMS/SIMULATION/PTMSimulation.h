@@ -80,7 +80,7 @@ namespace OpenMS {
 			@param map FeatureMap which is extended by diced PTM's
 
      */
-    void predict_ptms(FeatureMapSim & map);
+    void predictPTMs(FeatureMapSim & map);
    
 	protected:
 		/// see

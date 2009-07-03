@@ -39,6 +39,7 @@ namespace OpenMS {
 
   void verbosePrintFeatureMap(FeatureMapSim feature_map)
   {
+#ifdef _DEBUG
     std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
 
     std::cout << "contained proteins" << std::endl;
@@ -65,7 +66,8 @@ namespace OpenMS {
       std::cout << std::endl << "----------------------------------------------" << std::endl;
     }
 
-    std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
+    std::cout << "############## END DEBUG -- FEATURE MAP ##############" << std::endl;
+#endif
   }
 
   MSSim::MSSim()
@@ -140,7 +142,7 @@ namespace OpenMS {
     std::cout << param_.copy("PostTranslationalModifications:",true) << std::endl;
 		
     ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
-		ptm_sim.predict_ptms(features_);
+		ptm_sim.predictPTMs(features_);
 
     // debug
     std::cout << "ptms added" << std::endl;
@@ -149,7 +151,7 @@ namespace OpenMS {
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
 		rt_sim.setParameters(param_.copy("RTSimulation:",true));
-		rt_sim.predict_rt(features_);
+		rt_sim.predictRT(features_, experiment_);
 
     // debug
     std::cout << "rt simulated" << std::endl;
@@ -174,7 +176,6 @@ namespace OpenMS {
 
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
-    createExperiment_(rt_sim.getGradientTime(), rt_sim.isRTColumnOn(),raw_sim.getRTSamplingRate(), experiment_);
     raw_sim.generateRawSignals(features_, experiment_);
 
     // debug
@@ -212,34 +213,6 @@ namespace OpenMS {
     vec_protIdent.push_back(protIdent);
     feature_map.setProteinIdentifications(vec_protIdent);
 	}
-
-  void MSSim::createExperiment_(const DoubleReal& gradient_time, bool is_rt_column_on, const DoubleReal& rt_sampling_rate, MSSimExperiment& experiment)
-  {
-    std::cout << "create experiment .. ";
-    experiment.clear();
-    if(is_rt_column_on)
-    {
-      Size number_of_scans = Size(gradient_time / rt_sampling_rate);
-      experiment.resize(number_of_scans);
-
-      DoubleReal current_scan_rt = rt_sampling_rate;
-      for(MSSimExperiment::iterator exp_it = experiment.begin();
-          exp_it != experiment.end();
-          ++exp_it)
-      {
-        // TODO: maybe we should also apply an error here like Ole did it in the original MapSimulator
-        // double n = gsl_ran_gaussian(rand_gen_, 0.05);
-        (*exp_it).setRT(current_scan_rt);
-        current_scan_rt += rt_sampling_rate;
-      }
-    }
-    else
-    {
-      experiment.resize(1);
-      experiment[0].setRT(-1);
-    }
-    std::cout << "done";
-  }
 
   void MSSim::setDefaultParams_()
   {
