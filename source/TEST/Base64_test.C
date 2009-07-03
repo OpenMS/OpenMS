@@ -37,6 +37,7 @@
 #include <string>
 
 #include <QtCore/QString>
+#include <QtCore/QTime>
 #include <OpenMS/CONCEPT/Types.h>
 
 using namespace std;
@@ -214,7 +215,83 @@ START_SECTION([EXTRA] zlib functionality)
 	TEST_REAL_SIMILAR(data[0], 300.15f)
 	TEST_REAL_SIMILAR(data[1], 303.998f)
 	TEST_REAL_SIMILAR(data[2], 304.6f)	
+
 END_SECTION
+
+START_SECTION([EXTRA] decode integers)
+	Base64 b64;
+	String src;
+	vector<Real> res;
+	vector<DoubleReal> double_res;
+	//with zlib compression
+	src="eJwNw4c2QgEAANAniezMIrKyUrKyMooIIdki4/8/wr3n3CAIgjZDthu2w4iddhm12x577bPfAQeNOeSwI4465rhxE044adIpp00546xzzrtg2kWXXHbFVTOumTXnunk33HTLbXcsuOue+x54aNEjjz3x1JJlzzy34oWXVr3y2htr3nrnvXUfbPjok8+++Oqb737Y9NMvW377469//gPgoxL0";
+
+	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,res,true,Base64::INTEGER);
+	
+	for(Size i = 0 ; i < res.size();++i)
+	{
+			TEST_REAL_SIMILAR(res[i],i)
+	}
+	
+	src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
+	b64.decode(src,Base64::BYTEORDER_LITTLEENDIAN,double_res,true,Base64::INTEGER);
+	
+	for(Size i = 0 ; i < double_res.size();++i)
+	{
+			TEST_REAL_SIMILAR(double_res[i],i)
+	}
+	
+	src="eJxjZGBgYAJiZiAGAAA0AAc=";
+	b64.decode(src,Base64::BYTEORDER_BIGENDIAN,res,true,Base64::INTEGER);
+	TEST_REAL_SIMILAR(res[0],16777215)
+	TEST_REAL_SIMILAR(res[1],33554432 )
+	TEST_REAL_SIMILAR(res[2],50331648 )
+	
+	//without zlib compression
+	src = "AAAAAQAAAAUAAAAGAAAABwAAAAgAAAAJAAACCg==";
+	
+	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,res,false,Base64::INTEGER);
+	
+	TEST_REAL_SIMILAR(res[0],1)
+	TEST_REAL_SIMILAR(res[1],5)
+	TEST_REAL_SIMILAR(res[2],6)
+	TEST_REAL_SIMILAR(res[3],7)
+	TEST_REAL_SIMILAR(res[4],8)
+	TEST_REAL_SIMILAR(res[5],9)
+	TEST_REAL_SIMILAR(res[6],522)
+	src = "AAAAAAAAAAUAAAAAAAAAAwAAAAAAAAAJ";	
+	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,double_res,false,Base64::INTEGER);	
+	TEST_REAL_SIMILAR(double_res[0],5)
+	TEST_REAL_SIMILAR(double_res[1],3)
+	TEST_REAL_SIMILAR(double_res[2],9)	
+
+
+	src ="AQAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgIAAA==";
+	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,res,false,Base64::INTEGER);
+	
+	TEST_REAL_SIMILAR(res[0],1)
+	TEST_REAL_SIMILAR(res[1],5)
+	TEST_REAL_SIMILAR(res[2],6)
+	TEST_REAL_SIMILAR(res[3],7)
+	TEST_REAL_SIMILAR(res[4],8)
+	TEST_REAL_SIMILAR(res[5],9)
+	TEST_REAL_SIMILAR(res[6],522)
+					
+				vector<int> rese;		
+				rese.push_back(1);
+				rese.push_back(2);
+				rese.push_back(3);
+			
+				QByteArray original = QByteArray::fromRawData(reinterpret_cast<const char*>(&rese[0]), (int) rese.size()*4);
+			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
+			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
+			QByteArray base64_compressed = extern_compressed.toBase64();
+			String out;
+			out = QString(base64_compressed).toStdString();
+		cout<<"out: "<<out<<endl;
+	
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

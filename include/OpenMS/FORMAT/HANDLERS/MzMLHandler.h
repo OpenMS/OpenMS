@@ -154,6 +154,7 @@ namespace OpenMS
 				String precision;
 				UInt size;
 				String compression;
+				Base64::DataType data_type;
 				std::vector<Real> decoded_32;
 				std::vector<DoubleReal> decoded_64;
 				MetaInfoDescription meta;
@@ -661,19 +662,19 @@ namespace OpenMS
 
 				if (data_[i].precision=="64" && data_[i].compression =="zlib")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true);
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true,data_[i].data_type);
 				}
 				else if(data_[i].precision=="64")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64);
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,false,data_[i].data_type);
 				}
 				else if (data_[i].precision=="32" && data_[i].compression =="zlib")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true);
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true,data_[i].data_type);
 				}
 				else if(data_[i].precision =="32")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32);
+					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,false,data_[i].data_type);
 				}
 			}
 
@@ -900,11 +901,23 @@ namespace OpenMS
 					if (accession=="MS:1000523") //64-bit float
 					{
 						data_.back().precision = "64";
+						data_.back().data_type = Base64::FLOAT;
 					}
 					else if (accession=="MS:1000521") //32-bit float
 					{
 						data_.back().precision = "32";
+						data_.back().data_type = Base64::FLOAT;
 					}
+					else if(accession=="MS:1000519") //32-bit integer
+					{
+						data_.back().precision = "32";
+						data_.back().data_type = Base64::INTEGER;						
+					}
+					else if(accession=="MS:1000522") //64-bit integer
+					{
+						data_.back().precision = "64";
+						data_.back().data_type = Base64::INTEGER;						
+					}					
 					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
 					{

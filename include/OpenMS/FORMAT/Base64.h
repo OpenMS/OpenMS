@@ -42,7 +42,6 @@
 #include <iterator>
 #include <cmath>
 #include <vector>
-#include <iostream>
 
 
 #include <QtCore/QString>
@@ -71,6 +70,12 @@ namespace OpenMS
 				BYTEORDER_LITTLEENDIAN	///< Little endian type
 			};
 			
+			enum DataType
+			{
+				INTEGER,///< Integer type
+				FLOAT,	///< Floating point type
+				STRING ///< String type
+			};
 			/**
 				@brief Encodes a vector of floating point numbers to a Base64 string
 				
@@ -89,7 +94,7 @@ namespace OpenMS
 				@note @p in will be emtpy after this method
 			*/
 			template <typename ToType>
-			void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression = false);
+			void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression = false,DataType data_type= FLOAT);
 			
 		private:
 			
@@ -108,35 +113,30 @@ namespace OpenMS
 			};
 
 			static const char encoder_[];
-			static const char old_decoder_[];
-			char decoder_[256];
-			bool table_initialized_;
-			
+			static const char decoder_[];
 			/**
 				@brief Decodes a Base64 string to a vector of floating point numbers
 				
 				@note this function is not able to decode compresed data
 			*/
 			template <typename ToType>
-			void decode_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);
+			void decodeUncompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, DataType data_type);
 		 
 			///Decodes a compressed Base64 string to a vector of floating point numbers 
 			template <typename ToType>
-			void decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,bool zlib_compression );
-			
-			///Endianizes a 32 bit type from big endian to litte endian and vice versa
-			inline Int32 endianize32_(Int32 n);
-	
-			///Endianizes a 64 bit type from  big endian to litte endian and vice versa
-			inline Int64 endianize64_(Int64 n);
-  };
+			void decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,DataType data_type);
 
-	inline Int32 Base64::endianize32_(Int32 n)
+			///Decodes a compressed Base64 string to a vector of floating point numbers representing integers
+			template <typename ToType>
+			void decodeUncompressedInteger_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);			
+  };
+			///Endianizes a 32 bit type from big endian to litte endian and vice versa
+	inline Int32 endianize32(Int32& n)
 	{
 		return ((n&0xff)<<24) | ((n&0xff00)<<8) | ((n&0xff0000)>>8) | ((n&0xff000000)>>24);
 	}
-	
-	inline Int64 Base64::endianize64_(Int64 n)
+	///Endianizes a 64 bit type from  big endian to litte endian and vice versa
+	inline Int64 endianize64(Int64& n)
 	{
 		return ((n&0x00000000000000ffll)<<56) | 
 		((n&0x000000000000ff00ll)<<40) | 
@@ -167,7 +167,7 @@ namespace OpenMS
 				{
 					Reinterpreter32_ tmp;
 					tmp.f = in[i];
-					tmp.i = endianize32_(tmp.i);
+					tmp.i = endianize32(tmp.i);
 					in[i] = tmp.f;
 				}
 			}
@@ -177,7 +177,7 @@ namespace OpenMS
 				{
 					Reinterpreter64_ tmp;
 					tmp.f = in[i];
-					tmp.i = endianize64_(tmp.i);
+					tmp.i = endianize64(tmp.i);
 					in[i] = tmp.f;
 				}
 			}
@@ -240,34 +240,31 @@ namespace OpenMS
 	}
 	
 	template<typename ToType>
-	void Base64::decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression)
+	void Base64::decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression, DataType data_type)
 	{
 		if(zlib_compression)
 		{
-			decodeCompressed_(in,from_byte_order,out,zlib_compression);
+			decodeCompressed_(in,from_byte_order,out,data_type);
 		}
 		else
 		{
-			decode_(in,from_byte_order,out);
+			decodeUncompressed_(in,from_byte_order,out,data_type);
 		}
 	}
 	
 	template <typename ToType>
-	void Base64::decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression)
+	void Base64::decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,DataType data_type)
 	{
 		out.clear();
 		if (in == "") return;
 		
-		Size src_size = in.size();
-		
-		void* byteBuffer;
-		Size bufferSize;		
+		void* byte_buffer;
+		Size buffer_size;		
 		std::vector<unsigned char> binary;
 		const Size element_size = sizeof(ToType);
 		
 		String decompressed;
-		if (zlib_compression)
-		{
+
 			QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
 			QByteArray bazip = QByteArray::fromBase64(herewego);
 			QByteArray czip;
@@ -285,158 +282,115 @@ namespace OpenMS
 			}
 			decompressed.resize(base64_uncompressed.size());
 			
-			//decompressed  =  QString(base64_uncompressed).toStdString();  // Unfortunately this method doesnt write all characters to the string always
-			for(Int i = 0 ; i < base64_uncompressed.size(); ++i)
-			{
-				decompressed[i] = base64_uncompressed[i];
-			}
-			byteBuffer = reinterpret_cast<void*>(&decompressed[0]);
-			bufferSize = decompressed.size();
-		}
-		else
-		{
-		  binary.resize((Size)ceil(src_size/4.) * 3);
+			std::copy(base64_uncompressed.begin(),base64_uncompressed.end(),decompressed.begin());
 
-			if(!table_initialized_)
-			{
-				for (UInt i=0; i<64; i++)
-				{
-					decoder_[static_cast<int>(encoder_[i])] = static_cast<char>(i);
-				}
-				table_initialized_ = true;
-			}
-
-			Byte* it = (Byte*)&in[0];
-			Byte* end = it + src_size;
-			Byte* result = (Byte*)&binary[0];
-			Size written = 0;
-
-			while (it!=end)
-			{
-				Int int_24bit = 0;
-				Int padding_count = 0;
-
-				// construct 24-bit integer from 4 characters
-				for (Int i=0; i<4 && it!=end; i++, it++)
-				{
-					if (*it != '=')
-					{
-						int_24bit |= decoder_[*it]<<((3-i)*6);
-					}
-					else
-					{
-						padding_count++;
-					}
-				}
-
-				// write out bytes
-				for (Int i=0; i<3-padding_count; i++)
-				{
-					Byte temp = static_cast<Byte>(int_24bit>>((2-i)*8));
-					*result++ = temp;
-					int_24bit ^= temp<<((2-i)*8);
-					written++;
-				}
-
-			}
-				
-			while(!zlib_compression && written%element_size!= 0)
-			{
-				Byte temp = 0;
-
-				*result++ = temp;
-				written++;
-			}
-			binary.resize(written);
-	
-			byteBuffer = &binary[0];
-			bufferSize = written;			
-			
-		}
+			byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
+			buffer_size = decompressed.size();
 		
 		//change endianness if necessary
 		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
-			if(element_size==4)
+			if(element_size==4 && data_type == FLOAT)
 			{
-				const Real* floatBuffer = reinterpret_cast<const Real*>(byteBuffer);
-
-				if (bufferSize % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
-
-				Size floatCount = bufferSize / element_size;
-
-				out.resize(floatCount);
-
-				Int32* p = reinterpret_cast<Int32*> (byteBuffer);
-				for(UInt i=0; i<floatCount; ++i)
-				{
-					*p = endianize32_(*p);
-					++p;
-				}
-				out.assign(floatBuffer,floatBuffer+floatCount);	
+				const Real* float_buffer = reinterpret_cast<const Real*>(byte_buffer);
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+				Size float_count = buffer_size / element_size;
+				out.resize(float_count);
+				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
+				std::transform(p,p+float_count,p,endianize32);
+				out.assign(float_buffer,float_buffer+float_count);	
 			}
-			else if(element_size==8)
+			else if(element_size==4 && data_type == INTEGER)
 			{
-				const DoubleReal* floatBuffer = reinterpret_cast<const DoubleReal*>(byteBuffer);
+				const Int32* float_buffer = reinterpret_cast<const Int32*>(byte_buffer);
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+				Size float_count = buffer_size / element_size;
+				out.resize(float_count);
+				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
+				std::transform(p,p+float_count,p,endianize32);
+				out.assign(float_buffer,float_buffer+float_count);	
+			}
+			else if(element_size==8 && data_type == FLOAT)
+			{
+				const DoubleReal* float_buffer = reinterpret_cast<const DoubleReal*>(byte_buffer);
 
-				if (bufferSize % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
 
-				Size floatCount = bufferSize / element_size;
+				Size float_count = buffer_size / element_size;
 
-				out.resize(floatCount);
+				out.resize(float_count);
 
-				Int64* p = reinterpret_cast<Int64*> (byteBuffer);
-				for(UInt i=0; i<floatCount; ++i)
-				{
-					*p = endianize64_(*p);
-					++p;
-				}
+				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
+				std::transform(p,p+float_count,p,endianize64);				
 				
-				// to avoid nasty warnings when using std::copy() (due to Double->Float conversion)
-				// we do this manually:
-				out.resize(floatCount);
-				for (Size i=0;i<floatCount;++i)
-				{
-					out[i]=(ToType) *floatBuffer;
-					++floatBuffer;
-				}
-			}			
+				out.resize(float_count);
+				out.assign(float_buffer,float_buffer+float_count);
+			}
+			else if(element_size==8 && data_type == INTEGER)
+			{
+				const Int64* float_buffer = reinterpret_cast<const Int64*>(byte_buffer);
+
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+
+				Size float_count = buffer_size / element_size;
+
+				out.resize(float_count);
+
+				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
+				std::transform(p,p+float_count,p,endianize64);				
+				
+				out.resize(float_count);
+				out.assign(float_buffer,float_buffer+float_count);
+			}				
 		}
 		else
 		{
-			if(element_size==4)
+			if(element_size==4 && data_type == FLOAT)
 			{
-				const Real* floatBuffer = reinterpret_cast<const Real*>(byteBuffer);
-				if (bufferSize % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+				const Real* float_buffer = reinterpret_cast<const Real*>(byte_buffer);
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
-				Size floatCount = bufferSize / element_size;
+				Size float_count = buffer_size / element_size;
 
-				out.assign(floatBuffer, floatBuffer+floatCount);
+				out.assign(float_buffer, float_buffer+float_count);
 			}
-			else if(element_size==8)
+			else if(element_size==4 && data_type == INTEGER)
 			{
-				const DoubleReal* floatBuffer = reinterpret_cast<const DoubleReal*>(byteBuffer);
+				const Int* float_buffer = reinterpret_cast<const Int*>(byte_buffer);
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
-				if (bufferSize % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
+				Size float_count = buffer_size / element_size;
 
-				Size floatCount = bufferSize / element_size;
+				out.assign(float_buffer, float_buffer+float_count);
+			}
+			else if(element_size==8 && data_type == FLOAT)
+			{
+				const DoubleReal* float_buffer = reinterpret_cast<const DoubleReal*>(byte_buffer);
 
-				// to avoid nasty warnings when using std::copy() (due to Double->Float conversion)
-				// we do this manually:
-				out.resize(floatCount);
-				for (Size i=0;i<floatCount;++i)
-				{
-					out[i]=(ToType) *floatBuffer;
-					++floatBuffer;
-				}
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
-			}					
+				Size float_count = buffer_size / element_size;
+
+				out.resize(float_count);
+				out.assign(float_buffer,float_buffer+float_count);
+			}	
+			else if(element_size==8 && data_type == INTEGER)
+			{
+				const Int64* float_buffer = reinterpret_cast<const Int64*>(byte_buffer);
+
+				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
+
+				Size float_count = buffer_size / element_size;
+
+				out.resize(float_count);
+				out.assign(float_buffer,float_buffer+float_count);			
+			}
 		}
 		
 	}
 	
 	template <typename ToType>
-	void Base64::decode_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)
+	void Base64::decodeUncompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,DataType data_type)
 	{
 		out.clear();
 		if (in == "") return;
@@ -484,8 +438,8 @@ namespace OpenMS
 //		printf ("start: i=%d, offset %d\n", i, offset);
 
 			// decode 4 Base64-Chars to 3 Byte
-			a = old_decoder_[(int)in[i]-43]-62;
-			b = old_decoder_[(int)in[i+1]-43]-62;
+			a = decoder_[(int)in[i]-43]-62;
+			b = decoder_[(int)in[i+1]-43]-62;
 			if (i+1 >= src_size) b=0;
 			element[offset] = (unsigned char) ((a<<2) | (b>>4));
 			written++;
@@ -494,11 +448,18 @@ namespace OpenMS
 
 			if (written % element_size == 0)
 			{
-				out.push_back(((ToType*)element)[0]);
+				if(data_type == FLOAT)
+				{
+				out.push_back((reinterpret_cast<ToType*>(element))[0]);
+				}
+				else
+				{
+				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+				}
 				strcpy(element, "");
 			}
 
-			a = old_decoder_[(int)in[i+2]-43]-62;
+			a = decoder_[(int)in[i+2]-43]-62;
 			if (i+2 >= src_size) a=0;
 			element[offset] = (unsigned char) (((b&15)<<4) | (a>>2));
 			written++;
@@ -509,7 +470,7 @@ namespace OpenMS
 			{
 				// debug: output float in binary
 /*
-				for (int sl = 0; sl != element_size; sl++)
+				for (unsigned int sl = 0; sl != element_size; sl++)
 				{
 					for (int sl2 = 128; sl2 >= 1; sl2 /= 2)
 					{
@@ -518,11 +479,18 @@ namespace OpenMS
 					std::cout << " ";
 				}
 */
-				out.push_back(((ToType*)element)[0]);
+				if(data_type == FLOAT)
+				{
+				out.push_back((ToType)(reinterpret_cast<ToType*>(element))[0]);
+				}
+				else
+				{
+				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+				}
 				strcpy(element, "");
 			}
 
-			b = old_decoder_[(int)in[i+3]-43]-62;
+			b = decoder_[(int)in[i+3]-43]-62;
 			if (i+3 >= src_size) b=0;
 			element[offset] = (unsigned char) (((a&3)<<6) | b);
 			written++;
@@ -531,12 +499,18 @@ namespace OpenMS
 
 			if (written % element_size == 0)
 			{
-				out.push_back(((ToType*)element)[0]);
+				if(data_type == FLOAT)
+				{
+				out.push_back((reinterpret_cast<ToType*>(element))[0]);
+				}
+				else
+				{
+				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+				}
 				strcpy(element, "");
 			}
 		}
 	}	
-
 } //namespace OpenMS
 
 #endif /* OPENMS_FORMAT_BASE64_H */
