@@ -247,21 +247,22 @@ namespace OpenMS
 			  - Meta info arrays are stored when using mzData or mzML format for storing
 			*/
 			//@{
-			/// Returns a const reference to the integer meta arrays
+			/// Returns a const reference to the float meta data arrays
 			inline const FloatDataArrays& getFloatDataArrays() const
 			{
 				return float_data_arrays_;
 			}
-			/// Returns a mutable reference to the integer meta arrays
+			/// Returns a mutable reference to the float meta data arrays
 			inline FloatDataArrays& getFloatDataArrays()
 			{
 				return float_data_arrays_;
 			}
+			/// Returns a const reference to the string meta data arrays
 			inline const StringDataArrays& getStringDataArrays() const
 			{
 				return string_data_arrays_;
 			}
-			/// Returns a mutable reference to the integer meta arrays
+			/// Returns a mutable reference to the string meta data arrays
 			inline StringDataArrays& getStringDataArrays()
 			{
 				return string_data_arrays_;
