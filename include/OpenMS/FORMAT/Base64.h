@@ -450,11 +450,23 @@ namespace OpenMS
 			{
 				if(data_type == FLOAT)
 				{
-				out.push_back((reinterpret_cast<ToType*>(element))[0]);
+					ToType* to_type = reinterpret_cast<ToType*>(&element[0]);
+					out.push_back((*to_type));
 				}
 				else
 				{
-				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+					ToType float_value;
+					if(element_size==4)
+					{
+					Int32* value = reinterpret_cast<Int32*>(&element[0]);
+					float_value = (ToType)*value;
+					}
+					else
+					{
+						Int64* value = reinterpret_cast<Int64*>(&element[0]);
+						float_value = (ToType)*value;
+					}
+					out.push_back(float_value);			
 				}
 				strcpy(element, "");
 			}
@@ -481,11 +493,23 @@ namespace OpenMS
 */
 				if(data_type == FLOAT)
 				{
-				out.push_back((ToType)(reinterpret_cast<ToType*>(element))[0]);
+					ToType* to_type = reinterpret_cast<ToType*>(&element[0]);
+					out.push_back((*to_type));
 				}
 				else
 				{
-				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+					ToType float_value;
+					if(element_size==4)
+					{
+					Int32* value = reinterpret_cast<Int32*>(&element[0]);
+					float_value = (ToType)*value;
+					}
+					else
+					{
+						Int64* value = reinterpret_cast<Int64*>(&element[0]);
+						float_value = (ToType)*value;
+					}
+					out.push_back(float_value);				
 				}
 				strcpy(element, "");
 			}
@@ -501,11 +525,23 @@ namespace OpenMS
 			{
 				if(data_type == FLOAT)
 				{
-				out.push_back((reinterpret_cast<ToType*>(element))[0]);
+					ToType* to_type = reinterpret_cast<ToType*>(&element[0]);
+					out.push_back((*to_type));
 				}
 				else
 				{
-				out.push_back((ToType)(reinterpret_cast<Int *>(element))[0]);					
+					ToType float_value;
+					if(element_size==4)
+					{
+					Int32* value = reinterpret_cast<Int32*>(&element[0]);
+					float_value = (ToType)*value;
+					}
+					else
+					{
+						Int64* value = reinterpret_cast<Int64*>(&element[0]);
+						float_value = (ToType)*value;
+					}
+					out.push_back(float_value);	
 				}
 				strcpy(element, "");
 			}

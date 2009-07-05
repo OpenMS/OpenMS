@@ -215,7 +215,7 @@ START_SECTION([EXTRA] zlib functionality)
 	TEST_REAL_SIMILAR(data[0], 300.15f)
 	TEST_REAL_SIMILAR(data[1], 303.998f)
 	TEST_REAL_SIMILAR(data[2], 304.6f)	
-
+	
 END_SECTION
 
 START_SECTION([EXTRA] decode integers)
@@ -276,19 +276,6 @@ START_SECTION([EXTRA] decode integers)
 	TEST_REAL_SIMILAR(res[4],8)
 	TEST_REAL_SIMILAR(res[5],9)
 	TEST_REAL_SIMILAR(res[6],522)
-					
-				vector<int> rese;		
-				rese.push_back(1);
-				rese.push_back(2);
-				rese.push_back(3);
-			
-				QByteArray original = QByteArray::fromRawData(reinterpret_cast<const char*>(&rese[0]), (int) rese.size()*4);
-			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
-			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
-			QByteArray base64_compressed = extern_compressed.toBase64();
-			String out;
-			out = QString(base64_compressed).toStdString();
-		cout<<"out: "<<out<<endl;
 	
 END_SECTION
 

@@ -498,19 +498,45 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"),exp4);
 	TEST_EQUAL(exp4.size(),1)
 	TEST_EQUAL(exp4[0].size(),997530)
-
+	
+	//TEST 32 bit data, zlib compression, 32/64 bit integer, Null terminated strings
+	MSExperiment<> uncompressed;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),uncompressed);
+	MSExperiment<> mzml_6;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),mzml_6);
 	//load 32 bit data
-	MSExperiment<> exp5;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_32bit.mzML"),exp5);
-	TEST_EQUAL(exp5.size(),4)
-	TEST_EQUAL(exp5[0].size(),15)
-	TEST_EQUAL(exp5[1].size(),10)
-	TEST_EQUAL(exp5[2].size(),15)
-	TEST_EQUAL(exp5[3].size(),0)
-	TEST_REAL_SIMILAR(exp5[0].getRT(),5.1)
-	TEST_REAL_SIMILAR(exp5[1].getRT(),5.2)
-	TEST_REAL_SIMILAR(exp5[2].getRT(),5.3)
-	TEST_REAL_SIMILAR(exp5[3].getRT(),5.4)
+	TEST_EQUAL(mzml_6.size(),9)
+	TEST_EQUAL(mzml_6[0].size(),15)
+	TEST_EQUAL(mzml_6[1].size(),10)
+	TEST_EQUAL(mzml_6[2].size(),15)
+	TEST_EQUAL(mzml_6[3].size(),0)
+	TEST_REAL_SIMILAR(mzml_6[0].getRT(),5.1)
+	TEST_REAL_SIMILAR(mzml_6[1].getRT(),5.2)
+	TEST_REAL_SIMILAR(mzml_6[2].getRT(),5.3)
+	TEST_REAL_SIMILAR(mzml_6[3].getRT(),5.4)	
+	//load zlib compressed data
+	for(Size s = 0 ; s < uncompressed[0].size(); ++s)
+	{
+		TEST_EQUAL(mzml_6[4][s] == uncompressed[0][s],true)
+	}
+	for(Size s = 0 ; s < uncompressed[1].size(); ++s)
+	{
+		TEST_EQUAL(mzml_6[5][s] == uncompressed[1][s],true)
+	}
+	for(Size s = 0 ; s < uncompressed[2].size(); ++s)
+	{
+		TEST_EQUAL(mzml_6[6][s] == uncompressed[2][s],true)
+	}
+	//32bit Integer (intensity)
+	for(Size i = 0; i < mzml_6[7].size(); ++i)
+	{
+		TEST_EQUAL(mzml_6[7][i].getIntensity(), i)
+	}
+	//64bit Integer (intensity)
+	for(Size i = 0; i < mzml_6[8].size(); ++i)
+	{
+		TEST_EQUAL(mzml_6[8][i].getIntensity(), i)
+	}	
 
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
@@ -596,11 +622,7 @@ START_SECTION([EXTRA] load intensity range)
 END_SECTION
 
 START_SECTION([EXTRA] load with zlib functionality)
-	MzMLFile file;
-	MSExperiment<> compressed, uncompressed;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_compressed.mzML"),compressed);
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_uncompressed.mzML"),uncompressed);
-	TEST_EQUAL(compressed==uncompressed,true);
+
 END_SECTION
 
 
