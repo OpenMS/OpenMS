@@ -104,11 +104,11 @@ namespace OpenMS
 			static String find(const String& filename, StringList directories = StringList());
 			
 			/**
-				@brief Retrieves a list of files matching @p file_pattern in directory @p dir
+				@brief Retrieves a list of files matching @p file_pattern in directory @p dir (returns filenames without paths unless @p full_path is true)
 				
 				@return true => there are matching files
 			*/
-			static bool fileList(const String& dir, const String& file_pattern, StringList& output);
+			static bool fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path = false);
 
 			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();

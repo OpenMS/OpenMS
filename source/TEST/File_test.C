@@ -53,10 +53,10 @@ START_SECTION((static bool empty(const String &file)))
 END_SECTION
 
 START_SECTION((static bool remove(const String &file)))
-	//deleteing non-existing file
+	//deleting non-existing file
 	TEST_EQUAL(File::remove("does_not_exists.txt"), true)
 	
-	//deleteing existing file
+	//deleting existing file
 	String filename;
 	NEW_TMP_FILE(filename);
 	ofstream os;
@@ -100,9 +100,15 @@ START_SECTION((static String basename(const String &file)))
 	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
 END_SECTION
 
-START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output)))
-	StringList vec;
-	TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""),"*.bliblaluff",vec),false);
+START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path)))
+StringList vec;
+TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);
+TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec), true);
+TEST_EQUAL(vec[0], "File_test_text.txt");
+TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec, true), true);
+// can't use "path + separator + filename", because sep. might be "/" or "\\"
+TEST_EQUAL(vec[0].hasPrefix(OPENMS_GET_TEST_DATA_PATH("")), true);
+TEST_EQUAL(vec[0].hasSuffix("File_test_text.txt"), true);
 END_SECTION
 
 START_SECTION((static String getUniqueName()))
