@@ -75,11 +75,6 @@ namespace OpenMS
     typedef std::vector < double > ContainerType;
     ContainerType isotopes_exact;
 
-    // Add H+ (one per charge unit)
-    UInt c = IsotopeModel::getCharge();
-    String prot = "H" + String(c);
-    formula += prot;
-
     typedef IsotopeDistribution::iterator IsoIter;
     IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
     //isotope_distribution.setTrimRightCutoff(trim_right_cutoff_);

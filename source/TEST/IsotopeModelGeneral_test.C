@@ -115,6 +115,7 @@ START_SECTION((void setSamples(EmpiricalFormula formula)))
 	IsotopeModelGeneral img;
 	EmpiricalFormula ef("C36H24");
 
+	ef += "H1"; // adducts are modeled via ef, not internally by the class
 	Param p;
 	p.setValue("interpolation_step",0.0005);
   p.setValue("statistics:mean",ef.getAverageWeight());

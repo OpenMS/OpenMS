@@ -272,7 +272,7 @@ namespace OpenMS {
 						
 						// add meta information on compomer (mass)
 						chargedFeature.setMetaValue("charge_adduct_mass", it_s->second.getMass() );
-						chargedFeature.setMetaValue("charge_adducts", it_s->second.getAdductsAsString() );
+						chargedFeature.setMetaValue("charge_adducts", it_s->second.getAdductsAsString(1) );
 						chargedFeature.setMetaValue("parent_feature_number", feature_index);
 
 						copy_map.push_back(chargedFeature);

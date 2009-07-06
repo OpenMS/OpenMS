@@ -77,7 +77,7 @@ namespace OpenMS
       return "IsotopeModelGeneral";
     }
 
-    /// Initializes the model for a given formula.
+    /// Initializes the model for a given formula. The formula should include any adducts (usually H+) that account for charge.
     void setSamples(EmpiricalFormula formula);
 
   protected:

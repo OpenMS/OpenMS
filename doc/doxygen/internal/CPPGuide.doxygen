@@ -67,6 +67,18 @@ on prominent 32bit systems, they are usually different types on 64bit systems, w
 Size is an unsigned type!If you need a signed type (e.g. when comparing length of vectors) use SignedSize (also defined in types.h)<br>
 </p>
 
+Use SignedSize if you require loop variables with negative values:
+@code
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
+// never use Size here, because if myVec.size()==0 then Size x = 0 - 1; gives some really BIG number!
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
+@endcode
+
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Math functions</H2>
 
 Using GCC a lot of common math functions are available (e.g. trunc(), round(), log2(), isnan() or isinf() etc). However, this is <b>not</b> required by the C++Standard,

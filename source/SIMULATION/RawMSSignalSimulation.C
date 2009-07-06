@@ -207,13 +207,15 @@ namespace OpenMS {
     }
     
     Param p1;
-    p1.setValue("statistics:mean", active_feature.getMZ() );
+    EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    ef += active_feature.getMetaValue("charge_adducts");
+    p1.setValue("statistics:mean", ef.getAverageWeight() / active_feature.getCharge() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
     p1.setValue("charge", active_feature.getCharge());
 
     IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
-    isomodel->setSamples(active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula());
+    isomodel->setSamples(ef); // this already includes adducts
     isomodel->setParameters(p1);
 
 		if (experiment.size()<2)
@@ -491,41 +493,45 @@ namespace OpenMS {
     {
       experiment[i].sortByPosition();
 
-      // copy Spectrum and remove Peaks ..
-      MSSimExperiment::SpectrumType cont = experiment[i];
-      cont.clear();
+			if (experiment[i].size() >=2)
+			{
+				// copy Spectrum and remove Peaks ..
+				MSSimExperiment::SpectrumType cont = experiment[i];
+				cont.clear();
+				
+				for ( Size j = 0 ; j < experiment[i].size() -1 ; ++j )
+				{
+					diff_mz = fabs(experiment[i][ (j+1) ].getMZ() - experiment[i][j].getMZ());
 
-      for ( SignedSize j = 0 ; j < ((SignedSize)experiment[i].size() - 1) ; ++j )
-      {
-        diff_mz = fabs(experiment[i][ (j+1) ].getMZ() - experiment[i][j].getMZ());
+					if (diff_mz < mz_sampling_rate_)
+					{
+						change = true;
+						// sum intensities
+						SimCoordinateType it1 = experiment[i][ (j+1) ].getIntensity();
+						SimCoordinateType it2 = experiment[i][ (j) ].getIntensity();
+						SimCoordinateType it =  it1 + it2;
+						p.setIntensity( it );
 
-        if (diff_mz < mz_sampling_rate_)
-        {
-          change = true;
-          // sum intensities
-          SimCoordinateType it1 = experiment[i][ (j+1) ].getIntensity();
-          SimCoordinateType it2 = experiment[i][ (j) ].getIntensity();
-          SimCoordinateType it =  it1 + it2;
-          p.setIntensity( it );
+						// keep m/z of point with higher intensity
+						SimCoordinateType mz1 = experiment[i][ (j+1) ].getMZ();
+						SimCoordinateType mz2 = experiment[i][ (j) ].getMZ();
+						SimCoordinateType mz =  it1 > it2 ? mz1 : mz2;
+						p.setMZ( mz );
+						cont.push_back(p);
 
-          // keep m/z of point with higher intensity
-          SimCoordinateType mz1 = experiment[i][ (j+1) ].getMZ();
-          SimCoordinateType mz2 = experiment[i][ (j) ].getMZ();
-          SimCoordinateType mz =  it1 > it2 ? mz1 : mz2;
-          p.setMZ( mz );
-          cont.push_back(p);
-
-          ++j;
-          ++count;
-        }
-        else
-        {
-          cont.push_back( experiment[i][j] );
-        }
-      }
-      // don't forget the last one
-      if (!change) cont.push_back( experiment[i][ (experiment[i].size() - 1) ] );
-      experiment[i] = cont;
+						++j;
+						++count;
+					}
+					else
+					{
+						change = false;
+						cont.push_back( experiment[i][j] );
+					}
+				}
+				// don't forget the last one
+				if (!change) cont.push_back( experiment[i][ (experiment[i].size() - 1) ] );
+	      experiment[i] = cont;
+			}
     }
 
 #ifdef DEBUG_SIM
