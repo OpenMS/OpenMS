@@ -89,21 +89,20 @@ namespace OpenMS
 			{
 				ConsensusFeature& tool_elem = cons_map_tool[j];
 				gt_i_subtend_tool_j = 0;
-
+				cons_tool_size = cons_map_tool[j].size();
+				
 				//loop over all features in the ith consensus feature of the gt
 				for (HandleIterator gt_it = gt_elem.begin(); gt_it != gt_elem.end(); ++gt_it)
 				{
-					cons_tool_size = 0;
 					++gt_i;
 
 					//loop over all features in the jth consensus feature of the tool's map
 					for (HandleIterator tool_it = tool_elem.begin(); tool_it != tool_elem.end(); ++tool_it)
 					{
-						++cons_tool_size;
-
 						if (isSameHandle(*tool_it, *gt_it, rt_dev, mz_dev, int_dev, use_charge))
 						{
 							++gt_i_subtend_tool_j;
+							break;
 						}
 					}
 

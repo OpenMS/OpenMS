@@ -37,8 +37,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
-using namespace std;
-
 namespace OpenMS {
 
 class OPENMS_DLLAPI Compomer
@@ -132,41 +130,41 @@ public:
 	/// set an Id which allows unique identification of a compomer
 	void setID(const Size& id)
 	{
-			id_ = id;
+		id_ = id;
 	}
 	/// return Id which allows unique identification of this compomer
 	const Size& getID() const
 	{
-			return id_;
+		return id_;
 	}
 
 	const Int& getNetCharge() const
 	{
-			return net_charge_;
+		return net_charge_;
 	}
 
 	/// mass of all contained adducts
 	const DoubleReal& getMass() const
 	{
-			return mass_;
+		return mass_;
 	}
 
 	/// summed positive charges of contained adducts
 	const Int& getPositiveCharges() const
 	{
-			return pos_charges_;
+		return pos_charges_;
 	}
 	
 	/// summed negative charges of contained adducts
 	const Int& getNegativeCharges() const
 	{
-			return neg_charges_;
+		return neg_charges_;
 	}
 	
 	/// return log probability
 	const DoubleReal& getLogP() const
 	{
-			return log_p_;
+		return log_p_;
 	}	
 
 	/// get adducts with their abundance as compact string (amounts are absolute unless side=0)
