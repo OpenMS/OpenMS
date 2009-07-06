@@ -47,7 +47,7 @@ namespace OpenMS
     
     @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
    	
-		@todo Do not call first in the executeQuery method (HiWi)
+		@todo Do not call first in the executeQuery method (HiWi, Mathias)
 
     @ingroup DatabaseIO
   */

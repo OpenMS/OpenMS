@@ -621,12 +621,6 @@ START_SECTION([EXTRA] load intensity range)
 	TEST_EQUAL(exp[3].size(),0)
 END_SECTION
 
-START_SECTION([EXTRA] load with zlib functionality)
-
-END_SECTION
-
-
-
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
 	
@@ -700,7 +694,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	{
 		//load map
 		MSExperiment<> exp_original;
-		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_original);
 	 	//store map
 		std::string tmp_filename;
 	 	NEW_TMP_FILE(tmp_filename);

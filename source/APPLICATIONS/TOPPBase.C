@@ -1684,7 +1684,7 @@ namespace OpenMS
 		{
 			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
-    if (File::empty(filename))
+    if (!File::isDirectory(filename) && File::empty(filename))
     {
       throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
