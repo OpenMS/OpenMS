@@ -100,11 +100,13 @@ namespace OpenMS {
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
 
     // shot noise
-    defaults_.setValue("noise_rate",0,"Poisson rate of shot noise. Set to 0 to disable simulation of shot noise.");
+    defaults_.setValue("noise_rate",0.0,"Poisson rate of shot noise. Set to 0 to disable simulation of shot noise.");
+    defaults_.setMinFloat("noise_rate",0.0);
     defaults_.setValue("noise_int_mean",50.0,"Shot noise intensity mean.");
 
     // baseline
-    defaults_.setValue("baseline_scaling",0.0,"Scale of baseline (zero disables baseline simulation)");
+    defaults_.setValue("baseline_scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
+		defaults_.setMinFloat("baseline_scaling",0.0);
 
     defaultsToParam_();
   }
@@ -406,6 +408,7 @@ namespace OpenMS {
     // distribution. Noise intensity is assumed to be Gaussian-distributed.
 
     DoubleReal rate    = param_.getValue("noise_rate");
+    if (rate == 0.0) return;
     DoubleReal it_mean = param_.getValue("noise_int_mean");
 
     const UInt num_intervals = 100;
@@ -492,7 +495,7 @@ namespace OpenMS {
       MSSimExperiment::SpectrumType cont = experiment[i];
       cont.clear();
 
-      for ( Size j = 0 ; j < (experiment[i].size() - 1) ; ++j )
+      for ( SignedSize j = 0 ; j < ((SignedSize)experiment[i].size() - 1) ; ++j )
       {
         diff_mz = fabs(experiment[i][ (j+1) ].getMZ() - experiment[i][j].getMZ());
 
