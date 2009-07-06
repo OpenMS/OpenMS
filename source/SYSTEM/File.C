@@ -160,31 +160,6 @@ namespace OpenMS
 		//this is never reached, but needs to be there to avoid compiler warnings
 		return "";
 	}
-	
-// 	bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
-// 	{
-// 		QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
-// 		QStringList list = d.entryList();
-
-// 		//clear and check if empty
-// 		output.clear();
-// 		if (list.size()==0)
-// 		{
-// 			return false;
-// 		}
-		
-// 		//resize output
-// 		output.resize(list.size());
-		
-// 		//fill output
-// 		UInt i = 0;
-// 		for ( QStringList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it )
-// 		{
-// 			output[i++] = full_path ? dir + d.separator() + (*it) : (*it);
-// 		}
-		
-// 		return true;
-// 	}
 
 	bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
 	{
