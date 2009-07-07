@@ -51,9 +51,9 @@ namespace OpenMS
   class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing : public DefaultParamHandler
   {
   public:
-      PrecursorIonSelectionPreprocessing();
-      PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing& source);
-      ~PrecursorIonSelectionPreprocessing();
+		PrecursorIonSelectionPreprocessing();
+		PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing& source);
+		~PrecursorIonSelectionPreprocessing();
 		
 		PrecursorIonSelectionPreprocessing& operator = (const PrecursorIonSelectionPreprocessing& source);
 		
@@ -76,6 +76,17 @@ namespace OpenMS
 		 */
 		void dbPreprocessing(String db_path,bool save=true);
 
+		/**
+		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
+		 *	
+		 *	@param db_path Path to database file (fasta)
+		 *	@param save Flag if preprocessing should be stored.
+		 *
+		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found
+		 *  @throws Exception::UnableToCreateFile if preprocessing file can't be written
+		 */
+		void dbPreprocessing(String db_path,String rt_model_path,String dt_model_path,bool save=true);
+
 		
 		/**
 		 *	@brief Loads tryptric peptide masses of a given database.
@@ -88,9 +99,27 @@ namespace OpenMS
 
 		/// get the weighted frequency of a mass
 		DoubleReal getWeight(DoubleReal mass);
-  protected:
+
+		DoubleReal getRT(String peptide);
+		DoubleReal getPT(String peptide);
+
+		/// get the rt-weight for the proposed peptide and its measured rt
+		DoubleReal getRTWeight(String peptide,DoubleReal meas_rt);
+
+		DoubleReal getRT(String prot_id,Size peptide_index);
+		
+		DoubleReal getPT(String prot_id,Size peptide_index);
+
+		/// get the rt-weight for the proposed peptide and its measured rt
+		DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt);
+
+		// get detectability for the proposed peptide
+		DoubleReal getDT(String prot_id,Size peptide_index);
+		
+	protected:
 		/// saves the preprocessed db
 		void savePreprocessedDB_(String db_path,String path);
+		void savePreprocessedDBWithRT_(String db_path,String path);
 		/// loads the preprocessed db
 		void loadPreprocessedDB_(String path);
 
@@ -107,6 +136,10 @@ namespace OpenMS
 		/// maximal relative frequency of a mass
     UInt f_max_;
 
+		std::map<String,DoubleReal> rt_map_;
+		std::map<String,DoubleReal> pt_map_;
+		std::map<String, std::vector<DoubleReal> > rt_prot_map_;
+		std::map<String, std::vector<DoubleReal> > pt_prot_map_;
   };
 }
     
