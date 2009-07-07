@@ -64,7 +64,7 @@ namespace OpenMS
 			/// Default constructor
 			TOPPASToolVertex();
 			/// Constructor
-			TOPPASToolVertex(const String& name, const String& type = "");
+			TOPPASToolVertex(const String& name, const String& type = "", const String& tmp_path = "");
 			/// Copy constructor
 			TOPPASToolVertex(const TOPPASToolVertex& rhs);
 			/// Destructor
@@ -86,6 +86,12 @@ namespace OpenMS
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
+			/// Runs the tool
+			void compute();
+			/// Returns whether this node has already been processed during the current pipeline execution
+			bool isFinished();
+			/// Set whether this node has already been processed during the current pipeline execution
+			void setFinished(bool b);
 			/// The static instance counter (for unique instance numbers)
 			static UInt id_counter;
 			
@@ -104,10 +110,15 @@ namespace OpenMS
 			String name_;
 			/// The type of the tool, or "" if it does not have a type
 			String type_;
+			/// The temporary path
+			String tmp_path_;
 			/// The parameters of the tool
 			Param param_;
 			/// The unique ID
 			UInt id_;
+			/// Stores whether this node has already been processed during the current pipeline execution
+			bool finished_;
+			
 	};
 }
 

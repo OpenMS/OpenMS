@@ -59,6 +59,8 @@ namespace OpenMS
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
+			/// Starts the workflow ending in this node
+			void startComputation();
 			
 		protected:
 		

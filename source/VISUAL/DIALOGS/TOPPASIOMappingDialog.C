@@ -122,6 +122,25 @@ namespace OpenMS
 			target_combo->addItem("<select>");
 			foreach (TOPPASToolVertex::IOInfo info, target_input_files)
 			{
+				// check if parameter occupied by another edge already
+				bool occupied = false;
+				for (TOPPASVertex::EdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
+				{
+					int param_index = (*it)->getTargetInParam();
+					if (param_index >= 0)
+					{
+						if (info.param_name == target_input_files[param_index].param_name)
+						{
+							occupied = true;
+							break;
+						}
+					}
+				}
+				if (occupied)
+				{
+					continue;
+				}
+
 				String item_name;
 				if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
 				{

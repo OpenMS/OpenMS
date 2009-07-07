@@ -89,6 +89,8 @@ namespace OpenMS
 			void removeSelected();
 			/// Updates all edge colors (color of green and yellow edges can change when edges are added/removed)
 			void updateEdgeColors();
+			/// Runs the pipeline
+			void runPipeline();
 			
 		public slots:
 		

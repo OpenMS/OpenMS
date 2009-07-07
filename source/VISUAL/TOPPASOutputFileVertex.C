@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 
 namespace OpenMS
 {
@@ -93,6 +95,18 @@ namespace OpenMS
 		QPainterPath shape;
 		shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
 		return shape;
+	}
+	
+	void TOPPASOutputFileVertex::startComputation()
+	{
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+			if (ttv)
+			{
+				ttv->compute();
+			}
+		}
 	}
 }
 

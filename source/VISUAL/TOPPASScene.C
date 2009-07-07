@@ -264,10 +264,19 @@ namespace OpenMS
 				qobject_cast<TOPPASInputFileListVertex*>(v) ||
 				qobject_cast<TOPPASOutputFileVertex*>(u) ||
 				qobject_cast<TOPPASOutputFileListVertex*>(u) ||
-					((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u)) &&
+				((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u)) &&
 					(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))))
 		{
 			return false;
+		}
+		
+		// does this edge already exist?
+		for (TOPPASVertex::EdgeIterator it = u->outEdgesBegin(); it != u->outEdgesEnd(); ++it)
+		{
+			if ((*it)->getTargetVertex() == v)
+			{
+				return false;
+			}
 		}
 		
 		//insert edge between u and v for testing, is removed afterwards
@@ -337,6 +346,36 @@ namespace OpenMS
 		return false;
 	}
 
+	void TOPPASScene::runPipeline()
+	{
+		// unset the finished flag for all TOPP tool nodes
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+			if (tv)
+			{
+				tv->setFinished(false);
+			}
+		}
+		
+		// start recursive execution at every output node
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
+			if (ofv)
+			{
+				ofv->startComputation();
+			}
+			else
+			{
+				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+				if (oflv)
+				{
+					oflv->startComputation();
+				}
+			}
+		}
+	}
 	
 } //namespace OpenMS
 

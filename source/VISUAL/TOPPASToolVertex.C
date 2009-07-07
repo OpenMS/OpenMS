@@ -42,19 +42,22 @@ namespace OpenMS
 			name_(),
 			type_(),
 			param_(),
-			id_(id_counter++)
+			id_(id_counter++),
+			finished_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
 		initParam_();
 	}
 	
-	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type)
+	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type, const String& tmp_path)
 		: TOPPASVertex(),
 			name_(name),
 			type_(type),
+			tmp_path_(tmp_path),
 			param_(),
-			id_(id_counter++)
+			id_(id_counter++),
+			finished_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -65,8 +68,10 @@ namespace OpenMS
 		:	TOPPASVertex(rhs),
 			name_(rhs.name_),
 			type_(rhs.type_),
+			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
-			id_(id_counter++)
+			id_(rhs.id_),
+			finished_(rhs.finished_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -84,6 +89,9 @@ namespace OpenMS
 		param_ = rhs.param_;
 		name_ = rhs.name_;
 		type_ = rhs.type_;
+		tmp_path_ = rhs.tmp_path_;
+		id_ = rhs.id_;
+		finished_ = rhs.finished_;
 		
 		return *this;
 	}
@@ -91,12 +99,12 @@ namespace OpenMS
 	void TOPPASToolVertex::initParam_()
 	{
 		Param tmp_param;
-		String ini_file = "TOPPAS_" + name_ + "_";
+		String ini_file = tmp_path_ + "TOPPAS_" + name_ + "_";
 		if (type_ != "")
 		{
 			ini_file += type_ + "_";
 		}
-		ini_file += QString::number(id_) + ".tmp.ini";
+		ini_file += File::getUniqueName() + "_tmp.ini";
 		
 		String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
 		if (type_ != "")
@@ -120,6 +128,9 @@ namespace OpenMS
 		param_.remove("log");
 		param_.remove("no_progress");
 		param_.remove("debug");
+		
+		// handled by TOPPAS anyway:
+		param_.remove("type");
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -127,8 +138,58 @@ namespace OpenMS
 		QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
 		String default_dir = "";
 		
+		// remove entries that are handled by edges already, user should not see them
+		QVector<Param::ParamEntry> hidden_entries;
+		QVector<IOInfo> input_infos;
+		getInputFiles(input_infos);
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			int index = (*it)->getTargetInParam();
+			if (index < 0)
+			{
+				continue;
+			}
+			
+			const String& name = input_infos[index].param_name;
+			if (param_.exists(name))
+			{
+				hidden_entries.push_back(param_.getEntry(name));
+				param_.remove(name);
+			}
+		}
+		
+		QVector<IOInfo> output_infos;
+		getOutputFiles(output_infos);
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			int index = (*it)->getSourceOutParam();
+			if (index < 0)
+			{
+				continue;
+			}
+			
+			const String& name = output_infos[index].param_name;
+			if (param_.exists(name))
+			{
+				hidden_entries.push_back(param_.getEntry(name));
+				param_.remove(name);
+			}
+		}
+		
 		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
 		dialog.exec();
+		
+		// restore the removed entries
+		foreach (const Param::ParamEntry& pe, hidden_entries)
+		{
+			StringList tags;
+			for (std::set<String>::iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
+			{
+				tags.push_back(*it);
+			}
+			param_.setValue(pe.name, pe.value, pe.description, tags);
+		}
+		
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
@@ -244,5 +305,32 @@ namespace OpenMS
 	{
 		return type_;
 	}
+	
+	void TOPPASToolVertex::compute()
+	{
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+			if (tv && !(tv->isFinished()))
+			{
+				// input node not finished yet -> recurse!
+				tv->compute();
+				// what else?
+			}
+		}
+		// here, everything should be ready (input files, input file lists, and finished tool nodes)
+		// --> execute _this_ tool now
+	}
+	
+	bool TOPPASToolVertex::isFinished()
+	{
+		return finished_;
+	}
+	
+	void TOPPASToolVertex::setFinished(bool b)
+	{
+		finished_ = b;
+	}
+	
 }
 

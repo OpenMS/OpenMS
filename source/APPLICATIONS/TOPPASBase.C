@@ -120,6 +120,11 @@ namespace OpenMS
     //menuBar()->addMenu(advanced);
     //advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
 
+		//Pipeline menu
+		QMenu* pipeline = new QMenu("&Pipeline", this);
+		menuBar()->addMenu(pipeline);
+		pipeline->addAction("&Run",this,SLOT(runPipeline()));
+
 		//Windows menu
     QMenu * windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
@@ -223,6 +228,9 @@ namespace OpenMS
 		
 		//set current path
 		current_path_ = param_.getValue("preferences:default_path");
+		
+		//set temporary path
+		tmp_path_ = "/tmp/";
 		
   	//update the menu
   	updateMenu();
@@ -583,7 +591,7 @@ namespace OpenMS
 				tool_type = "";
 			}
 			
-			tv = new TOPPASToolVertex(tool_name, tool_type);
+			tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
 		}
 		
 		tv->setPos(x,y);
@@ -611,6 +619,15 @@ namespace OpenMS
 		else
 		{
 			tools_tree_view_->setDragEnabled(true);
+		}
+	}
+	
+	void TOPPASBase::runPipeline()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (w)
+		{
+			w->getScene()->runPipeline();
 		}
 	}
 
