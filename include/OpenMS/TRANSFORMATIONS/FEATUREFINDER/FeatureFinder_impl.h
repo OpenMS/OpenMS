@@ -95,7 +95,16 @@ namespace OpenMS
 			delete(algorithm);
 		}
 		
-		return;
+		//report RT apex spectrum index and native ID for each feature
+		for (Size i=0; i<features.size(); ++i)
+		{
+			//index
+			Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
+			features[i].setMetaValue("spectrum_index", spectrum_index);
+			//native id
+			String native_id = input_map[spectrum_index].getNativeID();
+			features[i].setMetaValue("spectrum_native_id", native_id);
+		}
 	}
 
 } // namespace OpenMS

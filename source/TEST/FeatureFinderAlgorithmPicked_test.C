@@ -114,15 +114,6 @@ START_SECTION((virtual void run()))
 	TEST_REAL_SIMILAR(output[6].getIntensity(),7295.3);
 	TEST_REAL_SIMILAR(output[7].getIntensity(),5024.74);
 	
-	TEST_STRING_EQUAL(output[0].getMetaValue("rt_apex_spectrum"),"spectrum=89")
-	TEST_STRING_EQUAL(output[1].getMetaValue("rt_apex_spectrum"),"spectrum=84")
-	TEST_STRING_EQUAL(output[2].getMetaValue("rt_apex_spectrum"),"spectrum=58")
-	TEST_STRING_EQUAL(output[3].getMetaValue("rt_apex_spectrum"),"spectrum=51")
-	TEST_STRING_EQUAL(output[4].getMetaValue("rt_apex_spectrum"),"spectrum=27")
-	TEST_STRING_EQUAL(output[5].getMetaValue("rt_apex_spectrum"),"spectrum=33")
-	TEST_STRING_EQUAL(output[6].getMetaValue("rt_apex_spectrum"),"spectrum=22")
-	TEST_STRING_EQUAL(output[7].getMetaValue("rt_apex_spectrum"),"spectrum=27")
-	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

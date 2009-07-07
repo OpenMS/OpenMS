@@ -407,8 +407,6 @@ namespace OpenMS
 				defaults_.setMaxFloat("feature:max_intersection",1.0);
 				defaults_.setValue("feature:reported_mz","maximum", "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.");
 				defaults_.setValidStrings("feature:reported_mz",StringList::create("maximum,average,monoisotopic"));
-				defaults_.setValue("feature:report_rt_apex_spectrum","false", "If 'true' the spectrum  number of the RT apex is reported as the meta data value 'rt_apex_spectrum'.",StringList::create("advanced"));
-				defaults_.setValidStrings("feature:report_rt_apex_spectrum",StringList::create("true,false"));
 				defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				//debug settings
 				defaults_.setValue("debug:pseudo_rt_shift",500.0,"Pseudo RT shift used when .", StringList::create("advanced"));
@@ -1210,17 +1208,6 @@ namespace OpenMS
 				ff_->endProgress();
 				std::cout << "Removed " << removed << " overlapping features." << std::endl;
 				std::cout << features_->size() << " features left." << std::endl;
-				
-				//report RT apex spectrum if wished by the user
-				if((String)(param_.getValue("feature:report_rt_apex_spectrum"))=="true")
-				{
-					for (Size i=0; i<features_->size(); ++i)
-					{
-						Feature& f = features_->operator[](i);
-						Size apex_spectrum = map_.RTBegin(f.getRT()) - map_.begin();
-						f.setMetaValue("rt_apex_spectrum",map_[apex_spectrum].getNativeID());
-					}
-				}
 				
 				//Abort reasons 
 				std::cout << std::endl;

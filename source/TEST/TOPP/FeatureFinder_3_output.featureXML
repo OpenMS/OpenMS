@@ -8,11 +8,11 @@
 	<featureList count="2">
 		<feature id="f_0">
 			<position dim="0">1245.63644234902</position>
-			<position dim="1">675.893173810985</position>
+			<position dim="1">675.893173817309</position>
 			<intensity>115571</intensity>
 			<quality dim="0">0.966649766684698</quality>
-			<quality dim="1">0.915834652849705</quality>
-			<overallquality>0.865785586974117</overallquality>
+			<quality dim="1">0.915834652749488</quality>
+			<overallquality>0.865785586229535</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="316.019997879575"/>
@@ -83,14 +83,16 @@
 					<hposition dim="1">676.799987792969</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="int" name="spectrum_index" value="34"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=35"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">1244.81231128703</position>
-			<position dim="1">690.057207186661</position>
+			<position dim="1">690.057207193024</position>
 			<intensity>2.29875e+06</intensity>
 			<quality dim="0">0.993511492826044</quality>
-			<quality dim="1">0.94246741431442</quality>
-			<overallquality>0.962238679670566</overallquality>
+			<quality dim="1">0.942467409244335</quality>
+			<overallquality>0.96223867934814</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="3378.6898222075"/>
@@ -161,6 +163,8 @@
 					<hposition dim="1">690.599975585938</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="int" name="spectrum_index" value="33"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=34"/>
 		</feature>
 	</featureList>
 </featureMap>
