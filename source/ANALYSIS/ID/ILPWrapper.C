@@ -290,6 +290,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 																							 MSExperiment<>& experiment,
 																							 std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																							 std::map<String,std::vector<Size> >& protein_precursor_map,
+																							 std::vector<IndexTriple>& variable_indices,
 																							 UInt ms2_spectra_per_rt_bin)
 {
  	std::cout << "Find optimal solution: Build model: first objective"<<std::endl;
@@ -301,7 +302,7 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 	//                    column_index, feature_index,scan
 	
 	//
-	std::vector<IndexTriple> variable_indices;
+	
 	Int counter = 0;
 	for(Size i = 0; i < features.size(); ++i)
 		{
@@ -462,36 +463,40 @@ void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
 						{
 							if(variable_indices[v].feature == *f_index_iter)
 								{
-									indices_vec.push_back(variable_indices[v].variable);
+									// if there are duplicates in the vector CoinModel will abort
+									if(find(indices_vec.begin(),indices_vec.end(),variable_indices[v].variable) == indices_vec.end())
+										{
+											indices_vec.push_back(variable_indices[v].variable);
+										}
 								}
 							else if(variable_indices[v].feature > *f_index_iter)  break; // the indices are sorted, hence if the current index is larger, we are finished
 						}
 				}
-			// now we need to copy the indices
-			double* entries = new double[indices_vec.size()];
-			int* indices = new int[indices_vec.size()];
-			for(Size s = 0; s < indices_vec.size(); ++s)
+			if(indices_vec.size() == 0) continue;
+			if(indices_vec.size() < 2)
 				{
-					entries[s] = 1.;
-					indices[s] = indices_vec[s];
+					std::cout << "too few features with ids for this protein, skipping protein"<<std::endl;
+					continue;
 				}
+			std::vector<double> entries(indices_vec.size(),1.);
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
 			Int i = distance(protein_precursor_map.begin(),map_iter);
+			std::cout << (String("PROT_COV_")+i) <<"\t"<<(String("PROT_COV_")+i).c_str() <<std::endl;
+			std::cout << indices_vec.size()<< " "<<&(indices_vec[0])<< " "<<&(entries[0])<<std::endl;
+			std::cout << (indices_vec[0])<< " "<<(entries[0])<<std::endl;
 			// at the moment we want maximally 2 precursors for each protein
-			model_.addRow((int) indices_vec.size(),indices,entries,-COIN_DBL_MAX,2,(String("PROT_COV")+i).c_str());
+			model_.addRow((int)indices_vec.size(),&(indices_vec[0]),&(entries[0]),-COIN_DBL_MAX,2,(String("PROT_COV_")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
-			delete entries;
-			delete indices;
 			
 		}
-
-#ifdef DEBUG_OPS	
+	std::cout << "model was built" <<std::endl;
+//#ifdef DEBUG_OPS	
 	model_.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
-#endif
+//#endif
  
 }
 

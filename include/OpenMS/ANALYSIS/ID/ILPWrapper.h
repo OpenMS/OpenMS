@@ -67,6 +67,7 @@ namespace OpenMS
     void encodeModelForOptimalSolution(FeatureMap<>& features,MSExperiment<>& experiment,
 																			 std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																			 std::map<String,std::vector<Size> >& protein_precursor_map,
+																			 std::vector<IndexTriple>& variable_indices,
 																			 UInt ms2_spectra_per_rt_bin);
     
     /**
