@@ -90,6 +90,8 @@ namespace OpenMS
     bool isRTColumnOn() const;
     
     SimCoordinateType getGradientTime() const;
+
+		void predictRT(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
   private:
     /// Default constructor
     RTSimulation();

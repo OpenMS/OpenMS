@@ -86,10 +86,10 @@ namespace OpenMS {
       (*feature_it).setMetaValue("detectibility", defaultDetectibility );
     }     
   }
-    
-  void DetectabilitySimulation::svm_filter(FeatureMapSim & features)
-  {
-    
+
+	void DetectabilitySimulation::predictDetectabilities(vector<String>& peptides_vector,vector<DoubleReal>& labels,
+																											 vector<DoubleReal>& detectabilities)
+	{
     // The support vector machine
 		SVMWrapper svm_;
 
@@ -161,29 +161,21 @@ namespace OpenMS {
     {
       throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
     }
-    // transform featuremap to peptides vector
-    vector< String > peptides_vector(features.size());
-    for(Size i = 0; i < features.size(); ++i)
-    {
-      peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
-    }
-    
-    
-    cout << "Predicting peptide detectabilities..    " << endl;
+
+		
+		cout << "Predicting peptide detectabilities..    " << endl;
     
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     
     // Encoding test data
     vector<DoubleReal> probs;
     probs.resize(peptides_vector.size(), 0);
-
+		
     svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
                                                                                      k_mer_length,
                                                                                      allowed_amino_acid_characters,
                                                                                      svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
     
-    vector<DoubleReal> labels;
-    vector<DoubleReal> detectabilities;
     svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
     
     cout << "Done." << endl;
@@ -195,6 +187,23 @@ namespace OpenMS {
     cout << "Predicted detectabilities:" << endl;
 #endif
     
+	}
+	
+  void DetectabilitySimulation::svm_filter(FeatureMapSim & features)
+  {
+    
+    // transform featuremap to peptides vector
+    vector< String > peptides_vector(features.size());
+    for(Size i = 0; i < features.size(); ++i)
+    {
+      peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+    }
+
+		vector<DoubleReal> labels;
+		vector<DoubleReal> detectabilities;
+		predictDetectabilities(peptides_vector,labels,detectabilities);
+
+		
     // copy all meta data stored in the feature map
     FeatureMapSim temp_copy(features); 
     temp_copy.clear();

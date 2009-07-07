@@ -101,18 +101,14 @@ namespace OpenMS {
       (*it_f).setRT(-1);
     }
   }
-    
-  /**
-   @brief Gets a feature map containing the peptides and predicts for those the retention times
-   */
-  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
-  {
+
+
+	void RTSimulation::predictRT(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)
+	{
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
-    LibSVMEncoder encoder;
-    vector<DoubleReal> predicted_retention_times;
-    
-    svm_problem* training_data = NULL;
+		LibSVMEncoder encoder;
+		svm_problem* training_data = NULL;
     svm_problem* prediction_data = NULL;
     
     UInt k_mer_length = 0;
@@ -120,14 +116,6 @@ namespace OpenMS {
     UInt border_length = 0;
     
 		std::cout << "Predicting RT..    " << endl;
-    
-    // not that elegant...
-    vector< String > peptidesVector(features.size());
-
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
-    }
     
     svm.loadModel(rt_model_file_);
     
@@ -170,8 +158,8 @@ namespace OpenMS {
     
     // Encoding test data
     vector<DoubleReal> rts;
-    rts.resize(peptidesVector.size(), 0);
-    prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptidesVector, rts, k_mer_length, allowed_amino_acid_characters, border_length);
+    rts.resize(peptide_sequences.size(), 0);
+    prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptide_sequences, rts, k_mer_length, allowed_amino_acid_characters, border_length);
     
     // loading training data
     String sample_file = rt_model_file_ + "_samples";
@@ -187,7 +175,24 @@ namespace OpenMS {
     cout << "Done." << endl;
     delete training_data;
     delete prediction_data;
-     
+
+	}
+	
+  /**
+   @brief Gets a feature map containing the peptides and predicts for those the retention times
+   */
+  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
+  {
+     vector<DoubleReal> predicted_retention_times;
+    // not that elegant...
+    vector< String > peptidesVector(features.size());
+
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+    }
+		predictRT(peptidesVector,predicted_retention_times);
+		
     /// rt error stuff
     SimCoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
     SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      

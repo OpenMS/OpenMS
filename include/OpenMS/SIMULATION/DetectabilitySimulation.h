@@ -74,6 +74,9 @@ namespace OpenMS
      */
     void filterDetectability(FeatureMapSim & features);
 
+
+		void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels,
+																std::vector<DoubleReal>& detectabilities);
   private:
     /// Set default parameters
     void setDefaultParams_();
