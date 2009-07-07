@@ -76,10 +76,10 @@ namespace OpenMS
 			const String& getName();
 			/// Returns the type of the tool
 			const String& getType();
-			/// Fills @p input_infos with the required input files/lists together with their valid types.
-			void getInputFiles(QVector<IOInfo>& input_infos);
-			/// Fills @p output_infos with the required output files/lists together with their valid types.
-			void getOutputFiles(QVector<IOInfo>& output_infos);
+			/// Fills @p input_infos with the required input file/list parameters together with their valid types.
+			void getInputParameters(QVector<IOInfo>& input_infos);
+			/// Fills @p output_infos with the required output file/list parameters together with their valid types.
+			void getOutputParameters(QVector<IOInfo>& output_infos);
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
@@ -103,8 +103,8 @@ namespace OpenMS
 			//@}
 			/// Initializes the parameters with standard values (from -write_ini)
 			void initParam_();
-			/// Fills @p io_infos with the required input/output files/lists. If @p input_files is true, input files are returned, otherwise output files.
-			void getFiles_(QVector<IOInfo>& io_infos, bool input_files);
+			/// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
+			void getParameters_(QVector<IOInfo>& io_infos, bool input_params);
 			
 			/// The name of the tool
 			String name_;
@@ -118,6 +118,8 @@ namespace OpenMS
 			UInt id_;
 			/// Stores whether this node has already been processed during the current pipeline execution
 			bool finished_;
+			/// Stores the file names of the different output parameters
+			QVector<QStringList> output_file_names_;
 			
 	};
 }

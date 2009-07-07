@@ -61,7 +61,7 @@ namespace OpenMS
 		if (source_tool)
 		{
 			QVector<TOPPASToolVertex::IOInfo> source_output_files;
-			source_tool->getOutputFiles(source_output_files);
+			source_tool->getOutputParameters(source_output_files);
 			source_label->setText(source_tool->getName().toQString());
 			if (source_tool->getType() != "")
 			{
@@ -109,7 +109,7 @@ namespace OpenMS
 		if (target_tool)
 		{
 			QVector<TOPPASToolVertex::IOInfo> target_input_files;
-			target_tool->getInputFiles(target_input_files);
+			target_tool->getInputParameters(target_input_files);
 			target_label->setText(target_tool->getName().toQString());
 			if (target_tool->getType() != "")
 			{

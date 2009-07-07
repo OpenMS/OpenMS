@@ -392,7 +392,7 @@ namespace OpenMS
 		TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
 		if (source_tool && source_out_param_ >= 0)
 		{
-			source_tool->getOutputFiles(source_output_files);
+			source_tool->getOutputParameters(source_output_files);
 			TOPPASToolVertex::IOInfo& source_param = source_output_files[(Size)(source_out_param_)];
 			source_param_types = source_param.valid_types;
 			source_param_has_list_type = source_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
@@ -400,7 +400,7 @@ namespace OpenMS
 		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 		if (target_tool && target_in_param_ >= 0)
 		{
-			target_tool->getInputFiles(target_input_files);
+			target_tool->getInputParameters(target_input_files);
 			TOPPASToolVertex::IOInfo& target_param = target_input_files[(Size)(target_in_param_)];
 			target_param_types = target_param.valid_types;
 			target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
