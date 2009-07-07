@@ -31,6 +31,8 @@ using namespace std;
 
 namespace OpenMS
 {
+	const std::string LayerData::NamesOfLabelType[] = {"None","Index","Label meta data","Peptide identification"};
+	
 	std::ostream& operator << (std::ostream& os, const LayerData& rhs)
 	{
 		os << "--LayerData BEGIN--"<<std::endl;

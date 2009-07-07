@@ -358,9 +358,10 @@ namespace OpenMS
     connect(dm_label_2d_, SIGNAL(triggered(QAction*)), this, SLOT(changeLabel(QAction*)));
 		//button menu
 		QMenu* menu = new QMenu(dm_label_2d_);
-		menu->addAction("Label meta data");
-		menu->addAction("Index");
-		menu->addAction("Peptide identification");
+		for (Size i=0; i<LayerData::SIZE_OF_LABEL_TYPE; ++i)
+		{
+			menu->addAction(QString(LayerData::NamesOfLabelType[i].c_str()));
+		} 
 		dm_label_2d_->setMenu(menu);
 
 		//--2D feature toolbar--
@@ -1165,23 +1166,24 @@ namespace OpenMS
 
 	void TOPPViewBase::changeLabel(QAction* action)
 	{
-		if (action->text()=="Index")
+		bool set=false;
+		
+		//label type is selected
+		for (Size i=0; i<LayerData::SIZE_OF_LABEL_TYPE; ++i)
 		{
-			active2DWindow_()->canvas()->setLabel(LayerData::L_INDEX);
+			if (action->text().toStdString()==LayerData::NamesOfLabelType[i])
+			{
+				active2DWindow_()->canvas()->setLabel(LayerData::LabelType(i));
+				set = true;
+			}
 		}
-		else if (action->text()=="Peptide identification")
-		{
-			active2DWindow_()->canvas()->setLabel(LayerData::L_ID);
-		}
-		else if (action->text()=="Label meta data")
-		{
-			active2DWindow_()->canvas()->setLabel(LayerData::L_META_LABEL);
-		}
-		else //button is simply pressed
-		{
+		
+		//button is simply pressed
+		if (!set)
+		{  
 			if (active2DWindow_()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
 			{
-				active2DWindow_()->canvas()->setLabel(LayerData::L_META_LABEL);
+				active2DWindow_()->canvas()->setLabel(LayerData::L_INDEX);
 			}
 			else
 			{

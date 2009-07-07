@@ -43,6 +43,8 @@ namespace OpenMS
 	/**
 		@brief Struct that stores the data for one layer
 		
+		@todo Add modifiable flag for feature layer (Marc)
+		
 		@ingroup SpectrumWidgets
 	*/
   struct LayerData
@@ -71,11 +73,14 @@ namespace OpenMS
 		///Label used in visualization
 		enum LabelType
 		{
-			L_NONE,        ///< No label is displayed
-			L_META_LABEL,   ///< The 'label' meta information is used
-			L_INDEX,      ///< The element number is used
-			L_ID          ///< The best peptide hit of the first identification run is used
+			L_NONE,							///< No label is displayed
+			L_INDEX,						///< The element number is used
+			L_META_LABEL,				///< The 'label' meta information is used
+			L_ID,								///< The best peptide hit of the first identification run is used
+			SIZE_OF_LABEL_TYPE
 		};
+		//Label names
+		static const std::string NamesOfLabelType[SIZE_OF_LABEL_TYPE];
 		
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
