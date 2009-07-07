@@ -125,12 +125,9 @@ namespace OpenMS
 			///Decodes a compressed Base64 string to a vector of floating point numbers 
 			template <typename ToType>
 			void decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,DataType data_type);
-
-			///Decodes a compressed Base64 string to a vector of floating point numbers representing integers
-			template <typename ToType>
-			void decodeUncompressedInteger_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);			
   };
-			///Endianizes a 32 bit type from big endian to litte endian and vice versa
+	
+	///Endianizes a 32 bit type from big endian to litte endian and vice versa
 	inline Int32 endianize32(Int32& n)
 	{
 		return ((n&0xff)<<24) | ((n&0xff00)<<8) | ((n&0xff0000)>>8) | ((n&0xff000000)>>24);

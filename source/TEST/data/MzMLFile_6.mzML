@@ -133,7 +133,7 @@
 		<userParam name="flag" type="xsd:string" value=""/>
 		<userParam name="float" type="xsd:double" value="5.11"/>
 
-		<spectrumList count="4" defaultDataProcessingRef="dp_0">
+		<spectrumList count="9" defaultDataProcessingRef="dp_0">
 			<spectrum id="index=0" index="0" defaultArrayLength="15">
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum"/>
@@ -296,23 +296,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="index=3" index="3" defaultArrayLength="0">
-				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum"/>
-				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
-				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
-				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-				<userParam name="name" type="xsd:string" value="spectrum4"/>
-				<userParam name="id" type="xsd:string" value="S3"/>
-				<userParam name="native_id" type="xsd:string" value="N3"/>
-				<userParam name="sdname" type="xsd:string" value="spectrumdescription4"/>
-        <scanList count="1">
-					<cvParam cvRef="MS" accession="MS:1000795" name="no combination"/>
-	        <scan externalSpectrumID="0">
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="0.09" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO"/>
-		      </scan>
-		    </scanList>
-			</spectrum>
-       <spectrum index="0" id="index=0" defaultArrayLength="99" dataProcessingRef="dp_sp_0">
+       <spectrum index="3" id="index=3" defaultArrayLength="99" dataProcessingRef="dp_0">
          <cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" value=""/>
          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
          <cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" value=""/>
@@ -337,7 +321,7 @@
            </binaryDataArray>
          </binaryDataArrayList>
        </spectrum>
-       <spectrum index="1" id="index=1" defaultArrayLength="100">
+       <spectrum index="4" id="index=4" defaultArrayLength="100">
          <cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" value=""/>
          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
          <cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" value=""/>
@@ -362,7 +346,7 @@
            </binaryDataArray>
          </binaryDataArrayList>
        </spectrum>
-       <spectrum index="2" id="index=2" defaultArrayLength="101">
+       <spectrum index="5" id="index=5" defaultArrayLength="101">
          <cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" value=""/>
          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
          <cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" value=""/>
@@ -387,7 +371,7 @@
            </binaryDataArray>
          </binaryDataArrayList>
        </spectrum>
-            <spectrum dataProcessingRef="dp_sp_0" defaultArrayLength="99" index="0" id="index=0">
+            <spectrum index="6" id="index=6" defaultArrayLength="99">
                 <cvParam name="spectrum representation" value="" accession="MS:1000525" cvRef="MS"/>
                 <cvParam name="ms level" value="1" accession="MS:1000511" cvRef="MS"/>
                 <cvParam name="mass spectrum" value="" accession="MS:1000294" cvRef="MS"/>
@@ -412,7 +396,7 @@
                     </binaryDataArray>
                 </binaryDataArrayList>
             </spectrum>
-            <spectrum dataProcessingRef="dp_sp_0" defaultArrayLength="99" index="0" id="index=0">
+            <spectrum index="7" id="index=7" defaultArrayLength="99">
                 <cvParam name="spectrum representation" value="" accession="MS:1000525" cvRef="MS"/>
                 <cvParam name="ms level" value="1" accession="MS:1000511" cvRef="MS"/>
                 <cvParam name="mass spectrum" value="" accession="MS:1000294" cvRef="MS"/>

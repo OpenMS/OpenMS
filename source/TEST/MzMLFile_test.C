@@ -505,37 +505,35 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	MSExperiment<> mzml_6;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),mzml_6);
 	//load 32 bit data
-	TEST_EQUAL(mzml_6.size(),9)
+	TEST_EQUAL(mzml_6.size(),8)
 	TEST_EQUAL(mzml_6[0].size(),15)
 	TEST_EQUAL(mzml_6[1].size(),10)
 	TEST_EQUAL(mzml_6[2].size(),15)
-	TEST_EQUAL(mzml_6[3].size(),0)
 	TEST_REAL_SIMILAR(mzml_6[0].getRT(),5.1)
 	TEST_REAL_SIMILAR(mzml_6[1].getRT(),5.2)
 	TEST_REAL_SIMILAR(mzml_6[2].getRT(),5.3)
-	TEST_REAL_SIMILAR(mzml_6[3].getRT(),5.4)	
 	//load zlib compressed data
 	for(Size s = 0 ; s < uncompressed[0].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[4][s] == uncompressed[0][s],true)
+		TEST_EQUAL(mzml_6[3][s] == uncompressed[0][s],true)
 	}
 	for(Size s = 0 ; s < uncompressed[1].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[5][s] == uncompressed[1][s],true)
+		TEST_EQUAL(mzml_6[4][s] == uncompressed[1][s],true)
 	}
 	for(Size s = 0 ; s < uncompressed[2].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[6][s] == uncompressed[2][s],true)
+		TEST_EQUAL(mzml_6[5][s] == uncompressed[2][s],true)
 	}
 	//32bit Integer (intensity)
-	for(Size i = 0; i < mzml_6[7].size(); ++i)
+	for(Size i = 0; i < mzml_6[6].size(); ++i)
 	{
-		TEST_EQUAL(mzml_6[7][i].getIntensity(), i)
+		TEST_REAL_SIMILAR(mzml_6[6][i].getIntensity(), i)
 	}
 	//64bit Integer (intensity)
-	for(Size i = 0; i < mzml_6[8].size(); ++i)
+	for(Size i = 0; i < mzml_6[7].size(); ++i)
 	{
-		TEST_EQUAL(mzml_6[8][i].getIntensity(), i)
+		TEST_REAL_SIMILAR(mzml_6[7][i].getIntensity(), i)
 	}	
 
 	//test if it works with different peak types
@@ -694,7 +692,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	{
 		//load map
 		MSExperiment<> exp_original;
-		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_original);
+		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),exp_original);
 	 	//store map
 		std::string tmp_filename;
 	 	NEW_TMP_FILE(tmp_filename);
@@ -705,6 +703,13 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		file.load(tmp_filename,exp);
 		//test if everything worked
 		TEST_EQUAL(exp==exp_original,true)
+		//NOTE: If it does not work, use this code to find out where the difference is
+		TEST_EQUAL(exp[3].size(),exp_original[3].size())
+		for (Size i=0; i<exp[3].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[3][i].getIntensity(),exp_original[3][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[3][i].getMZ(),exp_original[3][i].getMZ())
+		}
 	}
 
 END_SECTION
