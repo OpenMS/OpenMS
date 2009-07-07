@@ -327,8 +327,7 @@ namespace OpenMS
 		Param dt_param;
 		dt_param.setValue("dt_simulation_on",true);
 		dt_param.setValue("dt_model_file",dt_model_path);
-		const gsl_rng * random_generator; // not needed for this rt prediction, but needed for RTSimulation
-
+		gsl_rng* random_generator = gsl_rng_alloc(gsl_rng_mt19937);// not needed for this rt prediction, but needed for RTSimulation
 		// this is needed, as too many sequences require too much memory for the rt and dt prediction
 		Size max_peptides_per_run = 100000; // TODO: make this a parameter
 		peptide_sequences.resize(max_peptides_per_run);
