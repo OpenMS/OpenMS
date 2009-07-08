@@ -105,38 +105,8 @@ protected:
     // reading input
     //-------------------------------------------------------------
 		const String in = getStringOption_("in");
-		FileTypes::Type in_type = fh.getType(in);
 
-    if (in_type==FileTypes::PEPXML)
-  	{
-  		String exp_name = getStringOption_("mz_file"),
-				orig_name =	getStringOption_("mz_name");
-
-			// no extension present => add one (will be removed by PepXMLFile)
-			if (!orig_name.empty() && !orig_name.has('.')) {
-				orig_name = orig_name + ".mzXML";
-			}
-
-  		protein_identifications.resize(1);
-			if (exp_name.empty()) {
-				PepXMLFile().load(in, protein_identifications[0],
-													peptide_identifications, orig_name);
-			}
-			else {
-				MSExperiment<> exp;
-				fh.loadExperiment(exp_name, exp);
-				if (!orig_name.empty()) {
-					exp_name = orig_name;
-				}
-				PepXMLFile().load(in, protein_identifications[0],
-													peptide_identifications, exp_name, exp);
-			}
-  	}
-    else if ( in_type==FileTypes::IDXML)
-  	{
-  		IdXMLFile().load(in, protein_identifications, peptide_identifications);
-  	}
-    else if ( in_type==FileTypes::UNKNOWN && File::isDirectory(in) )
+    if ( File::isDirectory(in) )
     {
 
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
@@ -250,43 +220,77 @@ protected:
 
       writeDebug_("All files processed.", 3);
 
-    }
+    } // ! directory
     else
     {
-      writeLog_("Unknown input file type given. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
+			FileTypes::Type in_type = fh.getType(in);
 
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    const String out = getStringOption_("out");
-    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
-    if (out_type==FileTypes::UNKNOWN)
-    {
-      out_type = fh.getTypeByFileName(out);
-    }
-    if (out_type==FileTypes::UNKNOWN)
-    {
-      writeLog_("Error: Could not determine output file type!");
-      return PARSE_ERROR;
-    }
+			if (in_type==FileTypes::PEPXML)
+  		{
+  			String exp_name = getStringOption_("mz_file"),
+					orig_name =	getStringOption_("mz_name");
 
-    if (out_type==FileTypes::PEPXML)
-    {
-      PepXMLFile().store(out, protein_identifications, peptide_identifications);
-    }
-    else if (out_type==FileTypes::IDXML)
-    {
-      IdXMLFile().store(out, protein_identifications, peptide_identifications);
-    }
-    else
-    {
-      writeLog_("Unknown output file type given. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
+				// no extension present => add one (will be removed by PepXMLFile)
+				if (!orig_name.empty() && !orig_name.has('.')) {
+					orig_name = orig_name + ".mzXML";
+				}
+
+  			protein_identifications.resize(1);
+				if (exp_name.empty()) {
+					PepXMLFile().load(in, protein_identifications[0],
+														peptide_identifications, orig_name);
+				}
+				else {
+					MSExperiment<> exp;
+					fh.loadExperiment(exp_name, exp);
+					if (!orig_name.empty()) {
+						exp_name = orig_name;
+					}
+					PepXMLFile().load(in, protein_identifications[0],
+														peptide_identifications, exp_name, exp);
+				}
+  		}
+			else if ( in_type==FileTypes::IDXML)
+  		{
+  			IdXMLFile().load(in, protein_identifications, peptide_identifications);
+  		}
+			else
+			{
+				writeLog_("Unknown input file type given. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+		}
+
+		//-------------------------------------------------------------
+		// writing output
+		//-------------------------------------------------------------
+		const String out = getStringOption_("out");
+		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			out_type = fh.getTypeByFileName(out);
+		}
+		if (out_type==FileTypes::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine output file type!");
+			return PARSE_ERROR;
+		}
+
+		if (out_type==FileTypes::PEPXML)
+		{
+			PepXMLFile().store(out, protein_identifications, peptide_identifications);
+		}
+		else if (out_type==FileTypes::IDXML)
+		{
+			IdXMLFile().store(out, protein_identifications, peptide_identifications);
+		}
+		else
+		{
+			writeLog_("Unknown output file type given. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+		}
 
     return EXECUTION_OK;
   }

@@ -262,29 +262,29 @@ namespace OpenMS
 		
 		String decompressed;
 
-			QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
-			QByteArray bazip = QByteArray::fromBase64(herewego);
-			QByteArray czip;
-			czip.resize(4);
-			czip[0] = (bazip.size() & 0xff000000) >> 24;
-			czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-			czip[2] = (bazip.size() & 0x0000ff00) >> 8;
-			czip[3] = (bazip.size()& 0x000000ff);
-			czip += bazip;
-			QByteArray base64_uncompressed = qUncompress(czip);
-			
-			if(base64_uncompressed.isEmpty())
-			{
-				throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Decompression error?");
-			}
-			decompressed.resize(base64_uncompressed.size());
-			
-			std::copy(base64_uncompressed.begin(),base64_uncompressed.end(),decompressed.begin());
-
-			byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
-			buffer_size = decompressed.size();
+		QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
+		QByteArray bazip = QByteArray::fromBase64(herewego);
+		QByteArray czip;
+		czip.resize(4);
+		czip[0] = (bazip.size() & 0xff000000) >> 24;
+		czip[1] = (bazip.size() & 0x00ff0000) >> 16;
+		czip[2] = (bazip.size() & 0x0000ff00) >> 8;
+		czip[3] = (bazip.size()& 0x000000ff);
+		czip += bazip;
+		QByteArray base64_uncompressed = qUncompress(czip);
 		
-		//change endianness if necessary
+		if(base64_uncompressed.isEmpty())
+		{
+			throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Decompression error?");
+		}
+		decompressed.resize(base64_uncompressed.size());
+		
+		std::copy(base64_uncompressed.begin(),base64_uncompressed.end(),decompressed.begin());
+
+		byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
+		buffer_size = decompressed.size();
+		
+		// change endianness if necessary
 		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
 			if(element_size==4 && data_type == FLOAT)
@@ -292,7 +292,6 @@ namespace OpenMS
 				const Real* float_buffer = reinterpret_cast<const Real*>(byte_buffer);
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
 				Size float_count = buffer_size / element_size;
-				out.resize(float_count);
 				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize32);
 				out.assign(float_buffer,float_buffer+float_count);	
@@ -302,10 +301,16 @@ namespace OpenMS
 				const Int32* float_buffer = reinterpret_cast<const Int32*>(byte_buffer);
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
 				Size float_count = buffer_size / element_size;
-				out.resize(float_count);
 				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize32);
-				out.assign(float_buffer,float_buffer+float_count);	
+
+				out.resize(float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler	
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == FLOAT)
 			{
@@ -315,13 +320,16 @@ namespace OpenMS
 
 				Size float_count = buffer_size / element_size;
 
-				out.resize(float_count);
-
 				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize64);				
 				
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == INTEGER)
 			{
@@ -331,13 +339,17 @@ namespace OpenMS
 
 				Size float_count = buffer_size / element_size;
 
-				out.resize(float_count);
-
 				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize64);				
 				
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
+				
 			}				
 		}
 		else
@@ -348,7 +360,6 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.assign(float_buffer, float_buffer+float_count);
 			}
 			else if(element_size==4 && data_type == INTEGER)
@@ -357,8 +368,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
-				out.assign(float_buffer, float_buffer+float_count);
+				out.resize(float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == FLOAT)
 			{
@@ -367,9 +383,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}	
 			else if(element_size==8 && data_type == INTEGER)
 			{
@@ -378,9 +398,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);			
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 		}
 		

@@ -186,7 +186,7 @@ namespace OpenMS
 		foreach (const Param::ParamEntry& pe, hidden_entries)
 		{
 			StringList tags;
-			for (std::set<String>::iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
+			for (std::set<String>::const_iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
 			{
 				tags.push_back(*it);
 			}
