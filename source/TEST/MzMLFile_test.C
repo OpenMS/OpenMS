@@ -532,7 +532,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp5[6].getFloatDataArrays()[0].getName(),"charge array")
 	for(Size i = 0; i < exp5[6].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(exp5[6].getFloatDataArrays()[0][i], i)
+		TEST_REAL_SIMILAR(exp5[6].getFloatDataArrays()[0][i], (Int)i)
 	}
 	//64bit Integer (intensity)
 	TEST_EQUAL(exp5[7].size(),99)
@@ -541,7 +541,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp5[7].getFloatDataArrays()[0].getName(),"charge array")
 	for(Size i = 0; i < exp5[7].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(exp5[7].getFloatDataArrays()[0][i], i)
+		TEST_REAL_SIMILAR(exp5[7].getFloatDataArrays()[0][i], (Int)i)
 	}
 
 	//test if it works with different peak types

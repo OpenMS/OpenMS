@@ -124,7 +124,10 @@ START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
 		esi_features.push_back(f);
 	}
   
-  esi_sim.ionize(esi_features, cm);
+	MSExperiment<> exp;
+	MSSpectrum<> spec;
+	exp.push_back(spec);
+  esi_sim.ionize(esi_features, cm, exp);
     
   TEST_EQUAL(esi_features.size(), 22)
   
@@ -232,7 +235,10 @@ START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
     maldi_features.push_back(f);
 	}
   
-  maldi_sim.ionize(maldi_features, cm);
+	MSExperiment<> expt;
+	MSSpectrum<> spect;
+	expt.push_back(spect);
+	maldi_sim.ionize(maldi_features, cm, expt);
 
   TEST_EQUAL(maldi_features.size(), 7)
 
