@@ -129,7 +129,7 @@ START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
 	exp.push_back(spec);
   esi_sim.ionize(esi_features, cm, exp);
     
-  TEST_EQUAL(esi_features.size(), 22)
+  TEST_EQUAL(esi_features.size(), 20)
   
   TEST_EQUAL(esi_features[0].getCharge(), 1)
   TEST_EQUAL(esi_features[0].getIntensity(), 8)
@@ -143,59 +143,53 @@ START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
   TEST_EQUAL(esi_features[3].getCharge(), 4)
   TEST_EQUAL(esi_features[3].getIntensity(), 2)
   
-  TEST_EQUAL(esi_features[4].getCharge(), 10)
+  TEST_EQUAL(esi_features[4].getCharge(), 7)
   TEST_EQUAL(esi_features[4].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[5].getCharge(), 8)
+  TEST_EQUAL(esi_features[5].getCharge(), 6)
   TEST_EQUAL(esi_features[5].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[6].getCharge(), 7)
+  TEST_EQUAL(esi_features[6].getCharge(), 5)
   TEST_EQUAL(esi_features[6].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[7].getCharge(), 6)
+  TEST_EQUAL(esi_features[7].getCharge(), 5)
   TEST_EQUAL(esi_features[7].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[8].getCharge(), 5)
-  TEST_EQUAL(esi_features[8].getIntensity(), 1)
+  TEST_EQUAL(esi_features[8].getCharge(), 2)
+  TEST_EQUAL(esi_features[8].getIntensity(), 4)
 
-  TEST_EQUAL(esi_features[9].getCharge(), 5)
-  TEST_EQUAL(esi_features[9].getIntensity(), 1)
+  TEST_EQUAL(esi_features[9].getCharge(), 3)
+  TEST_EQUAL(esi_features[9].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[10].getCharge(), 2)
-  TEST_EQUAL(esi_features[10].getIntensity(), 4)
+  TEST_EQUAL(esi_features[10].getCharge(), 3)
+  TEST_EQUAL(esi_features[10].getIntensity(), 1)
 
   TEST_EQUAL(esi_features[11].getCharge(), 3)
-  TEST_EQUAL(esi_features[11].getIntensity(), 2)
+  TEST_EQUAL(esi_features[11].getIntensity(), 1)
   
-  TEST_EQUAL(esi_features[12].getCharge(), 3)
+  TEST_EQUAL(esi_features[12].getCharge(), 1)
   TEST_EQUAL(esi_features[12].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[13].getCharge(), 3)
-  TEST_EQUAL(esi_features[13].getIntensity(), 1)
+  TEST_EQUAL(esi_features[13].getCharge(), 4)
+  TEST_EQUAL(esi_features[13].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[14].getCharge(), 1)
-  TEST_EQUAL(esi_features[14].getIntensity(), 1)
+  TEST_EQUAL(esi_features[14].getCharge(), 3)
+  TEST_EQUAL(esi_features[14].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[15].getCharge(), 4)
+  TEST_EQUAL(esi_features[15].getCharge(), 3)
   TEST_EQUAL(esi_features[15].getIntensity(), 2)
 
-  TEST_EQUAL(esi_features[16].getCharge(), 3)
-  TEST_EQUAL(esi_features[16].getIntensity(), 2)
+  TEST_EQUAL(esi_features[16].getCharge(), 5)
+  TEST_EQUAL(esi_features[16].getIntensity(), 1)
 
-	TEST_EQUAL(esi_features[17].getCharge(), 3)
-  TEST_EQUAL(esi_features[17].getIntensity(), 2)
+	TEST_EQUAL(esi_features[17].getCharge(), 4)
+  TEST_EQUAL(esi_features[17].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[18].getCharge(), 5)
+  TEST_EQUAL(esi_features[18].getCharge(), 3)
   TEST_EQUAL(esi_features[18].getIntensity(), 1)
 
-  TEST_EQUAL(esi_features[19].getCharge(), 4)
+  TEST_EQUAL(esi_features[19].getCharge(), 2)
   TEST_EQUAL(esi_features[19].getIntensity(), 1)
-
-  TEST_EQUAL(esi_features[20].getCharge(), 3)
-  TEST_EQUAL(esi_features[20].getIntensity(), 1)
-
-	TEST_EQUAL(esi_features[21].getCharge(), 2)
-  TEST_EQUAL(esi_features[21].getIntensity(), 1)
 
 
   for(FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
