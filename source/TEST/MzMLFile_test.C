@@ -526,15 +526,23 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(mzml_6[5][s] == uncompressed[2][s],true)
 	}
 	//32bit Integer (intensity)
-	for(Size i = 0; i < mzml_6[6].size(); ++i)
+	TEST_EQUAL(mzml_6[6].size(),99)
+	TEST_EQUAL(mzml_6[6].getFloatDataArrays().size(),1)
+	TEST_EQUAL(mzml_6[6].getFloatDataArrays()[0].size(),99)
+	TEST_STRING_EQUAL(mzml_6[6].getFloatDataArrays()[0].getName(),"charge array")
+	for(Size i = 0; i < mzml_6[6].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(mzml_6[6][i].getIntensity(), i)
+		TEST_REAL_SIMILAR(mzml_6[6].getFloatDataArrays()[0][i], i)
 	}
 	//64bit Integer (intensity)
-	for(Size i = 0; i < mzml_6[7].size(); ++i)
+	TEST_EQUAL(mzml_6[7].size(),99)
+	TEST_EQUAL(mzml_6[7].getFloatDataArrays().size(),1)
+	TEST_EQUAL(mzml_6[7].getFloatDataArrays()[0].size(),99)
+	TEST_STRING_EQUAL(mzml_6[7].getFloatDataArrays()[0].getName(),"charge array")
+	for(Size i = 0; i < mzml_6[7].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(mzml_6[7][i].getIntensity(), i)
-	}	
+		TEST_REAL_SIMILAR(mzml_6[7].getFloatDataArrays()[0][i], i)
+	}
 
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
