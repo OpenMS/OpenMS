@@ -41,9 +41,6 @@
 #include <sstream>
 #include <iostream>
 
-//TODO:
-// - Add generic parsing of xref to ControlledVocabulary class => check binary data array types
-//
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)

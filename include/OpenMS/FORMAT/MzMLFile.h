@@ -41,16 +41,14 @@ namespace OpenMS
 
 		This implementation does currently not support the whole functionality of MzML.
 		Some minor features are still missing:
-  	  - chromatograms
-  	  - zlib compression of base64 data
-  	  - base64 integer data
-  	  - base64 16 bit data
+			- chromatograms
+			- base64 string data
 
-		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
-		
 		@todo Implement and test 32/64 bit integer arrays and null-terminated string arrays (Hiwi, David)
 		
 		@todo Implement chromatograms (Hiwi)
+		
+		@todo Add generic parsing of ControlledVocabulary xref and check binary data array types (Marc)
 		
 		@ingroup FileIO
 	*/
@@ -111,7 +109,6 @@ namespace OpenMS
 				@brief Checks if a file validates against the XML schema.
 
 		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
-				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
 			*/
 			bool isValid(const String& filename, std::ostream& os = std::cerr);
 

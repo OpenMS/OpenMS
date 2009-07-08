@@ -502,46 +502,46 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//TEST 32 bit data, zlib compression, 32/64 bit integer, Null terminated strings
 	MSExperiment<> uncompressed;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),uncompressed);
-	MSExperiment<> mzml_6;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),mzml_6);
+	MSExperiment<> exp5;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),exp5);
 	//load 32 bit data
-	TEST_EQUAL(mzml_6.size(),8)
-	TEST_EQUAL(mzml_6[0].size(),15)
-	TEST_EQUAL(mzml_6[1].size(),10)
-	TEST_EQUAL(mzml_6[2].size(),15)
-	TEST_REAL_SIMILAR(mzml_6[0].getRT(),5.1)
-	TEST_REAL_SIMILAR(mzml_6[1].getRT(),5.2)
-	TEST_REAL_SIMILAR(mzml_6[2].getRT(),5.3)
+	TEST_EQUAL(exp5.size(),8)
+	TEST_EQUAL(exp5[0].size(),15)
+	TEST_EQUAL(exp5[1].size(),10)
+	TEST_EQUAL(exp5[2].size(),15)
+	TEST_REAL_SIMILAR(exp5[0].getRT(),5.1)
+	TEST_REAL_SIMILAR(exp5[1].getRT(),5.2)
+	TEST_REAL_SIMILAR(exp5[2].getRT(),5.3)
 	//load zlib compressed data
 	for(Size s = 0 ; s < uncompressed[0].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[3][s] == uncompressed[0][s],true)
+		TEST_EQUAL(exp5[3][s] == uncompressed[0][s],true)
 	}
 	for(Size s = 0 ; s < uncompressed[1].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[4][s] == uncompressed[1][s],true)
+		TEST_EQUAL(exp5[4][s] == uncompressed[1][s],true)
 	}
 	for(Size s = 0 ; s < uncompressed[2].size(); ++s)
 	{
-		TEST_EQUAL(mzml_6[5][s] == uncompressed[2][s],true)
+		TEST_EQUAL(exp5[5][s] == uncompressed[2][s],true)
 	}
 	//32bit Integer (intensity)
-	TEST_EQUAL(mzml_6[6].size(),99)
-	TEST_EQUAL(mzml_6[6].getFloatDataArrays().size(),1)
-	TEST_EQUAL(mzml_6[6].getFloatDataArrays()[0].size(),99)
-	TEST_STRING_EQUAL(mzml_6[6].getFloatDataArrays()[0].getName(),"charge array")
-	for(Size i = 0; i < mzml_6[6].getFloatDataArrays()[0].size(); ++i)
+	TEST_EQUAL(exp5[6].size(),99)
+	TEST_EQUAL(exp5[6].getFloatDataArrays().size(),1)
+	TEST_EQUAL(exp5[6].getFloatDataArrays()[0].size(),99)
+	TEST_STRING_EQUAL(exp5[6].getFloatDataArrays()[0].getName(),"charge array")
+	for(Size i = 0; i < exp5[6].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(mzml_6[6].getFloatDataArrays()[0][i], i)
+		TEST_REAL_SIMILAR(exp5[6].getFloatDataArrays()[0][i], i)
 	}
 	//64bit Integer (intensity)
-	TEST_EQUAL(mzml_6[7].size(),99)
-	TEST_EQUAL(mzml_6[7].getFloatDataArrays().size(),1)
-	TEST_EQUAL(mzml_6[7].getFloatDataArrays()[0].size(),99)
-	TEST_STRING_EQUAL(mzml_6[7].getFloatDataArrays()[0].getName(),"charge array")
-	for(Size i = 0; i < mzml_6[7].getFloatDataArrays()[0].size(); ++i)
+	TEST_EQUAL(exp5[7].size(),99)
+	TEST_EQUAL(exp5[7].getFloatDataArrays().size(),1)
+	TEST_EQUAL(exp5[7].getFloatDataArrays()[0].size(),99)
+	TEST_STRING_EQUAL(exp5[7].getFloatDataArrays()[0].getName(),"charge array")
+	for(Size i = 0; i < exp5[7].getFloatDataArrays()[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(mzml_6[7].getFloatDataArrays()[0][i], i)
+		TEST_REAL_SIMILAR(exp5[7].getFloatDataArrays()[0][i], i)
 	}
 
 	//test if it works with different peak types
