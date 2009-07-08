@@ -439,22 +439,26 @@ namespace OpenMS
 			{
 				//check file version against schema version
 				String file_version = attributeAsString_(attributes, s_version);
-				DoubleReal double_version = 1.0;
+				DoubleReal double_version = 0.0;
 				try
 				{
 					double_version = file_version.toDouble();
 				}
 				catch(...)
 				{
-					warning(LOAD, "Could not convert the mzML version string '" + file_version +"' to a double.");
+					//nothing to do here
 				}
-				if (double_version<1.1)
+				if (double_version<1.0)
+				{
+					warning(LOAD, String("Could not determine XML file version from version string '") + file_version + "'. Assuming mzML version 1.1!");
+				}
+				else if (double_version<1.1)
 				{
 					fatalError(LOAD, "MzML 1.0 is not supported!");
 				}
 				else if (double_version>version_.toDouble())
 				{
-					warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+					warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded behaviour.");
 				}
 				//handle file accession
 				String accession;
