@@ -313,7 +313,7 @@ namespace OpenMS
 	{
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 			if (tv && !(tv->isFinished()))
 			{
 				tv->compute();
@@ -342,7 +342,6 @@ namespace OpenMS
 				continue;
 			}
 			call += " -" + in_params[param_index].param_name;
-			
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 			if (tv)
 			{
@@ -355,14 +354,12 @@ namespace OpenMS
 				call += " " + String(tv->output_file_names_[out_param_index].join(" "));
 				continue;
 			}
-			
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
 			if (ifv)
 			{
 				call += " " + String(ifv->getFilename());
 				continue;
 			}
-			
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 			if (iflv)
 			{
@@ -394,14 +391,12 @@ namespace OpenMS
 				// for now, use this workaround for "out" (as many as for "in")... what about the others?!
 				for (int i = 0; i < in_params.size(); ++i)
 				{
-					output_file_names_[param_index] = QStringList(); // TODO: necessary?
 					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
 				}
 				call += " " + String(output_file_names_[param_index].join(" "));
 			}
 			else if (out_params[param_index].type == IOInfo::IOT_FILE)
 			{
-				output_file_names_[param_index] = QStringList(); // TODO: necessary?
 				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
 				call += " " + String(output_file_names_[param_index].join(" "));
 			}
@@ -415,6 +410,8 @@ namespace OpenMS
 		{
 			QMessageBox::critical(0,"Error",("Something went wrong!\n\nCheck the log file " + ini_file_name + ".log for possible reasons. If it does not exist, make sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
 		}
+		
+		finished_ = true;
 	}
 	
 	bool TOPPASToolVertex::isFinished()
