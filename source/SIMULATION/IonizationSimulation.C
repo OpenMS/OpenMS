@@ -319,7 +319,7 @@ namespace OpenMS {
 			} // ! feature iterator
 	    
 	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
-	    std::cout << "#Peptides not outside mz range: " << undetected_features_count << "\n";
+	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
 	    
 			// swap feature maps
 			features.swap(copy_map);
@@ -414,7 +414,7 @@ namespace OpenMS {
 			// swap feature maps
 			features.swap(copy_map);
 			
-	    std::cout << "#Peptides not outside mz range: " << undetected_features_count << "\n";
+	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
 		}
 		catch (std::exception& e)
 		{
