@@ -73,11 +73,10 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgXercesSchema, true);
 		parser->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
 		
-		//set dummy handler and this class as error handler
-		DefaultHandler handler;
-		parser->setContentHandler(&handler);
-		parser->setEntityResolver(&handler);
+		//set this class as error handler
 		parser->setErrorHandler(this);
+		parser->setContentHandler(NULL);
+		parser->setEntityResolver(NULL);
 		
 		//load schema
 		LocalFileInputSource schema_file(Internal::StringManager().convert(schema));
