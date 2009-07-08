@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
+#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
 #include <gsl/gsl_blas.h>
 
 namespace OpenMS
@@ -91,7 +92,9 @@ namespace OpenMS
 		defaults_.setValue("Precursor:ChargeFilter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation."); 
 		defaults_.setMinInt("Precursor:ChargeFilter",1);
 		defaults_.setMaxInt("Precursor:ChargeFilter",30);
-
+		defaults_.setValue("Precursor:ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
+		defaults_.setMinInt("Precursor:ms2_spectra_per_rt_bin",1);
+		
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
@@ -154,37 +157,18 @@ namespace OpenMS
 		std::set<Int> qs_set(qs.begin(),qs.end());
 
 		//** precursor selection **//
+		OfflinePrecursorIonSelection ps;
+		Param param;
+		param.setValue("ms2_spectra_per_rt_bin",param_.getValue("Precursor:ms2_spectra_per_rt_bin"));
+		ps.setParameters(param);
+		// different selection strategies for MALDI and ESI
+		if((String)param_.getValue("ionization_type") == "ESI")
+			{
+				ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,false);
+			}
+		else ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,true);
 
-		//TODO: introduce white & blacklists?
-		//TODO: introduce some notion of MALDI spot capacity
 		
-		// current dummy function: naively select 40 highest intensity features
-		features.sortByIntensity(true);
-		for (Size i=0; i<40 && i<features.size(); ++i)
-		{
-
-			// charge not in "ChargeFilter" list
-			if (qs_set.count(features[i].getCharge())<1) continue;
-			
-
-			MSSimExperiment::iterator scan = experiment.RTBegin(features[i].getRT());
-			MSSimExperiment::SpectrumType ms2_spec;
-			Precursor p;
-			std::vector< Precursor > pcs;
-			p.setIntensity(features[i].getIntensity());
-			p.setMZ(features[i].getMZ());
-			p.setCharge(features[i].getCharge());
-			pcs.push_back(p);
-			ms2_spec.setPrecursors(pcs);
-			ms2_spec.setRT(scan->getRT());
-			ms2_spec.setMSLevel(2);
-			ms2.push_back(ms2_spec);
-			// link ms2 spectrum with features overlapping its precursor
-			// Warning: this depends on the current order of features in the map
-			// Attention: make sure to name ALL features that overlap, not only one!
-			ms2.setMetaValue("parent_feature_ids", IntList::create(String(i)));
-			std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
-		}
 
 		//** actual MS2 signal **//
 
