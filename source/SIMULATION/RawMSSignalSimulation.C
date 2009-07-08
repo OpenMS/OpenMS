@@ -86,9 +86,6 @@ namespace OpenMS {
     defaults_.setValue("mz:error_mean",0.0,"Average systematic m/z error (Da)");
     defaults_.setValue("mz:error_stddev",0.0,"Standard deviation for m/z errors. Set to 0 to disable simulation of m/z errors.");
 
-    // maximal size of map in mz dimension
-    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detecter limit.");
-    defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detecter limit.");
     // mz sampling rate
     defaults_.setValue("mz:sampling_rate",0.12,"MS hardware resolution (e.g. bin size in m/z).");
 
@@ -117,11 +114,6 @@ namespace OpenMS {
     peak_std_     = (tmp / 2.355);			// Approximation for Gaussian-shaped signals
     mz_sampling_rate_ = param_.getValue("mz:sampling_rate");
 
-		// TODO: this needs to be known to IonizationsSim as well...
-		// or every signal outside the range must be discarded here (favoring the first - use param-mirroring in MSSim)
-    maximal_mz_measurement_limit_ = param_.getValue("mz:upper_measurement_limit");
-    minimal_mz_measurement_limit_ = param_.getValue("mz:lower_measurement_limit");
-
     mz_error_mean_    = param_.getValue("mz:error_mean");
     mz_error_stddev_  = param_.getValue("mz:error_stddev");
 
@@ -132,6 +124,10 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
+		// retrieve mz boundary parameters from experiment:
+		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
+		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
+		
     if(experiment.size() == 1)
     {
       for(FeatureMap< >::iterator feature_it = features.begin();
@@ -149,8 +145,8 @@ namespace OpenMS {
       {
         add2DSignal_(*feature_it, experiment);
       }
-      addShotNoise_(experiment);
-      addBaseLine_(experiment);
+      addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
+      addBaseLine_(experiment, minimal_mz_measurement_limit);
     }
     compressSignals_(experiment);
   }
@@ -161,19 +157,10 @@ namespace OpenMS {
 
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 1500;
-    // TODO: ahhh. Does that mean every time I use this funtion (luckily we only do it once, mean_scaling_ is increased?)
-    mean_scaling_ += scale;
-    ++ion_count_;
 
     SimChargeType charge = active_feature.getCharge();
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     SimCoordinateType mz = active_feature.getMZ();
-
-    // don't show ions with m/z higher than the MS detection limit
-    if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
-    {
-      return; // ignore the current feature
-    }
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
@@ -195,17 +182,9 @@ namespace OpenMS {
   {
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 1500;
-    mean_scaling_ += scale;
-    ++ion_count_;
 
     SimCoordinateType mz = active_feature.getMZ();
 
-    // don't show ions with m/z higher than the MS detection limit
-    if (mz > maximal_mz_measurement_limit_ || mz < minimal_mz_measurement_limit_)
-    {
-      return; // ignore the current feature
-    }
-    
     Param p1;
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
     ef += active_feature.getMetaValue("charge_adducts");
@@ -329,11 +308,7 @@ namespace OpenMS {
         {
           // add m/z and intensity error (both Gaussian distributed)
           double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
-
-          // this is a quick fix only, should be improved to prevent simulation of negative intensities
-          if (it_err < 0.0) it_err = fabs(it_err);
-
-          point.setIntensity( point.getIntensity( ) + it_err );
+          point.setIntensity( max(0., point.getIntensity( ) + it_err) );
 
           double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
           point.setMZ( point.getMZ() + mz_err );
@@ -403,7 +378,7 @@ namespace OpenMS {
       
   }
 
-  void RawMSSignalSimulation::addShotNoise_(MSSimExperiment & experiment)
+  void RawMSSignalSimulation::addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit)
   {
     // we model the amount of (background) noise as Poisson process
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
@@ -414,7 +389,7 @@ namespace OpenMS {
     DoubleReal it_mean = param_.getValue("noise_int_mean");
 
     const UInt num_intervals = 100;
-    SimCoordinateType interval_size = ( maximal_mz_measurement_limit_ -  minimal_mz_measurement_limit_) / num_intervals;
+    SimCoordinateType interval_size = ( maximal_mz_measurement_limit -  minimal_mz_measurement_limit) / num_intervals;
     SimPointType point;
 
     std::cout << "Adding shot noise to spectra...." << std::endl;
@@ -427,8 +402,8 @@ namespace OpenMS {
       for (Size j=0;j<num_intervals;++j)
       {
         UInt counts = gsl_ran_poisson ( rnd_gen_, rate);
-        SimCoordinateType mz_lw = j * interval_size + minimal_mz_measurement_limit_;
-        SimCoordinateType mz_up = (j+1) * interval_size + minimal_mz_measurement_limit_;
+        SimCoordinateType mz_lw = j * interval_size + minimal_mz_measurement_limit;
+        SimCoordinateType mz_up = (j+1) * interval_size + minimal_mz_measurement_limit;
 
         for (UInt c=0; c<counts;++c)
         {
@@ -446,7 +421,7 @@ namespace OpenMS {
 
   }
 
-  void RawMSSignalSimulation::addBaseLine_(MSSimExperiment & experiment)
+  void RawMSSignalSimulation::addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit)
   {
     DoubleReal scale = param_.getValue("baseline_scaling");
     if (scale == 0.0) return;
@@ -455,7 +430,7 @@ namespace OpenMS {
     {
       for ( Size j = 0 ; j < experiment[i].size() ; ++j )
       {
-        SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit_);
+        SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit);
         // TODO: what is this?! Baseline up to 1000Th and then what?
         // We should consider using an exp() for MALDI and nothing(?) for ESI?
         if (x >= 1000.0) continue; // speed-up

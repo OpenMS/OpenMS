@@ -67,6 +67,8 @@ namespace OpenMS {
     }
 
     std::cout << "############## END DEBUG -- FEATURE MAP ##############" << std::endl;
+#else
+		if (feature_map.size()==0) std::cout << "dummy line";
 #endif
   }
 
@@ -168,7 +170,7 @@ namespace OpenMS {
 
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
-    ion_sim.ionize(features_, consensus_map_);
+    ion_sim.ionize(features_, consensus_map_, experiment_);
 
     // debug
     std::cout << "ionized" << std::endl;

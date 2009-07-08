@@ -72,9 +72,7 @@ namespace OpenMS {
 
     RawMSSignalSimulation& operator = (const RawMSSignalSimulation& source);
 
-    /**
-
-     */
+    /// fill experiment with signals and noise
     void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
     /// Returns the rt sampling rate that was set with the parameters
@@ -140,10 +138,10 @@ namespace OpenMS {
     void chooseElutionProfile_(ElutionModel*& elutionmodel, const Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
 
     /// Add shot noise to the experimet
-    void addShotNoise_(MSSimExperiment & experiment);
+    void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);
 
     /// Add a base line to the experiment
-    void addBaseLine_(MSSimExperiment & experiment);
+    void addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit);
 
     /// Compress signales in a single RT scan given the m/z bin size
     void compressSignals_(MSSimExperiment & experiment);
@@ -167,19 +165,8 @@ namespace OpenMS {
 		/// Standard deviation of peak intensity error
 		SimIntensityType intensity_error_stddev_;
 
-		/// Maximum m/z detected by mass analyser
-		SimCoordinateType maximal_mz_measurement_limit_;
-		/// Minimum m/z detected by mass analyser
-		SimCoordinateType minimal_mz_measurement_limit_;
-
-    /// Full width at half maximum of simulated peaks
+	  /// Full width at half maximum of simulated peaks
 		SimCoordinateType peak_std_;
-
-    /// Mean intensity scaling
-    SimCoordinateType mean_scaling_;
-
-    /// Number of peptide ions
-    Size ion_count_;
 
 		/// Remembers which scans were changed after the last call to removeDuplicatePoints_()
 		std::vector<bool> changed_scans_;

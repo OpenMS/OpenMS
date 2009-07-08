@@ -93,17 +93,20 @@ namespace OpenMS {
      @param features FeatureMap which will be ionized
 		 @param charge_consensus ConsensusMap which groups childs(=charge variants) of input-features
      */
-    void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus);
+    void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment);
 
   private:  
     /// Default constructor
     IonizationSimulation();
     
-		/// isonize using ESI
+		/// ionize using ESI
     void ionizeEsi_(FeatureMapSim &, ConsensusMap & charge_consensus);
     
-		/// isonize using MALDI
+		/// ionize using MALDI
     void ionizeMaldi_(FeatureMapSim &, ConsensusMap & charge_consensus);
+
+		/// check if feature is within mz bounds of detector
+		inline bool isFeatureValid_(const Feature & feature);
 
     /// set defaults
     void setDefaultParams_();
@@ -155,6 +158,11 @@ namespace OpenMS {
 		// important: leave that as vector<double> because gsl expects 'double' and not 'DoubleReal' (which might be something different)
 		std::vector<double> maldi_probabilities_;
 
+		/// Maximum m/z detected by mass analyser
+		SimCoordinateType maximal_mz_measurement_limit_;
+		/// Minimum m/z detected by mass analyser
+		SimCoordinateType minimal_mz_measurement_limit_;
+		
   protected:
 		/// Random number generator
 		const gsl_rng* rnd_gen_;

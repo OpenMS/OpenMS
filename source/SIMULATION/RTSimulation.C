@@ -280,7 +280,7 @@ namespace OpenMS {
     
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
-    defaults_.setValue("rt_shift_stddev",50,"Standard deviation of shift in retention time [s]");     
+    defaults_.setValue("rt_shift_stddev",3,"Standard deviation of shift in retention time [s]");     
 
     // column conditions
     defaults_.setValue("column_condition:preset","medium","LC condition (none|good|medium|poor) if set to none the explicit values will be used.");

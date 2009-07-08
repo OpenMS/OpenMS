@@ -81,7 +81,7 @@ namespace OpenMS {
   IonizationSimulation::~IonizationSimulation()
   {}
 
-  void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus)
+  void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment)
   {
 		// clear the consensus map
 		charge_consensus = ConsensusMap();
@@ -96,6 +96,15 @@ namespace OpenMS {
         ionizeEsi_(features, charge_consensus);
         break;
     }
+
+		// add params for subsequent modules
+		ScanWindow sw;
+		sw.begin = minimal_mz_measurement_limit_;
+		sw.end = maximal_mz_measurement_limit_;
+		for (Size i=0;i<experiment.size();++i)
+		{
+			experiment[i].getInstrumentSettings().getScanWindows().push_back(sw);
+		}
 
 		ConsensusMap::FileDescription map_description;
 		map_description.label = "Simulation";
@@ -118,6 +127,11 @@ namespace OpenMS {
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability",0.8, "Probability for the binomial distribution of the ESI charge states");
     defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1") , "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
+    
+    // maximal size of map in mz dimension
+    defaults_.setValue("mz:upper_measurement_limit",2500.0,"Upper m/z detecter limit.");
+    defaults_.setValue("mz:lower_measurement_limit",200.0,"Lower m/z detecter limit.");
+    
     defaultsToParam_();
   }
   
@@ -170,6 +184,11 @@ namespace OpenMS {
 		maldi_probabilities_ = param_.getValue("maldi:ionization_probabilities");
     
     esi_probability_ = param_.getValue("esi:ionization_probability");
+    
+    // detector ranges
+    maximal_mz_measurement_limit_ = param_.getValue("mz:upper_measurement_limit");
+    minimal_mz_measurement_limit_ = param_.getValue("mz:lower_measurement_limit");
+    
   }
   
   void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
@@ -187,6 +206,9 @@ namespace OpenMS {
 			UInt feature_index=0;
 			// features which are not ionized
 			Size uncharged_feature_count = 0;
+			// features discarded - out of mz detection range
+			Size undetected_features_count = 0;
+			
 			// iterate over all features
 			for(FeatureMapSim::iterator feature_it = features.begin();
 					feature_it != features.end();
@@ -255,7 +277,12 @@ namespace OpenMS {
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
 
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + it_s->second.getMass() ) / charge) ;
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + it_s->second.getMass() ) / charge);
+						if (!isFeatureValid_(chargedFeature))
+						{
+							++undetected_features_count;
+							continue;
+						}
 						chargedFeature.setCharge(charge);
 						
 						// adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
@@ -292,6 +319,7 @@ namespace OpenMS {
 			} // ! feature iterator
 	    
 	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
+	    std::cout << "#Peptides not outside mz range: " << undetected_features_count << "\n";
 	    
 			// swap feature maps
 			features.swap(copy_map);
@@ -330,6 +358,9 @@ namespace OpenMS {
 
 		try
 		{
+			// features discarded - out of mz detection range
+			Size undetected_features_count = 0;
+					
 			FeatureMapSim copy_map = features;
       copy_map.clear();
       EmpiricalFormula h_ef("H");
@@ -362,7 +393,12 @@ namespace OpenMS {
 						Feature chargedFeature((*feature_it));
 						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
            
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + h_mono_weight ) / c) ;
+						chargedFeature.setMZ( (feature_ef.getMonoWeight() + h_mono_weight ) / c);
+						if (!isFeatureValid_(chargedFeature))
+						{
+							++undetected_features_count;
+							continue;
+						}
 						chargedFeature.setCharge(c);
 						chargedFeature.setIntensity(charge_states[c]);
 						copy_map.push_back(chargedFeature);
@@ -377,7 +413,8 @@ namespace OpenMS {
 	    
 			// swap feature maps
 			features.swap(copy_map);
-
+			
+	    std::cout << "#Peptides not outside mz range: " << undetected_features_count << "\n";
 		}
 		catch (std::exception& e)
 		{
@@ -388,5 +425,19 @@ namespace OpenMS {
 		// all ok: free
 		gsl_ran_discrete_free (gsl_ran_lookup_maldi);
   }
+  
+
+  bool IonizationSimulation::isFeatureValid_(const Feature & feature)
+	{
+		if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_)
+		{ // remove feature
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 }
 
