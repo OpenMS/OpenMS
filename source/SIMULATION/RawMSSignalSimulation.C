@@ -160,7 +160,6 @@ namespace OpenMS {
 
     SimChargeType charge = active_feature.getCharge();
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-    SimCoordinateType mz = active_feature.getMZ();
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
@@ -182,8 +181,6 @@ namespace OpenMS {
   {
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 1500;
-
-    SimCoordinateType mz = active_feature.getMZ();
 
     Param p1;
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
@@ -308,7 +305,7 @@ namespace OpenMS {
         {
           // add m/z and intensity error (both Gaussian distributed)
           double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
-          point.setIntensity( max(0., point.getIntensity( ) + it_err) );
+          point.setIntensity( std::max(0., point.getIntensity( ) + it_err) );
 
           double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
           point.setMZ( point.getMZ() + mz_err );
