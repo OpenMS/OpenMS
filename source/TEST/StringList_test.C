@@ -186,6 +186,240 @@ START_SECTION((String concatenate(const String &glue="") const ))
 	list.clear();
 	TEST_STRING_EQUAL(list.concatenate("g"),"");
 	TEST_STRING_EQUAL(list.concatenate(""),"");
+	
+	//test2 (from StringList)
+	StringList tmp;
+	TEST_EQUAL(tmp.concatenate(),"")
+	tmp.push_back("1\n");
+	tmp.push_back("2\n");
+	tmp.push_back("3\n");
+	TEST_EQUAL(tmp.concatenate(),"1\n2\n3\n")
+END_SECTION
+
+StringList tmp_list;
+tmp_list.push_back("first_line");
+tmp_list.push_back("");
+tmp_list.push_back("");
+tmp_list.push_back("middle_line");
+tmp_list.push_back("");
+tmp_list.push_back("  space_line");
+tmp_list.push_back("	tab_line");
+tmp_list.push_back("back_space_line   ");
+tmp_list.push_back("back_tab_line			");
+tmp_list.push_back("");
+tmp_list.push_back("last_line");
+
+StringList tmp_list2;
+tmp_list2.push_back("first_line");
+tmp_list2.push_back("");
+tmp_list2.push_back("");
+tmp_list2.push_back("middle_line");
+tmp_list2.push_back("");
+tmp_list2.push_back("space_line");
+tmp_list2.push_back("tab_line");
+tmp_list2.push_back("back_space_line");
+tmp_list2.push_back("back_tab_line");
+tmp_list2.push_back("");
+tmp_list2.push_back("last_line");
+
+START_SECTION((Iterator search(const Iterator& start, const String& text, bool trim=false)))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.search(list.begin(),"first_line") == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin(),"last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()," ") == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"\t") == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin()+9,"\t") == (list.end()), true)
+	
+	//trim
+	TEST_EQUAL(list.search(list.begin(),"first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line",true) == list.end(), true)
+	
+	//Try it on the same file (but trimmed)
+	list = tmp_list2;
+
+	TEST_EQUAL(list.search(list.begin(),"first_line") == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line") == list.end(), true)
+
+	//trim
+	TEST_EQUAL(list.search(list.begin(),"first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line",true) == list.end(), true)
+END_SECTION
+
+START_SECTION((Iterator search(const String& text, bool trim=false)))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.search("first_line") == list.begin(), true)
+	TEST_EQUAL(list.search("middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search("space_line") == list.end(), true)
+	TEST_EQUAL(list.search("tab_line") == list.end(), true)
+	TEST_EQUAL(list.search("last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search("invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(" ") == (list.begin()+5), true)
+	TEST_EQUAL(list.search("\t") == (list.begin()+6), true)
+	
+	//trim
+	TEST_EQUAL(list.search("first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("invented_line",true) == list.end(), true)
+	
+	//Try it on the same file (but trimmed)
+	list = tmp_list2;
+
+	TEST_EQUAL(list.search("first_line") == list.begin(), true)
+	TEST_EQUAL(list.search("middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search("invented_line") == list.end(), true)
+
+	//trim
+	TEST_EQUAL(list.search("first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("invented_line",true) == list.end(), true)
+END_SECTION
+
+START_SECTION((Iterator searchSuffix(const Iterator& start, const String& text, bool trim=false)))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.searchSuffix(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_space_line",true) == list.begin()+7, true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_tab_line",true) == list.begin()+8, true)
+	TEST_EQUAL(list.searchSuffix(list.begin()+8,"back_space_line",true) == list.end(), true)
+	
+	TEST_EQUAL(list.searchSuffix(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_space_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_tab_line") == list.end(), true)
+END_SECTION
+
+START_SECTION((Iterator searchSuffix(const String& text, bool trim=false)))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.searchSuffix("invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_space_line",true) == list.begin()+7, true)
+	TEST_EQUAL(list.searchSuffix("back_tab_line",true) == list.begin()+8, true)
+	
+	TEST_EQUAL(list.searchSuffix("invented_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_space_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_tab_line") == list.end(), true)
+END_SECTION
+
+START_SECTION((ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.search(list.begin(),"first_line") == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin(),"last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()," ") == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"\t") == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin()+9,"\t") == (list.end()), true)
+	
+	//trim
+	TEST_EQUAL(list.search(list.begin(),"first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line",true) == list.end(), true)
+	
+	//Try it on the same file (but trimmed)
+	list = tmp_list2;
+
+	TEST_EQUAL(list.search(list.begin(),"first_line") == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line") == list.end(), true)
+
+	//trim
+	TEST_EQUAL(list.search(list.begin(),"first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search(list.begin(),"space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search(list.begin(),"tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.search(list.begin()+1,"first_line",true) == list.end(), true)
+END_SECTION
+
+START_SECTION((ConstIterator search(const String& text, bool trim=false) const))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.search("first_line") == list.begin(), true)
+	TEST_EQUAL(list.search("middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search("space_line") == list.end(), true)
+	TEST_EQUAL(list.search("tab_line") == list.end(), true)
+	TEST_EQUAL(list.search("last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search("invented_line") == list.end(), true)
+	TEST_EQUAL(list.search(" ") == (list.begin()+5), true)
+	TEST_EQUAL(list.search("\t") == (list.begin()+6), true)
+	
+	//trim
+	TEST_EQUAL(list.search("first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("invented_line",true) == list.end(), true)
+	
+	//Try it on the same file (but trimmed)
+	list = tmp_list2;
+
+	TEST_EQUAL(list.search("first_line") == list.begin(), true)
+	TEST_EQUAL(list.search("middle_line") == (list.begin()+3), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("last_line") == (list.end()-1), true)
+	TEST_EQUAL(list.search("invented_line") == list.end(), true)
+
+	//trim
+	TEST_EQUAL(list.search("first_line",true) == list.begin(), true)
+	TEST_EQUAL(list.search("space_line",true) == (list.begin()+5), true)
+	TEST_EQUAL(list.search("tab_line",true) == (list.begin()+6), true)
+	TEST_EQUAL(list.search("invented_line",true) == list.end(), true)
+END_SECTION
+
+START_SECTION((ConstIterator searchSuffix(const ConstIterator& start, const String& text, bool trim=false) const))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.searchSuffix(list.begin(),"invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_space_line",true) == list.begin()+7, true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_tab_line",true) == list.begin()+8, true)
+	TEST_EQUAL(list.searchSuffix(list.begin()+8,"back_space_line",true) == list.end(), true)
+	
+	TEST_EQUAL(list.searchSuffix(list.begin(),"invented_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_space_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix(list.begin(),"back_tab_line") == list.end(), true)
+END_SECTION
+
+START_SECTION((ConstIterator searchSuffix(const String& text, bool trim=false) const))
+	StringList list(tmp_list);
+	
+	TEST_EQUAL(list.searchSuffix("invented_line",true) == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_space_line",true) == list.begin()+7, true)
+	TEST_EQUAL(list.searchSuffix("back_tab_line",true) == list.begin()+8, true)
+	
+	TEST_EQUAL(list.searchSuffix("invented_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_space_line") == list.end(), true)
+	TEST_EQUAL(list.searchSuffix("back_tab_line") == list.end(), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

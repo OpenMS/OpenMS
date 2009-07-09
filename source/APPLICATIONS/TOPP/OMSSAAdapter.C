@@ -312,7 +312,7 @@ class TOPPOMSSAAdapter
 			TextFile text_file;
 			text_file.load(unique_version_name);
 			vector<String> version_split;
-			text_file.asString().split(' ', version_split);
+			text_file.concatenate().split(' ', version_split);
 
 			String omssa_version;
 			if (version_split.size() == 2)

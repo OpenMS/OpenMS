@@ -150,6 +150,147 @@ namespace OpenMS
 		return os;
 	}
 
+	StringList::Iterator StringList::search(const String& text, bool trim)
+	{
+		return search(begin(),text,trim);
+	}
+	
+	StringList::ConstIterator StringList::search(const String& text, bool trim) const
+  {
+    return search(begin(),text,trim);
+  }
+	
+	StringList::Iterator StringList::search(const Iterator& start, const String& text, bool trim)
+	{
+		String pattern = text;
+		if (trim)
+		{
+			pattern.trim();
+		}		
+		
+		String tmp;
+		
+		Iterator it = start;
+
+		while(it!=end())
+		{
+			tmp = *it;
+			if (trim)
+			{
+				if (tmp.trim().hasPrefix(pattern)) return it;	
+			}
+			else
+			{
+				if (tmp.hasPrefix(pattern)) return it;
+			}
+			++it;
+		}
+		
+		//nothing found
+		return end();
+	}
+
+  StringList::ConstIterator StringList::search(const ConstIterator& start, const String& text, bool trim) const
+  {
+    String pattern = text;
+    if (trim)
+    {
+      pattern.trim();
+    }
+
+    String tmp;
+
+    ConstIterator it = start;
+
+    while(it!=end())
+    {
+      tmp = *it;
+      if (trim)
+      {
+        if (tmp.trim().hasPrefix(pattern)) return it;
+      }
+      else
+      {
+        if (tmp.hasPrefix(pattern)) return it;
+      }
+      ++it;
+    }
+
+    //nothing found
+    return end();
+  }
+
+	
+	StringList::Iterator StringList::searchSuffix(const Iterator& start, const String& text, bool trim)
+	{
+		String pattern = text;
+		if (trim)
+		{
+			pattern.trim();
+		}		
+		
+		String tmp;
+		
+		Iterator it = start;
+		
+		while(it!=end())
+		{
+			tmp = *it;
+			if (trim)
+			{
+				if (tmp.trim().hasSuffix(pattern)) return it;	
+			}
+			else
+			{
+				if (tmp.hasSuffix(pattern)) return it;
+			}
+			++it;
+		}
+		
+		//nothing found
+		return end();		
+	}
+
+  StringList::ConstIterator StringList::searchSuffix(const ConstIterator& start, const String& text, bool trim) const
+  {
+    String pattern = text;
+    if (trim)
+    {
+      pattern.trim();
+    }
+
+    String tmp;
+
+    ConstIterator it = start;
+
+    while(it!=end())
+    {
+      tmp = *it;
+      if (trim)
+      {
+        if (tmp.trim().hasSuffix(pattern)) return it;
+      }
+      else
+      {
+        if (tmp.hasSuffix(pattern)) return it;
+      }
+      ++it;
+    }
+
+    //nothing found
+    return end();
+  }
+
+
+	StringList::Iterator StringList::searchSuffix(const String& text, bool trim)
+	{
+		return searchSuffix(begin(),text,trim);		
+	}
+
+  StringList::ConstIterator StringList::searchSuffix(const String& text, bool trim) const
+  {
+    return searchSuffix(begin(),text,trim);
+  }
 
 } // namespace OpenMS
 

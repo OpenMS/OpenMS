@@ -727,7 +727,7 @@ class TOPPInspectAdapter
 
 				if (status != 0)
 				{
-					string_buffer = TextFile(inspect_logfile).asString();
+					string_buffer = TextFile(inspect_logfile).concatenate();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 					
 					exit_code = EXTERNAL_PROGRAM_ERROR;
@@ -776,7 +776,7 @@ class TOPPInspectAdapter
 
 				if (status != 0)
 				{
-					string_buffer = TextFile(inspect_logfile).asString();
+					string_buffer = TextFile(inspect_logfile).concatenate();
 					writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
 					exit_code =  EXTERNAL_PROGRAM_ERROR;
 				}
@@ -799,7 +799,7 @@ class TOPPInspectAdapter
 
 					if (status != 0)
 					{
-						string_buffer = TextFile(inspect_logfile).asString();
+						string_buffer = TextFile(inspect_logfile).concatenate();
 						writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
 						exit_code = EXTERNAL_PROGRAM_ERROR;
 					}

@@ -28,35 +28,20 @@
 #ifndef OPENMS_FORMAT_TEXTFILE_H
 #define OPENMS_FORMAT_TEXTFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <vector>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 namespace OpenMS
 {
 	/**
-		@brief This class provides some basic file handling methods and facilitates reading, writing and handling text files.
+		@brief This class provides some basic file handling methods for text files.
   
   	@ingroup FileIO
 	*/
   class OPENMS_DLLAPI TextFile
-  	: public std::vector<String>
+  	: public StringList
   {
+  	
     public:
-
-	 		/** @name Type definitions
-			*/
-			//@{
-			/// Mutable iterator
-			typedef iterator	Iterator;
-			/// Non-mutable iterator
-			typedef const_iterator	ConstIterator;
-			/// Mutable reverse iterator
-			typedef reverse_iterator	ReverseIterator;
-			/// Non-mutable reverse iterator
-			typedef const_reverse_iterator	ConstReverseIterator;
-			//@}
 
     	///Default constructor
 			TextFile();
@@ -94,84 +79,6 @@ namespace OpenMS
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
     	*/
 			void store(const String& filename);
-
-			/**
-    		@brief Searches for the first line that starts with @p text beginning at line @p start
-    		
-    		@param start the line to start the search in
-    		@param text the text to find
-    		@param trim whether the line is trimmed before
-    		@return returns an iterator to the matching line. If no line matches, end() is returned
-    	*/
-			Iterator search(const Iterator& start, const String& text, bool trim=false);
-
-			/**
-				@brief Searches for the first line that starts with @p text
-				
-				This is an overloaded member function, provided for convenience.<br>
-				It behaves essentially like the above function but the search is start at the beginning of the file
-    	*/
-			Iterator search(const String& text, bool trim=false);
-
-			/**
-    		@brief Searches for the first line that ends with @p text beginning at line @p start
-    		
-    		@param start the line to start the search in
-    		@param text the text to find
-    		@param trim whether the line is trimmed before
-    		@return returns an iterator to the matching line. If no line matches, end() is returned
-    	*/
-			Iterator searchSuffix(const Iterator& start, const String& text, bool trim=false);
-
-			/**
-				@brief Searches for the first line that ends with @p text
-				
-				This is an overloaded member function, provided for convenience.
-				
-				It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
-    	*/
-			Iterator searchSuffix(const String& text, bool trim=false);
-
-      /**
-        @brief Searches for the first line that starts with @p text beginning at line @p start
-
-        @param start the line to start the search in
-        @param text the text to find
-        @param trim whether the line is trimmed before
-        @return returns an iterator to the matching line. If no line matches, end() is returned
-      */
-      ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const;
-
-      /**
-        @brief Searches for the first line that starts with @p text
-
-        This is an overloaded member function, provided for convenience.<br>
-        It behaves essentially like the above function but the search is start at the beginning of the file
-      */
-      ConstIterator search(const String& text, bool trim=false) const;
-
-      /**
-        @brief Searches for the first line that ends with @p text beginning at line @p start
-
-        @param start the line to start the search in
-        @param text the text to find
-        @param trim whether the line is trimmed before
-        @return returns an iterator to the matching line. If no line matches, end() is returned
-      */
-      ConstIterator searchSuffix(const ConstIterator& start, const String& text, bool trim=false) const;
-
-      /**
-        @brief Searches for the first line that ends with @p text
-
-        This is an overloaded member function, provided for convenience.
-
-        It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
-      */
-      ConstIterator searchSuffix(const String& text, bool trim=false) const;
-			
-			/// Return the content as a single String
-			String asString() const;
-			
   };
 
 } // namespace OpenMS
