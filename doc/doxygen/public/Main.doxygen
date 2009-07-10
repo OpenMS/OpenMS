@@ -66,6 +66,7 @@
 				  <LI> @subpage UTILS
 					<LI> @subpage FAQ
 					<LI> @subpage Contributing
+					<LI> @subpage ChangeLog
 				</UL>
 			</TD>
 				
@@ -90,6 +91,7 @@
 				<UL>
 					<LI> @subpage FAQ
 					<LI> @subpage Contributing
+					<LI> @subpage ChangeLog
 				</UL>
 				
 				@if INTERNAL_INFO
