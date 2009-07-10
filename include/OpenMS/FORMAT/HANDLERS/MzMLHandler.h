@@ -41,6 +41,9 @@
 #include <sstream>
 #include <iostream>
 
+
+#include <QtCore/QRegExp>
+
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
@@ -439,6 +442,11 @@ namespace OpenMS
 			{
 				//check file version against schema version
 				String file_version = attributeAsString_(attributes, s_version);
+				if (!file_version.toQString().contains(QRegExp("^1.\\d+.\\d+$")))
+				{
+					warning(LOAD, String("Invalid mzML version string '") + file_version + "'. Assuming mzML version " + version_ + "!");
+				}
+				
 				DoubleReal double_version = 0.0;
 				try
 				{
@@ -448,17 +456,13 @@ namespace OpenMS
 				{
 					//nothing to do here
 				}
-				if (double_version<1.0)
+				if (double_version>=1.0 && double_version<1.1)
 				{
-					warning(LOAD, String("Could not determine XML file version from version string '") + file_version + "'. Assuming mzML version 1.1!");
-				}
-				else if (double_version<1.1)
-				{
-					fatalError(LOAD, "MzML 1.0 is not supported!");
+					fatalError(LOAD, String("Only mzML 1.1.0 or higher is supported! This file has version '") + file_version + "'.");
 				}
 				else if (double_version>version_.toDouble())
 				{
-					warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded behaviour.");
+					warning(LOAD, "The mzML file version (" + file_version +") is newer than the parser version (" + version_ + "). This might lead to undefinded behaviour.");
 				}
 				//handle file accession
 				String accession;
@@ -2743,7 +2747,7 @@ namespace OpenMS
 			logger_.startProgress(0,exp.size(),"storing mzML file");
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-					<< "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
+					<< "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
 			//--------------------------------------------------------------------------------------------
 			// CV list
 			//--------------------------------------------------------------------------------------------

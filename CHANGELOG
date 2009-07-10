@@ -3,6 +3,9 @@
 ------------------------------------------------------------------------------------------
 
 Main improvements of TOPPView:
+- Added new labeling options for feature data
+- Fixed crash when zooming in snap-mode
+- Added context menu to spectra selection bar
 - Several minor fixes and improvements
 
 Main improvements of TOPP:
@@ -45,6 +48,9 @@ Detailed list of changes to specific OpenMS classes
 	- ElementDB: Isotopes are now possible
 	- EmpiricalFormula: Isotopes are now possible (e.g. (2)HO for deuterium)
 	- PepXMLFile: added new load method (moved the old load method to PepXMLFileMascot)
+  - TextFile
+    - is now derived from StringList
+    - the asString() method was replaced by concatenate() from StringList
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3
