@@ -67,8 +67,8 @@ namespace OpenMS
 					cerr << "FalseDiscoveryRate: error, meta value 'target_decoy' does not exists, reindex the idXML file with PeptideIndexer first!" << endl;
 					continue;
 				}
-			
-				String target_decoy(it->getMetaValue("target_decoy"));
+
+				String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
 				if (!use_all_hits && i > 0)
 				{
 					break;
@@ -95,6 +95,9 @@ namespace OpenMS
 			}
 		}
 		Size number_of_target_scores = target_scores.size();
+
+		
+		cerr << "FalseDiscoveryRate: #target sequences=" << target_scores.size() << ", #decoy sequences=" << decoy_scores.size() << endl;
 
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
 
@@ -158,6 +161,10 @@ namespace OpenMS
           }
         }
 
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+        cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
+#endif
+
         DoubleReal fdr = 0.;
 
         if (minimal_fdr >= (DoubleReal)j / (number_of_target_scores - i))
@@ -165,6 +172,10 @@ namespace OpenMS
           minimal_fdr = (DoubleReal)j / (number_of_target_scores - i);
         }
         fdr = minimal_fdr;
+
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+        cerr << fdr << endl;
+#endif
         score_to_fdr[target_scores[i]] = fdr;
 
       }
@@ -180,12 +191,21 @@ namespace OpenMS
           ++j;
         }
 
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+        cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
+#endif
+
         DoubleReal fdr(0);
 
         fdr = (DoubleReal)j / (DoubleReal)(i + 1);
+
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+        cerr << fdr << endl;
+#endif
         score_to_fdr[target_scores[i]] = fdr;
       }
     }
+
 
 		// annotate fdr
     String score_type = ids.begin()->getScoreType() + "_score";
@@ -201,14 +221,26 @@ namespace OpenMS
       }
 
       it->setHigherScoreBetter(false);
-      vector<PeptideHit> hits = it->getHits();
-      for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+      vector<PeptideHit> hits;
+      for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
-        pit->setMetaValue(score_type, pit->getScore());
-        pit->setScore(score_to_fdr[pit->getScore()]);
+				PeptideHit hit = *pit;
+				if (hit.metaValueExists("target_decoy"))
+				{
+					String meta_value = (String)hit.getMetaValue("target_decoy");
+					if (meta_value == "decoy" || meta_value == "target+decoy")
+					{
+						continue;
+					}
+				}
+        hit.setMetaValue(score_type, pit->getScore());
+        hit.setScore(score_to_fdr[pit->getScore()]);
+				hits.push_back(hit);
       }
       it->setHits(hits);
     }
+
+
 
     return;
 

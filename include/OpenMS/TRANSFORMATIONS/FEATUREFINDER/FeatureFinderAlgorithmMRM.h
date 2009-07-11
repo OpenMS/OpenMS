@@ -31,6 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
@@ -38,6 +40,7 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <fstream>
 #include <limits>
 
 namespace OpenMS
@@ -93,7 +96,9 @@ namespace OpenMS
 				defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", StringList::create("advanced"));
 				defaults_.setMinInt("min_num_peaks_per_feature", 1);
 				defaults_.setValue("min_signal_to_noise_ratio", 2.0, "Minimal S/N ratio a peak must have to be taken into account.");
-				defaults_.setMinFloat("min_signal_to_noise_ratio", 1.0);
+				//defaults_.setMinFloat("min_signal_to_noise_ratio", 1.0);
+				defaults_.setValue("write_debuginfo", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", StringList::create("advanced"));
+				defaults_.setValidStrings("write_debuginfo", StringList::create("true,false"));
 				
 				this->defaultsToParam_();
 			}
@@ -138,6 +143,8 @@ namespace OpenMS
 				DoubleReal min_rt_distance(param_.getValue("min_rt_distance"));
 				DoubleReal min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
 				Size min_num_peaks_per_feature((UInt)param_.getValue("min_num_peaks_per_feature"));
+				Size feature_id(0);
+				bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
 				for (; it1 != traces.end(); ++it1)
 				{
 					for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
@@ -155,7 +162,14 @@ namespace OpenMS
 							chromatogram.push_back(peak);
 						}
 				
-				/*
+						// TODO
+						// find presection of separated RTs of peaks;
+						// resampling to min distance?
+						// for each of the section, try to estimate S/N
+						// find core regions and fit them
+						// report features
+						//
+						/*
 						// resample the chromatogram, first find minimal distance and use this as resampling distance
 						DoubleReal min_distance(std::numeric_limits<DoubleReal>::max()), old_rt(0);
 						for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
@@ -180,9 +194,14 @@ namespace OpenMS
 						resampler_param.setValue("spacing", min_distance);
 						resampler.setParameters(resampler_param);
 						resampler.raster(chromatogram);
-				*/
+						*/
 
-						// now smooth the data TODO
+						// now smooth the data
+						SavitzkyGolayFilter filter;
+						Param filter_param(filter.getParameters());
+						filter_param.setValue("frame_length", 5);
+						filter.setParameters(filter_param);
+						filter.filter(chromatogram);
 
 						// calculate signal to noise levels
 						RichPeakSpectrum sn_chrom;
@@ -203,7 +222,7 @@ namespace OpenMS
 						{
 							DoubleReal sn(sne.getSignalToNoise(sit));
 							sit->setMetaValue("SN", sn);
-							//std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+							std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
 							if (sn > min_signal_to_noise_ratio)
 							{
 								sn_chrom.push_back(*sit);
@@ -274,6 +293,49 @@ namespace OpenMS
 								ProductModel<2> prod_model;
 								prod_model.setModel(RT, model_rt);
 								f.setModelDescription(ModelDescription<2>(&prod_model));
+
+								
+								feature_id++;
+								//if (write_debuginfo)
+								//{
+									String base_name = "debug/" + String((DoubleReal)f.getMetaValue("MZ")) + "_id" + String(feature_id) + "_RT" + String(f.getRT()) + "_Q3" + String(f.getMZ());
+									std::ofstream data_out(String(base_name + "_data.dat").c_str());
+									for (Size j = 0; j < sections[i].size(); ++j)
+									{
+										// RT intensity
+										DoubleReal rt = sections[i][j].getX();
+										DoubleReal intensity = sections[i][j].getY();
+										data_out << rt << " " << intensity << std::endl;
+									}
+
+									data_out.close();
+
+									std::ofstream fit_out(String(base_name + "_rt_fit.dat").c_str());
+									EmgModel emg_model;
+									emg_model.setParameters(model_rt->getParameters());
+									emg_model.setSamples();
+									DoubleReal bb_min((DoubleReal)emg_model.getParameters().getValue("bounding_box:min"));
+									DoubleReal bb_max((DoubleReal)emg_model.getParameters().getValue("bounding_box:max"));
+									DoubleReal int_step((DoubleReal)emg_model.getParameters().getValue("interpolation_step"));
+								  for (DoubleReal pos = bb_min; pos < bb_max; pos += int_step)
+								  {
+										// RT intensity
+								    fit_out << pos << " " << emg_model.getIntensity(pos) << std::endl;
+									}
+									fit_out.close();
+
+									std::ofstream gnuplot_out(String(base_name + "_gnuplot.gpl").c_str());
+									gnuplot_out << "set terminal png" << std::endl;
+									gnuplot_out << "set output \"" << base_name << ".png\"" << std::endl;
+									gnuplot_out << "plot '" << base_name << "_data.dat' w i, '" << base_name << "_rt_fit.dat' w lp title 'quality=" << f.getOverallQuality() << "'" << std::endl;
+									gnuplot_out.close();
+									String gnuplot_call = "gnuplot " + base_name + "_gnuplot.gpl";
+									int error = system(gnuplot_call.c_str());
+									if (error != 0)
+									{
+										std::cerr << "An error occurred during the gnuplot execution" << std::endl;
+									}
+								//}
 
 								features_->push_back(f);
 							}

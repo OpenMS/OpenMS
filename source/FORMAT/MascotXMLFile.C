@@ -89,10 +89,10 @@ namespace OpenMS
 			if (peptide_hits.size() > 1 &&
 					peptide_hits[0].getScore() == peptide_hits[1].getScore() &&
 					peptide_hits[0].getSequence() == peptide_hits[1].getSequence() &&
-					peptide_hits[0].getCharge() == peptide_hits[1].getCharge() &&
-	/*				peptide_hits[0].getProteinAccessions() == peptide_hits[1].getProteinAccessions() &&*/
+					peptide_hits[0].getCharge() == peptide_hits[1].getCharge() /* &&
+				peptide_hits[0].getProteinAccessions() == peptide_hits[1].getProteinAccessions() &&
 					peptide_hits[0].getAABefore() == peptide_hits[1].getAABefore() &&
-					peptide_hits[0].getAAAfter() == peptide_hits[1].getAAAfter())
+					peptide_hits[0].getAAAfter() == peptide_hits[1].getAAAfter()*/)
 			{
 				// erase first hit
 				peptide_hits.erase(peptide_hits.begin() + 1);
