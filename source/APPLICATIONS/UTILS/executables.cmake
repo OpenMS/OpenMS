@@ -20,6 +20,7 @@ XMLValidator
 IdXMLEvaluation
 DecoyDatabase
 IDMassAccuracy
+PeptideIndexer
 )
 
 ### pass source file list to the upper instance
