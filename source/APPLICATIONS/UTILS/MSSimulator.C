@@ -255,14 +255,14 @@ class TOPPMSSimulator
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
       
       String fxml_out = getStringOption_("out_fm");
-			if (File::writable(fxml_out))
+			if (fxml_out != '' && File::writable(fxml_out))
 			{
 				writeLog_(String("Storing simulated features in: ") + fxml_out);
 				FeatureXMLFile().store(fxml_out, ms_simulation.getSimulatedFeatures());
 			}
 
       String cxml_out = getStringOption_("out_cm");
-			if (File::writable(cxml_out))
+			if (cxml_out != "" && File::writable(cxml_out))
 			{
 				writeLog_(String("Storing simulated consensus features in: ") + cxml_out);
 				ConsensusXMLFile().store(cxml_out, ms_simulation.getSimulatedConsensus());
