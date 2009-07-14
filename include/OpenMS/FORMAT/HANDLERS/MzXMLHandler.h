@@ -429,6 +429,12 @@ namespace OpenMS
 				
 				// check if the scan is in the desired MS / RT range
 				UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
+				if (ms_level==0)
+				{
+						warning(LOAD,String("Invalid 'msLevel' attribute with value '0' in 'scan' element found. Assuming ms level 1!"));
+						ms_level = 1;
+				}
+				
 				//parse retention time and convert it from xs:duration to seconds
 				DoubleReal retention_time = 0.0;
 				String time_string = "";

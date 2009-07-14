@@ -144,7 +144,7 @@ namespace OpenMS
 				DoubleReal min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
 				Size min_num_peaks_per_feature((UInt)param_.getValue("min_num_peaks_per_feature"));
 				Size feature_id(0);
-				bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
+				//bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
 				for (; it1 != traces.end(); ++it1)
 				{
 					for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)

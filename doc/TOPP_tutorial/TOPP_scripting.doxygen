@@ -187,12 +187,20 @@
 			- It can check for corrupt data in peak files
 			See the 'FileInfo --help' for details.
 
-		@section TOPP_files_info2 Validation of XML files
+		@section TOPP_files_info2 Problems with input files
 
 			If you are experiencing problems while processing an XML file you can check if the file 
-			does validate against the XML schema using the @b FileInfo tool.
+			does validate against the XML schema:
+			@code
+FileInfo -v -in infile.mzML
+			@endcode
+			Validation is available for several file formats including mzML, mzData, mzXML, FeatureXML and IdXML.
 			
-			Validation is available for several file formats including mzML, mzData, FeatureXML, IdXML.
+			Another frequently-occuring problem is currupt data. You can check for corrupt data in peak files
+			with @b FileInfo as well:
+			@code
+FileInfo -c -in infile.mzML
+			@endcode
 			
 		@section TOPP_files_conversion Converting your files to mzML
 

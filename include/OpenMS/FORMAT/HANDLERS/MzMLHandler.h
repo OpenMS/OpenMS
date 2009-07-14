@@ -792,8 +792,17 @@ namespace OpenMS
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession)
 		{
-			//Error checks of CV values
-			if (cv_.exists(accession))
+			//Abort on unknown terms
+			if (!cv_.exists(accession))
+			{
+				//in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+				if (parent_tag!="sample")
+				{
+					warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+					return;
+				}
+			}
+			else
 			{
 				const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
 				//obsolete CV terms
@@ -886,7 +895,7 @@ namespace OpenMS
 					return;
 	   		}
 			}
-
+			
 			//------------------------- run ----------------------------
 			if (parent_tag=="run")
 			{
@@ -895,7 +904,7 @@ namespace OpenMS
 				{
 					exp_->setFractionIdentifier(value);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- binaryDataArray ----------------------------
 			else if (parent_tag=="binaryDataArray")
@@ -941,7 +950,7 @@ namespace OpenMS
 					{
 						data_.back().compression = "none";
 					}
-					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
 			}
 			//------------------------- spectrum ----------------------------
@@ -1093,7 +1102,7 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scanWindow ----------------------------
 			else if(parent_tag=="scanWindow")
@@ -1106,7 +1115,7 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().end = value.toDouble();
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- referenceableParamGroup ----------------------------
 			else if(parent_tag=="referenceableParamGroup")
@@ -1141,7 +1150,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursors().back().getPossibleChargeStates().push_back(value.toInt());
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- activation ----------------------------
 			else if(parent_tag=="activation")
@@ -1238,7 +1247,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- isolationWindow ----------------------------
 			else if(parent_tag=="isolationWindow")
@@ -1257,7 +1266,7 @@ namespace OpenMS
 					{
 						spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
 					}
-					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
 				else if (parent_parent_tag=="product")
 				{
@@ -1273,7 +1282,7 @@ namespace OpenMS
 					{
 						spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
 					}
-					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
 			}
 			//------------------------- scanList ----------------------------
@@ -1283,7 +1292,7 @@ namespace OpenMS
 				{
 					spec_.getAcquisitionInfo().setMethodOfCombination(cv_.getTerm(accession).name);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scan ----------------------------
 			else if (parent_tag=="scan")
@@ -1385,7 +1394,7 @@ namespace OpenMS
 					spec_.setMetaValue("scan law",String("quadratic"));
 				}
 				
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- contact ----------------------------
 			else if (parent_tag=="contact")
@@ -1410,7 +1419,7 @@ namespace OpenMS
 				{
 					exp_->getContacts().back().setInstitution(value);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sourceFile ----------------------------
 			else if (parent_tag=="sourceFile")
@@ -1480,7 +1489,7 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setNativeIDType(SourceFile::AB_SCIEX);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
 			else if (parent_tag=="sample")
@@ -1545,7 +1554,7 @@ namespace OpenMS
 					//No member => meta data
 					samples_[current_id_].setMetaValue("brenda source tissue",String(name));
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- instrumentConfiguration ----------------------------
 			else if (parent_tag=="instrumentConfiguration")
@@ -1640,7 +1649,7 @@ namespace OpenMS
 					//No member => metadata
 					instruments_[current_id_].setMetaValue("space charge effect",String("true"));
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="source")
 			{
@@ -2023,7 +2032,7 @@ namespace OpenMS
 					instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type"," precoated plate");
 				}
 				
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="analyzer")
 			{
@@ -2109,7 +2118,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ON);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="detector")
 			{
@@ -2224,7 +2233,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
 				} 
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="processingMethod")
 			{
@@ -2319,7 +2328,7 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::FILTERING);
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="fileContent")
 			{
@@ -2331,7 +2340,7 @@ namespace OpenMS
 				{
 					//ignored
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="software")
 			{
@@ -2346,13 +2355,13 @@ namespace OpenMS
 						software_[current_id_].setName(name);
 					}
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="chromatogram" || parent_tag=="target")
 			{
 				//allowed but, not needed
 			}
-			else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 		}
 
 		template <typename MapType>
@@ -2466,7 +2475,7 @@ namespace OpenMS
 			{
 				//currently ignored
 			}
-			else warning(LOAD, String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
+			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
 		}
 	
 		template <typename MapType>

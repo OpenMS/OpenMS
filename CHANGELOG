@@ -14,7 +14,7 @@ Main improvements of TOPP:
 - FileFilter: added 'sort_peaks' option
 - FileInfo: 
   - added flag for data processing output
-  - corrupt data checks: sorting is checked now and improved speed
+  - corrupt data checks: sorting is checked now, improved speed
 - Added new tool IDFileConverter, which can convert between identification file formats
 
 Main improvements of OpenMS C++ library:
@@ -51,6 +51,10 @@ Detailed list of changes to specific OpenMS classes
   - TextFile
     - is now derived from StringList
     - the asString() method was replaced by concatenate() from StringList
+  - MzMLFile: 
+    - Added support for integer and string binary arrays
+    - Added support for zipped binary data arrays 
+    - Loading a file with unknown CV terms in certain tags no longer causes an error
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3
