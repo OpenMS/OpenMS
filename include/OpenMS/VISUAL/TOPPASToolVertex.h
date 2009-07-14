@@ -92,6 +92,8 @@ namespace OpenMS
 			bool isFinished();
 			/// Set whether this node has already been processed during the current pipeline execution
 			void setFinished(bool b);
+			/// Sets the Param object of this tool
+			void setParam(const Param& param);
 			/// Returns the Param object of this tool
 			const Param& getParam();
 			

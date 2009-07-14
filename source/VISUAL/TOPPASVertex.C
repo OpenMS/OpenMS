@@ -31,8 +31,6 @@
 
 namespace OpenMS
 {
-	UInt TOPPASVertex::id_counter = 1;
-
 	TOPPASVertex::TOPPASVertex()
 		:	QObject(),
 			QGraphicsItem(),
@@ -43,7 +41,7 @@ namespace OpenMS
 			brush_color_(),
 			dfs_color_(DFS_WHITE),
 			dfs_parent_(0),
-			id_(id_counter++)
+			id_(0)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -232,4 +230,10 @@ namespace OpenMS
 	{
 		return id_;
 	}
+	
+	void TOPPASVertex::setID(UInt id)
+	{
+		id_ = id;
+	}
+
 }

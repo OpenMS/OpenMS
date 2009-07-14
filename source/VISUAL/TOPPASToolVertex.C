@@ -422,5 +422,11 @@ namespace OpenMS
 	{
 		return param_;
 	}
+	
+	void TOPPASToolVertex::setParam(const Param& param)
+	{
+		param_ = param;
+	}
+
 }
 

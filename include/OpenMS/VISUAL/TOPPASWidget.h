@@ -30,6 +30,7 @@
 #define OPENMS_VISUAL_TOPPASWIDGET_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtGui/QGraphicsView>
 
@@ -51,7 +52,7 @@ namespace OpenMS
     public:
     
       /// Default constructor
-      TOPPASWidget(const Param& preferences, QWidget* parent = 0);
+      TOPPASWidget(const Param& preferences, QWidget* parent = 0, const String& tmp_path = "");
 
       /// Destructor
       virtual ~TOPPASWidget();

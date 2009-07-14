@@ -37,14 +37,15 @@
 namespace OpenMS
 {
 	
-	TOPPASScene::TOPPASScene(QObject* parent)
+	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
 			edges_(),
 			hover_edge_(0),
 			potential_target_(0),
-			file_name_()
+			file_name_(),
+			tmp_path_(tmp_path)
 	{
 	}
 	
@@ -382,68 +383,83 @@ namespace OpenMS
 	{
 		Param save_param;
 		
+		save_param.setValue("info:num_vertices", DataValue(vertices_.size()));
+		save_param.setValue("info:num_edges", DataValue(edges_.size()));
+		
 		// store all vertices (together with all parameters)
+		UInt counter = 0;
 		foreach (TOPPASVertex* tv, vertices_)
 		{
-			String id = String(tv->getID());
-			
-			save_param.setValue("vertices:"+id+":x_pos:", DataValue(tv->x()));
-			save_param.setValue("vertices:"+id+":y_pos:", DataValue(tv->y()));
+			String id(counter);
+			tv->setID(counter);
+			counter++;
 			
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>(tv);
 			if (ifv)
 			{
-				save_param.setValue("vertices:"+id+":type:", DataValue("input file"));
-				save_param.setValue("vertices:"+id+":file_name:", DataValue(String(ifv->getFilename())));
+				save_param.setValue("vertices:"+id+":type", DataValue("input file"));
+				save_param.setValue("vertices:"+id+":file_name", DataValue(String(ifv->getFilename())));
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
 			
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
 			{
-				save_param.setValue("vertices:"+id+":type:", DataValue("input file list"));
-				save_param.setValue("vertices:"+id+":file_names:", DataValue(String((iflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":type", DataValue("input file list"));
+				save_param.setValue("vertices:"+id+":file_names", DataValue(String((iflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
 			
 			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(tv);
 			if (ofv)
 			{
-				save_param.setValue("vertices:"+id+":type:", DataValue("output file"));
-				save_param.setValue("vertices:"+id+":file_name:", DataValue(String(ofv->getFilename())));
+				save_param.setValue("vertices:"+id+":type", DataValue("output file"));
+				save_param.setValue("vertices:"+id+":file_name", DataValue(String(ofv->getFilename())));
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
 			
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 			if (oflv)
 			{
-				save_param.setValue("vertices:"+id+":type:", DataValue("output file list"));
-				save_param.setValue("vertices:"+id+":file_names:", DataValue(String((oflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":type", DataValue("output file list"));
+				save_param.setValue("vertices:"+id+":file_names", DataValue(String((oflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
 			
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			if (ttv)
 			{
-				save_param.setValue("vertices:"+id+":type:", DataValue("tool"));
-				save_param.setValue("vertices:"+id+":tool_name:", DataValue(ttv->getName()));
-				save_param.setValue("vertices:"+id+":tool_type:", DataValue(ttv->getType()));
+				save_param.setValue("vertices:"+id+":type", DataValue("tool"));
+				save_param.setValue("vertices:"+id+":tool_name", DataValue(ttv->getName()));
+				save_param.setValue("vertices:"+id+":tool_type", DataValue(ttv->getType()));
 				save_param.insert("vertices:"+id+":parameters:", ttv->getParam());
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
+			// NO CODE HERE BECAUSE OF THE "continue"s
 		}
 		
 		//store all edges
-		UInt counter = 0;
+		counter = 0;
 		foreach (TOPPASEdge* te, edges_)
 		{
-			counter++;
 			if (!(te->getSourceVertex() && te->getTargetVertex()))
 			{
 				continue;
 			}
 			
-			save_param.setValue("edges:"+String(counter)+":source_and_target:", DataValue(String(te->getSourceVertex()->getID() + "-->" + te->getTargetVertex()->getID())));
+			save_param.setValue("edges:"+String(counter)+":source/target:", DataValue(String(te->getSourceVertex()->getID()) + "/" + String(te->getTargetVertex()->getID())));
+			
+			counter++;
 		}
 		
 		//save file
@@ -451,20 +467,133 @@ namespace OpenMS
 	}
 	
 	void TOPPASScene::load(const String& file)
-	{
-		Param load_param;
-		load_param.load(file);
-		Param vertices_param = load_param.copy("vertices:",true);
-		Param edges_param = load_param.copy("edges:",true);
-		
-		for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
-		{
-			if (it->name == "x_pos") // next vertex
-			{
+  {
+    Param load_param;
+    load_param.load(file);
+    Param vertices_param = load_param.copy("vertices:",true);
+    Param edges_param = load_param.copy("edges:",true);
+    
+    String current_type, current_id;
+    TOPPASVertex* current_vertex = 0;
+    QVector<TOPPASVertex*> vertex_vector;
+    vertex_vector.resize((Size)(int)load_param.getValue("info:num_vertices"));
+    
+    //load all vertices
+    for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
+    {
+      StringList substrings;
+      it.getName().split(':', substrings);
+      if (substrings.back() == "type") // next node (all nodes begin with "type")
+      {
+      	current_type = (it->value).toString();
+      	current_id = substrings[0];
+     		Int index = current_id.toInt();
+      
+				if (current_type == "input file")
+				{
+					QString file_name = vertices_param.getValue(current_id + ":file_name").toQString();
+					TOPPASInputFileVertex* ifv = new TOPPASInputFileVertex(file_name);
+					current_vertex = ifv;
+				}
+				else if (current_type == "input file list")
+				{
+					QStringList file_names = vertices_param.getValue(current_id + ":file_names").toQString().split("(#_#)");
+					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names);
+					current_vertex = iflv;
+				}
+				else if (current_type == "output file")
+				{
+					QString file_name = vertices_param.getValue(current_id + ":file_name").toQString();
+					TOPPASOutputFileVertex* ofv = new TOPPASOutputFileVertex(file_name);
+					current_vertex = ofv;
+				}
+				else if (current_type == "output file list")
+				{
+					QStringList file_names = vertices_param.getValue(current_id + ":file_names").toQString().split("(#_#)");
+					TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex(file_names);
+					current_vertex = oflv;
+				}
+				else if (current_type == "tool")
+				{
+					String tool_name = vertices_param.getValue(current_id + ":tool_name");
+					String tool_type = vertices_param.getValue(current_id + ":tool_type");
+					Param param_param = vertices_param.copy(current_id + ":parameters:", true);
+					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
+					tv->setParam(param_param);
+					current_vertex = tv;
+				}
+				else
+				{
+					std::cerr << "This should not have happened." << std::endl;
+				}
 				
+				if (current_vertex)
+				{
+					float x = vertices_param.getValue(current_id + ":x_pos");
+					float y = vertices_param.getValue(current_id + ":y_pos");
+				
+					current_vertex->setPos(QPointF(x,y));
+					current_vertex->setID((UInt)(current_id.toInt()));
+					
+					addVertex(current_vertex);
+					
+					if (index >= vertex_vector.size())
+					{
+						std::cerr << "Unexpected vertex ID!" << std::endl;
+					}
+					else
+					{
+						if (vertex_vector[index] != 0)
+						{
+							std::cerr << "Vertex occupied!" << std::endl;
+						}
+						else
+						{
+							vertex_vector[index] = current_vertex;
+						}
+					}
+				}
+				else
+				{
+					std::cerr << "This should not have happened." << std::endl;
+				}
 			}
-		}
-	}
+    }
+    
+    //load all edges
+    for (Param::ParamIterator it = edges_param.begin(); it != edges_param.end(); ++it)
+    {
+      const String& edge = (it->value).toString();
+      StringList edge_substrings;
+      edge.split('/', edge_substrings);
+      if (edge_substrings.size() != 2)
+      {
+      	std::cerr << "Invalid edge format" << std::endl;
+      	break;
+      }
+      Int index_1 = edge_substrings[0].toInt();
+      Int index_2 = edge_substrings[1].toInt();
+      
+      if (index_1 >= vertex_vector.size() || index_2 >= vertex_vector.size())
+      {
+      	std::cerr << "Invalid vertex index" << std::endl;
+      }
+      else
+      {
+      	TOPPASVertex* tv_1 = vertex_vector[index_1];
+      	TOPPASVertex* tv_2 = vertex_vector[index_2];
+      	
+      	TOPPASEdge* edge = new TOPPASEdge();
+      	edge->setSourceVertex(tv_1);
+      	edge->setTargetVertex(tv_2);
+      	tv_1->addOutEdge(edge);
+      	tv_2->addInEdge(edge);
+      	
+      	addEdge(edge);
+      }
+    }
+  }
+
 	
 	const String& TOPPASScene::getSaveFileName()
 	{

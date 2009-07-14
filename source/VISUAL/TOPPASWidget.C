@@ -43,9 +43,9 @@ using namespace std;
 
 namespace OpenMS
 {
-	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent)
+	TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent, const String& tmp_path)
 		:	QGraphicsView(parent),
-			scene_(new TOPPASScene(this))
+			scene_(new TOPPASScene(this, tmp_path))
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
 		setRenderHint(QPainter::Antialiasing);

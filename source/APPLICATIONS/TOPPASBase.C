@@ -252,7 +252,7 @@ namespace OpenMS
 		
 		if (file_name != "")
 		{
-			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
+			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 			tw->getScene()->load(file_name);
 			showAsWindow_(tw, File::basename(file_name));
 		}
@@ -260,7 +260,7 @@ namespace OpenMS
   
   void TOPPASBase::newFileDialog()
   {
-  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
+  	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
   	showAsWindow_(tw, "New");
   }
 	

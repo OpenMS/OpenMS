@@ -39,6 +39,14 @@ namespace OpenMS
 		brush_color_ = Qt::lightGray;
 	}
 	
+	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const QString& file)
+		:	TOPPASVertex(),
+			file_(file)
+	{
+		pen_color_ = Qt::black;
+		brush_color_ = Qt::lightGray;
+	}
+	
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs)
 		:	TOPPASVertex(rhs),
 			file_(rhs.file_)

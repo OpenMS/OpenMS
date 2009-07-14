@@ -65,7 +65,7 @@ namespace OpenMS
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent);
+			TOPPASScene(QObject* parent, const String& tmp_path = "");
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -128,6 +128,8 @@ namespace OpenMS
 			TOPPASVertex* potential_target_;
 			/// The file name of this pipeline
 			String file_name_;
+			/// The path for temporary files
+			String tmp_path_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

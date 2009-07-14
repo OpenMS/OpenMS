@@ -46,6 +46,8 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASOutputFileVertex();
+			/// Constructor
+			TOPPASOutputFileVertex(const QString& file);
 			/// Copy constructor
 			TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs);
 			/// Destructor

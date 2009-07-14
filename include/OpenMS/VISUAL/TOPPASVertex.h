@@ -108,8 +108,8 @@ namespace OpenMS
 			void setDFSParent(TOPPASVertex* parent);
 			/// Returns the unique ID of this node
 			UInt getID();
-			/// The static instance counter (for unique instance numbers)
-			static UInt id_counter;
+			/// Sets the unique ID for this node
+			void setID(UInt id);
 			
 		signals:
 			

@@ -46,6 +46,8 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASInputFileListVertex();
+			/// Constructor
+			TOPPASInputFileListVertex(const QStringList& files);
 			/// Copy constructor
 			TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs);
 			/// Destructor
