@@ -38,14 +38,11 @@
 
 namespace OpenMS
 {
-	UInt TOPPASToolVertex::id_counter = 1;
-
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
 			name_(),
 			type_(),
 			param_(),
-			id_(id_counter++),
 			finished_(false)
 	{
 		pen_color_ = Qt::black;
@@ -59,7 +56,6 @@ namespace OpenMS
 			type_(type),
 			tmp_path_(tmp_path),
 			param_(),
-			id_(id_counter++),
 			finished_(false)
 	{
 		pen_color_ = Qt::black;
@@ -73,7 +69,6 @@ namespace OpenMS
 			type_(rhs.type_),
 			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
-			id_(rhs.id_),
 			finished_(rhs.finished_)
 	{
 		pen_color_ = Qt::black;
@@ -93,7 +88,6 @@ namespace OpenMS
 		name_ = rhs.name_;
 		type_ = rhs.type_;
 		tmp_path_ = rhs.tmp_path_;
-		id_ = rhs.id_;
 		finished_ = rhs.finished_;
 		
 		return *this;
@@ -424,5 +418,9 @@ namespace OpenMS
 		finished_ = b;
 	}
 	
+	const Param& TOPPASToolVertex::getParam()
+	{
+		return param_;
+	}
 }
 

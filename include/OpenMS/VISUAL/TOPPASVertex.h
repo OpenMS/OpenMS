@@ -106,6 +106,10 @@ namespace OpenMS
 			TOPPASVertex* getDFSParent();
 			/// Sets the DFS parent of this node
 			void setDFSParent(TOPPASVertex* parent);
+			/// Returns the unique ID of this node
+			UInt getID();
+			/// The static instance counter (for unique instance numbers)
+			static UInt id_counter;
 			
 		signals:
 			
@@ -136,6 +140,8 @@ namespace OpenMS
 			DFS_COLOR dfs_color_;
 			/// The DFS parent of this node
 			TOPPASVertex* dfs_parent_;
+			/// The unique ID
+			UInt id_;
 			
 			///@name reimplemented Qt events
       //@{

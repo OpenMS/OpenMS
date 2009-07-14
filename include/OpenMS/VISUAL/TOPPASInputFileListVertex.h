@@ -63,6 +63,7 @@ namespace OpenMS
 			
 		protected:
 		
+			/// The file names
 			QStringList files_;
 		
 			///@name reimplemented Qt events

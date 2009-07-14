@@ -32,14 +32,16 @@
 namespace OpenMS
 {
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex()
-		:	TOPPASVertex()
+		:	TOPPASVertex(),
+			file_()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs)
-		:	TOPPASVertex(rhs)
+		:	TOPPASVertex(rhs),
+			file_(rhs.file_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -53,6 +55,8 @@ namespace OpenMS
 	TOPPASOutputFileVertex& TOPPASOutputFileVertex::operator= (const TOPPASOutputFileVertex& rhs)
 	{
 		TOPPASVertex::operator=(rhs);		
+		
+		file_ = rhs.file_;
 		
 		return *this;
 	}
@@ -107,6 +111,11 @@ namespace OpenMS
 				ttv->compute();
 			}
 		}
+	}
+	
+	const QString& TOPPASOutputFileVertex::getFilename()
+	{
+		return file_;
 	}
 }
 

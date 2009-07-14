@@ -60,8 +60,13 @@ namespace OpenMS
 			virtual QPainterPath shape () const;
 			/// Starts the workflow ending in this node
 			void startComputation();
+			/// Returns the file name
+			const QString& getFilename();
 			
 		protected:
+			
+			/// The file name
+			QString file_;
 		
 			///@name reimplemented Qt events
       //@{
