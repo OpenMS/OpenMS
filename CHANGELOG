@@ -33,11 +33,11 @@ Detailed list of changes to specific OpenMS classes
   - Moved PersistentObject from FORMAT/ to FORMAT/DB/
   - Renamed PepXMLFile to PepXMLFileMascot
 - Changes to Classes
-	- MSExperiment: added 'isSorted' method
-	- MSSpectrum
-	  - added 'isSorted' method
-	  - renamed MetaDataArray to FloatDataArray
-	  - added StringDataArray
+  - MSExperiment: added 'isSorted' method
+  - MSSpectrum
+    - added 'isSorted' method
+    - renamed MetaDataArray to FloatDataArray
+    - added StringDataArray
   - DataValue: added constructor for std::string and QString
   - MetaInfo: setValue method takes only DataValue now
   - MetaInfoInterface: setMetaValue method takes only DataValue now
@@ -45,15 +45,15 @@ Detailed list of changes to specific OpenMS classes
   - ExperimentalSettings: Moved DataProcessing to SpectrumSettings (for mzML)
   - Precursor: supports multiple dissociation methods now (for mzML)
   - MetaInfoDescription: removed comment and source file; added data processing (for MzML)
-	- ElementDB: Isotopes are now possible
-	- EmpiricalFormula: Isotopes are now possible (e.g. (2)HO for deuterium)
-	- PepXMLFile: added new load method (moved the old load method to PepXMLFileMascot)
+  - ElementDB: Isotopes are now possible
+  - EmpiricalFormula: Isotopes are now possible (e.g. (2)HO for deuterium)
+  - PepXMLFile: added new load method (moved the old load method to PepXMLFileMascot)
   - TextFile
     - is now derived from StringList
     - the asString() method was replaced by concatenate() from StringList
   - MzMLFile: 
     - Added support for integer and string binary arrays
-    - Added support for zipped binary data arrays 
+    - Added support for compressed binary data arrays 
     - Loading a file with unknown CV terms in certain tags no longer causes an error
 
 Changes to the contrib package:
@@ -85,9 +85,9 @@ Main improvements of OpenMS C++ library:
 - mzML 1.1.0 RC5 support
 - removed support for external memory (use the 64bit builds if you want to process large datasets)
 - added support for three kinds of parallization architectures
-	- OpenMP 
-	- Intel Threading Building Blocks
-	- Nvidia Cuda
+  - OpenMP 
+  - Intel Threading Building Blocks
+  - Nvidia Cuda
 
 Detailed list of changes to specific OpenMS classes:
 - SpectrumSettings: several precursor peaks are now supported, added product list
@@ -164,10 +164,10 @@ Changes to OpenMS XML formats:
   - Added document identifier
   - Added protein and peptide information
 - consensusXML:
-	- Added document identifier
-	- Added protein and peptide information
+  - Added document identifier
+  - Added protein and peptide information
 - idXML:
-	- Added document identifier
+  - Added document identifier
 
 Changes to the contrib package:
 - The build system is now based on CMake - supporting Linux, MacOS and Windows.
@@ -189,22 +189,22 @@ Detailed list of changes to specific OpenMS classes:
   - ConsensusXMLHandler (merged into ConsensusXMLFile)
   - PeakPicker (merged into PeakPickerCWT)
   - MorphFilter (merged into MorphologicalFilter)
-	- TopHatFilter (merged into MorphologicalFilter)
+  - TopHatFilter (merged into MorphologicalFilter)
 - New classes
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList
   - ANALYSIS/ID/IDMapper
-	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
-	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
 - Changes to classes
-	- InstrumentSettings
-	  - Revisited scan modes
-	  - Added bool member for zoom scans (no longer a scan mode)
-	- MassAnalyzer: Removed tandem scanning method. This is stored in the ScanMode of InstrumentSettings.
-	- DataProcessing: Now contains Software and can handle multiple processing actions.
-	- Software: Only contains name and version now.
-	- SourceFile: Added MetaInfointerface and checksum type
-	- ContactPerson: Added URL and address
+  - InstrumentSettings
+    - Revisited scan modes
+    - Added bool member for zoom scans (no longer a scan mode)
+  - MassAnalyzer: Removed tandem scanning method. This is stored in the ScanMode of InstrumentSettings.
+  - DataProcessing: Now contains Software and can handle multiple processing actions.
+  - Software: Only contains name and version now.
+  - SourceFile: Added MetaInfointerface and checksum type
+  - ContactPerson: Added URL and address
   - Instrument:
     - Can contain multiple detectors and multiple ion sources now
     - Added Software
@@ -247,7 +247,7 @@ Detailed list of changes to specific OpenMS classes:
   - XMLFile: The output stream for validation error messages can now be set in the isValid(...) method
   - MzMLFile: The output stream for validation error messages can now be set in the isValid(...) method
   - IdXMLFile: Adden document identifier to the load(...) and store(...) method
-	
+  
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
 ------------------------------------------------------------------------------------------
