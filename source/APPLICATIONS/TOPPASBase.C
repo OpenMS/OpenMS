@@ -107,7 +107,7 @@ namespace OpenMS
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
     file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
-		file->addAction("Save &As",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 
@@ -248,7 +248,14 @@ namespace OpenMS
 	
 	void TOPPASBase::openFileDialog()
   {
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		
+		if (file_name != "")
+		{
+			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_);
+			tw->getScene()->load(file_name);
+			showAsWindow_(tw, File::basename(file_name));
+		}
   }
   
   void TOPPASBase::newFileDialog()
@@ -259,7 +266,36 @@ namespace OpenMS
 	
 	void TOPPASBase::saveFileDialog()
 	{
+		TOPPASWidget* w = activeWindow_();
+		if (!w)
+		{
+			return;
+		}
 		
+		const String& file_name = w->getScene()->getSaveFileName();
+		if (file_name != "")
+		{
+			w->getScene()->store(file_name);
+		}
+		else
+		{
+			saveAsFileDialog();
+		}
+	}
+	
+	void TOPPASBase::saveAsFileDialog()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (!w)
+		{
+			return;
+		}
+
+		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		if (file_name != "")
+		{
+			w->getScene()->store(file_name);
+		}
 	}
 	
 	void TOPPASBase::preferencesDialog()

@@ -30,6 +30,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtGui/QGraphicsScene>
 
@@ -91,6 +92,14 @@ namespace OpenMS
 			void updateEdgeColors();
 			/// Runs the pipeline
 			void runPipeline();
+			/// Stores the pipeline to @p file
+			void store(const String& file);
+			/// Loads the pipeline from @p file
+			void load(const String& file);
+			/// Returns the file name
+			const String& getSaveFileName();
+			/// Sets the file name
+			void setSaveFileName(const String& name);
 			
 		public slots:
 		
@@ -117,6 +126,8 @@ namespace OpenMS
 			TOPPASEdge* hover_edge_;
 			/// The current potential target vertex of the hovering edge
 			TOPPASVertex* potential_target_;
+			/// The file name of this pipeline
+			String file_name_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

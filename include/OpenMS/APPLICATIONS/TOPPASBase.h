@@ -86,6 +86,8 @@ namespace OpenMS
       void newFileDialog();
       /// shows the dialog for saving the current file
       void saveFileDialog();
+			/// shows the dialog for saving the current file as new file
+      void saveAsFileDialog();
       /// shows the preferences dialog
       void preferencesDialog();
     	/// changes the current path according to the currently active window/layer

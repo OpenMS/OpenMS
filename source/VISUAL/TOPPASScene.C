@@ -43,7 +43,8 @@ namespace OpenMS
 			vertices_(),
 			edges_(),
 			hover_edge_(0),
-			potential_target_(0)
+			potential_target_(0),
+			file_name_()
 	{
 	}
 	
@@ -375,6 +376,32 @@ namespace OpenMS
 				}
 			}
 		}
+	}
+	
+	void TOPPASScene::store(const String& /*file*/)
+	{
+		Param save_file_param;
+		
+		Param param_param;
+		foreach (TOPPASVertex* tv, vertices_)
+		{
+			
+		}
+	}
+	
+	void TOPPASScene::load(const String& /*file*/)
+	{
+		
+	}
+	
+	const String& TOPPASScene::getSaveFileName()
+	{
+		return file_name_;
+	}
+	
+	void TOPPASScene::setSaveFileName(const String& name)
+	{
+		file_name_ = name;
 	}
 	
 } //namespace OpenMS
