@@ -303,7 +303,7 @@
          <scanList count="1">
            <cvParam cvRef="MS" accession="MS:1000795" name="no combination" value=""/>
            <scan>
-             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="1" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="6" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
            </scan>
          </scanList>
          <binaryDataArrayList count="2">
@@ -328,7 +328,7 @@
          <scanList count="1">
            <cvParam cvRef="MS" accession="MS:1000795" name="no combination" value=""/>
            <scan>
-             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="1" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="7" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
            </scan>
          </scanList>
          <binaryDataArrayList count="2">
@@ -353,7 +353,7 @@
          <scanList count="1">
            <cvParam cvRef="MS" accession="MS:1000795" name="no combination" value=""/>
            <scan>
-             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="1" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+             <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="8" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
            </scan>
          </scanList>
          <binaryDataArrayList count="2">
@@ -378,7 +378,7 @@
             <scanList count="1">
                 <cvParam name="no combination" value="" accession="MS:1000795" cvRef="MS"/>
                 <scan>
-                    <cvParam unitCvRef="UO" unitName="second" unitAccession="UO:0000010" name="scan start time" value="1" accession="MS:1000016" cvRef="MS"/>
+                    <cvParam unitCvRef="UO" unitName="second" unitAccession="UO:0000010" name="scan start time" value="9" accession="MS:1000016" cvRef="MS"/>
                 </scan>
             </scanList>
             <binaryDataArrayList count="3">
@@ -409,7 +409,7 @@
             <scanList count="1">
                 <cvParam name="no combination" value="" accession="MS:1000795" cvRef="MS"/>
                 <scan>
-                    <cvParam unitCvRef="UO" unitName="second" unitAccession="UO:0000010" name="scan start time" value="1" accession="MS:1000016" cvRef="MS"/>
+                    <cvParam unitCvRef="UO" unitName="second" unitAccession="UO:0000010" name="scan start time" value="10" accession="MS:1000016" cvRef="MS"/>
                 </scan>
             </scanList>
             <binaryDataArrayList count="3">
