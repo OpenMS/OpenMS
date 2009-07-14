@@ -59,11 +59,11 @@
 				<UL>
 				  <LI> @subpage TOPP_tutorial 
 				  <LI> @subpage TOPP_documentation
+				  <LI> @subpage UTILS
 				</UL>
 				
 				Misc:
 				<UL>
-				  <LI> @subpage UTILS
 					<LI> @subpage FAQ
 					<LI> @subpage Contributing
 					<LI> @subpage ChangeLog
