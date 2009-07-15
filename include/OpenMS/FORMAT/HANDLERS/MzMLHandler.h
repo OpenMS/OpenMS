@@ -1489,6 +1489,10 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setNativeIDType(SourceFile::AB_SCIEX);
 				}
+				else if (accession=="MS:1001508") //Agilent MassHunter nativeID format
+				{
+					source_files_[current_id_].setNativeIDType(SourceFile::AGILENT_MASSHUNTER);
+				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
@@ -2617,6 +2621,10 @@ namespace OpenMS
 			else if (source_file.getNativeIDType()==SourceFile::AB_SCIEX)
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001480\" name=\"AB SCIEX TOF/TOF nativeID format\" />\n";
+			}
+			else if (source_file.getNativeIDType()==SourceFile::AGILENT_MASSHUNTER)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001508\" name=\"Agilent MassHunter nativeID format\" />\n";
 			}
 			else
 			{

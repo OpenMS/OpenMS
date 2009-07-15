@@ -51,8 +51,6 @@ namespace OpenMS
   	
 		@htmlinclude OpenMS_Spectrum2DCanvas.parameters
 		
-		@todo Show StringDataArray entries of selected peak in status bar (Marc)
-		
     @todo Support different peak icons - cross, star, square - and sizes (HiWi)
     
 		@improvement Add RT interpolation mode for high zoom in 2D View (Hiwi)

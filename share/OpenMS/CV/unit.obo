@@ -1,6 +1,6 @@
 format-version: 1.2
-date: 04:03:2009 17:16
-saved-by: george gkoutos
+date: 14:07:2009 12:37
+saved-by: George Gkoutos
 auto-generated-by: OBO-Edit 2.000-beta55
 subsetdef: abnormal_slim "Abnormal/normal slim"
 subsetdef: absent_slim "Absent/present slim"
@@ -51,7 +51,7 @@ relationship: unit_of PATO:0000011 ! age
 relationship: unit_of PATO:0000050 ! life span
 relationship: unit_of PATO:0000081 ! period
 relationship: unit_of PATO:0000165 ! time
-relationship: unit_of PATO:0001309 ! duration
+relationship: unit_of PATO:0001309 ! duration quality of a process
 relationship: unit_of PATO:0001310 ! duration of temperature
 relationship: unit_of PATO:0001486 ! chronological age
 
@@ -448,7 +448,7 @@ id: UO:0000060
 name: speed/velocity unit
 def: "A derived unit which is a standard measure of the rate of movement. Speed is measured in the same physical units of measurement as velocity, but does not contain the element of direction that velocity has. Speed is thus the magnitude component of velocity." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
 is_a: UO:0000046 ! derived unit
-relationship: unit_of PATO:0000008 ! speed/velocity
+relationship: unit_of PATO:0000008 ! speed
 relationship: unit_of PATO:0001522 ! sound speed
 
 [Term]
@@ -1080,7 +1080,7 @@ relationship: unit_of PATO:0000011 ! age
 relationship: unit_of PATO:0000050 ! life span
 relationship: unit_of PATO:0000081 ! period
 relationship: unit_of PATO:0000165 ! time
-relationship: unit_of PATO:0001309 ! duration
+relationship: unit_of PATO:0001309 ! duration quality of a process
 relationship: unit_of PATO:0001310 ! duration of temperature
 relationship: unit_of PATO:0001486 ! chronological age
 
@@ -1878,7 +1878,7 @@ id: UO:0000263
 name: heat conduction unit
 def: "A derived unit which represents a standard measurement of the spontaneous transfer of thermal energy through matter, from a region of higher temperature to a region of lower temperature." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
 is_a: UO:0000261 ! conduction unit
-relationship: unit_of PATO:0001756 ! heat conduction
+relationship: unit_of PATO:0001756 ! heat conductivity
 
 [Term]
 id: UO:0000264
@@ -1921,4 +1921,131 @@ synonym: "V/m" EXACT []
 is_a: UO:0000267 ! electric field strength unit
 created_by: george gkoutos
 creation_date: 2009-03-03T12:28:17Z
+
+[Term]
+id: UO:0000269
+name: absorbance unit
+def: "A dimensionless logarithmic unit assigned to a measure of absorbance of light through a partially absorbing substance, defined as -log10(I/I_0) where I = transmitted light and I_0 = incident light." [Wikipedia:http\://en.wikipedia.org/wiki/Absorbance  "http://en.wikipedia.org/wiki/Absorbance "]
+synonym: "AU" EXACT []
+is_a: UO:0000186 ! dimensionless unit
+created_by: gg295
+creation_date: 2009-07-14T12:33:48Z
+
+[Typedef]
+id: decreased_in_magnitude_relative_to
+name: decreased_in_magnitude_relative_to
+namespace: quality
+def: "q1 decreased_in_magnitude_relative_to q2 if and only if magnitude(q1) < magnitude(q2). Here, magnitude(q) is a function that maps a quality to a unit-invariant scale." [PATOC:CJM]
+comment: This relation is used to determine the 'directionality' of relative qualities such as 'decreased strength', relative to the parent type, 'strength'.
+domain: PATO:0000001 ! quality
+range: PATO:0000001 ! quality
+
+[Typedef]
+id: has_cross_section
+name: has_cross_section
+namespace: quality
+def: "s3 has_cross_section s3 if and only if : there exists some 2d plane that intersects the bearer of s3, and the impression of s3 upon that plane has shape quality s2." [PATOC:CJM]
+comment: Example: a spherical object has the quality of being spherical, and the spherical quality has_cross_section round.
+
+[Typedef]
+id: has_dividend_entity
+name: has_dividend_entity
+namespace: quality
+domain: PATO:0001470 ! proportionality to
+
+[Typedef]
+id: has_dividend_quality
+name: has_dividend_quality
+namespace: quality
+domain: PATO:0001470 ! proportionality to
+range: PATO:0000001 ! quality
+is_a: has_ratio_quality ! has_ratio_quality
+
+[Typedef]
+id: has_divisor_entity
+name: has_divisor_entity
+namespace: quality
+domain: PATO:0001470 ! proportionality to
+
+[Typedef]
+id: has_divisor_quality
+name: has_divisor_quality
+namespace: quality
+domain: PATO:0001470 ! proportionality to
+range: PATO:0000001 ! quality
+is_a: has_ratio_quality ! has_ratio_quality
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: quality
+def: "Q1 has_part Q2 if and only if: every instance of Q1 is a quality_of an entity that has_quality some Q2." [PATOC:CJM]
+comment: We use the has_part relation to relate complex qualities to more primitive ones. A complex quality is a collection of qualities. The complex quality cannot exist without the sub-qualities. For example, the quality 'swollen' necessarily comes with the qualities of 'protruding' and 'increased size'.
+
+[Typedef]
+id: has_ratio_quality
+name: has_ratio_quality
+namespace: quality
+domain: PATO:0001470 ! proportionality to
+range: PATO:0000001 ! quality
+
+[Typedef]
+id: has_relative_magnitude
+name: has_relative_magnitude
+namespace: quality
+
+[Typedef]
+id: increased_in_magnitude_relative_to
+name: increased_in_magnitude_relative_to
+namespace: quality
+def: "q1 increased_in_magnitude_relative_to q2 if and only if magnitude(q1) > magnitude(q2). Here, magnitude(q) is a function that maps a quality to a unit-invariant scale." [PATOC:CJM]
+comment: This relation is used to determine the 'directionality' of relative qualities such as 'increased strength', relative to the parent type, 'strength'.
+domain: PATO:0000001 ! quality
+range: PATO:0000001 ! quality
+
+[Typedef]
+id: is_magnitude_of
+name: is_magnitude_of
+namespace: pato.ontology
+
+[Typedef]
+id: is_measurement_of
+name: is_measurement_of
+namespace: pato.ontology
+
+[Typedef]
+id: is_unit_of
+name: is_unit_of
+namespace: pato.ontology
+
+[Typedef]
+id: OBO_REL:part_of
+name: part_of
+namespace: quality
+is_transitive: true
+
+[Typedef]
+id: reciprocal_of
+name: reciprocal_of
+namespace: quality
+def: "q1 reciprocal_of q2 if and only if : q1 and q2 are relational qualities and a phenotype e q1 e2 mutually implies a phenotype e2 q2 e." [PATOC:CJM]
+comment: There are frequently two ways to state the same thing: we can say 'spermatocyte lacks asters' or 'asters absent from spermatocyte'. In this case the quality is 'lacking all parts of type' - it is a (relational) quality of the spermatocyte, and it is with respect to instances of 'aster'. One of the popular requirements of PATO is that it continue to support 'absent', so we need to relate statements which use this quality to the 'lacking all parts of type' quality.
+
+[Typedef]
+id: singly_occurring_form_of
+name: singly_occurring_form_of
+namespace: quality
+comment: PATO divides qualities between normal (monadic, singly-occurring) qualities and relational qualities. Relational qualities stand in the 'towards' relation with respect to some additional entity. For example, The sensitivity of an eye towards red light. In some cases we want to represent a quality such as 'protruding' in both monadic and relational branches. We use this relation to link them.
+synonym: "monadic_form_of" EXACT []
+
+[Typedef]
+id: towards
+name: towards
+namespace: quality
+comment: relation binding a relational quality or disposition to the relevant type of entity
+
+[Typedef]
+id: unit_of
+name: unit_of
+namespace: pato.ontology
 

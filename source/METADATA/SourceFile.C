@@ -47,7 +47,8 @@ namespace OpenMS
 																												 "single peak list",
 																												 "scan number",
 																												 "spectrum identifier",
-																												 "AB SCIEX TOF/TOF nativeID format"};
+																												 "AB SCIEX TOF/TOF nativeID format",
+																												 "Agilent MassHunter nativeID format"};
 
 	SourceFile::SourceFile()
 		: MetaInfoInterface(),

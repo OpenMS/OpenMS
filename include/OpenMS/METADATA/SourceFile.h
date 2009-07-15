@@ -68,6 +68,7 @@ namespace OpenMS
     		SCAN_NUMBER,					///< scan=xsd:nonNegativeInteger @n Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
     		SPECTRUM_IDENTIFIER,	///< spectrum=xsd:nonNegativeInteger @n Used for conversion from mzData. The spectrum id attribute is referenced.
     		AB_SCIEX,             ///< jobRun=xsd:nonNegativeInteger spotLabel=xsd:string spectrum=xsd:nonNegativeInteger
+    		AGILENT_MASSHUNTER,   ///< scanId=xsd:nonNegativeInteger
     		SIZE_OF_NATIVEIDTYPE
     	};
 			/// Names of native ID types

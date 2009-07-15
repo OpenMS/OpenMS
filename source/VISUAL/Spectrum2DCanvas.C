@@ -1284,6 +1284,10 @@ namespace OpenMS
 					{
 						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
 					}
+					for (Size m=0; m<s.getStringDataArrays().size();++m)
+					{
+						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
+					}
 					emit sendStatusMessage(status, 0);
 				}
 				else // ConsensusFeature
