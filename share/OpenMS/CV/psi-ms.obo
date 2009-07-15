@@ -3308,6 +3308,7 @@ is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000506
@@ -3379,7 +3380,9 @@ xref: binary-data-type:MS\:1000521 ! 32-bit float
 xref: binary-data-type:MS\:1000523 ! 64-bit float
 is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000516
@@ -4167,6 +4170,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000630
@@ -4183,6 +4187,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000632
@@ -5223,6 +5228,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000788
@@ -5233,6 +5239,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
 id: MS:1000789
