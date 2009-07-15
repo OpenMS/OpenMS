@@ -102,9 +102,13 @@ void OfflinePrecursorIonSelection::getMassRanges(FeatureMap<>& features, MSExper
 #ifdef DEBUG_OPS
 			if(vec.size()>0)
 				{
-					std::cout << "Feature "<< f<< " RT von: "<<vec[0].first << " "<<vec[vec.size()-1].first
-										<< " MZ : "<<experiment[vec[0].first][vec[0].second].getMZ() << " "
-										<< experiment[vec[1].first][vec[1].second].getMZ() << std::endl;
+					std::cout << vec.size() << " / 2 scans"<<std::endl;
+					for(Size i = 0; i < vec.size(); i+=2)
+						{
+							std::cout << "Feature "<< f<< " RT : "<<vec[i].first 
+												<< " MZ : "<<experiment[vec[i].first][vec[i].second].getMZ() << " "
+												<< experiment[vec[i+1].first][vec[i+1].second].getMZ() << std::endl;
+						}
 				}
 #endif
 			indices.push_back(vec);
@@ -298,10 +302,12 @@ void OfflinePrecursorIonSelection::calculateXICs_(FeatureMap<> &features,
 					DoubleReal weight = 0.;
 					for(Size j = mass_ranges[f][s].second;j <= mass_ranges[f][s+1].second;++j)
 						{
+// 							std::cout <<"exp["<< mass_ranges[f][s].first << " "<<j<<"]="<<std::endl;
+// 							std::cout << experiment[mass_ranges[f][s].first][j].getIntensity()<<std::endl;
 							weight += experiment[mass_ranges[f][s].first][j].getIntensity();
 						}
-					// enter xic in the vector for scan s
-					xics[s].push_back(std::make_pair(f,weight));
+					// enter xic in the vector for scan s/2
+					xics[s/2].push_back(std::make_pair(f,weight));
 				}
 		}
 
