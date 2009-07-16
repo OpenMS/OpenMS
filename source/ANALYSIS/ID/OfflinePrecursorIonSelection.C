@@ -384,13 +384,14 @@ void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(Feature
 			calculateXICs_(features,indices,xics,experiment,charges_set);
 
 			Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
+
 			// get best x signals for each scan
 			for(Size i = 0; i < experiment.size();++i)
 				{
 #ifdef DEBUG_OPS
 					std::cout << "scan "<<experiment[i].getRT() << ":";
 #endif
-					for(Size j = 0; j < xics[i].size() && j <= max_spec; ++j)
+					for(Size j = 0; j < xics[i].size() && j < max_spec; ++j)
 						{
 							MSExperiment<Peak1D>::SpectrumType ms2_spec;
 							Precursor p;

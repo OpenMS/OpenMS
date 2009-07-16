@@ -298,6 +298,7 @@ set(analysis_executables_list
   MapAlignmentEvaluationAlgorithm_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
+  OfflinePrecursorIonSelection_test
 )
 
 set(applications_executables_list

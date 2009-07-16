@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="2317">
+		<feature id="f_0">
+			<position dim="0">50</position>
+			<position dim="1">336.14</position>
+			<intensity>10224</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">40</hposition>
+					<hposition dim="1">336.14</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">40</hposition>
+					<hposition dim="1">337.14</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">50</hposition>
+					<hposition dim="1">336.14</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">50</hposition>
+					<hposition dim="1">337.14</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">336.14</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">337.14</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">60</position>
+			<position dim="1">319.19</position>
+			<intensity>20448</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">50</hposition>
+					<hposition dim="1">319.19</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">50</hposition>
+					<hposition dim="1">320.19</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">319.19</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">320.19</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">60</position>
+			<position dim="1">478.29</position>
+			<intensity>20448</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">478.29</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">60</hposition>
+					<hposition dim="1">479.29</hposition>
+				</hullpoint>
+
+			</convexhull>
+		</feature>
+	</featureList>
+</featureMap>
