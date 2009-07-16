@@ -369,7 +369,7 @@ namespace OpenMS
 								pt_map_.insert(make_pair(peptide_sequences[index2],detectabilities[index2]));
 							}
 						peptide_sequences.clear();
-						Int size = std::min(distance(seq_it,sequences_.end())-1,(int)max_peptides_per_run);
+						Int size = std::min((int)distance(seq_it,sequences_.end())-1,(int)max_peptides_per_run);
 						std::cout << "peptide_sequences.resize(size) "<<size<<std::endl;
  						peptide_sequences.resize(size);
 						index = 0;
