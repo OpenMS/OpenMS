@@ -46,7 +46,7 @@ namespace OpenMS
 
 		@todo Implement and test 32/64 bit integer arrays and null-terminated string arrays (Hiwi, David)
 		
-		@todo Implement chromatograms (Hiwi)
+		@todo Implement chromatograms (Andreas)
 		
 		@todo Add generic parsing of ControlledVocabulary xref and check binary data array types (Marc)
 		
