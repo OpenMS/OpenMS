@@ -57,6 +57,8 @@ namespace OpenMS
 		defaults_.setValue("preprocessing:preprocessed_db_path","","Path where the preprocessed database should be stored");
 		defaults_.setValue("preprocessing:preprocessed_db_pred_rt_path","","Path where the predicted rts of the preprocessed database should be stored");
 		defaults_.setValue("preprocessing:preprocessed_db_pred_dt_path","","Path where the predicted rts of the preprocessed database should be stored");
+		defaults_.setValue("preprocessing:max_peptides_per_run",100000,"Number of peptides for that the pt and rt are parallely predicted.");
+		defaults_.setMinInt("preprocessing:max_peptides_per_run",1);
 		defaults_.setValue("missed_cleavages",1,"Number of allowed missed cleavages.");
 		defaults_.setMinInt("missed_cleavages",0);
 		defaults_.setValue("preprocessing:taxonomy","","Taxonomy");
@@ -251,7 +253,7 @@ namespace OpenMS
 	void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path,String rt_model_path,
 																													 String dt_model_path,bool save)
 	{
-#ifdef PISP_DEBUG
+		//#ifdef PISP_DEBUG
 		std::cout << "Parameters: "<< param_.getValue("preprocessing:preprocessed_db_path")
 							<< "\t" << param_.getValue("precursor_mass_tolerance")
 							<< " " << param_.getValue("precursor_mass_tolerance_unit")
@@ -264,7 +266,7 @@ namespace OpenMS
 							<< "\t" << param_.getValue("preprocessing:taxonomy")
 							<< "\t" << param_.getValue("tmp_dir") << "---"
 							<< std::endl;
-#endif
+		//#endif
 
 		FASTAFile fasta_file;
 		std::vector<FASTAFile::FASTAEntry> entries;
@@ -276,6 +278,7 @@ namespace OpenMS
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)
 			{
+				
 				// filter for taxonomy
 				if(entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper())) 
 					{
@@ -317,6 +320,8 @@ namespace OpenMS
 					}
 
 			}
+		entries.clear();
+		std::cout << "now make the rt and pt predictions"<<std::endl;
 		std::set<AASequence>::iterator seq_it = sequences_.begin();
 		std::vector<String> peptide_sequences;
 		UInt index = 0;
@@ -325,17 +330,20 @@ namespace OpenMS
 		Param rt_param;
 		rt_param.setValue("rt_model_file",rt_model_path);
 		Param dt_param;
-		dt_param.setValue("dt_simulation_on",true);
+		dt_param.setValue("dt_simulation_on","true");
 		dt_param.setValue("dt_model_file",dt_model_path);
 		gsl_rng* random_generator = gsl_rng_alloc(gsl_rng_mt19937);// not needed for this rt prediction, but needed for RTSimulation
 		// this is needed, as too many sequences require too much memory for the rt and dt prediction
-		Size max_peptides_per_run = 100000; // TODO: make this a parameter
+		Size max_peptides_per_run = (Int)param_.getValue("preprocessing:max_peptides_per_run");
 		peptide_sequences.resize(max_peptides_per_run);
+		std::cout << sequences_.size()<<" peptides for predictions."<<std::endl;
+		std::set<AASequence>::iterator seq_it_end = sequences_.end();
+		if(seq_it != seq_it_end)  --seq_it_end;
 		for(;seq_it!=sequences_.end();++seq_it)
 			{
 				peptide_sequences[index] = seq_it->toUnmodifiedString();
 				++index;
-				if(index == max_peptides_per_run)
+				if(index == max_peptides_per_run || seq_it == seq_it_end)
 					{
 						// now make RTPrediction using the RTSimulation class of the simulator
 						RTSimulation rt_sim(random_generator);
@@ -347,6 +355,7 @@ namespace OpenMS
 							{
 								rt_map_.insert(std::make_pair(peptide_sequences[index2],rts[index2]*total_gradient_time+gradient_offset));
 							}
+						rts.clear();
 						
 						// now make DTPrediction using the DetectabilitySimulation class of the simulator
 						DetectabilitySimulation dt_sim;
@@ -360,12 +369,15 @@ namespace OpenMS
 								pt_map_.insert(make_pair(peptide_sequences[index2],detectabilities[index2]));
 							}
 						peptide_sequences.clear();
-						peptide_sequences.resize(max_peptides_per_run);
+						Int size = std::min(distance(seq_it,sequences_.end())-1,(int)max_peptides_per_run);
+						std::cout << "peptide_sequences.resize(size) "<<size<<std::endl;
+ 						peptide_sequences.resize(size);
 						index = 0;
 					}
 			}
-		
-		
+		peptide_sequences.clear();
+		sequences_.clear();
+		std::cout << "Finished predictions!"<<std::endl;
 		if(masses_.size() == 0)
 			{
 				std::cout << "no masses entered" << std::endl;
