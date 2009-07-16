@@ -47,6 +47,8 @@ using namespace std;
 	
 	Currently only featureXML can we written.
 	
+	@todo Add import of msInspect and SpecArray feature data (Marc)
+	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TextImporter.cli
 */
