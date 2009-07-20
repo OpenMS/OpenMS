@@ -113,15 +113,17 @@ namespace OpenMS
         	String error_message = "Found no signal. The gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
         	if (spectrum.getRT()>0.0)
         	{
-        		error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".";
+        		error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".\n";
         	}
-          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, error_message);
+          std::cerr << error_message;
         }
-
-				// copy the new data into the spectrum
-        for (Size p=0; p<spectrum.size(); ++p)
-        {
-        	spectrum[p].setIntensity(output[p]);
+				else
+				{
+					// copy the new data into the spectrum
+					for (Size p=0; p<spectrum.size(); ++p)
+					{
+        		spectrum[p].setIntensity(output[p]);
+					}
 				}
       }
 

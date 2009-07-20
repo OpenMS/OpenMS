@@ -293,7 +293,7 @@ class TOPPFileFilter
 					}
 				}
 
-				// calculate S/N values and write them instead
+				// calculate S/N values and delete datapoints below S/N threshold
 				if (sn > 0)
 				{
 					SignalToNoiseEstimatorMedian < MapType::SpectrumType > snm;
