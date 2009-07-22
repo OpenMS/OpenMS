@@ -297,9 +297,10 @@ class TOPPFileInfo
 
 			os << "Number of features: " << feat.size() << endl
 				 << endl
-				 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
-				 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
-				 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
+				 << "Ranges:\n"
+				 << "  retention time:  " << precisionWrapper(feat.getMin()[Peak2D::RT]) << " : " << precisionWrapper(feat.getMax()[Peak2D::RT]) << "\n"
+				 << "  mass-to-charge:  " << precisionWrapper(feat.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(feat.getMax()[Peak2D::MZ]) << "\n"
+				 << "  intensity:       " << precisionWrapper(feat.getMinInt()) << " : " << precisionWrapper(feat.getMaxInt()) << "\n"
 				 << endl;
 
 			//Charge distribution
@@ -461,11 +462,12 @@ class TOPPFileInfo
 			vector<UInt> levels = exp.getMSLevels();
 
 			os << "Number of peaks: " << exp.getSize() << endl
-					 << endl
-					 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
-					 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
-					 << "intensity range: " << exp.getMinInt() << " / " << exp.getMaxInt() << endl
-					 << "MS levels: ";
+				 << endl
+				 << "Ranges:\n"
+				 << "  retention time:  " << precisionWrapper(exp.getMinRT()) << " : " << precisionWrapper(exp.getMaxRT()) << "\n"
+				 << "  mass-to-charge:  " << precisionWrapper(exp.getMinMZ()) << " : " << precisionWrapper(exp.getMaxMZ()) << "\n"
+				 << "  intensity:       " << precisionWrapper(exp.getMinInt()) << " : " << precisionWrapper(exp.getMaxInt()) << "\n"
+				 << "MS levels: ";
 			if (levels.size()!=0)
 			{
 				os << *(levels.begin());

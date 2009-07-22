@@ -1,13 +1,14 @@
 
 -- General information --
 
-file name: /home/sturm/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
+file name: FileInfo_3_input.featureXML
 file type: FeatureXML
 Number of features: 10
 
-retention time range: 537.11 / 539.532
-m/z range: 407.281 / 648.688
-intensity range: 1376 / 6712
+Ranges:
+  retention time:  537.1101 : 539.5316
+  mass-to-charge:  407.281 : 648.688
+  intensity:       1376 : 6712
 
 Charge distribution
 charge 2: 4
@@ -36,7 +37,7 @@ Intensities:
   median: 3049
   upper quartile: 4930.25
   max: 6712
-  variance: 3.49692e+06
+  variance: 3.49692e+006
 
 Overall qualities:
   mean: 0.79855

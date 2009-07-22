@@ -10,9 +10,10 @@ estimated raw data spacing: 0.994568 (min: 0.922302 max: 1.08313)
 
 Number of peaks: 9
 
-retention time range: 474.558 / 475.321
-m/z range: 937.276 / 941.2
-intensity range: 1639 / 18025
+Ranges:
+  retention time:  474.558 : 475.321
+  mass-to-charge:  937.276428222656 : 941.200012207031
+  intensity:       1639 : 18025
 MS levels: 1
 
 Spectra of MS Level 1: 2
@@ -40,7 +41,7 @@ Intensities:
   median: 7224
   upper quartile: 8841
   max: 18025
-  variance: 3.54513e+07
+  variance: 3.54513e+007
 
 Meta data: SignalToNoise
   count: 9

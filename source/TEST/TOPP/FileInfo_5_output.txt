@@ -9,9 +9,10 @@ peak type (estimated): Peak data
 
 Number of peaks: 3149
 
-retention time range: 20.8713 / 39.9708
-m/z range: 500.068 / 1497.28
-intensity range: 16.2972 / 38920.1
+Ranges:
+  retention time:  20.8713 : 39.9708
+  mass-to-charge:  500.068481445313 : 1497.27697753906
+  intensity:       16.2971782684326 : 38920.1171875
 MS levels: 1, 2
 
 Spectra of MS Level 1: 4
@@ -56,7 +57,7 @@ Intensities:
   median: 490.921
   upper quartile: 1037.65
   max: 38920.1
-  variance: 1.89153e+06
+  variance: 1.89153e+006
 
 
 
