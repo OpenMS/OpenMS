@@ -78,10 +78,11 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
   ++it;
   TEST_REAL_SIMILAR(it->getIntensity(),1.0)
 	
+	// We don't throw exceptions anymore... just issue warnings 
 	//test exception when the width is too small
-  param.setValue( "gaussian_width", 0.1);
-  gauss.setParameters(param);
-  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(spectrum))
+  //param.setValue( "gaussian_width", 0.1);
+  //gauss.setParameters(param);
+  //TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(spectrum))
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
@@ -148,10 +149,12 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 	TEST_REAL_SIMILAR(exp[2][0].getIntensity(),0.0)
 
+
+  // We don't throw exceptions anymore... just issue warnings 
   //test exception for too low gaussian width
-  param.setValue("gaussian_width", 0.01);
-  gauss.setParameters(param);
-  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(exp))
+  //param.setValue("gaussian_width", 0.01);
+  //gauss.setParameters(param);
+  //TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(exp))
 
 END_SECTION
 
