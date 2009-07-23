@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: /home/sturm/OpenMS/source/TEST/TOPP/FileInfo_9_input.mzML
+file name: FileInfo_9_input.mzML
 file type: mzML
 
 peak type (metadata) : Unknown
@@ -10,9 +10,10 @@ estimated raw data spacing: 1 (min: 1 max: 1)
 
 Number of peaks: 40
 
-retention time range: 5.1 / 5.4
-m/z range: 0 / 18
-intensity range: 1 / 20
+Ranges:
+  retention time:  5.1 : 5.4
+  mass-to-charge:  0 : 18
+  intensity:       1 : 20
 MS levels: 1, 2
 
 Spectra of MS Level 1: 3

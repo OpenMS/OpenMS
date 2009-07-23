@@ -10,9 +10,10 @@ estimated raw data spacing: 10 (min: 10 max: 10)
 
 Number of peaks: 9
 
-retention time range: 60 / 180
-m/z range: 100 / 140
-intensity range: 100 / 300
+Ranges:
+  retention time:  60 : 180
+  mass-to-charge:  100 : 140
+  intensity:       100 : 300
 MS levels: 1
 
 Spectra of MS Level 1: 3
