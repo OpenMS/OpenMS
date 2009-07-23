@@ -46,7 +46,8 @@ namespace OpenMS
 			end_(0),
 			value_(0),
 			dlg_(0),
-			stop_watch_()
+			stop_watch_(),
+			last_invoke_()
 	{
 	}
 
@@ -69,6 +70,8 @@ namespace OpenMS
 	void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
+		last_invoke_ = time (NULL);
+		
 		switch (type_)
 		{
 			case CMD:
@@ -97,6 +100,11 @@ namespace OpenMS
 
 	void ProgressLogger::setProgress(SignedSize value) const
 	{
+		// update only if at least 1 second has passed
+		if (last_invoke_ == time (NULL)) return;
+		
+		last_invoke_ = time (NULL);
+	
 		switch (type_)
 		{
 			case CMD:

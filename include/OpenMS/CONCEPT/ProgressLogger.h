@@ -95,6 +95,7 @@ namespace OpenMS
 		mutable SignedSize value_;
 		mutable QProgressDialog* dlg_;
 		mutable StopWatch stop_watch_;
+		mutable time_t last_invoke_;
 		static int recursion_depth_;
 	};
 
