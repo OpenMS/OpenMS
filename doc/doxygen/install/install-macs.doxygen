@@ -58,6 +58,9 @@
     It contains the header files needed for %OpenMS.</li>
   </ul>
 
+  @note To avoid problems while building the libraries contained in the contrib package, the path
+  to your contrib directory should not have any spaces in it.
+
 <HR>
 
 
