@@ -52,17 +52,18 @@ namespace OpenMS {
 		/// compute optimal solution and return value of objective function
 		/// @return value of objective function
 		///		and @p pairs will have all realized edges set to "active"
-		DoubleReal compute(const MassExplainer& me, PairsType& pairs);
+		DoubleReal compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs);
 		
 	private:
 		/// slicing the problem into subproblems
-		DoubleReal compute_slice_(const MassExplainer& me, 
+		DoubleReal compute_slice_(const MassExplainer& me,
+															const FeatureMap<> fm,
 															PairsType& pairs, 
 															const PairsIndex margin_left, 
 															const PairsIndex margin_right);
 
 		/// calculate a score for the i_th edge
-		float getScore(const PairsIndex& i, const PairsType& pairs, const MassExplainer& me);
+		float getScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me);
 
 	}; // !class
     

@@ -73,7 +73,7 @@ namespace OpenMS {
 
 	MIPWrapper::~MIPWrapper(){}
 
-	DoubleReal MIPWrapper::compute(const MassExplainer& me, PairsType& pairs)
+	DoubleReal MIPWrapper::compute(const MassExplainer& me, const FeatureMap<> fm, PairsType& pairs)
 	{
     DoubleReal score = 0;
     #if 0
@@ -90,12 +90,13 @@ namespace OpenMS {
 			std::cout << "slice (" << i << "-" << (i+allowedPairs) << ")score: " << scorel << std::endl; 
 		}
     #endif
-    score = compute_slice_(me, pairs, 0, pairs.size());
+    score = compute_slice_(me, fm, pairs, 0, pairs.size());
 
 		return score;
 	}
 		
-	DoubleReal MIPWrapper::compute_slice_(const MassExplainer& me, 
+	DoubleReal MIPWrapper::compute_slice_(const MassExplainer& me,
+																				const FeatureMap<> fm,
 																				PairsType& pairs, 
 																				const PairsIndex margin_left, 
 																				const PairsIndex margin_right)
@@ -123,7 +124,7 @@ namespace OpenMS {
 		float score = 0, score_offs=0;
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
-				score = getScore(i, pairs, me);
+				score = getScore(i, pairs, fm, me);
 				if (score < score_offs) score_offs = score;
 		}
 		score_offs = fabs(score_offs) + 1;
@@ -140,7 +141,7 @@ namespace OpenMS {
         ChargePair t =  pairs[i];
         std::cout << "found";
       }
-      score = getScore(i, pairs, me);
+      score = getScore(i, pairs, fm, me);
 			score += score_offs;
 			namebuf.str("");
 			namebuf<<"x#"<<i;
@@ -148,6 +149,7 @@ namespace OpenMS {
 			build.setColumnBounds(int(i-margin_left),0,1);
 			build.setInteger(int(i-margin_left));
 			build.setObjective(int(i-margin_left),score);
+			pairs[i].setEdgeScore(score);
 			//std::cout << "added #"<< i << "\n";
 		}
 		std::cout << "DONE adding variables..."<< std::endl;
@@ -265,7 +267,7 @@ namespace OpenMS {
 		// add rows into solver
 		solver.loadFromCoinModel(build);
 
-		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0!) \n";
+		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0!)" << std::endl << std::flush;
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
@@ -304,7 +306,7 @@ namespace OpenMS {
 		//model.addCutGenerator(&generator1,-1,"Probing");
 		//model.addCutGenerator(&generator2,-1,"Gomory");
 		//model.addCutGenerator(&generator3,-1,"Knapsack");
-		//model.addCutGenerator(&generator4,-1,"OddHole");
+		//model.addCutGenerator(&generator4,-1,"OddHole"); // seg faults...
 		model.addCutGenerator(&generator5,-10,"Clique");
 		//model.addCutGenerator(&flowGen,-1,"FlowCover");
 		//model.addCutGenerator(&mixedGen,-1,"MixedIntegerRounding");
@@ -336,6 +338,7 @@ namespace OpenMS {
 
 		/* variable values */
 		UInt active_edges = 0;
+		Map < String, Size > count_cmp;
 		const double * solution = model.solver()->getColSolution();
 		for (int iColumn=0; iColumn<model.solver()->getNumCols(); ++iColumn)
 		{
@@ -344,9 +347,17 @@ namespace OpenMS {
 			{
 				++active_edges;
 				pairs[margin_left+iColumn].setActive(true);
+				// for statistical purposes: collect compomer distribution
+				String cmp = me.getCompomerById(pairs[margin_left+iColumn].getCompomerId()).getAdductsAsString();
+				count_cmp[cmp] = count_cmp[cmp] + 1;
 			}
 		}
 		std::cout << "active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
+
+		for (Map < String, Size >::const_iterator it=count_cmp.begin(); it != count_cmp.end(); ++it)
+		{
+			std::cout << "Cmp " << it->first << " x " << it->second << "\n";
+		}
 
 		DoubleReal opt_value = model.getObjValue();
 
@@ -354,10 +365,32 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	float MIPWrapper::getScore(const PairsIndex& i, const PairsType& pairs, const MassExplainer& me)
+	float MIPWrapper::getScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
 	{
 		// TODO think of something better here!
-		return me.getCompomerById(pairs[i].getCompomerId()).getLogP();
+		DoubleReal score;
+		String e;
+		if (getenv ("M") != 0) e = String(getenv ("M"));
+		if (e == "")
+		{
+			std::cout << "1";
+			score = me.getCompomerById(pairs[i].getCompomerId()).getLogP();
+		}
+		else 
+		{
+			std::cout << "2";
+			DoubleReal rt_diff =  fabs(fm[pairs[i].getElementIndex(0)].getRT() - fm[pairs[i].getElementIndex(1)].getRT());
+			// enhance correct charge
+			DoubleReal charge_enhance = ( (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
+																	&&
+																		(pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) )
+																	? 100 : 1;
+			score = charge_enhance * (1 / (pairs[i].getMassDiff()+1) + 1 / (rt_diff+1));
+		}
+		
+		
+		
+		return score;
 	}
 
 
