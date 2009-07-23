@@ -241,13 +241,13 @@ namespace OpenMS
 						
 						if (! ( f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty() ) )
 						{
-							DoubleReal f_start1 = min(f1.getConvexHull().getBoundingBox().min()[0],f2.getConvexHull().getBoundingBox().min()[0]);
-							DoubleReal f_start2 = max(f1.getConvexHull().getBoundingBox().min()[0],f2.getConvexHull().getBoundingBox().min()[0]);
-							DoubleReal f_end1 = min(f1.getConvexHull().getBoundingBox().max()[0],f2.getConvexHull().getBoundingBox().max()[0]);
-							DoubleReal f_end2 = max(f1.getConvexHull().getBoundingBox().max()[0],f2.getConvexHull().getBoundingBox().max()[0]);
+							DoubleReal f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(),f2.getConvexHull().getBoundingBox().minX());
+							DoubleReal f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(),f2.getConvexHull().getBoundingBox().minX());
+							DoubleReal f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(),f2.getConvexHull().getBoundingBox().maxX());
+							DoubleReal f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(),f2.getConvexHull().getBoundingBox().maxX());
 							
 							DoubleReal union_length = f_end2 - f_start1;
-							DoubleReal intersect_length = max(0., f_end1 - f_start2);
+							DoubleReal intersect_length = std::max(0., f_end1 - f_start2);
 							
 							if (intersect_length / union_length < rt_min_overlap) continue;
 						}
