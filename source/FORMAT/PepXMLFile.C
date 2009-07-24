@@ -431,6 +431,13 @@ namespace OpenMS
 				current_pep_->setScoreType(name); // add "Sequest" to name?
 				current_pep_->setHigherScoreBetter(true);
 			}
+			if (name == "fval")
+			{
+				// SpectraST score
+				current_hit_->setScore(value);
+				current_pep_->setScoreType(name);
+				current_pep_->setHigherScoreBetter(true);
+			}
 		}
 
 		else if (element == "search_hit")
