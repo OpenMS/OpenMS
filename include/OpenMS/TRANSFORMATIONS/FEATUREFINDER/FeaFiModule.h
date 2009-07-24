@@ -219,7 +219,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
 
 			//At the last peak of this spectrum
-			if (index.second>=(*map_)[index.first].size())
+			if (index.second+1>=(*map_)[index.first].size())
 			{
 				throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextMz", index);
 			}
@@ -257,28 +257,32 @@ namespace OpenMS
 		void getNextRt(FeatureFinderDefs::IndexPair& index)
 		{
 			//Corrupt index
-			OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
-			OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+			OPENMS_PRECONDITION(index.first  < map_->size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second < (*map_)[index.first].size(), "Peak index outside of scan!");
 
+			CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ(); // mz value we want to find
+			Size index_first_tmp = index.first; 
+			
+			++index.first;
+			while (index.first < map_->size() &&
+						 (*map_)[index.first].size() == 0)
+			{
+				++index.first;
+			}
 			//last scan
 			if (index.first >= map_->size())
 			{
 				throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextRt", index);
-			}
+			}			
+			// now we have a spectrum with scans in it ...
 
-			// perform binary search to find the neighbour in rt dimension
-			CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ(); // mz value we want to find
-			++index.first;
-			typename SpectrumType::ConstIterator it = lower_bound((*map_)[index.first].begin(), (*map_)[index.first].end(), (*map_)[index.first-1][index.second], typename PeakType::PositionLess());
+			// perform binary search to find the neighbour in mz dimension
+			typename SpectrumType::ConstIterator it = lower_bound((*map_)[index.first].begin(), (*map_)[index.first].end(), (*map_)[index_first_tmp][index.second], typename PeakType::PositionLess());
 
 			// if the found peak is at the end of the spectrum, there is not much we can do...
 			if ( it == (*map_)[index.first].end() )
 			{
-				// check for empty scans
-				if ( (*map_)[index.first].size() > 0 )
-					index.second = (*map_)[index.first].size()-1;
-				else
-					index.second = 0;
+				index.second = (*map_)[index.first].size()-1;
 			}
 			// if the found peak is at the beginning of the spectrum, there is also not much we can do !
 			else if ( it == (*map_)[index.first].begin() )
@@ -312,6 +316,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
 			OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
 
+			// TODO: this seems useless (at least for debug mode) given preconditions above... (and why not in getNextRt()??)
 			if (index.first>=map_->size() )
 			{
 				std::cout << "Scan index outside of map!" << std::endl;
@@ -324,29 +329,35 @@ namespace OpenMS
 				std::cout << index.first << " " << index.second << std::endl;
 				return;
 			}
-
+			
+			CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ();
+			Size index_first_tmp = index.first; 
+						
 			// first scan
 			if (index.first == 0)
 			{
 				throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevRt", index);
 			}
 
-			// perform binary search to find the neighbour in rt dimension
-			CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ();
 			--index.first;
+			while ((index.first > 0) && ((*map_)[index.first].size() == 0))
+			{
+				--index.first;
+			}
+			// we only found an empty scan
+			if ((*map_)[index.first].size() == 0) throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevRt", index);
+
+			// perform binary search to find the neighbour in mz dimension
+
 			typename MapType::SpectrumType::ConstIterator it = lower_bound((*map_)[index.first].begin(),
 																																		 (*map_)[index.first].end(),
-																																		 (*map_)[index.first+1][index.second],
+																																		 (*map_)[index_first_tmp][index.second],
 																																		 typename PeakType::PositionLess());
 
 			// if the found peak is at the end of the spectrum, there is not much we can do.
 			if ( it == (*map_)[index.first].end() )
 			{
-				// check for empty scans
-				if ( (*map_)[index.first].size() > 0 )
-					index.second = (*map_)[index.first].size()-1;
-				else
-					index.second = 0;
+				index.second = (*map_)[index.first].size()-1;
 			}
 			// if the found peak is at the beginning of the spectrum, there is not much we can do.
 			else if ( it == (*map_)[index.first].begin() )
