@@ -219,7 +219,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
 
 			//At the last peak of this spectrum
-			if (index.second==(*map_)[index.first].size()-1)
+			if (index.second>=(*map_)[index.first].size())
 			{
 				throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextMz", index);
 			}
@@ -261,7 +261,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
 
 			//last scan
-			if (index.first == map_->size()-1)
+			if (index.first >= map_->size())
 			{
 				throw FeatureFinderDefs::NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextRt", index);
 			}

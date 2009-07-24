@@ -389,7 +389,7 @@ namespace OpenMS
 
 				if (pr_new > priority_threshold_)
 				{
-					std::map<IndexPair, DoubleReal>::iterator piter = priorities_.find(index);
+					//std::map<IndexPair, DoubleReal>::iterator piter = priorities_.find(index);
 					this->ff_->getPeakFlag(index) = USED;
 					priorities_[index] = pr_new;
 					boundary_.push(IndexWithPriority(index,pr_new));
