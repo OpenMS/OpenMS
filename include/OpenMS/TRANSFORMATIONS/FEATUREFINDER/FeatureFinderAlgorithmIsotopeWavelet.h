@@ -131,7 +131,6 @@ namespace OpenMS
 					real_RT_votes_cutoff_ = RT_votes_cutoff_;
 				};
 					
-				this->ff_->setLogType (ProgressLogger::CMD);
 				progress_counter_ = 0;
 				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");
 			
