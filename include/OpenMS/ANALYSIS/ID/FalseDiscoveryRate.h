@@ -43,6 +43,9 @@ namespace OpenMS
 		one run containing both (with marks) can be used to annotate
 		each of the peptide hits with a FDR.
 		
+		@todo implement combined searchers properly (Andreas)
+		@todo implement charge state separated fdr/q-values (Andreas)
+
 		@htmlinclude OpenMS_FalseDiscoveryRate.parameters
 
 		@ingroup Analysis_ID
