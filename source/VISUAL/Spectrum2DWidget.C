@@ -364,8 +364,8 @@ namespace OpenMS
 				}
 				//display feature with a margin
 				DBoundingBox<2> bb = canvas()->getCurrentLayer().features[feature_index].getConvexHull().getBoundingBox();
-				DoubleReal rt_margin = (bb.max()[0] - bb.min()[0])*0.01;
-				DoubleReal mz_margin = (bb.max()[1] - bb.min()[1])*0.01;
+				DoubleReal rt_margin = (bb.max()[0] - bb.min()[0])*0.5;
+				DoubleReal mz_margin = (bb.max()[1] - bb.min()[1])*2;
 				SpectrumCanvas::AreaType area(bb.min()[1]-mz_margin, bb.min()[0]-rt_margin, bb.max()[1]+mz_margin, bb.max()[0]+rt_margin);
 				canvas()->setVisibleArea(area);
 			}
