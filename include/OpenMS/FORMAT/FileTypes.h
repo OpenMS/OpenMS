@@ -58,6 +58,7 @@ namespace OpenMS
 			MZIDENTML,				  ///< mzIdentML (HUPO PSI AnalysisXML format) (.mzIdentML)
 			GELML,							///< GelML (HUPO PSI format) (.GelML)
 			TRAML,							///< TraML (HUPO PSI format) for transitions (.TraML)
+			MSP,								///< NIST spectra library file format (.msp)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
 	}; //struct

@@ -70,7 +70,7 @@ namespace OpenMS
 			@brief Tries to determine the file type (by name or content)
 
 			First the type is determined from the file name.
-			It this fails, the type is determined from the file content.
+			If this fails, the type is determined from the file content.
 
 			@exception Exception::FileNotFound is thrown if the file is not present
 		*/

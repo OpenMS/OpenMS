@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML", "MSP"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -131,6 +131,10 @@ namespace OpenMS
 		else if (tmp == "TRAML")
 		{
 			return FileTypes::TRAML;
+		}
+		else if (tmp == "MSP")
+		{
+			return FileTypes::MSP;
 		}
 
 		return FileTypes::UNKNOWN;
@@ -253,7 +257,19 @@ namespace OpenMS
 
 		//traML (all lines)
 		if (all_simple.hasSubstring("<TraML")) return FileTypes::TRAML;
-		
+	
+		//MSP (all lines)
+		for (Size i = 0; i != file.size(); ++i)
+		{
+			if (file[i].hasPrefix("Name: ") && file[i].hasSubstring("/"))
+			{
+				return FileTypes::MSP;
+			}
+			if (file[i].hasPrefix("Num peaks: "))
+			{
+				return FileTypes::MSP;
+			}
+		}
 
 		//tokenize lines two to five
 		vector<String> parts;
