@@ -64,6 +64,7 @@ using namespace std;
 	- consensusXML
 		- filter by size (number of elements in consensus features)
 
+	@todo add tests for selecting modes (port remove modes) (Andreas)
 	@improvement MS2 and higher spectra should be filtered according to precursor m/z and RT. The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
 
 	<B>The command line parameters of this tool are:</B>
@@ -103,7 +104,12 @@ class TOPPFileFilter
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
+      registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 			
+			addEmptyLine_();
+			addText_("Remove spectra: ");
+			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
+
 			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
 			StringList mode_list;
 			for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
@@ -111,7 +117,7 @@ class TOPPFileFilter
 				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
 			}
 			setValidStrings_("remove_mode",mode_list);
-
+			addEmptyLine_();
 			registerStringOption_("remove_activation","<activation>","","Remove MSn scans where any of its precursors features a certain activation method\n",false);
 			StringList activation_list;
 			for (Size i=0; i<Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
@@ -119,9 +125,16 @@ class TOPPFileFilter
 				activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
 			}
 			setValidStrings_("remove_activation",activation_list);
-			
-			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
-      registerFlag_("sort_peaks","sorts the peaks according to m/z.");
+			addEmptyLine_();
+
+			addText_("Select spectra (remove all others):");
+			registerFlag_("select_zoom", "Select zoom (enhanced resolution) scans");
+			registerStringOption_("select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
+      setValidStrings_("select_mode", mode_list);
+			registerStringOption_("select_activation", "<activation>", "", "Select MSn scans where any of its percursors features a certain activation method\n", false);
+      setValidStrings_("select_activation", activation_list);
+			addEmptyLine_();
+
 
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
@@ -256,6 +269,24 @@ class TOPPFileFilter
   				}
   			}
 
+        //select by scan mode (might be a lot of spectra)
+        bool select_mode = setByUser_("select_mode");
+        writeDebug_(String("Select by mode: ") + String(rem_mode),3);
+        if (select_mode)
+        {
+          String mode = getStringOption_("select_mode");
+          writeDebug_(String("Selecting mode: ") + mode,3);
+          for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+          {
+            if (InstrumentSettings::NamesOfScanMode[i]==mode)
+            {
+              exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
+            }
+          }
+        }
+	
+
+
   			//remove by activation mode (might be a lot of spectra)
   			bool rem_activation = setByUser_("remove_activation");
   			writeDebug_(String("Remove scans with activation mode: ") + String(rem_activation),3);
@@ -271,6 +302,22 @@ class TOPPFileFilter
   					}
   				}
   			}
+
+				//select by activation mode
+				bool select_activation = setByUser_("select_activation");
+				writeDebug_(String("Selecting scans with activation mode: ") + String(select_activation), 3);
+				if (select_activation)
+				{
+					String mode = getStringOption_("select_activation");
+					writeDebug_(String("Selecting scans with activation mode: ") + mode, 3);
+					for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+					{
+						if (Precursor::NamesOfActivationMethod[i] == mode)
+						{
+							exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(mode),true)), exp.end());
+						}
+					}
+				}
 				
 
 				//remove zoom scans (might be a lot of spectra)
@@ -279,6 +326,12 @@ class TOPPFileFilter
   				writeDebug_("Removing zoom scans",3);
   				exp.erase(remove_if(exp.begin(), exp.end(),IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
   			}
+
+				if (getFlag_("select_zoom"))
+				{
+					writeDebug_("Selecting zoom scans", 3);
+					exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
+				}
 
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
