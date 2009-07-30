@@ -96,10 +96,6 @@ class TOPPSemanticValidator
 
 		// mzIdentML uses different namespaces, so we need a different tag name
 		FileTypes::Type file_type = FileHandler::getType(in_file);
- 		if (file_type == FileTypes::MZIDENTML || file_type == FileTypes::GELML)
-		{ 	 
-			semantic_validator.setTag("pf:cvParam");
-		}
 
 		StringList errors, warnings;
 
