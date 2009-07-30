@@ -27,6 +27,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -49,7 +50,13 @@ namespace OpenMS
 	{
 		setModifications(fixed_modifications, variable_modifications);
 	}
-	
+
+	ModificationDefinitionsSet::ModificationDefinitionsSet(const StringList& fixed_modifications, const StringList& variable_modifications)
+		: max_mods_per_peptide_(0)
+	{
+		setModifications(fixed_modifications, variable_modifications);
+	}
+
 	ModificationDefinitionsSet::~ModificationDefinitionsSet()
 	{
 	}
@@ -113,18 +120,18 @@ namespace OpenMS
 
 	void ModificationDefinitionsSet::setModifications(const String& fixed_modifications, const String& variable_modifications)
 	{
+		setModifications(StringList::create(fixed_modifications), StringList::create(variable_modifications));
+	}
+
+
+	void ModificationDefinitionsSet::setModifications(const StringList& fixed_modifications, const StringList& variable_modifications)
+	{
 		fixed_mods_.clear();
 		variable_mods_.clear();
 
-		if (fixed_modifications != "")
+		if (fixed_modifications.size() != 0)
 		{
-			vector<String> split;
-			fixed_modifications.split(',', split);
-			if (split.size() == 0)
-			{
-				split.push_back(fixed_modifications);
-			}
-			for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+			for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
 			{
 				ModificationDefinition def;
 				def.setModification(*it);
@@ -132,15 +139,10 @@ namespace OpenMS
 				fixed_mods_.insert(def);
 			}
 		}
-		if (variable_modifications != "")
+
+		if (variable_modifications.size() != 0)
 		{
-			vector<String> split;
-			variable_modifications.split(',', split);
-			if (split.size() == 0)
-			{
-				split.push_back(variable_modifications);
-			}
-			for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+			for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
 			{
 				ModificationDefinition def;
 				def.setModification(*it);
@@ -214,6 +216,82 @@ namespace OpenMS
 			max_mods_per_peptide_ = rhs.max_mods_per_peptide_;
 		}
 		return *this;
+	}
+
+	bool ModificationDefinitionsSet::isCompatible(const AASequence& peptide) const
+	{
+		set<String> var_names(getVariableModificationNames()), fixed_names(getFixedModificationNames());
+		// no modifications present and needed
+		if (fixed_names.size() == 0 && !peptide.isModified())
+		{
+			return true;
+		}
+
+		// check whether the fixed modifications are fulfilled
+		if (fixed_names.size() != 0)
+		{
+			for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
+			{
+				String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
+				// only single 1lc amino acids are allowed
+				if (origin.size() != 1)
+				{
+					continue;
+				}
+				for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
+				{
+					if (origin == it2->getOneLetterCode())
+					{
+						// check whether the residue is modified (has to be)
+						if (!it2->isModified())
+						{
+							return false;
+						}
+						// check whether the modification is the same
+						if (*it1 != it2->getModification())
+						{
+							return false;
+						}
+					}
+				}
+			}
+		}
+		
+		// check wether other modifications than the variable are present
+		for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it)
+		{
+			if (it->isModified())
+			{
+				String mod = it->getModification();
+				if (var_names.find(mod) == var_names.end() &&
+						fixed_names.find(mod) == fixed_names.end())
+				{
+					return false;
+				}
+			}
+		}
+
+		if (peptide.hasNTerminalModification())
+		{
+			String mod = peptide.getNTerminalModification();
+			if (var_names.find(mod) == var_names.end() &&
+					fixed_names.find(mod) == fixed_names.end())
+			{
+				return false;
+			}
+		}
+
+		if (peptide.hasCTerminalModification())
+		{
+			String mod = peptide.getCTerminalModification();
+			if (var_names.find(mod) == var_names.end() &&
+					fixed_names.find(mod) == fixed_names.end())
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	bool ModificationDefinitionsSet::operator == (const ModificationDefinitionsSet& rhs) const

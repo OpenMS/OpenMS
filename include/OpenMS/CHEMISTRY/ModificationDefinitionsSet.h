@@ -31,7 +31,9 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <set>
 
@@ -60,6 +62,9 @@ namespace OpenMS
 
 			/// detailed constructor with comma separated list of modifications
 			ModificationDefinitionsSet(const String& fixed_modifications, const String& variable_modifications = "");
+
+			/// detailed constructor with StringLists 
+			ModificationDefinitionsSet(const StringList& fixed_modifications, const StringList& variable_modifications = StringList::create(""));
 			
 			/// destructor
 			virtual ~ModificationDefinitionsSet();
@@ -96,6 +101,9 @@ namespace OpenMS
 					definitions and other specific definitions are given by the modifications themselves.
 			*/
 			void setModifications(const String& fixed_modifications, const String& variable_modifications);
+		
+			/// same as above, but using StringList instead of comma separated strings
+			void setModifications(const StringList& fixed_modifications, const StringList& variable_modifications);
 			
 			/// returns the stored modification definitions
 			std::set<ModificationDefinition> getModifications() const;
@@ -126,6 +134,9 @@ namespace OpenMS
 			/** @name Predicates
 			*/
 			//@{
+			/// returns true if the peptide is compatible with the definitions, e.g. does not contain other modifications
+			bool isCompatible(const AASequence& peptide) const;
+
 			/// equality operator
 			bool operator == (const ModificationDefinitionsSet& rhs) const;
 
