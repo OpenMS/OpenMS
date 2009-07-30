@@ -212,8 +212,10 @@ namespace OpenMS {
     SimCoordinateType rt_end = elutionmodel->getInterpolation().supportMax();
     SimCoordinateType mz_start = isomodel->getInterpolation().supportMin();
     SimCoordinateType mz_end = isomodel->getInterpolation().supportMax();
-    std::cout << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:min")-rt_start) << " - " << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:max")-rt_end) << "\n";
-		std::cout <<  mz_start << " - " << mz_end << " [mz] \n";
+    
+    // TODO: the output of this should be evaluated (something's going wrong in the elutionmodel)
+    //std::cout << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:min")-rt_start) << " - " << ((DoubleReal)elutionmodel->getParameters().getValue("bounding_box:max")-rt_end) << "\n";
+		//std::cout <<  mz_start << " - " << mz_end << " [mz] \n";
 		    
     // add peptide to global MS map
     samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, active_feature);
@@ -224,15 +226,9 @@ namespace OpenMS {
 																										const SimCoordinateType mz_start,  const SimCoordinateType mz_end,
 																										MSSimExperiment & experiment, Feature & active_feature)
   {
-    // start and end points of the sampling are entirely arbitrary
-    // and should be modified at some point
-
-    // (cg) commented this out since it cuts off fronted elution profiles!!
-    // (ost) Why should this happen ?
-
     SimIntensityType intensity_sum = 0.0;
 
-    std::cout << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
+    //std::cout << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
 
     /// TODO: think of better error checking
 
@@ -246,14 +242,10 @@ namespace OpenMS {
 
       if ( point.getIntensity() > 10.0)
       {
-        // add m/z and itensity error (both Gaussian distributed)
+        // add m/z and intensity error (both Gaussian distributed)
         double it_err  = gsl_ran_gaussian(rnd_gen_, (point.getIntensity() * intensity_error_stddev_ ) ) + intensity_error_mean_ ;
-
-        // this is a quick fix only, should be improved to prevent simulation of negative intensities
-        if (it_err < 0.0) it_err = fabs(it_err);
-
-        point.setIntensity( point.getIntensity( ) + it_err );
-
+        point.setIntensity( std::max(0., point.getIntensity( ) + it_err) );
+				
         double mz_err = gsl_ran_gaussian(rnd_gen_, mz_error_stddev_) + mz_error_mean_;
         point.setMZ( point.getMZ() + mz_err );
 
@@ -278,10 +270,9 @@ namespace OpenMS {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
 
+    //std::cout << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimIntensityType intensity_sum = 0.0;
-    std::cout << "Sampling at [RT] " << rt_start << ":" << rt_end << " [mz] " << mz_start << ":" << mz_end << std::endl;
-
     SimPointType point;
     vector< DPosition<2> > points;
     

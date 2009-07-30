@@ -223,7 +223,7 @@ namespace OpenMS {
 				// assumption: each basic residue can hold one charged adduct
 				Map<Compomer, UInt> charge_states;
 	      
-				// sample different charge states (dice for each molecule separately)
+				// sample different charge states (dice for each peptide molecule separately)
 				for(Int j = 0; j < abundance ; ++j)
 				{
 					// currently we might also loose some molecules here (which is ok?)
@@ -261,6 +261,7 @@ namespace OpenMS {
 				if (charge_states_sorted.size()==0) 
 				{
 					++uncharged_feature_count;
+					std::cout << "  not ionized: " << feature_it -> getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << "\n";
 					continue;
 				}
 

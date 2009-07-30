@@ -349,7 +349,7 @@ namespace OpenMS
 						RTSimulation rt_sim(random_generator);
 						rt_sim.setParameters(rt_param);
 						std::vector<DoubleReal> rts;
-						rt_sim.predictRT(peptide_sequences,rts);
+						rt_sim.wrapSVM(peptide_sequences,rts);
 						
 						for(Size index2 = 0; index2 < rts.size();++index2)
 							{

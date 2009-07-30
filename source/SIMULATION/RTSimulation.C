@@ -39,6 +39,59 @@ namespace OpenMS {
   /// class constants
   const DoubleReal RTSimulation::gradient_front_offset_ = 400.0;
   const DoubleReal RTSimulation::gradient_total_offset_ = 800.0;  
+
+	/// PKA values as given in Rickard1991
+	void RTSimulation::getChargeContribution_(Map< String, double> & q_cterm, 
+																	 Map< String, double> & q_nterm,
+																	 Map< String, double> & q_aa_basic,
+																	 Map< String, double> & q_aa_acidic)
+	{
+		// the actual constants from the paper:
+		String aas = "ARNDCQEGHILKMFPSTWYVBZ";
+		const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
+		const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20,8.20,8.20,8.20,8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
+
+		String aa_basic = "HRK";
+		double aa_basic_pkas[] = {6.20, 12.50, 10.30};
+
+		String aa_acidic = "DECY";
+		double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
+
+		// clear target structures
+		q_cterm.clear();
+		q_nterm.clear();
+		q_aa_basic.clear();
+		q_aa_acidic.clear();
+		
+		// get params
+		DoubleReal ph = param_.getValue("CE:pH");
+
+		// calculate charges according to constants and conditions:
+		
+		// C&N term
+		for (Size i = 0; i<aas.size(); ++i)
+		{
+			q_nterm[aas[i]] = + 1/( 1+std::pow(10, +ph - nterm_pkas[i] ));
+			q_cterm[aas[i]] = - 1/( 1+std::pow(10, -ph + cterm_pkas[i] ));
+		}
+		
+		// basic AA's
+		for (Size i = 0; i<aa_basic.size(); ++i)
+		{
+			q_aa_basic[aa_basic[i]]   = + 1/( 1+std::pow(10, +ph - aa_basic_pkas[i] ));
+		}
+
+		// acidic AA's
+		for (Size i = 0; i<aa_acidic.size(); ++i)
+		{
+			q_aa_acidic[aa_acidic[i]] = - 1/( 1+std::pow(10, -ph + aa_acidic_pkas[i] ));
+		}
+		// add values for ambigous AA according to dayhoff frequencies
+		q_aa_acidic["B"] = q_aa_acidic["D"]*(5.5/(5.5+4.3)) + 0*(4.3/(5.5+4.3)); // D~5.5; N~4.3
+		q_aa_acidic["Z"] = q_aa_acidic["E"]*(6.0/(6.0+3.9)) + 0*(3.9/(6.0+3.9)); // E~6.0; Q~3.9
+
+	}
+
   
   RTSimulation::RTSimulation(const gsl_rng * random_generator)
     : DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
@@ -72,17 +125,9 @@ namespace OpenMS {
    */
   void RTSimulation::predictRT(FeatureMapSim & features, MSSimExperiment & experiment)
   {
-    createExperiment_(experiment);
 
-    if (isRTColumnOn())
-    {
-      predictFeatureRT_(features);
-    }
-    else
-    {
-      noRTColumn_(features);
-    }
-
+    predictFeatureRT_(features);
+      
     for(FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
         ++it_f)
     {
@@ -91,6 +136,12 @@ namespace OpenMS {
       it_f->setMetaValue("rt_symmetry", symmetry);
       it_f->setMetaValue("rt_width", width);
     }
+		
+		Size number_of_scans = number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
+		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
+     
+    createExperiment_(experiment, number_of_scans);
+
   }
 
   void RTSimulation::noRTColumn_(FeatureMapSim & features)
@@ -102,8 +153,149 @@ namespace OpenMS {
     }
   }
 
+  /**
+   @brief Gets a feature map containing the peptides and predicts for those the retention times
+   */
+  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
+  {
+    vector< DoubleReal>  predicted_retention_times;
+		bool is_relative;
+    if (param_.getValue("rt_column") == "none")
+    {
+			noRTColumn_(features);
+			return;
+		}
+		// CE or HPLC:
+		else if (param_.getValue("rt_column") == "CE")
+		{
+			calculateMT_(features, predicted_retention_times);
+			is_relative = (param_.getValue("CE:auto_scale")=="true");
+		}
+		if (param_.getValue("rt_column") == "HPLC")
+		{
+			vector< String > peptides_vector(features.size());
+			for (Size i = 0; i < features.size(); ++i)
+			{
+				peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+			}
+			is_relative = true;
+			wrapSVM(peptides_vector, predicted_retention_times);
+		}	
+    
+    // scaling used when removing invalid RT predictions
+		DoubleReal RT_scale = is_relative ? gradient_time_ : 1;
+		
+    // rt error dicing
+    SimCoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
+    SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      
+    
+    FeatureMapSim fm_tmp (features);
+    fm_tmp.clear();
+    StringList deleted_features;
+    for (Size i = 0; i < predicted_retention_times.size(); ++i)
+    {
+      // remove invalid peptides & (later) display removed ones 
+      if ((predicted_retention_times[i] < 0.0) || (predicted_retention_times[i]*RT_scale > gradient_time_))
+      {
+				deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString());
+				continue;
+      }
 
-	void RTSimulation::predictRT(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)
+      // predicted_retention_times[i] ->  needs scaling onto the column     
+      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
+
+      // relative -> absolute RT's (with border)
+      if (is_relative)
+      {
+	      predicted_retention_times[i] = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradient_time_ - RTSimulation::gradient_total_offset_));
+	    }
+
+      //std::cout << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
+      
+      features[i].setRT(predicted_retention_times[i] + rt_error);
+			fm_tmp.push_back(features[i]);
+      
+    } 
+    
+    // print invalid features:
+    std::cout << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptides, making them unobservable.\n";
+    std::cout << "  " << deleted_features.concatenate("\n  ") << "\n";
+
+    // only retain valid features:	
+    features.swap(fm_tmp);
+    
+    features.sortByPosition();
+    features.updateRanges ();
+    
+  }
+  
+  void RTSimulation::calculateMT_(const FeatureMapSim & features, std::vector<DoubleReal>& predicted_retention_times)
+  {
+		Map< String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
+		getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
+		
+		DoubleReal alpha = param_.getValue("CE:alpha");
+		
+		DoubleReal c = (DoubleReal)param_.getValue("CE:lenght_d") * (DoubleReal)param_.getValue("CE:length_total") / (DoubleReal)param_.getValue("CE:voltage");
+
+		predicted_retention_times.resize(features.size());
+		
+		for (Size i = 0; i < features.size(); ++i)
+		{
+			String seq = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+			
+			// ** determine charge of peptide ** 
+			
+			DoubleReal charge = 0;	
+			// C&N term charge contribution
+			if (q_nterm.has(seq[0])) charge +=  q_nterm[seq[0]];
+			if (q_cterm.has(seq.substr(-1))) charge +=  q_cterm[seq.substr(-1)];
+			
+			// sidechains ...
+			Map< String, Size > frequency_table;
+			features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies (frequency_table);
+			for (Map< String, Size >::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
+			{
+				if (q_aa_basic.has(it->first)) charge +=  q_aa_basic[it->first] * it->second;
+				if (q_aa_acidic.has(it->first)) charge +=  q_aa_acidic[it->first] * it->second;
+			}
+	
+			// ** determine mass of peptide
+			DoubleReal mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
+	
+			// ** mobility
+			DoubleReal mu = (DoubleReal)param_.getValue("CE:mu_eo") + ( charge / std::pow(mass, alpha) );
+			
+			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)
+			
+			//std::cout << "RT: " << predicted_retention_times[i] << " q:" << charge << " mass: " << mass << "mu: " << mu << " c: " << c <<  "\n";
+	
+		}
+		
+		// ** only when Auto-Scaling is active?! ** /
+		
+		if (param_.getValue("CE:auto_scale")=="true")
+		{
+			std::vector<DoubleReal> rt_sorted(predicted_retention_times);
+			std::sort(rt_sorted.begin(), rt_sorted.end() );
+			
+			// take 95th percentile (we want to avoid that few outliers with huge MT can compress the others to a small MT range):
+			DoubleReal mt_95p = rt_sorted[rt_sorted.size()*95/100];
+			// ... assume 95% MT range at 95th percentile
+			DoubleReal range = std::max(1.0, mt_95p*100/95 - rt_sorted[0]);
+			
+			// scale MT's between 0 and 1 (except for outliers --> which will get > 1)
+			for (Size i = 0; i < features.size(); ++i)
+			{
+				predicted_retention_times[i] = (predicted_retention_times[i] - rt_sorted[0]) / range;
+			}
+		}
+
+				
+  }
+
+
+	void RTSimulation::wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)
 	{
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
@@ -115,7 +307,7 @@ namespace OpenMS {
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
     
-		std::cout << "Predicting RT..    " << endl;
+		std::cout << "Predicting RT ... ";
     
     svm.loadModel(rt_model_file_);
     
@@ -161,7 +353,7 @@ namespace OpenMS {
     rts.resize(peptide_sequences.size(), 0);
     prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptide_sequences, rts, k_mer_length, allowed_amino_acid_characters, border_length);
     
-    // loading training data
+    // loading model data
     String sample_file = rt_model_file_ + "_samples";
     if (! File::readable( sample_file ) )
     {
@@ -172,50 +364,12 @@ namespace OpenMS {
     svm.setTrainingSample(training_data);
     svm.predict(prediction_data, predicted_retention_times);
     
-    cout << "Done." << endl;
     delete training_data;
     delete prediction_data;
-
+		
+		cout << "done" << endl;
 	}
 	
-  /**
-   @brief Gets a feature map containing the peptides and predicts for those the retention times
-   */
-  void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
-  {
-     vector<DoubleReal> predicted_retention_times;
-    // not that elegant...
-    vector< String > peptidesVector(features.size());
-
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      peptidesVector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
-    }
-		predictRT(peptidesVector,predicted_retention_times);
-		
-    /// rt error stuff
-    SimCoordinateType rt_shift_mean  = param_.getValue("rt_shift_mean");
-    SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      
-    
-    for (Size i = 0; i < peptidesVector.size(); ++i)
-    {
-      // TODO: remove those peptides + debug out removed ones??
-      if (predicted_retention_times[i] < 0.0) predicted_retention_times[i] = 0.0;
-      else if (predicted_retention_times[i] > 1.0) predicted_retention_times[i] = 1.0;
-
-      // predicted_retention_times[i] ->  needs scaling onto the column     
-      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_, rt_shift_stddev) + rt_shift_mean;
-
-      // shifting the retention time ensures that we do not have an elution profile that is
-      // cut on the minima of the map
-      SimCoordinateType retention_time = RTSimulation::gradient_front_offset_ + (predicted_retention_times[i] * (gradient_time_ - RTSimulation::gradient_total_offset_));
-
-      std::cout << predicted_retention_times[i] << ", " << features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() << ", abundance: " << features[i].getIntensity() << std::endl;
-      
-      features[i].setRT(retention_time + rt_error);
-    } 
-  }
-  
   void RTSimulation::predictContaminantsRT(FeatureMapSim & contaminants)
   {
     // iterate of feature map
@@ -229,7 +383,7 @@ namespace OpenMS {
   
   void RTSimulation::updateMembers_()
   {
-		rt_model_file_ = param_.getValue("rt_model_file");
+		rt_model_file_ = param_.getValue("HPLC:model_file");
 		if (! File::readable( rt_model_file_ ) )
     { // look in OPENMS_DATA_PATH
       rt_model_file_ = File::find( rt_model_file_ );
@@ -262,13 +416,13 @@ namespace OpenMS {
       symmetry_up_   = param_.getValue("column_condition:symmetry_up");
       symmetry_down_ = param_.getValue("column_condition:symmetry_down");
     }
-    		
+
   }
   
   void RTSimulation::setDefaultParams_() 
   {
-		defaults_.setValue("rt_column_on", "true", "Modelling of a rt column");
-    defaults_.setValidStrings("rt_column_on", StringList::create("true,false"));
+		defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
+    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
     
 		// Column settings
     defaults_.setValue("total_gradient_time",2800.0,"the duration (in seconds) of the gradient");
@@ -276,27 +430,52 @@ namespace OpenMS {
     // rt parameters
     defaults_.setValue("sampling_rate", 2.0, "Time interval (in seconds) between consecutive scans");
 
-    defaults_.setValue("rt_model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
-    
     // rt error
     defaults_.setValue("rt_shift_mean",0,"Mean shift in retention time [s]");
     defaults_.setValue("rt_shift_stddev",3,"Standard deviation of shift in retention time [s]");     
 
     // column conditions
     defaults_.setValue("column_condition:preset","medium","LC condition (none|good|medium|poor) if set to none the explicit values will be used.");
-    StringList valid_presets = StringList::create("none,good,medium,poor");
-    defaults_.setValidStrings("column_condition:preset", valid_presets);
+    defaults_.setValidStrings("column_condition:preset", StringList::create("none,good,medium,poor"));
 
     defaults_.setValue("column_condition:distortion", 1.0, "LC distortion (used only if preset is set to 'none')");
     defaults_.setValue("column_condition:symmetry_up", -60.0, "LC symmetry up (used only if preset is set to 'none')");
     defaults_.setValue("column_condition:symmetry_down", +60.0, "LC symmetry down (used only if preset is set to 'none')");
+
+    defaults_.setValue("HPLC:model_file","examples/simulation/RTPredict.model","SVM model for retention time prediction");
     
+    defaults_.setValue("CE:pH",3.0,"pH of buffer");
+    defaults_.setMinFloat("CE:pH", 0);
+    defaults_.setMaxFloat("CE:pH", 14);
+    
+    defaults_.setValue("CE:alpha",0.5,"Exponent Alpha used to calculate mobility");
+    defaults_.setMinFloat("CE:alpha", 0);
+    defaults_.setMaxFloat("CE:alpha", 1);
+
+    defaults_.setValue("CE:auto_scale","true","Scale migration times to given gradient_time automatically? (ignoring the next 4 parameters)");
+    defaults_.setValidStrings("CE:auto_scale", StringList::create("true,false"));
+
+    defaults_.setValue("CE:mu_eo",0.0,"Electroosmotic flow");
+    defaults_.setMinFloat("CE:mu_eo", 0);
+    defaults_.setMaxFloat("CE:mu_eo", 5);
+        
+    defaults_.setValue("CE:lenght_d", 70.0 ,"Lenght of capillary [cm] from injection site to MS");
+    defaults_.setMinFloat("CE:lenght_d", 0);
+    defaults_.setMaxFloat("CE:lenght_d", 1000);
+
+    defaults_.setValue("CE:length_total", 75.0 ,"Total lenght of capillary [cm]");
+    defaults_.setMinFloat("CE:length_total", 0);
+    defaults_.setMaxFloat("CE:length_total", 1000);
+    
+    defaults_.setValue("CE:voltage", 1000.0 ,"Voltage applied to capillary");
+    defaults_.setMinFloat("CE:voltage", 0);
+
 		defaultsToParam_();
   }
   
   bool RTSimulation::isRTColumnOn() const
   {
-    return (param_.getValue("rt_column_on") == "true");
+    return (param_.getValue("rt_column") != "none");
   }
   
   SimCoordinateType RTSimulation::getGradientTime() const
@@ -304,14 +483,13 @@ namespace OpenMS {
     return gradient_time_;
   }
   
-  void RTSimulation::createExperiment_(MSSimExperiment & experiment)
+  void RTSimulation::createExperiment_(MSSimExperiment & experiment, Size number_of_scans)
   {
-    std::cout << "create experiment ... ";
+    std::cout << "creating experiment with #" << number_of_scans << " scans ... ";
     experiment = MSSimExperiment();
     
     if (isRTColumnOn())
     {
-      Size number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
       experiment.resize(number_of_scans);
 
       DoubleReal current_scan_rt = rt_sampling_rate_;
@@ -323,6 +501,8 @@ namespace OpenMS {
         // dice & store distortion
         DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
+        
+        // TODO (for CE) store peak broadening parameter
         
         // TODO: smooth?!
         

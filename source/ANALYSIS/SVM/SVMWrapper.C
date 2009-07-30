@@ -401,7 +401,8 @@ namespace OpenMS
 				{
 		   		problem = computeKernelMatrix(problem, training_set_);
 				}
-  		} 
+  		}
+  		results.reserve(problem->l);
 	    for(Int i = 0; i < problem->l; i++)
 	    {
 				label = svm_predict(model_, problem->x[i]);

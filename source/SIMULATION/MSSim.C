@@ -37,10 +37,10 @@
 
 namespace OpenMS {
 
-  void verbosePrintFeatureMap(FeatureMapSim feature_map)
+  void verbosePrintFeatureMap(FeatureMapSim feature_map, String stage)
   {
 #ifdef _DEBUG
-    std::cout << "############## DEBUG -- FEATURE MAP ##############" << std::endl;
+    std::cout << "############## DEBUG (" << stage << ") -- FEATURE MAP ##############" << std::endl;
 
     std::cout << "contained proteins" << std::endl;
     ProteinIdentification protIdent = feature_map.getProteinIdentifications()[0];
@@ -135,20 +135,16 @@ namespace OpenMS {
     digest_sim.digest(features_);
 
     // debug
-    std::cout << "digested" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "digested");
 
 		// add PTM's
 		PTMSimulation ptm_sim(rnd_gen);
     
-    std::cout << param_.copy("PostTranslationalModifications:",true) << std::endl;
-		
     ptm_sim.setParameters(param_.copy("PostTranslationalModifications:",true));
 		ptm_sim.predictPTMs(features_);
 
     // debug
-    std::cout << "ptms added" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "ptms added");
 
 		// RT prediction
 		RTSimulation rt_sim(rnd_gen);
@@ -156,8 +152,7 @@ namespace OpenMS {
 		rt_sim.predictRT(features_, experiment_);
 
     // debug
-    std::cout << "rt simulated" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "RT sim done");
 
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
@@ -165,24 +160,21 @@ namespace OpenMS {
 		dt_sim.filterDetectability(features_);
 
     // debug
-    std::cout << "pd filtered" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "DT sim done");
 
     IonizationSimulation ion_sim(rnd_gen);
     ion_sim.setParameters(param_.copy("Ionization:", true));
     ion_sim.ionize(features_, consensus_map_, experiment_);
 
     // debug
-    std::cout << "ionized" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "ION sim done");
 
     RawMSSignalSimulation raw_sim(rnd_gen);
     raw_sim.setParameters(param_.copy("RawSignal:", true));
     raw_sim.generateRawSignals(features_, experiment_);
 
     // debug
-    std::cout << "ionized" << std::endl;
-    verbosePrintFeatureMap(features_);
+    verbosePrintFeatureMap(features_, "RawSignal sim done");
 
     RawTandemMSSignalSimulation raw_tandemsim(rnd_gen);
     raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));

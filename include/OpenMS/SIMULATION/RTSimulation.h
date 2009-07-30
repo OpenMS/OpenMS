@@ -32,6 +32,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
@@ -88,10 +89,13 @@ namespace OpenMS
      @brief Returns true if a RT column was simulated
      */
     bool isRTColumnOn() const;
+
+		/// Wrapper for the SVM RT Prediction (HPLC)
+		void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
+
     
     SimCoordinateType getGradientTime() const;
 
-		void predictRT(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
   private:
     /// Default constructor
     RTSimulation();
@@ -106,8 +110,15 @@ namespace OpenMS
     void predictFeatureRT_(FeatureMapSim &);
   
 		/// Size experiment and assign retention time grid
-		void createExperiment_(MSSimExperiment & experiment);
-    
+		void createExperiment_(MSSimExperiment & experiment, Size number_of_scans);
+
+		/// Wrapper for the Migration time calculation (CE)
+		void calculateMT_(const FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);
+
+		void getChargeContribution_(Map< String, double> & q_cterm, 
+															  Map< String, double> & q_nterm,
+															  Map< String, double> & q_aa_basic,
+															  Map< String, double> & q_aa_acidic);
     // MEMBERS:
     
     // Name of the svm model file

@@ -85,13 +85,13 @@ namespace OpenMS
   {
 
 		// Tandem MS params
-		defaults_.setValue("enabled", "true", "Create Tandem-MS scans?"); 
+		defaults_.setValue("enabled", "false", "Create Tandem-MS scans?"); 
 		defaults_.setValidStrings("enabled", StringList::create("true,false"));
 
 		//TODO: we should think of more ways to select precursors
-		defaults_.setValue("Precursor:ChargeFilter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation."); 
-		defaults_.setMinInt("Precursor:ChargeFilter",1);
-		defaults_.setMaxInt("Precursor:ChargeFilter",30);
+		defaults_.setValue("Precursor:charge_filter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation."); 
+		defaults_.setMinInt("Precursor:charge_filter",1);
+		defaults_.setMaxInt("Precursor:charge_filter",30);
 		defaults_.setValue("Precursor:ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
 		defaults_.setMinInt("Precursor:ms2_spectra_per_rt_bin",1);
 		
@@ -153,7 +153,7 @@ namespace OpenMS
 
 		// will hold the selected precursors
 		MSSimExperiment ms2;
-		IntList qs = (IntList) param_.getValue("Precursor:ChargeFilter");
+		IntList qs = (IntList) param_.getValue("Precursor:charge_filter");
 		std::set<Int> qs_set(qs.begin(),qs.end());
 
 		//** precursor selection **//
