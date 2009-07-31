@@ -458,6 +458,8 @@ namespace OpenMS
 			}
 			
 			save_param.setValue("edges:"+String(counter)+":source/target:", DataValue(String(te->getSourceVertex()->getID()) + "/" + String(te->getTargetVertex()->getID())));
+			save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
+			save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
 			
 			counter++;
 		}
@@ -518,7 +520,7 @@ namespace OpenMS
 					String tool_name = vertices_param.getValue(current_id + ":tool_name");
 					String tool_type = vertices_param.getValue(current_id + ":tool_type");
 					Param param_param = vertices_param.copy(current_id + ":parameters:", true);
-					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
+					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
 					tv->setParam(param_param);
 					current_vertex = tv;
 				}
@@ -536,6 +538,12 @@ namespace OpenMS
 					current_vertex->setID((UInt)(current_id.toInt()));
 					
 					addVertex(current_vertex);
+					
+					connect(current_vertex,SIGNAL(clicked()),this,SLOT(itemClicked()));
+					connect(current_vertex,SIGNAL(doubleClicked()),this,SLOT(itemDoubleClicked()));
+					connect(current_vertex,SIGNAL(hoveringEdgePosChanged(const QPointF&)),this,SLOT(updateHoveringEdgePos(const QPointF&)));
+					connect(current_vertex,SIGNAL(newHoveringEdge(const QPointF&)),this,SLOT(addHoveringEdge(const QPointF&)));
+					connect(current_vertex,SIGNAL(finishHoveringEdge()),this,SLOT(finishHoveringEdge()));
 					
 					if (index >= vertex_vector.size())
 					{
@@ -588,10 +596,16 @@ namespace OpenMS
       	edge->setTargetVertex(tv_2);
       	tv_1->addOutEdge(edge);
       	tv_2->addInEdge(edge);
-      	
+      	edge->determineEdgeType();	
       	addEdge(edge);
+      	
+      	int source_out_param = (++it)->value;
+      	int target_in_param = (++it)->value;
+      	edge->setSourceOutParam(source_out_param);
+      	edge->setTargetInParam(target_in_param);
       }
     }
+    updateEdgeColors();
   }
 
 	
