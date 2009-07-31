@@ -215,7 +215,7 @@ namespace OpenMS {
       features[i].setRT(predicted_retention_times[i] + rt_error);
 			fm_tmp.push_back(features[i]);
       
-    } 
+    }
     
     // print invalid features:
     std::cout << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptides, making them unobservable.\n";
@@ -235,8 +235,8 @@ namespace OpenMS {
 		getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
 		
 		DoubleReal alpha = param_.getValue("CE:alpha");
-		
-		DoubleReal c = (DoubleReal)param_.getValue("CE:lenght_d") * (DoubleReal)param_.getValue("CE:length_total") / (DoubleReal)param_.getValue("CE:voltage");
+		bool auto_scale = (param_.getValue("CE:auto_scale")=="true");
+		DoubleReal c = (auto_scale ? 1 : (DoubleReal)param_.getValue("CE:lenght_d") * (DoubleReal)param_.getValue("CE:length_total") / (DoubleReal)param_.getValue("CE:voltage"));
 
 		predicted_retention_times.resize(features.size());
 		
@@ -264,7 +264,7 @@ namespace OpenMS {
 			DoubleReal mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
 	
 			// ** mobility
-			DoubleReal mu = (DoubleReal)param_.getValue("CE:mu_eo") + ( charge / std::pow(mass, alpha) );
+			DoubleReal mu = (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo")) + ( charge / std::pow(mass, alpha) );
 			
 			predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)
 			
@@ -272,9 +272,8 @@ namespace OpenMS {
 	
 		}
 		
-		// ** only when Auto-Scaling is active?! ** /
-		
-		if (param_.getValue("CE:auto_scale")=="true")
+		// ** only when Auto-Scaling is active ** /
+		if (auto_scale)
 		{
 			std::vector<DoubleReal> rt_sorted(predicted_retention_times);
 			std::sort(rt_sorted.begin(), rt_sorted.end() );
@@ -485,7 +484,7 @@ namespace OpenMS {
   
   void RTSimulation::createExperiment_(MSSimExperiment & experiment, Size number_of_scans)
   {
-    std::cout << "creating experiment with #" << number_of_scans << " scans ... ";
+    std::cout << "Creating experiment with #" << number_of_scans << " scans ... ";
     experiment = MSSimExperiment();
     
     if (isRTColumnOn())

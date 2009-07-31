@@ -97,7 +97,7 @@ START_SECTION(( void predictRT(FeatureMapSim & features, MSSimExperiment & exper
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
   Param p = no_rt_sim.getParameters();
-  p.setValue("rt_column_on","false");
+  p.setValue("rt_column","none");
   p.setValue("total_gradient_time",4000.0);
   no_rt_sim.setParameters(p);  
 
@@ -126,9 +126,9 @@ START_SECTION(( void predictRT(FeatureMapSim & features, MSSimExperiment & exper
   // no rt scan
   RTSimulation svm_rt_sim(rnd_gen);
   Param svm_params = svm_rt_sim.getParameters();
-  svm_params.setValue("rt_column_on","true");
+  svm_params.setValue("rt_column","HPLC");
   svm_params.setValue("total_gradient_time",4000.0);
-  svm_params.setValue("rt_model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"));
+  svm_params.setValue("HPLC:model_file",OPENMS_GET_TEST_DATA_PATH("RTSimulation.svm"));
   svm_params.setValue("rt_shift_mean", 0);
   svm_params.setValue("rt_shift_stddev", 50);
   
@@ -149,21 +149,18 @@ START_SECTION(( void predictRT(FeatureMapSim & features, MSSimExperiment & exper
   MSSimExperiment experiment_rt;  
   svm_rt_sim.predictRT(svm_rt_features, experiment_rt);
   
-  TEST_EQUAL(svm_rt_features.size(), 4)
+  TEST_EQUAL(svm_rt_features.size(), 3)
   
   // TODO: check why these are different now & test MSExperiment generation
   //TEST_REAL_SIMILAR(svm_rt_features[0].getRT(), 1597.44)
-  TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
+  TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
 
   //TEST_REAL_SIMILAR(svm_rt_features[1].getRT(), 406.6)
-  TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKHHACAC")
+  TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
   
   //TEST_REAL_SIMILAR(svm_rt_features[2].getRT(), 1151.26)
-  TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
+  TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
   
-  //TEST_REAL_SIMILAR(svm_rt_features[3].getRT(), 832.56)
-  TEST_EQUAL(svm_rt_features[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
-
   /*
   for(FeatureMapSim::const_iterator fIt = svm_rt_features.begin(); fIt != svm_rt_features.end();
       ++fIt)
@@ -185,12 +182,12 @@ START_SECTION((bool isRTColumnOn() const ))
   RTSimulation rt_sim(NULL);
 
   Param p = rt_sim.getParameters();
-  p.setValue("rt_column_on","true");
+  p.setValue("rt_column","HPLC");
   rt_sim.setParameters(p);  
   
   TEST_EQUAL(rt_sim.isRTColumnOn(), true);
   
-  p.setValue("rt_column_on","false");
+  p.setValue("rt_column","none");
   rt_sim.setParameters(p);  
   
   TEST_EQUAL(rt_sim.isRTColumnOn(), false);
