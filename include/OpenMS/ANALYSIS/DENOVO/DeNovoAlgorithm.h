@@ -71,4 +71,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_DENOVOALGORITHM_H
+#endif // OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H
