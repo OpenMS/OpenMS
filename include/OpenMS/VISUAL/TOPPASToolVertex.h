@@ -86,8 +86,6 @@ namespace OpenMS
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
-			/// Runs the tool
-			void compute();
 			/// Returns whether this node has already been processed during the current pipeline execution
 			bool isFinished();
 			/// Set whether this node has already been processed during the current pipeline execution
@@ -96,6 +94,15 @@ namespace OpenMS
 			void setParam(const Param& param);
 			/// Returns the Param object of this tool
 			const Param& getParam();
+			/// Starts the pipeline execution recursively
+			void runRecursively();
+			/// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
+			void runToolIfInputReady();
+		
+		public slots:
+		
+			/// Called when the execution of this tool has finished
+			void executionFinished(int ec, QProcess::ExitStatus es);
 			
 		protected:
 		

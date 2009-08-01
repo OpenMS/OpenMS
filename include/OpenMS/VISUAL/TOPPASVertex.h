@@ -34,6 +34,7 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QGraphicsSceneMouseEvent>
 #include <QtGui/QGraphicsItem>
+#include <QtCore/QProcess>
 
 namespace OpenMS
 {

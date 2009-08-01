@@ -32,6 +32,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
@@ -303,25 +305,48 @@ namespace OpenMS
 		return type_;
 	}
 	
-	void TOPPASToolVertex::compute()
+	void TOPPASToolVertex::runRecursively()
 	{
+		bool we_depend_on_other_tools = false;
+		// recursive execution of all parent nodes that are tools
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (tv && !(tv->isFinished()))
+			if (tv)
 			{
-				tv->compute();
+				we_depend_on_other_tools = true;
+				tv->runRecursively();
+			}
+		}
+		if (!we_depend_on_other_tools)
+		{
+			// start actual pipeline execution here
+			runToolIfInputReady();
+		}
+	}
+	
+	void TOPPASToolVertex::runToolIfInputReady()
+	{
+		//check if everything ready
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+			if (tv && !tv->isFinished())
+			{
+				// some tool that we depend on has not finished execution yet --> do not start yet
+				return;
 			}
 		}
 		
-		// all inputs ready now --> write param to ini file and run tool
+		// all inputs are ready --> GO!
 		String ini_file_name = tmp_path_+"TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + ".ini";
 		param_.store(ini_file_name);
 		
-		String call = name_+" -ini "+ini_file_name+" -log "+ini_file_name+".log";
+		QStringList args;
+		args << "-ini" << ini_file_name.toQString();
 		if (type_ != "")
 		{
-			call += " -type "+type_;
+			args << "-type" << type_.toQString();
 		}
 		
 		// add all input file parameters
@@ -335,7 +360,7 @@ namespace OpenMS
 				std::cerr << "blub" << std::endl;
 				continue;
 			}
-			call += " -" + in_params[param_index].param_name;
+			args << "-"+(in_params[param_index].param_name).toQString();
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 			if (tv)
 			{
@@ -345,19 +370,19 @@ namespace OpenMS
 					std::cerr << "blub" << std::endl;
 					continue;
 				}
-				call += " " + String(tv->output_file_names_[out_param_index].join(" "));
+				args << tv->output_file_names_[out_param_index];
 				continue;
 			}
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
 			if (ifv)
 			{
-				call += " " + String(ifv->getFilename());
+				args << ifv->getFilename();
 				continue;
 			}
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 			if (iflv)
 			{
-				call += " " + String(iflv->getFilenames().join(" "));
+				args << iflv->getFilenames();
 				continue;
 			}
 		}
@@ -377,7 +402,7 @@ namespace OpenMS
 				std::cerr << "blub" << std::endl;
 				continue;
 			}
-			call += " -" + out_params[param_index].param_name;
+			args << "-"+(out_params[param_index].param_name).toQString();
 			
 			if (out_params[param_index].param_name == "out" && out_params[param_index].type == IOInfo::IOT_LIST)
 			{
@@ -387,25 +412,67 @@ namespace OpenMS
 				{
 					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
 				}
-				call += " " + String(output_file_names_[param_index].join(" "));
+				args << output_file_names_[param_index];
 			}
 			else if (out_params[param_index].type == IOInfo::IOT_FILE)
 			{
 				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
-				call += " " + String(output_file_names_[param_index].join(" "));
+				args << output_file_names_[param_index];
 			}
 			else // IOT_LIST
 			{
 				std::cerr << "I don't know what to do in this situation, yet." << std::endl;
+				// merge into above case...
 			}
 		}
 		
-		if(system(call.c_str())!=0)
+		//start log and show it
+		//showLogMessage_(TOPPASBase::LS_NOTICE,"Starting TOPP tool","");// tool + args.join(" "));
+		//TODO emit signal instead
+		
+		//start process
+		QProcess* p = new QProcess();
+		p->setProcessChannelMode(QProcess::MergedChannels);
+		// connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog())); TODO do something else with this..
+		connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
+		
+		//start process
+		p->start(name_.toQString(), args);
+		//topp_.process->waitForStarted();
+	}
+	
+	void TOPPASToolVertex::executionFinished(int /*ec*/, QProcess::ExitStatus es)
+	{
+		if (es != QProcess::NormalExit)
 		{
-			QMessageBox::critical(0,"Error",("Something went wrong!\n\nCheck the log file " + ini_file_name + ".log for possible reasons. If it does not exist, make sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
+			// TODO: check ec and so on..
+			std::cerr << "TOPP tool execution failed !!!" << std::endl;
+			return;
 		}
 		
 		finished_ = true;
+		// notify all childs that we are finished
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getTargetVertex());
+			if (tv)
+			{
+				tv->runToolIfInputReady();
+				continue;
+			}
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>((*it)->getTargetVertex());
+			if (ofv)
+			{
+				ofv->finished();
+				continue;
+			}
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>((*it)->getTargetVertex());
+			if (oflv)
+			{
+				oflv->finished();
+				continue;
+			}
+		}
 	}
 	
 	bool TOPPASToolVertex::isFinished()

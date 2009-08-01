@@ -116,7 +116,7 @@ namespace OpenMS
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 			if (ttv)
 			{
-				ttv->compute();
+				ttv->runRecursively();
 			}
 		}
 	}
@@ -124,6 +124,12 @@ namespace OpenMS
 	const QStringList& TOPPASOutputFileListVertex::getFilenames()
 	{
 		return files_;
+	}
+	
+	void TOPPASOutputFileListVertex::finished()
+	{
+		// TODO: rename tmp file to proper output file
+		// TODO: FIRST: forbid ofvs and oflvs to have more than 1 input !!! (makes no sense)
 	}
 	
 }
