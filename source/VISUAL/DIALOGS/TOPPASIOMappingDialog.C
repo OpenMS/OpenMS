@@ -90,6 +90,10 @@ namespace OpenMS
 				
 				source_combo->addItem(item_name.toQString());
 			}
+			if (source_combo->count() == 2) // only 1 parameter
+			{
+				source_combo->setCurrentIndex(1);
+			}
 		}
 		else if (edge_->getEdgeType() == TOPPASEdge::ET_FILE_TO_TOOL)
 		{
@@ -127,7 +131,7 @@ namespace OpenMS
 				for (TOPPASVertex::EdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
 				{
 					int param_index = (*it)->getTargetInParam();
-					if (param_index >= 0)
+					if (*it != edge_ && param_index >= 0)
 					{
 						if (info.param_name == target_input_files[param_index].param_name)
 						{
@@ -156,6 +160,10 @@ namespace OpenMS
 				item_name += ss.str();
 				
 				target_combo->addItem(item_name.toQString());
+			}
+			if (target_combo->count() == 2) // only 1 parameter
+			{
+				target_combo->setCurrentIndex(1);
 			}
 		}
 		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_FILE)
