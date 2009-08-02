@@ -244,11 +244,13 @@ namespace OpenMS
 				}
 				else
 				{
-					std::cerr << "this should not happen\n" << std::endl;
+					std::cerr << "Unexpected parameter value!" << std::endl;
 				}
 				io_infos.push_back(io_info);
 			}
 		}
+		// order in param can change --> sort
+		qSort(io_infos);
 	}
 
 	void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -343,7 +345,9 @@ namespace OpenMS
 		param_.store(ini_file_name);
 		
 		QStringList args;
-		args << "-ini" << ini_file_name.toQString();
+		args	<< "-ini"
+					<< ini_file_name.toQString()
+					<< "-no_progress";
 		if (type_ != "")
 		{
 			args << "-type" << type_.toQString();
@@ -351,13 +355,14 @@ namespace OpenMS
 		
 		// add all input file parameters
 		QVector<IOInfo> in_params;
+		int in_list_element_count = -1; // needed for the hack below
 		getInputParameters(in_params);
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			int param_index = (*it)->getTargetInParam();
 			if (param_index < 0)
 			{
-				std::cerr << "blub" << std::endl;
+				std::cerr << "Input parameter index out of bounds!" << std::endl;
 				continue;
 			}
 			args << "-"+(in_params[param_index].param_name).toQString();
@@ -367,10 +372,17 @@ namespace OpenMS
 				int out_param_index = (*it)->getSourceOutParam();
 				if (out_param_index < 0)
 				{
-					std::cerr << "blub" << std::endl;
+					std::cerr << "Output parameter index out of bounds!" << std::endl;
 					continue;
 				}
 				args << tv->output_file_names_[out_param_index];
+				
+				if (in_params[param_index].param_name == "in")
+				{
+					//store number of elements of the "in" list
+					in_list_element_count = tv->output_file_names_[out_param_index].count();
+				}
+				
 				continue;
 			}
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
@@ -383,6 +395,13 @@ namespace OpenMS
 			if (iflv)
 			{
 				args << iflv->getFilenames();
+				
+				if (in_params[param_index].param_name == "in")
+				{
+					//store number of elements of the "in" list
+					in_list_element_count = (iflv->getFilenames()).count();
+				}
+				
 				continue;
 			}
 		}
@@ -392,37 +411,39 @@ namespace OpenMS
 		getOutputParameters(out_params);
 		
 		output_file_names_.clear();
-		output_file_names_.resize(out_params.size()); // TODO: better solution?
+		output_file_names_.resize(out_params.size());
 		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			int param_index = (*it)->getSourceOutParam();
 			if (param_index < 0)
 			{
-				std::cerr << "blub" << std::endl;
+				std::cerr << "Output parameter index out of bounds!" << std::endl;
 				continue;
 			}
 			args << "-"+(out_params[param_index].param_name).toQString();
 			
-			if (out_params[param_index].param_name == "out" && out_params[param_index].type == IOInfo::IOT_LIST)
+			if (out_params[param_index].type == IOInfo::IOT_FILE)
 			{
-				// TODO think about how to determine number of output arguments for output params with list type!
-				// for now, use this workaround for "out" (as many as for "in")... what about the others?!
-				for (int i = 0; i < in_params.size(); ++i)
+				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+				args << output_file_names_[param_index];
+			}
+			else if (out_params[param_index].type == IOInfo::IOT_LIST && in_list_element_count != -1)
+			{
+				// HACK: for all output parameters with list type, we expect
+				// the number of elements to be the same as the number of
+				// elements of the "in" input list (thus, we also assume that there is
+				// an input parameter "in" with list type)
+				for (int i = 0; i < in_list_element_count; ++i)
 				{
 					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
 				}
 				args << output_file_names_[param_index];
 			}
-			else if (out_params[param_index].type == IOInfo::IOT_FILE)
+			else
 			{
-				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
-				args << output_file_names_[param_index];
-			}
-			else // IOT_LIST
-			{
-				std::cerr << "I don't know what to do in this situation, yet." << std::endl;
-				// merge into above case...
+				std::cerr << "Unexpected output parameter!" << std::endl;
+				continue;
 			}
 		}
 		
@@ -441,12 +462,17 @@ namespace OpenMS
 		//topp_.process->waitForStarted();
 	}
 	
-	void TOPPASToolVertex::executionFinished(int /*ec*/, QProcess::ExitStatus es)
+	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
 	{
 		if (es != QProcess::NormalExit)
 		{
-			// TODO: check ec and so on..
-			std::cerr << "TOPP tool execution failed !!!" << std::endl;
+			std::cerr << "TOPP tool crashed!" << std::endl;
+			return;
+		}
+		
+		if (ec != 0)
+		{
+			std::cerr << "TOPP tool execution failed!" << std::endl;
 			return;
 		}
 		

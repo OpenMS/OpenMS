@@ -52,6 +52,8 @@ namespace OpenMS
 	
 	void TOPPASIOMappingDialog::fillComboBoxes_()
 	{
+		target_input_param_indices.clear();
+		
 		TOPPASVertex* source = edge_->getSourceVertex();
 		TOPPASVertex* target = edge_->getTargetVertex();
 		
@@ -124,8 +126,10 @@ namespace OpenMS
 				target_type_label->setVisible(false);
 			}
 			target_combo->addItem("<select>");
+			int param_counter = -1;
 			foreach (TOPPASToolVertex::IOInfo info, target_input_files)
 			{
+				param_counter++;
 				// check if parameter occupied by another edge already
 				bool occupied = false;
 				for (TOPPASVertex::EdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
@@ -160,6 +164,7 @@ namespace OpenMS
 				item_name += ss.str();
 				
 				target_combo->addItem(item_name.toQString());
+				target_input_param_indices.push_back(param_counter);
 			}
 			if (target_combo->count() == 2) // only 1 parameter
 			{
@@ -183,13 +188,14 @@ namespace OpenMS
 		
 		int source_out = edge_->getSourceOutParam();
 		int target_in = edge_->getTargetInParam();
+		int combo_index = target_input_param_indices.indexOf(target_in) + 1;
 		if (source_out != -1)
 		{
 			source_combo->setCurrentIndex(source_out + 1);
 		}
-		if (target_in != -1)
+		if (combo_index != 0)
 		{
-			target_combo->setCurrentIndex(target_in + 1);
+			target_combo->setCurrentIndex(combo_index);
 		}
 		
 		resize(width(),0);
@@ -212,7 +218,20 @@ namespace OpenMS
 		}
 		
 		edge_->setSourceOutParam(source_combo->currentIndex()-1);
-		edge_->setTargetInParam(target_combo->currentIndex()-1);
+		int target_index = -1;
+		int tci = target_combo->currentIndex()-1;
+		if (0 <= tci && tci < target_input_param_indices.size())
+		{
+			target_index = target_input_param_indices[tci];
+		}
+		else
+		{
+			std::cerr << "Parameter index out of bounds!" << std::endl;
+		}
+		if (target_index >= 0)
+		{
+			edge_->setTargetInParam(target_index);
+		}
 		
 		edge_->updateColor();
 		

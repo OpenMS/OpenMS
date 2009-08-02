@@ -56,6 +56,18 @@ namespace OpenMS
 					IOT_LIST
 				};
 				
+				bool operator< (const IOInfo& rhs) const
+				{
+					if (type != rhs.type)
+					{
+						return type == IOT_FILE;
+					}
+					else
+					{
+						return param_name.compare(rhs.param_name) < 0;
+					}
+				}
+				
 				IOType type;
 				String param_name;
 				StringList valid_types;
