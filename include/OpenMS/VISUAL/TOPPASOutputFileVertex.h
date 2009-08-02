@@ -67,6 +67,10 @@ namespace OpenMS
 			/// Called when the parent node has finished execution
 			void finished();
 		
+		signals:
+			
+			void outputFileWritten();
+		
 		protected:
 			
 			/// The file name

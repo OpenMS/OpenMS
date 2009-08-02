@@ -382,7 +382,6 @@ namespace OpenMS
 					//store number of elements of the "in" list
 					in_list_element_count = tv->output_file_names_[out_param_index].count();
 				}
-				
 				continue;
 			}
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
@@ -401,7 +400,6 @@ namespace OpenMS
 					//store number of elements of the "in" list
 					in_list_element_count = (iflv->getFilenames()).count();
 				}
-				
 				continue;
 			}
 		}
@@ -459,7 +457,8 @@ namespace OpenMS
 		
 		//start process
 		p->start(name_.toQString(), args);
-		//topp_.process->waitForStarted();
+		p->waitForStarted();
+		emit toolStarted();
 	}
 	
 	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
@@ -467,12 +466,14 @@ namespace OpenMS
 		if (es != QProcess::NormalExit)
 		{
 			std::cerr << "TOPP tool crashed!" << std::endl;
+			emit toolCrashed(qobject_cast<QProcess*>(QObject::sender()));
 			return;
 		}
 		
 		if (ec != 0)
 		{
-			std::cerr << "TOPP tool execution failed!" << std::endl;
+			std::cerr << "TOPP tool execution failed! (Exit code: " << ec << ")" << std::endl;
+			emit toolFailed(qobject_cast<QProcess*>(QObject::sender()));
 			return;
 		}
 		
@@ -499,6 +500,7 @@ namespace OpenMS
 				continue;
 			}
 		}
+		emit toolFinished();
 	}
 	
 	bool TOPPASToolVertex::isFinished()

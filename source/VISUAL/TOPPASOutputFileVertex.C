@@ -129,7 +129,7 @@ namespace OpenMS
 	void TOPPASOutputFileVertex::finished()
 	{
 		// TODO: rename tmp file to proper output file
-		// TODO: FIRST: forbid ofvs and oflvs to have more than 1 input !!! (makes no sense)
+		emit outputFileWritten();
 	}
 	
 }

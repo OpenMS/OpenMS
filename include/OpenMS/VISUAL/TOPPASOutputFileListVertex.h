@@ -67,7 +67,10 @@ namespace OpenMS
 			const QStringList& getFilenames();
 			/// Called when the parent node has finished execution
 			void finished();
+		
+		signals:
 			
+			void outputFilesWritten();
 		
 		protected:
 		

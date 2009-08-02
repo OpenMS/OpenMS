@@ -115,7 +115,18 @@ namespace OpenMS
 		
 			/// Called when the execution of this tool has finished
 			void executionFinished(int ec, QProcess::ExitStatus es);
-			
+		
+		signals:
+		
+			/// Emitted when the tool is started
+			void toolStarted();
+			/// Emitted when the tool is finished
+			void toolFinished();
+			/// Emitted when the tool crashes
+			void toolCrashed(QProcess* p);
+			/// Emitted when the tool execution fails
+			void toolFailed(QProcess* p);
+		
 		protected:
 		
 			///@name reimplemented Qt events

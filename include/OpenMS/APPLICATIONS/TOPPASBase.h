@@ -115,6 +115,16 @@ namespace OpenMS
       void updateToolBar();
     	/// Runs the pipeline of the current window
 			void runPipeline();
+			/// Called when a tool is started
+			void toolStarted();
+			/// Called when a tool is finished
+			void toolFinished();
+			/// Called when a tool crashes
+			void toolCrashed(QProcess* p);
+			/// Called when a tool execution fails
+			void toolFailed(QProcess* p);
+			/// Called when a pipeline execution ended successfully in an output vertex
+			void outputVertexFinished();
 			
     protected slots:
 		

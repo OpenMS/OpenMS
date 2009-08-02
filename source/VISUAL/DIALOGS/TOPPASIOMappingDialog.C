@@ -217,22 +217,25 @@ namespace OpenMS
 			return;
 		}
 		
-		edge_->setSourceOutParam(source_combo->currentIndex()-1);
-		int target_index = -1;
-		int tci = target_combo->currentIndex()-1;
-		if (0 <= tci && tci < target_input_param_indices.size())
+		if (source_combo->isVisible())
 		{
-			target_index = target_input_param_indices[tci];
+			edge_->setSourceOutParam(source_combo->currentIndex()-1);
 		}
-		else
+		if (target_combo->isVisible())
 		{
-			std::cerr << "Parameter index out of bounds!" << std::endl;
-		}
-		if (target_index >= 0)
-		{
+			int target_index;
+			int tci = target_combo->currentIndex()-1;
+			if (0 <= tci && tci < target_input_param_indices.size())
+			{
+				target_index = target_input_param_indices[tci];
+			}
+			else
+			{
+				std::cerr << "Parameter index out of bounds!" << std::endl;
+				return;
+			}
 			edge_->setTargetInParam(target_index);
 		}
-		
 		edge_->updateColor();
 		
 		if (edge_->getEdgeStatus() == TOPPASEdge::ES_VALID ||

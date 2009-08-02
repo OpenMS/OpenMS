@@ -262,12 +262,18 @@ namespace OpenMS
 		if (u == 0 ||
 				v == 0 ||
 				u == v ||
+				// edges leading to input files make no sense:
 				qobject_cast<TOPPASInputFileVertex*>(v) ||
 				qobject_cast<TOPPASInputFileListVertex*>(v) ||
+				// neither do edges coming from output files:
 				qobject_cast<TOPPASOutputFileVertex*>(u) ||
 				qobject_cast<TOPPASOutputFileListVertex*>(u) ||
-				((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u)) &&
-					(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))))
+				// nor edges from input to output without a tool in between:
+				((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u))
+					&& (qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))) ||
+				// nor multiple incoming edges for a single output file/list node
+				(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))
+					&& v->inEdgesBegin() != v->inEdgesEnd())
 		{
 			return false;
 		}
