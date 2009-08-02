@@ -120,9 +120,9 @@ namespace OpenMS
 			/// Called when a tool is finished
 			void toolFinished();
 			/// Called when a tool crashes
-			void toolCrashed(QProcess* p);
+			void toolCrashed();
 			/// Called when a tool execution fails
-			void toolFailed(QProcess* p);
+			void toolFailed();
 			/// Called when a pipeline execution ended successfully in an output vertex
 			void outputVertexFinished();
 			

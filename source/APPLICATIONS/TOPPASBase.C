@@ -264,8 +264,8 @@ namespace OpenMS
 				{
 					connect (tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 					connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
-					connect (tv, SIGNAL(toolCrashed(QProcess*)), this, SLOT(toolCrashed(QProcess*)));
-					connect (tv, SIGNAL(toolFailed(QProcess*)), this, SLOT(toolFailed(QProcess*)));
+					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 					continue;
 				}
 				TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
@@ -661,8 +661,8 @@ namespace OpenMS
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
-			connect (ttv, SIGNAL(toolCrashed(QProcess*)), this, SLOT(toolCrashed(QProcess*)));
-			connect (ttv, SIGNAL(toolFailed(QProcess*)), this, SLOT(toolFailed(QProcess*)));
+			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 		}
 		
 		tv->setPos(x,y);
@@ -736,7 +736,7 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASBase::toolCrashed(QProcess* p)
+	void TOPPASBase::toolCrashed()
 	{
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
 		if (tv)
@@ -753,7 +753,7 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASBase::toolFailed(QProcess* p)
+	void TOPPASBase::toolFailed()
 	{
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
 		if (tv)

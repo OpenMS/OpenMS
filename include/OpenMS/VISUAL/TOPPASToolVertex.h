@@ -123,9 +123,9 @@ namespace OpenMS
 			/// Emitted when the tool is finished
 			void toolFinished();
 			/// Emitted when the tool crashes
-			void toolCrashed(QProcess* p);
+			void toolCrashed();
 			/// Emitted when the tool execution fails
-			void toolFailed(QProcess* p);
+			void toolFailed();
 		
 		protected:
 		

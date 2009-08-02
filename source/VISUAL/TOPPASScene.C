@@ -47,11 +47,29 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path)
 	{
+		/*	ATTENTION!
+			 
+				The following line is important! Without it, we get
+				hard-to-reproduce segmentation faults and
+				"pure virtual method calls" due to a bug in Qt!
+				
+				(http://lists.trolltech.com/qt4-preview-feedback/2006-09/thread00124-0.html)
+		*/
+		setItemIndexMethod(QGraphicsScene::NoIndex);
 	}
 	
 	TOPPASScene::~TOPPASScene()
 	{
-		// Qt should clean up for us..
+		// Delete all items in a controlled way:
+		foreach (TOPPASVertex* vertex, vertices_)
+		{
+			vertex->setSelected(true);
+		}
+		foreach (TOPPASEdge* edge, edges_)
+		{
+			edge->setSelected(true);
+		}
+		removeSelected();
 	}
 	
 	void TOPPASScene::setActionMode(ActionMode mode)
@@ -113,7 +131,7 @@ namespace OpenMS
 	
 	void TOPPASScene::itemDoubleClicked()
 	{
-		std::cout << "double click!" << std::endl;
+		
 	}
 	
 	void TOPPASScene::updateHoveringEdgePos(const QPointF& new_pos)
@@ -181,13 +199,10 @@ namespace OpenMS
 		}
 		else
 		{
-			if (hover_edge_ != 0)
-			{
-				edges_.removeAll(hover_edge_);
-				removeItem(hover_edge_);
-				delete hover_edge_;
-				hover_edge_ = 0;
-			}
+			edges_.removeAll(hover_edge_);
+			removeItem(hover_edge_);
+			delete hover_edge_;
+			hover_edge_ = 0;
 		}
 		
 		updateEdgeColors();
@@ -312,6 +327,7 @@ namespace OpenMS
 				}
 			}
 		}
+		
 		// remove priorly inserted edge
 		edges_.removeAll(test_edge);
 		removeItem(test_edge);

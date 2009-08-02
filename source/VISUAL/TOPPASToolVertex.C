@@ -445,14 +445,9 @@ namespace OpenMS
 			}
 		}
 		
-		//start log and show it
-		//showLogMessage_(TOPPASBase::LS_NOTICE,"Starting TOPP tool","");// tool + args.join(" "));
-		//TODO emit signal instead
-		
 		//start process
 		QProcess* p = new QProcess();
 		p->setProcessChannelMode(QProcess::MergedChannels);
-		// connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog())); TODO do something else with this..
 		connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
 		
 		//start process
@@ -466,14 +461,14 @@ namespace OpenMS
 		if (es != QProcess::NormalExit)
 		{
 			std::cerr << "TOPP tool crashed!" << std::endl;
-			emit toolCrashed(qobject_cast<QProcess*>(QObject::sender()));
+			emit toolCrashed();
 			return;
 		}
 		
 		if (ec != 0)
 		{
 			std::cerr << "TOPP tool execution failed! (Exit code: " << ec << ")" << std::endl;
-			emit toolFailed(qobject_cast<QProcess*>(QObject::sender()));
+			emit toolFailed();
 			return;
 		}
 		

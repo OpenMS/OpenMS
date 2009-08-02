@@ -65,14 +65,7 @@ namespace OpenMS
 	
 	TOPPASVertex::~TOPPASVertex()
 	{
-		foreach (TOPPASEdge* edge, in_edges_)
-		{
-			edge->setTargetVertex(0);
-		}
-		foreach (TOPPASEdge* edge, out_edges_)
-		{
-			edge->setSourceVertex(0);
-		}
+		
 	}
 	
 	TOPPASVertex& TOPPASVertex::operator= (const TOPPASVertex& rhs)
@@ -121,7 +114,7 @@ namespace OpenMS
 	
 	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 	{
-		TOPPASScene* ts = static_cast<TOPPASScene*>(scene());
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		
 		if (isSelected())
 		{
