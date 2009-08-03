@@ -40,20 +40,39 @@
 
 namespace OpenMS
 {
+	/** @brief Mass decomposition algorithm, given a mass it suggests possible compositions
 
+			A mass decomposition algorithm decomposes a mass or a mass difference into
+			possible amino acids and frequencies of them, which add up to the given mass.
+			This class is a wrapper for the algorithm published in 
+			@todo add reference
+	*/
 	class MassDecompositionAlgorithm : public DefaultParamHandler
 	{
 		public:
-
+			
+			/** @name constructors and desctructor
+			*/
+			//@{
+			/// Default constructor
 			MassDecompositionAlgorithm();
 
+			/// Copy constructor
 			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
 
+			/// Destructor
 			virtual ~MassDecompositionAlgorithm();
+			//@}
 
+			/** @name Operators
+			*/
+			//@{
+			/// assignment operator
 			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
 
-			void getDecompositions(std::vector<MassDecomposition>& decomps, double weight);
+			/// returns the possible decompositions given the weight
+			void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight);
+			//@}
 
 		protected:
 

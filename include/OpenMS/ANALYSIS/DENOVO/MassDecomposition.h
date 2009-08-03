@@ -33,36 +33,61 @@
 
 namespace OpenMS
 {
-
+	/** @brief Class represents a decomposition of a mass into amino acids
+			
+			This class represents a mass decomposition into amino acids. A
+			decomposition are amino acids given with frequencies which add
+			up to a specific mass.
+	*/
 	class MassDecomposition
 	{
 		public:
 
+			/** @name Constructors and destructors
+			*/
+			//@{
+			/// default constructor
 			MassDecomposition();
 
+			/// copy constructor
 			MassDecomposition(const MassDecomposition& deco);
 		
+			/// constructor with String as parameter
 			MassDecomposition(const String& deco);
+			//@}
 
+			/** @name Operators
+			*/
+			//@{
+			/// assignment operator
 			MassDecomposition& operator = (const MassDecomposition& rhs);
 
 			MassDecomposition& operator += (const MassDecomposition& d);
 
-			bool operator < (const MassDecomposition& rhs) const;
-
-			bool operator == (const String& deco) const;
-	
 			String toString() const;
 
 			String toExpandedString() const;
+			
+			MassDecomposition operator + (const MassDecomposition& rhs) const;
+			
+			UInt getNumberOfMaxAA() const;
+			//@}
 
+			/** @name Predicates
+			*/
+			//@{
+			/// less than predicate
+			bool operator < (const MassDecomposition& rhs) const;
+
+			/// equality operator 
+			bool operator == (const String& deco) const;
+	
+			/// returns true if tag is contained in the mass decomposition
 			bool containsTag(const String& tag) const;
 
+			/// returns true if the mass decomposition if contained in this instance
 			bool compatible(const MassDecomposition& deco) const;
-
-			MassDecomposition operator + (const MassDecomposition& rhs) const;
-
-			UInt getNumberOfMaxAA() const;
+			//@}
 
 		protected:
 

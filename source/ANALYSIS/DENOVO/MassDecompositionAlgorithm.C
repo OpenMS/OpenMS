@@ -101,7 +101,7 @@ namespace OpenMS
     aa_to_weight['L'] = 113.084;
 
 		// now handle the modifications
-		ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
+		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
@@ -135,7 +135,7 @@ namespace OpenMS
       }
     }
 
-const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
+		const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)

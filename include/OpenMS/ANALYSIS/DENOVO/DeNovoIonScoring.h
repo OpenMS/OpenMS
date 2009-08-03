@@ -56,10 +56,10 @@ namespace OpenMS
 			class IonScore
 			{
         /// score 
-        double score;
+        DoubleReal score;
 
         /// position of the ion
-        double position;
+        DoubleReal position;
 
         /// index of peak in the spectrum, -1 if not in spectrum
         SignedSize index;

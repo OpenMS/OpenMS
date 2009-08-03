@@ -22,6 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -67,14 +68,14 @@ namespace OpenMS
 				IonScore& operator = (const IonScore& rhs);
 
 				
-				double score;
-        double s_bion;
-        double s_yion;
-        double s_witness;
-        double position;
-        double s_isotope_pattern_1; // isotope pattern score charge 1
-        int is_isotope_1_mono; // 0 means not testet, 1 mean is, -1 is tail of isotopes
-        double s_isotope_pattern_2; // "" charge 2
+				DoubleReal score;
+        DoubleReal s_bion;
+        DoubleReal s_yion;
+        DoubleReal s_witness;
+        DoubleReal position;
+        DoubleReal s_isotope_pattern_1; // isotope pattern score charge 1
+        Int is_isotope_1_mono; // 0 means not testet, 1 mean is, -1 is tail of isotopes
+        DoubleReal s_isotope_pattern_2; // "" charge 2
 			};
 
 						
@@ -97,7 +98,7 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			double scoreIsotopes(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, UInt charge);
+			DoubleReal scoreIsotopes(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, UInt charge);
 			//@}
 
 		protected:
@@ -108,18 +109,18 @@ namespace OpenMS
 
 			IsotopeType classifyIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it);
 
-			double scoreIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Map<double, IonScore>& CID_nodes, UInt charge = 1);
+			DoubleReal scoreIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& CID_nodes, UInt charge = 1);
 
-			virtual void scoreWitnessSet_(UInt charge, double precursor_weight, Map<double, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec) = 0;
+			virtual void scoreWitnessSet_(UInt charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec) = 0;
 			
-			void addSingleChargedIons_(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec);
+			void addSingleChargedIons_(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec);
 
 			void initIsotopeDistributions_();
 
 			///
-			Map<int, std::vector<double> > isotope_distributions_;
+			Map<Int, std::vector<DoubleReal> > isotope_distributions_;
 
-			double fragment_mass_tolerance_;
+			DoubleReal fragment_mass_tolerance_;
 		
 		public:
 
