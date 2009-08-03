@@ -36,7 +36,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include "MassDecomposition.h"
 #include "MassDecompositionAlgorithm.h"
-#include "PeptideSequenceTag.h"
+//#include "PeptideSequenceTag.h"
 #include "CompNovoIonScoringBase.h"
 
 // stl includes

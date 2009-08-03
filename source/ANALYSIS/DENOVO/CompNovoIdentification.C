@@ -34,6 +34,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 // TODO replace these by constants from Constants.h; change kg units of these values there into u
 #define PROTON_MASS 1.0072627
 #define NEUTRON_MASS 1.00866491578
@@ -713,7 +715,7 @@ namespace OpenMS
 
 			score /= it->size();
 
-			if (isnan(score))
+			if (boost::math::isnan(score))
 			{
 				score = 0;
 			}

@@ -31,7 +31,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include "CompNovoIonScoring.h"
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
 // TODO replace these by constants from Constants.h; change kg units of these values there into u
 #define PROTON_MASS 1.0072627
@@ -667,7 +667,7 @@ namespace OpenMS
 		init_();
 
 		// now handle the modifications
-		ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
+		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
 
 		for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)

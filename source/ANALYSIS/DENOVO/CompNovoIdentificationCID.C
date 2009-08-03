@@ -35,6 +35,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 // TODO replace these by constants from Constants.h; change kg units of these values there into u
 #define PROTON_MASS 1.0072627
 #define NEUTRON_MASS 1.00866491578
@@ -443,14 +445,14 @@ namespace OpenMS
     	
     	double score = zhang_(CID_sim_spec, CID_spec);;
 
-			if (isnan(score))
+			if (boost::math::isnan(score))
 			{
 				score = 0;
 			}
 
 			score /= it->size();
 
-			if (isnan(score))
+			if (boost::math::isnan(score))
 			{
 				score = 0;
 			}
