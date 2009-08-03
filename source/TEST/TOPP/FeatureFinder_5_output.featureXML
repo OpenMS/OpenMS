@@ -5,14 +5,14 @@
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
-	<featureList count="3">
+	<featureList count="5">
 		<feature id="f_0">
-			<position dim="0">1627.76426533524</position>
+			<position dim="0">1617.00718131249</position>
 			<position dim="1">656.356</position>
-			<intensity>3.85636e+06</intensity>
-			<quality dim="0">0.98671818108844</quality>
+			<intensity>3.91214e+06</intensity>
+			<quality dim="0">0.994226247090375</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.98671818108844</overallquality>
+			<overallquality>0.994226247090375</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="0"/>
@@ -22,14 +22,14 @@
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
-				<param name="RT:bounding_box:min" value="1550.96"/>
-				<param name="RT:bounding_box:max" value="1725.51"/>
+				<param name="RT:bounding_box:min" value="1550.24404255319"/>
+				<param name="RT:bounding_box:max" value="1759.57595744681"/>
 				<param name="RT:statistics:variance" value="1"/>
 				<param name="RT:statistics:mean" value="1"/>
-				<param name="RT:emg:height" value="19916.6207832205"/>
-				<param name="RT:emg:width" value="11.2067858390963"/>
-				<param name="RT:emg:symmetry" value="11.1357635483459"/>
-				<param name="RT:emg:retention" value="1617.06349714093"/>
+				<param name="RT:emg:height" value="19946.0287222462"/>
+				<param name="RT:emg:width" value="11.2056503835211"/>
+				<param name="RT:emg:symmetry" value="11.187591210408"/>
+				<param name="RT:emg:retention" value="1617.00718131249"/>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -37,21 +37,21 @@
 					<hposition dim="1">656.356</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">1722.51</hposition>
+					<hposition dim="0">1755.86</hposition>
 					<hposition dim="1">656.356</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="443.707"/>
-			<userParam type="int" name="spectrum_index" value="1442"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=1443"/>
+			<userParam type="int" name="spectrum_index" value="1372"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=1373"/>
 		</feature>
 		<feature id="f_1">
-			<position dim="0">2176.62100952381</position>
+			<position dim="0">2152.26572764145</position>
 			<position dim="1">722.403</position>
-			<intensity>1.56065e+07</intensity>
-			<quality dim="0">0.995005883758867</quality>
+			<intensity>1.57211e+07</intensity>
+			<quality dim="0">0.996325348297198</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.995005883758867</overallquality>
+			<overallquality>0.996325348297198</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="0"/>
@@ -61,36 +61,36 @@
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
-				<param name="RT:bounding_box:min" value="2129.57"/>
-				<param name="RT:bounding_box:max" value="2242.87"/>
+				<param name="RT:bounding_box:min" value="2127.04438985737"/>
+				<param name="RT:bounding_box:max" value="2261.63561014263"/>
 				<param name="RT:statistics:variance" value="1"/>
 				<param name="RT:statistics:mean" value="1"/>
-				<param name="RT:emg:height" value="144561.729340817"/>
-				<param name="RT:emg:width" value="7.0454256889392"/>
-				<param name="RT:emg:symmetry" value="10.7898573718161"/>
-				<param name="RT:emg:retention" value="2152.28620709169"/>
+				<param name="RT:emg:height" value="145013.084489416"/>
+				<param name="RT:emg:width" value="7.02513621741758"/>
+				<param name="RT:emg:symmetry" value="10.8375299737798"/>
+				<param name="RT:emg:retention" value="2152.26572764145"/>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">2132.57</hposition>
+					<hposition dim="0">2130.65</hposition>
 					<hposition dim="1">722.403</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">2239.87</hposition>
+					<hposition dim="0">2258.03</hposition>
 					<hposition dim="1">722.403</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="461.743"/>
-			<userParam type="int" name="spectrum_index" value="4168"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=4169"/>
+			<userParam type="int" name="spectrum_index" value="3948"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=3949"/>
 		</feature>
 		<feature id="f_2">
-			<position dim="0">2314.77112380952</position>
-			<position dim="1">600.33</position>
-			<intensity>3.23848e+06</intensity>
-			<quality dim="0">0.986004898204063</quality>
+			<position dim="0">2267.94328782799</position>
+			<position dim="1">722.403</position>
+			<intensity>7700</intensity>
+			<quality dim="0">0.897967701462977</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.986004898204063</overallquality>
+			<overallquality>0.897967701462977</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="0"/>
@@ -100,28 +100,106 @@
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
 				<param name="RT:intensity_scaling" value="1"/>
-				<param name="RT:bounding_box:min" value="2265.16"/>
-				<param name="RT:bounding_box:max" value="2415.99"/>
+				<param name="RT:bounding_box:min" value="2258.56428571429"/>
+				<param name="RT:bounding_box:max" value="2294.31571428571"/>
 				<param name="RT:statistics:variance" value="1"/>
 				<param name="RT:statistics:mean" value="1"/>
-				<param name="RT:emg:height" value="21353.3387211052"/>
-				<param name="RT:emg:width" value="9.64099194224563"/>
-				<param name="RT:emg:symmetry" value="11.7338265464848"/>
-				<param name="RT:emg:retention" value="2299.85731142061"/>
+				<param name="RT:emg:height" value="7198.39813583078"/>
+				<param name="RT:emg:width" value="1.11752669042658"/>
+				<param name="RT:emg:symmetry" value="13.7081547830127"/>
+				<param name="RT:emg:retention" value="2267.94328782799"/>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">2268.16</hposition>
+					<hposition dim="0">2268.43</hposition>
+					<hposition dim="1">722.403</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2284.45</hposition>
+					<hposition dim="1">722.403</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="float" name="MZ" value="461.743"/>
+			<userParam type="int" name="spectrum_index" value="5129"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=5130"/>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">2299.80627336107</position>
+			<position dim="1">600.33</position>
+			<intensity>3.27738e+06</intensity>
+			<quality dim="0">0.994916402731772</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.994916402731772</overallquality>
+			<charge>0</charge>
+			<model name="ProductModel2D">
+				<param name="cutoff" value="0"/>
+				<param name="RT" value="EmgModel"/>
+				<param name="MZ" value="GaussModel"/>
+				<param name="intensity_scaling" value="1"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:bounding_box:min" value="2259.44251207729"/>
+				<param name="RT:bounding_box:max" value="2459.28748792271"/>
+				<param name="RT:statistics:variance" value="1"/>
+				<param name="RT:statistics:mean" value="1"/>
+				<param name="RT:emg:height" value="21403.219696724"/>
+				<param name="RT:emg:width" value="9.61662442088612"/>
+				<param name="RT:emg:symmetry" value="11.8094516738408"/>
+				<param name="RT:emg:retention" value="2299.80627336107"/>
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2263.37</hposition>
 					<hposition dim="1">600.33</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">2412.99</hposition>
+					<hposition dim="0">2455.36</hposition>
 					<hposition dim="1">600.33</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="554.256"/>
-			<userParam type="int" name="spectrum_index" value="5787"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=5788"/>
+			<userParam type="int" name="spectrum_index" value="5581"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=5582"/>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">2511.65687358884</position>
+			<position dim="1">600.33</position>
+			<intensity>2360</intensity>
+			<quality dim="0">0.881388225128449</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.881388225128449</overallquality>
+			<charge>0</charge>
+			<model name="ProductModel2D">
+				<param name="cutoff" value="0"/>
+				<param name="RT" value="EmgModel"/>
+				<param name="MZ" value="GaussModel"/>
+				<param name="intensity_scaling" value="1"/>
+				<param name="RT:cutoff" value="0"/>
+				<param name="RT:interpolation_step" value="0.1"/>
+				<param name="RT:intensity_scaling" value="1"/>
+				<param name="RT:bounding_box:min" value="2487.574"/>
+				<param name="RT:bounding_box:max" value="2525.056"/>
+				<param name="RT:statistics:variance" value="1"/>
+				<param name="RT:statistics:mean" value="1"/>
+				<param name="RT:emg:height" value="583.127183694538"/>
+				<param name="RT:emg:width" value="1.35509866017827"/>
+				<param name="RT:emg:symmetry" value="0.857058076796668"/>
+				<param name="RT:emg:retention" value="2511.65687358884"/>
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2499.16</hposition>
+					<hposition dim="1">600.33</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2513.47</hposition>
+					<hposition dim="1">600.33</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="float" name="MZ" value="554.256"/>
+			<userParam type="int" name="spectrum_index" value="8334"/>
+			<userParam type="string" name="spectrum_native_id" value="spectrum=8335"/>
 		</feature>
 	</featureList>
 </featureMap>
