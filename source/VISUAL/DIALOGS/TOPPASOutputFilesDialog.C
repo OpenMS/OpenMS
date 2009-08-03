@@ -26,52 +26,61 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 
-#include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
 
 #include <iostream>
 
 namespace OpenMS
 {
-	TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file)
+	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(TOPPASOutputFileListVertex* parent)
 	{
 		setupUi(this);
 		
-		line_edit->setText(file);
+		output_file_list->setSortingEnabled(false); // same order as output files of tool
 		
-		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
+		// output vertex has exactly 1 in edge:
+		TOPPASEdge* in_edge = *(parent->inEdgesBegin());
+		TOPPASToolVertex* in_tool = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
+		const QVector<QStringList>& files_vector = in_tool->getOutputFileNames();
+		int param_index = in_edge->getSourceOutParam();
+		if (param_index != -1)
+		{
+			const QStringList& files = files_vector[param_index];
+			output_file_list->addItems(files);
+		}
+		
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 	}
 	
-	void TOPPASInputFileDialog::showFileDialog()
+// 	void TOPPASOutputFilesDialog::showFileDialog()
+// 	{
+// 		QFileDialog fd;
+// 		fd.setFileMode(QFileDialog::ExistingFiles);
+// 		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
+// 		if (fd.exec())
+// 		{
+// 			input_file_list->addItems(fd.selectedFiles());
+// 		}
+// 	}
+	
+	
+	void TOPPASOutputFilesDialog::getFilenames(QStringList& files)
 	{
-		QFileDialog fd;
-		fd.setFileMode(QFileDialog::ExistingFile);
-		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
-		if (fd.exec() && !fd.selectedFiles().empty())
+		files.clear();
+		for (int i = 0; i < output_file_list->count(); ++i)
 		{
-			line_edit->setText(fd.selectedFiles().first());
+			files.push_back(output_file_list->item(i)->text());
 		}
 	}
 	
-	QString TOPPASInputFileDialog::getFilename()
+	void TOPPASOutputFilesDialog::checkValidity_()
 	{
-		return line_edit->text();
-	}
-	
-	void TOPPASInputFileDialog::checkValidity_()
-	{
-		//file exists?
-		if (!File::exists(line_edit->text()))
-		{
-			QMessageBox::warning(0,"Invalid file name","The specified file does not exist!");
-			return;
-		}
-		
+		// ...
 		accept();
 	}
 	

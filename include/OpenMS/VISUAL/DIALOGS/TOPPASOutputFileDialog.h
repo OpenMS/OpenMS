@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -25,54 +25,45 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-// OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QFileDialog>
+#ifndef OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILEDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILEDIALOG_H
 
-#include <iostream>
+#include <OpenMS/config.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASOutputFileDialog.h>
 
-namespace OpenMS
+namespace OpenMS 
 {
-	TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file)
-	{
-		setupUi(this);
+	/**
+		@brief Dialog which allows to specify the output file name
 		
-		line_edit->setText(file);
+		@ingroup TOPPAS_elements
+		@ingroup Dialogs
+	*/
+	class OPENMS_DLLAPI TOPPASOutputFileDialog
+		: public QDialog,
+			public Ui::TOPPASOutputFileDialogTemplate
+	{
+		Q_OBJECT
+				
+		public:
+			
+			/// Constructor
+			TOPPASOutputFileDialog(const QString& file);
+			
+			/// Returns the filename
+			QString getFilename();
+			
+		public slots:
 		
-		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
-		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
-		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
-	}
-	
-	void TOPPASInputFileDialog::showFileDialog()
-	{
-		QFileDialog fd;
-		fd.setFileMode(QFileDialog::ExistingFile);
-		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
-		if (fd.exec() && !fd.selectedFiles().empty())
-		{
-			line_edit->setText(fd.selectedFiles().first());
-		}
-	}
-	
-	QString TOPPASInputFileDialog::getFilename()
-	{
-		return line_edit->text();
-	}
-	
-	void TOPPASInputFileDialog::checkValidity_()
-	{
-		//file exists?
-		if (!File::exists(line_edit->text()))
-		{
-			QMessageBox::warning(0,"Invalid file name","The specified file does not exist!");
-			return;
-		}
+			/// Lets the user select the file via a file dialog
+			void showFileDialog();
 		
-		accept();
-	}
+		protected slots:
+		
+			/// Called when OK is pressed; checks if the selected file is valid
+			void checkValidity_();
+	};
 	
-} // namespace
+}
+#endif // OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILESDIALOG_H

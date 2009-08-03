@@ -26,17 +26,17 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 #include <iostream>
 
 namespace OpenMS
 {
-	TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file)
+	TOPPASOutputFileDialog::TOPPASOutputFileDialog(const QString& file)
 	{
 		setupUi(this);
 		
@@ -47,10 +47,14 @@ namespace OpenMS
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 	}
 	
-	void TOPPASInputFileDialog::showFileDialog()
+	void TOPPASOutputFileDialog::showFileDialog()
 	{
 		QFileDialog fd;
-		fd.setFileMode(QFileDialog::ExistingFile);
+		fd.setFileMode(QFileDialog::AnyFile);
+		if (File::exists(File::path(line_edit->text())))
+		{
+			fd.setDirectory(File::path(line_edit->text()).toQString());
+		}
 		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
 		if (fd.exec() && !fd.selectedFiles().empty())
 		{
@@ -58,17 +62,23 @@ namespace OpenMS
 		}
 	}
 	
-	QString TOPPASInputFileDialog::getFilename()
+	QString TOPPASOutputFileDialog::getFilename()
 	{
 		return line_edit->text();
 	}
 	
-	void TOPPASInputFileDialog::checkValidity_()
+	void TOPPASOutputFileDialog::checkValidity_()
 	{
-		//file exists?
-		if (!File::exists(line_edit->text()))
+		//file name specified?
+		if (File::basename(line_edit->text()) == "")
 		{
-			QMessageBox::warning(0,"Invalid file name","The specified file does not exist!");
+			QMessageBox::warning(0,"Invalid file name","The specified file name is invalid!");
+			return;
+		}
+		//directory exists?
+		if (!File::exists(File::path(line_edit->text())))
+		{
+			QMessageBox::warning(0,"Invalid file name","The specified directory does not exist!");
 			return;
 		}
 		

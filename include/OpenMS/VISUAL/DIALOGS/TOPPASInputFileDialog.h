@@ -58,6 +58,11 @@ namespace OpenMS
 		
 			/// Lets the user select the file via a file dialog
 			void showFileDialog();
+		
+		protected slots:
+		
+			/// Called when OK is pressed; checks if the selected file is valid
+			void checkValidity_();
 	};
 	
 }

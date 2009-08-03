@@ -18,6 +18,8 @@ SpectrumAlignmentDialog.ui
 TheoreticalSpectrumGenerationDialog.ui
 TOPPASInputFileDialog.ui
 TOPPASInputFilesDialog.ui
+TOPPASOutputFileDialog.ui
+TOPPASOutputFilesDialog.ui
 TOPPASIOMappingDialog.ui
 )
 

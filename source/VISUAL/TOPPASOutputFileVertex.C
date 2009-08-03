@@ -27,6 +27,8 @@
 
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
 namespace OpenMS
@@ -71,7 +73,12 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		// ...
+		TOPPASOutputFileDialog tofd(file_);
+		if (tofd.exec())
+		{
+			file_ = tofd.getFilename();
+		}
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	void TOPPASOutputFileVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -130,6 +137,11 @@ namespace OpenMS
 	{
 		// TODO: rename tmp file to proper output file
 		emit outputFileWritten();
+	}
+	
+	void TOPPASOutputFileVertex::inEdgeHasChanged()
+	{
+		// we do not need to forward the change (we have no childs)
 	}
 	
 }

@@ -228,5 +228,12 @@ namespace OpenMS
 	{
 		id_ = id;
 	}
+	
+	void TOPPASVertex::inEdgeHasChanged()
+	{
+		// Generally, only forward the change.
+		// (overridden behavior in output vertices)
+		emit somethingHasChanged();
+	}
 
 }

@@ -111,7 +111,12 @@ namespace OpenMS
 			UInt getID();
 			/// Sets the unique ID for this node
 			void setID(UInt id);
-			
+		
+		public slots:
+		
+			/// Called by an incoming edge when it has changed
+			virtual void inEdgeHasChanged();
+		
 		signals:
 			
 			/// Emitted when this item is clicked
@@ -124,6 +129,8 @@ namespace OpenMS
 			void newHoveringEdge(const QPointF& pos);
 			/// Emitted when the mouse is released after having dragged a new edge somewhere
 			void finishHoveringEdge();
+			/// Emitted when something has changed
+			void somethingHasChanged();
 			
 		protected:
 			

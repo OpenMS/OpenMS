@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TOPPASInputFilesDialogTemplate</class>
- <widget class="QDialog" name="TOPPASInputFilesDialogTemplate">
+ <class>TOPPASOutputFilesDialogTemplate</class>
+ <widget class="QDialog" name="TOPPASOutputFilesDialogTemplate">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,7 +21,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QListWidget" name="input_file_list">
+       <widget class="QListWidget" name="output_file_list">
         <property name="selectionMode">
          <enum>QAbstractItemView::ExtendedSelection</enum>
         </property>

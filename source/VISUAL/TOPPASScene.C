@@ -192,10 +192,14 @@ namespace OpenMS
 			source->addOutEdge(hover_edge_);
 			target->addInEdge(hover_edge_);
 			hover_edge_->determineEdgeType();
-			
 			hover_edge_->setColor(QColor(255,165,0));
+			connect (source, SIGNAL(somethingHasChanged()), hover_edge_, SLOT(sourceHasChanged()));
+			connect (hover_edge_, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
+			
 			TOPPASIOMappingDialog dialog(hover_edge_);
 			dialog.exec();
+			
+			hover_edge_->emitChanged();
 		}
 		else
 		{
@@ -372,6 +376,9 @@ namespace OpenMS
 
 	void TOPPASScene::runPipeline()
 	{
+		// make sure all output file names are updated, first:
+		updateOutputFileNames();
+		
 		// unset the finished flag for all TOPP tool nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
@@ -389,14 +396,13 @@ namespace OpenMS
 			if (ofv)
 			{
 				ofv->startComputation();
+				continue;
 			}
-			else
+			
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv)
 			{
-				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-				if (oflv)
-				{
-					oflv->startComputation();
-				}
+				oflv->startComputation();
 			}
 		}
 	}
@@ -620,7 +626,9 @@ namespace OpenMS
       	tv_2->addInEdge(edge);
       	edge->determineEdgeType();	
       	addEdge(edge);
-      	
+      	connect (tv_1, SIGNAL(somethingHasChanged()), edge, SLOT(sourceHasChanged()));
+				connect (edge, SIGNAL(somethingHasChanged()), tv_2, SLOT(inEdgeHasChanged()));
+				
       	int source_out_param = (++it)->value;
       	int target_in_param = (++it)->value;
       	edge->setSourceOutParam(source_out_param);
@@ -639,6 +647,30 @@ namespace OpenMS
 	void TOPPASScene::setSaveFileName(const String& name)
 	{
 		file_name_ = name;
+	}
+	
+	void TOPPASScene::updateOutputFileNames()
+	{
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
+			if (ofv && ofv->inEdgesBegin() != ofv->inEdgesEnd())
+			{
+				TOPPASEdge* in_edge = *(ofv->inEdgesBegin());
+				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
+				tv->updateOutputFileNames();
+				
+				continue;
+			}
+			
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv && oflv->inEdgesBegin() != oflv->inEdgesEnd())
+			{
+				TOPPASEdge* in_edge = *(oflv->inEdgesBegin());
+				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
+				tv->updateOutputFileNames();
+			}
+		}
 	}
 	
 } //namespace OpenMS

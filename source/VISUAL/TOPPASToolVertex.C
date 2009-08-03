@@ -189,6 +189,7 @@ namespace OpenMS
 			param_.setValue(pe.name, pe.value, pe.description, tags);
 		}
 		
+		emit somethingHasChanged();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
@@ -355,7 +356,6 @@ namespace OpenMS
 		
 		// add all input file parameters
 		QVector<IOInfo> in_params;
-		int in_list_element_count = -1; // needed for the hack below
 		getInputParameters(in_params);
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -363,9 +363,10 @@ namespace OpenMS
 			if (param_index < 0)
 			{
 				std::cerr << "Input parameter index out of bounds!" << std::endl;
-				continue;
+				break;
 			}
 			args << "-"+(in_params[param_index].param_name).toQString();
+			
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 			if (tv)
 			{
@@ -373,33 +374,23 @@ namespace OpenMS
 				if (out_param_index < 0)
 				{
 					std::cerr << "Output parameter index out of bounds!" << std::endl;
-					continue;
+					break;
 				}
 				args << tv->output_file_names_[out_param_index];
-				
-				if (in_params[param_index].param_name == "in")
-				{
-					//store number of elements of the "in" list
-					in_list_element_count = tv->output_file_names_[out_param_index].count();
-				}
 				continue;
 			}
+			
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
 			if (ifv)
 			{
 				args << ifv->getFilename();
 				continue;
 			}
+			
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 			if (iflv)
 			{
 				args << iflv->getFilenames();
-				
-				if (in_params[param_index].param_name == "in")
-				{
-					//store number of elements of the "in" list
-					in_list_element_count = (iflv->getFilenames()).count();
-				}
 				continue;
 			}
 		}
@@ -407,41 +398,25 @@ namespace OpenMS
 		// add all output file parameters
 		QVector<IOInfo> out_params;
 		getOutputParameters(out_params);
-		
-		output_file_names_.clear();
-		output_file_names_.resize(out_params.size());
-		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			int param_index = (*it)->getSourceOutParam();
 			if (param_index < 0)
 			{
 				std::cerr << "Output parameter index out of bounds!" << std::endl;
-				continue;
+				break;
 			}
 			args << "-"+(out_params[param_index].param_name).toQString();
 			
-			if (out_params[param_index].type == IOInfo::IOT_FILE)
+			if (out_params[param_index].type == IOInfo::IOT_FILE
+					|| out_params[param_index].type == IOInfo::IOT_LIST)
 			{
-				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
-				args << output_file_names_[param_index];
-			}
-			else if (out_params[param_index].type == IOInfo::IOT_LIST && in_list_element_count != -1)
-			{
-				// HACK: for all output parameters with list type, we expect
-				// the number of elements to be the same as the number of
-				// elements of the "in" input list (thus, we also assume that there is
-				// an input parameter "in" with list type)
-				for (int i = 0; i < in_list_element_count; ++i)
-				{
-					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
-				}
 				args << output_file_names_[param_index];
 			}
 			else
 			{
 				std::cerr << "Unexpected output parameter!" << std::endl;
-				continue;
+				break;
 			}
 		}
 		
@@ -516,6 +491,102 @@ namespace OpenMS
 	void TOPPASToolVertex::setParam(const Param& param)
 	{
 		param_ = param;
+	}
+	
+	const QVector<QStringList>& TOPPASToolVertex::getOutputFileNames()
+	{
+		return output_file_names_;
+	}
+	
+	void TOPPASToolVertex::updateOutputFileNames()
+	{
+		// recurse
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+			if (tv)
+			{
+				tv->updateOutputFileNames();
+			}
+		}
+		
+		// now, parents are up-to-date --> update ourself:
+		
+		/*	first, determine (expected) number of elements of
+				output parameters with list type (see HACK below) */
+		QVector<IOInfo> in_params;
+		int in_list_element_count = -1;
+		getInputParameters(in_params);
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			int param_index = (*it)->getTargetInParam();
+			if (param_index < 0)
+			{
+				std::cerr << "Input parameter index out of bounds!" << std::endl;
+				break;
+			}
+			
+			if (in_params[param_index].param_name == "in")
+			{
+				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
+				if (iflv)
+				{
+					in_list_element_count = (iflv->getFilenames()).count();
+					break;
+				}
+				
+				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+				if (tv)
+				{
+					int out_param_index = (*it)->getSourceOutParam();
+					if (out_param_index < 0)
+					{
+						std::cerr << "Output parameter index out of bounds!" << std::endl;
+						break;
+					}
+					in_list_element_count = tv->output_file_names_[out_param_index].count();
+					break;
+				}
+			}
+		}
+		
+		// now, update the output file names:
+		QVector<IOInfo> out_params;
+		getOutputParameters(out_params);
+		
+		output_file_names_.clear();
+		output_file_names_.resize(out_params.size());
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			int param_index = (*it)->getSourceOutParam();
+			if (param_index < 0)
+			{
+				std::cerr << "Output parameter index out of bounds!" << std::endl;
+				continue;
+			}
+			
+			if (out_params[param_index].type == IOInfo::IOT_FILE)
+			{
+				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+			}
+			else if (out_params[param_index].type == IOInfo::IOT_LIST && in_list_element_count != -1)
+			{
+				/*	HACK: for output parameters with list type, we expect
+						the number of elements to be the same as the number of
+						elements of the "in" input list (thus, we also assume that there is
+						an input parameter "in" with list type) */
+				for (int i = 0; i < in_list_element_count; ++i)
+				{
+					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+				}
+			}
+			else
+			{
+				std::cerr << "Unexpected output parameter!" << std::endl;
+				continue;
+			}
+		}
 	}
 
 }

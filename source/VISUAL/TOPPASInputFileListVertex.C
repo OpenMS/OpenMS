@@ -77,6 +77,8 @@ namespace OpenMS
 			tifd.getFilenames(files_);
 		}
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
+		
+		emit somethingHasChanged();
 	}
 	
 	const QStringList& TOPPASInputFileListVertex::getFilenames()

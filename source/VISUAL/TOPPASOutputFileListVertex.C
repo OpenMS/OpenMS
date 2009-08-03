@@ -28,6 +28,11 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+
+#include <QtGui/QMessageBox>
+
 
 namespace OpenMS
 {
@@ -71,7 +76,19 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		// ...
+		if (inEdgesBegin() == inEdgesEnd() ||
+				qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex())->getOutputFileNames().empty())
+		{
+			QMessageBox::information(0,"No input","The output file names cannot be specified until the number of files is known. You have to set up the rest of the pipeline, first (including input files).");
+			return;
+		}
+		
+		TOPPASOutputFilesDialog tofd(this);
+		if (tofd.exec())
+		{
+			tofd.getFilenames(files_);
+		}
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -130,6 +147,15 @@ namespace OpenMS
 	{
 		// TODO: rename tmp file to proper output file
 		emit outputFilesWritten();
+	}
+	
+	void TOPPASOutputFileListVertex::inEdgeHasChanged()
+	{
+		// some vertex or edge that we depend on has changed
+		// --> update list of incoming output files
+		
+		
+		// we do not need to forward the change (we have no childs)
 	}
 	
 }

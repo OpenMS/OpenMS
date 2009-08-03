@@ -22,6 +22,8 @@ SpectrumAlignmentDialog.h
 TheoreticalSpectrumGenerationDialog.h
 TOPPASInputFileDialog.h
 TOPPASInputFilesDialog.h
+TOPPASOutputFileDialog.h
+TOPPASOutputFilesDialog.h
 TOPPASToolConfigDialog.h
 TOPPASIOMappingDialog.h
 )
@@ -59,7 +61,10 @@ TOPPViewPrefDialog.h
 ToolsDialog.h
 SpectrumAlignmentDialog.h
 TheoreticalSpectrumGenerationDialog.h
+TOPPASInputFileDialog.h
 TOPPASInputFilesDialog.h
+TOPPASOutputFileDialog.h
+TOPPASOutputFilesDialog.h
 TOPPASToolConfigDialog.h
 TOPPASIOMappingDialog.h
 )

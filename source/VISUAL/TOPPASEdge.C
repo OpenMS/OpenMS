@@ -315,6 +315,8 @@ namespace OpenMS
 	{
 		TOPPASIOMappingDialog dialog(this);
 		dialog.exec();
+		
+		emit somethingHasChanged();
 	}
 	
 	void TOPPASEdge::determineEdgeType()
@@ -632,6 +634,17 @@ namespace OpenMS
 			}
 		}
 		update(boundingRect());
+	}
+	
+	void TOPPASEdge::sourceHasChanged()
+	{
+		// what else TODO?
+		emit somethingHasChanged();
+	}
+	
+	void TOPPASEdge::emitChanged()
+	{
+		emit somethingHasChanged();
 	}
 	
 } //namespace

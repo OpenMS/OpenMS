@@ -67,6 +67,11 @@ namespace OpenMS
 			/// Called when the parent node has finished execution
 			void finished();
 		
+		public slots:
+		
+			//documented in base class
+			virtual void inEdgeHasChanged();
+		
 		signals:
 			
 			void outputFileWritten();
@@ -80,6 +85,7 @@ namespace OpenMS
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
+			
 	};
 }
 

@@ -100,6 +100,8 @@ namespace OpenMS
 			const String& getSaveFileName();
 			/// Sets the file name
 			void setSaveFileName(const String& name);
+			/// Updates all output file names
+			void updateOutputFileNames();
 			
 		public slots:
 		

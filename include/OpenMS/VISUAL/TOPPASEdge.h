@@ -124,7 +124,19 @@ namespace OpenMS
 			int getTargetInParam();
 			/// Updates the edge color
 			void updateColor();
-
+			/// Emits the somethingHasChanged() signal
+			void emitChanged();
+		
+		public slots:
+		
+			/// Called by the source vertex when it has changed
+			void sourceHasChanged();
+		
+		signals:
+		
+			/// Emitted when something has changed
+			void somethingHasChanged();
+		
 		protected:
 			
 			///@name reimplemented Qt events

@@ -110,7 +110,11 @@ namespace OpenMS
 			void runRecursively();
 			/// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
 			void runToolIfInputReady();
-		
+			/// Returns a vector containing the lists of output files for all output parameters
+			const QVector<QStringList>& getOutputFileNames();
+			/// Updates the vector containing the lists of output files for all output parameters
+			void updateOutputFileNames();
+			
 		public slots:
 		
 			/// Called when the execution of this tool has finished
