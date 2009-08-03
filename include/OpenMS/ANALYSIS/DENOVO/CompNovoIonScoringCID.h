@@ -36,7 +36,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
-//#include <OpenMS/ANALYSIS/DENOVO/PeptideSequenceTag.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 
 // stl includes
