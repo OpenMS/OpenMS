@@ -515,7 +515,7 @@ namespace OpenMS
 		/*	first, determine (expected) number of elements of
 				output parameters with list type (see HACK below) */
 		QVector<IOInfo> in_params;
-		int in_list_element_count = -1;
+		int in_list_element_count = 0;
 		getInputParameters(in_params);
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -563,14 +563,14 @@ namespace OpenMS
 			if (param_index < 0)
 			{
 				std::cerr << "Output parameter index out of bounds!" << std::endl;
-				continue;
+				break;
 			}
 			
 			if (out_params[param_index].type == IOInfo::IOT_FILE)
 			{
 				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
 			}
-			else if (out_params[param_index].type == IOInfo::IOT_LIST && in_list_element_count != -1)
+			else if (out_params[param_index].type == IOInfo::IOT_LIST)
 			{
 				/*	HACK: for output parameters with list type, we expect
 						the number of elements to be the same as the number of
@@ -584,7 +584,7 @@ namespace OpenMS
 			else
 			{
 				std::cerr << "Unexpected output parameter!" << std::endl;
-				continue;
+				break;
 			}
 		}
 	}
