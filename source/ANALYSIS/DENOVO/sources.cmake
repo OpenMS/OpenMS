@@ -7,14 +7,14 @@ DeNovoIonScoring.C
 DeNovoAlgorithm.C
 DeNovoPostScoring.C
 DeNovoIdentification.C
-#MassDecomposition.C
-#MassDecompositionAlgorithm.C
-#CompNovoIdentificationBase.C
-#CompNovoIdentificationCID.C
-#CompNovoIonScoring.C
-#CompNovoIdentification.C
-#CompNovoIonScoringBase.C
-#CompNovoIonScoringCID.C
+MassDecomposition.C
+MassDecompositionAlgorithm.C
+CompNovoIdentificationBase.C
+CompNovoIdentificationCID.C
+CompNovoIonScoring.C
+CompNovoIdentification.C
+CompNovoIonScoringBase.C
+CompNovoIonScoringCID.C
 )
 
 ### add path to the filenames
