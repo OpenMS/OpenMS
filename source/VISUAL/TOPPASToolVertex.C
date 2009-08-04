@@ -347,8 +347,8 @@ namespace OpenMS
 		
 		QStringList args;
 		args	<< "-ini"
-					<< ini_file_name.toQString()     ; //remove
-					//<< "-no_progress"; // uncomment
+					<< ini_file_name.toQString()
+					<< "-no_progress";
 		if (type_ != "")
 		{
 			args << "-type" << type_.toQString();
@@ -417,12 +417,8 @@ namespace OpenMS
 		
 		//start process
 		QProcess* p = new QProcess();
-		p->setProcessChannelMode(QProcess::ForwardedChannels);
+		p->setProcessChannelMode(QProcess::MergedChannels);
 		connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
-		
-		///
-		std::cout << "Call: " << name_ << " " << String(args.join(" ")) << std::endl;
-		///
 		
 		//start process
 		p->start(name_.toQString(), args);
