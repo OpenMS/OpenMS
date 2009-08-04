@@ -633,7 +633,7 @@ namespace OpenMS
 				// z-ions
 				if (z_pos >= min_mz_ && z_pos <= max_mz_)
 				{
-					p.setIntensity(0.3);
+					p.setIntensity(0.3f);
 					p.setPosition(z_pos);
 					spec.push_back(p);
 						

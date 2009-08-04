@@ -43,7 +43,7 @@ namespace OpenMS
 		// some more info per line
 		if (deco.has('('))
 		{
-			UInt pos = tmp.find('(', 0);
+			Size pos = tmp.find('(', 0);
 			tmp = tmp.substr(0, pos);
 			tmp.trim();
 		}

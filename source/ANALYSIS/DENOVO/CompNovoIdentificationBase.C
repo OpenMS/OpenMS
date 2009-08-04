@@ -199,7 +199,7 @@ namespace OpenMS
 					{
         		// a-ions
         		p.setPosition((b_pos + z - 28.0)/(double)z);
-       			p.setIntensity(0.1);
+       			p.setIntensity(0.1f);
         		spec.push_back(p);
 					}
 				}
@@ -399,7 +399,7 @@ namespace OpenMS
     	}
 
 
-    	UInt old_num_used(0);
+    	Size old_num_used(0);
     	set<UInt> used_pos;
     	for (UInt p = 0; p != min(right - left - 1, max_number_pivot); ++p)
     	{
