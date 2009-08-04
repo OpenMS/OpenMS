@@ -85,7 +85,7 @@ namespace OpenMS
 		UInt count(1);
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
-			cerr << count << "/" << exp.size() / 2 << endl;
+			cerr << count << "/" << exp.size() << endl;
 			PeptideIdentification id;
 			// TODO check if both CID and ETD is present;
 			PeakSpectrum CID_spec(*it);
@@ -100,7 +100,7 @@ namespace OpenMS
 			cerr << "size_of id=" << id.getHits().size() << endl;
 			pep_ids.push_back(id);
 
-			++it;
+			//++it;
 			
 			//
 			//if (count == 10)
@@ -475,7 +475,7 @@ namespace OpenMS
 
   	set<String> new_permuts;
   	UInt count(0);
-		for (vector<Permut>::const_reverse_iterator it = score_permuts.rbegin(); it != score_permuts.rend() && count < max_subscore_number_; ++it, ++count)
+		for (vector<Permut>::const_iterator it = score_permuts.begin(); it != score_permuts.end() && count < max_subscore_number_; ++it, ++count)
 		{
 			new_permuts.insert(*it->getPermut());
 #ifdef REDUCE_PERMUTS_DEBUG

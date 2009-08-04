@@ -172,13 +172,10 @@ namespace OpenMS
 
 			Map<String, std::set<String> > permute_cache_;
 
-			//PILISModel pilis_model_;
-			
 		public:
 			
 			class Permut
 			{
-				//public:
 				private:
 								
 				Permut()
@@ -200,7 +197,7 @@ namespace OpenMS
 				{	
 				}
 
-				~Permut()
+				virtual ~Permut()
 				{
 				}
 
@@ -238,10 +235,6 @@ namespace OpenMS
 
 				std::set<String>::const_iterator permut_;
 				DoubleReal score_;
-
-				//private:
-					
-				//Permut(); // private to prevent usage
 			};
 
 	};

@@ -504,7 +504,7 @@ namespace OpenMS
 	
 	bool Internal::PermutScoreComparator(const CompNovoIdentificationBase::Permut& p1, const CompNovoIdentificationBase::Permut& p2)
 	{
-		return p1.getScore() < p2.getScore();
+		return p1.getScore() > p2.getScore();
 	}
 
 	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, double windowsize, UInt no_peaks)

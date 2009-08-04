@@ -742,7 +742,7 @@ namespace OpenMS
 
   	set<String> new_permuts;
   	UInt count(0);
-		for (vector<Permut>::const_reverse_iterator it = score_permuts.rbegin(); it != score_permuts.rend() && count < max_subscore_number_; ++it, ++count)
+		for (vector<Permut>::const_iterator it = score_permuts.begin(); it != score_permuts.end() && count < max_subscore_number_; ++it, ++count)
 		{
 			new_permuts.insert(*it->getPermut());
 #ifdef REDUCE_PERMUTS_DEBUG

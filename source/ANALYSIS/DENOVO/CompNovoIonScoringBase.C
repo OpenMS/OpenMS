@@ -119,19 +119,19 @@ namespace OpenMS
 	{
 	}
 
-	void CompNovoIonScoringBase::addSingleChargedIons_(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec)
+	void CompNovoIonScoringBase::addSingleChargedIons_(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec)
 	{
-		double double_charged_iso_threshold_single((double)param_.getValue("double_charged_iso_threshold_single"));
+		DoubleReal double_charged_iso_threshold_single((DoubleReal)param_.getValue("double_charged_iso_threshold_single"));
 		PeakSpectrum CID_spec_new = CID_spec;
 		for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
 		{
 			if (it->getPosition()[0] < CID_spec.getPrecursors().begin()->getMZ() / 2.0)	
 			{
-				double score = scoreIsotopes_(CID_spec, it, ion_scores, 2);
+				DoubleReal score = scoreIsotopes_(CID_spec, it, ion_scores, 2);
 				if (score > double_charged_iso_threshold_single)
 				{
 					// infer this peak as single charged variant
-					double mz_comp = it->getPosition()[0] * 2.0 - PROTON_MASS;
+					DoubleReal mz_comp = it->getPosition()[0] * 2.0 - PROTON_MASS;
 					bool found(false);
 					for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
 					{
@@ -162,12 +162,12 @@ namespace OpenMS
 	
 	CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it)
 	{
-  	double it_pos(it->getPosition()[0]);
+  	DoubleReal it_pos(it->getPosition()[0]);
 
   	// is there a peak left of it with diff 1Da?
   	for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); --it1)
   	{
-    	double it1_pos(it1->getPosition()[0]);
+    	DoubleReal it1_pos(it1->getPosition()[0]);
 
     	if (it1 == spec.begin() || fabs(it_pos - it1_pos) > 1.5)
     	{
@@ -183,7 +183,7 @@ namespace OpenMS
   	// is there a peak right of it with diff 1Da?
   	for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); ++it1)
   	{
-    	double it1_pos(it1->getPosition()[0]);
+    	DoubleReal it1_pos(it1->getPosition()[0]);
     	if (fabs(fabs(it_pos - it1_pos) - 1.0) < fragment_mass_tolerance_)
     	{		
       	return PARENT;
@@ -198,22 +198,22 @@ namespace OpenMS
   	return LONE;
 	}
 	
-	double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Map<double, IonScore>& ion_scores, UInt charge)
+	DoubleReal CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& ion_scores, UInt charge)
 	{
-  	double it_pos(it->getMZ());  // ~ weight of the fragment
-		double max_isotope_to_score(param_.getValue("max_isotope_to_score"));
-		double double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
-  	double actual_pos = it_pos;
+  	DoubleReal it_pos(it->getMZ());  // ~ weight of the fragment
+		DoubleReal max_isotope_to_score(param_.getValue("max_isotope_to_score"));
+		DoubleReal double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
+  	DoubleReal actual_pos = it_pos;
 
-  	vector<double> iso_pattern;
+  	vector<DoubleReal> iso_pattern;
   	vector<PeakSpectrum::ConstIterator> iso_pattern_its;
   	iso_pattern.push_back(it->getIntensity());
   	iso_pattern_its.push_back(it);
   	// get all peaks that have the right distance right of the given peak
   	for (PeakSpectrum::ConstIterator it1 = it; it1 != CID_spec.end(); ++it1)
   	{
-    	double it1_pos(it1->getPosition()[0]);
-    	if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (double)charge) < fragment_mass_tolerance_)
+    	DoubleReal it1_pos(it1->getPosition()[0]);
+    	if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (DoubleReal)charge) < fragment_mass_tolerance_)
     	{
       	iso_pattern.push_back(it1->getIntensity());
       	actual_pos = it1_pos;
@@ -232,13 +232,13 @@ namespace OpenMS
   	}
 
   	// normalize the intensity to a sum of one
-  	double sum(0);
-  	for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  	DoubleReal sum(0);
+  	for (vector<DoubleReal>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   	{
     	sum += *it1;
   	}
 
-  	for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  	for (vector<DoubleReal>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   	{
     	*it1 /= sum;
   	}
@@ -255,9 +255,9 @@ namespace OpenMS
   	}
 
 	  // calculate simple correlation score
-  	double score(0.0);
+  	DoubleReal score(0.0);
 
-  	double numerator(0), auto1(0), auto2(0);
+  	DoubleReal numerator(0), auto1(0), auto2(0);
   	for (UInt i = 0; i != iso_dist.size(); ++i)
   	{
     	numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
@@ -290,27 +290,27 @@ namespace OpenMS
 	}
 
 
-double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, UInt charge)
+DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, UInt charge)
 {
 //#ifdef ION_SCORING_DEBUG
 	cerr << "scoreIsotopes: " << spec.size() << " " << it->getPosition()[0] << " " << it->getIntensity() << " " << charge << endl;
 //#endif
-  double it_pos(it->getMZ()); // ~ weight of the fragment
-  double actual_pos = it_pos;
+  DoubleReal it_pos(it->getMZ()); // ~ weight of the fragment
+  DoubleReal actual_pos = it_pos;
 	UInt max_isotope_to_score = (UInt)param_.getValue("max_isotope_to_score");
 
-  vector<double> iso_pattern;
+  vector<DoubleReal> iso_pattern;
   iso_pattern.push_back(it->getIntensity());
 
 	// get all peaks that have the right distance right of the given peak
 	//cerr << "Scoring peaks...";
   for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); ++it1)
   {
-    double it1_pos(it1->getMZ());
+    DoubleReal it1_pos(it1->getMZ());
 
 		//cerr << "PRE: " << actual_pos << " " << it1_pos << " " << NEUTRON_MASS << " " << charge << " " << fragment_mass_tolerance_ << endl;
 		
-    if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (double)charge) < fragment_mass_tolerance_ / (double)charge)
+    if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (DoubleReal)charge) < fragment_mass_tolerance_ / (DoubleReal)charge)
     {
 //#ifdef ION_SCORING_DEBUG
 			cerr << actual_pos << " " << it1_pos << " " << charge << " " << fragment_mass_tolerance_ << endl;
@@ -333,13 +333,13 @@ double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpect
 
   // normalize the intensity to a sum of one
 	/*
-  double sum(0);
-  for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  DoubleReal sum(0);
+  for (vector<DoubleReal>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   {
     sum += *it1;
   }
 
-  for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  for (vector<DoubleReal>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   {
     *it1 /= sum;
   }*/
@@ -357,9 +357,9 @@ double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpect
   }
 
   // calculate simple correlation score
-  double score(0.0);
+  DoubleReal score(0.0);
 
-  double numerator(0), auto1(0), auto2(0);
+  DoubleReal numerator(0), auto1(0), auto2(0);
   for (UInt i = 0; i != iso_dist.size(); ++i)
   {
     numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
@@ -379,14 +379,14 @@ double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpect
 
 	void CompNovoIonScoringBase::initIsotopeDistributions_()
 	{
-		double max_mz(param_.getValue("max_mz"));
+		DoubleReal max_mz(param_.getValue("max_mz"));
 		UInt max_isotope(param_.getValue("max_isotope"));
   	IsotopeDistribution iso_dist(max_isotope);
-  	for (int i = 1; i <= max_mz; ++i)
+  	for (Int i = 1; i <= max_mz; ++i)
   	{
-    iso_dist.estimateFromPeptideWeight((double)i);
+    iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     iso_dist.renormalize();
-    vector<double> iso(max_isotope, 0.0);
+    vector<DoubleReal> iso(max_isotope, 0.0);
 
     for (UInt j = 0; j != iso_dist.size(); ++j)
     {
@@ -398,7 +398,7 @@ double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpect
 
 	void 	CompNovoIonScoringBase::updateMembers_()
 	{
-		fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
+		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
 
 		initIsotopeDistributions_();
 
