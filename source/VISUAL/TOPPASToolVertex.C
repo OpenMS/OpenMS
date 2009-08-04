@@ -347,8 +347,8 @@ namespace OpenMS
 		
 		QStringList args;
 		args	<< "-ini"
-					<< ini_file_name.toQString()
-					<< "-no_progress";
+					<< ini_file_name.toQString()     ; //remove
+					//<< "-no_progress"; // uncomment
 		if (type_ != "")
 		{
 			args << "-type" << type_.toQString();
@@ -398,32 +398,31 @@ namespace OpenMS
 		// add all output file parameters
 		QVector<IOInfo> out_params;
 		getOutputParameters(out_params);
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		
+		for (int i = 0; i < out_params.size(); ++i)
 		{
-			int param_index = (*it)->getSourceOutParam();
-			if (param_index < 0)
+			// search for an out edge for this parameter
+			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
-				std::cerr << "Output parameter index out of bounds!" << std::endl;
-				break;
-			}
-			args << "-"+(out_params[param_index].param_name).toQString();
-			
-			if (out_params[param_index].type == IOInfo::IOT_FILE
-					|| out_params[param_index].type == IOInfo::IOT_LIST)
-			{
-				args << output_file_names_[param_index];
-			}
-			else
-			{
-				std::cerr << "Unexpected output parameter!" << std::endl;
-				break;
+				int param_index = (*it)->getSourceOutParam();
+				
+				if (i == param_index)
+				{
+					args	<< "-"+(out_params[param_index].param_name).toQString()
+								<< output_file_names_[param_index]; // can be single file name or list
+					break; // (irregardless of the number of out edges, every argument must appear only once)
+				}
 			}
 		}
 		
 		//start process
 		QProcess* p = new QProcess();
-		p->setProcessChannelMode(QProcess::MergedChannels);
+		p->setProcessChannelMode(QProcess::ForwardedChannels);
 		connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
+		
+		///
+		std::cout << "Call: " << name_ << " " << String(args.join(" ")) << std::endl;
+		///
 		
 		//start process
 		p->start(name_.toQString(), args);
@@ -557,34 +556,34 @@ namespace OpenMS
 		output_file_names_.clear();
 		output_file_names_.resize(out_params.size());
 		
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		for (int i = 0; i < out_params.size(); ++i)
 		{
-			int param_index = (*it)->getSourceOutParam();
-			if (param_index < 0)
+			// search for an out edge for this parameter
+			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
-				std::cerr << "Output parameter index out of bounds!" << std::endl;
-				break;
-			}
-			
-			if (out_params[param_index].type == IOInfo::IOT_FILE)
-			{
-				output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
-			}
-			else if (out_params[param_index].type == IOInfo::IOT_LIST)
-			{
-				/*	HACK: for output parameters with list type, we expect
-						the number of elements to be the same as the number of
-						elements of the "in" input list (thus, we also assume that there is
-						an input parameter "in" with list type) */
-				for (int i = 0; i < in_list_element_count; ++i)
+				int param_index = (*it)->getSourceOutParam();
+				
+				if (i == param_index)
 				{
-					output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+					// corresponding out edge found
+					if (out_params[param_index].type == IOInfo::IOT_FILE)
+					{
+						output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+					}
+					else if (out_params[param_index].type == IOInfo::IOT_LIST)
+					{
+						/*	HACK: for output parameters with list type, we expect
+								the number of elements to be the same as the number of
+								elements of the "in" input list (thus, we also assume that there is
+								an input parameter "in" with list type) */
+						for (int j = 0; j < in_list_element_count; ++j)
+						{
+							output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+						}
+					}
+					
+					break; // we are done, don't push_back further file names for this parameter
 				}
-			}
-			else
-			{
-				std::cerr << "Unexpected output parameter!" << std::endl;
-				break;
 			}
 		}
 	}
