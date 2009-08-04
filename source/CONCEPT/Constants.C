@@ -49,11 +49,20 @@ namespace OpenMS
 		// Electron mass
 		const double	ELECTRON_MASS   	= 9.1093897E-31L;   	 // kg
 
+		// Electron mass in units
+		const double  ELECTRON_MASS_U   = 1.0 / 1822.8885020477; // u
+
 		// Proton mass
 		const double	PROTON_MASS     	= 1.6726230E-27L;   	 // kg
 
+		// Proton mass in units
+		const double  PROTON_MASS_U			= 1.0072764667710;     // u
+
 		// Neutron mass
 		const double	NEUTRON_MASS    	= 1.6749286E-27L;   	 // kg
+
+		// Neutron mass in units
+		const double NEUTRON_MASS_U     = 1.00866491566; 				// u
 
 		// Avogadro constant
 		const double	AVOGADRO        	= 6.0221367E+23L;   	 // 1 / mol

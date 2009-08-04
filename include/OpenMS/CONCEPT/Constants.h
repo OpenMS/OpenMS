@@ -44,13 +44,13 @@ namespace OpenMS
 		<UL>
 			<LI> specify all namespaces:
 			<BR>
-			<tt>float my_pi = OpenMS::Constants::PI</tt>
+			<tt>double my_pi = OpenMS::Constants::PI</tt>
 			<BR>
 			<LI>shortcut via the <tt>using directive</tt>:
 			<BR>
 			<tt>using namespace OpenMS::Constants;
 			<BR>
-			float my_pi = PI;</tt>
+			double my_pi = PI;</tt>
 		</UL>
 		
 		@ingroup Concept
@@ -90,15 +90,30 @@ namespace OpenMS
 		*/
 		extern const double	ELECTRON_MASS   	;   	 // kg
 
+		/** Electron mass
+		 		In units (\f$1,822.88850204(77)^{-1}\f$u).
+		*/
+		extern const double ELECTRON_MASS_U   ;      // u
+
 		/** Proton mass.
 				In units of kg (\f$1.6726230 \cdot 10^{-27}\f$ kg).
 		*/
 		extern const double	PROTON_MASS     	;   	 // kg
 
+		/** Proton mass.
+				In units (\f$1.00727646677(10)\f$u)
+		*/
+		extern const double PROTON_MASS_U     ;      // u
+
 		/** Neutron mass.
 				In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).
 		*/
 		extern const double	NEUTRON_MASS    	;   	 // kg
+
+		/** Neutron mass.
+		 		In units (\f$1.0086649156(6)\f$u)
+		*/
+		extern const double NEUTRON_MASS_U    ;      // u
 
 		/** Avogadro constant.
 				In units of \f$mol^{-1}\f$ (\f$6.0221367 \cdot 10^{23} mol^{-1}\f$).
