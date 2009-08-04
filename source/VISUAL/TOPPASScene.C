@@ -435,8 +435,14 @@ namespace OpenMS
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
 			{
+				const QStringList& files_qt = iflv->getFilenames();
+				StringList files;
+				foreach (QString file_qt, files_qt)
+				{
+					files.push_back(String(file_qt));
+				}
 				save_param.setValue("vertices:"+id+":type", DataValue("input file list"));
-				save_param.setValue("vertices:"+id+":file_names", DataValue(String((iflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":file_names", DataValue(files));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
@@ -455,8 +461,14 @@ namespace OpenMS
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 			if (oflv)
 			{
+				const QStringList& files_qt = oflv->getFilenames();
+				StringList files;
+				foreach (QString file_qt, files_qt)
+				{
+					files.push_back(String(file_qt));
+				}
 				save_param.setValue("vertices:"+id+":type", DataValue("output file list"));
-				save_param.setValue("vertices:"+id+":file_names", DataValue(String((oflv->getFilenames()).join("(#_#)"))));
+				save_param.setValue("vertices:"+id+":file_names", DataValue(files));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
@@ -527,8 +539,13 @@ namespace OpenMS
 				}
 				else if (current_type == "input file list")
 				{
-					QStringList file_names = vertices_param.getValue(current_id + ":file_names").toQString().split("(#_#)");
-					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names);
+					StringList file_names = vertices_param.getValue(current_id + ":file_names");
+					QStringList file_names_qt;
+					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
+					{
+						file_names_qt.push_back(str_it->toQString());
+					}
+					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;
 				}
 				else if (current_type == "output file")
@@ -539,8 +556,13 @@ namespace OpenMS
 				}
 				else if (current_type == "output file list")
 				{
-					QStringList file_names = vertices_param.getValue(current_id + ":file_names").toQString().split("(#_#)");
-					TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex(file_names);
+					StringList file_names = vertices_param.getValue(current_id + ":file_names");
+					QStringList file_names_qt;
+					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
+					{
+						file_names_qt.push_back(str_it->toQString());
+					}
+					TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex(file_names_qt);
 					current_vertex = oflv;
 				}
 				else if (current_type == "tool")

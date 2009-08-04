@@ -76,8 +76,27 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		if (inEdgesBegin() == inEdgesEnd() ||
-				qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex())->getOutputFileNames().empty())
+		bool ready = true;
+		if (inEdgesBegin() == inEdgesEnd())
+		{
+			ready = false;
+		}
+		else
+		{
+			TOPPASToolVertex* parent_tv = qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex());
+			
+			//first, update file names recursively
+			parent_tv->updateOutputFileNames();
+			
+			const QVector<QStringList>& output_files = parent_tv->getOutputFileNames();
+			int param_index = (*inEdgesBegin())->getSourceOutParam();
+			if (param_index == -1 || output_files[param_index].empty())
+			{
+				ready = false;
+			}
+		}
+		
+		if (!ready)
 		{
 			QMessageBox::information(0,"No input","The output file names cannot be specified until the number of files is known. You have to set up the rest of the pipeline, first (including input files).");
 			return;
