@@ -102,8 +102,16 @@ namespace OpenMS
 			Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
 			features[i].setMetaValue("spectrum_index",(UInt) spectrum_index);
 			//native id
-			String native_id = input_map[spectrum_index].getNativeID();
-			features[i].setMetaValue("spectrum_native_id", native_id);
+			if (spectrum_index < input_map.size())
+			{
+				String native_id = input_map[spectrum_index].getNativeID();
+				features[i].setMetaValue("spectrum_native_id", native_id);
+			}
+			else
+			{
+				// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
+				std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
+			}
 		}
 	}
 

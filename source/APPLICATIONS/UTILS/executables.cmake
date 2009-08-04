@@ -21,6 +21,7 @@ IdXMLEvaluation
 DecoyDatabase
 IDMassAccuracy
 PeptideIndexer
+ERPairFinder
 )
 
 ### pass source file list to the upper instance
