@@ -30,7 +30,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 using namespace OpenMS;
@@ -74,8 +74,12 @@ class TOPPCompNovo
 		
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in MzData format", true);
+			registerInputFile_("in", "<file>", "", "input file in mzML format", true);
+			setValidFormats_("in", StringList::create("mzML"));
+
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
+			setValidFormats_("out", StringList::create("idXML"));
+
 			registerStringOption_("type","<name>","","type of algorithm",true);
 			setValidStrings_("type", StringList::create("CompNovo,CompNovoCID"));
 
@@ -100,8 +104,14 @@ class TOPPCompNovo
       //-------------------------------------------------------------
 
       PeakMap exp;
-			MzDataFile f;
+			MzMLFile f;
       f.setLogType(log_type_);
+
+	    PeakFileOptions options;
+      options.clearMSLevels();
+			options.addMSLevel(2);
+      f.getOptions() = options;
+
       f.load(in, exp);
 
 			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);
