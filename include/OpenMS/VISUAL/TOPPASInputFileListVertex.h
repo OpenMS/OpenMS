@@ -62,6 +62,8 @@ namespace OpenMS
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
+			/// Checks if the given list of file names is valid
+			bool fileNamesValid(const QStringList& files);
 			
 		protected:
 		

@@ -29,6 +29,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
 #include <QtGui/QFileDialog>
 
@@ -37,9 +38,11 @@
 namespace OpenMS
 {
 	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(TOPPASOutputFileListVertex* parent)
+		: parent_(parent)
 	{
 		setupUi(this);
 		
+		output_file_list->setSelectionMode(QAbstractItemView::SingleSelection);
 		output_file_list->setSortingEnabled(false); // same order as output files of tool
 		
 		// output vertex has exactly 1 in edge:
@@ -50,23 +53,38 @@ namespace OpenMS
 		if (param_index != -1)
 		{
 			const QStringList& files = files_vector[param_index];
-			output_file_list->addItems(files);
+			
+			if (files.size() == parent->getFilenames().size())
+			{
+				// number is correct --> load user-specified file names
+				output_file_list->addItems(parent->getFilenames());
+			}
+			else
+			{
+				// wrong number --> load names of the tmp files again
+				output_file_list->addItems(files);
+			}
 		}
 		
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
+		connect (edit_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 	}
 	
-// 	void TOPPASOutputFilesDialog::showFileDialog()
-// 	{
-// 		QFileDialog fd;
-// 		fd.setFileMode(QFileDialog::ExistingFiles);
-// 		//fd.setFilter("*.mzData;*.mzML;*.dta; .....");
-// 		if (fd.exec())
-// 		{
-// 			input_file_list->addItems(fd.selectedFiles());
-// 		}
-// 	}
+	void TOPPASOutputFilesDialog::showFileDialog()
+	{
+		if (output_file_list->selectedItems().empty())
+		{
+			return;
+		}
+		
+		QFileDialog fd;
+		fd.setFileMode(QFileDialog::AnyFile);
+		if (fd.exec() && !fd.selectedFiles().empty())
+		{
+			(output_file_list->selectedItems().first())->setText(fd.selectedFiles().first());
+		}
+	}
 	
 	
 	void TOPPASOutputFilesDialog::getFilenames(QStringList& files)

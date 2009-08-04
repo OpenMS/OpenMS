@@ -30,8 +30,10 @@
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QMessageBox>
+#include <QtCore/QFile>
 
 
 namespace OpenMS
@@ -164,18 +166,41 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::finished()
 	{
-		// TODO: rename tmp file to proper output file
+		// rename tmp out file if file names specified
+		TOPPASEdge* e = *inEdgesBegin();
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
+		const QVector<QStringList>& output_files = tv->getOutputFileNames();
+		int param_index = e->getSourceOutParam();
+		QStringList tmp_file_names = output_files[param_index];
+		
+		if (tmp_file_names.count() != files_.count())
+		{
+			std::cerr << "Cannot rename output files (wrong number of file names)" << std::endl;
+			return; 
+		}
+		
+		int counter = 0;
+		foreach (QString file, tmp_file_names)
+		{
+			QFile::rename(file, files_[counter++]);
+		}
+		
 		emit outputFilesWritten();
 	}
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
 		// some vertex or edge that we depend on has changed
-		// --> update list of incoming output files
+		// --> update list of incoming output files TODO
 		
 		
 		// we do not need to forward the change (we have no childs)
 	}
 	
+	bool TOPPASOutputFileListVertex::fileNamesValid(const QStringList& /*files*/)
+	{
+		// some more checks TODO...
+		return true;
+	}
 }
 

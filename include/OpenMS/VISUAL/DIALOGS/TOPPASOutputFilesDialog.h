@@ -58,12 +58,17 @@ namespace OpenMS
 		public slots:
 		
 			/// Lets the user select files via a file dialog
-// 			void showFileDialog();
+			void showFileDialog();
 		
 		protected slots:
 		
 			/// Called when OK is pressed; checks if the selected file is valid
 			void checkValidity_();
+		
+		protected:
+		
+			/// The parent vertex
+			TOPPASOutputFileListVertex* parent_;
 	};
 	
 }

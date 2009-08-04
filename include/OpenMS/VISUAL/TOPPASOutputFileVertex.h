@@ -66,7 +66,9 @@ namespace OpenMS
 			const QString& getFilename();
 			/// Called when the parent node has finished execution
 			void finished();
-		
+			/// Checks if the given file name is valid
+			bool fileNameValid(const QString& file);
+			
 		public slots:
 		
 			//documented in base class

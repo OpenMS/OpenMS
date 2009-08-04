@@ -36,11 +36,12 @@
 
 namespace OpenMS
 {
-	TOPPASOutputFileDialog::TOPPASOutputFileDialog(const QString& file)
+	TOPPASOutputFileDialog::TOPPASOutputFileDialog(TOPPASOutputFileVertex* parent)
+		: parent_(parent)
 	{
 		setupUi(this);
 		
-		line_edit->setText(file);
+		line_edit->setText(parent->getFilename());
 		
 		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
@@ -69,16 +70,9 @@ namespace OpenMS
 	
 	void TOPPASOutputFileDialog::checkValidity_()
 	{
-		//file name specified?
-		if (File::basename(line_edit->text()) == "")
+		if (!(parent_->fileNameValid(line_edit->text())))
 		{
 			QMessageBox::warning(0,"Invalid file name","The specified file name is invalid!");
-			return;
-		}
-		//directory exists?
-		if (!File::exists(File::path(line_edit->text())))
-		{
-			QMessageBox::warning(0,"Invalid file name","The specified directory does not exist!");
 			return;
 		}
 		

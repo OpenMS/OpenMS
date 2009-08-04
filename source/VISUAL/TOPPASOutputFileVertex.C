@@ -30,6 +30,9 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <QtCore/QFile>
 
 namespace OpenMS
 {
@@ -73,7 +76,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		TOPPASOutputFileDialog tofd(file_);
+		TOPPASOutputFileDialog tofd(this);
 		if (tofd.exec())
 		{
 			file_ = tofd.getFilename();
@@ -135,8 +138,19 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::finished()
 	{
-		// TODO: rename tmp file to proper output file
-		emit outputFileWritten();
+		// rename tmp out file if a file name was specified
+		if (file_ != "")
+		{
+			TOPPASEdge* e = *inEdgesBegin();
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
+			const QVector<QStringList>& output_files = tv->getOutputFileNames();
+			int param_index = e->getSourceOutParam();
+			QString tmp_file_name = output_files[param_index].first();
+			
+			QFile::rename(tmp_file_name, file_);
+			
+			emit outputFileWritten();
+		}
 	}
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
@@ -144,5 +158,20 @@ namespace OpenMS
 		// we do not need to forward the change (we have no childs)
 	}
 	
+	bool TOPPASOutputFileVertex::fileNameValid(const QString& file)
+	{
+		//file name specified?
+		if (File::basename(String(file)) == "")
+		{
+			return false;
+		}
+		//directory exists?
+		if (!File::exists(File::path(String(file))))
+		{
+			return false;
+		}
+		
+		return true;
+	}
 }
 

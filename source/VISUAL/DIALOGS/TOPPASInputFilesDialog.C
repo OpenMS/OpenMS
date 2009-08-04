@@ -34,12 +34,13 @@
 
 namespace OpenMS
 {
-	TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& files)
+	TOPPASInputFilesDialog::TOPPASInputFilesDialog(TOPPASInputFileListVertex* parent)
+		: parent_(parent)
 	{
 		setupUi(this);
 		
 		input_file_list->setSortingEnabled(true);
-		input_file_list->addItems(files);
+		input_file_list->addItems(parent->getFilenames());
 		
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
