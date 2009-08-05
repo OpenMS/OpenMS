@@ -544,6 +544,11 @@ namespace OpenMS
 				// no param selected
 				return ES_NO_SOURCE_PARAM;
 			}
+			else if (!qobject_cast<TOPPASOutputFileListVertex*>(target)->isReady())
+			{
+				// number of specified output file names not correct
+				return ES_NOT_READY_YET;
+			}
 			
 			valid = true;
 		}
@@ -641,6 +646,7 @@ namespace OpenMS
 	void TOPPASEdge::sourceHasChanged()
 	{
 		// what else TODO?
+		
 		emit somethingHasChanged();
 	}
 	

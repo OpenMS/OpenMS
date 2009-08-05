@@ -37,6 +37,7 @@
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
+#include <QtCore/QFile>
 
 namespace OpenMS
 {
@@ -102,14 +103,14 @@ namespace OpenMS
 	void TOPPASToolVertex::initParam_()
 	{
 		Param tmp_param;
-		String ini_file = tmp_path_ + "TOPPAS_" + name_ + "_";
+		ini_file_ = tmp_path_ + "TOPPAS_" + name_ + "_";
 		if (type_ != "")
 		{
-			ini_file += type_ + "_";
+			ini_file_ += type_ + "_";
 		}
-		ini_file += File::getUniqueName() + "_tmp.ini";
+		ini_file_ += File::getUniqueName() + "_tmp.ini";
 		
-		String call = name_ + " -write_ini " + ini_file + " -log " + ini_file + ".log";
+		String call = name_ + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
 		if (type_ != "")
 		{
 			call += " -type " + type_;
@@ -120,13 +121,13 @@ namespace OpenMS
 			QMessageBox::critical(0,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
 			return;
 		}
-		else if(!File::exists(ini_file))
+		else if(!File::exists(ini_file_))
 		{
-			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file+"'!").c_str());
+			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file_+"'!").c_str());
 			return;
 		}
 		
-		tmp_param.load((ini_file).c_str());
+		tmp_param.load((ini_file_).c_str());
 		param_=tmp_param.copy(name_+":1:",true);
 		param_.remove("log");
 		param_.remove("no_progress");
@@ -134,6 +135,9 @@ namespace OpenMS
 		
 		// handled by TOPPAS anyway:
 		param_.remove("type");
+		
+		// remove tmp ini file
+		QFile::remove(ini_file_.toQString());
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -353,12 +357,11 @@ namespace OpenMS
 		}
 		
 		// all inputs are ready --> GO!
-		String ini_file_name = tmp_path_+"TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + ".ini";
-		param_.store(ini_file_name);
+		param_.store(ini_file_);
 		
 		QStringList args;
 		args	<< "-ini"
-					<< ini_file_name.toQString()
+					<< ini_file_.toQString()
 					<< "-no_progress";
 		if (type_ != "")
 		{
@@ -421,7 +424,7 @@ namespace OpenMS
 				{
 					args	<< "-"+(out_params[param_index].param_name).toQString()
 								<< output_file_names_[param_index]; // can be single file name or list
-					break; // (irregardless of the number of out edges, every argument must appear only once)
+					break; // (regardless of the number of out edges, every argument must appear only once)
 				}
 			}
 		}
@@ -439,6 +442,9 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
 	{
+		// remove tmp ini file
+		QFile::remove(ini_file_.toQString());
+		
 		if (es != QProcess::NormalExit)
 		{
 			std::cerr << "TOPP tool crashed!" << std::endl;

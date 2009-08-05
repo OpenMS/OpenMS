@@ -59,10 +59,10 @@ namespace OpenMS
 			if (specified_files_count <= tmp_files_count)
 			{
 				output_file_list->addItems(parent->getFilenames());
-				// if too few file names specified, fill the rest with the tmp file names
+				// if too few file names specified, fill the rest
 				for (int i = specified_files_count; i < tmp_files_count; ++i)
 				{
-					output_file_list->addItem(files[i]);
+					output_file_list->addItem("<edit filename>");
 				}
 			}
 			else
@@ -103,7 +103,11 @@ namespace OpenMS
 		files.clear();
 		for (int i = 0; i < output_file_list->count(); ++i)
 		{
-			files.push_back(output_file_list->item(i)->text());
+			const QString& text = output_file_list->item(i)->text();
+			if (text != "<edit filename>")
+			{
+				files.push_back(text);
+			}
 		}
 	}
 	

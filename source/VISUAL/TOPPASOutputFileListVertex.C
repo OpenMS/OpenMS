@@ -40,7 +40,8 @@ namespace OpenMS
 {
 	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex()
 		:	TOPPASVertex(),
-			files_()
+			files_(),
+			ready_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -48,7 +49,8 @@ namespace OpenMS
 	
 	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const QStringList& files)
 		:	TOPPASVertex(),
-			files_(files)
+			files_(files),
+			ready_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -56,7 +58,8 @@ namespace OpenMS
 	
 	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs)
 		:	TOPPASVertex(rhs),
-			files_(rhs.files_)
+			files_(rhs.files_),
+			ready_(rhs.ready_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -72,16 +75,17 @@ namespace OpenMS
 		TOPPASVertex::operator=(rhs);		
 		
 		files_ = rhs.files_;
+		ready_ = rhs.ready_;
 		
 		return *this;
 	}
 	
 	void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		bool ready = true;
+		bool go = true;
 		if (inEdgesBegin() == inEdgesEnd())
 		{
-			ready = false;
+			go = false;
 		}
 		else
 		{
@@ -94,11 +98,11 @@ namespace OpenMS
 			int param_index = (*inEdgesBegin())->getSourceOutParam();
 			if (param_index == -1 || output_files[param_index].empty())
 			{
-				ready = false;
+				go = false;
 			}
 		}
 		
-		if (!ready)
+		if (!go)
 		{
 			QMessageBox::information(0,"No input","The output file names cannot be specified until the number of files is known. You have to set up the rest of the pipeline, first (including input files).");
 			return;
@@ -109,6 +113,7 @@ namespace OpenMS
 		{
 			tofd.getFilenames(files_);
 		}
+		updateStatus();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
@@ -171,17 +176,11 @@ namespace OpenMS
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
 		const QVector<QStringList>& output_files = tv->getOutputFileNames();
 		int param_index = e->getSourceOutParam();
-		QStringList tmp_file_names = output_files[param_index];
-		
-// 		if (tmp_file_names.count() != files_.count())
-// 		{
-// 			std::cerr << "Cannot rename output files (wrong number of file names)" << std::endl;
-// 			return; 
-// 		}
+		const QStringList& tmp_file_names = output_files[param_index];
 		
 		int specified_names_count = files_.size();
 		int counter = 0;
-		foreach (QString file, tmp_file_names)
+		foreach (const QString& file, tmp_file_names)
 		{
 			if (counter < specified_names_count)
 			{
@@ -198,17 +197,62 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
-		// some vertex or edge that we depend on has changed
-		// --> update list of incoming output files TODO
-		
+		updateStatus();
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		
 		// we do not need to forward the change (we have no childs)
+	}
+	
+	void TOPPASOutputFileListVertex::updateStatus()
+	{
+		if (inEdgesBegin() == inEdgesEnd())
+		{
+			ready_ = false;
+			return;
+		}
+		TOPPASEdge* e = *inEdgesBegin();
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
+		tv->updateOutputFileNames();
+		const QVector<QStringList>& output_files = tv->getOutputFileNames();
+		int param_index = e->getSourceOutParam();
+		if (param_index == -1)
+		{
+			ready_ = false;
+			return;
+		}
+		const QStringList& tmp_file_names = output_files[param_index];
+		int tmp_files_count = tmp_file_names.size();
+		if (tmp_files_count == 0)
+		{
+			ready_ = false;
+			return;
+		}
+		int specified_names_count = files_.size();
+		if (specified_names_count > tmp_files_count)
+		{
+			// truncate superfluous file names
+			int diff = specified_names_count - tmp_files_count;
+			for (int i = 0; i < diff; ++i)
+			{
+				files_.removeLast();
+			}
+			ready_ = true;
+		}
+		else
+		{
+			ready_ = (tmp_files_count == specified_names_count);
+		}
 	}
 	
 	bool TOPPASOutputFileListVertex::fileNamesValid(const QStringList& /*files*/)
 	{
 		// some more checks TODO...
 		return true;
+	}
+	
+	bool TOPPASOutputFileListVertex::isReady()
+	{
+		return ready_;
 	}
 }
 

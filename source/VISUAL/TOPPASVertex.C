@@ -233,6 +233,7 @@ namespace OpenMS
 	{
 		// Generally, only forward the change.
 		// (overridden behavior in output vertices)
+		
 		emit somethingHasChanged();
 	}
 

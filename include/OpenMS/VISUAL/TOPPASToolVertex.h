@@ -150,6 +150,8 @@ namespace OpenMS
 			String type_;
 			/// The temporary path
 			String tmp_path_;
+			/// The temporary ini file
+			String ini_file_;
 			/// The parameters of the tool
 			Param param_;
 			/// Stores whether this node has already been processed during the current pipeline execution

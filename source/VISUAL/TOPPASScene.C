@@ -291,8 +291,8 @@ namespace OpenMS
 				((qobject_cast<TOPPASInputFileVertex*>(u) || qobject_cast<TOPPASInputFileListVertex*>(u))
 					&& (qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))) ||
 				// nor multiple incoming edges for a single output file/list node
-				(qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))
-					&& v->inEdgesBegin() != v->inEdgesEnd())
+				((qobject_cast<TOPPASOutputFileVertex*>(v) || qobject_cast<TOPPASOutputFileListVertex*>(v))
+					&& v->inEdgesBegin() != v->inEdgesEnd()))
 		{
 			return false;
 		}
@@ -658,6 +658,17 @@ namespace OpenMS
       	edge->setTargetInParam(target_in_param);
       }
     }
+    
+    // update status of output file list vertices (depends on input)
+    foreach (TOPPASVertex* v, vertices_)
+    {
+    	TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(v);
+    	if (oflv)
+    	{
+    		oflv->updateStatus();
+    	}
+    }
+    
     updateEdgeColors();
   }
 

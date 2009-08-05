@@ -69,6 +69,10 @@ namespace OpenMS
 			void finished();
 			/// Checks if the given list of file names is valid
 			bool fileNamesValid(const QStringList& files);
+			/// Returns whether this vertex is ready
+			bool isReady();
+			/// Updates the status (if ready or not)
+			void updateStatus();
 			
 		public slots:
 		
@@ -77,12 +81,15 @@ namespace OpenMS
 		
 		signals:
 			
+			/// Emitted when an output file was written
 			void outputFileWritten(const String& file);
 		
 		protected:
 		
 			/// The file names
 			QStringList files_;
+			/// Stores whether this vertex is ready (ready iff for every element of the list a name has been specified)
+			bool ready_;
 		
 			///@name reimplemented Qt events
       //@{
