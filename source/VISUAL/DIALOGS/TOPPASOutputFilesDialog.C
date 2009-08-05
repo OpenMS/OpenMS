@@ -54,15 +54,25 @@ namespace OpenMS
 		{
 			const QStringList& files = files_vector[param_index];
 			
-			if (files.size() == parent->getFilenames().size())
+			int specified_files_count = parent->getFilenames().size();
+			int tmp_files_count = files.size();
+			if (specified_files_count <= tmp_files_count)
 			{
-				// number is correct --> load user-specified file names
 				output_file_list->addItems(parent->getFilenames());
+				// if too few file names specified, fill the rest with the tmp file names
+				for (int i = specified_files_count; i < tmp_files_count; ++i)
+				{
+					output_file_list->addItem(files[i]);
+				}
 			}
 			else
 			{
-				// wrong number --> load names of the tmp files again
-				output_file_list->addItems(files);
+				// too many file names specified, only show as many as needed
+				const QStringList& save_names = parent->getFilenames();
+				for (int i = 0; i < tmp_files_count; ++i)
+				{
+					output_file_list->addItem(save_names[i]);
+				}
 			}
 		}
 		

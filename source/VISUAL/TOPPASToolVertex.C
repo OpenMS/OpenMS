@@ -193,7 +193,7 @@ namespace OpenMS
 			param_.setValue(pe.name, pe.value, pe.description, tags);
 		}
 		
-		emit somethingHasChanged();
+		//emit somethingHasChanged();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	

@@ -80,7 +80,7 @@ namespace OpenMS
 		}
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		
-		emit somethingHasChanged();
+		//emit somethingHasChanged();
 	}
 	
 	const QString& TOPPASInputFileVertex::getFilename()

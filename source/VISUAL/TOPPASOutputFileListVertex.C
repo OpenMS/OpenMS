@@ -173,22 +173,26 @@ namespace OpenMS
 		int param_index = e->getSourceOutParam();
 		QStringList tmp_file_names = output_files[param_index];
 		
-		if (tmp_file_names.count() != files_.count())
-		{
-			std::cerr << "Cannot rename output files (wrong number of file names)" << std::endl;
-			return; 
-		}
+// 		if (tmp_file_names.count() != files_.count())
+// 		{
+// 			std::cerr << "Cannot rename output files (wrong number of file names)" << std::endl;
+// 			return; 
+// 		}
 		
+		int specified_names_count = files_.size();
 		int counter = 0;
 		foreach (QString file, tmp_file_names)
 		{
-			const QString& save_name = files_[counter++];	
-			if (QFile::exists(save_name))
+			if (counter < specified_names_count)
 			{
-				QFile::remove(save_name);
+				const QString& save_name = files_[counter++];	
+				if (QFile::exists(save_name))
+				{
+					QFile::remove(save_name);
+				}
+				QFile::rename(file, save_name);
+				emit outputFileWritten(String(save_name));
 			}
-			QFile::rename(file, save_name);
-			emit outputFileWritten(String(save_name));
 		}
 	}
 	
