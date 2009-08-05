@@ -45,7 +45,8 @@ namespace OpenMS
 			name_(),
 			type_(),
 			param_(),
-			finished_(false)
+			finished_(false),
+			started_here_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -58,7 +59,8 @@ namespace OpenMS
 			type_(type),
 			tmp_path_(tmp_path),
 			param_(),
-			finished_(false)
+			finished_(false),
+			started_here_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -71,7 +73,8 @@ namespace OpenMS
 			type_(rhs.type_),
 			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
-			finished_(rhs.finished_)
+			finished_(rhs.finished_),
+			started_here_(rhs.started_here_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -91,6 +94,7 @@ namespace OpenMS
 		type_ = rhs.type_;
 		tmp_path_ = rhs.tmp_path_;
 		finished_ = rhs.finished_;
+		started_here_ = rhs.started_here_;
 		
 		return *this;
 	}
@@ -310,6 +314,12 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::runRecursively()
 	{
+		if (started_here_)
+		{
+			// make sure pipelines are not run multiple times
+			return;
+		}
+		
 		bool we_depend_on_other_tools = false;
 		// recursive execution of all parent nodes that are tools
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
@@ -324,6 +334,7 @@ namespace OpenMS
 		if (!we_depend_on_other_tools)
 		{
 			// start actual pipeline execution here
+			started_here_ = true;
 			runToolIfInputReady();
 		}
 	}
@@ -465,6 +476,13 @@ namespace OpenMS
 				continue;
 			}
 		}
+		
+		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+		if (p)
+		{
+			delete p;
+		}
+		
 		emit toolFinished();
 	}
 	
@@ -582,6 +600,11 @@ namespace OpenMS
 				}
 			}
 		}
+	}
+	
+	void TOPPASToolVertex::setStartedHere(bool b)
+	{
+		started_here_ = b;
 	}
 
 }

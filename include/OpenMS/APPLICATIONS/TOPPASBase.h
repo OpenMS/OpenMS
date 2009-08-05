@@ -124,7 +124,7 @@ namespace OpenMS
 			/// Called when a tool execution fails
 			void toolFailed();
 			/// Called when a pipeline execution ended successfully in an output vertex
-			void outputVertexFinished();
+			void outputVertexFinished(const String& file);
 			
     protected slots:
 		

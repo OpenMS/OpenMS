@@ -51,6 +51,7 @@ namespace OpenMS
 	void TOPPASOutputFileDialog::showFileDialog()
 	{
 		QFileDialog fd;
+		fd.setAcceptMode(QFileDialog::AcceptSave);
 		fd.setFileMode(QFileDialog::AnyFile);
 		if (File::exists(File::path(line_edit->text())))
 		{

@@ -101,10 +101,12 @@ namespace OpenMS
 		if (from_)
 		{
 			from_->removeOutEdge(this);
+			disconnect (from_, SIGNAL(somethingHasChanged()), this, SLOT(sourceHasChanged()));
 		}
 		if (to_)
 		{
 			to_->removeInEdge(this);
+			disconnect (this, SIGNAL(somethingHasChanged()), to_, SLOT(inEdgeHasChanged()));
 		}
 	}
 	

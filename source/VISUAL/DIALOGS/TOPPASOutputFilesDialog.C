@@ -79,6 +79,7 @@ namespace OpenMS
 		}
 		
 		QFileDialog fd;
+		fd.setAcceptMode(QFileDialog::AcceptSave);
 		fd.setFileMode(QFileDialog::AnyFile);
 		if (fd.exec() && !fd.selectedFiles().empty())
 		{

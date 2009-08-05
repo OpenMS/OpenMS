@@ -114,6 +114,8 @@ namespace OpenMS
 			const QVector<QStringList>& getOutputFileNames();
 			/// Updates the vector containing the lists of output files for all output parameters
 			void updateOutputFileNames();
+			/// Sets whether the currently running pipeline has already been started at this vertex
+			void setStartedHere(bool b);
 			
 		public slots:
 		
@@ -152,6 +154,8 @@ namespace OpenMS
 			Param param_;
 			/// Stores whether this node has already been processed during the current pipeline execution
 			bool finished_;
+			/// Stores whether the currently running pipeline has already been started at this vertex
+			bool started_here_;
 			/// Stores the file names of the different output parameters
 			QVector<QStringList> output_file_names_;
 			

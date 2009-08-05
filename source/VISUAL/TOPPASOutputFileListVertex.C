@@ -182,10 +182,10 @@ namespace OpenMS
 		int counter = 0;
 		foreach (QString file, tmp_file_names)
 		{
-			QFile::rename(file, files_[counter++]);
+			QFile::rename(file, files_[counter]);
+			emit outputFileWritten(String(files_[counter]));
+			counter++;
 		}
-		
-		emit outputFilesWritten();
 	}
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()

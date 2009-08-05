@@ -149,7 +149,7 @@ namespace OpenMS
 			
 			QFile::rename(tmp_file_name, file_);
 			
-			emit outputFileWritten();
+			emit outputFileWritten(String(file_));
 		}
 	}
 	

@@ -271,13 +271,13 @@ namespace OpenMS
 				TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
 				if (ofv)
 				{
-					connect (ofv, SIGNAL(outputFileWritten()), this, SLOT(outputVertexFinished()));
+					connect (ofv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 					continue;
 				}
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
 				if (oflv)
 				{
-					connect (oflv, SIGNAL(outputFilesWritten()), this, SLOT(outputVertexFinished()));
+					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 					continue;
 				}
 			}
@@ -629,12 +629,12 @@ namespace OpenMS
 		else if (tool_name == "<Output file list>")
 		{
 			tv = new TOPPASOutputFileListVertex();
-			connect (qobject_cast<TOPPASOutputFileListVertex*>(tv), SIGNAL(outputFilesWritten()), this, SLOT(outputVertexFinished()));
+			connect (qobject_cast<TOPPASOutputFileListVertex*>(tv), SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 		}
 		else if (tool_name == "<Output file>")
 		{
 			tv = new TOPPASOutputFileVertex();
-			connect (qobject_cast<TOPPASOutputFileVertex*>(tv), SIGNAL(outputFileWritten()), this, SLOT(outputVertexFinished()));
+			connect (qobject_cast<TOPPASOutputFileVertex*>(tv), SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 		}
 		else // node is a TOPP tool
 		{	
@@ -770,19 +770,10 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASBase::outputVertexFinished()
+	void TOPPASBase::outputVertexFinished(const String& file)
 	{
-		TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(QObject::sender());
-		if (ofv)
-		{
-			// do something
-			return;
-		}
-		TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(QObject::sender());
-		if (oflv)
-		{
-			//blub
-		}
+		String text = "Output file '"+file+"' written.";
+		showLogMessage_(LS_NOTICE, text, "");
 	}
 
 } //namespace OpenMS

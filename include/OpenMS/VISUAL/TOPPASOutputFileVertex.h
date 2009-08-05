@@ -76,7 +76,7 @@ namespace OpenMS
 		
 		signals:
 			
-			void outputFileWritten();
+			void outputFileWritten(const String& file);
 		
 		protected:
 			

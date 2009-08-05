@@ -386,6 +386,7 @@ namespace OpenMS
 			if (tv)
 			{
 				tv->setFinished(false);
+				tv->setStartedHere(false);
 			}
 		}
 		
