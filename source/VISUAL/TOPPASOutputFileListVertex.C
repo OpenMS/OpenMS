@@ -182,9 +182,13 @@ namespace OpenMS
 		int counter = 0;
 		foreach (QString file, tmp_file_names)
 		{
-			QFile::rename(file, files_[counter]);
-			emit outputFileWritten(String(files_[counter]));
-			counter++;
+			const QString& save_name = files_[counter++];	
+			if (QFile::exists(save_name))
+			{
+				QFile::remove(save_name);
+			}
+			QFile::rename(file, save_name);
+			emit outputFileWritten(String(save_name));
 		}
 	}
 	

@@ -147,6 +147,10 @@ namespace OpenMS
 			int param_index = e->getSourceOutParam();
 			QString tmp_file_name = output_files[param_index].first();
 			
+			if (QFile::exists(file_))
+			{
+				QFile::remove(file_);
+			}
 			QFile::rename(tmp_file_name, file_);
 			
 			emit outputFileWritten(String(file_));
