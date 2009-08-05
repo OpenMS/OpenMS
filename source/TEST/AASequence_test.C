@@ -153,14 +153,14 @@ END_SECTION
 START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
 	AASequence seq("ACDEF");
 	TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
-	TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH34N5C24"))
+	TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
 	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
 END_SECTION
 
 START_SECTION((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
 	AASequence seq("DFPIANGER");
 	TOLERANCE_ABSOLUTE(0.01)
-	TEST_REAL_SIMILAR(seq.getAverageWeight(), double(1018.08))
+	TEST_REAL_SIMILAR(seq.getAverageWeight(), double(1018.08088))
 	TEST_REAL_SIMILAR(seq.getAverageWeight(Residue::YIon, 1), double(1019.09))
 END_SECTION
 
