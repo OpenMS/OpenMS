@@ -29,6 +29,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace std;
@@ -198,7 +199,7 @@ namespace OpenMS
 				UInt j(0);
 				for (IsotopeDistribution::ConstIterator it=dist.begin(); it!=dist.end(); ++it, ++j)
 				{
-					p_.setMZ((DoubleReal)(pos + j)/(DoubleReal)charge);
+					p_.setMZ((DoubleReal)(pos + (DoubleReal)j * Constants::NEUTRON_MASS_U)/(DoubleReal)charge);
 					p_.setIntensity(intensity * it->second);
 					if (add_metainfo && j == 0)
 					{
@@ -315,8 +316,8 @@ namespace OpenMS
 			spec.push_back(p_);
 
 			// loss peaks of the precursor
-			static const DoubleReal h2o_weight = EmpiricalFormula("H2O").getAverageWeight();
-			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - h2o_weight)/DoubleReal(charge));
+			static const DoubleReal h2o_weight = EmpiricalFormula("H2O").getMonoWeight();
+			p_.setMZ((peptide.getMonoWeight(Residue::Full, charge) - h2o_weight)/DoubleReal(charge));
 			p_.setIntensity(pre_int_H2O);
 			
 			if (add_metainfo)
@@ -330,8 +331,8 @@ namespace OpenMS
 			}
 			spec.push_back(p_);
 
-			static const DoubleReal nh3_weight = EmpiricalFormula("NH3").getAverageWeight();
-      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - nh3_weight)/DoubleReal(charge));
+			static const DoubleReal nh3_weight = EmpiricalFormula("NH3").getMonoWeight();
+      p_.setMZ((peptide.getMonoWeight(Residue::Full, charge) - nh3_weight)/DoubleReal(charge));
       p_.setIntensity(pre_int_NH3);
 
       if (add_metainfo)

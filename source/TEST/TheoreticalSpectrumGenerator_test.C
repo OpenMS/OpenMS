@@ -104,7 +104,7 @@ END_SECTION
 START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	RichPeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
-	double result[] = {778.916, 760.901, 761.885};
+	double result[] = {778.4457, 760.4352, 761.4192};
 	for (Size i = 0; i != spec.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
@@ -112,7 +112,7 @@ START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& p
 
 	RichPeakSpectrum spec2;
 	ptr->addPrecursorPeaks(spec2, peptide, 2);
-	double result2[] = {389.962, 380.954, 381.447};
+	double result2[] = {389.7265, 380.7212, 381.2132};
 	for (Size i = 0; i != spec2.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(spec2[i].getPosition()[0], result2[i])

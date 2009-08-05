@@ -29,6 +29,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <iostream>
 
 using namespace std;
@@ -67,6 +68,7 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getMonoWeight() const
 	{
 		DoubleReal weight(0);
+		weight += Constants::PROTON_MASS_U * charge_;
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
@@ -78,6 +80,7 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getAverageWeight() const 
 	{
 		DoubleReal weight(0);
+		weight += Constants::PROTON_MASS_U * charge_;
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
