@@ -45,7 +45,7 @@ namespace OpenMS
 		
 		@ingroup Analysis_ID
 	*/
-	class CompNovoIonScoringBase : public DefaultParamHandler
+	class OPENMS_DLLAPI CompNovoIonScoringBase : public DefaultParamHandler
 	{
 
 		public:

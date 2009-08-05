@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		@ingroup Analysis_ID
 	*/
-	class CompNovoIdentificationBase : public DefaultParamHandler
+	class OPENMS_DLLAPI CompNovoIdentificationBase : public DefaultParamHandler
 	{
 
 		public:

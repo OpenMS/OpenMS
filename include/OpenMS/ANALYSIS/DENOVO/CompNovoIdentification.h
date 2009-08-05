@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Analysis_ID
 	*/
-	class CompNovoIdentification : public CompNovoIdentificationBase
+	class OPENMS_DLLAPI CompNovoIdentification : public CompNovoIdentificationBase
 	{
 
 		public:

@@ -51,7 +51,7 @@ namespace OpenMS
 		
 		@ingroup Analysis_ID
 	*/
-	class CompNovoIonScoringCID : public CompNovoIonScoringBase
+	class OPENMS_DLLAPI CompNovoIonScoringCID : public CompNovoIonScoringBase
 	{
 
 		public:

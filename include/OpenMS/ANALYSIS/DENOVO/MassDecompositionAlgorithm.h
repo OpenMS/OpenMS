@@ -55,7 +55,7 @@ namespace OpenMS
 			This class is a wrapper for the algorithm published in 
 			@todo add reference
 	*/
-	class MassDecompositionAlgorithm : public DefaultParamHandler
+	class OPENMS_DLLAPI MassDecompositionAlgorithm : public DefaultParamHandler
 	{
 		public:
 			

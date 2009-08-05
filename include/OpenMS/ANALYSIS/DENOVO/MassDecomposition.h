@@ -39,7 +39,7 @@ namespace OpenMS
 			decomposition are amino acids given with frequencies which add
 			up to a specific mass.
 	*/
-	class MassDecomposition
+	class OPENMS_DLLAPI MassDecomposition
 	{
 		public:
 
