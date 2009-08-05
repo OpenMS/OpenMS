@@ -36,11 +36,12 @@
 	#pragma warning( push )
 	#pragma warning( disable : 4290 4267)
 #endif
+
 #include <ims/decomp/realmassdecomposer.h>
 #include <ims/alphabet.h>
 #include <ims/weights.h>
 #ifdef OPENMS_COMPILER_MSVC
-	#pragma warning( pop ) 
+	#pragma warning( pop )
 #endif
 
 #include <vector>

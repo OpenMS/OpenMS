@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -33,11 +34,15 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <OpenMS/MATH/STATISTICS/GaussFitter.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 #include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
+using namespace Math;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -65,12 +70,13 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+// simple struct which can hold the
+// measured and expected masses 
 struct MassDifference
 {
 	DoubleReal exp_mz;
 	Int charge;
 	DoubleReal theo_mz;
-	DoubleReal theo_mass;
 	DoubleReal intensity;
 };
 
@@ -93,13 +99,28 @@ class TOPPIDMassAccuracy
 			registerOutputFile_("precursor_out","<file>","","Output file which contains the deviations from the precursors", false, false);
 			registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
 			setValidStrings_("precursor_columns", StringList::create("MassDifference"));
+			registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 			
 			registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
 			registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file");
 			setValidStrings_("fragment_columns", StringList::create("MassDifference"));
+			registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 			
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
 			registerStringOption_("separator", "<character>", "	", "character which should be used to separate the columns in the output files");
+
+			registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
+			setMinInt_("number_of_bins", 10);
+		}
+
+		DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
+		{
+			DoubleReal error(exp_mz - theo_mz);
+			if (use_ppm)
+			{
+				error = error / theo_mz * (DoubleReal)1e6;
+			}
+			return error;
 		}
 
 		ExitCodes main_(int , const char**)
@@ -110,6 +131,9 @@ class TOPPIDMassAccuracy
 		
 			StringList id_in(getStringList_("id_in"));
 			StringList in(getStringList_("in"));
+			Size number_of_bins((UInt)getIntOption_("number_of_bins"));
+			bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
+			bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
 
 			//-------------------------------------------------------------
 			// reading input
@@ -154,6 +178,16 @@ class TOPPIDMassAccuracy
         mapper.annotate(maps[i], pep_ids[i], prot_ids[i]);
       }
 
+			// normalize the spectra
+			Normalizer normalizer;
+			for (vector<RichPeakMap>::iterator it1 = maps.begin(); it1 != maps.end(); ++it1)
+			{
+				for (RichPeakMap::Iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
+				{
+					normalizer.filterSpectrum(*it2);
+				}
+			}
+
 			// generate precursor statistics
 			vector<MassDifference> precursor_diffs;
 			for (Size i = 0; i != maps.size(); ++i)
@@ -179,9 +213,8 @@ class TOPPIDMassAccuracy
 							{
 								charge = 1;
 							}
-							md.exp_mz = (double)it->getMetaValue("MZ");
-							md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge)/(double)charge;
-							md.theo_mass = hit.getSequence().getMonoWeight();
+							md.exp_mz = (DoubleReal)it->getMetaValue("MZ");
+							md.theo_mz = (hit.getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U)/(DoubleReal)charge;
 							md.charge = charge;
 							precursor_diffs.push_back(md);
 						}
@@ -194,7 +227,7 @@ class TOPPIDMassAccuracy
 			vector<MassDifference> fragment_diffs;
 			TheoreticalSpectrumGenerator tsg;
 			SpectrumAlignment sa;
-			double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
+			DoubleReal fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
 			Param sa_param(sa.getParameters());
 			sa_param.setValue("tolerance", fragment_mass_tolerance);
 			sa.setParameters(sa_param);
@@ -229,10 +262,6 @@ class TOPPIDMassAccuracy
 								md.theo_mz = theo_spec[pit->first].getMZ();
 								md.intensity = maps[i][j][pit->second].getIntensity();
 								md.charge = hit.getCharge();
-								if (md.charge != 0)
-								{
-									md.theo_mass = (md.theo_mz * md.charge) - md.charge;
-								}
 								fragment_diffs.push_back(md);
 							}
 						}
@@ -250,16 +279,62 @@ class TOPPIDMassAccuracy
 			{
 				vector<DoubleReal> errors;
 				ofstream precursor_out(precursor_out_file.c_str());
+				DoubleReal min_diff(numeric_limits<DoubleReal>::max()), max_diff(numeric_limits<DoubleReal>::min());
 				for (Size i = 0; i != precursor_diffs.size(); ++i)
 				{
-					precursor_out << precursor_diffs[i].exp_mz - precursor_diffs[i].theo_mz << endl;
-					errors.push_back(precursor_diffs[i].exp_mz - precursor_diffs[i].theo_mz);
+					DoubleReal diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
+					precursor_out << diff << endl;
+					errors.push_back(diff);
+
+					if (diff > max_diff)
+					{
+						max_diff = diff;
+					}
+					if (diff < min_diff)
+					{
+						min_diff = diff;
+					}
 				}
 				precursor_out.close();
 
-				cout << "Precursor mean error: " << gsl_stats_mean(&errors.front(), 1, errors.size()) << endl;
-				cout << "Precursor abs. dev.:  " << gsl_stats_absdev(&errors.front(), 1, errors.size()) << endl;
-				cout << "Precursor std. dev.:  " << gsl_stats_sd(&errors.front(), 1, errors.size()) << endl;
+				// fill histgram with the collected values
+				DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
+				Histogram<DoubleReal, DoubleReal> hist(min_diff, max_diff, bin_size);
+				for (Size i = 0; i != errors.size(); ++i)
+				{
+					hist.inc(errors[i], 1.0);
+				}
+			
+				cerr << min_diff << " " << max_diff << " " << number_of_bins << endl;
+
+				// transform the histogram into a vector<DPosition<2> > for the fitting
+				vector<DPosition<2> > values;
+				for (Size i = 0; i != hist.size(); ++i)
+				{
+					DPosition<2> p;
+					p.setX((DoubleReal)i / (DoubleReal)number_of_bins * (max_diff - min_diff) + min_diff);
+					p.setY(hist[i]);
+					values.push_back(p);
+				}
+
+				DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
+				DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
+				DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+
+				cout << "Precursor mean error: " << mean << endl;
+				cout << "Precursor abs. dev.:  " << abs_dev << endl;
+				cout << "Precursor std. dev.:  " << sdv << endl;
+
+				// calculate histogram for gauss fitting
+				GaussFitter gf;
+				GaussFitter::GaussFitResult init_param;
+				init_param.A = hist.maxValue();
+				init_param.x0 = mean;
+				init_param.sigma = sdv;
+				gf.setInitialParameters(init_param);
+				gf.fit(values);
+
+				cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 			}
 
 			String fragment_out_file(getStringOption_("fragment_out"));
@@ -267,17 +342,68 @@ class TOPPIDMassAccuracy
 			{
 				vector<DoubleReal> errors;
 				ofstream fragment_out(fragment_out_file.c_str());
+				DoubleReal min_diff(numeric_limits<DoubleReal>::max()), max_diff(numeric_limits<DoubleReal>::min());
 				for (Size i = 0; i != fragment_diffs.size(); ++i)
 				{
-					fragment_out << fragment_diffs[i].exp_mz - fragment_diffs[i].theo_mz << endl;
-					errors.push_back(fragment_diffs[i].exp_mz - fragment_diffs[i].theo_mz);
+					DoubleReal diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
+					fragment_out << diff << endl;
+					errors.push_back(diff);
+
+					if (diff > max_diff)
+          {
+            max_diff = diff;
+          }
+          if (diff < min_diff)
+          {
+            min_diff = diff;
+          }
 				}
 				fragment_out.close();
-				cout << "Fragment mean error:  " << gsl_stats_mean(&errors.front(), 1, errors.size()) << endl;
-				cout << "Fragment abs. dev.:   " << gsl_stats_absdev(&errors.front(), 1, errors.size()) << endl;
-				cout << "Fragment std. dev.:   " << gsl_stats_sd(&errors.front(), 1, errors.size()) << endl;
+
+        // fill histgram with the collected values
+				// here we use the intensities to scale the error
+				// low intensity peaks are likely to be random matches
+        DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
+        Histogram<DoubleReal, DoubleReal> hist(min_diff, max_diff, bin_size);
+        for (Size i = 0; i != fragment_diffs.size(); ++i)
+        {	
+					DoubleReal diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
+          hist.inc(diff, fragment_diffs[i].intensity);
+        }
+
+        cerr << min_diff << " " << max_diff << " " << number_of_bins << endl;
+
+        // transform the histogram into a vector<DPosition<2> > for the fitting
+        vector<DPosition<2> > values;
+        for (Size i = 0; i != hist.size(); ++i)
+        {
+          DPosition<2> p;
+          p.setX((DoubleReal)i / (DoubleReal)number_of_bins * (max_diff - min_diff) + min_diff);
+          p.setY(hist[i]);
+          values.push_back(p);
+        }
+
+        DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
+        DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
+        DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+
+				cout << "Fragment mean error:  " << mean << endl;
+				cout << "Fragment abs. dev.:   " << abs_dev << endl;
+				cout << "Fragment std. dev.:   " << sdv << endl;
+
+        // calculate histogram for gauss fitting
+        GaussFitter gf;
+        GaussFitter::GaussFitResult init_param;
+        init_param.A = hist.maxValue();
+        init_param.x0 = mean;
+        init_param.sigma = sdv;
+        gf.setInitialParameters(init_param);
+        gf.fit(values);
+
+        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
+
 			}
-	
+
 			return EXECUTION_OK;
 		}
 };

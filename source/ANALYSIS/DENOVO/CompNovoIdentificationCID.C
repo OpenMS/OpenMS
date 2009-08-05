@@ -22,29 +22,27 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
-
-// TODO replace these by constants from Constants.h; change kg units of these values there into u
-#define PROTON_MASS 1.0072627
-#define NEUTRON_MASS 1.00866491578
 
 //#define DAC_DEBUG
 
 //#define WRITE_SCORED_SPEC
 //#define REDUCE_PERMUTS_DEBUG
+
+#ifdef WRITE_SCORED_SPEC
+	#include <OpenMS/FORMAT/DTAFile.h>
+#endif
 
 //#define SPIKE_IN
 
@@ -136,7 +134,7 @@ namespace OpenMS
   	normalizer.filterSpectrum(new_CID_spec);
 
 		UInt charge(2);
-		double precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - PROTON_MASS;
+		double precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - Constants::PROTON_MASS_U;
 				
 		// now delete all peaks that are right of the estimated precursor weight
 		UInt peak_counter(0);
@@ -166,7 +164,7 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
     {
       // get m/z of complement
-      double mz_comp = precursor_weight - it1->getPosition()[0] + PROTON_MASS;
+      double mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
 
       // search if peaks are available that have similar m/z values
       UInt count(0);

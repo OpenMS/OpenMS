@@ -22,15 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
-// TODO replace these by constants from Constants.h; change kg units of these values there into u
-#define PROTON_MASS 1.0072627
-#define NEUTRON_MASS 1.00866491578
 //#define ION_SCORING_DEBUG
 //#define SCORE_WITNESSSET_DEBUG
 
@@ -176,9 +175,9 @@ void CompNovoIonScoringCID::scoreWitnessSet_(UInt charge, double precursor_weigh
 			// direct ++
 			if (charge > 1)
 			{
-				if (fabs(pos2 * 2 - PROTON_MASS - pos1) < fragment_mass_tolerance_)
+				if (fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1) < fragment_mass_tolerance_)
 				{
-					double factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - PROTON_MASS - pos1)) / fragment_mass_tolerance_);
+					double factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1)) / fragment_mass_tolerance_);
 					// pos1 is ion, pos2 is ++ion
 #ifdef SCORE_WITNESSSET_DEBUG
 					cerr << "scoreWitnessSet: ++ion " << pos1 << " " << pos2 << " (factor=" << factor << ") " << wit_score << " -> ";
@@ -215,9 +214,9 @@ void CompNovoIonScoringCID::scoreWitnessSet_(UInt charge, double precursor_weigh
 			}
 
 			// is there a b-ion?; pos1 is ion, pos2 complementary ion
-			if (fabs(pos1 + pos2 - 1 * PROTON_MASS - precursor_weight) < fragment_mass_tolerance_)
+			if (fabs(pos1 + pos2 - 1 * Constants::PROTON_MASS_U - precursor_weight) < fragment_mass_tolerance_)
 			{
-				double factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - PROTON_MASS - precursor_weight)) / fragment_mass_tolerance_);
+				double factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - Constants::PROTON_MASS_U - precursor_weight)) / fragment_mass_tolerance_);
 				factor *= 0.2;
 #ifdef SCORE_WITNESSSET_DEBUG
 				cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";

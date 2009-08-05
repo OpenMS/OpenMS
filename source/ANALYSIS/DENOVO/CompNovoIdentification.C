@@ -22,11 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -35,12 +37,6 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
-
-// TODO replace these by constants from Constants.h; change kg units of these values there into u
-#define PROTON_MASS 1.0072627
-#define NEUTRON_MASS 1.00866491578
-
-#define MIN_ETD_BY_MZ 1300.0
 
 //#define DAC_DEBUG
 //#define ESTIMATE_PRECURSOR_DEBUG
@@ -164,7 +160,7 @@ namespace OpenMS
 		if (precursor_weight == 0 || charge == 0)
 		{
 			charge = 2;
-			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (DoubleReal)charge - (DoubleReal)(charge - 1) * PROTON_MASS;
+			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U;
 		}
 
 		cerr << "Estimated charge: " << charge << endl;
@@ -219,7 +215,7 @@ namespace OpenMS
 		PeakSpectrum ETD_copy;
 		for (PeakSpectrum::ConstIterator it = new_ETD_spec.begin(); it != new_ETD_spec.end(); ++it, ++peak_counter)
 		{
-			DoubleReal pre_pos((precursor_weight + 1.0 * PROTON_MASS) / precursor_mass_tolerance);
+			DoubleReal pre_pos((precursor_weight + 1.0 * Constants::PROTON_MASS_U) / precursor_mass_tolerance);
 			if (fabs(it->getPosition()[0] - pre_pos) > precursor_mass_tolerance)
 			{
 				ETD_copy.push_back(*it);
@@ -246,7 +242,7 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
     {
       // get m/z of complement
-      DoubleReal mz_comp = precursor_weight - it1->getPosition()[0] + PROTON_MASS;
+      DoubleReal mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
 
       // search if peaks are available that have similar m/z values
       UInt count(0);
@@ -616,18 +612,6 @@ namespace OpenMS
 				}
 			}
 
-			/*
-			if (b_pos >= MIN_ETD_BY_MZ && b_pos <= max_mz_)
-			{
-				for (UInt j = 0; j != max_isotope_; ++j)
-				{
-					p.setIntensity(isotope_distributions_[(int)b_pos][j] * 0.1);
-					p.setPosition(b_pos + 1 + j);
-					spec.push_back(p);
-				}				
-			}
-			*/
-	
 			if (aa2 != 'P')
 			{
 				// z-ions
@@ -645,19 +629,6 @@ namespace OpenMS
 					}
 				}
 			}
-
-			/*
-      if (y_pos >= MIN_ETD_BY_MZ && y_pos <= max_mz_)
-      {
-        for (UInt j = 0; j != max_isotope_; ++j)
-        {
-          p.setIntensity(isotope_distributions_[(int)y_pos][j] * 0.1);
-          p.setPosition(y_pos + 1 + j);
-          spec.push_back(p);
-        
-				}
-      }
-			*/
 		}
 	
 		spec.sortByPosition();
@@ -1013,7 +984,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 					{
 						continue;
 					}
-					DoubleReal pre_mz = ((DoubleReal)(precursor_mz * peptide_z) - (DoubleReal)(peptide_z - prec_z) * PROTON_MASS) / (DoubleReal)prec_z;
+					DoubleReal pre_mz = ((DoubleReal)(precursor_mz * peptide_z) - (DoubleReal)(peptide_z - prec_z) * Constants::PROTON_MASS_U) / (DoubleReal)prec_z;
 					if (fabs(it->getMZ() * (DoubleReal)prec_z - pre_mz * (DoubleReal)prec_z) < precursor_mass_tolerance/* / (DoubleReal) prec_z*/)
 					{
 						peaks[peptide_z][prec_z].push_back(*it);
@@ -1058,7 +1029,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 			cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
 			for (Map<Size, pair<DoubleReal, DoubleReal> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
 			{
-				cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (DoubleReal)mit->first) - ((DoubleReal)mit->first - 1) * NEUTRON_MASS  << endl;
+				cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (DoubleReal)mit->first) - ((DoubleReal)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
 			}
 			if (best_correlation < it->second)
 			{
@@ -1090,7 +1061,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 					best_corr_z = it->first;
 				}
 			}
-			peptide_weight = best_corr_mz * (DoubleReal)best_corr_z - (DoubleReal)(best_corr_z - 1) * PROTON_MASS;
+			peptide_weight = best_corr_mz * (DoubleReal)best_corr_z - (DoubleReal)(best_corr_z - 1) * Constants::PROTON_MASS_U;
 			cerr << "BestCorr: " << best_correlation << " " << best_corr_mz << " " << best_corr_z << " " << peptide_weight << endl;
 		}
 
@@ -1105,7 +1076,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 		DoubleReal precursor_weight(0.0);
 
 		// first we assume the charge is 3;
-		DoubleReal pre_weight_3_z2 = (ETD_spec.getPrecursors().begin()->getMZ() * 3.0 - 1.0 * PROTON_MASS) / 2.0;
+		DoubleReal pre_weight_3_z2 = (ETD_spec.getPrecursors().begin()->getMZ() * 3.0 - 1.0 * Constants::PROTON_MASS_U) / 2.0;
 
 		// now get the charge 2 peaks
 		vector<DoubleReal> precursor_ints_3_z2, iso_scores_3_z2;
@@ -1124,7 +1095,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
       }
     }
 
-		DoubleReal pre_weight_2_z1 = ETD_spec.getPrecursors().begin()->getMZ() * 2.0 - 1.0 * PROTON_MASS;
+		DoubleReal pre_weight_2_z1 = ETD_spec.getPrecursors().begin()->getMZ() * 2.0 - 1.0 * Constants::PROTON_MASS_U;
 		vector<DoubleReal> precursor_ints_2_z1, iso_scores_2_z1;
 		vector<Peak1D> precursor_peaks_2_z1;
 		for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
@@ -1219,7 +1190,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 
 		if (charge == 3 && precursor_peaks_3_z2.size() > 0)
 		{
-			precursor_weight = precursor_peaks_3_z2.begin()->getMZ() * 2.0 - 1.0 * PROTON_MASS - 1.0 * NEUTRON_MASS;
+			precursor_weight = precursor_peaks_3_z2.begin()->getMZ() * 2.0 - 1.0 * Constants::PROTON_MASS_U - 1.0 * Constants::NEUTRON_MASS_U;
 		}
 		else
 		{

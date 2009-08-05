@@ -114,7 +114,7 @@ namespace OpenMS
 		          gsl_vector_get(s->x, 0), 
 		          gsl_vector_get(s->x, 1),
 		          gsl_vector_get(s->x, 2), 
-		          gsl_blas_dnrm2(s->f));
+		          /*gsl_blas_dnrm2(s->f)*/0);
 		}
 #endif
 	

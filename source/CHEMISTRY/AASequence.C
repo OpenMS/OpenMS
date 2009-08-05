@@ -162,14 +162,10 @@ namespace OpenMS
 	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
 	{
 		EmpiricalFormula ef;
+		ef.setCharge(charge);
 		static EmpiricalFormula H("H");
 		static EmpiricalFormula OH("OH");
 		static EmpiricalFormula NH("NH");
-		for (Int i=0; i<charge; ++i)
-		{
-			ef += H;
-		}
-
 
     // terminal modifications
     if (n_term_mod_ != "" && 

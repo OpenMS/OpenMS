@@ -22,15 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
-// TODO replace these by constants from Constants.h; change kg units of these values there into u
-#define PROTON_MASS 1.0072627
-#define NEUTRON_MASS 1.00866491578
 //#define ION_SCORING_DEBUG
 //#define SCORE_ETDFEATURES_DEBUG
 //#define SCORE_WITNESSSET_DEBUG
@@ -166,9 +165,9 @@ void CompNovoIonScoring::scoreWitnessSet_(UInt charge, DoubleReal precursor_weig
 			// direct ++
 			if (charge > 1)
 			{
-				if (fabs(pos2 * 2 - PROTON_MASS - pos1) < fragment_mass_tolerance_)
+				if (fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1) < fragment_mass_tolerance_)
 				{
-					DoubleReal factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - PROTON_MASS - pos1)) / fragment_mass_tolerance_);
+					DoubleReal factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1)) / fragment_mass_tolerance_);
 					// pos1 is ion, pos2 is ++ion
 #ifdef SCORE_WITNESSSET_DEBUG
 					cerr << "scoreWitnessSet: ++ion " << pos1 << " " << pos2 << " (factor=" << factor << ") " << wit_score << " -> ";
@@ -205,9 +204,9 @@ void CompNovoIonScoring::scoreWitnessSet_(UInt charge, DoubleReal precursor_weig
 			}
 
 			// is there a b-ion?; pos1 is ion, pos2 complementary ion
-			if (fabs(pos1 + pos2 - 1 * PROTON_MASS - precursor_weight) < fragment_mass_tolerance_)
+			if (fabs(pos1 + pos2 - 1 * Constants::PROTON_MASS_U - precursor_weight) < fragment_mass_tolerance_)
 			{
-				DoubleReal factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - PROTON_MASS - precursor_weight)) / fragment_mass_tolerance_);
+				DoubleReal factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - Constants::PROTON_MASS_U - precursor_weight)) / fragment_mass_tolerance_);
 				/*factor *= 0.2;*/
 #ifdef SCORE_WITNESSSET_DEBUG
 				cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";
@@ -315,8 +314,8 @@ void CompNovoIonScoring::scoreETDFeatures_(Int /*charge*/, DoubleReal precursor_
 			DoubleReal pos2(it2->getPosition()[0]);
 
 			// check if pos2 is precursor doubly charged, which has not fragmented
-			DoubleReal pre_diff_lower = (precursor_weight + PROTON_MASS) / 2.0 - fragment_mass_tolerance_;
-			DoubleReal pre_diff_upper = (precursor_weight + 4.0 * PROTON_MASS) / 2.0 + fragment_mass_tolerance_;
+			DoubleReal pre_diff_lower = (precursor_weight + Constants::PROTON_MASS_U) / 2.0 - fragment_mass_tolerance_;
+			DoubleReal pre_diff_upper = (precursor_weight + 4.0 * Constants::PROTON_MASS_U) / 2.0 + fragment_mass_tolerance_;
 			if (pos2 > pre_diff_lower && pos2 < pre_diff_upper)
 			{
 #ifdef SCORE_ETDFEATURES_DEBUG
@@ -342,7 +341,7 @@ void CompNovoIonScoring::scoreETDFeatures_(Int /*charge*/, DoubleReal precursor_
 				for (PeakSpectrum::ConstIterator it3 = it2; it3 != ETD_spec.end(); ++it3)
 				{
 					DoubleReal it3_pos(it3->getPosition()[0]);
-					if (fabs(fabs(actual_pos - it3_pos) - NEUTRON_MASS) < fragment_mass_tolerance_)
+					if (fabs(fabs(actual_pos - it3_pos) - Constants::NEUTRON_MASS_U) < fragment_mass_tolerance_)
 					{
 						iso_pattern.push_back(it3->getIntensity());
 						actual_pos = it3_pos;
@@ -378,7 +377,7 @@ void CompNovoIonScoring::scoreETDFeatures_(Int /*charge*/, DoubleReal precursor_
         for (PeakSpectrum::ConstIterator it3 = it2; it3 != ETD_spec.end(); ++it3)
         {
           DoubleReal it3_pos(it3->getPosition()[0]);
-          if (fabs(fabs(actual_pos - it3_pos) - NEUTRON_MASS) < fragment_mass_tolerance_)
+          if (fabs(fabs(actual_pos - it3_pos) - Constants::NEUTRON_MASS_U) < fragment_mass_tolerance_)
           {
             iso_pattern.push_back(it3->getIntensity());
             actual_pos = it3_pos;

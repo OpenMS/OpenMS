@@ -22,16 +22,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <numeric>
 
-// TODO replace these by constants from Constants.h; change kg units of these values there into u
-#define PROTON_MASS 1.0072627
-#define NEUTRON_MASS 1.00866491578
 //#define ION_SCORING_DEBUG
 
 using namespace std;
@@ -131,7 +130,7 @@ namespace OpenMS
 				if (score > double_charged_iso_threshold_single)
 				{
 					// infer this peak as single charged variant
-					DoubleReal mz_comp = it->getPosition()[0] * 2.0 - PROTON_MASS;
+					DoubleReal mz_comp = it->getPosition()[0] * 2.0 - Constants::PROTON_MASS_U;
 					bool found(false);
 					for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
 					{
@@ -213,7 +212,7 @@ namespace OpenMS
   	for (PeakSpectrum::ConstIterator it1 = it; it1 != CID_spec.end(); ++it1)
   	{
     	DoubleReal it1_pos(it1->getPosition()[0]);
-    	if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (DoubleReal)charge) < fragment_mass_tolerance_)
+    	if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (DoubleReal)charge) < fragment_mass_tolerance_)
     	{
       	iso_pattern.push_back(it1->getIntensity());
       	actual_pos = it1_pos;
@@ -245,7 +244,7 @@ namespace OpenMS
 
   	// get the theoretical isotope distribution
   	IsotopeDistribution iso_dist(iso_pattern.size());
-  	iso_dist.estimateFromPeptideWeight((it_pos - charge * PROTON_MASS) * charge + PROTON_MASS);
+  	iso_dist.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
 
   	// compare the distribution sizes
   	if (iso_dist.size() != iso_pattern.size())
@@ -308,9 +307,9 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
   {
     DoubleReal it1_pos(it1->getMZ());
 
-		//cerr << "PRE: " << actual_pos << " " << it1_pos << " " << NEUTRON_MASS << " " << charge << " " << fragment_mass_tolerance_ << endl;
+		//cerr << "PRE: " << actual_pos << " " << it1_pos << " " << Constants::NEUTRON_MASS_U << " " << charge << " " << fragment_mass_tolerance_ << endl;
 		
-    if (fabs(fabs(actual_pos - it1_pos) - NEUTRON_MASS / (DoubleReal)charge) < fragment_mass_tolerance_ / (DoubleReal)charge)
+    if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (DoubleReal)charge) < fragment_mass_tolerance_ / (DoubleReal)charge)
     {
 //#ifdef ION_SCORING_DEBUG
 			cerr << actual_pos << " " << it1_pos << " " << charge << " " << fragment_mass_tolerance_ << endl;
@@ -347,7 +346,7 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
 
   // get the theoretical isotope distribution
   IsotopeDistribution iso_dist(iso_pattern.size());
-  iso_dist.estimateFromPeptideWeight(it_pos * (DoubleReal)charge - (DoubleReal)(charge - 1) * PROTON_MASS);
+  iso_dist.estimateFromPeptideWeight(it_pos * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U);
 
   // compare the distribution sizes
   if (iso_dist.size() != iso_pattern.size())
