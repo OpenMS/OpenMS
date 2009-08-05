@@ -588,7 +588,7 @@ namespace OpenMS
 					// corresponding out edge found
 					if (out_params[param_index].type == IOInfo::IOT_FILE)
 					{
-						output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+						output_file_names_[param_index].push_back((tmp_path_ + "TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + "__tmp.out").toQString());
 					}
 					else if (out_params[param_index].type == IOInfo::IOT_LIST)
 					{
@@ -598,7 +598,7 @@ namespace OpenMS
 								an input parameter "in" with list type) */
 						for (int j = 0; j < in_list_element_count; ++j)
 						{
-							output_file_names_[param_index].push_back((tmp_path_ + name_ + "_" + type_ + "_" + File::getUniqueName() + ".out").toQString());
+							output_file_names_[param_index].push_back((tmp_path_ + "TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + "__tmp.out").toQString());
 						}
 					}
 					

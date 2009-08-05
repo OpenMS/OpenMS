@@ -64,6 +64,8 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QApplication>
 #include <QtGui/QLabel>
+#include <QtCore/QFile>
+#include <QtCore/QDir>
 
 using namespace std;
 
@@ -239,6 +241,14 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
+  	
+  	//remove all temporary files
+		QDir tmp_dir(tmp_path_.toQString());
+    QStringList tmp_files = tmp_dir.entryList(QStringList("TOPPAS_*__tmp.out"), QDir::Files);
+		foreach (const QString& tmp_file, tmp_files)
+		{
+			QFile::remove(tmp_path_.toQString()+tmp_file);
+		}
   }
 
 	void TOPPASBase::refreshDefinitions()
