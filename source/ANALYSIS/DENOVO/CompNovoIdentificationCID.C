@@ -134,7 +134,7 @@ namespace OpenMS
   	normalizer.filterSpectrum(new_CID_spec);
 
 		UInt charge(2);
-		double precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - Constants::PROTON_MASS_U;
+		DoubleReal precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - Constants::PROTON_MASS_U;
 				
 		// now delete all peaks that are right of the estimated precursor weight
 		UInt peak_counter(0);
@@ -150,9 +150,12 @@ namespace OpenMS
 			new_CID_spec.resize(peak_counter);
 		}
 
+		
+		static DoubleReal oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
+
 		Peak1D p;
 		p.setIntensity(1);
-		p.setPosition(19.0);
+		p.setPosition(oxonium_mass);
 
 		new_CID_spec.push_back(p);
 		
@@ -164,7 +167,7 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
     {
       // get m/z of complement
-      double mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
+      DoubleReal mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
 
       // search if peaks are available that have similar m/z values
       UInt count(0);
@@ -192,19 +195,19 @@ namespace OpenMS
 		ion_scoring_param.setValue("fragment_mass_tolerance", fragment_mass_tolerance_);
 		ion_scoring_param.setValue("precursor_mass_tolerance", precursor_mass_tolerance_);
 		ion_scoring_param.setValue("decomp_weights_precision", decomp_weights_precision_);
-		ion_scoring_param.setValue("double_charged_iso_threshold", (double)param_.getValue("double_charged_iso_threshold"));
+		ion_scoring_param.setValue("double_charged_iso_threshold", (DoubleReal)param_.getValue("double_charged_iso_threshold"));
 		ion_scoring_param.setValue("max_isotope_to_score", (UInt)param_.getValue("max_isotope_to_score"));
 		ion_scoring_param.setValue("max_isotope", max_isotope_);
 		ion_scoring.setParameters(ion_scoring_param);
 		
-		Map<double, IonScore> ion_scores;
+		Map<DoubleReal, IonScore> ion_scores;
 		ion_scoring.scoreSpectrum(ion_scores, new_CID_spec, precursor_weight, charge);
 
 		new_CID_spec.sortByPosition();
 		
 		/*
 		cerr << "Size of ion_scores " << ion_scores.size() << endl;
-		for (Map<double, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+		for (Map<DoubleReal, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
 		{
 			cerr << it->first << " " << it->second.score << endl;
 		}*/
@@ -212,7 +215,7 @@ namespace OpenMS
 #ifdef WRITE_SCORED_SPEC
 		PeakSpectrum filtered_spec(new_CID_spec);
   	filtered_spec.clear();
-  	for (Map<double, CompNovoIonScoringCID::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  	for (Map<DoubleReal, CompNovoIonScoringCID::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
   	{
     	Peak1D p;
     	p.setIntensity(it->second.score);
@@ -346,7 +349,7 @@ namespace OpenMS
 
       //normalizer.filterSpectrum(CID_sim_spec);
 
-      double cid_score = zhang_(CID_sim_spec, CID_spec);
+      DoubleReal cid_score = zhang_(CID_sim_spec, CID_spec);
 
       PeptideHit hit;
       hit.setScore(cid_score);
@@ -389,8 +392,8 @@ namespace OpenMS
 
 			//DTAFile().store("sim_specs/" + it->getSequence().toUnmodifiedString() + "_sim_CID.dta", CID_sim_spec);
 			
-			//double cid_score = spectra_zhang(CID_sim_spec, CID_spec);
-			double cid_score = alignment_score(CID_sim_spec, CID_spec);
+			//DoubleReal cid_score = spectra_zhang(CID_sim_spec, CID_spec);
+			DoubleReal cid_score = alignment_score(CID_sim_spec, CID_spec);
 
 			cerr << "Final: " << it->getSequence() << " " << cid_score << endl;
 		
@@ -418,7 +421,7 @@ namespace OpenMS
 		return;
 	}
 
-	void CompNovoIdentificationCID::reducePermuts_(set<String>& permuts, const PeakSpectrum& CID_spec, double prefix, double suffix)
+	void CompNovoIdentificationCID::reducePermuts_(set<String>& permuts, const PeakSpectrum& CID_spec, DoubleReal prefix, DoubleReal suffix)
 	{
   	if (permuts.size() < max_subscore_number_)
   	{
@@ -433,7 +436,7 @@ namespace OpenMS
 #ifdef REDUCE_PERMUTS_DEBUG
     	if (i % 1000 == 0)
     	{
-      	cerr << (double)i / permuts.size() * 100 << "%" << endl;
+      	cerr << (DoubleReal)i / permuts.size() * 100 << "%" << endl;
     	}
 #endif
 			
@@ -441,7 +444,7 @@ namespace OpenMS
     	getCIDSpectrumLight_(CID_sim_spec, *it, prefix, suffix);
 			//getCIDSpectrum_(CID_sim_spec, *it, 1, prefix, suffix);
     	
-    	double score = zhang_(CID_sim_spec, CID_spec);;
+    	DoubleReal score = zhang_(CID_sim_spec, CID_spec);;
 
 			if (boost::math::isnan(score))
 			{
@@ -487,20 +490,21 @@ namespace OpenMS
 
 
 // divide and conquer algorithm of the sequencing
-void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, UInt left, UInt right, double peptide_weight, const PeakSpectrum& CID_spec, Map<double, CompNovoIonScoringCID::IonScore>& ion_scores)
+void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, UInt left, UInt right, DoubleReal peptide_weight, const PeakSpectrum& CID_spec, Map<DoubleReal, CompNovoIonScoringCID::IonScore>& ion_scores)
 {
-	double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
-	double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
+	static DoubleReal oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
+	DoubleReal offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
+	DoubleReal offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
 
 #ifdef DAC_DEBUG
-	static int depth_(0);
+	static Int depth_(0);
 	++depth_;
 	String tabs_(depth_, '\t');
 	cerr << tabs_ << "void getDecompositionsDAC(sequences[" << sequences.size() << "], " << left << ", " << right << ") ";
 	cerr << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << " diff=";
 #endif
 	
-	double diff = CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0];
+	DoubleReal diff = CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0];
 
 #ifdef DAC_DEBUG
 	cerr << diff << endl;
@@ -630,8 +634,8 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, UI
 		
 		// the smaller the 'gap' the greater the chance of not finding anything
 		// so we we compute the smaller gap first
-		double diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
-		double diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
+		DoubleReal diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
+		DoubleReal diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
 		
 		if (diff1 < diff2)
 		{

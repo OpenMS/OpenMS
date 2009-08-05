@@ -72,7 +72,7 @@ namespace OpenMS
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
-			weight += it->first->getMonoWeight() * it->second;
+			weight += it->first->getMonoWeight() * (DoubleReal)it->second;
 		}
 		return weight;
 	}
@@ -84,7 +84,7 @@ namespace OpenMS
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
-			weight += it->first->getAverageWeight() * it->second;
+			weight += it->first->getAverageWeight() * (DoubleReal)it->second;
 		}
 		return weight;
 	}

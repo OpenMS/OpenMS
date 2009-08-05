@@ -111,6 +111,9 @@ class TOPPIDMassAccuracy
 
 			registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
 			setMinInt_("number_of_bins", 10);
+
+			registerStringOption_("generate_gnuplot_scripts", "<false>", "false", "If this option is set to true, the distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
+			setValidStrings_("generate_gnuplot_scripts", StringList::create("true,false"));
 		}
 
 		DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
@@ -134,6 +137,7 @@ class TOPPIDMassAccuracy
 			Size number_of_bins((UInt)getIntOption_("number_of_bins"));
 			bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
 			bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
+			bool generate_gnuplot_scripts(DataValue(getStringOption_("generate_gnuplot_scripts")).toBool());
 
 			//-------------------------------------------------------------
 			// reading input
@@ -255,11 +259,14 @@ class TOPPIDMassAccuracy
 						
 							vector<pair<Size, Size> > pairs;
 							sa.getSpectrumAlignment(pairs, theo_spec, maps[i][j]);
+							cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
 							for (vector<pair<Size, Size> >::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit)
 							{
 								MassDifference md;
 								md.exp_mz = maps[i][j][pit->second].getMZ();
 								md.theo_mz = theo_spec[pit->first].getMZ();
+								cerr.precision(15);
+								cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
 								md.intensity = maps[i][j][pit->second].getIntensity();
 								md.charge = hit.getCharge();
 								fragment_diffs.push_back(md);
@@ -305,7 +312,7 @@ class TOPPIDMassAccuracy
 					hist.inc(errors[i], 1.0);
 				}
 			
-				cerr << min_diff << " " << max_diff << " " << number_of_bins << endl;
+				writeDebug_("min_diff=" + String(min_diff) + ", max_diff=" + String(max_diff) + ", number_of_bins=" + String(number_of_bins), 1);
 
 				// transform the histogram into a vector<DPosition<2> > for the fitting
 				vector<DPosition<2> > values;
@@ -335,6 +342,33 @@ class TOPPIDMassAccuracy
 				gf.fit(values);
 
 				cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
+
+				// write gnuplot scripts
+				if (generate_gnuplot_scripts)
+				{
+					ofstream out(String(precursor_out_file + "_gnuplot.dat").c_str());
+					for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+					{
+						out << it->getX() << " " << it->getY() << endl;
+					}
+					out.close();
+
+					ofstream gpl_out(String(precursor_out_file + "_gnuplot.gpl").c_str());
+					gpl_out << "set terminal png" << endl;
+					gpl_out << "set output \""<< precursor_out_file  << "_gnuplot.png\"" << endl;
+					gpl_out << gf.getGnuplotFormula() << endl;
+					if (precursor_error_ppm)
+					{
+						gpl_out << "set xlabel \"error in ppm\"" << endl;
+					}
+					else
+					{
+						gpl_out << "set xlabel \"error in Da\"" << endl;
+					}
+					gpl_out << "set ylabel \"frequency\"" << endl;
+					gpl_out << "plot '" << precursor_out_file << "_gnuplot.dat' title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+					gpl_out.close();
+				}
 			}
 
 			String fragment_out_file(getStringOption_("fragment_out"));
@@ -371,7 +405,7 @@ class TOPPIDMassAccuracy
           hist.inc(diff, fragment_diffs[i].intensity);
         }
 
-        cerr << min_diff << " " << max_diff << " " << number_of_bins << endl;
+				writeDebug_("min_diff=" + String(min_diff) + ", max_diff=" + String(max_diff) + ", number_of_bins=" + String(number_of_bins), 1);
 
         // transform the histogram into a vector<DPosition<2> > for the fitting
         vector<DPosition<2> > values;
@@ -402,6 +436,32 @@ class TOPPIDMassAccuracy
 
         cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
+				 // write gnuplot script
+        if (generate_gnuplot_scripts)
+        {
+          ofstream out(String(fragment_out_file + "_gnuplot.dat").c_str());
+          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          {
+            out << it->getX() << " " << it->getY() << endl;
+          }
+          out.close();
+
+          ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
+          gpl_out << "set terminal png" << endl;
+          gpl_out << "set output \""<< fragment_out_file  << "_gnuplot.png\"" << endl;
+          gpl_out << gf.getGnuplotFormula() << endl;
+          if (fragment_error_ppm)
+          {
+            gpl_out << "set xlabel \"error in ppm\"" << endl;
+          }
+          else
+          {
+            gpl_out << "set xlabel \"error in Da\"" << endl;
+          }
+          gpl_out << "set ylabel \"frequency\"" << endl;
+          gpl_out << "plot '" << fragment_out_file << "_gnuplot.dat' title 'Fragment mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+          gpl_out.close();
+        }
 			}
 
 			return EXECUTION_OK;

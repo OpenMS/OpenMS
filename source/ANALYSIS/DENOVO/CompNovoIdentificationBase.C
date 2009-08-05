@@ -31,6 +31,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
 #define MIN_DOUBLE_MZ 900.0
@@ -99,12 +100,12 @@ namespace OpenMS
 	{
 	}
 
-	void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, double prefix, double suffix)
+	void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, DoubleReal prefix, DoubleReal suffix)
 	{
+		static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
   	Peak1D p;
-		// TODO set offets for high-accuracy MS
-  	double b_pos(0.0 + prefix);
-	  double y_pos(18.0 + suffix);
+  	DoubleReal b_pos(0.0 + prefix);
+	  DoubleReal y_pos(h2o_mass + suffix);
   	for (UInt i = 0; i != sequence.size() - 1; ++i)
 	  {
   	  char aa(sequence[i]);
@@ -115,14 +116,14 @@ namespace OpenMS
 
     	if (b_pos > min_mz_ && b_pos < max_mz_)
     	{
-      	p.setPosition(b_pos + 1);
+      	p.setPosition(b_pos + Constants::PROTON_MASS_U);
       	p.setIntensity(1.0);
       	spec.push_back(p);
     	}
 
     	if (y_pos > min_mz_ && y_pos < max_mz_)
     	{
-      	p.setPosition(y_pos + 1);
+      	p.setPosition(y_pos + Constants::PROTON_MASS_U);
       	p.setIntensity(1.0);
       	spec.push_back(p);
     	}
@@ -132,11 +133,14 @@ namespace OpenMS
 		return;
 	}
 
-	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, int charge, double prefix, double suffix)
+	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Int charge, DoubleReal prefix, DoubleReal suffix)
 	{
+		static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
+		static DoubleReal nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
+		static DoubleReal co_mass = EmpiricalFormula("CO").getMonoWeight();
 		Peak1D p;
-    double b_pos(0 + prefix);
-    double y_pos(18 + suffix);
+    DoubleReal b_pos(0 + prefix);
+    DoubleReal y_pos(h2o_mass + suffix);
     bool b_H2O_loss(false), b_NH3_loss(false), y_NH3_loss(false);
 
     for (UInt i = 0; i != sequence.size() - 1; ++i)
@@ -146,7 +150,7 @@ namespace OpenMS
 
       char aa2(sequence[sequence.size() - i - 1]);
       y_pos += aa_to_weight_[aa2];
-      for (int z = 1; z <= charge && z < 3; ++z)
+      for (Int z = 1; z <= charge && z < 3; ++z)
       {
         // b-ions
 				if (b_pos >= min_mz_ && b_pos <= max_mz_)
@@ -155,21 +159,21 @@ namespace OpenMS
 					{
 						if (z == 1 /*|| b_pos > MIN_DOUBLE_MZ*/)
 						{
-        			p.setPosition((b_pos + (double)z + (double)j)/(double)z);
-        			p.setIntensity(isotope_distributions_[(int)b_pos][j] * 0.8 / (z*z));
+        			p.setPosition((b_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j + Constants::NEUTRON_MASS_U)/(DoubleReal)z);
+        			p.setIntensity(isotope_distributions_[(Int)b_pos][j] * 0.8 / (z*z));
 							spec.push_back(p);
 						}
 					}
 				}
 			
         // b-ion losses
-				if (b_pos - 18.0 > min_mz_ && b_pos - 18.0 < max_mz_)
+				if (b_pos - h2o_mass > min_mz_ && b_pos - h2o_mass < max_mz_)
 				{	
         	if (b_H2O_loss || aa == 'S' || aa == 'T' || aa == 'E' || aa == 'D')
         	{
           	b_H2O_loss = true;
-          	p.setPosition((b_pos + z - 18.0)/z);
-          	p.setIntensity(0.02 / (double)(z*z));
+          	p.setPosition((b_pos + z * Constants::PROTON_MASS_U - h2o_mass)/z);
+          	p.setIntensity(0.02 / (DoubleReal)(z*z));
 						if (z == 1/* || b_pos > MIN_DOUBLE_MZ*/)
 						{
           		spec.push_back(p);
@@ -178,8 +182,8 @@ namespace OpenMS
         	if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
         	{
           	b_NH3_loss = true;
-          	p.setPosition((b_pos + z - 17.0)/z);
-          	p.setIntensity(0.02 / (double)(z*z));
+          	p.setPosition((b_pos + z * Constants::PROTON_MASS_U - nh3_mass)/z);
+          	p.setIntensity(0.02 / (DoubleReal)(z*z));
 
 						if (z == 1/* || b_pos > MIN_DOUBLE_MZ*/)
 						{
@@ -191,11 +195,11 @@ namespace OpenMS
 				// a-ions only for charge 1
 				if (z == 1)
 				{
-					if (b_pos - 28.0 > min_mz_ && b_pos - 28.0 < max_mz_)
+					if (b_pos - co_mass > min_mz_ && b_pos - co_mass < max_mz_)
 					{
         		// a-ions
-        		p.setPosition((b_pos + z - 28.0)/(double)z);
-       			p.setIntensity(0.1f);
+        		p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass)/(DoubleReal)z);
+       			p.setIntensity(0.1);
         		spec.push_back(p);
 					}
 				}
@@ -209,15 +213,15 @@ namespace OpenMS
 					{
 						if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 						{
-							p.setPosition((y_pos + (double)z + (double)j)/(double)z);
-        			p.setIntensity(isotope_distributions_[(int)y_pos][j] /(double) (z*z));
+							p.setPosition((y_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j * Constants::NEUTRON_MASS_U)/(DoubleReal)z);
+        			p.setIntensity(isotope_distributions_[(Int)y_pos][j] /(DoubleReal) (z*z));
         			spec.push_back(p);
 						}
 					}
 		
 					// H2O loss
-          p.setPosition((y_pos + z - 18.0)/z);
-          p.setIntensity(0.1 / (double)(z*z));
+          p.setPosition((y_pos + z * Constants::PROTON_MASS_U - h2o_mass)/(DoubleReal)z);
+          p.setIntensity(0.1 / (DoubleReal)(z*z));
 					if (aa2 == 'Q') // pyroglutamic acid formation
 					{
 						p.setIntensity(0.5);
@@ -231,8 +235,8 @@ namespace OpenMS
         	if (y_NH3_loss || aa2 == 'Q' || aa2 == 'N' || aa2 == 'R' || aa2 == 'K')
         	{
           	y_NH3_loss = true;
-          	p.setPosition((y_pos + z - 17.0)/(double)z);
-          	p.setIntensity(0.1 / (double)(z*z));
+          	p.setPosition((y_pos + z * Constants::PROTON_MASS_U - nh3_mass)/(DoubleReal)z);
+          	p.setIntensity(0.1 / (DoubleReal)(z*z));
 
 						if (z == 1 /*|| y_pos > MIN_DOUBLE_MZ*/)
 						{
@@ -256,8 +260,8 @@ namespace OpenMS
 			/*		
 			for (UInt j = 0; j != max_isotope; ++j)
 			{
-      	p.setPosition((precursor_weight + charge - 1 + j)/(double)charge);
-      	p.setIntensity(isotope_distributions_[(int)p.getPosition()[0]][j] * 0.1);
+      	p.setPosition((precursor_weight + charge - 1 + j)/(DoubleReal)charge);
+      	p.setIntensity(isotope_distributions_[(Int)p.getPosition()[0]][j] * 0.1);
       	spec.push_back(p);
 			}
 			*/
@@ -327,9 +331,9 @@ namespace OpenMS
   	}
 	}
 
-	void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition>& decomps, double mass, bool no_caching)
+	void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition>& decomps, DoubleReal mass, bool no_caching)
 	{
-		//static Map<double, vector<MassDecomposition> > decomp_cache;
+		//static Map<DoubleReal, vector<MassDecomposition> > decomp_cache;
 		if (!no_caching)
 		{
 			if (decomp_cache_.has(mass))
@@ -350,7 +354,7 @@ namespace OpenMS
   	return;
 	}
 
-	void CompNovoIdentificationBase::selectPivotIons_(vector<UInt>& pivots, UInt left, UInt right, Map<double, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, double precursor_weight, bool full_range)
+	void CompNovoIdentificationBase::selectPivotIons_(vector<UInt>& pivots, UInt left, UInt right, Map<DoubleReal, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, DoubleReal precursor_weight, bool full_range)
 	{
 #ifdef SELECT_PIVOT_DEBUG
   	cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -399,14 +403,14 @@ namespace OpenMS
     	set<UInt> used_pos;
     	for (UInt p = 0; p != min(right - left - 1, max_number_pivot); ++p)
     	{
-      	double max(0);
+      	DoubleReal max(0);
       	UInt max_pos(0);
 
       	bool found_pivot(false);
       	for (UInt i = left + 1; i < right; ++i)
       	{
-					double score = ion_scores[CID_spec[i].getPosition()[0]].score;
-					double position = CID_spec[i].getPosition()[0];
+					DoubleReal score = ion_scores[CID_spec[i].getPosition()[0]].score;
+					DoubleReal position = CID_spec[i].getPosition()[0];
 #ifdef SELECT_PIVOT_DEBUG
 					cerr << position << " " << precursor_weight << " " << full_range << " " << score;
 #endif
@@ -460,9 +464,9 @@ namespace OpenMS
 
 
 	// s1 should be the original spectrum
-	double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum& s1, const PeakSpectrum& s2)
+	DoubleReal CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum& s1, const PeakSpectrum& s2)
 	{
-		double score(0.0);
+		DoubleReal score(0.0);
 		
 		PeakSpectrum::ConstIterator it1 = s1.begin();
 		PeakSpectrum::ConstIterator it2 = s2.begin();
@@ -470,7 +474,7 @@ namespace OpenMS
 		UInt num_matches(0);
 		while (it1 != s1.end() && it2 != s2.end())
 		{
-			double pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
+			DoubleReal pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
 			if (fabs(pos1 - pos2) < fragment_mass_tolerance_)
 			{
 				score += it1->getIntensity();
@@ -492,7 +496,7 @@ namespace OpenMS
 			return 0;
 		}
 		
-		score /= sqrt((double)num_matches);
+		score /= sqrt((DoubleReal)num_matches);
 		
 		return score;
 	}
@@ -503,7 +507,7 @@ namespace OpenMS
 		return p1.getScore() > p2.getScore();
 	}
 
-	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, double windowsize, UInt no_peaks)
+	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, DoubleReal windowsize, UInt no_peaks)
 	{
   	PeakSpectrum copy(spec);
   	vector<Peak1D> to_be_deleted;
@@ -594,11 +598,11 @@ namespace OpenMS
 	void CompNovoIdentificationBase::initIsotopeDistributions_()
 	{
   	IsotopeDistribution iso_dist(max_isotope_);
-  	for (int i = 1; i <= (int)(max_mz_ * 2); ++i)
+  	for (Int i = 1; i <= (Int)(max_mz_ * 2); ++i)
   	{
-    	iso_dist.estimateFromPeptideWeight((double)i);
+    	iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     	iso_dist.renormalize();
-    	vector<double> iso(max_isotope_, 0.0);
+    	vector<DoubleReal> iso(max_isotope_, 0.0);
 
     	for (UInt j = 0; j != iso_dist.size(); ++j)
     	{
@@ -649,12 +653,12 @@ namespace OpenMS
 		
 		max_number_aa_per_decomp_ = (UInt)param_.getValue("max_number_aa_per_decomp");
 		tryptic_only_ = param_.getValue("tryptic_only").toBool();
-		fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
+		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
 		max_number_pivot_ = (UInt)param_.getValue("max_number_pivot");
-		decomp_weights_precision_ = (double)param_.getValue("decomp_weights_precision");
-		min_mz_ = (double)param_.getValue("min_mz");
-		max_mz_ = (double)param_.getValue("max_mz");
-		max_decomp_weight_ = (double)param_.getValue("max_decomp_weight");
+		decomp_weights_precision_ = (DoubleReal)param_.getValue("decomp_weights_precision");
+		min_mz_ = (DoubleReal)param_.getValue("min_mz");
+		max_mz_ = (DoubleReal)param_.getValue("max_mz");
+		max_decomp_weight_ = (DoubleReal)param_.getValue("max_decomp_weight");
 		max_subscore_number_ = (UInt)param_.getValue("max_subscore_number");
 		max_isotope_ = (UInt)param_.getValue("max_isotope");
 
@@ -750,7 +754,7 @@ namespace OpenMS
 		/*
 		cerr << "Following masses are used for identification: " << endl;
 		
-		for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+		for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
 		{
 			cerr << it->first << " " << it->second << endl;
 		}
@@ -764,8 +768,8 @@ namespace OpenMS
 		decomp_param.setValue("variable_modifications", (String)param_.getValue("variable_modifications"));
 		mass_decomp_algorithm_.setParameters(decomp_param);
 		
-		min_aa_weight_ = numeric_limits<double>::max();
-		for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+		min_aa_weight_ = numeric_limits<DoubleReal>::max();
+		for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
 		{
 			if (min_aa_weight_ > it->second)
 			{

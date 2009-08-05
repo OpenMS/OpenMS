@@ -51,7 +51,7 @@
       <ITEM name="Symbol" value="Mn" type="string" />
       <ITEM name="AtomicNumber" value="25" type="int" />
       <ITEM name="AverageWeight" value="54.938049" type="float" />
-      <ITEM name="MonoWeight" value="54.938 0493" type="float" />
+      <ITEM name="MonoWeight" value="54.9380493" type="float" />
       <NODE name="Isotopes">
         <ITEM name="55" value="100" type="float" />
       </NODE>
@@ -86,7 +86,7 @@
       <ITEM name="Symbol" value="Zn" type="string" />
       <ITEM name="AtomicNumber" value="30" type="int" />
       <ITEM name="AverageWeight" value="65.409" type="float" />
-      <ITEM name="MonoWeight" value="63.9291461(" type="float" />
+      <ITEM name="MonoWeight" value="63.9291461" type="float" />
       <NODE name="Isotopes">
         <ITEM name="64" value="48.268" type="float" />
         <ITEM name="66" value="27.975" type="float" />
@@ -151,7 +151,7 @@
       <ITEM name="Symbol" value="Ag" type="string" />
       <ITEM name="AtomicNumber" value="47" type="int" />
       <ITEM name="AverageWeight" value="107.8682" type="float" />
-      <ITEM name="MonoWeight" value="106.905 093" type="float" />
+      <ITEM name="MonoWeight" value="106.905093" type="float" />
       <NODE name="Isotopes">
         <ITEM name="107" value="51.839" type="float" />
         <ITEM name="109" value="48.161" type="float" />
