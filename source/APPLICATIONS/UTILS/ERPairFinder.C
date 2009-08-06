@@ -248,7 +248,7 @@ class TOPPERPairFinder
 					last_mz = pit->getMZ();
 				}
 				writeDebug_("Min-spacing=" + String(min_spacing), 1);
-				res_param.setValue("spacing", min_spacing);
+				//res_param.setValue("spacing", min_spacing);
 
 				// insert peaks at beginning and end to 
 				// expand the resampling range to 'lower_mz' to 'upper_mz'

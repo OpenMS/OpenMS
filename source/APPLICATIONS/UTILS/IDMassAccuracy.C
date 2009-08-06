@@ -327,21 +327,27 @@ class TOPPIDMassAccuracy
 				DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
 				DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
 				DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+				sort(errors.begin(), errors.end());
+				DoubleReal median = errors[(Size)(errors.size() / 2.0)];
 
-				cout << "Precursor mean error: " << mean << endl;
-				cout << "Precursor abs. dev.:  " << abs_dev << endl;
-				cout << "Precursor std. dev.:  " << sdv << endl;
+				writeDebug_("Precursor mean error: " + String(mean), 1);
+				writeDebug_("Precursor abs. dev.:  " + String(abs_dev), 1);
+				writeDebug_("Precursor std. dev.:  " + String(sdv), 1);
+				writeDebug_("Precursor median error:  " + String(median), 1);
+
 
 				// calculate histogram for gauss fitting
 				GaussFitter gf;
 				GaussFitter::GaussFitResult init_param;
 				init_param.A = hist.maxValue();
-				init_param.x0 = mean;
-				init_param.sigma = sdv;
+				init_param.x0 = median;
+				init_param.sigma = sdv / 500.0;
 				gf.setInitialParameters(init_param);
-				gf.fit(values);
 
-				cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
+				try 
+				{
+					gf.fit(values);
+					cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
 				// write gnuplot scripts
 				if (generate_gnuplot_scripts)
@@ -368,6 +374,12 @@ class TOPPIDMassAccuracy
 					gpl_out << "set ylabel \"frequency\"" << endl;
 					gpl_out << "plot '" << precursor_out_file << "_gnuplot.dat' title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
 					gpl_out.close();
+				}
+
+				}
+				catch (Exception::UnableToFit)
+				{
+					writeLog_("Unable to fit a gaussian distribution to the precursor mass errors");
 				}
 			}
 
@@ -420,48 +432,59 @@ class TOPPIDMassAccuracy
         DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
         DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
         DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+				sort(errors.begin(), errors.end());
+				DoubleReal median = errors[(Size)(errors.size() / 2.0)];
 
-				cout << "Fragment mean error:  " << mean << endl;
-				cout << "Fragment abs. dev.:   " << abs_dev << endl;
-				cout << "Fragment std. dev.:   " << sdv << endl;
+				writeDebug_("Fragment mean error:  " + String(mean), 1);
+				writeDebug_("Fragment abs. dev.:   " + String(abs_dev), 1);
+				writeDebug_("Fragment std. dev.:   " + String(sdv), 1);
+				writeDebug_("Fragment median error:   " + String(median), 1);
 
         // calculate histogram for gauss fitting
         GaussFitter gf;
         GaussFitter::GaussFitResult init_param;
         init_param.A = hist.maxValue();
-        init_param.x0 = mean;
-        init_param.sigma = sdv;
+        init_param.x0 = median;
+        init_param.sigma = sdv / 100.0;
         gf.setInitialParameters(init_param);
-        gf.fit(values);
 
-        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
-
-				 // write gnuplot script
-        if (generate_gnuplot_scripts)
+				try
         {
-          ofstream out(String(fragment_out_file + "_gnuplot.dat").c_str());
-          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
-          {
-            out << it->getX() << " " << it->getY() << endl;
-          }
-          out.close();
+        	gf.fit(values);
 
-          ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
-          gpl_out << "set terminal png" << endl;
-          gpl_out << "set output \""<< fragment_out_file  << "_gnuplot.png\"" << endl;
-          gpl_out << gf.getGnuplotFormula() << endl;
-          if (fragment_error_ppm)
-          {
-            gpl_out << "set xlabel \"error in ppm\"" << endl;
-          }
-          else
-          {
-            gpl_out << "set xlabel \"error in Da\"" << endl;
-          }
-          gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '" << fragment_out_file << "_gnuplot.dat' title 'Fragment mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
-          gpl_out.close();
-        }
+        	cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
+
+				 	// write gnuplot script
+        	if (generate_gnuplot_scripts)
+        	{
+          	ofstream out(String(fragment_out_file + "_gnuplot.dat").c_str());
+          	for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          	{
+            	out << it->getX() << " " << it->getY() << endl;
+          	}
+          	out.close();
+
+          	ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
+          	gpl_out << "set terminal png" << endl;
+          	gpl_out << "set output \""<< fragment_out_file  << "_gnuplot.png\"" << endl;
+          	gpl_out << gf.getGnuplotFormula() << endl;
+          	if (fragment_error_ppm)
+          	{
+            	gpl_out << "set xlabel \"error in ppm\"" << endl;
+          	}
+          	else
+          	{
+            	gpl_out << "set xlabel \"error in Da\"" << endl;
+          	}
+          	gpl_out << "set ylabel \"frequency\"" << endl;
+          	gpl_out << "plot '" << fragment_out_file << "_gnuplot.dat' title 'Fragment mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+          	gpl_out.close();
+        	}
+				}
+				catch (Exception::UnableToFit)
+				{
+					writeLog_("Unable to fit a gaussian distribution to the fragment mass errors");
+				}
 			}
 
 			return EXECUTION_OK;
