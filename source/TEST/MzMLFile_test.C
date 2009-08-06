@@ -505,7 +505,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	MSExperiment<> exp5;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),exp5);
 	//load 32 bit data
-	TEST_EQUAL(exp5.size(),8)
+	TEST_EQUAL(exp5.size(),12)
 	TEST_EQUAL(exp5[0].size(),15)
 	TEST_EQUAL(exp5[1].size(),10)
 	TEST_EQUAL(exp5[2].size(),15)
@@ -525,8 +525,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	{
 		TEST_EQUAL(exp5[5][s] == uncompressed[2][s],true)
 	}
-	//32bit Integer (intensity)
-	TEST_EQUAL(exp5[6].size(),99)
+	//32bit Integer (intensity) compressed
+ 	TEST_EQUAL(exp5[6].size(),99)
 	TEST_EQUAL(exp5[6].getFloatDataArrays().size(),1)
 	TEST_EQUAL(exp5[6].getFloatDataArrays()[0].size(),99)
 	TEST_STRING_EQUAL(exp5[6].getFloatDataArrays()[0].getName(),"charge array")
@@ -534,7 +534,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	{
 		TEST_REAL_SIMILAR(exp5[6].getFloatDataArrays()[0][i], (Int)i)
 	}
-	//64bit Integer (intensity)
+	//64bit Integer (intensity) compressed
 	TEST_EQUAL(exp5[7].size(),99)
 	TEST_EQUAL(exp5[7].getFloatDataArrays().size(),1)
 	TEST_EQUAL(exp5[7].getFloatDataArrays()[0].size(),99)
@@ -543,7 +543,47 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	{
 		TEST_REAL_SIMILAR(exp5[7].getFloatDataArrays()[0][i], (Int)i)
 	}
-
+	//64-bit Integer (intensity) uncompressed
+	TEST_EQUAL(exp5[8].size(), 99)
+	TEST_EQUAL(exp5[8].getFloatDataArrays().size(),1)
+	TEST_EQUAL(exp5[8].getFloatDataArrays()[0].size(),99)
+	TEST_EQUAL(exp5[8].getFloatDataArrays()[0].getName(),"charge array")
+	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][0], 5)
+	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][1], 3)
+	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][2], 9)
+	//32-bit Integer (intensity) uncompressed
+	TEST_EQUAL(exp5[9].size(), 99)
+	TEST_EQUAL(exp5[9].getFloatDataArrays().size(),1)
+	TEST_EQUAL(exp5[9].getFloatDataArrays()[0].size(),99)
+	TEST_EQUAL(exp5[9].getFloatDataArrays()[0].getName(),"charge array")
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][0], 1)
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][1], 5)
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][2], 6)	
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][3], 7)	
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][4], 8)	
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][5], 9)	
+	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][6], 522)	
+	
+	TEST_EQUAL(exp5[10].size(), 99)
+	TEST_EQUAL(exp5[10].getStringDataArrays().size(),1)
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0].size(),5)
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0].getName(),"user-defined name")
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0][0], "das")
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0][1], "ist")
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0][2], "ein")	
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0][3], "test")	
+	TEST_EQUAL(exp5[10].getStringDataArrays()[0][4], "1234")	
+	
+		TEST_EQUAL(exp5[11].size(), 99)
+	TEST_EQUAL(exp5[11].getStringDataArrays().size(),1)
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0].size(),5)
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0].getName(),"user-defined name")
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0][0], "das")
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0][1], "ist")
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0][2], "ein")	
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0][3], "test")	
+	TEST_EQUAL(exp5[11].getStringDataArrays()[0][4], "1234")	
+	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e_rich);
@@ -710,8 +750,110 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		MSExperiment<> exp;
 		file.load(tmp_filename,exp);
 		//test if everything worked
-		TEST_EQUAL(exp==exp_original,true)
+		//TEST_EQUAL(exp == exp_original,true)
 		//NOTE: If it does not work, use this code to find out where the difference is
+		TEST_EQUAL(exp[1].size(),exp_original[1].size())
+		for (Size i=0; i<exp[1].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[1][i].getIntensity(),exp_original[1][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[1][i].getMZ(),exp_original[1][i].getMZ())
+		}
+		TEST_EQUAL(exp[2].size(),exp_original[2].size())
+		for (Size i=0; i<exp[2].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[2][i].getIntensity(),exp_original[2][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[2][i].getMZ(),exp_original[2][i].getMZ())
+		}
+		TEST_EQUAL(exp[4].size(),exp_original[4].size())
+		for (Size i=0; i<exp[4].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[4][i].getIntensity(),exp_original[4][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[4][i].getMZ(),exp_original[4][i].getMZ())
+		}
+		TEST_EQUAL(exp[5].size(),exp_original[5].size())		
+		for (Size i=0; i<exp[5].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[5][i].getIntensity(),exp_original[5][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[5][i].getMZ(),exp_original[5][i].getMZ())
+		}
+		TEST_EQUAL(exp[6].size(),exp_original[6].size())
+		for (Size i=0; i<exp[6].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[6][i].getIntensity(),exp_original[6][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[6][i].getMZ(),exp_original[6][i].getMZ())
+		}
+		for (Size i=0; i<exp[6].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[6].getFloatDataArrays()[0][i],exp_original[7].getFloatDataArrays()[0][i])
+		}
+		TEST_EQUAL(exp[7].size(),exp_original[7].size())
+		for (Size i=0; i<exp[7].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[7].getFloatDataArrays()[0][i],exp_original[7].getFloatDataArrays()[0][i])
+		}
+		for (Size i=0; i<exp[7].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[7][i].getIntensity(),exp_original[7][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[7][i].getMZ(),exp_original[7][i].getMZ())
+		}
+		TEST_EQUAL(exp[8].size(),exp_original[8].size())
+		TEST_EQUAL(exp[8].getFloatDataArrays().size(),exp_original[8].getFloatDataArrays().size())
+		TEST_EQUAL(exp[8].getFloatDataArrays()[0].size(),exp_original[8].getFloatDataArrays()[0].size())
+		TEST_EQUAL(exp[8].getFloatDataArrays()[0].getName(),exp_original[8].getFloatDataArrays()[0].getName())
+		TEST_EQUAL(exp[8].getFloatDataArrays()[0][0], exp_original[8].getFloatDataArrays()[0][0])
+		TEST_EQUAL(exp[8].getFloatDataArrays()[0][1], exp_original[8].getFloatDataArrays()[0][1])
+		TEST_EQUAL(exp[8].getFloatDataArrays()[0][2], exp_original[8].getFloatDataArrays()[0][2])		
+		for (Size i=0; i<exp[8].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[8][i].getIntensity(),exp_original[8][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[8][i].getMZ(),exp_original[8][i].getMZ())
+		}		
+		TEST_EQUAL(exp[9].size(),exp_original[9].size())
+		TEST_EQUAL(exp[9].getFloatDataArrays().size(),exp_original[9].getFloatDataArrays().size())
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0].size(),exp_original[9].getFloatDataArrays()[0].size())
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0].getName(),exp_original[9].getFloatDataArrays()[0].getName())
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][0], exp_original[9].getFloatDataArrays()[0][0])
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][1], exp_original[9].getFloatDataArrays()[0][1])
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][2], exp_original[9].getFloatDataArrays()[0][2])	
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][3], exp_original[9].getFloatDataArrays()[0][3])	
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][4], exp_original[9].getFloatDataArrays()[0][4])			
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][5], exp_original[9].getFloatDataArrays()[0][5])		
+		TEST_EQUAL(exp[9].getFloatDataArrays()[0][6], exp_original[9].getFloatDataArrays()[0][6])		
+		for (Size i=0; i<exp[9].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[9][i].getIntensity(),exp_original[9][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[9][i].getMZ(),exp_original[9][i].getMZ())
+		}		
+		TEST_EQUAL(exp[10].size(),exp_original[10].size())
+		TEST_EQUAL(exp[0].size(),exp_original[0].size())	
+		TEST_EQUAL(exp[11].size(),exp_original[11].size())
+		TEST_EQUAL(exp[10].getStringDataArrays().size(),exp_original[10].getStringDataArrays().size())
+		TEST_EQUAL(exp[10].getStringDataArrays()[0].size(),exp_original[10].getStringDataArrays()[0].size())
+		TEST_EQUAL(exp[10].getStringDataArrays()[0].getName(),exp_original[10].getStringDataArrays()[0].getName())
+		TEST_EQUAL(exp[10].getStringDataArrays()[0][0], exp_original[10].getStringDataArrays()[0][0])
+		TEST_EQUAL(exp[10].getStringDataArrays()[0][1], exp_original[10].getStringDataArrays()[0][1])
+		TEST_EQUAL(exp[10].getStringDataArrays()[0][2], exp_original[10].getStringDataArrays()[0][2])	
+		TEST_EQUAL(exp[10].getStringDataArrays()[0][3], exp_original[10].getStringDataArrays()[0][3])	
+		TEST_EQUAL(exp[10].getStringDataArrays()[0][4], exp_original[10].getStringDataArrays()[0][4])		
+		for (Size i=0; i<exp[10].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[10][i].getIntensity(),exp_original[10][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[10][i].getMZ(),exp_original[10][i].getMZ())
+		}
+		TEST_EQUAL(exp[11].size(),exp_original[11].size())
+		TEST_EQUAL(exp[11].getStringDataArrays().size(),exp_original[11].getStringDataArrays().size())
+		TEST_EQUAL(exp[11].getStringDataArrays()[0].size(),exp_original[11].getStringDataArrays()[0].size())
+		TEST_EQUAL(exp[11].getStringDataArrays()[0].getName(),exp_original[11].getStringDataArrays()[0].getName())
+		TEST_EQUAL(exp[11].getStringDataArrays()[0][0], exp_original[11].getStringDataArrays()[0][0])
+		TEST_EQUAL(exp[11].getStringDataArrays()[0][1], exp_original[11].getStringDataArrays()[0][1])
+		TEST_EQUAL(exp[11].getStringDataArrays()[0][2], exp_original[11].getStringDataArrays()[0][2])	
+		TEST_EQUAL(exp[11].getStringDataArrays()[0][3], exp_original[11].getStringDataArrays()[0][3])	
+		TEST_EQUAL(exp[11].getStringDataArrays()[0][4], exp_original[11].getStringDataArrays()[0][4])		
+		for (Size i=0; i<exp[11].size(); ++i)
+		{
+			TEST_REAL_SIMILAR(exp[11][i].getIntensity(),exp_original[11][i].getIntensity())
+			TEST_REAL_SIMILAR(exp[11][i].getMZ(),exp_original[11][i].getMZ())
+		}		
 		TEST_EQUAL(exp[3].size(),exp_original[3].size())
 		for (Size i=0; i<exp[3].size(); ++i)
 		{

@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
+#include <QtCore/QList>
 
 using namespace std;
 
@@ -45,5 +45,69 @@ namespace OpenMS
 	Base64::~Base64()
   {
 	}
+
+	void Base64::encodeStrings(std::vector<String>& in,std::string& out, bool zlib_compression)
+	{
+		out.clear();
+		if (in.size() == 0) return;
+		std::string str;
+		for(Size i = 0 ; i < in.size(); ++i )
+		{
+			str = str.append(in[i]);
+			str.push_back('\0');
+		}
+
+		QByteArray original = QByteArray::fromRawData(str.c_str(), str.size());
+		QByteArray base64_compressed;
+		if (zlib_compression)
+		{
+			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
+			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
+			base64_compressed = extern_compressed.toBase64();
+		}
+		//encode without compression
+		else
+		{
+			base64_compressed = original.toBase64();
+		}	
+		out = QString(base64_compressed).toStdString();
+	}
+
+	void Base64::decodeStrings(const std::string& in, std::vector<String>& out, bool zlib_compression)
+	{
+		out.clear();
+		if (in == "") return;
+		
+		QByteArray base64_uncompressed;
+		QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
+		base64_uncompressed = QByteArray::fromBase64(herewego);		
+		if(zlib_compression)
+		{		
+			QByteArray czip;
+			czip.resize(4);
+			czip[0] = (base64_uncompressed.size() & 0xff000000) >> 24;
+			czip[1] = (base64_uncompressed.size() & 0x00ff0000) >> 16;
+			czip[2] = (base64_uncompressed.size() & 0x0000ff00) >> 8;
+			czip[3] = (base64_uncompressed.size()& 0x000000ff);
+			czip += base64_uncompressed;
+			base64_uncompressed = qUncompress(czip);
+
+			if(base64_uncompressed.isEmpty())
+			{
+				throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Decompression error?");
+			}
+		}
+		QList<QByteArray> null_strings = base64_uncompressed.split('\0');
+		
+		for(QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end();++it)
+		{
+			if(!it->isEmpty())
+			{
+				out.push_back(QString(*it).toStdString());
+			}
+		}
+
+	}	
+	
 }
 

@@ -42,10 +42,7 @@ namespace OpenMS
 		This implementation does currently not support the whole functionality of MzML.
 		Some minor features are still missing:
 			- chromatograms
-			- base64 string data
-
-		@todo Implement and test 32/64 bit integer arrays and null-terminated string arrays (Hiwi, David)
-		
+			
 		@todo Implement chromatograms (Andreas)
 		
 		@todo Add generic parsing of ControlledVocabulary xref and check binary data array types (Marc)

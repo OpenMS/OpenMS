@@ -157,6 +157,7 @@ namespace OpenMS
 				Base64::DataType data_type;
 				std::vector<Real> decoded_32;
 				std::vector<DoubleReal> decoded_64;
+				std::vector<String> decoded_char;
 				MetaInfoDescription meta;
 			};
 			
@@ -681,6 +682,14 @@ namespace OpenMS
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,false,data_[i].data_type);
 				}
+				else if(data_[i].data_type == Base64::STRING && data_[i].compression == "zlib")
+				{
+					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,true);
+				}
+				else if(data_[i].data_type == Base64::STRING)
+				{
+					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char);
+				}
 			}
 
 			//look up the precision and the index of the intensity and m/z array
@@ -735,11 +744,23 @@ namespace OpenMS
 				{
 					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 					{
-						spec_.getFloatDataArrays()[meta_array_index].reserve(data_[i].size);
-						//copy meta info into MetaInfoDescription
-						spec_.getFloatDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
-						//go to next meta data array
-						++meta_array_index;
+						if(data_[i].data_type == Base64::STRING)
+						{
+							typename SpectrumType::StringDataArray sda;
+							spec_.getStringDataArrays().push_back(sda);
+							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].reserve(data_[i].decoded_char.size());
+							//copy meta info into MetaInfoDescription
+						//	spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].std::vector<OpenMS::String>::operator=(data_[i].decoded_char);		
+							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].MetaInfoDescription::operator=(data_[i].meta);
+						}
+						else
+						{
+							spec_.getFloatDataArrays()[meta_array_index].reserve(data_[i].size);
+							//copy meta info into MetaInfoDescription
+							spec_.getFloatDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
+							//go to next meta data array
+							++meta_array_index;
+						}
 					}
 				}
 			}
@@ -775,14 +796,24 @@ namespace OpenMS
 					spec_.push_back(tmp);
 
 					//add meta data
-					UInt meta_array_index = 0;
+					UInt meta_float_array_index = 0;
+					UInt meta_string_array_index = 0;
 					for (Size i=0; i<data_.size(); i++)
 					{
 						if (n<data_[i].size && data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 						{
-							DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
-							spec_.getFloatDataArrays()[meta_array_index].push_back(value);
-							++meta_array_index;
+						if(data_[i].data_type == Base64::STRING && n < data_[i].decoded_char.size())
+							{
+								String value = data_[i].decoded_char[n];
+								spec_.getStringDataArrays()[meta_string_array_index].push_back(value);
+								++meta_string_array_index;
+							}
+							else
+							{
+								DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
+								spec_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								++meta_float_array_index;
+							}
 						}
 					}
 				}
@@ -931,7 +962,12 @@ namespace OpenMS
 					{
 						data_.back().precision = "64";
 						data_.back().data_type = Base64::INTEGER;						
-					}					
+					}
+					else if(accession=="MS:1001479")
+					{
+						data_.back().precision = "0";
+						data_.back().data_type = Base64::STRING;
+					}
 					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
 					{
@@ -3942,7 +3978,7 @@ namespace OpenMS
 						}
 						String encoded_string;
 						std::vector<DoubleReal> data64_to_encode;
-						os	<< "				<binaryDataArrayList count=\"" << (spec.getFloatDataArrays().size()+2) << "\">\n";
+						os	<< "				<binaryDataArrayList count=\"" << (spec.getFloatDataArrays().size()+2+spec.getStringDataArrays().size()) << "\">\n";
 						//write m/z array
 						data64_to_encode.resize(spec.size());
 						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
@@ -3994,6 +4030,26 @@ namespace OpenMS
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
+						for (Size m=0; m<spec.getStringDataArrays().size(); ++m)
+						{
+							const typename SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];
+							std::vector<String> data_to_encode;
+							data_to_encode.resize(array.size());
+							for (Size p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
+							decoder_.encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+							String data_processing_ref_string = "";
+							if (array.getDataProcessing().size()!=0)
+							{
+								data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+							}
+							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
+							os  << "						" << compression_term << "\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+							writeUserParam_(os, array, 6);
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
+						}						
 						os	<< "				</binaryDataArrayList>\n";
 					}
 					

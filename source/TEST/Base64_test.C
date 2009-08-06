@@ -218,9 +218,9 @@ START_SECTION([EXTRA] zlib functionality)
 	
 END_SECTION
 
-START_SECTION([EXTRA] decode integers)
+START_SECTION([EXTRA] integers and strings)
 	Base64 b64;
-	String src;
+	String src,str;
 	vector<Real> res;
 	vector<DoubleReal> double_res;
 	//with zlib compression
@@ -230,7 +230,7 @@ START_SECTION([EXTRA] decode integers)
 	
 	for(Size i = 0 ; i < res.size();++i)
 	{
-			TEST_REAL_SIMILAR(res[i], (Real)i)
+			TEST_REAL_SIMILAR(res[i],i)
 	}
 	
 	src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
@@ -238,16 +238,16 @@ START_SECTION([EXTRA] decode integers)
 	
 	for(Size i = 0 ; i < double_res.size();++i)
 	{
-			TEST_REAL_SIMILAR(double_res[i], (DoubleReal)i)
+			TEST_REAL_SIMILAR(double_res[i],i)
 	}
 	
 	src="eJxjZGBgYAJiZiAGAAA0AAc=";
 	b64.decode(src,Base64::BYTEORDER_BIGENDIAN,res,true,Base64::INTEGER);
-	TEST_REAL_SIMILAR(res[0], 16777215)
-	TEST_REAL_SIMILAR(res[1], 33554432)
-	TEST_REAL_SIMILAR(res[2], 50331648)
+	TEST_REAL_SIMILAR(res[0],16777215)
+	TEST_REAL_SIMILAR(res[1],33554432 )
+	TEST_REAL_SIMILAR(res[2],50331648 )
 	
-	//without zlib compression
+	//without zlib compression 32bit
 	src = "AAAAAQAAAAUAAAAGAAAABwAAAAgAAAAJAAACCg==";
 	
 	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,res,false,Base64::INTEGER);
@@ -259,13 +259,20 @@ START_SECTION([EXTRA] decode integers)
 	TEST_REAL_SIMILAR(res[4],8)
 	TEST_REAL_SIMILAR(res[5],9)
 	TEST_REAL_SIMILAR(res[6],522)
+	//64bit
 	src = "AAAAAAAAAAUAAAAAAAAAAwAAAAAAAAAJ";	
 	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,double_res,false,Base64::INTEGER);	
 	TEST_REAL_SIMILAR(double_res[0],5)
 	TEST_REAL_SIMILAR(double_res[1],3)
 	TEST_REAL_SIMILAR(double_res[2],9)	
 
-
+	//64bit
+	src = "BQAAAAAAAAADAAAAAAAAAAkAAAAAAAAA";	
+	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,double_res,false,Base64::INTEGER);	
+	TEST_REAL_SIMILAR(double_res[0],5)
+	TEST_REAL_SIMILAR(double_res[1],3)
+	TEST_REAL_SIMILAR(double_res[2],9)	
+	//32bit
 	src ="AQAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgIAAA==";
 	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,res,false,Base64::INTEGER);
 	
@@ -276,7 +283,45 @@ START_SECTION([EXTRA] decode integers)
 	TEST_REAL_SIMILAR(res[4],8)
 	TEST_REAL_SIMILAR(res[5],9)
 	TEST_REAL_SIMILAR(res[6],522)
+	//encode and decode of strings
+	//without zlib compression
+	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0";
+	vector<String> strings;
+	b64.decodeStrings(src,strings,false);
+	TEST_EQUAL(strings.size() == 5,true 	)
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+	//same as above but this time the hole string is null-terminated as well
+	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
+	b64.decodeStrings(src,strings,false);
+	TEST_EQUAL(strings.size() == 5,true 	)
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
 	
+	//zlib compressed			
+	src = "eJxLSSxmyCwuYUjNzGMoSQUyDI2MTRgAUX4GTw==";
+	b64.decodeStrings(src,strings,true);
+	TEST_EQUAL(strings.size() == 5,true )
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+	
+	//without zlib compression
+	b64.encodeStrings(strings,str,false);
+	b64.decodeStrings(str,strings,false);
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
 END_SECTION
 
 /////////////////////////////////////////////////////////////
