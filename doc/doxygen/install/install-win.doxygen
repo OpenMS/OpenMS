@@ -146,7 +146,7 @@
 				able to run 64bit apps in this case.
 				
 @code
-cd &lt;path_to_contrib_build&gt;
+cd <path_to_contrib_build>
 cmake -G "<generator>" "<path_to_contrib>"
 @endcode
 
@@ -162,6 +162,42 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 				<LI>add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
+  @section create_doc Building the documentation (optional)
+
+	This section is voluntary. If you can live with the online documentation, you do not need to build your own.
+	
+	In order to build the class documentation (doc & doc_internal targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
+
+  <OL>
+    <LI> Doxygen (version 1.5.8 is tested, others might work as well)
+      <UL>
+        <LI> download the installer for Windows (http://www.doxygen.org)
+        <LI> execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
+      </UL>
+    <LI> MikTeX (version 2.7 is tested, others might work as well) - basic version (for DVIPS, LATEX etc).
+      <UL>
+         <LI> download binaries for Windows (http://miktex.org/)
+         <LI> During installtion tick "install missing packages on the fly = yes"?!
+         <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
+      </UL>
+    <LI> GPL Ghostscript (8.60) for Windows
+      <UL>
+         <LI> Download binaries for Windows (http://www.ghostscript.com/awki -> Sourceforge -> Win32 Binaries) and install
+         <LI> add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
+      </UL>
+		<LI>
+			Optional:<br>
+				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
+				<UL>
+					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
+					<LI> the installer should have added dot.exe to the Windows PATH Environment (please recheck)
+				</UL>
+  </OL>
+	
+	You should install the above apps prior to installing %OpenMS, because otherwise during the configuration step the documentation targets will be
+	disabled.
+	If you already have a working installation of %OpenMS (without documentation), you can simply install the above programms and then delete the CMakeCache.txt file
+	in your %OpenMS build directory and reconfigure %OpenMS by calling cmake (see below). No need to recompile the library!
 
 
   @section install_win_openms Installing OpenMS
@@ -215,41 +251,6 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 
 
 		After you have build %OpenMS, TOPP and the corresponding tests (e.g. by executing the 'ALL_BUILD' project), you can test your installation
 		by executing "RUN_TESTS" project in the IDE. 
-
-  @section create_doc Building the documentation
-
-	This section is voluntary. If you can live with the online documentation, you do not need to build your own.
-	
-	In order to build the class documentation (doc & doc_internal targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
-
-  <OL>
-    <LI> Doxygen (version 1.5.8 is tested, others might work as well)
-      <UL>
-        <LI> download the installer for Windows (http://www.doxygen.org)
-        <LI> execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
-      </UL>
-    <LI> MikTeX (version 2.7 is tested, others might work as well) - basic version (for DVIPS, LATEX etc).
-      <UL>
-         <LI> download binaries for Windows (http://miktex.org/)
-         <LI> During installtion tick "install missing packages on the fly = yes"?!
-         <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
-      </UL>
-    <LI> GPL Ghostscript (8.60) for Windows
-      <UL>
-         <LI> Download binaries for Windows (http://www.ghostscript.com/awki -> Sourceforge -> Win32 Binaries) and install
-         <LI> add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
-      </UL>
-		<LI>
-			Optional:<br>
-				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
-				<UL>
-					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-					<LI> the installer should have added dot.exe to the Windows PATH Environment (please recheck)
-				</UL>
-
-
-  </OL>
-
 
   @section enable_db [deprecated] Enabling database support
   
