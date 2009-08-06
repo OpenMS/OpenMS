@@ -433,6 +433,7 @@ namespace OpenMS
 		QProcess* p = new QProcess();
 		p->setProcessChannelMode(QProcess::MergedChannels);
 		connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
+		connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(forwardTOPPOutput()));
 		
 		//start process
 		p->start(name_.toQString(), args);
@@ -447,14 +448,14 @@ namespace OpenMS
 		
 		if (es != QProcess::NormalExit)
 		{
-			std::cerr << "TOPP tool crashed!" << std::endl;
+			//std::cerr << "TOPP tool crashed!" << std::endl;
 			emit toolCrashed();
 			return;
 		}
 		
 		if (ec != 0)
 		{
-			std::cerr << "TOPP tool execution failed! (Exit code: " << ec << ")" << std::endl;
+			//std::cerr << "TOPP tool execution failed! (Exit code: " << ec << ")" << std::endl;
 			emit toolFailed();
 			return;
 		}
@@ -613,5 +614,16 @@ namespace OpenMS
 		started_here_ = b;
 	}
 
+	void TOPPASToolVertex::forwardTOPPOutput()
+	{
+		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+		if (!p)
+		{
+			return;
+		}
+		
+		QString out = p->readAllStandardOutput();
+		emit toppOutputReady(out);
+	}
 }
 

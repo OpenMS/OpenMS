@@ -66,6 +66,7 @@
 #include <QtGui/QLabel>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
+#include <QtCore/QChar>
 
 using namespace std;
 
@@ -276,6 +277,7 @@ namespace OpenMS
 					connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					continue;
 				}
 				TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
@@ -673,6 +675,7 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 		}
 		
 		tv->setPos(x,y);
@@ -784,6 +787,27 @@ namespace OpenMS
 	{
 		String text = "Output file '"+file+"' written.";
 		showLogMessage_(LS_NOTICE, text, "");
+	}
+	
+	void TOPPASBase::updateTOPPOutputLog(const QString& out)
+	{
+		TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (!sender)
+		{
+			return;
+		}
+		QString text = (sender->getName()).toQString();
+		if (sender->getType() != "")
+		{
+			text += " ("+(sender->getType()).toQString()+")";
+		}
+		text += ":\n" + out;
+		
+		//show log if there is output
+		qobject_cast<QWidget*>(log_->parent())->show();
+
+		//update log_
+		log_->textCursor().insertText(text);
 	}
 
 } //namespace OpenMS

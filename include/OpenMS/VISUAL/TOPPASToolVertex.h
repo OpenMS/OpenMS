@@ -121,6 +121,8 @@ namespace OpenMS
 		
 			/// Called when the execution of this tool has finished
 			void executionFinished(int ec, QProcess::ExitStatus es);
+			/// Called when the running TOPP tool produces output
+			void forwardTOPPOutput();
 		
 		signals:
 		
@@ -132,6 +134,8 @@ namespace OpenMS
 			void toolCrashed();
 			/// Emitted when the tool execution fails
 			void toolFailed();
+			/// Emitted from showTOPPOutput() to forward the signal outside
+			void toppOutputReady(const QString& out);
 		
 		protected:
 		

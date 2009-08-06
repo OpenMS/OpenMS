@@ -125,6 +125,8 @@ namespace OpenMS
 			void toolFailed();
 			/// Called when a pipeline execution ended successfully in an output vertex
 			void outputVertexFinished(const String& file);
+			/// Called when a TOPP tool produces (error) output.
+			void updateTOPPOutputLog(const QString& out);
 			
     protected slots:
 		
