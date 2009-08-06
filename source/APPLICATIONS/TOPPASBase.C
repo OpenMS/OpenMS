@@ -232,7 +232,7 @@ namespace OpenMS
 		current_path_ = param_.getValue("preferences:default_path");
 		
 		//set temporary path
-		tmp_path_ = "/tmp/";
+		tmp_path_ = "";
 		
   	//update the menu
   	updateMenu();
