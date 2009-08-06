@@ -121,7 +121,7 @@ namespace OpenMS
 			int tmp_files_count = files.size();
 			if (specified_files_count <= tmp_files_count)
 			{
-				list.append(files_);
+				list = files_;
 				// if too few file names specified, fill the rest
 				for (int i = specified_files_count; i < tmp_files_count; ++i)
 				{
