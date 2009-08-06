@@ -11,6 +11,7 @@ BinnedSumAgreeingIntensities.C
 CompareFouriertransform.C
 PeakAlignment.C
 PeakSpectrumCompareFunctor.C
+SpectraSTSimilarityScore.C
 SpectrumAlignment.C
 SpectrumAlignmentScore.C
 SpectrumCheapDPCorr.C

@@ -16,6 +16,7 @@ MSSimulator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
+SpecLibCreator
 XMLValidator
 IdXMLEvaluation
 DecoyDatabase

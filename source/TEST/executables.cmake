@@ -110,6 +110,7 @@ set(visual_executables_list
 )
 
 set(format_executables_list
+  CsvFile_test
   XMLValidator_test
   TextFile_test
   XMLFile_test
@@ -222,6 +223,7 @@ set(comparison_executables_list
   ZhangSimilarityScore_test
   SpectrumAlignment_test
   SpectrumAlignmentScore_test
+  SpectraSTSimilarityScore_test
   SteinScottImproveScore_test
   CompareFouriertransform_test
   BinnedSpectrum_test

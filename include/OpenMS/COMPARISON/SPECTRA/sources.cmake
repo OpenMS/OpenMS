@@ -11,6 +11,7 @@ BinnedSumAgreeingIntensities.h
 CompareFouriertransform.h
 PeakAlignment.h
 PeakSpectrumCompareFunctor.h
+SpectraSTSimilarityScore.h
 SpectrumAlignment.h
 SpectrumAlignmentScore.h
 SpectrumCheapDPCorr.h

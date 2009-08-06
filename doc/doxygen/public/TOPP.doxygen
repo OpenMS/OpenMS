@@ -82,7 +82,7 @@
 	- @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
 	- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications. 	 
 	- @subpage TOPP_PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
-
+	- @subpage TOPP_SequestAdapter - Annotates MS/MS spectra using spectral libraray search methods.
 
 	<b>Peptide property prediction</b>
  	- @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.

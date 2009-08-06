@@ -40,6 +40,7 @@ Resampler
 # PILISModel
 # PILISIdentification
 SequestAdapter
+SpecLibSearcher
 SpectraFilter
 TOFCalibration
 TOPPView
