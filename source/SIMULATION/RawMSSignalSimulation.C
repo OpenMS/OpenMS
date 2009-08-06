@@ -97,13 +97,15 @@ namespace OpenMS {
     defaults_.setValue("peak_fwhm",0.5,"FWHM (full width at half maximum) of simulated peaks (Da).");
 
     // shot noise
-    defaults_.setValue("noise_rate",0.0,"Poisson rate of shot noise. Set to 0 to disable simulation of shot noise.");
-    defaults_.setMinFloat("noise_rate",0.0);
-    defaults_.setValue("noise_int_mean",50.0,"Shot noise intensity mean.");
+    defaults_.setValue("noise:rate",0.0,"Poisson rate of shot noise. Set to 0 to disable simulation of shot noise.");
+    defaults_.setMinFloat("noise:rate",0.0);
+    defaults_.setValue("noise:int-mean",50.0,"Shot noise intensity mean.");
 
     // baseline
-    defaults_.setValue("baseline_scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
-		defaults_.setMinFloat("baseline_scaling",0.0);
+    defaults_.setValue("baseline:scaling",0.0,"Scale of baseline. Set to 0 to disable simulation of baseline.");
+    defaults_.setMinFloat("baseline:scaling",0.0);
+    defaults_.setValue("baseline:shape",0.5, "The baseline is modeled by an exponential probability density function (pdf) with f(x) = shape*e^(- shape*x)");
+    defaults_.setMinFloat("baseline:shape",0.0);
 
     defaultsToParam_();
   }
@@ -136,6 +138,7 @@ namespace OpenMS {
       {
         add1DSignal_(*feature_it,experiment);
       }
+      addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
     }
     else
     {
@@ -146,8 +149,9 @@ namespace OpenMS {
         add2DSignal_(*feature_it, experiment);
       }
       addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
-      addBaseLine_(experiment, minimal_mz_measurement_limit);
     }
+    // we should trigger this based on ionization type
+    addBaseLine_(experiment, minimal_mz_measurement_limit);
     compressSignals_(experiment);
   }
 
@@ -156,7 +160,7 @@ namespace OpenMS {
     Param p1;
 
     // was: 3000 TODO: ???? why 1500
-    SimIntensityType scale = active_feature.getIntensity() * 1500;
+    SimIntensityType scale = active_feature.getIntensity() * 150;
 
     SimChargeType charge = active_feature.getCharge();
     EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
@@ -372,9 +376,9 @@ namespace OpenMS {
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
     // distribution. Noise intensity is assumed to be Gaussian-distributed.
 
-    DoubleReal rate    = param_.getValue("noise_rate");
+    DoubleReal rate    = param_.getValue("noise:rate");
     if (rate == 0.0) return;
-    DoubleReal it_mean = param_.getValue("noise_int_mean");
+    DoubleReal it_mean = param_.getValue("noise:int-mean");
 
     const UInt num_intervals = 100;
     SimCoordinateType interval_size = ( maximal_mz_measurement_limit -  minimal_mz_measurement_limit) / num_intervals;
@@ -411,19 +415,20 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit)
   {
-    DoubleReal scale = param_.getValue("baseline_scaling");
+    DoubleReal scale = param_.getValue("baseline:scaling");
+    DoubleReal shape = param_.getValue("baseline:shape");
+
     if (scale == 0.0) return;
 
     for ( Size i = 0; i < experiment.size() ; ++i )
     {
       for ( Size j = 0 ; j < experiment[i].size() ; ++j )
       {
-        SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit);
-        // TODO: what is this?! Baseline up to 1000Th and then what?
-        // We should consider using an exp() for MALDI and nothing(?) for ESI?
-        if (x >= 1000.0) continue; // speed-up
+        SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit);        
 
-        DoubleReal b = gsl_ran_exponential_pdf(x,125.0);
+        //if (x >= 1000.0) continue; // speed-up TODO: revise this ..
+
+        DoubleReal b = gsl_ran_exponential_pdf(x, shape);
         b *= scale;
         experiment[i][j].setIntensity( experiment[i][j].getIntensity() + b );
       }
