@@ -108,7 +108,37 @@ namespace OpenMS
 			return;
 		}
 		
-		TOPPASOutputFilesDialog tofd(this);
+		QStringList list;
+		TOPPASEdge* in_edge = *inEdgesBegin();
+		TOPPASToolVertex* in_tool = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
+		const QVector<QStringList>& files_vector = in_tool->getOutputFileNames();
+		int param_index = in_edge->getSourceOutParam();
+		if (param_index != -1)
+		{
+			const QStringList& files = files_vector[param_index];
+			
+			int specified_files_count = files_.size();
+			int tmp_files_count = files.size();
+			if (specified_files_count <= tmp_files_count)
+			{
+				list.append(files_);
+				// if too few file names specified, fill the rest
+				for (int i = specified_files_count; i < tmp_files_count; ++i)
+				{
+					list.push_back("<edit filename>");
+				}
+			}
+			else
+			{
+				// too many file names specified, only show as many as needed
+				for (int i = 0; i < tmp_files_count; ++i)
+				{
+					list.push_back(files_[i]);
+				}
+			}
+		}
+		
+		TOPPASOutputFilesDialog tofd(list);
 		if (tofd.exec())
 		{
 			tofd.getFilenames(files_);

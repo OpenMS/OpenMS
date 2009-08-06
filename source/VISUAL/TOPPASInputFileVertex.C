@@ -73,7 +73,7 @@ namespace OpenMS
 	
 	void TOPPASInputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		TOPPASInputFileDialog tifd(this);
+		TOPPASInputFileDialog tifd(file_);
 		if (tifd.exec())
 		{
 			file_ = tifd.getFilename();
@@ -121,10 +121,5 @@ namespace OpenMS
 		QPainterPath shape;
 		shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
 		return shape;
-	}
-	
-	bool TOPPASInputFileVertex::fileNameValid(const QString& file)
-	{
-		return File::exists(String(file));
 	}
 }

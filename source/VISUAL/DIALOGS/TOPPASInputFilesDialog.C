@@ -27,6 +27,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
 
 #include <QtGui/QFileDialog>
 
@@ -34,18 +35,18 @@
 
 namespace OpenMS
 {
-	TOPPASInputFilesDialog::TOPPASInputFilesDialog(TOPPASInputFileListVertex* parent)
-		: parent_(parent)
+	TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list)
 	{
 		setupUi(this);
 		
-		input_file_list->setSortingEnabled(true);
-		input_file_list->addItems(parent->getFilenames());
+		//input_file_list->setSortingEnabled(true);
+		input_file_list->addItems(list);
 		
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(accept()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		connect (add_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (remove_button,SIGNAL(clicked()),this,SLOT(removeSelected()));
+		connect (edit_button,SIGNAL(clicked()),this,SLOT(editCurrentItem()));
 	}
 	
 	void TOPPASInputFilesDialog::showFileDialog()
@@ -74,6 +75,20 @@ namespace OpenMS
 		for (int i = 0; i < input_file_list->count(); ++i)
 		{
 			files.push_back(input_file_list->item(i)->text());
+		}
+	}
+	
+	void TOPPASInputFilesDialog::editCurrentItem()
+	{
+		QListWidgetItem* item = input_file_list->currentItem();
+		if (!item)
+		{
+			return;
+		}
+		TOPPASInputFileDialog tifd(item->text());
+		if (tifd.exec())
+		{
+			item->setText(tifd.getFilename());
 		}
 	}
 	

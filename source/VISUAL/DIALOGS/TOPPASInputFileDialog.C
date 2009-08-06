@@ -30,18 +30,22 @@
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
+#include <QtGui/QCompleter>
+#include <QtGui/QDirModel>
+#include <QtCore/QFileInfo>
 
 #include <iostream>
 
 namespace OpenMS
 {
-	TOPPASInputFileDialog::TOPPASInputFileDialog(TOPPASInputFileVertex* parent)
-		: parent_(parent)
+	TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file_name)
 	{
 		setupUi(this);
 		
-		line_edit->setText(parent->getFilename());
-		
+		line_edit->setText(file_name);
+		QCompleter* completer = new QCompleter(this);
+		completer->setModel(new QDirModel(completer));
+		line_edit->setCompleter(completer);
 		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
@@ -65,13 +69,19 @@ namespace OpenMS
 	
 	void TOPPASInputFileDialog::checkValidity_()
 	{
-		if (!(parent_->fileNameValid(line_edit->text())))
+		if (!fileNameValid(line_edit->text()))
 		{
 			QMessageBox::warning(0,"Invalid file name","The specified file does not exist!");
 			return;
 		}
 		
 		accept();
+	}
+	
+	bool TOPPASInputFileDialog::fileNameValid(const QString& file_name)
+	{
+		QFileInfo fi(file_name);
+		return (fi.exists() && fi.isReadable() && (!fi.isDir()));
 	}
 	
 } // namespace

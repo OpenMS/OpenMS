@@ -31,7 +31,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASOutputFileDialog.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 
 namespace OpenMS 
 {
@@ -50,10 +49,13 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASOutputFileDialog(TOPPASOutputFileVertex* parent);
+			TOPPASOutputFileDialog(const QString& file_name);
 			
 			/// Returns the filename
 			QString getFilename();
+			
+			/// Returns if the file name is valid (is writable and not a directory)
+			static bool fileNameValid(const QString& file_name);
 			
 		public slots:
 		
@@ -67,8 +69,8 @@ namespace OpenMS
 		
 		protected:
 		
-			/// The parent vertex
-			TOPPASOutputFileVertex* parent_;
+			/// The parent
+			QObject* parent_;
 	};
 	
 }

@@ -27,22 +27,27 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
+#include <QtGui/QCompleter>
+#include <QtGui/QDirModel>
+#include <QtCore/QFileInfo>
 
 #include <iostream>
 
 namespace OpenMS
 {
-	TOPPASOutputFileDialog::TOPPASOutputFileDialog(TOPPASOutputFileVertex* parent)
-		: parent_(parent)
+	TOPPASOutputFileDialog::TOPPASOutputFileDialog(const QString& file_name)
 	{
 		setupUi(this);
 		
-		line_edit->setText(parent->getFilename());
-		
+		line_edit->setText(file_name);
+		QCompleter* completer = new QCompleter(this);
+		completer->setModel(new QDirModel(completer));
+		line_edit->setCompleter(completer);
 		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
@@ -71,13 +76,19 @@ namespace OpenMS
 	
 	void TOPPASOutputFileDialog::checkValidity_()
 	{
-		if (!(parent_->fileNameValid(line_edit->text())))
+		if (!fileNameValid(line_edit->text()))
 		{
-			QMessageBox::warning(0,"Invalid file name","The specified file name is invalid!");
+			QMessageBox::warning(0,"Invalid file name","The specified file is not writable!");
 			return;
 		}
 		
 		accept();
+	}
+	
+	bool TOPPASOutputFileDialog::fileNameValid(const QString& file_name)
+	{
+		QFileInfo fi(file_name);
+		return (File::writable(file_name) && (!fi.isDir()));
 	}
 	
 } // namespace

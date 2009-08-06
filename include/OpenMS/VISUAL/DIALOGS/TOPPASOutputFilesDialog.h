@@ -31,7 +31,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASOutputFilesDialog.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
 namespace OpenMS 
 {
@@ -50,25 +49,21 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASOutputFilesDialog(TOPPASOutputFileListVertex* parent);
+			TOPPASOutputFilesDialog(const QStringList& list);
 			
 			/// Stores the list of all filenames in the list widget in @p files
 			void getFilenames(QStringList& files);
 			
 		public slots:
 		
-			/// Lets the user select files via a file dialog
-			void showFileDialog();
+			/// Shows an output file dialog which edits the current item
+			void editCurrentItem();
 		
 		protected slots:
 		
 			/// Called when OK is pressed; checks if the selected file is valid
 			void checkValidity_();
 		
-		protected:
-		
-			/// The parent vertex
-			TOPPASOutputFileListVertex* parent_;
 	};
 	
 }

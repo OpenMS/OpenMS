@@ -27,9 +27,9 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
 #include <QtGui/QFileDialog>
 
@@ -37,63 +37,32 @@
 
 namespace OpenMS
 {
-	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(TOPPASOutputFileListVertex* parent)
-		: parent_(parent)
+	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QStringList& list)
 	{
 		setupUi(this);
 		
 		output_file_list->setSelectionMode(QAbstractItemView::SingleSelection);
 		output_file_list->setSortingEnabled(false); // same order as output files of tool
 		
-		// output vertex has exactly 1 in edge:
-		TOPPASEdge* in_edge = *(parent->inEdgesBegin());
-		TOPPASToolVertex* in_tool = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
-		const QVector<QStringList>& files_vector = in_tool->getOutputFileNames();
-		int param_index = in_edge->getSourceOutParam();
-		if (param_index != -1)
-		{
-			const QStringList& files = files_vector[param_index];
-			
-			int specified_files_count = parent->getFilenames().size();
-			int tmp_files_count = files.size();
-			if (specified_files_count <= tmp_files_count)
-			{
-				output_file_list->addItems(parent->getFilenames());
-				// if too few file names specified, fill the rest
-				for (int i = specified_files_count; i < tmp_files_count; ++i)
-				{
-					output_file_list->addItem("<edit filename>");
-				}
-			}
-			else
-			{
-				// too many file names specified, only show as many as needed
-				const QStringList& save_names = parent->getFilenames();
-				for (int i = 0; i < tmp_files_count; ++i)
-				{
-					output_file_list->addItem(save_names[i]);
-				}
-			}
-		}
+		output_file_list->addItems(list);
 		
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
-		connect (edit_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
+		connect (edit_button,SIGNAL(clicked()),this,SLOT(editCurrentItem()));
 	}
 	
-	void TOPPASOutputFilesDialog::showFileDialog()
+	void TOPPASOutputFilesDialog::editCurrentItem()
 	{
-		if (output_file_list->selectedItems().empty())
+		QListWidgetItem* item = output_file_list->currentItem();
+		if (!item)
 		{
 			return;
 		}
 		
-		QFileDialog fd;
-		fd.setAcceptMode(QFileDialog::AcceptSave);
-		fd.setFileMode(QFileDialog::AnyFile);
-		if (fd.exec() && !fd.selectedFiles().empty())
+		TOPPASOutputFileDialog tofd(item->text());
+		if (tofd.exec())
 		{
-			(output_file_list->selectedItems().first())->setText(fd.selectedFiles().first());
+			item->setText(tofd.getFilename());
 		}
 	}
 	

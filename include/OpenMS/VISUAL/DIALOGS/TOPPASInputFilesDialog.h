@@ -31,7 +31,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFilesDialog.h>
-#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 
 namespace OpenMS 
 {
@@ -50,7 +49,7 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASInputFilesDialog(TOPPASInputFileListVertex* parent);
+			TOPPASInputFilesDialog(const QStringList& list);
 			
 			/// Stores the list of all filenames in the list widget in @p files
 			void getFilenames(QStringList& files);
@@ -61,11 +60,9 @@ namespace OpenMS
 			void showFileDialog();
 			/// Removes all currently selected files from the list
 			void removeSelected();
+			/// Shows a TOPPASInputFileDialog which edits the current item
+			void editCurrentItem();
 		
-		protected:
-		
-			/// The parent vertex
-			TOPPASInputFileListVertex* parent_;
 	};
 	
 }

@@ -76,7 +76,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		TOPPASOutputFileDialog tofd(this);
+		TOPPASOutputFileDialog tofd(file_);
 		if (tofd.exec())
 		{
 			file_ = tofd.getFilename();
@@ -160,22 +160,6 @@ namespace OpenMS
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
 	{
 		// we do not need to forward the change (we have no childs)
-	}
-	
-	bool TOPPASOutputFileVertex::fileNameValid(const QString& file)
-	{
-		//file name specified?
-		if (File::basename(String(file)) == "")
-		{
-			return false;
-		}
-		//directory exists?
-		if (!File::exists(File::path(String(file))))
-		{
-			return false;
-		}
-		
-		return true;
 	}
 }
 

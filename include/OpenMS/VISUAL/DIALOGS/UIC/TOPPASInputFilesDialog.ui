@@ -12,13 +12,25 @@
   <property name="windowTitle" >
    <string>Input files</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" >
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
       <string>Input files</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" >
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>9</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
       <item>
        <widget class="QListWidget" name="input_file_list" >
         <property name="selectionMode" >
@@ -27,11 +39,24 @@
        </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout" >
+       <layout class="QVBoxLayout" >
+        <property name="margin" >
+         <number>0</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
         <item>
          <widget class="QPushButton" name="add_button" >
           <property name="text" >
            <string>Add ...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="edit_button" >
+          <property name="text" >
+           <string>Edit</string>
           </property>
          </widget>
         </item>
@@ -43,11 +68,11 @@
          </widget>
         </item>
         <item>
-         <spacer name="verticalSpacer" >
+         <spacer>
           <property name="orientation" >
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeHint" stdset="0" >
+          <property name="sizeHint" >
            <size>
             <width>20</width>
             <height>40</height>
@@ -61,13 +86,19 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" >
+    <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
      <item>
-      <spacer name="horizontalSpacer" >
+      <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -76,7 +107,13 @@
       </spacer>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout" >
+      <layout class="QHBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
        <item>
         <widget class="QPushButton" name="ok_button" >
          <property name="text" >

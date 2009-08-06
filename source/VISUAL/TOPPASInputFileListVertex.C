@@ -72,7 +72,7 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
-		TOPPASInputFilesDialog tifd(this);
+		TOPPASInputFilesDialog tifd(files_);
 		if (tifd.exec())
 		{
 			tifd.getFilenames(files_);

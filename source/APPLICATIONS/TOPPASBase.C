@@ -66,7 +66,6 @@
 #include <QtGui/QLabel>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
-#include <QtCore/QChar>
 
 using namespace std;
 
