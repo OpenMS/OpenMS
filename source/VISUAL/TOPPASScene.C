@@ -379,7 +379,7 @@ namespace OpenMS
 		// make sure all output file names are updated, first:
 		updateOutputFileNames();
 		
-		// unset the finished flag for all TOPP tool nodes
+		// unset the finished flag and set progress color = red for all TOPP tool nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
@@ -387,8 +387,10 @@ namespace OpenMS
 			{
 				tv->setFinished(false);
 				tv->setStartedHere(false);
+				tv->setProgressColor(Qt::red);
 			}
 		}
+		update(sceneRect());
 		
 		// start recursive execution at every output node
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)

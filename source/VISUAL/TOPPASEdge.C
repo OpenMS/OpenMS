@@ -98,6 +98,9 @@ namespace OpenMS
 	
 	TOPPASEdge::~TOPPASEdge()
 	{
+		// notify our childs that we are dying ;)
+		emit somethingHasChanged();
+		
 		if (from_)
 		{
 			from_->removeOutEdge(this);

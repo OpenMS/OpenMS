@@ -116,6 +116,8 @@ namespace OpenMS
 			void updateOutputFileNames();
 			/// Sets whether the currently running pipeline has already been started at this vertex
 			void setStartedHere(bool b);
+			/// Sets the progress color
+			void setProgressColor(const QColor& c);
 			
 		public slots:
 		
@@ -123,6 +125,12 @@ namespace OpenMS
 			void executionFinished(int ec, QProcess::ExitStatus es);
 			/// Called when the running TOPP tool produces output
 			void forwardTOPPOutput();
+			/// Called when the tool is started
+			void toolStartedSlot();
+			/// Called when the tool has finished
+			void toolFinishedSlot();
+			/// Called by an incoming edge when it has changed
+			virtual void inEdgeHasChanged();
 		
 		signals:
 		
@@ -164,6 +172,8 @@ namespace OpenMS
 			bool started_here_;
 			/// Stores the file names of the different output parameters
 			QVector<QStringList> output_file_names_;
+			/// Color representing the progress (red = waiting, yellow = processing, green = finished, else: gray)
+			QColor progress_color_;
 			
 	};
 }

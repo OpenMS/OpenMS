@@ -47,11 +47,14 @@ namespace OpenMS
 			type_(),
 			param_(),
 			finished_(false),
-			started_here_(false)
+			started_here_(false),
+			progress_color_(Qt::gray)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
 		initParam_();
+		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
+		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type, const String& tmp_path)
@@ -61,11 +64,14 @@ namespace OpenMS
 			tmp_path_(tmp_path),
 			param_(),
 			finished_(false),
-			started_here_(false)
+			started_here_(false),
+			progress_color_(Qt::gray)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
 		initParam_();
+		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
+		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
@@ -75,10 +81,13 @@ namespace OpenMS
 			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
 			finished_(rhs.finished_),
-			started_here_(rhs.started_here_)
+			started_here_(rhs.started_here_),
+			progress_color_(rhs.progress_color_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
+		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
+		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
 	}
 
 	TOPPASToolVertex::~TOPPASToolVertex()
@@ -96,6 +105,7 @@ namespace OpenMS
 		tmp_path_ = rhs.tmp_path_;
 		finished_ = rhs.finished_;
 		started_here_ = rhs.started_here_;
+		progress_color_ = rhs.progress_color_;
 		
 		return *this;
 	}
@@ -292,6 +302,11 @@ namespace OpenMS
 			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, type_.toQString());
 			painter->drawText(-(int)(text_boundings.width()/2.0), +(int)(text_boundings.height()/1.33), type_.toQString());
 		}
+		
+		// progress light
+		painter->setPen(Qt::black);
+		painter->setBrush(progress_color_);
+		painter->drawEllipse(QPointF(60.0,-50.0), 5.0, 5.0);
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -624,6 +639,31 @@ namespace OpenMS
 		
 		QString out = p->readAllStandardOutput();
 		emit toppOutputReady(out);
+	}
+	
+	void TOPPASToolVertex::setProgressColor(const QColor& c)
+	{
+		progress_color_ = c;
+	}
+	
+	void TOPPASToolVertex::toolStartedSlot()
+	{
+		progress_color_ = Qt::yellow;
+		update(boundingRect());
+	}
+	
+	void TOPPASToolVertex::toolFinishedSlot()
+	{
+		progress_color_ = Qt::green;
+		update(boundingRect());
+	}
+	
+	void TOPPASToolVertex::inEdgeHasChanged()
+	{
+		progress_color_ = Qt::gray;
+		update(boundingRect());
+		
+		emit somethingHasChanged();
 	}
 }
 
