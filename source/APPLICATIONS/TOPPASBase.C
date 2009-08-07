@@ -220,7 +220,6 @@ namespace OpenMS
    	defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
 		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
-		defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
 		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
 		
   	defaultsToParam_();
@@ -232,7 +231,7 @@ namespace OpenMS
 		current_path_ = param_.getValue("preferences:default_path");
 		
 		//set temporary path
-		tmp_path_ = "";
+		tmp_path_ = QDir::tempPath() + QDir::separator();
 		
   	//update the menu
   	updateMenu();
