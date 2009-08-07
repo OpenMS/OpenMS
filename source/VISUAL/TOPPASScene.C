@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
@@ -670,6 +671,19 @@ namespace OpenMS
     		oflv->updateStatus();
     	}
     }
+    
+    if (!views().empty())
+		{
+			TOPPASWidget* tw = qobject_cast<TOPPASWidget*>(views().first());
+			if (tw)
+			{
+				QRectF scene_rect = itemsBoundingRect();
+				setSceneRect(scene_rect);
+								
+				tw->fitInView(scene_rect, Qt::KeepAspectRatioByExpanding);
+				tw->scale(3.0,3.0); // find better way of doing this..
+			}
+		}
     
     updateEdgeColors();
   }

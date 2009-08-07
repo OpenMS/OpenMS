@@ -104,6 +104,10 @@ namespace OpenMS
 		else
 		{
 			setSelected(true);
+			// resize scene rect in case item has been moved outside
+			const QRectF& scene_rect = scene()->sceneRect();
+			const QRectF& items_bounding = scene()->itemsBoundingRect();
+			scene()->setSceneRect(scene_rect.united(items_bounding));
 		}
 	}
 	
