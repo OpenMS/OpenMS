@@ -74,7 +74,7 @@ namespace OpenMS
 			{
 				INTEGER,///< Integer type
 				FLOAT,	///< Floating point type
-				STRING
+				STRING ///< String type
 			};
 			/**
 				@brief Encodes a vector of floating point numbers to a Base64 string
@@ -313,7 +313,6 @@ namespace OpenMS
 				const Real* float_buffer = reinterpret_cast<const Real*>(byte_buffer);
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
 				Size float_count = buffer_size / element_size;
-				out.resize(float_count);
 				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize32);
 				out.assign(float_buffer,float_buffer+float_count);	
@@ -323,10 +322,16 @@ namespace OpenMS
 				const Int32* float_buffer = reinterpret_cast<const Int32*>(byte_buffer);
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount?");
 				Size float_count = buffer_size / element_size;
-				out.resize(float_count);
 				Int32* p = reinterpret_cast<Int32*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize32);
-				out.assign(float_buffer,float_buffer+float_count);	
+
+				out.resize(float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler	
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == FLOAT)
 			{
@@ -336,13 +341,16 @@ namespace OpenMS
 
 				Size float_count = buffer_size / element_size;
 
-				out.resize(float_count);
-
 				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize64);				
 				
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == INTEGER)
 			{
@@ -352,13 +360,17 @@ namespace OpenMS
 
 				Size float_count = buffer_size / element_size;
 
-				out.resize(float_count);
-
 				Int64* p = reinterpret_cast<Int64*> (byte_buffer);
 				std::transform(p,p+float_count,p,endianize64);				
 				
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
+				
 			}				
 		}
 		else
@@ -369,7 +381,6 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.assign(float_buffer, float_buffer+float_count);
 			}
 			else if(element_size==4 && data_type == INTEGER)
@@ -378,8 +389,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
-				out.assign(float_buffer, float_buffer+float_count);
+				out.resize(float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 			else if(element_size==8 && data_type == FLOAT)
 			{
@@ -388,9 +404,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}	
 			else if(element_size==8 && data_type == INTEGER)
 			{
@@ -399,9 +419,13 @@ namespace OpenMS
 				if (buffer_size % element_size != 0) throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Bad BufferCount while decoding?");
 
 				Size float_count = buffer_size / element_size;
-
 				out.resize(float_count);
-				out.assign(float_buffer,float_buffer+float_count);			
+				// do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler			
+				for (Size i=0;i<float_count;++i)
+				{
+					out[i]=(ToType) *float_buffer;
+					++float_buffer;
+				}
 			}
 		}
 		

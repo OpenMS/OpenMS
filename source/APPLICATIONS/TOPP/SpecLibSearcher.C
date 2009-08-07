@@ -36,6 +36,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <ctime>
 #include <vector>
@@ -316,8 +317,8 @@ class TOPPSpecLibSearcher
 					if(peak_ok)
 					{	
 						bool charge_one = false; 
-						Int percent = (Int)round((query[j].size()/100) * 3);
-						Int margin  = (Int)round((query[j].size()/100)* 1);
+						Int percent = (Int)Math::round((query[j].size()/100.0) * 3.0);
+						Int margin  = (Int)Math::round((query[j].size()/100.0)* 1.0);
 						for(vector<RichPeak1D>::iterator peak = query[j].end()-1; percent >= 0; --peak , --percent)
 						{
 							if(peak->getMZ() < query_MZ)
