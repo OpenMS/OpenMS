@@ -28,7 +28,7 @@
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS {
 
@@ -172,8 +172,11 @@ namespace OpenMS {
 			// determine charge of adduct (by # of '+')
 			Size l_charge = components[0].size();
 			l_charge -= components[0].remove('+').size();
-			EmpiricalFormula ef(components[0]);
-			Adduct a((Int)l_charge, 1, ef.getMonoWeight(), ef.getString(), log(components[1].toDouble()));
+			EmpiricalFormula ef(components[0].remove('+'));
+			// effectively substract electrones
+			ef.setCharge(l_charge); ef -= String("H")+String(l_charge);
+			// create adduct
+			Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()));
 			esi_adducts_.push_back(a);
 			esi_impurity_probabilities_.push_back(components[1].toDouble());
 
@@ -275,37 +278,19 @@ namespace OpenMS {
 					Int charge = it_s->second.getNetCharge();
 					if (allowed_entities_of_charge[charge]>0)
 					{
-						Feature chargedFeature((*feature_it));
-						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+						Feature charged_feature((*feature_it));
 
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + it_s->second.getMass() ) / charge);
-						if (!isFeatureValid_(chargedFeature))
+						setFeatureProperties(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, feature_index);
+	
+						if (!isFeatureValid_(charged_feature))
 						{
 							++undetected_features_count;
 							continue;
 						}
-						chargedFeature.setCharge(charge);
 						
-						// adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
-						DoubleReal factor = it_s->first / feature_it->getIntensity();
-						StringList keys;
-						feature_it->getKeys(keys);
-						for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
-						{
-							if (!it_key->hasPrefix("intensity")) continue;
-							chargedFeature.setMetaValue(*it_key, SimIntensityType(feature_it->getMetaValue(*it_key)) * factor);
-						}					
-						// set "main" intensity
-						chargedFeature.setIntensity(it_s->first);
-						
-						// add meta information on compomer (mass)
-						chargedFeature.setMetaValue("charge_adduct_mass", it_s->second.getMass() );
-						chargedFeature.setMetaValue("charge_adducts", it_s->second.getAdductsAsString(1) );
-						chargedFeature.setMetaValue("parent_feature_number", feature_index);
-
-						copy_map.push_back(chargedFeature);
+						copy_map.push_back(charged_feature);
 						// add to consensus
-						cf.insert(0, copy_map.size()-1,chargedFeature);
+						cf.insert(0, copy_map.size()-1, charged_feature);
 
 						// decrease # of allowed compomers of current compomer's charge
 						--allowed_entities_of_charge[charge];
@@ -319,11 +304,11 @@ namespace OpenMS {
 				++feature_index;
 			} // ! feature iterator
 	    
-	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
-	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
-	    
 			// swap feature maps
 			features.swap(copy_map);
+
+	    std::cout << "#Peptides not ionized: " << uncharged_feature_count << "\n";
+	    std::cout << "#Peptides outside mz range: " << undetected_features_count << "\n";
 		}
 		catch (std::exception& e)
 		{
@@ -361,11 +346,11 @@ namespace OpenMS {
 		{
 			// features discarded - out of mz detection range
 			Size undetected_features_count = 0;
+			Size feature_index = 0;
 					
-			FeatureMapSim copy_map = features;
+			FeatureMapSim copy_map(features);
       copy_map.clear();
-      EmpiricalFormula h_ef("H");
-      DoubleReal h_mono_weight = h_ef.getMonoWeight();
+      DoubleReal h_mono_weight = Constants::PROTON_MASS_U;
       
 			for(FeatureMap< >::iterator feature_it = features.begin();
 					feature_it != features.end();
@@ -388,29 +373,30 @@ namespace OpenMS {
 				for(UInt c = 1 ; c < charge_states.size() ; ++c)
 				{
 					// empty charge states won't be generated
-					if(charge_states[c] == 0) { continue; }
+					if (charge_states[c] == 0) { continue; }
 					else
 					{
-						Feature chargedFeature((*feature_it));
-						EmpiricalFormula feature_ef = chargedFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-           
-						chargedFeature.setMZ( (feature_ef.getMonoWeight() + h_mono_weight ) / c);
-						if (!isFeatureValid_(chargedFeature))
+						Feature charged_feature((*feature_it));
+						
+						setFeatureProperties(charged_feature, h_mono_weight*c, String("H")+String(c), c, charge_states[c], feature_index);
+
+						if (!isFeatureValid_(charged_feature))
 						{
 							++undetected_features_count;
 							continue;
 						}
-						chargedFeature.setCharge(c);
-						chargedFeature.setIntensity(charge_states[c]);
-						copy_map.push_back(chargedFeature);
 						
-						cf.insert(0, copy_map.size()-1, chargedFeature);
+						copy_map.push_back(charged_feature);
+						
+						cf.insert(0, copy_map.size()-1, charged_feature);
 					}
 				}
 				// add consensus element containing all charge variants just created
-				cf.computeConsensus();
-				charge_consensus.push_back(cf);	        
-			}
+				cf.computeDechargeConsensus(copy_map);
+				charge_consensus.push_back(cf);
+				
+				++feature_index; 
+			} // ! feature_it
 	    
 			// swap feature maps
 			features.swap(copy_map);
@@ -427,6 +413,40 @@ namespace OpenMS {
 		gsl_ran_discrete_free (gsl_ran_lookup_maldi);
   }
   
+	void IonizationSimulation::setFeatureProperties(Feature & f, 
+																									const DoubleReal & adduct_mass, 
+																									const String & adduct_formula, 
+																									const SimChargeType charge,
+																									const SimIntensityType new_intensity,
+																									const Size parent_index)
+	{
+	
+		EmpiricalFormula feature_ef = f.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+
+		f.setMZ( (feature_ef.getMonoWeight() + adduct_mass ) / charge);
+		f.setCharge(charge);
+		
+		// add meta information on compomer (mass)
+		f.setMetaValue("charge_adduct_mass", adduct_mass );
+		f.setMetaValue("charge_adducts", adduct_formula );
+		f.setMetaValue("parent_feature_number", (UInt) parent_index );
+
+		// set "main" intensity
+		SimIntensityType old_intensity = f.getIntensity();
+		f.setIntensity(new_intensity);
+		// adapt "other" intensities (iTRAQ...) by the factor we just decreased real abundance
+		DoubleReal factor = new_intensity / old_intensity;
+		StringList keys;
+		f.getKeys(keys);
+		for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); it_key++)
+		{
+			if (it_key->hasPrefix("intensity"))
+			{
+				f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
+			}
+		}
+	
+	}
 
   bool IonizationSimulation::isFeatureValid_(const Feature & feature)
 	{

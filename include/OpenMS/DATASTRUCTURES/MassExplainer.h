@@ -131,26 +131,13 @@ namespace OpenMS
 				if (adduct_base_.size() == 0)
 				{
 					//default adducts are: H+, Na+, K+, NH4+
-					{
-					EmpiricalFormula ef("H");
-					Adduct a(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7));
-					adduct_base_.push_back(a);
-					}
-					{
-					EmpiricalFormula ef("Na");
-					Adduct a(1, 1, ef.getMonoWeight(), ef.getString(), log(0.1));
-					adduct_base_.push_back(a);
-					}
-					{
-					EmpiricalFormula ef("NH4");
-					Adduct a(1, 1, ef.getMonoWeight(), ef.getString(), log(0.1));
-					adduct_base_.push_back(a);
-					}
-					{
-					EmpiricalFormula ef("K");
-					Adduct a(1, 1, ef.getMonoWeight(), ef.getString(), log(0.1));
-					adduct_base_.push_back(a);
-					}	
+					// do NOT use "+" in empirical formula, as every + will add a proton weight!
+					
+					adduct_base_.push_back(createAdduct_("H",1, 0.7));
+					adduct_base_.push_back(createAdduct_("Na",1, 0.1));
+					adduct_base_.push_back(createAdduct_("NH4",1, 0.1));
+					adduct_base_.push_back(createAdduct_("K",1, 0.1));
+					
 				}
 		}
 		
@@ -319,6 +306,20 @@ namespace OpenMS
 				
 				//std::cout << "valid:: " << cmp <<"\n";
 				return true;
+		}
+
+		/// create a proper adduct from formula and charge and probability
+		Adduct createAdduct_(const String & formula, const Int charge, const DoubleReal p) const
+		{
+
+			EmpiricalFormula ef(formula);
+			//effectively substract charge electron masses: (-H plus one Proton)*charge
+			ef -= ("H" + String(charge)); // substracts x hydrogen
+			ef.setCharge(charge); // adds x protons
+			
+			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(0.7));
+			
+			return a;
 		}
 			 
 		/// store possible explanations (as formula) for a certain ChargeDifference and MassDifference

@@ -159,7 +159,7 @@ START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
   TEST_EQUAL(esi_features[8].getIntensity(), 4)
 
   TEST_EQUAL(esi_features[9].getCharge(), 3)
-  TEST_EQUAL(esi_features[9].getIntensity(), 2)
+  TEST_EQUAL(esi_features[9].getIntensity(), 3)
 
   TEST_EQUAL(esi_features[10].getCharge(), 3)
   TEST_EQUAL(esi_features[10].getIntensity(), 1)

@@ -28,6 +28,8 @@
 
 #include <iostream>
 #include <ctime>
+#include <cmath>
+#include <climits>
 #include <fstream>
 #include <vector>
 
@@ -112,22 +114,14 @@ namespace OpenMS {
 	     You can add rows one at a time but for large problems this is slow so
 	     this example uses CoinBuild or CoinModel
 	  */
-		//OsiSolverInterface * solver = &solver1;
-
-		std::cout << "compute 2.." << std::endl;
 		CoinModel build;
 		std::cout << "model created..." << std::endl;
 
 		//------------------------------------objective function-----------------------------------------------
 
 		// find maximal objective value
-		float score = 0, score_offs=0;
-		for (PairsIndex i=margin_left; i<margin_right; ++i)
-		{
-				score = getScore(i, pairs, fm, me);
-				if (score < score_offs) score_offs = score;
-		}
-		score_offs = fabs(score_offs) + 1;
+		float score = 0;
+		float score_min=10e10f, score_max = -10e10f;
 
 		// fill in objective values 
 		std::ostringstream namebuf;
@@ -141,8 +135,10 @@ namespace OpenMS {
         ChargePair t =  pairs[i];
         std::cout << "found";
       }
-      score = getScore(i, pairs, fm, me);
-			score += score_offs;
+			
+			// 
+
+      score = -log(1-exp(getLogScore(i, pairs, fm, me)));
 			namebuf.str("");
 			namebuf<<"x#"<<i;
 			// create the new variable object
@@ -150,9 +146,12 @@ namespace OpenMS {
 			build.setInteger(int(i-margin_left));
 			build.setObjective(int(i-margin_left),score);
 			pairs[i].setEdgeScore(score);
+			if (score_min > score ) score_min = score;
+			if (score_max < score ) score_max = score;
 			//std::cout << "added #"<< i << "\n";
 		}
 		std::cout << "DONE adding variables..."<< std::endl;
+		std::cout << "score_min: " << score_min << " score_max: " << score_max << "\n";
 
 		//------------------------------------adding constraints--------------------------------------------------
 
@@ -238,7 +237,7 @@ namespace OpenMS {
 								
 				if (is_conflicting)
 				{
-          if(i==2797 || j==2797) // every conflict involving the missing edge...
+          if(i==150 || j==2797) // every conflict involving the missing edge...
           {
             ChargePair ti =  pairs[i];
             ChargePair tj =  pairs[j];
@@ -365,7 +364,7 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	float MIPWrapper::getScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
+	float MIPWrapper::getLogScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
 	{
 		// TODO think of something better here!
 		DoubleReal score;
@@ -375,6 +374,16 @@ namespace OpenMS {
 		{
 			std::cout << "1";
 			score = me.getCompomerById(pairs[i].getCompomerId()).getLogP();
+			DoubleReal charge_enhance = 0;
+			
+			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
+				charge_enhance += log(0.9); else charge_enhance += log(0.1);
+				
+			if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) 
+				charge_enhance += log(0.9); else charge_enhance += log(0.1);
+		
+			score += charge_enhance;
+
 		}
 		else 
 		{

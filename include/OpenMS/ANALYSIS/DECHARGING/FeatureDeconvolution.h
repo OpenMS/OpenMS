@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/ANALYSIS/DECHARGING/MIPWrapper.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h> // tmp
 
@@ -105,6 +106,8 @@ namespace OpenMS
         StringList potential_adducts_s = param_.getValue("potential_adducts");
         potential_adducts_.clear();
 				
+				
+				
 				float prob_sum=0;
 				
         for (StringList::const_iterator it=potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
@@ -116,7 +119,6 @@ namespace OpenMS
             String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two entries ('Element:Probability')!";
             throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
           }
-          String adduct_formula = adduct[0];
 					// determine charge of adduct (by # of '+')
 					Size l_charge = adduct[0].size();
 					l_charge -= adduct[0].remove('+').size();
@@ -127,8 +129,10 @@ namespace OpenMS
             String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probablity (" + String(prob) + ") in [0,1]!";
             throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
           }
-          EmpiricalFormula ef(adduct_formula);
-          Adduct a((Int)l_charge, 1, ef.getMonoWeight(), ef.getString(), log(prob));
+          EmpiricalFormula ef(adduct[0].remove('+'));
+          ef -= "H"+String(l_charge); ef.setCharge(l_charge); // effectively substract electron masses
+
+          Adduct a((Int)l_charge, 1, ef.getMonoWeight(), adduct[0].remove('+'), log(prob));
           prob_sum += prob;
           //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << ")" << "]\n";
           potential_adducts_.push_back(a);
@@ -280,6 +284,11 @@ namespace OpenMS
 
 									++possibleEdges; // internal count, not vital
 									
+									if (i_RT==439 && i_RT_window==442 && q1==4 && q2==3)
+									{
+										std::cout << "DEBUG reached\n";
+									}
+									
 									// find possible adduct combinations
 									hits = me.query(q2-q1, mz2*q2-m1, mz_diff_max, thresh_logp, md_s, md_e);
 									OPENMS_PRECONDITION(hits>=0,"FeatureDeconvolution querying #hits got negative result!");
@@ -360,18 +369,48 @@ namespace OpenMS
 				std::vector<Size> f_idx_v(2);
 				Size aedges=0;
 
-				String scores_clean_egde, scores_dirty_edge;
+				StringList scores_clean_edge, scores_dirty_edge;
+				StringList scores_clean_edge_idx, scores_dirty_edge_idx;
 				EmpiricalFormula ef_clean_edge, ef_dirty_edge;
 
-				// write related features
+				// find # edges (active and dead) for each feature
+				Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
+				
+				
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
-          if (!feature_relation[i].isActive()) continue;
-					
-					//std::cout << "active charge_pair #" << i << "\n";
-
+          Size f0_idx = feature_relation[i].getElementIndex(0);
+          Size f1_idx = feature_relation[i].getElementIndex(1);
+          if (feature_relation[i].isActive())
+          {
+						++features_aes[f0_idx];
+						++features_aes[f1_idx];
+          }
+          else
+          {
+						++features_des[f0_idx];
+						++features_des[f1_idx];
+          }
+          
+				}
+				
+				TextFile out_dead;
+          
+				for (Size i=0; i<feature_relation.size(); ++i)
+				{
           f_idx_v[0] = feature_relation[i].getElementIndex(0);
           f_idx_v[1] = feature_relation[i].getElementIndex(1);
+					
+					Compomer c = me.getCompomerById( feature_relation[i].getCompomerId());
+          
+          if (!feature_relation[i].isActive())
+          {
+						out_dead.push_back(String("dead e") + i + " (" + (c.getAdductsAsString(-1)) + " -> " + (c.getAdductsAsString(+1)) + "): " 
+							+ f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
+							+ f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
+							);
+						continue;
+          }
           ++aedges;
 					
 					bool dirty = false;
@@ -386,33 +425,38 @@ namespace OpenMS
 						else
 						{
 							DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
-							std::cout << "conflict in Q:: RT:" << fm_out[f_idx_v[f_idx]].getRT() << " MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << " ]]\n";
+							std::cout << "conflict in Q:: RT:" << fm_out[f_idx_v[f_idx]].getRT() << " MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " int:" << fm_out[f_idx_v[f_idx]].getIntensity() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
 							dirty = true;
 						}
 					}
 					
-					Compomer c = me.getCompomerById( feature_relation[i].getCompomerId());
-					EmpiricalFormula ef = (c.getAdductsAsString(-1)) + (c.getAdductsAsString(+1));
-					
+					EmpiricalFormula ef(c.getAdductsAsString(-1) + (c.getAdductsAsString(+1)) );
 					
 					// store score distribution:
 					if (!dirty)
 					{
-						scores_clean_egde += String(" ") + feature_relation[i].getEdgeScore();
+						scores_clean_edge.push_back(String(feature_relation[i].getEdgeScore()));
+						scores_clean_edge_idx.push_back(String(i));
 						ef_clean_edge += ef;
 					}
 					else
 					{
-						scores_dirty_edge += String(" ") + feature_relation[i].getEdgeScore();
+						scores_dirty_edge.push_back(String(feature_relation[i].getEdgeScore()));
+						scores_dirty_edge_idx.push_back(String(i));
 						ef_dirty_edge += ef;
 					}
 					
 				}
+				
+				//out_dead.store("dead_edges.txt");
+				
 				std::cout << "agreeing charges: " << agreeing_fcharge << "/" << (aedges*2) << std::endl;
 
-				std::cout << "Edge score distribution (clean):\n" + scores_clean_egde + "\n(dirty)\n" + scores_dirty_edge + "\n\n";
+				std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
 
 				std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";
+
+				// ** write related features ** //
 
 				// fresh start for meta annotation
 				for (Size i=0;i<fm_out.size(); ++i)
@@ -431,6 +475,9 @@ namespace OpenMS
 				Map clique_register; 
 				MapCI clique_it;
 				
+				StringList scores;
+				StringList scores_e_inactive_idx, scores_e_active_idx;
+				
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           Size f0_idx = feature_relation[i].getElementIndex(0);
@@ -439,6 +486,11 @@ namespace OpenMS
           Int old_q0 = fm_out[f0_idx].getCharge();
           Int old_q1 = fm_out[f1_idx].getCharge();
 
+					Int new_q0 = feature_relation[i].getCharge(0);
+					Int new_q1 = feature_relation[i].getCharge(1);
+
+					scores.push_back(String(feature_relation[i].getEdgeScore()));
+					
           if (feature_relation[i].isActive())
           {
             //std::cout << "feature #" << f0_idx << " #" << f1_idx << " ACTIVE with RT: " << fm_out[f1_idx].getRT() << "\n";
@@ -450,31 +502,31 @@ namespace OpenMS
 						Compomer c = me.getCompomerById( feature_relation[i].getCompomerId());
 						// - left
 						EmpiricalFormula ef_l(c.getAdductsAsString(-1));
-						ef_l += "H" + String(feature_relation[i].getCharge(0) - c.getNegativeCharges());
+						ef_l += "H" + String(new_q0 - c.getNegativeCharges());
 						if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
     				{
-    					OPENMS_POSTCONDITION (ef_l.getString() == fm_out[f0_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
+    					if (ef_l.getString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.getString());
     				}
     				else
     				{
     					fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.getString());
     				}
 						fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
-						fm_out[f0_idx].setCharge(feature_relation[i].getCharge(0));
+						fm_out[f0_idx].setCharge(new_q0);
 						
 						// - right
 						EmpiricalFormula ef_r(c.getAdductsAsString(+1));
-						ef_r += "H" + String(feature_relation[i].getCharge(1) - c.getPositiveCharges());
+						ef_r += "H" + String(new_q1 - c.getPositiveCharges());
 						if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
     				{
-    					OPENMS_POSTCONDITION (ef_r.getString() == fm_out[f1_idx].getMetaValue("dc_charge_adducts"), "Decharging produced inconsistent adduct annotation!");
+    					if (ef_r.getString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.getString());
     				}
     				else
     				{
     					fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.getString());
     				}
 						fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
-						fm_out[f1_idx].setCharge(feature_relation[i].getCharge(1));
+						fm_out[f1_idx].setCharge(new_q1);
 						
 						//
 						// create cliques
@@ -544,23 +596,24 @@ namespace OpenMS
               }
             }
 
-          }// active
-          else
+						scores_e_active_idx.push_back(String(i));
+          }
+          else // inactive edges
           {
-            ConsensusFeature cf(fm_out[f0_idx]);
-            cf.insert(0,f0_idx, fm_out[f0_idx]);
-            cf.insert(0,f1_idx, fm_out[f1_idx]);
-            cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
-            cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+":"
+						scores_e_inactive_idx.push_back(String(i));
+          
+						// DEBUG:
+						ConsensusFeature cf(fm_out[f0_idx]);
+						cf.insert(0,f0_idx, fm_out[f0_idx]);
+						cf.insert(0,f1_idx, fm_out[f1_idx]);
+						cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
+						cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+":"
 																 +String(fm_out[f1_idx].getCharge()));
-            //cf.computeDechargeConsensus(fm_out);
-            #if 1
-            // print pairs only
-                cons_map_p_neg.push_back(cf);
-                cons_map_p_neg.getFileDescriptions()[0].size = fm_out.size();
-                cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs";
-            #endif          
-            //std::cout << "Not active: cp#" << i <<"\n";
+						//cf.computeDechargeConsensus(fm_out);
+						// print pairs only
+            cons_map_p_neg.push_back(cf);
+            cons_map_p_neg.getFileDescriptions()[0].size = fm_out.size();
+            cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs";
           }
 
         } // !for
@@ -568,6 +621,20 @@ namespace OpenMS
 				// tmp
 				ConsensusXMLFile cf_neg;
 				//cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
+
+				// DEBUG print scores
+				TextFile tf;
+				tf.push_back("scr = c(" + scores.concatenate(", ") + ")");
+				tf.push_back("s_ia_idx = c(" + scores_e_inactive_idx.concatenate(", ") + ")+1");
+				tf.push_back("s_a_idx =   c(" +   scores_e_active_idx.concatenate(", ") + ")+1");
+				tf.push_back("s_a_idx_clean = c(" + scores_clean_edge_idx.concatenate(", ") + ")+1");
+				tf.push_back("s_a_idx_dirty = c(" +   scores_dirty_edge_idx.concatenate(", ") + ")+1");
+				
+				tf.push_back("plot( density(scr[s_ia_idx]), xlim=range( scr ), main="", xlab="" )");
+				tf.push_back("lines(density(scr[s_a_idx_dirty]), col=2)");
+				tf.push_back("lines(density(scr[s_a_idx_clean]), col=3)");
+				tf.push_back("legend(x=\"topright\",c(\"dead\", \"active_dirty\", \"active_clean\"), text.col=c(1,2,3))");
+				//tf.store("plot_scores.r");
 
 				// remove empty ConsensusFeatures from map
 				ConsensusMap cons_map_tmp(cons_map);
@@ -583,8 +650,8 @@ namespace OpenMS
 				}
 				cons_map_tmp.swap(cons_map);
 
-				Size singletons_count = 0;
         // include single features without a buddy!
+				Size singletons_count = 0;
         for (Size i=0; i<fm_out.size(); ++i)
 				{
           // find the index of the ConsensusFeature for the current feature

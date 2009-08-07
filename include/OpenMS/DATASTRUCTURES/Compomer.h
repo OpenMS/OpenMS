@@ -122,8 +122,8 @@ public:
 			if (side_this.size()==side_other.size()) return false;
 		}
     //
-		std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
-							<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
+		//std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
+		//					<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
 		return true; 
 	}
 
@@ -177,6 +177,9 @@ public:
 		{
 			Int f = it->second.getAmount();
 			//if (it!=cmp_.begin()) r+= " ";
+			
+			if (it->first.has('+')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "An Adduct contains ímplicit charge. This is not allowed!", it->first);
+			
 			EmpiricalFormula ef(it->first);
 			ef = ef * std::abs(f);
 

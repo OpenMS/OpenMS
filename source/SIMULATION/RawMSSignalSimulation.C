@@ -34,6 +34,7 @@
 #include <OpenMS/SIMULATION/MixtureModel.h>
 #include <OpenMS/SIMULATION/ElutionModel.h>
 
+
 #include <vector>
 using std::vector;
 
@@ -162,17 +163,20 @@ namespace OpenMS {
     // was: 3000 TODO: ???? why 1500
     SimIntensityType scale = active_feature.getIntensity() * 150;
 
-    SimChargeType charge = active_feature.getCharge();
-    EmpiricalFormula feature_ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    SimChargeType q = active_feature.getCharge();
+    EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
+    ef += active_feature.getMetaValue("charge_adducts"); // adducts
+    ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
+    p1.setValue("statistics:mean", ef.getAverageWeight() / q);		
 
     p1.setValue("statistics:mean", active_feature.getMZ() );
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
     p1.setValue("intensity_scaling", scale);
-    p1.setValue("charge", charge);
+    p1.setValue("charge", q);
 
     IsotopeModelGeneral isomodel;
-    isomodel.setSamples(feature_ef);
+    isomodel.setSamples(ef);
     isomodel.setParameters(p1);
 
     SimCoordinateType mz_start = isomodel.getInterpolation().supportMin();
@@ -187,12 +191,14 @@ namespace OpenMS {
     SimIntensityType scale = active_feature.getIntensity() * 1500;
 
     Param p1;
+    SimChargeType q = active_feature.getCharge();
     EmpiricalFormula ef = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
-    ef += active_feature.getMetaValue("charge_adducts");
-    p1.setValue("statistics:mean", ef.getAverageWeight() / active_feature.getCharge() );
+    ef += active_feature.getMetaValue("charge_adducts"); // adducts
+    ef -= String("H")+String(q);ef.setCharge(q);				 // effectively substract q electrons
+    p1.setValue("statistics:mean", ef.getAverageWeight() / q);
     p1.setValue("interpolation_step", 0.001);
     p1.setValue("isotope:stdev", peak_std_);
-    p1.setValue("charge", active_feature.getCharge());
+    p1.setValue("charge", q);
 
     IsotopeModelGeneral* isomodel = new IsotopeModelGeneral();
     isomodel->setSamples(ef); // this already includes adducts
