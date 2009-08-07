@@ -45,6 +45,14 @@ namespace OpenMS
 		defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
 		defaults_.setValue("fixed_modifications", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
 		defaults_.setValue("variable_modifications", "MOD:00719,MOD:01329", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
+		set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
+		vector<String> valid_strings;
+		for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
+		{
+			valid_strings.push_back(*it);
+		}
+		defaults_.setValidStrings("residue_set", valid_strings);
 		defaultsToParam_();
 	}
 
@@ -54,9 +62,9 @@ namespace OpenMS
 		delete decomposer_;
 	}
 
-	void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition>& decomps, double mass)
+	void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition>& decomps, DoubleReal mass)
 	{
-		double tolerance((double)param_.getValue("tolerance"));
+		DoubleReal tolerance((DoubleReal)param_.getValue("tolerance"));
     ims::RealMassDecomposer::decompositions_type decompositions = decomposer_->getDecompositions(mass, tolerance);
 
     for (ims::RealMassDecomposer::decompositions_type::const_iterator pos = decompositions.begin(); pos != decompositions.end(); ++pos)
@@ -79,27 +87,14 @@ namespace OpenMS
 
 	void MassDecompositionAlgorithm::updateMembers_()
 	{
-    Map<char, double> aa_to_weight;
+    Map<char, DoubleReal> aa_to_weight;
 
-    aa_to_weight['K'] = 128.095;
-    aa_to_weight['M'] = 131.04;
-    aa_to_weight['F'] = 147.068;
-    aa_to_weight['P'] = 97.0528;
-    aa_to_weight['S'] = 87.032;
-    aa_to_weight['T'] = 101.048;
-    aa_to_weight['W'] = 186.079;
-    aa_to_weight['Y'] = 163.063;
-    aa_to_weight['V'] = 99.0684;
-    aa_to_weight['A'] = 71.0371;
-    aa_to_weight['R'] = 156.101;
-    aa_to_weight['N'] = 114.043;
-    aa_to_weight['D'] = 115.027;
-    aa_to_weight['C'] = 103.00919;
-    aa_to_weight['E'] = 129.043;
-    aa_to_weight['Q'] = 128.059;
-    aa_to_weight['G'] = 57.0215;
-    aa_to_weight['H'] = 137.059;
-    aa_to_weight['L'] = 113.084;
+		set<const Residue*> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
+
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		{
+			aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight();
+		}
 
 		// now handle the modifications
 		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
@@ -130,7 +125,7 @@ namespace OpenMS
         }
         else
         {
-          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoringmodification!" << endl;
+          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
@@ -168,7 +163,7 @@ namespace OpenMS
         }
         else
         {
-          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoringmodification!" << endl;
+          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
@@ -185,13 +180,13 @@ namespace OpenMS
 
     // init mass decomposer
     alphabet_ = new ims::Alphabet();
-		for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+		for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
 		{
 			alphabet_->push_back(String(it->first), it->second);
 		}
 
     // initializes weights
-    ims::Weights weights(alphabet_->getMasses(), (double)param_.getValue("decomp_weights_precision"));
+    ims::Weights weights(alphabet_->getMasses(), (DoubleReal)param_.getValue("decomp_weights_precision"));
 
     // optimize alphabet by dividing by gcd
     weights.divideByGCD();

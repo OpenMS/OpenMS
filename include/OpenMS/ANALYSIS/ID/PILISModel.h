@@ -129,8 +129,11 @@ namespace OpenMS
 			void addPeaks_(double mz, int charge, double mz_offset, double intensity, RichPeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 		
 			/// parse the base model
-			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm);
-		
+			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm, Param& param);
+	
+			/// write parameters of the model
+			void writeParameters_(std::ostream& os, const Param& param);
+
 			/// base model used
 			HiddenMarkovModel hmm_;
 

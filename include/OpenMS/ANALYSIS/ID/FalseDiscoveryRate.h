@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
@@ -43,8 +43,8 @@ namespace OpenMS
 		one run containing both (with marks) can be used to annotate
 		each of the peptide hits with a FDR.
 		
-		@todo implement combined searchers properly (Andreas)
-		@todo implement charge state separated fdr/q-values (Andreas)
+		@todo implement combined searches properly (Andreas)
+		@improvement implement charge state separated fdr/q-values (Andreas)
 
 		@htmlinclude OpenMS_FalseDiscoveryRate.parameters
 

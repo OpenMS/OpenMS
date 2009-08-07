@@ -863,7 +863,7 @@ namespace OpenMS
 		#endif
 
 
-		set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+		set<const Residue*> residues(ResidueDB::getInstance()->getResidues("Natural20"));
     for (StringList::const_iterator it = var_modifications_.begin(); it != var_modifications_.end(); ++it)
     {
       residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));

@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -70,6 +70,7 @@ namespace OpenMS
 		defaults_.setValidStrings("ion_name", StringList::create("p,a,b,b2,y"));
 
 		defaults_.setValue("enable_double_losses", "true", "if true, two different losses can occur at the same time, e.g. -H2O and -NH3 forming loss of -35Da");
+		defaults_.setValidStrings("enable_double_losses", StringList::create("true,false"));
 
 		defaultsToParam_();
 	}
@@ -666,7 +667,7 @@ namespace OpenMS
 
   void PILISNeutralLossModel::generateModel()
   {
-    set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+    set<const Residue*> residues(ResidueDB::getInstance()->getResidues("Natural20"));
     StringList variable_modifications = param_.getValue("variable_modifications");
 
 		// add variable modified residues

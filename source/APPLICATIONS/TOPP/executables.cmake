@@ -37,7 +37,7 @@ PepNovoAdapter
 RTModel
 RTPredict
 Resampler
-# PILISModel
+PILISModel
 # PILISIdentification
 SequestAdapter
 SpecLibSearcher

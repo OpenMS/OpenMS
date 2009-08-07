@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -123,7 +123,7 @@ namespace OpenMS
 		model.addNewState("R");
 
 		// 
-		set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+		set<const Residue*> residues(ResidueDB::getInstance()->getResidues("Natural20"));
 		StringList variable_modifications = param_.getValue("variable_modifications");
 		for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
 		{

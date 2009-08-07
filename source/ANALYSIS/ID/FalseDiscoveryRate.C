@@ -429,9 +429,9 @@ namespace OpenMS
 		return;
 	}
 
-	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
+	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& /*ids*/)
 	{
-		// @todo to be implemented (Andreas)
+		// to be implemented
 		return;
 	}
 

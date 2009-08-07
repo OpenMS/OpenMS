@@ -180,12 +180,12 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 			}
 		}
 		all_parameters = all_new_parameters;
-		cerr << all_parameters.size() << " parameters generated" << endl;
+		//cerr << all_parameters.size() << " parameters generated" << endl;
 		for (Size i = 0; i != all_parameters.size(); ++i)
 		{
 			for (Param::ParamIterator it = all_parameters[i].begin(); it != all_parameters[i].end(); ++it)
 			{
-				cerr << i+1 << " " << it->name << " " << it->value.toString() << endl;
+				//cerr << i+1 << " " << it->name << " " << it->value.toString() << endl;
 			}
 		}
 
@@ -291,6 +291,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 			}
 		}
 
+		
 		cerr << "Best parameters (score=" << max_score << ")" << endl;
   	for (Param::ParamIterator it = all_parameters[best_param_pos].begin(); it != all_parameters[best_param_pos].end(); ++it)
   	{
