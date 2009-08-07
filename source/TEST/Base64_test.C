@@ -230,7 +230,7 @@ START_SECTION([EXTRA] integers and strings)
 	
 	for(Size i = 0 ; i < res.size();++i)
 	{
-			TEST_REAL_SIMILAR(res[i],i)
+		TEST_REAL_SIMILAR(res[i], (Real) i)
 	}
 	
 	src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
@@ -238,7 +238,7 @@ START_SECTION([EXTRA] integers and strings)
 	
 	for(Size i = 0 ; i < double_res.size();++i)
 	{
-			TEST_REAL_SIMILAR(double_res[i],i)
+			TEST_REAL_SIMILAR(double_res[i], (DoubleReal) i)
 	}
 	
 	src="eJxjZGBgYAJiZiAGAAA0AAc=";

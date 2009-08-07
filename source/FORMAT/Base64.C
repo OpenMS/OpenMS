@@ -57,7 +57,7 @@ namespace OpenMS
 			str.push_back('\0');
 		}
 
-		QByteArray original = QByteArray::fromRawData(str.c_str(), str.size());
+		QByteArray original = QByteArray::fromRawData(str.c_str(),(int) str.size());
 		QByteArray base64_compressed;
 		if (zlib_compression)
 		{
