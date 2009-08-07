@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
@@ -72,18 +72,6 @@ namespace OpenMS
         return db_;
       }
 
-			/** @name Enumerations
-			*/
-			//@{
-			enum AminoAcidSet
-			{
-				ALL = 0, // all stored amino acids
-				NATURAL_20=1, // all natural amino acids: ACDEFGHIKLMNPQRSTVWY
-				NATURAL_19=2 // all natural amino acids, without Isoleucine: ACDEFGHKLMNPQRSTVWY
-			};
-			//@}
-			
-			
 			/** @name Constructors and Destructors
 			*/
 			//@{
@@ -108,10 +96,26 @@ namespace OpenMS
 			/// 
 			const Residue* getModifiedResidue(const Residue* residue, const String& name);
 			
-			//const Residue* getModifiedResidue(const ResidueModification& mod);
-			
-			/// returns a set of all residues stored in this residue db
-			const std::set<const Residue*> getResidues(AminoAcidSet aa_set = ALL) const;
+			/** @brief returns a set of all residues stored in this residue db
+	
+					The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml. At
+					the moment the following sets are available:
+						All - all residues stored in the file
+						Natural20 - default 20 naturally occuring residues
+						Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
+						Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
+						Natural19J - default natural amino acids,  (isobaric leucine/isoleucine are marked by 'J')
+						AmbiguousWithoutX -  all amino acids, including ambiguous ones
+				                         B (asparagine or aspartate)
+																 Z (glutamine or glutamate)
+																 J (isoleucine or leucine)
+						Ambiguous - all amino acids including all ambiguous ones (X can be every other amino acid) 
+						AllNatural - naturally occuring residues, including selenocysteine (U)
+			*/
+			const std::set<const Residue*> getResidues(const String& residue_set = "All") const;
+
+			/// returns all residue sets that are registered which this instance
+			const std::set<String>& getResidueSets() const;
 
 			/// sets the residues from given file
 			void setResidues(const String& filename);
@@ -189,6 +193,10 @@ namespace OpenMS
 			std::set<Residue*> modified_residues_;
 
 			std::set<const Residue*> const_modified_residues_;
+
+			Map<String, std::set<const Residue*> > residues_by_set_;
+
+			std::set<String> residue_sets_;
 	};
 }
 #endif

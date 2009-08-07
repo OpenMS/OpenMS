@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -230,16 +230,16 @@ namespace OpenMS
 			//@{
 			enum ResidueType
 			{
-				Full = 0,
-				Internal,
-				NTerminal,
-				CTerminal,
-				AIon,
-				BIon,
-				CIon,
-				XIon,
-				YIon,
-				ZIon
+				Full = 0, // with N-terminus and C-terminus
+				Internal, // internal, without any termini
+				NTerminal, // only N-terminus
+				CTerminal, // only C-terminus
+				AIon, // N-terminus up to the C-alpha/carbonyl carbon bond
+				BIon, // N-terminus up to the peptide bond
+				CIon, // N-terminus up to the amide/C-alpha bond
+				XIon, // amide/C-alpha bond up to the C-terminus
+				YIon, // peptide bond up to the C-terminus
+				ZIon  // C-alpha/carbonyl carbon bond 
 			};
 			//@}
 			
@@ -365,17 +365,20 @@ namespace OpenMS
 			/// returns the name of the modification to the modification
 			const String& getModification() const;
 			
-			/// sets the name of the unmodified residue
-			//void setUnmodifiedName(const String& name);
-
-			/// returns the name of the unmodified residue
-			//const String& getUnmodifiedName() const;
-
 			/// sets the low mass marker ions as a vector of formulas
 			void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
 
 			/// returns a vector of formulas with the low mass markers of the residue
 			const std::vector<EmpiricalFormula>& getLowMassIons() const;
+
+			/// sets the residue sets the amino acid is contained in 
+			void setResidueSets(const std::set<String>& residues_sets);
+
+			/// adds a residue set to the residue sets
+			void addResidueSet(const String& residue_sets);
+
+			/// returns the residue sets this residue is contained in
+			const std::set<String>& getResidueSets() const;
 			//@}
 			
 			/** @name Predicates
@@ -440,6 +443,9 @@ namespace OpenMS
 
 			/// true if the residue is a modified one
 			bool isModified() const;
+
+			/// true if the residue is contained in the set
+			bool isInResidueSet(const String& residue_set);
 			//@}
 		
 			/// ostream iterator to write the residue to a stream
@@ -503,6 +509,9 @@ namespace OpenMS
       DoubleReal gb_bb_l_;
 
       DoubleReal gb_bb_r_;
+
+			// residue sets this amino acid is contained in
+			std::set<String> residue_sets_;
 	
 	};
 	

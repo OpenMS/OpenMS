@@ -102,7 +102,8 @@ namespace OpenMS
 			pkc_(residue.pkc_),
 			gb_sc_(residue.gb_sc_),
 			gb_bb_l_(residue.gb_bb_l_),
-			gb_bb_r_(residue.gb_bb_r_)
+			gb_bb_r_(residue.gb_bb_r_),
+			residue_sets_(residue.residue_sets_)
 	{
 	}
 	
@@ -139,6 +140,7 @@ namespace OpenMS
 			gb_sc_ = residue.gb_sc_;
 			gb_bb_l_ = residue.gb_bb_l_;
 			gb_bb_r_ = residue.gb_bb_r_;
+			residue_sets_ = residue.residue_sets_;
 		}
 		return *this;
 	}
@@ -560,38 +562,6 @@ namespace OpenMS
 		{
 			updated_formula = true;
 			setFormula(getFormula() + mod.getDiffFormula());
-			/*String formula = mod.getDiffFormula();
-			// format look like "C -1 H 0 N 0 O 2"
-			// sometimes specific isotopes are described using brackets
-			// e.g. (13)C -1 (2)H 1
-			// @todo handle isotopes of elements (andreas)
-			vector<String> split;
-			formula.split(' ', split);
-			if (split.size()%2 != 0)
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
-			}
-			EmpiricalFormula ef = getFormula();
-			for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
-			{
-				String element = *it;
-				if (element.has(')'))
-				{
-					element = element.suffix(')');
-				}
-				Int number = (++it)->toInt();
-
-				if (number < 0)
-				{
-					ef -= element + String(abs(number));
-				}
-				else
-				{
-					ef += element + *it;
-				}
-			}
-			setFormula(ef);
-			*/
 		}
 		if (mod.getFormula() != "" && !updated_formula)
 		{
@@ -666,6 +636,21 @@ namespace OpenMS
 		gb_sc_ = gb_sc;
 	}
 
+	void Residue::setResidueSets(const set<String>& residue_sets)
+	{
+		residue_sets_ = residue_sets;
+	}
+
+	const set<String>& Residue::getResidueSets() const
+	{
+		return residue_sets_;
+	}
+
+	void Residue::addResidueSet(const String& residue_set)
+	{
+		residue_sets_.insert(residue_set);
+	}
+
 	bool Residue::isModified() const
 	{
 		return is_modified_;
@@ -706,7 +691,8 @@ namespace OpenMS
 						pkc_ == residue.pkc_ &&
 						gb_sc_ == residue.gb_sc_ &&
 						gb_bb_l_ == residue.gb_bb_l_ &&
-						gb_bb_r_ == residue.gb_bb_r_);
+						gb_bb_r_ == residue.gb_bb_r_ &&
+						residue_sets_ == residue.residue_sets_);
 	}
 
 	bool Residue::operator == (char one_letter_code) const
@@ -722,6 +708,11 @@ namespace OpenMS
 	bool Residue::operator != (const Residue& residue) const
 	{
 		return !(*this == residue);
+	}
+
+	bool Residue::isInResidueSet(const String& residue_set)
+	{
+		return residue_sets_.find(residue_set) != residue_sets_.end();
 	}
 
 	ostream& operator << (ostream& os, const Residue& residue) 

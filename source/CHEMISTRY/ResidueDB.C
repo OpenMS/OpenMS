@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -68,34 +68,14 @@ namespace OpenMS
 		return modified_residues_.size();
 	}
 		
-	const set<const Residue*> ResidueDB::getResidues(AminoAcidSet aa_set) const
+	const set<const Residue*> ResidueDB::getResidues(const String& residue_set) const
 	{
-		if (aa_set == ALL)
+		if (!residues_by_set_.has(residue_set))
 		{
-			return const_residues_;
-		}
-		String aa;
-		set<const Residue*> residues;
-		if (aa_set == NATURAL_20)
-		{
-			aa = "ACDEFGHIKLMNPQRSTVWY";
-		}
-
-		if (aa_set == NATURAL_19)
-		{
-			aa = "ACDEFGHKLMNPQRSTVWY";
-		}
-	
-		if (aa == "")
-		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AminoAcidSet cannot be found: '" + String(aa_set) + "'");
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Residue set cannot be found: '" + residue_set + "'");
 		}
 		
-		for (String::ConstIterator it = aa.begin(); it != aa.end(); ++it)
-		{
-			residues.insert(getResidue(*it));
-		}
-		return residues;	
+		return residues_by_set_[residue_set];
 	}
 
 	void ResidueDB::setResidues(const String& file_name)
@@ -198,8 +178,8 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
 		}
 
-		//try
-		//{
+		try
+		{
 			vector<String> split;
 			param.begin().getName().split(':',split);
 			String prefix = split[0] + split[1];
@@ -230,11 +210,11 @@ namespace OpenMS
 			res_ptr = parseResidue_(values);
 			residues_.insert(res_ptr);
 			const_residues_.insert(res_ptr);
-		//}
-		//catch (Exception::BaseException& e)
-		//{
-		//	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
-		//}
+		}
+		catch (Exception::BaseException& e)
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
+		}
 	}
 
 	void ResidueDB::clear_()
@@ -379,6 +359,16 @@ namespace OpenMS
 				res_ptr->setBackboneBasicityRight(value.toDouble());
 				continue;
 			}
+			if (key.hasSubstring("ResidueSets"))
+			{
+				StringList residue_sets = StringList::create(value);
+				for (StringList::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
+				{
+					res_ptr->addResidueSet(*it);
+					residue_sets_.insert(*it);
+				}
+				continue;
+			}
 			cerr << "unknown key: " << key << ", with value: " << value << endl;
 		}
 		
@@ -386,10 +376,19 @@ namespace OpenMS
 		{
 			res_ptr->setLowMassIons(low_mass_ions);
 		}
+
+		for (set<String>::const_iterator it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
+		{
+			residues_by_set_[*it].insert(res_ptr);
+		}
 		
 		return res_ptr;
 	}
 
+	const set<String>& ResidueDB::getResidueSets() const
+	{
+		return residue_sets_;
+	}
 	
 	void ResidueDB::buildResidueNames_()
 	{
@@ -459,32 +458,6 @@ namespace OpenMS
 		res->setLossFormulas(vector<EmpiricalFormula>());
 		res->setLossNames(vector<String>());
 
-		// TODO HACK HACK HACK TODO
-		if (id == "MOD:00719")
-		{
-			// Methionine
-			cerr << "Setting new neutral losses for mod " << id << endl;
-			res->addLossFormula(EmpiricalFormula("CH3SOH"));
-			res->addLossName("");
-		}
-
-		if (id == "MOD:09997")
-		{
-			// Carbamyl K
-			cerr << "Setting new neutral losses for mod " << id << endl;
-			res->addLossFormula(EmpiricalFormula("NHCO"));
-			res->addLossName("");
-		}
-
-		/*
-		if (id == "MOD:01214")
-		{
-			// Cmc
-			res->addLossFormula(EmpiricalFormula(""));
-			res->addLossName("");
-		}*/
-
-		
 		// now register this modified residue 
 		addResidue_(res);
 		return res;

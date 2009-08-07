@@ -10,6 +10,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.82" type="string" />
 			<ITEM name="GB_BB_R" value="0.00" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="L-Alanine" value="L-Alanine" type="string" />
 				<ITEM name="alanine" value="alanine" type="string" />
@@ -27,6 +28,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="880.99" type="string" />
 			<ITEM name="GB_BB_R" value="0.12" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Cys" value="Cys" type="string" />
 				<ITEM name="Cystine" value="Cystine" type="string" />
@@ -41,6 +43,7 @@
 			<ITEM name="GB_BB_L" value="880.02" type="string" />
 			<ITEM name="GB_BB_R" value="-0.63" type="string" />
 			<ITEM name="Formula" value="C4H7NO4" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Asp" value="Asp" type="string" />
 			</NODE>
@@ -58,6 +61,7 @@
 			<ITEM name="GB_BB_L" value="880.10" type="string" />
 			<ITEM name="GB_BB_R" value="-0.39" type="string" />
 			<ITEM name="Formula" value="C5H9NO4" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Glu" value="Glu" type="string" />
 			</NODE>
@@ -79,6 +83,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.08" type="string" />
 			<ITEM name="GB_BB_R" value="0.03" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Phe" value="Phe" type="string" />
 			</NODE>
@@ -92,6 +97,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.17" type="string" />
 			<ITEM name="GB_BB_R" value="0.92" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Gly" value="Gly" type="string" />
 			</NODE>
@@ -105,6 +111,7 @@
 			<ITEM name="GB_SC" value="927.84" type="string" />
 			<ITEM name="GB_BB_L" value="881.27" type="string" />
 			<ITEM name="GB_BB_R" value="-0.19" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="His" value="His" type="string" />
 			</NODE>
@@ -118,6 +125,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="880.99" type="string" />
 			<ITEM name="GB_BB_R" value="-1.17" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutL,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Ile" value="Ile" type="string" />
 			</NODE>
@@ -131,6 +139,7 @@
 			<ITEM name="GB_SC" value="926.74" type="string" />
 			<ITEM name="GB_BB_L" value="880.06" type="string" />
 			<ITEM name="GB_BB_R" value="-0.71" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Lys" value="Lys" type="string" />
 			</NODE>
@@ -148,6 +157,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.88" type="string" />
 			<ITEM name="GB_BB_R" value="-0.09" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Leu" value="Leu" type="string" />
 			</NODE>
@@ -161,6 +171,7 @@
 			<ITEM name="GB_SC" value="830.0" type="string" />
 			<ITEM name="GB_BB_L" value="881.38" type="string" />
 			<ITEM name="GB_BB_R" value="0.30" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Met" value="Met" type="string" />
 			</NODE>
@@ -174,6 +185,7 @@
 			<ITEM name="GB_BB_L" value="881.18" type="string" />
 			<ITEM name="GB_BB_R" value="1.56" type="string" />
 			<ITEM name="Formula" value="C4H8N2O3" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Asn" value="Asn" type="string" />
 			</NODE>
@@ -191,6 +203,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.25" type="string" />
 			<ITEM name="GB_BB_R" value="11.75" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Pro" value="Pro" type="string" />
 			</NODE>
@@ -204,6 +217,7 @@
 			<ITEM name="GB_BB_L" value="881.50" type="string" />
 			<ITEM name="GB_BB_R" value="4.10" type="string" />
 			<ITEM name="Formula" value="C5H10N2O3" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Gln" value="Gln" type="string" />
 			</NODE>
@@ -225,6 +239,7 @@
 			<ITEM name="GB_BB_L" value="882.98" type="string" />
 			<ITEM name="GB_BB_R" value="6.28" type="string" />
 			<ITEM name="Formula" value="C6H14N4O2" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Arg" value="Arg" type="string" />
 			</NODE>
@@ -246,6 +261,7 @@
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="880.99" type="string" />
 			<ITEM name="GB_BB_R" value="0.12" type="string" />
+			<ITEM name="ResidueSets" value="All,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Sec" value="Sec" type="string" />
 			</NODE>
@@ -259,6 +275,7 @@
 			<ITEM name="GB_BB_L" value="881.08" type="string" />
 			<ITEM name="GB_BB_R" value="0.98" type="string" />
 			<ITEM name="Formula" value="C3H7NO3" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Ser" value="Ser" type="string" />
 			</NODE>
@@ -276,6 +293,7 @@
 			<ITEM name="GB_SC" value="780.0" type="string" />
 			<ITEM name="GB_BB_L" value="881.14" type="string" />
 			<ITEM name="GB_BB_R" value="1.21" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Thr" value="Thr" type="string" />
 			</NODE>
@@ -293,6 +311,7 @@
 			<ITEM name="GB_SC" value="0.0" type="string" />
 			<ITEM name="GB_BB_L" value="881.17" type="string" />
 			<ITEM name="GB_BB_R" value="-0.90" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Val" value="Val" type="string" />
 			</NODE>
@@ -306,6 +325,7 @@
 			<ITEM name="GB_SC" value="909.53" type="string" />
 			<ITEM name="GB_BB_L" value="881.31" type="string" />
 			<ITEM name="GB_BB_R" value="0.10" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Trp" value="Trp" type="string" />
 			</NODE>
@@ -319,12 +339,11 @@
 			<ITEM name="GB_SC" value="790.0" type="string" />
 			<ITEM name="GB_BB_L" value="881.20" type="string" />
 			<ITEM name="GB_BB_R" value="-0.38" type="string" />
+			<ITEM name="ResidueSets" value="All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Tyr" value="Tyr" type="string" />
 			</NODE>
 		</NODE>
-
-
 		<NODE name="Ambiguous_ASN_or_ASP" >
 			<ITEM name="Name" value="Asparagine/Aspartate" type="string" />
 			<ITEM name="ShortName" value="Asx" type="string" />
@@ -334,6 +353,7 @@
 			<ITEM name="GB_SC" value="0" type="string" />
 			<ITEM name="GB_BB_L" value="0" type="string" />
 			<ITEM name="GB_BB_R" value="0" type="string" />
+			<ITEM name="ResidueSets" value="All,AmbiguousWithoutX,Ambiguous" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Asx" value="Asx" type="string" />
 			</NODE>
@@ -347,6 +367,7 @@
 			<ITEM name="GB_SC" value="0" type="string" />
 			<ITEM name="GB_BB_L" value="0" type="string" />
 			<ITEM name="GB_BB_R" value="0" type="string" />
+			<ITEM name="ResidueSets" value="All,AmbiguousWithoutX,Ambiguous" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Glx" value="Glx" type="string" />
 			</NODE>
@@ -358,8 +379,9 @@
 			<ITEM name="OneLetterCode" value="J" type="string" />
 			<ITEM name="Formula" value="C6H13NO2" type="string" />
 			<ITEM name="GB_SC" value="0" type="string" />
-			<ITEM name="GB_BB_L" value="0" type="string" />
-			<ITEM name="GB_BB_R" value="0" type="string" />
+			<ITEM name="GB_BB_L" value="880.99" type="string" />
+			<ITEM name="GB_BB_R" value="-1.17" type="string" />
+			<ITEM name="ResidueSets" value="All,AmbiguousWithoutX,Ambiguous" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Xle" value="Xle" type="string" />
 			</NODE>
@@ -373,11 +395,11 @@
 			<ITEM name="GB_SC" value="0" type="string" />
 			<ITEM name="GB_BB_L" value="0" type="string" />
 			<ITEM name="GB_BB_R" value="0" type="string" />
+			<ITEM name="ResidueSets" value="All,Ambiguous" type="string" />
 			<NODE name="Synonyms">
 				<ITEM name="Xaa" value="Xaa" type="string" />
 				<ITEM name="Unk" value="Unk" type="string" />
 			</NODE>
 		</NODE>
-	
 	</NODE>
 </PARAMETERS>

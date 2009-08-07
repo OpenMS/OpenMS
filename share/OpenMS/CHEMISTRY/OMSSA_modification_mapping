@@ -3,7 +3,7 @@
 1,oxidation of M,MOD:00719,MOD:00720
 2,carboxymethyl C,MOD:01061,MOD:01062
 3,carbamidomethyl C,MOD:01214
-4,deamidation of N and Q,MOD:01336,MOD:01337
+4,deamidation of N and Q,MOD:00684,MOD:00685
 5,propionamide C,MOD:00417
 6,phosphorylation of S,MOD:00046
 7,phosphorylation of T,MOD:00047

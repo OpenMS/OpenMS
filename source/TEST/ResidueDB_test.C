@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -84,12 +84,12 @@ START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const St
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
 END_SECTION
 
-START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set=ALL) const)
-	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
+START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "All") const)
+	set<const Residue*> residues = ptr->getResidues("All");
 	TEST_EQUAL(residues.size() >= 21, true)
-	residues = ptr->getResidues(ResidueDB::NATURAL_20);
+	residues = ptr->getResidues("Natural20");
 	TEST_EQUAL(residues.size(), 20)
-	residues = ptr->getResidues(ResidueDB::NATURAL_19);
+	residues = ptr->getResidues("Natural19WithoutL");
 	TEST_EQUAL(residues.size(), 19)
 END_SECTION
 

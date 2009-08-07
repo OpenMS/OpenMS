@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -50,9 +50,8 @@ namespace OpenMS
 			Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
 			doi:10.1351/pac200375060683	
 
-			@todo update references (Andreas)
-			@todo include exact mass values for the isotopes and update IsotopeDistribution (Andreas)
-			@todo add exact isotope distribution based on exact isotope values
+			@improvement include exact mass values for the isotopes and update IsotopeDistribution (Andreas)
+			@improvement add exact isotope distribution based on exact isotope values (Andreas)
 */
 	
 	class OPENMS_DLLAPI ElementDB
