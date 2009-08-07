@@ -23702,7 +23702,22 @@ property_value: TermSpec: "none"
 is_a: MOD:00626 ! fluorescein-5-thiosemicarbazide
 
 
-
+[Term]
+id: MOD:09994
+name: Label:13C(8)15N(2)
+def: "MOD....." []
+synonym: "Label:13C(8)15N(2)"
+property_value: DiffAvg: "10.01"
+property_value: DiffFormula: "(12)C -8 (13)C 8 (14)N -2 (15)N 2"
+property_value: DiffMono: "10.014199"
+property_value: Formula: "none"
+property_value: MassAvg: "none"
+property_value: MassMono: "none"
+property_value: Origin: "R"
+property_value: Source: "Artifact"
+property_value: TermSpec: "none"
+is_a: MOD:00842 ! (13)C labeled residue 
+is_a: MOD:00843 ! (15)N labeled residue
 
 
 [Term]
