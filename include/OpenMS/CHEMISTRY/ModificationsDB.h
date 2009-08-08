@@ -113,7 +113,7 @@ namespace OpenMS
 			std::vector<ResidueModification*> mods_;
 
 			/// stores the mappings of (unique) names to the modifications
-			Map<String, std::set<const ResidueModification*>  > modification_names_;
+			Map<String, std::set<const ResidueModification*> > modification_names_;
 			
 			
 		private:

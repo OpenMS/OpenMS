@@ -455,8 +455,8 @@ namespace OpenMS
 		
 		Residue* res = new Residue(*residue_names_[res_name]);
 		res->setModification(id);
-		res->setLossFormulas(vector<EmpiricalFormula>());
-		res->setLossNames(vector<String>());
+		//res->setLossFormulas(vector<EmpiricalFormula>());
+		//res->setLossNames(vector<String>());
 
 		// now register this modified residue 
 		addResidue_(res);

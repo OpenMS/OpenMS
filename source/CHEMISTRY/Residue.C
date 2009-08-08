@@ -587,7 +587,16 @@ namespace OpenMS
 				mono_weight_ = mod.getMonoMass();
 			}
 		}
-		
+	
+		// neutral losses
+		loss_formulas_.clear();
+		loss_names_.clear();
+		if (mod.hasNeutralLoss())
+		{
+			loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
+			loss_names_.push_back(mod.getNeutralLossDiffFormula().getString());
+		}
+
 		is_modified_ = true;
 	}
 	

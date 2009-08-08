@@ -177,28 +177,28 @@ namespace OpenMS
 			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 			
 			/// sets the average mass
-			void setAverageMass(double mass);
+			void setAverageMass(DoubleReal mass);
 
 			/// returns the average mass if set 
-			double getAverageMass() const;
+			DoubleReal getAverageMass() const;
 
 			/// sets the monoisotopic mass
-			void setMonoMass(double mass);
+			void setMonoMass(DoubleReal mass);
 
 			/// return the monoisotopic mass, if set
-			double getMonoMass() const;
+			DoubleReal getMonoMass() const;
 
 			/// set the difference average mass
-			void setDiffAverageMass(double mass);
+			void setDiffAverageMass(DoubleReal mass);
 
 			/// returns the difference average mass if set
-			double getDiffAverageMass() const;
+			DoubleReal getDiffAverageMass() const;
 
 			/// sets the difference monoisotopic mass 
-			void setDiffMonoMass(double mass);
+			void setDiffMonoMass(DoubleReal mass);
 
 			/// returns the diff monoisotopic mass if set
-			double getDiffMonoMass() const;
+			DoubleReal getDiffMonoMass() const;
 			
 			/// set the formula 
 			void setFormula(const String& composition);
@@ -220,11 +220,32 @@ namespace OpenMS
 
 			/// returns the set of synonyms
 			const std::set<String>& getSynonyms() const;
+
+			/// sets the neutral loss formula
+			void setNeutralLossDiffFormula(const EmpiricalFormula& loss);
+
+			/// returns the neutral loss diff formula (if available)
+			const EmpiricalFormula& getNeutralLossDiffFormula() const;
+
+			/// set the neutral loss mono weight 
+			void setNeutralLossMonoMass(DoubleReal mono_mass);
+
+			/// returns the neutral loss mono weight
+			DoubleReal getNeutralLossMonoMass() const;
+
+			/// set the neutral loss average weight
+			void setNeutralLossAverageMass(DoubleReal average_mass);
+
+			/// returns the neutral loss average weight
+			DoubleReal getNeutralLossAverageMass() const;
 			//@}
 
 			/** @name Predicates
 			*/
 			//@{
+			/// returns true if a neutral loss formula is set
+			bool hasNeutralLoss() const;
+			
 			/// equality operator
 			bool operator == (const ResidueModification& modification) const;
 
@@ -250,19 +271,25 @@ namespace OpenMS
 
 			Source_Classification classification_;
 
-			double average_mass_;
+			DoubleReal average_mass_;
 			
-			double mono_mass_;
+			DoubleReal mono_mass_;
 			
-			double diff_average_mass_;
+			DoubleReal diff_average_mass_;
 
-			double diff_mono_mass_;
+			DoubleReal diff_mono_mass_;
 			
 			String formula_;
 
 			EmpiricalFormula diff_formula_;
 
 			std::set<String> synonyms_;
+
+			EmpiricalFormula neutral_loss_diff_formula_;
+
+			DoubleReal neutral_loss_mono_mass_;
+
+			DoubleReal neutral_loss_average_mass_;
 	};
 }
 

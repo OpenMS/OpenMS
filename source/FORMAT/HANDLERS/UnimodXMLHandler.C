@@ -51,7 +51,7 @@ namespace OpenMS
   {
     
   }
-  
+ 
   void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
 
@@ -131,7 +131,8 @@ namespace OpenMS
 
 		if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
 		{
-			
+			// mono_mass="97.976896" avge_mass="97.9952" flag="false"
+			//                               composition="H(3) O(4) P">
 
 		}
 		
@@ -188,46 +189,6 @@ namespace OpenMS
 			{
 				(*it)->setAverageMass(avge_mass_);
 				(*it)->setMonoMass(mono_mass_);
-/*
-				// O(-2) 18O(2)
-				EmpiricalFormula ef;
-				vector<String> split;
-				composition_.split(' ', split);
-				for (Size i = 0; i != split.size(); ++i)
-				{
-					String tmp = split[i];
-					String symbol;
-					Size num;
-					if (tmp.has('('))
-					{
-						symbol = tmp.prefix('(');
-						num = ((String)tmp.suffix('(').prefix(')')).toInt();
-					}
-					String isotope;
-					String tmp_symbol;
-					for (Size j = 0; j != symbol.size(); ++j)
-					{
-						if (isdigit(symbol[j]))
-						{
-							isotope += symbol[i];
-						}
-						else
-						{
-							tmp_symbol += symbol[i];
-						}
-					}
-					
-					String formula;
-					if (isotope != "")
-					{
-						formula = '(' + isotope + ')' + tmp_symbol + String(num);
-					}
-					else
-					{
-						formula = tmp_symbol + String(num);
-					}
-					ef += formula;
-				}*/
 				(*it)->setDiffFormula(diff_formula_);
 				modifications_.push_back(*it);
 			}
@@ -236,6 +197,18 @@ namespace OpenMS
 			mono_mass_ = 0.0;
 			diff_formula_ = EmpiricalFormula();
 			new_mods_.clear();
+			return;
+		}
+
+		if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+		{
+			// now diff_formula_ contains the neutral loss diff formula
+			new_mods_.back()->setNeutralLossDiffFormula(diff_formula_);
+			new_mods_.back()->setNeutralLossMonoMass(mono_mass_);
+			new_mods_.back()->setNeutralLossAverageMass(avge_mass_);
+			avge_mass_ = 0.0;
+			mono_mass_ = 0.0;
+			diff_formula_ = EmpiricalFormula();
 		}
  	} 
 

@@ -39,7 +39,9 @@ namespace OpenMS
 			average_mass_(0.0),
 			mono_mass_(0.0),
 			diff_average_mass_(0.0),
-			diff_mono_mass_(0.0)
+			diff_mono_mass_(0.0),
+			neutral_loss_mono_mass_(0.0),
+			neutral_loss_average_mass_(0.0)
 	{
 	}
 
@@ -58,7 +60,10 @@ namespace OpenMS
 			diff_mono_mass_(rhs.diff_mono_mass_),
 			formula_(rhs.formula_),
 			diff_formula_(rhs.diff_formula_),
-			synonyms_(rhs.synonyms_)
+			synonyms_(rhs.synonyms_),
+			neutral_loss_diff_formula_(rhs.neutral_loss_diff_formula_),
+			neutral_loss_mono_mass_(rhs.neutral_loss_mono_mass_),
+			neutral_loss_average_mass_(rhs.neutral_loss_average_mass_)
 	{
 	}
 	
@@ -81,6 +86,9 @@ namespace OpenMS
 			formula_ = rhs.formula_;
 			diff_formula_ = rhs.diff_formula_;
 			synonyms_ = rhs.synonyms_;
+			neutral_loss_diff_formula_ = rhs.neutral_loss_diff_formula_;
+			neutral_loss_mono_mass_ = rhs.neutral_loss_mono_mass_;
+			neutral_loss_average_mass_ = rhs.neutral_loss_average_mass_;
 		}
 		
 		return *this;
@@ -102,7 +110,10 @@ namespace OpenMS
 						diff_mono_mass_ == rhs.diff_mono_mass_ &&
 						formula_ == rhs.formula_ &&
 						diff_formula_ == rhs.diff_formula_ &&
-						synonyms_ == rhs.synonyms_;
+						synonyms_ == rhs.synonyms_ &&
+						neutral_loss_diff_formula_ == rhs.neutral_loss_diff_formula_ &&
+						neutral_loss_mono_mass_ == rhs.neutral_loss_mono_mass_ &&
+						neutral_loss_average_mass_ == rhs.neutral_loss_average_mass_;
 	}
 	
 	bool ResidueModification::operator != (const ResidueModification& rhs) const
@@ -285,43 +296,43 @@ namespace OpenMS
 		return "Unknown";
 	}
 	
-	void ResidueModification::setAverageMass(double mass)
+	void ResidueModification::setAverageMass(DoubleReal mass)
 	{
 		average_mass_ = mass;
 	}
 
-	double ResidueModification::getAverageMass() const
+	DoubleReal ResidueModification::getAverageMass() const
 	{
 		return average_mass_;
 	}
 
-	void ResidueModification::setMonoMass(double mass)
+	void ResidueModification::setMonoMass(DoubleReal mass)
 	{
 		mono_mass_ = mass;
 	}
 
-	double ResidueModification::getMonoMass() const
+	DoubleReal ResidueModification::getMonoMass() const
 	{
 		return mono_mass_;
 	}
 
 
-	void ResidueModification::setDiffAverageMass(double mass)
+	void ResidueModification::setDiffAverageMass(DoubleReal mass)
 	{
 		diff_average_mass_ = mass;
 	}
 
-	double ResidueModification::getDiffAverageMass() const
+	DoubleReal ResidueModification::getDiffAverageMass() const
 	{
 		return diff_average_mass_;
 	}
 	
-	void ResidueModification::setDiffMonoMass(double mass)
+	void ResidueModification::setDiffMonoMass(DoubleReal mass)
 	{
 		diff_mono_mass_ = mass;
 	}
 
-	double ResidueModification::getDiffMonoMass() const
+	DoubleReal ResidueModification::getDiffMonoMass() const
 	{
 		return diff_mono_mass_;
 	}
@@ -359,6 +370,41 @@ namespace OpenMS
 	const set<String>& ResidueModification::getSynonyms() const
 	{
 		return synonyms_;
+	}
+
+	void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula& diff_formula)
+	{
+		neutral_loss_diff_formula_ = diff_formula;
+	}
+
+	const EmpiricalFormula& ResidueModification::getNeutralLossDiffFormula() const
+	{
+		return neutral_loss_diff_formula_;
+	}
+
+	void ResidueModification::setNeutralLossMonoMass(DoubleReal mono_mass)
+	{
+		neutral_loss_mono_mass_ = mono_mass;
+	}
+
+	DoubleReal ResidueModification::getNeutralLossMonoMass() const
+	{
+		return neutral_loss_mono_mass_;
+	}
+
+	void ResidueModification::setNeutralLossAverageMass(DoubleReal average_mass)
+	{
+		neutral_loss_average_mass_ = average_mass;
+	}
+
+	DoubleReal ResidueModification::getNeutralLossAverageMass() const
+	{
+		return neutral_loss_average_mass_;
+	}
+
+	bool ResidueModification::hasNeutralLoss() const
+	{
+		return neutral_loss_diff_formula_ != "";
 	}
 }
 

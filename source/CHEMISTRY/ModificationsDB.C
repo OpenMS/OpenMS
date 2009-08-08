@@ -235,15 +235,20 @@ namespace OpenMS
 			// sarch whether this modification is already contained in the DB
 			// this list contains all specificities of unimod as separat entries,
 			// because PSI-MOD handles them as different entries
+			/*
 			if (modification_names_.has((*it)->getUniModAccession()))
 			{
-				// just check the values, if they are correctly set
-				
-				// different sites
+				String origin = (*it)->getOrigin();
 
-				
-			}
-
+				set<const ResidueModification*> mods = modification_names_[(*it)->getUniModAccession()];
+				for (set<const ResidueModification*>::iterator mit = mods.begin(); mit != mods.end(); ++mit)
+				{
+					if (mit->getOrigin() == origin)
+					{
+						mit->setUniModAccession(it->);
+					}
+				}
+			}*/
 
       modification_names_[(*it)->getFullName()].insert(*it);
     }
