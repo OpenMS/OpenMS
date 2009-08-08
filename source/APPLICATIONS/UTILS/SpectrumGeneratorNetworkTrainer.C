@@ -622,28 +622,7 @@ namespace OpenMS
 
 int main(int argc, const char** argv)
 {
-  //OpenMS::SpectrumGeneratorNetworkTrainer tool;
-  //tool.main(argc, argv);
-
-  OpenMS::AdvancedTheoreticalSpectrumGenerator spec_gen;
-  OpenMS::Param param;
-  param.setValue("model_file_name", "../share/OpenMS/examples/simulation/MSMSim.model");
-  spec_gen.setParameters(param);
-  spec_gen.loadProbabilisticModel();
-  spec_gen.writeProbabilisticModel("../TestModelFile_check.mod");
-
-  OpenMS::AASequence test_seq("AAGKGLLRK");
-  OpenMS::RichPeakSpectrum tmp_spec;
-  // initialize the random number generator
-  gsl_rng_default_seed = time(0);
-  gsl_rng* rnd_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
-
-  spec_gen.simulate(tmp_spec, test_seq, rnd_gen_, 1);
-  //store spectra in mzData file
-  OpenMS::RichPeakMap out_exp;
-  out_exp.push_back(tmp_spec);
-  OpenMS::MzDataFile().store("../testSim_spec.mzData", out_exp);
-
-  //return tool.main(argc,argv);
+  OpenMS::SpectrumGeneratorNetworkTrainer tool;
+  return tool.main(argc,argv);
 }
 
