@@ -30,7 +30,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -214,10 +215,10 @@ class TOPPERPairFinder
 			ff_param.setValue("intensity_threshold", -1.0);
 			iso_ff.setParameters(ff_param);
 			
-			LinearResampler res;
-			res.setLogType(ProgressLogger::NONE);
-			Param res_param(res.getParameters());
-			res.setParameters(res_param);
+			//LinearResampler res;
+			//res.setLogType(ProgressLogger::NONE);
+			//Param res_param(res.getParameters());
+			//res.setParameters(res_param);
 
 			FeatureFinder ff;
 			ff.setLogType(ProgressLogger::NONE);
@@ -252,16 +253,32 @@ class TOPPERPairFinder
 
 				// insert peaks at beginning and end to 
 				// expand the resampling range to 'lower_mz' to 'upper_mz'
-				Peak1D p;
-				p.setMZ(lower_mz);
-				p.setIntensity(0);
-				new_spec.insert(new_spec.begin(), p);
-				p.setMZ(upper_mz);
-				new_spec.push_back(p);
+				/*Peak1D p;
+				p.setIntensity(0.1);
+				for (DoubleReal pos = new_spec.begin()->getMZ(); pos > lower_mz; pos -= min_spacing)
+				{
+					p.setMZ(pos);
+					new_spec.insert(new_spec.begin(), p);
+				}
 
-				new_exp.push_back(new_spec);
+				for (DoubleReal pos = new_spec.rbegin()->getMZ(); pos < upper_mz; pos += min_spacing)
+				{
+					p.setMZ(pos);
+					new_spec.push_back(p);
+				}*/
+
+				SavitzkyGolayFilter filter;
+				filter.filter(new_spec);
+				//Peak1D p;
+				//p.setMZ(lower_mz);
+				//p.setIntensity(0);
+				//new_spec.insert(new_spec.begin(), p);
+				//p.setMZ(upper_mz);
+				//new_spec.push_back(p);
+
+				//new_exp.push_back(new_spec);
 				
-				res.rasterExperiment(new_exp);
+				//res.rasterExperiment(new_exp);
 				
 				writeDebug_("Spectrum-id: " + it->getNativeID() + " @ " + String(it->getRT()) +"s", 1);
 
