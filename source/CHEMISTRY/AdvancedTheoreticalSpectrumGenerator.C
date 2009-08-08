@@ -326,7 +326,7 @@ namespace OpenMS
           conditional_intensity = generated_intensity[is_child_of[sector][type_id]];
 
         DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter(type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
-        std::cerr<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
+        //std::cerr<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
 
         gsl_gen = gsl_ran_discrete_preproc(number_of_intensity_levels_, tmp_pointer);
         size_t intensity = gsl_ran_discrete(rng, gsl_gen);
@@ -359,7 +359,7 @@ namespace OpenMS
             p_.setMetaValue("IonName", ion_name);
           }
           spectrum.push_back(p_);
-          std::cout<<"added ion type: "<<ion_name<<"  with intensity: "<<intensity<<"  at position: "<<mz_pos<<std::endl;
+          //std::cout<<"added ion type: "<<ion_name<<"  with intensity: "<<intensity<<"  at position: "<<mz_pos<<std::endl;
         }
       }
     }
@@ -375,7 +375,7 @@ namespace OpenMS
 
   void AdvancedTheoreticalSpectrumGenerator::loadProbabilisticModel()
   {
-    std::cout << "check point readwrite" << std::endl;
+    //std::cout << "check point readwrite" << std::endl;
 
     //store the model in text_file
     String model_file_name = (String)param_.getValue("model_file_name");
@@ -440,7 +440,7 @@ namespace OpenMS
     left_marker=text_file.search("<ConditionalProbabilities>");
     for(Size sector = 0; sector < number_of_sectors_; ++sector)
     {
-      std::cout<<"Out Sector: "<<sector<<std::endl;
+      //std::cout<<"Out Sector: "<<sector<<std::endl;
       left_marker=text_file.search(left_marker, "<Sector");
       for(Size i=0; i<number_of_prob_entries;++i)
       {
