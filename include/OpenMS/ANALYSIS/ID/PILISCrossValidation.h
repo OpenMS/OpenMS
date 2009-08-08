@@ -39,7 +39,7 @@ namespace OpenMS
 	class PeakSpectrumCompareFunctor;
 	class PILISModel;
 
-	class PILISCrossValidation : public DefaultParamHandler
+	class OPENMS_DLLAPI PILISCrossValidation : public DefaultParamHandler
 	{
 
 		public:
