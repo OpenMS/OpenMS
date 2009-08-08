@@ -35,18 +35,18 @@
 namespace OpenMS
 {
 	class AASequence;
-	
-	/** 
+
+	/**
 		@brief Generates theoretical spectra with various options
-   	
+
    	@htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
-		
+
 		@ingroup Chemistry
 	*/
 	class OPENMS_DLLAPI TheoreticalSpectrumGenerator : public DefaultParamHandler
 	{
 		public:
-		
+
 			/** @name Constructors and Destructors
 			*/
 			//@{
@@ -59,25 +59,25 @@ namespace OpenMS
 			/// destructor
 			virtual ~TheoreticalSpectrumGenerator();
 			//@}
-			
-			/// assignment operator 
+
+			/// assignment operator
 			TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg);
 
 			/** @name Acessors
 			 */
 			//@{
 			/// returns a spectrum with b and y peaks
-			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
+			virtual void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
 
 			/// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-			void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1);
+			virtual void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1);
 
 			/// adds the precursor peaks to the spectrum
-			void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
+			virtual void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
 			//@}
 
-		private:
-			
+		protected:
+
 			RichPeak1D p_;
 		};
 }
