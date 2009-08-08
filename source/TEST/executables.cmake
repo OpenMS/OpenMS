@@ -253,6 +253,7 @@ set(chemistry_executables_list
   AAIndex_test
   EnzymaticDigestion_test
   TheoreticalSpectrumGenerator_test
+  AdvancedTheoreticalSpectrumGenerator_test
   ModifierRep_test
   FastaIterator_test
   FastaIteratorIntern_test

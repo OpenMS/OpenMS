@@ -27,6 +27,7 @@
 
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
+#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <gsl/gsl_blas.h>
 
 namespace OpenMS
@@ -167,13 +168,26 @@ namespace OpenMS
 				ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,false);
 			}
 		else ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,true);
-
 		
-
 		//** actual MS2 signal **//
-
-		// TODO: Sandro, your turn :)
-
+/*
+		AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
+		adv_spec_gen.loadProbabilisticModel();
+		for (Size i = 0; i < ms2.size(); ++i)
+    {
+		  RichPeakSpectrum ms2_tmp(ms2[i].size());
+		  IntList ids=ms2[i].getMetaValue("parent_feature_ids");
+		  for(Size pk=0; pk<ms2[i].size();++pk)
+		    ms2_tmp[pk]=ms2[i][pk];
+		  for(Size id =0; id<ids.size();++id)
+		  {
+		    AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
+		    adv_spec_gen.simulate(ms2[i], seq, rnd_gen_,1);
+      }
+		  for(Size pk=0; pk<ms2[i].size();++pk)
+		    ms2[i][pk]=ms2_tmp[pk];
+    }
+*/
 
 		//** iTRAQ reporters **//
 		if (param_.getValue("iTRAQ:iTRAQ") != "off")

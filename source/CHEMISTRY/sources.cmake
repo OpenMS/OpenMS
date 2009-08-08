@@ -20,6 +20,7 @@ Residue.C
 ResidueDB.C
 ResidueModification.C
 TheoreticalSpectrumGenerator.C
+AdvancedTheoreticalSpectrumGenerator.C
 TrypticIterator.C
 )
 
