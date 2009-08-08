@@ -69,25 +69,6 @@ START_SECTION(AdvancedTheoreticalSpectrumGenerator& operator = (const AdvancedTh
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-
-START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-  RichPeakSpectrum spec;
-  ptr->addPrecursorPeaks(spec, peptide, 1);
-  double result[] = {778.916, 760.901, 761.885};
-  for (Size i = 0; i != spec.size(); ++i)
-  {
-    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
-  }
-
-  RichPeakSpectrum spec2;
-  ptr->addPrecursorPeaks(spec2, peptide, 2);
-  double result2[] = {389.962, 380.954, 381.447};
-  for (Size i = 0; i != spec2.size(); ++i)
-  {
-    TEST_REAL_SIMILAR(spec2[i].getPosition()[0], result2[i])
-  }
-END_SECTION
-
 START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 //TODO when one probabilistic model is fix
 //This also tests the method: void loadProbabilisticModel();
