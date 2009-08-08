@@ -142,6 +142,7 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 			/// Returns the point in the @p list that is nearest to @p origin

@@ -88,6 +88,8 @@ namespace OpenMS
 			EdgeIterator edgesEnd();
 			/// Removes all currently selected edges and vertices
 			void removeSelected();
+			/// Unselects all items
+			void unselectAll();
 			/// Updates all edge colors (color of green and yellow edges can change when edges are added/removed)
 			void updateEdgeColors();
 			/// Runs the pipeline

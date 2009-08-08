@@ -111,9 +111,14 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
 	{
+		e->ignore();
+	}
 	
+	void TOPPASVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* e)
+	{
+		e->ignore();
 	}
 	
 	void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)

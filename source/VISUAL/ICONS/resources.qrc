@@ -6,7 +6,8 @@
 		
 		<!-- TOPPAS -->
 		<file>TOPPAS_Splashscreen.png</file>
-		
+		<file>circle_arrow.png</file>
+
 		<!-- TOPPView -->
 		<file>TOPPView.png</file>
 		<file>TOPPView_Splashscreen.png</file>

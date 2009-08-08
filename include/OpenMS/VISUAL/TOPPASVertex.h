@@ -33,8 +33,10 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtGui/QGraphicsSceneContextMenuEvent>
 #include <QtGui/QGraphicsItem>
 #include <QtCore/QProcess>
+#include <QtGui/QMenu>
 
 namespace OpenMS
 {
@@ -157,6 +159,7 @@ namespace OpenMS
       void mousePressEvent(QGraphicsSceneMouseEvent* e);
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void mouseMoveEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 			/// Moves the target pos of the edge which is just being created to @p pos

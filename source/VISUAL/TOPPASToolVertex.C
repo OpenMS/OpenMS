@@ -38,9 +38,12 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
 #include <QtCore/QFile>
+#include <QtGui/QImage>
 
 namespace OpenMS
 {
+	QImage TOPPASToolVertex::symbol_image_ = QImage(":/circle_arrow.png");
+	
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
 			name_(),
@@ -48,7 +51,8 @@ namespace OpenMS
 			param_(),
 			finished_(false),
 			started_here_(false),
-			progress_color_(Qt::gray)
+			progress_color_(Qt::gray),
+			list_mode_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -65,7 +69,8 @@ namespace OpenMS
 			param_(),
 			finished_(false),
 			started_here_(false),
-			progress_color_(Qt::gray)
+			progress_color_(Qt::gray),
+			list_mode_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -82,7 +87,8 @@ namespace OpenMS
 			param_(rhs.param_),
 			finished_(rhs.finished_),
 			started_here_(rhs.started_here_),
-			progress_color_(rhs.progress_color_)
+			progress_color_(rhs.progress_color_),
+			list_mode_(rhs.list_mode_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = QColor(245,245,245);
@@ -106,6 +112,7 @@ namespace OpenMS
 		finished_ = rhs.finished_;
 		started_here_ = rhs.started_here_;
 		progress_color_ = rhs.progress_color_;
+		list_mode_ = rhs.list_mode_;
 		
 		return *this;
 	}
@@ -151,6 +158,11 @@ namespace OpenMS
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+	{
+		editParam();
+	}
+	
+	void TOPPASToolVertex::editParam()
 	{
 		QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
 		String default_dir = "";
@@ -279,6 +291,7 @@ namespace OpenMS
 		{
 			pen.setWidth(2);
 			painter->setBrush(brush_color_.darker(130));
+			pen.setColor(Qt::darkBlue);
 		}
 		else
 		{
@@ -290,6 +303,8 @@ namespace OpenMS
 		path.addRect(-70.0, -60.0, 140.0, 120.0);		
  		painter->drawPath(path);
  		
+ 		pen.setColor(pen_color_);
+ 		painter->setPen(pen);
 		if (type_ == "")
 		{
 			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, name_.toQString());
@@ -307,6 +322,15 @@ namespace OpenMS
 		painter->setPen(Qt::black);
 		painter->setBrush(progress_color_);
 		painter->drawEllipse(QPointF(60.0,-50.0), 5.0, 5.0);
+		
+		//list mode symbol
+		if (list_mode_)
+		{
+			qreal symbol_width = boundingRect().height() / 7.0;
+			qreal symbol_offset = boundingRect().height() / 15.0;
+			QRectF symbol_rect(boundingRect().topLeft() + QPointF(symbol_offset, symbol_offset), QSizeF(symbol_width, symbol_width));
+			painter->drawImage(symbol_rect, symbol_image_);
+		}
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -664,6 +688,54 @@ namespace OpenMS
 		update(boundingRect());
 		
 		emit somethingHasChanged();
+	}
+	
+	void TOPPASToolVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+	{
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		ts->unselectAll();
+		setSelected(true);
+		
+		QMenu menu;
+		menu.addAction("Edit parameters");
+		if (!list_mode_)
+		{
+			menu.addAction("Enable list iteration");
+		}
+		else
+		{
+			menu.addAction("Disable list iteration");
+		}
+		menu.addAction("Remove");
+		
+		QAction* selected_action = menu.exec(event->screenPos());
+		if (selected_action)
+		{
+			QString text = selected_action->text();
+			if (text == "Edit parameters")
+			{
+				editParam();
+			}
+			else if (text == "Enable list iteration")
+			{
+				list_mode_ = true;
+				update(boundingRect());
+			}
+			else if (text == "Disable list iteration")
+			{
+				list_mode_ = false;
+				update(boundingRect());
+			}
+			else if (text == "Remove")
+			{
+				ts->removeSelected();
+			}
+			event->accept();
+		}
+		else
+		{
+			event->ignore();	
+		}
 	}
 }
 

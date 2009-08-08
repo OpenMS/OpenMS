@@ -64,6 +64,8 @@ namespace OpenMS
 			virtual QPainterPath shape () const;
 			/// Checks if the given list of file names is valid
 			bool fileNamesValid(const QStringList& files);
+			/// Shows the dialog for editing the files
+			void showFilesDialog();
 			
 		protected:
 		
@@ -73,6 +75,7 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 	};

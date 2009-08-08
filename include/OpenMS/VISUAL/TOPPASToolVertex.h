@@ -118,6 +118,8 @@ namespace OpenMS
 			void setStartedHere(bool b);
 			/// Sets the progress color
 			void setProgressColor(const QColor& c);
+			/// Lets the user edit the parameters of the tool
+			void editParam();
 			
 		public slots:
 		
@@ -150,7 +152,9 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
+			
 			/// Initializes the parameters with standard values (from -write_ini)
 			void initParam_();
 			/// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
@@ -174,6 +178,10 @@ namespace OpenMS
 			QVector<QStringList> output_file_names_;
 			/// Color representing the progress (red = waiting, yellow = processing, green = finished, else: gray)
 			QColor progress_color_;
+			/// Stores whether we are currently in list mode
+			bool list_mode_;
+			/// The symbol for the list mode
+			static QImage symbol_image_;
 			
 	};
 }

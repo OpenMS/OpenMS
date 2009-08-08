@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
@@ -35,6 +36,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QMessageBox>
+#include <QtGui/QMenu>
 
 namespace OpenMS
 {	
@@ -656,6 +658,39 @@ namespace OpenMS
 	void TOPPASEdge::emitChanged()
 	{
 		emit somethingHasChanged();
+	}
+	
+	void TOPPASEdge::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+	{
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		ts->unselectAll();
+		setSelected(true);
+		
+		QMenu menu;
+		menu.addAction("Edit I/O mapping");
+		menu.addAction("Remove");
+		
+		QAction* selected_action = menu.exec(event->screenPos());
+		if (selected_action)
+		{
+			QString text = selected_action->text();
+			if (text == "Edit I/O mapping")
+			{
+				TOPPASIOMappingDialog dialog(this);
+				dialog.exec();
+				
+				emit somethingHasChanged();
+			}
+			else if (text == "Remove")
+			{
+				ts->removeSelected();
+			}
+			event->accept();
+		}
+		else
+		{
+			event->ignore();	
+		}
 	}
 	
 } //namespace

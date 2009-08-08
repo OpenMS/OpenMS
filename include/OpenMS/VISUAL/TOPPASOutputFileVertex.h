@@ -66,6 +66,8 @@ namespace OpenMS
 			const QString& getFilename();
 			/// Called when the parent node has finished execution
 			void finished();
+			/// Shows the dialog for editing the file name
+			void showFileDialog();
 			
 		public slots:
 		
@@ -84,6 +86,7 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 	};

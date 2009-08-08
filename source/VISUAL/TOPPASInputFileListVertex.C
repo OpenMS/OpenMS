@@ -72,6 +72,11 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
+		showFilesDialog();
+	}
+	
+	void TOPPASInputFileListVertex::showFilesDialog()
+	{
 		TOPPASInputFilesDialog tifd(files_);
 		if (tifd.exec())
 		{
@@ -94,6 +99,7 @@ namespace OpenMS
 		{
 			pen.setWidth(2);
 			painter->setBrush(brush_color_.darker(130));
+			pen.setColor(Qt::darkBlue);
 		}
 		else
 		{
@@ -105,6 +111,8 @@ namespace OpenMS
 		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
  		painter->drawPath(path);
  		
+ 		pen.setColor(pen_color_);
+ 		painter->setPen(pen);
 		QString text = "Input file list";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
@@ -126,5 +134,35 @@ namespace OpenMS
 	{
 		// some more checks TODO..
 		return true;
+	}
+	
+	void TOPPASInputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+	{
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		ts->unselectAll();
+		setSelected(true);
+		
+		QMenu menu;
+		menu.addAction("Change files");
+		menu.addAction("Remove");
+		
+		QAction* selected_action = menu.exec(event->screenPos());
+		if (selected_action)
+		{
+			QString text = selected_action->text();
+			if (text == "Change files")
+			{
+				showFilesDialog();
+			}
+			else if (text == "Remove")
+			{
+				ts->removeSelected();
+			}
+			event->accept();
+		}
+		else
+		{
+			event->ignore();	
+		}
 	}
 }

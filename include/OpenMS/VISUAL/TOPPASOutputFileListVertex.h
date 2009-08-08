@@ -73,6 +73,8 @@ namespace OpenMS
 			bool isReady();
 			/// Updates the status (if ready or not)
 			void updateStatus();
+			/// Shows the dialog for editing the files
+			void showFilesDialog();
 			
 		public slots:
 		
@@ -94,6 +96,7 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 	};
 }

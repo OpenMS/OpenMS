@@ -123,10 +123,7 @@ namespace OpenMS
 			return;
 		}
 		bool was_selected = sender->isSelected();
-		foreach (QGraphicsItem* item, items())
-		{
-			item->setSelected(false);
-		}
+		unselectAll();
 		sender->setSelected(was_selected);
 	}
 	
@@ -721,6 +718,16 @@ namespace OpenMS
 				tv->updateOutputFileNames();
 			}
 		}
+	}
+	
+	void TOPPASScene::unselectAll()
+	{
+		const QList<QGraphicsItem*>& all_items = items();	
+		foreach (QGraphicsItem* item, all_items)
+		{
+			item->setSelected(false);
+		}
+		update(sceneRect());
 	}
 	
 } //namespace OpenMS
