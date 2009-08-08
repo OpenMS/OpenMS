@@ -74,6 +74,8 @@ namespace OpenMS
 				ANYWHERE = 0,
 				C_TERM = 1,
 				N_TERM =2,
+				PROTEIN_C_TERM = 3,
+				PROTEIN_N_TERM = 4,
 				NUMBER_OF_TERM_SPECIFICITY
 			};
 
@@ -117,8 +119,20 @@ namespace OpenMS
 			/// set the identifier of the modification
 			void setId(const String& id);
 
-			/// returns the identifier the modification
+			/// returns the identifier of the modification
 			const String& getId() const;
+
+			/// sets the unimod accession
+			void setUniModAccession(const String& id);
+
+			/// returns the unimod accession if available
+			const String& getUniModAccession() const;
+
+			/// set the MOD:XXXXX accession of PSI-MOD
+			void setPSIMODAccession(const String& id);
+
+			/// returns the PSI-MOD accession if available
+			const String& getPSIMODAccession() const;
 
 			/// sets the full name of the modification
 			void setFullName(const String& full_name);
@@ -222,6 +236,10 @@ namespace OpenMS
 
 			String id_;
 
+			String psi_mod_accession_;
+
+			String unimod_accession_;
+
 			String full_name_;
 
 			String name_;
@@ -243,8 +261,6 @@ namespace OpenMS
 			String formula_;
 
 			EmpiricalFormula diff_formula_;
-
-			//std::vector<String> valid_residues_;
 
 			std::set<String> synonyms_;
 	};

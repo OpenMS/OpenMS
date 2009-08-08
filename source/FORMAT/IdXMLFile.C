@@ -260,13 +260,13 @@ namespace OpenMS
 					DataValue dv = peptide_ids[l].getMetaValue("MZ");
 					if (dv!=DataValue::EMPTY)
 					{
-						os << "MZ=\"" << dv.toString() << "\" ";
+						os << "MZ=\"" << dv << "\" ";
 					}
 					//rt
 					dv = peptide_ids[l].getMetaValue("RT");
 					if (dv!=DataValue::EMPTY)
 					{
-						os << "RT=\"" << dv.toString() << "\" ";
+						os << "RT=\"" << dv << "\" ";
 					}
 					//spectrum_reference
 					dv = peptide_ids[l].getMetaValue("spectrum_reference");
@@ -280,7 +280,7 @@ namespace OpenMS
 					for (Size j=0; j<peptide_ids[l].getHits().size(); ++j)
 					{
 						os << "\t\t\t<PeptideHit ";
-						os << "score=\"" << peptide_ids[l].getHits()[j].getScore() << "\" ";
+						os << "score=\"" << precisionWrapper(peptide_ids[l].getHits()[j].getScore()) << "\" ";
 						os << "sequence=\"" << peptide_ids[l].getHits()[j].getSequence() << "\" ";
 						os << "charge=\"" << peptide_ids[l].getHits()[j].getCharge() << "\" ";
 						if (peptide_ids[l].getHits()[j].getAABefore()!=' ')

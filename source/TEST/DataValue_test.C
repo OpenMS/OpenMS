@@ -449,7 +449,7 @@ START_SECTION((QString toQString() const))
 END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
-	DataValue a((Int)5), b((UInt)100), c((DoubleReal)1.111), d((Real)1.1), e("hello "), f(std::string("world")), g;
+	DataValue a((Int)5), b((UInt)100), c((DoubleReal)1.111), d((DoubleReal)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;
   TEST_EQUAL(os.str(),"51001.1111.1hello world")

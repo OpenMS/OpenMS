@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>

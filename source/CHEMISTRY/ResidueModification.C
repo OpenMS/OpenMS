@@ -45,6 +45,8 @@ namespace OpenMS
 
 	ResidueModification::ResidueModification(const ResidueModification& rhs)
 		: id_(rhs.id_),
+			psi_mod_accession_(rhs.psi_mod_accession_),
+			unimod_accession_(rhs.unimod_accession_),
 			full_name_(rhs.full_name_),
 			name_(rhs.name_),
 			term_spec_(rhs.term_spec_),
@@ -65,6 +67,8 @@ namespace OpenMS
 		if (this != &rhs)
 		{
     	id_ = rhs.id_;
+			psi_mod_accession_ = rhs.psi_mod_accession_;
+			unimod_accession_ = rhs.unimod_accession_;
 			full_name_ = rhs.full_name_;
 			name_ = rhs.name_;
 			term_spec_ = rhs.term_spec_;
@@ -85,6 +89,8 @@ namespace OpenMS
 	bool ResidueModification::operator == (const ResidueModification& rhs) const
 	{
 		return  id_ == rhs.id_ &&
+						psi_mod_accession_ == rhs.psi_mod_accession_ && 
+						unimod_accession_ == rhs.unimod_accession_ &&
 						full_name_ == rhs.full_name_ &&
 						name_ == rhs.name_ &&
 						term_spec_ == rhs.term_spec_ &&
@@ -117,6 +123,26 @@ namespace OpenMS
 	const String& ResidueModification::getId() const
 	{
 		return id_;
+	}
+	
+	void ResidueModification::setPSIMODAccession(const String& id)
+	{
+		psi_mod_accession_ = id;
+	}
+
+	const String& ResidueModification::getPSIMODAccession() const
+	{
+		return psi_mod_accession_;
+	}
+
+	void ResidueModification::setUniModAccession(const String& id)
+	{
+		unimod_accession_ = id;
+	}
+
+	const String& ResidueModification::getUniModAccession() const
+	{
+		return unimod_accession_;
 	}
 
 	void ResidueModification::setFullName(const String& full_name)
@@ -156,6 +182,14 @@ namespace OpenMS
 			term_spec_ = N_TERM;
 			return;
 		}
+		if (term_spec == "Protein-C-term")
+		{
+			term_spec_ = PROTEIN_C_TERM;
+		}
+		if (term_spec == "Protein-N-term")
+		{
+			term_spec_ = PROTEIN_N_TERM;
+		}
 		if (term_spec == "none")
 		{
 			term_spec_ = ANYWHERE;
@@ -180,6 +214,8 @@ namespace OpenMS
 		{
 			case C_TERM: return "C-term";
 			case N_TERM: return "N-term";
+			case PROTEIN_C_TERM: return "Protein-C-term";
+			case PROTEIN_N_TERM: return "Protein-N-term";
 			default: // ANYWHERE
 				if (term_spec != ANYWHERE)
 				{

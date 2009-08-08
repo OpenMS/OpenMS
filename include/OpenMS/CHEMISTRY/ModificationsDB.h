@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_MODIFICATIONSDB_H
@@ -73,6 +73,9 @@ namespace OpenMS
 
 			/// returns all modifications which have the given name as synonym
 			std::set<String> searchModifications(const String& name) const;
+
+			/// returns all modification which have the given name as synonym and the given origin
+			std::set<String> searchModifications(const String& name, const String& origin) const;
 			
 			/** @brief returns the modifications of the given name
 

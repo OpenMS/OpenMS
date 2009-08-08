@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -61,11 +61,14 @@ namespace OpenMS
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
 			modification_ = new ResidueModification();
-			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
+			String title(attributeAsString_(attributes, "title"));
 			modification_->setId(title);
 
-			String full_name(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("full_name")))));
+			String full_name(attributeAsString_(attributes, "full_name"));
 			modification_->setFullName(full_name);
+
+			String record_id(attributeAsString_(attributes, "record_id"));
+			modification_->setUniModAccession("UniMod:" + record_id);
 			return;
 		}
 
@@ -73,12 +76,11 @@ namespace OpenMS
 		if (tag_ == "umod:specificity" || tag_ == "specificity")
 		{
 			// classification of mod
-			//String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
-			//modification_->setSourceClassification(classification);
-			//TODO
+			String classification(attributeAsString_(attributes, "classification"));
+			modification_->setSourceClassification(classification);
 
 			// allowed site
-			String site(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("site")))));
+			String site(attributeAsString_(attributes, "site"));
 			modification_->setOrigin(site);
 
 			// allowed positions
@@ -92,13 +94,13 @@ namespace OpenMS
 			{
 				if (pos == "Protein N-term")
 				{
-					position = ResidueModification::N_TERM;
+					position = ResidueModification::PROTEIN_N_TERM;
 				}
 				else
 				{
 					if (pos == "Protein C-term")
 					{
-						position = ResidueModification::C_TERM;
+						position = ResidueModification::PROTEIN_C_TERM;
 					}
 					else
 					{

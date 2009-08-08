@@ -396,7 +396,7 @@ namespace OpenMS
 			case DataValue::INT_LIST: ss << *(data_.int_list_) ; break;
 			case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_) ; break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
-			case DataValue::DOUBLE_VALUE: ss.precision(writtenDigits<DoubleReal>()); ss << data_.dou_ ; break;
+			case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_) ; break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
 		};
 		return ss.str();
@@ -470,7 +470,7 @@ namespace OpenMS
 			case DataValue::INT_LIST: os << *(p.data_.int_list_);break;
 			case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_);break;
 			case DataValue::INT_VALUE: os << p.data_.int_; break;
-			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
+			case DataValue::DOUBLE_VALUE: os << precisionWrapper(p.data_.dou_); break;
 			case DataValue::EMPTY_VALUE: break;
 		};
 		return os;

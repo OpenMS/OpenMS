@@ -84,6 +84,24 @@ namespace OpenMS
 		return new_mods;
 	}
 
+	set<String> ModificationsDB::searchModifications(const String& name, const String& origin) const
+	{
+		if (!modification_names_.has(name))
+		{
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+		}
+
+		set<const ResidueModification*> mods = modification_names_[name];
+		set<String> new_mods;
+		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+		{
+			if ((*it)->getOrigin() == origin)
+			{
+				new_mods.insert((*it)->getId());
+			}
+		}
+	}
+
 	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
 	{
 		set<const ResidueModification*> mods;
@@ -165,7 +183,7 @@ namespace OpenMS
 		return idx;
 	}
 	
-  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error)
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
@@ -176,7 +194,7 @@ namespace OpenMS
 		}
 	}
 
-	void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, const String& residue, double mass, double error)
+	void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, const String& residue, DoubleReal mass, DoubleReal error)
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
@@ -214,6 +232,19 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
     {
+			// sarch whether this modification is already contained in the DB
+			// this list contains all specificities of unimod as separat entries,
+			// because PSI-MOD handles them as different entries
+			if (modification_names_.has((*it)->getUniModAccession()))
+			{
+				// just check the values, if they are correctly set
+				
+				// different sites
+
+				
+			}
+
+
       modification_names_[(*it)->getFullName()].insert(*it);
     }
 
@@ -265,7 +296,18 @@ namespace OpenMS
       }
       else if (line_wo_spaces.hasPrefix("def:"))
       {
-        // TODO
+				line.remove('[');
+				line.remove(']');
+				line.remove(',');
+        vector<String> split;
+				line.split(' ', split);
+				for (Size i = 0; i != split.size(); ++i)
+				{
+					if (split[i].hasPrefix("UniMod:"))
+					{
+						mod.setUniModAccession(split[i].trim());
+					}
+				}
       }
 			else if (line_wo_spaces.hasPrefix("comment:"))
 			{
@@ -357,6 +399,8 @@ namespace OpenMS
 			set<String> synonyms = it->second.getSynonyms();
 			synonyms.insert(it->first);
 			synonyms.insert(it->second.getFullName());
+			synonyms.insert(it->second.getUniModAccession());
+			synonyms.insert(it->second.getPSIMODAccession());
 
 			// now check each of the names and link it to the residue modification
 			for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)

@@ -111,11 +111,11 @@ namespace OpenMS
 
 	void CompNovoIdentificationCID::getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec)
 	{
-		if (CID_spec.getPrecursors().begin()->getMZ() > 1000.0)
-		{
-			cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit" << endl;
-			return;
-		}
+		//if (CID_spec.getPrecursors().begin()->getMZ() > 1000.0)
+		//{
+		//	cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit" << endl;
+		//	return;
+		//}
 					
 		PeakSpectrum new_CID_spec(CID_spec);
 		windowMower_(new_CID_spec, 0.3, 1);
@@ -134,7 +134,22 @@ namespace OpenMS
   	normalizer.filterSpectrum(new_CID_spec);
 
 		UInt charge(2);
-		DoubleReal precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - Constants::PROTON_MASS_U;
+		DoubleReal precursor_weight(0); // [M+H]+
+		if (CID_spec.getPrecursors().size() > 0)
+		{
+			// believe charge of spectrum?
+			if (CID_spec.getPrecursors().begin()->getCharge() != 0)
+			{
+				charge = CID_spec.getPrecursors().begin()->getCharge();
+			}
+			else
+			{
+				// TODO estimate charge state
+			}
+			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
+		}
+
+		cerr << "charge=" << charge << ", [M+H]=" << precursor_weight << endl;
 				
 		// now delete all peaks that are right of the estimated precursor weight
 		UInt peak_counter(0);

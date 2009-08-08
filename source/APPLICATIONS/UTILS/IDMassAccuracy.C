@@ -131,7 +131,7 @@ class TOPPIDMassAccuracy
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-		
+			
 			StringList id_in(getStringList_("id_in"));
 			StringList in(getStringList_("in"));
 			Size number_of_bins((UInt)getIntOption_("number_of_bins"));
@@ -259,14 +259,14 @@ class TOPPIDMassAccuracy
 						
 							vector<pair<Size, Size> > pairs;
 							sa.getSpectrumAlignment(pairs, theo_spec, maps[i][j]);
-							cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
+							//cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
 							for (vector<pair<Size, Size> >::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit)
 							{
 								MassDifference md;
 								md.exp_mz = maps[i][j][pit->second].getMZ();
 								md.theo_mz = theo_spec[pit->first].getMZ();
-								cerr.precision(15);
-								cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
+								//cerr.precision(15);
+								//cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
 								md.intensity = maps[i][j][pit->second].getIntensity();
 								md.charge = hit.getCharge();
 								fragment_diffs.push_back(md);
