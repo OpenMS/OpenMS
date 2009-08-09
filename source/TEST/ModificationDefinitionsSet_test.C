@@ -63,6 +63,7 @@ START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)
 }
 END_SECTION
 
+/*
 START_SECTION((ModificationDefinitionsSet(const String &fixed_modifications, const String &variable_modifications="")))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
@@ -358,7 +359,7 @@ START_SECTION((bool operator!=(const ModificationDefinitionsSet& rhs) const))
   TEST_EQUAL(mod_set1 != mod_set2, false)
 }
 END_SECTION
-
+*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

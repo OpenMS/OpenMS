@@ -87,7 +87,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[4].toUnmodifiedString(), "SGHSAVLLQDGK")			
 	TEST_EQUAL(temp_sequences[4].toString(), "SGHSAVLLQ(MOD:00137)DGK")
 	TEST_EQUAL(temp_sequences[5].toUnmodifiedString(), "AGAGIANVQAAIR")			
-	TEST_EQUAL(temp_sequences[5].toString(), "AGAGIAN(MOD:00565)VQ(MOD:00137)AAIR")
+	TEST_EQUAL(temp_sequences[5].toString(), "AGAGIAN(Deamidated (N))VQ(MOD:00137)AAIR")
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "VTAPAARSAALGK")
 	TEST_EQUAL(temp_sequences[6].toString(), "VTAPAARSAALGK")
 	++it;
@@ -105,7 +105,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[4].toUnmodifiedString(), "MGGIALLDEIGK")
 	TEST_EQUAL(temp_sequences[4].toString(), "M(MOD:00425)GGIALLDEIGK")			
 	TEST_EQUAL(temp_sequences[5].toUnmodifiedString(), "DQMDNALRIR")
-	TEST_EQUAL(temp_sequences[5].toString(), "DQMDN(MOD:00565)ALRIR")			
+	TEST_EQUAL(temp_sequences[5].toString(), "DQMDN(Deamidated (N))ALRIR")			
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "QTLAGRMVVQK")
 	TEST_EQUAL(temp_sequences[6].toString(), "Q(MOD:00137)TLAGRMVVQ(MOD:00137)K")				
 END_SECTION

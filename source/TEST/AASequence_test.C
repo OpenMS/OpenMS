@@ -360,7 +360,7 @@ START_SECTION(String toString() const)
 
 	TEST_STRING_EQUAL(seq1.toString(), "DFPIANGER")
 	TEST_STRING_EQUAL(seq2.toString(), "(MOD:00051)DFPIANGER")
-	TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(MOD:00565)GER")
+	TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated (N))GER")
 END_SECTION
 
 START_SECTION(String toUnmodifiedString() const)
@@ -389,7 +389,7 @@ END_SECTION
 START_SECTION(void setModification(Size index, const String &modification))
 	AASequence seq1("ACDEFNK");
 	seq1.setModification(5, "Deamidated");
-	TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "MOD:00565")
+	TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "Deamidated (N)")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))

@@ -109,8 +109,8 @@ START_SECTION((void predictPTMs(FeatureMapSim &map)))
 	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
 	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAAHTKLRTTIPPEFG")
 	TEST_EQUAL(map[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRYCNHKTUIKL")
-	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(MOD:00130)K(MOD:00130)K(MOD:00130)KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
-	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(MOD:00078)RRRRRRRRYCNHK(MOD:00130)TUIKL")
+	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Lys->Allysine (K))K(Lys->Allysine (K))K(Lys->Allysine (K))KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
+	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(Methyl (R))RRRRRRRRYCNHK(Lys->Allysine (K))TUIKL")
 	TEST_EQUAL(map.size(),5);
 	//for (FeatureMapSim::const_iterator it = map.begin(); it!=map.end(); ++it)
 	//{
