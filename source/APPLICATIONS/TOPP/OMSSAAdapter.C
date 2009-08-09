@@ -25,7 +25,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
@@ -105,8 +105,13 @@ class TOPPOMSSAAdapter
       setValidStrings_("fragment_error_units", valid_strings);
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
-      registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			vector<String> all_mods;
+			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+      registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			setValidStrings_("fixed_modifications", all_mods);
+      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			setValidStrings_("variable_modifications", all_mods);
+				
 			
 			addEmptyLine_();
 			addText_("OMSSA specific input options");
@@ -420,12 +425,12 @@ class TOPPOMSSAAdapter
     	}
   
 			writeDebug_("Evaluating modifications", 1);
-			ModificationDefinitionsSet mod_set(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications"));
+			ModificationDefinitionsSet mod_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
 			writeDebug_("Setting modifications", 1);
 			UInt user_mod_num(119);
 			vector<pair<UInt, String> > user_mods;
 			// fixed modifications
-			if (getStringOption_("fixed_modifications") != "")
+			if (getStringList_("fixed_modifications").size() != 0)
 			{
 				set<String> mod_names = mod_set.getFixedModificationNames();
 				String mod_list;
@@ -457,7 +462,7 @@ class TOPPOMSSAAdapter
 				}
 			}
 			
-			if (getStringOption_("variable_modifications") != "")
+			if (getStringList_("variable_modifications").size() != 0)
 			{
 				set<String> mod_names = mod_set.getVariableModificationNames();
 				String mod_list;
@@ -575,7 +580,7 @@ class TOPPOMSSAAdapter
 			// reading input
 			//-------------------------------------------------------------
 
-			MzDataFile mzdata_infile;
+			MzMLFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
@@ -693,25 +698,8 @@ class TOPPOMSSAAdapter
 				}
 			}
 			search_parameters.mass_type = mass_type;
-			vector<String> fixed_mods, var_mods;
-			getStringOption_("fixed_modifications").split(',', fixed_mods);
-			if (fixed_mods.size() == 0)
-			{
-				if (getStringOption_("fixed_modifications") != "")
-				{
-					fixed_mods.push_back(getStringOption_("fixed_modifications"));
-				}
-			}
-			getStringOption_("variable_modifications").split(',', var_mods);
-			if (var_mods.size() == 0)
-			{
-				if (getStringOption_("variable_modifications") != "")
-				{
-					var_mods.push_back(getStringOption_("variable_modifications"));
-				}
-			}
-			search_parameters.fixed_modifications = fixed_mods;
-			search_parameters.variable_modifications = var_mods;
+			search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+			search_parameters.variable_modifications = getStringList_("variable_modifications");
 			ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
 				
 			UInt e(getIntOption_("e"));

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Marc Sturm $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ namespace OpenMS
 			GELML,							///< GelML (HUPO PSI format) (.GelML)
 			TRAML,							///< TraML (HUPO PSI format) for transitions (.TraML)
 			MSP,								///< NIST spectra library file format (.msp)
+			OMSSAXML,						///< OMSSA XML file format for peptide identifications (.xml)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
 	}; //struct

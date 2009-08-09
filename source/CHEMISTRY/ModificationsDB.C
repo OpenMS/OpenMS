@@ -42,6 +42,7 @@ namespace OpenMS
 	ModificationsDB::ModificationsDB()
 	{
 		readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
+		readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
 	}
 
 	ModificationsDB::~ModificationsDB()
@@ -100,6 +101,8 @@ namespace OpenMS
 				new_mods.insert((*it)->getId());
 			}
 		}
+
+		return new_mods;
 	}
 
 	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
@@ -226,32 +229,54 @@ namespace OpenMS
 	
 	void ModificationsDB::readFromUnimodXMLFile(const String& filename)
 	{
-		String file = File::find(filename);
+		vector<ResidueModification*> new_mods;
+		UnimodXMLFile().load(filename, new_mods);
 
-		UnimodXMLFile().load(file, mods_);
+		vector<ResidueModification*> to_delete;
 
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
+    for (vector<ResidueModification*>::iterator it = new_mods.begin(); it != new_mods.end(); ++it)
     {
-			// sarch whether this modification is already contained in the DB
+			// search whether this modification is already contained in the DB
 			// this list contains all specificities of unimod as separat entries,
 			// because PSI-MOD handles them as different entries
-			/*
 			if (modification_names_.has((*it)->getUniModAccession()))
 			{
 				String origin = (*it)->getOrigin();
 
+				bool found(false);
 				set<const ResidueModification*> mods = modification_names_[(*it)->getUniModAccession()];
 				for (set<const ResidueModification*>::iterator mit = mods.begin(); mit != mods.end(); ++mit)
 				{
-					if (mit->getOrigin() == origin)
+					if ((*mit)->getOrigin() == origin)
 					{
-						mit->setUniModAccession(it->);
+						const_cast<ResidueModification*>(*mit)->setId((*it)->getId() + " (" + origin + ")");
+						modification_names_[(*mit)->getId()].insert(*mit);
+						to_delete.push_back(*it);
+						found = true;
+						break;
 					}
 				}
-			}*/
 
-      modification_names_[(*it)->getFullName()].insert(*it);
+				if (!found)
+				{
+					(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+					modification_names_[(*it)->getId()].insert(*it);
+					mods_.push_back(*it);
+				}
+			}
+			else
+			{
+				(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+				modification_names_[(*it)->getId()].insert(*it);
+				mods_.push_back(*it);
+			}
     }
+
+		// delete modifications which were not registered
+		for (vector<ResidueModification*>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
+		{
+			delete *it;
+		}
 
 		return;
 	}
@@ -290,6 +315,7 @@ namespace OpenMS
       {
         id = line.substr(line.find(':')+1).trim();
 				mod.setId(id);
+				mod.setPSIMODAccession(id);
       }
       else if (line_wo_spaces.hasPrefix("name:"))
       {
@@ -415,6 +441,18 @@ namespace OpenMS
 		}
 
 		return;
+	}
+
+	void ModificationsDB::getAllSearchModifications(vector<String>& modifications)
+	{
+		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		{
+			if ((*it)->getUniModAccession() != "")
+			{
+				cerr << (*it)->getUniModAccession() << endl;
+				modifications.push_back((*it)->getId());
+			}
+		}
 	}
 } // namespace OpenMS
 

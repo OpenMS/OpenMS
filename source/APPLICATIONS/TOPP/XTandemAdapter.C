@@ -22,14 +22,16 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -99,8 +101,12 @@ class TOPPXTandemAdapter
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor charge", false);
 			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
 			
-			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			vector<String> all_mods;
+			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+			setValidStrings_("fixed_modifications", all_mods);
+      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+			setValidStrings_("variable_modifications", all_mods);
 			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 	
 			addEmptyLine_();
@@ -172,7 +178,7 @@ class TOPPXTandemAdapter
 			//-------------------------------------------------------------
 
 			// only load msLevel 2
-			MzDataFile mzdata_infile;
+			MzMLFile mzdata_infile;
 			mzdata_infile.getOptions().addMSLevel(2);
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
@@ -244,7 +250,7 @@ class TOPPXTandemAdapter
 			infile.setFragmentMassTolerance(getDoubleOption_("fragment_mass_tolerance"));
 			infile.setMaxPrecursorCharge(getIntOption_("max_precursor_charge"));
 			infile.setNumberOfThreads(getIntOption_("threads"));
-			infile.setModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
+			infile.setModifications(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
@@ -275,7 +281,7 @@ class TOPPXTandemAdapter
 
 			// read the output of X!Tandem and write it to IdXML
 			XTandemXMLFile tandem_output;
-			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
+			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
 			StringList files;
 			File::fileList(temp_directory, unique_name + "_tandem_output_file*.xml", files);

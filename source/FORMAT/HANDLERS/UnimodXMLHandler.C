@@ -60,6 +60,7 @@ namespace OpenMS
 		// new modification?
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
+			sites_.clear();
 			modification_ = new ResidueModification();
 			String title(attributeAsString_(attributes, "title"));
 			modification_->setId(title);
@@ -81,7 +82,7 @@ namespace OpenMS
 
 			// allowed site
 			String site(attributeAsString_(attributes, "site"));
-			modification_->setOrigin(site);
+			sites_.push_back(site);
 
 			// allowed positions
 			ResidueModification::Term_Specificity position = ResidueModification::ANYWHERE;
@@ -124,7 +125,6 @@ namespace OpenMS
 			}
 			modification_->setTermSpecificity(position);
 
-			new_mods_.push_back(modification_);
 			return;
 		}
 	
@@ -185,27 +185,31 @@ namespace OpenMS
 		// write the modifications to vector
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
-			for (vector<ResidueModification*>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
+			modification_->setAverageMass(avge_mass_);
+			modification_->setMonoMass(mono_mass_);
+			modification_->setDiffFormula(diff_formula_);
+
+			for (vector<String>::const_iterator it = sites_.begin(); it != sites_.end(); ++it)
 			{
-				(*it)->setAverageMass(avge_mass_);
-				(*it)->setMonoMass(mono_mass_);
-				(*it)->setDiffFormula(diff_formula_);
-				modifications_.push_back(*it);
+				ResidueModification* new_mod = new ResidueModification(*modification_);
+				new_mod->setOrigin(*it);
+				modifications_.push_back(new_mod);
 			}
 			
 			avge_mass_ = 0.0;
 			mono_mass_ = 0.0;
 			diff_formula_ = EmpiricalFormula();
-			new_mods_.clear();
+
+			delete modification_;
 			return;
 		}
 
 		if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
 		{
 			// now diff_formula_ contains the neutral loss diff formula
-			new_mods_.back()->setNeutralLossDiffFormula(diff_formula_);
-			new_mods_.back()->setNeutralLossMonoMass(mono_mass_);
-			new_mods_.back()->setNeutralLossAverageMass(avge_mass_);
+			modification_->setNeutralLossDiffFormula(diff_formula_);
+			modification_->setNeutralLossMonoMass(mono_mass_);
+			modification_->setNeutralLossAverageMass(avge_mass_);
 			avge_mass_ = 0.0;
 			mono_mass_ = 0.0;
 			diff_formula_ = EmpiricalFormula();

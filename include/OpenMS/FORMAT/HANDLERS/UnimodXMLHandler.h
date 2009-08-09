@@ -76,7 +76,7 @@ namespace OpenMS
 			
 			std::vector<ResidueModification*>& modifications_;
 
-			std::vector<ResidueModification*> new_mods_;
+			std::vector<String> sites_;
   };
 
 	} // namespace Internal

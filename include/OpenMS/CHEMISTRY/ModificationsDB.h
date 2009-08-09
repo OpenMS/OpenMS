@@ -107,6 +107,9 @@ namespace OpenMS
 			/// adds modifications from a given file in Unimod XML format
 			void readFromUnimodXMLFile(const String& filename);
 			
+			/// get all modifications that can be used for identification searches
+			void getAllSearchModifications(std::vector<String>& modifications);
+
 		protected:
 
 			/// stores the modifications

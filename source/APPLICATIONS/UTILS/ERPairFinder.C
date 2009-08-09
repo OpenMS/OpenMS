@@ -28,10 +28,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -128,11 +127,11 @@ class TOPPERPairFinder
 			registerOutputFile_("out","<file>","","Output consensusXML file were the decoy database will be written to.");
 			setValidFormats_("out", StringList::create("consensusXML"));
 
-			registerDoubleOption_("lower_mz", "<m/z>", 200.0, "Lower m/z value for the resampling, which is useful for the stability of the method.", false, true);
-			setMinFloat_("lower_mz", 0.0);
+			//registerDoubleOption_("lower_mz", "<m/z>", 200.0, "Lower m/z value for the resampling, which is useful for the stability of the method.", false, true);
+			//setMinFloat_("lower_mz", 0.0);
 
-			registerDoubleOption_("upper_mz", "<m/z>", 2000.0, "Upper m/z value for the resampling of the scans, which is useful for the stability of the methode.", false, true);
-			setMinFloat_("upper_mz", 0.0);
+			//registerDoubleOption_("upper_mz", "<m/z>", 2000.0, "Upper m/z value for the resampling of the scans, which is useful for the stability of the methode.", false, true);
+			//setMinFloat_("upper_mz", 0.0);
 
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 0.3, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, false);
 			setMinFloat_("precursor_mass_tolerance", 0.0);
@@ -143,9 +142,15 @@ class TOPPERPairFinder
 			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge state features should be search for.", false, false);
 			setMinInt_("max_charge", 1);
 
-			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold, for the meaning see the documentation of the IsotopeWaveletFeatureFinder documentation.", false, false);
+			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold, for the meaning see the documentation of the IsotopeWaveletFeatureFinder documentation.", false, true);
 			setMinFloat_("intensity_threshold", -1.0);
 
+			registerIntOption_("max_isotope", "<num>", 3, "Max isotope of the isotope distribution to be considered", false, true);
+			setMinInt_("max_isotope", 2);
+
+			registerDoubleOption_("expansion_range", "<range>", 5.0, "The range that is used to extend the isotope distribution with null intensity peaks in Th.", false, true);
+			setMinFloat_("expansion_range", 0.0);
+			
 
 		}
 
@@ -157,10 +162,10 @@ class TOPPERPairFinder
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			String pair_in(getStringOption_("pair_in"));
-			DoubleReal lower_mz(getDoubleOption_("lower_mz"));
-			DoubleReal upper_mz(getDoubleOption_("upper_mz"));
 			DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
 			DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
+			DoubleReal expansion_range(getDoubleOption_("expansion_range"));
+			Size max_isotope(getIntOption_("max_isotope"));
 			Int debug(getIntOption_("debug"));
 
 			//-------------------------------------------------------------
@@ -215,11 +220,6 @@ class TOPPERPairFinder
 			ff_param.setValue("intensity_threshold", -1.0);
 			iso_ff.setParameters(ff_param);
 			
-			//LinearResampler res;
-			//res.setLogType(ProgressLogger::NONE);
-			//Param res_param(res.getParameters());
-			//res.setParameters(res_param);
-
 			FeatureFinder ff;
 			ff.setLogType(ProgressLogger::NONE);
 
@@ -233,8 +233,6 @@ class TOPPERPairFinder
 					continue;
 				}
 
-				FeatureMap<> feature_map;
-				PeakMap new_exp;
 				PeakSpectrum new_spec = *it;
 
 				// get spacing from data
@@ -249,107 +247,163 @@ class TOPPERPairFinder
 					last_mz = pit->getMZ();
 				}
 				writeDebug_("Min-spacing=" + String(min_spacing), 1);
-				//res_param.setValue("spacing", min_spacing);
 
-				// insert peaks at beginning and end to 
-				// expand the resampling range to 'lower_mz' to 'upper_mz'
-				/*Peak1D p;
-				p.setIntensity(0.1);
-				for (DoubleReal pos = new_spec.begin()->getMZ(); pos > lower_mz; pos -= min_spacing)
+				// split the spectrum into two subspectra, by using different hypothesis of
+				// the SILAC pairs
+				Size idx = 0;
+				for (vector<SILAC_pair>::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit, ++idx)
 				{
-					p.setMZ(pos);
-					new_spec.insert(new_spec.begin(), p);
-				}
-
-				for (DoubleReal pos = new_spec.rbegin()->getMZ(); pos < upper_mz; pos += min_spacing)
-				{
-					p.setMZ(pos);
-					new_spec.push_back(p);
-				}*/
-
-				SavitzkyGolayFilter filter;
-				filter.filter(new_spec);
-				//Peak1D p;
-				//p.setMZ(lower_mz);
-				//p.setIntensity(0);
-				//new_spec.insert(new_spec.begin(), p);
-				//p.setMZ(upper_mz);
-				//new_spec.push_back(p);
-
-				//new_exp.push_back(new_spec);
-				
-				//res.rasterExperiment(new_exp);
-				
-				writeDebug_("Spectrum-id: " + it->getNativeID() + " @ " + String(it->getRT()) +"s", 1);
-
-				new_exp.updateRanges();
-				new_exp.sortSpectra(true);
-
-				ff.run("isotope_wavelet", new_exp, feature_map, ff_param);
-
-				writeDebug_("#features=" + String(feature_map.size()), 1);
-
-				// search if feature maps to m/z value of pair
-				vector<MatchedFeature> light, heavy;
-				for (FeatureMap<>::const_iterator fit = feature_map.begin(); fit != feature_map.end(); ++fit)
-				{
-					all_features.push_back(*fit);
-					Size idx = 0;
-					for (vector<SILAC_pair>::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit, ++idx)
-					{
-						if (fabs(fit->getMZ() - pit->mz_light) < precursor_mass_tolerance && fabs(fit->getRT() - pit->rt) < RT_tolerance)
-						{
-							light.push_back(MatchedFeature(*fit, idx));
-						}
-						if (fabs(fit->getMZ() - pit->mz_heavy) < precursor_mass_tolerance && fabs(fit->getRT() - pit->rt) < RT_tolerance)
-						{
-							heavy.push_back(MatchedFeature(*fit, idx));
-						}
-					}
-				
-				}
-
-				if (heavy.size() != 0 && light.size() != 0)
-				{
-					writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
-					// now find "good" matches, means the pair with the smallest m/z deviation
-					Feature best_light, best_heavy;
-					DoubleReal best_deviation(numeric_limits<DoubleReal>::max());
-					Size best_idx(pairs.size());
-					for (vector<MatchedFeature>::const_iterator fit1 = light.begin(); fit1 != light.end(); ++fit1)
-					{
-						for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
-						{
-							if (fit1->idx != fit2->idx)
-							{
-								continue;
-							}
-							DoubleReal deviation(0);
-							deviation = fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) + 
-													fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy);
-							if (deviation < best_deviation)
-							{
-								best_light = fit1->f;
-								best_heavy = fit2->f;
-								best_idx = fit1->idx;
-							}
-						}
-					}
-
-					if (best_idx == pairs.size())
+					// in RT window?
+					if (fabs(it->getRT() - pit->rt) >= RT_tolerance)
 					{
 						continue;
 					}
 
-					writeDebug_("Ratio: " + String(best_heavy.getIntensity() / best_light.getIntensity()), 1);
-					ConsensusFeature SILAC_feature;
-					SILAC_feature.setMZ((best_light.getMZ() + best_heavy.getMZ()) / 2.0);
-					SILAC_feature.setRT((best_light.getRT() + best_heavy.getRT()) / 2.0);
-	    		SILAC_feature.insert(0, feature_counter, best_light);
-	    		SILAC_feature.insert(1, feature_counter++, best_heavy);
-  	  		results_map.push_back(SILAC_feature);
+					// now excise the two ranges for the pair, complete isotope distributions of both, light and heavy
+					PeakSpectrum light_spec, heavy_spec;
+					light_spec.setRT(it->getRT());
+					heavy_spec.setRT(it->getRT());
+					for (PeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
+					{
+						DoubleReal mz(sit->getMZ());
+						if (mz - (pit->mz_light - precursor_mass_tolerance) > 0 && 
+								(pit->mz_light + (DoubleReal)max_isotope * Constants::NEUTRON_MASS_U / (DoubleReal)pit->charge + precursor_mass_tolerance) - mz  > 0)
+						{
+							light_spec.push_back(*sit);
+						}
+						            
+						if (mz - (pit->mz_heavy - precursor_mass_tolerance) > 0 &&      
+                (pit->mz_heavy + (DoubleReal)max_isotope * Constants::NEUTRON_MASS_U / (DoubleReal)pit->charge + precursor_mass_tolerance) - mz  > 0)
+            {
+              heavy_spec.push_back(*sit);
+            }
+					}
 
-					quantlets.push_back(SILACQuantitation(best_light.getIntensity(), best_heavy.getIntensity(), best_idx));
+					// expand light spectrum
+        	Peak1D p;
+        	p.setIntensity(0);
+
+					if (light_spec.size() > 0)
+					{
+        		DoubleReal lower_border = light_spec.begin()->getMZ() - expansion_range;
+        		for (DoubleReal pos = light_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
+        		{
+          		p.setMZ(pos);
+          		light_spec.insert(light_spec.begin(), p);
+        		}
+					
+        		DoubleReal upper_border = light_spec.begin()->getMZ() - expansion_range;
+        		for (DoubleReal pos = light_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
+        		{
+          		p.setMZ(pos);
+          		light_spec.push_back(p);
+        		}
+					}
+
+					if (heavy_spec.size() > 0)
+					{
+						// expand heavy spectrum
+						DoubleReal lower_border = heavy_spec.begin()->getMZ() - expansion_range;
+        		for (DoubleReal pos = heavy_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
+        		{
+          		p.setMZ(pos);
+          		heavy_spec.insert(heavy_spec.begin(), p);
+        		}
+
+        		DoubleReal upper_border = heavy_spec.begin()->getMZ() - expansion_range;
+        		for (DoubleReal pos = heavy_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
+        		{
+          		p.setMZ(pos);
+          		heavy_spec.push_back(p);
+        		}
+					}
+
+					// create experiments for feature finding
+					PeakMap new_exp_light, new_exp_heavy;
+					new_exp_light.push_back(light_spec);
+					new_exp_heavy.push_back(heavy_spec);
+
+					if (debug > 9)
+					{
+						MzMLFile().store(String(it->getRT()) + "_debugging_light.mzML", new_exp_light);
+						MzMLFile().store(String(it->getRT()) + "_debugging_heavy.mzML", new_exp_heavy);
+					}
+
+					writeDebug_("Spectrum-id: " + it->getNativeID() + " @ " + String(it->getRT()) +"s", 1);
+
+					new_exp_light.updateRanges();
+					new_exp_heavy.updateRanges();
+
+					FeatureMap<> feature_map_light, feature_map_heavy;
+					if (light_spec.size() > 0)
+					{
+						ff.run("isotope_wavelet", new_exp_light, feature_map_light, ff_param);
+					}
+					writeDebug_("#light_features=" + String(feature_map_light.size()), 1);
+					if (heavy_spec.size() > 0)
+					{
+						ff.run("isotope_wavelet", new_exp_heavy, feature_map_heavy, ff_param);
+					}
+					writeDebug_("#heavy_features=" + String(feature_map_heavy.size()), 1);
+
+					// search if feature maps to m/z value of pair
+					vector<MatchedFeature> light, heavy;
+					for (FeatureMap<>::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
+					{
+						all_features.push_back(*fit);
+						light.push_back(MatchedFeature(*fit, idx));
+					}
+					for (FeatureMap<>::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
+					{
+						all_features.push_back(*fit);
+						heavy.push_back(MatchedFeature(*fit, idx));
+					}
+
+					if (heavy.size() != 0 && light.size() != 0)
+					{
+						writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
+						// now find "good" matches, means the pair with the smallest m/z deviation
+						Feature best_light, best_heavy;
+						DoubleReal best_deviation(numeric_limits<DoubleReal>::max());
+						Size best_idx(pairs.size());
+						for (vector<MatchedFeature>::const_iterator fit1 = light.begin(); fit1 != light.end(); ++fit1)
+						{
+							for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
+							{
+								if (fit1->idx != fit2->idx)
+								{
+									continue;
+								}
+								DoubleReal deviation(0);
+								deviation = fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) + 
+														fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy);
+								if (deviation < best_deviation && deviation < precursor_mass_tolerance)
+								{
+									best_light = fit1->f;
+									best_heavy = fit2->f;
+									best_idx = fit1->idx;
+								}
+							}
+						}
+
+						if (best_idx == pairs.size())
+						{
+							continue;
+						}
+
+						writeDebug_("Ratio: " + String(best_heavy.getIntensity() / best_light.getIntensity()), 1);
+						ConsensusFeature SILAC_feature;
+						SILAC_feature.setMZ((best_light.getMZ() + best_heavy.getMZ()) / 2.0);
+						SILAC_feature.setRT((best_light.getRT() + best_heavy.getRT()) / 2.0);
+	    			SILAC_feature.insert(0, feature_counter, best_light);
+	    			SILAC_feature.insert(1, feature_counter++, best_heavy);
+  	  			results_map.push_back(SILAC_feature);
+
+						quantlets.push_back(SILACQuantitation(best_light.getIntensity(), best_heavy.getIntensity(), best_idx));
+
+
+
+					}
 				}
 			}
 

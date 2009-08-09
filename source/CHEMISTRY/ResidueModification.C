@@ -271,7 +271,7 @@ namespace OpenMS
 			return;
 		}
 
-		cerr << "ResidueModification: Unknown source classification '" << classification << "'" << endl;
+		//cerr << "ResidueModification: Unknown source classification '" << classification << "'" << endl;
 		return;
 	}
 	
