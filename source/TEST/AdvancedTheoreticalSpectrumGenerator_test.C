@@ -163,8 +163,8 @@ TEST_EQUAL(copy_dfs_order.size(), dfs_order.size());
 for(Size i=0; i<copy_has_parent.size();++i)
   TEST_EQUAL(copy_has_parent[i], has_parent[i]);
 
-for(Size i=0; i<copy_has_parent.size();++i)
-  TEST_EQUAL(copy_dfs_order[i], copy_dfs_order[i]);
+for(Size i=0; i<copy_dfs_order.size();++i)
+  TEST_EQUAL(copy_dfs_order[i], dfs_order[i]);
 END_SECTION
 
 START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork operator =(const AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
@@ -182,8 +182,8 @@ TEST_EQUAL(copy_dfs_order.size(), dfs_order.size());
 for(Size i=0; i<copy_has_parent.size();++i)
   TEST_EQUAL(copy_has_parent[i], has_parent[i]);
 
-for(Size i=0; i<copy_has_parent.size();++i)
-  TEST_EQUAL(copy_dfs_order[i], copy_dfs_order[i]);
+for(Size i=0; i<copy_dfs_order.size();++i)
+  TEST_EQUAL(dfs_order[i], copy_dfs_order[i]);
 END_SECTION
 
 

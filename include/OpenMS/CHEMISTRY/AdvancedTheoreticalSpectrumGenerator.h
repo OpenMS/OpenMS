@@ -59,7 +59,7 @@ namespace OpenMS
       /**
        @brief Nested class represents the TAN used for the probabilistic network
        */
-      class TreeAugmentedNetwork
+      class OPENMS_DLLAPI TreeAugmentedNetwork
       {
         public:
 
