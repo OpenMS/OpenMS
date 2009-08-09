@@ -127,6 +127,8 @@ namespace OpenMS
 			void outputVertexFinished(const String& file);
 			/// Called when a TOPP tool produces (error) output.
 			void updateTOPPOutputLog(const QString& out);
+			/// Called by the scene if the pipeline execution finishes successfully
+			void showSuccessLogMessage();
 			
     protected slots:
 		

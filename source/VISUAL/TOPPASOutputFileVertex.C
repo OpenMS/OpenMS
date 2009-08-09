@@ -129,6 +129,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::startComputation()
 	{
+		finished_ = false;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
@@ -163,6 +164,8 @@ namespace OpenMS
 			
 			emit outputFileWritten(String(file_));
 		}
+		finished_ = true;
+		emit iAmDone();
 	}
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
@@ -198,6 +201,11 @@ namespace OpenMS
 		{
 			event->ignore();	
 		}
+	}
+	
+	bool TOPPASOutputFileVertex::isFinished()
+	{
+		return finished_;
 	}
 }
 

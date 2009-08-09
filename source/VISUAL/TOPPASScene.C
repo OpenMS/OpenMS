@@ -560,6 +560,7 @@ namespace OpenMS
 				{
 					QString file_name = vertices_param.getValue(current_id + ":file_name").toQString();
 					TOPPASOutputFileVertex* ofv = new TOPPASOutputFileVertex(file_name);
+					connect (ofv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
 					current_vertex = ofv;
 				}
 				else if (current_type == "output file list")
@@ -571,6 +572,7 @@ namespace OpenMS
 						file_names_qt.push_back(str_it->toQString());
 					}
 					TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex(file_names_qt);
+					connect (oflv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
 					current_vertex = oflv;
 				}
 				else if (current_type == "tool")
@@ -588,6 +590,9 @@ namespace OpenMS
 					{
 						tv->setListModeActive(false);
 					}
+					connect(tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
+					connect(tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
+					
 					current_vertex = tv;
 				}
 				else
@@ -743,6 +748,31 @@ namespace OpenMS
 			item->setSelected(false);
 		}
 		update(sceneRect());
+	}
+	
+	void TOPPASScene::checkIfWeAreDone()
+	{
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
+			if (ofv && !ofv->isFinished())
+			{
+				return;
+			}
+			
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv && !oflv->isFinished())
+			{
+				return;
+			}
+		}
+		
+		emit entirePipelineFinished();
+	}
+	
+	void TOPPASScene::pipelineErrorSlot()
+	{
+		emit pipelineExecutionFailed();
 	}
 	
 } //namespace OpenMS

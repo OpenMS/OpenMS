@@ -117,6 +117,17 @@ namespace OpenMS
 			void addHoveringEdge(const QPointF& pos);
 			/// Called when the new edge is being "released"
 			void finishHoveringEdge();
+			/// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
+			void checkIfWeAreDone();
+			/// Called by vertices at which an error occured during pipeline execution
+			void pipelineErrorSlot();
+			
+		signals:
+			
+			/// Emitted when the entire pipeline execution is finished
+			void entirePipelineFinished();
+			/// Emitted when the pipeline execution has failed
+			void pipelineExecutionFailed();
 			
 		protected:
 			

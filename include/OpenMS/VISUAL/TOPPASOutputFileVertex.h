@@ -68,6 +68,8 @@ namespace OpenMS
 			void finished();
 			/// Shows the dialog for editing the file name
 			void showFileDialog();
+			/// Returns whether we are finished
+			bool isFinished();
 			
 		public slots:
 		
@@ -76,12 +78,17 @@ namespace OpenMS
 		
 		signals:
 			
+			/// Emitted when an output file was written
 			void outputFileWritten(const String& file);
+			/// Emitted when the pipeline ending in this vertex is finished
+			void iAmDone();
 		
 		protected:
 			
 			/// The file name
 			QString file_;
+			/// Stores whether the pipeline ending in this vertex has finished already
+			bool finished_;
 		
 			///@name reimplemented Qt events
       //@{

@@ -33,10 +33,13 @@
 #include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
 #include <QtGui/QSplashScreen>
+#include <QtCore/QDir>
 
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
+
+#include <OpenMS/VISUAL/TOPPASScene.h>
 
 
 using namespace OpenMS;
@@ -59,7 +62,15 @@ const char* tool_name = "TOPPAS";
 void print_usage()
 {
 	cerr << endl
-       << "this will explain how to use this..."
+       << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << endl
+       << endl
+       << "Usage:" << endl
+			 << " " << tool_name << " [options] " << endl
+			 << endl
+			 << "Options are:" << endl
+			 << "  --help           Shows this help" << endl
+			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << endl
+			 << "  -execute <File>  Executes the specified pipeline without starting the GUI" << endl
 			 << endl ;
 }
 
@@ -69,6 +80,7 @@ int main( int argc, const char** argv )
 	Map<String,String> valid_options, valid_flags, option_lists;
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
+	valid_options["-execute"] = "execute";
 	
 	Param param;
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
@@ -98,9 +110,21 @@ int main( int argc, const char** argv )
 	try
 	{
 #endif
+		
 	  QApplication a( argc, const_cast<char**>(argv));
-	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
-	  		
+	  
+	  if (param.exists("execute"))
+		{
+			TOPPASScene ts(0, QDir::tempPath()+QDir::separator());
+			a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
+			String toppas_file = (String)param.getValue("execute");
+			ts.load(toppas_file);
+			ts.runPipeline();
+			
+			return a.exec();
+		}
+		
+		a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
 	  {

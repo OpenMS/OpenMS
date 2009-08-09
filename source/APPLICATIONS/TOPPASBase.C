@@ -263,6 +263,7 @@ namespace OpenMS
 		{
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 			TOPPASScene* scene = tw->getScene();
+			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
 			scene->load(file_name);
 			
 			//connect signals/slots for log messages
@@ -624,6 +625,7 @@ namespace OpenMS
 	
 	void TOPPASBase::insertNewVertex_(double x, double y)
 	{
+		TOPPASScene* scene = activeWindow_()->getScene();
 		QTreeWidgetItem* current_tool = tools_tree_view_->currentItem();
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
@@ -639,12 +641,16 @@ namespace OpenMS
 		else if (tool_name == "<Output file list>")
 		{
 			tv = new TOPPASOutputFileListVertex();
-			connect (qobject_cast<TOPPASOutputFileListVertex*>(tv), SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
+			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			connect (oflv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
 		}
 		else if (tool_name == "<Output file>")
 		{
 			tv = new TOPPASOutputFileVertex();
-			connect (qobject_cast<TOPPASOutputFileVertex*>(tv), SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(tv);
+			connect (ofv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+			connect (ofv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
 		}
 		else // node is a TOPP tool
 		{	
@@ -674,16 +680,19 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+			
+			connect(ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
+			connect(ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
 		}
 		
 		tv->setPos(x,y);
-		activeWindow_()->getScene()->addVertex(tv);
+		scene->addVertex(tv);
 		
-		connect(tv,SIGNAL(clicked()),activeWindow_()->getScene(),SLOT(itemClicked()));
-		connect(tv,SIGNAL(doubleClicked()),activeWindow_()->getScene(),SLOT(itemDoubleClicked()));
-		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),activeWindow_()->getScene(),SLOT(updateHoveringEdgePos(const QPointF&)));
-		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),activeWindow_()->getScene(),SLOT(addHoveringEdge(const QPointF&)));
-		connect(tv,SIGNAL(finishHoveringEdge()),activeWindow_()->getScene(),SLOT(finishHoveringEdge()));
+		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
+		connect(tv,SIGNAL(doubleClicked()),scene,SLOT(itemDoubleClicked()));
+		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
+		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
+		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
 	}
 	
 	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)
@@ -806,6 +815,11 @@ namespace OpenMS
 
 		//update log_
 		log_->textCursor().insertText(text);
+	}
+	
+	void TOPPASBase::showSuccessLogMessage()
+	{
+		showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
 	}
 
 } //namespace OpenMS
