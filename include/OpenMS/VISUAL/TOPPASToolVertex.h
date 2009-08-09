@@ -71,6 +71,7 @@ namespace OpenMS
 				IOType type;
 				String param_name;
 				StringList valid_types;
+				bool listified;
 			};
 			
 			/// Default constructor
@@ -120,6 +121,12 @@ namespace OpenMS
 			void setProgressColor(const QColor& c);
 			/// Lets the user edit the parameters of the tool
 			void editParam();
+			/// Returns the number of iterations this tool has to perform
+			int numIterations();
+			/// Returns whether the list iteration mode is enabled
+			bool listModeActive();
+			/// (Un)sets the list iteration mode
+			void setListModeActive(bool b);
 			
 		public slots:
 		
@@ -182,7 +189,10 @@ namespace OpenMS
 			bool list_mode_;
 			/// The symbol for the list mode
 			static QImage symbol_image_;
-			
+			/// The number of the current iteration
+			int iteration_nr_;
+			/// The length of (all) input lists
+			int input_list_length_;
 	};
 }
 
