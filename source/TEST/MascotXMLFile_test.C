@@ -136,7 +136,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	vector<AASequence> temp;
 	
 	aa_sequence_1.setStringSequence("LHASGITVTEIPVTATNFK");
-	aa_sequence_1.setModification(6, "Deamidated");
+	aa_sequence_1.setModification(16, "Deamidated");
 	aa_sequence_2.setStringSequence("MRSLGYVAVISAVATDTDK");
 	aa_sequence_2.setModification(2, "Phospho");
 	aa_sequence_3.setStringSequence("HSKLSAK");

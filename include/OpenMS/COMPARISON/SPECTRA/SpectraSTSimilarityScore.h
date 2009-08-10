@@ -73,11 +73,11 @@ namespace OpenMS
 		/**
 			@brief: this function calculates only the dot product of the two spectrum like in SpectraST
 		*/
-		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+		DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 		
-	double operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
+		DoubleReal operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
 
-		double operator () (const PeakSpectrum& spec) const;
+		DoubleReal operator () (const PeakSpectrum& spec) const;
 		
 		/**
 			@return true if spectrum passes filtering
@@ -88,11 +88,11 @@ namespace OpenMS
 		/**
 			@param dot_prdouct if -1 this value will be calculated as well.
 		*/
-		double dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, double dot_product = -1) const;
+		DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product = -1) const;
 		
-		double delta_D(double top_hit, double runner_up);
+		DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
 		
-		double compute_F(double dot_product, double delta_D, double delta_bias);
+		DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal delta_bias);
 		
 		/**
 			@brief: measures how much of the dot prudct is dominated by a few peaks

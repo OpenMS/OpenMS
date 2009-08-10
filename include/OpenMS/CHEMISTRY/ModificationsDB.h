@@ -86,11 +86,10 @@ namespace OpenMS
 					
 					@exception ElementNotFound is thrown if no or more than one element is found
 			*/
-			const ResidueModification& getModification(const String& name) const;
+			const ResidueModification& getModification(const String& name, ResidueModification::Term_Specificity term_spec = ResidueModification::ANYWHERE) const;
 
-			
 			/// returns the modification with the given name and given residue 
-			const ResidueModification& getModification(const String& residue_name, const String& mod_name) const;
+			const ResidueModification& getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec = ResidueModification::ANYWHERE) const;
 
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
 			Size findModificationIndex(const String& mod_name) const;

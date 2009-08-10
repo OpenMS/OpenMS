@@ -95,13 +95,13 @@ namespace OpenMS
 			{
 				if (pos == "Protein N-term")
 				{
-					position = ResidueModification::PROTEIN_N_TERM;
+					position = ResidueModification::N_TERM;
 				}
 				else
 				{
 					if (pos == "Protein C-term")
 					{
-						position = ResidueModification::PROTEIN_C_TERM;
+						position = ResidueModification::C_TERM;
 					}
 					else
 					{
@@ -185,8 +185,8 @@ namespace OpenMS
 		// write the modifications to vector
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
-			modification_->setAverageMass(avge_mass_);
-			modification_->setMonoMass(mono_mass_);
+			modification_->setDiffAverageMass(avge_mass_);
+			modification_->setDiffMonoMass(mono_mass_);
 			modification_->setDiffFormula(diff_formula_);
 
 			for (vector<String>::const_iterator it = sites_.begin(); it != sites_.end(); ++it)

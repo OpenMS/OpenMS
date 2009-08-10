@@ -27,24 +27,15 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/FORMAT/MascotInfile2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <sstream>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -89,10 +80,10 @@ class TOPPMascotAdapterOnline
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
-					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
-			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
+			registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
+			setValidFormats_("in", StringList::create("mzML"));
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n");
+			setValidFormats_("out", StringList::create("idXML"));
 
 			registerSubsection_("Mascot_server", "Mascot server details");
 			registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
@@ -160,7 +151,7 @@ class TOPPMascotAdapterOnline
 			ss.clear();
 
 		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-			QTimer::singleShot(1000, mascot_query, SLOT(run()));
+			QTimer::singleShot(10000000, mascot_query, SLOT(run()));
 			event_loop.exec();
 
 			if (mascot_query->hasError())

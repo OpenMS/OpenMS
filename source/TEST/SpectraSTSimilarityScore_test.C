@@ -74,7 +74,7 @@ START_SECTION(SpectraSTSimilarityScore& operator = (const SpectraSTSimilaritySco
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 END_SECTION
 
-START_SECTION(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(DoubleReal operator () (const PeakSpectrum& spec) const)
 	RichPeakMap exp;
 	PeakSpectrum s1;
 	MSPFile msp;
@@ -89,11 +89,11 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
 			peak.setPosition(exp[0][k].getPosition());
 			s1.push_back(peak);
 	}	
-  double score = (*ptr)(s1);
+  DoubleReal score = (*ptr)(s1);
   TEST_REAL_SIMILAR(score, 1);
 END_SECTION
 
-START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -118,7 +118,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
 	}	
   TOLERANCE_ABSOLUTE(0.01)
 
-  double score = (*ptr)(s1, s2);
+  DoubleReal score = (*ptr)(s1, s2);
   TEST_REAL_SIMILAR(score, 1)
   
   	for(UInt k = 0; k < exp[2].size(); ++k)
@@ -133,7 +133,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION(double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const)
+START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const)
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -158,7 +158,7 @@ START_SECTION(double operator () (const BinnedSpectrum& spec1, const BinnedSpect
 	}	
   TOLERANCE_ABSOLUTE(0.01)
 
-  double score = (*ptr)(ptr->transform(s1), ptr->transform(s2));
+  DoubleReal score = (*ptr)(ptr->transform(s1), ptr->transform(s2));
   TEST_REAL_SIMILAR(score, 1)
   
   	for(UInt k = 0; k < exp[2].size(); ++k)
@@ -215,7 +215,7 @@ START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_thr
 	TEST_EQUAL(s3.size(),8)
 END_SECTION
 
-START_SECTION(double dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, double dot_product))
+START_SECTION(DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product))
 	
 END_SECTION
 

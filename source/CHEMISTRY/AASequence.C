@@ -172,7 +172,7 @@ namespace OpenMS
 				(type == Residue::Full || type == Residue::AIon || type == Residue::BIon || type == Residue::CIon || type == Residue::NTerminal)
 			 )
     {
-      ef += ModificationsDB::getInstance()->getModification(n_term_mod_).getDiffFormula();
+      ef += ModificationsDB::getInstance()->getModification("", n_term_mod_, ResidueModification::N_TERM).getDiffFormula();
     }
 
 
@@ -180,7 +180,7 @@ namespace OpenMS
 				(type == Residue::Full || type == Residue::XIon || type == Residue::YIon || type == Residue::ZIon || type == Residue::CTerminal)
 			 )
     {
-      ef += ModificationsDB::getInstance()->getModification(c_term_mod_).getDiffFormula();
+      ef += ModificationsDB::getInstance()->getModification("", c_term_mod_, ResidueModification::C_TERM).getDiffFormula();
     }
 
 
@@ -794,7 +794,7 @@ namespace OpenMS
 			String mod = split[0];
 			mod.remove('(');
 			mod.remove(')');
-			n_term_mod_ = ModificationsDB::getInstance()->getModification(mod).getId();
+			n_term_mod_ = ModificationsDB::getInstance()->getModification("", mod, ResidueModification::N_TERM).getId();
 
 			split.erase(split.begin());
 		}
@@ -813,11 +813,19 @@ namespace OpenMS
 			String mod;
 			mod = c_term.suffix('(');
 			mod = mod.prefix(')');
-			const ResidueModification* potential_mod = &ModificationsDB::getInstance()->getModification(mod);
-			if (potential_mod->getTermSpecificity() == ResidueModification::C_TERM)
+
+			try
 			{
-				c_term_mod_ = potential_mod->getId();			
-				split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
+				const ResidueModification* potential_mod = &ModificationsDB::getInstance()->getModification("", mod, ResidueModification::C_TERM);
+				if (potential_mod->getTermSpecificity() == ResidueModification::C_TERM)
+				{
+					c_term_mod_ = potential_mod->getId();
+					split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
+				}
+			}
+			catch (Exception::ElementNotFound& /* e */)
+			{
+				// just do nothing
 			}
 		}
 		
@@ -1026,8 +1034,7 @@ namespace OpenMS
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
 		}
-		// TODO check term specificity
-		n_term_mod_ = ModificationsDB::getInstance()->getModification(*mods.begin()).getId();
+		n_term_mod_ = ModificationsDB::getInstance()->getModification("", *mods.begin(), ResidueModification::N_TERM).getId();
 	}
 
 	void AASequence::setCTerminalModification(const String& modification)
@@ -1048,8 +1055,7 @@ namespace OpenMS
     {
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
     }
-    // TODO check term specificity
-		c_term_mod_ = ModificationsDB::getInstance()->getModification(*mods.begin()).getId();
+		c_term_mod_ = ModificationsDB::getInstance()->getModification("", *mods.begin(), ResidueModification::C_TERM).getId();
 	}
 
 	const String& AASequence::getNTerminalModification() const

@@ -32,6 +32,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 #include <cmath>
 
@@ -96,55 +97,101 @@ namespace OpenMS
 		set<String> new_mods;
 		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
 		{
-			if ((*it)->getOrigin() == origin)
+			if (origin == "" || origin == "X" || (*it)->getOrigin() == origin)
 			{
-				new_mods.insert((*it)->getId());
+				if ((*it)->getFullId() != "")
+				{
+					new_mods.insert((*it)->getFullId());
+				}
+				else
+				{
+					new_mods.insert((*it)->getId());
+				}
 			}
 		}
 
 		return new_mods;
 	}
 
-	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
+
+	const ResidueModification& ModificationsDB::getModification(const String& mod_name, ResidueModification::Term_Specificity term_spec) const
 	{
 		set<const ResidueModification*> mods;
 		if (modification_names_.has(mod_name))
 		{
 			mods = modification_names_[mod_name];
 		}
-		if (mods.size() != 1)
+
+		// now check term specificity
+		set<const ResidueModification*> new_mods;
+		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
 		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+			if (term_spec == ResidueModification::ANYWHERE || (*it)->getTermSpecificity() == term_spec)
+			{
+				new_mods.insert(*it);
+			}
+			//cerr << "Found mod: " << (*it)->getId() << " " << (*it)->getFullId() << " " << (*it)->getName() << " " << (*it)->getFullName() << endl;
+		}
+
+		// if more than one was found, check whether the masses are the same
+		if (new_mods.size() > 1)
+		{
+			set<DoubleReal> diff_masses;
+			for (set<const ResidueModification*>::const_iterator it = new_mods.begin(); it != new_mods.end(); ++it)
+			{
+				diff_masses.insert((*it)->getDiffMonoMass());
+			}
+			if (diff_masses.size() != 1 || *diff_masses.begin() == 0)
+			{
+				throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+			}
+		}
+		else
+		{
+			if (new_mods.size() != 1)
+			{
+				throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+			}
 		}
 		return **mods.begin();
 	}
+
 	
-	const ResidueModification& ModificationsDB::getModification(const String& residue_name, const String& mod_name) const
+	const ResidueModification& ModificationsDB::getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec) const
 	{
-		if (ResidueDB::getInstance()->getResidue(residue_name) == 0)
+		// either the mod is restricted to specific amino acid, or unspecific a the terminus
+		if (term_spec == ResidueModification::ANYWHERE && ResidueDB::getInstance()->getResidue(residue_name) == 0)
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
 		}
-		String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
-		set<String> mods = searchModifications(mod_name);
+		
+		String res = residue_name;
+		if (res != "")
+		{
+			res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
+		}
+
+		cerr << res << " " << mod_name << endl;
+
+		set<String> mods = searchModifications(mod_name, res);
 		const ResidueModification* mod_res = 0;
 		const ResidueModification* mod_x = 0;
 		for (set<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
 		{
-			if (res == ModificationsDB::getInstance()->getModification(*it).getOrigin())
+			if (res == "" || res == ModificationsDB::getInstance()->getModification(*it, term_spec).getOrigin())
 			{
 				if (mod_res == 0)
 				{
-					mod_res = &ModificationsDB::getInstance()->getModification(*it);
+					mod_res = &ModificationsDB::getInstance()->getModification(*it, term_spec);
 				}
 				else
 				{
 					cerr << "ModificationsDB::getModification: Warning more than one modification found for modification '" << mod_name << "' at residue '" << residue_name << "', picking first" << endl;
 				}
 			}
-			if ("X" == ModificationsDB::getInstance()->getModification(*it).getOrigin() && mod_x == 0)
+			if ("X" == ModificationsDB::getInstance()->getModification(*it, term_spec).getOrigin() && mod_x == 0)
 			{
-				mod_x = &ModificationsDB::getInstance()->getModification(*it);
+				mod_x = &ModificationsDB::getInstance()->getModification(*it, term_spec);
 			}
 		}
 
@@ -249,8 +296,15 @@ namespace OpenMS
 				{
 					if ((*mit)->getOrigin() == origin)
 					{
-						const_cast<ResidueModification*>(*mit)->setId((*it)->getId() + " (" + origin + ")");
+						const_cast<ResidueModification*>(*mit)->setFullId((*it)->getId() + " (" + origin + ")");
+						const_cast<ResidueModification*>(*mit)->setId((*it)->getId());
+						modification_names_[(*mit)->getFullId()].insert(*mit);
 						modification_names_[(*mit)->getId()].insert(*mit);
+						if ((*it)->getFullName() != "")
+						{
+							modification_names_[(*it)->getFullName() + " (" + origin + ")"].insert(*mit);
+							modification_names_[(*it)->getFullName()].insert(*mit);
+						}
 						to_delete.push_back(*it);
 						found = true;
 						break;
@@ -259,14 +313,16 @@ namespace OpenMS
 
 				if (!found)
 				{
-					(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+					(*it)->setFullId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+					modification_names_[(*it)->getFullId()].insert(*it);
 					modification_names_[(*it)->getId()].insert(*it);
 					mods_.push_back(*it);
 				}
 			}
 			else
 			{
-				(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+				(*it)->setFullId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+				modification_names_[(*it)->getFullId()].insert(*it);
 				modification_names_[(*it)->getId()].insert(*it);
 				mods_.push_back(*it);
 			}
@@ -447,12 +503,14 @@ namespace OpenMS
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
-			if ((*it)->getUniModAccession() != "")
+			if ((*it)->getUniModAccession() != "" && 
+					((*it)->getOrigin().size() == 1 || (*it)->getOrigin() == "C-term" || (*it)->getOrigin() == "N-term") && 
+					(*it)->getOrigin() != "X")
 			{
-				cerr << (*it)->getUniModAccession() << endl;
-				modifications.push_back((*it)->getId());
+				modifications.push_back((*it)->getFullId());
 			}
 		}
+		sort(modifications.begin(), modifications.end());
 	}
 } // namespace OpenMS
 

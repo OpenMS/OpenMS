@@ -74,8 +74,6 @@ namespace OpenMS
 				ANYWHERE = 0,
 				C_TERM = 1,
 				N_TERM =2,
-				PROTEIN_C_TERM = 3,
-				PROTEIN_N_TERM = 4,
 				NUMBER_OF_TERM_SPECIFICITY
 			};
 
@@ -121,6 +119,12 @@ namespace OpenMS
 
 			/// returns the identifier of the modification
 			const String& getId() const;
+
+			/// set full identifier (UniMod Accession + origin, if available)
+			void setFullId(const String& full_id);
+
+			/// returns the full id of the mod (UniMod accession + origin, if available)
+			const String& getFullId() const;
 
 			/// sets the unimod accession
 			void setUniModAccession(const String& id);
@@ -256,6 +260,8 @@ namespace OpenMS
 		protected:
 
 			String id_;
+
+			String full_id_;
 
 			String psi_mod_accession_;
 
