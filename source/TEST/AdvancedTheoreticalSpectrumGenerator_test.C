@@ -73,10 +73,11 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 //TODO when one probabilistic model is fix
 //This also tests the method: void loadProbabilisticModel();
 
-/*RichPeakSpectrum spec;
-  ptr->getSpectrum(spec, peptide, 1);
-  TEST_EQUAL(spec.size(), 12)
-
+  RichPeakSpectrum spec;
+  ptr->loadProbabilisticModel();
+  //ptr->simulate(spec, peptide,rng);
+  //TEST_EQUAL(spec.size(), 12)
+/*
   TOLERANCE_ABSOLUTE(0.001)
 
   double result[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};

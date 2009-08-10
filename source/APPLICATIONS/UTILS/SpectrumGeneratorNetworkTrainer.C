@@ -213,7 +213,7 @@ namespace OpenMS
                 suffix = annot.getSuffix(annot.size() - frag_pos);
                 DoubleReal true_prefix_mass = (annot.getPrefix(frag_pos).getMonoWeight(Residue::Internal));
 
-                if (!(true_prefix_mass / parent_mass > sector_upper_bound or true_prefix_mass / parent_mass <= sector_lower_bound))
+                if (!(true_prefix_mass / parent_mass > sector_upper_bound || true_prefix_mass / parent_mass <= sector_lower_bound))
                 {
                   //now check for each ion type whether a peak is abundant at corresponding mass offset
                   for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)

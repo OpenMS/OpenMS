@@ -36,7 +36,7 @@ namespace OpenMS
   //Function to compute the structure of the probabilistic network by performing a minimal
   //spanning tree computation
   void AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork::generateTree(std::vector<Int> &has_parent)
-  {
+  {	
     typedef std::vector<TanEdge>::const_iterator EdgeConstIter;
     typedef std::map<UInt, UInt>::iterator LabelIter;
 
@@ -52,7 +52,6 @@ namespace OpenMS
 
     has_parent.clear();
     has_parent.assign(max_id+1, -1);
-
 
     //sort edges in increasing order
     std::sort(edges_.begin(), edges_.end());
@@ -99,12 +98,12 @@ namespace OpenMS
     {
       ++label_it;
     }
-
+	
     if(label_it!=labels_end)
     {
       throw(Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input graph is no connected component"));
     }
-
+		
     //with the selected edges now build the tree
     //vector of adjacency lists for easy reconstruction
     std::vector<std::list<UInt> > adjacency_lists(max_id+1);
@@ -127,31 +126,31 @@ namespace OpenMS
     nodes_in_dfs_order_.clear();
     nodes_in_dfs_order_.push_back(min_id);
 
-    std::vector<bool> discovered(max_id, false);
-
+    std::vector<bool> discovered(max_id+1, false);
+	
     while (!node_stack.empty())
     {
       UInt actual_node = node_stack.back();
-      node_stack.pop_back();
+      node_stack.pop_back();	  
 
       AdjaListConstIter adja_iter = adjacency_lists[actual_node].begin();
       AdjaListConstIter adja_end = adjacency_lists[actual_node].end();
-
+	  
       while (adja_iter != adja_end)
-      {
+      {			  
         if (!discovered[*adja_iter])
-        {
+        {	
           node_stack.push_back(*adja_iter);
-          nodes_in_dfs_order_.push_back(*adja_iter);
+          nodes_in_dfs_order_.push_back(*adja_iter);		  
         }
         else
-        {
-          has_parent[actual_node] = *adja_iter;
+        {	
+          has_parent[actual_node] = *adja_iter;		  
         }
         ++adja_iter;
       }
-      discovered[actual_node] = true;
-    }
+      discovered[actual_node] = true;	  
+    }	
   }
 
   AdvancedTheoreticalSpectrumGenerator::AdvancedTheoreticalSpectrumGenerator() :
@@ -168,7 +167,7 @@ namespace OpenMS
     defaults_.setValue("add_metainfo", 0, "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     defaults_.setValue("add_losses", 0, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     defaults_.setValue("add_precursor_peaks", 0, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    defaults_.setValue("model_file_name", "examples/simulation/MSMSSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "examples/simulation/MSMSim.model", "Name of the probabilistic Model file");
 
     //defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
 
