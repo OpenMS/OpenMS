@@ -65,7 +65,7 @@ namespace OpenMS
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent, const String& tmp_path = "");
+			TOPPASScene(QObject* parent, const String& tmp_path = "", bool gui = true);
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -122,6 +122,22 @@ namespace OpenMS
 			/// Called by vertices at which an error occured during pipeline execution
 			void pipelineErrorSlot();
 			
+			///@name Slots for printing log/error output when no GUI is available
+      //@{
+      /// Writes the TOPP tool output to standard output
+      void noGuiTOPPOutput(const QString& out);
+      /// Writes the "tool started" message to standard output
+      void noGuiToolStarted();
+      /// Writes the "tool finished" message to standard output
+      void noGuiToolFinished();
+      /// Writes the "tool failed" message to standard output
+      void noGuiToolFailed();
+      /// Writes the "tool crashed" message to standard output
+      void noGuiToolCrashed();
+      /// Writes the "output file written" message to standard output
+      void noGuiOutputFileWritten(const String& file);
+			//@}
+			
 		signals:
 			
 			/// Emitted when the entire pipeline execution is finished
@@ -145,6 +161,8 @@ namespace OpenMS
 			String file_name_;
 			/// The path for temporary files
 			String tmp_path_;
+			/// Are we in a GUI or is the scene used by TOPPAS -execute (at the command line)?
+			bool gui_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

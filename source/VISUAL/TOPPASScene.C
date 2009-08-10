@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 	
-	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path)
+	TOPPASScene::TOPPASScene(QObject* parent, const String& tmp_path, bool gui)
 		:	QGraphicsScene(parent),
 			action_mode_(AM_NEW_EDGE),
 			vertices_(),
@@ -46,7 +46,8 @@ namespace OpenMS
 			hover_edge_(0),
 			potential_target_(0),
 			file_name_(),
-			tmp_path_(tmp_path)
+			tmp_path_(tmp_path),
+			gui_(gui)
 	{
 		/*	ATTENTION!
 			 
@@ -561,6 +562,10 @@ namespace OpenMS
 					QString file_name = vertices_param.getValue(current_id + ":file_name").toQString();
 					TOPPASOutputFileVertex* ofv = new TOPPASOutputFileVertex(file_name);
 					connect (ofv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
+					if (!gui_)
+					{
+						connect (ofv, SIGNAL(outputFileWritten(const String&)), this, SLOT(noGuiOutputFileWritten(const String&)));
+					}
 					current_vertex = ofv;
 				}
 				else if (current_type == "output file list")
@@ -573,6 +578,10 @@ namespace OpenMS
 					}
 					TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex(file_names_qt);
 					connect (oflv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
+					if (!gui_)
+					{
+						connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(noGuiOutputFileWritten(const String&)));
+					}
 					current_vertex = oflv;
 				}
 				else if (current_type == "tool")
@@ -592,6 +601,14 @@ namespace OpenMS
 					}
 					connect(tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
 					connect(tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
+					if (!gui_)
+					{
+						connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(noGuiTOPPOutput(const QString&)));
+						connect (tv, SIGNAL(toolStarted()), this, SLOT(noGuiToolStarted()));
+						connect (tv, SIGNAL(toolFinished()), this, SLOT(noGuiToolFinished()));
+						connect (tv, SIGNAL(toolFailed()), this, SLOT(noGuiToolFailed()));
+						connect (tv, SIGNAL(toolCrashed()), this, SLOT(noGuiToolCrashed()));
+					}
 					
 					current_vertex = tv;
 				}
@@ -773,6 +790,109 @@ namespace OpenMS
 	void TOPPASScene::pipelineErrorSlot()
 	{
 		emit pipelineExecutionFailed();
+	}
+	
+	void TOPPASScene::noGuiTOPPOutput(const QString& out)
+	{
+		TOPPASToolVertex* sender = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (!sender)
+		{
+			return;
+		}
+		String tool = sender->getName();
+		if (sender->getType() != "")
+		{
+			tool += " ("+sender->getType()+")";
+		}
+		std::cout	<< std::endl
+							<< tool
+							<< std::endl
+							<< String(out)
+							<< std::endl;
+	}
+	
+	void TOPPASScene::noGuiToolStarted()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " started. Processing ...";
+			
+			std::cout	<< std::endl
+								<< text
+								<< std::endl;
+		}
+	}
+	
+	void TOPPASScene::noGuiToolFinished()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " finished!";
+			
+			std::cout	<< std::endl
+								<< text
+								<< std::endl;
+		}
+	}
+	
+	void TOPPASScene::noGuiToolFailed()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " failed!";
+			
+			std::cout	<< std::endl
+								<< text
+								<< std::endl;
+		}
+	}
+	
+	void TOPPASScene::noGuiToolCrashed()
+	{
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
+		if (tv)
+		{
+			String text = tv->getName();
+			String type = tv->getType();
+			if (type != "")
+			{
+				text += " ("+type+")";
+			}
+			text += " crashed!";
+			
+			std::cout	<< std::endl
+								<< text
+								<< std::endl;
+		}
+	}
+	
+	void TOPPASScene::noGuiOutputFileWritten(const String& file)
+	{
+		String text = "Output file '"+file+"' written.";
+		std::cout	<< std::endl
+							<< text
+							<< std::endl;
 	}
 	
 } //namespace OpenMS

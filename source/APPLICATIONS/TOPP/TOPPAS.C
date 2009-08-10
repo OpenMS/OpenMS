@@ -110,13 +110,13 @@ int main( int argc, const char** argv )
 	try
 	{
 #endif
-		
-	  QApplication a( argc, const_cast<char**>(argv));
-	  
+
 	  if (param.exists("execute"))
 		{
-			TOPPASScene ts(0, QDir::tempPath()+QDir::separator());
+			QApplication a(argc, const_cast<char**>(argv), false);
+			TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
 			a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
+			a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
 			String toppas_file = (String)param.getValue("execute");
 			ts.load(toppas_file);
 			ts.runPipeline();
@@ -124,6 +124,7 @@ int main( int argc, const char** argv )
 			return a.exec();
 		}
 		
+		QApplication a( argc, const_cast<char**>(argv));
 		a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))

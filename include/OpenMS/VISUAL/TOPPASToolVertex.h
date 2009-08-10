@@ -151,7 +151,7 @@ namespace OpenMS
 			void toolCrashed();
 			/// Emitted when the tool execution fails
 			void toolFailed();
-			/// Emitted from showTOPPOutput() to forward the signal outside
+			/// Emitted from forwardTOPPOutput() to forward the signal outside
 			void toppOutputReady(const QString& out);
 		
 		protected:
