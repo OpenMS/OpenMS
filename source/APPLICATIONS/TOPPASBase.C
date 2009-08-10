@@ -374,6 +374,8 @@ namespace OpenMS
 		{
 			tw->show();
 		}
+		TOPPASScene* ts = tw->getScene();
+		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
 
 	

@@ -53,7 +53,6 @@ namespace OpenMS
 		setAcceptDrops(true);
 		setDragMode(QGraphicsView::ScrollHandDrag);
 		setFocusPolicy(Qt::StrongFocus);
-		scene_->setSceneRect(mapToScene(rect()).boundingRect());
 	}
 	
 	TOPPASWidget::~TOPPASWidget()

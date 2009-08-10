@@ -715,7 +715,7 @@ namespace OpenMS
 				setSceneRect(scene_rect);
 								
 				tw->fitInView(scene_rect, Qt::KeepAspectRatioByExpanding);
-				tw->scale(3.0,3.0); // find better way of doing this..
+				tw->scale(4.5,4.5); // empirically determined magic numbers
 			}
 		}
     
