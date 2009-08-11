@@ -67,7 +67,7 @@ namespace OpenMS
 			TOPPASEdge* edge_;
 			
 			/// Vector storing the mapping of the target input combobox indices to param indices of edges
-			QVector<int> target_input_param_indices;
+			QVector<int> target_input_param_indices_;
 		
 		protected slots:
 		

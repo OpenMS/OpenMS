@@ -52,7 +52,7 @@ namespace OpenMS
 	
 	void TOPPASIOMappingDialog::fillComboBoxes_()
 	{
-		target_input_param_indices.clear();
+		target_input_param_indices_.clear();
 		
 		TOPPASVertex* source = edge_->getSourceVertex();
 		TOPPASVertex* target = edge_->getTargetVertex();
@@ -164,7 +164,7 @@ namespace OpenMS
 				item_name += ss.str();
 				
 				target_combo->addItem(item_name.toQString());
-				target_input_param_indices.push_back(param_counter);
+				target_input_param_indices_.push_back(param_counter);
 			}
 			if (target_combo->count() == 2) // only 1 parameter
 			{
@@ -188,7 +188,7 @@ namespace OpenMS
 		
 		int source_out = edge_->getSourceOutParam();
 		int target_in = edge_->getTargetInParam();
-		int combo_index = target_input_param_indices.indexOf(target_in) + 1;
+		int combo_index = target_input_param_indices_.indexOf(target_in) + 1;
 		if (source_out != -1)
 		{
 			source_combo->setCurrentIndex(source_out + 1);
@@ -225,9 +225,9 @@ namespace OpenMS
 		{
 			int target_index;
 			int tci = target_combo->currentIndex()-1;
-			if (0 <= tci && tci < target_input_param_indices.size())
+			if (0 <= tci && tci < target_input_param_indices_.size())
 			{
-				target_index = target_input_param_indices[tci];
+				target_index = target_input_param_indices_[tci];
 			}
 			else
 			{
