@@ -30,13 +30,15 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-//#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
 #include "coin/CoinModel.hpp"
 
 namespace OpenMS
 {
 
-
+	/**
+		 @brief Implements ILP formulation of precursor selection problems
+		 
+  */
   class OPENMS_DLLAPI ILPWrapper : public DefaultParamHandler
   { 
    
@@ -73,19 +75,6 @@ namespace OpenMS
 																								std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin);
 
 		
-    /**
-     *	@brief Encode ILP formulation for a given LC-MS map and given ids to determine the optimal set of precursors.
-     *	
-     *	@param features FeatureMap with all possible precursors
-		 *  @param 
-		 *  @param protein_precursor_map Vector containing a vector with the precursors for each protein
-     */
-    void encodeModelForOptimalSolution(FeatureMap<>& features,MSExperiment<>& experiment,
-																			 std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-																			 std::map<String,std::vector<Size> >& protein_precursor_map,
-																			 std::vector<IndexTriple>& variable_indices,
-																			 UInt ms2_spectra_per_rt_bin);
-    
     /**
      *	@brief Solve the ILP.
      *	

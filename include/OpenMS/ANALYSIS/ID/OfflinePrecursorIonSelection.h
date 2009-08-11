@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTOR_H
-#define OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTOR_H
+#ifndef OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
+#define OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
 
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -47,7 +47,7 @@ namespace OpenMS
 
 		 Implements different algorithms for precursor ion selection,
 		 either based on a whole FeatureMap (e.g. like with LC-MALDI MS data)
-		  or based on single scans (e.g. with LC-ESI MS data).
+		 or based on single scans (e.g. with LC-ESI MS data).
 			
 		 @htmlinclude OpenMS_OfflinePrecursorIonSelection.parameters
   */
@@ -58,17 +58,6 @@ namespace OpenMS
 
     OfflinePrecursorIonSelection();
     virtual ~OfflinePrecursorIonSelection();
-
-		/**
-			 @brief Determines the minimal set of features needed to obtain all
-			 protein identifications.
-
-			 
-
-		 */
-    void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,
-																std::vector<PeptideIdentification>& pep_ids,
-																FeatureMap<>& features,FeatureMap<>& optimal_set,bool filter);
 
 		/**
 			 @brief Makes the precursor selection for a given feature map, either feature or scan based.
@@ -89,15 +78,6 @@ namespace OpenMS
 		void getMassRanges(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
 											 std::vector<std::vector<std::pair<Size,Size> > > & indices);
 
-		template <typename InputPeakType>
-		void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,
-																std::vector<PeptideIdentification>& pep_ids,
-																MSExperiment<InputPeakType>& experiment,
-																FeatureMap<>& features,
-																FeatureMap<>& optimal_set,
-																bool filter);
-	
-		
 	private:
 		/**
 			 @brief Calculate the sum of intensities of relevant features for each scan separately.
@@ -108,12 +88,6 @@ namespace OpenMS
 												std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,MSExperiment<InputPeakType>& experiment,
 												std::set<Int>& charges_set);
 
-		std::vector<PeptideIdentification> filterPeptideIds_(std::vector<PeptideIdentification>& pep_ids);
-		std::map<String,std::vector<Size> > protein_precursor_map_;
-		std::vector<std::vector<Int> > rt_bins_;
-
-		
-		
   };
 
 	template <typename InputPeakType>
@@ -184,114 +158,6 @@ namespace OpenMS
 			}
 	}
 
-	template <typename InputPeakType>
-	void OfflinePrecursorIonSelection::computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,
-																														std::vector<PeptideIdentification>& pep_ids,
-																														MSExperiment<InputPeakType>& experiment,
-																														FeatureMap<>& features,
-																														FeatureMap<>& optimal_set,
-																														bool /*filter*/)
-	{
-		std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(pep_ids);
-
-		std::cout << "filtered"<<std::endl;
-		// first map the ids onto the features
-		IDMapper mapper;
-		mapper.annotate(features,filtered_pep_ids,prot_ids);
-		std::cout << "mapped"<<std::endl;
-		// get the mass ranges for each features for each scan it occurs in
-		std::vector<std::vector<std::pair<Size,Size> > >  indices;
-		getMassRanges(features,experiment,indices);
-		std::cout << "got mass ranges"<<std::endl;
-
-		// create protein acc map
-		std::map<String,Size> accessions;
-		Size index = 0;
-		for(Size p_id = 0; p_id < prot_ids.size();++p_id)
-			{
-				for(Size p_h = 0; p_h < prot_ids[p_id].getHits().size();++p_h)
-					{
-						if(accessions.find(prot_ids[p_id].getHits()[p_h].getAccession()) == accessions.end())
-							{
-								accessions.insert(make_pair(prot_ids[p_id].getHits()[p_h].getAccession(),index));
-								std::vector<Size> vec;
-								protein_precursor_map_.insert(make_pair(prot_ids[p_id].getHits()[p_h].getAccession(),vec));
-								++index;
-							}
-					}
-			}
-	
-		// create protein_peptide map
-		//protein_precursor_map_.clear();
-		// usually we one protein id with many hits
-		//	protein_precursor_map_.resize(accessions.size());
-	
-
-		for(Size i=0; i<features.size();++i) // not really elegant
-			{
-				// filter for features with an id
-				if(features[i].getPeptideIdentifications().size()>0)
-					{
-						// find protein id for peptide id
-						for(Size id = 0; id < features[i].getPeptideIdentifications().size();++id)
-							{
-								for(Size h = 0; h < features[i].getPeptideIdentifications()[id].getHits().size(); ++h)
-									{
-										const std::vector<String>& accs = features[i].getPeptideIdentifications()[id].getHits()[h].getProteinAccessions();
-									
-										// enter feature index in the corresponding protein_precursor vector
-										for(Size a = 0; a < accs.size();++a)
-											{
-												if(accessions.find(accs[a]) == accessions.end())
-													{
-														std::cout << "huch accession war nicht in den prot_ids"<<std::endl;
-													}
-												else
-													{
-														// store feature index
-														protein_precursor_map_[accs[a]].push_back(i);
-													}
-											}
-									}
-							}
-					}
-			}
-		std::cout << "created protein_precursor_map"<<std::endl;
-		std::vector<IndexTriple> variable_indices;
-		// build model
-		ILPWrapper ilp_wrapper;
-		ilp_wrapper.encodeModelForOptimalSolution(features,experiment,indices,protein_precursor_map_,variable_indices,
-																							param_.getValue("ms2_spectra_per_rt_bin"));
-
-		std::cout << "encoded problem"<<std::endl;
-		// compute solution
-		std::vector<int> solution_indices;
-		ilp_wrapper.solve(solution_indices);
-		sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::VariableIndexLess());
-		std::cout << solution_indices.size() <<" features in solution"<<std::endl;
-		std::map<String,std::vector<Size> > prot_feat_map;
-		FeatureMap<> map_out;
-		map_out.setProteinIdentifications(features.getProteinIdentifications());
-		for(Size i = 0; i < solution_indices.size();++i)
-			{	
-				Int index = variable_indices[solution_indices[i]].variable;
-				std::cout << features[index].getRT() <<  " " << variable_indices[solution_indices[i]].scan<< " " 
-									<< features[index].getMZ() <<	"\n";
-				optimal_set.push_back(features[index]);
-				map_out.push_back(features[index]);
-				if(features[index].getPeptideIdentifications().size()>0)
-					{
-						if(features[index].getPeptideIdentifications()[0].getHits().size() > 0)
-							{
-								std::vector<String> accs = features[index].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions();
-								if(accs.size() >0) std::cout << "more than 1 protein hit for this peptide" << std::endl;
-								if(features[index].getPeptideIdentifications()[0].getHits().size()>1) std::cout << "more than 1 peptide hit"<<std::endl;
-							}
-						else std::cout << "ATTENTION: feature without pep id in optimal solution"<<std::endl;
-					}
-			}
-		FeatureXMLFile().store("/home/zerck/data/presentations/poster/ismb09/bruker_optimal_features_5msmsperspot.featureXML",map_out);
-	}
 
 
 	template <typename InputPeakType>
