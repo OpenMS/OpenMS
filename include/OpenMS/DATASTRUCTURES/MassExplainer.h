@@ -62,7 +62,7 @@ namespace OpenMS
 				q_max_(5),
 				max_span_(3)
 		{
-				init(true);
+				init_(true);
 		}
 		
 		/// Constructor
@@ -73,7 +73,7 @@ namespace OpenMS
 				q_max_(5),
 				max_span_(3)
 		{
-				init(true);
+				init_(true);
 		}
 
 		/// Constructor
@@ -85,7 +85,7 @@ namespace OpenMS
 				max_span_(max_span),
 				thresh_p_(thresh_logp)
 		{
-				init(false);
+				init_(false);
 		}
 
 		/// Constructor
@@ -97,14 +97,14 @@ namespace OpenMS
 				max_span_(max_span),
 				thresh_p_(thresh_logp)
 		{
-				init(false);
+				init_(false);
 		}
 
 		
 	private:
 		/// check consistency of input
 		/// @param init_thresh_p set default threshold (set to "false" to keep current value)
-		void init(bool init_thresh_p)
+		void init_(bool init_thresh_p)
 		{
 				if (init_thresh_p)
 				{
@@ -209,7 +209,7 @@ namespace OpenMS
 							{
 								Compomer cmp(explanations_[ci]);
 								cmp.add(*new_it);
-								if (compomer_valid(cmp)) explanations_.push_back(cmp); 
+								if (compomerValid_(cmp)) explanations_.push_back(cmp); 
 							}
 					}
 					// finally add new compomers to the list itself
@@ -217,7 +217,7 @@ namespace OpenMS
 					{
 						Compomer cmp;
 						cmp.add(*new_it);
-						if (compomer_valid(cmp)) explanations_.push_back(cmp); 
+						if (compomerValid_(cmp)) explanations_.push_back(cmp); 
 					}
 					
 					//std::cout << "valid explanations: " << explanations_.size() << " after " << it->formula_ << std::endl;
@@ -290,7 +290,7 @@ namespace OpenMS
 	 protected:
     
 	  ///check if the generated compomer is valid jugded by its probability, charges etc
-		bool compomer_valid(const Compomer& cmp)
+		bool compomerValid_(const Compomer& cmp)
 		{
 				// probability ok?
 				if (cmp.getLogP() < thresh_p_) return false;
@@ -317,7 +317,7 @@ namespace OpenMS
 			ef -= ("H" + String(charge)); // substracts x hydrogen
 			ef.setCharge(charge); // adds x protons
 			
-			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(0.7));
+			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p));
 			
 			return a;
 		}

@@ -133,7 +133,7 @@ START_SECTION((void add(const Adduct &a)))
 }
 END_SECTION
 
-START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left_other) const))
+START_SECTION(bool isConflicting(const Compomer &cmp, bool left_this, bool left_other, const Adduct &implicit_this, const Adduct &implicit_other) const)
 {
 	EmpiricalFormula ef("H");
 	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f));
@@ -238,7 +238,7 @@ START_SECTION((const DoubleReal& getLogP() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString(Int side=0)))
+START_SECTION((String getAdductsAsString(Int side=0) const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
 	Adduct a2(1, -1, 1.007f, "H1", -0.13f);

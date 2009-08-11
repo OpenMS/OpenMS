@@ -90,7 +90,7 @@ namespace OpenMS
 					
 					if (peptide_hits_local.empty()) continue;
 					
-					if (sort_by_unique_(peptide_hits_local, it_pepid->isHigherScoreBetter() ))
+					if (sortByUnique_(peptide_hits_local, it_pepid->isHigherScoreBetter() ))
 					{ // we found a unique peptide
 						peptide_hits.push_back(peptide_hits_local[0]);
 					}
@@ -102,7 +102,7 @@ namespace OpenMS
 				// TODO better idea?
 				if (peptide_hits.size()>0)
 				{
-					if (sort_by_unique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter() ))
+					if (sortByUnique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter() ))
 					{ //found a unique peptide for current ConsensusElement
 						consensus_to_peptide[i_cm] = peptide_hits[0];
 						#ifdef DEBUG_INFERENCE
@@ -191,7 +191,7 @@ namespace OpenMS
 	}
 	
 
-	bool ProteinInference::sort_by_unique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better )
+	bool ProteinInference::sortByUnique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better )
 	{
 		if (peptide_hits_local.empty()) return false;
 
@@ -219,19 +219,6 @@ namespace OpenMS
 		// the first element now contains the best peptideHit
 
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
  

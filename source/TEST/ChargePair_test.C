@@ -95,11 +95,6 @@ START_SECTION((ChargePair& operator=(const ChargePair &rhs)))
 }
 END_SECTION
 
-START_SECTION((virtual ~ChargePair()))
-{
-	NOT_TESTABLE
-}
-END_SECTION
 
 START_SECTION((Int getCharge(UInt pairID) const ))
 {

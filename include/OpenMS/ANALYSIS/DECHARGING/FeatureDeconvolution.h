@@ -606,9 +606,11 @@ namespace OpenMS
 						ConsensusFeature cf(fm_out[f0_idx]);
 						cf.insert(0,f0_idx, fm_out[f0_idx]);
 						cf.insert(0,f1_idx, fm_out[f1_idx]);
-						cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
-						cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+":"
-																 +String(fm_out[f1_idx].getCharge()));
+            cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
+            cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+"("+ String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) +"):"
+																 +String(fm_out[f1_idx].getCharge())+"("+ String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) +") "
+																 +String("Score: ") + feature_relation[i].getEdgeScore());
+																 
 						//cf.computeDechargeConsensus(fm_out);
 						// print pairs only
             cons_map_p_neg.push_back(cf);
@@ -620,7 +622,7 @@ namespace OpenMS
 
 				// tmp
 				ConsensusXMLFile cf_neg;
-				//cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
+				cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
 
 				// DEBUG print scores
 				TextFile tf;

@@ -33,7 +33,7 @@
 	########################usage###############################
 	if ($argc!=3)
 	{
-		print "Usage: create_test.php <Absolute path to OpenMS> <Absolute path to header>\n";
+		print "Usage: create_test.php <Absolute path to OpenMS build dir> <Absolute path to header>\n";
   				"  <header_file> -- the header of the class to create the test from.\n";
  		exit;
  	}

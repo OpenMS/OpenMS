@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Chris Bielow$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -74,12 +74,6 @@ START_SECTION((IonizationSimulation(const IonizationSimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~IonizationSimulation()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &source)))
 {
   IonizationSimulation ion_sim1(NULL);
@@ -94,7 +88,7 @@ START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &sourc
 }
 END_SECTION
 
-START_SECTION((void ionize(FeatureMapSim &, ConsensusMap & )))
+START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consensus, MSSimExperiment &experiment)))
 {
   // init rng 
   gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);

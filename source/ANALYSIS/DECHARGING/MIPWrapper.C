@@ -35,6 +35,8 @@
 
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -86,22 +88,22 @@ namespace OpenMS {
 		DoubleReal scorel;
 		for	(PairsIndex i=0;i+allowedPairs-1<pairs.size();i+=allowedPairs)
 		{
-			scorel = compute_slice(me, pairs, i, i+allowedPairs,0,0);
+			scorel = computeSlice_(me, pairs, i, i+allowedPairs,0,0);
 			score += scorel;
 			//TODO take care of overlapping borders!!
 			std::cout << "slice (" << i << "-" << (i+allowedPairs) << ")score: " << scorel << std::endl; 
 		}
     #endif
-    score = compute_slice_(me, fm, pairs, 0, pairs.size());
+    score = computeSlice_(me, fm, pairs, 0, pairs.size());
 
 		return score;
 	}
 		
-	DoubleReal MIPWrapper::compute_slice_(const MassExplainer& me,
-																				const FeatureMap<> fm,
-																				PairsType& pairs, 
-																				const PairsIndex margin_left, 
-																				const PairsIndex margin_right)
+	DoubleReal MIPWrapper::computeSlice_(const MassExplainer& me,
+																			 const FeatureMap<> fm,
+																			 PairsType& pairs, 
+																			 const PairsIndex margin_left, 
+																			 const PairsIndex margin_right)
 	{
 
 		std::cout << "compute .." << std::endl;
@@ -136,9 +138,9 @@ namespace OpenMS {
         std::cout << "found";
       }
 			
-			// 
+			// log scores are good for addition in ILP - but we need them to be > 0
 
-      score = -log(1-exp(getLogScore(i, pairs, fm, me)));
+      score = -log(1-exp(getLogScore_(i, pairs, fm, me)));
 			namebuf.str("");
 			namebuf<<"x#"<<i;
 			// create the new variable object
@@ -158,7 +160,10 @@ namespace OpenMS {
 		bool is_conflicting;
 		std::vector<int> conflict_idx(4);
 
-		Adduct implicit_one(1, 1, 1, "H1", 0.9f);
+		Map< Size, std::vector<Size> > conflict_map;
+
+
+		Adduct implicit_one(1, 1, Constants::PROTON_MASS_U, "H1", 0.9f);
 
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
@@ -237,6 +242,10 @@ namespace OpenMS {
 								
 				if (is_conflicting)
 				{
+				
+					conflict_map[i].push_back(j);
+					conflict_map[j].push_back(i);
+					
           if(i==150 || j==2797) // every conflict involving the missing edge...
           {
             ChargePair ti =  pairs[i];
@@ -266,7 +275,20 @@ namespace OpenMS {
 		// add rows into solver
 		solver.loadFromCoinModel(build);
 
+		// DEBUG:
 		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0!)" << std::endl << std::flush;
+		TextFile conflict_map_out;
+		for (Map<Size, std::vector <Size> >::const_iterator it = conflict_map.begin(); it!= conflict_map.end(); ++it)
+		{
+			String s;
+			s = String(it->first) + ":";
+			for (Size i = 0; i<it->second.size(); ++i)
+			{
+				s+= " " + String(it->second[i]);
+			}
+			conflict_map_out.push_back(s);
+		}
+		//conflict_map_out.store("conflict_map.txt");
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
@@ -364,7 +386,7 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	float MIPWrapper::getLogScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
+	float MIPWrapper::getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
 	{
 		// TODO think of something better here!
 		DoubleReal score;

@@ -68,10 +68,10 @@ END_SECTION
 START_SECTION((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 {
 	Param p;
-	p.setValue("reporter_mass_deviation", 0.1234);
+	p.setValue("reporter_mass_shift", 0.1234);
 	p.setValue("channel_active", StringList::create("121:this is a test"));
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX, p);
-	TEST_EQUAL((double) ice.getParameters().getValue("reporter_mass_deviation"), 0.1234);
+	TEST_EQUAL((double) ice.getParameters().getValue("reporter_mass_shift"), 0.1234);
 	TEST_EQUAL((StringList) ice.getParameters().getValue("channel_active"), StringList::create("121:this is a test"));
 	
 	// this should go wrong
@@ -79,6 +79,31 @@ START_SECTION((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqChannelExtractor ice2(ItraqChannelExtractor::EIGHTPLEX, p));	
 }
 END_SECTION
+
+START_SECTION((ItraqChannelExtractor(const ItraqChannelExtractor &cp)))
+{
+	Param p;
+	p.setValue("reporter_mass_shift", 0.1234);
+  ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX, p);
+	ItraqChannelExtractor ice_cp(ice);
+	
+	TEST_EQUAL(ice_cp.getParameters(), ice.getParameters());
+}
+END_SECTION
+
+START_SECTION((ItraqChannelExtractor& operator=(const ItraqChannelExtractor &rhs)))
+{
+	Param p;
+	p.setValue("reporter_mass_shift", 0.1234);
+  ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX, p);
+	ItraqChannelExtractor ice_cp;
+	ice_cp=ice;
+	
+	TEST_EQUAL(ice_cp.getParameters(), ice.getParameters());
+}
+END_SECTION
+
+
 
 START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consensus_map)))
 {

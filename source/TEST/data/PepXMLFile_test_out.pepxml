@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
+<msms_run_summary base_name="_119.tmp" msManufacturer="ThermoFinnigan" msModel="LCQ Classic" msIonization="ESI" msMassAnalyzer="Ion Trap" msDetector="UNKNOWN" raw_data_type="raw" raw_data=".mzXML">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="_119.tmp" search_engine="SEQUEST" precursor_mass_type="average" fragment_mass_type="average" out_data_type="out" out_data=".tgz" search_id="1">
+		<search_database local_path="dbase/ipi.HUMAN.fasta.v2.31" type="AA"/>
+    </search_summary>
+    <analysis_timestamp analysis="peptideprophet" time="2007-12-05T17:49:52" id="1"/>
+		<spectrum_query spectrum="1" start_scan="1" end_scan="1" precursor_neutral_mass="1218.36218" assumed_charge="2" index="1">
+ 		<search_result>
+			<search_hit hit_rank="1" peptide="KRGYVPAEGNK" peptide_prev_aa="K" peptide_next_aa="K" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1218.36218" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+ 			<analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="37.4" all_ntt_prob="(37.4,37.4,37.4)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="2" start_scan="2" end_scan="2" precursor_neutral_mass="993.18398" assumed_charge="2" index="2">
+ 		<search_result>
+			<search_hit hit_rank="1" peptide="ACERFLVR" peptide_prev_aa="K" peptide_next_aa="H" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="993.18398" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+ 			<analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="28.7" all_ntt_prob="(28.7,28.7,28.7)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="3" start_scan="3" end_scan="3" precursor_neutral_mass="801.8483" assumed_charge="2" index="3">
+ 		<search_result>
+			<search_hit hit_rank="1" peptide="ETSPRGR" peptide_prev_aa="K" peptide_next_aa="R" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="801.8483" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+ 			<analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="26.8" all_ntt_prob="(26.8,26.8,26.8)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+	</msms_run_summary>
+</msms_pipeline_analysis>

@@ -81,7 +81,7 @@ namespace OpenMS
 									const size_t protein_idenfication_index, 
 									const UInt reference_map);
 			
-			bool sort_by_unique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better );
+			bool sortByUnique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better );
 		
 	}; // !class
 

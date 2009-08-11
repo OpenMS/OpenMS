@@ -109,12 +109,12 @@ namespace OpenMS {
 		inline bool isFeatureValid_(const Feature & feature);
 
 		/// set meta values, mz etc after adducts are ready
-		void setFeatureProperties(Feature & f, 
-															const DoubleReal & adduct_mass, 
-															const String & adduct_formula, 
-															const SimChargeType charge,
-															const SimIntensityType new_intensity,
-															const Size parent_index);
+		void setFeatureProperties_(Feature & f, 
+															 const DoubleReal & adduct_mass, 
+															 const String & adduct_formula, 
+															 const SimChargeType charge,
+															 const SimIntensityType new_intensity,
+															 const Size parent_index);
 
     /// set defaults
     void setDefaultParams_();

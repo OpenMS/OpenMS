@@ -25,8 +25,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DATASTRUCTURES_ADDUCT_H
-#define OPENMS_ANALYSIS_DATASTRUCTURES_ADDUCT_H
+#ifndef OPENMS_DATASTRUCTURES_ADDUCT_H
+#define OPENMS_DATASTRUCTURES_ADDUCT_H
+
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

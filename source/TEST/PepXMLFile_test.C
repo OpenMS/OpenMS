@@ -50,12 +50,11 @@ START_SECTION(~PepXMLFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name))
-//TODO Hendrik
+START_SECTION(void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name = ""))
 ProteinIdentification protein;
 std::vector<PeptideIdentification> peptides;
-String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml"),
-	exp_name = "B08-08318";
+String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+String exp_name = "B08-08318";
 file.load(filename, protein, peptides, exp_name);
 
 // peptide IDs:
@@ -105,7 +104,26 @@ TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
 END_SECTION
 
 START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids))
-	//TODO Chris
+{
+	PepXMLFile file;
+	ProteinIdentification protein;
+	std::vector<PeptideIdentification> peptides;
+	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+	String exp_name = "B08-08318";
+	file.load(filename, protein, peptides, exp_name);
+	
+	std::vector<ProteinIdentification> protein_ids;
+	protein_ids.push_back(protein);
+	
+	String cm_file_out;
+	NEW_TMP_FILE(cm_file_out);
+	String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
+	
+	file.store(cm_file_out, protein_ids, peptides);
+	
+	TEST_FILE_EQUAL(cm_file_out.c_str(), filename_out.c_str())
+
+}	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

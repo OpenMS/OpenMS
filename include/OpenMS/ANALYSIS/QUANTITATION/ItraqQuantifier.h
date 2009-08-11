@@ -44,6 +44,8 @@ namespace OpenMS
 		
 		Using the raw consensus map from ItraqChannelExtractor, a non-negative isotope correction, normalization (using median) 
 		and [optionally] protein inference is computed.
+		
+		@htmlinclude OpenMS_ItraqQuantifier.parameters
 
 	*/
 	class OPENMS_DLLAPI ItraqQuantifier
@@ -113,7 +115,7 @@ namespace OpenMS
 		/// initialize
 		void initIsotopeCorrections_();
 		
-		void reconstruct_channel_info_(const ConsensusMap& consensus_map);
+		void reconstructChannelInfo_(const ConsensusMap& consensus_map);
 			
 		/// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
 		Int itraq_type_;
