@@ -32,6 +32,8 @@
 <b>Pre-Requisites (Software)</b>
   <UL>
     <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
+    <br> If you work with VS 2008, installation of the SP1 is recommended,
+    otherwise VS might crash during the compilation of the contrib package.
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
