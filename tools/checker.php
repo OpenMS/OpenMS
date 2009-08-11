@@ -556,6 +556,7 @@
 				"CONCEPT/ProgressLogger.h",
 				"/config.h",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+				"include/OpenMS/APPLICATIONS/TOPPASBase.h",
 				"include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
 				"_registerChildren.h",
 				"DataReducer.h",
