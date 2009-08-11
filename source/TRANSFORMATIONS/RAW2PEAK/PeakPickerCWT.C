@@ -543,22 +543,17 @@ namespace OpenMS
     // compute the centroid position (use weighted mean)
     while ((left_it >= area.left) && (left_it->getIntensity() >=rel_peak_height) )
 			{
-// 				if (left_it->getIntensity() >=rel_peak_height)
-// 					{
 						w+=left_it->getIntensity()*left_it->getMZ();
 						sum+=left_it->getIntensity();
-						--left_it;
-// 					}
+						if(left_it != area.left) --left_it;
+						else break;
 			}
 
     while ((right_it < area.right) && (right_it->getIntensity() >=rel_peak_height) )
 			{
-// 				if (right_it->getIntensity() >=rel_peak_height)
-// 					{
 						w+=right_it->getIntensity()*right_it->getMZ();
 						sum+=right_it->getIntensity();
-						++right_it;
-// 					}
+						if(right_it != area.right)  ++right_it;
 			}
 
     area.centroid_position = w / sum;
