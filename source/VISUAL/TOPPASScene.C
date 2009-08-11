@@ -181,6 +181,7 @@ namespace OpenMS
 	void TOPPASScene::finishHoveringEdge()
 	{
 		TOPPASVertex* target = getVertexAt_(hover_edge_->endPos());
+		bool remove_edge = false;
 		
 		if (target && 
 				target != hover_edge_->getSourceVertex() &&
@@ -196,11 +197,22 @@ namespace OpenMS
 			connect (hover_edge_, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
 			
 			TOPPASIOMappingDialog dialog(hover_edge_);
-			dialog.exec();
 			
-			hover_edge_->emitChanged();
+			if (dialog.exec())
+			{
+				hover_edge_->emitChanged();
+			}
+			else
+			{
+				remove_edge = true;
+			}
 		}
 		else
+		{
+			remove_edge = true;
+		}
+		
+		if (remove_edge)
 		{
 			edges_.removeAll(hover_edge_);
 			removeItem(hover_edge_);
@@ -272,7 +284,7 @@ namespace OpenMS
 			delete vertex;
 		}
 		
-		updateEdgeColors();
+		//updateEdgeColors();
 	}
 	
 	bool TOPPASScene::isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v)
@@ -345,7 +357,7 @@ namespace OpenMS
 		{
 			edge->updateColor();
 		}
-		update();
+		update(sceneRect());
 	}
 	
 	bool TOPPASScene::dfsVisit_(TOPPASVertex* vertex)
@@ -515,6 +527,7 @@ namespace OpenMS
 		
 		//save file
 		save_param.store(file);
+		file_name_ = file;
 	}
 	
 	void TOPPASScene::load(const String& file)
@@ -654,6 +667,8 @@ namespace OpenMS
 					std::cerr << "This should not have happened." << std::endl;
 				}
 			}
+			
+			file_name_ = file;
     }
     
     //load all edges
@@ -715,7 +730,6 @@ namespace OpenMS
 				setSceneRect(scene_rect);
 								
 				tw->fitInView(scene_rect, Qt::KeepAspectRatioByExpanding);
-				tw->scale(4.5,4.5); // empirically determined magic numbers
 			}
 		}
     

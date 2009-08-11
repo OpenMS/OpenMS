@@ -619,32 +619,8 @@ namespace OpenMS
 		else
 		{
 			setColor(Qt::red);
-			
-			if (es == ES_MISMATCH_FILE_LIST)
-			{
-				QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
-			}
-			else if (es == ES_MISMATCH_LIST_FILE)
-			{
-				QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
-			}
-			else if (es == ES_NO_TARGET_PARAM)
-			{
-				QMessageBox::warning(0,"Invalid selection","You must specify the target input parameter!");
-			}
-			else if (es == ES_NO_SOURCE_PARAM)
-			{
-				QMessageBox::warning(0,"Invalid selection","You must specify the source output parameter!");
-			}
-			else if (es == ES_FILE_EXT_MISMATCH)
-			{
-				QMessageBox::warning(0,"Invalid selection","The file types of source output and target input parameter do not match!");
-			}
-			else
-			{
-				QMessageBox::warning(0,"Ooops","This should not have happened. Please contact the OpenMS mailing list and report this bug.");
-			}
 		}
+		
 		update(boundingRect());
 	}
 	

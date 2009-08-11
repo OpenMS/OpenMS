@@ -311,9 +311,13 @@ namespace OpenMS
 			return;
 		}
 		
-		const String& file_name = w->getScene()->getSaveFileName();
+		String file_name = w->getScene()->getSaveFileName();
 		if (file_name != "")
 		{
+			if (!file_name.hasSuffix(".toppas"))
+			{
+				file_name += ".toppas";
+			}
 			w->getScene()->store(file_name);
 		}
 		else
@@ -333,7 +337,12 @@ namespace OpenMS
 		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
+			if (!file_name.endsWith(".toppas"))
+			{
+				file_name += ".toppas";
+			}
 			w->getScene()->store(file_name);
+			tab_bar_->setTabText(tab_bar_->currentIndex(), File::basename(file_name).toQString());
 		}
 	}
 	
