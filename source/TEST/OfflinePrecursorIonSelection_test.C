@@ -67,13 +67,8 @@ FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_fe
 MSExperiment<> raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
-START_SECTION((void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,std::vector<PeptideIdentification>& pep_ids,FeatureMap<>& features,FeatureMap<>& optimal_set,bool filter)))
-{
-	FeatureMap<> optimal_map;
-}
-END_SECTION
 
-START_SECTION((void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features,MSExperiment< Peak1D > & experiment,MSExperiment< Peak1D > & ms2,std::set<Int>& charges_set,bool feature_based)))
+START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
 	MSExperiment<Peak1D> ms2;
 	std::set<Int> charges_set;
@@ -105,7 +100,7 @@ START_SECTION((void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features
 }
 END_SECTION	     
 
-START_SECTION((void getMassRanges(FeatureMap<>& features, MSExperiment<>& experiment,std::vector<std::vector<std::pair<Size,Size> > > & indices)))
+START_SECTION((template < typename InputPeakType > void getMassRanges(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
 	
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
@@ -120,11 +115,6 @@ START_SECTION((void getMassRanges(FeatureMap<>& features, MSExperiment<>& experi
 }
 END_SECTION
 
-START_SECTION((void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,std::vector<PeptideIdentification>& pep_ids,MSExperiment<>& experiment,FeatureMap<>& features,FeatureMap<>& optimal_set,bool filter)))
-{
-	
-}
-END_SECTION	      
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

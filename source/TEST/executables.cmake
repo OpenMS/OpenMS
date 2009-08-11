@@ -302,6 +302,7 @@ set(analysis_executables_list
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   OfflinePrecursorIonSelection_test
+  ILPWrapper_test
 )
 
 set(applications_executables_list
