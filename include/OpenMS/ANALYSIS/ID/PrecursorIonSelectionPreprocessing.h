@@ -57,8 +57,7 @@ namespace OpenMS
 		
 		PrecursorIonSelectionPreprocessing& operator = (const PrecursorIonSelectionPreprocessing& source);
 		
-		//const std::set<AASequence>& getSequences() const;
-
+	
 		const std::map<String,std::vector<DoubleReal> >& getProtMasses() const;
 
 
@@ -100,12 +99,6 @@ namespace OpenMS
 		/// get the weighted frequency of a mass
 		DoubleReal getWeight(DoubleReal mass);
 
-		DoubleReal getRT(String peptide);
-		DoubleReal getPT(String peptide);
-
-		/// get the rt-weight for the proposed peptide and its measured rt
-		DoubleReal getRTWeight(String peptide,DoubleReal meas_rt);
-
 		DoubleReal getRT(String prot_id,Size peptide_index);
 		
 		DoubleReal getPT(String prot_id,Size peptide_index);
@@ -113,8 +106,6 @@ namespace OpenMS
 		/// get the rt-weight for the proposed peptide and its measured rt
 		DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt);
 
-		// get detectability for the proposed peptide
-		DoubleReal getDT(String prot_id,Size peptide_index);
 		
 	protected:
 		/// saves the preprocessed db
@@ -136,8 +127,6 @@ namespace OpenMS
 		/// maximal relative frequency of a mass
     UInt f_max_;
 
-		std::map<String,DoubleReal> rt_map_;
-		std::map<String,DoubleReal> pt_map_;
 		std::map<String, std::vector<DoubleReal> > rt_prot_map_;
 		std::map<String, std::vector<DoubleReal> > pt_prot_map_;
   };

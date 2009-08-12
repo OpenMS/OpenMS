@@ -98,7 +98,7 @@ param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",1);
 param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
 preprocessing.setParameters(param);
-preprocessing.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),false);
+preprocessing.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_db.fasta"),false);
 
 param.setValue("max_iteration",10);
 param.setValue("type","IPS");
@@ -121,6 +121,7 @@ START_SECTION( void simulateRun(FeatureMap<>& features,std::vector<PeptideIdenti
   NEW_TMP_FILE(tmp_filename);
   ptr->simulateRun(features,pep_ids,prot_ids,preprocessing,1,tmp_filename);
   ptr->sortByTotalScore(features);
+FeatureXMLFile().store("tmp_features.featureXML",features);
   TEST_EQUAL(features[20].getMetaValue("shifted"),"both")
   TEST_REAL_SIMILAR(features[20].getMetaValue("msms_score"),27574.40625)
 END_SECTION
