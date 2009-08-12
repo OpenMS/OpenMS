@@ -56,7 +56,7 @@ namespace OpenMS
   /** 
     @brief An algorithm to decharge features (i.e. as found by FeatureFinder).
     
-		@ref FeatureDeconvolution_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_FeatureDeconvolution.parameters	
     
     @ingroup Analysis
   */

@@ -57,6 +57,7 @@ END_SECTION
 
 START_SECTION((IDTagger(String toolname)))
 {
+	IDTagger tagme("SomeTOPPTool");
   NOT_TESTABLE
 }
 END_SECTION

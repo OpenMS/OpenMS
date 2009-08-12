@@ -270,6 +270,7 @@ set(chemistry_executables_list
 set(analysis_executables_list
   ItraqChannelExtractor_test
   ItraqQuantifier_test
+	ItraqConstants_test
   SVMWrapper_test
   TransformationDescription_test
   FeatureHandle_test
@@ -287,7 +288,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmUnlabeled_test
-#  FeatureDeconvolution_test
+	FeatureDeconvolution_test
   ConsensusID_test
   ProteinInference_test
   PILISScoring_test

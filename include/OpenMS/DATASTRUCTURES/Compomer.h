@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
-#define OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
+#ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
+#define OPENMS_DATASTRUCTURES_COMPOMER_H
 
 #include <vector>
 #include <map>
@@ -261,4 +261,4 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
+#endif //OPENMS_DATASTRUCTURES_COMPOMER_H

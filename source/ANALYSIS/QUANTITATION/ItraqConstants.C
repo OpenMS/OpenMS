@@ -82,6 +82,10 @@ namespace OpenMS {
 
 	void ItraqConstants::updateIsotopeMatrixFromStringList(const int itraq_type, const StringList& channels, IsotopeMatrices& isotope_corrections)
 	{	
+		isotope_corrections.resize(2);
+		isotope_corrections[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+		isotope_corrections[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+		
 		// split the channels key:name pairs apart
 		for (StringList::const_iterator it=channels.begin();it!=channels.end();++it)
 		{
