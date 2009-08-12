@@ -77,7 +77,7 @@ namespace OpenMS
 
 	void CompNovoIdentification::getIdentifications(vector<PeptideIdentification>& pep_ids, const PeakMap& exp)
 	{
-		UInt count(1);
+		Size count(1);
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
 			cerr << count << "/" << exp.size() / 2 << endl;
@@ -153,7 +153,7 @@ namespace OpenMS
   	normalizer.filterSpectrum(new_CID_spec);
   	normalizer.filterSpectrum(new_ETD_spec);
 
-		UInt charge(2);
+		Size charge(2);
 		
 		DoubleReal precursor_weight = estimatePrecursorWeight_(new_ETD_spec, charge);
 
@@ -184,7 +184,7 @@ namespace OpenMS
 
 
 		// now delete all peaks that are right of the estimated precursor weight
-		UInt peak_counter(0);
+		Size peak_counter(0);
 		for (PeakSpectrum::ConstIterator it = new_CID_spec.begin(); it != new_CID_spec.end(); ++it, ++peak_counter)
 		{
 			if (it->getPosition()[0] > precursor_weight)
@@ -245,7 +245,7 @@ namespace OpenMS
       DoubleReal mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
 
       // search if peaks are available that have similar m/z values
-      UInt count(0);
+      Size count(0);
       bool found(false);
       for (PeakSpectrum::ConstIterator it2 = CID_spec.begin(); it2 != CID_spec.end(); ++it2, ++count)
       {
@@ -276,7 +276,7 @@ namespace OpenMS
 		ion_scoring_param.setValue("fragment_mass_tolerance", fragment_mass_tolerance_);
 		ion_scoring_param.setValue("decomp_weights_precision", decomp_weights_precision_);
 		ion_scoring_param.setValue("double_charged_iso_threshold", (DoubleReal)param_.getValue("double_charged_iso_threshold"));
-		ion_scoring_param.setValue("max_isotope_to_score", (UInt)param_.getValue("max_isotope_to_score"));
+		ion_scoring_param.setValue("max_isotope_to_score", (Size)param_.getValue("max_isotope_to_score"));
 		ion_scoring_param.setValue("max_isotope", max_isotope_);
 		ion_scoring.setParameters(ion_scoring_param);
 		
@@ -448,11 +448,11 @@ namespace OpenMS
 		spectra_zhang.setParameters(zhang_param);
 	
     vector<PeptideHit> hits;
-		UInt number_missed_cleavages = (UInt)param_.getValue("number_missed_cleavages");
+		Size number_missed_cleavages = (Size)param_.getValue("number_missed_cleavages");
     for (set<String>::const_iterator it = sequences.begin(); it != sequences.end(); ++it)
     {
 			
-			UInt num_missed = countMissedCleavagesTryptic_(*it);
+			Size num_missed = countMissedCleavagesTryptic_(*it);
 			if (number_missed_cleavages < num_missed)
 			{
 				//cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << number_missed_cleavages << endl;
@@ -496,7 +496,7 @@ namespace OpenMS
 		}
 		*/
 		
-		UInt number_of_prescoring_hits = (UInt)param_.getValue("number_of_prescoring_hits");
+		Size number_of_prescoring_hits = (Size)param_.getValue("number_of_prescoring_hits");
 		if (hits.size() > number_of_prescoring_hits)
 		{
 			hits.resize(number_of_prescoring_hits);
@@ -549,7 +549,7 @@ namespace OpenMS
 		}
 		*/
 
-		UInt number_of_hits = (UInt)param_.getValue("number_of_hits");
+		Size number_of_hits = (Size)param_.getValue("number_of_hits");
 		if (id.getHits().size() > number_of_hits)
 		{
 			hits.resize(number_of_hits);
@@ -576,7 +576,7 @@ namespace OpenMS
 		cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;
 #endif
 
-		for (UInt i = 0; i != sequence.size() - 1; ++i)
+		for (Size i = 0; i != sequence.size() - 1; ++i)
 		{
 			char aa(sequence[i]);
 			char aa_cterm(sequence[i+1]);
@@ -603,7 +603,7 @@ namespace OpenMS
 					//p.setIntensity(0.3);
 					//p.setPosition(c_pos);
 					//spec.push_back(p);
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						p.setIntensity(isotope_distributions_[(int)c_pos][j]);
 						p.setPosition(c_pos + 1 + j);
@@ -621,7 +621,7 @@ namespace OpenMS
 					p.setPosition(z_pos);
 					spec.push_back(p);
 						
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						p.setIntensity(isotope_distributions_[(int)z_pos][j]);
 						p.setPosition(z_pos + 1 + j);
@@ -652,7 +652,7 @@ namespace OpenMS
 
 		vector<Permut> score_permuts;
 		
-  	UInt i(0);
+  	Size i(0);
 		score_permuts.resize(permuts.size(), Permut(permuts.begin(), 0.0));
   	for (set<String>::const_iterator it = permuts.begin(); it != permuts.end(); ++it, ++i)
   	{
@@ -712,7 +712,7 @@ namespace OpenMS
 		sort(score_permuts.begin(), score_permuts.end(), Internal::PermutScoreComparator);
 
   	set<String> new_permuts;
-  	UInt count(0);
+  	Size count(0);
 		for (vector<Permut>::const_iterator it = score_permuts.begin(); it != score_permuts.end() && count < max_subscore_number_; ++it, ++count)
 		{
 			new_permuts.insert(*it->getPermut());
@@ -727,7 +727,7 @@ namespace OpenMS
 
 
 // divide and conquer algorithm of the sequencing
-void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt left, UInt right, DoubleReal peptide_weight, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, Map<DoubleReal, CompNovoIonScoring::IonScore>& ion_scores)
+void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size left, Size right, DoubleReal peptide_weight, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, Map<DoubleReal, CompNovoIonScoring::IonScore>& ion_scores)
 {
 	DoubleReal offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
 	DoubleReal offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
@@ -829,7 +829,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
   }
 
 	// select suitable pivot peaks
-  vector<UInt> pivots;
+  vector<Size> pivots;
 
 	if (offset_suffix < fragment_mass_tolerance_ && offset_prefix < fragment_mass_tolerance_)
 	{
@@ -843,14 +843,14 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 	// run divide step
 #ifdef DAC_DEBUG
 	cerr << tabs_ << "Selected " << pivots.size() << " pivot ions: ";
-	for (vector<UInt>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+	for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
 	{
 		cerr << *it << "(" << CID_spec[*it].getPosition()[0] << ") ";
 	}
 	cerr << endl;
 #endif	
 
-  for (vector<UInt>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+  for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
   {
 		set<String> seq1, seq2, new_sequences;
 		
@@ -965,7 +965,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 
 }
 
-	DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, UInt& charge)
+	DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
 	{
 		CompNovoIonScoring ion_scoring;
 		DoubleReal precursor_mass_tolerance((DoubleReal)param_.getValue("precursor_mass_tolerance"));
@@ -1069,7 +1069,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, UInt 
 	}
 
 /*
-	DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, UInt& charge)
+	DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
 	{
 		CompNovoIonScoring ion_scoring;
 		DoubleReal precursor_mass_tolerance((DoubleReal)param_.getValue("precursor_mass_tolerance"));

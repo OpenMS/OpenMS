@@ -92,7 +92,7 @@ namespace OpenMS
 			void filterPermuts_(std::set<String>& permut);
 
 			/// selects pivot ion of the given range using the scores given in CID_nodes
-			void selectPivotIons_(std::vector<UInt>& pivots, UInt left, UInt right, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec, DoubleReal precursor_weight, bool full_range = false);
+			void selectPivotIons_(std::vector<Size>& pivots, Size left, Size right, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec, DoubleReal precursor_weight, bool full_range = false);
 		
 			/// filters the decomps by the amino acid frequencies
 			void filterDecomps_(std::vector<MassDecomposition>& decomps);
@@ -103,7 +103,7 @@ namespace OpenMS
 			/// permuts the String s adds the prefix and stores the results in permutations
 			void permute_(String prefix, String s, std::set<String>& permutations);
 					
-			UInt countMissedCleavagesTryptic_(const String& peptide) const;
+			Size countMissedCleavagesTryptic_(const String& peptide) const;
 			
 			/// fills the spec with b and y ions, no other ion types or doubly charged variants are used
 			void getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, DoubleReal prefix, DoubleReal suffix);
@@ -115,10 +115,10 @@ namespace OpenMS
 			void initIsotopeDistributions_();
 
 			/// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
-			DoubleReal estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, UInt& charge);
+			DoubleReal estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge);
 
 			/// keep for each window of size windowsize in the m/z range of the spectrum exactly no_peaks
-			void windowMower_(PeakSpectrum& spec, DoubleReal windowsize, UInt no_peaks);
+			void windowMower_(PeakSpectrum& spec, DoubleReal windowsize, Size no_peaks);
 
 			/// compares two spectra 
 			DoubleReal compareSpectra_(const PeakSpectrum& s1, const PeakSpectrum& s2);
@@ -147,15 +147,15 @@ namespace OpenMS
 
 			ZhangSimilarityScore zhang_;
 
-			Map<UInt, Map<UInt, std::set<String> > > subspec_to_sequences_;
+			Map<Size, Map<Size, std::set<String> > > subspec_to_sequences_;
 
-			UInt max_number_aa_per_decomp_;
+			Size max_number_aa_per_decomp_;
 
 			bool tryptic_only_;
 
 			DoubleReal fragment_mass_tolerance_;
 
-			UInt max_number_pivot_;
+			Size max_number_pivot_;
 
 			DoubleReal decomp_weights_precision_;
 
@@ -165,9 +165,9 @@ namespace OpenMS
 
 			DoubleReal max_decomp_weight_;
 
-			UInt max_subscore_number_;
+			Size max_subscore_number_;
 
-			UInt max_isotope_;
+			Size max_isotope_;
 
 			Map<DoubleReal, std::vector<MassDecomposition> > decomp_cache_;
 

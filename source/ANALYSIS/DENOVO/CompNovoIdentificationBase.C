@@ -106,7 +106,7 @@ namespace OpenMS
   	Peak1D p;
   	DoubleReal b_pos(0.0 + prefix);
 	  DoubleReal y_pos(h2o_mass + suffix);
-  	for (UInt i = 0; i != sequence.size() - 1; ++i)
+  	for (Size i = 0; i != sequence.size() - 1; ++i)
 	  {
   	  char aa(sequence[i]);
     	b_pos += aa_to_weight_[aa];
@@ -143,7 +143,7 @@ namespace OpenMS
     DoubleReal y_pos(h2o_mass + suffix);
     bool b_H2O_loss(false), b_NH3_loss(false), y_NH3_loss(false);
 
-    for (UInt i = 0; i != sequence.size() - 1; ++i)
+    for (Size i = 0; i != sequence.size() - 1; ++i)
     {
       char aa(sequence[i]);
       b_pos += aa_to_weight_[aa];
@@ -155,7 +155,7 @@ namespace OpenMS
         // b-ions
 				if (b_pos >= min_mz_ && b_pos <= max_mz_)
 				{
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						if (z == 1 /*|| b_pos > MIN_DOUBLE_MZ*/)
 						{
@@ -209,7 +209,7 @@ namespace OpenMS
 				if (y_pos > min_mz_ && y_pos < max_mz_)
 				{
         	// y-ions
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 						{
@@ -258,7 +258,7 @@ namespace OpenMS
 			}*/
 
 			/*		
-			for (UInt j = 0; j != max_isotope; ++j)
+			for (Size j = 0; j != max_isotope; ++j)
 			{
       	p.setPosition((precursor_weight + charge - 1 + j)/(DoubleReal)charge);
       	p.setIntensity(isotope_distributions_[(Int)p.getPosition()[0]][j] * 0.1);
@@ -294,15 +294,15 @@ namespace OpenMS
   	return;
 	}
 
-	UInt CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
+	Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
 	{
-  	UInt missed_cleavages(0);
+  	Size missed_cleavages(0);
 
   	if (peptide.size() < 2)
   	{
     	return 0;
   	}
-  	for (UInt i = 0; i != peptide.size() - 1; ++i)
+  	for (Size i = 0; i != peptide.size() - 1; ++i)
   	{
     	if ((peptide[i] == 'R' || peptide[i] == 'K') && peptide[i + 1] != 'P')
     	{
@@ -354,13 +354,13 @@ namespace OpenMS
   	return;
 	}
 
-	void CompNovoIdentificationBase::selectPivotIons_(vector<UInt>& pivots, UInt left, UInt right, Map<DoubleReal, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, DoubleReal precursor_weight, bool full_range)
+	void CompNovoIdentificationBase::selectPivotIons_(vector<Size>& pivots, Size left, Size right, Map<DoubleReal, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, DoubleReal precursor_weight, bool full_range)
 	{
 #ifdef SELECT_PIVOT_DEBUG
   	cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
 #endif
 		
-		UInt max_number_pivot((UInt)param_.getValue("max_number_pivot"));
+		Size max_number_pivot((Size)param_.getValue("max_number_pivot"));
 
   	// TODO better heuristic, MAX_PIVOT dynamic from range
   	if (right - left > 1)
@@ -374,13 +374,13 @@ namespace OpenMS
 			// use more narrow window
 			// diff between border and new pivot should be at least 57 - fragment_mass_tolerance (smallest aa)
 
-    	UInt new_right(right), new_left(left);
-    	for (UInt i = left - 1; i < right && CID_spec[i].getPosition()[0] - CID_spec[left - 1].getPosition()[0] < 57.0 - fragment_mass_tolerance_; ++i)
+    	Size new_right(right), new_left(left);
+    	for (Size i = left - 1; i < right && CID_spec[i].getPosition()[0] - CID_spec[left - 1].getPosition()[0] < 57.0 - fragment_mass_tolerance_; ++i)
     	{
       	new_left = i;
     	}
 
-    	for (UInt i = right + 1; i > new_left &&
+    	for (Size i = right + 1; i > new_left &&
          CID_spec[right + 1].getPosition()[0] - CID_spec[i].getPosition()[0] < 57.0 - fragment_mass_tolerance_;
          --i)
     	{
@@ -400,14 +400,14 @@ namespace OpenMS
 
 
     	Size old_num_used(0);
-    	set<UInt> used_pos;
-    	for (UInt p = 0; p != min(right - left - 1, max_number_pivot); ++p)
+    	set<Size> used_pos;
+    	for (Size p = 0; p != min(right - left - 1, max_number_pivot); ++p)
     	{
       	DoubleReal max(0);
-      	UInt max_pos(0);
+      	Size max_pos(0);
 
       	bool found_pivot(false);
-      	for (UInt i = left + 1; i < right; ++i)
+      	for (Size i = left + 1; i < right; ++i)
       	{
 					DoubleReal score = ion_scores[CID_spec[i].getPosition()[0]].score;
 					DoubleReal position = CID_spec[i].getPosition()[0];
@@ -419,7 +419,7 @@ namespace OpenMS
             // now check if a very similar ion is already selected +/- 3Da
             //bool has_similar(false);
 						/*
-            for (set<UInt>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
+            for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
             {
              	if (fabs(CID_spec[*it].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
              	{
@@ -471,7 +471,7 @@ namespace OpenMS
 		PeakSpectrum::ConstIterator it1 = s1.begin();
 		PeakSpectrum::ConstIterator it2 = s2.begin();
 
-		UInt num_matches(0);
+		Size num_matches(0);
 		while (it1 != s1.end() && it2 != s2.end())
 		{
 			DoubleReal pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
@@ -507,15 +507,15 @@ namespace OpenMS
 		return p1.getScore() > p2.getScore();
 	}
 
-	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, DoubleReal windowsize, UInt no_peaks)
+	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, DoubleReal windowsize, Size no_peaks)
 	{
   	PeakSpectrum copy(spec);
   	vector<Peak1D> to_be_deleted;
-  	for (UInt i = 0; i < spec.size(); ++i)
+  	for (Size i = 0; i < spec.size(); ++i)
   	{
     	PeakSpectrum sub_spec;
     	bool end(false);
-    	for (UInt j = i;  spec[j].getPosition()[0] - spec[i].getPosition()[0] < windowsize; )
+    	for (Size j = i;  spec[j].getPosition()[0] - spec[i].getPosition()[0] < windowsize; )
     	{
       	sub_spec.push_back(spec[j]);
       	if (++j == spec.size())
@@ -527,7 +527,7 @@ namespace OpenMS
 
     	sub_spec.sortByIntensity(true);
 
-    	for (UInt k = no_peaks; k < sub_spec.size(); ++k)
+    	for (Size k = no_peaks; k < sub_spec.size(); ++k)
     	{
       	Peak1D p(sub_spec[k]);
       	to_be_deleted.push_back(p);
@@ -555,7 +555,7 @@ namespace OpenMS
 
 	void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition>& decomps)
 	{
-		UInt max_number_aa_per_decomp((UInt)param_.getValue("max_number_aa_per_decomp"));
+		Size max_number_aa_per_decomp((Size)param_.getValue("max_number_aa_per_decomp"));
   	vector<MassDecomposition> tmp;
   	for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
   	{
@@ -604,7 +604,7 @@ namespace OpenMS
     	iso_dist.renormalize();
     	vector<DoubleReal> iso(max_isotope_, 0.0);
 
-    	for (UInt j = 0; j != iso_dist.size(); ++j)
+    	for (Size j = 0; j != iso_dist.size(); ++j)
     	{
       	iso[j] = iso_dist.getContainer()[j].second;
     	}
@@ -651,16 +651,16 @@ namespace OpenMS
 	{
 		//pilis_model_.readFromFile("/share/usr/bertsch/AC_2007/model_d8_human.dat");
 		
-		max_number_aa_per_decomp_ = (UInt)param_.getValue("max_number_aa_per_decomp");
+		max_number_aa_per_decomp_ = (Size)param_.getValue("max_number_aa_per_decomp");
 		tryptic_only_ = param_.getValue("tryptic_only").toBool();
 		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
-		max_number_pivot_ = (UInt)param_.getValue("max_number_pivot");
+		max_number_pivot_ = (Size)param_.getValue("max_number_pivot");
 		decomp_weights_precision_ = (DoubleReal)param_.getValue("decomp_weights_precision");
 		min_mz_ = (DoubleReal)param_.getValue("min_mz");
 		max_mz_ = (DoubleReal)param_.getValue("max_mz");
 		max_decomp_weight_ = (DoubleReal)param_.getValue("max_decomp_weight");
-		max_subscore_number_ = (UInt)param_.getValue("max_subscore_number");
-		max_isotope_ = (UInt)param_.getValue("max_isotope");
+		max_subscore_number_ = (Size)param_.getValue("max_subscore_number");
+		max_isotope_ = (Size)param_.getValue("max_isotope");
 
 		name_to_residue_.clear();
 		residue_to_name_.clear();

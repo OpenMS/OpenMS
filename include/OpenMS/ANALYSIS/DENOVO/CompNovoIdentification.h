@@ -83,7 +83,7 @@ namespace OpenMS
 		protected:
 
 			/// call the DAC algorithm for the subspectrum defined via left and right peaks and fill the set with candidates sequences
-			void getDecompositionsDAC_(std::set<String>& sequences, UInt left, UInt right, DoubleReal peptide_weight, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec, Map<DoubleReal, IonScore>& CID_nodes);
+			void getDecompositionsDAC_(std::set<String>& sequences, Size left, Size right, DoubleReal peptide_weight, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec, Map<DoubleReal, IonScore>& CID_nodes);
 
 			/// reduces the given number of permuts by scoring the perumtations to the CID and ETD spec
 			void reducePermuts_(std::set<String>& permuts, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec, DoubleReal prefix, DoubleReal suffix);
@@ -92,7 +92,7 @@ namespace OpenMS
 			void getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Int /* charge */, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
 
 			/// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
-			DoubleReal estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, UInt& charge);
+			DoubleReal estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge);
 			
 	};
 }
