@@ -303,6 +303,18 @@ set(analysis_executables_list
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   OfflinePrecursorIonSelection_test
+	DeNovoAlgorithm_test
+	DeNovoIdentification_test
+	DeNovoIonScoring_test
+	DeNovoPostScoring_test
+	MassDecomposition_test
+	MassDecompositionAlgorithm_test
+	CompNovoIdentificationBase_test 
+	CompNovoIdentification_test
+	CompNovoIonScoringCID_test
+	CompNovoIdentificationCID_test
+	CompNovoIonScoringBase_test
+	CompNovoIonScoring_test
   ILPWrapper_test
 )
 

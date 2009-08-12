@@ -25,11 +25,11 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYIS_ID_DECOMPOSITIONALGORITHM_H
-#define OPENMS_ANALYIS_ID_DECOMPOSITIONALGORITHM_H
+#ifndef OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
+#define OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include "MassDecomposition.h"
+#include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
 
 // ims includes
 #ifdef OPENMS_COMPILER_MSVC

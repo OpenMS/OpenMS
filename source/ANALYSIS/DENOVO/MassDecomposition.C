@@ -31,6 +31,13 @@ using namespace std;
 
 namespace OpenMS
 {
+	MassDecomposition::MassDecomposition()
+		:	number_of(0),
+			number_of_max_aa(0),
+			min_number(1000),
+			max_number(0)
+	{
+	}
 
 	MassDecomposition::MassDecomposition(const String& deco)
 		: number_of(0),

@@ -171,7 +171,7 @@ namespace OpenMS
 			res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
 		}
 
-		cerr << res << " " << mod_name << endl;
+		//cerr << res << " " << mod_name << endl;
 
 		set<String> mods = searchModifications(mod_name, res);
 		const ResidueModification* mod_res = 0;
