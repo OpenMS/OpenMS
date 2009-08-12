@@ -122,14 +122,12 @@ namespace OpenMS
 	
 	void TOPPASWidget::leaveEvent(QEvent* /*e*/)
 	{
-		//release keyboard, when the mouse pointer leaves
-		releaseKeyboard();
+		
 	}
 
 	void TOPPASWidget::enterEvent(QEvent* /*e*/)
 	{
-		//grab keyboard, as we need to handle key presses
-		grabKeyboard();
+		setFocus();
 	}
 
 } //Namespace

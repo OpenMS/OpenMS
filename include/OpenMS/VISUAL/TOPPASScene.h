@@ -104,6 +104,8 @@ namespace OpenMS
 			void setSaveFileName(const String& name);
 			/// Updates all output file names
 			void updateOutputFileNames();
+			/// Performs a topological sort of all vertices
+			void topoSort();
 			
 		public slots:
 		
@@ -163,6 +165,8 @@ namespace OpenMS
 			String tmp_path_;
 			/// Are we in a GUI or is the scene used by TOPPAS -execute (at the command line)?
 			bool gui_;
+			/// The directory where the output files will be written
+			QString out_dir_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

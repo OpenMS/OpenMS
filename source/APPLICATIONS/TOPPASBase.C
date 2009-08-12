@@ -87,7 +87,7 @@ namespace OpenMS
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
     tab_bar_ = new EnhancedTabBar(dummy);
-    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
+    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.");
     tab_bar_->addTab("dummy",1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeId(1336);
@@ -704,6 +704,8 @@ namespace OpenMS
 		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
 		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
 		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
+		
+		scene->topoSort();
 	}
 	
 	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)

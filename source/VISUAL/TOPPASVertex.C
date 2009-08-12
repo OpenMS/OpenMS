@@ -41,7 +41,9 @@ namespace OpenMS
 			brush_color_(),
 			dfs_color_(DFS_WHITE),
 			dfs_parent_(0),
-			id_(0)
+			id_(0),
+			topo_sort_marked_(false),
+			topo_nr_(0)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -57,7 +59,9 @@ namespace OpenMS
 			brush_color_(rhs.brush_color_),
 			dfs_color_(rhs.dfs_color_),
 			dfs_parent_(rhs.dfs_parent_),
-			id_(rhs.id_)
+			id_(rhs.id_),
+			topo_sort_marked_(rhs.topo_sort_marked_),
+			topo_nr_(rhs.topo_nr_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -78,6 +82,8 @@ namespace OpenMS
 		dfs_color_ = rhs.dfs_color_;
 		dfs_parent_ = rhs.dfs_parent_;
 		id_ = rhs.id_;
+		topo_sort_marked_ = rhs.topo_sort_marked_;
+		topo_nr_ = rhs.topo_nr_;
 		
 		return *this;
 	}
@@ -244,5 +250,44 @@ namespace OpenMS
 		
 		emit somethingHasChanged();
 	}
-
+	
+	bool TOPPASVertex::isTopoSortMarked()
+	{
+		return topo_sort_marked_;
+	}
+	
+	void TOPPASVertex::setTopoSortMarked(bool b)
+	{
+		topo_sort_marked_ = b;
+	}
+	
+	UInt TOPPASVertex::getTopoNr()
+	{
+		return topo_nr_;
+	}
+	
+	void TOPPASVertex::setTopoNr(UInt nr)
+	{
+		topo_nr_ = nr;
+	}
+	
+	String TOPPASVertex::get3CharsNumber(UInt number)
+	{
+		String num_str(number);
+		int diff = 3 - (int)(num_str.size());
+		if (diff <= 0)
+		{
+			return num_str;
+		}
+		else
+		{
+			String res;
+			for (int i = 0; i < diff; ++i)
+			{
+				res += "0";
+			}
+			res += num_str;
+			return res;
+		}
+	}
 }

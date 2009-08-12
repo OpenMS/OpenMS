@@ -22,7 +22,6 @@ TheoreticalSpectrumGenerationDialog.C
 SpectrumAlignmentDialog.C
 TOPPASInputFileDialog.C
 TOPPASInputFilesDialog.C
-TOPPASOutputFileDialog.C
 TOPPASOutputFilesDialog.C
 TOPPASToolConfigDialog.C
 TOPPASIOMappingDialog.C

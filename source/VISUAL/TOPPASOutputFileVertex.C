@@ -27,34 +27,25 @@
 
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
 
 namespace OpenMS
 {
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex()
-		:	TOPPASVertex(),
-			file_()
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const QString& file)
-		:	TOPPASVertex(),
-			file_(file)
+		:	TOPPASVertex()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
 	TOPPASOutputFileVertex::TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs)
-		:	TOPPASVertex(rhs),
-			file_(rhs.file_)
+		:	TOPPASVertex(rhs)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -67,26 +58,9 @@ namespace OpenMS
 	
 	TOPPASOutputFileVertex& TOPPASOutputFileVertex::operator= (const TOPPASOutputFileVertex& rhs)
 	{
-		TOPPASVertex::operator=(rhs);		
-		
-		file_ = rhs.file_;
+		TOPPASVertex::operator=(rhs);
 		
 		return *this;
-	}
-	
-	void TOPPASOutputFileVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-	{
-		showFileDialog();
-	}
-	
-	void TOPPASOutputFileVertex::showFileDialog()
-	{
-		TOPPASOutputFileDialog tofd(file_);
-		if (tofd.exec())
-		{
-			file_ = tofd.getFilename();
-		}
-		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	void TOPPASOutputFileVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -113,6 +87,11 @@ namespace OpenMS
 		QString text = "Output file";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+		
+		//topo sort number
+		qreal x_pos = -62.0;
+		qreal y_pos = 28.0; 
+		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 	}
 	
 	QRectF TOPPASOutputFileVertex::boundingRect() const
@@ -140,36 +119,44 @@ namespace OpenMS
 		}
 	}
 	
-	const QString& TOPPASOutputFileVertex::getFilename()
-	{
-		return file_;
-	}
-	
 	void TOPPASOutputFileVertex::finished()
 	{
-		// rename tmp out file if a file name was specified
-		if (file_ != "")
+		// copy tmp files to output dir
+		TOPPASEdge* e = *inEdgesBegin();
+		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
+		const QVector<QStringList>& output_files = tv->getOutputFileNames();
+		int param_index = e->getSourceOutParam();
+		QStringList tmp_file_names = output_files[param_index];
+		
+		if (!tmp_file_names.isEmpty())
 		{
-			TOPPASEdge* e = *inEdgesBegin();
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
-			const QVector<QStringList>& output_files = tv->getOutputFileNames();
-			int param_index = e->getSourceOutParam();
-			QString tmp_file_name = output_files[param_index].first();
-			
-			if (QFile::exists(file_))
+			QString old_file = tmp_file_names.first();
+			QString new_file = getOutputDir().toQString()+QDir::separator()+File::basename(old_file).toQString();
+			if (new_file.endsWith("_tmp"))
 			{
-				QFile::remove(file_);
+				new_file.truncate(new_file.size() - 4);
 			}
-			QFile::rename(tmp_file_name, file_);
-			
-			emit outputFileWritten(String(file_));
+			if (File::exists(new_file))
+			{
+				QFile::remove(new_file);
+			}
+			if (!QFile::copy(old_file, new_file))
+			{
+				std::cerr << "Could not copy tmp output file " << String(old_file) << " to " << String(new_file) << std::endl;
+			}
+			else
+			{
+				emit outputFileWritten(new_file);
+			}
 		}
+		
 		finished_ = true;
 		emit iAmDone();
 	}
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
 	{
+		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		// we do not need to forward the change (we have no childs)
 	}
 	
@@ -180,18 +167,13 @@ namespace OpenMS
 		setSelected(true);
 		
 		QMenu menu;
-		menu.addAction("Change file");
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
 		if (selected_action)
 		{
 			QString text = selected_action->text();
-			if (text == "Change file")
-			{
-				showFileDialog();
-			}
-			else if (text == "Remove")
+			if (text == "Remove")
 			{
 				ts->removeSelected();
 			}
@@ -206,6 +188,26 @@ namespace OpenMS
 	bool TOPPASOutputFileVertex::isFinished()
 	{
 		return finished_;
+	}
+	
+	String TOPPASOutputFileVertex::getOutputDir()
+	{
+		String dir = String("TOPPAS_out")+String(QDir::separator())+get3CharsNumber(topo_nr_);
+		
+		return dir;
+	}
+	
+	void TOPPASOutputFileVertex::createDirs(const QString& out_dir)
+	{
+		QDir current_dir(out_dir);
+		String new_dir = getOutputDir();
+		if (!File::exists(new_dir))
+		{
+			if (!current_dir.mkpath(new_dir.toQString()))
+			{
+				std::cerr << "Could not create path " << new_dir << std::endl;
+			}
+		}
 	}
 }
 

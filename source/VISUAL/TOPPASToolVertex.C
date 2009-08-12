@@ -38,6 +38,8 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
 #include <QtGui/QImage>
 
 namespace OpenMS
@@ -214,7 +216,11 @@ namespace OpenMS
 		}
 		
 		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
-		dialog.exec();
+		if (dialog.exec())
+		{
+			progress_color_ = Qt::gray;
+			emit somethingHasChanged();
+		}
 		
 		// restore the removed entries
 		foreach (const Param::ParamEntry& pe, hidden_entries)
@@ -227,7 +233,6 @@ namespace OpenMS
 			param_.setValue(pe.name, pe.value, pe.description, tags);
 		}
 		
-		//emit somethingHasChanged();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
@@ -341,11 +346,21 @@ namespace OpenMS
 		//list mode symbol
 		if (list_mode_)
 		{
-			qreal symbol_width = boundingRect().height() / 7.0;
-			qreal symbol_offset = boundingRect().height() / 15.0;
-			QRectF symbol_rect(boundingRect().topLeft() + QPointF(symbol_offset, symbol_offset), QSizeF(symbol_width, symbol_width));
+// 			qreal symbol_width = boundingRect().height() / 7.0;
+// 			qreal symbol_offset = boundingRect().height() / 15.0;
+// 			QRectF symbol_rect(boundingRect().topLeft() + QPointF(symbol_offset, symbol_offset), QSizeF(symbol_width, symbol_width));
+// 			painter->drawImage(symbol_rect, symbol_image_);
+			qreal symbol_width = 20.0;
+			qreal x_pos = -63.0;
+			qreal y_pos = -54.0;
+			QRectF symbol_rect(QPointF(x_pos, y_pos), QSizeF(symbol_width, symbol_width));
 			painter->drawImage(symbol_rect, symbol_image_);
 		}
+		
+		//topo sort number
+		qreal x_pos = -62.0;
+		qreal y_pos = 48.0; 
+		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -630,23 +645,13 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::updateOutputFileNames()
 	{
-		// recurse
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (tv)
-			{
-				tv->updateOutputFileNames();
-			}
-		}
-		
-		// now, parents are up-to-date --> update ourself:
-		
-		/*	First, determine (expected) number of elements of
-				output parameters with list type (see HACK below). */
+		/*	First, determine base names of input files (-in parameter) and store number
+				of input files in input_list_length_ (needed in executionFinished()) */ 
 		QVector<IOInfo> in_params;
-		input_list_length_ = 1;
+		input_list_length_ = 1; // stays like that if -in param is not a list
 		getInputParameters(in_params);
+		QStringList input_file_basenames;
+		
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			int param_index = (*it)->getTargetInParam();
@@ -656,26 +661,67 @@ namespace OpenMS
 				break;
 			}
 			
-			if (in_params[param_index].type == IOInfo::IOT_LIST)
+			if (in_params[param_index].param_name == "in")
 			{
-				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
-				if (iflv)
+				if (in_params[param_index].type == IOInfo::IOT_LIST)
 				{
-					input_list_length_ = (iflv->getFilenames()).count();
-					break;
-				}
-				
-				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-				if (tv)
-				{
-					int out_param_index = (*it)->getSourceOutParam();
-					if (out_param_index < 0)
+					TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
+					if (iflv)
 					{
-						std::cerr << "Output parameter index out of bounds!" << std::endl;
+						const QStringList& input_files = iflv->getFilenames();
+						input_list_length_ = input_files.count();
+						foreach (const QString& str, input_files)
+						{
+							input_file_basenames.push_back(File::basename(str).toQString());
+						}
 						break;
 					}
-					input_list_length_ = tv->output_file_names_[out_param_index].count();
-					break;
+					
+					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+					if (tv)
+					{
+						int out_param_index = (*it)->getSourceOutParam();
+						if (out_param_index < 0)
+						{
+							std::cerr << "Output parameter index out of bounds!" << std::endl;
+							break;
+						}
+						const QStringList& input_files = tv->output_file_names_[out_param_index];
+						input_list_length_ = input_files.count();
+						foreach (const QString& str, input_files)
+						{
+							input_file_basenames.push_back(File::basename(str).toQString());
+						}
+						break;
+					}
+				}
+				else // IOT_FILE
+				{
+					TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
+					if (ifv)
+					{
+						input_file_basenames.push_back(File::basename(ifv->getFilename()).toQString());
+						break;
+					}
+					
+					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+					if (tv)
+					{
+						int out_param_index = (*it)->getSourceOutParam();
+						if (out_param_index < 0)
+						{
+							std::cerr << "Output parameter index out of bounds!" << std::endl;
+							break;
+						}
+						const QStringList& input_files = tv->output_file_names_[out_param_index];
+						if (input_files.size() != 1)
+						{
+							std::cerr << "Number of input files for single file parameter != 1" << std::endl;
+							break;
+						}
+						input_file_basenames.push_back(input_files.first());
+						break;
+					}
 				}
 			}
 		}
@@ -699,22 +745,46 @@ namespace OpenMS
 					// corresponding out edge found
 					if (out_params[param_index].type == IOInfo::IOT_FILE)
 					{
-						output_file_names_[param_index].push_back((tmp_path_ + "TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + "__tmp.out").toQString());
+						QString f = getOutputDir().toQString()
+							+QDir::separator()
+							+out_params[param_index].param_name.toQString()
+							+QDir::separator()
+							+input_file_basenames.first();
+						if (!f.endsWith("_tmp"))
+						{
+							f += "_tmp";
+						}
+						output_file_names_[param_index].push_back(f);
 					}
 					else if (out_params[param_index].type == IOInfo::IOT_LIST)
 					{
-						/*	HACK: for output parameters with list type, we expect
-								the number of elements to be the same as the number of
-								elements of any input list (thus, we also assume that all
-								input file lists have the same length) */
-						for (int j = 0; j < input_list_length_; ++j)
+						foreach (const QString& str, input_file_basenames)
 						{
-							output_file_names_[param_index].push_back((tmp_path_ + "TOPPAS_" + name_ + "_" + type_ + "_" + File::getUniqueName() + "__tmp.out").toQString());
+							QString f = getOutputDir().toQString()
+							+QDir::separator()
+							+out_params[param_index].param_name.toQString()
+							+QDir::separator()
+							+str;
+							if (!f.endsWith("_tmp"))
+							{
+								f += "_tmp";
+							}
+							output_file_names_[param_index].push_back(f);
 						}
 					}
 					
 					break; // we are done, don't push_back further file names for this parameter
 				}
+			}
+		}
+		
+		// update all child nodes if they are tools
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getTargetVertex());
+			if (tv)
+			{
+				tv->updateOutputFileNames();
 			}
 		}
 	}
@@ -822,6 +892,37 @@ namespace OpenMS
 	void TOPPASToolVertex::setListModeActive(bool b)
 	{
 		list_mode_ = b;
+	}
+	
+	String TOPPASToolVertex::getOutputDir()
+	{
+		String dir = String("TOPPAS_tmp")+String(QDir::separator())+get3CharsNumber(topo_nr_)+"_"+getName();
+		if (getType() != "")
+		{
+			dir += "_"+getType();
+		}
+		
+		return dir;
+	}
+	
+	void TOPPASToolVertex::createDirs(const QString& out_dir)
+	{
+		QDir current_dir(out_dir);
+		
+		foreach (const QStringList& files, output_file_names_)
+		{
+			if (!files.isEmpty())
+			{
+				QString dir = File::path(files.first()).toQString();
+				if (!File::exists(dir))
+				{
+					if (!current_dir.mkpath(dir))
+					{
+						std::cerr << "Could not create path " << String(dir) << std::endl;
+					}
+				}
+			}
+		}
 	}
 }
 

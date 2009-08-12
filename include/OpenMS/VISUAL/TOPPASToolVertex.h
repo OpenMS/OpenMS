@@ -127,6 +127,10 @@ namespace OpenMS
 			bool listModeActive();
 			/// (Un)sets the list iteration mode
 			void setListModeActive(bool b);
+			/// Returns the directory where this tool stores its output files
+			String getOutputDir();
+			/// Creates all necessary directories (called by the scene before the pipeline is run)
+			void createDirs(const QString& out_dir);
 			
 		public slots:
 		

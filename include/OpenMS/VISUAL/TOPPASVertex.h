@@ -113,6 +113,14 @@ namespace OpenMS
 			UInt getID();
 			/// Sets the unique ID for this node
 			void setID(UInt id);
+			/// Returns whether the vertex has been marked already (during topological sort)
+			bool isTopoSortMarked();
+			/// (Un)marks the vertex (during topological sort)
+			void setTopoSortMarked(bool b);
+			/// Returns the topological sort number
+			UInt getTopoNr();
+			/// Sets the topological sort number
+			void setTopoNr(UInt nr);
 		
 		public slots:
 		
@@ -152,6 +160,10 @@ namespace OpenMS
 			TOPPASVertex* dfs_parent_;
 			/// The unique ID
 			UInt id_;
+			/// "marked" flag for topological sort
+			bool topo_sort_marked_;
+			/// The number in a topological sort of the entire graph
+			UInt topo_nr_;
 			
 			///@name reimplemented Qt events
       //@{
@@ -165,6 +177,8 @@ namespace OpenMS
 			/// Moves the target pos of the edge which is just being created to @p pos
 			virtual void moveNewEdgeTo_(const QPointF& pos);
 			
+			/// Returns a three character string (i.e. 001 instead of 1) for the given @p number
+			String get3CharsNumber(UInt number);
 	};
 }
 

@@ -28,38 +28,24 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
 #include <QtCore/QFile>
-
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
 
 namespace OpenMS
 {
 	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex()
-		:	TOPPASVertex(),
-			files_(),
-			ready_(false)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const QStringList& files)
-		:	TOPPASVertex(),
-			files_(files),
-			ready_(false)
+		:	TOPPASVertex()
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
 	}
 	
 	TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs)
-		:	TOPPASVertex(rhs),
-			files_(rhs.files_),
-			ready_(rhs.ready_)
+		:	TOPPASVertex(rhs)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -74,82 +60,7 @@ namespace OpenMS
 	{
 		TOPPASVertex::operator=(rhs);		
 		
-		files_ = rhs.files_;
-		ready_ = rhs.ready_;
-		
 		return *this;
-	}
-	
-	void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-	{
-		showFilesDialog();
-	}
-	
-	void TOPPASOutputFileListVertex::showFilesDialog()
-	{
-		bool go = true;
-		if (inEdgesBegin() == inEdgesEnd())
-		{
-			go = false;
-		}
-		else
-		{
-			TOPPASToolVertex* parent_tv = qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex());
-			
-			//first, update file names recursively
-			parent_tv->updateOutputFileNames();
-			
-			const QVector<QStringList>& output_files = parent_tv->getOutputFileNames();
-			int param_index = (*inEdgesBegin())->getSourceOutParam();
-			if (param_index == -1 || output_files[param_index].empty())
-			{
-				go = false;
-			}
-		}
-		
-		if (!go)
-		{
-			QMessageBox::information(0,"No input","The output file names cannot be specified until the number of files is known. You have to set up the rest of the pipeline, first (including input files).");
-			return;
-		}
-		
-		QStringList list;
-		TOPPASEdge* in_edge = *inEdgesBegin();
-		TOPPASToolVertex* in_tool = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
-		const QVector<QStringList>& files_vector = in_tool->getOutputFileNames();
-		int param_index = in_edge->getSourceOutParam();
-		if (param_index != -1)
-		{
-			const QStringList& files = files_vector[param_index];
-			
-			int specified_files_count = files_.size();
-			int tmp_files_count = files.size();
-			if (specified_files_count <= tmp_files_count)
-			{
-				list = files_;
-				// if too few file names specified, fill the rest
-				for (int i = specified_files_count; i < tmp_files_count; ++i)
-				{
-					list.push_back("<edit filename>");
-				}
-			}
-			else
-			{
-				// too many file names specified, only show as many as needed
-				for (int i = 0; i < tmp_files_count; ++i)
-				{
-					list.push_back(files_[i]);
-				}
-			}
-		}
-		
-		TOPPASOutputFilesDialog tofd(list);
-		if (tofd.exec())
-		{
-			tofd.getFilenames(files_);
-		}
-		updateStatus();
-		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 	}
 	
 	void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
@@ -176,6 +87,11 @@ namespace OpenMS
 		QString text = "Output file list";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+		
+		//topo sort number
+		qreal x_pos = -62.0;
+		qreal y_pos = 28.0; 
+		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 	}
 	
 	QRectF TOPPASOutputFileListVertex::boundingRect() const
@@ -203,97 +119,49 @@ namespace OpenMS
 		}
 	}
 	
-	const QStringList& TOPPASOutputFileListVertex::getFilenames()
-	{
-		return files_;
-	}
-	
 	void TOPPASOutputFileListVertex::finished()
 	{
-		// rename tmp out file if file names specified
+		// copy tmp file to output dir
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
 		const QVector<QStringList>& output_files = tv->getOutputFileNames();
 		int param_index = e->getSourceOutParam();
 		const QStringList& tmp_file_names = output_files[param_index];
 		
-		int specified_names_count = files_.size();
-		int counter = 0;
-		foreach (const QString& file, tmp_file_names)
+		if (!tmp_file_names.isEmpty())
 		{
-			if (counter < specified_names_count)
+			QString dir = File::path(tmp_file_names.first()).toQString();
+			QStringList files = QDir(dir).entryList();
+			foreach (const QString& f, files)
 			{
-				const QString& save_name = files_[counter++];	
-				if (QFile::exists(save_name))
+				QString new_file = getOutputDir().toQString()+QDir::separator()+File::basename(f).toQString();
+				if (new_file.endsWith("_tmp"))
 				{
-					QFile::remove(save_name);
+					new_file.truncate(new_file.size() - 4);
 				}
-				QFile::rename(file, save_name);
-				emit outputFileWritten(String(save_name));
+				if (File::exists(new_file))
+				{
+					QFile::remove(new_file);
+				}
+				if (!QFile::copy(f, new_file))
+				{
+					std::cerr << "Could not copy tmp output file " << String(f) << " to " << String(new_file) << std::endl;
+				}
+				else
+				{
+					emit outputFileWritten(new_file);
+				}
 			}
 		}
+		
 		finished_ = true;
 		emit iAmDone();
 	}
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
-		updateStatus();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
-		
 		// we do not need to forward the change (we have no childs)
-	}
-	
-	void TOPPASOutputFileListVertex::updateStatus()
-	{
-		if (inEdgesBegin() == inEdgesEnd())
-		{
-			ready_ = false;
-			return;
-		}
-		TOPPASEdge* e = *inEdgesBegin();
-		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
-		tv->updateOutputFileNames();
-		const QVector<QStringList>& output_files = tv->getOutputFileNames();
-		int param_index = e->getSourceOutParam();
-		if (param_index == -1)
-		{
-			ready_ = false;
-			return;
-		}
-		const QStringList& tmp_file_names = output_files[param_index];
-		int tmp_files_count = tmp_file_names.size();
-		if (tmp_files_count == 0)
-		{
-			ready_ = false;
-			return;
-		}
-		int specified_names_count = files_.size();
-		if (specified_names_count > tmp_files_count)
-		{
-			// truncate superfluous file names
-			int diff = specified_names_count - tmp_files_count;
-			for (int i = 0; i < diff; ++i)
-			{
-				files_.removeLast();
-			}
-			ready_ = true;
-		}
-		else
-		{
-			ready_ = (tmp_files_count == specified_names_count);
-		}
-	}
-	
-	bool TOPPASOutputFileListVertex::fileNamesValid(const QStringList& /*files*/)
-	{
-		// some more checks TODO...
-		return true;
-	}
-	
-	bool TOPPASOutputFileListVertex::isReady()
-	{
-		return ready_;
 	}
 	
 	void TOPPASOutputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
@@ -303,18 +171,13 @@ namespace OpenMS
 		setSelected(true);
 		
 		QMenu menu;
-		menu.addAction("Change files");
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
 		if (selected_action)
 		{
 			QString text = selected_action->text();
-			if (text == "Change files")
-			{
-				showFilesDialog();
-			}
-			else if (text == "Remove")
+			if (text == "Remove")
 			{
 				ts->removeSelected();
 			}
@@ -322,13 +185,33 @@ namespace OpenMS
 		}
 		else
 		{
-			event->ignore();	
+			event->ignore();
 		}
 	}
 	
 	bool TOPPASOutputFileListVertex::isFinished()
 	{
 		return finished_;
+	}
+	
+	String TOPPASOutputFileListVertex::getOutputDir()
+	{
+		String dir = String("TOPPAS_out")+String(QDir::separator())+get3CharsNumber(topo_nr_);
+		
+		return dir;
+	}
+	
+	void TOPPASOutputFileListVertex::createDirs(const QString& out_dir)
+	{
+		QDir current_dir(out_dir);
+		String new_dir = getOutputDir();
+		if (!File::exists(new_dir))
+		{
+			if (!current_dir.mkpath(new_dir.toQString()))
+			{
+				std::cerr << "Could not create path " << new_dir << std::endl;
+			}
+		}
 	}
 }
 

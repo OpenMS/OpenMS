@@ -35,7 +35,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Dialog which allows to specify the file names of the output files
+		@brief Dialog which allows to specify the directory for the output files
 		
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
@@ -49,21 +49,24 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASOutputFilesDialog(const QStringList& list);
+			TOPPASOutputFilesDialog(const QString& dir_name);
 			
-			/// Stores the list of all filenames in the list widget in @p files
-			void getFilenames(QStringList& files);
+			/// Returns the name of the directory
+			QString getDirectory();
+			
+			/// Returns if the directory is valid (is a directory and writable)
+			static bool dirNameValid(const QString& dir_name);
 			
 		public slots:
 		
-			/// Shows an output file dialog which edits the current item
-			void editCurrentItem();
+			/// Lets the user select the directory via a file dialog
+			void showFileDialog();
 		
 		protected slots:
 		
 			/// Called when OK is pressed; checks if the selected file is valid
 			void checkValidity_();
-		
+			
 	};
 	
 }
