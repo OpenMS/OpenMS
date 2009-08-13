@@ -317,10 +317,14 @@ namespace OpenMS
 			}
 		}
 		
-		if (!dir.remove("."))
+		QDir parent_dir(dir_name);
+		if (parent_dir.cdUp())
 		{
-			std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
-			fail = true;
+			if (!parent_dir.rmdir(dir_name))
+			{
+				std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
+				fail = true;
+			}
 		}
 		
 		return !fail;

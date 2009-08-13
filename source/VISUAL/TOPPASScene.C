@@ -71,10 +71,12 @@ namespace OpenMS
 		// Delete all items in a controlled way:
 		foreach (TOPPASVertex* vertex, vertices_)
 		{
+			vertex->blockSignals(true); // do not propagate changes, remove output files, etc..
 			vertex->setSelected(true);
 		}
 		foreach (TOPPASEdge* edge, edges_)
 		{
+			edge->blockSignals(true); // do not propagate changes, remove output files, etc..
 			edge->setSelected(true);
 		}
 		removeSelected();

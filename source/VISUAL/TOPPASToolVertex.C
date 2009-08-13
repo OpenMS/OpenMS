@@ -346,10 +346,6 @@ namespace OpenMS
 		//list mode symbol
 		if (list_mode_)
 		{
-// 			qreal symbol_width = boundingRect().height() / 7.0;
-// 			qreal symbol_offset = boundingRect().height() / 15.0;
-// 			QRectF symbol_rect(boundingRect().topLeft() + QPointF(symbol_offset, symbol_offset), QSizeF(symbol_width, symbol_width));
-// 			painter->drawImage(symbol_rect, symbol_image_);
 			qreal symbol_width = 20.0;
 			qreal x_pos = -63.0;
 			qreal y_pos = -54.0;
@@ -841,6 +837,7 @@ namespace OpenMS
 		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
 		if (File::exists(remove_dir))
 		{
+			std::cout << "in edge changed" << std::endl;
 			removeDirRecursively_(remove_dir);
 		}
 		
@@ -953,6 +950,7 @@ namespace OpenMS
 			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
 			if (File::exists(remove_dir))
 			{
+				std::cout << "topo nr" << std::endl;
 				removeDirRecursively_(remove_dir);
 			}
 			setProgressColor(Qt::gray);

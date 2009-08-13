@@ -156,12 +156,14 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
 	{
-		// something has changed --> remove invalidated tmp files, if existent
-		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-		if (File::exists(remove_dir))
-		{
-			removeDirRecursively_(remove_dir);
-		}
+		// NOTE we are a little bit more careful with output files than with tmp files, do not delete them when pipeline changes
+		
+// 		// something has changed --> remove invalidated tmp files, if existent
+// 		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+// 		if (File::exists(remove_dir))
+// 		{
+// 			removeDirRecursively_(remove_dir);
+// 		}
 		
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		// we do not need to forward the change (we have no childs)
@@ -223,12 +225,14 @@ namespace OpenMS
 		{
 			topo_nr_ = nr;
 			
-			// topological number changed --> remove invalidated tmp files, if existent
-			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-			if (File::exists(remove_dir))
-			{
-				removeDirRecursively_(remove_dir);
-			}
+			// NOTE we are a little bit more careful with output files than with tmp files, do not delete them when pipeline changes
+			
+// 			// topological number changed --> remove invalidated tmp files, if existent
+// 			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+// 			if (File::exists(remove_dir))
+// 			{
+// 				removeDirRecursively_(remove_dir);
+// 			}
 		}
 	}
 }
