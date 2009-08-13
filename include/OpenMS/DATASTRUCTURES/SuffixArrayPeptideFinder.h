@@ -73,6 +73,8 @@ public:
 	@brief finds all candidate for given spectrum in the suffix array
 	@param spec const reference to double vector describing the MS spectrum
 	@param candidates output parameters which holds the candidates of the masses given in spec after the call
+				 FASTAEntry contains the FASTA header and the peptide sequence
+				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@see sufArray.h
 	*/
@@ -82,7 +84,8 @@ public:
 	@brief finds all candidate for given DTA file
 	@param DTA_file DTA file location
 	@param candidates Output parameters which holds the candidates suitable for the mass given in the dta file
-	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
+				 FASTAEntry contains the FASTA header and the peptide sequence
+				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@throw FileNotFound if DTA file does not exists
 	@throw ParseError is thrown if the dta file could not be parsed
 	@see sufArray.h
@@ -139,7 +142,7 @@ public:
 	bool getUseTags();
 
 	/**
-	@brief setter for modification output method
+	@brief set modification output method (valid are: "mass", "stringUnchecked", "stringChecked")
 	@param s describing how modifications sould be given back
 	@throw InvalidValue is thrown if method s is not known
 	*/

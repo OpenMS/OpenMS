@@ -94,19 +94,13 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	{
 		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName);
 	} 
-	else
+	else if (method == "seqan") 
 	{
-		if (method == "seqan") 
-		{
-			sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName);
-		} 
-		else 
-		{
-			if (method == "trypticSeqan") 
-			{
-				sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName);
-			}
-		}
+		sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName);
+	} 
+	else if (method == "trypticSeqan") 
+	{
+		sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName);
 	}
 	
 	/*

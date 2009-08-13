@@ -168,7 +168,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue* r = rdb->getResidue(aa[i]);
-		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
+		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal); // TODO: offer Monoweight as well?! (watch the "H20" hack above)
 	}
 	
 	if (sa_file_name!="")
@@ -426,12 +426,12 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 	
 	SignedSize tag_pos = 0;
 	
-	history.push(pair<pair <SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> > (indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, 18.0)));
+	history.push(pair<pair <SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> > (indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, EmpiricalFormula("H2O").getAverageWeight())));
 	
 	SignedSize steps = 0;
 	SignedSize nres = 0;
 	map<double, SignedSize> mod_map_start;
-	for (SignedSize i = 0; i < (int)indices_.size(); ++i)
+	for (SignedSize i = 0; i < (SignedSize)indices_.size(); ++i)
 	{
 		SignedSize str_len = indices_[i].second;
 		// we are looking for the next history entry representing a position we have not been yet
