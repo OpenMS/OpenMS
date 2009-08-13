@@ -219,15 +219,14 @@ namespace OpenMS
 				ILPWrapper ilp_wrapper;
 			
 				std::vector<IndexTriple> variable_indices;
-				ilp_wrapper.encodeModelForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
-																													 indices,charges_set,
-																													 param_.getValue("ms2_spectra_per_rt_bin"));
-				sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
-			
-				// solve it
 				std::vector<int> solution_indices;
-				ilp_wrapper.solve(solution_indices);
-			
+				ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
+																																 indices,charges_set,
+																																 param_.getValue("ms2_spectra_per_rt_bin"),
+																																 param_.getValue("min_peak_distance"),
+																																 solution_indices);
+
+				sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
 				std::cout << "best_solution "<<std::endl;
 				// print best solution
 				// create inclusion list

@@ -49,7 +49,7 @@
 #include "coin/CbcHeuristicLocal.hpp"
 #include "coin/CbcConfig.h"
 #include "coin/CbcModel.hpp"
-//#include "coin/CoinModel.hpp"
+#include "coin/CoinModel.hpp"
 #include "coin/OsiClpSolverInterface.hpp"
 #include "coin/CoinTime.hpp"
 #ifdef _MSC_VER
@@ -70,10 +70,226 @@ ILPWrapper::~ILPWrapper()
   
 }
 
+void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
+																		std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+																		std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
+																		UInt ms2_spectra_per_rt_bin,DoubleReal min_peak_distance,
+																		UInt number_of_scans)
+{
+	Int counter = 0;
+	CoinModel model;
+	std::cout << "Feature Based: Build model: first objective"<<std::endl;
+	///////////////////////////////////////////////////////////////////////
+	// add objective function
+	///////////////////////////////////////////////////////////////////////
+	model.setOptimizationDirection(-1); // maximize
+	// max \sum_j x_jk * signal_jk
+	//                    column_index, feature_index,scan
+	
+	//
+
+	for(Size i = 0; i < features.size(); ++i)
+		{
+			// first check if charge state is allowed
+			// charge not in "ChargeFilter" list
+			//#ifdef DEBUG_OPS
+			std::cout << "feat: "<<i <<" charge "<<features[i].getCharge() << std::endl;
+			//#endif
+			if (charges_set.count(features[i].getCharge())<1) continue;
+			if(mass_ranges[i].size()==0) continue;
+#ifdef DEBUG_OPS
+			if(mass_ranges[i].size() > 0)
+				{
+					std::cout << "start_scan "<< mass_ranges[i][0].first << " ?= "<<features[i].getQuality(0)
+										<< " stop scan "<< (mass_ranges[i].end()-1)->first<< " ?= "	<< features[i].getQuality(1)-1<<std::endl;
+				}
+#endif
+
+		
+			Size c = 0;
+			// go through all rts of the current feature
+			for(Size s_idx = 0; s_idx < mass_ranges[i].size();s_idx+=2) // walk in size two steps
+				{
+					Size s = mass_ranges[i][s_idx].first;
+					// 						////////////////////////////////////////////////////////////////////////
+					// 						// check if other features overlap with this feature in the current scan
+					// 						////////////////////////////////////////////////////////////////////////
+					// 						InputPeakType & peak_left_border = experiment[s][mass_ranges[i][s_idx].second];
+					// 						InputPeakType & peak_right_border = experiment[s][mass_ranges[i][s_idx+1].second];
+					// 						bool overlapping_features = false;
+					// 						for(Size fmr=0;!overlapping_features && fmr < mass_ranges.size();++fmr)
+					// 							{
+					// 								if(i == fmr) continue; // same feature
+					// 								for(Size mr=0; mr < mass_ranges[fmr].size();mr+=2)
+					// 									{
+					// 										if( mass_ranges[fmr][mr].first ==  s) // same spectrum
+					// 											{
+					// 												InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
+					// 												InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
+					// 												std::cout << tmp_peak_left.getMZ() << " < "
+					// 																	<< peak_left_border.getMZ()-min_peak_distance << " && "
+					// 																	<< tmp_peak_right.getMZ() << " < "
+					// 																	<< peak_left_border.getMZ()- min_peak_distance<< " ? "
+					// 																	<< (tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
+					// 																			tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance)
+					// 																	<<" || "
+					// 																	<< tmp_peak_left.getMZ() << " > "
+					// 																	<< peak_right_border.getMZ()+min_peak_distance << " && "
+					// 																	<< tmp_peak_right.getMZ() << " < "
+					// 																	<< peak_right_border.getMZ()+ min_peak_distance<< " ? "
+					// 																	<< (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
+					// 																			tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)
+					// 																	<< std::endl;
+					// 												// all other features have to be either completely left or
+					// 												// right of the current feature
+					// 												if(!((tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
+					// 															tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance) ||
+					// 														 (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
+					// 															tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)))
+					// 													{
+					// 														overlapping_features = true;
+					// 														break;
+					// 													}
+					// 											}
+					// 									}
+					// 							}
+						
+
+
+					////////////////////////////////////////////////////////////////////////
+
+						
+					model.setColumnName(counter,(String("x_")+i+","+s).c_str());
+					//#ifdef DEBUG_OPS
+					std::cout << "add column "<<counter << std::endl;
+					//#endif
+					IndexTriple triple;
+					triple.feature = i;
+					triple.scan = s;
+					triple.variable = counter;
+					variable_indices.push_back(triple);
+					model.setColumnUpper(counter,1.);
+					model.setColumnLower(counter,0.);
+					model.setColumnIsInteger(counter,true);
+					
+					//#ifdef DEBUG_OPS	
+					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
+										<< intensity_weights[i][c] <<std::endl;
+					//#endif
+					model.setObjective(counter,intensity_weights[i][c]);
+					++counter;
+					++c;
+				}
+		}
+	
+	///////////////////////////////////////////////////////////////////////
+	// add constraints
+	///////////////////////////////////////////////////////////////////////
+	std::cout << "and now the constraints:"<<std::endl;
+
+	///////////////////////////////////////////////////////////////////////
+	// 1: ensure that each precursor is acquired maximally once
+	///////////////////////////////////////////////////////////////////////
+	std::cout << "first the number of times a precursors is acquired"<<std::endl;
+	Size j = 0;
+	for(Size i = 0; i < features.size();++i)
+		{
+			Size start = j;
+			while(j < variable_indices.size() && variable_indices[j].feature == i)
+				{
+#ifdef DEBUG_OPS
+					std::cout << j << " "<<variable_indices[j].variable << " "
+										<< variable_indices[j].feature << " "
+										<< variable_indices[j].scan<<std::endl;
+#endif
+					++j;
+				}
+
+			Size stop = j;
+			double* entries = new double[stop-start];
+			int* indices = new int[stop-start];
+#ifdef DEBUG_OPS
+			std::cout << "feature "<<i <<" "<<features[i].getMZ() <<" "<<features[i].getRT()<<" ";
+			std::cout << stop-start<<"variables in equation\n";
+#endif
+			Size c = 0;
+			for(Size k = start; k < stop; ++k)
+				{
+					entries[c] = 1.;
+					indices[c] = variable_indices[k].variable;
+					//					std::cout << j<<" "<<indices[j]<<std::endl;
+					++c;
+				}
+#ifdef DEBUG_OPS
+			std::cout << "\nadd row "<<std::endl;
+#endif
+			String name = "PREC_ACQU_LIMIT_" + String(i);
+			
+			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
+#ifdef DEBUG_OPS
+			std::cout << stop-start << " "<<name<<std::endl;
+			std::cout << "added row"<<std::endl;
+#endif
+			delete entries;
+			delete indices;
+			
+		}
 
 
 
-void ILPWrapper::solve(std::vector<int>& solution_indices)
+	///////////////////////////////////////////////////////////////////////
+	// 2: do not exceed rt bin capacity
+	///////////////////////////////////////////////////////////////////////
+	std::cout << "and now the rt bin capacity"<<std::endl;
+	std::cout << ms2_spectra_per_rt_bin << " rt bin capacity"<<std::endl;
+	// sort variable_indices according to their scan number
+	sort(variable_indices.begin(),variable_indices.end(),ScanLess());
+	j = 0;
+	for(Size i = 0; i < number_of_scans;++i)
+		{
+			// first determine number of indices:
+			Size start = j;
+			while(j < variable_indices.size() && variable_indices[j].scan == i)
+				{
+					++j;
+				}
+			// no feature occuring in this scan
+			if(start == j) continue;
+
+			Size stop = j;
+			Size c = 0;			
+			double* entries = new double[stop-start];
+			int* indices = new int[stop-start];
+			for(Size s = start; s < stop; ++s)
+				{
+					entries[c] = 1.;
+					indices[c] = variable_indices[s].variable;
+					++c;
+				}
+#ifdef DEBUG_OPS
+			std::cout << "\nadd row "<<std::endl;
+#endif
+			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+#ifdef DEBUG_OPS
+			std::cout << "added row"<<std::endl;
+#endif
+			delete entries;
+			delete indices;
+			
+		}
+
+
+
+#ifdef DEBUG_OPS	
+	model.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
+#endif
+	
+	solveILP_(model,solution_indices);
+}
+
+
+
+void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 {
 
   std::cout << "compute .." << std::endl;
@@ -84,20 +300,20 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 #endif
 
 	// test if model exists
-	if(model_.numberElements()==0)
+	if(cmodel.numberElements()==0)
 		{
 			std::cout << "Model is empty." <<std::endl;
 			return;
 		}
 	
   // add rows into solver
-  solver.loadFromCoinModel(model_);
+  solver.loadFromCoinModel(cmodel);
 
   /* Now let MIP calculate a solution */
   // Pass to solver
   CbcModel model(solver);
 
-  model.setObjSense(model_.optimizationDirection()); // -1 = maximize, 1=minimize
+  model.setObjSense(cmodel.optimizationDirection()); // -1 = maximize, 1=minimize
   model.solver()->setHintParam(OsiDoReducePrint,true,OsiHintTry);
 
   // Output details
@@ -168,7 +384,7 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 			double value=solution[column];
 			if (fabs(value)>0.5 && model.solver()->isInteger(column))
 				{
-					std::cout << model_.getColumnName(column)<<" is in optimal solution"<<std::endl;
+					std::cout << cmodel.getColumnName(column)<<" is in optimal solution"<<std::endl;
 					solution_indices.push_back(column);
 				}
 		}

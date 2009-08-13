@@ -28,10 +28,11 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
 #include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -57,43 +58,52 @@ START_SECTION(~ILPWrapper())
 END_SECTION
 
 
-UInt spot_capacity = 2;
-std::set<Int> charges_set;
-charges_set.insert(1);
-
-FeatureMap<> features;
-MSExperiment<> exp;
-std::vector<ILPWrapper::IndexTriple > variable_indices;
-std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
-ILPWrapper wrapper;
-FeatureMap<> map;
-START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin)))
+START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, DoubleReal min_peak_distance)))
 {
+	std::set<Int> charges_set;
+	charges_set.insert(1);
+	
+	FeatureMap<> features;
+	MSExperiment<> exp;
+	std::vector<ILPWrapper::IndexTriple > variable_indices;
+	std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
+	ILPWrapper wrapper;
+	FeatureMap<> map;
+
+  std::vector<int> solution_indices;
+
   // test empty input
 	ILPWrapper wrapper2;
-  wrapper2.encodeModelForKnownLCMSMapFeatureBased(features,exp,variable_indices,mass_ranges,charges_set,spot_capacity);
+  wrapper2.createAndSolveILPForKnownLCMSMapFeatureBased(features,exp,variable_indices,mass_ranges,charges_set,1,0.,solution_indices);
+	TEST_EQUAL(variable_indices.size(),0)
+	TEST_EQUAL(solution_indices.size(),0)
+	solution_indices.clear();
+
 	// now with the same input as with the offline precursor ion selection (can't test them separately)
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_features.featureXML"),map);
 	MSExperiment<> raw_data;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
-	std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
+	mass_ranges.clear();
 	OfflinePrecursorIonSelection ops;
 	ops.getMassRanges(map,raw_data,mass_ranges);
-	wrapper.encodeModelForKnownLCMSMapFeatureBased(map,raw_data,	variable_indices,mass_ranges,charges_set,1);
+	wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(map,raw_data,variable_indices,mass_ranges,charges_set,1,0.,solution_indices);
 	TEST_EQUAL(variable_indices.size(),6)
+	variable_indices.clear();
+	TEST_EQUAL(solution_indices.size(),3)
+
+		
+// 	// test if min_peak_distance prohibits nearby peaks	
+ // 	ILPWrapper wrapper3;	
+// 	wrapper3.createAndSolveILPForKnownLCMSMapFeatureBased(map,raw_data,variable_indices,mass_ranges,charges_set,1,20.,solution_indices);
+// 	TEST_EQUAL(variable_indices.size(),2)
+//   TEST_EQUAL(solution_indices.size(),2)
+	
 }
 END_SECTION
 		
 	      
 START_SECTION((void solve(std::vector<int>& solution_indices)))
 {
-  // test solving without a model
-  ILPWrapper wrapper2;
-  std::vector<int> solution_indices;
-  wrapper2.solve(solution_indices);
-
-  wrapper.solve(solution_indices);
-	TEST_EQUAL(solution_indices.size(),3)
 }
 END_SECTION	      
 
