@@ -167,6 +167,8 @@ namespace OpenMS
 			bool gui_;
 			/// The directory where the output files will be written
 			QString out_dir_;
+			/// The current dir (saved before and restored after pipeline execution)
+			QString current_dir_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

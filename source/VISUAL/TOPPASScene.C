@@ -52,7 +52,8 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path),
 			gui_(gui),
-			out_dir_("")
+			out_dir_(""),
+			current_dir_(QDir::currentPath())
 	{
 		/*	ATTENTION!
 			 
@@ -399,9 +400,15 @@ namespace OpenMS
 		{
 			out_dir_ = tofd.getDirectory();
 		}
-		
+		else
+		{
+			return;
+		}
 		// make sure all output file names are updated
 		updateOutputFileNames();
+		
+		current_dir_ = QDir::currentPath(); // save for later
+		QDir::setCurrent(out_dir_);
 		
 		/*	unset the finished flag and set progress color = red for all TOPP tool nodes
 				+ create all output directories that do not exist already */
@@ -433,11 +440,7 @@ namespace OpenMS
 				continue;
 			}
 		}
-		
 		update(sceneRect());
-		
-		QString old_current_path = QDir::currentPath(); // save for later
-		QDir::setCurrent(out_dir_); // TODO set back when finished
 		
 		// start recursive execution at every output node
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
@@ -762,25 +765,25 @@ namespace OpenMS
 	{
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
-			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>(*it);
-			if (ifv)
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
+			if (ofv)
 			{
-				for (TOPPASVertex::EdgeIterator e_it = ifv->outEdgesBegin(); e_it != ifv->outEdgesEnd(); ++e_it)
+				for (TOPPASVertex::EdgeIterator e_it = ofv->inEdgesBegin(); e_it != ofv->inEdgesEnd(); ++e_it)
 				{
-					TOPPASEdge* out_edge = *e_it;
-					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(out_edge->getTargetVertex());
+					TOPPASEdge* in_edge = *e_it;
+					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
 					tv->updateOutputFileNames();
 				}
 				continue;
 			}
 			
-			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
-			if (iflv)
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv)
 			{
-				for (TOPPASVertex::EdgeIterator e_it = iflv->outEdgesBegin(); e_it != iflv->outEdgesEnd(); ++e_it)
+				for (TOPPASVertex::EdgeIterator e_it = oflv->inEdgesBegin(); e_it != oflv->inEdgesEnd(); ++e_it)
 				{
-					TOPPASEdge* out_edge = *e_it;
-					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(out_edge->getTargetVertex());
+					TOPPASEdge* in_edge = *e_it;
+					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
 					tv->updateOutputFileNames();
 				}
 			}
@@ -814,11 +817,15 @@ namespace OpenMS
 			}
 		}
 		
+		// restore old current dir
+		QDir::setCurrent(current_dir_);
 		emit entirePipelineFinished();
 	}
 	
 	void TOPPASScene::pipelineErrorSlot()
 	{
+		// restore old current dir
+		QDir::setCurrent(current_dir_);
 		emit pipelineExecutionFailed();
 	}
 	

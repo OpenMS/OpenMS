@@ -645,7 +645,18 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::updateOutputFileNames()
 	{
-		/*	First, determine base names of input files (-in parameter) and store number
+		// recurse until we depend only on input vertices
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+			if (tv)
+			{
+				tv->updateOutputFileNames();
+			}
+		}
+		
+		/*	Now, all parent vertices are up to date:
+				First, determine base names of input files (-in parameter) and store number
 				of input files in input_list_length_ (needed in executionFinished()) */ 
 		QVector<IOInfo> in_params;
 		input_list_length_ = 1; // stays like that if -in param is not a list
@@ -719,7 +730,7 @@ namespace OpenMS
 							std::cerr << "Number of input files for single file parameter != 1" << std::endl;
 							break;
 						}
-						input_file_basenames.push_back(input_files.first());
+						input_file_basenames.push_back(File::basename(input_files.first()).toQString());
 						break;
 					}
 				}
@@ -775,16 +786,6 @@ namespace OpenMS
 					
 					break; // we are done, don't push_back further file names for this parameter
 				}
-			}
-		}
-		
-		// update all child nodes if they are tools
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getTargetVertex());
-			if (tv)
-			{
-				tv->updateOutputFileNames();
 			}
 		}
 	}
@@ -908,7 +909,6 @@ namespace OpenMS
 	void TOPPASToolVertex::createDirs(const QString& out_dir)
 	{
 		QDir current_dir(out_dir);
-		
 		foreach (const QStringList& files, output_file_names_)
 		{
 			if (!files.isEmpty())

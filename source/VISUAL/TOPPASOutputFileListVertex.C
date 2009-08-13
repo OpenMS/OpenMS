@@ -121,7 +121,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::finished()
 	{
-		// copy tmp file to output dir
+		// copy tmp files to output dir
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
 		const QVector<QStringList>& output_files = tv->getOutputFileNames();
@@ -132,8 +132,13 @@ namespace OpenMS
 		{
 			QString dir = File::path(tmp_file_names.first()).toQString();
 			QStringList files = QDir(dir).entryList();
-			foreach (const QString& f, files)
+			foreach (const QString& relative_f, files)
 			{
+				if (relative_f == "." || relative_f == "..")
+				{
+					continue;
+				}
+				QString f = dir + QDir::separator() + relative_f;
 				QString new_file = getOutputDir().toQString()+QDir::separator()+File::basename(f).toQString();
 				if (new_file.endsWith("_tmp"))
 				{
