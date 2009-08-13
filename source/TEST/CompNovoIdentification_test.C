@@ -53,18 +53,6 @@ START_SECTION(~CompNovoIdentification())
 }
 END_SECTION
 
-START_SECTION((CompNovoIdentification(const CompNovoIdentification &source)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((virtual ~CompNovoIdentification()))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((void getIdentifications(std::vector< PeptideIdentification > &ids, const PeakMap &exp)))
 {
   // TODO
