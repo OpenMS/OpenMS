@@ -73,6 +73,9 @@ namespace OpenMS
 			factor = 1.0 / factor;
 		}
 		scale(factor, factor);
+		
+		QRectF items_rect = scene_->itemsBoundingRect();
+		setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
 	}
 
 	
@@ -128,6 +131,16 @@ namespace OpenMS
 	void TOPPASWidget::enterEvent(QEvent* /*e*/)
 	{
 		setFocus();
+	}
+	
+	void TOPPASWidget::resizeEvent(QResizeEvent* event)
+	{
+		QGraphicsView::resizeEvent(event);
+		if (scene_)
+		{
+			QRectF items_rect = scene_->itemsBoundingRect();
+			scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
+		}
 	}
 
 } //Namespace

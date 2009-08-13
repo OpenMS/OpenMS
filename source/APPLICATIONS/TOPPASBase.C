@@ -262,6 +262,8 @@ namespace OpenMS
 		if (file_name != "")
 		{
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+			showAsWindow_(tw, File::basename(file_name));
+			
 			TOPPASScene* scene = tw->getScene();
 			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
 			scene->load(file_name);
@@ -292,8 +294,7 @@ namespace OpenMS
 					continue;
 				}
 			}
-			
-			showAsWindow_(tw, File::basename(file_name));
+			scene->update(scene->sceneRect());
 		}
   }
   

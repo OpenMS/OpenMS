@@ -566,15 +566,26 @@ namespace OpenMS
 		
 		if (es != QProcess::NormalExit)
 		{
-			//std::cerr << "TOPP tool crashed!" << std::endl;
+			
 			emit toolCrashed();
+			//clean up
+			QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+			if (p)
+			{
+				delete p;
+			}
 			return;
 		}
 		
 		if (ec != 0)
 		{
-			//std::cerr << "TOPP tool execution failed! (Exit code: " << ec << ")" << std::endl;
 			emit toolFailed();
+			//clean up
+			QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+			if (p)
+			{
+				delete p;
+			}
 			return;
 		}
 		

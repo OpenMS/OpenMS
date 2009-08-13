@@ -739,9 +739,10 @@ namespace OpenMS
 			if (tw)
 			{
 				QRectF scene_rect = itemsBoundingRect();
-				setSceneRect(scene_rect);
 								
-				tw->fitInView(scene_rect, Qt::KeepAspectRatioByExpanding);
+				tw->fitInView(scene_rect, Qt::KeepAspectRatio);
+				tw->scale(0.75, 0.75);
+				setSceneRect(tw->mapToScene(tw->rect()).boundingRect());
 			}
 		}
 		
