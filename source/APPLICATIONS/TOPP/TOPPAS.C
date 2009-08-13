@@ -38,9 +38,8 @@
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
-
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -71,6 +70,7 @@ void print_usage()
 			 << "  --help           Shows this help" << endl
 			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << endl
 			 << "  -execute <File>  Executes the specified pipeline without starting the GUI" << endl
+			 << "  -out_dir <Dir>   Specifies the directory where output files will be written (when used with -execute)" << endl
 			 << endl ;
 }
 
@@ -81,6 +81,7 @@ int main( int argc, const char** argv )
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
 	valid_options["-execute"] = "execute";
+	valid_options["-out_dir"] = "out_dir";
 	
 	Param param;
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
@@ -119,6 +120,37 @@ int main( int argc, const char** argv )
 			a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
 			String toppas_file = (String)param.getValue("execute");
 			ts.load(toppas_file);
+			
+			if (param.exists("out_dir"))
+			{
+				QString out_dir_name = ((String)param.getValue("out_dir")).toQString();
+				if (QDir::isRelativePath(out_dir_name))
+				{
+					out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
+				}
+				
+				if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
+				{
+					cout << "dir name: " << String(out_dir_name) << endl;
+					ts.setOutDir(out_dir_name);
+				}
+				else
+				{
+					cout << "The specified output directory does not exist. Aborting." << endl;
+					return 1;
+				}
+			}
+			else
+			{
+				cout << "No output directory specified. Trying current directory..." << endl;
+				
+				if (!File::writable("test_file_in_the_current_directory"))
+				{
+					cout << "You do not have permission to write in the current directory. Aborting." << endl;
+					return 1;
+				}
+			}
+			
 			ts.runPipeline();
 			
 			return a.exec();

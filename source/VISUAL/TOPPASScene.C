@@ -397,15 +397,19 @@ namespace OpenMS
 
 	void TOPPASScene::runPipeline()
 	{
-		TOPPASOutputFilesDialog tofd(out_dir_);
-		if (tofd.exec())
+		if (gui_)
 		{
-			out_dir_ = tofd.getDirectory();
+			TOPPASOutputFilesDialog tofd(out_dir_);
+			if (tofd.exec())
+			{
+				out_dir_ = tofd.getDirectory();
+			}
+			else
+			{
+				return;
+			}
 		}
-		else
-		{
-			return;
-		}
+		
 		// make sure all output file names are updated
 		updateOutputFileNames();
 		
@@ -987,6 +991,11 @@ namespace OpenMS
 	const QString& TOPPASScene::getOutDir()
 	{
 		return out_dir_;
+	}
+	
+	void TOPPASScene::setOutDir(const QString& dir)
+	{
+		out_dir_ = dir;
 	}
 	
 } //namespace OpenMS

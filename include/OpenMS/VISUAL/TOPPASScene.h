@@ -108,6 +108,8 @@ namespace OpenMS
 			void topoSort();
 			/// Returns the name of the directory for output files
 			const QString& getOutDir();
+			/// Sets the name of the directory for output files
+			void setOutDir(const QString& dir);
 			
 		public slots:
 		
