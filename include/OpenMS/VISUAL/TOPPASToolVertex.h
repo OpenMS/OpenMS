@@ -50,12 +50,32 @@ namespace OpenMS
 			/// Stores the information for input/output files/lists
 			struct IOInfo
 			{
+				///Standard constructor
+				IOInfo()
+					:	type(IOT_FILE),
+						param_name(),
+						valid_types(),
+						listified(false)
+				{
+				}
+				
+				///Copy constructor
+				IOInfo(const IOInfo& rhs)
+					:	type(rhs.type),
+						param_name(rhs.param_name),
+						valid_types(rhs.valid_types),
+						listified(rhs.listified)
+				{
+				}
+				
+				///The type
 				enum IOType
 				{
 					IOT_FILE,
 					IOT_LIST
 				};
 				
+				///Comparison operator
 				bool operator< (const IOInfo& rhs) const
 				{
 					if (type != rhs.type)
@@ -68,9 +88,24 @@ namespace OpenMS
 					}
 				}
 				
+				///Assignment operator
+				IOInfo& operator= (const IOInfo& rhs)
+				{
+					type = rhs.type;
+					param_name = rhs.param_name;
+					valid_types = rhs.valid_types;
+					listified = rhs.listified;
+					
+					return *this;
+				}
+				
+				///The type of the parameter
 				IOType type;
+				///The name of the parameter
 				String param_name;
+				///The valid file types for this parameter
 				StringList valid_types;
+				///Is the parameter actually a single file parameter but is used in list iteration?
 				bool listified;
 			};
 			

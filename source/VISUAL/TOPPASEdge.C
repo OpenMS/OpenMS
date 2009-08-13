@@ -38,6 +38,7 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QMenu>
 
+
 namespace OpenMS
 {	
 	
@@ -321,9 +322,10 @@ namespace OpenMS
 	void TOPPASEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 		TOPPASIOMappingDialog dialog(this);
-		dialog.exec();
-		
-		emit somethingHasChanged();
+		if (dialog.exec())
+		{
+			emit somethingHasChanged();
+		}
 	}
 	
 	void TOPPASEdge::determineEdgeType()
@@ -402,18 +404,20 @@ namespace OpenMS
 		if (source_tool && source_out_param_ >= 0)
 		{
 			source_tool->getOutputParameters(source_output_files);
-			TOPPASToolVertex::IOInfo& source_param = source_output_files[(Size)(source_out_param_)];
+			const TOPPASToolVertex::IOInfo& source_param = source_output_files[source_out_param_];
 			source_param_types = source_param.valid_types;
 			source_param_has_list_type = source_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
 		}
+				
 		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 		if (target_tool && target_in_param_ >= 0)
 		{
 			target_tool->getInputParameters(target_input_files);
-			TOPPASToolVertex::IOInfo& target_param = target_input_files[(Size)(target_in_param_)];
+			const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_in_param_];
 			target_param_types = target_param.valid_types;
 			target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
 		}
+				
 		if (edge_type_ == ET_FILE_TO_TOOL)
 		{
 			if (target_param_has_list_type)
@@ -568,7 +572,7 @@ namespace OpenMS
 			// TODO: check everything else..
 			valid = true;
 		}
-		
+				
 		if (valid)
 		{
 			return ES_VALID;
@@ -602,7 +606,6 @@ namespace OpenMS
 	void TOPPASEdge::updateColor()
 	{
 		EdgeStatus es = getEdgeStatus();
-		
 		if (es == ES_VALID)
 		{
 			setColor(Qt::green);
@@ -615,14 +618,11 @@ namespace OpenMS
 		{
 			setColor(Qt::red);
 		}
-		
 		update(boundingRect());
 	}
 	
 	void TOPPASEdge::sourceHasChanged()
 	{
-		// what else TODO?
-		
 		emit somethingHasChanged();
 	}
 	
@@ -648,9 +648,10 @@ namespace OpenMS
 			if (text == "Edit I/O mapping")
 			{
 				TOPPASIOMappingDialog dialog(this);
-				dialog.exec();
-				
-				emit somethingHasChanged();
+				if (dialog.exec())
+				{
+					emit somethingHasChanged();
+				}
 			}
 			else if (text == "Remove")
 			{

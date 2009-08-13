@@ -127,11 +127,12 @@ namespace OpenMS
 		const QVector<QStringList>& output_files = tv->getOutputFileNames();
 		int param_index = e->getSourceOutParam();
 		QStringList tmp_file_names = output_files[param_index];
+		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
 		if (!tmp_file_names.isEmpty())
 		{
 			QString old_file = tmp_file_names.first();
-			QString new_file = getOutputDir().toQString()+QDir::separator()+File::basename(old_file).toQString();
+			QString new_file = parent_dir + QDir::separator() + getOutputDir().toQString()+QDir::separator()+File::basename(old_file).toQString();
 			if (new_file.endsWith("_tmp"))
 			{
 				new_file.truncate(new_file.size() - 4);
@@ -156,15 +157,6 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
 	{
-		// NOTE we are a little bit more careful with output files than with tmp files, do not delete them when pipeline changes
-		
-// 		// something has changed --> remove invalidated tmp files, if existent
-// 		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-// 		if (File::exists(remove_dir))
-// 		{
-// 			removeDirRecursively_(remove_dir);
-// 		}
-		
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		// we do not need to forward the change (we have no childs)
 	}
@@ -224,15 +216,6 @@ namespace OpenMS
 		if (topo_nr_ != nr)
 		{
 			topo_nr_ = nr;
-			
-			// NOTE we are a little bit more careful with output files than with tmp files, do not delete them when pipeline changes
-			
-// 			// topological number changed --> remove invalidated tmp files, if existent
-// 			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-// 			if (File::exists(remove_dir))
-// 			{
-// 				removeDirRecursively_(remove_dir);
-// 			}
 		}
 	}
 }

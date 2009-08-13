@@ -177,6 +177,9 @@ namespace OpenMS
 		QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
 		String default_dir = "";
 		
+		// use a copy for editing
+		Param edit_param(param_);
+		
 		// remove entries that are handled by edges already, user should not see them
 		QVector<Param::ParamEntry> hidden_entries;
 		QVector<IOInfo> input_infos;
@@ -190,10 +193,10 @@ namespace OpenMS
 			}
 			
 			const String& name = input_infos[index].param_name;
-			if (param_.exists(name))
+			if (edit_param.exists(name))
 			{
-				hidden_entries.push_back(param_.getEntry(name));
-				param_.remove(name);
+				hidden_entries.push_back(edit_param.getEntry(name));
+				edit_param.remove(name);
 			}
 		}
 		
@@ -208,29 +211,30 @@ namespace OpenMS
 			}
 			
 			const String& name = output_infos[index].param_name;
-			if (param_.exists(name))
+			if (edit_param.exists(name))
 			{
-				hidden_entries.push_back(param_.getEntry(name));
-				param_.remove(name);
+				hidden_entries.push_back(edit_param.getEntry(name));
+				edit_param.remove(name);
 			}
 		}
 		
-		TOPPASToolConfigDialog dialog(parent_widget, param_, default_dir, name_, type_);
+		TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_);
 		if (dialog.exec())
 		{
+			param_ = edit_param;
+			// restore the removed entries
+			foreach (const Param::ParamEntry& pe, hidden_entries)
+			{
+				StringList tags;
+				for (std::set<String>::const_iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
+				{
+					tags.push_back(*it);
+				}
+				param_.setValue(pe.name, pe.value, pe.description, tags);
+			}
+			
 			progress_color_ = Qt::gray;
 			emit somethingHasChanged();
-		}
-		
-		// restore the removed entries
-		foreach (const Param::ParamEntry& pe, hidden_entries)
-		{
-			StringList tags;
-			for (std::set<String>::const_iterator it = pe.tags.begin(); it != pe.tags.end(); ++it)
-			{
-				tags.push_back(*it);
-			}
-			param_.setValue(pe.name, pe.value, pe.description, tags);
 		}
 		
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
@@ -669,6 +673,7 @@ namespace OpenMS
 		input_list_length_ = 1; // stays like that if -in param is not a list
 		getInputParameters(in_params);
 		QStringList input_file_basenames;
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -763,7 +768,9 @@ namespace OpenMS
 					// corresponding out edge found
 					if (out_params[param_index].type == IOInfo::IOT_FILE)
 					{
-						QString f = getOutputDir().toQString()
+						QString f = ts->getOutDir()
+							+QDir::separator()
+							+getOutputDir().toQString()
 							+QDir::separator()
 							+out_params[param_index].param_name.toQString()
 							+QDir::separator()
@@ -778,7 +785,9 @@ namespace OpenMS
 					{
 						foreach (const QString& str, input_file_basenames)
 						{
-							QString f = getOutputDir().toQString()
+							QString f = ts->getOutDir()
+							+QDir::separator()
+							+getOutputDir().toQString()
 							+QDir::separator()
 							+out_params[param_index].param_name.toQString()
 							+QDir::separator()
@@ -837,7 +846,6 @@ namespace OpenMS
 		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
 		if (File::exists(remove_dir))
 		{
-			std::cout << "in edge changed" << std::endl;
 			removeDirRecursively_(remove_dir);
 		}
 		
@@ -854,7 +862,9 @@ namespace OpenMS
 		setSelected(true);
 		
 		QMenu menu;
+		
 		menu.addAction("Edit parameters");
+		
 		if (!list_mode_)
 		{
 			menu.addAction("Enable list iteration");
@@ -863,6 +873,25 @@ namespace OpenMS
 		{
 			menu.addAction("Disable list iteration");
 		}
+		
+		bool allow_resume = true;
+		// all predecessor nodes finished successfully?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
+			if (tv && (tv->progress_color_ != Qt::green || !tv->isFinished()))
+			{
+				allow_resume = false;
+				break;
+			}
+			// input nodes are always ready -> no further checks
+		}
+		QAction* resume_action = menu.addAction("Resume");
+		if (!allow_resume)
+		{
+			resume_action->setEnabled(false);
+		}
+		
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
@@ -882,6 +911,12 @@ namespace OpenMS
 			{
 				list_mode_ = false;
 				update(boundingRect());
+			}
+			else if (text == "Resume")
+			{
+				ts->updateOutputFileNames();
+				ts->createDirs(ts->getOutDir());
+				runToolIfInputReady();
 			}
 			else if (text == "Remove")
 			{
@@ -950,7 +985,6 @@ namespace OpenMS
 			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
 			if (File::exists(remove_dir))
 			{
-				std::cout << "topo nr" << std::endl;
 				removeDirRecursively_(remove_dir);
 			}
 			setProgressColor(Qt::gray);

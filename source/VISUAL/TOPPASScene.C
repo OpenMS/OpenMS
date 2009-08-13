@@ -52,8 +52,7 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path),
 			gui_(gui),
-			out_dir_(""),
-			current_dir_(QDir::currentPath())
+			out_dir_("")
 	{
 		/*	ATTENTION!
 			 
@@ -413,11 +412,10 @@ namespace OpenMS
 		// make sure all output file names are updated
 		updateOutputFileNames();
 		
-		current_dir_ = QDir::currentPath(); // save for later
-		QDir::setCurrent(out_dir_);
+		// create all directories
+		createDirs(out_dir_);
 		
-		/*	unset the finished flag and set progress color = red for all TOPP tool nodes
-				+ create all output directories that do not exist already */
+		//unset the finished flag and set progress color = red for all TOPP tool nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
 			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
@@ -824,15 +822,11 @@ namespace OpenMS
 			}
 		}
 		
-		// restore old current dir
-		QDir::setCurrent(current_dir_);
 		emit entirePipelineFinished();
 	}
 	
 	void TOPPASScene::pipelineErrorSlot()
 	{
-		// restore old current dir
-		QDir::setCurrent(current_dir_);
 		emit pipelineExecutionFailed();
 	}
 	
@@ -996,6 +990,33 @@ namespace OpenMS
 	void TOPPASScene::setOutDir(const QString& dir)
 	{
 		out_dir_ = dir;
+	}
+	
+	void TOPPASScene::createDirs(const QString& out_dir)
+	{
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+			if (tv)
+			{
+				tv->createDirs(out_dir);
+				continue;
+			}
+			
+			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
+			if (ofv)
+			{
+				ofv->createDirs(out_dir);
+				continue;
+			}
+			
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv)
+			{
+				oflv->createDirs(out_dir);
+				continue;
+			}
+		}
 	}
 	
 } //namespace OpenMS

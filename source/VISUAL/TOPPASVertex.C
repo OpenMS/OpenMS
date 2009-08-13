@@ -249,7 +249,6 @@ namespace OpenMS
 	void TOPPASVertex::inEdgeHasChanged()
 	{
 		// (overridden behavior in output and tool vertices)
-		
 		emit somethingHasChanged();
 	}
 	
