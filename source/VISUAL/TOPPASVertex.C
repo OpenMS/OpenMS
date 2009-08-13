@@ -29,6 +29,8 @@
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
+#include <QtCore/QDir>
+
 namespace OpenMS
 {
 	TOPPASVertex::TOPPASVertex()
@@ -268,10 +270,11 @@ namespace OpenMS
 	
 	void TOPPASVertex::setTopoNr(UInt nr)
 	{
+		// (overridden in tool and output vertices)
 		topo_nr_ = nr;
 	}
 	
-	String TOPPASVertex::get3CharsNumber(UInt number)
+	String TOPPASVertex::get3CharsNumber_(UInt number)
 	{
 		String num_str(number);
 		int diff = 3 - (int)(num_str.size());
@@ -289,5 +292,37 @@ namespace OpenMS
 			res += num_str;
 			return res;
 		}
+	}
+	
+	bool TOPPASVertex::removeDirRecursively_(const QString& dir_name)
+	{
+		bool fail = false;
+		
+		QDir dir(dir_name);
+		QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+		foreach (const QString& file_name, files)
+		{
+			if (!dir.remove(file_name))
+			{
+				std::cerr << "Could not remove file " << String(file_name) << "!" << std::endl;
+				fail = true;
+			}
+		}
+		QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+		foreach (const QString& contained_dir, contained_dirs)
+		{
+			if (!removeDirRecursively_(dir_name+QDir::separator()+contained_dir))
+			{
+				fail = true;
+			}
+		}
+		
+		if (!dir.remove("."))
+		{
+			std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
+			fail = true;
+		}
+		
+		return !fail;
 	}
 }

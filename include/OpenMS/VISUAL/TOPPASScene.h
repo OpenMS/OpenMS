@@ -106,6 +106,8 @@ namespace OpenMS
 			void updateOutputFileNames();
 			/// Performs a topological sort of all vertices
 			void topoSort();
+			/// Returns the name of the directory for output files
+			const QString& getOutDir();
 			
 		public slots:
 		

@@ -131,6 +131,8 @@ namespace OpenMS
 			String getOutputDir();
 			/// Creates all necessary directories (called by the scene before the pipeline is run)
 			void createDirs(const QString& out_dir);
+			/// Sets the topological sort number and removes invalidated tmp files
+			virtual void setTopoNr(UInt nr);
 			
 		public slots:
 		

@@ -837,6 +837,13 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
+		// something has changed --> remove invalidated tmp files, if existent
+		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+		if (File::exists(remove_dir))
+		{
+			removeDirRecursively_(remove_dir);
+		}
+		
 		progress_color_ = Qt::gray;
 		update(boundingRect());
 		
@@ -908,7 +915,7 @@ namespace OpenMS
 	
 	String TOPPASToolVertex::getOutputDir()
 	{
-		String dir = String("TOPPAS_tmp")+String(QDir::separator())+get3CharsNumber(topo_nr_)+"_"+getName();
+		String dir = String("TOPPAS_tmp")+String(QDir::separator())+get3CharsNumber_(topo_nr_)+"_"+getName();
 		if (getType() != "")
 		{
 			dir += "_"+getType();
@@ -933,6 +940,25 @@ namespace OpenMS
 					}
 				}
 			}
+		}
+	}
+	
+	void TOPPASToolVertex::setTopoNr(UInt nr)
+	{
+		if (topo_nr_ != nr)
+		{
+			topo_nr_ = nr;
+			
+			// topological number changed --> remove invalidated tmp files, if existent
+			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+			if (File::exists(remove_dir))
+			{
+				removeDirRecursively_(remove_dir);
+			}
+			setProgressColor(Qt::gray);
+			update(boundingRect());
+			
+			emit somethingHasChanged();
 		}
 	}
 }

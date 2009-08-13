@@ -44,8 +44,14 @@ namespace OpenMS
 	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name)
 	{
 		setupUi(this);
-		
-		line_edit->setText(dir_name);
+		if (dir_name != "")
+		{
+			line_edit->setText(dir_name);
+		}
+		else
+		{
+			line_edit->setText(QDir::currentPath());
+		}
 		QCompleter* completer = new QCompleter(this);
 		QDirModel* dir_model = new QDirModel(completer);
 		dir_model->setFilter(QDir::AllDirs);

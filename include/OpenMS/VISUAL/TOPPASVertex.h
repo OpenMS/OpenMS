@@ -119,8 +119,8 @@ namespace OpenMS
 			void setTopoSortMarked(bool b);
 			/// Returns the topological sort number
 			UInt getTopoNr();
-			/// Sets the topological sort number
-			void setTopoNr(UInt nr);
+			/// Sets the topological sort number (overridden in tool and output vertices)
+			virtual void setTopoNr(UInt nr);
 		
 		public slots:
 		
@@ -176,9 +176,10 @@ namespace OpenMS
 			
 			/// Moves the target pos of the edge which is just being created to @p pos
 			virtual void moveNewEdgeTo_(const QPointF& pos);
-			
 			/// Returns a three character string (i.e. 001 instead of 1) for the given @p number
-			String get3CharsNumber(UInt number);
+			String get3CharsNumber_(UInt number);
+			/// Removes the specified directory (absolute path). Returns true if successful.
+			bool removeDirRecursively_(const QString& dir_name);
 	};
 }
 

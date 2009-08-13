@@ -156,6 +156,13 @@ namespace OpenMS
 	
 	void TOPPASOutputFileVertex::inEdgeHasChanged()
 	{
+		// something has changed --> remove invalidated tmp files, if existent
+		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+		if (File::exists(remove_dir))
+		{
+			removeDirRecursively_(remove_dir);
+		}
+		
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		// we do not need to forward the change (we have no childs)
 	}
@@ -192,7 +199,7 @@ namespace OpenMS
 	
 	String TOPPASOutputFileVertex::getOutputDir()
 	{
-		String dir = String("TOPPAS_out")+String(QDir::separator())+get3CharsNumber(topo_nr_);
+		String dir = String("TOPPAS_out")+String(QDir::separator())+get3CharsNumber_(topo_nr_);
 		
 		return dir;
 	}
@@ -206,6 +213,21 @@ namespace OpenMS
 			if (!current_dir.mkpath(new_dir.toQString()))
 			{
 				std::cerr << "Could not create path " << new_dir << std::endl;
+			}
+		}
+	}
+	
+	void TOPPASOutputFileVertex::setTopoNr(UInt nr)
+	{
+		if (topo_nr_ != nr)
+		{
+			topo_nr_ = nr;
+			
+			// topological number changed --> remove invalidated tmp files, if existent
+			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+			if (File::exists(remove_dir))
+			{
+				removeDirRecursively_(remove_dir);
 			}
 		}
 	}

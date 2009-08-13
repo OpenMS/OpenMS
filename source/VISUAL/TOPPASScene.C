@@ -982,5 +982,10 @@ namespace OpenMS
 		update(sceneRect());
 	}
 	
+	const QString& TOPPASScene::getOutDir()
+	{
+		return out_dir_;
+	}
+	
 } //namespace OpenMS
 
