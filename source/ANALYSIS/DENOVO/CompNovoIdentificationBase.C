@@ -71,10 +71,9 @@ namespace OpenMS
 		defaults_.setValue("number_missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
 		defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
 		defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring");
-		//defaults_.setValue("fixed_modifications", "MOD:01329", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", );
 		defaults_.setValue("fixed_modifications", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		//defaults_.setValue("variable_modifications", "MOD:00719", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("variable_modifications", "MOD:00719,MOD:01329", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("variable_modifications", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
 
 		defaultsToParam_();
 	}
@@ -568,33 +567,6 @@ namespace OpenMS
   	return;
 	}
 
-	void CompNovoIdentificationBase::init_()
-	{
-		aa_to_weight_.clear();
-
-		aa_to_weight_['K'] = 128.095;
-  	aa_to_weight_['M'] = 131.04;
-		aa_to_weight_['F'] = 147.068;
-  	aa_to_weight_['P'] = 97.0528;
-  	aa_to_weight_['S'] = 87.032;
-  	aa_to_weight_['T'] = 101.048;
-  	aa_to_weight_['W'] = 186.079;
-  	aa_to_weight_['Y'] = 163.063;
-  	aa_to_weight_['V'] = 99.0684;
-  	aa_to_weight_['A'] = 71.0371;
-  	aa_to_weight_['R'] = 156.101;
-  	aa_to_weight_['N'] = 114.043;
-  	aa_to_weight_['D'] = 115.027;
-  	aa_to_weight_['C'] = 103.00919;
-  	//aa_to_weight_['C'] = 161.01466;
-  	aa_to_weight_['E'] = 129.043;
-  	aa_to_weight_['Q'] = 128.059;
-  	aa_to_weight_['G'] = 57.0215;
-  	aa_to_weight_['H'] = 137.059;
-  	aa_to_weight_['I'] = 113.084;
-  	aa_to_weight_['L'] = 113.084;
-	}
-	
 	void CompNovoIdentificationBase::initIsotopeDistributions_()
 	{
   	IsotopeDistribution iso_dist(max_isotope_);
@@ -649,8 +621,15 @@ namespace OpenMS
 
 	void 	CompNovoIdentificationBase::updateMembers_()
 	{
-		//pilis_model_.readFromFile("/share/usr/bertsch/AC_2007/model_d8_human.dat");
-		
+		// init residue mass table
+		String residue_set(param_.getValue("residue_set"));
+
+		set<const Residue*> residues = ResidueDB::getInstance()->getResidues(residue_set);
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		{
+			aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+		}
+
 		max_number_aa_per_decomp_ = (Size)param_.getValue("max_number_aa_per_decomp");
 		tryptic_only_ = param_.getValue("tryptic_only").toBool();
 		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
@@ -664,7 +643,6 @@ namespace OpenMS
 
 		name_to_residue_.clear();
 		residue_to_name_.clear();
-		init_();
 
 		// now handle the modifications
 		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
@@ -713,14 +691,14 @@ namespace OpenMS
 		set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
 		for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
 		{
-			ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+			ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification(), it->getTermSpecificity());
 			char aa = (*actual_mod_name)[0];
 			char origin_aa = ' ';
 			++actual_mod_name;
 
 			if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
 			{
-				cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+				cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
 				continue;
 			}
 			else
@@ -740,7 +718,7 @@ namespace OpenMS
 				}
 				else
 				{
-					cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+					cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
 					continue;
 				}
 			}
@@ -751,14 +729,12 @@ namespace OpenMS
 			residue_to_name_[res] = aa;
 		}
 
-		/*
 		cerr << "Following masses are used for identification: " << endl;
 		
 		for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
 		{
-			cerr << it->first << " " << it->second << endl;
+			cerr << it->first << " " << precisionWrapper(it->second) << endl;
 		}
-		*/
 		
 		initIsotopeDistributions_();
 

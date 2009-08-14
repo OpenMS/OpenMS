@@ -75,7 +75,7 @@ namespace OpenMS
 			MassDecomposition operator + (const MassDecomposition& rhs) const;
 			
 			/// returns the max frequency of this composition
-			UInt getNumberOfMaxAA() const;
+			Size getNumberOfMaxAA() const;
 			//@}
 
 			/** @name Predicates
@@ -96,15 +96,15 @@ namespace OpenMS
 
 		protected:
 
-			Map<char, UInt> decomp;
+			Map<char, Size> decomp;
 			
-			UInt number_of;
+			Size number_of;
 			
-			UInt number_of_max_aa;
+			Size number_of_max_aa;
 
-			UInt min_number;
+			Size min_number;
 			
-			UInt max_number;
+			Size max_number;
 
 	};
 

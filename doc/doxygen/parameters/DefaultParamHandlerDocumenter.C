@@ -34,6 +34,15 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
+#include <OpenMS/ANALYSIS/DENOVO/DeNovoAlgorithm.h>
+#include <OpenMS/ANALYSIS/DENOVO/DeNovoIdentification.h>
+#include <OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>
+#include <OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>
+#include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>

@@ -123,7 +123,8 @@ namespace OpenMS
 		Param zhang_param;
 		zhang_param = zhang_.getParameters();
 		zhang_param.setValue("tolerance", fragment_mass_tolerance_);
-		zhang_param.setValue("use_linear_factor", "true");
+		zhang_param.setValue("use_gaussian_factor", "true");
+		zhang_param.setValue("use_linear_factor", "false");
 		zhang_.setParameters(zhang_param);
 								
 		

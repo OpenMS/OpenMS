@@ -82,9 +82,6 @@ namespace OpenMS
 			
 		protected:
 
-			/// initialize the needed members
-			void init_();
-			
 			/// update members method from DefaultParamHandler to update the members 
 			void updateMembers_();
 

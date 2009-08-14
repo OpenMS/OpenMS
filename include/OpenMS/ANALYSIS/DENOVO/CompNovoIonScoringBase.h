@@ -98,7 +98,7 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			DoubleReal scoreIsotopes(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, UInt charge);
+			DoubleReal scoreIsotopes(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Size charge);
 			//@}
 
 		protected:
@@ -109,9 +109,9 @@ namespace OpenMS
 
 			IsotopeType classifyIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it);
 
-			DoubleReal scoreIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& CID_nodes, UInt charge = 1);
+			DoubleReal scoreIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& CID_nodes, Size charge = 1);
 
-			virtual void scoreWitnessSet_(UInt charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec) = 0;
+			virtual void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec) = 0;
 			
 			void addSingleChargedIons_(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec);
 

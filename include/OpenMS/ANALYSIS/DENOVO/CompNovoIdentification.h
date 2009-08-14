@@ -42,6 +42,7 @@ namespace OpenMS
 
 		@ref CompNovoIdentification_Parameters are explained on a separate page.
 		
+		@htmlinclude OpenMS_CompNovoIdentification.parameters
 		@ingroup Analysis_ID
 	*/
 	class OPENMS_DLLAPI CompNovoIdentification : public CompNovoIdentificationBase

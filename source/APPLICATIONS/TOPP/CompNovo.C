@@ -51,8 +51,7 @@ class TOPPCompNovo
 {
 	public:
 		TOPPCompNovo()
-						// @todo change this to official if in OpenMS/TOPP
-			: TOPPBase("CompNovo", "performs a peptide/protein identification with the TOPPCompNovo engine", false)
+			: TOPPBase("CompNovo", "performs a peptide/protein identification with the TOPPCompNovo engine")
 		{
 		}
 	

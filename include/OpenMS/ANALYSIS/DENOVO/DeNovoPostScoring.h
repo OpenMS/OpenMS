@@ -30,13 +30,11 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
 
 namespace OpenMS
 {
-	class RichPeakSpectrum;
-	class RichPeakMap;
-
   /**
     @brief Base class for ion scoring implementation for de novo algorithms
 
