@@ -915,13 +915,11 @@ namespace OpenMS
 			}
 			else if (text == "Enable list iteration")
 			{
-				list_mode_ = true;
-				update(boundingRect());
+				setListModeActive(true);
 			}
 			else if (text == "Disable list iteration")
 			{
-				list_mode_ = false;
-				update(boundingRect());
+				setListModeActive(false);
 			}
 			else if (text == "Resume")
 			{
@@ -971,6 +969,17 @@ namespace OpenMS
 	void TOPPASToolVertex::setListModeActive(bool b)
 	{
 		list_mode_ = b;
+		
+		update(boundingRect());
+		
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			(*it)->updateColor();
+		}
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			(*it)->updateColor();
+		}
 	}
 	
 	String TOPPASToolVertex::getOutputDir()

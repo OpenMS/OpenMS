@@ -568,8 +568,15 @@ namespace OpenMS
 				// no param selected
 				return ES_NO_TARGET_PARAM;
 			}
+			if (source_param_has_list_type && !target_param_has_list_type)
+			{
+				return ES_MISMATCH_LIST_FILE;
+			}
+			if (!source_param_has_list_type && target_param_has_list_type)
+			{
+				return ES_MISMATCH_FILE_LIST;
+			}
 			
-			// TODO: check everything else..
 			valid = true;
 		}
 				
