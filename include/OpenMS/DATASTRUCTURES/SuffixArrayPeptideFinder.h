@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/BigString.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 namespace OpenMS 
 {
@@ -39,7 +40,8 @@ namespace OpenMS
 	/**
 		@brief wrapper for easy use of sufArray
 	*/
-class OPENMS_DLLAPI SuffixArrayPeptideFinder 
+class OPENMS_DLLAPI SuffixArrayPeptideFinder
+	: public WeightWrapper 
 {
 
 public:
@@ -57,7 +59,7 @@ public:
 	@throw ParseError is thrown if a error in parsing of the fasta file occurs
 	@throw InvalidValue is thrown if an unknown method is supplied 
 	*/
-	SuffixArrayPeptideFinder(const String& filename, const String& method);
+	SuffixArrayPeptideFinder(const String& filename, const String& method, const UInt weight_mode=WeightWrapper::AVERAGE);
 
 	/**
 	@brief copy constructor

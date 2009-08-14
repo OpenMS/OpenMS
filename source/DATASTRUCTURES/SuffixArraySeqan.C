@@ -112,8 +112,9 @@ namespace OpenMS
 
 
 	// constructor
-	SuffixArraySeqan::SuffixArraySeqan(const String & st,const String & sa_file_name)
-	: s_(st)
+	SuffixArraySeqan::SuffixArraySeqan(const String & st,const String & sa_file_name, const UInt weight_mode)
+	: WeightWrapper(weight_mode),
+		s_(st)
 		//tol_(0.5),
 		//use_tags_(false),
 		//number_of_modifications_(0)
@@ -143,7 +144,7 @@ namespace OpenMS
 		for (Size z = 0; z<strlen(aa);++z)
 		{
 			const Residue* r = rdb->getResidue(aa[z]);
-			masse_[(int)aa[z]] = r->getAverageWeight(Residue::Internal);
+			masse_[(int)aa[z]] = this->getWeight(*r,Residue::Internal);
 		}
 
 		if (sa_file_name != "")
@@ -172,6 +173,7 @@ namespace OpenMS
 
 	SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source)
 		: SuffixArray(source),
+			WeightWrapper(source),
 			index_(source.index_),
 			it_(source.it_),
 			s_(source.s_),
@@ -351,7 +353,7 @@ namespace OpenMS
 		stack<map<double, SignedSize> > history;
 		history.push(map<double, SignedSize>());
 
-		double m = 18.0;
+		double m = 18.0; //getWeight(EmpiricalFormula("H20")); TODO: using the exact mass for H20 seems to break stuff... why?
 		goNext_(*it_, m, allm, history);
 		//goNextSubTree(*it_);
 		SignedSize nres = 0;
@@ -515,9 +517,10 @@ namespace OpenMS
 				{
 					m = mm;
 					//because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+					//TODO: why would that be?! (Andreas)
 					if (steps4>1000)
 					{
-						double mpart = 18.0;
+						double mpart = 18.0; //getWeight(EmpiricalFormula("H20")); TODO: using the exact mass for H20 seems to break stuff... why?
 						seqan::String<char> seq = representative(*it_);
 						for (Size w = 0; w < length(seq); ++w)
 						{

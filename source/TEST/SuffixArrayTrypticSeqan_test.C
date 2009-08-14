@@ -50,7 +50,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
 
-START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename))
+START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename, const UInt weight_mode=WeightWrapper::AVERAGE))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
 	ptr = new SuffixArrayTrypticSeqan("$","");
@@ -89,12 +89,11 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	vector<double> spec;
 	//spec.push_back(178.1864 + 18.0);
 	//spec.push_back(441.4806 + 18.0);
-	spec.push_back(245.2816);
-	spec.push_back(387.4392);
-	const vector<double> specc (spec);
+	spec.push_back(245.2816);		// AR
+	spec.push_back(387.4392);		// AAAR
 	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
-	sa->findSpec(res, specc);
-	TEST_EQUAL(res.size(),specc.size());
+	sa->findSpec(res, spec);
+	TEST_EQUAL(res.size(),spec.size());
 	for (Size i = 0; i<res.size();i++)
 	{
 		TEST_EQUAL(res.at(i).size(),1);
@@ -250,6 +249,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 			TEST_REAL_SIMILAR(m + res[i][j].second, specc_new[i]);
 		}
 	}
+	
 END_SECTION
 
 

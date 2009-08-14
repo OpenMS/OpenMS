@@ -50,7 +50,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArraySeqan* sa = new SuffixArraySeqan(text,"");
 
-START_SECTION((SuffixArraySeqan(const String &st, const String &filename)))
+START_SECTION((SuffixArraySeqan(const String &st, const String &filename, const UInt weight_mode=WeightWrapper::AVERAGE)))
 {
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("$A",""));
@@ -319,7 +319,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			
-			double m = 18;
+			double m = 18.0; // EmpiricalFormula("H20").getAverageWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];
@@ -412,7 +412,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			double m = 18.0;
+			double m = 18.0; //EmpiricalFormula("H20").getAverageWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];

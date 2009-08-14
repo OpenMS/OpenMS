@@ -141,7 +141,8 @@ SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize,SignedSiz
 
 
 // constructor 
-SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name)  : 
+SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name, const UInt weight_mode)
+ :WeightWrapper(weight_mode), 
 	s_(st),
 	tol_(0.5),
 	number_of_modifications_(0)
@@ -168,14 +169,14 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue* r = rdb->getResidue(aa[i]);
-		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal); // TODO: offer Monoweight as well?! (watch the "H20" hack above)
+		masse_[(int)aa[i]]= getWeight(*r, Residue::Internal);
 	}
 	
 	if (sa_file_name!="")
 	{
 		open(sa_file_name);
 	} 
-	else 
+	else
 	{
 		//creating unsorted suffix array with every tryptic suffix
 		Size next_pos = getNextSep_(0);
@@ -242,8 +243,9 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 }
 
 //Copy constructor
-SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa) : 
-	SuffixArray(sa),
+SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa)
+ :SuffixArray(sa),
+	WeightWrapper(sa),
 	s_(sa.s_),
 	tol_(sa.tol_),
 	indices_(sa.indices_),
@@ -426,7 +428,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 	
 	SignedSize tag_pos = 0;
 	
-	history.push(pair<pair <SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> > (indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, EmpiricalFormula("H2O").getAverageWeight())));
+	history.push(pair<pair <SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> > (indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, getWeight(EmpiricalFormula("H2O")) )));
 	
 	SignedSize steps = 0;
 	SignedSize nres = 0;
@@ -502,7 +504,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 			/*
 			try
 			{
-				cerr << "1.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+				cerr << "1.>" << s_.substr(indices_[i].first, j + 1) << " " << getWeight(AASequence(s_.substr(indices_[i].first, j + 1))) << endl;
 			}
 			catch (...)
 			{
@@ -543,7 +545,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 /*
 							try
 							{
-							cerr << "2.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+							cerr << "2.>" << s_.substr(indices_[i].first, j + 1) << " " << getWeight(AASequence(s_.substr(indices_[i].first, j + 1))) << endl;
 							}
 							catch(...)
 							{

@@ -33,6 +33,7 @@
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 #ifdef _MSC_VER // disable some seqan warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -59,7 +60,9 @@ namespace OpenMS
 
 	*/
 
-	class OPENMS_DLLAPI SuffixArraySeqan : public SuffixArray
+	class OPENMS_DLLAPI SuffixArraySeqan 
+		: public SuffixArray
+			,public WeightWrapper 
 	{
 
 		typedef seqan::TopDown<seqan::ParentLinks<> > TIterSpec;
@@ -77,7 +80,7 @@ namespace OpenMS
 		@throw FileNotFound is thrown if the given file is not found
 		@throw InvalidValue if the given suffix array string is invalid
 		*/
-		SuffixArraySeqan(const String& st, const String& filename);
+		SuffixArraySeqan(const String& st, const String& filename, const UInt weight_mode=WeightWrapper::AVERAGE);
 
 		/**
 		@brief copy constructor

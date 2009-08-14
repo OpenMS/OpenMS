@@ -22,6 +22,7 @@ ResidueModification.C
 TheoreticalSpectrumGenerator.C
 AdvancedTheoreticalSpectrumGenerator.C
 TrypticIterator.C
+WeightWrapper.C
 )
 
 ### add path to the filenames

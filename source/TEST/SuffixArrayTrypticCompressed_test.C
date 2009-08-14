@@ -49,7 +49,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticCompressed* sa = new SuffixArrayTrypticCompressed(text, "");
 
-START_SECTION(SuffixArrayTrypticCompressed(const String &st, const String &filename))
+START_SECTION(SuffixArrayTrypticCompressed(const String &st, const String &filename, const UInt weight_mode=WeightWrapper::AVERAGE))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("$A",""));
 	ptr = new SuffixArrayTrypticCompressed("$","");

@@ -41,7 +41,9 @@ namespace OpenMS {
 
 */
 
-class OPENMS_DLLAPI SuffixArrayTrypticSeqan : public SuffixArraySeqan  {
+class OPENMS_DLLAPI SuffixArrayTrypticSeqan
+	: public SuffixArraySeqan
+{
 	
 public:
 	
@@ -53,7 +55,7 @@ public:
 			@throw InvalidValue is thrown if string st if invalid
 			@throw FileNotFound is thrown if given file is not found
 	*/
-	SuffixArrayTrypticSeqan(const String& st, const String& filename);
+	SuffixArrayTrypticSeqan(const String& st, const String& filename, const UInt weight_mode=WeightWrapper::AVERAGE);
 	
 	/**
 	@brief returns if an enzyme will cut after first character

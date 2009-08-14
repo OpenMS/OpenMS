@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 				
-SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method)
+SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method, const UInt weight_mode)
 {
 	if (!(method=="trypticCompressed" || method=="seqan" || method=="trypticSeqan"))
 	{
@@ -92,15 +92,15 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	//cout << "file:" << saFileName << endl;
 	if (method == "trypticCompressed")
 	{
-		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName);
+		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName, weight_mode);
 	} 
 	else if (method == "seqan") 
 	{
-		sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName);
+		sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName, weight_mode);
 	} 
 	else if (method == "trypticSeqan") 
 	{
-		sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName);
+		sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName, weight_mode);
 	}
 	
 	/*

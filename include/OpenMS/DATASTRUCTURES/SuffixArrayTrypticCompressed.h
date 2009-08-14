@@ -31,7 +31,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
-
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 namespace OpenMS {
 	class String;
@@ -43,7 +43,10 @@ namespace OpenMS {
 	Only the sufices that are matching the function isDigestingEnd are created. Besides a suffix will not reach till the end of the string but till the next occurence of the separator ($). So only the interessting sufices will be saved. This will reduce the used space.
 */
 
-class OPENMS_DLLAPI SuffixArrayTrypticCompressed : public SuffixArray {
+class OPENMS_DLLAPI SuffixArrayTrypticCompressed 
+	: public SuffixArray
+		,public WeightWrapper 
+{
 	
 public:
 
@@ -56,7 +59,7 @@ public:
 
 	The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of SignedSize pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
 	*/
-	SuffixArrayTrypticCompressed(const String& st, const String& filename);
+	SuffixArrayTrypticCompressed(const String& st, const String& filename, const UInt weight_mode=WeightWrapper::AVERAGE);
 
 	/**
 	@brief copy constructor
