@@ -828,6 +828,11 @@ namespace OpenMS
 		progress_color_ = c;
 	}
 	
+	QColor TOPPASToolVertex::getProgressColor()
+	{
+		return progress_color_;
+	}
+	
 	void TOPPASToolVertex::toolStartedSlot()
 	{
 		progress_color_ = Qt::yellow;
@@ -892,6 +897,12 @@ namespace OpenMS
 			resume_action->setEnabled(false);
 		}
 		
+		QAction* open_action = menu.addAction("Open output in TOPPView");
+		if (progress_color_ != Qt::green)
+		{
+			open_action->setEnabled(false);
+		}
+		
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
@@ -917,6 +928,23 @@ namespace OpenMS
 				ts->updateOutputFileNames();
 				ts->createDirs(ts->getOutDir());
 				runToolIfInputReady();
+			}
+			else if (text == "Open output in TOPPView")
+			{
+				QVector<IOInfo> out_infos;
+				getOutputParameters(out_infos);
+				if (out_infos.size() == output_file_names_.size())
+				{
+					foreach (const QStringList& files, output_file_names_)
+					{
+						if (files.size() > 0)
+						{
+							QProcess* p = new QProcess();
+							p->setProcessChannelMode(QProcess::ForwardedChannels);
+							p->start("TOPPView", files);
+						}
+					}
+				}
 			}
 			else if (text == "Remove")
 			{

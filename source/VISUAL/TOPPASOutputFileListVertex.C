@@ -169,10 +169,22 @@ namespace OpenMS
 	void TOPPASOutputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 	{
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		TOPPASToolVertex* tv = 0;
 		ts->unselectAll();
 		setSelected(true);
 		
 		QMenu menu;
+		QAction* open_action = menu.addAction("Open files in TOPPView");
+		open_action->setEnabled(false);
+		if (inEdgesBegin() != inEdgesEnd())
+		{
+			tv = qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex());
+			if (tv && tv->getProgressColor() == Qt::green)
+			{
+				open_action->setEnabled(true);
+			}
+		}
+		
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
@@ -183,6 +195,30 @@ namespace OpenMS
 			{
 				ts->removeSelected();
 			}
+			else if (text == "Open files in TOPPView")
+			{
+				QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
+				QString out_dir_name = parent_dir + QDir::separator() + getOutputDir().toQString();
+				
+				const QVector<QStringList>& output_files = tv->getOutputFileNames();
+				int param_index = (*inEdgesBegin())->getSourceOutParam();
+				const QStringList& tmp_file_names = output_files[param_index];
+				QStringList files;
+				foreach (const QString& tmp_file, tmp_file_names)
+				{
+					QString file = out_dir_name + QDir::separator() + File::basename(tmp_file).toQString();
+					if (file.endsWith("_tmp"))
+					{
+						file.truncate(file.size() - 4);
+					}
+					files.push_back(file);
+				}
+				
+				QProcess* p = new QProcess();
+				p->setProcessChannelMode(QProcess::ForwardedChannels);
+				p->start("TOPPView", files);
+			}
+			
 			event->accept();
 		}
 		else

@@ -144,6 +144,11 @@ namespace OpenMS
 		
 		QMenu menu;
 		menu.addAction("Change files");
+		QAction* open_action = menu.addAction("Open files in TOPPView");
+		if (!files_.size() > 0)
+		{
+			open_action->setEnabled(false);
+		}
 		menu.addAction("Remove");
 		
 		QAction* selected_action = menu.exec(event->screenPos());
@@ -153,6 +158,12 @@ namespace OpenMS
 			if (text == "Change files")
 			{
 				showFilesDialog();
+			}
+			else if (text == "Open files in TOPPView")
+			{
+				QProcess* p = new QProcess();
+				p->setProcessChannelMode(QProcess::ForwardedChannels);
+				p->start("TOPPView", files_);
 			}
 			else if (text == "Remove")
 			{

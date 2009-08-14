@@ -154,6 +154,8 @@ namespace OpenMS
 			void setStartedHere(bool b);
 			/// Sets the progress color
 			void setProgressColor(const QColor& c);
+			/// Returns the progress color
+			QColor getProgressColor();
 			/// Lets the user edit the parameters of the tool
 			void editParam();
 			/// Returns the number of iterations this tool has to perform
