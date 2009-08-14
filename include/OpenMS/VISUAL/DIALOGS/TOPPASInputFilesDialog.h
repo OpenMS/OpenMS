@@ -62,6 +62,8 @@ namespace OpenMS
 			void removeSelected();
 			/// Shows a TOPPASInputFileDialog which edits the current item
 			void editCurrentItem();
+			/// Moves the current item up/downwards
+			void moveCurrentItem();
 		
 	};
 	

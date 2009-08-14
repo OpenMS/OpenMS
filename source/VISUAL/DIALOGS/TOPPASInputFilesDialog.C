@@ -47,6 +47,8 @@ namespace OpenMS
 		connect (add_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (remove_button,SIGNAL(clicked()),this,SLOT(removeSelected()));
 		connect (edit_button,SIGNAL(clicked()),this,SLOT(editCurrentItem()));
+		connect (up_button,SIGNAL(clicked()),this,SLOT(moveCurrentItem()));
+		connect (down_button,SIGNAL(clicked()),this,SLOT(moveCurrentItem()));
 	}
 	
 	void TOPPASInputFilesDialog::showFileDialog()
@@ -89,6 +91,54 @@ namespace OpenMS
 		if (tifd.exec())
 		{
 			item->setText(tifd.getFilename());
+		}
+	}
+	
+	void TOPPASInputFilesDialog::moveCurrentItem()
+	{
+		if (input_file_list->count() < 2)
+		{
+			return;
+		}
+		int row = input_file_list->currentRow();
+		if (row < 0)
+		{
+			return;
+		}
+		
+		bool direction;
+		if (QObject::sender() == up_button)
+		{
+			direction = true;
+		}
+		else if (QObject::sender() == down_button)
+		{
+			direction = false;
+		}
+		else
+		{
+			return;
+		}
+		
+		if (direction == true) // move upwards
+		{
+			if (row == 0)
+			{
+				return;
+			}
+			QListWidgetItem* item = input_file_list->takeItem(row);
+			input_file_list->insertItem(row-1, item);
+			input_file_list->setCurrentItem(item);
+		}
+		else // move downwards
+		{
+			if (row == input_file_list->count()-1)
+			{
+				return;
+			}
+			QListWidgetItem* item = input_file_list->takeItem(row);
+			input_file_list->insertItem(row+1, item);
+			input_file_list->setCurrentItem(item);
 		}
 	}
 	
