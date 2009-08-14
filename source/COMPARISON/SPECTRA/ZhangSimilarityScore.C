@@ -216,7 +216,7 @@ namespace OpenMS
     if (is_gaussian)
     {
 			static const DoubleReal denominator = mz_tolerance * 3.0 * sqrt(2.0);
-			factor = erfc(mz_difference / denominator);
+			factor = boost::math::erfc(mz_difference / denominator);
 			//cerr << "Factor: " << factor << " " << mz_tolerance << " " << mz_difference << endl;
     }
     else

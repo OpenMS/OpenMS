@@ -200,7 +200,7 @@ namespace OpenMS
 	DoubleReal CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& ion_scores, Size charge)
 	{
   	DoubleReal it_pos(it->getMZ());  // ~ weight of the fragment
-		DoubleReal max_isotope_to_score(param_.getValue("max_isotope_to_score"));
+		UInt max_isotope_to_score(param_.getValue("max_isotope_to_score"));
 		DoubleReal double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
   	DoubleReal actual_pos = it_pos;
 
@@ -296,7 +296,7 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
 //#endif
   DoubleReal it_pos(it->getMZ()); // ~ weight of the fragment
   DoubleReal actual_pos = it_pos;
-	Size max_isotope_to_score = (Size)param_.getValue("max_isotope_to_score");
+	UInt max_isotope_to_score = (UInt)param_.getValue("max_isotope_to_score");
 
   vector<DoubleReal> iso_pattern;
   iso_pattern.push_back(it->getIntensity());
@@ -379,7 +379,7 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
 	void CompNovoIonScoringBase::initIsotopeDistributions_()
 	{
 		DoubleReal max_mz(param_.getValue("max_mz"));
-		Size max_isotope(param_.getValue("max_isotope"));
+		UInt max_isotope(param_.getValue("max_isotope"));
   	IsotopeDistribution iso_dist(max_isotope);
   	for (Int i = 1; i <= max_mz; ++i)
   	{

@@ -359,7 +359,7 @@ namespace OpenMS
   	cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
 #endif
 		
-		Size max_number_pivot((Size)param_.getValue("max_number_pivot"));
+		Size max_number_pivot((UInt)param_.getValue("max_number_pivot"));
 
   	// TODO better heuristic, MAX_PIVOT dynamic from range
   	if (right - left > 1)
@@ -554,7 +554,7 @@ namespace OpenMS
 
 	void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition>& decomps)
 	{
-		Size max_number_aa_per_decomp((Size)param_.getValue("max_number_aa_per_decomp"));
+		Size max_number_aa_per_decomp((UInt)param_.getValue("max_number_aa_per_decomp"));
   	vector<MassDecomposition> tmp;
   	for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
   	{
@@ -630,16 +630,16 @@ namespace OpenMS
 			aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
 		}
 
-		max_number_aa_per_decomp_ = (Size)param_.getValue("max_number_aa_per_decomp");
+		max_number_aa_per_decomp_ = (UInt)param_.getValue("max_number_aa_per_decomp");
 		tryptic_only_ = param_.getValue("tryptic_only").toBool();
 		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
-		max_number_pivot_ = (Size)param_.getValue("max_number_pivot");
+		max_number_pivot_ = (UInt)param_.getValue("max_number_pivot");
 		decomp_weights_precision_ = (DoubleReal)param_.getValue("decomp_weights_precision");
 		min_mz_ = (DoubleReal)param_.getValue("min_mz");
 		max_mz_ = (DoubleReal)param_.getValue("max_mz");
 		max_decomp_weight_ = (DoubleReal)param_.getValue("max_decomp_weight");
-		max_subscore_number_ = (Size)param_.getValue("max_subscore_number");
-		max_isotope_ = (Size)param_.getValue("max_isotope");
+		max_subscore_number_ = (UInt)param_.getValue("max_subscore_number");
+		max_isotope_ = (UInt)param_.getValue("max_isotope");
 
 		name_to_residue_.clear();
 		residue_to_name_.clear();

@@ -30,6 +30,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/PepXMLFile.h>
 ///////////////////////////
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -129,7 +130,9 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
 	
 	file.store(cm_file_out, protein_ids, peptides);
 	
-	TEST_FILE_EQUAL(cm_file_out.c_str(), filename_out.c_str())
+	FuzzyStringComparator fsc;
+	fsc.setWhitelist (StringList::create("base_name"));
+	TEST_EQUAL(fsc.compareFiles (cm_file_out.c_str(), filename_out.c_str()), true)
 
 }	
 END_SECTION
