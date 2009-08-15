@@ -130,14 +130,14 @@ namespace OpenMS
 	void TOPPASToolVertex::initParam_()
 	{
 		Param tmp_param;
-		ini_file_ = tmp_path_ + "TOPPAS_" + name_ + "_";
+		QString ini_file = QDir::tempPath() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
 		if (type_ != "")
 		{
-			ini_file_ += type_ + "_";
+			ini_file += type_.toQString() + "_";
 		}
-		ini_file_ += File::getUniqueName() + "_tmp.ini";
+		ini_file += File::getUniqueName().toQString() + "_tmp.ini";
 		
-		String call = name_ + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
+		String call = name_ + " -write_ini " + ini_file;
 		if (type_ != "")
 		{
 			call += " -type " + type_;
@@ -148,13 +148,13 @@ namespace OpenMS
 			QMessageBox::critical(0,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable, that you have write permission in the temporary file path, and that there is space left in the temporary file path.").c_str());
 			return;
 		}
-		else if(!File::exists(ini_file_))
+		else if(!File::exists(ini_file))
 		{
-			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file_+"'!").c_str());
+			QMessageBox::critical(0,"Error",(String("Could not open '")+ini_file+"'!").c_str());
 			return;
 		}
 		
-		tmp_param.load((ini_file_).c_str());
+		tmp_param.load(String(ini_file).c_str());
 		param_=tmp_param.copy(name_+":1:",true);
 		param_.remove("log");
 		param_.remove("no_progress");
@@ -164,7 +164,7 @@ namespace OpenMS
 		param_.remove("type");
 		
 		// remove tmp ini file
-		QFile::remove(ini_file_.toQString());
+		QFile::remove(ini_file);
 	}
 	
 	void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
@@ -426,11 +426,23 @@ namespace OpenMS
 		}
 		
 		// all inputs are ready --> GO!
-		param_.store(ini_file_);
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		QString ini_file = ts->getOutDir()
+							+QDir::separator()
+							+getOutputDir().toQString()
+							+QDir::separator()
+							+name_.toQString();
+		if (type_ != "")
+		{
+			ini_file += "_"+type_.toQString();
+		}
+		ini_file += ".ini";
+							
+		param_.store(ini_file);
 		
 		QStringList shared_args;
 		shared_args	<< "-ini"
-								<< ini_file_.toQString()
+								<< ini_file
 								<< "-no_progress";
 		if (type_ != "")
 		{
@@ -592,8 +604,6 @@ namespace OpenMS
 		if (iteration_nr_ == numIterations()) // all iterations performed --> proceed in pipeline
 		{
 			finished_ = true;
-			// remove tmp ini file
-			QFile::remove(ini_file_.toQString());
 			
 			emit toolFinished();
 			
