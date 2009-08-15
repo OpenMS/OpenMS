@@ -116,6 +116,10 @@ namespace OpenMS
 			bool saveIfChanged();
 			/// Sets the changed flag
 			void setChanged(bool b);
+			/// Returns if a pipeline is currently running
+			bool isPipelineRunning();
+			/// Terminates the currently running pipeline
+			void abortPipeline();
 			
 		public slots:
 		
@@ -135,6 +139,8 @@ namespace OpenMS
 			void pipelineErrorSlot();
 			/// Moves all selected items by dx, dy
 			void moveSelectedItems(qreal dx, qreal dy);
+			/// Sets if the running_ flag to true
+			void setPipelineRunning();
 			
 			///@name Slots for printing log/error output when no GUI is available
       //@{
@@ -160,6 +166,8 @@ namespace OpenMS
 			void pipelineExecutionFailed();
 			/// Emitted when the pipeline should be saved (showing a save as file dialog and so on)
 			void saveMe();
+			/// Kills all connected TOPP processes
+			void terminateCurrentPipeline();
 			
 		protected:
 			
@@ -183,6 +191,8 @@ namespace OpenMS
 			QString out_dir_;
 			/// Flag that indicates if the pipeline has been changed since the last save
 			bool changed_;
+			/// Indicates if a pipeline is currently running
+			bool running_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

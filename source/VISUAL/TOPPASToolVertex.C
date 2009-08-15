@@ -565,6 +565,7 @@ namespace OpenMS
 			p->setProcessChannelMode(QProcess::MergedChannels);
 			connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
 			connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(forwardTOPPOutput()));
+			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
 			//start process
 			p->start(name_.toQString(), args);

@@ -126,6 +126,7 @@ namespace OpenMS
 		QMenu* pipeline = new QMenu("&Pipeline", this);
 		menuBar()->addMenu(pipeline);
 		pipeline->addAction("&Run",this,SLOT(runPipeline()));
+		pipeline->addAction("&Abort",this,SLOT(abortPipeline()));
 
 		//Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -258,6 +259,9 @@ namespace OpenMS
 			
 			TOPPASScene* scene = tw->getScene();
 			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+			connect (scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+			
 			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
 			
@@ -621,7 +625,21 @@ namespace OpenMS
 	
   void TOPPASBase::updateMenu()
   {
-  	
+  	QList<QAction*> actions = this->findChildren<QAction*>("");
+		for (int i=0; i<actions.count(); ++i)
+		{
+			QString text = actions[i]->text();
+			if (text=="&Abort")
+			{
+				bool show = false;
+				TOPPASWidget* tw = activeWindow_();
+				if (tw && tw->getScene() && tw->getScene()->isPipelineRunning())
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+		}
   }
 
   void TOPPASBase::showLogMessage_(TOPPASBase::LogState state, const String& heading, const String& body)
@@ -719,6 +737,7 @@ namespace OpenMS
 			
 			tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
 			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
@@ -770,6 +789,15 @@ namespace OpenMS
 		}
 	}
 	
+	void TOPPASBase::abortPipeline()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (w)
+		{
+			w->getScene()->abortPipeline();
+		}
+	}
+	
 	void TOPPASBase::toolStarted()
 	{
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
@@ -785,6 +813,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_NOTICE, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolFinished()
@@ -802,6 +831,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_NOTICE, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolCrashed()
@@ -819,6 +849,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_ERROR, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolFailed()
@@ -836,6 +867,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_ERROR, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::outputVertexFinished(const String& file)

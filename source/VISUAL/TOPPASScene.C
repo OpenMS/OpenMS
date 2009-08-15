@@ -54,7 +54,8 @@ namespace OpenMS
 			tmp_path_(tmp_path),
 			gui_(gui),
 			out_dir_(QDir::currentPath()),
-			changed_(false)
+			changed_(false),
+			running_(false)
 	{
 		/*	ATTENTION!
 			 
@@ -453,6 +454,7 @@ namespace OpenMS
 			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
 			if (ofv)
 			{
+				running_ = true;
 				ofv->startComputation();
 				continue;
 			}
@@ -460,6 +462,7 @@ namespace OpenMS
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
 			if (oflv)
 			{
+				running_ = true;
 				oflv->startComputation();
 			}
 		}
@@ -642,6 +645,7 @@ namespace OpenMS
 					{
 						tv->setListModeActive(false);
 					}
+					connect(tv,SIGNAL(toolStarted()),this,SLOT(setPipelineRunning()));
 					connect(tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
 					connect(tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));
 					if (!gui_)
@@ -835,11 +839,13 @@ namespace OpenMS
 			}
 		}
 		
+		running_ = false;
 		emit entirePipelineFinished();
 	}
 	
 	void TOPPASScene::pipelineErrorSlot()
 	{
+		running_ = false;
 		emit pipelineExecutionFailed();
 	}
 	
@@ -1085,6 +1091,21 @@ namespace OpenMS
 	void TOPPASScene::setChanged(bool b)
 	{
 		changed_ = b;
+	}
+	
+	bool TOPPASScene::isPipelineRunning()
+	{
+		return running_;
+	}
+	
+	void TOPPASScene::abortPipeline()
+	{
+		emit terminateCurrentPipeline();
+	}
+	
+	void TOPPASScene::setPipelineRunning()
+	{
+		running_ = true;
 	}
 	
 } //namespace OpenMS

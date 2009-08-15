@@ -115,6 +115,8 @@ namespace OpenMS
       void updateToolBar();
     	/// Runs the pipeline of the current window
 			void runPipeline();
+			/// Terminates the current pipeline
+			void abortPipeline();
 			/// Called when a tool is started
 			void toolStarted();
 			/// Called when a tool is finished
