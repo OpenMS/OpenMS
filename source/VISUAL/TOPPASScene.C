@@ -38,6 +38,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
+#include <QtGui/QMessageBox>
 
 namespace OpenMS
 {
@@ -52,7 +53,8 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path),
 			gui_(gui),
-			out_dir_("")
+			out_dir_(""),
+			changed_(false)
 	{
 		/*	ATTENTION!
 			 
@@ -561,6 +563,7 @@ namespace OpenMS
 		
 		//save file
 		save_param.store(file);
+		changed_ = false;
 		file_name_ = file;
 	}
 	
@@ -674,6 +677,9 @@ namespace OpenMS
 					connect(current_vertex,SIGNAL(finishHoveringEdge()),this,SLOT(finishHoveringEdge()));
 					connect(current_vertex,SIGNAL(itemDragged(qreal,qreal)),this,SLOT(moveSelectedItems(qreal,qreal)));
 					
+					// temporarily block signals in order that the first topo sort does not set the changed flag
+					current_vertex->blockSignals(true);
+					
 					if (index >= vertex_vector.size())
 					{
 						std::cerr << "Unexpected vertex ID!" << std::endl;
@@ -751,8 +757,15 @@ namespace OpenMS
 		}
 		
 		file_name_ = file;
+		
     topoSort();
-    updateEdgeColors();
+    // unblock signals again
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			(*it)->blockSignals(false);
+		}
+		
+		updateEdgeColors();
   }
 
 	
@@ -1040,6 +1053,38 @@ namespace OpenMS
 			
 			(*it)->moveBy(dx,dy);
 		}
+	}
+	
+	bool TOPPASScene::saveIfChanged()
+	{
+		// Save changes
+		if (gui_ && changed_)
+		{
+			QString name = file_name_ == "" ? "Untitled" : file_name_.toQString();
+			QMessageBox::StandardButton ret;
+			ret = QMessageBox::warning(views().first(), "Save changes?",
+						"'"+name+"' has been modified.\n\nDo you want to save your changes?",
+						QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+			if (ret == QMessageBox::Save)
+      {
+				emit saveMe();
+				if (changed_)
+				{
+					//used has not saved the file (aborted save dialog)
+					return false;
+				}
+			}
+			else if (ret == QMessageBox::Cancel)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	void TOPPASScene::setChanged(bool b)
+	{
+		changed_ = b;
 	}
 	
 } //namespace OpenMS

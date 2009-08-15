@@ -37,7 +37,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/TOPPASTabBar.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -86,7 +86,7 @@ namespace OpenMS
     QWidget* dummy = new QWidget(this);
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
-    tab_bar_ = new EnhancedTabBar(dummy);
+    tab_bar_ = new TOPPASTabBar(dummy);
     tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.");
     tab_bar_->addTab("dummy",1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
@@ -240,14 +240,6 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
-  	
-  	//remove all temporary files
-		QDir tmp_dir(tmp_path_.toQString());
-    QStringList tmp_files = tmp_dir.entryList(QStringList("TOPPAS_*__tmp.out"), QDir::Files);
-		foreach (const QString& tmp_file, tmp_files)
-		{
-			QFile::remove(tmp_path_.toQString()+tmp_file);
-		}
   }
 
 	void TOPPASBase::refreshDefinitions()
@@ -266,6 +258,7 @@ namespace OpenMS
 			
 			TOPPASScene* scene = tw->getScene();
 			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
 			
 			//connect signals/slots for log messages
@@ -301,12 +294,28 @@ namespace OpenMS
   void TOPPASBase::newFileDialog()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-  	showAsWindow_(tw, "New");
+		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+  	showAsWindow_(tw, "(Untitled)");
   }
 	
 	void TOPPASBase::saveFileDialog()
 	{
-		TOPPASWidget* w = activeWindow_();
+		TOPPASWidget* w = 0;
+		QObject* sendr = QObject::sender();
+		if (sendr && sendr != this)
+		{
+			TOPPASScene* ts = qobject_cast<TOPPASScene*>(sendr);
+			if (ts && ts->views().size() > 0)
+			{
+				w = qobject_cast<TOPPASWidget*>(ts->views().first());
+			}
+		}
+		else
+		{
+			w = activeWindow_();
+		}
+		
 		if (!w)
 		{
 			return;
@@ -391,8 +400,26 @@ namespace OpenMS
 	
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
-  	ws_->closeAllWindows();
-  	event->accept();
+		bool close = true;
+		QList<QWidget*> all_windows = ws_->windowList();
+		foreach (QWidget* w, all_windows)
+		{
+			bool close_this = qobject_cast<TOPPASWidget*>(w)->getScene()->saveIfChanged();
+			if (!close_this)
+			{
+				close = false;
+				break;
+			}
+		}
+		if (close)
+		{
+			//ws_->closeAllWindows();
+			event->accept();
+		}
+		else
+		{
+			event->ignore();
+		}
   }
 
 	void TOPPASBase::showURL()
@@ -435,7 +462,12 @@ namespace OpenMS
   	if (window)
   	{
   		window->close();
-  		updateMenu();
+  		// if the window refused to close, do not remove tab
+			if (!window->isVisible())
+			{
+				tab_bar_->removeId(id);
+			}
+			updateMenu();
   	}
   }
 
@@ -708,6 +740,7 @@ namespace OpenMS
 		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
 		
 		scene->topoSort();
+		scene->setChanged(true);
 	}
 	
 	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)

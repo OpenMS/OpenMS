@@ -142,6 +142,19 @@ namespace OpenMS
 			scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
 		}
 	}
+	
+	void TOPPASWidget::closeEvent(QCloseEvent* e)
+	{
+		bool close = scene_->saveIfChanged();
+		if (close)
+		{
+			e->accept();
+		}
+		else
+		{
+			e->ignore();
+		}
+	}
 
 } //Namespace
 

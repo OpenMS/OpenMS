@@ -90,6 +90,7 @@ namespace OpenMS
 			void dragMoveEvent(QDragMoveEvent* event);
 			void dropEvent(QDropEvent* event);
 			void resizeEvent(QResizeEvent* event);
+			void closeEvent(QCloseEvent* e);
 			//@}
   };
 }

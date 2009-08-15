@@ -239,6 +239,8 @@ namespace OpenMS
 	void TOPPASVertex::inEdgeHasChanged()
 	{
 		// (overridden behavior in output and tool vertices)
+		
+		qobject_cast<TOPPASScene*>(scene())->setChanged(true);
 		emit somethingHasChanged();
 	}
 	

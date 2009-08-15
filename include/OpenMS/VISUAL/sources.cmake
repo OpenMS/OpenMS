@@ -29,6 +29,7 @@ TOPPASInputFileListVertex.h
 TOPPASOutputFileVertex.h
 TOPPASOutputFileListVertex.h
 TOPPASEdge.h
+TOPPASTabBar.h
 EnhancedWorkspace.h
 )
 
@@ -76,6 +77,7 @@ TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h
 TOPPASEdge.h
+TOPPASTabBar.h
 EnhancedWorkspace.h
 )
 

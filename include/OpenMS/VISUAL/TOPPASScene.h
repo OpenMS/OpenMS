@@ -112,6 +112,10 @@ namespace OpenMS
 			void setOutDir(const QString& dir);
 			/// Creates the necessary output directories in directory @p out_dir
 			void createDirs(const QString& out_dir);
+			/// Saves the pipeline if it has been changed since the last save.
+			bool saveIfChanged();
+			/// Sets the changed flag
+			void setChanged(bool b);
 			
 		public slots:
 		
@@ -154,6 +158,8 @@ namespace OpenMS
 			void entirePipelineFinished();
 			/// Emitted when the pipeline execution has failed
 			void pipelineExecutionFailed();
+			/// Emitted when the pipeline should be saved (showing a save as file dialog and so on)
+			void saveMe();
 			
 		protected:
 			
@@ -175,6 +181,8 @@ namespace OpenMS
 			bool gui_;
 			/// The directory where the output files will be written
 			QString out_dir_;
+			/// Flag that indicates if the pipeline has been changed since the last save
+			bool changed_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

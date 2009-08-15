@@ -49,7 +49,7 @@ class QTreeWidgetItem;
 namespace OpenMS
 {
 	class TOPPASWidget;
-	class EnhancedTabBar;
+	class TOPPASTabBar;
 	
   /**
   	@brief Main window of the TOPPAS tool
@@ -165,7 +165,7 @@ namespace OpenMS
       QWorkspace* ws_;
 
       ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-      EnhancedTabBar* tab_bar_;
+      TOPPASTabBar* tab_bar_;
       
       /// Tree view of all available TOPP tools
       QTreeWidget* tools_tree_view_;

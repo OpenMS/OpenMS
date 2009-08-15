@@ -82,6 +82,7 @@ namespace OpenMS
 		if (tifd.exec())
 		{
 			file_ = tifd.getFilename();
+			qobject_cast<TOPPASScene*>(scene())->setChanged(true);
 		}
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		

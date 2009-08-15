@@ -857,7 +857,7 @@ namespace OpenMS
 		progress_color_ = Qt::gray;
 		update(boundingRect());
 		
-		emit somethingHasChanged();
+		TOPPASVertex::inEdgeHasChanged();
 	}
 	
 	void TOPPASToolVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

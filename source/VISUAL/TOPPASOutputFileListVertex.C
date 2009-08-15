@@ -163,7 +163,7 @@ namespace OpenMS
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
-		// we do not need to forward the change (we have no childs)
+		TOPPASVertex::inEdgeHasChanged();
 	}
 	
 	void TOPPASOutputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
