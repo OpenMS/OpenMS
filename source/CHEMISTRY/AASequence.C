@@ -37,9 +37,6 @@ using namespace std;
 
 namespace OpenMS 
 {
-	//ResidueDB * AASequence::custom_res_db_ = 0;
-
-	// AASequence
 	AASequence::AASequence()
 		:	valid_(true),
 			n_term_mod_(0),
@@ -989,7 +986,9 @@ namespace OpenMS
 	}
 
 	AASequence::AASequence(ConstIterator begin, ConstIterator end)
-		: valid_(true)
+		: valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 		for (ConstIterator it = begin; it != end; ++it)
 		{

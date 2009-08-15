@@ -110,7 +110,7 @@ START_SECTION((void predictPTMs(FeatureMapSim &map)))
 	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAAHTKLRTTIPPEFG")
 	TEST_EQUAL(map[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRYCNHKTUIKL")
 	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Lys->Allysine)K(Lys->Allysine)K(Lys->Allysine)KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
-	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(MOD:00277)RRRRRRRRYCNHK(Lys->Allysine)TUIKL")
+	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(Trimethyl)R(Trimethyl)R(Trimethyl)RRRRRRYCNHKTUIKL")
 	TEST_EQUAL(map.size(),5);
 	//for (FeatureMapSim::const_iterator it = map.begin(); it!=map.end(); ++it)
 	//{

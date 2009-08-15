@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -74,12 +74,12 @@ END_SECTION
 
 START_SECTION((ModificationDefinition(const String &mod)))
 {
-	ModificationDefinition mod1("MOD:00323");
-	TEST_EQUAL(mod1.getModification(), "MOD:00323");
-	ModificationDefinition mod2("MOD:00719");
-	TEST_EQUAL(mod2.getModification(), "MOD:00719");
-	ModificationDefinition mod3("MOD:01061");
-	TEST_EQUAL(mod3.getModification(), "MOD:01061");	
+	ModificationDefinition mod1("Acetyl (N-term)");
+	TEST_EQUAL(mod1.getModification(), "Acetyl (N-term)");
+	ModificationDefinition mod2("Oxidation (M)");
+	TEST_EQUAL(mod2.getModification(), "Oxidation (M)");
+	ModificationDefinition mod3("Carboxymethyl (C)");
+	TEST_EQUAL(mod3.getModification(), "Carboxymethyl (C)");	
 }
 END_SECTION
 
@@ -134,10 +134,10 @@ END_SECTION
 START_SECTION((String getModification() const ))
 {
 	ModificationDefinition mod1;
-	mod1.setModification("MOD:00323");
-	TEST_EQUAL(mod1.getModification(), "MOD:00323")
-  mod1.setModification("MOD:00719");
-  TEST_EQUAL(mod1.getModification(), "MOD:00719")
+	mod1.setModification("Acetyl (N-term)");
+	TEST_EQUAL(mod1.getModification(), "Acetyl (N-term)")
+  mod1.setModification("Oxidation (M)");
+  TEST_EQUAL(mod1.getModification(), "Oxidation (M)")
 }
 END_SECTION
 
@@ -176,9 +176,9 @@ START_SECTION((bool operator==(const ModificationDefinition &rhs) const ))
 	m1.setMaxOccurences(15);
 	TEST_EQUAL(m1 == m2, false)
 	m1.setMaxOccurences(0);
-	m1.setModification("MOD:00720");
+	m1.setModification("Oxidation (M)");
 	TEST_EQUAL(m1 == m2, false)
-	m2.setModification("MOD:00720");
+	m2.setModification("Oxidation (M)");
 	TEST_EQUAL(m1 == m2, true)
 	m1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(m1 == m2, false)
@@ -195,9 +195,9 @@ START_SECTION((bool operator!=(const ModificationDefinition &rhs) const ))
   m1.setMaxOccurences(15);
   TEST_EQUAL(m1 != m2, true)
   m1.setMaxOccurences(0);
-  m1.setModification("MOD:00720");
+  m1.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, true)
-  m2.setModification("MOD:00720");
+  m2.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, false)
 	m1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(m1 != m2, true)
@@ -207,8 +207,8 @@ END_SECTION
 START_SECTION((bool operator<(const OpenMS::ModificationDefinition &) const ))
 {
   ModificationDefinition m1, m2;
-	m1.setModification("MOD:00720");
-	m2.setModification("MOD:00719");
+	m1.setModification("Oxidation (M)");
+	m2.setModification("Carboxymethyl (C)");
 	TEST_EQUAL(m1 < m2, false)
 	TEST_EQUAL(m1 < m1, false)
 	TEST_EQUAL(m2 < m1, true)
