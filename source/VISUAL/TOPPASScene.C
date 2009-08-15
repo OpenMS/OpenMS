@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
@@ -1066,7 +1067,7 @@ namespace OpenMS
 		// Save changes
 		if (gui_ && changed_)
 		{
-			QString name = file_name_ == "" ? "Untitled" : file_name_.toQString();
+			QString name = file_name_ == "" ? "Untitled" : File::basename(file_name_).toQString();
 			QMessageBox::StandardButton ret;
 			ret = QMessageBox::warning(views().first(), "Save changes?",
 						"'"+name+"' has been modified.\n\nDo you want to save your changes?",
