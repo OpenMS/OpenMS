@@ -75,7 +75,7 @@ namespace OpenMS
 																											std::vector<IndexTriple >& variable_indices,
 																											std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																											std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
-																											DoubleReal min_peak_distance,std::vector<int>& solution_indices);
+																											std::vector<int>& solution_indices);
 
 		
     
@@ -129,7 +129,7 @@ namespace OpenMS
     void createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
 														std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 														std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
-														UInt ms2_spectra_per_rt_bin,DoubleReal min_peak_distance,UInt number_of_scans);
+														UInt ms2_spectra_per_rt_bin,UInt number_of_scans);
 
 		
 		/**
@@ -196,7 +196,6 @@ namespace OpenMS
 																																std::vector<IndexTriple>& variable_indices,
 																																std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																																std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
-																																DoubleReal min_peak_distance,
 																																std::vector<int>& solution_indices)
 	{
 
@@ -207,7 +206,7 @@ namespace OpenMS
 #endif
 		
 		createAndSolveILP_(features,intensity_weights,charges_set,mass_ranges,variable_indices,solution_indices,
-											 ms2_spectra_per_rt_bin,min_peak_distance,experiment.size());
+											 ms2_spectra_per_rt_bin,experiment.size());
 	}
 	
 

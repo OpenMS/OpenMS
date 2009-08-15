@@ -96,13 +96,27 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),336.14)
 	TEST_REAL_SIMILAR(ms2[2].getRT(),60)
 	TEST_REAL_SIMILAR(ms2[2].getPrecursors()[0].getMZ(),336.14)
-	
+
+	ms2.clear();
+	feature_based = true;
+	param.setValue("ignore_overlapping_peaks","false");
+	param.setValue("min_peak_distance",40);
+	ptr->setParameters(param);
+	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
+	TEST_EQUAL(ms2.size(),2)
+	TEST_REAL_SIMILAR(ms2[0].getRT(),40)
+	TEST_REAL_SIMILAR(ms2[0].getPrecursors()[0].getMZ(),336.14)
+	TEST_REAL_SIMILAR(ms2[1].getRT(),60)
+	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),478.29)
+		
 }
 END_SECTION	     
 
 START_SECTION((template < typename InputPeakType > void getMassRanges(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
-	
+	Param param;
+	param.setValue("ignore_overlapping_peaks","true");
+	ptr->setParameters(param);
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
 	ptr->getMassRanges(map,raw_data,indices);
 	TEST_EQUAL(indices.size(),3)

@@ -58,7 +58,7 @@ START_SECTION(~ILPWrapper())
 END_SECTION
 
 
-START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, DoubleReal min_peak_distance)))
+START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin)))
 {
 	std::set<Int> charges_set;
 	charges_set.insert(1);
@@ -74,7 +74,7 @@ START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSM
 
   // test empty input
 	ILPWrapper wrapper2;
-  wrapper2.createAndSolveILPForKnownLCMSMapFeatureBased(features,exp,variable_indices,mass_ranges,charges_set,1,0.,solution_indices);
+  wrapper2.createAndSolveILPForKnownLCMSMapFeatureBased(features,exp,variable_indices,mass_ranges,charges_set,1,solution_indices);
 	TEST_EQUAL(variable_indices.size(),0)
 	TEST_EQUAL(solution_indices.size(),0)
 	solution_indices.clear();
@@ -86,7 +86,7 @@ START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSM
 	mass_ranges.clear();
 	OfflinePrecursorIonSelection ops;
 	ops.getMassRanges(map,raw_data,mass_ranges);
-	wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(map,raw_data,variable_indices,mass_ranges,charges_set,1,0.,solution_indices);
+	wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(map,raw_data,variable_indices,mass_ranges,charges_set,1,solution_indices);
 	TEST_EQUAL(variable_indices.size(),6)
 	variable_indices.clear();
 	TEST_EQUAL(solution_indices.size(),3)

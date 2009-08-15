@@ -73,7 +73,7 @@ ILPWrapper::~ILPWrapper()
 void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
 																		std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																		std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
-																		UInt ms2_spectra_per_rt_bin,DoubleReal min_peak_distance,
+																		UInt ms2_spectra_per_rt_bin,
 																		UInt number_of_scans)
 {
 	Int counter = 0;
@@ -111,49 +111,6 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 			for(Size s_idx = 0; s_idx < mass_ranges[i].size();s_idx+=2) // walk in size two steps
 				{
 					Size s = mass_ranges[i][s_idx].first;
-					// 						////////////////////////////////////////////////////////////////////////
-					// 						// check if other features overlap with this feature in the current scan
-					// 						////////////////////////////////////////////////////////////////////////
-					// 						InputPeakType & peak_left_border = experiment[s][mass_ranges[i][s_idx].second];
-					// 						InputPeakType & peak_right_border = experiment[s][mass_ranges[i][s_idx+1].second];
-					// 						bool overlapping_features = false;
-					// 						for(Size fmr=0;!overlapping_features && fmr < mass_ranges.size();++fmr)
-					// 							{
-					// 								if(i == fmr) continue; // same feature
-					// 								for(Size mr=0; mr < mass_ranges[fmr].size();mr+=2)
-					// 									{
-					// 										if( mass_ranges[fmr][mr].first ==  s) // same spectrum
-					// 											{
-					// 												InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
-					// 												InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
-					// 												std::cout << tmp_peak_left.getMZ() << " < "
-					// 																	<< peak_left_border.getMZ()-min_peak_distance << " && "
-					// 																	<< tmp_peak_right.getMZ() << " < "
-					// 																	<< peak_left_border.getMZ()- min_peak_distance<< " ? "
-					// 																	<< (tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
-					// 																			tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance)
-					// 																	<<" || "
-					// 																	<< tmp_peak_left.getMZ() << " > "
-					// 																	<< peak_right_border.getMZ()+min_peak_distance << " && "
-					// 																	<< tmp_peak_right.getMZ() << " < "
-					// 																	<< peak_right_border.getMZ()+ min_peak_distance<< " ? "
-					// 																	<< (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
-					// 																			tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)
-					// 																	<< std::endl;
-					// 												// all other features have to be either completely left or
-					// 												// right of the current feature
-					// 												if(!((tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
-					// 															tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance) ||
-					// 														 (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
-					// 															tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)))
-					// 													{
-					// 														overlapping_features = true;
-					// 														break;
-					// 													}
-					// 											}
-					// 									}
-					// 							}
-						
 
 
 					////////////////////////////////////////////////////////////////////////

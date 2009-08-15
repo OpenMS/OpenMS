@@ -32,8 +32,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/ANALYSIS/ID/ILPWrapper.h>
 
 namespace OpenMS
 {
@@ -85,9 +85,13 @@ namespace OpenMS
 		 */
 		template <typename InputPeakType>
 		void calculateXICs_(FeatureMap<> &features,std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
-												std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,MSExperiment<InputPeakType>& experiment,
+												std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,
+												MSExperiment<InputPeakType>& experiment,
 												std::set<Int>& charges_set);
-
+		
+		template <typename InputPeakType>		
+		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
+													MSExperiment<InputPeakType>&experiment);
   };
 
 	template <typename InputPeakType>
@@ -156,6 +160,8 @@ namespace OpenMS
 #endif
 				indices.push_back(vec);
 			}
+		// eliminate nearby peaks
+		if(param_.getValue("ignore_overlapping_peaks")=="false") checkMassRanges_(indices,experiment);
 	}
 
 
@@ -223,7 +229,6 @@ namespace OpenMS
 				ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(features, experiment,variable_indices,
 																																 indices,charges_set,
 																																 param_.getValue("ms2_spectra_per_rt_bin"),
-																																 param_.getValue("min_peak_distance"),
 																																 solution_indices);
 
 				sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
@@ -299,6 +304,75 @@ namespace OpenMS
 
 	}
 
+	template <typename InputPeakType>		
+	void OfflinePrecursorIonSelection::checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
+																											MSExperiment<InputPeakType>&experiment)
+	{
+		std::vector<std::vector<std::pair<Size,Size> > > checked_mass_ranges;
+		DoubleReal min_peak_distance = param_.getValue("min_peak_distance");
+		checked_mass_ranges.reserve(mass_ranges.size());
+		for(Size f = 0; f < mass_ranges.size();++f)
+			{
+				std::vector<std::pair<Size,Size> > checked_mass_ranges_f;
+				for(Size s_idx = 0; s_idx < mass_ranges[f].size();s_idx+=2)
+					{
+						Size s = mass_ranges[f][s_idx].first;
+						bool overlapping_features = false;
+						////////////////////////////////////////////////////////////////////////
+						// check if other features overlap with this feature in the current scan
+						////////////////////////////////////////////////////////////////////////
+						InputPeakType & peak_left_border = experiment[s][mass_ranges[f][s_idx].second];
+						InputPeakType & peak_right_border = experiment[s][mass_ranges[f][s_idx+1].second];
+						for(Size fmr=0; fmr < mass_ranges.size();++fmr)
+							{
+								if(fmr == f) continue;
+								for(Size mr=0; mr < mass_ranges[fmr].size();mr+=2)
+									{
+										if( mass_ranges[fmr][mr].first ==  s) // same spectrum
+											{
+												InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
+												InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
+												std::cout << tmp_peak_left.getMZ() << " < "
+																	<< peak_left_border.getMZ()-min_peak_distance << " && "
+																	<< tmp_peak_right.getMZ() << " < "
+																	<< peak_left_border.getMZ()- min_peak_distance<< " ? "
+																	<< (tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
+																			tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance)
+																	<<" || "
+																	<< tmp_peak_left.getMZ() << " > "
+																	<< peak_right_border.getMZ()+min_peak_distance << " && "
+																	<< tmp_peak_right.getMZ() << " > "
+																	<< peak_right_border.getMZ()+ min_peak_distance<< " ? "
+																	<< (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
+																			tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)
+																	<< std::endl;
+												// all other features have to be either completely left or
+												// right of the current feature
+												if(!((tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
+															tmp_peak_right.getMZ() < peak_left_border.getMZ()-min_peak_distance) ||
+														 (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
+															tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)))
+													{
+														std::cout << "found overlapping peak"<<std::endl;
+														overlapping_features = true;
+														break;
+													}
+											}
+									}
+							}
+						if(!overlapping_features)
+							{
+								std::cout << "feature in spec ok" << mass_ranges[f][s_idx].second << " in spec "
+													<< mass_ranges[f][s_idx].first << std::endl;
+								checked_mass_ranges_f.insert(checked_mass_ranges_f.end(),
+																						 mass_ranges[f].begin()+s_idx,
+																						 mass_ranges[f].begin()+s_idx+2);
+							}
+					}
+				checked_mass_ranges.push_back(checked_mass_ranges_f);
+			}
+		mass_ranges.swap(checked_mass_ranges);
+	}
 	
 }
 
