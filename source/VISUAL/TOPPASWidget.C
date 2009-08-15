@@ -75,7 +75,7 @@ namespace OpenMS
 		scale(factor, factor);
 		
 		QRectF items_rect = scene_->itemsBoundingRect();
-		setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
+		scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
 	}
 
 	

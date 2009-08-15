@@ -111,7 +111,7 @@ namespace OpenMS
 		}
 		else
 		{
-			setSelected(true);
+			emit released();
 			// resize scene rect in case item has been moved outside
 			const QRectF& scene_rect = scene()->sceneRect();
 			const QRectF& items_bounding = scene()->itemsBoundingRect();
@@ -135,18 +135,8 @@ namespace OpenMS
 		
 		if (isSelected())
 		{
-			ts->setActionMode(TOPPASScene::AM_MOVE);
-			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-			{
-				(*it)->prepareResize();
-			}
-			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-			{
-				(*it)->prepareResize();
-			}
-			
 			QPointF delta = e->pos() - e->lastPos();
-			moveBy(delta.x(), delta.y());
+			emit itemDragged(delta.x(), delta.y());
 		}
 		else
 		{

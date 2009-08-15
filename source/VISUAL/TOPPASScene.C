@@ -125,19 +125,18 @@ namespace OpenMS
 	
 	void TOPPASScene::itemClicked()
 	{
+		
+	}
+	
+	void TOPPASScene::itemReleased()
+	{
 		TOPPASVertex* sender = qobject_cast<TOPPASVertex*>(QObject::sender());
 		if (!sender)
 		{
 			return;
 		}
-		bool was_selected = sender->isSelected();
 		unselectAll();
-		sender->setSelected(was_selected);
-	}
-	
-	void TOPPASScene::itemDoubleClicked()
-	{
-		
+		sender->setSelected(true);
 	}
 	
 	void TOPPASScene::updateHoveringEdgePos(const QPointF& new_pos)
@@ -669,10 +668,11 @@ namespace OpenMS
 					addVertex(current_vertex);
 					
 					connect(current_vertex,SIGNAL(clicked()),this,SLOT(itemClicked()));
-					connect(current_vertex,SIGNAL(doubleClicked()),this,SLOT(itemDoubleClicked()));
+					connect(current_vertex,SIGNAL(released()),this,SLOT(itemReleased()));
 					connect(current_vertex,SIGNAL(hoveringEdgePosChanged(const QPointF&)),this,SLOT(updateHoveringEdgePos(const QPointF&)));
 					connect(current_vertex,SIGNAL(newHoveringEdge(const QPointF&)),this,SLOT(addHoveringEdge(const QPointF&)));
 					connect(current_vertex,SIGNAL(finishHoveringEdge()),this,SLOT(finishHoveringEdge()));
+					connect(current_vertex,SIGNAL(itemDragged(qreal,qreal)),this,SLOT(moveSelectedItems(qreal,qreal)));
 					
 					if (index >= vertex_vector.size())
 					{
@@ -1016,6 +1016,29 @@ namespace OpenMS
 				oflv->createDirs(out_dir);
 				continue;
 			}
+		}
+	}
+	
+	void TOPPASScene::moveSelectedItems(qreal dx, qreal dy)
+	{
+		setActionMode(AM_MOVE);
+		
+		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+		{
+			if (!(*it)->isSelected())
+			{
+				continue;
+			}
+			for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+			{
+				(*e_it)->prepareResize();
+			}
+			for (TOPPASVertex::EdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
+			{
+				(*e_it)->prepareResize();
+			}
+			
+			(*it)->moveBy(dx,dy);
 		}
 	}
 	

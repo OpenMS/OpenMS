@@ -131,8 +131,8 @@ namespace OpenMS
 			
 			/// Emitted when this item is clicked
 			void clicked();
-			/// Emitted when this item is double-clicked
-			void doubleClicked();
+			/// Emitted when this item is released
+			void released();
 			/// Emitted when the position of the hovering edge changes
 			void hoveringEdgePosChanged(const QPointF& new_pos);
 			/// Emitted when a new out edge is supposed to be created
@@ -141,6 +141,8 @@ namespace OpenMS
 			void finishHoveringEdge();
 			/// Emitted when something has changed
 			void somethingHasChanged();
+			/// Emitted when the item is dragged
+			void itemDragged(qreal dx, qreal dy);
 			
 		protected:
 			

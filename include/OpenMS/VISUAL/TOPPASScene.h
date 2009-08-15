@@ -117,8 +117,8 @@ namespace OpenMS
 		
 			/// Called when an item is clicked
 			void itemClicked();
-			/// Called when an item is double-clicked
-			void itemDoubleClicked();
+			/// Called when an item is released
+			void itemReleased();
 			/// Called when the position of the hovering edge changes
 			void updateHoveringEdgePos(const QPointF& new_pos);
 			/// Called when a new out edge is supposed to be created
@@ -129,6 +129,8 @@ namespace OpenMS
 			void checkIfWeAreDone();
 			/// Called by vertices at which an error occured during pipeline execution
 			void pipelineErrorSlot();
+			/// Moves all selected items by dx, dy
+			void moveSelectedItems(qreal dx, qreal dy);
 			
 			///@name Slots for printing log/error output when no GUI is available
       //@{

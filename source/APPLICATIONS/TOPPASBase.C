@@ -701,10 +701,11 @@ namespace OpenMS
 		scene->addVertex(tv);
 		
 		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
-		connect(tv,SIGNAL(doubleClicked()),scene,SLOT(itemDoubleClicked()));
+		connect(tv,SIGNAL(released()),scene,SLOT(itemReleased()));
 		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
 		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
 		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
+		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
 		
 		scene->topoSort();
 	}
