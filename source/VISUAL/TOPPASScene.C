@@ -53,7 +53,7 @@ namespace OpenMS
 			file_name_(),
 			tmp_path_(tmp_path),
 			gui_(gui),
-			out_dir_(""),
+			out_dir_(QDir::currentPath()),
 			changed_(false)
 	{
 		/*	ATTENTION!

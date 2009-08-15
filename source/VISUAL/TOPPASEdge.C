@@ -577,7 +577,38 @@ namespace OpenMS
 				return ES_MISMATCH_FILE_LIST;
 			}
 			
-			valid = true;
+			
+			if (source_param_types.size() == 0 || target_param_types.size() == 0)
+			{
+				valid = true;
+			}
+			else
+			{
+				bool types_ok = false;
+				for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
+				{
+					bool found_match = false;
+					for (StringList::iterator t_it = target_param_types.begin(); t_it != target_param_types.end(); ++t_it)
+					{
+						if (*s_it == *t_it)
+						{
+							found_match = true;
+							break;
+						}
+					}
+					if (found_match)
+					{
+						types_ok = true;
+						break;
+					}
+				}
+				
+				if (!types_ok)
+				{
+					return ES_FILE_EXT_MISMATCH;
+				}
+				valid = true;
+			}
 		}
 				
 		if (valid)
