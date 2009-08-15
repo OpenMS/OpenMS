@@ -73,15 +73,15 @@ START_SECTION(Size getNumberOfResidues() const)
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const String &name))
-	const Residue* mod_res = ptr->getModifiedResidue("MOD:00720"); // ox methionine
+	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
+	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const String &name))
-	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "MOD:00720");
+	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
+	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
 START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "All") const)
@@ -146,7 +146,7 @@ END_SECTION
 START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = 0;
-	mod_res = ptr->getModifiedResidue("MOD:01214");
+	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
 	TEST_NOT_EQUAL(mod_res, 0)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION

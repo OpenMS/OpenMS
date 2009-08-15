@@ -79,7 +79,7 @@ namespace OpenMS
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids ,const String& document_id=""); 
+			void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids ,const String& document_id=""); 
   	
   	protected:
 

@@ -691,7 +691,7 @@ namespace OpenMS
 		set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
 		for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
 		{
-			ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification(), it->getTermSpecificity());
+			ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
 			char aa = (*actual_mod_name)[0];
 			char origin_aa = ' ';
 			++actual_mod_name;

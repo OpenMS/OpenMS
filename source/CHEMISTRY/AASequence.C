@@ -41,7 +41,9 @@ namespace OpenMS
 
 	// AASequence
 	AASequence::AASequence()
-		:	valid_(true)
+		:	valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 	}
 
@@ -55,13 +57,17 @@ namespace OpenMS
 	}
 
 	AASequence::AASequence(const String& peptide)
-		:	valid_(true)
+		:	valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 		parseString_(peptide_, peptide);
 	}
 
 	AASequence::AASequence(const char* peptide)
-		: valid_(true)
+		: valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 		parseString_(peptide_, String(peptide));
 	}
@@ -168,22 +174,20 @@ namespace OpenMS
 		static EmpiricalFormula NH("NH");
 
     // terminal modifications
-    if (n_term_mod_ != "" && 
+    if (n_term_mod_ != 0 && 
 				(type == Residue::Full || type == Residue::AIon || type == Residue::BIon || type == Residue::CIon || type == Residue::NTerminal)
 			 )
     {
-      ef += ModificationsDB::getInstance()->getModification("", n_term_mod_, ResidueModification::N_TERM).getDiffFormula();
+      ef += n_term_mod_->getDiffFormula();
     }
 
 
-    if (c_term_mod_ != "" &&
+    if (c_term_mod_ != 0 &&
 				(type == Residue::Full || type == Residue::XIon || type == Residue::YIon || type == Residue::ZIon || type == Residue::CTerminal)
 			 )
     {
-      ef += ModificationsDB::getInstance()->getModification("", c_term_mod_, ResidueModification::C_TERM).getDiffFormula();
+      ef += c_term_mod_->getDiffFormula();
     }
-
-
 
 		if (peptide_.size() > 0)
 		{
@@ -642,7 +646,7 @@ namespace OpenMS
 
 	bool AASequence::isModified() const
 	{
-		if (n_term_mod_ != "" || c_term_mod_ != "")
+		if (n_term_mod_ != 0 || c_term_mod_ != 0)
 		{
 			return true;
 		}
@@ -673,9 +677,9 @@ namespace OpenMS
 			os << peptide.sequence_string_;
 			return os;
 		}
-    if (peptide.n_term_mod_ != "")
+    if (peptide.n_term_mod_ != 0)
     {
-      os << "(" << peptide.n_term_mod_ << ")";
+      os << "(" << peptide.n_term_mod_->getId() << ")";
     }
 
 		for (Size i = 0; i != peptide.size(); ++i)
@@ -690,15 +694,14 @@ namespace OpenMS
 				{
 					os << "[" << peptide.peptide_[i]->getMonoWeight() << "]";
 				}
-				
-				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification()).getId();
+				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getId();
 				if (id != "")
 				{
 					os << "(" << id << ")";
 				}
 				else
 				{
-					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification()).getDiffMonoMass() << "])";
+					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getDiffMonoMass() << "])";
 				}
 			}
 			else
@@ -721,9 +724,9 @@ namespace OpenMS
 			}
 		}
 		
-    if (peptide.c_term_mod_ != "")
+    if (peptide.c_term_mod_ != 0)
     {
-      os << "(" << peptide.c_term_mod_ << ")";
+      os << "(" << peptide.c_term_mod_->getId() << ")";
     }
 		return os;
 	}
@@ -794,7 +797,7 @@ namespace OpenMS
 			String mod = split[0];
 			mod.remove('(');
 			mod.remove(')');
-			n_term_mod_ = ModificationsDB::getInstance()->getModification("", mod, ResidueModification::N_TERM).getId();
+			n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
 
 			split.erase(split.begin());
 		}
@@ -816,16 +819,13 @@ namespace OpenMS
 
 			try
 			{
-				const ResidueModification* potential_mod = &ModificationsDB::getInstance()->getModification("", mod, ResidueModification::C_TERM);
-				if (potential_mod->getTermSpecificity() == ResidueModification::C_TERM)
-				{
-					c_term_mod_ = potential_mod->getId();
-					split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
-				}
+				const ResidueModification* potential_mod = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::C_TERM);
+				c_term_mod_ = potential_mod;
+				split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
 			}
 			catch (Exception::ElementNotFound& /* e */)
 			{
-				// just do nothing
+				// just do nothing the mod is presumably a non-terminal one
 			}
 		}
 		
@@ -1020,76 +1020,56 @@ namespace OpenMS
 	{
 		if (modification == "")
 		{
-			n_term_mod_ = "";
+			n_term_mod_ = 0;
 			return;
 		}
-		set<String> mods(ModificationsDB::getInstance()->searchModifications(modification));
-		if (mods.size() > 1)
-		{
-			cerr << "AASequence::setNTerminalModification: Error more than one modification with name '" 
-					 << modification << "' found; using first one: " 
-					 << *mods.begin() << "!" << endl;
-		}
-		if (mods.size() == 0)
-		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
-		}
-		n_term_mod_ = ModificationsDB::getInstance()->getModification("", *mods.begin(), ResidueModification::N_TERM).getId();
+		n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::N_TERM);
 	}
 
 	void AASequence::setCTerminalModification(const String& modification)
 	{
 		if (modification == "")
 		{
-			c_term_mod_ = "";
+			c_term_mod_ = 0;
 			return;
 		}
-		set<String> mods = ModificationsDB::getInstance()->searchModifications(modification);
-    if (mods.size() > 1)
-    {
-      cerr << "AASequence::setCTerminalModification: Error more than one modification with name '" 
-					 << modification << "' found; using first one: "
-					 << *mods.begin() << "!" << endl;
-    }
-    if (mods.size() == 0)
-    {
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
-    }
-		c_term_mod_ = ModificationsDB::getInstance()->getModification("", *mods.begin(), ResidueModification::C_TERM).getId();
+		c_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::C_TERM);
 	}
 
 	const String& AASequence::getNTerminalModification() const
 	{
-		return n_term_mod_;
+		static const String mod = "";
+		if (n_term_mod_ == 0)
+		{
+			return mod;
+		}
+		return n_term_mod_->getId();
 	}
 
 	const String& AASequence::getCTerminalModification() const
 	{
-		return c_term_mod_;
+		static const String mod = "";
+		if (c_term_mod_ == 0)
+		{
+			return mod;
+		}
+		return c_term_mod_->getId();
 	}
 
 	bool AASequence::hasNTerminalModification() const
 	{
-		if (n_term_mod_ != "")
-		{
-			return true;
-		}
-		return false;
+		return n_term_mod_ != 0;
 	}
 
 	bool AASequence::hasCTerminalModification() const
 	{
-		if (c_term_mod_ != "")
-		{
-			return true;
-		}
-		return false;
+		return c_term_mod_ != 0;
 	}
 
 	bool AASequence::setStringSequence(const String& sequence)
 	{
-		c_term_mod_ = "";
-		n_term_mod_ = "";
+		c_term_mod_ = 0;
+		n_term_mod_ = 0;
 		parseString_(peptide_, sequence);
 		return valid_;
 	}

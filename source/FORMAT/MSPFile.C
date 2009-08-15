@@ -22,12 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 
@@ -91,7 +92,7 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, double> mod_to_mass;
+    Map<String, DoubleReal> mod_to_mass;
     mod_to_mass["Oxidation"] = 15.994915;
     mod_to_mass["Carbamidomethyl"] = 57.02146;
     mod_to_mass["ICAT_light"] = 227.126991;
@@ -109,13 +110,18 @@ namespace OpenMS
     mod_to_mass["Carbamyl"] = 43.00581;
 		mod_to_mass["di-Methylation"] = 28.031300;
 
+		Map<String, String> modname_to_unimod;
+		modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
+		modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
+		modname_to_unimod["AB_old_ICATd0"] = "ICAT-D";
+
     RichPeakSpectrum spec;
 
 		bool parse_headers(param_.getValue("parse_headers").toBool());
 		bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
 		String instrument((String)param_.getValue("instrument"));
 		bool inst_type_correct(true);
-		UInt spectrum_number = 0;
+		Size spectrum_number = 0;
 
 		while (getline(is, line))
     {
@@ -142,7 +148,7 @@ namespace OpenMS
 				{
 					UInt charge = ids.back().getHits().begin()->getCharge();
 					spec.getPrecursors().resize(1);
-        	spec.getPrecursors()[0].setMZ((split[1].toDouble() + (double)charge * 1.00728) / (double)charge);
+        	spec.getPrecursors()[0].setMZ((split[1].toDouble() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge);
 				}
       }
 
@@ -181,50 +187,46 @@ namespace OpenMS
               mod_split[i].split(',', single_mod);
 
               String mod_name = single_mod[2];
-
-              if (!mod_to_mass.has(mod_name))
-              {
-                cerr << "mod to mass does not have element named " <<mod_name << endl;
-                throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
-              }
-
-              vector<String> candidate_mods;
-              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(candidate_mods, single_mod[1], mod_to_mass[mod_name], 0.001);
-
-              if (candidate_mods.size() == 0)
-              {
-                cerr << "MSPFile: a modification with name '" << mod_name <<
-                        "' or mass '" << mod_to_mass[mod_name] <<
-                        "' at residue '" << single_mod[1] << "' could not be found, aborting!" << endl;
-                throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
-              }
-
-              // this gives many error, e.g. Oxidation of Methionine is present multiple times in PSI-MOD
-              if (candidate_mods.size() > 1)
-              {
-                cerr << "MSPFile: more than one modification with mass '" << mod_to_mass[mod_name] << "' at residue '" << single_mod[1] <<
-                        "' found:";
-								for (vector<String>::const_iterator it = candidate_mods.begin(); it != candidate_mods.end(); ++it)
-								{
-									cerr << " " << *it;
-								}
-
-								cerr << "; choosing first one!" << endl;
-              }
-
-              String psi_mod = ModificationsDB::getInstance()->getModification(single_mod[1], candidate_mods[0]).getId();
-
-							UInt mod_position = single_mod[0].toInt();
-
-							// TODO C-term modification
-
-							if (mod_position == 0 && ModificationsDB::getInstance()->getModification(psi_mod).getTermSpecificity() == ResidueModification::N_TERM)
+							if (modname_to_unimod.has(mod_name))
 							{
-								peptide.setNTerminalModification(psi_mod);
+								mod_name = modname_to_unimod[mod_name];
+							}
+							String origin  = single_mod[1];
+							Size position = single_mod[0].toInt();
+
+							//cerr << "MSP modification: " << origin << " " << mod_name << " " << position << endl;
+
+							if (position > 0 && position < peptide.size() - 1)
+							{
+								peptide.setModification(position, mod_name);
+							}
+							else if (position == 0)
+							{
+								// we must decide whether this can be a terminal mod
+								try 
+								{
+              		peptide.setNTerminalModification(mod_name);
+								}
+								catch (Exception::ElementNotFound /*e*/)
+								{
+									peptide.setModification(position, mod_name);
+								}
+							}
+							else if (position == peptide.size() - 1)
+							{
+								// we must decide whether this can be a terminal mod
+								try 
+								{
+									peptide.setCTerminalModification(mod_name);
+								}
+								catch (Exception::ElementNotFound /*e*/)
+								{
+									peptide.setModification(position, mod_name);
+								}
 							}
 							else
 							{
-              	peptide.setModification(mod_position, psi_mod);
+								cerr << "MSPFile: Error: ignoring modification: '" << line << "'" << endl;
 							}
             }
             vector<PeptideHit> hits(ids.back().getHits());
@@ -345,6 +347,7 @@ namespace OpenMS
 
 				}
 				
+				// @todo implement writing (Andreas)
 				UInt pos(0);
 				for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit, ++pos)
 				{

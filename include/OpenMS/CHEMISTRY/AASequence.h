@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
@@ -33,6 +33,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iostream>
@@ -554,9 +555,9 @@ namespace OpenMS
 
 			bool valid_;
 
-			String n_term_mod_;
+			const ResidueModification* n_term_mod_;
 
-			String c_term_mod_;
+			const ResidueModification* c_term_mod_;
 	};			
 
 	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);

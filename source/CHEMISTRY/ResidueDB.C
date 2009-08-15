@@ -125,7 +125,7 @@ namespace OpenMS
 
 			// get all modification names
 			vector<String> mod_names;
-			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification());
+			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification(), ResidueModification::ANYWHERE);
 
 			mod_names.push_back(mod.getId());
 			mod_names.push_back(mod.getFullName());
@@ -423,14 +423,8 @@ namespace OpenMS
 
 	const Residue* ResidueDB::getModifiedResidue(const String& modification)
 	{
-		String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
-		if (origin.size() > 1 || origin.size() == 0 || (origin.size() == 1 && origin == "X"))
-		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification '" + modification
-						+ "' has no specific residue as origin! Please specify it!").c_str());
-		}
-
-		return getModifiedResidue(getResidue(origin), modification);
+		const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
+		return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
 	}
 	
 	
@@ -445,7 +439,7 @@ namespace OpenMS
 											+ res_name + " was not registered in residue DB, register first!").c_str());
 		}
 
-		String id = ModificationsDB::getInstance()->getModification(res_name, modification).getId();
+		String id = ModificationsDB::getInstance()->getModification(res_name, modification, ResidueModification::ANYWHERE).getId();
 		
 		if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
 		{

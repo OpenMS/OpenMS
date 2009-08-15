@@ -61,7 +61,7 @@ namespace OpenMS
 		resetMembers_();
   }
   					 
-  void ProtXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void ProtXMLFile::store(const String& /*filename*/, const vector<ProteinIdentification>& /*protein_ids*/, const vector<PeptideIdentification>& /*peptide_ids*/, const String& /*document_id*/)
   {
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 		// resetMembers_();

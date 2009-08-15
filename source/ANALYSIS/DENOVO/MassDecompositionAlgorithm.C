@@ -103,7 +103,7 @@ namespace OpenMS
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
-      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification(), it->getTermSpecificity());
+      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
       char aa=' ';
       if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
       {

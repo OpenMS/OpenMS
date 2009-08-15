@@ -72,10 +72,10 @@ namespace OpenMS
 			const ResidueModification& getModification(Size index) const;
 
 			/// returns all modifications which have the given name as synonym
-			std::set<String> searchModifications(const String& name) const;
+			void searchTerminalModifications(std::set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const;
 
 			/// returns all modification which have the given name as synonym and the given origin
-			std::set<String> searchModifications(const String& name, const String& origin) const;
+			void searchModifications(std::set<const ResidueModification*>& mods, const String& name, const String& origin, ResidueModification::Term_Specificity term_spec) const;
 			
 			/** @brief returns the modifications of the given name
 
@@ -86,10 +86,12 @@ namespace OpenMS
 					
 					@exception ElementNotFound is thrown if no or more than one element is found
 			*/
-			const ResidueModification& getModification(const String& name, ResidueModification::Term_Specificity term_spec = ResidueModification::ANYWHERE) const;
+			const ResidueModification& getTerminalModification(const String& name, ResidueModification::Term_Specificity term_spec) const;
 
 			/// returns the modification with the given name and given residue 
-			const ResidueModification& getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec = ResidueModification::ANYWHERE) const;
+			const ResidueModification& getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
+
+			const ResidueModification& getModification(const String& modification) const;
 
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
 			Size findModificationIndex(const String& mod_name) const;
