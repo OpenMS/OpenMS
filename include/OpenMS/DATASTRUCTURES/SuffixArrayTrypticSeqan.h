@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -55,7 +55,7 @@ public:
 			@throw InvalidValue is thrown if string st if invalid
 			@throw FileNotFound is thrown if given file is not found
 	*/
-	SuffixArrayTrypticSeqan(const String& st, const String& filename, const UInt weight_mode=WeightWrapper::AVERAGE);
+	SuffixArrayTrypticSeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO);
 	
 	/**
 	@brief returns if an enzyme will cut after first character

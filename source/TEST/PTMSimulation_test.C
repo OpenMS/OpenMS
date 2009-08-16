@@ -58,7 +58,7 @@ START_SECTION((PTMSimulation(const PTMSimulation &source)))
   PTMSimulation a(NULL);
 
 	Param p = a.getParameters();
-	p.setValue("potential_modifications", StringList::create("MOD:00071|0.100003"));
+	p.setValue("potential_modifications", StringList::create("Trimethyl (K)|0.100003"));
 	a.setParameters(p);
 	PTMSimulation b(a);
 	TEST_EQUAL(b.getParameters(),a.getParameters());
@@ -77,7 +77,7 @@ START_SECTION((PTMSimulation& operator=(const PTMSimulation &source)))
 	PTMSimulation b(a);
 
 	Param p = a.getParameters();
-	p.setValue("potential_modifications", StringList::create("MOD:00071|0.13"));
+	p.setValue("potential_modifications", StringList::create("Trimethyl (K)|0.13"));
 	a.setParameters(p);
 	TEST_NOT_EQUAL(b.getParameters(),a.getParameters());
 	b = a;

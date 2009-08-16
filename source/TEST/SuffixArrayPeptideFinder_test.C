@@ -46,7 +46,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 SuffixArrayPeptideFinder* ptr = 0;
 
 
-START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& method, const UInt weight_mode=WeightWrapper::AVERAGE))
+START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& method, const UInt weight_mode=WeightWrapper::MONO))
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticCompressed");
@@ -196,7 +196,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 	{
 		for (vector<pair<FASTAEntry, String> >::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
 		{
-			cerr << it2->first.first << " ##### " << it2->first.second << " " << AASequence(it2->first.second).getAverageWeight() << endl;
+			cerr << it2->first.first << " ##### " << it2->first.second << " " << AASequence(it2->first.second).getMonoWeight() << endl;
 		}
 	}
 	*/

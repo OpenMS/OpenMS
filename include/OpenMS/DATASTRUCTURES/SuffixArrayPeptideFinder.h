@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -59,7 +59,7 @@ public:
 	@throw ParseError is thrown if a error in parsing of the fasta file occurs
 	@throw InvalidValue is thrown if an unknown method is supplied 
 	*/
-	SuffixArrayPeptideFinder(const String& filename, const String& method, const UInt weight_mode=WeightWrapper::AVERAGE);
+	SuffixArrayPeptideFinder(const String& filename, const String& method, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
 	/**
 	@brief copy constructor
@@ -73,14 +73,14 @@ public:
 
 	/**
 	@brief finds all candidate for given spectrum in the suffix array
-	@param spec const reference to double vector describing the MS spectrum
+	@param spec const reference to DoubleReal vector describing the MS spectrum
 	@param candidates output parameters which holds the candidates of the masses given in spec after the call
 				 FASTAEntry contains the FASTA header and the peptide sequence
 				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@see sufArray.h
 	*/
-	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<double> & spec);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<DoubleReal> & spec);
 
 	/**
 	@brief finds all candidate for given DTA file
@@ -96,15 +96,15 @@ public:
 
 	/**
 	@brief setter for tolerance
-	@param t const double tolerance
+	@param t const DoubleReal tolerance
 	*/
-	void setTolerance(const double t);
+	void setTolerance(const DoubleReal t);
 
 	/**
 	@brief getter for tolerance
-	@return double with tolerance
+	@return DoubleReal with tolerance
 	*/
-	double getTolerance() const;
+	DoubleReal getTolerance() const;
 
 	/**
 	@brief setter for number of modifications

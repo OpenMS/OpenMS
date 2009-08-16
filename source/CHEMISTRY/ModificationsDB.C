@@ -473,8 +473,7 @@ namespace OpenMS
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
-			if ((*it)->getUniModAccession() != "" && 
-					((*it)->getOrigin().size() == 1))
+			if ((*it)->getUniModAccession() != "")
 			{
 				modifications.push_back((*it)->getFullId());
 			}

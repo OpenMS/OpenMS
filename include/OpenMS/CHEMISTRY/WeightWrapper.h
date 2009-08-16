@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow$
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
  
 #ifndef OPENMS_CHEMISTRY_WEIGHTWRAPPER_H
@@ -55,7 +55,7 @@ namespace OpenMS
 			/**
 			@brief constructor
 			*/
-			WeightWrapper(const UInt weight_mode);
+			WeightWrapper(const WEIGHTMODE weight_mode);
 			
 			/**
 			@brief destructor
@@ -74,7 +74,7 @@ namespace OpenMS
 			Sets the mode in which getWeight() calls are answered.
 			
 			*/
-			void setWeightMode(const UInt mode);
+			void setWeightMode(const WEIGHTMODE mode);
 		
 
 			/**
@@ -83,7 +83,7 @@ namespace OpenMS
 			Gets the mode in which getWeight() calls are answered.
 			
 			*/
-			UInt getWeightMode() const;
+			WEIGHTMODE getWeightMode() const;
 
 		
 			/**
@@ -117,7 +117,7 @@ namespace OpenMS
 
 		private:
 			
-			UInt weight_mode_; ///< one of WeightWrapper::WEIGHTMODE's values 
+			WEIGHTMODE weight_mode_; ///< one of WeightWrapper::WEIGHTMODE's values 
 
 		
 	};

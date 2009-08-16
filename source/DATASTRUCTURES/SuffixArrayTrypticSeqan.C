@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@
 
 using namespace OpenMS;
 
-SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename, const UInt weight_mode)
+SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename, const WeightWrapper::WEIGHTMODE weight_mode)
 	: SuffixArraySeqan(st, filename, weight_mode)
 {
 }

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow$
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
@@ -30,11 +30,11 @@
 namespace OpenMS{
 	
 	WeightWrapper::WeightWrapper()
-	:weight_mode_(0)
+	:weight_mode_(MONO)
 	{
 	}
 
-	WeightWrapper::WeightWrapper(const UInt weight_mode)
+	WeightWrapper::WeightWrapper(const WEIGHTMODE weight_mode)
 	:weight_mode_(weight_mode)
 	{
 	}
@@ -48,13 +48,13 @@ namespace OpenMS{
 	{
 	}
 	
-	void WeightWrapper::setWeightMode(const UInt mode)
+	void WeightWrapper::setWeightMode(const WEIGHTMODE mode)
 	{
 		if (mode >= WeightWrapper::SIZE_OF_WEIGHTMODE) throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "setWeightMode() received illegal 'mode' value!");
 		weight_mode_ = mode;
 	}
 
-	UInt WeightWrapper::getWeightMode() const
+	WeightWrapper::WEIGHTMODE WeightWrapper::getWeightMode() const
 	{
 		return weight_mode_;
 	}
