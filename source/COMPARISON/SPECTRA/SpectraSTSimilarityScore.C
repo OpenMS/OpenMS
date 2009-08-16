@@ -83,7 +83,7 @@ namespace OpenMS
 			*iter1 = (Real)*iter1/magnitude1;
 		}
 		
-		for(SparseVector<Real>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin1.getBins().end(); ++iter2)
+		for(SparseVector<Real>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin2.getBins().end(); ++iter2)
 		{
 			magnitude2 += pow((DoubleReal)*iter2,2);
 		}
@@ -123,7 +123,7 @@ namespace OpenMS
     return score;	
 	}
 	
-	bool SpectraSTSimilarityScore::preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold,UInt cut_peaks_below ,UInt min_peak_number, UInt max_peak_number)
+	bool SpectraSTSimilarityScore::preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number)
 	{
 		spec.sortByIntensity(true);
 		DoubleReal min_high_intensity = 0;

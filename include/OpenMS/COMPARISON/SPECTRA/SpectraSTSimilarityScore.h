@@ -82,7 +82,7 @@ namespace OpenMS
 		/**
 			@return true if spectrum passes filtering
 		*/
-		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, UInt min_peak_number = 5, UInt max_peak_number = 150);
+		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 		
 		BinnedSpectrum transform(const PeakSpectrum& spec);
 		/**

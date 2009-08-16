@@ -81,7 +81,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec) const)
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
   msp.load(filename, ids, exp);
-	for(UInt k = 0; k < exp[0].size(); ++k)
+	for(Size k = 0; k < exp[0].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[0][k].getIntensity());
@@ -100,7 +100,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
   msp.load(filename, ids, exp);
-	for(UInt k = 0; k < exp[0].size(); ++k)
+	for(Size k = 0; k < exp[0].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[0][k].getIntensity());
@@ -108,7 +108,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
 			peak.setPosition(exp[0][k].getPosition());
 			s1.push_back(peak);
 	}	
-	for(UInt k = 0; k < exp[1].size(); ++k)
+	for(Size k = 0; k < exp[1].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[1][k].getIntensity());
@@ -121,7 +121,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
   DoubleReal score = (*ptr)(s1, s2);
   TEST_REAL_SIMILAR(score, 1)
   
-  	for(UInt k = 0; k < exp[2].size(); ++k)
+  for(Size k = 0; k < exp[2].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[2][k].getIntensity());
@@ -129,7 +129,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
 			peak.setPosition(exp[2][k].getPosition());
 			s3.push_back(peak);
 	}	
-	   score = (*ptr)(s1, s3);
+	score = (*ptr)(s1, s3);
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
@@ -140,7 +140,7 @@ START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedS
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
   msp.load(filename, ids, exp);
-	for(UInt k = 0; k < exp[0].size(); ++k)
+	for(Size k = 0; k < exp[0].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[0][k].getIntensity());
@@ -148,7 +148,7 @@ START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedS
 			peak.setPosition(exp[0][k].getPosition());
 			s1.push_back(peak);
 	}	
-	for(UInt k = 0; k < exp[1].size(); ++k)
+	for(Size k = 0; k < exp[1].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[1][k].getIntensity());
@@ -161,7 +161,7 @@ START_SECTION(DoubleReal operator () (const BinnedSpectrum& spec1, const BinnedS
   DoubleReal score = (*ptr)(ptr->transform(s1), ptr->transform(s2));
   TEST_REAL_SIMILAR(score, 1)
   
-  	for(UInt k = 0; k < exp[2].size(); ++k)
+  	for(Size k = 0; k < exp[2].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[2][k].getIntensity());
@@ -180,7 +180,7 @@ START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_thr
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
   msp.load(filename, ids, exp);
-	for(UInt k = 0; k < exp[0].size(); ++k)
+	for(Size k = 0; k < exp[0].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[0][k].getIntensity());
@@ -188,7 +188,7 @@ START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_thr
 			peak.setPosition(exp[0][k].getPosition());
 			s1.push_back(peak);
 	}	
-	for(UInt k = 0; k < exp[1].size(); ++k)
+	for(Size k = 0; k < exp[1].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[1][k].getIntensity());
@@ -196,7 +196,7 @@ START_SECTION(bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_thr
 			peak.setPosition(exp[1][k].getPosition());
 			s2.push_back(peak);
 	}	
-	  	for(UInt k = 0; k < exp[2].size(); ++k)
+	  	for(Size k = 0; k < exp[2].size(); ++k)
 	{
 			Peak1D peak;
 			peak.setIntensity(exp[2][k].getIntensity());

@@ -50,7 +50,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArraySeqan* sa = new SuffixArraySeqan(text,"");
 
-START_SECTION((SuffixArraySeqan(const String &st, const String &filename, const UInt weight_mode=WeightWrapper::MONO)))
+START_SECTION((SuffixArraySeqan(const String &st, const String &filename, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO)))
 {
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("$A",""));
