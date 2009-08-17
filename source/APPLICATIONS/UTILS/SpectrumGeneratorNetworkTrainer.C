@@ -72,7 +72,6 @@ using namespace OpenMS;
     typedef AdvancedTheoreticalSpectrumGenerator::IonType IonType;
     typedef AdvancedTheoreticalSpectrumGenerator::IndexConverter IndexConverter;
 
-
     public:
       SpectrumGeneratorNetworkTrainer() :
         TOPPBase("SpectrumGeneratorNetworkTrainer", "Trainer for Probabilistic network as input for AdvancedSpectrumGenerator", false)
@@ -83,40 +82,42 @@ using namespace OpenMS;
       void registerOptionsAndFlags_()
       {
         // I/O settings
-        registerInputFile_("in_spectra", "<file>", "", "Input Training Spectra in mzMl", true);
-        registerInputFile_("in_identifications", "<file>", "Input file with corresponding sequences in IdXML", "", true);
-        registerOutputFile_("out_network_model", "<file>", "", "output model of probabilistic network as textfile", true);
+        registerInputFile_("in_spectra", "<file>", "", "Input Training Spectra in mzData", true);
+        registerInputFile_("in_identifications", "<file>", "", "Input file with corresponding sequences in IdXML", "", true);
+        registerOutputFile_("out_network_model", "<file>", "", "Output model of probabilistic network as textfile", true);
 
-        registerSubsection_("model parameters", "Network model parameters section");
         //considered ion types
-        registerIntOption_("add_y_ions", "<Int>", 1, "If set to 1 y-ion peaks will be considered", false);
-        registerIntOption_("add_b_ions", "<Int>", 1, "If set to 1 b-ion peaks will be considered", false);
-        registerIntOption_("add_y2_ions", "<Int>", 1, "If set to 1 doubly charged y-ion peaks will be considered", false);
-        registerIntOption_("add_b2_ions", "<Int>", 1, "If set to 1 doubly charged b-ion peaks will be considered", false);
-        registerIntOption_("add_a_ions", "<Int>", 1, "If set to 1 a-ion peaks will be considered", false);
-        registerIntOption_("add_c_ions", "<Int>", 1, "If set to 1 c-ion peaks will be considered", false);
-        registerIntOption_("add_x_ions", "<Int>", 1, "If set to 1 x-ion peaks will be considered", false);
-        registerIntOption_("add_z_ions", "<Int>", 1, "If set to 1 z-ion peaks will be considered", false);
+        registerIntOption_("add_y_ions", "<Int>", 1, "If set to 1 y-ion peaks will be considered", false, true);
+        registerIntOption_("add_b_ions", "<Int>", 1, "If set to 1 b-ion peaks will be considered", false, true);
+        registerIntOption_("add_y2_ions", "<Int>", 1, "If set to 1 doubly charged y-ion peaks will be considered", false, true);
+        registerIntOption_("add_b2_ions", "<Int>", 1, "If set to 1 doubly charged b-ion peaks will be considered", false, true);
+        registerIntOption_("add_a_ions", "<Int>", 1, "If set to 1 a-ion peaks will be considered", false, true);
+        registerIntOption_("add_c_ions", "<Int>", 1, "If set to 1 c-ion peaks will be considered", false, true);
+        registerIntOption_("add_x_ions", "<Int>", 1, "If set to 1 x-ion peaks will be considered", false, true);
+        registerIntOption_("add_z_ions", "<Int>", 1, "If set to 1 z-ion peaks will be considered", false, true);
 
         //losses
-        registerIntOption_("add_losses", "<Int>", 1, "Considers common losses to those ion expect to have them, only water and ammonia loss is considered", false);
+        registerIntOption_("add_losses", "<Int>", 1, "Considers common losses to those ion expect to have them, only water and ammonia loss is considered", false, true);
 
         //model parameters
-        registerDoubleOption_("frequency_cutoff", "<Double>", 0.05, "Only ion types with a frequency > frequency_cutoff will be added to the model", false);
-        registerIntOption_("number_of_sectors", "<Int>", 3, "Each spectrum is split into sectors and probabilities are separately learned for each sector", false);
-        registerIntOption_("number_of_intensity_levels", "<Int>", 5, "Peak intensities are discretized into the given number of bins (at least 2)", false);
-        registerDoubleOption_("delta", "<Double>", 0.5, "error intervall for each peak", false);
+        //registerDoubleOption_("frequency_cutoff", "<Double>", 0.05, "Only ion types with a frequency > frequency_cutoff will be added to the model", false);
+        registerIntOption_("number_of_sectors", "<Int>", 3, "Each spectrum is split into sectors and probabilities are separately learned for each sector", false, true);
+        //registerIntOption_("number_of_intensity_levels", "<Int>", 5, "Peak intensities are discretized into the given number of bins (at least 2)", true, true);
+        registerDoubleList_("intensity_level_bins", "<Int>", DoubleList::create("0.05,2.0,10.0"),
+            "Borders of normalized intensities for intensity discretization. n border values result in n+1 intensity levels", false, true);
+        registerDoubleOption_("delta", "<Double>", 0.5, "Error intervall for each peak", false, true);
       }
 
-      void trainModel()      
+      void trainModel()
       {
         //read the options
         UInt number_of_sectors = getIntOption_("number_of_sectors");
-        UInt number_of_intensity_levels = getIntOption_("number_of_intensity_levels");
         DoubleReal delta = getDoubleOption_("delta");
-        DoubleReal intensity_lims_tmp[] =
-        { 0.05, 0.5, 2, 5, 10 }; //TODO this is now hard coded, replace this by suitable parameter setting
-        std::vector<DoubleReal> intensity_limits(intensity_lims_tmp, intensity_lims_tmp + 5);
+        //DoubleReal intensity_lims_tmp[] =
+        //{ 0.05, 0.5, 2, 5, 10 }; //TODO this is now hard coded, replace this by suitable parameter setting
+        DRealVec intensity_limits = getDoubleList_("intensity_level_bins");
+        UInt number_of_intensity_levels = (UInt) intensity_limits.size() + 1;
+        //std::vector<DoubleReal> intensity_limits(intensity_lims_tmp, intensity_lims_tmp + 5);
 
         //file options
         String mzdata_file = getStringOption_("in_spectra");
@@ -172,7 +173,7 @@ using namespace OpenMS;
         IdXMLFile().load(idxml_file, prot_id_vec, pep_id_vec, tmp_str);
         IDMapper().annotate(spectra_map, pep_id_vec, prot_id_vec);
 
-        UInt number_of_ion_types = (UInt)ion_types.size();
+        UInt number_of_ion_types = (UInt) ion_types.size();
 
         //stores the tans for the each sector
         IntMatrix has_parent_all_sectors;
@@ -273,7 +274,7 @@ using namespace OpenMS;
                   {
                     for (Size right_type_nr = 0; right_type_nr < ion_types.size(); ++right_type_nr)
                     {
-                      ++pairwise_count_true[calc_index((UInt)left_type_nr, peak_list_true[left_type_nr], number_of_intensity_levels)][calc_index((UInt)right_type_nr,
+                      ++pairwise_count_true[calc_index((UInt) left_type_nr, peak_list_true[left_type_nr], number_of_intensity_levels)][calc_index((UInt) right_type_nr,
                           peak_list_true[right_type_nr], number_of_intensity_levels)];
                     }
                   }
@@ -321,7 +322,7 @@ using namespace OpenMS;
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  true_sum += (UInt) pairwise_count_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt)right_type_nr, level_right,
+                  true_sum += (UInt) pairwise_count_true[calc_index((UInt) left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt) right_type_nr, level_right,
                       number_of_intensity_levels)];
                 }
               }
@@ -331,8 +332,8 @@ using namespace OpenMS;
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  UInt left_index = calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels);
-                  UInt right_index = calc_index((UInt)right_type_nr, level_right, number_of_intensity_levels);
+                  UInt left_index = calc_index((UInt) left_type_nr, level_left, number_of_intensity_levels);
+                  UInt right_index = calc_index((UInt) right_type_nr, level_right, number_of_intensity_levels);
                   if (true_sum == 0)
                     pairwise_prob_true[left_index][right_index] = 0;
                   else
@@ -355,7 +356,7 @@ using namespace OpenMS;
                   UInt left_index = calc_index(left_type_nr, level_left, number_of_intensity_levels);
                   UInt right_index = calc_index(right_type_nr, level_right, number_of_intensity_levels);
                   std::cout << left_type_nr << "  " << level_left << " " << right_type_nr << "   " << level_right << "  " << pairwise_prob_true[left_index][right_index]
-                      << std::endl;
+                  << std::endl;
                 }
               }
             }
@@ -372,10 +373,10 @@ using namespace OpenMS;
 
               for (UInt level_ref = 0; level_ref < number_of_intensity_levels; ++level_ref)
               {
-                back_prob_true += pairwise_prob_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt)reference_type, level_ref,
+                back_prob_true += pairwise_prob_true[calc_index((UInt) left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt) reference_type, level_ref,
                     number_of_intensity_levels)];
               }
-              background_probs_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)] = back_prob_true;
+              background_probs_true[calc_index((UInt) left_type_nr, level_left, number_of_intensity_levels)] = back_prob_true;
             }
             reference_type = 0;
           }
@@ -401,8 +402,8 @@ using namespace OpenMS;
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  UInt left_index = calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels);
-                  UInt right_index = calc_index((UInt)right_type_nr, level_right, number_of_intensity_levels);
+                  UInt left_index = calc_index((UInt) left_type_nr, level_left, number_of_intensity_levels);
+                  UInt right_index = calc_index((UInt) right_type_nr, level_right, number_of_intensity_levels);
 
                   DoubleReal background_true_factor = background_probs_true[left_index] * background_probs_true[right_index];
                   DoubleReal pairwise_prob = pairwise_prob_true[left_index][right_index];
@@ -440,7 +441,7 @@ using namespace OpenMS;
             for (Size right_type_nr = left_type_nr + 1; right_type_nr < ion_types.size(); ++right_type_nr)
             {
               TreeAugmentedNetwork::TanEdge edge =
-              { (UInt)left_type_nr, (UInt)right_type_nr, -mi[left_type_nr][right_type_nr] };
+              { (UInt) left_type_nr, (UInt) right_type_nr, -mi[left_type_nr][right_type_nr] };
               tan_input_edges.push_back(edge);
             }
           }
@@ -490,9 +491,9 @@ using namespace OpenMS;
             {
               for (UInt level_parent = 0; level_parent < number_of_intensity_levels; ++level_parent)
               {
-                UInt index_condit = indexConverter((UInt)child_type_nr, level_child, level_parent, number_of_intensity_levels);
-                UInt index_child = calc_index((UInt)child_type_nr, level_child, number_of_intensity_levels);
-                UInt index_parent = calc_index((UInt)parent_type_nr, level_parent, number_of_intensity_levels);
+                UInt index_condit = indexConverter((UInt) child_type_nr, level_child, level_parent, number_of_intensity_levels);
+                UInt index_child = calc_index((UInt) child_type_nr, level_child, number_of_intensity_levels);
+                UInt index_parent = calc_index((UInt) parent_type_nr, level_parent, number_of_intensity_levels);
 
                 if (has_parent[child_type_nr] == -1)
                 {
@@ -621,7 +622,7 @@ using namespace OpenMS;
           //discretize
           UInt level = 0;
           //if an indexing error occurs here then intensity is +Infinity
-          while (level < number_of_intensity_levels - 1 && fwit->getIntensity() > intensity_limits[level])
+          while (level < number_of_intensity_levels - 1 && fwit->getIntensity() >= intensity_limits[level])
           {
             ++level;
           }
@@ -644,7 +645,7 @@ using namespace OpenMS;
 int main(int argc, const char** argv)
 {
   SpectrumGeneratorNetworkTrainer tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond
