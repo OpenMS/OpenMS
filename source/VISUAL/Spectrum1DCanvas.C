@@ -418,6 +418,22 @@ namespace OpenMS
 			selected_peak_ = findPeakAtPosition_(p);
 			update_(__PRETTY_FUNCTION__);
 		}
+		
+			//show coordinates
+			if (selected_peak_.isValid())
+			{
+					String status;
+					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+					for (Size m=0; m<s.getFloatDataArrays().size();++m)
+					{
+						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
+					}
+					for (Size m=0; m<s.getStringDataArrays().size();++m)
+					{
+						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
+					}
+					emit sendStatusMessage(status, 0);
+			}
 	}
 
 	
