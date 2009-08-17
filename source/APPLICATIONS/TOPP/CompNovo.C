@@ -37,9 +37,14 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page CompNovo CompNovo
+	@page TOPP_CompNovo CompNovo
 	
-
+	@brief Performs a peptide/protein identification with the CompNovo engine.
+	
+	@todo Add docu (Andreas)
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_CompNovo.cli
 */
 
 
@@ -51,7 +56,7 @@ class TOPPCompNovo
 {
 	public:
 		TOPPCompNovo()
-			: TOPPBase("CompNovo", "performs a peptide/protein identification with the TOPPCompNovo engine")
+			: TOPPBase("CompNovo", "Performs a peptide/protein identification with the CompNovo engine.")
 		{
 		}
 	

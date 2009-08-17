@@ -278,9 +278,9 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			
 			The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
 		
-			<B>Application:</B>
-			<br>This algorithm was designed for low and medium resolution data. 
-			    It can also be applied to high-resolution data, but can be slow on large datasets.</B> 
+			@b Application:<br>
+			This algorithm was designed for low and medium resolution data. 
+			It can also be applied to high-resolution data, but can be slow on large datasets.<br>
 
 			See the PeakPickerCWT class documentation for a parameter list.
 		</TD>
@@ -340,7 +340,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		@b Goal: Combine quantitation and identification results.
 		
 		Protein/peptide identifications can be annotated to quantitation results (featureXML, conensusXML)
-		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_export .
+		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_convert .
 */
 
 //##############################################################################

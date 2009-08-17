@@ -45,10 +45,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page RTEvaluation RTEvaluation
+	@page UTILS_RTEvaluation RTEvaluation
 	
-	@brief Used to train a prediction model for peptide retention 
-				 time prediction or peptide separation prediction.
+	@brief ???.
 	
 	For retention time prediction, a support vector machine is 
 	trained with peptide sequences and their measured retention 
@@ -149,6 +148,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_RTEvaluation.cli
+	
+	@todo Add docu (Nico)
 */
 
 // We do not want this class to show up in the docu:
@@ -160,7 +161,7 @@ class TOPPRTEvaluation
 {
 	public:
 		TOPPRTEvaluation()
-			: TOPPBase("RTEvaluation","Trains a model for the retention time prediction of peptides from a training set.",false)
+			: TOPPBase("RTEvaluation","???.",false)
 		{
 			
 		}

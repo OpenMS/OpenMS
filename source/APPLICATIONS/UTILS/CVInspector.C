@@ -41,9 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page CVInspector CVInspector
+	@page UTILS_CVInspector CVInspector
 	
-	@brief A tool for visualization and validation of PSI mapping and CV files
+	@brief A tool for visualization and validation of PSI mapping and CV files.
 	
 	This tool is used to validate the correct use of mapping files and CV files.
 	
@@ -61,7 +61,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files",false)
+		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files.",false)
 	{
 	}
 	

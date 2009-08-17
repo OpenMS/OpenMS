@@ -83,7 +83,7 @@ for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
 
 Using GCC a lot of common math functions are available (e.g. trunc(), round(), log2(), isnan() or isinf() etc). However, this is <b>not</b> required by the C++Standard,
 so Microsoft decided not to include them. You will break the windows port of %OpenMS if you use them!<br>
-You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (#include cmath).
+You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (@verbatim #include cmath @endverbatim).
 If you are not sure whats available try http://www.cplusplus.com/ or for VisualStudio specific problems: MSDN (http://msdn.microsoft.com/en-us/visualc/default.aspx).<br>
 
 <H3>round()</H3>

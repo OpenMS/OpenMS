@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page LabeledEval LabeledEval
+	@page UTILS_LabeledEval LabeledEval
 	
 	@brief Evaluation tool for isotope-labeled quantitation experiments.
 

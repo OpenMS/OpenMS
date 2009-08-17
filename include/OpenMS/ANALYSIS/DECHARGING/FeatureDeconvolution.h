@@ -621,8 +621,8 @@ namespace OpenMS
         } // !for
 
 				// tmp
-				ConsensusXMLFile cf_neg;
-				cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
+				//ConsensusXMLFile cf_neg;
+				//cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
 
 				// DEBUG print scores
 				TextFile tf;

@@ -41,15 +41,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_IDFileConverter IDFileConverter
-
- @brief Converts identification engine file formats.
-
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_IDFileConverter.cli
-
- @todo Write tests (Clemens, Chris, Hendrik)
- */
+	@page TOPP_IDFileConverter IDFileConverter
+	
+	@brief Converts identification engine file formats.
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDFileConverter.cli
+	
+	@todo Write tests (Clemens, Chris, Hendrik)
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -296,9 +296,10 @@ protected:
   }
 };
 
-int
-main(int argc, const char** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

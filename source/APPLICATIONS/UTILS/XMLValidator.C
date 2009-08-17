@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -41,9 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page XMLValidator XMLValidator
+	@page UTILS_XMLValidator XMLValidator
 
-	@brief Validates XML files against an XML schema.
+	@brief Validates XML files against an XSD schema.
 
 	When a schema file is given, the input file is simply validated against the schema.
 
@@ -65,7 +65,7 @@ class TOPPXMLValidator
 {
  public:
 	TOPPXMLValidator()
-		: TOPPBase("XMLValidator","Validates XML files against an XML schema.",false)
+		: TOPPBase("XMLValidator","Validates XML files against an XSD schema.",false)
 	{
 	}
 

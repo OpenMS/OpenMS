@@ -45,11 +45,13 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_SpectLibCreator
+ @page UTILS_SpecLibCreator SpecLibCreator
  
  @brief creates with given data a msp format spectral library.
- 
- */
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SpecLibCreator.cli 
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

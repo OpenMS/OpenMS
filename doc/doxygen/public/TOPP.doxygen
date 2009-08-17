@@ -83,7 +83,9 @@
 	- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications. 	 
 	- @subpage TOPP_PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
 	- @subpage TOPP_SequestAdapter - Annotates MS/MS spectra using spectral libraray search methods.
-
+  - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+	- @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
+	
 	<b>Peptide property prediction</b>
  	- @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
  	- @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
@@ -94,7 +96,8 @@
   - @subpage TOPP_MapAligner - Corrects retention time distortions between maps.
 
   <b>Misc</b>
-  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data
+  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
+  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
 	- @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 	- @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
 	

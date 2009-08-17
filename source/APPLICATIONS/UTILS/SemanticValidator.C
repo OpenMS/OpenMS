@@ -43,13 +43,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page SemanticValidator SemanticValidator
-		
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_SemanticValidator.cli
-
+	@page UTILS_SemanticValidator SemanticValidator
+	
+	@brief SemanticValidator for analysisXML and mzML files.
+	
 	This util is able to validate analysisXML and mzML files
 	using an instance document and a mapping file.
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SemanticValidator.cli
 */
 
 // We do not want this class to show up in the docu:

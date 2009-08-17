@@ -11,16 +11,20 @@ Main improvements of TOPPView:
 Main improvements of TOPP:
 - Made mzML 1.1.0 the default format for all TOPP tools
 - Added data processing information to all output files to improve tracability
-- FileFilter: added 'sort_peaks' option
+- FileFilter: 
+  - added 'sort_peaks' option
+  - added filtering according to spectrum type
 - FileInfo: 
   - added flag for data processing output
   - corrupt data checks: sorting is checked now, improved speed
 - Added new tool IDFileConverter, which can convert between identification file formats
+- Added TOPPAS, a tool for visual creation and execution of TOPP pipelines
+
+Main improvements of UTILS:
+- TODO ???
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support
-
-Changes to OpenMS XML formats:
 
 Detailed list of changes to specific OpenMS classes
 - New classes
@@ -55,9 +59,13 @@ Detailed list of changes to specific OpenMS classes
     - Added support for integer and string binary arrays
     - Added support for compressed binary data arrays 
     - Loading a file with unknown CV terms in certain tags no longer causes an error
+  - DBConnection
+    - The executeQuery(...) method no longer sets the internal pointer to the first record of the result.
+      It is now positioned before the first record. A boolean flag was to switch to the old behaviour.
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3
+- Added IMSlib 0.1.0
 
 Bug fixes:
 - [2778461]: mzData files containing 'supDataArray' elements no longer crash OpenMS 

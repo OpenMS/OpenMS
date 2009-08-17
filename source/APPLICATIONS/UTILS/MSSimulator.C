@@ -51,13 +51,30 @@ using namespace OpenMS;
 using namespace std;
 
 
+/**
+	@page UTILS_MSSimulator MSSimulator
+		
+	@brief A highly configurable simulator for mass spectrometry experiments.
+	
+	@todo Add more docu here (Chris, Stephan)
+	
+	@note This tool is experimental!	
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_MSSimulator.cli
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 class TOPPMSSimulator
 	: public TOPPBase
 {
   public:
 		TOPPMSSimulator()
-    : TOPPBase("MSSimulator","\n\nWARNING: EXPERIMENTAL\n\nHighly configurable simulator for mass spectrometry experiments.",false)
-		{ }
+    : TOPPBase("MSSimulator","A highly configurable simulator for mass spectrometry experiments.",false)
+		{
+		}
     
   protected:
     
@@ -282,3 +299,4 @@ int main( int argc, const char** argv )
 	return tool.main(argc,argv);
 }
 
+/// @endcond

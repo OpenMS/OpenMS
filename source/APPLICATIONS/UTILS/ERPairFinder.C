@@ -41,9 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page ERPairFinder ERPairFinder
+	@page UTILS_ERPairFinder ERPairFinder
 	
-	@brief Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans
+	@brief Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
 
 	This tool allows to calculate ratios of labeled peptides based on single enhanced resolution
 	scans (also called zoom scans). Zoom scans is a mode of some mass spectrometry instruments
@@ -111,7 +111,7 @@ class TOPPERPairFinder
 {
 	public:
 		TOPPERPairFinder()
-			: TOPPBase("ERPairFinder","Bla...", false)
+			: TOPPBase("ERPairFinder","Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.", false)
 		{
 			
 		}

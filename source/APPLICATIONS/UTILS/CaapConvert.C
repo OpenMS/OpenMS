@@ -36,7 +36,7 @@
 //-------------------------------------------------------------
 
 /**
-@page CaapConvert CaapConvert
+@page UTILS_CaapConvert CaapConvert
 
 	@brief Convert a CAAP ground truth file into consensusXML format.
 

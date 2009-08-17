@@ -35,6 +35,9 @@
  	@image html TOPPView.png
 	
 	More information about TOPPView can be found in the @ref TOPP_tutorial.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_TOPPView.cli
 */
 
 //QT

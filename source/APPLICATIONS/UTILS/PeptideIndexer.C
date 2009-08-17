@@ -40,9 +40,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page PeptideIndexer PeptideIndexer
+	@page UTILS_PeptideIndexer PeptideIndexer
 	
-	@brief This small utility can create decoy databases used for decoy database searches.
+	@brief Refreshes the protein references for all peptide hits.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_PeptideIndexer.cli
@@ -56,7 +56,7 @@ class TOPPPeptideIndexer
 {
 	public:
 		TOPPPeptideIndexer()
-			: TOPPBase("PeptideIndexer","Refreshes for each peptide the protein references", false)
+			: TOPPBase("PeptideIndexer","Refreshes the protein references for all peptide hits.", false)
 		{
 			
 		}

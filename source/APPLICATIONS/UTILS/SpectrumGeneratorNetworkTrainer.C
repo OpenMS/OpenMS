@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: $
+// $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
@@ -34,11 +34,33 @@
 
 //#define SGNT_DEBUG
 #undef SGNT_DEBUG
-using namespace std;
-namespace OpenMS
-{
 
-  class SpectrumGeneratorNetworkTrainer: public TOPPBase
+using namespace std;
+using namespace OpenMS;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page UTILS_SpectrumGeneratorNetworkTrainer SpectrumGeneratorNetworkTrainer
+	
+	@brief Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
+	
+	@todo Add docu here (Sandro)
+	
+	@note This tool is experimental!
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SpectrumGeneratorNetworkTrainer.cli 
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+
+  class SpectrumGeneratorNetworkTrainer
+  	: public TOPPBase
   {
     typedef std::vector<Int> IntVec;
     typedef std::vector<IntVec> IntMatrix;
@@ -53,7 +75,7 @@ namespace OpenMS
 
     public:
       SpectrumGeneratorNetworkTrainer() :
-        TOPPBase("SpectrumGeneratorNetworkTrainer", "\n\nWARNING: EXPERIMENTAL\n\nTrainer for Probabilistic network as input for AdvancedSpectrumGenerator", false)
+        TOPPBase("SpectrumGeneratorNetworkTrainer", "Trainer for Probabilistic network as input for AdvancedSpectrumGenerator", false)
       {
       }
 
@@ -618,11 +640,11 @@ namespace OpenMS
       }
   };
 
-}//namespace
 
 int main(int argc, const char** argv)
 {
-  OpenMS::SpectrumGeneratorNetworkTrainer tool;
+  SpectrumGeneratorNetworkTrainer tool;
   return tool.main(argc,argv);
 }
 
+/// @endcond

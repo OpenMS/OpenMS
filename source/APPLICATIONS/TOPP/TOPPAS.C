@@ -22,11 +22,18 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: $
+// $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 /**
-  ... here be some documentation ...
+	@page TOPP_TOPPAS TOPPAS
+	
+	@brief An assistant for GUI-driven TOPP workflow design.
+	
+  @todo Add docu and example image (Hiwi, Johannes)
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_TOPPAS.cli
 */
 
 //QT
