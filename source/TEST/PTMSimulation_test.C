@@ -58,7 +58,7 @@ START_SECTION((PTMSimulation(const PTMSimulation &source)))
   PTMSimulation a(NULL);
 
 	Param p = a.getParameters();
-	p.setValue("potential_modifications", StringList::create("Trimethyl (K)|0.100003"));
+	p.setValue("potential_modifications", StringList::create("Tyr->Dha (Y)|0.100003"));
 	a.setParameters(p);
 	PTMSimulation b(a);
 	TEST_EQUAL(b.getParameters(),a.getParameters());
@@ -109,8 +109,8 @@ START_SECTION((void predictPTMs(FeatureMapSim &map)))
 	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
 	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAAHTKLRTTIPPEFG")
 	TEST_EQUAL(map[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRYCNHKTUIKL")
-	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Lys->Allysine)K(Lys->Allysine)K(Lys->Allysine)KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
-	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(Trimethyl)R(Trimethyl)R(Trimethyl)RRRRRRYCNHKTUIKL")
+	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Dimethyl)K(Dimethyl)K(Lys->Allysine)KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
+	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRY(Tyr->Dha)CNHK(Dimethyl)TUIKL")
 	TEST_EQUAL(map.size(),5);
 	//for (FeatureMapSim::const_iterator it = map.begin(); it!=map.end(); ++it)
 	//{

@@ -64,7 +64,7 @@ namespace OpenMS {
   {
 		defaults_.setValue("modification_bound", 3, "no more modifications are added to a peptide when this number is reached. (set to 0 to disable this module)");
 		defaults_.setMinInt("modification_bound",0);
-		defaults_.setValue("potential_modifications", StringList::create("MOD:00071|0.13,MOD:00076|0.12,MOD:00078|0.31,MOD:00130|0.21"), "List of PSI::MOD modifications (each with probability of occurence)");
+		defaults_.setValue("potential_modifications", StringList::create("Tyr->Dha (Y)|0.13;Methyl+Deamidated (N)|0.12;Dimethyl (K)|0.31;Lys->Allysine (K)|0.21", ';'), "List of PSI::MOD modifications (each with probability of occurence)");
 		
 		defaults_.setValue("iTRAQ","off","add iTRAQ modifications?");
 		defaults_.setValidStrings("iTRAQ",StringList::create("off,4plex,8plex"));
