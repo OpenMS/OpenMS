@@ -146,7 +146,7 @@ namespace OpenMS
 		QMenu menu;
 		menu.addAction("Change files");
 		QAction* open_action = menu.addAction("Open files in TOPPView");
-		if (!files_.size() > 0)
+		if (files_.size() == 0)
 		{
 			open_action->setEnabled(false);
 		}
