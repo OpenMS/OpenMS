@@ -355,11 +355,15 @@ add_test("TOPP_TextExporter_7" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP
 add_test("TOPP_TextExporter_7_out1" ${DIFF} -whitelist "extracted from" -in1 TextExporter_7_consensus_tsv.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_7_consensus_tsv.tsv)
 
 ### TextImporter tests
-add_test("TOPP_TextImporter_1" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_1_input.csv -no_progress -out TextImporter.tmp -out_type featureXML)
+add_test("TOPP_TextImporter_1" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_1_input.csv -no_progress -out TextImporter.tmp)
 add_test("TOPP_TextImporter_1_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_1_output.featureXML)
 
-add_test("TOPP_TextImporter_2" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_2_input.csv -template_ini ${DATA_DIR_TOPP}/TextImporter_2_input.ini -no_progress -out TextImporter.tmp -out_type ini)
-add_test("TOPP_TextImporter_2_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_2_output.ini)
+add_test("TOPP_TextImporter_2" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_2_input.pepList -no_progress -out TextImporter.tmp -mode SpecArray)
+add_test("TOPP_TextImporter_2_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_2_output.featureXML)
+
+add_test("TOPP_TextImporter_3" ${TOPP_BIN_PATH}/TextImporter -test -in ${DATA_DIR_TOPP}/TextImporter_3_input.peptides.tsv -no_progress -out TextImporter.tmp -mode msInspect)
+add_test("TOPP_TextImporter_3_out1" ${DIFF} -in1 TextImporter.tmp -in2 ${DATA_DIR_TOPP}/TextImporter_3_output.featureXML)
+
 
 ### SILACAnalyzer tests
 add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzML -out SILACAnalyzer.tmp)

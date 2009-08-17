@@ -19,6 +19,7 @@ Main improvements of TOPP:
   - corrupt data checks: sorting is checked now, improved speed
 - Added new tool IDFileConverter, which can convert between identification file formats
 - Added TOPPAS, a tool for visual creation and execution of TOPP pipelines
+- TextImporter can now import SpecArray and msInspect feature files
 
 Main improvements of UTILS:
 - TODO ???
