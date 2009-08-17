@@ -222,7 +222,6 @@ namespace OpenMS
 		fasta_file.load(db_path,entries);
 		EnzymaticDigestion digest;
 		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
-		String tmp_filename = (String)param_.getValue("tmp_dir") + "/sequences";
 		std::map<String,std::vector<std::pair<String,Size> > > tmp_peptide_map;
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)
@@ -724,7 +723,7 @@ namespace OpenMS
 					out << counter_[i] << "\t";
 			}
 		out << "\n";
-		if(path.hasSubstring("ppm"))
+		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
 #ifdef PISP_DEBUG
 				std::cout << (path + "_bin_masses") << std::endl;
@@ -838,7 +837,7 @@ namespace OpenMS
 					out << counter_[i] << "\t";
 			}
 		out << "\n";
-		if(path.hasSubstring("ppm"))
+		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
 #ifdef PISP_DEBUG
 				std::cout << (path + "_bin_masses") << std::endl;
