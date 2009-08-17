@@ -274,7 +274,7 @@ namespace OpenMS {
   {
     if (rt_start <=0) rt_start = 0;
 
-    MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(rt_start);
+    MSSimExperiment::iterator exp_iter = experiment.RTBegin(rt_start);
     if(exp_iter == experiment.end() )
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
