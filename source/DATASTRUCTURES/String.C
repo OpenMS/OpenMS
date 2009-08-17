@@ -511,7 +511,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	bool String::split(char splitter, std::vector<String>& substrings, bool quote_protect) const
+	bool String::split(const char splitter, std::vector<String>& substrings, bool quote_protect) const
 	{
 		Int parts = count(this->begin(),this->end(),splitter);
 		substrings.clear();

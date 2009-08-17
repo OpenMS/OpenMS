@@ -50,7 +50,7 @@ START_SECTION(~StringList())
 	delete ptr;
 END_SECTION
 
-START_SECTION((static StringList create(const String& list)))
+START_SECTION((static StringList create(const String& list, const char splitter=',')))
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.size(),2);
 	TEST_STRING_EQUAL(list[0],"yes");

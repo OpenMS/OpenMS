@@ -445,7 +445,7 @@ START_SECTION((static String random(UInt length)))
 	TEST_EQUAL(s2.size(),10);
 END_SECTION
 
-START_SECTION((bool split(char splitter, std::vector<String>& substrings, bool quote_protect=false) const))
+START_SECTION((bool split(const char splitter, std::vector<String>& substrings, bool quote_protect=false) const))
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);

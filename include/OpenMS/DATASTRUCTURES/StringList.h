@@ -165,8 +165,8 @@ namespace OpenMS
 				return *this;
 			}
 
-			/// Returns a list that is created by splitting the given comma-separated string (String are not trimmed!)
-			static StringList create(const String& list);
+			/// Returns a list that is created by splitting the given (comma-separated) string (String are not trimmed!)
+			static StringList create(const String& list, const char splitter=',');
 			/// Returns a list that is created from an array of char*
 			static StringList create(const char * const * list, UInt size );
 			/// Returns if a string is contained in the list
