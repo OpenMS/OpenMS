@@ -150,7 +150,7 @@ namespace OpenMS
         IdXMLFile().load(idxml_file, prot_id_vec, pep_id_vec, tmp_str);
         IDMapper().annotate(spectra_map, pep_id_vec, prot_id_vec);
 
-        UInt number_of_ion_types = ion_types.size();
+        UInt number_of_ion_types = (UInt)ion_types.size();
 
         //stores the tans for the each sector
         IntMatrix has_parent_all_sectors;
@@ -237,7 +237,7 @@ namespace OpenMS
                     }
 
                     //find the closest peak in the spectrum
-                    UInt true_nearest_peak_ind = input_spec_norm.findNearest(true_offset_mass);
+                    Size true_nearest_peak_ind = input_spec_norm.findNearest(true_offset_mass);
 
                     //check whether this peak is within the allowed mass range
                     if (fabs(true_offset_mass - input_spec_norm[true_nearest_peak_ind].getMZ()) <= delta)
@@ -251,7 +251,7 @@ namespace OpenMS
                   {
                     for (Size right_type_nr = 0; right_type_nr < ion_types.size(); ++right_type_nr)
                     {
-                      ++pairwise_count_true[calc_index(left_type_nr, peak_list_true[left_type_nr], number_of_intensity_levels)][calc_index(right_type_nr,
+                      ++pairwise_count_true[calc_index((UInt)left_type_nr, peak_list_true[left_type_nr], number_of_intensity_levels)][calc_index((UInt)right_type_nr,
                           peak_list_true[right_type_nr], number_of_intensity_levels)];
                     }
                   }
@@ -299,7 +299,7 @@ namespace OpenMS
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  true_sum += (UInt) pairwise_count_true[calc_index(left_type_nr, level_left, number_of_intensity_levels)][calc_index(right_type_nr, level_right,
+                  true_sum += (UInt) pairwise_count_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt)right_type_nr, level_right,
                       number_of_intensity_levels)];
                 }
               }
@@ -309,8 +309,8 @@ namespace OpenMS
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  UInt left_index = calc_index(left_type_nr, level_left, number_of_intensity_levels);
-                  UInt right_index = calc_index(right_type_nr, level_right, number_of_intensity_levels);
+                  UInt left_index = calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels);
+                  UInt right_index = calc_index((UInt)right_type_nr, level_right, number_of_intensity_levels);
                   if (true_sum == 0)
                     pairwise_prob_true[left_index][right_index] = 0;
                   else
@@ -350,10 +350,10 @@ namespace OpenMS
 
               for (UInt level_ref = 0; level_ref < number_of_intensity_levels; ++level_ref)
               {
-                back_prob_true += pairwise_prob_true[calc_index(left_type_nr, level_left, number_of_intensity_levels)][calc_index(reference_type, level_ref,
+                back_prob_true += pairwise_prob_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)][calc_index((UInt)reference_type, level_ref,
                     number_of_intensity_levels)];
               }
-              background_probs_true[calc_index(left_type_nr, level_left, number_of_intensity_levels)] = back_prob_true;
+              background_probs_true[calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels)] = back_prob_true;
             }
             reference_type = 0;
           }
@@ -379,8 +379,8 @@ namespace OpenMS
               {
                 for (UInt level_right = 0; level_right < number_of_intensity_levels; ++level_right)
                 {
-                  UInt left_index = calc_index(left_type_nr, level_left, number_of_intensity_levels);
-                  UInt right_index = calc_index(right_type_nr, level_right, number_of_intensity_levels);
+                  UInt left_index = calc_index((UInt)left_type_nr, level_left, number_of_intensity_levels);
+                  UInt right_index = calc_index((UInt)right_type_nr, level_right, number_of_intensity_levels);
 
                   DoubleReal background_true_factor = background_probs_true[left_index] * background_probs_true[right_index];
                   DoubleReal pairwise_prob = pairwise_prob_true[left_index][right_index];
@@ -418,7 +418,7 @@ namespace OpenMS
             for (Size right_type_nr = left_type_nr + 1; right_type_nr < ion_types.size(); ++right_type_nr)
             {
               TreeAugmentedNetwork::TanEdge edge =
-              { left_type_nr, right_type_nr, -mi[left_type_nr][right_type_nr] };
+              { (UInt)left_type_nr, (UInt)right_type_nr, -mi[left_type_nr][right_type_nr] };
               tan_input_edges.push_back(edge);
             }
           }
@@ -468,9 +468,9 @@ namespace OpenMS
             {
               for (UInt level_parent = 0; level_parent < number_of_intensity_levels; ++level_parent)
               {
-                UInt index_condit = indexConverter(child_type_nr, level_child, level_parent, number_of_intensity_levels);
-                UInt index_child = calc_index(child_type_nr, level_child, number_of_intensity_levels);
-                UInt index_parent = calc_index(parent_type_nr, level_parent, number_of_intensity_levels);
+                UInt index_condit = indexConverter((UInt)child_type_nr, level_child, level_parent, number_of_intensity_levels);
+                UInt index_child = calc_index((UInt)child_type_nr, level_child, number_of_intensity_levels);
+                UInt index_parent = calc_index((UInt)parent_type_nr, level_parent, number_of_intensity_levels);
 
                 if (has_parent[child_type_nr] == -1)
                 {
@@ -573,7 +573,7 @@ namespace OpenMS
       {
         //see PepNovo Paper
         DoubleReal baseline_grass_intens(0.0), total_intens(0.0);
-        const UInt weak_third = S.size() / 3;
+        const Size weak_third = S.size() / 3;
 
         //compute baseline_grass_intensity
         S.sortByIntensity();

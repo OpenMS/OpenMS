@@ -287,7 +287,7 @@ namespace OpenMS
 
       for(Size node=0; node<ordered_nodes[sector].size(); ++node)
       {
-        UInt type_id = ordered_nodes[sector][node];
+        Size type_id = ordered_nodes[sector][node];
         IonType ion_type = ion_types_[type_id];
         Residue::ResidueType residue = ion_type.residue;
         EmpiricalFormula loss_formula = ion_type.loss;
@@ -324,13 +324,13 @@ namespace OpenMS
         if(is_child_of[sector][type_id]!=-1)
           conditional_intensity = generated_intensity[is_child_of[sector][type_id]];
 
-        DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter(type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
+        DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter((UInt)type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
         //std::cerr<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
 
         gsl_gen = gsl_ran_discrete_preproc(number_of_intensity_levels_, tmp_pointer);
-        size_t intensity = gsl_ran_discrete(rng, gsl_gen);
+        Size intensity = gsl_ran_discrete(rng, gsl_gen);
 
-        generated_intensity[type_id]=intensity;
+        generated_intensity[type_id]=(UInt)intensity;
 
         String ion_name = String(residue) + loss_formula.getString() + String(i) + String(charge, '+');
 
@@ -418,7 +418,7 @@ namespace OpenMS
       {
         if(left_marker->toInt()>-1)
         {
-          TreeAugmentedNetwork::TanEdge edge = {i, left_marker->toInt(), -1};
+          TreeAugmentedNetwork::TanEdge edge = {(UInt)i, left_marker->toInt(), -1};
           edges.push_back(edge);
         }
         ++left_marker;
@@ -429,7 +429,7 @@ namespace OpenMS
 
     //read the conditional probabilities for each sector
     IndexConverter index_converter;
-    Size number_of_prob_entries=index_converter(ion_types_.size()-1, number_of_intensity_levels_-1, number_of_intensity_levels_-1, number_of_intensity_levels_)+1;
+    Size number_of_prob_entries=index_converter((UInt)ion_types_.size()-1, number_of_intensity_levels_-1, number_of_intensity_levels_-1, number_of_intensity_levels_)+1;
     conditional_probabilities_.reserve(number_of_sectors_);
 
     //temporary storage
