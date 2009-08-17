@@ -118,8 +118,8 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 		esi_features.push_back(f);
 	}
   
-	MSExperiment<> exp;
-	MSSpectrum<> spec;
+	MSSimExperiment exp;
+	MSSimExperiment::SpectrumType spec;
 	exp.push_back(spec);
   esi_sim.ionize(esi_features, cm, exp);
     
@@ -223,8 +223,8 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
     maldi_features.push_back(f);
 	}
   
-	MSExperiment<> expt;
-	MSSpectrum<> spect;
+	MSSimExperiment expt;
+	MSSimExperiment::SpectrumType spect;
 	expt.push_back(spect);
 	maldi_sim.ionize(maldi_features, cm, expt);
 
