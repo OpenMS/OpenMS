@@ -507,7 +507,7 @@ namespace OpenMS
 		virtual void showCurrentLayerPreferences() = 0;
 
 		/**
-			@rief Shows a dialog with the meta data
+			@brief Shows a dialog with the meta data
 			
 			@param modifiable indicates if the data can be modified.
 			@param index If given, the meta data of the corresponding element (spectrum, feature, consensus feature) is shown instead of the layer meta data.

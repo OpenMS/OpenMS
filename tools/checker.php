@@ -549,6 +549,7 @@
 				"/FORMAT/HANDLERS/",
 				"/VISUAL/",
 				"/CONCEPT/Types.h",
+				"/FORMAT/FileTypes.h",
 				"/CONCEPT/Macros.h",
 				"/CONCEPT/Exception.h",
 				"/CONCEPT/Benchmark.h",

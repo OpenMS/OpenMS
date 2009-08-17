@@ -99,7 +99,7 @@ namespace OpenMS
 			/**
 				@brief Encodes a vector of strings to a Base64 string
 				
-				You can specify  zlib-compresseion-
+				You can specify  zlib-compression.
 				
 				@note @p in will be emtpy after this method
 			*/
@@ -113,6 +113,7 @@ namespace OpenMS
 				@note @p in will be emtpy after this method
 			*/		
 			void decodeStrings(const std::string& in, std::vector<String>& out, bool zlib_compression = false);
+
 		private:
 			
 			///Internal class needed for type-punning

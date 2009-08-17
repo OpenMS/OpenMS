@@ -106,7 +106,7 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
 	
 END_SECTION
 
-START_SECTION((template < typename ToType > void decode(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
+START_SECTION((template < typename ToType > void decode(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false, DataType data_type=FLOAT)))
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
