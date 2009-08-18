@@ -46,12 +46,6 @@ START_SECTION(DeNovoIdentification())
 }
 END_SECTION
 
-START_SECTION(~DeNovoIdentification())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((virtual ~DeNovoIdentification()))
 {
   NOT_TESTABLE

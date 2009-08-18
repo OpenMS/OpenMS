@@ -47,19 +47,13 @@ START_SECTION(MassDecompositionAlgorithm())
 }
 END_SECTION
 
-START_SECTION(~MassDecompositionAlgorithm())
+START_SECTION(virtual ~MassDecompositionAlgorithm())
 {
 	delete ptr;
 }
 END_SECTION
 
 START_SECTION((MassDecompositionAlgorithm(const MassDecompositionAlgorithm &deco)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((virtual ~MassDecompositionAlgorithm()))
 {
   // TODO
 }

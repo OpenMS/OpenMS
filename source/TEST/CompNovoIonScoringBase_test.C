@@ -46,12 +46,6 @@ START_SECTION(CompNovoIonScoringBase())
 }
 END_SECTION
 
-START_SECTION(~CompNovoIonScoringBase())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((CompNovoIonScoringBase(const CompNovoIonScoringBase &source)))
 {
 	NOT_TESTABLE

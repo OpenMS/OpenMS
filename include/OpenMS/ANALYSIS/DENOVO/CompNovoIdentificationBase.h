@@ -68,7 +68,7 @@ namespace OpenMS
 			virtual ~CompNovoIdentificationBase();
 			//@}
 		
-			///
+			/// assignment operator
 			CompNovoIdentificationBase& operator = (const CompNovoIdentificationBase& source);
 
 			/** @name Accessors
@@ -172,6 +172,11 @@ namespace OpenMS
 
 		public:
 			
+			/** @brief Simple class to store permutations and a score
+
+					This class is used to store the generated perumtations
+					and a score to them
+			*/
 			class Permut
 			{
 				private:

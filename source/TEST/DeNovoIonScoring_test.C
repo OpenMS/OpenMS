@@ -46,12 +46,6 @@ START_SECTION(DeNovoIonScoring())
 }
 END_SECTION
 
-START_SECTION(~DeNovoIonScoring())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((virtual ~DeNovoIonScoring()))
 {
   NOT_TESTABLE

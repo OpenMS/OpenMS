@@ -47,12 +47,6 @@ START_SECTION(CompNovoIonScoring())
 }
 END_SECTION
 
-START_SECTION(~CompNovoIonScoring())
-{
-	delete ptr;
-}
-END_SECTION
-
 START_SECTION((CompNovoIonScoring(const CompNovoIonScoring &source)))
 {
   // TODO
@@ -61,11 +55,11 @@ END_SECTION
 
 START_SECTION((virtual ~CompNovoIonScoring()))
 {
-  // TODO
+  delete ptr;
 }
 END_SECTION
 
-START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, DoubleReal precursor_weight, UInt charge)))
+START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, DoubleReal precursor_weight, Size charge)))
 {
   // TODO
 }

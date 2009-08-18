@@ -46,12 +46,6 @@ START_SECTION(DeNovoPostScoring())
 }
 END_SECTION
 
-START_SECTION(~DeNovoPostScoring())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((virtual ~DeNovoPostScoring()))
 {
   NOT_TESTABLE
