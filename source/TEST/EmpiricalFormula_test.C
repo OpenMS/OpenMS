@@ -63,7 +63,7 @@ START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 END_SECTION
 
-START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Int charge=0)))
+START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Size charge=0)))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)
@@ -202,12 +202,12 @@ START_SECTION(bool hasElement(const Element* element) const)
 	TEST_EQUAL(e_ptr->hasElement(e), false)
 END_SECTION
 
-START_SECTION(void setCharge(Int charge))
+START_SECTION(void setCharge(Size charge))
 	e_ptr->setCharge(1);
 	NOT_TESTABLE // will be tested in next check
 END_SECTION
 
-START_SECTION(Int getCharge() const)
+START_SECTION(Size getCharge() const)
 	TEST_EQUAL(e_ptr->getCharge(), 1)
 	EmpiricalFormula ef1("C2+");
 	TEST_EQUAL(ef1.getCharge(), 1)

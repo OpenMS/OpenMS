@@ -96,15 +96,9 @@ namespace OpenMS
 
 		protected:
 
-			Map<char, Size> decomp;
+			Map<char, Size> decomp_;
 			
-			Size number_of;
-			
-			Size number_of_max_aa;
-
-			Size min_number;
-			
-			Size max_number;
+			Size number_of_max_aa_;
 
 	};
 

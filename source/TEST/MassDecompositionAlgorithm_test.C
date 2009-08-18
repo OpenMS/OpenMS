@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -53,21 +54,25 @@ START_SECTION(virtual ~MassDecompositionAlgorithm())
 }
 END_SECTION
 
-START_SECTION((MassDecompositionAlgorithm(const MassDecompositionAlgorithm &deco)))
+START_SECTION((void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight)))
 {
-  // TODO
-}
-END_SECTION
+  vector<MassDecomposition> decomps;
+	DoubleReal mass = AASequence("DFPIANGER").getMonoWeight(Residue::Internal);
+	cerr << mass << endl;
 
-START_SECTION((MassDecompositionAlgorithm& operator=(const MassDecompositionAlgorithm &rhs)))
-{
-  // TODO
-}
-END_SECTION
+	MassDecompositionAlgorithm mda;
+	Param p(mda.getParameters());
+	p.setValue("tolerance", 0.0001);
+	mda.setParameters(p);
 
-START_SECTION((void getDecompositions(std::vector< MassDecomposition > &decomps, DoubleReal weight)))
-{
-  // TODO
+	mda.getDecompositions(decomps, mass);
+	TEST_EQUAL(decomps.size(), 842)
+
+	p.setValue("tolerance", 0.001);
+	mda.setParameters(p);
+	decomps.clear();
+	mda.getDecompositions(decomps, mass);
+	TEST_EQUAL(decomps.size(), 911);
 }
 END_SECTION
 

@@ -65,9 +65,6 @@ namespace OpenMS
 			/// Default constructor
 			MassDecompositionAlgorithm();
 
-			/// Copy constructor
-			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
-
 			/// Destructor
 			virtual ~MassDecompositionAlgorithm();
 			//@}
@@ -75,9 +72,6 @@ namespace OpenMS
 			/** @name Operators
 			*/
 			//@{
-			/// assignment operator
-			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
-
 			/// returns the possible decompositions given the weight
 			void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight);
 			//@}
@@ -89,6 +83,15 @@ namespace OpenMS
 			ims::Alphabet* alphabet_;
 
 			ims::RealMassDecomposer* decomposer_;
+
+		private: 
+			
+			// will not be implemented
+			/// Copy constructor
+			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
+
+			/// assignment operator
+			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
 	};
 
 } // namespace OpenMS
