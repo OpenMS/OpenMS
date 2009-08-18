@@ -85,9 +85,11 @@ namespace OpenMS
 			
 			private slots:
 				///For closing ListEditor and updating ParamEditor
-				void commitAndCloseListEditor();
+				void commitAndCloseListEditor_();
+				///For closing QcomboBox and updating ParamEditor
+				void commitAndCloseComboBox_();
 				///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
-				void closeListEditor();
+				void closeListEditor_();
 			private:
 				/// Not implemented
 				ParamEditorDelegate();
