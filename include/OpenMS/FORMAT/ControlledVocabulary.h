@@ -96,6 +96,7 @@ namespace OpenMS
 				StringList synonyms;					///< List of synonyms
 				StringList unparsed;					///< Unparsed lines from the definition file
 				XRefType xref_type;						///< xref value-type for the CV-term
+				StringList xref_binary;				///< xref binary-data-type for the CV-term (list of all allowed data value types for the current binary data array)
 				std::set<String> units;       ///< unit accession ids, defined by relationship has units
 				
 				///Default constructor
@@ -108,7 +109,8 @@ namespace OpenMS
 						description(),
 						synonyms(),
 						unparsed(),
-						xref_type(NONE)
+						xref_type(NONE),
+						xref_binary()
 				{
 				}
 
@@ -122,6 +124,7 @@ namespace OpenMS
 						synonyms(rhs.synonyms),
 						unparsed(rhs.unparsed),
 						xref_type(rhs.xref_type),
+						xref_binary(rhs.xref_binary),
 						units(rhs.units)
 				{
 				}
@@ -139,6 +142,7 @@ namespace OpenMS
 						synonyms = rhs.synonyms;
 						unparsed = rhs.unparsed;
 						xref_type = rhs.xref_type;
+						xref_binary = rhs.xref_binary;
 						units = rhs.units;
 					}
 					return *this;

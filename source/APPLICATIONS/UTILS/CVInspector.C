@@ -108,6 +108,15 @@ class TOPPCVInspector
 				}
 				tags.push_back(String("units=") + units.concatenate(","));
 			}
+			if (child_term.xref_binary.size()>0)
+			{
+				StringList types;
+				for (StringList::const_iterator u_it=child_term.xref_binary.begin(); u_it!=child_term.xref_binary.end(); ++u_it)
+				{
+					types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+				}
+				tags.push_back(String("binary-array-types=") + types.concatenate(","));
+			}
 			if (tags.size()!=0)
 			{
 				subterm_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
@@ -280,6 +289,15 @@ class TOPPCVInspector
 								units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
 							}
 							tags.push_back(String("units=") + units.concatenate(","));
+						}
+						if (term.xref_binary.size()>0)
+						{
+							StringList types;
+							for (StringList::const_iterator u_it=term.xref_binary.begin(); u_it!=term.xref_binary.end(); ++u_it)
+							{
+								types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+							}
+							tags.push_back(String("binary-array-types=") + types.concatenate(","));
 						}
 					}
 					if (tags.size()!=0)

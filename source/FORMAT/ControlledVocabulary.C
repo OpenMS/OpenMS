@@ -251,6 +251,20 @@ namespace OpenMS
 					}
 					cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << endl;
 				}
+				else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
+				{
+					line_wo_spaces.remove('\\');
+					//remove description (if present)
+					if (line_wo_spaces.has('!'))
+					{
+						line_wo_spaces = line_wo_spaces.substr(0,line_wo_spaces.find('!'));
+					}
+					//trim prefix
+					line_wo_spaces = line_wo_spaces.substr(22);
+					//trim just to be sure
+					line_wo_spaces.trim();
+					term.xref_binary.push_back(line_wo_spaces);
+				}
 				else if (line!="")
 				{
 					term.unparsed.push_back(line);
