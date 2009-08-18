@@ -110,7 +110,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
 	TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW file")
-	TEST_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),SourceFile::MULTIPLE_PEAK_LISTS)
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),"multiple peak list")
 	//sample
 	TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
 	TEST_REAL_SIMILAR(exp.getSample().getMass(),11.7)

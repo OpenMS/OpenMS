@@ -530,7 +530,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="2.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -551,7 +551,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="3.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -739,7 +739,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="2.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -760,7 +760,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="3.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -948,7 +948,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="2.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="2.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -969,7 +969,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="2.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="3.3" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="3.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>

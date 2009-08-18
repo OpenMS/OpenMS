@@ -141,7 +141,7 @@
             <selectedIonList count="1">
               <selectedIon>
                 <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-                <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
+                <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="120053" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
                 <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
               </selectedIon>
             </selectedIonList>

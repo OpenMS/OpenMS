@@ -639,10 +639,10 @@ namespace OpenMS
 			else if(equal_(qname,s_spectrum_list))
 			{
 				in_spectrum_list_ = false;
+				logger_.endProgress();
 			}
 			else if(equal_(qname,s_mzml))
 			{
-				logger_.endProgress();
 				scan_count = 0;
 				ref_param_.clear();
 				current_id_ = "";
@@ -1178,7 +1178,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursors().back().setCharge(value.toInt());
 				}
-				else if (accession=="MS:1000042") //intensity
+				else if (accession=="MS:1000042") //peak intensity
 				{
 					spec_.getPrecursors().back().setIntensity(value.toDouble());
 				}
@@ -1472,62 +1472,9 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setFileType(cv_.getTerm(accession).name);
 				}
-				//native ID format
-				else if (accession=="MS:1000768") //Thermo nativeID format
+				else if (cv_.isChildOf(accession,"MS:1000767")) //native spectrum identifier format as string
 				{
-					source_files_[current_id_].setNativeIDType(SourceFile::THERMO);
-				}
-				else if (accession=="MS:1000769") //Waters nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::WATERS);
-				}
-				else if (accession=="MS:1000770") //WIFF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::WIFF);
-				}
-				else if (accession=="MS:1000771") //Bruker/Agilent YEP nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_AGILENT);
-				}
-				else if (accession=="MS:1000772") //Bruker BAF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_BAF);
-				}
-				else if (accession=="MS:1000773") //Bruker FID nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_FID);
-				}
-				else if (accession=="MS:1000774") //multiple peak list nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::MULTIPLE_PEAK_LISTS);
-				}
-				else if (accession=="MS:1000775") //single peak list nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SINGLE_PEAK_LIST);
-				}
-				else if (accession=="MS:1000776") //scan number only nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SCAN_NUMBER);
-				}
-				else if (accession=="MS:1000777") //spectrum identifier nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SPECTRUM_IDENTIFIER);
-				}
-				else if (accession=="MS:1000823") // Bruker U2 nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_U2);
-				}
-				else if (accession=="MS:1000824") //no nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::UNKNOWN_NATIVEID);
-				}
-				else if (accession=="MS:1001480") //AB SCIEX TOF/TOF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::AB_SCIEX);
-				}
-				else if (accession=="MS:1001508") //Agilent MassHunter nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::AGILENT_MASSHUNTER);
+					source_files_[current_id_].setNativeIDType(cv_.getTerm(accession).name);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
@@ -2600,71 +2547,24 @@ namespace OpenMS
 				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"\" />\n";
 			}
 			//file type
-			ControlledVocabulary::CVTerm sf_term = getChildWithName_("MS:1000560",source_file.getFileType());
-			if (sf_term.id!="")
+			ControlledVocabulary::CVTerm ft_term = getChildWithName_("MS:1000560",source_file.getFileType());
+			if (ft_term.id!="")
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"" << sf_term.id <<"\" name=\"" << sf_term.name << "\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"" << ft_term.id <<"\" name=\"" << ft_term.name << "\" />\n";
 			}
 			else //FORCED
 			{
 				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"PSI mzData file\" />\n";
 			}
 			//native ID format
-			if (source_file.getNativeIDType()==SourceFile::THERMO)
+			ControlledVocabulary::CVTerm id_term = getChildWithName_("MS:1000767",source_file.getNativeIDType());
+			if (id_term.id!="")
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000768\" name=\"Thermo nativeID format\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"" << id_term.id <<"\" name=\"" << id_term.name << "\" />\n";
 			}
-			else if (source_file.getNativeIDType()==SourceFile::WATERS)
+			else //FORCED
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000769\" name=\"Waters nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::WIFF)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000770\" name=\"WIFF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_AGILENT)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000771\" name=\"Bruker/Agilent YEP nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_BAF)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000772\" name=\"Bruker BAF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_FID)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000773\" name=\"Bruker FID nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::MULTIPLE_PEAK_LISTS)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000774\" name=\"multiple peak list nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SINGLE_PEAK_LIST)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000775\" name=\"single peak list nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SCAN_NUMBER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000776\" name=\"scan number only nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SPECTRUM_IDENTIFIER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_U2)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000823\" name=\"Bruker U2 nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::AB_SCIEX)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001480\" name=\"AB SCIEX TOF/TOF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::AGILENT_MASSHUNTER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001508\" name=\"Agilent MassHunter nativeID format\" />\n";
-			}
-			else
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000824\" name=\"no nativeID format\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
 			}
 			writeUserParam_(os, source_file, 4);
 			os	<< "			</sourceFile>\n";
@@ -3866,7 +3766,7 @@ namespace OpenMS
 							os	<< "							<selectedIon>\n";
 							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
-							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << precursor.getIntensity() << "\" />\n";
+							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
 							for (Size j=0; j<precursor.getPossibleChargeStates().size(); ++j)
 							{
 								os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";

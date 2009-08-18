@@ -1,11 +1,11 @@
 format-version: 1.2
-date: 14:07:2009 18:30
-saved-by: Eric Deutsch
+date: 06:08:2009 15:07
+saved-by: edeutsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.20.1
-remark: release date: 2009-07-14
+remark: version: 2.24.0
+remark: release date: 2009-08-06
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: creator: Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de>
@@ -306,10 +306,13 @@ is_a: MS:1000455 ! ion selection attribute
 
 [Term]
 id: MS:1000042
-name: intensity
+name: peak intensity
 def: "Intensity of ions as measured by the height or area of a peak in a mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
+relationship: has_units MS:1000132 ! percent of base peak
+relationship: has_units MS:1000905 ! percent of base peak times 100
+relationship: part_of MS:1000231 ! peak
 
 [Term]
 id: MS:1000043
@@ -1532,7 +1535,7 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000231
 name: peak
 def: "A localized region of relatively large ion signal in a mass spectrum. Although peaks are often associated with particular ions, the terms peak and ion should not be used interchangeably." [PSI:MS]
-relationship: part_of MS:1000479 ! purgatory
+relationship: part_of MS:1000442 ! spectrum
 
 [Term]
 id: MS:1000232
@@ -3308,6 +3311,7 @@ is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -3382,6 +3386,7 @@ is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -4060,7 +4065,7 @@ is_a: MS:1000560 ! mass spectrometer file format
 [Term]
 id: MS:1000615
 name: ProteoWizard
-def: "ProteoWizard software for data analysis. Currently developed and maintained by Darren Kessner at Parag Mallick's lab SFCAP at Cedars-Sinai." [PSI:MS]
+def: "ProteoWizard software for data analysis. Currently developed and maintained by Darren Kessner at Parag Mallick's lab (Center for Applied Molecular Medicine at the University of Southern California)." [PSI:MS]
 synonym: "pwiz" EXACT []
 is_a: MS:1001456 ! analysis software
 is_a: MS:1001457 ! data processing software
@@ -4170,6 +4175,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -4187,6 +4193,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -5228,6 +5235,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -5239,6 +5247,7 @@ is_a: MS:1000630 ! data processing parameter
 relationship: has_units MS:1000131 ! number of counts
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000814 ! counts per second
+relationship: has_units MS:1000905 ! percent of base peak times 100
 relationship: has_units UO:0000269 ! absorbance unit
 
 [Term]
@@ -5882,6 +5891,217 @@ def: "A substance formed by chemical union of two or more elements or ingredient
 relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
 
 [Term]
+id: MS:1000882
+name: protein
+def: "A compound composed of one or more chains of amino acids in a specific order determined by the base sequence of nucleotides in the DNA coding for the protein." [PSI:MS]
+is_a: MS:1000881 ! chemical compound
+
+[Term]
+id: MS:1000883
+name: protein short name
+def: "A short name or symbol of a protein (e.g., HSF 1 or HSF1_HUMAN)." [PSI:MS]
+is_a: MS:1000884 ! protein attribute
+
+[Term]
+id: MS:1000884
+name: protein attribute
+def: "An nonphysical attribute describing a specific protein." [PSI:MS]
+relationship: part_of MS:1000882 ! protein
+
+[Term]
+id: MS:1000885
+name: protein accession
+def: "Accession number for a specific protein in a database." [PSI:MS]
+is_a: MS:1000884 ! protein attribute
+
+[Term]
+id: MS:1000886
+name: protein name
+def: "A long name describing the function of the protein." [PSI:MS]
+is_a: MS:1000884 ! protein attribute
+
+[Term]
+id: MS:1000887
+name: peptide attribute
+def: "An nonphysical attribute that can be used to describe a peptide." [PSI:MS]
+relationship: part_of MS:1000860 ! peptide
+
+[Term]
+id: MS:1000888
+name: unmodified peptide sequence
+def: "A sequence of letter symbols denoting the order of amino acids that compose the peptide, without encoding any amino acid mass modifications that might be present." [PSI:MS]
+is_a: MS:1000887 ! peptide attribute
+
+[Term]
+id: MS:1000889
+name: modified peptide sequence
+def: "A sequence of letter symbols denoting the order of amino acids that compose the peptide plus the encoding any amino acid mass modifications that are present using the notation where the total mass of the modified amino acid is specified in square bracketed numbers following the letter (e.g. R[162.10111] indicates an arginine whose final modified mass is 162.10111 amu)." [PSI:MS]
+is_a: MS:1000887 ! peptide attribute
+
+[Term]
+id: MS:1000890
+name: peptide labeling state
+def: "A state description of how a peptide might be isotopically or isobarically labelled." [PSI:MS]
+is_a: MS:1000887 ! peptide attribute
+
+[Term]
+id: MS:1000891
+name: heavy labeled peptide
+def: "A peptide that has been created or labeled with some heavier-than-usual isotopes." [PSI:MS]
+is_a: MS:1000890 ! peptide labeling state
+
+[Term]
+id: MS:1000892
+name: unlabeled peptide
+def: "A peptide that has not been labeled with heavier-than-usual isotopes. This is often referred to as \"light\" to distinguish from \"heavy\"." [PSI:MS]
+exact_synonym: "light labeled peptide" []
+is_a: MS:1000890 ! peptide labeling state
+
+[Term]
+id: MS:1000893
+name: peptide group label
+def: "An arbitrary string label used to mark a set of peptides that belong together in a set, whereby the members are differentiated by different isotopic labels. For example, the heavy and light forms of the same peptide will both be assigned the same peptide group label." [PSI:MS]
+is_a: MS:1000887 ! peptide attribute
+
+[Term]
+id: MS:1000894
+name: retention time
+def: "A measure of the interval relative to the beginning of a mass spectrometric run when a peptide will exit the chromatographic column." [PSI:MS]
+is_a: MS:1000887 ! peptide attribute
+
+[Term]
+id: MS:1000895
+name: local retention time
+def: "A measure of the interval relative to the beginning of a mass spectrometric run when a peptide will exit an unspecified local chromatographic column and instrumental setup." [PSI:MS]
+is_a: MS:1000894 ! retention time
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000896
+name: normalized retention time
+def: "A measure of the interval relative to the beginning of a mass spectrometric run when a peptide will exit a standardized reference chromatographic column and instrumental setup." [PSI:MS]
+is_a: MS:1000894 ! retention time
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000897
+name: predicted retention time
+def: "A time interval relative to the beginning of a mass spectrometric run when a peptide will exit a chromatographic column as predicted by a referenced software application." [PSI:MS]
+is_a: MS:1000894 ! retention time
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000898
+name: standard
+def: "Something, such as a practice or a product, that is widely recognized or employed, especially because of its excellence." [PSI:MS]
+relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
+
+[Term]
+id: MS:1000899
+name: de facto standard
+def: "A practice or product that has become a standard not because it has been approved by a standards organization but because it is widely used and recognized by the industry as being standard." [PSI:MS]
+is_a: MS:1000898 ! standard
+
+[Term]
+id: MS:1000900
+name: minimum information standard
+def: "A specification of a minimum amount of information needed to reproduce or fully interpret a scientific result." [PSI:MS]
+is_a: MS:1000898 ! standard
+
+[Term]
+id: MS:1000901
+name: retention time normalization standard
+def: "A standard providing the retention times at which a set of reference compounds exit the reference chromatographic column." [PSI:MS]
+is_a: MS:1000898 ! standard
+
+[Term]
+id: MS:1000902
+name: H-PINS retention time normalization standard
+def: "The de facto standard providing the retention times at which a set of halogenated reference peptides exit the reference chromatographic column, as published by Mirzaei et al. in Molecular and Cellular Proteomics in early 2009 (Early access: http://www.mcponline.org/cgi/content/abstract/M800569-MCP200v1)." [PSI:MS]
+is_a: MS:1000901 ! retention time normalization standard
+
+[Term]
+id: MS:1000903
+name: product ion series ordinal
+def: "The ordinal of the fragment within a specified ion series. (e.g. 8 for a y8 ion)." [PSI:PI]
+is_a: MS:1001221 ! fragmentation information
+
+[Term]
+id: MS:1000904
+name: product ion m/z delta
+def: "The difference in m/z of the predicted m/z based on the assigned product ion minus the actual observed peak m/z." [PSI:PI]
+is_a: MS:1001221 ! fragmentation information
+
+[Term]
+id: MS:1000905
+name: percent of base peak times 100
+def: "The magnitude of a peak expressed in terms of the percentage of the magnitude of the base peak intensity multiplied by 100. The base peak is therefore 10000. This unit is common in normalized spectrum libraries." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000043 ! intensity unit
+
+[Term]
+id: MS:1000906
+name: peak intensity rank
+def: "Ordinal specifying the rank in intensity of a peak in a spectrum. Base peak is 1. The next most intense peak is 2, etc." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000455 ! ion selection attribute
+relationship: part_of MS:1000231 ! peak
+
+[Term]
+id: MS:1000907
+name: peak targeting suitability rank
+def: "Ordinal specifying the rank of a peak in a spectrum in terms of suitability for targeting. The most suitable peak is 1. The next most suitability peak is 2, etc. Suitability is algorithm and context dependant." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000455 ! ion selection attribute
+relationship: part_of MS:1000231 ! peak
+
+[Term]
+id: MS:1000908
+name: transition
+def: "A set of two m/z values corresponding to the precursor m/z and a fragment m/z that in combination can be used to identify or quantify a specific ion, although not necessarily uniquely." [PSI:MS]
+synonym: "reaction" EXACT []
+relationship: part_of MS:1001458 ! spectrum generation information
+
+[Term]
+id: MS:1000909
+name: transition validation method
+def: "The strategy used to validate that a transition is effective." [PSI:MS]
+relationship: part_of MS:1000908 ! transition
+
+[Term]
+id: MS:1000910
+name: transition optimized on specified instrument
+def: "The transition has been optimized by direct injection of the peptide into an instrument specified in a separate term, and the optimum voltages and fragmentation energies have been determined." [PSI:MS]
+is_a: MS:1000909 ! transition validation method
+
+[Term]
+id: MS:1000911
+name: transition validated with an MS/MS spectrum on specified instrument
+def: "The transition has been validated by obtaining an MS/MS spectrum and demonstrating that the peak is detectable on the instrument specified with a separate term." [PSI:MS]
+is_a: MS:1000909 ! transition validation method
+
+[Term]
+id: MS:1000912
+name: transition purported from an MS/MS spectrum on a different, specified instrument
+def: "The transition has been purported by obtaining an MS/MS spectrum and demonstrating that the peak is detectable on the instrument specified with a separate term. However, the detecting instrument is of a different type (e.g. ion trap) than the instrument that the transition will eventually be used on (e.g. triple quad)." [PSI:MS]
+is_a: MS:1000909 ! transition validation method
+
+[Term]
+id: MS:1000913
+name: transition predicted by informatic analysis
+def: "The transition has been predicted by informatics software without any direct spectral evidence." [PSI:MS]
+is_a: MS:1000909 ! transition validation method
+
+[Term]
+id: MS:1000914
+name: tab delimited text file
+def: "A file that has two or more columns of tabular data where each column is separated by a TAB character." [PSI:MS]
+is_a: MS:1001459 ! file format
+
+[Term]
 id: MS:1001000
 name: spectrum interpretation
 def: "Collection of terms from the PSI Proteome Informatics standards describing the interpretation of spectra." [PSI:PI]
@@ -6495,6 +6715,7 @@ id: MS:1001114
 name: retention time(s)
 def: "Retention time of the spectrum from the source file" [PSI:PI]
 is_a: MS:1001105 ! peptide result details
+is_a: MS:1001405 ! spectrum identification result details
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
 
@@ -7164,7 +7385,6 @@ is_a: MS:1001221 ! fragmentation information
 [Term]
 id: MS:1001227
 name: product ion m/z error
-synonym: "product ion m/z error" EXACT []
 def: "The product ion m/z error." [PSI:PI]
 is_a: MS:1001221 ! fragmentation information
 relationship: has_units MS:1000040 ! m/z
@@ -8940,6 +9160,27 @@ def: "This term can describe a neutral loss m/z value that is lost from an ion."
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001471 ! peptide modification details
 relationship: has_units UO:0000221 ! dalton
+
+[Term]
+id: MS:1001526
+name: spectrum from database nativeID format
+def: "databasekey=xsd:Long" [PSI:MS]
+comment: A unique identifier of a spectrum stored in a database (e.g. a PRIMARY KEY identifier).
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1001527
+name: Proteinscape spectra
+def: "Spectra from Bruker/Protagen Proteinscape database." [PSI:MS]
+is_a: MS:1000560 ! mass spectrometer file format
+
+[Term]
+id: MS:1001528
+name: Mascot query number
+def: "index=xsd:nonNegativeInteger" [PSI:MS]
+comment: The spectrum (query) number in a Mascot results file, starting from 1.
+is_a: MS:1000767 ! native spectrum identifier format
+is_a: MS:1001405 ! spectrum identification result details
 
 [Typedef]
 id: has_regexp

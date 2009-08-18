@@ -110,15 +110,15 @@ START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
 END_SECTION
 
-START_SECTION((NativeIDType getNativeIDType() const))
+START_SECTION((const String& getNativeIDType() const))
 	SourceFile tmp;
-	TEST_EQUAL(tmp.getNativeIDType(), SourceFile::UNKNOWN_NATIVEID);
+	TEST_STRING_EQUAL(tmp.getNativeIDType(), "");
 END_SECTION
 
-START_SECTION((void 	setNativeIDType(NativeIDType type)))
+START_SECTION((void setNativeIDType(const String& type)))
   SourceFile tmp;
-  tmp.setNativeIDType(SourceFile::THERMO);
-  TEST_EQUAL(tmp.getNativeIDType(), SourceFile::THERMO);
+  tmp.setNativeIDType("bla");
+  TEST_STRING_EQUAL(tmp.getNativeIDType(), "bla");
 END_SECTION
 
 START_SECTION((SourceFile(const SourceFile& source)))

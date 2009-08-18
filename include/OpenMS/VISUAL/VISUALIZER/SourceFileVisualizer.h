@@ -73,7 +73,7 @@ namespace OpenMS
 			QLineEdit* file_type_;
 			QLineEdit* checksum_;
 			QComboBox* checksum_type_;
-		  QComboBox* native_id_type_;
+		  QLineEdit* native_id_type_;
 		  //@}
 			
 			//Docu in base class

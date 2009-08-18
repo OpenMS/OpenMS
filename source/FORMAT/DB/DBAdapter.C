@@ -294,7 +294,7 @@ namespace OpenMS
 		}
 		
 		stringstream query;
-		query << "SELECT FileName, FilePath, Size, `Type`, sha1, ChecksumType-1,NativeIDType-1 FROM META_File WHERE id='" << id << "'";
+		query << "SELECT FileName, FilePath, Size, `Type`, sha1, ChecksumType-1,NativeIDType FROM META_File WHERE id='" << id << "'";
 		QSqlQuery result = db_con_.executeQuery(query.str(),true);
 
 		file.setNameOfFile(result.value(0).toString());
@@ -302,7 +302,7 @@ namespace OpenMS
 		file.setFileSize(result.value(2).toDouble());
 		file.setFileType(result.value(3).toString());
 		file.setChecksum(result.value(4).toString(), (SourceFile::ChecksumType)result.value(5).toInt());
-		file.setNativeIDType((SourceFile::NativeIDType)result.value(6).toInt());
+		file.setNativeIDType(result.value(6).toString());
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)
@@ -356,7 +356,7 @@ namespace OpenMS
 		query << "sha1='" << file.getChecksum() << "',";
 		query << "`Type`='" << file.getFileType() << "'";
 		query << ",ChecksumType='" << 1u+file.getChecksumType() << "'";
-		query << ",NativeIDType='" << 1u+file.getNativeIDType() << "'";
+		query << ",NativeIDType='" << file.getNativeIDType() << "'";
 		query << end;
 
 		if (debug) cout << query.str() << endl;

@@ -794,7 +794,7 @@ CREATE TABLE META_File (
   Size float unsigned NOT NULL default '0',
   `Type` text collate latin1_general_ci NOT NULL,
   ChecksumType enum ('UNKNOWN', 'SHA1', 'MD5') collate latin1_general_ci NOT NULL default 'UNKNOWN',
-  NativeIDType enum('UNKNOWN_NATIVEID', 'THERMO', 'WATERS', 'WIFF', 'BRUKER_AGILENT', 'BRUKER_BAF', 'BRUKER_FID', 'BRUKER_U2', 'MULTIPLE_PEAK_LISTS', 'SINGLE_PEAK_LIST', 'SCAN_NUMBER', 'SPECTRUM_IDENTIFIER') collate latin1_general_ci NOT NULL default 'UNKNOWN_NATIVEID',
+  NativeIDType varchar(80) collate latin1_general_ci NOT NULL default '',
   PRIMARY KEY  (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 

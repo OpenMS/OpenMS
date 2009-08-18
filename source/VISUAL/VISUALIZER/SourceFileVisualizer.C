@@ -49,7 +49,7 @@ namespace OpenMS
 		addLineEdit_(file_type_, "File type" );
 		addLineEdit_(checksum_, "Checksum" );
 		addComboBox_(checksum_type_, "Checksum type" );
-		addComboBox_(native_id_type_, "Native ID type of spectra");
+		addLineEdit_(native_id_type_, "Native ID type of spectra");
 		
 		finishAdding_();
 	}
@@ -59,20 +59,18 @@ namespace OpenMS
 	  name_of_file_->setText(temp_.getNameOfFile().c_str());
 		path_to_file_->setText(temp_.getPathToFile().c_str() );
 		file_size_->setText(String(temp_.getFileSize()).c_str());
-	  file_type_->setText(String(temp_.getFileType()).c_str());
-		checksum_->setText(String(temp_.getChecksum()).c_str());
+	  file_type_->setText(temp_.getFileType().c_str());
+		checksum_->setText(temp_.getChecksum().c_str());
+		native_id_type_->setText(temp_.getNativeIDType().c_str());
 
 		if(! isEditable())
 		{
 			fillComboBox_(checksum_type_,& temp_.NamesOfChecksumType[temp_.getChecksumType()] , 1);
-			fillComboBox_(native_id_type_,& temp_.NamesOfNativeIDType[temp_.getNativeIDType()] , 1);
 		}
 		else
 		{
 			fillComboBox_(checksum_type_, temp_.NamesOfChecksumType , SourceFile::SIZE_OF_CHECKSUMTYPE);
 			checksum_type_->setCurrentIndex(temp_.getChecksumType());
-			fillComboBox_(native_id_type_, temp_.NamesOfNativeIDType , SourceFile::SIZE_OF_NATIVEIDTYPE);
-			native_id_type_->setCurrentIndex(temp_.getNativeIDType()); 
 		}
 	}
 	
@@ -83,7 +81,7 @@ namespace OpenMS
 		ptr_->setFileSize(file_size_->text().toFloat());
 		ptr_->setFileType(file_type_->text());
 		ptr_->setChecksum(checksum_->text(),(SourceFile::ChecksumType)checksum_type_->currentIndex());
-		ptr_->setNativeIDType((SourceFile::NativeIDType)native_id_type_->currentIndex());
+		ptr_->setNativeIDType(native_id_type_->text());
 		
 		temp_=(*ptr_);
 	}

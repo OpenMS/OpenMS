@@ -768,7 +768,7 @@ namespace OpenMS
    		setCursor(Qt::ArrowCursor);
       return;
 		}
-
+		
 		//try to load data and determine if it is 1D or 2D data
 		FeatureMapType feature_map;
 		ExperimentType peak_map;
