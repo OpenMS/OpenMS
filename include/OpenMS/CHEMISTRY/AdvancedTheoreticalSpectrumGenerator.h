@@ -240,6 +240,8 @@ namespace OpenMS
       //@}
 
     private:
+      ///returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
+      String ResidueTypeToString_(Residue::ResidueType type);
 
       ///vector of conditional probabilities for each sector
       std::vector<std::vector<DoubleReal> >conditional_probabilities_;

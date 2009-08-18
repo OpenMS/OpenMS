@@ -33,6 +33,26 @@
 namespace OpenMS
 {
 
+  String AdvancedTheoreticalSpectrumGenerator::ResidueTypeToString_(Residue::ResidueType type)
+  {
+    switch(type)
+    {
+      case(Residue::AIon):return("AIon");
+      break;
+      case(Residue::BIon):return("BIon");
+      break;
+      case(Residue::CIon):return("CIon");
+      break;
+      case(Residue::XIon):return("XIon");
+      break;
+      case(Residue::YIon):return("YIon");
+      break;
+      case(Residue::ZIon):return("ZIon");
+      break;
+      default: return("undefined ion type");
+    }
+  }
+
   //Function to compute the structure of the probabilistic network by performing a minimal
   //spanning tree computation
   void AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork::generateTree(std::vector<Int> &has_parent)
@@ -245,6 +265,9 @@ namespace OpenMS
 
     const AASequence * ion = 0;
 
+    //the number of a generated peak (y2, or b5)
+    UInt ion_nr=0;
+
     DoubleReal parent_mass = peptide.getMonoWeight(Residue::Full);
     for (Size i = 1; i < peptide.size(); ++i)
     {
@@ -302,6 +325,7 @@ namespace OpenMS
             continue;
           }
           ion = &prefix;
+          ion_nr=i;
         }
         else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
         {
@@ -310,6 +334,7 @@ namespace OpenMS
             continue;
           }
           ion = &suffix;
+          ion_nr=peptide.size()-i;
         }
         else
         {
@@ -325,14 +350,21 @@ namespace OpenMS
           conditional_intensity = generated_intensity[is_child_of[sector][type_id]];
 
         DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter((UInt)type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
-        //std::cerr<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
+        //std::cout<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
 
         gsl_gen = gsl_ran_discrete_preproc(number_of_intensity_levels_, tmp_pointer);
         Size intensity = gsl_ran_discrete(rng, gsl_gen);
 
         generated_intensity[type_id]=(UInt)intensity;
 
-        String ion_name = String(residue) + loss_formula.getString() + String(i) + String(charge, '+');
+        //std::cout<<"considering ion type: "<<ion_name_tmp<<"  with intensity: "<<intensity<<"  at position: "<<mz_pos<<" in sector: "<<sector<<std::endl;
+
+        if(intensity==0)
+        {
+          continue;
+        }
+
+        String ion_name = ResidueTypeToString_(residue) +" "+ loss_formula.getString() +" "+ String(ion_nr)+String(charge, '+');
 
         if (add_isotopes)
         {
