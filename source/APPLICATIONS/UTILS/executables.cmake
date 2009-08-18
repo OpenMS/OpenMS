@@ -13,7 +13,6 @@ IDExtractor
 LabeledEval
 MapAlignmentEvaluation
 MSSimulator
-RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

@@ -49,7 +49,6 @@
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
 	- @subpage UTILS_CaapConvert - Convert a CAAP ground truth file into consensusXML format.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
-  - @subpage UTILS_RTEvaluation - ???.
 	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
   
   <b>Peptide identification</b>
@@ -68,7 +67,5 @@
   - @subpage UTILS_HistView - A viewer for histograms.
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
-	
-	@todo Add RTEvaluation docu (Nico)
 	
 */
