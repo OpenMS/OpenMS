@@ -123,9 +123,9 @@ END_SECTION
 START_SECTION((bool hasNeutralLoss() const))
 	TEST_EQUAL(ptr->hasNeutralLoss(), true)
 	ResidueModification mod;
-	TEST_EQUAL(ptr->hasNeutralLoss(), false)
+	TEST_EQUAL(mod.hasNeutralLoss(), false)
 	mod.setNeutralLossDiffFormula(EmpiricalFormula("H2O"));
-	TEST_EQUAL(ptr->hasNeutralLoss(), true)
+	TEST_EQUAL(mod.hasNeutralLoss(), true)
 END_SECTION
 
 START_SECTION((void setFullId(const String& full_id)))
