@@ -901,13 +901,15 @@ namespace OpenMS
 		DoubleReal mz = 0.0;
 		DoubleReal rt = 0.0;
 		Real it = 0.0;
-		Int q = 0;
+		Int charge = 0;
+		DoubleReal quality = 0.0;
 		if (getCurrentLayer().type==LayerData::DT_FEATURE)
 		{
 			mz = peak.getFeature(getCurrentLayer().features).getMZ();
 			rt = peak.getFeature(getCurrentLayer().features).getRT();
 			it = peak.getFeature(getCurrentLayer().features).getIntensity();
-			q  = peak.getFeature(getCurrentLayer().features).getCharge();
+			charge  = peak.getFeature(getCurrentLayer().features).getCharge();
+			quality = peak.getFeature(getCurrentLayer().features).getOverallQuality();
 		}
 		else if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
@@ -920,7 +922,8 @@ namespace OpenMS
 			mz = peak.getFeature(getCurrentLayer().consensus).getMZ();
 			rt = peak.getFeature(getCurrentLayer().consensus).getRT();
 			it = peak.getFeature(getCurrentLayer().consensus).getIntensity();
-			q  = peak.getFeature(getCurrentLayer().consensus).getCharge();
+			charge  = peak.getFeature(getCurrentLayer().consensus).getCharge();
+			quality = peak.getFeature(getCurrentLayer().consensus).getQuality();
 		}
 				
 		//draw text			
@@ -928,7 +931,11 @@ namespace OpenMS
 		if (print_rt) lines.push_back("RT : " + QString::number(rt,'f',2));
 		lines.push_back("m/z: " + QString::number(mz,'f',6));
 		lines.push_back("Int: " + QString::number(it,'f',2));
-		if (getCurrentLayer().type==LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS) lines.push_back("Charge : " + QString::number(q));
+		if (getCurrentLayer().type==LayerData::DT_FEATURE || getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+			lines.push_back("Charge: " + QString::number(charge));
+			lines.push_back("Quality: " + QString::number(quality,'f',4));
+		}
 		drawText_(painter, lines);
 	}
 

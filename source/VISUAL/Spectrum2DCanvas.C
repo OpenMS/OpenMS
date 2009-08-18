@@ -1252,33 +1252,24 @@ namespace OpenMS
 			selected_peak_ = near_peak;
 			update_(__PRETTY_FUNCTION__);
 
-			//show coordinates
+			//show meta data in status bar (if available)
 			if (selected_peak_.isValid())
 			{
+				String status;
 				if (getCurrentLayer().type==LayerData::DT_FEATURE)
 				{
-					//coordinates
-					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
-					//additional feature info
-					String status;
-					status = status + "Quality: " + f.getOverallQuality();
-					if (f.getCharge()!=0)
-					{
-						status = status + " Charge: " + f.getCharge();
-					}
 					//add meta info
+					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
 					std::vector<String> keys;
 					f.getKeys(keys);
 					for (Size m=0; m<keys.size(); ++m)
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
-					emit sendStatusMessage(status, 0);
 				}
 				else if (getCurrentLayer().type==LayerData::DT_PEAK)
 				{
 					//meta info
-					String status;
 					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 					for (Size m=0; m<s.getFloatDataArrays().size();++m)
 					{
@@ -1288,27 +1279,19 @@ namespace OpenMS
 					{
 						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
 					}
-					emit sendStatusMessage(status, 0);
 				}
 				else // ConsensusFeature
 				{
-					//additional feature info
-					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
-					String status;
-					status = status + "Quality: " + f.getQuality();
-					if (f.getCharge()!=0)
-					{
-						status = status + " Charge: " + f.getCharge();
-					}
 					//add meta info
+					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
 					std::vector<String> keys;
 					f.getKeys(keys);
 					for (Size m=0; m<keys.size(); ++m)
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
-					emit sendStatusMessage(status, 0);
 				}
+				if (status!="") emit sendStatusMessage(status, 0);
 			}
 		}
 		else if (action_mode_==AM_ZOOM)
