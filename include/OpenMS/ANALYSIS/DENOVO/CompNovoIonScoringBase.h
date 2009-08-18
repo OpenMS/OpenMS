@@ -118,7 +118,7 @@ namespace OpenMS
 			void initIsotopeDistributions_();
 
 			///
-			Map<Int, std::vector<DoubleReal> > isotope_distributions_;
+			Map<Size, std::vector<DoubleReal> > isotope_distributions_;
 
 			DoubleReal fragment_mass_tolerance_;
 		

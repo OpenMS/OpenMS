@@ -562,12 +562,12 @@ namespace OpenMS
 		return;
 	}
 
-	void CompNovoIdentification::getETDSpectrum_(PeakSpectrum& spec, const String& sequence, int /* charge */, DoubleReal prefix, DoubleReal suffix)
+	void CompNovoIdentification::getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Size /* charge */, DoubleReal prefix, DoubleReal suffix)
 	{
   	Peak1D p;
   	p.setIntensity(1);
   
-		DoubleReal c_pos(17.0 + prefix);
+		DoubleReal c_pos(17.0 + prefix); // TODO high mass accuracy!!
 		DoubleReal z_pos(3.0 + suffix);
 		DoubleReal b_pos(0.0 + prefix);
 		DoubleReal y_pos(18.0 + suffix);

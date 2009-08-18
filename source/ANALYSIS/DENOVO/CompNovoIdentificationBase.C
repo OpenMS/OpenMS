@@ -132,7 +132,7 @@ namespace OpenMS
 		return;
 	}
 
-	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Int charge, DoubleReal prefix, DoubleReal suffix)
+	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Size charge, DoubleReal prefix, DoubleReal suffix)
 	{
 		static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
 		static DoubleReal nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
@@ -149,7 +149,7 @@ namespace OpenMS
 
       char aa2(sequence[sequence.size() - i - 1]);
       y_pos += aa_to_weight_[aa2];
-      for (Int z = 1; z <= charge && z < 3; ++z)
+      for (Size z = 1; z <= charge && z < 3; ++z)
       {
         // b-ions
 				if (b_pos >= min_mz_ && b_pos <= max_mz_)
@@ -159,7 +159,7 @@ namespace OpenMS
 						if (z == 1 /*|| b_pos > MIN_DOUBLE_MZ*/)
 						{
         			p.setPosition((b_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j + Constants::NEUTRON_MASS_U)/(DoubleReal)z);
-        			p.setIntensity(isotope_distributions_[(Int)b_pos][j] * 0.8 / (z*z));
+        			p.setIntensity(isotope_distributions_[(Size)b_pos][j] * 0.8 / (z*z));
 							spec.push_back(p);
 						}
 					}
@@ -213,7 +213,7 @@ namespace OpenMS
 						if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 						{
 							p.setPosition((y_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j * Constants::NEUTRON_MASS_U)/(DoubleReal)z);
-        			p.setIntensity(isotope_distributions_[(Int)y_pos][j] /(DoubleReal) (z*z));
+        			p.setIntensity(isotope_distributions_[(Size)y_pos][j] /(DoubleReal) (z*z));
         			spec.push_back(p);
 						}
 					}
@@ -570,7 +570,7 @@ namespace OpenMS
 	void CompNovoIdentificationBase::initIsotopeDistributions_()
 	{
   	IsotopeDistribution iso_dist(max_isotope_);
-  	for (Int i = 1; i <= (Int)(max_mz_ * 2); ++i)
+  	for (Size i = 1; i <= max_mz_ * 2; ++i)
   	{
     	iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     	iso_dist.renormalize();

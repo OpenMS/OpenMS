@@ -106,7 +106,7 @@ namespace OpenMS
 			void getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, DoubleReal prefix, DoubleReal suffix);
 			
 			/// fills the spectrum with b,y ions, multiple charged variants; if prefix and suffix weights are given, the sequence is treated as tag
-			void getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Int charge, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
+			void getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Size charge, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
 		
 			/// initializes the score distribution precalculated for the use in spectrum generation
 			void initIsotopeDistributions_();
@@ -133,7 +133,7 @@ namespace OpenMS
 			Map<const Residue*, char> residue_to_name_;
 			
 			///
-			Map<Int, std::vector<DoubleReal> > isotope_distributions_;
+			Map<Size, std::vector<DoubleReal> > isotope_distributions_;
 
 			/// masses of the amino acids
 			Map<char, DoubleReal> aa_to_weight_; 

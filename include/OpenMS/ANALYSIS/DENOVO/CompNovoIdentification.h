@@ -90,7 +90,7 @@ namespace OpenMS
 			void reducePermuts_(std::set<String>& permuts, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec, DoubleReal prefix, DoubleReal suffix);
 		
 			/// fills the spectrum with c and z type ions
-			void getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Int /* charge */, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
+			void getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Size /* charge */, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
 
 			/// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
 			DoubleReal estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge);

@@ -381,7 +381,7 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
 		DoubleReal max_mz(param_.getValue("max_mz"));
 		UInt max_isotope(param_.getValue("max_isotope"));
   	IsotopeDistribution iso_dist(max_isotope);
-  	for (Int i = 1; i <= max_mz; ++i)
+  	for (Size i = 1; i <= max_mz; ++i)
   	{
     iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     iso_dist.renormalize();

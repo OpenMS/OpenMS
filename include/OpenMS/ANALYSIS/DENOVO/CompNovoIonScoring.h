@@ -84,7 +84,7 @@ namespace OpenMS
 
 		protected:
 
-			void scoreETDFeatures_(Int charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec);
+			void scoreETDFeatures_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec, const PeakSpectrum& ETD_orig_spec);
 
 			void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec);
 			
