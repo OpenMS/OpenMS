@@ -45,9 +45,14 @@ using namespace OpenMS;
 /**
 	@page UTILS_SpectrumGeneratorNetworkTrainer SpectrumGeneratorNetworkTrainer
 	
-	@brief Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
+	@brief Trainer for probabilistic network as input for AdvancedSpectrumGenerator.
 	
-	@todo Add docu here (Sandro)
+  This application requires a list of annotated spectra and generates a bayesian network
+  with tree structure. For each pair of ion types (i.e. a,b,c,x,y,z + losses) the mutual
+  information is computed. Finally the application computes a spanning tree that maximizes
+  the total mutual information content. In the resulting bayesian network the probability
+  for each ion type to occur with a certain intensity depends only on his parent ion type
+  in the tree.
 	
 	@note This tool is experimental!
 		
@@ -113,11 +118,8 @@ using namespace OpenMS;
         //read the options
         UInt number_of_sectors = getIntOption_("number_of_sectors");
         DoubleReal delta = getDoubleOption_("delta");
-        //DoubleReal intensity_lims_tmp[] =
-        //{ 0.05, 0.5, 2, 5, 10 }; //TODO this is now hard coded, replace this by suitable parameter setting
         DRealVec intensity_limits = getDoubleList_("intensity_level_bins");
         UInt number_of_intensity_levels = (UInt) intensity_limits.size() + 1;
-        //std::vector<DoubleReal> intensity_limits(intensity_lims_tmp, intensity_lims_tmp + 5);
 
         //file options
         String mzdata_file = getStringOption_("in_spectra");
@@ -618,7 +620,7 @@ using namespace OpenMS;
           DoubleReal orig_intens = fwit->getIntensity();
           //normalize
           fwit->setIntensity(orig_intens / baseline_grass_intens);
-          DoubleReal norm_intens = fwit->getIntensity();
+          //DoubleReal norm_intens = fwit->getIntensity();
           //discretize
           UInt level = 0;
           //if an indexing error occurs here then intensity is +Infinity
