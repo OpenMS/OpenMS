@@ -6,6 +6,7 @@ Main improvements of TOPPView:
 - Added new labeling options for feature data
 - Fixed crash when zooming in snap-mode
 - Added context menu to spectra selection bar
+- Feature editing mode can be enabled/disabled in the context menu (to avoid accidental editing)
 - Several minor fixes and improvements
 
 Main improvements of TOPP:

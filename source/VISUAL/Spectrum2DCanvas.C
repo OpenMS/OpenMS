@@ -1337,7 +1337,7 @@ namespace OpenMS
 		{
 			if (e->buttons() & Qt::LeftButton)
 			{
-				if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
+				if (getCurrentLayer().modifiable && getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
 				{
 					PointType new_data = widgetToData_(pos);
 					DoubleReal mz = new_data[0];
@@ -1603,6 +1603,10 @@ namespace OpenMS
 				context_menu->addMenu(meta);
 				context_menu->addSeparator();
 			}
+			
+			//add modifiable flag
+			settings_menu->addSeparator();
+ 			settings_menu->addAction("Toggle edit/view mode");
 
 			finishContextMenu_(context_menu, settings_menu);
 
@@ -1710,6 +1714,10 @@ namespace OpenMS
 				{
 					getCurrentLayer_().label=LayerData::L_NONE;
 				}
+			}
+			else if (result->text()=="Toggle edit/view mode")
+			{
+				getCurrentLayer_().modifiable = ! getCurrentLayer_().modifiable;
 			}
 			else if (result->text()=="Show/hide elements")
 			{
@@ -2013,7 +2021,7 @@ namespace OpenMS
 
 		// Delete features
 		LayerData& layer = getCurrentLayer_();
-		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
+		if (getCurrentLayer().modifiable && layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
 		{
 			layer.features.erase(layer.features.begin()+selected_peak_.peak);
 			selected_peak_.clear();
@@ -2054,24 +2062,23 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
 	{
-		if (getCurrentLayer_().type==LayerData::DT_FEATURE)
+		LayerData& current_layer = getCurrentLayer_();
+		
+		if (current_layer.modifiable && current_layer.type==LayerData::DT_FEATURE)
 		{
+			Feature tmp;
 			if (selected_peak_.isValid()) //edit existing feature
 			{
 				FeatureEditDialog dialog(this);
-				dialog.setFeature(getCurrentLayer_().features[selected_peak_.peak]);
+				dialog.setFeature(current_layer.features[selected_peak_.peak]);
 				if (dialog.exec())
 				{
-					getCurrentLayer_().features[selected_peak_.peak] = dialog.getFeature();
-					update_buffer_ = true;
-					update_(__PRETTY_FUNCTION__);
-
-					modificationStatus_(activeLayerIndex(), true);
+					tmp = dialog.getFeature();
+					current_layer.features[selected_peak_.peak] = tmp;
 				}
 			}
 			else //create new feature
 			{
-				Feature tmp;
 				tmp.setRT(widgetToData_(e->pos())[1]);
 				tmp.setMZ(widgetToData_(e->pos())[0]);
 				FeatureEditDialog dialog(this);
@@ -2079,13 +2086,24 @@ namespace OpenMS
 				if (dialog.exec())
 				{
 					tmp = dialog.getFeature();
-					getCurrentLayer_().features.push_back(tmp);
-					update_buffer_ = true;
-					update_(__PRETTY_FUNCTION__);
-
-					modificationStatus_(activeLayerIndex(), true);
+					current_layer.features.push_back(tmp);
 				}
 			}
+			
+			//update gradient if the min/max intensity changes
+			if (tmp.getIntensity()<current_layer.features.getMinInt() || tmp.getIntensity()>current_layer.features.getMaxInt())
+			{
+				current_layer.features.updateRanges();
+				recalculateRanges_(0,1,2);
+				intensityModeChange_();
+			}
+			else //just repaint to show the changes
+			{
+				update_buffer_ = true;
+				update_(__PRETTY_FUNCTION__);
+			}
+			
+			modificationStatus_(activeLayerIndex(), true);
 		}
 	}
 

@@ -330,7 +330,10 @@
 /**	
 	@page TOPPView_editing Data editing
 	
-		TOPPView also offers editing functionality for feature layers:
+		TOPPView also offers editing functionality for feature layers.
+		
+		After enabling the feature editing mode in the context menu of the feature layer, the following actions
+		can be perfomed:
 		- Features can be dragged with the mouse in order to change the m/z and RT position.
 		- The postion, intensity and charge of a feature can be edited by double-clicking a feature.
 		- Features can be created by double-clicking the layer background.
