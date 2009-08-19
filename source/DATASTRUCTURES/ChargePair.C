@@ -36,7 +36,7 @@ namespace OpenMS
   {
     os  << "---------- ChargePair -----------------\n"
 		    << "Mass Diff: " << cp.getMassDiff()<< std::endl
-		    << "Compomer Id: " << cp.getCompomerId() << std::endl
+		    << "Compomer: " << cp.getCompomer() << std::endl
 		    << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << std::endl
 		    << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << std::endl;
     return os;

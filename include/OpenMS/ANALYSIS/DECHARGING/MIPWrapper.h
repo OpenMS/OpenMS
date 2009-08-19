@@ -63,7 +63,7 @@ namespace OpenMS {
 														 const PairsIndex margin_right);
 
 		/// calculate a score for the i_th edge
-		float getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me);
+		float getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm);
 
 	}; // !class
     

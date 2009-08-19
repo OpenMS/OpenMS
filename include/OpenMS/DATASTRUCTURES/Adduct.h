@@ -31,6 +31,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS {
     
@@ -62,9 +63,10 @@ public:
     : charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
-    log_prob_(log_prob),
-    formula_(formula)
+    log_prob_(log_prob)
     {
+			if (amount < 0) std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
+			formula_ = checkFormula_(formula);
     }
 
     Adduct operator *(Int m)
@@ -118,6 +120,7 @@ public:
     
     void setAmount(const Int& amount)
     {
+			if (amount < 0) std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
       amount_ = amount;
     }    
  
@@ -147,16 +150,35 @@ public:
     }
     void setFormula(const String& formula)
     {
-      formula_ = formula;
+			formula_ = checkFormula_(formula);
     }      
 //}
     
 private:
     Int charge_; //usually +1
-    Int amount_; // number of entities (can be negative!)
+    Int amount_; // number of entities
     DoubleReal singleMass_; //mass of a single entity
     DoubleReal log_prob_;   // log probability of observing a single entity of this adduct
     String formula_;   // chemical formula (parsable by EmpiricalFormula)
+
+		String checkFormula_(const String & formula)
+		{
+			EmpiricalFormula ef(formula);
+			if (ef.getCharge()!=0)
+			{
+				std::cerr << "Warning: Adduct contains explicit charge (alternating mass)! (" << formula << ")\n";
+			}
+			if (ef.isEmpty())
+			{
+				std::cerr << "Warning: Adduct was given empty formula! (" << formula << ")\n";
+			}
+			if ( (ef.getNumberOfAtoms()>1) && (std::distance(ef.begin(),ef.end())==1) ) 
+			{
+				std::cerr << "Warning: Adduct was given only a single element but with an abundance>1. This might lead to errors! (" << formula << ")\n";
+			}
+			
+			return ef.getString();			
+		}
 
 };
 

@@ -243,7 +243,7 @@ namespace OpenMS {
 					for (UInt charge_site=0;charge_site<charge;++charge_site)
 					{
 						Size adduct_index = gsl_ran_discrete (rnd_gen_, gsl_ran_lookup_esi_charge_impurity);
-						cmp.add(esi_adducts_[adduct_index]);
+						cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
 					}
 
 					// add 1 to abundance of sampled charge state
