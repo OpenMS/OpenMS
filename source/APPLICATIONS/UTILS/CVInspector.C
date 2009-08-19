@@ -216,7 +216,7 @@ class TOPPCVInspector
 				}
 				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
 				{
-					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"yellow\">XOR</FONT></TD></TR>");
+					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"orange\">XOR</FONT></TD></TR>");
 				}
 				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::OR)
 				{
