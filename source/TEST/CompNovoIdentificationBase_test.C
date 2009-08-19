@@ -46,12 +46,6 @@ START_SECTION(CompNovoIdentificationBase())
 }
 END_SECTION
 
-START_SECTION(~CompNovoIdentificationBase())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((CompNovoIdentificationBase(const CompNovoIdentificationBase &source)))
 {
 	NOT_TESTABLE

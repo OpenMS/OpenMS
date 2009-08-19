@@ -46,12 +46,6 @@ START_SECTION(DeNovoAlgorithm())
 }
 END_SECTION
 
-START_SECTION(~DeNovoAlgorithm())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((virtual ~DeNovoAlgorithm()))
 {
   NOT_TESTABLE

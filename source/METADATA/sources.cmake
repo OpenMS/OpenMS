@@ -36,10 +36,11 @@ SpectrumSettings.C
 Tagging.C
 ScanWindow.C
 Product.C
-PeptideEvidence.C
-Identification.C
-SpectrumIdentification.C
-IdentificationHit.C
+# mzIdentML classes scheduled for next release
+#PeptideEvidence.C
+#Identification.C
+#SpectrumIdentification.C
+#IdentificationHit.C
 )
 
 ### add path to the filenames

@@ -84,7 +84,7 @@ START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const St
 	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
-START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "All") const)
+START_SECTION((const std::set<const Residue*> getResidues(const String &residue_set="All") const))
 	set<const Residue*> residues = ptr->getResidues("All");
 	TEST_EQUAL(residues.size() >= 21, true)
 	residues = ptr->getResidues("Natural20");
@@ -92,6 +92,15 @@ START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "
 	residues = ptr->getResidues("Natural19WithoutL");
 	TEST_EQUAL(residues.size(), 19)
 END_SECTION
+
+START_SECTION((const std::set<String>& getResidueSets() const))
+	set<String> res_sets = ResidueDB::getInstance()->getResidueSets();
+	TEST_EQUAL(res_sets.find("All") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural20") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural19WithoutL") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural19WithoutI") != res_sets.end(), true)
+END_SECTION
+
 
 START_SECTION(void setResidues(const String &filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience

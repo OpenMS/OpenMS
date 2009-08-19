@@ -12,8 +12,8 @@ set(sources_list
 	UnimodXMLHandler.C
 	XMLHandler.C
 	XTandemInfileXMLHandler.C
-	MzIdentMLHandler.C
-	TraMLHandler.C
+	#MzIdentMLHandler.C
+	#TraMLHandler.C
 )
 
 if (USE_ANDIMS) 	 

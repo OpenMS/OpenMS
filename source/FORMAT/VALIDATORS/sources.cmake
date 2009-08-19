@@ -7,8 +7,8 @@ XMLValidator.C
 MzMLValidator.C
 MzDataValidator.C
 SemanticValidator.C
-MzIdentMLValidator.C
-TraMLValidator.C
+#MzIdentMLValidator.C
+#TraMLValidator.C
 )
 
 ### add path to the filenames

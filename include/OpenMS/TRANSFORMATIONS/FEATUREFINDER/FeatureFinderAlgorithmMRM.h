@@ -299,9 +299,9 @@ namespace OpenMS
 							{
 								deltas.push_back((sections[i][j].getY() - last_int) / last_int);
 								last_int = sections[i][j].getY();
-								DoubleReal average_delta = std::accumulate(deltas.end() - 3.0, deltas.end(),0.0) / (DoubleReal)3.0;
 								if (write_debuginfo)
 								{
+									DoubleReal average_delta = std::accumulate(deltas.begin(), deltas.end(),0.0) / (DoubleReal)3.0;
 									std::cerr << "AverageDelta: " << average_delta << " (" << sections[i][j].getX() << ", " << sections[i][j].getY() << ")" << std::endl;
 								}
 							}

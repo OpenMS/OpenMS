@@ -48,8 +48,9 @@ UnimodXMLFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C
-MzIdentMLFile.C
-TraMLFile.C
+# mzIdentML and TraML will be implemented later
+#MzIdentMLFile.C
+#TraMLFile.C
 )
 
 if (USE_ANDIMS) 	 

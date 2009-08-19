@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
-<msms_run_summary base_name="/home/hendrik/Software/OpenMS/source/TEST/data/PepXMLFile_test_out.pepxml" msManufacturer="ThermoFinnigan" msModel="LCQ Classic" msIonization="ESI" msMassAnalyzer="Ion Trap" msDetector="UNKNOWN" raw_data_type="raw" raw_data=".mzXML">
+<msms_run_summary base_name="/share/usr/bertsch/OpenMS_x86_64_sl5/source/TEST/data/PepXMLFile_test_out.pepxml" msManufacturer="ThermoFinnigan" msModel="LCQ Classic" msIonization="ESI" msMassAnalyzer="Ion Trap" msDetector="UNKNOWN" raw_data_type="raw" raw_data=".mzXML">
 <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
 </sample_enzyme>
-<search_summary base_name="/home/hendrik/Software/OpenMS/source/TEST/data/PepXMLFile_test_out.pepxml" search_engine="SEQUEST" precursor_mass_type="average" fragment_mass_type="average" out_data_type="out" out_data=".tgz" search_id="1">
+<search_summary base_name="/share/usr/bertsch/OpenMS_x86_64_sl5/source/TEST/data/PepXMLFile_test_out.pepxml" search_engine="SEQUEST" precursor_mass_type="average" fragment_mass_type="average" out_data_type="out" out_data=".tgz" search_id="1">
 		<search_database local_path="dbase/ipi.HUMAN.fasta.v2.31" type="AA"/>
     </search_summary>
     <analysis_timestamp analysis="peptideprophet" time="2007-12-05T17:49:52" id="1"/>
