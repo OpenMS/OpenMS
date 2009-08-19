@@ -483,7 +483,7 @@ namespace OpenMS
   }
 
 
-
+/*
   void AdvancedTheoreticalSpectrumGenerator::writeProbabilisticModel(const String &file_name)
   {
     //store the model in text_file
@@ -533,5 +533,5 @@ namespace OpenMS
 
     text_file.store(file_name);
   }
-
+*/
 }//Namespace

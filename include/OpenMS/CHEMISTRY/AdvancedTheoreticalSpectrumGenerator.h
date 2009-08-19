@@ -175,10 +175,10 @@ namespace OpenMS
 
       ///loads the trained model from file
       void loadProbabilisticModel();
-
-      ///for test reasons
+/*
+      //for test reasons
       void writeProbabilisticModel(const String &file_name);
-
+*/
 
       /**
        @nested class
