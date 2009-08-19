@@ -65,12 +65,6 @@ START_SECTION((DigestSimulation(const DigestSimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~DigestSimulation()))
-{
-  NOT_TESTABLE;
-}
-END_SECTION
-
 START_SECTION((DigestSimulation& operator=(const DigestSimulation &source)))
 {
   DigestSimulation a,b;
@@ -85,9 +79,10 @@ START_SECTION((DigestSimulation& operator=(const DigestSimulation &source)))
 END_SECTION
 
 
-START_SECTION((void digest(const SampleProteins &proteins, SamplePeptides &peptides)))
+START_SECTION((void digest(FeatureMapSim & feature_map)))
 {
   SampleProteins in,out;
+  // TODO: re-enable test code  
 /* 	in["ACDKDDLDDFRLNN"] = 100;
  * 	in["ACDKDDLASSRL"] = 50;
  * 

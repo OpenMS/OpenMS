@@ -96,6 +96,8 @@ START_SECTION((virtual IsotopeModelGeneral& operator=(const IsotopeModelGeneral 
 }
 END_SECTION
 
+/*
+ * This is not a method of IsotopeModelGeneral
 START_SECTION((UInt getCharge()))
 {
 	IsotopeModelGeneral img;
@@ -108,6 +110,7 @@ START_SECTION((UInt getCharge()))
 	TEST_EQUAL(img.getCharge(),3)
 }
 END_SECTION
+*/
 
 START_SECTION((void setSamples(EmpiricalFormula formula)))
 {

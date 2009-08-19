@@ -47,7 +47,7 @@ START_SECTION(DetectabilitySimulation())
 }
 END_SECTION
 
-START_SECTION(DetectabilitySimulation())
+START_SECTION(~DetectabilitySimulation())
 {
 	delete ptr;
 }
@@ -65,7 +65,7 @@ START_SECTION((DetectabilitySimulation(const DetectabilitySimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~IonizationSimulation()))
+START_SECTION((virtual ~DetectabilitySimulation()))
 {
   NOT_TESTABLE
 }
@@ -85,7 +85,7 @@ START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation 
 }
 END_SECTION
 
-START_SECTION((void filterDetectability(FeatureMapSim &)))
+START_SECTION((void filterDetectability(FeatureMapSim & features)))
 {
   // test no detect
   DetectabilitySimulation detect_off;
