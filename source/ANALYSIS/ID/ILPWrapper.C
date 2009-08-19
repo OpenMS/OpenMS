@@ -74,7 +74,7 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 																		std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 																		std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
 																		UInt ms2_spectra_per_rt_bin,
-																		UInt number_of_scans)
+																		Size number_of_scans)
 {
 	Int counter = 0;
 	CoinModel model;
