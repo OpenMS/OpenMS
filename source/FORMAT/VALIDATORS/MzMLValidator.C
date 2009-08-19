@@ -145,7 +145,8 @@ namespace OpenMS
 					binary_data_type_ = parsed_term.accession;
 				}
 				//if both are parsed, check if they match
-				if (binary_data_type_!="" && binary_data_array_!="")
+				if (binary_data_type_!="" && binary_data_array_!="" 
+					&& binary_data_array_!="MS:1000516") //hack for charge array. Remove as soon as we can write integer arrays
 				{
 					if (!cv_.getTerm(binary_data_array_).xref_binary.contains(binary_data_type_))
 					{

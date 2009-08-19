@@ -157,7 +157,7 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
 	String cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
-	file.store(filename_out, protein_ids, peptides);	
+	//file.store(filename_out, protein_ids, peptides);	
 	file.store(cm_file_out, protein_ids, peptides);
 	
 	FuzzyStringComparator fsc;

@@ -273,13 +273,6 @@
 	            <userParam name="name2" value="binaryDataArray_sn2"/>
 	            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
 	          </binaryDataArray>
-	          <binaryDataArray encodedLength="108" dataProcessingRef="XcaliburProcessing">
-	            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-	            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-	            <cvParam cvRef="MS" accession="MS:1000516" name="charge array" value=""/>
-	        		<userParam name="name" value="binaryDataArray_c"/>
-	            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
-	          </binaryDataArray>
 	        </binaryDataArrayList>
 	      </spectrum>
 	

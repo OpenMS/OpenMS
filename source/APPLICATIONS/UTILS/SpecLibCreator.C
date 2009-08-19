@@ -61,7 +61,7 @@ class TOPPSpecLibCreator
 	{
 	public:
 		TOPPSpecLibCreator()
-		: TOPPBase("SpecLibCreator","Creates an MSP formated spectral library.")
+		: TOPPBase("SpecLibCreator","Creates an MSP formated spectral library.",false)
 		{
 		}
 		
