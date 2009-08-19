@@ -92,10 +92,10 @@ namespace OpenMS
 
   protected:
     /// Filter the feature map using a svm model
-    void svm_filter_(FeatureMapSim &);
+    void svmFilter_(FeatureMapSim &);
 
     /// Do not filter the feature map, just set the detectability to a default value
-    void no_filter_(FeatureMapSim &);
+    void noFilter_(FeatureMapSim &);
 
   };
 

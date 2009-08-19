@@ -66,15 +66,15 @@ namespace OpenMS {
   {
     if (param_.getValue("dt_simulation_on") == "true")
     {
-      svm_filter_(features);
+      svmFilter_(features);
     }
     else
     {
-      no_filter_(features);
+      noFilter_(features);
     }
   }
   
-  void DetectabilitySimulation::no_filter_(FeatureMapSim & features)
+  void DetectabilitySimulation::noFilter_(FeatureMapSim & features)
   {  
     // set detectibility to 1.0 for all given peptides
     DoubleReal defaultDetectibility = 1.0;
@@ -189,7 +189,7 @@ namespace OpenMS {
     
 	}
 	
-  void DetectabilitySimulation::svm_filter_(FeatureMapSim & features)
+  void DetectabilitySimulation::svmFilter_(FeatureMapSim & features)
   {
     
     // transform featuremap to peptides vector

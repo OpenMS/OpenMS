@@ -65,12 +65,6 @@ START_SECTION((DetectabilitySimulation(const DetectabilitySimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~DetectabilitySimulation()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation &source)))
 {
   DetectabilitySimulation detect_sim1;
