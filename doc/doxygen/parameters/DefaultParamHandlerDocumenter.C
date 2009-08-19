@@ -56,6 +56,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -129,6 +130,7 @@
 #include<OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include<OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include<OpenMS/SIMULATION/MSSim.h>
+
 
 using namespace std;
 using namespace OpenMS;

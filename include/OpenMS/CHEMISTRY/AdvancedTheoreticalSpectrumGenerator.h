@@ -38,6 +38,8 @@ namespace OpenMS
   /**
    @brief Generates theoretical spectra according to a probabilistic model
 
+   @htmlinclude OpenMS_AdvancedTheoreticalSpectrumGenerator.parameters
+
    @ingroup Chemistry
    */
   class OPENMS_DLLAPI AdvancedTheoreticalSpectrumGenerator: public TheoreticalSpectrumGenerator

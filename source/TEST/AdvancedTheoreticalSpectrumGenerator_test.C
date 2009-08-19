@@ -128,7 +128,6 @@ END_SECTION
 typedef AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork::TanEdge TanEdge;
 typedef std::vector<TanEdge>EdgeVector;
 
-START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(EdgeVector & edges))
 EdgeVector edges;
 TanEdge e1={1,2,-2.0};
 TanEdge e2={1,3,-5.0};
@@ -142,9 +141,7 @@ edges.push_back(e3);
 edges.push_back(e4);
 edges.push_back(e5);
 edges.push_back(e6);
-
 tan_ptr = new AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(edges);
-END_SECTION
 
 std::vector<Int>has_parent;
 std::vector<UInt>dfs_order;
