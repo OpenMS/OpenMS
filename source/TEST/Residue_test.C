@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -374,8 +374,8 @@ END_SECTION
 
 START_SECTION(void setModification(const String& name))
 	e_ptr->setOneLetterCode("M"); // we need M for this mod
-	e_ptr->setModification("MOD:00720");
-	TEST_EQUAL(e_ptr->getModification(), "MOD:00720")
+	e_ptr->setModification("Oxidation");
+	TEST_EQUAL(e_ptr->getModification(), "Oxidation")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 
@@ -458,10 +458,12 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	r.setMonoWeight(12345.6789);
 	TEST_EQUAL(r == *e_ptr, false)
 				
-	//r = *e_ptr;
-	//TEST_EQUAL(r == *e_ptr, true)
-	//r.setModification("MOD:00010");
-	//TEST_EQUAL(r == *e_ptr, false)
+	e_ptr->setOneLetterCode("M");
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setModification("Oxidation");
+	TEST_EQUAL(r == *e_ptr, false)
+	e_ptr->setOneLetterCode("B");
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true);
@@ -670,15 +672,41 @@ START_SECTION(DoubleReal getBackboneBasicityRight() const)
 	TEST_REAL_SIMILAR(e_ptr->getBackboneBasicityRight(), 12345.6)
 END_SECTION
 
-/*
 START_SECTION(bool isModified() const)
-	ResidueModification mod;
 	Residue res;
+	res.setOneLetterCode("M"); // we need M for this mod
 	TEST_EQUAL(res.isModified(), false)
-	res.setModification(&mod);
+	res.setModification("Oxidation");
 	TEST_EQUAL(res.isModified(), true)
 END_SECTION
-*/
+
+
+START_SECTION((void setResidueSets(const std::set< String > &residues_sets)))
+	set<String> res_sets;
+	res_sets.insert("rs1");
+	res_sets.insert("rs2");
+	e_ptr->setResidueSets(res_sets);
+	TEST_EQUAL(res_sets == e_ptr->getResidueSets(), true)
+END_SECTION
+
+START_SECTION((void addResidueSet(const String &residue_sets)))
+	e_ptr->addResidueSet("rs3");
+	TEST_EQUAL(e_ptr->getResidueSets().size(), 3)
+END_SECTION
+
+START_SECTION((const std::set<String>& getResidueSets() const))
+	set<String> res_sets;
+	res_sets.insert("rs1");
+	res_sets.insert("rs2");
+	res_sets.insert("rs3");
+	TEST_EQUAL(e_ptr->getResidueSets() == res_sets, true)
+END_SECTION
+
+START_SECTION((bool isInResidueSet(const String &residue_set)))
+	TEST_EQUAL(e_ptr->isInResidueSet("rs1"), true)
+	TEST_EQUAL(e_ptr->isInResidueSet("rs3"), true)
+	TEST_EQUAL(e_ptr->isInResidueSet("rs4"), false)
+END_SECTION
 
 END_TEST
 

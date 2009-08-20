@@ -75,7 +75,7 @@ namespace OpenMS
 			void searchTerminalModifications(std::set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const;
 
 			/// returns all modification which have the given name as synonym and the given origin
-			void searchModifications(std::set<const ResidueModification*>& mods, const String& name, const String& origin, ResidueModification::Term_Specificity term_spec) const;
+			void searchModifications(std::set<const ResidueModification*>& mods, const String& orgin, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
 			
 			/** @brief returns the modifications of the given name
 
@@ -97,10 +97,10 @@ namespace OpenMS
 			Size findModificationIndex(const String& mod_name) const;
 
 			/// query the modifications DB to get the modifications with mass, without any specific origin
-			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, DoubleReal mass, DoubleReal error = 0.0);
 			
 			/// query the modifications DB to get modifications with the given mass at the given residue
-			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, double mass, double error = 0.0);
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, DoubleReal mass, DoubleReal error = 0.0);
 
 			/// adds modifications from a given file in OBO format
 			void readFromOBOFile(const String& filename);
