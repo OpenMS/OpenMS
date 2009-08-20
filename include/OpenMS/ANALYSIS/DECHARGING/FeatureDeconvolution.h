@@ -351,12 +351,14 @@ namespace OpenMS
 												// save new adduct candidate
 												if (cmp_stripped.getComponent()[Compomer::LEFT].size()>0)
 												{
-													CmpInfo_ cmp_left(cmp_stripped.getAdductsAsString(Compomer::LEFT), feature_relation.size(), Compomer::LEFT);
+													String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
+													CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
 													feature_adducts[i_RT].insert( cmp_left );
 												}
 												if (cmp_stripped.getComponent()[Compomer::RIGHT].size()>0)
 												{
-													CmpInfo_ cmp_right(cmp_stripped.getAdductsAsString(Compomer::RIGHT), feature_relation.size(), Compomer::RIGHT);
+													String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
+													CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
 													feature_adducts[i_RT_window].insert( cmp_right );
 												}
 												
@@ -859,9 +861,11 @@ namespace OpenMS
 				std::cout << " +++++ printEdgesOfConnectedFeatures_ +++++\n";
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
-					if ((feature_relation[i].getElementIndex(0) == idx_1) && (feature_relation[i].getElementIndex(1)==idx_2)
+					if (
+							((feature_relation[i].getElementIndex(0) == idx_1) && (feature_relation[i].getElementIndex(1)==idx_2))
 							 ||
-							 (feature_relation[i].getElementIndex(0) == idx_2) && (feature_relation[i].getElementIndex(1)==idx_1))
+							((feature_relation[i].getElementIndex(0) == idx_2) && (feature_relation[i].getElementIndex(1)==idx_1))
+						 )
 					{
 						std::cout << "\n" << feature_relation[i].getCompomer() << "\n";
 					}

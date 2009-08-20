@@ -38,8 +38,14 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
+/**
+	@brief TODO
+	
+	@todo Add docu here (Chris)
+*/
 class OPENMS_DLLAPI Compomer
 {
 public:
