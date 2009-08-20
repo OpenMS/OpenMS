@@ -38,7 +38,7 @@ namespace OpenMS
 	/**
 		@brief Exponentially modified gaussian distribution model for elution profiles.
 
-    @ref ElutionModel_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_ElutionModel.parameters
 
 	*/
 	class OPENMS_DLLAPI ElutionModel

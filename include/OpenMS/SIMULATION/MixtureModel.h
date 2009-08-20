@@ -39,21 +39,8 @@ namespace OpenMS
 
 		Can be used to model imperfect elution profiles.
 
-		Parameters:
-		<table>
-			<tr><td>interpolation_step</td>
-					<td>step size used to interpolate model</td></tr>
-			<tr><td>intensity_scaling</td>
-					<td>factor used to scale the calculated intensities</td></tr>
-			<tr><td>cutoff</td>
-					<td>peak with intensity below cutoff is not considered
-							 to be part of the model</td></tr>
-			<tr><td>bounding_box: min, max</td>
-					<td>minimum and maximum coordinate value of bounding box enclosing
-							 the data used to fit the model</td></tr>
-			<tr><td>statistics: mean1, mean2, variance1, variance2</td>
-					<td>means and variances  of the mixture</td></tr>
-		</table>
+    @htmlinclude OpenMS_MixtureModel.parameters
+
 	*/
 	class OPENMS_DLLAPI MixtureModel
   : public InterpolationModel

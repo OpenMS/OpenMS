@@ -75,8 +75,6 @@ namespace OpenMS {
     /// fill experiment with signals and noise
     void generateRawSignals(FeatureMapSim &, MSSimExperiment &);
 
-    /// Returns the rt sampling rate that was set with the parameters
-    SimCoordinateType getRTSamplingRate() const;
   private:
     /// Default constructor
     RawMSSignalSimulation();

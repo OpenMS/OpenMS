@@ -124,12 +124,14 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-#include<OpenMS/SIMULATION/DigestSimulation.h>
-#include<OpenMS/SIMULATION/PTMSimulation.h>
-#include<OpenMS/SIMULATION/IonizationSimulation.h>
-#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
-#include<OpenMS/SIMULATION/RawMSSignalSimulation.h>
-#include<OpenMS/SIMULATION/MSSim.h>
+#include <OpenMS/SIMULATION/DigestSimulation.h>
+#include <OpenMS/SIMULATION/PTMSimulation.h>
+#include <OpenMS/SIMULATION/IonizationSimulation.h>
+#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
+#include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
+#include <OpenMS/SIMULATION/MSSim.h>
+#include <OpenMS/SIMULATION/ElutionModel.h>
+#include <OpenMS/SIMULATION/MixtureModel.h>
 
 
 using namespace std;
@@ -296,6 +298,7 @@ int main (int argc , char** argv)
 	DOCME(DelaunayPairFinder);
   DOCME(DetectabilitySimulation);
 	DOCME(DigestSimulation);
+	DOCME(ElutionModel);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);
 	DOCME(ExtendedIsotopeFitter1D);
@@ -320,6 +323,7 @@ int main (int argc , char** argv)
 	DOCME(LmaGaussModel);
 	DOCME(LmaIsotopeFitter1D);
 	DOCME(LmaIsotopeModel);
+	DOCME(MixtureModel);
 	DOCME(MSPFile);
   DOCME(MSSim);
 	DOCME(MapAlignmentAlgorithmPoseClustering);

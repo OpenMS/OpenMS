@@ -41,10 +41,8 @@ using std::vector;
 namespace OpenMS {
 
   /**
-   TODO:
-    * add removeDuplicate Points
-    * review Ole's methods for improvment/changes
-    * BIG TODO: initialize members!!!!
+    * TODO: review Ole's methods for improvment/changes
+    * TODO: initialize members!!!!
   */
   RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
   : DefaultParamHandler("RawSignalSimulation"), rnd_gen_(random_generator)

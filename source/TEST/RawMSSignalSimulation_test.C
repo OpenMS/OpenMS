@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Stephan Aiche$
+// $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -62,12 +62,6 @@ START_SECTION((RawMSSignalSimulation(const RawMSSignalSimulation &source)))
   
   RawMSSignalSimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
-}
-END_SECTION
-
-START_SECTION((virtual ~RawMSSignalSimulation()))
-{
-  NOT_TESTABLE
 }
 END_SECTION
 
