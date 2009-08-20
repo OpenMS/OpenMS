@@ -55,13 +55,28 @@ END_SECTION
 
 START_SECTION((MSSim(const MSSim &source)))
 {
-  // TODO
+  MSSim source;
+  Param p = source.getParameters();
+  p.setValue("peak_fwhm",0.3);
+  source.setParameters(p);
+
+  MSSim target(source);
+  TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
 
 START_SECTION((MSSim& operator=(const MSSim &source)))
 {
-  // TODO
+  MSSim source;
+  Param p = source.getParameters();
+  p.setValue("Digestion:missed_cleavages",10);
+  source.setParameters(p);
+
+  MSSim target;
+
+  target = source;
+
+  TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
 
@@ -112,7 +127,12 @@ END_SECTION
 
 START_SECTION((MSSimExperiment const& getExperiment() const ))
 {
-  // TODO
+  MSSimExperiment empty_experiment;
+  MSSim mssim;
+
+  TEST_EQUAL(mssim.getExperiment().getSize(), empty_experiment.getSize())
+
+  // TODO we need some more sophisticated testing here
 }
 END_SECTION
 
@@ -122,6 +142,11 @@ START_SECTION((FeatureMapSim const& getSimulatedFeatures() const ))
 }
 END_SECTION
 
+START_SECTION((ConsensusMap const & getSimulatedConsensus() const))
+{
+  // TODO
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
