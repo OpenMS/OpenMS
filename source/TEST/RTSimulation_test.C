@@ -67,12 +67,6 @@ START_SECTION((RTSimulation(const RTSimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~RTSimulation()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 {
   RTSimulation source(NULL);
