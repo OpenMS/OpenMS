@@ -218,7 +218,56 @@ START_SECTION([EXTRA] zlib functionality)
 	
 END_SECTION
 
-START_SECTION([EXTRA] integers and strings)
+START_SECTION((void encodeStrings(std::vector<String>& in, std::string& out, bool zlib_compression= false)))
+	Base64 b64;
+	String src,str;
+	
+	//without zlib compression
+	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0";
+	vector<String> strings;
+	b64.decodeStrings(src,strings,false);
+	TEST_EQUAL(strings.size() == 5,true 	)
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+	//same as above but this time the hole string is null-terminated as well
+	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
+	b64.decodeStrings(src,strings,false);
+	TEST_EQUAL(strings.size() == 5,true 	)
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+	
+	//zlib compressed			
+	src = "eJxLSSxmyCwuYUjNzGMoSQUyDI2MTRgAUX4GTw==";
+	b64.decodeStrings(src,strings,true);
+	TEST_EQUAL(strings.size() == 5,true )
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+	
+	//without zlib compression
+	b64.encodeStrings(strings,str,false);
+	b64.decodeStrings(str,strings,false);
+	TEST_EQUAL(strings[0],"das")
+	TEST_EQUAL(strings[1],"ist")
+	TEST_EQUAL(strings[2],"ein")
+	TEST_EQUAL(strings[3],"test")
+	TEST_EQUAL(strings[4],"1234")
+END_SECTION
+	
+START_SECTION((void decodeStrings(const std::string& in, std::vector<String>& out, bool zlib_compression = false)))
+	//this functionality is tested in the encodeString test
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION([EXTRA] integer decoding)
 	Base64 b64;
 	String src,str;
 	vector<Real> res;
@@ -283,45 +332,6 @@ START_SECTION([EXTRA] integers and strings)
 	TEST_REAL_SIMILAR(res[4],8)
 	TEST_REAL_SIMILAR(res[5],9)
 	TEST_REAL_SIMILAR(res[6],522)
-	//encode and decode of strings
-	//without zlib compression
-	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0";
-	vector<String> strings;
-	b64.decodeStrings(src,strings,false);
-	TEST_EQUAL(strings.size() == 5,true 	)
-	TEST_EQUAL(strings[0],"das")
-	TEST_EQUAL(strings[1],"ist")
-	TEST_EQUAL(strings[2],"ein")
-	TEST_EQUAL(strings[3],"test")
-	TEST_EQUAL(strings[4],"1234")
-	//same as above but this time the hole string is null-terminated as well
-	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
-	b64.decodeStrings(src,strings,false);
-	TEST_EQUAL(strings.size() == 5,true 	)
-	TEST_EQUAL(strings[0],"das")
-	TEST_EQUAL(strings[1],"ist")
-	TEST_EQUAL(strings[2],"ein")
-	TEST_EQUAL(strings[3],"test")
-	TEST_EQUAL(strings[4],"1234")
-	
-	//zlib compressed			
-	src = "eJxLSSxmyCwuYUjNzGMoSQUyDI2MTRgAUX4GTw==";
-	b64.decodeStrings(src,strings,true);
-	TEST_EQUAL(strings.size() == 5,true )
-	TEST_EQUAL(strings[0],"das")
-	TEST_EQUAL(strings[1],"ist")
-	TEST_EQUAL(strings[2],"ein")
-	TEST_EQUAL(strings[3],"test")
-	TEST_EQUAL(strings[4],"1234")
-	
-	//without zlib compression
-	b64.encodeStrings(strings,str,false);
-	b64.decodeStrings(str,strings,false);
-	TEST_EQUAL(strings[0],"das")
-	TEST_EQUAL(strings[1],"ist")
-	TEST_EQUAL(strings[2],"ein")
-	TEST_EQUAL(strings[3],"test")
-	TEST_EQUAL(strings[4],"1234")
 END_SECTION
 
 /////////////////////////////////////////////////////////////
