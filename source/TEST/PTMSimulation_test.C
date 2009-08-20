@@ -65,12 +65,6 @@ START_SECTION((PTMSimulation(const PTMSimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~PTMSimulation()))
-{
-  NOT_TESTABLE;
-}
-END_SECTION
-
 START_SECTION((PTMSimulation& operator=(const PTMSimulation &source)))
 {
   PTMSimulation a(NULL);

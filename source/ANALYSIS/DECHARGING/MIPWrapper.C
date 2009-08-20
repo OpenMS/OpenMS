@@ -99,7 +99,7 @@ namespace OpenMS {
 		return score;
 	}
 		
-	DoubleReal MIPWrapper::computeSlice_(const MassExplainer& me,
+	DoubleReal MIPWrapper::computeSlice_(const MassExplainer& /*me*/,
 																			 const FeatureMap<> fm,
 																			 PairsType& pairs, 
 																			 const PairsIndex margin_left, 

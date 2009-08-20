@@ -57,7 +57,7 @@ END_SECTION
 Compomer cmp;
 cmp.setID(99);
 
-START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Size &compomer_id, const DoubleReal &mass_diff, const bool active)))
+START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Compomer &compomer, const DoubleReal &mass_diff, const bool active)))
 {
 	ChargePair cp(34,45, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp.getElementIndex(0), 34);
@@ -133,13 +133,13 @@ START_SECTION((void setElementIndex(UInt pairID, Size e)))
 }
 END_SECTION
 
-START_SECTION((Size getCompomerId() const))
+START_SECTION((const Compomer& getCompomer() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setCompomerId(Size compomer_id)))
+START_SECTION((void setCompomer(const Compomer &compomer)))
 {
   ChargePair cp;
 	cp.setCompomer(cmp);

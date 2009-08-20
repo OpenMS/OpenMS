@@ -68,7 +68,7 @@ namespace OpenMS {
 
     std::cout << "############## END DEBUG -- FEATURE MAP ##############" << std::endl;
 #else
-		if (feature_map.size()==0) std::cout << "dummy line";
+		if (feature_map.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 

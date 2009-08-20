@@ -49,10 +49,11 @@ namespace OpenMS
 class OPENMS_DLLAPI Compomer
 {
 public:
+	/// side of compomer (LEFT ^ substract; RIGHT ^ add)
 	enum SIDE {LEFT, RIGHT, BOTH};
 	
-	typedef Map<String,Adduct> CompomerSide; // adducts and their abundance etc
-	typedef std::vector< CompomerSide > CompomerComponents; // index0=left, index1=right
+	typedef Map<String,Adduct> CompomerSide; /// adducts and their abundance etc
+	typedef std::vector< CompomerSide > CompomerComponents; /// container for the two sides [0]=left, [1]=right
 	
 	/// Default Constructor
 	Compomer()
@@ -90,7 +91,7 @@ public:
 	{
 	}
 	
-	/// Copy C'tor
+	/// Assignment Operator
 	Compomer& operator=(const Compomer& source)
 	{
 		if (&source == this) return *this;
@@ -182,7 +183,7 @@ public:
 		return cmp_;
 	}
 
-
+	/// net charge of compomer (i.e. difference between left and right side of compomer)
 	const Int& getNetCharge() const
 	{
 		return net_charge_;
@@ -240,7 +241,7 @@ public:
 		return r;
 	}
 	
-	/**
+	/*
 	/// check if Compomer only contains a single adduct
 	bool isSimpleAdduct(Adduct& a)
 	{
@@ -251,12 +252,14 @@ public:
 				
 		return true;
 	}
-	**/
+	*/
 	
 	/**
-		remove ALL instances of the given adduct,
+		@brief Remove all adducts of type @p a
+	
+		Remove ALL instances of the given adduct,
 		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
-	*/
+	**/
 	Compomer removeAdduct(const Adduct& a) const
 	{
 		Compomer tmp = removeAdduct(a, LEFT);
@@ -264,7 +267,9 @@ public:
 		return tmp;
 	}
 	
-	/** 
+	/**
+		@brief Remove all adducts of type @p a from @p side (LEFT or RIGHT)
+		
 		remove ALL instances of the given adduct from the given side (LEFT or RIGHT),
 		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
 	*/
@@ -292,9 +297,7 @@ public:
 		return tmp;
 	}
 	
-	/**
-			Adds @p add_side to this compomer.
-	*/
+	/// Adds @p add_side to this compomer.
 	void add(const CompomerSide& add_side, UInt side)
 	{
 		for (CompomerSide::const_iterator it=add_side.begin(); it!=add_side.end(); ++it)
@@ -303,7 +306,7 @@ public:
 		}
 	}
 	
-/**	Size augmentSide_(const CompomerSide& to_augment, const Adduct& to_replace, UInt side)
+/*	Size augmentSide_(const CompomerSide& to_augment, const Adduct& to_replace, UInt side)
 	{
 		Size rvalue = 0;
 		Size free_charges;
