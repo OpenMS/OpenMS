@@ -40,13 +40,11 @@ OfflinePrecursorIonSelection::OfflinePrecursorIonSelection() : DefaultParamHandl
 	defaults_.setMinInt("peptides_per_protein",1);
 	defaults_.setValue("ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
 	defaults_.setMinInt("ms2_spectra_per_rt_bin",1);
-	defaults_.setValue("min_peak_distance",3,"The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
-	defaults_.setMinInt("min_peak_distance",0);
-	defaults_.setValue("ignore_overlapping_peaks","true","If true overlapping or nearby peaks are ignored for selection, if false peaks with nearby peaks (within min_peak_distance) are not considered for precursor selection");
-	std::vector<String> valid_opts;
-	valid_opts.push_back("true");
-	valid_opts.push_back("false");
-	defaults_.setValidStrings("ignore_overlapping_peaks",valid_opts);
+	defaults_.setValue("min_peak_distance",3.,"The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
+	defaults_.setMinFloat("min_peak_distance",0.);
+	defaults_.setValue("exclude_overlapping_peaks","false","If true overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
+	defaults_.setValidStrings("exclude_overlapping_peaks",StringList::create("true,false"));
+
 	defaultsToParam_();
 }
 

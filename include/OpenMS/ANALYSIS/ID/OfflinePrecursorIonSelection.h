@@ -161,7 +161,7 @@ namespace OpenMS
 				indices.push_back(vec);
 			}
 		// eliminate nearby peaks
-		if(param_.getValue("ignore_overlapping_peaks")=="false") checkMassRanges_(indices,experiment);
+		if(param_.getValue("exclude_overlapping_peaks")=="true") checkMassRanges_(indices,experiment);
 	}
 
 

@@ -99,8 +99,8 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 
 	ms2.clear();
 	feature_based = true;
-	param.setValue("ignore_overlapping_peaks","false");
-	param.setValue("min_peak_distance",40);
+	param.setValue("exclude_overlapping_peaks","true");
+	param.setValue("min_peak_distance",40.);
 	ptr->setParameters(param);
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),2)
@@ -115,7 +115,7 @@ END_SECTION
 START_SECTION((template < typename InputPeakType > void getMassRanges(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
 	Param param;
-	param.setValue("ignore_overlapping_peaks","true");
+	param.setValue("exclude_overlapping_peaks","false");
 	ptr->setParameters(param);
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
 	ptr->getMassRanges(map,raw_data,indices);

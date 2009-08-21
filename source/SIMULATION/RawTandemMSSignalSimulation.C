@@ -95,6 +95,10 @@ namespace OpenMS
 		defaults_.setMaxInt("Precursor:charge_filter",30);
 		defaults_.setValue("Precursor:ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
 		defaults_.setMinInt("Precursor:ms2_spectra_per_rt_bin",1);
+		defaults_.setValue("Precursor:exclude_overlapping_peaks","true","If true overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
+		defaults_.setValidStrings("Precursor:exclude_overlapping_peaks", StringList::create("true,false"));
+		defaults_.setValue("Precursor:min_peak_distance",2.,"The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
+		defaults_.setMinFloat("Precursor:min_peak_distance",0.);
 		
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
@@ -159,8 +163,8 @@ namespace OpenMS
 
 		//** precursor selection **//
 		OfflinePrecursorIonSelection ps;
-		Param param;
-		param.setValue("ms2_spectra_per_rt_bin",param_.getValue("Precursor:ms2_spectra_per_rt_bin"));
+		Param param = param_.copy("Precursor:",true);
+		param.remove("charge_filter");
 		ps.setParameters(param);
 		// different selection strategies for MALDI and ESI
 		if((String)param_.getValue("ionization_type") == "ESI")
