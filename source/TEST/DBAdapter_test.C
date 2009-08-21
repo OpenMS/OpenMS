@@ -66,7 +66,7 @@ bool do_tests=true;
 TextFile credentials;
 try
 {
-	credentials.load("DB_credentials.txt",true);
+	credentials.load(String(OPENMS_BINARY_PATH) + "/source/TEST/DB_credentials.txt",true);
 }
 catch(...)
 {

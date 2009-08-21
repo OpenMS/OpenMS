@@ -382,9 +382,11 @@ if ("${INSTALL_PREFIX}" STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 else()
-	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")	
+	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 endif()
+
+
 
 set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
 
@@ -513,16 +515,11 @@ set(DB_TEST_PW "openms_test_password" CACHE STRING "Test database user password 
 if (DB_TEST)
 	# output
 	message(STATUS "DB testing enabled")
-	message(STATUS "DB testing host    : ${DB_TEST_HOST}")
-	message(STATUS "DB testing port    : ${DB_TEST_PORT}")
-	message(STATUS "DB testing database: ${DB_TEST_DB}")
-	message(STATUS "DB testing user    : ${DB_TEST_USER}")
-	message(STATUS "DB testing password: ${DB_TEST_PW}")
 	message(STATUS "DB testing - creating credentials files ...")
 	# create assorted credentials files
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/DB_credentials.txt.in ${PROJECT_SOURCE_DIR}/source/TEST/DB_credentials.txt)
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter.ini.in ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter.ini)
-	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini.in ${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini)
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/DB_credentials.txt.in ${PROJECT_BINARY_DIR}/source/TEST/DB_credentials.txt)
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBImporter.ini)
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBExporter.ini)
 endif()
 
 ########################################################

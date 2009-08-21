@@ -52,8 +52,8 @@ namespace OpenMS
 	{
 		public:
 
-		/// Return the version number and the build time of OpenMS
-		static String getVersionAndTime();
+		/// Return the build time of OpenMS
+		static String getTime();
 
 		/// Return the version number of OpenMS
 		static String getVersion();

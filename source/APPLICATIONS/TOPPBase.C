@@ -63,7 +63,7 @@ namespace OpenMS
 		// if version is empty, use the OpenMS/TOPP version and date/time
 		if (version_=="")
 		{
-			version_ = VersionInfo::getVersionAndTime();
+			version_ = VersionInfo::getVersion() + " " + VersionInfo::getTime();
 		}
 		// if the revision info is meaningful, show it as well
 		if ( !VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported" )

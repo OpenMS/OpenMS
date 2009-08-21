@@ -69,6 +69,7 @@ Detailed list of changes to specific OpenMS classes
 Changes to the contrib package:
 - Added CoinMP 1.3.3
 - Added IMSlib 0.1.0
+- Update Xerces-C to revision 806068 of SVN trunk
 
 Bug fixes:
 - [2778461]: mzData files containing 'supDataArray' elements no longer crash OpenMS 

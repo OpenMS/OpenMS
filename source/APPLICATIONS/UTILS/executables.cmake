@@ -23,6 +23,7 @@ IDMassAccuracy
 SpectrumGeneratorNetworkTrainer
 PeptideIndexer
 ERPairFinder
+OpenMSInfo
 )
 
 ### pass source file list to the upper instance
