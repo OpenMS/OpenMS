@@ -5,7 +5,6 @@ set(directory source/FORMAT)
 set(sources_list
 Base64.C
 CVMappingFile.C
-CVMappings.C
 ConsensusXMLFile.C
 ControlledVocabulary.C
 CsvFile.C

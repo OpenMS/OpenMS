@@ -79,7 +79,7 @@ public:
 				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@see sufArray.h
 	*/
-	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<double> & spec);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<DoubleReal> & spec);
 
 	/**
 	@brief finds all candidate for given DTA file

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
@@ -51,13 +51,13 @@ namespace OpenMS
 			//Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
 			bool allowed = false;
 			bool rule_found = false;
-			vector<CVMappings::CVMappingRule>& rules = rules_[path];
+			vector<CVMappingRule>& rules = rules_[path];
 			for (Size r=0;r<rules.size(); ++r) //go thru all rules
 			{
 				rule_found = true;
 				for (Size t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
 				{
-					const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
+					const CVMappingTerm& term = rules[r].getCVTerms()[t];
 					if (term.getUseTerm() && term.getAccession()==parsed_term.accession) //check if the term itself is allowed
 					{
 						allowed = true;

@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -21,63 +21,72 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
-// $Authors: Marc Sturm $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
+#include <OpenMS/DATASTRUCTURES/CVReference.h>
 
+using namespace std;
 
-#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
-
-namespace OpenMS 
+namespace OpenMS
 {
-	class ControlledVocabulary;
-	namespace Internal
+	// CV reference implementation
+	CVReference::CVReference()
 	{
-		
-	  /**
-	    @brief Semantically validates MzXML files.
-	  */
-	  class OPENMS_DLLAPI MzDataValidator
-			: public SemanticValidator
-	  {
-	    public:
-	      /**
-	      	@brief Constructor
-	      
-					@param mapping The mapping rules
-					@param cv @em All controlled vocabularies required for the mapping 
-				*/
-	      MzDataValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
-				
-				/// Destructor
-				virtual ~MzDataValidator();
-				
-			protected:
-				
-				//Docu in base class
-				void handleTerm_(const String& path, const CVTerm& parsed_term);
-				
-			private:
-				
-				/// Not implemented
-				MzDataValidator();
-				
-				/// Not implemented
-				MzDataValidator(const MzDataValidator& rhs);
+	}
+
+	CVReference::~CVReference()
+	{
+	}
 	
-				/// Not implemented
-				MzDataValidator& operator = (const MzDataValidator& rhs);
-	
-	  };
- 
-	} // namespace Internal
- 
+	CVReference::CVReference(const CVReference& rhs)
+		: name_(rhs.name_),
+			identifier_(rhs.identifier_)
+	{
+	}
+
+	CVReference& CVReference::operator = (const CVReference& rhs)
+	{
+		if (this != &rhs)
+		{
+			name_ = rhs.name_;
+			identifier_ = rhs.identifier_;
+		}
+		return *this;
+	}
+
+	bool CVReference::operator == (const CVReference& rhs) const
+	{
+		return name_ == rhs.name_ && identifier_ == rhs.identifier_;
+	}
+
+	bool CVReference::operator != (const CVReference& rhs) const
+	{
+		return !(*this == rhs);
+	}
+
+	void CVReference::setName(const String& name)
+	{
+		name_ = name;
+	}
+
+	const String& CVReference::getName() const
+	{
+		return name_;
+	}
+
+	void CVReference::setIdentifier(const String& identifier)
+	{
+		identifier_ = identifier;
+	}
+
+	const String& CVReference::getIdentifier() const
+	{
+		return identifier_;
+	}
+
 } // namespace OpenMS
 
-#endif
+
 

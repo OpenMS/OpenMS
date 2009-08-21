@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm, Andreas Bertsch $
-// $Authors: $
+// $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
@@ -167,7 +167,7 @@ namespace OpenMS
 		  String path = getPath_()+ "/" + cv_tag_ + "/@" + accession_att_;
 			
 			//look up rules and fulfilled rules/terms
-			vector<CVMappings::CVMappingRule>& rules = rules_[path];
+			vector<CVMappingRule>& rules = rules_[path];
 			Map<String , Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 			
 			//check how offen each term appeared
@@ -197,7 +197,7 @@ namespace OpenMS
 				}
 				
 				//MUST / AND - all terms must be matched
-				if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+				if (rules[r].getRequirementLevel()==CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::AND)
 				{
 					if (match_count!=terms_count)
 					{
@@ -205,7 +205,7 @@ namespace OpenMS
 					}
 				}
 				//MUST / OR - at lest one terms must be matched
-				else if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::OR)
+				else if (rules[r].getRequirementLevel()==CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::OR)
 				{
 					if (match_count==0)
 					{
@@ -213,7 +213,7 @@ namespace OpenMS
 					}
 				}
 				//MUST / XOR - exactly one term must be matched
-				else if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+				else if (rules[r].getRequirementLevel()==CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::XOR)
 				{
 					if (match_count!=1)
 					{
@@ -221,7 +221,7 @@ namespace OpenMS
 					}
 				}
 				//MAY(SHOULD) / AND - none or all terms must be matched
-				else if (rules[r].getRequirementLevel()!=CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+				else if (rules[r].getRequirementLevel()!=CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::AND)
 				{
 					if (match_count!=0 && match_count!=terms_count)
 					{
@@ -229,7 +229,7 @@ namespace OpenMS
 					}
 				}
 				//MAY(SHOULD) / XOR - zero or one terms must be matched
-				else if (rules[r].getRequirementLevel()!=CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+				else if (rules[r].getRequirementLevel()!=CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::XOR)
 				{
 					if (match_count>1)
 					{
@@ -285,13 +285,13 @@ namespace OpenMS
 			//Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
 			bool allowed = false;
 			bool rule_found = false;
-			vector<CVMappings::CVMappingRule>& rules = rules_[path];
+			vector<CVMappingRule>& rules = rules_[path];
 			for (Size r=0;r<rules.size(); ++r) //go thru all rules
 			{
 				rule_found = true;
 				for (Size t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
 				{
-					const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
+					const CVMappingTerm& term = rules[r].getCVTerms()[t];
 					if (term.getUseTerm() && term.getAccession()==parsed_term.accession) //check if the term itself is allowed
 					{
 						allowed = true;

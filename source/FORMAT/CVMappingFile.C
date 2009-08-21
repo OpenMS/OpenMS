@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CVMappingFile.h>
@@ -71,7 +71,7 @@ namespace OpenMS
 		if (tag_ == "CvReference")
 		{
 			// CvReference cvName="PSI-PI" cvIdentifier="PSI-PI"/>
-			CVMappings::CVReference ref;
+			CVReference ref;
 			ref.setName(attributeAsString_(attributes, "cvName"));
 			ref.setIdentifier(attributeAsString_(attributes, "cvIdentifier"));
 			cv_references_.push_back(ref);
@@ -119,23 +119,23 @@ namespace OpenMS
 				}
 			}
 			actual_rule_.setElementPath(element_path);
-			CVMappings::CVMappingRule::RequirementLevel level = CVMappings::CVMappingRule::MUST;
+			CVMappingRule::RequirementLevel level = CVMappingRule::MUST;
 			String lvl = attributeAsString_(attributes, "requirementLevel");
 			if (lvl == "MAY")
 			{
-				level = CVMappings::CVMappingRule::MAY;
+				level = CVMappingRule::MAY;
 			}
 			else
 			{
 				if (lvl == "SHOULD")
 				{
-					level = CVMappings::CVMappingRule::SHOULD;
+					level = CVMappingRule::SHOULD;
 				}
 				else
 				{
 					if (lvl == "MUST")
 					{
-						level = CVMappings::CVMappingRule::MUST;
+						level = CVMappingRule::MUST;
 					}
 					else
 					{
@@ -147,23 +147,23 @@ namespace OpenMS
 			actual_rule_.setRequirementLevel(level);
 
 			actual_rule_.setScopePath(attributeAsString_(attributes, "scopePath"));
-			CVMappings::CVMappingRule::CombinationsLogic logic = CVMappings::CVMappingRule::OR;
+			CVMappingRule::CombinationsLogic logic = CVMappingRule::OR;
 			String lgc = attributeAsString_(attributes, "cvTermsCombinationLogic");
 			if (lgc == "OR")
 			{
-				logic = CVMappings::CVMappingRule::OR;
+				logic = CVMappingRule::OR;
 			}
 			else
 			{
 				if (lgc == "AND")
 				{
-					logic = CVMappings::CVMappingRule::AND;
+					logic = CVMappingRule::AND;
 				}
 				else
 				{
 					if (lgc == "XOR")
 					{
-						logic = CVMappings::CVMappingRule::XOR;
+						logic = CVMappingRule::XOR;
 					}
 					else
 					{
@@ -178,7 +178,7 @@ namespace OpenMS
 		if (tag_ == "CvTerm")
 		{
 			// termAccession="PI:00266" useTermName="false" useTerm="false" termName="role type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI-PI"
-			CVMappings::CVTerm term;
+			CVMappingTerm term;
 			
 			term.setAccession(attributeAsString_(attributes, "termAccession"));
 			term.setUseTerm(DataValue(attributeAsString_(attributes, "useTerm")).toBool());
@@ -223,7 +223,7 @@ namespace OpenMS
 		if (tag_ == "CvMappingRule")
 		{
 			rules_.push_back(actual_rule_);
-			actual_rule_ = CVMappings::CVMappingRule();
+			actual_rule_ = CVMappingRule();
 			return;
 		}
 		

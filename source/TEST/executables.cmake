@@ -39,6 +39,10 @@ set(datastructures_executables_list
 	ChargePair_test
 	Compomer_test
 	MassExplainer_test
+	CVMappingTerm_test
+	CVMappingRule_test
+	CVReference_test
+	CVMappings_test
 )
 
 set(metadata_executables_list

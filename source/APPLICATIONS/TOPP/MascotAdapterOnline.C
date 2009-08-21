@@ -134,6 +134,7 @@ class TOPPMascotAdapterOnline
 			mascot_infile.setParameters(mascot_param);
 
 			// get the spectra into string stream
+			writeDebug_("Writing Mascot mgf file to stringstream", 1);
 			stringstream ss;
 			mascot_infile.store(ss, in, exp);
 
@@ -144,15 +145,19 @@ class TOPPMascotAdapterOnline
 			QCoreApplication event_loop(argc, argv2);
 			MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
 			Param mascot_query_param = getParam_().copy("Mascot_server:", true);
+			writeDebug_("Setting parameters for Mascot query", 1);
 			mascot_query->setParameters(mascot_query_param);
+			writeDebug_("Setting spectra for Mascot query", 1);
 			mascot_query->setQuerySpectra(ss.str());
 
 			// remove unnecessary spectra
 			ss.clear();
 
 		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-			QTimer::singleShot(10000000, mascot_query, SLOT(run()));
+			QTimer::singleShot(1000, mascot_query, SLOT(run()));
+			writeDebug_("Fire off Mascot query", 1);
 			event_loop.exec();
+			writeDebug_("Mascot query finished", 1);
 
 			if (mascot_query->hasError())
 			{

@@ -33,6 +33,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <gsl/gsl_statistics.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -127,19 +129,16 @@ class TOPPERPairFinder
 			registerOutputFile_("out","<file>","","Output consensusXML file were the decoy database will be written to.");
 			setValidFormats_("out", StringList::create("consensusXML"));
 
-			//registerDoubleOption_("lower_mz", "<m/z>", 200.0, "Lower m/z value for the resampling, which is useful for the stability of the method.", false, true);
-			//setMinFloat_("lower_mz", 0.0);
-
-			//registerDoubleOption_("upper_mz", "<m/z>", 2000.0, "Upper m/z value for the resampling of the scans, which is useful for the stability of the methode.", false, true);
-			//setMinFloat_("upper_mz", 0.0);
+			registerOutputFile_("feature_out", "<file>", "", "Output featureXML file, only written if given, skipped otherwise.", false, false);
+			setValidFormats_("feature_out", StringList::create("featureXML"));
 
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 0.3, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, false);
 			setMinFloat_("precursor_mass_tolerance", 0.0);
 
-			registerDoubleOption_("RT_tolerance", "<tolerance>", 200, "Maximal deviation in RT dimension in second a feature can have when comparing to the RT values given in the pair file", false, false);
+			registerDoubleOption_("RT_tolerance", "<tolerance>", 200, "Maximal deviation in RT dimension in seconds a feature can have when comparing to the RT values given in the pair file", false, true);
 			setMinFloat_("RT_tolerance", 1.0);
 
-			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge state features should be search for.", false, false);
+			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge state features should be search for.", false, true);
 			setMinInt_("max_charge", 1);
 
 			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold, for the meaning see the documentation of the IsotopeWaveletFeatureFinder documentation.", false, true);
@@ -162,6 +161,7 @@ class TOPPERPairFinder
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			String pair_in(getStringOption_("pair_in"));
+			String feature_out(getStringOption_("feature_out"));
 			DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
 			DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
 			DoubleReal expansion_range(getDoubleOption_("expansion_range"));
@@ -417,17 +417,24 @@ class TOPPERPairFinder
 			for (Map<Size, vector<SILACQuantitation> >::ConstIterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
 			{
 				SILAC_pair silac_pair = pairs[it1->first];
-				writeDebug_("Quantitation of pair " + String(silac_pair.mz_light) + " <-> " + String(silac_pair.mz_heavy) + " @RT=" + String(silac_pair.rt) + "s (#scans for quantation=" + String(it1->second.size()) + ")", 1);
+				//writeDebug_("Quantitation of pair " + String(silac_pair.mz_light) + " <-> " + String(silac_pair.mz_heavy) + " @RT=" + String(silac_pair.rt) + "s (#scans for quantation=" + String(it1->second.size()) + ")", 1);
+				cout << "Quantitation of pair " + String(silac_pair.mz_light) + " <-> " + String(silac_pair.mz_heavy) + " @RT=" + String(silac_pair.rt) + "s (#scans for quantation=" + String(it1->second.size()) + ")" << endl;
 
 				// simply add up all intensities and calculate the final ratio
 				DoubleReal light_sum(0), heavy_sum(0);
+				vector<DoubleReal> light_ints, heavy_ints, ratios;
 				for (vector<SILACQuantitation>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 				{
 					light_sum += it2->light_intensity;
+					light_ints.push_back(it2->light_intensity);
 					heavy_sum += it2->heavy_intensity;
+					heavy_ints.push_back(it2->heavy_intensity);
+					ratios.push_back(it2->heavy_intensity / it2->light_intensity);
 				}
 
-				cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << endl;
+				DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size());
+
+				cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios << endl;
 			}
 
 
@@ -435,10 +442,9 @@ class TOPPERPairFinder
       // writing output
       //-------------------------------------------------------------
 
-			if (debug > 1)
+			if (feature_out != "")
 			{
-				writeDebug_("Writing featureXML file with all the features", 2);
-				FeatureXMLFile().store(out.prefix('.') + ".featureXML", all_features);
+				FeatureXMLFile().store(feature_out, all_features);
 			}
 			writeDebug_("Writing output", 1);
 			ConsensusXMLFile().store(out, results_map);

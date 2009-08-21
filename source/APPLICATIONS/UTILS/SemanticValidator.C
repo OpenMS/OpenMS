@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
-// $Authors: $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
+// $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
