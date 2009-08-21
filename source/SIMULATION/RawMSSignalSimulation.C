@@ -41,11 +41,11 @@ using std::vector;
 namespace OpenMS {
 
   /**
-    * TODO: review Ole's methods for improvment/changes
-    * TODO: initialize members!!!!
-  */
+   * TODO: review Ole's methods for improvment/changes
+   */
   RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
-  : DefaultParamHandler("RawSignalSimulation"), rnd_gen_(random_generator)
+  : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
+  intensity_error_mean_(), intensity_error_stddev_(), peak_std_(), rnd_gen_(random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -53,14 +53,16 @@ namespace OpenMS {
 
 
   RawMSSignalSimulation::RawMSSignalSimulation()
-    : DefaultParamHandler("RawSignalSimulation")
+    : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
+    intensity_error_mean_(), intensity_error_stddev_(), peak_std_()
   {
     setDefaultParams_();
     updateMembers_();
   }
 
   RawMSSignalSimulation::RawMSSignalSimulation(const RawMSSignalSimulation& source)
-    : DefaultParamHandler(source)
+    : DefaultParamHandler(source), mz_sampling_rate_(source.mz_sampling_rate_), mz_error_mean_(source.mz_error_mean_), mz_error_stddev_(source.mz_error_stddev_),
+    intensity_error_mean_(source.intensity_error_mean_), intensity_error_stddev_(source.intensity_error_stddev_), peak_std_(source.peak_std_)
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
@@ -71,6 +73,16 @@ namespace OpenMS {
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
+
+    mz_error_mean_ = source.mz_error_mean_;
+    mz_error_stddev_ = source.mz_error_stddev_;
+    mz_sampling_rate_ = source.mz_sampling_rate_;
+
+    intensity_error_mean_ = source.intensity_error_mean_;
+    intensity_error_stddev_ = source.intensity_error_stddev_;
+
+    peak_std_ = source.peak_std_;
+
     updateMembers_();
     return *this;
   }
@@ -244,7 +256,6 @@ namespace OpenMS {
 
     for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
     {
-      //++it;
       point.setMZ(mz);
       point.setIntensity( pm.getIntensity( DPosition<1>( mz ) ) );
 
@@ -295,7 +306,6 @@ namespace OpenMS {
 			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
-        //++it;
 
         point.setMZ(mz);
         point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
@@ -320,9 +330,6 @@ namespace OpenMS {
       }
     }
 
-    // This is a clear misuse of the Feature data structure
-    // but at this point, we couldn't care less ;-)
-    // TODO: this was currentFeature -> reimplement
     active_feature.setQuality(0,start_scan);
     active_feature.setQuality(1,end_scan);
 
@@ -442,13 +449,10 @@ namespace OpenMS {
   void RawMSSignalSimulation::compressSignals_(MSSimExperiment & experiment)
   {
 		// assume we changed every scan a priori
-    //changed_scans_.resize(experiment.size(), true);
-  
+
     Size count = 0;
     do
     { // TODO here we can improve on speed a lot by better compression! check if running times are significant
-      // TODO: either use in compressSignalsRun_ or delete the member
-	    //changed_scans_[ i ]  = false;
       count = compressSignalsRun_(experiment);
     } while (count != 0);
   }

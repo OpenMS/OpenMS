@@ -205,6 +205,11 @@ START_SECTION((SimCoordinateType getGradientTime() const ))
 }
 END_SECTION
 
+START_SECTION((void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)))
+{
+  // TODO
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

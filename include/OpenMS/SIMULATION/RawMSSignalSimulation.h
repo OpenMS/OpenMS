@@ -147,9 +147,6 @@ namespace OpenMS {
     /// worker function for compressSignals_
     Size compressSignalsRun_(MSSimExperiment & experiment);
 
-    // TODO: the following parameters are imported -> revise
-    // TODO: we need to incorporate those parameters into constructors etc.
-
 		/// bin size in m/z dimension
 		SimCoordinateType mz_sampling_rate_;
 
@@ -165,9 +162,6 @@ namespace OpenMS {
 
 	  /// Full width at half maximum of simulated peaks
 		SimCoordinateType peak_std_;
-
-		/// Remembers which scans were changed after the last call to removeDuplicatePoints_()
-		std::vector<bool> changed_scans_;
 
   protected:
 		/// Random number generator

@@ -145,6 +145,13 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
 }
 END_SECTION
 
+START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels,
+    std::vector<DoubleReal>& detectabilities)))
+{
+  // TODO
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

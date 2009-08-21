@@ -57,7 +57,7 @@ START_SECTION((MSSim(const MSSim &source)))
 {
   MSSim source;
   Param p = source.getParameters();
-  p.setValue("Digestion:missed_cleavages",10);
+  p.setValue("peak_fwhm",0.3);
   source.setParameters(p);
 
   MSSim target(source);
