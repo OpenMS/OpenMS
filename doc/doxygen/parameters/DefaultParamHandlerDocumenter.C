@@ -55,6 +55,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>

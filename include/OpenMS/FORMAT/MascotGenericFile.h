@@ -22,11 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTINFILE2_H
-#define OPENMS_FORMAT_MASCOTINFILE2_H
+#ifndef OPENMS_FORMAT_MASCOTGENERICFILE_H
+#define OPENMS_FORMAT_MASCOTGENERICFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -43,8 +43,8 @@ namespace OpenMS
 		@brief Mascot input file adapter.
 		
 		Creates a file that can be used for Mascot search from a peak list or a whole experiment.
-	
-		@todo Write test! (Andreas)
+
+		@htmlinclude OpenMS_MascotGenericFile.parameters
 	
   	@ingroup FileIO
 	*/
