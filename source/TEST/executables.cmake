@@ -158,6 +158,7 @@ set(format_executables_list
   SemanticValidator_test
   MzMLValidator_test
   MS2File_test
+	MascotGenericFile_test
 	#MzIdentMLFile_test
 	#MzIdentMLValidator_test
 	#TraMLFile_test

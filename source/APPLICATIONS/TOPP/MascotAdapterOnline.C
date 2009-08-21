@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
-#include <OpenMS/FORMAT/MascotInfile2.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -99,7 +99,7 @@ class TOPPMascotAdapterOnline
 
 			if (section == "Mascot_parameters")
 			{
-				MascotInfile2 mascot_infile;
+				MascotGenericFile mascot_infile;
 				return mascot_infile.getParameters();
 			}
 
@@ -130,7 +130,7 @@ class TOPPMascotAdapterOnline
       //-------------------------------------------------------------
 
 			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-      MascotInfile2 mascot_infile;
+      MascotGenericFile mascot_infile;
 			mascot_infile.setParameters(mascot_param);
 
 			// get the spectra into string stream

@@ -36,7 +36,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotInfile2.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -192,7 +192,7 @@ namespace OpenMS
 #endif
 				case FileTypes::MGF:
 					{
-						MascotInfile2 f;
+						MascotGenericFile f;
 						f.setLogType(log);
 						f.load(filename, exp);
 						return true;

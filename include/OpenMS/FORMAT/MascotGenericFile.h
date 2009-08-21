@@ -48,19 +48,19 @@ namespace OpenMS
 	
   	@ingroup FileIO
 	*/
-  class OPENMS_DLLAPI MascotInfile2
+  class OPENMS_DLLAPI MascotGenericFile
 		: public ProgressLogger,
 			public DefaultParamHandler
   {
     public:
 
 			/// constructor
-			MascotInfile2();
+			MascotGenericFile();
 
 			/// constructor
-			virtual ~MascotInfile2();
+			virtual ~MascotGenericFile();
 
-			/// stores the experiment data in a MascotInfile2 that can be used as input for MASCOT shell execution
+			/// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution
 			void store(const String& filename, const PeakMap& experiment);
 
 			/// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file

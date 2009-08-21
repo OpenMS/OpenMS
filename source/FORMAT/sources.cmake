@@ -22,7 +22,7 @@ LibSVMEncoder.C
 MS2File.C
 MSPFile.C
 MascotInfile.C
-MascotInfile2.C
+MascotGenericFile.C
 MascotOutfile.C
 MascotRemoteQuery.C
 MascotXMLFile.C

@@ -42,7 +42,7 @@ LibSVMEncoder.h
 MS2File.h
 MSPFile.h
 MascotInfile.h
-MascotInfile2.h
+MascotGenericFile.h
 MascotOutfile.h
 MascotRemoteQuery.h
 MascotXMLFile.h

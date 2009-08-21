@@ -25,14 +25,14 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MascotInfile2.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 
 using namespace std;
 
 namespace OpenMS 
 {
 
-	MascotInfile2::MascotInfile2()
+	MascotGenericFile::MascotGenericFile()
 		: ProgressLogger(),
 			DefaultParamHandler("MascotInfile")
 	{
@@ -74,12 +74,12 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 	
-	MascotInfile2::~MascotInfile2()
+	MascotGenericFile::~MascotGenericFile()
 	{
 		
 	}
 	
-	void MascotInfile2::store(const String& filename, const PeakMap& experiment)
+	void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
 	{
 		if (!File::writable(filename))
 		{
@@ -90,7 +90,7 @@ namespace OpenMS
 		os.close();
 	}
 
-	void MascotInfile2::store(ostream& os, const String& filename, const PeakMap& experiment)
+	void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment)
 	{
 		if (!param_.getValue("peaklists_only").toBool())
 		{
@@ -105,12 +105,12 @@ namespace OpenMS
 		}
 	}
 	
-	void MascotInfile2::writeParameterHeader_(const String& name, ostream& os)
+	void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
 	{
 		os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"" << name << "\"" << endl << endl;
 	}
 		
-	void MascotInfile2::writeHeader_(ostream& os)
+	void MascotGenericFile::writeHeader_(ostream& os)
 	{
 		// search title
 		if (param_.getValue("search_title") != "")
@@ -227,7 +227,7 @@ namespace OpenMS
 		os << param_.getValue("charges") << endl;
 	}
 	
-	void MascotInfile2::writeSpectrum_(ostream& os,	const PeakSpectrum& spec)
+	void MascotGenericFile::writeSpectrum_(ostream& os,	const PeakSpectrum& spec)
 	{
 		Precursor precursor;
 		if (spec.getPrecursors().size()>0)
@@ -273,7 +273,7 @@ namespace OpenMS
 		}
 	}
 
-	void MascotInfile2::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
+	void MascotGenericFile::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
 	{
 		if (!param_.getValue("peaklists_only").toBool())
 		{
@@ -284,7 +284,7 @@ namespace OpenMS
 		{
 			if (experiment[i].getMSLevel() == 0)
 			{
-				cout << "MascotInfile2: MSLevel is set to 0, ignoring this spectrum!" << endl;
+				cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << endl;
 			}
 			
 			if (experiment[i].getMSLevel() == 2)
@@ -294,7 +294,7 @@ namespace OpenMS
 		}
 	}
 
-	bool MascotInfile2::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title)
+	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title)
 	{
 		bool ok(false);
 		spectrum.clear();
