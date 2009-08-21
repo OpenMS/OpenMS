@@ -120,8 +120,6 @@
 
 	This module contains all classes that are involved in database IO.
 	
-	@todo Add CMake credentials parameters for DBAdapter, DBConnection, DBImporter and DBExporter test, remove the old file-based system (Marc)
-
 	@ingroup Format
 */
 
