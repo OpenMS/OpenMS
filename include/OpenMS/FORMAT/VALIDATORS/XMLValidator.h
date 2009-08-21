@@ -38,8 +38,6 @@ namespace OpenMS
 		@brief Validator for XML files.
 		
 		Validates an XML file against a given schema.
-		
-		@todo Update Xerces-C in contrib to version 3.1.0 if possible - because of slow identity constraint validation (Marc)
 	
   	@ingroup FileIO
 	*/

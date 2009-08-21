@@ -44,8 +44,6 @@ namespace OpenMS
      - file name
      - file type
 
-     @improvement change file_type_ to FileHandler::Type. Inclusion of FileHandler results in circular inclusions. Forward declarations can't resolve (inheritance, no enum forward declaration with gcc, ...). Possible solution is extraction of FileHandler::Type in extra header file.
-
      @ingroup Metadata
   */
   class OPENMS_DLLAPI DocumentIdentifier
