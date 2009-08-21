@@ -139,8 +139,6 @@ set(format_executables_list
   PepNovoOutfile_test
   PTMXMLFile_test
   ConsensusXMLFile_test
-  DBConnection_test
-  DBAdapter_test
   OMSSAXMLFile_test
   IdXMLFile_test
   BigString_test
@@ -160,6 +158,11 @@ set(format_executables_list
 	#MzIdentMLValidator_test
 	#TraMLFile_test
 )
+
+if (DB_TEST)
+  list(APPEND format_executables_list DBConnection_test)
+  list(APPEND format_executables_list DBAdapter_test)
+endif()
 
 if (USE_ANDIMS)
   list(APPEND format_executables_list ANDIFile_test)
