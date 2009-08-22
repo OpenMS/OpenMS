@@ -137,7 +137,7 @@ namespace OpenMS {
       it_f->setMetaValue("rt_width", width);
     }
 		
-		Size number_of_scans = number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
+		Size number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
 		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
      
     createExperiment_(experiment, number_of_scans);
@@ -159,7 +159,7 @@ namespace OpenMS {
   void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
   {
     vector< DoubleReal>  predicted_retention_times;
-		bool is_relative;
+		bool is_relative = false;
     if (param_.getValue("rt_column") == "none")
     {
 			noRTColumn_(features);
@@ -171,7 +171,7 @@ namespace OpenMS {
 			calculateMT_(features, predicted_retention_times);
 			is_relative = (param_.getValue("CE:auto_scale")=="true");
 		}
-		if (param_.getValue("rt_column") == "HPLC")
+		else if (param_.getValue("rt_column") == "HPLC")
 		{
 			vector< String > peptides_vector(features.size());
 			for (Size i = 0; i < features.size(); ++i)
