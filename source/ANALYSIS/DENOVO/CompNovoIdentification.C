@@ -227,7 +227,7 @@ namespace OpenMS
 
 
 		Peak1D p;
-		p.setIntensity(1);
+		p.setIntensity(1.0f);
 		p.setPosition(19.0);
 
 		new_CID_spec.push_back(p);
@@ -565,7 +565,7 @@ namespace OpenMS
 	void CompNovoIdentification::getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Size /* charge */, DoubleReal prefix, DoubleReal suffix)
 	{
   	Peak1D p;
-  	p.setIntensity(1);
+  	p.setIntensity(1.0f);
   
 		DoubleReal c_pos(17.0 + prefix); // TODO high mass accuracy!!
 		DoubleReal z_pos(3.0 + suffix);

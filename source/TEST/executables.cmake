@@ -159,6 +159,8 @@ set(format_executables_list
   MzMLValidator_test
   MS2File_test
 	MascotGenericFile_test
+	MascotRemoteQuery_test
+	CVMappingFile_test
 	#MzIdentMLFile_test
 	#MzIdentMLValidator_test
 	#TraMLFile_test
@@ -324,6 +326,11 @@ set(analysis_executables_list
 	CompNovoIonScoringBase_test
 	CompNovoIonScoring_test
   ILPWrapper_test
+	MRMFragmentSelection_test
+	ProtonDistributionModel_test
+	HiddenMarkovModel_test
+	PILISModel_test
+	PILISModelGenerator_test
 )
 
 set(applications_executables_list
@@ -350,6 +357,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithmIsotopeWavelet_test
+  FeatureFinderAlgorithmMRM_test
   SimpleSeeder_test
   SimpleExtender_test
   GaussFitter1D_test

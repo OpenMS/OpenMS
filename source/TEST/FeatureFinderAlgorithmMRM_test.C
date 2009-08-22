@@ -1,8 +1,8 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -28,71 +28,58 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <iostream>
-
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 ///////////////////////////
-
-START_TEST(PILISModel_test.C, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-PILISModel* ptr = 0;
-const AASequence peptide("DFPIANGER");
-START_SECTION(PILISModel())
-	ptr = new PILISModel();
+START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FeatureFinderAlgorithmMRM<Peak1D, Feature>* ptr = 0;
+START_SECTION(FeatureFinderAlgorithmMRM())
+{
+	ptr = new FeatureFinderAlgorithmMRM<Peak1D, Feature>();
 	TEST_NOT_EQUAL(ptr, 0)
+}
 END_SECTION
 
-START_SECTION(~PILISModel())
+START_SECTION(~FeatureFinderAlgorithmMRM())
+{
 	delete ptr;
+}
 END_SECTION
 
-ptr = new PILISModel();
+ptr = new FeatureFinderAlgorithmMRM<Peak1D, Feature>();
 
-START_SECTION(PILISModel(const PILISModel& model))
-	PILISModel copy(*ptr);
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+START_SECTION((virtual void run()))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(PILISModel& operator = (const PILISModel& mode))
-	PILISModel copy;
-	copy = *ptr;
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
+{
+  FeatureFinderAlgorithm<Peak1D, Feature>* ptr2 = 0;
+	ptr2 = FeatureFinderAlgorithmMRM<Peak1D, Feature>::create();
+	TEST_NOT_EQUAL(ptr2, 0)
+	delete ptr;
+}
 END_SECTION
 
-START_SECTION(void writeGraphMLFile(const String& filename))
-	// TODO
+START_SECTION((static const String getProductName()))
+{
+  TEST_STRING_EQUAL(ptr->getProductName(), "mrm")
+}
 END_SECTION
 
-START_SECTION(void readFromFile(const String& filename))
-	// TODO 
-END_SECTION
 
-START_SECTION(void writeToFile(const String& filename))
-	// TODO
-END_SECTION
-
-START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
-	// TODO
-END_SECTION
-
-START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
-	// TODO
-END_SECTION
-
-START_SECTION(void evaluate())
-	// TODO
-END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
 END_TEST
+
+
+

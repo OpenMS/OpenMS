@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,34 +21,60 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong$
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-//**************************
-//Uses the sorting code provided by Alan Kaatz
-//**************************
+#include <OpenMS/CONCEPT/ClassTest.h>
 
+///////////////////////////
+#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+///////////////////////////
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCUDAKERNEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCUDAKERNEL_H
+using namespace OpenMS;
+using namespace std;
 
-#include <string>
-#include <cuda.h>
-#include <cuda_runtime.h>
+START_TEST(MRMFragmentSelection, "$Id$")
 
-namespace OpenMS
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+MRMFragmentSelection* ptr = 0;
+START_SECTION(MRMFragmentSelection())
 {
-	int checkCUDAError(const char *msg);
-
-	void getExternalCudaTransforms (dim3 dimGrid, dim3 dimBlock, float* positions_dev, float* intensities_dev, int from_max_to_left, int from_max_to_right, float* result_dev, 
-		const int charge, const int to_load, const int to_compute, const int size, float* fwd2);
-	
-	int sortOnDevice(float *array, int* pos_indices, int numElements, int padding);
-
-	void scoreOnDevice (int* sorted_positions_indices, float* trans_intensities,  float* pos, float* scores, 
-		const int c, const int num_of_scores, const int overall_size, const unsigned int max_peak_cutoff, const float ampl_cutoff);
-
-	void deriveOnDevice (float* spec, float* spec_pos, float* fwd, const int size, float* intensities_dev);
+	ptr = new MRMFragmentSelection();
+	TEST_NOT_EQUAL(ptr, 0)
 }
+END_SECTION
 
-#endif
+START_SECTION(virtual ~MRMFragmentSelection())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((MRMFragmentSelection(const MRMFragmentSelection &rhs)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((MRMFragmentSelection& operator=(const MRMFragmentSelection &rhs)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((void selectFragments(std::vector< RichPeak1D > &selected_peaks, const RichPeakSpectrum &spec)))
+{
+  // TODO
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

@@ -116,14 +116,14 @@ namespace OpenMS
     	if (b_pos > min_mz_ && b_pos < max_mz_)
     	{
       	p.setPosition(b_pos + Constants::PROTON_MASS_U);
-      	p.setIntensity(1.0);
+      	p.setIntensity(1.0f);
       	spec.push_back(p);
     	}
 
     	if (y_pos > min_mz_ && y_pos < max_mz_)
     	{
       	p.setPosition(y_pos + Constants::PROTON_MASS_U);
-      	p.setIntensity(1.0);
+      	p.setIntensity(1.0f);
       	spec.push_back(p);
     	}
   	}
@@ -198,7 +198,7 @@ namespace OpenMS
 					{
         		// a-ions
         		p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass)/(DoubleReal)z);
-       			p.setIntensity(0.1);
+       			p.setIntensity(0.1f);
         		spec.push_back(p);
 					}
 				}
@@ -223,7 +223,7 @@ namespace OpenMS
           p.setIntensity(0.1 / (DoubleReal)(z*z));
 					if (aa2 == 'Q') // pyroglutamic acid formation
 					{
-						p.setIntensity(0.5);
+						p.setIntensity(0.5f);
 					}	
 					if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 					{

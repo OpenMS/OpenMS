@@ -1,8 +1,8 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -28,71 +28,77 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <iostream>
-
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-
+#include <OpenMS/FORMAT/MascotRemoteQuery.h>
 ///////////////////////////
-
-START_TEST(PILISModel_test.C, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-PILISModel* ptr = 0;
-const AASequence peptide("DFPIANGER");
-START_SECTION(PILISModel())
-	ptr = new PILISModel();
+START_TEST(MascotRemoteQuery, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+MascotRemoteQuery* ptr = 0;
+START_SECTION(MascotRemoteQuery())
+{
+	ptr = new MascotRemoteQuery();
 	TEST_NOT_EQUAL(ptr, 0)
+}
 END_SECTION
 
-START_SECTION(~PILISModel())
+START_SECTION(virtual ~MascotRemoteQuery())
+{
 	delete ptr;
+}
 END_SECTION
 
-ptr = new PILISModel();
-
-START_SECTION(PILISModel(const PILISModel& model))
-	PILISModel copy(*ptr);
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+START_SECTION((MascotRemoteQuery(QObject *parent=0)))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(PILISModel& operator = (const PILISModel& mode))
-	PILISModel copy;
-	copy = *ptr;
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+START_SECTION((MascotRemoteQuery(const MascotRemoteQuery &rhs)))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void writeGraphMLFile(const String& filename))
-	// TODO
+START_SECTION((void setQuerySpectra(const String &exp)))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void readFromFile(const String& filename))
-	// TODO 
+START_SECTION((const QByteArray& getMascotXMLResponse() const ))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void writeToFile(const String& filename))
-	// TODO
+START_SECTION((bool hasError() const ))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
-	// TODO
+START_SECTION((const String& getErrorMessage() const ))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
-	// TODO
+START_SECTION((MascotRemoteQuery& operator=(const MascotRemoteQuery &rhs)))
+{
+  // TODO
+}
 END_SECTION
 
-START_SECTION(void evaluate())
-	// TODO
-END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
 END_TEST
+
+
+
