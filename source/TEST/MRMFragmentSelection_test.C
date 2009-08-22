@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -55,19 +56,71 @@ END_SECTION
 
 START_SECTION((MRMFragmentSelection(const MRMFragmentSelection &rhs)))
 {
-  // TODO
+  MRMFragmentSelection mrmfs;
+	Param p = mrmfs.getParameters();
+	p.setValue("num_top_peaks", 18);
+	mrmfs.setParameters(p);
+	TEST_EQUAL(MRMFragmentSelection(mrmfs).getParameters() == p, true)
 }
 END_SECTION
 
 START_SECTION((MRMFragmentSelection& operator=(const MRMFragmentSelection &rhs)))
 {
-  // TODO
+  MRMFragmentSelection mrmfs;
+	Param p = mrmfs.getParameters();
+	p.setValue("num_top_peaks", 18);
+	mrmfs.setParameters(p);
+	MRMFragmentSelection mrmfs2;
+	mrmfs2 = mrmfs;
+	TEST_EQUAL(mrmfs2.getParameters() == p, true)
 }
 END_SECTION
 
 START_SECTION((void selectFragments(std::vector< RichPeak1D > &selected_peaks, const RichPeakSpectrum &spec)))
 {
-  // TODO
+	RichPeakSpectrum spec;
+	TheoreticalSpectrumGenerator tsg;
+	Param tsg_param(tsg.getParameters());
+	tsg_param.setValue("add_metainfo", 1);
+	tsg.setParameters(tsg_param);
+	tsg.addPeaks(spec, AASequence("DFPIANGER"), Residue::YIon, 1);
+	tsg.addPeaks(spec, AASequence("DFPIANGER"), Residue::BIon, 1);
+
+	spec.sortByPosition();
+	Precursor prec;
+	prec.setMZ(1019.1);
+	vector<Precursor> precursors;
+	precursors.push_back(prec);
+	spec.setPrecursors(precursors);
+	
+	PeptideHit hit;
+	hit.setCharge(1);
+	hit.setSequence("DFPIANGER");
+	vector<PeptideHit> hits;
+	hits.push_back(hit);
+	PeptideIdentification id;
+	id.setHits(hits);
+	vector<PeptideIdentification> ids;
+	ids.push_back(id);
+	spec.setPeptideIdentifications(ids);
+
+	MRMFragmentSelection mrmfs;
+	Param p(mrmfs.getParameters());
+	p.setValue("num_top_peaks", 1);
+	p.setValue("allowed_ion_types", StringList::create("y"));
+	mrmfs.setParameters(p);
+
+	vector<RichPeak1D> selected_peaks;
+	mrmfs.selectFragments(selected_peaks, spec);
+	TEST_EQUAL(selected_peaks.size(), 1)
+
+	p.setValue("num_top_peaks", 3);
+	p.setValue("min_pos_precursor_percentage", 10.0);
+	mrmfs.setParameters(p);
+	selected_peaks.clear();
+	mrmfs.selectFragments(selected_peaks, spec);
+	TEST_EQUAL(selected_peaks.size(), 3)
+
 }
 END_SECTION
 

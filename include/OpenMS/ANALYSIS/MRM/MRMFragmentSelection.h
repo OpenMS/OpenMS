@@ -77,8 +77,6 @@ namespace OpenMS
 
 		/// returns true if the selection of peak is allowed, according to the parameters set
 		bool peakselectionIsAllowed_(const RichPeak1D& peak);
-
-		void updateMembers_();
 	};
 }
 
