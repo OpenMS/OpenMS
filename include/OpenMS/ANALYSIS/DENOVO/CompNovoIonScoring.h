@@ -47,9 +47,9 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIonScoring
 
-		@ref CompNovoIonScoring_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_CompNovoIonScoring.parameters
 		
-		@ingroup Analysis_ID
+		@ingroup Analysis_DeNovo
 	*/
 	class OPENMS_DLLAPI CompNovoIonScoring : public CompNovoIonScoringBase
 	{

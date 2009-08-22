@@ -53,7 +53,10 @@ namespace OpenMS
 			A mass decomposition algorithm decomposes a mass or a mass difference into
 			possible amino acids and frequencies of them, which add up to the given mass.
 			This class is a wrapper for the algorithm published in 
-			@todo add reference
+
+			@htmlinclude OpenMS_MassDecompositionAlgorithm.parameters
+
+			@ingroup Analysis_DeNovo
 	*/
 	class OPENMS_DLLAPI MassDecompositionAlgorithm : public DefaultParamHandler
 	{

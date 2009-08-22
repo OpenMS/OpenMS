@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch$
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -56,30 +56,61 @@ END_SECTION
 
 START_SECTION((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
 {
-	/*
 	DPosition<2> pos;
-  pos.setX(0.0);
-  pos.setY(0.01);
   vector<DPosition<2> > points;
-  points.push_back(pos);
-  pos.setX(0.05); pos.setY(0.2*4); points.push_back(pos);
-	pos.setX(0.08); pos.setY(0.3*4); points.push_back(pos);
-	pos.setX(0.12); pos.setY(0.5*4); points.push_back(pos);
-  pos.setX(0.16); pos.setY(0.63*4); points.push_back(pos);
-  pos.setX(0.28); pos.setY(0.99*4); points.push_back(pos);
-	pos.setX(0.43); pos.setY(0.9*4); points.push_back(pos);
-  pos.setX(0.66); pos.setY(0.83*4); points.push_back(pos);
-  pos.setX(0.78); pos.setY(0.10*4); points.push_back(pos);
-	pos.setX(0.99); pos.setY(0.02*4); points.push_back(pos);
-	
+
+	pos.setX(0.0001); pos.setY(0.1); points.push_back(pos);
+	pos.setX(0.0251); pos.setY(0.3); points.push_back(pos);
+	pos.setX(0.0501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.0751); pos.setY(0.7); points.push_back(pos);
+	pos.setX(0.1001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.1251); pos.setY(1.6); points.push_back(pos);
+	pos.setX(0.1501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.1751); pos.setY(2.1); points.push_back(pos);
+	pos.setX(0.2001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.2251); pos.setY(3.7); points.push_back(pos);
+	pos.setX(0.2501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.2751); pos.setY(4); points.push_back(pos);
+	pos.setX(0.3001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.3251); pos.setY(3); points.push_back(pos);
+	pos.setX(0.3501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.3751); pos.setY(2.6); points.push_back(pos);
+	pos.setX(0.4001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.4251); pos.setY(3); points.push_back(pos);
+	pos.setX(0.4501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.4751); pos.setY(3); points.push_back(pos);
+	pos.setX(0.5001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.5251); pos.setY(2.5); points.push_back(pos);
+	pos.setX(0.5501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.5751); pos.setY(1.7); points.push_back(pos);
+	pos.setX(0.6001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.6251); pos.setY(1); points.push_back(pos);
+	pos.setX(0.6501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.6751); pos.setY(0.5); points.push_back(pos);
+	pos.setX(0.7001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.7251); pos.setY(0.3); points.push_back(pos);
+	pos.setX(0.7501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.7751); pos.setY(0.4); points.push_back(pos);
+	pos.setX(0.8001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.8251); pos.setY(0); points.push_back(pos);
+	pos.setX(0.8501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.8751); pos.setY(0.1); points.push_back(pos);
+	pos.setX(0.9001); pos.setY(0); points.push_back(pos);
+	pos.setX(0.9251); pos.setY(0.1); points.push_back(pos);
+	pos.setX(0.9501); pos.setY(0); points.push_back(pos);
+	pos.setX(0.9751); pos.setY(0.2); points.push_back(pos);
+
+	GammaDistributionFitter::GammaDistributionFitResult init_param;
+	init_param.b = 1.0;
+	init_param.p = 3.0;	
 
   ptr = new GammaDistributionFitter;
+	ptr->setInitialParameters(init_param);
   GammaDistributionFitter::GammaDistributionFitResult result = ptr->fit(points);
 
-  TOLERANCE_ABSOLUTE(0.1)
-  TEST_REAL_SIMILAR(result.b, 1.0)
-  TEST_REAL_SIMILAR(result.p, 0.3)
-	*/
+  TOLERANCE_ABSOLUTE(0.01)
+  TEST_REAL_SIMILAR(result.b, 7.25)
+  TEST_REAL_SIMILAR(result.p, 3.11)
 }
 END_SECTION
 
@@ -94,7 +125,7 @@ START_SECTION((void setInitialParameters(const GammaDistributionFitResult & resu
 END_SECTION
 
 START_SECTION((const String& getGnuplotFormula() const ))
-	// TODO
+	TEST_EQUAL(ptr->getGnuplotFormula().hasPrefix("f(x)="), true)
 END_SECTION
 
 

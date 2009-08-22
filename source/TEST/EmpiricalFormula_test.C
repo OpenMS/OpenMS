@@ -151,14 +151,12 @@ START_SECTION(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	ef1 -= ef2;
 	TEST_EQUAL(*e_ptr == ef1, true)
-	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= ef2)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator -= (const String& rhs))
 	EmpiricalFormula ef1("C5H12");
 	ef1 -= "CH12";
 	TEST_EQUAL(*e_ptr == ef1, true)
-	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= "CH12")
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
@@ -173,9 +171,6 @@ START_SECTION(EmpiricalFormula operator - (const String& rhs) const)
 	EmpiricalFormula ef1("C5H12"), ef2("CH12"), ef4;
 	ef4 = ef1 - "CH12";
 	TEST_EQUAL(*e_ptr == ef4, true)
-	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"O3")
-	//TEST_EXCEPTION(Exception::SizeUnderflow, ef1-"C6")
-	//TEST_EXCEPTION(Exception::SizeUnderflow, ef2-ef1)
 	TEST_EXCEPTION(Exception::ParseError, ef1-"BLUBB")
 END_SECTION
 

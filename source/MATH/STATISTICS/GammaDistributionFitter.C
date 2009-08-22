@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -173,7 +173,7 @@ namespace OpenMS
 		
 		  do
 		  {
-		    iter++;
+		    ++iter;
 		    status = gsl_multifit_fdfsolver_iterate (s);
 		
 				#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
@@ -187,15 +187,22 @@ namespace OpenMS
 				}
 	
 		    status = gsl_multifit_test_delta (s->dx, s->x, 1e-4, 1e-4);
+				#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
+				printf("Status = '%s'\n",  gsl_strerror(status));
+				#endif
 		  }
 		  while (status == GSL_CONTINUE && iter < 1000);
+
+			#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
+      printf("Final status = '%s'\n",  gsl_strerror(status));
+      #endif
 	
 			if (status!=GSL_SUCCESS)
 			{
 				gsl_rng_free(r);
 				gsl_multifit_fdfsolver_free(s);
 	
-				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GammaDistributionFitter","Could not fit the gaussian to the data");
+				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GammaDistributionFitter","Could not fit the gamma distribution to the data");
 			}
 		  
 			// write the result in a GammaDistributionFitResult struct

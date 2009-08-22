@@ -83,7 +83,7 @@ namespace OpenMS
   	while (count != source.size())
   	{
     	// get new random variable [0, source.size()]
-    	Size r = (Size)(double(rand())/double(RAND_MAX) * (source.size()));
+    	Size r = (Size)(DoubleReal(rand())/DoubleReal(RAND_MAX) * (source.size()));
 
     	if (used_numbers.find(r) == used_numbers.end())
     	{
@@ -117,12 +117,12 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		
 		if (it->second.type == Option::DOUBLE)
 		{
-			double dbl_min(it->second.dbl_min), dbl_max(it->second.dbl_max);
+			DoubleReal dbl_min(it->second.dbl_min), dbl_max(it->second.dbl_max);
 			if (dbl_min > dbl_max)
 			{
 				cerr << "PILISCrossValidation: " << it->first << " min-value > max-value! (" << dbl_min << ", " << dbl_max << ")" << endl;
 			}
-			for (double value = dbl_min; value <= dbl_max; value += it->second.dbl_stepsize)
+			for (DoubleReal value = dbl_min; value <= dbl_max; value += it->second.dbl_stepsize)
 			{
 				new_param.setValue(it->first, value);
 				generateParameters_(new_param, new_options, parameters);
@@ -131,12 +131,12 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		}
 		if (it->second.type == Option::INT)
 		{
-			int int_min(it->second.int_min), int_max(it->second.int_max);
+			Int int_min(it->second.int_min), int_max(it->second.int_max);
 			if (int_min > int_max)
 			{
 				cerr << "PILISCrossValidation: " << it->first << " min-value > max-value! (" << int_min << ", " << int_max << ")" << endl;
 			}
-			for (int value = int_min; value <= int_max; value += it->second.int_stepsize)
+			for (Int value = int_min; value <= int_max; value += it->second.int_stepsize)
 			{
 				new_param.setValue(it->first, value);
 				generateParameters_(new_param, new_options, parameters);
@@ -154,7 +154,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 
 		SpectrumAlignmentScore sa;
   	Param sa_param(sa.getParameters());
-  	sa_param.setValue("tolerance", (double)PILIS_param.getValue("fragment_mass_tolerance"));
+  	sa_param.setValue("tolerance", (DoubleReal)PILIS_param.getValue("fragment_mass_tolerance"));
   	sa_param.setValue("use_linear_factor", "true");
   	sa.setParameters(sa_param);
 
@@ -199,13 +199,13 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		bool normalize_to_TIC(param_.getValue("normalize_to_TIC").toBool());
 	
 		// iterate over all parameter setting permutations
-		vector<double> scores;
+		vector<DoubleReal> scores;
 		for (vector<Param>::const_iterator pait = all_parameters.begin(); pait != all_parameters.end(); ++pait)
 		{
 			cerr << "Param #" << pait - all_parameters.begin() + 1 << "/" << all_parameters.size() << endl;
 			PILISModel model = base_model;
 			model.setParameters(*pait);
-			vector<double> top_scores, non_top_scores;
+			vector<DoubleReal> top_scores, non_top_scores;
 			vector<vector<RichPeakSpectrum> > exp_spectra;
 			vector<vector<vector<RichPeakSpectrum> > > sim_spectra;
 	
@@ -248,7 +248,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 					exp_spectra_part.push_back(exp_spec);
 
 					//cerr << "Evalulating...(#peptides=" << it->hits.size() << ") ";
-					vector<double> new_scores;
+					vector<DoubleReal> new_scores;
 					// for all hits
 					vector<RichPeakSpectrum> sim_spectra_hits;
 					for (vector<PeptideHit>::const_iterator pit = it->hits.begin(); pit != it->hits.end(); ++pit)
@@ -259,11 +259,11 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
       	
 						Precursor prec;
 						prec.setCharge(pit->getCharge());
-						prec.setPosition((pit->getSequence().getMonoWeight() + (double)pit->getCharge())/(double)pit->getCharge());
+						prec.setPosition((pit->getSequence().getMonoWeight() + (DoubleReal)pit->getCharge())/(DoubleReal)pit->getCharge());
 						sim_spec.getPrecursors().push_back(prec);
 
 						//sim_spec.getPrecursorPeak().setCharge(pit->getCharge());
-      			//sim_spec.getPrecursorPeak().setPosition((pit->getSequence().getMonoWeight() + (double)pit->getCharge())/(double)pit->getCharge());
+      			//sim_spec.getPrecursorPeak().setPosition((pit->getSequence().getMonoWeight() + (DoubleReal)pit->getCharge())/(DoubleReal)pit->getCharge());
 
       			to_one_normalizer.filterSpectrum(sim_spec);
 						sim_spec.sortByPosition();
@@ -280,9 +280,9 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		}
 
 		Size best_param_pos(0);
-		double max_score(0);
+		DoubleReal max_score(0);
 		Size pos(0);
-		for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it, ++pos)
+		for (vector<DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it, ++pos)
 		{
 			if (*it > max_score)
 			{
@@ -302,21 +302,21 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		return;
 	}
 
-	double PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > >& sim_spectra, const vector<vector<RichPeakSpectrum> >& exp_spectra)
+	DoubleReal PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > >& sim_spectra, const vector<vector<RichPeakSpectrum> >& exp_spectra)
 	{
 		String optimization_method = param_.getValue("optimization_method");
 
 		if (optimization_method == "tophit_against_all_others")
 		{
   	  // consider all against all
-			vector<double> top_scores, non_top_scores;
+			vector<DoubleReal> top_scores, non_top_scores;
 			for (Size i = 0; i != sim_spectra.size(); ++i)
 			{
 				for (Size j = 0; j != sim_spectra[i].size(); ++j)
 				{
 					for (Size k = 0; k != sim_spectra[i][j].size(); ++k)
 					{
-						double score = scoreSpectra_(sim_spectra[i][j][k], exp_spectra[i][j]);
+						DoubleReal score = scoreSpectra_(sim_spectra[i][j][k], exp_spectra[i][j]);
 						if (k == 0)
 						{
 							top_scores.push_back(score);
@@ -329,15 +329,15 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 				}
 			}
 			
-    	double sum = 0;
-    	for (vector<double>::const_iterator it1 = top_scores.begin(); it1 != top_scores.end(); ++it1)
+    	DoubleReal sum = 0;
+    	for (vector<DoubleReal>::const_iterator it1 = top_scores.begin(); it1 != top_scores.end(); ++it1)
     	{
-      	for (vector<double>::const_iterator it2 = non_top_scores.begin(); it2 != non_top_scores.end(); ++it2)
+      	for (vector<DoubleReal>::const_iterator it2 = non_top_scores.begin(); it2 != non_top_scores.end(); ++it2)
       	{
         	sum += *it1 - *it2;
       	}
     	}
-    	double score = sum / (double)(top_scores.size() * non_top_scores.size());
+    	DoubleReal score = sum / (DoubleReal)(top_scores.size() * non_top_scores.size());
     	cerr << "Avg. score-diff for param: " << score << endl;
 			return score;
 		}
@@ -345,24 +345,24 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
     if (optimization_method == "only_top_hit")
 		{
     	// consider only top-scores
-			vector<double> top_scores;
+			vector<DoubleReal> top_scores;
 			for (Size i = 0; i != sim_spectra.size(); ++i)
 			{
 				for (Size j = 0; j != sim_spectra[i].size(); ++j)
 				{
 					if (sim_spectra[i][j].size() > 0)
 					{
-						double score = scoreSpectra_(sim_spectra[i][j][0], exp_spectra[i][j]);
+						DoubleReal score = scoreSpectra_(sim_spectra[i][j][0], exp_spectra[i][j]);
 						top_scores.push_back(score);
 					}
 				}
 			}
-    	double sum(0);
-    	for (vector<double>::const_iterator it = top_scores.begin(); it != top_scores.end(); ++it)
+    	DoubleReal sum(0);
+    	for (vector<DoubleReal>::const_iterator it = top_scores.begin(); it != top_scores.end(); ++it)
     	{
       	sum += *it;
    	 	}
-    	double score(sum / (double)top_scores.size());
+    	DoubleReal score(sum / (DoubleReal)top_scores.size());
     	cerr << "Avg. score for param: " << score << endl;
 			return score;
 		}
@@ -382,7 +382,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 						fragment_selection.selectFragments(exp_highest_peak, exp_spectra[i][j]);
 						fragment_selection.selectFragments(sim_highest_peak, sim_spectra[i][j][0]);
 
-						double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
+						DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
 						bool has_topn(false);
     				for (Size ii = 0; ii < exp_highest_peak.size(); ++ii)
     				{
@@ -403,7 +403,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
       		}
 				}
     	}
-			double score((double)num_correct_topn / (double)num_all);
+			DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
 			cerr << "Avg. score in top " << (UInt)param_.getValue("num_top_peaks") << ": " << score << endl;
 			return score;
 		}
@@ -411,8 +411,8 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		if (optimization_method == "top_n_ions_by")
 		{
 			MRMFragmentSelection fragment_selection;
-			double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
-			double min_intensity((double)param_.getValue("min_intensity"));
+			DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
+			DoubleReal min_intensity((DoubleReal)param_.getValue("min_intensity"));
 
 			TheoreticalSpectrumGenerator tsg;
 			Param tsg_param(tsg.getParameters());
@@ -462,7 +462,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 						//cerr << endl;
 
 						// normalize the exp spectrum to max possible intensity to be selected
-						double max_exp_int(0);
+						DoubleReal max_exp_int(0);
 						for (vector<RichPeak1D>::const_iterator it = exp_highest_peak.begin(); it != exp_highest_peak.end(); ++it)
 						{
 							if (it->getIntensity() > max_exp_int)
@@ -500,16 +500,16 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 					}
 				}
 			}
-			double score((double)num_correct_topn / (double)num_all);
+			DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
       cerr << "Avg. score in top " << (UInt)param_.getValue("num_top_peaks") << " with a least " << min_intensity * 100.0 << "% intensity: " << score << endl;
 			return score;
 		}
 
 		cerr << "PILISCrossValidation: unknown optimization_method: " << optimization_method << endl;
-		exit(1);
+		return 0;
 	}
 
-	double PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum& spec1, const RichPeakSpectrum& spec2)
+	DoubleReal PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum& spec1, const RichPeakSpectrum& spec2)
 	{
 		PeakSpectrum s1, s2;
 		for (RichPeakSpectrum::ConstIterator piit = spec1.begin(); piit != spec1.end(); ++piit)
@@ -535,7 +535,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 		Param compare_param(pscf_->getParameters());
 		if (compare_param.exists("tolerance"))
 		{
-			compare_param.setValue("tolerance", (double)param_.getValue("fragment_mass_tolerance"));
+			compare_param.setValue("tolerance", (DoubleReal)param_.getValue("fragment_mass_tolerance"));
 			pscf_->setParameters(compare_param);
 		}
 		return;		

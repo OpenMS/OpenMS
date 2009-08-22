@@ -62,7 +62,7 @@ START_SECTION(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
 	// TODO
 END_SECTION
 
-START_SECTION(const PILISModel& getModel())
+START_SECTION((void getModel(HiddenMarkovModel& model)))
 	// TODO
 END_SECTION
 

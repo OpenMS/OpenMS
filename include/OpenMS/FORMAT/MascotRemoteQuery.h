@@ -59,9 +59,6 @@ namespace OpenMS
 			/// default constructor
 			MascotRemoteQuery(QObject *parent=0);
 	
-			/// copy constructor
-			MascotRemoteQuery(const MascotRemoteQuery& rhs);
-						
 			/// destructor
 			virtual ~MascotRemoteQuery();		
 			//@}
@@ -79,9 +76,6 @@ namespace OpenMS
 			/// returns the error message, if hasError can be used to check whether an error has occurred
 			const String& getErrorMessage() const;	
 			
-			/// assignment operator  
-			MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
-
 		protected:
 
 			virtual void updateMembers_();
@@ -147,6 +141,13 @@ namespace OpenMS
 			QString cookie_;
 
 			String error_message_;
+
+			/// assignment operator
+      MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
+			
+			/// copy constructor
+      MascotRemoteQuery(const MascotRemoteQuery& rhs);
+
 };
 
 }

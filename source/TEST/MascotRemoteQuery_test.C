@@ -40,7 +40,7 @@ START_TEST(MascotRemoteQuery, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MascotRemoteQuery* ptr = 0;
-START_SECTION(MascotRemoteQuery())
+START_SECTION(MascotRemoteQuery(QObject* parent = 0))
 {
 	ptr = new MascotRemoteQuery();
 	TEST_NOT_EQUAL(ptr, 0)
@@ -53,48 +53,34 @@ START_SECTION(virtual ~MascotRemoteQuery())
 }
 END_SECTION
 
-START_SECTION((MascotRemoteQuery(QObject *parent=0)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((MascotRemoteQuery(const MascotRemoteQuery &rhs)))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((void setQuerySpectra(const String &exp)))
 {
-  // TODO
+  MascotRemoteQuery query;
+	query.setQuerySpectra("BEGIN IONS\n1 1\n1 1\nEND IONS");
+	NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((const QByteArray& getMascotXMLResponse() const ))
 {
-  // TODO
+  MascotRemoteQuery query;
+	TEST_EQUAL(query.getMascotXMLResponse().size(), 0)
 }
 END_SECTION
 
 START_SECTION((bool hasError() const ))
 {
-  // TODO
+  MascotRemoteQuery query;
+	TEST_EQUAL(query.hasError(), false)
 }
 END_SECTION
 
 START_SECTION((const String& getErrorMessage() const ))
 {
-  // TODO
+  MascotRemoteQuery query;
+	TEST_STRING_EQUAL(query.getErrorMessage(), "")
 }
 END_SECTION
-
-START_SECTION((MascotRemoteQuery& operator=(const MascotRemoteQuery &rhs)))
-{
-  // TODO
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

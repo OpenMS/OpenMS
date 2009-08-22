@@ -30,7 +30,7 @@
 #define OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONCID_H
 
 // OpenMS includes
-#include "CompNovoIdentificationBase.h"
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
 
 // stl includes
 #include <vector>
@@ -40,8 +40,8 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIdentificationCID
 
-		@ref CompNovoIdentificationCID_Parameters are explained on a separate page.
-		
+		@htmlinclude OpenMS_CompNovoIdentificationCID.parameters	
+	
 		@ingroup Analysis_ID
 	*/
 	class OPENMS_DLLAPI CompNovoIdentificationCID : public CompNovoIdentificationBase
