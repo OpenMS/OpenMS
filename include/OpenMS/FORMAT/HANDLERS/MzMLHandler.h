@@ -316,7 +316,6 @@ namespace OpenMS
 				//number of peaks
 				spec_ = SpectrumType();
 				default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
-				std::cerr << "spectrum - defaultArrayLength=" << default_array_length_ << " id=" << attributeAsString_(attributes, s_id) << std::endl;
 				//spectrum source file
 				String source_file_ref;
 				if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
@@ -367,7 +366,6 @@ namespace OpenMS
 				Int array_length = default_array_length_;
 				optionalAttributeAsInt_(array_length, attributes, s_array_length);
 				data_.back().size = array_length;
-				std::cerr << "  binaryDataArray - arrayLength=" << array_length << std::endl;
 				
 				//data processing
 				String data_processing_ref;
@@ -669,30 +667,52 @@ namespace OpenMS
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
 				data_[i].base64.removeWhitespaces();
-
-				if (data_[i].precision=="64" && data_[i].compression =="zlib")
+				
+				//decode data and check if the length of the decoded data matches the expected length
+				if (data_[i].precision=="64")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true,data_[i].data_type);
+					if (data_[i].compression =="zlib")
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true,data_[i].data_type);
+					}
+					else
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,false,data_[i].data_type);
+					}
+					if (data_[i].size!=data_[i].decoded_64.size())
+					{
+						warning(LOAD, String("Float/integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_64.size() + ", but should have length " + data_[i].size + ".");
+					}
 				}
-				else if(data_[i].precision=="64")
+				else if (data_[i].precision=="32")
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,false,data_[i].data_type);
-				}
-				else if (data_[i].precision=="32" && data_[i].compression =="zlib")
-				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true,data_[i].data_type);
-				}
-				else if(data_[i].precision =="32")
-				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,false,data_[i].data_type);
-				}
-				else if(data_[i].data_type == Base64::STRING && data_[i].compression == "zlib")
-				{
-					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,true);
+					if (data_[i].compression =="zlib")
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true,data_[i].data_type);
+					}
+					else
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,false,data_[i].data_type);
+					}
+					if (data_[i].size!=data_[i].decoded_32.size())
+					{
+						warning(LOAD, String("Float/integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_32.size() + ", but should have length " + data_[i].size + ".");
+					}
 				}
 				else if(data_[i].data_type == Base64::STRING)
 				{
-					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char);
+					if (data_[i].compression == "zlib")
+					{
+						decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,true);
+					}
+					else
+					{
+						decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char);
+					}
+					if (data_[i].size!=data_[i].decoded_char.size())
+					{
+						warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+					}
 				}
 			}
 
@@ -721,21 +741,21 @@ namespace OpenMS
 				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
 				if (default_array_length_!=0)
 				{
-					warning(LOAD, String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
+					warning(LOAD, String("The m/z or intensity array of spectrum '") + spec_.getNativeID() + "' is missing and default_array_length_ is " + default_array_length_ + ".");
 				}
 				return;
 			}
 			
-			//Warn if the decoded data has a differenct size than the the defaultArrayLength
+			//Warn if the decoded data has a different size than the the defaultArrayLength
 			Size mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
 			if (default_array_length_!=mz_size)
 			{
-				warning(LOAD, String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded m/z array of spectrum '") + spec_.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			Size int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
 			if (default_array_length_!=int_size)
 			{
-				warning(LOAD, String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded intensity array of spectrum '") + spec_.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			
 			//create meta data arrays and reserve enough space for the content
@@ -806,7 +826,6 @@ namespace OpenMS
 						{
 							if(data_[i].data_type == Base64::STRING) //string array
 							{
-								std::cerr << "string i=" << i << " n=" << n << std::endl;
 								if (n < data_[i].decoded_char.size())
 								{
 									String value = data_[i].decoded_char[n];
@@ -816,7 +835,6 @@ namespace OpenMS
 							}
 							else//numbers array (float or int)
 							{
-								std::cerr << "number i=" << i << " n=" << n << std::endl;
 								if (n<data_[i].size)
 								{
 									DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
