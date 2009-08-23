@@ -729,12 +729,13 @@ namespace OpenMS
 			residue_to_name_[res] = aa;
 		}
 
+		/*
 		cerr << "Following masses are used for identification: " << endl;
 		
 		for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
 		{
 			cerr << it->first << " " << precisionWrapper(it->second) << endl;
-		}
+		}*/
 		
 		initIsotopeDistributions_();
 

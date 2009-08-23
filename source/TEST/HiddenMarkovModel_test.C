@@ -269,11 +269,11 @@ START_SECTION((void clearTrainingEmissionProbabilities()))
 END_SECTION
 
 START_SECTION((void dump()))
-	// nothing to test
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((void forwardDump()))
-	// nothing to test
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((void write(std::ostream& out) const))
@@ -282,7 +282,7 @@ START_SECTION((void write(std::ostream& out) const))
 END_SECTION
 
 START_SECTION((void writeGraphMLFile(const String& filename)))
-
+	NOT_TESTABLE // just for convenience provided
 END_SECTION
 
 START_SECTION((void setVariableModifications(const StringList &modifications)))

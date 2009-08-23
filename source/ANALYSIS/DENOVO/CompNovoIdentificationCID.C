@@ -83,7 +83,7 @@ namespace OpenMS
 		Size count(1);
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
-			cerr << count << "/" << exp.size() << endl;
+			//cerr << count << "/" << exp.size() << endl;
 			PeptideIdentification id;
 			// TODO check if both CID and ETD is present;
 			PeakSpectrum CID_spec(*it);
@@ -95,7 +95,7 @@ namespace OpenMS
 			decomp_cache_.clear();
 			
 			getIdentification(id, CID_spec);
-			cerr << "size_of id=" << id.getHits().size() << endl;
+			//cerr << "size_of id=" << id.getHits().size() << endl;
 			pep_ids.push_back(id);
 
 			//++it;
@@ -150,7 +150,7 @@ namespace OpenMS
 			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
 		}
 
-		cerr << "charge=" << charge << ", [M+H]=" << precursor_weight << endl;
+		//cerr << "charge=" << charge << ", [M+H]=" << precursor_weight << endl;
 				
 		// now delete all peaks that are right of the estimated precursor weight
 		Size peak_counter(0);
@@ -357,7 +357,7 @@ namespace OpenMS
 			Size num_missed = countMissedCleavagesTryptic_(*it);
 			if (number_missed_cleavages < num_missed)
 			{
-				cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << number_missed_cleavages << endl;
+				//cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << number_missed_cleavages << endl;
 				continue;
 			}
       PeakSpectrum CID_sim_spec;			
@@ -373,7 +373,7 @@ namespace OpenMS
       hit.setSequence(getModifiedAASequence_(*it));
       hit.setCharge(charge);
       hits.push_back(hit);
-      cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
+      //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
     }
     
 		// rescore the top hits
@@ -390,7 +390,7 @@ namespace OpenMS
 
 		for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
 		{
-			cerr << "Pre: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+			//cerr << "Pre: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
 		}
 		
 		Size number_of_prescoring_hits = (UInt)param_.getValue("number_of_prescoring_hits");
@@ -411,7 +411,7 @@ namespace OpenMS
 			//DoubleReal cid_score = spectra_zhang(CID_sim_spec, CID_spec);
 			DoubleReal cid_score = alignment_score(CID_sim_spec, CID_spec);
 
-			cerr << "Final: " << it->getSequence() << " " << cid_score << endl;
+			//cerr << "Final: " << it->getSequence() << " " << cid_score << endl;
 		
 			it->setScore(cid_score);
 		}
@@ -422,7 +422,7 @@ namespace OpenMS
 		
 		for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
 		{
-			cerr << "Fin: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+			//cerr << "Fin: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
 		}
 
 		Size number_of_hits = (UInt)param_.getValue("number_of_hits");

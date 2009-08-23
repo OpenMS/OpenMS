@@ -80,7 +80,7 @@ namespace OpenMS
 		Size count(1);
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
-			cerr << count << "/" << exp.size() / 2 << endl;
+			//cerr << count << "/" << exp.size() / 2 << endl;
 
 			PeptideIdentification id;
 			PeakSpectrum CID_spec(*it);
@@ -117,7 +117,7 @@ namespace OpenMS
 					permute_cache_.clear();
 			
 					getIdentification(id, CID_spec, ETD_spec);
-					cerr << "size_of id=" << id.getHits().size() << endl;
+					//cerr << "size_of id=" << id.getHits().size() << endl;
 					pep_ids.push_back(id);
 				}
 			}
@@ -164,8 +164,8 @@ namespace OpenMS
 			precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U;
 		}
 
-		cerr << "Estimated charge: " << charge << endl;
-		cerr << "Estimated Pre-weight: " << precursor_weight << endl;
+		//cerr << "Estimated charge: " << charge << endl;
+		//cerr << "Estimated Pre-weight: " << precursor_weight << endl;
 	
 		//return;
 
@@ -235,7 +235,7 @@ namespace OpenMS
 		p.setPosition(precursor_weight);
 		new_CID_spec.push_back(p);
 		
-		cerr << "Estimated precursor weight: " << precursor_weight << ", from file: " << CID_spec.getPrecursors().begin()->getMZ() << endl;
+		//cerr << "Estimated precursor weight: " << precursor_weight << ", from file: " << CID_spec.getPrecursors().begin()->getMZ() << endl;
 	
 		if (charge == 3)
 		{
@@ -990,7 +990,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 					{
 						peaks[peptide_z][prec_z].push_back(*it);
 						correlations[peptide_z][prec_z].push_back(ion_scoring.scoreIsotopes(ETD_spec, it, prec_z) /* *  it->getIntensity()*/);
-						cerr << "Assumed charge=" << peptide_z << ", precursor peak z=" << prec_z << ", experimental m/z=" << precursor_mz << ", diff=" << fabs(it->getMZ() - pre_mz) << " m/z=" << it->getMZ() << ", int=" << it->getIntensity() << " " << correlations[peptide_z][prec_z].back() <<  endl;
+						//cerr << "Assumed charge=" << peptide_z << ", precursor peak z=" << prec_z << ", experimental m/z=" << precursor_mz << ", diff=" << fabs(it->getMZ() - pre_mz) << " m/z=" << it->getMZ() << ", int=" << it->getIntensity() << " " << correlations[peptide_z][prec_z].back() <<  endl;
 					}
 				}
 			}
@@ -1027,10 +1027,10 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 		Size best_charge = 0;
 		for (Map<Size, DoubleReal>::ConstIterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
 		{
-			cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
+			//cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
 			for (Map<Size, pair<DoubleReal, DoubleReal> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
 			{
-				cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (DoubleReal)mit->first) - ((DoubleReal)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
+				//cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (DoubleReal)mit->first) - ((DoubleReal)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
 			}
 			if (best_correlation < it->second)
 			{
@@ -1039,7 +1039,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 			}
 		}
 		
-		cerr << "Best correlation=" << best_correlation << " best_charge=" << best_charge << endl;
+		//cerr << "Best correlation=" << best_correlation << " best_charge=" << best_charge << endl;
 		charge = best_charge;
 
 		// check whether charge one is available
@@ -1063,7 +1063,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 				}
 			}
 			peptide_weight = best_corr_mz * (DoubleReal)best_corr_z - (DoubleReal)(best_corr_z - 1) * Constants::PROTON_MASS_U;
-			cerr << "BestCorr: " << best_correlation << " " << best_corr_mz << " " << best_corr_z << " " << peptide_weight << endl;
+			//cerr << "BestCorr: " << best_correlation << " " << best_corr_mz << " " << best_corr_z << " " << peptide_weight << endl;
 		}
 
 		return peptide_weight;
