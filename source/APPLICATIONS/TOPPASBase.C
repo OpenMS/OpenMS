@@ -645,8 +645,7 @@ namespace OpenMS
   void TOPPASBase::showLogMessage_(TOPPASBase::LogState state, const String& heading, const String& body)
   {
 		//Compose current time string
-		DateTime d;
-		d.now();
+		DateTime d = DateTime::now();
 
 		String state_string;
 		switch(state)

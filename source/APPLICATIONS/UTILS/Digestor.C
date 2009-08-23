@@ -141,9 +141,8 @@ class TOPPDigestor
 				}
 				protein_identifications[0].insertHit(temp_protein_hit);
 			}
-			DateTime date_time;
+			DateTime date_time = DateTime::now();
 			String date_time_string = "";
-			date_time.now();
 			
 			date_time_string = date_time.get();
 			protein_identifications[0].setSearchParameters(search_parameters);

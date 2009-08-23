@@ -68,11 +68,11 @@ namespace OpenMS
 		defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring");
 		defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions");
 		defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score");
-		defaults_.setValue("number_missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
+		defaults_.setValue("missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
 		defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
 		defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring");
-		defaults_.setValue("fixed_modifications", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("variable_modifications", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
 		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
 
 		defaultsToParam_();
@@ -645,7 +645,7 @@ namespace OpenMS
 		residue_to_name_.clear();
 
 		// now handle the modifications
-		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
+		ModificationDefinitionsSet mod_set((StringList)param_.getValue("fixed_modifications"), (StringList)param_.getValue("variable_modifications"));
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
 
 		for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
@@ -741,8 +741,8 @@ namespace OpenMS
 
 		Param decomp_param(mass_decomp_algorithm_.getParameters());
 		decomp_param.setValue("tolerance", fragment_mass_tolerance_);
-		decomp_param.setValue("fixed_modifications", (String)param_.getValue("fixed_modifications"));
-		decomp_param.setValue("variable_modifications", (String)param_.getValue("variable_modifications"));
+		decomp_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+		decomp_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
 		mass_decomp_algorithm_.setParameters(decomp_param);
 		
 		min_aa_weight_ = numeric_limits<DoubleReal>::max();

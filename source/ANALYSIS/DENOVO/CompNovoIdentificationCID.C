@@ -350,14 +350,14 @@ namespace OpenMS
 		spectra_zhang.setParameters(zhang_param);
 	
     vector<PeptideHit> hits;
-		Size number_missed_cleavages = (UInt)param_.getValue("number_missed_cleavages");
+		Size missed_cleavages = (UInt)param_.getValue("missed_cleavages");
     for (set<String>::const_iterator it = sequences.begin(); it != sequences.end(); ++it)
     {
 			
 			Size num_missed = countMissedCleavagesTryptic_(*it);
-			if (number_missed_cleavages < num_missed)
+			if (missed_cleavages < num_missed)
 			{
-				//cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << number_missed_cleavages << endl;
+				//cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << missed_cleavages << endl;
 				continue;
 			}
       PeakSpectrum CID_sim_spec;			

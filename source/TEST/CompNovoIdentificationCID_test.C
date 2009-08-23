@@ -110,7 +110,6 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   TEST_EQUAL(ids.size(), 1)
   TEST_EQUAL(ids.begin()->getHits().size() > 0, true)
   TEST_EQUAL(ids.begin()->getHits().begin()->getSequence() == AASequence("DFPLANGER"), true)
-	
 END_SECTION
 
 START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec)))

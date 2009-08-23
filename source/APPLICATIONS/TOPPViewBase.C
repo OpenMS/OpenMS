@@ -2818,8 +2818,7 @@ namespace OpenMS
   void TOPPViewBase::showLogMessage_(TOPPViewBase::LogState state, const String& heading, const String& body)
   {
 		//Compose current time string
-		DateTime d;
-		d.now();
+		DateTime d = DateTime::now();
 
 		String state_string;
 		switch(state)

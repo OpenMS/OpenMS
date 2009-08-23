@@ -318,11 +318,9 @@ class TOPPPILISIdentification
 			// writing output
 			//-------------------------------------------------------------
 
-			DateTime now;
-			now.now();
+			DateTime now = DateTime::now();
 			
-			String date_string;
-			//now.get(date_string); // @todo Fix it (Andreas)
+			String date_string = now.get();
 			String identifier("PILIS_"+date_string);
 
 			//UInt count(0);
