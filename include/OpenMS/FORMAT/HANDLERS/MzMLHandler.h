@@ -316,6 +316,7 @@ namespace OpenMS
 				//number of peaks
 				spec_ = SpectrumType();
 				default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
+				std::cerr << "spectrum - defaultArrayLength=" << default_array_length_ << " id=" << attributeAsString_(attributes, s_id) << std::endl;
 				//spectrum source file
 				String source_file_ref;
 				if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
@@ -366,6 +367,7 @@ namespace OpenMS
 				Int array_length = default_array_length_;
 				optionalAttributeAsInt_(array_length, attributes, s_array_length);
 				data_.back().size = array_length;
+				std::cerr << "  binaryDataArray - arrayLength=" << array_length << std::endl;
 				
 				//data processing
 				String data_processing_ref;
@@ -736,32 +738,30 @@ namespace OpenMS
 				warning(LOAD, String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			
-			//create meta data arrays if necessary
+			//create meta data arrays and reserve enough space for the content
 			if (data_.size()>2)
 			{
-				//create meta data arrays and assign meta data
-				spec_.getFloatDataArrays().resize(data_.size()-2);
-				UInt meta_array_index = 0;
 				for (Size i=0; i<data_.size(); i++)
 				{
 					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 					{
-						if(data_[i].data_type == Base64::STRING)
+						if(data_[i].data_type == Base64::STRING) //string array
 						{
-							typename SpectrumType::StringDataArray sda;
-							spec_.getStringDataArrays().push_back(sda);
-							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].reserve(data_[i].decoded_char.size());
+							//create new array
+							spec_.getStringDataArrays().resize(spec_.getStringDataArrays().size()+1);
+							//reserve space in the array
+							spec_.getStringDataArrays().back().reserve(data_[i].decoded_char.size());
 							//copy meta info into MetaInfoDescription
-						//	spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].std::vector<OpenMS::String>::operator=(data_[i].decoded_char);		
-							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].MetaInfoDescription::operator=(data_[i].meta);
+							spec_.getStringDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
 						}
-						else
+						else //float or integer array
 						{
-							spec_.getFloatDataArrays()[meta_array_index].reserve(data_[i].size);
+							//create new array
+							spec_.getFloatDataArrays().resize(spec_.getFloatDataArrays().size()+1);
+							//reserve space in the array
+							spec_.getFloatDataArrays().back().reserve(data_[i].size);
 							//copy meta info into MetaInfoDescription
-							spec_.getFloatDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
-							//go to next meta data array
-							++meta_array_index;
+							spec_.getFloatDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
 						}
 					}
 				}
@@ -800,20 +800,28 @@ namespace OpenMS
 					//add meta data
 					UInt meta_float_array_index = 0;
 					UInt meta_string_array_index = 0;
-					for (Size i=0; i<data_.size(); i++)
+					for (Size i=0; i<data_.size(); i++) //loop over all binary data arrays
 					{
-						if (n<data_[i].size && data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
+						if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array") // is meta data array?
 						{
-						if(data_[i].data_type == Base64::STRING && n < data_[i].decoded_char.size())
+							if(data_[i].data_type == Base64::STRING) //string array
 							{
-								String value = data_[i].decoded_char[n];
-								spec_.getStringDataArrays()[meta_string_array_index].push_back(value);
+								std::cerr << "string i=" << i << " n=" << n << std::endl;
+								if (n < data_[i].decoded_char.size())
+								{
+									String value = data_[i].decoded_char[n];
+									spec_.getStringDataArrays()[meta_string_array_index].push_back(value);
+								}
 								++meta_string_array_index;
 							}
-							else
+							else//numbers array (float or int)
 							{
-								DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
-								spec_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								std::cerr << "number i=" << i << " n=" << n << std::endl;
+								if (n<data_[i].size)
+								{
+									DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
+									spec_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								}
 								++meta_float_array_index;
 							}
 						}
