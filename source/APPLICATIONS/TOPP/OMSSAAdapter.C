@@ -89,7 +89,7 @@ class TOPPOMSSAAdapter
 									
 						
 			registerInputFile_("in", "<file>", "", "input file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("IdXML"));
 		
@@ -136,7 +136,7 @@ class TOPPOMSSAAdapter
 			//-hs <Integer> the minimum number of m/z values a spectrum must have to be searched
 			//-fxml <String> omssa xml search request file (contains search parameters and spectra. overrides command line)
 			//-pm <String> search parameter input in xml format (contains search parameters but no spectra. overrides command line except for name of file containing spectra)
-			// input options are not all necessary as TOPP tools only accept mzData
+			// input options are not all necessary as TOPP tools only accept mzML
 			registerIntOption_("hs", "<Integer>", 4, "the minimum number of m/z values a spectrum must have to be searched", false, true);
 			//registerStringOption_("pm", "<file>", "", "search parameter input in xml format", false);
 			

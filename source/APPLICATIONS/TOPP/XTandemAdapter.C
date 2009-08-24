@@ -84,7 +84,7 @@ class TOPPXTandemAdapter
 			addText_("Common Identification engine options");
 			
 			registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in",StringList::create("mzData"));
+      setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",StringList::create("IdXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
