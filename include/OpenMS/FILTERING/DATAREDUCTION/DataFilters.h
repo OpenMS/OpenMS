@@ -200,23 +200,47 @@ namespace OpenMS
 					}
 					else if (filter.field==META_DATA)
 					{
-						const typename MSSpectrum<PeakType>::FloatDataArrays& mdas = spectrum.getFloatDataArrays();
+						const typename MSSpectrum<PeakType>::FloatDataArrays& f_arrays = spectrum.getFloatDataArrays();
 						//find the right meta data array
-						SignedSize mda_index = -1;
-						for (Size j=0; j<mdas.size(); ++j)
+						SignedSize f_index = -1;
+						for (Size j=0; j<f_arrays.size(); ++j)
 						{
-							if (mdas[j].getName()==filter.meta_name)
+							if (f_arrays[j].getName()==filter.meta_name)
 							{
-								mda_index = j;
+								f_index = j;
 								break;
 							}
 						}
-						//if it is not present, abort
-						if (mda_index==-1) return false;
 						//if it is present, compare it
-						if(filter.op == EQUAL && mdas[mda_index][peak_index] != filter.value) return false;
-						else if(filter.op == LESS_EQUAL && mdas[mda_index][peak_index] > filter.value) return false;
-						else if(filter.op == GREATER_EQUAL && mdas[mda_index][peak_index] < filter.value) return false;
+						if (f_index!=-1)
+						{
+							if(filter.op == EQUAL && f_arrays[f_index][peak_index] != filter.value) return false;
+							else if(filter.op == LESS_EQUAL && f_arrays[f_index][peak_index] > filter.value) return false;
+							else if(filter.op == GREATER_EQUAL && f_arrays[f_index][peak_index] < filter.value) return false;
+						}
+						
+						//if float array not found, search in integer arrays
+						const typename MSSpectrum<PeakType>::IntegerDataArrays& i_arrays = spectrum.getIntegerDataArrays();
+						//find the right meta data array
+						SignedSize i_index = -1;
+						for (Size j=0; j<i_arrays.size(); ++j)
+						{
+							if (i_arrays[j].getName()==filter.meta_name)
+							{
+								i_index = j;
+								break;
+							}
+						}
+						//if it is present, compare it
+						if (i_index!=-1)
+						{
+							if(filter.op == EQUAL && i_arrays[i_index][peak_index] != filter.value) return false;
+							else if(filter.op == LESS_EQUAL && i_arrays[i_index][peak_index] > filter.value) return false;
+							else if(filter.op == GREATER_EQUAL && i_arrays[i_index][peak_index] < filter.value) return false;
+						}
+							
+						//if it is not present, abort
+						if (f_index==-1 && i_index==-1) return false;
 					}
 				}
 				return true;

@@ -246,10 +246,11 @@ class TOPPResampler
       for (Size i = 0; i < exp.size(); ++i)
       {
         lin_resampler.raster(exp[i]);
-        //clear meta data because they are no longer meaningful
-        exp[i].getFloatDataArrays().clear();
       }
-      
+
+      //clear meta data because they are no longer meaningful
+      exp.clearMetaDataArrays();
+
       //annotate output with data processing info
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
       

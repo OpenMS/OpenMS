@@ -428,6 +428,10 @@ namespace OpenMS
 					{
 						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
 					}
+					for (Size m=0; m<s.getIntegerDataArrays().size();++m)
+					{
+						status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][selected_peak_.peak] + " ";
+					}
 					for (Size m=0; m<s.getStringDataArrays().size();++m)
 					{
 						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";

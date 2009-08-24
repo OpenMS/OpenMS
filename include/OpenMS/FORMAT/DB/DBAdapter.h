@@ -54,6 +54,7 @@ namespace OpenMS
 		@todo Add DataProcessing to MetaInfoDescription (Hiwi, Mathias)
 		@todo Check if test is really complete (Hiwi, Mathias)
 		@todo Check that all values are quoted (Hiwi, Mathias)
+		@todo Implement StringDataArray and IntegerDataArray of spectrum (Hiwi, Mathias)
 
     @ingroup DatabaseIO
   */

@@ -121,7 +121,15 @@ namespace OpenMS
 	      {
 	      	add(spectrum.getFloatDataArrays()[i]);
 	      }
-
+	      for (Size i=0; i<spectrum.getIntegerDataArrays().size();++i)
+	      {
+	      	add(spectrum.getIntegerDataArrays()[i]);
+	      }
+	      for (Size i=0; i<spectrum.getStringDataArrays().size();++i)
+	      {
+	      	add(spectrum.getStringDataArrays()[i]);
+	      }
+	      
 				add(static_cast<MetaInfoInterface&>(spectrum));
 				
 				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );

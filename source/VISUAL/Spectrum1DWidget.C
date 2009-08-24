@@ -121,8 +121,32 @@ namespace OpenMS
 	Histogram<> Spectrum1DWidget::createMetaDistribution_(const String& name) const
 	{	
 		Histogram<> tmp;
-		const ExperimentType::SpectrumType::FloatDataArrays& meta_arrays = canvas_->getCurrentLayer().peaks[0].getFloatDataArrays();
-		for(ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = meta_arrays.begin(); it != meta_arrays.end(); it++)
+		//float arrays
+		const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = canvas_->getCurrentLayer().peaks[0].getFloatDataArrays();
+		for(ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = f_arrays.begin(); it != f_arrays.end(); it++)
+		{
+			if (it->getName()==name)
+			{
+				//determine min and max of the data
+				Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+				for (Size i=0; i<it->size(); ++i)
+				{
+					if ((*it)[i]<min) min = (*it)[i];
+					if ((*it)[i]>max) max = (*it)[i];
+				}
+				if (min>=max) return tmp;
+		
+				//create histogram
+				tmp.reset(min,max,(max-min)/500.0);
+				for (Size i=0; i<it->size(); ++i)
+				{
+					tmp.inc((*it)[i]);
+				}
+			}
+		}
+		//integer arrays
+		const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = canvas_->getCurrentLayer().peaks[0].getIntegerDataArrays();
+		for(ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = i_arrays.begin(); it != i_arrays.end(); it++)
 		{
 			if (it->getName()==name)
 			{

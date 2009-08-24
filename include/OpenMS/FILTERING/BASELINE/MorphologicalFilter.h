@@ -131,7 +131,7 @@ namespace OpenMS
 		@image html MorphologicalFilter_tophat.png
 	
 		Several other morphological operations are implemented as well.  See the
-		image below and the documentation of #Method for further explanation.
+		image below and the documentation for further explanation.
 	
 		@image html MorphologicalFilter_all.png
 	
@@ -171,17 +171,16 @@ namespace OpenMS
 			{
 			}
 	
-			/** @brief Applies the morphological filtering operation to an iterator
-			range. Input and output range must be valid, i.e. allocated before.
+			/** @brief Applies the morphological filtering operation to an iterator range.
+			 
+			Input and output range must be valid, i.e. allocated before.
 			InputIterator must be a random access iterator type.
 	
-			@param method specifies the morphological filtering operation to be applied, see #Method, #method_names, and #method()
-			@param struc_size_in_datapoints specifies the size of the 'structuring element' in units of data points.  Should  be an odd number.
 			@param input_begin the begin of the input range
 			@param input_end  the end of the input range
 			@param output_begin the begin of the output range
 	
-			@exception Exception::IllegalArgument The given method is not one of the values defined in #Method.
+			@exception Exception::IllegalArgument The given method is not one of the values defined in the @em method paramter.
 			*/
 			template < typename InputIterator, typename OutputIterator >
 			void filterRange(InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)

@@ -143,10 +143,6 @@ namespace OpenMS
 			///Decodes a compressed Base64 string to a vector of floating point numbers 
 			template <typename ToType>
 			void decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out,DataType data_type);
-
-			///Decodes a compressed Base64 string to a vector of floating point numbers representing integers
-			template <typename ToType>
-			void decodeUncompressedInteger_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);			
   };
 			///Endianizes a 32 bit type from big endian to litte endian and vice versa
 	inline Int32 endianize32(Int32& n)
@@ -284,8 +280,8 @@ namespace OpenMS
 		
 		String decompressed;
 
-			QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
-			QByteArray bazip = QByteArray::fromBase64(herewego);
+			QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
+			QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
 			QByteArray czip;
 			czip.resize(4);
 			czip[0] = (bazip.size() & 0xff000000) >> 24;

@@ -814,7 +814,7 @@ namespace OpenMS
 					//add peak
 					PeakType tmp;
 					tmp.setIntensity(intensity);
-					tmp.setPosition(mz);
+					tmp.setMZ(mz);
 					spec_.push_back(tmp);
 
 					//add meta data

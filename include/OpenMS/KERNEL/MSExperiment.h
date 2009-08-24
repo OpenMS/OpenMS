@@ -471,19 +471,21 @@ namespace OpenMS
 			}
 			
 			/**
-				@brief Clears the meta data arrays of all contained spectra
+				@brief Clears the meta data arrays of all contained spectra (float, integer and string arrays)
 				
 				@return @em true if meta data arrays were present and removed. @em false otherwise.
 			*/
-			bool clearFloatDataArrays()
+			bool clearMetaDataArrays()
 			{
 				bool meta_present = false;
 				for (Size i=0; i< this->size(); ++i)
 				{
-					if (this->operator[](i).getFloatDataArrays().size()!=0)
+					if (this->operator[](i).getFloatDataArrays().size()!=0 || this->operator[](i).getIntegerDataArrays().size()!=0 || this->operator[](i).getStringDataArrays().size()!=0)
 					{
 						meta_present = true;
 					}
+					this->operator[](i).getStringDataArrays().clear();
+					this->operator[](i).getIntegerDataArrays().clear();
 					this->operator[](i).getFloatDataArrays().clear();
 				}
 				return meta_present;

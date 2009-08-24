@@ -94,7 +94,21 @@ namespace OpenMS
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
+			//float arrays
 			for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
+			{
+				if (it->getName()==name)
+				{
+					for (Size i=0; i<it->size(); ++i)
+					{
+						if ((*it)[i]<min) min = (*it)[i];
+						if ((*it)[i]>max) max = (*it)[i];
+					}
+					break;
+				}
+			}
+			//integer arrays
+			for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); it++)
 			{
 				if (it->getName()==name)
 				{
@@ -114,7 +128,20 @@ namespace OpenMS
 		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
 		{
 			if (s_it->getMSLevel()!=1) continue;
+			//float arrays
 			for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
+			{
+				if (it->getName()==name)
+				{
+					for (Size i=0; i<it->size(); ++i)
+					{
+						tmp.inc((*it)[i]);
+					}
+					break;
+				}
+			}
+			//integer arrays
+			for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); it++)
 			{
 				if (it->getName()==name)
 				{
