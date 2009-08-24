@@ -87,6 +87,8 @@ namespace OpenMS
 			
 			/// Stores whether the pipeline ending in this vertex has finished already
 			bool finished_;
+			/// The output file name
+			QString file_;
 		
 			///@name reimplemented Qt events
       //@{

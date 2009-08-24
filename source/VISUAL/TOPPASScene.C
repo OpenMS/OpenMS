@@ -462,7 +462,7 @@ namespace OpenMS
 			TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>(tv);
 			if (ifv)
 			{
-				save_param.setValue("vertices:"+id+":type", DataValue("input file"));
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("input file"));
 				save_param.setValue("vertices:"+id+":file_name", DataValue(String(ifv->getFilename())));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
@@ -478,7 +478,7 @@ namespace OpenMS
 				{
 					files.push_back(String(file_qt));
 				}
-				save_param.setValue("vertices:"+id+":type", DataValue("input file list"));
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("input file list"));
 				save_param.setValue("vertices:"+id+":file_names", DataValue(files));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
@@ -488,7 +488,7 @@ namespace OpenMS
 			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(tv);
 			if (ofv)
 			{
-				save_param.setValue("vertices:"+id+":type", DataValue("output file"));
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("output file"));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
@@ -497,7 +497,7 @@ namespace OpenMS
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 			if (oflv)
 			{
-				save_param.setValue("vertices:"+id+":type", DataValue("output file list"));
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("output file list"));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
@@ -506,7 +506,7 @@ namespace OpenMS
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			if (ttv)
 			{
-				save_param.setValue("vertices:"+id+":type", DataValue("tool"));
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("tool"));
 				save_param.setValue("vertices:"+id+":tool_name", DataValue(ttv->getName()));
 				save_param.setValue("vertices:"+id+":tool_type", DataValue(ttv->getType()));
 				save_param.insert("vertices:"+id+":parameters:", ttv->getParam());
@@ -563,7 +563,7 @@ namespace OpenMS
     {
       StringList substrings;
       it.getName().split(':', substrings);
-      if (substrings.back() == "type") // next node (all nodes begin with "type")
+      if (substrings.back() == "toppas_type") // next node (all nodes begin with "toppas_type")
       {
       	current_type = (it->value).toString();
       	current_id = substrings[0];
@@ -637,7 +637,7 @@ namespace OpenMS
 				}
 				else
 				{
-					std::cerr << "This should not have happened." << std::endl;
+					std::cerr << "Unknown vertex type '" << current_type << "'" << std::endl;
 				}
 				
 				if (current_vertex)
@@ -678,7 +678,7 @@ namespace OpenMS
 				}
 				else
 				{
-					std::cerr << "This should not have happened." << std::endl;
+					std::cerr << "Current vertex not available." << std::endl;
 				}
 			}
     }

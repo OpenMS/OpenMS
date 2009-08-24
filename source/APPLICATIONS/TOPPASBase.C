@@ -256,11 +256,7 @@ namespace OpenMS
 		{
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 			showAsWindow_(tw, File::basename(file_name));
-			
 			TOPPASScene* scene = tw->getScene();
-			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
-			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
-			connect (scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 			
 			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
@@ -398,6 +394,9 @@ namespace OpenMS
 			tw->show();
 		}
 		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
 		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
 
@@ -750,13 +749,13 @@ namespace OpenMS
 			
 			tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
-			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
 			connect (ttv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
 			connect (ttv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
 			connect (ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 			
+			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
 			connect(ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
 			connect(ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
 		}

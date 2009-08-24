@@ -30,6 +30,8 @@
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
@@ -129,6 +131,7 @@ namespace OpenMS
 		const QStringList& tmp_file_names = output_files[param_index];
 		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
+		files_.clear();
 		if (!tmp_file_names.isEmpty())
 		{
 			QString dir = File::path(tmp_file_names.first()).toQString();
@@ -136,10 +139,22 @@ namespace OpenMS
 			foreach (const QString& relative_f, files)
 			{
 				QString f = dir + QDir::separator() + relative_f;
+				if (!File::exists(f))
+				{
+					std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
+					continue;
+				}
 				QString new_file = parent_dir + QDir::separator() + getOutputDir().toQString()+QDir::separator()+File::basename(f).toQString();
 				if (new_file.endsWith("_tmp"))
 				{
 					new_file.truncate(new_file.size() - 4);
+				}
+				new_file += "_processed";
+				// get file type and rename
+				FileTypes::Type ft = FileHandler::getTypeByContent(f);
+				if (ft != FileTypes::UNKNOWN)
+				{
+					new_file += "."+(FileHandler::typeToName(ft)).toQString();
 				}
 				if (File::exists(new_file))
 				{
@@ -151,6 +166,7 @@ namespace OpenMS
 				}
 				else
 				{
+					files_.push_back(new_file);
 					emit outputFileWritten(new_file);
 				}
 			}
@@ -162,6 +178,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
+		files_.clear();
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -169,20 +186,15 @@ namespace OpenMS
 	void TOPPASOutputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 	{
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		TOPPASToolVertex* tv = 0;
 		ts->unselectAll();
 		setSelected(true);
 		
 		QMenu menu;
 		QAction* open_action = menu.addAction("Open files in TOPPView");
 		open_action->setEnabled(false);
-		if (inEdgesBegin() != inEdgesEnd())
+		if (!files_.empty())
 		{
-			tv = qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex());
-			if (tv && tv->getProgressColor() == Qt::green)
-			{
-				open_action->setEnabled(true);
-			}
+			open_action->setEnabled(true);
 		}
 		
 		menu.addAction("Remove");
@@ -197,26 +209,9 @@ namespace OpenMS
 			}
 			else if (text == "Open files in TOPPView")
 			{
-				QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
-				QString out_dir_name = parent_dir + QDir::separator() + getOutputDir().toQString();
-				
-				const QVector<QStringList>& output_files = tv->getOutputFileNames();
-				int param_index = (*inEdgesBegin())->getSourceOutParam();
-				const QStringList& tmp_file_names = output_files[param_index];
-				QStringList files;
-				foreach (const QString& tmp_file, tmp_file_names)
-				{
-					QString file = out_dir_name + QDir::separator() + File::basename(tmp_file).toQString();
-					if (file.endsWith("_tmp"))
-					{
-						file.truncate(file.size() - 4);
-					}
-					files.push_back(file);
-				}
-				
 				QProcess* p = new QProcess();
 				p->setProcessChannelMode(QProcess::ForwardedChannels);
-				p->start("TOPPView", files);
+				p->start("TOPPView", files_);
 			}
 			
 			event->accept();
