@@ -96,9 +96,6 @@ class TOPPSemanticValidator
 		semantic_validator.setCheckTermValueTypes(true);
 		semantic_validator.setCheckUnits(true);
 
-		// mzIdentML uses different namespaces, so we need a different tag name
-		FileTypes::Type file_type = FileHandler::getType(in_file);
-
 		StringList errors, warnings;
 
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);

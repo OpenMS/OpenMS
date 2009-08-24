@@ -23,6 +23,7 @@ IDMassAccuracy
 SpectrumGeneratorNetworkTrainer
 PeptideIndexer
 ERPairFinder
+MRMPairFinder
 OpenMSInfo
 )
 

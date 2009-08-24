@@ -59,6 +59,8 @@ using namespace std;
 
 	If a pair is available in several scans, the intensities are summed up and the ratio is 
 	calculated from the sum of the isotope fits.
+	
+	@experimental This software is experimental and might contain bugs!
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_ERPairFinder.cli
@@ -126,7 +128,7 @@ class TOPPERPairFinder
 
 			registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: m/z-light m/z-heavy charge rt");
 
-			registerOutputFile_("out","<file>","","Output consensusXML file were the decoy database will be written to.");
+			registerOutputFile_("out","<file>","","Output consensusXML file were the pairs of the feature are written into.");
 			setValidFormats_("out", StringList::create("consensusXML"));
 
 			registerOutputFile_("feature_out", "<file>", "", "Output featureXML file, only written if given, skipped otherwise.", false, false);
@@ -432,10 +434,10 @@ class TOPPERPairFinder
 					light_ints.push_back(it2->light_intensity);
 					heavy_sum += it2->heavy_intensity;
 					heavy_ints.push_back(it2->heavy_intensity);
-					ratios.push_back(it2->heavy_intensity / it2->light_intensity);
+					ratios.push_back(it2->heavy_intensity / it2->light_intensity * (it2->heavy_intensity + it2->light_intensity));
 				}
 
-				DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size());
+				DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (heavy_sum + light_sum);
 
 				if (ratios.size() > max_number_of_ratios)
 				{
