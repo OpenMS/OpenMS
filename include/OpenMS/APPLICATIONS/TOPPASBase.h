@@ -87,7 +87,7 @@ namespace OpenMS
       /// shows the dialog for saving the current file
       void saveFileDialog();
 			/// shows the dialog for saving the current file as new file
-      void saveAsFileDialog();
+      void saveAsFileDialog(TOPPASWidget* tw = 0);
       /// shows the preferences dialog
       void preferencesDialog();
     	/// changes the current path according to the currently active window/layer
@@ -149,8 +149,6 @@ namespace OpenMS
     	void showAsWindow_(TOPPASWidget* sw, const String& caption);
 			/// Inserts a new TOPP tool vertex in the current window
 			void insertNewVertex_(double x, double y);
-			/// Is called when an item in the tools tree view is pressed
-			void treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/);
 			
     protected:
 

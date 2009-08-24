@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -158,8 +159,7 @@ namespace OpenMS
     //TOPP tools window
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
-    tools_tree_view_ = new QTreeWidget(topp_tools_bar);
-		connect (tools_tree_view_, SIGNAL(itemPressed(QTreeWidgetItem*, int)), this, SLOT(treeViewItemPressed_(QTreeWidgetItem*, int)));
+    tools_tree_view_ = new TOPPASTreeView(topp_tools_bar);
     tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
     tools_tree_view_->setColumnCount(1);
   	QStringList header_labels;
@@ -303,8 +303,11 @@ namespace OpenMS
 	{
 		TOPPASWidget* w = 0;
 		QObject* sendr = QObject::sender();
-		if (sendr && sendr != this)
+		QAction* save_button_clicked = qobject_cast<QAction*>(sendr);
+		
+		if (!save_button_clicked)
 		{
+			// scene has requested to be saved
 			TOPPASScene* ts = qobject_cast<TOPPASScene*>(sendr);
 			if (ts && ts->views().size() > 0)
 			{
@@ -332,18 +335,21 @@ namespace OpenMS
 		}
 		else
 		{
-			saveAsFileDialog();
+			saveAsFileDialog(w);
 		}
 	}
 	
-	void TOPPASBase::saveAsFileDialog()
+	void TOPPASBase::saveAsFileDialog(TOPPASWidget* w)
 	{
-		TOPPASWidget* w = activeWindow_();
+		if (w == 0)
+		{
+			w = activeWindow_();
+		}
 		if (!w)
 		{
 			return;
 		}
-
+		
 		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
@@ -772,24 +778,6 @@ namespace OpenMS
 		
 		scene->topoSort();
 		scene->setChanged(true);
-	}
-	
-	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)
-	{
-		if (item == 0)
-		{
-			return;
-		}
-		
-		if (item->childCount() > 0)
-		{
-			// a tool with types was pressed but only its types are allowed to be dragged
-			tools_tree_view_->setDragEnabled(false);
-		}
-		else
-		{
-			tools_tree_view_->setDragEnabled(true);
-		}
 	}
 	
 	void TOPPASBase::runPipeline()

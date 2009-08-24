@@ -1055,7 +1055,7 @@ namespace OpenMS
 				emit saveMe();
 				if (changed_)
 				{
-					//used has not saved the file (aborted save dialog)
+					//user has not saved the file (aborted save dialog)
 					return false;
 				}
 			}
