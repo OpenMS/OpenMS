@@ -1104,15 +1104,9 @@ namespace OpenMS
 					return false;
 				}
 			}
-			else
-			{
-				return true;
-			}
 		}
-		else // no gui
-		{
-			return true;
-		}
+		
+		return true;
 	}
 	
 } //namespace OpenMS

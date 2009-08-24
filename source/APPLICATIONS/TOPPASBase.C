@@ -114,7 +114,7 @@ namespace OpenMS
 		file->addSeparator();
 
     file->addSeparator();
-    file->addAction("&Preferences",this, SLOT(preferencesDialog()));
+    //file->addAction("&Preferences",this, SLOT(preferencesDialog()));
     file->addAction("&Quit",qApp,SLOT(quit()));
 
     //Advanced menu
