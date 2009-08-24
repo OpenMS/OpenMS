@@ -325,7 +325,7 @@ namespace OpenMS
             continue;
           }
           ion = &prefix;
-          ion_nr=i;
+          ion_nr=(UInt)i;
         }
         else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
         {
@@ -334,7 +334,7 @@ namespace OpenMS
             continue;
           }
           ion = &suffix;
-          ion_nr=peptide.size()-i;
+          ion_nr=(UInt)(peptide.size()-i);
         }
         else
         {
