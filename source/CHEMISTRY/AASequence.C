@@ -752,6 +752,7 @@ namespace OpenMS
 		{
 			mod_open = true;
 		}
+		Size num_brackets(0);
 		for (Size i = 1; i < peptide.size(); ++i)
 		{
 			if ((isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open) ||
@@ -766,11 +767,21 @@ namespace OpenMS
 			}
 			if (peptide[i] == '(')
 			{
+				if (mod_open)
+				{
+					++num_brackets;
+					continue;
+				}
 				mod_open = true;
 				continue;
 			}
 			if (peptide[i] == ')')
 			{
+				if (num_brackets != 0)
+				{
+					--num_brackets;	
+					continue;
+				}
 				mod_open = false;
 				continue;
 			}
@@ -792,8 +803,9 @@ namespace OpenMS
 		if (split.size() > 0 && split[0].size() > 0 && split[0][0] == '(')
 		{
 			String mod = split[0];
-			mod.remove('(');
-			mod.remove(')');
+			mod.trim();
+			mod.erase(mod.begin());
+			mod.erase(mod.end() - 1);
 			n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
 
 			split.erase(split.begin());

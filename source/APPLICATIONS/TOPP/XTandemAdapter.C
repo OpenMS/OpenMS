@@ -320,34 +320,12 @@ class TOPPXTandemAdapter
       search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
 
       ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-
       search_parameters.mass_type = mass_type;
-
-      vector<String> fixed_mods, var_mods;
-      getStringOption_("fixed_modifications").split(',', fixed_mods);
-      if (fixed_mods.size() == 0)
-      {
-        if (getStringOption_("fixed_modifications") != "")
-        {
-          fixed_mods.push_back(getStringOption_("fixed_modifications"));
-        }
-      }
-      getStringOption_("variable_modifications").split(',', var_mods);
-      if (var_mods.size() == 0)
-      {
-        if (getStringOption_("variable_modifications") != "")
-        {
-          var_mods.push_back(getStringOption_("variable_modifications"));
-        }
-      }
-
-      search_parameters.fixed_modifications = fixed_mods;
-      search_parameters.variable_modifications = var_mods;
-
+      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+      search_parameters.variable_modifications = getStringList_("variable_modifications");
       search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
       search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
       search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-
 
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");
