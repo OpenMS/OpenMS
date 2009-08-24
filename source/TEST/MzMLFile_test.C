@@ -593,7 +593,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp4.size(),1)
 	TEST_EQUAL(exp4[0].size(),997530)
 	
-	//test 32/64 bit flaots, 32/64 bit integer, null terminated strings, zlib compression
+	//test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
 	MSExperiment<> exp_ucomp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_ucomp);
 	MSExperiment<> exp_comp;
@@ -614,6 +614,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//check content of float arrays
 		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
 		{
+			if(exp_ucomp[s].getFloatDataArrays()[a].getName() == "charge array")
+			{
+				std::cout<<std::endl;
+				std::cout<<"HHHHHHHHHHHHHHHHHHHHHHHHHHHHH************************"<<std::endl;
+			}
 			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
 			{
 				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_comp[s].getFloatDataArrays()[a][m])
