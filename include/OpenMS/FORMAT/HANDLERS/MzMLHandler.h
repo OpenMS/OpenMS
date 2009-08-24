@@ -3927,22 +3927,22 @@ namespace OpenMS
 							compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
 						}
 						String encoded_string;
-						std::vector<DoubleReal> data64_to_encode;
-						os	<< "				<binaryDataArrayList count=\"" << (spec.getFloatDataArrays().size()+2+spec.getStringDataArrays().size()) << "\">\n";
+						os	<< "				<binaryDataArrayList count=\"" << (2+spec.getFloatDataArrays().size()+spec.getStringDataArrays().size()+spec.getIntegerDataArrays().size()) << "\">\n";
 						//write m/z array (64 bit precision)
-						data64_to_encode.resize(spec.size());
-						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
-						decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-						os  << "						" << compression_term << "\n";
-						os	<< "						<binary>" << encoded_string << "</binary>\n";
-						os	<< "					</binaryDataArray>\n";
+						{
+							std::vector<DoubleReal> data64_to_encode(spec.size());
+							for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
+							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+							os  << "						" << compression_term << "\n";
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
+						}
 						//write intensity array (32 bit precision)
 						{
-							std::vector<Real> data32_to_encode;
-							data32_to_encode.resize(spec.size());
+							std::vector<Real> data32_to_encode(spec.size());
 							for (Size p=0; p<spec.size(); ++p) data32_to_encode[p] = spec[p].getIntensity();
 							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
@@ -3956,7 +3956,7 @@ namespace OpenMS
 						for (Size m=0; m<spec.getFloatDataArrays().size(); ++m)
 						{
 							const typename SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
-							data64_to_encode.resize(array.size());
+							std::vector<DoubleReal> data64_to_encode(array.size());
 							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
 							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							String data_processing_ref_string = "";
@@ -3983,7 +3983,30 @@ namespace OpenMS
 						//write integer data array
 						for (Size m=0; m<spec.getIntegerDataArrays().size(); ++m)
 						{
-							//TODO
+							const typename SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
+							std::vector<Int64> data64_to_encode(array.size());
+							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
+							decoder_.encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+							String data_processing_ref_string = "";
+							if (array.getDataProcessing().size()!=0)
+							{
+								data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+							}
+							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
+							os  << "						" << compression_term << "\n";
+							ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
+							if (bi_term.id!="")
+							{
+								os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\" />\n";
+							}
+							else
+							{
+								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+							}
+							writeUserParam_(os, array, 6);
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
 						}
 						//write string data arrays
 						for (Size m=0; m<spec.getStringDataArrays().size(); ++m)

@@ -106,7 +106,27 @@ START_TEST(MzMLFile, "$Id$")
 //}
 //exp.push_back(spec);
 //
-////spectrum 3 - 2 float arrays of size 50,100 + 1 string arrays of size 200
+////spectrum 3 - 3 integer arrays of size 50,100,200
+//spec = template_spec; ++spectrum_number; array_number = 1;
+//spec.setNativeID(String("index=") + spectrum_number);
+//spec.setRT(1.0 * spectrum_number);
+//spec.setName(String("spectum number=") + spectrum_number);
+//array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getIntegerDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//exp.push_back(spec);
+//
+//
+////spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
 //spec = template_spec; ++spectrum_number; array_number = 1;
 //spec.setNativeID(String("index=") + spectrum_number);
 //spec.setRT(1.0 * spectrum_number);
@@ -132,6 +152,18 @@ START_TEST(MzMLFile, "$Id$")
 //		spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
 //	}
 //	spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getIntegerDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
 //	array_size *=2;
 //	array_number +=1;
 //}
@@ -804,8 +836,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		MSExperiment<> exp;
 		file.load(tmp_filename,exp);
 		//test if everything worked
-		//TODO
-		//TEST_EQUAL(exp == exp_original,true)
+		TEST_EQUAL(exp == exp_original,true)
 	}
 
 END_SECTION

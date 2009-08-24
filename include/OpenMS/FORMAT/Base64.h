@@ -89,9 +89,19 @@ namespace OpenMS
 			*/
 			template <typename ToType>
 			void decode(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression=false);
+			
+			/**
+				@brief Encodes a vector of integer point numbers to a Base64 string
+				
+				You can specify the byte order of the output and if it is zlib-compressed.
+				
+				@note @p in will be emtpy after this method
+			*/
+			template <typename FromType>
+			void encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression=false);
 
 			/**
-				@brief Decodes a Base64 string to a vector of floating point numbers
+				@brief Decodes a Base64 string to a vector of integer numbers
 	
 				You have to specify the byte order of the input and if it is zlib-compressed.
 	
@@ -152,7 +162,8 @@ namespace OpenMS
 			template <typename ToType>
 			void decodeIntegersCompressed_(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out);
   };
-			///Endianizes a 32 bit type from big endian to litte endian and vice versa
+  
+	///Endianizes a 32 bit type from big endian to litte endian and vice versa
 	inline Int32 endianize32(Int32& n)
 	{
 		return ((n&0xff)<<24) | ((n&0xff00)<<8) | ((n&0xff0000)>>8) | ((n&0xff000000)>>24);
@@ -170,7 +181,6 @@ namespace OpenMS
 		((n&0xff00000000000000ll)>>56);
 	}
 
-	
 	template <typename FromType>
 	void Base64::encode(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression)
 	{
@@ -188,13 +198,13 @@ namespace OpenMS
 			{
 				for (Size i = 0; i < in.size(); ++i)
 				{
-					Reinterpreter32_ tmp;
-					tmp.f = in[i];
-					tmp.i = endianize32(tmp.i);
-					in[i] = tmp.f;
+	        Reinterpreter32_ tmp;
+	        tmp.f = in[i];
+	        tmp.i = endianize32(tmp.i);
+	        in[i] = tmp.f;
 				}
 			}
-			else if (element_size == 8)
+			else
 			{
 				for (Size i = 0; i < in.size(); ++i)
 				{
@@ -352,7 +362,7 @@ namespace OpenMS
 				Size float_count = buffer_size / element_size;
 				out.assign(float_buffer, float_buffer+float_count);
 			}
-			else if(element_size==8)
+			else
 			{
 				const DoubleReal* float_buffer = reinterpret_cast<const DoubleReal*>(byte_buffer);
 
@@ -459,6 +469,95 @@ namespace OpenMS
 			}
 		}
 	}	
+
+	template <typename FromType>
+	void Base64::encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression)
+	{
+		out.clear();
+		if (in.size() == 0) return;
+
+		//initialize
+		const Size element_size = sizeof(FromType);
+		const Size input_bytes = element_size * in.size();
+		
+		//Change endianness if necessary
+		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
+		{
+			if (element_size == 4)
+			{
+				for (Size i = 0; i < in.size(); ++i)
+				{
+	        Int32 tmp = in[i];
+	        tmp = endianize32(tmp);
+	        in[i] = tmp;
+				}
+			}
+			else
+			{
+				for (Size i = 0; i < in.size(); ++i)
+				{
+	        Int64 tmp = in[i];
+	        tmp = endianize64(tmp);
+	        in[i] = tmp;
+				}
+			}
+		}
+		
+		//encode with compression (use Qt because of zlib support)
+		if (zlib_compression)
+		{
+			QByteArray original = QByteArray::fromRawData(reinterpret_cast<const char*>(&in[0]), (int) input_bytes);
+			QByteArray compressed = qCompress((uchar*)original.data(),original.size());
+			QByteArray extern_compressed = compressed.right(compressed.size() - 4);			
+			QByteArray base64_compressed = extern_compressed.toBase64();
+	
+			out = QString(base64_compressed).toStdString();
+		}
+		//encode without compression
+		else
+		{
+			out.resize((Size)ceil(input_bytes/3.) * 4); //resize output array in order to have enough space for all characters
+			Byte* to = reinterpret_cast<Byte*>(&out[0]);
+			Byte* it = reinterpret_cast<Byte*>(&in[0]);
+			Byte* end = it + input_bytes;
+			Size written = 0;
+
+			while (it!=end)
+			{
+				Int int_24bit = 0;
+				Int padding_count = 0;
+
+				// construct 24-bit integer from 3 bytes
+				for (Size i=0; i<3; i++)
+				{
+					if (it!=end)
+					{
+						int_24bit |= *it++<<((2-i)*8);
+					}
+					else
+					{
+						padding_count++;
+					}
+				}
+
+				// write out 4 characters
+				for (Int i=3; i>=0; i--)
+				{
+					to[i] = encoder_[int_24bit & 0x3F];
+					int_24bit >>= 6;
+				}
+
+				// fixup for padding
+				if (padding_count > 0) to[3] = '=';
+				if (padding_count > 1) to[2] = '=';
+
+				to += 4;
+				written += 4;
+			}
+
+			out.resize(written); //no more space is needed
+		}
+	}
 
 	template<typename ToType>
 	void Base64::decodeIntegers(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out, bool zlib_compression)
