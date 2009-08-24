@@ -1082,9 +1082,9 @@ namespace OpenMS
 		emit terminateCurrentPipeline();
 	}
 	
-	void TOPPASScene::setPipelineRunning()
+	void TOPPASScene::setPipelineRunning(bool b)
 	{
-		running_ = true;
+		running_ = b;
 	}
 	
 	bool TOPPASScene::askForOutputDir(bool always_ask)

@@ -142,7 +142,7 @@ namespace OpenMS
 			/// Moves all selected items by dx, dy
 			void moveSelectedItems(qreal dx, qreal dy);
 			/// Sets if the running_ flag to true
-			void setPipelineRunning();
+			void setPipelineRunning(bool b = true);
 			
 			///@name Slots for printing log/error output when no GUI is available
       //@{

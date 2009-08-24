@@ -454,6 +454,7 @@ namespace OpenMS
 			shared_args << "-type" << type_.toQString();
 		}
 		
+		ts->setPipelineRunning(true);
 		emit toolStarted();
 		iteration_nr_ = 0; // needed in executionFinished()
 		for (int i = 0; i < numIterations(); ++i)
@@ -582,9 +583,11 @@ namespace OpenMS
 	{
 		iteration_nr_++;
 		
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		
 		if (es != QProcess::NormalExit)
 		{
-			
+			ts->setPipelineRunning(false);
 			emit toolCrashed();
 			//clean up
 			QProcess* p = qobject_cast<QProcess*>(QObject::sender());
@@ -597,6 +600,7 @@ namespace OpenMS
 		
 		if (ec != 0)
 		{
+			ts->setPipelineRunning(false);
 			emit toolFailed();
 			//clean up
 			QProcess* p = qobject_cast<QProcess*>(QObject::sender());
@@ -610,7 +614,7 @@ namespace OpenMS
 		if (iteration_nr_ == numIterations()) // all iterations performed --> proceed in pipeline
 		{
 			finished_ = true;
-			
+			ts->setPipelineRunning(false);
 			emit toolFinished();
 			
 			// notify all childs that we are finished
