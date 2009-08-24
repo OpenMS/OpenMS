@@ -934,9 +934,12 @@ namespace OpenMS
 			}
 			else if (text == "Resume")
 			{
-				ts->updateOutputFileNames();
-				ts->createDirs(ts->getOutDir());
-				runToolIfInputReady();
+				if(ts->askForOutputDir(false))
+				{
+					ts->updateOutputFileNames();
+					ts->createDirs();
+					runToolIfInputReady();
+				}
 			}
 			else if (text == "Open output in TOPPView")
 			{

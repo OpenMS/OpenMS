@@ -593,11 +593,9 @@ namespace OpenMS
 		QGridLayout* grid = new QGridLayout(dlg);
 		dlg->setWindowTitle("About TOPPAS");
 
-		//image TODO
-		//QLabel* label = new QLabel(dlg);
-		//QPixmap image(Oesterberg);
-		//label->setPixmap(image);
-		//grid->addWidget(label,0,0);
+		QLabel* label = new QLabel(dlg);
+		label->setPixmap(QPixmap(":/TOPPView_about.png"));
+		grid->addWidget(label,0,0);
 
 		//text
 		QString text = QString("<BR>"
@@ -616,8 +614,8 @@ namespace OpenMS
 													 "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
 													 "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
 													 ).arg(VersionInfo::getVersion().toQString());
-		QLabel* label = new QLabel(text,dlg);
-		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
+		QLabel* text_label = new QLabel(text,dlg);
+		grid->addWidget(text_label,0,1,Qt::AlignTop | Qt::AlignLeft);
 
 		//execute
 		dlg->exec();
@@ -625,15 +623,31 @@ namespace OpenMS
 	
   void TOPPASBase::updateMenu()
   {
+  	TOPPASWidget* tw = activeWindow_();
+  	TOPPASScene* ts = 0;
+  	if (tw)
+  	{
+  		ts = tw->getScene();
+  	}
+  	
   	QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
 		{
 			QString text = actions[i]->text();
-			if (text=="&Abort")
+			
+			if (text=="&Run")
 			{
 				bool show = false;
-				TOPPASWidget* tw = activeWindow_();
-				if (tw && tw->getScene() && tw->getScene()->isPipelineRunning())
+				if (tw && ts && !(ts->isPipelineRunning()))
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+			else if (text=="&Abort")
+			{
+				bool show = false;
+				if (tw && ts && ts->isPipelineRunning())
 				{
 					show = true;
 				}

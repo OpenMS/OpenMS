@@ -110,8 +110,8 @@ namespace OpenMS
 			const QString& getOutDir();
 			/// Sets the name of the directory for output files
 			void setOutDir(const QString& dir);
-			/// Creates the necessary output directories in directory @p out_dir
-			void createDirs(const QString& out_dir);
+			/// Creates the necessary output directories
+			void createDirs();
 			/// Saves the pipeline if it has been changed since the last save.
 			bool saveIfChanged();
 			/// Sets the changed flag
@@ -120,6 +120,8 @@ namespace OpenMS
 			bool isPipelineRunning();
 			/// Terminates the currently running pipeline
 			void abortPipeline();
+			/// Shows a dialog that allows to specify the output directory. If @p always_ask == false, the dialog won't be shown if a directory has been set, already.
+			bool askForOutputDir(bool always_ask = true);
 			
 		public slots:
 		
@@ -193,6 +195,8 @@ namespace OpenMS
 			bool changed_;
 			/// Indicates if a pipeline is currently running
 			bool running_;
+			/// Indicates if the output directory has been specified by the user already
+			bool user_specified_out_dir_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);
