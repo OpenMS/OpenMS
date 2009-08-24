@@ -57,7 +57,7 @@ namespace OpenMS
 				LONE = 2
 			};
 
-			struct IonScore
+			struct OPENMS_DLLAPI IonScore
 			{
 				IonScore();
 
