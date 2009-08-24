@@ -46,7 +46,6 @@
 
 namespace OpenMS
 {
-
 	/**
 		@brief Signed integer type (32bit)
 
@@ -421,6 +420,16 @@ namespace OpenMS
 		return pretty.substr(left, right-left);
 #endif
 	}
+	
+	namespace Internal
+  {
+    /** Used to set the locale to "C", to avoid
+        problems on machines with incompatible
+        locale settings (this overwrites the
+        locale setting of the environment!)
+    */
+    static const char* OpenMS_locale = setlocale(LC_ALL, "C");
+  }
 
 } // namespace OpenMS
 
