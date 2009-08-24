@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -53,8 +54,12 @@ namespace OpenMS
 		defaults_.setValidStrings("fragment_error_units", StringList::create("mmu,Da"));
 		defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
 		defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
-		defaults_.setValue("fixed_modifications", "", "Comma separated list of modifications, PSI-MOD definitions or which Mascot understands directly");
-		defaults_.setValue("variable_modifications", "", "Comma separated list of variable modifications, PSI-MOD definitions, or which Mascot understands directly");
+		defaults_.setValue("fixed_modifications", StringList::create(""), "List of fixed modifications, according to UniMod definitions.");
+		vector<String> all_mods;
+		ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+		defaults_.setValidStrings("fixed_modifications", all_mods);
+		defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications given as UniMod definitions.");
+		defaults_.setValidStrings("variable_modifications", all_mods);
 	
 		defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
 		defaults_.setValidStrings("mass_type", StringList::create("monoisotopic,average"));
@@ -168,38 +173,19 @@ namespace OpenMS
 		os << param_.getValue("mass_type") << endl;
 		
 		//fixed modifications	
-		String fixed_mods(param_.getValue("fixed_modifications"));
-		if (fixed_mods != "")
+		StringList fixed_mods((StringList)param_.getValue("fixed_modifications"));
+		for(StringList::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
 		{
-			vector<String> fixed_mod_split;
-			fixed_mods.split(',', fixed_mod_split);
-			if (fixed_mod_split.size() == 0)
-			{
-				fixed_mod_split.push_back(fixed_mods);
-			}
-
-			for(vector<String>::iterator it = fixed_mod_split.begin(); it != fixed_mod_split.end(); ++it)
-			{
-				writeParameterHeader_("MODS", os);
-				os << it->trim() << endl;
-			}
+			writeParameterHeader_("MODS", os);
+			os << *it << endl;
 		}
 
 		//variable modifications
-		String var_mods(param_.getValue("variable_modifications"));
-		if (var_mods != "")
+		StringList var_mods((StringList)param_.getValue("variable_modifications"));
+		for(StringList::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
 		{
-			vector<String> var_mod_split;
-			var_mods.split(',', var_mod_split);
-			if (var_mod_split.size() == 0)
-			{
-				var_mod_split.push_back(var_mods);
-			}
-			for(vector<String>::const_iterator it = var_mod_split.begin(); it != var_mod_split.end(); ++it)
-			{
-				writeParameterHeader_("IT_MODS", os);
-				os << *it << endl;
-			}
+			writeParameterHeader_("IT_MODS", os);
+			os << *it << endl;
 		}
 
 		//instrument
@@ -212,11 +198,11 @@ namespace OpenMS
 
 		//precursor mass tolerance
 		writeParameterHeader_("TOL", os);
-		os << (double)param_.getValue("precursor_mass_tolerance") << endl;
+		os << (DoubleReal)param_.getValue("precursor_mass_tolerance") << endl;
 
 		//ion mass tolerance_
 		writeParameterHeader_("ITOL", os);
-		os << (double)param_.getValue("fragment_mass_tolerance") << endl;
+		os << (DoubleReal)param_.getValue("fragment_mass_tolerance") << endl;
 
 		//taxonomy
 		writeParameterHeader_("TAXONOMY", os);
@@ -238,7 +224,7 @@ namespace OpenMS
 		{
 			std::cerr << "Warning: The spectrum written to Mascot file has more than one precursor. The first precursor is used!" << std::endl;
 		}
-		double mz(precursor.getMZ()), rt(spec.getRT());
+		DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
 		int charge(precursor.getCharge());
 
 		if (mz == 0)
@@ -294,7 +280,7 @@ namespace OpenMS
 		}
 	}
 
-	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title)
+	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<DoubleReal, DoubleReal> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title)
 	{
 		bool ok(false);
 		spectrum.clear();

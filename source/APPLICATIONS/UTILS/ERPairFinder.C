@@ -150,6 +150,8 @@ class TOPPERPairFinder
 			registerDoubleOption_("expansion_range", "<range>", 5.0, "The range that is used to extend the isotope distribution with null intensity peaks in Th.", false, true);
 			setMinFloat_("expansion_range", 0.0);
 			
+			registerIntOption_("max_number_of_ratios", "<num>", 5, "The maximal number of ratios from different scans to be used to calculate the final ratio. If more ratios are found, the ratios with the highest intensity sums are used.", false, true);
+			setMinInt_("max_number_of_ratios", 1);
 
 		}
 
@@ -166,6 +168,7 @@ class TOPPERPairFinder
 			DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
 			DoubleReal expansion_range(getDoubleOption_("expansion_range"));
 			Size max_isotope(getIntOption_("max_isotope"));
+			Size max_number_of_ratios(getIntOption_("max_number_of_ratios"));
 			Int debug(getIntOption_("debug"));
 
 			//-------------------------------------------------------------
@@ -434,6 +437,10 @@ class TOPPERPairFinder
 
 				DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size());
 
+				if (ratios.size() > max_number_of_ratios)
+				{
+					// only use the max_number_of_ratios
+				}
 				cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios << endl;
 			}
 

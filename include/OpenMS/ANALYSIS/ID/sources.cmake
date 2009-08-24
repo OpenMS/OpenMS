@@ -8,7 +8,6 @@ FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
-PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h
 PILISNeutralLossModel.h

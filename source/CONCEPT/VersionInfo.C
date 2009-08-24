@@ -41,6 +41,8 @@ using namespace std;
 
 namespace OpenMS
 {
+	
+
 	String VersionInfo::getTime()
 	{
 		static bool is_initialized = false;
