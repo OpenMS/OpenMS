@@ -138,7 +138,6 @@ int main( int argc, const char** argv )
 				
 				if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
 				{
-					cout << "dir name: " << String(out_dir_name) << endl;
 					ts.setOutDir(out_dir_name);
 				}
 				else
