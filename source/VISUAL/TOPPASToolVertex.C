@@ -437,8 +437,13 @@ namespace OpenMS
 			ini_file += "_"+type_.toQString();
 		}
 		ini_file += ".ini";
-							
-		param_.store(ini_file);
+		
+		Param save_param;
+		save_param.setValue(name_+":1:toppas_dummy", DataValue("blub"));
+		save_param.insert(name_+":1:", param_);
+		save_param.remove(name_+":1:toppas_dummy");
+		save_param.setSectionDescription(name_+":1", "Instance '1' section for '"+name_+"'");
+		save_param.store(ini_file);
 		
 		QStringList shared_args;
 		shared_args	<< "-ini"
