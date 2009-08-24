@@ -40,7 +40,7 @@
 
 ///////////////////////////
 
-START_TEST(AdvancedTheoreticalSpectrumGenerator, "$Id: TheoreticalSpectrumGenerator_test.C 4776 2009-03-05 14:14:35Z groepl $")
+START_TEST(AdvancedTheoreticalSpectrumGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
