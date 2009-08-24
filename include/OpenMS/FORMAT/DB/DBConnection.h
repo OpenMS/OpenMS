@@ -118,10 +118,10 @@ namespace OpenMS
       /**
       	@brief Executes a query and returns the result
       	
-      	The internal pointer or the returned result is positioned @b before the first row.
+      	The internal pointer of the returned result is positioned @b before the first row.
       	
       	@param query an SQL query
-      	@param first if @em true, the internal pointer or the returned result is positioned to the first record.
+      	@param first if @em true, the internal pointer of the returned result is positioned to the first record.
 
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection

@@ -11,7 +11,7 @@ Main improvements of TOPPView:
 
 Main improvements of TOPP:
 - Made mzML 1.1.0 the default format for all TOPP tools
-- Added data processing information to all output files to improve tracability
+- Added data processing information to all output files to improve traceability
 - FileFilter: 
   - added 'sort_peaks' option
   - added filtering according to spectrum type
@@ -64,7 +64,7 @@ Detailed list of changes to specific OpenMS classes
     - Loading a file with unknown CV terms in certain tags no longer causes an error
   - DBConnection
     - The executeQuery(...) method no longer sets the internal pointer to the first record of the result.
-      It is now positioned before the first record. A boolean flag was to switch to the old behaviour.
+      It is now positioned before the first record. A boolean flag can be used to switch to the old behaviour.
 	- SourceFile: changed native ID type to string
 
 Changes to the contrib package:
