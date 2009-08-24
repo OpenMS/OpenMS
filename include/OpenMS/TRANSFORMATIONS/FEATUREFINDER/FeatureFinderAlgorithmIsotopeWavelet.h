@@ -312,8 +312,10 @@ namespace OpenMS
 				};
 				
 				end=time(NULL);
-
+				
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 				std::cout << "Running time in seconds: " << difftime(end, start) << std::endl; 
+				#endif
 		}
 
 		static const String getProductName()
