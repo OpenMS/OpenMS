@@ -133,6 +133,7 @@ namespace OpenMS {
     {
 			double symmetry = gsl_ran_flat (rnd_gen_, symmetry_down_, symmetry_up_);
 			double width = gsl_ran_flat (rnd_gen_, 5, 15);
+
       it_f->setMetaValue("rt_symmetry", symmetry);
       it_f->setMetaValue("rt_width", width);
     }
@@ -500,46 +501,13 @@ namespace OpenMS {
         // dice & store distortion
         DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
-        
+
         // TODO (for CE) store peak broadening parameter
-        
-        // TODO: smooth?!
-        
-        /** WARNING: OLD CODE       
-				// moving average filter (width 3), implemented very inefficiently (guess why!)
-				if ( distortion_ != 0.0 ) // otherwise we want perfect EMG shape!
-				{
-					ElutionModel::ContainerType tmp;
-					tmp.resize(data.size());
-					for ( Size i = 1; i < data.size() - 1; ++i )
-					{
-						tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-					}
-					for ( Size i = 1; i < data.size() - 1; ++i )
-					{
-						data[i] = tmp[i];
-					}
-
-					const int num_rounds = 10;
-					for ( int rounds = 0; rounds < num_rounds; ++rounds)
-					{
-					//TODO: WTF!
-						data.swap(tmp);
-						for ( Size i = 1; i < data.size() - 1; ++i )
-						{
-							tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-						}
-						for ( Size i = 1; i < data.size() - 1; ++i )
-						{
-							data[i] = tmp[i];
-						}
-					}
-
-				}
-				**/
-                
         current_scan_rt += rt_sampling_rate_;
       }
+
+      // smooth the distortion with a moving average filter of width 3.0
+      smoothRTDistortion_(experiment);
     }
     else
     {
@@ -549,4 +517,48 @@ namespace OpenMS {
     std::cout << "done\n";
   }
     
+
+  void RTSimulation::smoothRTDistortion_(MSSimExperiment & experiment)
+  {
+    // how often do we move over the distortions
+    const UInt filter_iterations = 10;
+
+    DoubleReal previous,current,next;
+
+    for(UInt fi = 0 ; fi <= filter_iterations ; ++fi )
+    {
+      // initialize the previous value on position 0
+      previous = (DoubleReal) experiment[0].getMetaValue("distortion");
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+      cout << "d <- c(" << previous << ", ";
+      vector< DoubleReal > tmp;
+#endif
+      for(Size scan = 1 ; scan < experiment.size() - 1 ; ++scan)
+      {
+        current = (DoubleReal) experiment[scan].getMetaValue("distortion");
+        next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
+
+        DoubleReal smoothed = (previous + current + next) / 3.0;
+        previous = current;
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+        cout << current << ", ";
+        tmp.push_back(smoothed);
+#endif
+        experiment[scan].setMetaValue("distortion", smoothed);
+      }
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+      cout << next << ");" << endl;
+      cout << "smoothed <- c(";
+      cout << (DoubleReal) experiment[0].getMetaValue("distortion") << ", ";
+      for(Size i = 0 ; i  < tmp.size() ; ++i) {
+        cout << tmp[i] << ", ";
+      }
+      cout << next << ");" << endl;
+#endif
+    }
+  }
+
 }

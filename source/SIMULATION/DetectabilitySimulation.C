@@ -83,7 +83,7 @@ namespace OpenMS {
         feature_it != features.end();
         ++feature_it) 
     {
-      (*feature_it).setMetaValue("detectibility", defaultDetectibility );
+      (*feature_it).setMetaValue("detectability", defaultDetectibility );
     }     
   }
 

@@ -373,7 +373,7 @@ namespace OpenMS {
 	
 		// find scan in experiment at which our elution starts
 		MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
-    for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i )
+    for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i, ++exp_it )
     { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
 			data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
     }

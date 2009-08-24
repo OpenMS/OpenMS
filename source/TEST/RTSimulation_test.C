@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Stephan Aiche$
+// $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -207,7 +207,8 @@ END_SECTION
 
 START_SECTION((void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)))
 {
-  // TODO
+  // this method is called by "predictRT" so we already test it
+  NOT_TESTABLE
 }
 END_SECTION
 

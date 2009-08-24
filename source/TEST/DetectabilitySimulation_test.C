@@ -105,7 +105,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   TEST_EQUAL(no_detect_features.size(), 4)
   for(Size i = 0 ; i < no_detect_features.size() ; ++i) 
   {
-    TEST_EQUAL(no_detect_features[i].getMetaValue("detectibility"), 1.0)
+    TEST_EQUAL(no_detect_features[i].getMetaValue("detectability"), 1.0)
   }
   
   // test svm
@@ -148,7 +148,8 @@ END_SECTION
 START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels,
     std::vector<DoubleReal>& detectabilities)))
 {
-  // TODO
+  // this method is called by "filterDetectability" so we already test it
+  NOT_TESTABLE
 }
 END_SECTION
 
