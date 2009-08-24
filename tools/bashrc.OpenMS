@@ -465,14 +465,6 @@ function OpenMS_directory()
             echo export OPENMS=${OPENMS}
             export PROJECT=${dir}
             echo export PROJECT=${PROJECT}
-            export CXX='g++'
-            echo export CXX=\'${CXX}\'
-            export CXXCPP='g++ -E'
-            echo export CXXCPP=\'${CXXCPP}\'
-            export CC=gcc
-            echo export CC=\'${CC}\'
-            export CPP='gcc -E'
-            echo export CPP=\'${CPP}\'
             echo
             if [ -d ${OPENMS_CONTRIB}"" ]; then
                 echo "######  OPENMS_CONTRIB="${OPENMS_CONTRIB}
@@ -551,7 +543,7 @@ function prompt ()
         export PROMPT_LENGTH=${1:-30}
         if [[ $TERM == "xterm" ]];
         then
-            export PS1='\[\e]0;\u@\h:\w\007\]\[\e[1;35m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[32m\]\$\[\e[0m\] '
+            export PS1='\[\e]0;\u@\h:\w\007\]\[\e[47m\]\[\e[36m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[1;31m\]$(tmp=$?; if (($tmp)); then echo -e «$tmp»\ ; fi)\[\e[1;30m\]\$\[\e[0m\] '
         else
             export PS1='\[\e[1;35m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[32m\]\$\[\e[0m\] '
         fi
