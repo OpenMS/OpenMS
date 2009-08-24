@@ -614,11 +614,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//check content of float arrays
 		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
 		{
-			if(exp_ucomp[s].getFloatDataArrays()[a].getName() == "charge array")
-			{
-				std::cout<<std::endl;
-				std::cout<<"HHHHHHHHHHHHHHHHHHHHHHHHHHHHH************************"<<std::endl;
-			}
 			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
 			{
 				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_comp[s].getFloatDataArrays()[a][m])
