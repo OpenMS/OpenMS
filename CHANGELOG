@@ -43,7 +43,8 @@ Detailed list of changes to specific OpenMS classes
   - MSSpectrum
     - added 'isSorted' method
     - renamed MetaDataArray to FloatDataArray
-    - added StringDataArray
+    - added IntegerDataArrays
+    - added StringDataArrays
   - DataValue: added constructor for std::string and QString
   - MetaInfo: setValue method takes only DataValue now
   - MetaInfoInterface: setMetaValue method takes only DataValue now

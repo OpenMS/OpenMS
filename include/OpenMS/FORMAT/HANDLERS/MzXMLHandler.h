@@ -1143,7 +1143,7 @@ namespace OpenMS
 						tmp.push_back(spec[i].getIntensity());
 					}
 					
-					std::string encoded;
+					String encoded;
 					decoder_.encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
 					os << encoded << "</peaks>\n";
 				}

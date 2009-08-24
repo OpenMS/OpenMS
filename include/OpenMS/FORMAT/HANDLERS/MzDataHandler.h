@@ -340,7 +340,7 @@ namespace OpenMS
 					os << "\t\t\t\t<arrayName>" << name << "</arrayName>\n";
 				}
 
-				std::string str;				
+				String str;				
 				decoder_.encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
 				data_to_encode_.clear();
 				os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""

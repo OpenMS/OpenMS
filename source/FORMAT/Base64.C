@@ -46,7 +46,7 @@ namespace OpenMS
   {
 	}
 
-	void Base64::encodeStrings(std::vector<String>& in,std::string& out, bool zlib_compression)
+	void Base64::encodeStrings(std::vector<String>& in,String& out, bool zlib_compression)
 	{
 		out.clear();
 		if (in.size() == 0) return;
@@ -73,7 +73,7 @@ namespace OpenMS
 		out = QString(base64_compressed).toStdString();
 	}
 
-	void Base64::decodeStrings(const std::string& in, std::vector<String>& out, bool zlib_compression)
+	void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
 	{
 		out.clear();
 		if (in == "") return;
