@@ -969,7 +969,7 @@ class TOPPFileInfo
 						for (Size meta=0; meta<spec->getFloatDataArrays().size(); ++meta)
 						{
 							if (spec->getFloatDataArrays()[meta].getName()!=name) continue;
-							for (Size peak=0; peak < spec->size(); ++peak)
+							for (Size peak=0; peak < spec->getFloatDataArrays()[meta].size(); ++peak)
 							{
 								m_values.push_back(spec->getFloatDataArrays()[meta][peak]);
 								sum += spec->getFloatDataArrays()[meta][peak];
@@ -978,7 +978,7 @@ class TOPPFileInfo
 						for (Size meta=0; meta<spec->getIntegerDataArrays().size(); ++meta)
 						{
 							if (spec->getIntegerDataArrays()[meta].getName()!=name) continue;
-							for (Size peak=0; peak < spec->size(); ++peak)
+							for (Size peak=0; peak < spec->getIntegerDataArrays()[meta].size(); ++peak)
 							{
 								m_values.push_back(spec->getIntegerDataArrays()[meta][peak]);
 								sum += spec->getIntegerDataArrays()[meta][peak];

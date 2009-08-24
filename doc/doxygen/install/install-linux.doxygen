@@ -18,6 +18,8 @@
    - GNU make is required
 	 - patch
 	 - autoconf
+	 - automake
+	 - libtool
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:

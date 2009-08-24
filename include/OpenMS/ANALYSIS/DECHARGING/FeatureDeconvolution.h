@@ -505,7 +505,7 @@ namespace OpenMS
 					
 				}
 				
-				out_dead.store("dead_edges.txt");
+				//TODO out_dead.store("dead_edges.txt");
 				std::cout << "agreeing charges: " << agreeing_fcharge << "/" << (aedges*2) << std::endl;
 				std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
 				std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";

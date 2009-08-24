@@ -419,25 +419,34 @@ namespace OpenMS
 			update_(__PRETTY_FUNCTION__);
 		}
 		
-			//show coordinates
-			if (selected_peak_.isValid())
-			{
-					String status;
-					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-					for (Size m=0; m<s.getFloatDataArrays().size();++m)
+		//show coordinates
+		if (selected_peak_.isValid())
+		{
+				String status;
+				const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+				for (Size m=0; m<s.getFloatDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
 					{
 						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
 					}
-					for (Size m=0; m<s.getIntegerDataArrays().size();++m)
+				}
+				for (Size m=0; m<s.getIntegerDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getIntegerDataArrays()[m].size())
 					{
 						status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][selected_peak_.peak] + " ";
 					}
-					for (Size m=0; m<s.getStringDataArrays().size();++m)
+				}
+				for (Size m=0; m<s.getStringDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getStringDataArrays()[m].size())
 					{
 						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
 					}
-					emit sendStatusMessage(status, 0);
-			}
+				}
+				emit sendStatusMessage(status, 0);
+		}
 	}
 
 	
