@@ -122,8 +122,8 @@ namespace OpenMS {
 		//------------------------------------objective function-----------------------------------------------
 
 		// find maximal objective value
-		float score = 0;
-		float score_min=10e10f, score_max = -10e10f;
+		DoubleReal score = 0;
+		DoubleReal score_min=10e10f, score_max = -10e10f;
 
 		// fill in objective values 
 		std::ostringstream namebuf;
@@ -132,11 +132,11 @@ namespace OpenMS {
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
 
-     if(i==2797)
-     {
-        ChargePair t =  pairs[i];
-        std::cout << "found";
-      }
+     //if(i==2797)
+     //{
+     //   ChargePair t =  pairs[i];
+     //   std::cout << "found";
+     // }
 			
 			// log scores are good for addition in ILP - but we need them to be > 0
 
@@ -151,7 +151,9 @@ namespace OpenMS {
 			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 			if (score_min > score ) score_min = score;
 			if (score_max < score ) score_max = score;
-			//std::cout << "added #"<< i << "\n";
+			
+			// DEBUG:
+			//std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
 		}
 		std::cout << "DONE adding variables..."<< std::endl;
 		std::cout << "score_min: " << score_min << " score_max: " << score_max << "\n";
@@ -357,6 +359,12 @@ namespace OpenMS {
 				// for statistical purposes: collect compomer distribution
 				String cmp = pairs[margin_left+iColumn].getCompomer().getAdductsAsString();
 				count_cmp[cmp] = count_cmp[cmp] + 1;
+				//std::cerr << " edge " << iColumn << " with " << value << "(active)\n";
+			}
+			else
+			{
+				// DEBUG
+				//std::cerr << " edge " << iColumn << " with " << value << "\n";
 			}
 		}
 		std::cout << "active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
@@ -372,7 +380,7 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	float MIPWrapper::getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm)
+	DoubleReal MIPWrapper::getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm)
 	{
 		// TODO think of something better here!
 		DoubleReal score;

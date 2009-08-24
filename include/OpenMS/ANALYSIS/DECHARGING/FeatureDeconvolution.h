@@ -406,6 +406,10 @@ namespace OpenMS
 				std::cout << "found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
 									<< " and avg hit-size of " << (overallHits/feature_relation.size())
 									<< std::endl;
+
+				// -------------------------- //
+				// ** compute ILP solution ** //
+				// -------------------------- //
 				
 				std::cout << "creating wrapper..." << std::endl;
 				// forward set of putative edges to ILP
@@ -418,22 +422,19 @@ namespace OpenMS
 				// prepare output consensusMaps
 				cons_map.setProteinIdentifications( fm_out.getProteinIdentifications() );
 				cons_map_p.setProteinIdentifications( fm_out.getProteinIdentifications() );
-				
-				// some statistics about compomers used
-				std::map < ChargePair, Int > compomer_stats;
-				
+
+				// -------------------------- //
+				// **       DEBUG          ** //
+				// -------------------------- //
+
+				Map <Size, Size> features_aes, features_des; // count of adjacent active and dead edges
 				UInt agreeing_fcharge = 0;
 				std::vector<Size> f_idx_v(2);
 				Size aedges=0;
-
 				StringList scores_clean_edge, scores_dirty_edge;
 				StringList scores_clean_edge_idx, scores_dirty_edge_idx;
 				EmpiricalFormula ef_clean_edge, ef_dirty_edge;
-
 				// find # edges (active and dead) for each feature
-				Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
-				
-				
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           Size f0_idx = feature_relation[i].getElementIndex(0);
@@ -448,11 +449,8 @@ namespace OpenMS
 						++features_des[f0_idx];
 						++features_des[f1_idx];
           }
-          
 				}
-				
 				TextFile out_dead;
-          
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           f_idx_v[0] = feature_relation[i].getElementIndex(0);
@@ -482,7 +480,9 @@ namespace OpenMS
 						else
 						{
 							DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
-							std::cout << "conflict in Q:: RT:" << fm_out[f_idx_v[f_idx]].getRT() << " MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " int:" << fm_out[f_idx_v[f_idx]].getIntensity() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
+							//ConsensusFeature cf_in_conflict = cons_map[clique_register[f_idx_v[f_idx]]];
+							//cf_in_conflict.computeDechargeConsensus(fm_out);
+							std::cout << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
 							dirty = true;
 						}
 					}
@@ -505,15 +505,17 @@ namespace OpenMS
 					
 				}
 				
-				//out_dead.store("dead_edges.txt");
-				
+				out_dead.store("dead_edges.txt");
 				std::cout << "agreeing charges: " << agreeing_fcharge << "/" << (aedges*2) << std::endl;
-
 				std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-
 				std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";
 
+
+				// END DEBUG
+				
+				// ---------------------------- //
 				// ** write related features ** //
+				// ---------------------------- //
 
 				// fresh start for meta annotation
 				for (Size i=0;i<fm_out.size(); ++i)
@@ -527,9 +529,9 @@ namespace OpenMS
 				// find which featureIdx maps to which consensusFeatureIdx
 				// if no mapping is found, make a new CF.
 				// if new pair spans two existing CFs -> merge CFs
-				typedef std::map<Size, Size> Map;
-				typedef Map::const_iterator MapCI;
-				Map clique_register; 
+				typedef std::map<Size, Size> CliqueMap;
+				typedef CliqueMap::const_iterator MapCI;
+				CliqueMap clique_register; 
 				MapCI clique_it;
 				
 				StringList scores;
@@ -673,12 +675,12 @@ namespace OpenMS
             cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs";
           }
 
-        } // !for
+        } // !for feature_releation (i.e. edges)
 
-				// tmp
+
+				//  DEBUG 			
 				ConsensusXMLFile cf_neg;
 				//cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
-
 				// DEBUG print scores
 				TextFile tf;
 				tf.push_back("scr = c(" + scores.concatenate(", ") + ")");
@@ -693,6 +695,8 @@ namespace OpenMS
 				tf.push_back("legend(x=\"topright\",c(\"dead\", \"active_dirty\", \"active_clean\"), text.col=c(1,2,3))");
 				//tf.store("plot_scores.r");
 
+
+
 				// remove empty ConsensusFeatures from map
 				ConsensusMap cons_map_tmp(cons_map);
 				cons_map_tmp.clear(); // keep other meta information (like ProteinIDs & Map)
@@ -706,6 +710,7 @@ namespace OpenMS
 
 				}
 				cons_map_tmp.swap(cons_map);
+				// Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still goood)
 
         // include single features without a buddy!
 				Size singletons_count = 0;
@@ -732,9 +737,6 @@ namespace OpenMS
 				cons_map.getFileDescriptions()[0].size = fm_out.size();
 				cons_map.getFileDescriptions()[0].label = "charged features";
 				//cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
-				
-				// TODO count Mass^->Charge violations, ie if charge is higher, mass^ should be higher as well
-				// (mass^ is the peptide mass + adduct mass)
 				
         return;
       }
@@ -837,7 +839,7 @@ namespace OpenMS
 										 (new_cmp.getPositiveCharges() == cp.getCharge(1)) )
 								{
 									cp.setCompomer(new_cmp);
-									cp.setEdgeScore(0.99f); //TODO how to score this new edge?
+									cp.setEdgeScore(0.99); //TODO how to score this new edge?
 									edges.push_back(cp);	  // add edge
 									//std::cout << "adding infer CMP with log-score: " << new_cmp.getLogP() << "\n";
 								}

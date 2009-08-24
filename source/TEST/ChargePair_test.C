@@ -161,13 +161,13 @@ START_SECTION((void setMassDiff(DoubleReal mass_diff)))
 }
 END_SECTION
 
-START_SECTION((Real getEdgeScore() const))
+START_SECTION((DoubleReal getEdgeScore() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setEdgeScore(Real score)))
+START_SECTION((void setEdgeScore(DoubleReal score)))
 {
   ChargePair cp;
 	cp.setEdgeScore(1123.432f);

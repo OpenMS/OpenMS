@@ -170,12 +170,12 @@ namespace OpenMS
 		}
 		
 		/// Returns the ILP edge score
-		Real getEdgeScore() const
+		DoubleReal getEdgeScore() const
 		{
 			return score_;
 		}
 		/// Sets the ILP edge score
-		void setEdgeScore(Real score)
+		void setEdgeScore(DoubleReal score)
 		{
 			score_ = score;
 		}		
@@ -227,7 +227,7 @@ namespace OpenMS
 		/// mass difference (after explanation by compomer)
 		DoubleReal mass_diff_;
 		/// Score of this edge used in ILP
-		Real score_;
+		DoubleReal score_;
 		/// was this pair realized by ILP?
 		bool is_active_;
   };

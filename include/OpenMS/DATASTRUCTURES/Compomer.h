@@ -275,7 +275,7 @@ public:
 	*/
 	Compomer removeAdduct(const Adduct& a, const UInt side) const
 	{
-		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
 	
 		Compomer tmp(*this);
 		if (tmp.cmp_[side].count(a.getFormula())>0)
