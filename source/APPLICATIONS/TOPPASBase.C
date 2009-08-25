@@ -79,7 +79,8 @@ namespace OpenMS
       DefaultParamHandler("TOPPASBase")
   {
   	setWindowTitle("TOPPAS");
-    //setWindowIcon(QIcon(toppas)); TODO
+    setWindowIcon(QIcon(":/TOPPAS.png"));
+
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
 
