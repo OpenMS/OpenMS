@@ -582,11 +582,11 @@ class TOPPOMSSAAdapter
 			// reading input
 			//-------------------------------------------------------------
 
-			MzMLFile mzdata_infile;
-			mzdata_infile.setLogType(log_type_);
+			MzMLFile mzml_infile;
+			mzml_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
-			mzdata_infile.load(inputfile_name, map);
+			mzml_infile.load(inputfile_name, map);
 			
 			writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
 			
