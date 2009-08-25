@@ -670,16 +670,28 @@ namespace OpenMS
 
 	String& String::removeWhitespaces()
 	{
-		//remove whitespaces only if necessary (this is slow)
-		if (this->find_first_not_of(" \t\n\r")!=string::npos)
-		{
-			string tmp;
-    	for (ConstIterator it=this->begin(); it!=this->end(); ++it)
-    	{
-    		if (*it!=' ' && *it!='\t' && *it!='\n' && *it!='\r') tmp += *it;
-    	}
+		bool contains_ws = false;
+  	for (ConstIterator it=this->begin(); it!=this->end(); ++it)
+  	{
+  		char c = *it;
+  		if (c==' ' || c=='\t' || c=='\n' || c=='\r')
+  		{
+  			contains_ws = true;
+  			break;
+  		}
+  	}
+  	
+  	if (contains_ws)
+  	{
+  		string tmp;
+	    for (ConstIterator it=this->begin(); it!=this->end(); ++it)
+	    {
+	    	char c = *it;
+	    	if (c!=' ' && c!='\t' && c!='\n' && c!='\r') tmp += c;
+	    }
       string::operator=(tmp);
-		}
+  	}
+
 		return *this;
 	}
 
