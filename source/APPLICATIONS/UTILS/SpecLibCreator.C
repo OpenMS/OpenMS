@@ -45,10 +45,12 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page UTILS_SpecLibCreator SpecLibCreator
+  @page UTILS_SpecLibCreator SpecLibCreator
  
- @brief creates with given data a msp format spectral library.
+ 	@brief creates with given data a msp format spectral library.
 
+	@experimental This Utility is not well tested and some features might not work as expected.
+	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_SpecLibCreator.cli 
 */

@@ -53,7 +53,9 @@ using namespace std;
   @page TOPP_SpecLibSearcher SpecLibSearcher
  
   @brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
- 
+
+	@experimental This TOPP-tool is not well tested and not all feature might be properly implemented.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_SpecLibSearcher.cli
 */
