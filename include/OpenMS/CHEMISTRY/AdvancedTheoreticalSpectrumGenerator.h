@@ -172,10 +172,10 @@ namespace OpenMS
       /// Assignment operator
       AdvancedTheoreticalSpectrumGenerator& operator =(const AdvancedTheoreticalSpectrumGenerator& tsg);
 
-      /// generates the MS/MS according to the given probabilistic model
+      /// Generate the MS/MS according to the given probabilistic model
       void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Int charge = 1);
 
-      ///loads the probabilistic model from file
+      ///Load the probabilistic model from file
       void loadProbabilisticModel();
 /*
       //for test reasons
@@ -261,10 +261,6 @@ namespace OpenMS
 
       ///The selected IonTypes
       std::vector<IonType>ion_types_;
-
-
-
-
   };
 
 }
