@@ -35,6 +35,7 @@
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <fstream>
+#include <iomanip> // setprecision etc.
 
 namespace OpenMS
 {
@@ -104,6 +105,10 @@ namespace OpenMS
 		void XMLFile::save_(const String& filename, XMLHandler* handler) const 
 		{
 			std::ofstream os(filename.c_str());
+			
+			//set high precision for writing of floating point numbers
+			os.precision(writtenDigits(DoubleReal()));
+			
 			if (!os)
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
