@@ -43,7 +43,13 @@ namespace OpenMS
 	class TOPPASEdge;
 
 	/**
-		@brief The base class of all different kinds of vertices
+		@brief The base class of the different vertex classes.
+		
+		This class contains the common functionality (such as
+		event handling for mouse clicks and drags) and holds the common
+		members of all different kinds of vertices (e.g., containers
+		for all in and out edges, the vertex ID, the number of a 
+		topological sort of the whole graph, etc.)
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -54,11 +60,15 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-		
+			
+			/// The container for in/out edges
 			typedef QList<TOPPASEdge*> EdgeContainer;
+			/// A mutable iterator for in/out edges
 			typedef EdgeContainer::iterator EdgeIterator;
+			/// A const iterator for in/out edges
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
 			
+			/// The color of a vertex during depth-first search
 			enum DFS_COLOR
 			{
 				DFS_WHITE,

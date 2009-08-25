@@ -41,6 +41,10 @@ namespace OpenMS
 
   /**
   	@brief Widget visualizing and allowing to edit TOPP pipelines.
+  	
+  	This class is a subclass of QGraphicsView and visualizes a TOPPASScene.
+  	Several TOPPASWidgets can be opened in TOPPAS at the same time,
+  	managed by a QWorkspace.
 		
 		@ingroup TOPPAS_elements
   */

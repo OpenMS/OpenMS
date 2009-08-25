@@ -682,6 +682,7 @@ namespace OpenMS
 
   	//show log tool window
 		qobject_cast<QWidget *>(log_->parent())->show();
+		log_->moveCursor(QTextCursor::End);
   }
 
 	void TOPPASBase::keyPressEvent(QKeyEvent* /*e*/)
@@ -895,7 +896,9 @@ namespace OpenMS
 		qobject_cast<QWidget*>(log_->parent())->show();
 
 		//update log_
+		log_->moveCursor(QTextCursor::End);
 		log_->textCursor().insertText(text);
+		log_->moveCursor(QTextCursor::End);
 	}
 	
 	void TOPPASBase::showSuccessLogMessage()

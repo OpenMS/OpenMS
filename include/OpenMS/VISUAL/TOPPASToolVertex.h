@@ -37,6 +37,11 @@ namespace OpenMS
 {
 	/**
 		@brief A vertex representing a TOPP tool
+		
+		Besides TOPPASScene, this class contains most of the remaining functionality of
+		TOPPAS regarding the execution of pipelines. Once a pipeline run is started
+		from TOPPASScene, the execution is propagated from tool to tool and the
+		TOPP tools are actually called from here.
 	
 		@ingroup TOPPAS_elements
 	*/

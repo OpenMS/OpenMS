@@ -42,11 +42,10 @@ namespace OpenMS
 	/**
 		@brief Convenience tab bar implementation
 		
-		This tab bar differs in several ways form the QTabBar:
+		This tab bar differs in several ways from the QTabBar:
 		- you can close a tab by double-clicking it or through its context menu.
 		- it works based on tab identifiers (a fixed id stored in tab data) rather than on tab indices, which might
 		  change when inserting or removing a tab.
-		- it accepts all drag-and-drop actions and emits signals to handle them.
 		
 		@ingroup Visual
 	*/

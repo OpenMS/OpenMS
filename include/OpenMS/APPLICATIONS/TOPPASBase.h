@@ -190,7 +190,7 @@ namespace OpenMS
 			/// The path for temporary files
 			String tmp_path_;
       
-      ///returns a pointer to the active SpectrumWidget (0 if none is active)
+      ///returns a pointer to the active TOPPASWidget (0 if none is active)
       TOPPASWidget* activeWindow_() const;
       
       ///@name reimplemented Qt events

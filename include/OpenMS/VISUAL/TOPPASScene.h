@@ -41,6 +41,15 @@ namespace OpenMS
 	
 	/**
 		@brief A container for all visual items of a TOPPAS workflow
+		
+		TOPPASScene is a subclass of QGraphicsScene and acts as a container for all visual items
+		(i.e. all vertices and edges). It is visualized by a TOPPASWidget (a subclass of QGraphicsView).
+		This class also provides large parts of the functionality of TOPPAS, e.g., the methods for loading,
+		saving, running, and aborting pipelines are located here.
+		
+		TOPPASScene can also be used without a visualizing TOPPASWidget (i.e., without a gui) which can
+		be indicated via the constructor. In this case, the signals for log message output are connected
+		to standard out. This is utilized for the TOPPAS -execute command line switch.
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -51,17 +60,24 @@ namespace OpenMS
 		
 		public:
 			
+			/// The current action mode (creation of a new edge, or panning of the widget)
 			enum ActionMode
       {
       	AM_NEW_EDGE,
       	AM_MOVE
       };
       
+      /// The container for edges
       typedef QList<TOPPASEdge*> EdgeContainer;
+      /// A mutable iterator for edges
 			typedef EdgeContainer::iterator EdgeIterator;
+			/// A const iterator for edges
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
+			/// The container for vertices
 			typedef QList<TOPPASVertex*> VertexContainer;
+			/// A mutable iterator for vertices
 			typedef VertexContainer::iterator VertexIterator;
+			/// A const iterator for vertices
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
