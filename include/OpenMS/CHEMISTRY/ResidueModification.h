@@ -44,10 +44,9 @@ namespace OpenMS
 			This class represents a modification of a residue. A residue modification
 			has several attributes like the diff formula, a terminal specificity 
 			a mass and maybe an origin which means a specific residue which it can
-			be applied to. A residue modification can be represented by its PSI-MOD
-			identifier, e.g. MOD:01214. This is a unique key which only occurs ones in 
-			an OpenMS instance stored in the ModificationsDB. Some residue modifications
-			have also unique synonyms which can be used instead.
+			be applied to. A residue modification can be represented by its UniMod name
+			identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which 
+			only occurs once in an OpenMS instance stored in the ModificationsDB. 
 	*/
 	class OPENMS_DLLAPI ResidueModification
 	{

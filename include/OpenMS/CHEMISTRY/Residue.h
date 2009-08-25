@@ -52,7 +52,7 @@ namespace OpenMS
 
 		A very important property of residues are their modifications. By default no 
 		modification is present. Any modification which is present in the ModificationsDB can 
-		by applied, if appropriate. 
+		be applied, if appropriate. 
 	*/
 	class OPENMS_DLLAPI Residue
 	{

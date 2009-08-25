@@ -61,6 +61,8 @@ using namespace std;
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
 	proteases can be found be executing @em omssacl @em -el.
 	
+	This wrapper has be tested successfully with OMSSA, version 2.x. 
+
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 
 	<B>The command line parameters of this tool are:</B>

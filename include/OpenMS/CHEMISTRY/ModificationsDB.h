@@ -41,15 +41,22 @@ namespace OpenMS
 
 	/** @ingroup Chemistry
 	
-			@brief database which holds all residue modifications from PSI-MOD
+			@brief database which holds all residue modifications from UniMod
 			
 			This singleton class serves as a storage of the available modifications
-			represented by the PSI-MOD ontology. Each of the modifications is identified by
-			their unique PSI-MOD identifier, e.g. MOD:01214. This identifier is also used
-			in AASequence to specifiy modifications. Also residues can be modified by setting
-			a modification using the unique identifier. Some modifications also have synonyms 
-			which are also unique.
+			represented by UniMod (www.unimod.org). The modifications are identified
+			by there name and possibly other ids from UniMod or the PSI-MOD ontology.
+			Modifications can have different specificities, e.g. they can occur only
+			at the termini, anywhere or only at specific amino acids.
 
+			The modifications are defined in share/OpenMS/CHEMISTRY/unimod.xml and 
+			in share/OpenMS/CHEMISTRY/PSI-MOD.obo. The unimod file can be directly
+			downloaded from unimod.org and replaced if the modifications change.
+
+			To add a new modification, not contained in UniMod, one should follow
+			the way described at the unimod.org website and download the file then
+			from unimod.org. The same can be done to add support for the modifications
+			to search engines, e.g. Mascot.
 	*/
 	class OPENMS_DLLAPI ModificationsDB
 	{					

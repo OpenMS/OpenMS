@@ -54,6 +54,18 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via XTandem.
 
+	@em X!Tandem must be installed before this wrapper can be used. This wrapper
+	has been successfully tested with several versions of X!Tandem. 
+
+	To speed up computations, fasta databases can be compressed using the fasta_pro.exe
+	tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
+	Refer to the docu of @em X!Tandem for further information about settings.
+
+	The major part of the setting can be directly adjusted using the "default_input.xml" of 
+	@em X!Tandem. A example of that file is contained in the "bin" folder of the 
+	@em X!Tandem installation. The parameters "default_input_file" must point to a valid
+	file. Parameters set by this wrapper overwrite the default settings given in the file.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_XTandemAdapter.cli
 */

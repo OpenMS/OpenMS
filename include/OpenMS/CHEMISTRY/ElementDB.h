@@ -50,6 +50,12 @@ namespace OpenMS
 			Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
 			doi:10.1351/pac200375060683	
 
+			This singleton stores all elements. The elements are taken from the publications given
+			above and are stored in share/OpenMS/CHEMISTRY/Elements.xml. 
+
+			Specific isotopes of elements can be accessed by writing the atomic number of the isotope
+			in brackets followed by the element name, e.g. "(2)H" for deuterium.
+
 			@improvement include exact mass values for the isotopes and update IsotopeDistribution (Andreas)
 			@improvement add exact isotope distribution based on exact isotope values (Andreas)
 */
