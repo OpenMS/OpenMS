@@ -181,7 +181,6 @@ namespace OpenMS
 	void TOPPASOutputFileVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 	{
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		qobject_cast<TOPPASToolVertex*>((*inEdgesBegin())->getSourceVertex());
 		ts->unselectAll();
 		setSelected(true);
 		

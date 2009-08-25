@@ -30,14 +30,14 @@
 /**
 	@page TOPPAS_general General introduction
 
-		TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
+		@b TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
 		can be created conveniently in a GUI by means of mouse interactions. The
 		parameters of all involved tools can be edited within the application
-		and are also saved as part of the pipeline definition in the @em .toppas file.
-		Furthermore, TOPPAS interactively performs validity checks during the pipeline
+		and are also saved as part of the pipeline definition in the @a .toppas file.
+		Furthermore, @b TOPPAS interactively performs validity checks during the pipeline
 		editing process, in order to make it more difficult to create an invalid workflow.
 		Once set up and saved, a workflow can also be run without the GUI using
-		the @em TOPPAS @em -execute \<file\> command line option.
+		the @a TOPPAS @a -execute @a \<file\> command line option.
 		
 		The following figure shows a simple example pipeline that has just been created
 		and executed successfully:
@@ -46,9 +46,116 @@
 		@image latex TOPPAS_simple_example.png "" width=14cm
 
 	@page TOPPAS_interface User interface
-
-		bladiblub
-	
+		
+		@section TOPPAS_interface_introduction Introduction
+		
+			The following figure shows the @b TOPPAS main window and a pipeline which is just being created.
+			The user has added some tools by pressing the mouse on the tool name in the TOPP tool list on the left
+			and drag-and-dropping them onto the central widget. Additionally, he has added special vertices
+			for input and output
+			files. Depending on the tools used in the pipeline, either input/output file vertices or input/output
+			file @a list vertices are required (because some tools operate on single files only, and some on lists of files).
+			
+			Next, the user has drawn some edges between the tools
+			which determine the data flow of the pipeline. Edges can be drawn by first @em deselecting the
+			desired source vertex and then dragging the mouse from the source to the wished target vertex (if
+			a @em selected vertex is dragged, it is moved on the canvas instead).
+			When an edge is created, an input/output parameter
+			mapping dialog shows up and let's the user select the output parameter of the source vertex and the
+			input parameter of the target vertex for this data flow.
+			In the figure, the edge being edited is painted yellow, because it
+			is not configured yet. If the selected input and output parameters are not compatible with each other,
+			@b TOPPAS will refuse to add the edge. In this case, however, the edge will become green (valid) after
+			pressing the @a OK button.
+			
+			@image html TOPPAS_edges.png
+			@image latex TOPPAS_edges.png "" width=14cm
+			
+			The input/output mapping of edges can be changed at any time during the editing process by double-clicking
+			an edge or by selecting @a Edit @a I/O @a mapping from the context menu which appears when an edge is right-clicked.
+			All visible items (i.e. edges and the different kinds of vertices) have such a context menu. For a detailed list
+			of the different menus and their entries, see @ref TOPPAS_interface_summary_menus .
+			
+			The following figure shows a possible next step: the user has double-clicked one of the tool vertices in order
+			to configure its parameters. By default, the standard parameters are used for each tool. Again, this can also
+			be done by selecting @a Edit @a parameters from the context menu of the tool.
+			
+			@image html TOPPAS_parameters.png
+			@image latex TOPPAS_parameters.png "" width=14cm
+		
+			The above statement about tools that can deal only with single input files is not entirely true. Actually, the tools in the
+			example, @b BaselineFilter
+			and @b NoiseFilter, can process only single files. In @b TOPPAS, however, it is possible to enable a @a list @a iteration @a mode
+			for such tools. As can be seen in the figure, the tools consume a @a list of input files and also produce a list of
+			output files. The TOPP tool is then simply executed for every element of the input list.
+			The list iteration mode is indicated by the cyclic arrow in the top left corner of the vertex and
+			can be switched on and off in the context menu.
+			
+			Once the pipeline has been set up, the input files have to be specified before the pipeline can be executed.
+			This is done by double-clicking an input vertex and selecting a file / a list of files in the dialog that appears. Finally, if you have
+			input and output vertices at every end of your pipeline and all edges are green, chances are good that the pipeline will run properly.
+			In order to find that out, press @a Pipeline @a > @a Run in the menu bar. You will be asked for an output file directory where
+			two directories, @a TOPPAS_tmp and @a TOPPAS_out, will be created. If everything goes well, the former will contain all
+			temporary files that are passed from tool to tool within the pipeline, and the latter will contain your desired output files.
+			Both folders contain further sub-directories which are named after the number in the bottom-left corner of the vertex they
+			belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
+			tools indicate if the tool has finished (green), is currently running (yellow), or has not done anything so far (red).
+			When the execution has finished, you can check the generated output files of every vertex quickly by selecting
+			@a Open @a output @a in @a TOPPView from its context menu.
+			
+			@image html TOPPAS_run.png
+			@image latex TOPPAS_run.png "" width=14cm
+			
+		@section TOPPAS_interface_summary Summary
+		
+			@subsection TOPPAS_interface_summary_mk Mouse and keyboard
+			
+			Using the mouse, you can
+			
+			- drag&drop tools from the list on the left onto the workflow window
+			- select items (by clicking)
+			- select multiple items (by holding down @a CTRL while clicking)
+			- select multiple items (by pressing @a CTRL and dragging the mouse in order to "catch" items with the rubber band)
+			- move all selected items (by dragging one of them)
+			- draw a new edge from one vertex to another (by dragging; sourced must be deselected first)
+			- specify input files (by double-clicking an input vertex)
+			- configure parameters of tools (by double-clicking a tool vertex)
+			- specify the input/output mapping of edges (by double-clicking an edge)
+			- translate the view (by dragging anywhere but not on an item)
+			- zoom in and out (using the mousewheel)
+			- make the context menu of an item appear (by right-clicking it)
+			
+			Using the keyboard, you can
+			
+			- delete all selected items (by pressing @a DEL or @a BACKSPACE )
+			
+			@subsection TOPPAS_interface_summary_menus Menus
+			
+			@b Menu @b bar:
+			
+			In the @a File menu, you can
+			
+			- create a new, empty workflow (@a New)
+			- open an existing one (@a Open)
+			- Save a workflow (@a Save / @a Save @a as)
+			- Close the current window (@a Close)
+			- Quit the entire application (@a Quit)
+		
+			In the @a Pipeline menu, you can
+			
+			- Run a pipeline (@a Run)
+			- Abort a currently running pipeline (@a Abort)
+			
+			In the @a Windows menu, you can
+			
+			- make the TOPP tool list window on the left and the log message at the bottom (in)visible
+		
+			@b Context @b menus:
+			
+			In the context menu of an input vertex, you can
+			
+			- 
+			
 	@page TOPPAS_examples Examples
 		
 		@section TOPPAS_peakpicker_example Peak picking
