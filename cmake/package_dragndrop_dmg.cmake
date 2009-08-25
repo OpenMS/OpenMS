@@ -2,7 +2,10 @@ set(CPACK_GENERATOR "DragNDrop")
 
 # this option to take effect requires at least version 2.6.4 of cmake
 # The file should be accompanied with a file named background png, stored in the same folder
-set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store)
+# To create the file convert a sample dmg into a read/write one, select background image
+# size ... and copy the .DS_store the file in the MacOSX dir
+# does not work currently, file is simply copied (see below)
+#set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store)
 
 # add start-up script for TOPPView.app into Bundle, and move real TOPPView executable to TOPPView.exe
 # call scripts to fix issues with wrongly referenced Qt libs 
@@ -69,5 +72,8 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile  DESTINATION 
 
 # install background image for the folder
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png DESTINATION OpenMS-1.5/share/OpenMS/ COMPONENT share)
+
+# copy DS_store file into folder
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store DESTINATION . RENAME .DS_store COMPONENT share)
 
 include(CPack)
