@@ -32,7 +32,7 @@
   	<tr>
   		<td><B>Fedora 10</B></td>
   		<td><B>OpenSuse 11.1</B></td>
-  		<td><B>Ubuntu 8.10</B></td>
+  		<td><B>Ubuntu 8.10 or 9.4</B></td>
   	</tr>
   	<tr>
   		<td valign="top">
@@ -53,6 +53,7 @@
   			@n autoconf
   			@n qt4-dev-tools
   			@n patch
+				@n libtool
   		</td>
   	</tr>
   </table>
