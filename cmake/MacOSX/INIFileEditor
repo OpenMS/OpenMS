@@ -13,6 +13,6 @@ export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/../../../share/OpenMS
 export PATH=${OPENMS_TOPP_PATH}/../../../TOPP:$PATH
 
 ## start INIFileEditor
-${OPENMS_TOPP_PATH}/INIFileEditor.exe
+${OPENMS_TOPP_PATH}/INIFileEditor.exe $@
 
 
