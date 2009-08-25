@@ -165,7 +165,6 @@ namespace OpenMS
 		*/
 		if (tag_ == "MSModHit")
 		{
-			cerr << actual_mod_type_ << " " << actual_mod_site_ << endl;
 			if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
 			{
 				if (mods_map_[actual_mod_type_.toInt()].size() > 1)
