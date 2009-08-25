@@ -447,6 +447,7 @@ namespace OpenMS
 		}
 		
 		string::operator=(string(begin,end));
+		
 		return *this;
 	}
 
@@ -472,7 +473,7 @@ namespace OpenMS
 			}
 		}
 		
-		string::operator=(simple);
+		this->swap(simple);
 		
 		return *this;
 	}
@@ -684,12 +685,13 @@ namespace OpenMS
   	if (contains_ws)
   	{
   		string tmp;
+  		tmp.reserve(this->size());
 	    for (ConstIterator it=this->begin(); it!=this->end(); ++it)
 	    {
 	    	char c = *it;
 	    	if (c!=' ' && c!='\t' && c!='\n' && c!='\r') tmp += c;
 	    }
-      string::operator=(tmp);
+      this->swap(tmp);
   	}
 
 		return *this;
