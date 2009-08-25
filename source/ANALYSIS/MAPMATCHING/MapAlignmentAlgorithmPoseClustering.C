@@ -237,9 +237,9 @@ namespace OpenMS
 				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 
 				// apply transformation (global and local)
-#if 1 // new way - "deep"
+#if 1 // do it the new way - "deep"
 				transformSingleFeatureMap(maps[i],transformations[i]);
-#else // old way - "shallow", does not transform convex hulls etc.!
+#else // do it the old way - "shallow", does not transform convex hulls etc.! - TODO remove this piece of code sooner or later
 				for (Size j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
