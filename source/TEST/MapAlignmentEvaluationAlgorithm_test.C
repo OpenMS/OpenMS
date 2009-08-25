@@ -67,7 +67,7 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge, DoubleReal& realin)=0))
+START_SECTION((virtual void evaluate(const ConsensusMap &conensus_map_in, const ConsensusMap &consensus_map_gt, const DoubleReal &rt_dev, const DoubleReal &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, DoubleReal &out)=0))
 	MAEA maea;
 	ConsensusMap map1;
 	ConsensusMap map2;
@@ -78,7 +78,7 @@ START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const Consensus
 	TEST_EQUAL(real, 1.5)
 END_SECTION
 
-START_SECTION((bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge)))
+START_SECTION((bool isSameHandle(const FeatureHandle &lhs, const FeatureHandle &rhs, const DoubleReal &rt_dev, const DoubleReal &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge)))
 {
 	Feature tmp_feature;
 	tmp_feature.setRT(100);

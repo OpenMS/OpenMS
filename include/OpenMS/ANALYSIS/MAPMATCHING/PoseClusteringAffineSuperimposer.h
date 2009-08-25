@@ -67,9 +67,11 @@ namespace OpenMS
     }
 
     /**
-     @brief Estimates the transformation and fills the given mapping function
+     @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)
 
      @note Exactly two input maps must be given.
+
+     @pre  For performance reasons, we trust that (the equivalent of:) <code>maps[0].updateRanges(); maps[1].updateRanges();</code> has been done <i>before</i> calling this.  You have been warned!
 
      @exception IllegalArgument is thrown if the input maps are invalid.
      */

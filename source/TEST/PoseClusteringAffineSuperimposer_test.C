@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -89,13 +89,21 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   input[1].push_back(feat4);
 
   Param parameters;
-	parameters.setValue(String("scaling_bucket_size"), 0.01);
-	parameters.setValue(String("shift_bucket_size"), 0.01);
-	parameters.setValue(String("bucket_window_scaling"), 1);
+  parameters.setValue(String("scaling_bucket_size"), 0.01);
+  parameters.setValue(String("shift_bucket_size"), 0.1);
+
+  // If hashing goes wrong, get debug output with the following:
+  //  parameters.setValue(String("dump_buckets"),"pcast_buckets");
+  //  parameters.setValue(String("dump_pairs"),"pcast_pairs");
 
   std::vector<TransformationDescription> transformations;  
   PoseClusteringAffineSuperimposer pcat;
   pcat.setParameters(parameters);
+
+  // That's a precondition for run()!  Now even documented :-)
+  input[0].updateRanges();
+  input[1].updateRanges();
+
   pcat.run(input, transformations);
 
 	TEST_EQUAL(transformations.size(),1)

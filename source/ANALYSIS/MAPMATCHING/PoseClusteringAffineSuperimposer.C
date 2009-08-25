@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange, Clemens Groepl $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
@@ -54,30 +54,38 @@ namespace OpenMS
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
       "This condition applies to the pairs considered in hashing.");
+    defaults_.setMinFloat("mz_pair_max_distance",0.);
 
     defaults_.setValue("rt_pair_distance_fraction", 0.1, "Within each of the two maps, the pairs considered for pose clustering "
       "must be separated by at least this fraction of the total elution time "
       "interval (i.e., max - min).  ", StringList::create("advanced"));
+    defaults_.setMinFloat("rt_pair_distance_fraction",0.);
+    defaults_.setMaxFloat("rt_pair_distance_fraction",1.);
 
     defaults_.setValue("num_used_points", 2000, "Maximum number of elements considered in each map "
       "(selected by intensity).  Use this to reduce the running time "
-      "and to disregard weak signals during alignment.");
+      "and to disregard weak signals during alignment.  For using all points, set this to -1.");
+    defaults_.setMinInt("num_used_points", -1);
 
     defaults_.setValue("scaling_bucket_size", 0.005, "The scaling of the retention time "
       "interval is being hashed into buckets of this size during pose "
       "clustering.  A good choice for this would be a bit smaller than the "
       "error you would expect from repeated runs.");
+    defaults_.setMinFloat("scaling_bucket_size",0.);
 
     defaults_.setValue("shift_bucket_size", 3.0, "The shift at the lower (respectively, higher) end of the retention time "
       "interval is being hashed into buckets of this size during pose "
       "clustering.  A good choice for this would be about "
       "the time between consecutive MS scans.");
+    defaults_.setMinFloat("shift_bucket_size",0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
       "This applies for both directions.", StringList::create("advanced"));
+    defaults_.setMinFloat("max_shift",0.);
 
     defaults_.setValue("max_scaling", 2.0, "Maximal scaling which is considered during histogramming.  "
       "The minimal scaling is the reciprocal of this.", StringList::create("advanced"));
+    defaults_.setMinFloat("max_scaling",1.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
       "A serial number for each invocation will be added automatically.", StringList::create("advanced"));
@@ -150,7 +158,7 @@ namespace OpenMS
     const PeakPointerArray_ & scene_map(scene_map_ini);
     {
       // truncate the data as necessary
-      const Size num_used_points = (Int) param_.getValue("num_used_points");
+      const Size num_used_points = (Int) param_.getValue("num_used_points"); // I am not to blame for this extra conversion (Clemens)
       if ( model_map_ini.size() > num_used_points )
       {
         model_map_ini.sortByIntensity(true);
@@ -922,8 +930,8 @@ namespace OpenMS
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           mean = statistics.mean() + data_range_begin;
           stdev = sqrt(statistics.variance());
-          data_range_begin = floor(std::max<DoubleReal>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
-          data_range_end = ceil(std::min<DoubleReal>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
+          data_range_begin = floor(std::max<DoubleReal>(mean - scaling_cutoff_stdev_multiplier * stdev -1, 0));
+          data_range_end = ceil(std::min<DoubleReal>(mean + scaling_cutoff_stdev_multiplier * stdev + 2, data_size));
           const DoubleReal outside_mean = rt_high_hash_.index2key(mean);
           const DoubleReal outside_stdev = stdev * rt_high_hash_.getScale();
           rt_high_low = (outside_mean - outside_stdev);
