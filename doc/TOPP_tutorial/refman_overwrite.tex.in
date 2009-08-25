@@ -94,5 +94,12 @@
 	\pagebreak
 	\input{TOPP_example_convert}
 
+\section{Using TOPPAS to create and run TOPP pipelines}
+
+	\input{TOPPAS_general}
+	\pagebreak
+	\input{TOPPAS_interface}
+	\pagebreak
+	\input{TOPPAS_examples}
 
 \end{document}

@@ -75,6 +75,15 @@
 		- @subpage TOPP_example_id
 		- @subpage TOPP_example_ppp
 		- @subpage TOPP_example_convert
-
+	
+	<b>Using TOPPAS to create and run TOPP pipelines</b>
+	
+		This part of the tutorial introduces TOPPAS, a tool for visual creation
+		and execution of TOPP pipelines. First, the basic use of the graphical user interface
+		will be explained, followed by some exemplary use cases.
+		
+		- @subpage TOPPAS_general
+		- @subpage TOPPAS_interface
+		- @subpage TOPPAS_examples
 	
 */

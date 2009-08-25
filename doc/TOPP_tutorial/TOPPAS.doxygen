@@ -1,0 +1,66 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+//##############################################################################
+
+/**
+	@page TOPPAS_general General introduction
+
+		TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
+		can be created conveniently in a GUI by means of mouse interactions. The
+		parameters of all involved tools can be edited within the application
+		and are also saved as part of the pipeline definition in the @em .toppas file.
+		Furthermore, TOPPAS interactively performs validity checks during the pipeline
+		editing process, in order to make it more difficult to create an invalid workflow.
+		Once set up and saved, a workflow can also be run without the GUI using
+		the @em TOPPAS @em -execute \<file\> command line option.
+		
+		The following figure shows a simple example pipeline that has just been created
+		and executed successfully:
+		
+		@image html TOPPAS_simple_example.png
+		@image latex TOPPAS_simple_example.png "" width=14cm
+
+	@page TOPPAS_interface User interface
+
+		bladiblub
+	
+	@page TOPPAS_examples Examples
+		
+		@section TOPPAS_peakpicker_example Peak picking
+			
+			blublu
+		
+		@section TOPPAS_featurefinder_example Feature finding
+		
+			hallo
+		
+		@section TOPPAS_mapaligner_example Map alignment
+		
+			!!111
+		
+*/

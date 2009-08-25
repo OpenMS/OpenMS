@@ -30,7 +30,21 @@
 	
 	@brief An assistant for GUI-driven TOPP workflow design.
 	
-  @todo Add docu and example image (Hiwi, Johannes)
+  TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
+  can be created conveniently in a GUI by means of mouse interactions. The
+  parameters of all involved tools can be edited within the application
+  and are also saved as part of the pipeline definition in the @em .toppas file.
+  Furthermore, TOPPAS interactively performs validity checks during the pipeline
+  editing process, in order to make it more difficult to create an invalid workflow.
+  Once set up and saved, a workflow can also be run without the GUI using
+  the @em TOPPAS @em -execute \<file\> command line option.
+  
+  The following figure shows a simple example pipeline that has just been created
+  and executed successfully:
+  
+  @image html TOPPAS_simple_example.png
+  
+  More information about TOPPAS can be found in the @ref TOPP_tutorial.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TOPPAS.cli
