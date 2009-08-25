@@ -53,7 +53,7 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithmRecall()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static MapAlignmentEvaluationAlgorithmRecall* create()))
+START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
 	MapAlignmentEvaluationAlgorithm* ptr2 = 0;
 	ptr2 = MapAlignmentEvaluationAlgorithmRecall::create();
 	TEST_NOT_EQUAL(ptr2, 0)
@@ -63,7 +63,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmRecall::getProductName(),"recall")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap& mapin1, const ConsensusMap& mapin2, const DoubleReal& rt_dev, const DoubleReal& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge, DoubleReal& out)))
+START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const DoubleReal &rt_dev, const DoubleReal &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, DoubleReal &out)))
 	MapAlignmentEvaluationAlgorithmRecall maea;
 	ConsensusMap in;
 	ConsensusMap gt;
