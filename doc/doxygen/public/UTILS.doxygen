@@ -61,8 +61,10 @@
   - @subpage UTILS_PeptideIndexer - Refreshes the protein references for all peptide hits.
   
     <b>Quantitation</b>
-  - @subpage UTILS_ERPairFinder Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
-	
+  - @subpage UTILS_ERPairFinder - Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_MRMPairFinder - Util which can be used to evaluate labeled pair ratios on MRM features.
+
+
 	<b>Misc</b>
   - @subpage UTILS_HistView - A viewer for histograms.
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
