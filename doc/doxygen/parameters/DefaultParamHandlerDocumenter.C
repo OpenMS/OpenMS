@@ -132,7 +132,7 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/ElutionModel.h>
-#include <OpenMS/SIMULATION/MixtureModel.h>
+//#include <OpenMS/SIMULATION/MixtureModel.h>
 
 
 using namespace std;
@@ -324,7 +324,6 @@ int main (int argc , char** argv)
 	DOCME(LmaGaussModel);
 	DOCME(LmaIsotopeFitter1D);
 	DOCME(LmaIsotopeModel);
-	DOCME(MixtureModel);
 	DOCME(MSPFile);
   DOCME(MSSim);
 	DOCME(MapAlignmentAlgorithmPoseClustering);

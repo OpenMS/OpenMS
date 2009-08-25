@@ -393,7 +393,6 @@ set(simulation_executables_list
   RawMSSignalSimulation_test
   ElutionModel_test
   IsotopeModelGeneral_test
-  MixtureModel_test
 )
 
 ### collect test executables

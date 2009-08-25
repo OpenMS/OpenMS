@@ -133,7 +133,8 @@ namespace OpenMS {
     {
 			double symmetry = gsl_ran_flat (rnd_gen_, symmetry_down_, symmetry_up_);
 			double width = gsl_ran_flat (rnd_gen_, 5, 15);
-
+			// TODO: maybe this would be a better solution ..
+			//double width = 1;
       it_f->setMetaValue("rt_symmetry", symmetry);
       it_f->setMetaValue("rt_width", width);
     }

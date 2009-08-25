@@ -56,10 +56,26 @@ using namespace std;
 		
 	@brief A highly configurable simulator for mass spectrometry experiments.
 	
-	@todo Add more docu here (Chris, Stephan)
-	
+  This implementation is a rewritten and extended version of the concepts and ideas presented in:<br>
+  <p>
+  Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gropl, Oliver Kohlbacher, and Knut Reinert.<br>
+  LC-MSsim - A simulation software for liquid chromatography mass spectrometry data.<br>
+  <em>BMC Bioinformatics</em> <b>9</b>:423, 2008.
+  </p>
+
+  The electronic version of this article is the complete one and can be found online at: <br>
+  <a href="http://www.biomedcentral.com/1471-2105/9/423">http://www.biomedcentral.com/1471-2105/9/423</a>
+
+  Added features are:
+  <ul>
+    <li>Simulation of MS/MS spectra with configurable precursor-selection strategy</li>
+    <li>Simulation of Capillary electrophoresis as separation step</li>
+    <li>Simulation of iTRAQ labels</li>
+    <li>Simulation of 1D spectra</li>
+  </ul>
+
 	@note This tool is experimental!	
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_MSSimulator.cli
 */
@@ -157,7 +173,7 @@ class TOPPMSSimulator
 					String::size_type index_end = (it->description).find(']', index);
 					if (index_end == string::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
 					
-					std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
+					//std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
 					StringList abundances = StringList::create((it->description).substr(index+2,index_end-index-2));
 					if (abundances.size() == 0) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section is missing abundance value.");
 					quant_info["intensity"] = abundances[0].toDouble();

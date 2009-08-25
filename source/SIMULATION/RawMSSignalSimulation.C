@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
-#include <OpenMS/SIMULATION/MixtureModel.h>
 #include <OpenMS/SIMULATION/ElutionModel.h>
 
 
@@ -198,6 +197,7 @@ namespace OpenMS {
   void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
     // was: 3000 TODO: ???? why 1500
+    // TODO: we need to improve this
     SimIntensityType scale = active_feature.getIntensity() * 1500;
 
     Param p1;
