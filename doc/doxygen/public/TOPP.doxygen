@@ -99,7 +99,5 @@
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
 	- @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 	- @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
-	
-	@todo Remove conversion functionality from the search engine adapters and move it to IDFileConverter (Andreas)
 
 */
