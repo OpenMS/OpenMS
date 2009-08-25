@@ -194,15 +194,15 @@ namespace OpenMS
 		
 		//missed cleavages
 		writeParameterHeader_("PFA", os);
-		os << (UInt)param_.getValue("missed_cleavages") << endl;
+		os << param_.getValue("missed_cleavages") << endl;
 
 		//precursor mass tolerance
 		writeParameterHeader_("TOL", os);
-		os << (DoubleReal)param_.getValue("precursor_mass_tolerance") << endl;
+		os << param_.getValue("precursor_mass_tolerance") << endl;
 
 		//ion mass tolerance_
 		writeParameterHeader_("ITOL", os);
-		os << (DoubleReal)param_.getValue("fragment_mass_tolerance") << endl;
+		os << param_.getValue("fragment_mass_tolerance") << endl;
 
 		//taxonomy
 		writeParameterHeader_("TAXONOMY", os);
@@ -236,9 +236,9 @@ namespace OpenMS
 		{
 			os << endl;
 			os << "BEGIN IONS" << endl;
-			os << "TITLE=" << mz << "_" << rt << endl;
-			os << "PEPMASS=" << mz <<  endl;
-			os << "RTINSECONDS=" << rt << endl;
+			os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << endl;
+			os << "PEPMASS=" << precisionWrapper(mz) <<  endl;
+			os << "RTINSECONDS=" << precisionWrapper(rt) << endl;
 
 			bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
 			if (charge != 0)
@@ -253,7 +253,7 @@ namespace OpenMS
 
 			for (PeakSpectrum::const_iterator it = spec.begin() ; it != spec.end();++it)
 			{
-				os << it->getMZ() << " " << it->getIntensity() << endl;
+				os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << endl;
 			}
 			os << "END IONS" << endl;
 		}

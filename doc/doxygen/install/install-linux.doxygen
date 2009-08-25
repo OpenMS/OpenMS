@@ -17,9 +17,9 @@
 	 - Qt4 (version 4.3 or higher; development package containing qmake and headers)
    - GNU make is required
 	 - patch
-	 - autoconf
-	 - automake
-	 - libtool
+	 - autoconf (at least version 2.60)
+	 - automake (at least version 1.9)
+	 - libtool (libtoolize or glibtoolize)
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
