@@ -670,13 +670,16 @@ namespace OpenMS
 
 	String& String::removeWhitespaces()
 	{
-		Iterator end = this->end();
-		end  = std::remove(this->begin(), end, ' ');
-		end  = std::remove(this->begin(), end, '\t');
-		end  = std::remove(this->begin(), end, '\n');
-		end  = std::remove(this->begin(), end, '\r');
-				
-		this->erase(end,this->end());
+		//remove whitespaces only if necessary (this is slow)
+		if (this->find_first_not_of(" \t\n\r")!=string::npos)
+		{
+			string tmp;
+    	for (ConstIterator it=this->begin(); it!=this->end(); ++it)
+    	{
+    		if (*it!=' ' && *it!='\t' && *it!='\n' && *it!='\r') tmp += *it;
+    	}
+      string::operator=(tmp);
+		}
 		return *this;
 	}
 

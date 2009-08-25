@@ -667,16 +667,19 @@ START_SECTION((String& removeWhitespaces()))
 
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
+	
+	s = "test";
+	s.removeWhitespaces();
+	TEST_EQUAL(s,"test");
 
 	s = "\n\r\t test \n\r\t";
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 
-	s = "\n\r\t te \n\r\tst \n\r\t";
+	s = "\n\r\t t\ne \ts\rt \n\r\t";
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 END_SECTION
-
 
 const String fixed("test");
 
