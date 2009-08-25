@@ -36,7 +36,9 @@
 namespace OpenMS
 {
   /**
-   @brief Generates theoretical spectra according to a probabilistic model
+   @brief Generates theoretical spectra according to a probabilistic model. 
+
+   The models are generated with the @ref UTILS_SpectrumGeneratorNetworkTrainer
 
    @htmlinclude OpenMS_AdvancedTheoreticalSpectrumGenerator.parameters
 
@@ -45,7 +47,7 @@ namespace OpenMS
   class OPENMS_DLLAPI AdvancedTheoreticalSpectrumGenerator: public TheoreticalSpectrumGenerator
   {
     public:
-      //function object to convert the indices of the flatened 4 dimensional matrix
+      ///Function object to convert the indices of the internal arrays
       class IndexConverter
       {
         public:
@@ -66,17 +68,17 @@ namespace OpenMS
         public:
 
           /**
-           @name small nested container representing an edge in a TreeAugmentedNetwork
+           @name Small nested container representing an edge in a TreeAugmentedNetwork
            */
           //@{
-          ///representation of an edge in the probabilistic network with two end nodes and a weight
+          ///Representation of an edge in the probabilistic network with two end nodes and a weight
           struct TanEdge
           {
             UInt left_node;
             UInt right_node;
             DoubleReal score;
 
-            //overloaded operator < for the TanEdge
+            //Overloaded operator < for the TanEdge
             bool operator<(const TanEdge &rhs) const
             {
               return score < rhs.score;
@@ -104,14 +106,14 @@ namespace OpenMS
           {
           }
 
-          ///copy constructor
+          ///Copy constructor
           TreeAugmentedNetwork(const TreeAugmentedNetwork &t_aug) :
             edges_(t_aug.edges_),
             nodes_in_dfs_order_(t_aug.nodes_in_dfs_order_)
           {
           }
 
-          ///assigment operator
+          ///Assigment operator
           TreeAugmentedNetwork & operator = (const TreeAugmentedNetwork &t_aug)
           {
             if(this != &t_aug)
@@ -133,7 +135,7 @@ namespace OpenMS
           void generateTree(std::vector<Int> &tree_structure);
 
           /**
-           * @brief return the node indices ordered according to their discovery in a DepthFirstSearch
+           * @brief Return the node indices ordered according to their discovery in a DepthFirstSearch
            *
            * In this order the nodes can then be used in the simulation process, since then every type will be generated after the
            * one it conditionally depends on
@@ -146,9 +148,9 @@ namespace OpenMS
           /** @name member variables
            */
           //@{
-          ///vecor of edges
+          ///Vecor of edges
           std::vector<TanEdge> edges_;
-          ///nodes in DFS order
+          ///Nodes in DFS order
           std::vector<UInt>nodes_in_dfs_order_;
           //@}
       };//End of TreeAugmentedNetwork
@@ -157,23 +159,23 @@ namespace OpenMS
       /** @name Constructors and Destructors
        */
       //@{
-      /// default constructor
+      /// Default constructor
       AdvancedTheoreticalSpectrumGenerator();
 
-      /// copy constructor
+      /// Copy constructor
       AdvancedTheoreticalSpectrumGenerator(const AdvancedTheoreticalSpectrumGenerator& source);
 
-      /// destructor
+      /// Destructor
       virtual ~AdvancedTheoreticalSpectrumGenerator();
       //@}
 
-      /// assignment operator
+      /// Assignment operator
       AdvancedTheoreticalSpectrumGenerator& operator =(const AdvancedTheoreticalSpectrumGenerator& tsg);
 
-      /// returns a spectrum with the selected set of ion types
+      /// generates the MS/MS according to the given probabilistic model
       void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Int charge = 1);
 
-      ///loads the trained model from file
+      ///loads the probabilistic model from file
       void loadProbabilisticModel();
 /*
       //for test reasons
@@ -184,7 +186,7 @@ namespace OpenMS
        @nested class
       */
       //@{
-      ///ion_type corresponds to a certain residue, a possible loss and the charge state
+      ///IonType is defined by a ResidueType, a neutral loss and charge state
       struct IonType{
         Residue::ResidueType residue;
         EmpiricalFormula loss;
@@ -216,7 +218,7 @@ namespace OpenMS
             {
             }
 
-        //assignment operator
+        //Assignment operator
         IonType & operator = (const IonType & rhs)
         {
           if(this != &rhs)
@@ -242,10 +244,10 @@ namespace OpenMS
       //@}
 
     private:
-      ///returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
+      ///Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
       String ResidueTypeToString_(Residue::ResidueType type);
 
-      ///vector of conditional probabilities for each sector
+      ///Vector of conditional probabilities for each sector
       std::vector<std::vector<DoubleReal> >conditional_probabilities_;
 
       ///The network models for each sector
@@ -257,7 +259,7 @@ namespace OpenMS
       ///Number of sectors for each Spectrum;
       UInt number_of_sectors_;
 
-      ///the selected IonTypes
+      ///The selected IonTypes
       std::vector<IonType>ion_types_;
 
 
