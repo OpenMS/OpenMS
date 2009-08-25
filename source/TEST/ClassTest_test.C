@@ -875,6 +875,18 @@ START_SECTION("TEST_REAL_SIMILAR : type checking")
 	TEST_REAL_SIMILAR( 0U   , 0.0  ); FAILURE_IS_SUCCESS;
 	TEST_REAL_SIMILAR( 0U   , 0.0L ); FAILURE_IS_SUCCESS;
 
+	TEST_REAL_SIMILAR( std::numeric_limits<double>::quiet_NaN(), 0.0 ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( 0.0, std::numeric_limits<double>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+
+  TEST_REAL_SIMILAR( std::numeric_limits<float>::quiet_NaN(), 0.0 ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( 0.0, std::numeric_limits<float>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+
+  TEST_REAL_SIMILAR( std::numeric_limits<long double>::quiet_NaN(), 0.0 ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( 0.0, std::numeric_limits<long double>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+  TEST_REAL_SIMILAR( std::numeric_limits<long double>::quiet_NaN(), std::numeric_limits<long double>::quiet_NaN() ); FAILURE_IS_SUCCESS;
+
 }
 END_SECTION
 

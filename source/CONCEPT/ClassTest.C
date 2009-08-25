@@ -38,6 +38,9 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
+
 namespace OpenMS
 {
   namespace Internal
@@ -303,6 +306,17 @@ namespace OpenMS
         absdiff = 0.;
         ratio = 0.;
         fuzzy_message.clear();
+
+        if ( boost::math::isnan(number_1) )
+        {
+          fuzzy_message = "number_1 is nan";
+          return false;
+        }
+        if ( boost::math::isnan(number_2) )
+        {
+          fuzzy_message = "number_2 is nan";
+          return false;
+        }
 
         // check if absolute difference is small
         absdiff = number_1 - number_2;
