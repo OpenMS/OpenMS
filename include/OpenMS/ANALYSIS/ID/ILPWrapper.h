@@ -67,8 +67,12 @@ namespace OpenMS
      *	@brief Encode ILP formulation for a given LC-MS map, but unknown protein sample.
      *	
      *	@param features FeatureMap with all possible precursors
-		 *  @param 
-		 *  @param 
+		 *  @param experiment Input raw data
+		 *  @param variable_indices Assignment of feature indices and ILP variables
+		 *  @param mass_ranges Feature borders as indices in the raw data
+		 *  @param charges_set Allowed charge states
+		 *  @param ms2_spectra_per_rt_bin Allowed number of precursors per rt bin
+		 *  @param solution_indices Indices of ILP variables that are in the optimal solution
      */
 		template <typename InputPeakType>
     void createAndSolveILPForKnownLCMSMapFeatureBased(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
@@ -117,13 +121,17 @@ namespace OpenMS
 		void getXIC_(std::vector<std::pair<Size,Size> >& end_points,
 								 std::vector<DoubleReal>& weights,MSExperiment<InputPeakType>& experiment,bool normalize);
 
+		/**
+     *	@brief Calculates the XICs for all features.
+     *	
+     */
 		template <typename InputPeakType>
 		void calculateXICs_(std::vector<std::vector<DoubleReal> >& xics,FeatureMap<>& features,
 												MSExperiment<InputPeakType>& experiment,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
 												bool normalize);
 		
 		/**
-     *	@brief Solve the ILP.
+     *	@brief Creates and solves the ILP.
      *	
      */
     void createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,

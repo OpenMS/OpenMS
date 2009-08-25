@@ -92,9 +92,9 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 		{
 			// first check if charge state is allowed
 			// charge not in "ChargeFilter" list
-			//#ifdef DEBUG_OPS
+#ifdef DEBUG_OPS
 			std::cout << "feat: "<<i <<" charge "<<features[i].getCharge() << std::endl;
-			//#endif
+#endif
 			if (charges_set.count(features[i].getCharge())<1) continue;
 			if(mass_ranges[i].size()==0) continue;
 #ifdef DEBUG_OPS
@@ -117,9 +117,9 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 
 						
 					model.setColumnName(counter,(String("x_")+i+","+s).c_str());
-					//#ifdef DEBUG_OPS
+#ifdef DEBUG_OPS
 					std::cout << "add column "<<counter << std::endl;
-					//#endif
+#endif
 					IndexTriple triple;
 					triple.feature = i;
 					triple.scan = s;
@@ -129,10 +129,10 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 					model.setColumnLower(counter,0.);
 					model.setColumnIsInteger(counter,true);
 					
-					//#ifdef DEBUG_OPS	
+#ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
 										<< intensity_weights[i][c] <<std::endl;
-					//#endif
+#endif
 					model.setObjective(counter,intensity_weights[i][c]);
 					++counter;
 					++c;
@@ -142,12 +142,15 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 	///////////////////////////////////////////////////////////////////////
 	// add constraints
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "and now the constraints:"<<std::endl;
-
+#endif
 	///////////////////////////////////////////////////////////////////////
 	// 1: ensure that each precursor is acquired maximally once
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "first the number of times a precursors is acquired"<<std::endl;
+#endif
 	Size j = 0;
 	for(Size i = 0; i < features.size();++i)
 		{
@@ -197,8 +200,10 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 	///////////////////////////////////////////////////////////////////////
 	// 2: do not exceed rt bin capacity
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "and now the rt bin capacity"<<std::endl;
 	std::cout << ms2_spectra_per_rt_bin << " rt bin capacity"<<std::endl;
+#endif
 	// sort variable_indices according to their scan number
 	sort(variable_indices.begin(),variable_indices.end(),ScanLess());
 	j = 0;
@@ -248,8 +253,10 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 
 void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 {
-
+#ifdef DEBUG_OPS	
   std::cout << "compute .." << std::endl;
+#endif
+	
 #ifdef COIN_HAS_CLP
   OsiClpSolverInterface solver;
 #elif COIN_HAS_OSL
@@ -324,8 +331,11 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 		
   // solve
   double time1 = CoinCpuTime();
-  std::cout << "starting to solve..." << std::endl;
+#ifdef DEBUG_OPS	
+	std::cout << "starting to solve..." << std::endl;
+#endif
   model.branchAndBound();
+#ifdef DEBUG_OPS	
   std::cout<<" Branch and cut took "<<CoinCpuTime()-time1<<" seconds, "
 	   <<model.getNodeCount()<<" nodes with objective "
 	   <<model.getObjValue()
@@ -334,6 +344,7 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 
 	// best_solution
 	std::cout << model.solver()->getNumCols()<<" columns has solution"<<std::endl;
+#endif
 	const double * solution = model.solver()->getColSolution();
 
 	for (int column=0; column<model.solver()->getNumCols(); ++column)
@@ -341,7 +352,9 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 			double value=solution[column];
 			if (fabs(value)>0.5 && model.solver()->isInteger(column))
 				{
+#ifdef DEBUG_OPS	
 					std::cout << cmodel.getColumnName(column)<<" is in optimal solution"<<std::endl;
+#endif
 					solution_indices.push_back(column);
 				}
 		}

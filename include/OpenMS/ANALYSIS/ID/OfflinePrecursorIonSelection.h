@@ -62,8 +62,11 @@ namespace OpenMS
 		/**
 			 @brief Makes the precursor selection for a given feature map, either feature or scan based.
 
-			 
-
+			 @param features Input feature map
+			 @param experiment Input raw data
+			 @param ms2 Precursors are added as empty MS2 spectra to this MSExperiment
+			 @param charges_set Allowed charge states
+			 @param feature_based If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
 		 */
 		template <typename InputPeakType>
 		void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features,MSExperiment< InputPeakType > & experiment,
@@ -73,6 +76,9 @@ namespace OpenMS
 		/**
 			 @brief Calculates the mass ranges for each feature and stores them as indices of the raw data.
 			 
+			 @param features Input feature map
+			 @param experiment Input raw data
+			 @param indices The boundaries of the features as indices in the raw data
 		*/
 		template <typename InputPeakType>
 		void getMassRanges(FeatureMap<>& features, MSExperiment<InputPeakType>& experiment,
@@ -88,7 +94,11 @@ namespace OpenMS
 												std::vector<std::vector<std::pair<Size,DoubleReal> > >& xics,
 												MSExperiment<InputPeakType>& experiment,
 												std::set<Int>& charges_set);
-		
+
+		/**
+			 @brief Eliminates overlapping peaks.
+
+		 */
 		template <typename InputPeakType>		
 		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
 													MSExperiment<InputPeakType>&experiment);
@@ -190,8 +200,6 @@ namespace OpenMS
 						DoubleReal weight = 0.;
 						for(Size j = mass_ranges[f][s].second;j <= mass_ranges[f][s+1].second;++j)
 							{
-								// 							std::cout <<"exp["<< mass_ranges[f][s].first << " "<<j<<"]="<<std::endl;
-								// 							std::cout << experiment[mass_ranges[f][s].first][j].getIntensity()<<std::endl;
 								weight += experiment[mass_ranges[f][s].first][j].getIntensity();
 							}
 						// enter xic in the vector for scan s/2
@@ -232,7 +240,9 @@ namespace OpenMS
 																																 solution_indices);
 
 				sort(variable_indices.begin(),variable_indices.end(),ILPWrapper::IndexLess());
+#ifdef DEBUG_OPS
 				std::cout << "best_solution "<<std::endl;
+#endif
 				// print best solution
 				// create inclusion list
 				for(Size i = 0; i < solution_indices.size();++i)
@@ -257,9 +267,10 @@ namespace OpenMS
 						std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 					
 					}
+#ifdef DEBUG_OPS
 				std::cout << solution_indices.size() << " out of " << features.size()
 									<< " precursors are in best solution.\n";
-			
+#endif
 			}
 		else // scan based selection (take the x highest signals for each spectrum)
 			{
@@ -332,6 +343,7 @@ namespace OpenMS
 											{
 												InputPeakType & tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
 												InputPeakType & tmp_peak_right = experiment[s][mass_ranges[fmr][mr+1].second];
+#ifdef DEBUG_OPS
 												std::cout << tmp_peak_left.getMZ() << " < "
 																	<< peak_left_border.getMZ()-min_peak_distance << " && "
 																	<< tmp_peak_right.getMZ() << " < "
@@ -346,6 +358,7 @@ namespace OpenMS
 																	<< (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
 																			tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)
 																	<< std::endl;
+#endif
 												// all other features have to be either completely left or
 												// right of the current feature
 												if(!((tmp_peak_left.getMZ() < peak_left_border.getMZ()-min_peak_distance &&
@@ -353,7 +366,9 @@ namespace OpenMS
 														 (tmp_peak_left.getMZ() > peak_right_border.getMZ()+min_peak_distance &&
 															tmp_peak_right.getMZ() > peak_right_border.getMZ()+min_peak_distance)))
 													{
+#ifdef DEBUG_OPS
 														std::cout << "found overlapping peak"<<std::endl;
+#endif
 														overlapping_features = true;
 														break;
 													}
@@ -362,8 +377,10 @@ namespace OpenMS
 							}
 						if(!overlapping_features)
 							{
+#ifdef DEBUG_OPS
 								std::cout << "feature in spec ok" << mass_ranges[f][s_idx].second << " in spec "
 													<< mass_ranges[f][s_idx].first << std::endl;
+#endif
 								checked_mass_ranges_f.insert(checked_mass_ranges_f.end(),
 																						 mass_ranges[f].begin()+s_idx,
 																						 mass_ranges[f].begin()+s_idx+2);
