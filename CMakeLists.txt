@@ -108,7 +108,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 ## cuda checking
-set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
+set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled (version <= 2.1 currently supported).")
 set(MT_CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
 if (MT_ENABLE_CUDA)
 	MESSAGE(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
