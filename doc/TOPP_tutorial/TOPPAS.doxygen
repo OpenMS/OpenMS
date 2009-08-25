@@ -178,14 +178,43 @@
 				- remove the vertex
 			
 			
-	@page TOPPAS_examples Examples
+	@page TOPPAS_examples Further examples
 		
-		@section TOPPAS_peakpicker_example Peak picking
+		@section TOPPAS_feafi_example Feature finding
 			
-			blublu
+			The figure below illustrates another very common workflow: The input is an @a mzML file,
+			the output file is in @a featureXML format.
+			
+			@image html TOPPAS_feafi.png
+			@image latex TOPPAS_feafi.png "" width=14cm
+			
 		
-		@section TOPPAS_mapaligner_example Map alignment
+		@section TOPPAS_labelfree_example Label-free quantitation
 		
-			!!111
+			Another example where the list iteration mode is very convenient and saves you a lot of typing.
+			Note that the input is a list of files which are all processed by the @b FeatureFinder, one after
+			another. The resulting list of output files (in @a featureXML format)
+			is processed by the @b FeatureLinker and produces a single output file in @a consensusXML format.
+			
+			@image html TOPPAS_unlabeled.png
+			@image latex TOPPAS_unlabeled.png "" width=14cm
+			
+		
+		@section TOPPAS_comparison_example A bifurcating pipeline
+			
+			This last example shows how input files can be used multiple times in a pipeline. Of course, the same holds
+			for the output files of any tool in a pipeline: they can be the input to arbitrarily many other
+			tools. There is one limitation, however: TOPPAS does not allow cyclic workflows.
+			
+			@image html TOPPAS_bifurcating.png
+			@image latex TOPPAS_bifurcating.png "" width=14cm
+			
+			Unfortunately, TOPPAS does not yet allow to merge the single ID files resulting from
+			the separate identification algorithms into
+			a list which could then be the input for the @b ConsensusID tool (as in the @a Consensus @a peptide
+			@a identification example). Currently, the only workaround is to let the above pipeline run, create another
+			pipeline with an input file list containing the identification results we just obtained, and feed this
+			list to @b ConsensusID. However, future versions of TOPPAS will provide list mergers and splitters to
+			overcome this inconvenience.
 		
 */
