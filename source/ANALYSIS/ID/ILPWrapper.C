@@ -61,7 +61,7 @@
 using namespace OpenMS;
 
 
-ILPWrapper::ILPWrapper():DefaultParamHandler("ILPWrapper")
+ILPWrapper::ILPWrapper()
 {
 }
 

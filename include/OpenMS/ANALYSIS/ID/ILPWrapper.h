@@ -27,7 +27,6 @@
 
 #ifndef OPENMS_ANALYSIS_ID_ILPWRAPPER_H
 #define OPENMS_ANALYSIS_ID_ILPWRAPPER_H
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -39,7 +38,7 @@ namespace OpenMS
 		 @brief Implements ILP formulation of precursor selection problems
 		 
   */
-  class OPENMS_DLLAPI ILPWrapper : public DefaultParamHandler
+  class OPENMS_DLLAPI ILPWrapper
   { 
 
 	
