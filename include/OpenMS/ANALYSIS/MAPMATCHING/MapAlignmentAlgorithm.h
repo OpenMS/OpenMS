@@ -79,8 +79,37 @@ namespace OpenMS
 		*/
 		virtual void alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&);
 
+
+    /// Applies the <i>given</i> transformations to peak maps
+    static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );
+
+    /// Applies the <i>given</i> transformations to feature maps
+    static void transformFeatureMaps( std::vector< FeatureMap<> >& maps, const std::vector<TransformationDescription>& given_trafos );
+
+    /// Applies the <i>given</i> transformations to peptide identifications
+    static void transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps, const std::vector<TransformationDescription>& given_trafos );
+
+
+    /// Applies the <i>given</i> transformations to a single peak map
+    static void transformSinglePeakMap( MSExperiment<>& msexp, const TransformationDescription& trafo );
+
+    /// Applies the <i>given</i> transformations to a single feature map
+    static void transformSingleFeatureMap( FeatureMap<>& fmap, const TransformationDescription& trafo );
+
+    /// Applies the <i>given</i> transformations to a single peptide identification
+    static void transformSinglePeptideIdentification( std::vector< PeptideIdentification >& pepids, const TransformationDescription& trafo );
+
+
 		/// Register all derived classes in this method
 		static void registerChildren();
+
+
+   protected:
+
+		/// for internal use only!
+    static void applyToFeature_( const std::vector<Feature>::iterator &iter,
+                                 TransformationDescription::Trafo_ const& trafo
+                               );
 
 	 private:
 		/// Copy constructor is not implemented -> private

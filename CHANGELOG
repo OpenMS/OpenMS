@@ -23,11 +23,13 @@ Main improvements of TOPP:
 - Added TOPPAS, a tool for visual creation and execution of TOPP pipelines (beta)
 - TextImporter can now import SpecArray and msInspect feature files
 - Added CompNovo, a de novo identification tool for combined CID/ETD experiments
+- MapAligner uses a new algorithm for pose clustering with less parameters
 
 Main improvements of UTILS:
 - Added PeptideIndexer, assign proteins to peptides including target/decoy specification
 - Added MRMPairFinder, ERPairFinder to extract ratios of labeled experiments
 - Added IDMassAccurracy, given mzML files and identification, it calculates distributions of mass deviations
+- Added MapAlignmentEvaluation, a tool to evaluate alignment results
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support
@@ -36,6 +38,7 @@ Main improvements of OpenMS C++ library:
 Detailed list of changes to specific OpenMS classes
 - New classes:
   - CompNovo-classes
+  - StablePairFinder, which is now used by MapAligner and FeatureLinker
 - Removed classes:
   - FeatureFinderAlgorithmWatershed
   - PeakIcon
@@ -73,6 +76,7 @@ Detailed list of changes to specific OpenMS classes
     - The 'executeQuery' method no longer sets the internal pointer to the first record of the result.
       It is now positioned before the first record. A boolean flag can be used to switch to the old behaviour.
   - SourceFile: changed native ID type to string
+  - PoseClusteringAffineSuperimposer: full rewrite, not using CGAL
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3

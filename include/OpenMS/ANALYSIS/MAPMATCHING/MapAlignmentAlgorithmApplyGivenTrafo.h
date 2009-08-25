@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMAPPLYGIVENTRAFO_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 namespace OpenMS
 {
@@ -51,6 +50,7 @@ namespace OpenMS
 		/// Destructor
 		virtual ~MapAlignmentAlgorithmApplyGivenTrafo();
 
+
 		// Docu in base class
 		virtual void alignPeakMaps( std::vector< MSExperiment<> >&, std::vector<TransformationDescription>& );
 
@@ -60,16 +60,8 @@ namespace OpenMS
 		// Docu in base class
 		virtual void alignPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>& );
 
-		/// Applies the <i>given</i> transformations to peak maps
-		static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );
 
-		/// Applies the <i>given</i> transformations to feature maps
-		static void transformFeatureMaps( std::vector< FeatureMap<> >& maps, const std::vector<TransformationDescription>& given_trafos );
-		
-		/// Applies the <i>given</i> transformations to peptide identifications
-		static void transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >&, const std::vector<TransformationDescription>& given_trafos );
-		
-		/**@brief Reads the "given transformations" from files that were set in the parameters.
+    /**@brief Reads the "given transformations" from files that were set in the parameters.
 
 		Note that this bypasses the factory concept, since this method is not
 		defined in the base class.  It is provided here for "direct use" of this
@@ -113,12 +105,7 @@ namespace OpenMS
 			return "apply_given_trafo";
 		}
 
-			
 	 protected:
-
-		static void applyToFeature_( const std::vector<Feature>::iterator &iter,
-																 TransformationDescription::Trafo_ const& trafo
-															 );
 
 		std::vector<TransformationDescription> given_trafos_;
 		

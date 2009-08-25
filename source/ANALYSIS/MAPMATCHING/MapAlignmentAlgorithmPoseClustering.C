@@ -237,6 +237,9 @@ namespace OpenMS
 				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 
 				// apply transformation (global and local)
+#if 1 // new way - "deep"
+				transformSingleFeatureMap(maps[i],transformations[i]);
+#else // old way - "shallow", does not transform convex hulls etc.!
 				for (Size j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
@@ -246,6 +249,7 @@ namespace OpenMS
 					// transformations[i].getPairs().push_back(TransformationDescription::PairVector::value_type(rt_old,rt));
 				}
 				// std::sort(transformations[i].getPairs().begin(),transformations[i].getPairs().end());
+#endif
 				setProgress(10*i+6);
 			}
 		}

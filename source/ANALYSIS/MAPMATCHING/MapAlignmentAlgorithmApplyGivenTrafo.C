@@ -69,6 +69,7 @@ namespace OpenMS
 		return given_trafos_;
 	}
 
+
 	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeakMaps( std::vector< MSExperiment<> >& maps,
 																														std::vector<TransformationDescription>& transformations
 																													)
@@ -89,38 +90,7 @@ namespace OpenMS
 
 		return;
 	}
-		
-	void MapAlignmentAlgorithmApplyGivenTrafo::transformPeakMaps( std::vector< MSExperiment<> >& maps,
-																																const  std::vector<TransformationDescription>& given_trafos
-																															)
-	{
-		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::transformPeakMaps()");
 
-		if ( given_trafos.size() != maps.size() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 String("MapAlignmentAlgorithmApplyGivenTrafo expects one given transformation (got: ")
-				 + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
-				);
-		}
-
-		for ( UInt index = 0; index < maps.size(); ++index )
-		{
-			MSExperiment<> & mse = maps[index];
-			mse.clearRanges();
-			const TransformationDescription& td = given_trafos[index];
-			td.init_();
-			for ( MSExperiment<>::iterator mse_iter = mse.begin(); mse_iter != mse.end(); ++mse_iter )
-			{
-				DoubleReal rt = mse_iter->getRT();
-				(*td.trafo_)(rt);
-				mse_iter->setRT(rt);
-			}
-			mse.updateRanges();
-		}
-		return;
-	}
 
 	void MapAlignmentAlgorithmApplyGivenTrafo::alignFeatureMaps( std::vector< FeatureMap<> >& maps,
 																															 std::vector<TransformationDescription>& transformations
@@ -143,76 +113,6 @@ namespace OpenMS
 		return;
 	}
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::transformFeatureMaps( std::vector< FeatureMap<> >& maps,
-																																	 const std::vector<TransformationDescription>& given_trafos
-																																 )
-	{
-		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::transformFeatureMaps()");
-
-		if ( given_trafos.size() != maps.size() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 String("MapAlignmentAlgorithmApplyGivenTrafo expects one given transformation (got: ")
-				 + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
-				);
-		}
-
-		for ( UInt index = 0; index < maps.size(); ++index )
-		{
-			FeatureMap<> & fm = maps[index];
-			const TransformationDescription& td = given_trafos[index];
-			td.init_();
-			for ( std::vector<Feature>::iterator fmit = fm.begin(); fmit != fm.end(); ++fmit )
-			{
-				applyToFeature_(fmit,*td.trafo_);
-			}
-		}
-
-		return;
-	}
-
-	void MapAlignmentAlgorithmApplyGivenTrafo::applyToFeature_( const std::vector<Feature>::iterator &iter,
-																															TransformationDescription::Trafo_ const& trafo
-																														)
-	{
-		// V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::applyToFeature_()");
-
-		// transform feature position
-		DoubleReal rt = iter->getRT();
-		trafo(rt);
-		iter->setRT(rt);
-
-		// loop over all convex hulls
-		std::vector<ConvexHull2D> & convex_hulls = iter->getConvexHulls();
-		for ( std::vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
-					chiter!= convex_hulls.end();
-					++chiter
-				)
-		{
-			// transform all hull point positions within convex hull
-			ConvexHull2D::PointArrayType & points = const_cast<ConvexHull2D::PointArrayType&>(chiter->getPoints());
-			for ( ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
-						points_iter != points.end();
-						++points_iter
-					)
-			{
-				DoubleReal rt = (*points_iter)[Feature::RT];
-				trafo(rt);
-				(*points_iter)[Feature::RT] = rt;
-			}
-		}
-
-		// recurse into subordinates
-		for ( std::vector<Feature>::iterator subiter = iter->getSubordinates().begin();
-					subiter != iter->getSubordinates().end();
-					++subiter )
-		{
-			applyToFeature_(subiter,trafo);
-		}
-
-		return;
-	}
 
 	void MapAlignmentAlgorithmApplyGivenTrafo::alignPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps,
 																																					std::vector<TransformationDescription>& transformations
@@ -235,46 +135,6 @@ namespace OpenMS
 		return;
 	}
 
-	void MapAlignmentAlgorithmApplyGivenTrafo::transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >& maps,
-																																							const std::vector<TransformationDescription>& given_trafos
-																																						)
-	{
-		V_MapAlignmentAlgorithmApplyGivenTrafo("Hi out there.  This is MapAlignmentAlgorithmApplyGivenTrafo::transformPeptideIdentifications()");
-
-		if ( given_trafos.size() != maps.size() )
-		{
-			throw Exception::IllegalArgument
-				(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				 String("MapAlignmentAlgorithmApplyGivenTrafo expects one given transformation (got: ")
-				 + given_trafos.size() + ") per input map (got: " + maps.size() + "), these numbers are not equal"
-				);
-		}
-
-		const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
-
-		for ( UInt map_index = 0; map_index < maps.size(); ++map_index )
-		{
-			V_MapAlignmentAlgorithmApplyGivenTrafo("map_index: " << map_index);
-			const TransformationDescription& td = given_trafos[map_index];
-			td.init_();
-			for ( UInt pepid_index = 0; pepid_index < maps[map_index].size(); ++pepid_index )
-			{
-				V_MapAlignmentAlgorithmApplyGivenTrafo("pepid_index: " << pepid_index);
-				PeptideIdentification & pepid = maps[map_index][pepid_index];
-				DataValue dv = pepid.getMetaValue(meta_index_RT);
-				if (dv!=DataValue::EMPTY)
-				{
-					DoubleReal rt(dv);
-					V_MapAlignmentAlgorithmApplyGivenTrafo("RT before: " << rt);
-					(*td.trafo_)(rt);
-					pepid.setMetaValue(meta_index_RT,rt);
-					V_MapAlignmentAlgorithmApplyGivenTrafo("RT after: " << rt);
-				}
-			}
-		}
-
-		return;
-	}
 
 	void MapAlignmentAlgorithmApplyGivenTrafo::readGivenTrafos()
 	{
