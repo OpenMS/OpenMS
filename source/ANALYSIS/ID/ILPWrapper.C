@@ -330,8 +330,8 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 		
 		
   // solve
-  double time1 = CoinCpuTime();
 #ifdef DEBUG_OPS	
+  double time1 = CoinCpuTime();
 	std::cout << "starting to solve..." << std::endl;
 #endif
   model.branchAndBound();
