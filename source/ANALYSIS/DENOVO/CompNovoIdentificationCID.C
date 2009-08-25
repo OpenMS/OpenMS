@@ -371,7 +371,7 @@ namespace OpenMS
       hit.setScore(cid_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge(charge);
+      hit.setCharge((Int)charge);	//TODO unifiy charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
     }
