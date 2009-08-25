@@ -74,7 +74,7 @@
 			The input/output mapping of edges can be changed at any time during the editing process by double-clicking
 			an edge or by selecting @a Edit @a I/O @a mapping from the context menu which appears when an edge is right-clicked.
 			All visible items (i.e. edges and the different kinds of vertices) have such a context menu. For a detailed list
-			of the different menus and their entries, see @ref TOPPAS_interface_summary_menus .
+			of the different menus and their entries, see @ref TOPPAS_interface_menus .
 			
 			The following figure shows a possible next step: the user has double-clicked one of the tool vertices in order
 			to configure its parameters. By default, the standard parameters are used for each tool. Again, this can also
@@ -106,65 +106,83 @@
 			@image html TOPPAS_run.png
 			@image latex TOPPAS_run.png "" width=14cm
 			
-		@section TOPPAS_interface_summary Summary
-		
-			@subsection TOPPAS_interface_summary_mk Mouse and keyboard
+			@section TOPPAS_interface_mk Mouse and keyboard
 			
-			Using the mouse, you can
+				Using the mouse, you can
+				
+				- drag&drop tools from the TOPP tools list onto the workflow window
+				- select items (by clicking)
+				- select multiple items (by holding down @a CTRL while clicking)
+				- select multiple items (by pressing @a CTRL and dragging the mouse in order to "catch" items with the rubber band)
+				- move all selected items (by dragging one of them)
+				- draw a new edge from one vertex to another (by dragging; sourced must be deselected first)
+				- specify input files (by double-clicking an input vertex)
+				- configure parameters of tools (by double-clicking a tool vertex)
+				- specify the input/output mapping of edges (by double-clicking an edge)
+				- translate the view (by dragging anywhere but not on an item)
+				- zoom in and out (using the mousewheel)
+				- make the context menu of an item appear (by right-clicking it)
+				
+				@n
+				Using the keyboard, you can
+				
+				- delete all selected items (by pressing @a DEL or @a BACKSPACE )
 			
-			- drag&drop tools from the list on the left onto the workflow window
-			- select items (by clicking)
-			- select multiple items (by holding down @a CTRL while clicking)
-			- select multiple items (by pressing @a CTRL and dragging the mouse in order to "catch" items with the rubber band)
-			- move all selected items (by dragging one of them)
-			- draw a new edge from one vertex to another (by dragging; sourced must be deselected first)
-			- specify input files (by double-clicking an input vertex)
-			- configure parameters of tools (by double-clicking a tool vertex)
-			- specify the input/output mapping of edges (by double-clicking an edge)
-			- translate the view (by dragging anywhere but not on an item)
-			- zoom in and out (using the mousewheel)
-			- make the context menu of an item appear (by right-clicking it)
+			@section TOPPAS_interface_menus Menus
 			
-			Using the keyboard, you can
+				@b Menu @b bar:
+				@n @n
+				
+				In the @a File menu, you can
+				
+				- create a new, empty workflow (@a New)
+				- open an existing one (@a Open)
+				- save a workflow (@a Save / @a Save @a as)
+				- close the current window (@a Close)
+				- quit the entire application (@a Quit)
+				
+				@n
+				In the @a Pipeline menu, you can
+				
+				- run a pipeline (@a Run)
+				- abort a currently running pipeline (@a Abort)
+				
+				@n
+				In the @a Windows menu, you can
+				
+				- make the TOPP tool list window on the left and the log message at the bottom (in)visible
+				
+				@n @n
+				@b Context @b menus:
+				@n @n
+				
+				In the context menu of an @a input @a vertex, you can
+				
+				- specify the input files
+				- open the specified files in TOPPView
+				- remove the vertex
+				
+				@n
+				In the context menu of a @a tool @a vertex, you can
+				
+				- configure the parameters of the tool
+				- enable/disable the list iteration mode
+				- resume the pipeline at this vertex
+				- open its temporary output files in TOPPView
+				- remove the vertex
+				
+				@n
+				In the context menu of an @a output @a vertex, you can
+				
+				- open the output files in TOPPView
+				- remove the vertex
 			
-			- delete all selected items (by pressing @a DEL or @a BACKSPACE )
-			
-			@subsection TOPPAS_interface_summary_menus Menus
-			
-			@b Menu @b bar:
-			
-			In the @a File menu, you can
-			
-			- create a new, empty workflow (@a New)
-			- open an existing one (@a Open)
-			- Save a workflow (@a Save / @a Save @a as)
-			- Close the current window (@a Close)
-			- Quit the entire application (@a Quit)
-		
-			In the @a Pipeline menu, you can
-			
-			- Run a pipeline (@a Run)
-			- Abort a currently running pipeline (@a Abort)
-			
-			In the @a Windows menu, you can
-			
-			- make the TOPP tool list window on the left and the log message at the bottom (in)visible
-		
-			@b Context @b menus:
-			
-			In the context menu of an input vertex, you can
-			
-			- 
 			
 	@page TOPPAS_examples Examples
 		
 		@section TOPPAS_peakpicker_example Peak picking
 			
 			blublu
-		
-		@section TOPPAS_featurefinder_example Feature finding
-		
-			hallo
 		
 		@section TOPPAS_mapaligner_example Map alignment
 		
