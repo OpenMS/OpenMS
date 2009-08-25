@@ -555,8 +555,9 @@ svn propset svn:eol-style native MyClass.C
 					       gives some useful hints.
 						<LI> create at least a 16x16, 32x32, 48x48 and 64x64 pixel version and save each of them in a separate layer of the respective size.
 						<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
-						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 9 layers.
-						<LI> now save the image as <i>&lt;binaryname&gt;.ico</i> (e.g. TOPPView.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth.
+						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 12 layers.
+						<LI> now save the image as <i>&lt;binaryname&gt;.ico</i> (e.g. TOPPView.ico) file, giving each group of equal sized layers a 32bit (8bit transparency), 8bit (1bit transparency), 4bit (1bit transparency) color depth.
+								<br>Attention: make sure to assign the higher color depth to the upper layers as Windows will not pick the highest possible color otherwise.
 					</OL>
 				<LI> Create a resource file:
 					<OL>
