@@ -115,7 +115,7 @@ EXCLUDE_PATTERNS       = */.svn/* \
                          */new/*
 EXAMPLE_PATH           = @CF_OPENMS_SRC_PATH@/source/EXAMPLES/ \
 												 @CF_OPENMS_BIN_PATH@/doc/doxygen/parameters/output/ \
-												 @CF_OPENMS_BIN_PATH@/CHANGELOG
+												 @CF_OPENMS_SRC_PATH@/CHANGELOG
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = @CF_OPENMS_SRC_PATH@/doc/doxygen/images/ \
