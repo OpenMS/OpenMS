@@ -446,15 +446,9 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Create the binary/source release packages (see below)
 					<LI> Update the SourceForge files section:
 						<OL>
-							<LI> Upload to sourceforge, here with sftp (see http://alexandria.wiki.sourceforge.net/File+Release+System+-+Offering+Files+for+Download#howtoupload)
-							<UL>
-								<LI> <em>sftp &lt;login&gt;@@frs.sourceforge.net</em>
-								<LI> <em>cd uploads</em>
-								<LI> <em>put &lt;file&gt;</em>
-							</UL>
-							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
-							<LI> Go to @a File @a Releases
-							<LI> Now you can add the release packages
+							<LI> Login in the @a Admin section and create a folder for the new release
+							<LI> Upload to sourceforge, e.g. with
+							  <BR><TT>scp &lt;file&gt; &lt;login&gt;,fooproject@frs.sourceforge.net:/home/frs/project/o/op/openms/OpenMS/OpenMS-&lt;version&gt;/</TT>
 						</OL>
 					<LI> Copy the HTML documentation and PDF tutorials of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
