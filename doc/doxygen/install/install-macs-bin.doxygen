@@ -2,7 +2,6 @@
  	
 	@page install_mac_bin Installation on MacOS
   
-	Before downloading and installing the MacOSX dmg package from http://www.OpenMS.de , please ensure that Qt version 4.4 is installed on your system. You can download and install it from ftp://ftp.trolltech.com/qt/source/qt-mac-opensource-4.4.3.dmg .
-
+	Simply download and install the MacOS drag-and-drop installer from http://www.OpenMS.de .
 
 */
