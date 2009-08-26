@@ -73,8 +73,6 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			
-			@todo Implement and test writing of integer arrays - they are needed e.g. for 'MS:1000516 ! charge array' (Hiwi, David)
-			
 			@note Do not use this class. It is only needed in MzMLFile.
 		*/
 		template <typename MapType>
