@@ -31,12 +31,13 @@ using namespace std;
 
 namespace OpenMS
 {
+	MassDecomposition::MassDecomposition()
+		:	number_of_max_aa_(0)
+	{
+	}
 
 	MassDecomposition::MassDecomposition(const String& deco)
-		: number_of(0),
-			number_of_max_aa(0),
-			min_number(1000),
-			max_number(0)
+		:	number_of_max_aa_(0)
 	{
 		String tmp = deco;
 		vector<String> split;
@@ -50,8 +51,8 @@ namespace OpenMS
 		}
 
 		tmp.split(' ', split);
-		UInt sum = 0;
-		number_of_max_aa = 0;
+		Size sum = 0;
+		number_of_max_aa_ = 0;
 		// only one aa type?
 		if (split.size() == 0 && tmp.size() != 0)
 		{
@@ -59,37 +60,25 @@ namespace OpenMS
 		}
 		if (split.size() != 0)
 		{
-			for (UInt i = 0; i != split.size(); ++i)
+			for (Size i = 0; i != split.size(); ++i)
 			{
 				char aa = split[i][0];
 				String s = split[i];
 				s.erase(0, 1);
-				UInt n = (UInt)s.toInt();
-				if (number_of_max_aa < n)
+				Size n = (Size)s.toInt();
+				if (number_of_max_aa_ < n)
 				{
-					number_of_max_aa = n;
+					number_of_max_aa_ = n;
 				}
 				sum += n;
-				decomp[aa] = n;
-			}
-			number_of = sum;
-			if (number_of < min_number)
-			{
-				min_number = number_of;
-			}
-			if (number_of > max_number)
-			{
-				max_number = number_of;
+				decomp_[aa] = n;
 			}
 		}
 	}
 
 	MassDecomposition::MassDecomposition(const MassDecomposition& rhs)
-		: decomp(rhs.decomp),
-			number_of(rhs.number_of),
-			number_of_max_aa(rhs.number_of_max_aa),
-			min_number(rhs.min_number),
-			max_number(rhs.max_number)
+		: decomp_(rhs.decomp_),
+			number_of_max_aa_(rhs.number_of_max_aa_)
 	{
 	}
 	
@@ -97,26 +86,31 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
-			decomp = rhs.decomp;
-			number_of = rhs.number_of;
-			number_of_max_aa = rhs.number_of_max_aa;
-			min_number = rhs.min_number;
-			max_number = rhs.max_number;
+			decomp_ = rhs.decomp_;
+			number_of_max_aa_ = rhs.number_of_max_aa_;
 		}
 		return *this;
 	}
 
 	MassDecomposition& MassDecomposition::operator += (const MassDecomposition& d)
 	{
-		for (Map<char, UInt>::const_iterator it = d.decomp.begin(); it != d.decomp.end(); ++it)
+		for (Map<char, Size>::const_iterator it = d.decomp_.begin(); it != d.decomp_.end(); ++it)
 		{
-			if (decomp.find(it->first) == decomp.end())
+			if (!decomp_.has(it->first))
 			{
-				decomp.insert(*it);
+				decomp_.insert(*it);
+				if (it->second > number_of_max_aa_)
+				{
+					number_of_max_aa_ = it->second;
+				}
 			}
 			else
 			{
-				decomp[it->first] += it->second;
+				decomp_[it->first] += it->second;
+				if (decomp_[it->first] > number_of_max_aa_)
+				{
+					number_of_max_aa_ = decomp_[it->first];
+				}
 			}
 		}
 
@@ -125,47 +119,30 @@ namespace OpenMS
 
 	bool MassDecomposition::operator < (const MassDecomposition& rhs) const
 	{
-		return decomp < rhs.decomp;
+		return decomp_ < rhs.decomp_;
 	}	
 
 	bool MassDecomposition::operator == (const String& deco) const
 	{
-		Map<char, UInt> tmp;
-		for (String::ConstIterator it = deco.begin(); it != deco.end(); ++it)
-		{
-			char aa = *it;
-			if (decomp.find(aa) == decomp.end())
-			{
-				return false;
-			}
+		MassDecomposition md(deco);
 
-			if (tmp.find(aa) != tmp.end())
-			{
-				tmp[aa]++;
-			}
-			else
-			{
-				tmp[aa] = 1;
-			}
-		}
-
-		return tmp == decomp;
+		return decomp_ == md.decomp_ && number_of_max_aa_ == md.number_of_max_aa_;
 	}
 
 	String MassDecomposition::toString() const
 	{
 		String s;
-		for (Map<char, UInt>::const_iterator it = decomp.begin(); it != decomp.end(); ++it)
+		for (Map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
 		{
 			s += it->first + String(it->second) + String(" ");
 		}
-		return s;
+		return s.trim();
 	}
 
 	String MassDecomposition::toExpandedString() const
 	{
 		String s;
-		for (Map<char, UInt>::const_iterator it = decomp.begin(); it != decomp.end(); ++it)
+		for (Map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
 		{
 			s += String(it->second, it->first);
 		}
@@ -174,15 +151,15 @@ namespace OpenMS
 
 	bool MassDecomposition::containsTag(const String& tag) const
 	{
-		Map<char, UInt> tmp;
+		Map<char, Size> tmp;
 		for (String::ConstIterator it = tag.begin(); it != tag.end(); ++it)
 		{
 			char aa = *it;
-			if (decomp.find(aa) == decomp.end())
+			if (!decomp_.has(aa))
 			{
 				return false;
 			}
-			if (tmp.find(aa) != tmp.end())
+			if (tmp.has(aa))
 			{
 				tmp[aa]++;
 			}
@@ -192,10 +169,10 @@ namespace OpenMS
 			}
 		}
 
-		// check if tag decomp is compatible with decomp
-		for (Map<char, UInt>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+		// check if tag decomp_ is compatible with decomp_
+		for (Map<char, Size>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
 		{
-			if (decomp.find(it->first)->second < it->second)
+			if (decomp_.find(it->first)->second < it->second)
 			{
 				return false;
 			}
@@ -206,10 +183,11 @@ namespace OpenMS
 
 	bool MassDecomposition::compatible(const MassDecomposition& deco) const
 	{
-		for (Map<char, UInt>::const_iterator it = deco.decomp.begin(); it != deco.decomp.end(); ++it)
+		for (Map<char, Size>::const_iterator it = deco.decomp_.begin(); it != deco.decomp_.end(); ++it)
 		{
-			if (decomp.find(it->first) == decomp.end() || decomp.find(it->first)->second != it->second)
+			if (!decomp_.has(it->first) || decomp_.find(it->first)->second < it->second)
 			{
+				cerr << it->first << " " << it->second << endl;
 				return false;
 			}
 		}
@@ -219,24 +197,31 @@ namespace OpenMS
 	MassDecomposition MassDecomposition::operator + (const MassDecomposition& rhs) const
 	{
 		MassDecomposition d(*this);
-		for (Map<char, UInt>::const_iterator it = rhs.decomp.begin(); it != rhs.decomp.end(); ++it)
+		for (Map<char, Size>::const_iterator it = rhs.decomp_.begin(); it != rhs.decomp_.end(); ++it)
   	{
-  		if (!d.decomp.has(it->first))
+  		if (!d.decomp_.has(it->first))
     	{
-      	d.decomp.insert(*it);
+      	d.decomp_.insert(*it);
+				if (it->second > number_of_max_aa_)
+				{
+					d.number_of_max_aa_ = it->second;
+				}
     	}
     	else
     	{
-      	d.decomp[it->first] += it->second;
+      	d.decomp_[it->first] += it->second;
+				if (d.decomp_[it->first] > d.number_of_max_aa_)
+				{
+					d.number_of_max_aa_ = d.decomp_[it->first];
+				}
    	 	}
   	}
-
   	return d;
 	}
 
-	UInt MassDecomposition::getNumberOfMaxAA() const
+	Size MassDecomposition::getNumberOfMaxAA() const
 	{
-		return number_of_max_aa;
+		return number_of_max_aa_;
 	}
 
 } // namespace OpenMS

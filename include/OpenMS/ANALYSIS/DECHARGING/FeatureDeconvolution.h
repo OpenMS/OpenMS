@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/DECHARGING/MIPWrapper.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h> // tmp
 
@@ -56,7 +57,7 @@ namespace OpenMS
   /** 
     @brief An algorithm to decharge features (i.e. as found by FeatureFinder).
     
-		@ref FeatureDeconvolution_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_FeatureDeconvolution.parameters	
     
     @ingroup Analysis
   */
@@ -70,7 +71,6 @@ namespace OpenMS
       typedef DPosition<2> ClusterPointType;
 			typedef FeatureMapType::FeatureType::CoordinateType CoordinateType;
 			typedef MIPWrapper::PairsType PairsType;
-			//typedef std::vector<ChargePair> PairsType;
 			
       /** @name Constructors and Destructors
       */
@@ -105,8 +105,6 @@ namespace OpenMS
       {
         StringList potential_adducts_s = param_.getValue("potential_adducts");
         potential_adducts_.clear();
-				
-				
 				
 				float prob_sum=0;
 				
@@ -224,8 +222,14 @@ namespace OpenMS
 				CoordinateType mz1,mz2, m1;
 				
 				Size possibleEdges = 0, overallHits = 0;
-				
+
+				// edges				
 				PairsType feature_relation;
+				// for each feature, hold the explicit adduct type induced by egdes
+				Map<Size, std::set<CmpInfo_> > feature_adducts;
+						
+				// # compomer results that either passed or failed the feature charge constraints
+				Size no_cmp_hit=0, cmp_hit=0;
 				
         for (Size i_RT = 0; i_RT < fm_out.size(); ++i_RT)
         { // ** RT-sweepline
@@ -256,8 +260,10 @@ namespace OpenMS
 							if (intersect_length / union_length < rt_min_overlap) continue;
 						}
 	
+						// implicit adducts dont't cost anything
+						Adduct proton(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0));
+
 						// start guessing charges ...
-	
 						mz2 = fm_out[i_RT_window].getMZ();
 						
 						//@improvement TODO only check for charges which approx have the same quotient as mz1/mz2
@@ -265,14 +271,14 @@ namespace OpenMS
 						{ // ** q1
 
               //DEBUG:
-              if (fm_out[i_RT_window].getRT()>1930.08 && fm_out[i_RT_window].getRT()<1931.2 && mz1>1443 && mz2>1443 && mz1<2848 && mz2<2848)
+              /**if (fm_out[i_RT_window].getRT()>1930.08 && fm_out[i_RT_window].getRT()<1931.2 && mz1>1443 && mz2>1443 && mz1<2848 && mz2<2848)
               {
                 std::cout << "we are at debug location\n" << fm_out[i_RT_window].getRT() <<"   : " << mz1 << "; " << mz2 << "\n";
               }
               if (i_RT == 930 && i_RT_window == 931)
               {
                 std::cout << "we are at debug location\n" << fm_out[i_RT_window].getRT() <<"   : " << mz1 << "; " << mz2 << "\n";
-              }
+              }*/
               // \DEBUG
 
 								m1 = mz1*q1;
@@ -284,13 +290,14 @@ namespace OpenMS
 
 									++possibleEdges; // internal count, not vital
 									
-									if (i_RT==439 && i_RT_window==442 && q1==4 && q2==3)
-									{
-										std::cout << "DEBUG reached\n";
-									}
+									//if (i_RT==439 && i_RT_window==442 && q1==4 && q2==3)
+									//{
+									//	std::cout << "DEBUG reached\n";
+									//}
 									
 									// find possible adduct combinations
-									hits = me.query(q2-q1, mz2*q2-m1, mz_diff_max, thresh_logp, md_s, md_e);
+									CoordinateType naive_mass_diff = mz2*q2-m1;
+									hits = me.query(q2-q1, naive_mass_diff, mz_diff_max, thresh_logp, md_s, md_e);
 									OPENMS_PRECONDITION(hits>=0,"FeatureDeconvolution querying #hits got negative result!");
 
 									overallHits+=hits;
@@ -298,42 +305,86 @@ namespace OpenMS
 									// for now, we take the one that has highest p in terms of the compomer structure
 									if (hits>0)
 									{
-										std::cout << "#hits: " << hits << "\n";
+										//std::cout << "#hits: " << hits << "\n";
 										//std::cout << "q2: " << q2 << " (mass to explain: " << (mz2*q2-m1) << ")\n";
-										CoordinateType naive_mass_diff = mz2*q2-m1;
+										
 										Compomer best_hit = null_compomer;
 										for (; md_s!=md_e; ++md_s)
 										{
 											//std::cout << "neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
-											if (
-													// compomer has better probability
-													(best_hit.getLogP() < md_s->getLogP())
-												 	&&
-												 	// compomer fits charge assignment of left & right feature
-												 	(q1 >= abs(md_s->getNegativeCharges()) && q2 >= abs(md_s->getPositiveCharges()))
+											if (// compomer fits charge assignment of left & right feature
+												 	(q1 >= md_s->getNegativeCharges()) && (q2 >= md_s->getPositiveCharges())
 												 )
 											{
-												best_hit = *md_s;
+												// compomer has better probability
+												if (best_hit.getLogP() < md_s->getLogP())	best_hit = *md_s;
+
+											
 												/** testing: we just add every explaining edge 
 													- a first estimate shows that 90% of hits are of |1|
 													- the remaining 10% have |2|, so the additional overhead is minimal
 												**/
 												#if 1
-												ChargePair cp(i_RT, i_RT_window, q1, q2, best_hit.getID(), naive_mass_diff - best_hit.getMass(), false);
-												//std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << "\n";
+												Compomer cmp = me.getCompomerById(md_s->getID());
+												if ( ((q1 - cmp.getNegativeCharges()) % proton.getCharge() != 0) ||
+														 ((q2 - cmp.getPositiveCharges()) % proton.getCharge() != 0))
+												{
+													std::cerr << "Cannot add enough default adduct (" << proton.getFormula() << ") to exactly fit feature charge! Next...)\n";
+													continue;		
+												}
+
+												int hc_left  = (q1 - cmp.getNegativeCharges()) / proton.getCharge(); // this should always be positive! check!!
+												int hc_right = (q2 - cmp.getPositiveCharges()) / proton.getCharge(); // this should always be positive! check!!
+												
+												
+												if (hc_left < 0 || hc_right < 0)
+												{
+													throw Exception::Postcondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"WARNING!!! implicit number of H+ is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
+												}
+												
+												//if (i_RT==272 && i_RT_window==271)
+												//{ std::cout << "DEBUG\n";}
+												
+												// get non-default adducts of this edge
+												Compomer cmp_stripped(cmp.removeAdduct(proton));
+												
+												// save new adduct candidate
+												if (cmp_stripped.getComponent()[Compomer::LEFT].size()>0)
+												{
+													String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
+													CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
+													feature_adducts[i_RT].insert( cmp_left );
+												}
+												if (cmp_stripped.getComponent()[Compomer::RIGHT].size()>0)
+												{
+													String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
+													CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
+													feature_adducts[i_RT_window].insert( cmp_right );
+												}
+												
+												// add implicit H+ (if != 0)
+												if (hc_left>0) cmp.add(proton*hc_left,Compomer::LEFT);
+												if (hc_right>0)cmp.add(proton*hc_right,Compomer::RIGHT);
+												
+												ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
+												//std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << " score: " << cp.getCompomer().getLogP() << "\n";
 												feature_relation.push_back(cp);
 												#endif
 											}
-										}
+										} // ! hits loop
+										
 										if (best_hit == null_compomer)
 										{	
-											std::cout << "FeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
+											//std::cout << "FeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
+											++no_cmp_hit;
 										}
 										else
 										{
+											++cmp_hit;
 											// disabled while we add every hit (and not only the best - see above)
 											#if 0
-											ChargePair cp(i_RT, i_RT_window, q1, q2, best_hit.getID(), naive_mass_diff - best_hit.getMass(), false);
+											TODO if reactivated: add implicits (see above)
+											ChargePair cp(i_RT, i_RT_window, q1, q2, me.getCompomerById(best_hit.getID()), naive_mass_diff - best_hit.getMass(), false);
 											//std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << "\n";
 											feature_relation.push_back(cp);
 											#endif
@@ -344,11 +395,21 @@ namespace OpenMS
 						} // q1
 					} // RT-window
         } // RT sweepline
+        
+        std::cout << no_cmp_hit << " of " << (no_cmp_hit+cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
+        
+        inferMoreEdges_(feature_relation, feature_adducts);
 
+				// DEBUG:
+				//printEdgesOfConnectedFeatures_(271, 272, feature_relation);
 
 				std::cout << "found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
 									<< " and avg hit-size of " << (overallHits/feature_relation.size())
 									<< std::endl;
+
+				// -------------------------- //
+				// ** compute ILP solution ** //
+				// -------------------------- //
 				
 				std::cout << "creating wrapper..." << std::endl;
 				// forward set of putative edges to ILP
@@ -361,22 +422,19 @@ namespace OpenMS
 				// prepare output consensusMaps
 				cons_map.setProteinIdentifications( fm_out.getProteinIdentifications() );
 				cons_map_p.setProteinIdentifications( fm_out.getProteinIdentifications() );
-				
-				// some statistics about compomers used
-				std::map < ChargePair, Int > compomer_stats;
-				
+
+				// -------------------------- //
+				// **       DEBUG          ** //
+				// -------------------------- //
+
+				Map <Size, Size> features_aes, features_des; // count of adjacent active and dead edges
 				UInt agreeing_fcharge = 0;
 				std::vector<Size> f_idx_v(2);
 				Size aedges=0;
-
 				StringList scores_clean_edge, scores_dirty_edge;
 				StringList scores_clean_edge_idx, scores_dirty_edge_idx;
 				EmpiricalFormula ef_clean_edge, ef_dirty_edge;
-
 				// find # edges (active and dead) for each feature
-				Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
-				
-				
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           Size f0_idx = feature_relation[i].getElementIndex(0);
@@ -391,21 +449,18 @@ namespace OpenMS
 						++features_des[f0_idx];
 						++features_des[f1_idx];
           }
-          
 				}
-				
 				TextFile out_dead;
-          
 				for (Size i=0; i<feature_relation.size(); ++i)
 				{
           f_idx_v[0] = feature_relation[i].getElementIndex(0);
           f_idx_v[1] = feature_relation[i].getElementIndex(1);
 					
-					Compomer c = me.getCompomerById( feature_relation[i].getCompomerId());
+					Compomer c = feature_relation[i].getCompomer();
           
           if (!feature_relation[i].isActive())
           {
-						out_dead.push_back(String("dead e") + i + " (" + (c.getAdductsAsString(-1)) + " -> " + (c.getAdductsAsString(+1)) + "): " 
+						out_dead.push_back(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): " 
 							+ f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
 							+ f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
 							);
@@ -425,12 +480,14 @@ namespace OpenMS
 						else
 						{
 							DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
-							std::cout << "conflict in Q:: RT:" << fm_out[f_idx_v[f_idx]].getRT() << " MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " int:" << fm_out[f_idx_v[f_idx]].getIntensity() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
+							//ConsensusFeature cf_in_conflict = cons_map[clique_register[f_idx_v[f_idx]]];
+							//cf_in_conflict.computeDechargeConsensus(fm_out);
+							std::cout << "conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity() << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx) << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:" << feature_relation[i].getEdgeScore() << " f#:" << f_idx_v[f_idx] << "(a" << features_aes[f_idx_v[f_idx]] << ":d" << features_des[f_idx_v[f_idx]] << ") ]]\n";
 							dirty = true;
 						}
 					}
 					
-					EmpiricalFormula ef(c.getAdductsAsString(-1) + (c.getAdductsAsString(+1)) );
+					EmpiricalFormula ef(c.getAdductsAsString(Compomer::LEFT) + (c.getAdductsAsString(Compomer::RIGHT)) );
 					
 					// store score distribution:
 					if (!dirty)
@@ -448,15 +505,17 @@ namespace OpenMS
 					
 				}
 				
-				//out_dead.store("dead_edges.txt");
-				
+				//TODO out_dead.store("dead_edges.txt");
 				std::cout << "agreeing charges: " << agreeing_fcharge << "/" << (aedges*2) << std::endl;
-
 				std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-
 				std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";
 
+
+				// END DEBUG
+				
+				// ---------------------------- //
 				// ** write related features ** //
+				// ---------------------------- //
 
 				// fresh start for meta annotation
 				for (Size i=0;i<fm_out.size(); ++i)
@@ -470,9 +529,9 @@ namespace OpenMS
 				// find which featureIdx maps to which consensusFeatureIdx
 				// if no mapping is found, make a new CF.
 				// if new pair spans two existing CFs -> merge CFs
-				typedef std::map<Size, Size> Map;
-				typedef Map::const_iterator MapCI;
-				Map clique_register; 
+				typedef std::map<Size, Size> CliqueMap;
+				typedef CliqueMap::const_iterator MapCI;
+				CliqueMap clique_register; 
 				MapCI clique_it;
 				
 				StringList scores;
@@ -499,10 +558,9 @@ namespace OpenMS
 						// annotate the affected features
 						// ... and check consistency
 						//
-						Compomer c = me.getCompomerById( feature_relation[i].getCompomerId());
+						Compomer c = feature_relation[i].getCompomer();
 						// - left
-						EmpiricalFormula ef_l(c.getAdductsAsString(-1));
-						ef_l += "H" + String(new_q0 - c.getNegativeCharges());
+						EmpiricalFormula ef_l(c.getAdductsAsString(Compomer::LEFT));
 						if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
     				{
     					if (ef_l.getString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.getString());
@@ -515,8 +573,7 @@ namespace OpenMS
 						fm_out[f0_idx].setCharge(new_q0);
 						
 						// - right
-						EmpiricalFormula ef_r(c.getAdductsAsString(+1));
-						ef_r += "H" + String(new_q1 - c.getPositiveCharges());
+						EmpiricalFormula ef_r(c.getAdductsAsString(Compomer::RIGHT));
 						if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
     				{
     					if (ef_r.getString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.getString());
@@ -606,9 +663,11 @@ namespace OpenMS
 						ConsensusFeature cf(fm_out[f0_idx]);
 						cf.insert(0,f0_idx, fm_out[f0_idx]);
 						cf.insert(0,f1_idx, fm_out[f1_idx]);
-						cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
-						cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+":"
-																 +String(fm_out[f1_idx].getCharge()));
+            cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
+            cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge())+"("+ String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) +"):"
+																 +String(fm_out[f1_idx].getCharge())+"("+ String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) +") "
+																 +String("Score: ") + feature_relation[i].getEdgeScore());
+																 
 						//cf.computeDechargeConsensus(fm_out);
 						// print pairs only
             cons_map_p_neg.push_back(cf);
@@ -616,12 +675,12 @@ namespace OpenMS
             cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs";
           }
 
-        } // !for
+        } // !for feature_releation (i.e. edges)
 
-				// tmp
+
+				//  DEBUG 			
 				ConsensusXMLFile cf_neg;
 				//cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
-
 				// DEBUG print scores
 				TextFile tf;
 				tf.push_back("scr = c(" + scores.concatenate(", ") + ")");
@@ -636,6 +695,8 @@ namespace OpenMS
 				tf.push_back("legend(x=\"topright\",c(\"dead\", \"active_dirty\", \"active_clean\"), text.col=c(1,2,3))");
 				//tf.store("plot_scores.r");
 
+
+
 				// remove empty ConsensusFeatures from map
 				ConsensusMap cons_map_tmp(cons_map);
 				cons_map_tmp.clear(); // keep other meta information (like ProteinIDs & Map)
@@ -649,6 +710,7 @@ namespace OpenMS
 
 				}
 				cons_map_tmp.swap(cons_map);
+				// Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still goood)
 
         // include single features without a buddy!
 				Size singletons_count = 0;
@@ -676,15 +738,144 @@ namespace OpenMS
 				cons_map.getFileDescriptions()[0].label = "charged features";
 				//cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
 				
-				// TODO count Mass^->Charge violations, ie if charge is higher, mass^ should be higher as well
-				// (mass^ is the peptide mass + adduct mass)
-				
-				
-				
         return;
       }
 
     protected:
+
+			struct CmpInfo_
+			{
+				String s_comp;
+				Size idx_cp;
+				UInt side_cp;
+				
+				// C'tor
+				CmpInfo_(): s_comp(), idx_cp(), side_cp() {}
+				
+				// C'tor
+				CmpInfo_(String & s, Size idx, UInt side): s_comp(s), idx_cp(idx), side_cp(side) {}
+				
+				// Copy C'tor
+				CmpInfo_(const CmpInfo_& rhs): s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
+				
+				// Assignment
+				CmpInfo_& operator = (const CmpInfo_& rhs)
+				{
+					if (&rhs == this) return *this;
+					s_comp = rhs.s_comp;
+					idx_cp = rhs.idx_cp;
+					side_cp= rhs.side_cp;
+					return *this;					
+				}
+				
+				// Comparator
+				bool operator < (const CmpInfo_& other) const
+				{
+					if (s_comp < other.s_comp) return true; else return false;
+				}
+				bool operator == (const CmpInfo_& other) const
+				{
+					if (s_comp == other.s_comp) return true; else return false;
+				}				
+				
+			};
+
+			/// test if "simple" edges have alternative
+			/// (more difficult explanation) supported by neighbouring edges
+			/// e.g. (.)   -> (H+) might be augmented to
+			///      (Na+) -> (H+Na+)
+			void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+			{
+				Adduct default_adduct(1,1,Constants::PROTON_MASS_U,"H1", log(1.0));
+			
+				Size edges_size = edges.size();
+				
+				for (Size i=0; i<edges_size; ++i)
+				{
+					Size idx0 = edges[i].getElementIndex(0);
+					Size idx1 = edges[i].getElementIndex(1);
+					//if (idx0 == 272 && idx1==271)
+					//{ std::cout << "DEBUG reached";}
+					
+					std::set<CmpInfo_> result;
+					
+					// look at the intersection of the two adjacent features
+					// (we thus require the non-H adduct to be present on both sides of the edge,
+					//  if one is deemed enough just change to union)
+					std::set_intersection(feature_adducts[idx0].begin(), feature_adducts[idx0].end(),
+																feature_adducts[idx1].begin(), feature_adducts[idx1].end(),
+																std::inserter(result, result.begin()) );
+					std::set<CmpInfo_>::iterator result_it = result.begin();
+					
+					// add new edge with each adduct of the intersection
+					while (result_it!=result.end())
+					{
+						Compomer::CompomerSide to_add = edges[result_it->idx_cp].getCompomer().removeAdduct(default_adduct).getComponent()[result_it->side_cp];
+						// we currently do not punish additional two-side adducts
+						for (Compomer::CompomerSide::iterator it=to_add.begin(); it!=to_add.end(); ++it)
+						{
+							it->second.setLogProb(0);
+						}
+						ChargePair cp(edges[i]); // make a copy
+						Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
+						new_cmp.add(to_add, Compomer::LEFT);
+						new_cmp.add(to_add, Compomer::RIGHT);
+						// refill with default adducts (usually H+):
+						if ( ((cp.getCharge(0) - new_cmp.getNegativeCharges()) % default_adduct.getCharge() == 0) &&
+								 ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
+						{
+							int hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
+							int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
+							
+							// we have not stepped over the charge capacity of the features
+							if (hc_left >= 0 && hc_right >= 0)
+							{
+								// fill up with defaults:
+								if (hc_left>0)  new_cmp.add( default_adduct*hc_left, Compomer::LEFT);
+								if (hc_right>0) new_cmp.add( default_adduct*hc_right, Compomer::RIGHT);
+												
+								// charge constraints of feature still fulfilled?
+								if ( (new_cmp.getNegativeCharges() == cp.getCharge(0)) &&
+										 (new_cmp.getPositiveCharges() == cp.getCharge(1)) )
+								{
+									cp.setCompomer(new_cmp);
+									cp.setEdgeScore(0.99); //TODO how to score this new edge?
+									edges.push_back(cp);	  // add edge
+									//std::cout << "adding infer CMP with log-score: " << new_cmp.getLogP() << "\n";
+								}
+								else
+								{
+									throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureDeconvolution::inferMoreEdges_(): discovered internal error!", String(new_cmp.getNegativeCharges()) );
+								}
+							}
+						
+						}
+						
+						++result_it;
+					}
+				} // edge for
+				
+				std::cout << "inferMoreEdges_ raised edge count from " << edges_size << " to " << edges.size() << "\n";
+			}
+
+			void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation)
+			{
+				std::cout << " +++++ printEdgesOfConnectedFeatures_ +++++\n";
+				for (Size i=0; i<feature_relation.size(); ++i)
+				{
+					if (
+							((feature_relation[i].getElementIndex(0) == idx_1) && (feature_relation[i].getElementIndex(1)==idx_2))
+							 ||
+							((feature_relation[i].getElementIndex(0) == idx_2) && (feature_relation[i].getElementIndex(1)==idx_1))
+						 )
+					{
+						std::cout << "\n" << feature_relation[i].getCompomer() << "\n";
+					}
+				}
+				std::cout << " ----- printEdgesOfConnectedFeatures_ -----\n";
+				return;
+			}
+
       /// List of adducts used to explain mass differences
       MassExplainer::AdductsType potential_adducts_;
 

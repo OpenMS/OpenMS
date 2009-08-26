@@ -22,13 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm, Andreas Bertsch $
-// $Authors: $
+// $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -110,6 +110,33 @@ START_SECTION((bool validate(const String &filename, StringList &errors, StringL
 	TEST_STRING_EQUAL(warnings[3],"No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'")
 
 END_SECTION
+
+START_SECTION((void setCheckTermValueTypes(bool check)))
+	SemanticValidator sv(mapping, cv);
+	sv.setCheckTermValueTypes(true);
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setCheckUnits(bool check)))
+	SemanticValidator sv(mapping, cv);
+	sv.setCheckUnits(true);
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setUnitAccessionAttribute(const String &accession)))
+	SemanticValidator sv(mapping, cv);
+	sv.setUnitAccessionAttribute("unitAccession");
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setUnitNameAttribute(const String &name)))
+	SemanticValidator sv(mapping, cv);
+	sv.setUnitNameAttribute("unit");
+	NOT_TESTABLE
+END_SECTION
+
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

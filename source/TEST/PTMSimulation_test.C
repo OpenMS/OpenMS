@@ -58,16 +58,10 @@ START_SECTION((PTMSimulation(const PTMSimulation &source)))
   PTMSimulation a(NULL);
 
 	Param p = a.getParameters();
-	p.setValue("potential_modifications", StringList::create("MOD:00071|0.100003"));
+	p.setValue("potential_modifications", StringList::create("Tyr->Dha (Y)|0.100003"));
 	a.setParameters(p);
 	PTMSimulation b(a);
 	TEST_EQUAL(b.getParameters(),a.getParameters());
-}
-END_SECTION
-
-START_SECTION((virtual ~PTMSimulation()))
-{
-  NOT_TESTABLE;
 }
 END_SECTION
 
@@ -77,7 +71,7 @@ START_SECTION((PTMSimulation& operator=(const PTMSimulation &source)))
 	PTMSimulation b(a);
 
 	Param p = a.getParameters();
-	p.setValue("potential_modifications", StringList::create("MOD:00071|0.13"));
+	p.setValue("potential_modifications", StringList::create("Trimethyl (K)|0.13"));
 	a.setParameters(p);
 	TEST_NOT_EQUAL(b.getParameters(),a.getParameters());
 	b = a;
@@ -109,8 +103,8 @@ START_SECTION((void predictPTMs(FeatureMapSim &map)))
 	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
 	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAAHTKLRTTIPPEFG")
 	TEST_EQUAL(map[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRYCNHKTUIKL")
-	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Lys->Allysine (K))K(Lys->Allysine (K))K(Lys->Allysine (K))KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
-	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "R(Methyl (R))RRRRRRRRYCNHK(Lys->Allysine (K))TUIKL")
+	TEST_EQUAL(map[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHK(Dimethyl)K(Dimethyl)K(Lys->Allysine)KKKKKKKKKKKKKKKKKKKKKKKKKKKHHACAC")
+	TEST_EQUAL(map[4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RRRRRRRRRY(Tyr->Dha)CNHK(Dimethyl)TUIKL")
 	TEST_EQUAL(map.size(),5);
 	//for (FeatureMapSim::const_iterator it = map.begin(); it!=map.end(); ++it)
 	//{

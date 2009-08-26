@@ -447,6 +447,7 @@ namespace OpenMS
 		}
 		
 		string::operator=(string(begin,end));
+		
 		return *this;
 	}
 
@@ -472,7 +473,7 @@ namespace OpenMS
 			}
 		}
 		
-		string::operator=(simple);
+		this->swap(simple);
 		
 		return *this;
 	}
@@ -511,7 +512,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	bool String::split(char splitter, std::vector<String>& substrings, bool quote_protect) const
+	bool String::split(const char splitter, std::vector<String>& substrings, bool quote_protect) const
 	{
 		Int parts = count(this->begin(),this->end(),splitter);
 		substrings.clear();
@@ -670,13 +671,29 @@ namespace OpenMS
 
 	String& String::removeWhitespaces()
 	{
-		Iterator end = this->end();
-		end  = std::remove(this->begin(), end, ' ');
-		end  = std::remove(this->begin(), end, '\t');
-		end  = std::remove(this->begin(), end, '\n');
-		end  = std::remove(this->begin(), end, '\r');
-				
-		this->erase(end,this->end());
+		bool contains_ws = false;
+  	for (ConstIterator it=this->begin(); it!=this->end(); ++it)
+  	{
+  		char c = *it;
+  		if (c==' ' || c=='\t' || c=='\n' || c=='\r')
+  		{
+  			contains_ws = true;
+  			break;
+  		}
+  	}
+  	
+  	if (contains_ws)
+  	{
+  		string tmp;
+  		tmp.reserve(this->size());
+	    for (ConstIterator it=this->begin(); it!=this->end(); ++it)
+	    {
+	    	char c = *it;
+	    	if (c!=' ' && c!='\t' && c!='\n' && c!='\r') tmp += c;
+	    }
+      this->swap(tmp);
+  	}
+
 		return *this;
 	}
 

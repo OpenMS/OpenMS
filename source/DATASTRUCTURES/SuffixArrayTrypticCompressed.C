@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
@@ -76,13 +76,13 @@ struct SubstringLess : public binary_function<pair<SignedSize,SignedSize> , pair
 /**
 @brief comparator for two doubles with a tolerance value
 */
-struct FloatsWithTolLess : public binary_function<double , double, bool>
+struct FloatsWithTolLess : public binary_function<DoubleReal , DoubleReal, bool>
 {
 	/**
 	@brief constructor
 	@param t const reference to the tolerance
 	*/
-	FloatsWithTolLess(const double & t) : tol_(t) {}
+	FloatsWithTolLess(const DoubleReal & t) : tol_(t) {}
 	/**
 	@brief copy constructor
 	*/
@@ -90,11 +90,11 @@ struct FloatsWithTolLess : public binary_function<double , double, bool>
 	
 	/**
 	@brief implementation of the '<' operator for two doubles with the tolerance value
-	@param f1 first double
-	@param f2 second double
-	@return true if first double '<' second double-tolerance
+	@param f1 first DoubleReal
+	@param f2 second DoubleReal
+	@return true if first DoubleReal '<' second DoubleReal-tolerance
 	*/
-	bool operator()( double f1, double f2) const
+	bool operator()( DoubleReal f1, DoubleReal f2) const
 	
 	{
 		return (f1<(f2-tol_));
@@ -102,7 +102,7 @@ struct FloatsWithTolLess : public binary_function<double , double, bool>
 	}
 
 	protected:
-	double const & tol_; ///< tolerance value
+	DoubleReal const & tol_; ///< tolerance value
 };
 
 
@@ -141,7 +141,8 @@ SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize,SignedSiz
 
 
 // constructor 
-SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name)  : 
+SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode)
+ :WeightWrapper(weight_mode), 
 	s_(st),
 	tol_(0.5),
 	number_of_modifications_(0)
@@ -168,14 +169,14 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue* r = rdb->getResidue(aa[i]);
-		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
+		masse_[(int)aa[i]]= getWeight(*r, Residue::Internal);
 	}
 	
 	if (sa_file_name!="")
 	{
 		open(sa_file_name);
 	} 
-	else 
+	else
 	{
 		//creating unsorted suffix array with every tryptic suffix
 		Size next_pos = getNextSep_(0);
@@ -242,8 +243,9 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 }
 
 //Copy constructor
-SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa) : 
-	SuffixArray(sa),
+SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa)
+ :SuffixArray(sa),
+	WeightWrapper(sa),
 	s_(sa.s_),
 	tol_(sa.tol_),
 	indices_(sa.indices_),
@@ -368,7 +370,7 @@ String SuffixArrayTrypticCompressed::toString()
 	return ss.str();
 }
 
-SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, double & m,SignedSize start, SignedSize  end) {
+SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<DoubleReal> & spec, DoubleReal & m,SignedSize start, SignedSize  end) {
 	
 	if (end-start<=1) return (spec.at(start)<m-tol_)?end:start;
 	SignedSize middle = ((end-start)/2)+start;
@@ -385,12 +387,12 @@ SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec
 	return (middle+1);
 }
 
-SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, double & m) {
+SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<DoubleReal> & spec, DoubleReal & m) {
 	return findFirst_ (spec,m,0,spec.size()-1);
 }
 
 // finds all occurences of a given spectrum
-void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,SignedSize>,double > > >& candidates, const vector<double> & spec )
+void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,SignedSize>,DoubleReal > > >& candidates, const vector<DoubleReal> & spec )
 {
 	//time_t t0 (time(NULL));
 	if (spec.size() == 0)
@@ -415,23 +417,23 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 	//preparing result table
 	for (Size i = 0; i < spec.size();++i)
 	{
-		vector<pair<pair<SignedSize,SignedSize>,double > > v ;
+		vector<pair<pair<SignedSize,SignedSize>,DoubleReal > > v ;
 		candidates.push_back(v);
 	}
-	double mmax = spec.back();
+	DoubleReal mmax = spec.back();
 	
 	//history contains three values: a position within the indices vector, a position for how far we 'walked' into candidate, and the mass at this position, so we initialize with the length of the indices vector, -1 and 0
-	stack<pair<pair<SignedSize,map<double,SignedSize> >, pair<SignedSize,double> > > history ;
+	stack<pair<pair<SignedSize,map<DoubleReal,SignedSize> >, pair<SignedSize,DoubleReal> > > history ;
 	
 	
 	SignedSize tag_pos = 0;
 	
-	history.push(pair<pair <SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> > (indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, 18.0)));
+	history.push(pair<pair <SignedSize, map<DoubleReal,SignedSize> >, pair<SignedSize, DoubleReal> >(pair<SignedSize, map<DoubleReal, SignedSize> > (indices_.size() + 1, map<DoubleReal, SignedSize>()), pair<SignedSize, DoubleReal>(-1, getWeight(EmpiricalFormula("H2O")) )));
 	
 	SignedSize steps = 0;
 	SignedSize nres = 0;
-	map<double, SignedSize> mod_map_start;
-	for (SignedSize i = 0; i < (int)indices_.size(); ++i)
+	map<DoubleReal, SignedSize> mod_map_start;
+	for (SignedSize i = 0; i < (SignedSize)indices_.size(); ++i)
 	{
 		SignedSize str_len = indices_[i].second;
 		// we are looking for the next history entry representing a position we have not been yet
@@ -440,9 +442,9 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 			history.pop();
 		}
 		// mass at this position
-		double m = history.top().second.second;
+		DoubleReal m = history.top().second.second;
 		
-		map<double, SignedSize> modification_map(history.top().first.second);
+		map<DoubleReal, SignedSize> modification_map(history.top().first.second);
 		
 		//if (history.size()==1) 
 		//{
@@ -502,7 +504,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 			/*
 			try
 			{
-				cerr << "1.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+				cerr << "1.>" << s_.substr(indices_[i].first, j + 1) << " " << getWeight(AASequence(s_.substr(indices_[i].first, j + 1))) << endl;
 			}
 			catch (...)
 			{
@@ -515,16 +517,16 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 			{
 				if (!use_tags_ || (tag_pos >= 0 && tag_pos <= j - 2)) {
 					
-					vector<double> found_masses;
+					vector<DoubleReal> found_masses;
 					if (binary_search(spec.begin(),spec.end(), m, FloatsWithTolLess(tol_)))
 					{
 						found_masses.push_back(0);
 					}
 					// if the mass is in spectrum we will add the entry to all matching masses
-					map<double,SignedSize>::iterator it;
+					map<DoubleReal,SignedSize>::iterator it;
 					for (it = modification_map.begin(); it!= modification_map.end();++it)
 					{
-						if (binary_search(spec.begin(),spec.end(), m + (double)it->first, FloatsWithTolLess(tol_)))
+						if (binary_search(spec.begin(),spec.end(), m + (DoubleReal)it->first, FloatsWithTolLess(tol_)))
 						{
 							found_masses.push_back(it->first);
 						}
@@ -532,18 +534,18 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 				
 					for (Size o = 0; o < found_masses.size(); o++) 
 					{
-						double mass_with_mods = (found_masses[o] + m);
+						DoubleReal mass_with_mods = (found_masses[o] + m);
 						Size first_occ = findFirst_(spec, mass_with_mods);
 						Size first_occ_copy = first_occ;
 						if (!have_to_go_in)
 						{
 							++steps;
 							++nres;
-							pair<pair<SignedSize, SignedSize>, double> pnew(pair<SignedSize, SignedSize>(indices_[i].first, j + 1), found_masses[o]);
+							pair<pair<SignedSize, SignedSize>, DoubleReal> pnew(pair<SignedSize, SignedSize>(indices_[i].first, j + 1), found_masses[o]);
 /*
 							try
 							{
-							cerr << "2.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+							cerr << "2.>" << s_.substr(indices_[i].first, j + 1) << " " << getWeight(AASequence(s_.substr(indices_[i].first, j + 1))) << endl;
 							}
 							catch(...)
 							{
@@ -574,7 +576,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 								if (isDigestingEnd(c, cn_new))
 								{
 									++nres;
-									pair<pair<SignedSize,SignedSize>,double> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
+									pair<pair<SignedSize,SignedSize>,DoubleReal> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
 									Size first_occ_copy = first_occ;
 									while (first_occ_copy<spec.size()&&spec[first_occ_copy] <= mass_with_mods+tol_)
 									{
@@ -591,7 +593,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 			// if we are reaching a lcp postion we add this entry to history
 			if (j == (lcp_[i] - 1) && lcp_[i] > 0)
 			{
-				history.push(pair<pair<SignedSize, map<double,SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double,SignedSize>(modification_map)), pair<SignedSize, double> (j, m)));
+				history.push(pair<pair<SignedSize, map<DoubleReal,SignedSize> >, pair<SignedSize, DoubleReal> >(pair<SignedSize, map<DoubleReal, SignedSize> >(i + skip_[i], map<DoubleReal,SignedSize>(modification_map)), pair<SignedSize, DoubleReal> (j, m)));
 			}
 			// if mass is to big we can skip the sub tree
 			if (m > mmax + tol_) 
@@ -610,7 +612,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,S
 	return;
 }
 
-void SuffixArrayTrypticCompressed::setTolerance (double t)
+void SuffixArrayTrypticCompressed::setTolerance (DoubleReal t)
 {
 	if (t < 0)
 	{
@@ -619,7 +621,7 @@ void SuffixArrayTrypticCompressed::setTolerance (double t)
 	tol_ = t;
 }
 
-double SuffixArrayTrypticCompressed::getTolerance () const 
+DoubleReal SuffixArrayTrypticCompressed::getTolerance () const 
 {
 	return (tol_);
 }
@@ -691,8 +693,8 @@ void SuffixArrayTrypticCompressed::parseTree_ (SignedSize start_index, SignedSiz
 {
 	//to start walked_in set to 0, depth=1, edge_len = 1
 	
-	if ((SignedSize)((double)leafe_depth.size()/(double)indices_.size()*100)>progress_){
-		cout<<(double)leafe_depth.size()/(double)indices_.size()*100<<"%"<<endl;
+	if ((SignedSize)((DoubleReal)leafe_depth.size()/(DoubleReal)indices_.size()*100)>progress_){
+		cout<<(DoubleReal)leafe_depth.size()/(DoubleReal)indices_.size()*100<<"%"<<endl;
 		progress_++;
 	
 	}

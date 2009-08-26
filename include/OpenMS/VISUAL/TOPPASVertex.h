@@ -43,7 +43,13 @@ namespace OpenMS
 	class TOPPASEdge;
 
 	/**
-		@brief The base class of all different kinds of vertices
+		@brief The base class of the different vertex classes.
+		
+		This class contains the common functionality (such as
+		event handling for mouse clicks and drags) and holds the common
+		members of all different kinds of vertices (e.g., containers
+		for all in and out edges, the vertex ID, the number of a 
+		topological sort of the whole graph, etc.)
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -54,11 +60,15 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-		
+			
+			/// The container for in/out edges
 			typedef QList<TOPPASEdge*> EdgeContainer;
+			/// A mutable iterator for in/out edges
 			typedef EdgeContainer::iterator EdgeIterator;
+			/// A const iterator for in/out edges
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
 			
+			/// The color of a vertex during depth-first search
 			enum DFS_COLOR
 			{
 				DFS_WHITE,
@@ -113,6 +123,14 @@ namespace OpenMS
 			UInt getID();
 			/// Sets the unique ID for this node
 			void setID(UInt id);
+			/// Returns whether the vertex has been marked already (during topological sort)
+			bool isTopoSortMarked();
+			/// (Un)marks the vertex (during topological sort)
+			void setTopoSortMarked(bool b);
+			/// Returns the topological sort number
+			UInt getTopoNr();
+			/// Sets the topological sort number (overridden in tool and output vertices)
+			virtual void setTopoNr(UInt nr);
 		
 		public slots:
 		
@@ -123,8 +141,8 @@ namespace OpenMS
 			
 			/// Emitted when this item is clicked
 			void clicked();
-			/// Emitted when this item is double-clicked
-			void doubleClicked();
+			/// Emitted when this item is released
+			void released();
 			/// Emitted when the position of the hovering edge changes
 			void hoveringEdgePosChanged(const QPointF& new_pos);
 			/// Emitted when a new out edge is supposed to be created
@@ -133,6 +151,8 @@ namespace OpenMS
 			void finishHoveringEdge();
 			/// Emitted when something has changed
 			void somethingHasChanged();
+			/// Emitted when the item is dragged
+			void itemDragged(qreal dx, qreal dy);
 			
 		protected:
 			
@@ -152,6 +172,10 @@ namespace OpenMS
 			TOPPASVertex* dfs_parent_;
 			/// The unique ID
 			UInt id_;
+			/// "marked" flag for topological sort
+			bool topo_sort_marked_;
+			/// The number in a topological sort of the entire graph
+			UInt topo_nr_;
 			
 			///@name reimplemented Qt events
       //@{
@@ -164,7 +188,10 @@ namespace OpenMS
 			
 			/// Moves the target pos of the edge which is just being created to @p pos
 			virtual void moveNewEdgeTo_(const QPointF& pos);
-			
+			/// Returns a three character string (i.e. 001 instead of 1) for the given @p number
+			String get3CharsNumber_(UInt number);
+			/// Removes the specified directory (absolute path). Returns true if successful.
+			bool removeDirRecursively_(const QString& dir_name);
 	};
 }
 

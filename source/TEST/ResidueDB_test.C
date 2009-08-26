@@ -73,18 +73,18 @@ START_SECTION(Size getNumberOfResidues() const)
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const String &name))
-	const Residue* mod_res = ptr->getModifiedResidue("MOD:00720"); // ox methionine
+	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
+	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const String &name))
-	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "MOD:00720");
+	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
+	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
-START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "All") const)
+START_SECTION((const std::set<const Residue*> getResidues(const String &residue_set="All") const))
 	set<const Residue*> residues = ptr->getResidues("All");
 	TEST_EQUAL(residues.size() >= 21, true)
 	residues = ptr->getResidues("Natural20");
@@ -92,6 +92,15 @@ START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set = "
 	residues = ptr->getResidues("Natural19WithoutL");
 	TEST_EQUAL(residues.size(), 19)
 END_SECTION
+
+START_SECTION((const std::set<String>& getResidueSets() const))
+	set<String> res_sets = ResidueDB::getInstance()->getResidueSets();
+	TEST_EQUAL(res_sets.find("All") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural20") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural19WithoutL") != res_sets.end(), true)
+	TEST_EQUAL(res_sets.find("Natural19WithoutI") != res_sets.end(), true)
+END_SECTION
+
 
 START_SECTION(void setResidues(const String &filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
@@ -146,7 +155,7 @@ END_SECTION
 START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = 0;
-	mod_res = ptr->getModifiedResidue("MOD:01214");
+	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
 	TEST_NOT_EQUAL(mod_res, 0)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION

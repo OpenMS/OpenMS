@@ -51,6 +51,132 @@ START_TEST(MzMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+//Note: This code generates the test files for meta data arrays of differnet types. Do not delete it!
+
+////template spectrum with 100 peaks
+//MSSpectrum<> template_spec;
+//for (Size i=0; i<100; ++i)
+//{
+//	Peak1D p;
+//	p.setIntensity(i);
+//	p.setMZ(i);
+//	template_spec.push_back(p);
+//}
+//
+//MSSpectrum<> spec;
+//MSExperiment<> exp;
+//Size spectrum_number = 0;
+//Size array_number = 1;
+//
+////spectrum 1 - 3 float arrays of size 50,100,200
+//spec = template_spec; ++spectrum_number; array_number = 1;
+//spec.setNativeID(String("index=") + spectrum_number);
+//spec.setRT(1.0 * spectrum_number);
+//spec.setName(String("spectum number=") + spectrum_number);
+//Size array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getFloatDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//exp.push_back(spec);
+//
+////spectrum 2 - 3 string arrays of size 50,100,200
+//spec = template_spec; ++spectrum_number; array_number = 1;
+//spec.setNativeID(String("index=") + spectrum_number);
+//spec.setRT(1.0 * spectrum_number);
+//spec.setName(String("spectum number=") + spectrum_number);
+//array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getStringDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+//	}
+//	spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//exp.push_back(spec);
+//
+////spectrum 3 - 3 integer arrays of size 50,100,200
+//spec = template_spec; ++spectrum_number; array_number = 1;
+//spec.setNativeID(String("index=") + spectrum_number);
+//spec.setRT(1.0 * spectrum_number);
+//spec.setName(String("spectum number=") + spectrum_number);
+//array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getIntegerDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//exp.push_back(spec);
+//
+//
+////spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
+//spec = template_spec; ++spectrum_number; array_number = 1;
+//spec.setNativeID(String("index=") + spectrum_number);
+//spec.setRT(1.0 * spectrum_number);
+//spec.setName(String("spectum number=") + spectrum_number);
+//array_size=50;
+//for (Size i=0; i<2; ++i)
+//{
+//	spec.getFloatDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//array_size=200;
+//for (Size i=0; i<1; ++i)
+//{
+//	spec.getStringDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+//	}
+//	spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//array_size=50;
+//for (Size i=0; i<3; ++i)
+//{
+//	spec.getIntegerDataArrays().resize(i+1);
+//	for (Size j=0; j<array_size; ++j)
+//	{
+//		spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+//	}
+//	spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+//	array_size *=2;
+//	array_number +=1;
+//}
+//exp.push_back(spec);
+//
+//MzMLFile f;
+//f.store("data/MzMLFile_6_uncompressed.mzML",exp);
+//f.getOptions().setCompression(true);
+//f.store("data/MzMLFile_6_compressed.mzML",exp);
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 
 MzMLFile* ptr = 0;
 START_SECTION((MzMLFile()))
@@ -110,7 +236,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
 	TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
 	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW file")
-	TEST_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),SourceFile::MULTIPLE_PEAK_LISTS)
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),"multiple peak list nativeID format")
 	//sample
 	TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
 	TEST_REAL_SIMILAR(exp.getSample().getMass(),11.7)
@@ -499,90 +625,50 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp4.size(),1)
 	TEST_EQUAL(exp4[0].size(),997530)
 	
-	//TEST 32 bit data, zlib compression, 32/64 bit integer, Null terminated strings
-	MSExperiment<> uncompressed;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),uncompressed);
-	MSExperiment<> exp5;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),exp5);
-	//load 32 bit data
-	TEST_EQUAL(exp5.size(),12)
-	TEST_EQUAL(exp5[0].size(),15)
-	TEST_EQUAL(exp5[1].size(),10)
-	TEST_EQUAL(exp5[2].size(),15)
-	TEST_REAL_SIMILAR(exp5[0].getRT(),5.1)
-	TEST_REAL_SIMILAR(exp5[1].getRT(),5.2)
-	TEST_REAL_SIMILAR(exp5[2].getRT(),5.3)
-	//load zlib compressed data
-	for(Size s = 0 ; s < uncompressed[0].size(); ++s)
+	//test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
+	MSExperiment<> exp_ucomp;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_ucomp);
+	MSExperiment<> exp_comp;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_compressed.mzML"),exp_comp);
+	TEST_EQUAL(exp_ucomp.size(),exp_comp.size())
+	for (Size s=0; s< exp_ucomp.size(); ++s)
 	{
-		TEST_EQUAL(exp5[3][s] == uncompressed[0][s],true)
+		//check if the same number of peak and meta data arrays is present
+		TEST_EQUAL(exp_ucomp[s].size(),exp_comp[s].size())
+		TEST_EQUAL(exp_ucomp[s].getFloatDataArrays().size(),exp_comp[s].getFloatDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_comp[s].getIntegerDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_comp[s].getStringDataArrays().size())
+		//check content of peak array
+		for (Size p=0; p< exp_ucomp[s].size(); ++p)
+		{
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_comp[s][p].getMZ())
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_comp[s][p].getIntensity())
+		}
+		//check content of float arrays
+		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
+			{
+				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_comp[s].getFloatDataArrays()[a][m])
+			}
+		}
+		//check content of integer arrays
+		for (Size a=0; a<exp_ucomp[s].getIntegerDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getIntegerDataArrays()[a].size(); ++m)
+			{
+				TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays()[a][m],exp_comp[s].getIntegerDataArrays()[a][m])
+			}
+		}
+		//check content of string arrays
+		for (Size a=0; a<exp_ucomp[s].getStringDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getStringDataArrays()[a].size(); ++m)
+			{
+				TEST_STRING_EQUAL(exp_ucomp[s].getStringDataArrays()[a][m],exp_comp[s].getStringDataArrays()[a][m])
+			}
+		}
 	}
-	for(Size s = 0 ; s < uncompressed[1].size(); ++s)
-	{
-		TEST_EQUAL(exp5[4][s] == uncompressed[1][s],true)
-	}
-	for(Size s = 0 ; s < uncompressed[2].size(); ++s)
-	{
-		TEST_EQUAL(exp5[5][s] == uncompressed[2][s],true)
-	}
-	//32bit Integer (intensity) compressed
- 	TEST_EQUAL(exp5[6].size(),99)
-	TEST_EQUAL(exp5[6].getFloatDataArrays().size(),1)
-	TEST_EQUAL(exp5[6].getFloatDataArrays()[0].size(),99)
-	TEST_STRING_EQUAL(exp5[6].getFloatDataArrays()[0].getName(),"charge array")
-	for(Size i = 0; i < exp5[6].getFloatDataArrays()[0].size(); ++i)
-	{
-		TEST_REAL_SIMILAR(exp5[6].getFloatDataArrays()[0][i], (Int)i)
-	}
-	//64bit Integer (intensity) compressed
-	TEST_EQUAL(exp5[7].size(),99)
-	TEST_EQUAL(exp5[7].getFloatDataArrays().size(),1)
-	TEST_EQUAL(exp5[7].getFloatDataArrays()[0].size(),99)
-	TEST_STRING_EQUAL(exp5[7].getFloatDataArrays()[0].getName(),"charge array")
-	for(Size i = 0; i < exp5[7].getFloatDataArrays()[0].size(); ++i)
-	{
-		TEST_REAL_SIMILAR(exp5[7].getFloatDataArrays()[0][i], (Int)i)
-	}
-	//64-bit Integer (intensity) uncompressed
-	TEST_EQUAL(exp5[8].size(), 99)
-	TEST_EQUAL(exp5[8].getFloatDataArrays().size(),1)
-	TEST_EQUAL(exp5[8].getFloatDataArrays()[0].size(),99)
-	TEST_EQUAL(exp5[8].getFloatDataArrays()[0].getName(),"charge array")
-	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][0], 5)
-	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][1], 3)
-	TEST_REAL_SIMILAR(exp5[8].getFloatDataArrays()[0][2], 9)
-	//32-bit Integer (intensity) uncompressed
-	TEST_EQUAL(exp5[9].size(), 99)
-	TEST_EQUAL(exp5[9].getFloatDataArrays().size(),1)
-	TEST_EQUAL(exp5[9].getFloatDataArrays()[0].size(),99)
-	TEST_EQUAL(exp5[9].getFloatDataArrays()[0].getName(),"charge array")
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][0], 1)
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][1], 5)
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][2], 6)	
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][3], 7)	
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][4], 8)	
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][5], 9)	
-	TEST_REAL_SIMILAR(exp5[9].getFloatDataArrays()[0][6], 522)	
-	
-	TEST_EQUAL(exp5[10].size(), 99)
-	TEST_EQUAL(exp5[10].getStringDataArrays().size(),1)
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0].size(),5)
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0].getName(),"user-defined name")
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0][0], "das")
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0][1], "ist")
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0][2], "ein")	
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0][3], "test")	
-	TEST_EQUAL(exp5[10].getStringDataArrays()[0][4], "1234")	
-	
-		TEST_EQUAL(exp5[11].size(), 99)
-	TEST_EQUAL(exp5[11].getStringDataArrays().size(),1)
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0].size(),5)
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0].getName(),"user-defined name")
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0][0], "das")
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0][1], "ist")
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0][2], "ein")	
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0][3], "test")	
-	TEST_EQUAL(exp5[11].getStringDataArrays()[0][4], "1234")	
 	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
@@ -736,11 +822,11 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 //		TEST_EQUAL(exp[0]==empty[0],true);
 	}
 
-	//test with compression 
+	//test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
 	{
 		//load map
 		MSExperiment<> exp_original;
-		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6.mzML"),exp_original);
+		file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_original);
 	 	//store map
 		std::string tmp_filename;
 	 	NEW_TMP_FILE(tmp_filename);
@@ -750,116 +836,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		MSExperiment<> exp;
 		file.load(tmp_filename,exp);
 		//test if everything worked
-		//TEST_EQUAL(exp == exp_original,true)
-		//NOTE: If it does not work, use this code to find out where the difference is
-		TEST_EQUAL(exp[1].size(),exp_original[1].size())
-		for (Size i=0; i<exp[1].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[1][i].getIntensity(),exp_original[1][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[1][i].getMZ(),exp_original[1][i].getMZ())
-		}
-		TEST_EQUAL(exp[2].size(),exp_original[2].size())
-		for (Size i=0; i<exp[2].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[2][i].getIntensity(),exp_original[2][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[2][i].getMZ(),exp_original[2][i].getMZ())
-		}
-		TEST_EQUAL(exp[4].size(),exp_original[4].size())
-		for (Size i=0; i<exp[4].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[4][i].getIntensity(),exp_original[4][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[4][i].getMZ(),exp_original[4][i].getMZ())
-		}
-		TEST_EQUAL(exp[5].size(),exp_original[5].size())		
-		for (Size i=0; i<exp[5].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[5][i].getIntensity(),exp_original[5][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[5][i].getMZ(),exp_original[5][i].getMZ())
-		}
-		TEST_EQUAL(exp[6].size(),exp_original[6].size())
-		for (Size i=0; i<exp[6].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[6][i].getIntensity(),exp_original[6][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[6][i].getMZ(),exp_original[6][i].getMZ())
-		}
-		for (Size i=0; i<exp[6].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[6].getFloatDataArrays()[0][i],exp_original[7].getFloatDataArrays()[0][i])
-		}
-		TEST_EQUAL(exp[7].size(),exp_original[7].size())
-		for (Size i=0; i<exp[7].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[7].getFloatDataArrays()[0][i],exp_original[7].getFloatDataArrays()[0][i])
-		}
-		for (Size i=0; i<exp[7].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[7][i].getIntensity(),exp_original[7][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[7][i].getMZ(),exp_original[7][i].getMZ())
-		}
-		TEST_EQUAL(exp[8].size(),exp_original[8].size())
-		TEST_EQUAL(exp[8].getFloatDataArrays().size(),exp_original[8].getFloatDataArrays().size())
-		TEST_EQUAL(exp[8].getFloatDataArrays()[0].size(),exp_original[8].getFloatDataArrays()[0].size())
-		TEST_EQUAL(exp[8].getFloatDataArrays()[0].getName(),exp_original[8].getFloatDataArrays()[0].getName())
-		TEST_EQUAL(exp[8].getFloatDataArrays()[0][0], exp_original[8].getFloatDataArrays()[0][0])
-		TEST_EQUAL(exp[8].getFloatDataArrays()[0][1], exp_original[8].getFloatDataArrays()[0][1])
-		TEST_EQUAL(exp[8].getFloatDataArrays()[0][2], exp_original[8].getFloatDataArrays()[0][2])		
-		for (Size i=0; i<exp[8].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[8][i].getIntensity(),exp_original[8][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[8][i].getMZ(),exp_original[8][i].getMZ())
-		}		
-		TEST_EQUAL(exp[9].size(),exp_original[9].size())
-		TEST_EQUAL(exp[9].getFloatDataArrays().size(),exp_original[9].getFloatDataArrays().size())
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0].size(),exp_original[9].getFloatDataArrays()[0].size())
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0].getName(),exp_original[9].getFloatDataArrays()[0].getName())
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][0], exp_original[9].getFloatDataArrays()[0][0])
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][1], exp_original[9].getFloatDataArrays()[0][1])
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][2], exp_original[9].getFloatDataArrays()[0][2])	
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][3], exp_original[9].getFloatDataArrays()[0][3])	
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][4], exp_original[9].getFloatDataArrays()[0][4])			
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][5], exp_original[9].getFloatDataArrays()[0][5])		
-		TEST_EQUAL(exp[9].getFloatDataArrays()[0][6], exp_original[9].getFloatDataArrays()[0][6])		
-		for (Size i=0; i<exp[9].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[9][i].getIntensity(),exp_original[9][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[9][i].getMZ(),exp_original[9][i].getMZ())
-		}		
-		TEST_EQUAL(exp[10].size(),exp_original[10].size())
-		TEST_EQUAL(exp[0].size(),exp_original[0].size())	
-		TEST_EQUAL(exp[11].size(),exp_original[11].size())
-		TEST_EQUAL(exp[10].getStringDataArrays().size(),exp_original[10].getStringDataArrays().size())
-		TEST_EQUAL(exp[10].getStringDataArrays()[0].size(),exp_original[10].getStringDataArrays()[0].size())
-		TEST_EQUAL(exp[10].getStringDataArrays()[0].getName(),exp_original[10].getStringDataArrays()[0].getName())
-		TEST_EQUAL(exp[10].getStringDataArrays()[0][0], exp_original[10].getStringDataArrays()[0][0])
-		TEST_EQUAL(exp[10].getStringDataArrays()[0][1], exp_original[10].getStringDataArrays()[0][1])
-		TEST_EQUAL(exp[10].getStringDataArrays()[0][2], exp_original[10].getStringDataArrays()[0][2])	
-		TEST_EQUAL(exp[10].getStringDataArrays()[0][3], exp_original[10].getStringDataArrays()[0][3])	
-		TEST_EQUAL(exp[10].getStringDataArrays()[0][4], exp_original[10].getStringDataArrays()[0][4])		
-		for (Size i=0; i<exp[10].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[10][i].getIntensity(),exp_original[10][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[10][i].getMZ(),exp_original[10][i].getMZ())
-		}
-		TEST_EQUAL(exp[11].size(),exp_original[11].size())
-		TEST_EQUAL(exp[11].getStringDataArrays().size(),exp_original[11].getStringDataArrays().size())
-		TEST_EQUAL(exp[11].getStringDataArrays()[0].size(),exp_original[11].getStringDataArrays()[0].size())
-		TEST_EQUAL(exp[11].getStringDataArrays()[0].getName(),exp_original[11].getStringDataArrays()[0].getName())
-		TEST_EQUAL(exp[11].getStringDataArrays()[0][0], exp_original[11].getStringDataArrays()[0][0])
-		TEST_EQUAL(exp[11].getStringDataArrays()[0][1], exp_original[11].getStringDataArrays()[0][1])
-		TEST_EQUAL(exp[11].getStringDataArrays()[0][2], exp_original[11].getStringDataArrays()[0][2])	
-		TEST_EQUAL(exp[11].getStringDataArrays()[0][3], exp_original[11].getStringDataArrays()[0][3])	
-		TEST_EQUAL(exp[11].getStringDataArrays()[0][4], exp_original[11].getStringDataArrays()[0][4])		
-		for (Size i=0; i<exp[11].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[11][i].getIntensity(),exp_original[11][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[11][i].getMZ(),exp_original[11][i].getMZ())
-		}		
-		TEST_EQUAL(exp[3].size(),exp_original[3].size())
-		for (Size i=0; i<exp[3].size(); ++i)
-		{
-			TEST_REAL_SIMILAR(exp[3][i].getIntensity(),exp_original[3][i].getIntensity())
-			TEST_REAL_SIMILAR(exp[3][i].getMZ(),exp_original[3][i].getMZ())
-		}
+		TEST_EQUAL(exp == exp_original,true)
 	}
 
 END_SECTION
@@ -925,7 +902,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-	TEST_EQUAL(errors.size(),7)
+	TEST_EQUAL(errors.size(),8)
 	TEST_EQUAL(warnings.size(),1)
 //	for (Size i=0; i<errors.size(); ++i)
 //	{

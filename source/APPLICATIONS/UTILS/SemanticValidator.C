@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
-// $Authors: $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
+// $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -43,13 +43,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page SemanticValidator SemanticValidator
-		
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_SemanticValidator.cli
-
+	@page UTILS_SemanticValidator SemanticValidator
+	
+	@brief SemanticValidator for analysisXML and mzML files.
+	
 	This util is able to validate analysisXML and mzML files
 	using an instance document and a mapping file.
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SemanticValidator.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -93,9 +95,6 @@ class TOPPSemanticValidator
 		Internal::SemanticValidator semantic_validator(mappings, cv);
 		semantic_validator.setCheckTermValueTypes(true);
 		semantic_validator.setCheckUnits(true);
-
-		// mzIdentML uses different namespaces, so we need a different tag name
-		FileTypes::Type file_type = FileHandler::getType(in_file);
 
 		StringList errors, warnings;
 

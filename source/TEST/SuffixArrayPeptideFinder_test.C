@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -46,7 +46,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 SuffixArrayPeptideFinder* ptr = 0;
 
 
-START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& method))
+START_SECTION(SuffixArrayPeptideFinder(const String& filename, const String& method, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO))
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	ptr = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticCompressed");
@@ -69,7 +69,7 @@ START_SECTION(SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder &source))
 	TEST_EQUAL (ptr->getTolerance(),new_ptr->getTolerance());
 END_SECTION
 
-START_SECTION(double getTolerance() const)
+START_SECTION(DoubleReal getTolerance() const)
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
@@ -77,7 +77,7 @@ START_SECTION(double getTolerance() const)
 	sa->setTolerance(0.5);
 END_SECTION
 
-START_SECTION(void setTolerance(const double t))
+START_SECTION(void setTolerance(const DoubleReal t))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
@@ -181,12 +181,12 @@ START_SECTION(String getModificationOutputMethod())
 	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
 END_SECTION
 
-START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< double > &spec)))
+START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< DoubleReal > &spec)))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	vector<double> spec;
+	vector<DoubleReal> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
-	const vector<double> specc (spec);
+	const vector<DoubleReal> specc (spec);
 	sa->setTolerance(0.5);
 	sa->setNumberOfModifications(0);
 	vector<vector<pair<FASTAEntry,String> > > res2;
@@ -196,7 +196,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 	{
 		for (vector<pair<FASTAEntry, String> >::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
 		{
-			cerr << it2->first.first << " ##### " << it2->first.second << " " << AASequence(it2->first.second).getAverageWeight() << endl;
+			cerr << it2->first.first << " ##### " << it2->first.second << " " << AASequence(it2->first.second).getMonoWeight() << endl;
 		}
 	}
 	*/

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -30,7 +30,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-//#include <seqan/index.h> 
+#include <algorithm>
+
+#include <seqan/index.h> 
 
 using namespace OpenMS;
 using namespace std;
@@ -40,9 +42,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page PeptideIndexer PeptideIndexer
+	@page UTILS_PeptideIndexer PeptideIndexer
 	
-	@brief This small utility can create decoy databases used for decoy database searches.
+	@brief Refreshes the protein references for all peptide hits.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_PeptideIndexer.cli
@@ -56,7 +58,7 @@ class TOPPPeptideIndexer
 {
 	public:
 		TOPPPeptideIndexer()
-			: TOPPBase("PeptideIndexer","Refreshes for each peptide the protein references", false)
+			: TOPPBase("PeptideIndexer","Refreshes the protein references for all peptide hits.", false)
 		{
 			
 		}
@@ -101,18 +103,20 @@ class TOPPPeptideIndexer
 			// calculations
 			//-------------------------------------------------------------					
 
-/*			vector<seqan::String<char> > protein_seqs;
-			vector<seqan::String<Size> > protein_sas;
-*/
+			seqan::String<char> all_protein_sequences;
+
 			// build map accessions to proteins
 			Map<String, vector<Size> > acc_to_prot;
+			Size pos = 0;
+			Map<Size, Size> idx_to_protein; // stores the the begin indices the the 'all_protein_sequences' string the corresponding protein indices (proteins vector)
+			vector<Size> protein_idx_vector; // contains all being indices of the proteins in the 'all_protein_sequences' string
 			for (Size i = 0; i != proteins.size(); ++i)
 			{
-	/*			protein_seqs.push_back(proteins[i].sequence.c_str());
-				protein_sas.push_back(seqan::String<Size>());
-				seqan::resize(protein_sas.back(), proteins[i].sequence.size());
-				seqan::createSuffixArray(protein_sas.back(), protein_seqs.back(), seqan::Skew7());
-*/
+				protein_idx_vector.push_back(pos);
+				idx_to_protein[pos] = i;
+				pos += proteins[i].sequence.size() + 1; // consider the terminating '$'
+				all_protein_sequences += (proteins[i].sequence + "$").c_str();
+
 				String acc = proteins[i].identifier;
 				if (acc_to_prot.has(acc))
 				{
@@ -121,12 +125,15 @@ class TOPPPeptideIndexer
 				acc_to_prot[acc].push_back(i);
 			}
 
+			writeDebug_("Building suffix array...", 1);
+			seqan::String<Size> suffix_array;
+			resize(suffix_array, seqan::length(all_protein_sequences));
+			createSuffixArray(suffix_array, all_protein_sequences, seqan::Skew7()); 
+			writeDebug_("Suffix array built", 1);
 
-			
 			Map<String, Map<Size, Size> > prot_idx_hits; // store for each run the protein idx and number of peptides that hit this protein
 			for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
 			{
-				cerr << ".";
 				String run_id = it1->getIdentifier();
 				vector<PeptideHit> hits = it1->getHits();
 				for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
@@ -134,36 +141,29 @@ class TOPPPeptideIndexer
 					it2->setProteinAccessions(vector<String>());
 					String seq = it2->getSequence().toUnmodifiedString();
 
-					for (Size i = 0; i != proteins.size(); ++i)
+					seqan::Pair<Size> hits;
+					hits = seqan::equalRangeSA(all_protein_sequences, suffix_array, seq.c_str()); 
+
+					for (Size i = hits.i1; i < hits.i2; ++i)
 					{
+						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), suffix_array[i]);
+						Size prot_idx = idx_to_protein[*lower_bound_iter];
+						it2->addProteinAccession(proteins[prot_idx].identifier);
 
-/*
-						seqan::Pair<Size> hit_range;
-						seqan::String<char> pattern = seq.c_str();
-						hit_range = seqan::equalRangeSA(protein_seqs[i], protein_sas[i], pattern);
-
-						Size no_matches = hit_range.i2 - hit_range.i1;*/
-
-						// protein contains peptide
-						// @todo replace this by suffix array or similar fast datastructure (Andreas)
-						if (/*no_matches != 0*/proteins[i].sequence.hasSubstring(seq))
+						if (prot_idx_hits.has(run_id))
 						{
-							it2->addProteinAccession(proteins[i].identifier);
-							if (prot_idx_hits.has(run_id))
+							if (prot_idx_hits[run_id].has(prot_idx))
 							{
-								if (prot_idx_hits[run_id].has(i))
-								{
-									++prot_idx_hits[run_id][i];
-								}
-								else
-								{
-									prot_idx_hits[run_id][i] = 1;
-								}
+								++prot_idx_hits[run_id][prot_idx];
 							}
 							else
 							{
-								prot_idx_hits[run_id][i] = 1;
+								prot_idx_hits[run_id][prot_idx] = 1;
 							}
+						}
+						else
+						{
+							prot_idx_hits[run_id][prot_idx] = 1;
 						}
 					}
 

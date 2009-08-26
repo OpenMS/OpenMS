@@ -100,7 +100,7 @@ START_SECTION((static String basename(const String &file)))
 	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
 END_SECTION
 
-START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path)))
+START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
 StringList vec;
 TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);
 TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec), true);
@@ -124,14 +124,14 @@ START_SECTION((static String getOpenMSDataPath()))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(static String removeExtension(const String& file))
+START_SECTION((static String removeExtension(const String& file)))
 	TEST_STRING_EQUAL(File::removeExtension(""),"")
 	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
 	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
 	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
 END_SECTION
 
-START_SECTION(static bool isDirectory(const String& path))
+START_SECTION((static bool isDirectory(const String& path)))
 	TEST_EQUAL(File::isDirectory(""),false)
 	TEST_EQUAL(File::isDirectory("."),true)
 	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("")),true)

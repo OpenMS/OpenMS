@@ -21,7 +21,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 				
-SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method)
+SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method, const WeightWrapper::WEIGHTMODE weight_mode)
 {
 	if (!(method=="trypticCompressed" || method=="seqan" || method=="trypticSeqan"))
 	{
@@ -92,21 +92,15 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	//cout << "file:" << saFileName << endl;
 	if (method == "trypticCompressed")
 	{
-		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName);
+		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName, weight_mode);
 	} 
-	else
+	else if (method == "seqan") 
 	{
-		if (method == "seqan") 
-		{
-			sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName);
-		} 
-		else 
-		{
-			if (method == "trypticSeqan") 
-			{
-				sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName);
-			}
-		}
+		sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName, weight_mode);
+	} 
+	else if (method == "trypticSeqan") 
+	{
+		sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName, weight_mode);
 	}
 	
 	/*
@@ -120,6 +114,7 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 }
 
 SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder & source)
+	: WeightWrapper(source)
 {
 	sa_=source.sa_;
 	big_string_=source.big_string_;
@@ -130,11 +125,11 @@ SuffixArrayPeptideFinder::~SuffixArrayPeptideFinder()
 	delete sa_; // TODO assignment, copy ctor
 }
 
-void SuffixArrayPeptideFinder::setTolerance(const double t){
+void SuffixArrayPeptideFinder::setTolerance(const DoubleReal t){
 	sa_->setTolerance(t);
 }
 
-double SuffixArrayPeptideFinder::getTolerance() const
+DoubleReal SuffixArrayPeptideFinder::getTolerance() const
 {
 	return (sa_->getTolerance());
 }
@@ -199,9 +194,9 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 	return (res);
 }
 
-void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<double>& spec)
+void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<DoubleReal>& spec)
 {
-	vector<vector<pair<pair<SignedSize, SignedSize>, double> > > ca;
+	vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > > ca;
 	sa_->findSpec(ca, spec);
 	
 	ModifierRep mod;
@@ -234,7 +229,7 @@ void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, Stri
 				} 
 				else 
 				{
-					double ma = (double)ca[i][j].second;
+					DoubleReal ma = (DoubleReal)ca[i][j].second;
 					if (modification_output_method_ == "stringUnchecked")
 					{
 						mod_str = vToString_(mod.getModificationsForMass(ma));
@@ -267,12 +262,12 @@ void SuffixArrayPeptideFinder::getCandidates (vector<vector<pair<SuffixArrayPept
 	dta_file.load(DTA_file, s);
 	s.sortByPosition();
 	PeakSpectrum::ConstIterator it(s.begin());
-	vector<double> spec;
+	vector<DoubleReal> spec;
 	for (;it!=s.end();++it)
 	{
 		spec.push_back(it->getPosition()[0]);
 	}
-	const vector<double> specc(spec);
+	const vector<DoubleReal> specc(spec);
 	getCandidates(candidates, specc);
 	return;
 }

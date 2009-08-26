@@ -22,6 +22,7 @@ ResidueModification.h
 TheoreticalSpectrumGenerator.h
 TrypticIterator.h
 AAIndex.h
+WeightWrapper.h
 )
 
 ### add path to the filenames

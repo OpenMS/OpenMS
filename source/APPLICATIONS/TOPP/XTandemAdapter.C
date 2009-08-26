@@ -54,6 +54,18 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via XTandem.
 
+	@em X!Tandem must be installed before this wrapper can be used. This wrapper
+	has been successfully tested with several versions of X!Tandem. 
+
+	To speed up computations, fasta databases can be compressed using the fasta_pro.exe
+	tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
+	Refer to the docu of @em X!Tandem for further information about settings.
+
+	The major part of the setting can be directly adjusted using the "default_input.xml" of 
+	@em X!Tandem. A example of that file is contained in the "bin" folder of the 
+	@em X!Tandem installation. The parameters "default_input_file" must point to a valid
+	file. Parameters set by this wrapper overwrite the default settings given in the file.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_XTandemAdapter.cli
 */
@@ -84,7 +96,7 @@ class TOPPXTandemAdapter
 			addText_("Common Identification engine options");
 			
 			registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in",StringList::create("mzData"));
+      setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",StringList::create("IdXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
@@ -320,34 +332,12 @@ class TOPPXTandemAdapter
       search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
 
       ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-
       search_parameters.mass_type = mass_type;
-
-      vector<String> fixed_mods, var_mods;
-      getStringOption_("fixed_modifications").split(',', fixed_mods);
-      if (fixed_mods.size() == 0)
-      {
-        if (getStringOption_("fixed_modifications") != "")
-        {
-          fixed_mods.push_back(getStringOption_("fixed_modifications"));
-        }
-      }
-      getStringOption_("variable_modifications").split(',', var_mods);
-      if (var_mods.size() == 0)
-      {
-        if (getStringOption_("variable_modifications") != "")
-        {
-          var_mods.push_back(getStringOption_("variable_modifications"));
-        }
-      }
-
-      search_parameters.fixed_modifications = fixed_mods;
-      search_parameters.variable_modifications = var_mods;
-
+      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+      search_parameters.variable_modifications = getStringList_("variable_modifications");
       search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
       search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
       search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-
 
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");

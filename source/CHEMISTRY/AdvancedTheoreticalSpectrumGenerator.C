@@ -33,10 +33,30 @@
 namespace OpenMS
 {
 
+  String AdvancedTheoreticalSpectrumGenerator::ResidueTypeToString_(Residue::ResidueType type)
+  {
+    switch(type)
+    {
+      case(Residue::AIon):return("AIon");
+      break;
+      case(Residue::BIon):return("BIon");
+      break;
+      case(Residue::CIon):return("CIon");
+      break;
+      case(Residue::XIon):return("XIon");
+      break;
+      case(Residue::YIon):return("YIon");
+      break;
+      case(Residue::ZIon):return("ZIon");
+      break;
+      default: return("undefined ion type");
+    }
+  }
+
   //Function to compute the structure of the probabilistic network by performing a minimal
   //spanning tree computation
   void AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork::generateTree(std::vector<Int> &has_parent)
-  {
+  {	
     typedef std::vector<TanEdge>::const_iterator EdgeConstIter;
     typedef std::map<UInt, UInt>::iterator LabelIter;
 
@@ -52,7 +72,6 @@ namespace OpenMS
 
     has_parent.clear();
     has_parent.assign(max_id+1, -1);
-
 
     //sort edges in increasing order
     std::sort(edges_.begin(), edges_.end());
@@ -99,12 +118,12 @@ namespace OpenMS
     {
       ++label_it;
     }
-
+	
     if(label_it!=labels_end)
     {
       throw(Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input graph is no connected component"));
     }
-
+		
     //with the selected edges now build the tree
     //vector of adjacency lists for easy reconstruction
     std::vector<std::list<UInt> > adjacency_lists(max_id+1);
@@ -127,31 +146,31 @@ namespace OpenMS
     nodes_in_dfs_order_.clear();
     nodes_in_dfs_order_.push_back(min_id);
 
-    std::vector<bool> discovered(max_id, false);
-
+    std::vector<bool> discovered(max_id+1, false);
+	
     while (!node_stack.empty())
     {
       UInt actual_node = node_stack.back();
-      node_stack.pop_back();
+      node_stack.pop_back();	  
 
       AdjaListConstIter adja_iter = adjacency_lists[actual_node].begin();
       AdjaListConstIter adja_end = adjacency_lists[actual_node].end();
-
+	  
       while (adja_iter != adja_end)
-      {
+      {			  
         if (!discovered[*adja_iter])
-        {
+        {	
           node_stack.push_back(*adja_iter);
-          nodes_in_dfs_order_.push_back(*adja_iter);
+          nodes_in_dfs_order_.push_back(*adja_iter);		  
         }
         else
-        {
-          has_parent[actual_node] = *adja_iter;
+        {	
+          has_parent[actual_node] = *adja_iter;		  
         }
         ++adja_iter;
       }
-      discovered[actual_node] = true;
-    }
+      discovered[actual_node] = true;	  
+    }	
   }
 
   AdvancedTheoreticalSpectrumGenerator::AdvancedTheoreticalSpectrumGenerator() :
@@ -168,7 +187,7 @@ namespace OpenMS
     defaults_.setValue("add_metainfo", 0, "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     defaults_.setValue("add_losses", 0, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     defaults_.setValue("add_precursor_peaks", 0, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    defaults_.setValue("model_file_name", "examples/simulation/MSMSSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "examples/simulation/MSMSim.model", "Name of the probabilistic Model file");
 
     //defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
 
@@ -246,6 +265,9 @@ namespace OpenMS
 
     const AASequence * ion = 0;
 
+    //the number of a generated peak (y2, or b5)
+    UInt ion_nr=0;
+
     DoubleReal parent_mass = peptide.getMonoWeight(Residue::Full);
     for (Size i = 1; i < peptide.size(); ++i)
     {
@@ -288,7 +310,7 @@ namespace OpenMS
 
       for(Size node=0; node<ordered_nodes[sector].size(); ++node)
       {
-        UInt type_id = ordered_nodes[sector][node];
+        Size type_id = ordered_nodes[sector][node];
         IonType ion_type = ion_types_[type_id];
         Residue::ResidueType residue = ion_type.residue;
         EmpiricalFormula loss_formula = ion_type.loss;
@@ -303,6 +325,7 @@ namespace OpenMS
             continue;
           }
           ion = &prefix;
+          ion_nr=(UInt)i;
         }
         else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
         {
@@ -311,6 +334,7 @@ namespace OpenMS
             continue;
           }
           ion = &suffix;
+          ion_nr=(UInt)(peptide.size()-i);
         }
         else
         {
@@ -325,15 +349,22 @@ namespace OpenMS
         if(is_child_of[sector][type_id]!=-1)
           conditional_intensity = generated_intensity[is_child_of[sector][type_id]];
 
-        DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter(type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
-        //std::cerr<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
+        DoubleReal * tmp_pointer = &(conditional_probabilities_[sector][index_converter((UInt)type_id, 0, conditional_intensity, number_of_intensity_levels_)]);
+        //std::cout<<tmp_pointer[0]<<"  "<<tmp_pointer[1]<<" "<<tmp_pointer[2]<<"  "<<tmp_pointer[3]<<"  "<<tmp_pointer[4]<<std::endl; //DEBUG
 
         gsl_gen = gsl_ran_discrete_preproc(number_of_intensity_levels_, tmp_pointer);
-        size_t intensity = gsl_ran_discrete(rng, gsl_gen);
+        Size intensity = gsl_ran_discrete(rng, gsl_gen);
 
-        generated_intensity[type_id]=intensity;
+        generated_intensity[type_id]=(UInt)intensity;
 
-        String ion_name = String(residue) + loss_formula.getString() + String(i) + String(charge, '+');
+        //std::cout<<"considering ion type: "<<ion_name_tmp<<"  with intensity: "<<intensity<<"  at position: "<<mz_pos<<" in sector: "<<sector<<std::endl;
+
+        if(intensity==0)
+        {
+          continue;
+        }
+
+        String ion_name = ResidueTypeToString_(residue) +" "+ loss_formula.getString() +" "+ String(ion_nr)+String(charge, '+');
 
         if (add_isotopes)
         {
@@ -419,7 +450,7 @@ namespace OpenMS
       {
         if(left_marker->toInt()>-1)
         {
-          TreeAugmentedNetwork::TanEdge edge = {i, left_marker->toInt(), -1};
+          TreeAugmentedNetwork::TanEdge edge = {(UInt)i, left_marker->toInt(), -1};
           edges.push_back(edge);
         }
         ++left_marker;
@@ -430,7 +461,7 @@ namespace OpenMS
 
     //read the conditional probabilities for each sector
     IndexConverter index_converter;
-    Size number_of_prob_entries=index_converter(ion_types_.size()-1, number_of_intensity_levels_-1, number_of_intensity_levels_-1, number_of_intensity_levels_)+1;
+    Size number_of_prob_entries=index_converter((UInt)ion_types_.size()-1, number_of_intensity_levels_-1, number_of_intensity_levels_-1, number_of_intensity_levels_)+1;
     conditional_probabilities_.reserve(number_of_sectors_);
 
     //temporary storage
@@ -452,7 +483,7 @@ namespace OpenMS
   }
 
 
-
+/*
   void AdvancedTheoreticalSpectrumGenerator::writeProbabilisticModel(const String &file_name)
   {
     //store the model in text_file
@@ -502,5 +533,5 @@ namespace OpenMS
 
     text_file.store(file_name);
   }
-
+*/
 }//Namespace

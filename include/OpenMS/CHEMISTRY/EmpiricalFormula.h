@@ -45,14 +45,24 @@ namespace OpenMS
 
 			@brief Representation of an empirical formula
 
-		 	The formula can be used as follows: elements are
-		 	represented through its symbol or full name. The
-		 	symbol or name is followed by a number. If not, the
-		 	frequency is set to one. Examples are CH3OH or CarbonHydrogen3OH.
-		 	The names must start with an capital letter (symbols always have
-		 	an upper-case letter at the beginning). Additionally charges can
-			be used with '+' followed by a number, if no number follows
-		 	the charge of +1 is set.
+		 	The formula can be used as follows: elements are represented through its symbol or full name. 
+			The symbol or name is followed by a number. If not, the frequency is set to one. Examples 
+			are CH3OH or CarbonHydrogen3OH. The names must start with an capital letter (symbols always have
+		 	an upper-case letter at the beginning). Additionally charges can be used with '+' followed by 
+			a number, if no number follows the charge of +1 is set.
+
+			This class also supports the usage of specific isotopes. By default "C" describes not one isotope
+			but a natural distribution or different isotopes. This distribution can be accessed via the 
+			member getIsotopeDistribution(). 
+
+			If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
+			to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution 
+			of that instance contains only one isotope, 14C itself with a frequency of 100%. 
+
+			Instances EmpiricalFormula support a (limited) set of mathmatical operations. Additions and subtractions
+			are supported in different flavors. However, one must be careful, because this can lead to negative 
+			frequencies. In most cases this might be misleading, however, the class therefore supports difference
+			formulae. E.g. formula differences of reactions from post-translational modifications.
 	*/
 
 	class OPENMS_DLLAPI EmpiricalFormula

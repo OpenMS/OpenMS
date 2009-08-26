@@ -61,7 +61,7 @@ namespace OpenMS
 	{
 	}
 
-	void CompNovoIonScoring::scoreSpectra(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec, PeakSpectrum& ETD_spec, DoubleReal precursor_weight, UInt charge)
+	void CompNovoIonScoring::scoreSpectra(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec, PeakSpectrum& ETD_spec, DoubleReal precursor_weight, Size charge)
 	{
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
@@ -144,7 +144,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
 	}
 
-void CompNovoIonScoring::scoreWitnessSet_(UInt charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
+void CompNovoIonScoring::scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
 {
 	vector<DoubleReal> diffs;
 	//diffs.push_back(28.0);
@@ -154,7 +154,7 @@ void CompNovoIonScoring::scoreWitnessSet_(UInt charge, DoubleReal precursor_weig
 	// witnesses of CID spec (diffs)
 	for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
 	{
-		//UInt num_wit(0);
+		//Size num_wit(0);
 		DoubleReal wit_score(0.0);
 		DoubleReal pos1(it1->getPosition()[0]);
 		wit_score += it1->getIntensity();
@@ -282,10 +282,10 @@ void CompNovoIonScoring::scoreWitnessSet_(UInt charge, DoubleReal precursor_weig
 }
 
 
-void CompNovoIonScoring::scoreETDFeatures_(Int /*charge*/, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& ion_scores, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
+void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& ion_scores, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
 {
 	//DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
-	UInt max_isotope_to_score((UInt)param_.getValue("max_isotope_to_score"));
+	Size max_isotope_to_score((UInt)param_.getValue("max_isotope_to_score"));
 
 	for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
 	{

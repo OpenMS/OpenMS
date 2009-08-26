@@ -49,10 +49,10 @@
 #include "coin/CbcHeuristicLocal.hpp"
 #include "coin/CbcConfig.h"
 #include "coin/CbcModel.hpp"
-//#include "coin/CoinModel.hpp"
+#include "coin/CoinModel.hpp"
 #include "coin/OsiClpSolverInterface.hpp"
 #include "coin/CoinTime.hpp"
- #ifdef _MSC_VER
+#ifdef _MSC_VER
 #	pragma warning( pop )  // restore old warning state
 #else
 # pragma GCC diagnostic warning "-Wunused-parameter"
@@ -61,12 +61,8 @@
 using namespace OpenMS;
 
 
-ILPWrapper::ILPWrapper():DefaultParamHandler("ILPWrapper")
+ILPWrapper::ILPWrapper()
 {
-	defaults_.setValue("ms2_spectra_per_rt_bin",5,"Number of allowed MS/MS spectra in a retention time bin.");
-	defaults_.setMinInt("ms2_spectra_per_rt_bin",1);
-	defaults_.setValue("peptides_per_protein",2,"Minimal number of peptides selected for each protein.");
-	defaults_.setMinInt("peptides_per_protein",1);
 }
 
 ILPWrapper::~ILPWrapper()
@@ -74,59 +70,24 @@ ILPWrapper::~ILPWrapper()
   
 }
 
-
-void ILPWrapper::getXIC_(std::vector<std::pair<Size,Size> >& end_points,
-												 std::vector<DoubleReal>& weights,MSExperiment<>& experiment,bool normalize)
+void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
+																		std::set<Int>& charges_set,std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+																		std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
+																		UInt ms2_spectra_per_rt_bin,
+																		Size number_of_scans)
 {
-	DoubleReal max_weight = 0.;
-	weights.clear();
-	for(Size i = 0; i < end_points.size();i+=2)
-		{
-			DoubleReal weight = 0.;
-			for(Size j = end_points[i].second;j <= end_points[i+1].second;++j)
-				{
-					weight += experiment[end_points[i].first][j].getIntensity();
-					//					std::cout << " add "<<experiment[end_points[i].first][j].getIntensity()<<std::endl;
-				}
-			if(weight > max_weight)  max_weight = weight;
-			weights.push_back(weight);
-		}
-
-	if(normalize)
-		{
-			// normalize weights
-			for(Size i = 0; i < weights.size();++i)
-				{
-#ifdef DEBUG_OPS
-					if(end_points.size()>=i)
-						{
-							std::cout << "scan "<< end_points[i].first << " "<<weights[i] << " "<<max_weight
-												<< " " << weights[i] / max_weight << std::endl;
-						}
-#endif
-					weights[i] /= max_weight;
-				}
-		}
-}
-
-
-
-void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, MSExperiment<>& experiment,
-																												std::vector<IndexTriple>& variable_indices,
-																												std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-																												std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin)
-{
-
+	Int counter = 0;
+	CoinModel model;
 	std::cout << "Feature Based: Build model: first objective"<<std::endl;
 	///////////////////////////////////////////////////////////////////////
 	// add objective function
 	///////////////////////////////////////////////////////////////////////
-	model_.setOptimizationDirection(-1); // maximize
+	model.setOptimizationDirection(-1); // maximize
 	// max \sum_j x_jk * signal_jk
 	//                    column_index, feature_index,scan
 	
 	//
-	Int counter = 0;
+
 	for(Size i = 0; i < features.size(); ++i)
 		{
 			// first check if charge state is allowed
@@ -144,22 +105,18 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 				}
 #endif
 
-			std::vector<DoubleReal> intensity_weights;
-			getXIC_(mass_ranges[i],intensity_weights,experiment,true);
-#ifdef DEBUG_OPS
-			std::cout << "got xic"<<std::endl;
-#endif
-
-// 			if(intensity_weights.size() != (mass_ranges[i].end()-1)->first - mass_ranges[i][0].first)
-// 				{
-// 					std::cout << "attention: "<<intensity_weights.size() << " != "
-// 										<<(mass_ranges[i].end()-1)->first - mass_ranges[i][0].first<<std::endl;
-// 				}
+		
 			Size c = 0;
 			// go through all rts of the current feature
-			for(Size s = mass_ranges[i][0].first; s <= (mass_ranges[i].end()-1)->first;++s)
-				{ 
-					model_.setColumnName(counter,(String("x_")+i+","+s).c_str());
+			for(Size s_idx = 0; s_idx < mass_ranges[i].size();s_idx+=2) // walk in size two steps
+				{
+					Size s = mass_ranges[i][s_idx].first;
+
+
+					////////////////////////////////////////////////////////////////////////
+
+						
+					model.setColumnName(counter,(String("x_")+i+","+s).c_str());
 #ifdef DEBUG_OPS
 					std::cout << "add column "<<counter << std::endl;
 #endif
@@ -168,15 +125,15 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 					triple.scan = s;
 					triple.variable = counter;
 					variable_indices.push_back(triple);
-					model_.setColumnUpper(counter,1.);
-					model_.setColumnLower(counter,0.);
-					model_.setColumnIsInteger(counter,true);
+					model.setColumnUpper(counter,1.);
+					model.setColumnLower(counter,0.);
+					model.setColumnIsInteger(counter,true);
 					
 #ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
-										<< intensity_weights[c] <<std::endl;
+										<< intensity_weights[i][c] <<std::endl;
 #endif
-					model_.setObjective(counter,intensity_weights[c]);
+					model.setObjective(counter,intensity_weights[i][c]);
 					++counter;
 					++c;
 				}
@@ -185,12 +142,15 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 	///////////////////////////////////////////////////////////////////////
 	// add constraints
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "and now the constraints:"<<std::endl;
-
+#endif
 	///////////////////////////////////////////////////////////////////////
 	// 1: ensure that each precursor is acquired maximally once
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "first the number of times a precursors is acquired"<<std::endl;
+#endif
 	Size j = 0;
 	for(Size i = 0; i < features.size();++i)
 		{
@@ -225,7 +185,7 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 #endif
 			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
+			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
@@ -240,12 +200,14 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 	///////////////////////////////////////////////////////////////////////
 	// 2: do not exceed rt bin capacity
 	///////////////////////////////////////////////////////////////////////
+#ifdef DEBUG_OPS	
 	std::cout << "and now the rt bin capacity"<<std::endl;
 	std::cout << ms2_spectra_per_rt_bin << " rt bin capacity"<<std::endl;
+#endif
 	// sort variable_indices according to their scan number
-	sort(variable_indices.begin(),variable_indices.end(),OfflinePrecursorIonSelection::ScanLess());
+	sort(variable_indices.begin(),variable_indices.end(),ScanLess());
 	j = 0;
-	for(Size i = 0; i < experiment.size();++i)
+	for(Size i = 0; i < number_of_scans;++i)
 		{
 			// first determine number of indices:
 			Size start = j;
@@ -269,7 +231,7 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
@@ -281,229 +243,20 @@ void ILPWrapper::encodeModelForKnownLCMSMapFeatureBased(FeatureMap<>& features, 
 
 
 #ifdef DEBUG_OPS	
-	model_.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
+	model.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
 #endif
-
+	
+	solveILP_(model,solution_indices);
 }
 
-void ILPWrapper::encodeModelForOptimalSolution(FeatureMap<>& features,
-																							 MSExperiment<>& experiment,
-																							 std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
-																							 std::map<String,std::vector<Size> >& protein_precursor_map,
-																							 std::vector<IndexTriple>& variable_indices,
-																							 UInt ms2_spectra_per_rt_bin)
-{
- 	std::cout << "Find optimal solution: Build model: first objective"<<std::endl;
-	///////////////////////////////////////////////////////////////////////
-	// add objective function
-	///////////////////////////////////////////////////////////////////////
-	model_.setOptimizationDirection(-1); // maximize
-	// max \sum_j x_jk * signal_jk
-	//                    column_index, feature_index,scan
-	
-	//
-	
-	Int counter = 0;
-	for(Size i = 0; i < features.size(); ++i)
-		{
-			if(features[i].getPeptideIdentifications().size()==0 || mass_ranges[i].size()==0) continue;
-#ifdef DEBUG_OPS
-			if(mass_ranges[i].size() > 0)
-				{
-					std::cout << "start_scan "<< mass_ranges[i][0].first << " ?= "<<features[i].getQuality(0)
-										<< " stop scan "<< (mass_ranges[i].end()-1)->first<< " ?= "	<< features[i].getQuality(1)-1<<std::endl;
-				}
-#endif
 
-// 			std::vector<DoubleReal> intensity_weights;
-// 			getXIC_(mass_ranges[i],intensity_weights,experiment,true);
-#ifdef DEBUG_OPS
-			std::cout << "got xic"<<std::endl;
-#endif
-			Size c = 0;
-			// go through all rts of the current feature
-			for(Size s = mass_ranges[i][0].first; s <= (mass_ranges[i].end()-1)->first;++s)
-				{ 
-					model_.setColumnName(counter,(String("x_")+i+","+s).c_str());
-#ifdef DEBUG_OPS
-					std::cout << "add column "<<counter << std::endl;
-#endif
-					IndexTriple triple;
-					triple.feature = i;
-					triple.scan = s;
-					triple.variable = counter;
-					variable_indices.push_back(triple);
-					model_.setColumnUpper(counter,1.);
-					model_.setColumnLower(counter,0.);
-					model_.setColumnIsInteger(counter,true);
-					
+
+void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
+{
 #ifdef DEBUG_OPS	
-					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
-										<< intensity_weights[c] <<std::endl;
-#endif
-					//					model_.setObjective(counter,intensity_weights[c]);
-					model_.setObjective(counter,1);
-					++counter;
-					++c;
-				}
-		}
-	
-	///////////////////////////////////////////////////////////////////////
-	// add constraints
-	///////////////////////////////////////////////////////////////////////
-	std::cout << "and now the constraints:"<<std::endl;
-
-	///////////////////////////////////////////////////////////////////////
-	// 1: ensure that each precursor is acquired maximally once
-	///////////////////////////////////////////////////////////////////////
-	std::cout << "first the number of times a precursors is acquired"<<std::endl;
-	Size j = 0;
-	for(Size i = 0; i < features.size();++i)
-		{
-			Size start = j;
-			while(j < variable_indices.size() && variable_indices[j].feature == i)
-				{
-#ifdef DEBUG_OPS
-					std::cout << j << " "<<variable_indices[j].variable << " "
-										<< variable_indices[j].feature << " "
-										<< variable_indices[j].scan<<std::endl;
-#endif
-					++j;
-				}
-
-			Size stop = j;
-			double* entries = new double[stop-start];
-			int* indices = new int[stop-start];
-#ifdef DEBUG_OPS
-			std::cout << "feature "<<i <<" "<<features[i].getMZ() <<" "<<features[i].getRT()<<" ";
-			std::cout << stop-start<<"variables in equation\n";
-#endif
-			Size c = 0;
-			for(Size k = start; k < stop; ++k)
-				{
-					entries[c] = 1.;
-					indices[c] = variable_indices[k].variable;
-					//					std::cout << j<<" "<<indices[j]<<std::endl;
-					++c;
-				}
-#ifdef DEBUG_OPS
-			std::cout << "\nadd row "<<std::endl;
-#endif
-			String name = "PREC_ACQU_LIMIT_" + String(i);
-			
-			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
-#ifdef DEBUG_OPS
-			std::cout << stop-start << " "<<name<<std::endl;
-			std::cout << "added row"<<std::endl;
-#endif
-			delete entries;
-			delete indices;
-			
-		}
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// 2: do not exceed rt bin capacity
-	///////////////////////////////////////////////////////////////////////
-	std::cout << "and now the rt bin capacity"<<std::endl;
-	std::cout << ms2_spectra_per_rt_bin << " rt bin capacity"<<std::endl;
-	// sort variable_indices according to their scan number
-	sort(variable_indices.begin(),variable_indices.end(),OfflinePrecursorIonSelection::ScanLess());
-	j = 0;
-	for(Size i = 0; i < experiment.size();++i)
-		{
-			// first determine number of indices:
-			Size start = j;
-			while(j < variable_indices.size() && variable_indices[j].scan == i)
-				{
-					++j;
-				}
-			// no feature occuring in this scan
-			if(start == j) continue;
-
-			Size stop = j;
-			Size c = 0;			
-			double* entries = new double[stop-start];
-			int* indices = new int[stop-start];
-			for(Size s = start; s < stop; ++s)
-				{
-					entries[c] = 1.;
-					indices[c] = variable_indices[s].variable;
-					++c;
-				}
-#ifdef DEBUG_OPS
-			std::cout << "\nadd row "<<std::endl;
-#endif
-			model_.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
-#ifdef DEBUG_OPS
-			std::cout << "added row"<<std::endl;
-#endif
-			delete entries;
-			delete indices;
-			
-		}
-
-
-	///////////////////////////////////////////////////////////////////////
-	// 3: protein coverage
-	///////////////////////////////////////////////////////////////////////
-	std::cout << "and now the protein coverage"<<std::endl;
-	sort(variable_indices.begin(),variable_indices.end(),OfflinePrecursorIonSelection::VariableIndexLess());	
-	std::map<String,std::vector<Size> >::iterator map_iter = protein_precursor_map.begin();	
-	for(; map_iter != protein_precursor_map.end();++map_iter)
-		{
-			std::vector<Int> indices_vec;
-			std::vector<Size>::iterator f_index_iter = map_iter->second.begin();
-			// go through all feature that have ids belonging to this protein
-			for(; f_index_iter != map_iter->second.end(); ++f_index_iter)
-				{
-					// now go through all x_variable for this feature
-					for(Size v = 0; v < variable_indices.size();++v)
-						{
-							if(variable_indices[v].feature == *f_index_iter)
-								{
-									// if there are duplicates in the vector CoinModel will abort
-									if(find(indices_vec.begin(),indices_vec.end(),variable_indices[v].variable) == indices_vec.end())
-										{
-											indices_vec.push_back(variable_indices[v].variable);
-										}
-								}
-							else if(variable_indices[v].feature > *f_index_iter)  break; // the indices are sorted, hence if the current index is larger, we are finished
-						}
-				}
-			if(indices_vec.size() == 0) continue;
-			if(indices_vec.size() < 2)
-				{
-					std::cout << "too few features with ids for this protein, skipping protein"<<std::endl;
-					continue;
-				}
-			std::vector<double> entries(indices_vec.size(),1.);
-#ifdef DEBUG_OPS
-			std::cout << "\nadd row "<<std::endl;
-#endif
-			Int i = distance(protein_precursor_map.begin(),map_iter);
-			std::cout << (String("PROT_COV_")+i) <<"\t"<<(String("PROT_COV_")+i).c_str() <<std::endl;
-			std::cout << indices_vec.size()<< " "<<&(indices_vec[0])<< " "<<&(entries[0])<<std::endl;
-			std::cout << (indices_vec[0])<< " "<<(entries[0])<<std::endl;
-			// at the moment we want maximally 2 precursors for each protein
-			model_.addRow((int)indices_vec.size(),&(indices_vec[0]),&(entries[0]),-COIN_DBL_MAX,2,(String("PROT_COV_")+i).c_str());
-#ifdef DEBUG_OPS
-			std::cout << "added row"<<std::endl;
-#endif
-			
-		}
-	std::cout << "model was built" <<std::endl;
-//#ifdef DEBUG_OPS	
-	model_.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
-//#endif
- 
-}
-
-void ILPWrapper::solve(std::vector<int>& solution_indices)
-{
-
   std::cout << "compute .." << std::endl;
+#endif
+	
 #ifdef COIN_HAS_CLP
   OsiClpSolverInterface solver;
 #elif COIN_HAS_OSL
@@ -511,20 +264,20 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 #endif
 
 	// test if model exists
-	if(model_.numberElements()==0)
+	if(cmodel.numberElements()==0)
 		{
 			std::cout << "Model is empty." <<std::endl;
 			return;
 		}
 	
   // add rows into solver
-  solver.loadFromCoinModel(model_);
+  solver.loadFromCoinModel(cmodel);
 
   /* Now let MIP calculate a solution */
   // Pass to solver
   CbcModel model(solver);
 
-  model.setObjSense(model_.optimizationDirection()); // -1 = maximize, 1=minimize
+  model.setObjSense(cmodel.optimizationDirection()); // -1 = maximize, 1=minimize
   model.solver()->setHintParam(OsiDoReducePrint,true,OsiHintTry);
 
   // Output details
@@ -577,9 +330,12 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 		
 		
   // solve
+#ifdef DEBUG_OPS	
   double time1 = CoinCpuTime();
-  std::cout << "starting to solve..." << std::endl;
+	std::cout << "starting to solve..." << std::endl;
+#endif
   model.branchAndBound();
+#ifdef DEBUG_OPS	
   std::cout<<" Branch and cut took "<<CoinCpuTime()-time1<<" seconds, "
 	   <<model.getNodeCount()<<" nodes with objective "
 	   <<model.getObjValue()
@@ -588,6 +344,7 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 
 	// best_solution
 	std::cout << model.solver()->getNumCols()<<" columns has solution"<<std::endl;
+#endif
 	const double * solution = model.solver()->getColSolution();
 
 	for (int column=0; column<model.solver()->getNumCols(); ++column)
@@ -595,7 +352,9 @@ void ILPWrapper::solve(std::vector<int>& solution_indices)
 			double value=solution[column];
 			if (fabs(value)>0.5 && model.solver()->isInteger(column))
 				{
-					std::cout << model_.getColumnName(column)<<" is in optimal solution"<<std::endl;
+#ifdef DEBUG_OPS	
+					std::cout << cmodel.getColumnName(column)<<" is in optimal solution"<<std::endl;
+#endif
 					solution_indices.push_back(column);
 				}
 		}

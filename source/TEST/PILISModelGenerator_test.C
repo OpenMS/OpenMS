@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -55,22 +55,15 @@ END_SECTION
 ptr = new PILISModelGenerator();
 
 START_SECTION(PILISModelGenerator(const PILISModelGenerator& model))
-	PILISModelGenerator copy(*ptr);
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+	// TODO
 END_SECTION
 
 START_SECTION(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
-	PILISModelGenerator copy;
-	copy = *ptr;
-	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+	// TODO
 END_SECTION
 
-START_SECTION(const PILISModel& getModel())
-	PILISModel model;
-	model = ptr->getModel();
-	RichPeakSpectrum spec;
-	model.getSpectrum(spec, AASequence("DFPIANGER"), 1);
-	TEST_EQUAL(spec.size(), 90);
+START_SECTION((void getModel(HiddenMarkovModel& model)))
+	// TODO
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -61,6 +61,8 @@ using namespace std;
 	The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
 	proteases can be found be executing @em omssacl @em -el.
 	
+	This wrapper has be tested successfully with OMSSA, version 2.x. 
+
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 
 	<B>The command line parameters of this tool are:</B>
@@ -89,7 +91,7 @@ class TOPPOMSSAAdapter
 									
 						
 			registerInputFile_("in", "<file>", "", "input file ");
-			setValidFormats_("in",StringList::create("mzData"));
+			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("IdXML"));
 		
@@ -136,7 +138,7 @@ class TOPPOMSSAAdapter
 			//-hs <Integer> the minimum number of m/z values a spectrum must have to be searched
 			//-fxml <String> omssa xml search request file (contains search parameters and spectra. overrides command line)
 			//-pm <String> search parameter input in xml format (contains search parameters but no spectra. overrides command line except for name of file containing spectra)
-			// input options are not all necessary as TOPP tools only accept mzData
+			// input options are not all necessary as TOPP tools only accept mzML
 			registerIntOption_("hs", "<Integer>", 4, "the minimum number of m/z values a spectrum must have to be searched", false, true);
 			//registerStringOption_("pm", "<file>", "", "search parameter input in xml format", false);
 			
@@ -580,11 +582,11 @@ class TOPPOMSSAAdapter
 			// reading input
 			//-------------------------------------------------------------
 
-			MzMLFile mzdata_infile;
-			mzdata_infile.setLogType(log_type_);
+			MzMLFile mzml_infile;
+			mzml_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
-			mzdata_infile.load(inputfile_name, map);
+			mzml_infile.load(inputfile_name, map);
 			
 			writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
 			

@@ -43,11 +43,9 @@ START_TEST(VersionInfo, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION(static String getVersionAndTime())
+START_SECTION(static String getTime())
 {
-	STATUS(VersionInfo::getVersionAndTime());
-	STATUS(OPENMS_PACKAGE_VERSION);
-	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(OPENMS_PACKAGE_VERSION).trim()),true);
+	NOT_TESTABLE
 }
 END_SECTION
 
@@ -77,7 +75,7 @@ END_SECTION
 START_SECTION(static Int getMinorVersion())
 {
 	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMinorVersion(), 4);
+	TEST_EQUAL(VersionInfo::getMinorVersion(), 5);
 }
 END_SECTION
 

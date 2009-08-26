@@ -45,8 +45,6 @@ namespace OpenMS
 			
 		@todo Implement chromatograms (Andreas)
 		
-		@todo Add generic parsing of ControlledVocabulary xref and check binary data array types (Marc)
-		
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzMLFile

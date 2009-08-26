@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_CVMAPPINGFILE_H
@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 #include <vector>
 
@@ -90,11 +90,11 @@ namespace OpenMS
 
 			bool strip_namespaces_;
 			
-			CVMappings::CVMappingRule actual_rule_;
+			CVMappingRule actual_rule_;
 
-			std::vector<CVMappings::CVMappingRule> rules_;
+			std::vector<CVMappingRule> rules_;
 
-			std::vector<CVMappings::CVReference> cv_references_;
+			std::vector<CVReference> cv_references_;
 			
   };
  

@@ -31,7 +31,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 
 namespace OpenMS 
@@ -161,7 +161,7 @@ namespace OpenMS
 				StringList open_tags_;
 				
 				/// Rules (location => rule)
-				Map<String, std::vector<CVMappings::CVMappingRule> > rules_;
+				Map<String, std::vector<CVMappingRule> > rules_;
 				
 				/// Fulfilled rules (location => rule ID => term ID => term count )
 				/// When a tag is closed, the fulfilled rules of the current location are checked against the required rules

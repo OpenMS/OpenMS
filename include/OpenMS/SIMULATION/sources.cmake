@@ -9,7 +9,6 @@ ElutionModel.h
 IonizationSimulation.h
 IsotopeModelGeneral.h
 MSSim.h
-MixtureModel.h
 PTMSimulation.h
 RTSimulation.h
 RawMSSignalSimulation.h

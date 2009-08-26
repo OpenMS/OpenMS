@@ -54,6 +54,38 @@ START_SECTION(~FeatureDeconvolution())
 	delete ptr;
 END_SECTION
 
+START_SECTION(void updateMembers_())
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(FeatureDeconvolution(const FeatureDeconvolution &source))
+	FeatureDeconvolution fd;
+	Param p;
+	p.setValue("charge_min", 11, "minimal possible charge");
+  p.setValue("charge_max", 13, "maximal possible charge");
+	fd.setParameters(p);
+	FeatureDeconvolution fd2(fd);
+	FeatureDeconvolution fd_untouched;
+	
+	TEST_EQUAL(fd2.getParameters(), fd.getParameters())
+	TEST_NOT_EQUAL(fd2.getParameters(), fd_untouched.getParameters())
+
+END_SECTION
+
+START_SECTION(FeatureDeconvolution& operator=(const FeatureDeconvolution &source))
+	FeatureDeconvolution fd;
+	Param p;
+	p.setValue("charge_min", 11, "minimal possible charge");
+  p.setValue("charge_max", 13, "maximal possible charge");
+	fd.setParameters(p);
+	FeatureDeconvolution fd2 = fd;
+	FeatureDeconvolution fd_untouched;
+	
+	TEST_EQUAL(fd2.getParameters(), fd.getParameters())
+	TEST_NOT_EQUAL(fd2.getParameters(), fd_untouched.getParameters())
+END_SECTION
+
+
 START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, ConsensusMap &cons_map, ConsensusMap &cons_map_p))
 //_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
@@ -72,8 +104,8 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
 	FuzzyStringComparator fsc;
 	fsc.setWhitelist (StringList::create("xml-stylesheet,map id"));
+	fsc.setAcceptableAbsolute(0.0001);
 	bool cmp = fsc.compareFiles(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"));
-	
 	TEST_EQUAL(cmp, true);
 
 END_SECTION

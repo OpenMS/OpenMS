@@ -73,6 +73,8 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			
+			@todo Implement and test writing of integer arrays - they are needed e.g. for 'MS:1000516 ! charge array' (Hiwi, David)
+			
 			@note Do not use this class. It is only needed in MzMLFile.
 		*/
 		template <typename MapType>
@@ -151,12 +153,14 @@ namespace OpenMS
 			struct BinaryData
 			{
 				String base64;
-				String precision;
+				enum{PRE_NONE,PRE_32,PRE_64} precision;
 				UInt size;
-				String compression;
-				Base64::DataType data_type;
-				std::vector<Real> decoded_32;
-				std::vector<DoubleReal> decoded_64;
+				bool compression;
+				enum{DT_NONE,DT_FLOAT,DT_INT,DT_STRING} data_type;
+				std::vector<Real> floats_32;
+				std::vector<DoubleReal> floats_64;
+				std::vector<Int32> ints_32;
+				std::vector<Int64> ints_64;
 				std::vector<String> decoded_char;
 				MetaInfoDescription meta;
 			};
@@ -639,10 +643,10 @@ namespace OpenMS
 			else if(equal_(qname,s_spectrum_list))
 			{
 				in_spectrum_list_ = false;
+				logger_.endProgress();
 			}
 			else if(equal_(qname,s_mzml))
 			{
-				logger_.endProgress();
 				scan_count = 0;
 				ref_param_.clear();
 				current_id_ = "";
@@ -665,30 +669,53 @@ namespace OpenMS
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
 				data_[i].base64.removeWhitespaces();
-
-				if (data_[i].precision=="64" && data_[i].compression =="zlib")
+				
+				//decode data and check if the length of the decoded data matches the expected length
+				if(data_[i].data_type == BinaryData::DT_FLOAT)
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,true,data_[i].data_type);
+					if (data_[i].precision==BinaryData::PRE_64)
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64,data_[i].compression);
+						if (data_[i].size!=data_[i].floats_64.size())
+						{
+							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+					else if (data_[i].precision==BinaryData::PRE_32)
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32,data_[i].compression);
+						if (data_[i].size!=data_[i].floats_32.size())
+						{
+							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
 				}
-				else if(data_[i].precision=="64")
+				else if(data_[i].data_type == BinaryData::DT_INT)
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_64,false,data_[i].data_type);
+					if (data_[i].precision==BinaryData::PRE_64)
+					{
+						decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64,data_[i].compression);
+						if (data_[i].size!=data_[i].ints_64.size())
+						{
+							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+					else if (data_[i].precision==BinaryData::PRE_32)
+					{
+						decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32,data_[i].compression);
+						if (data_[i].size!=data_[i].ints_32.size())
+						{
+							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
 				}
-				else if (data_[i].precision=="32" && data_[i].compression =="zlib")
+				else if(data_[i].data_type == BinaryData::DT_STRING)
 				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,true,data_[i].data_type);
-				}
-				else if(data_[i].precision =="32")
-				{
-					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32,false,data_[i].data_type);
-				}
-				else if(data_[i].data_type == Base64::STRING && data_[i].compression == "zlib")
-				{
-					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,true);
-				}
-				else if(data_[i].data_type == Base64::STRING)
-				{
-					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char);
+					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,data_[i].compression);
+					if (data_[i].size!=data_[i].decoded_char.size())
+					{
+						warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+					}
 				}
 			}
 
@@ -702,12 +729,12 @@ namespace OpenMS
 				if (data_[i].meta.getName()=="m/z array")
 				{
 					mz_index = i;
-					mz_precision_64 = (data_[i].precision=="64");
+					mz_precision_64 = (data_[i].precision==BinaryData::PRE_64);
 				}
 				if (data_[i].meta.getName()=="intensity array")
 				{
 					int_index = i;
-					int_precision_64 = (data_[i].precision=="64");
+					int_precision_64 = (data_[i].precision==BinaryData::PRE_64);
 				}
 			}
 			
@@ -717,49 +744,56 @@ namespace OpenMS
 				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
 				if (default_array_length_!=0)
 				{
-					warning(LOAD, String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
+					warning(LOAD, String("The m/z or intensity array of spectrum '") + spec_.getNativeID() + "' is missing and default_array_length_ is " + default_array_length_ + ".");
 				}
 				return;
 			}
 			
-			//Warn if the decoded data has a differenct size than the the defaultArrayLength
-			Size mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
+			//Warn if the decoded data has a different size than the the defaultArrayLength
+			Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
 			if (default_array_length_!=mz_size)
 			{
-				warning(LOAD, String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded m/z array of spectrum '") + spec_.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
 			}
-			Size int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
+			Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
 			if (default_array_length_!=int_size)
 			{
-				warning(LOAD, String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded intensity array of spectrum '") + spec_.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			
-			//create meta data arrays if necessary
+			//create meta data arrays and reserve enough space for the content
 			if (data_.size()>2)
 			{
-				//create meta data arrays and assign meta data
-				spec_.getFloatDataArrays().resize(data_.size()-2);
-				UInt meta_array_index = 0;
 				for (Size i=0; i<data_.size(); i++)
 				{
 					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
 					{
-						if(data_[i].data_type == Base64::STRING)
+						if(data_[i].data_type == BinaryData::DT_FLOAT)
 						{
-							typename SpectrumType::StringDataArray sda;
-							spec_.getStringDataArrays().push_back(sda);
-							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].reserve(data_[i].decoded_char.size());
+							//create new array
+							spec_.getFloatDataArrays().resize(spec_.getFloatDataArrays().size()+1);
+							//reserve space in the array
+							spec_.getFloatDataArrays().back().reserve(data_[i].size);
 							//copy meta info into MetaInfoDescription
-						//	spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].std::vector<OpenMS::String>::operator=(data_[i].decoded_char);		
-							spec_.getStringDataArrays()[spec_.getStringDataArrays().size()-1].MetaInfoDescription::operator=(data_[i].meta);
+							spec_.getFloatDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
 						}
-						else
+						else if(data_[i].data_type == BinaryData::DT_INT)
 						{
-							spec_.getFloatDataArrays()[meta_array_index].reserve(data_[i].size);
+							//create new array
+							spec_.getIntegerDataArrays().resize(spec_.getIntegerDataArrays().size()+1);
+							//reserve space in the array
+							spec_.getIntegerDataArrays().back().reserve(data_[i].size);
 							//copy meta info into MetaInfoDescription
-							spec_.getFloatDataArrays()[meta_array_index].MetaInfoDescription::operator=(data_[i].meta);
-							//go to next meta data array
-							++meta_array_index;
+							spec_.getIntegerDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
+						}
+						else if(data_[i].data_type == BinaryData::DT_STRING)
+						{
+							//create new array
+							spec_.getStringDataArrays().resize(spec_.getStringDataArrays().size()+1);
+							//reserve space in the array
+							spec_.getStringDataArrays().back().reserve(data_[i].decoded_char.size());
+							//copy meta info into MetaInfoDescription
+							spec_.getStringDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
 						}
 					}
 				}
@@ -784,35 +818,51 @@ namespace OpenMS
 			spec_.reserve(default_array_length_);
 			for (Size n = 0 ; n < default_array_length_ ; n++)
 			{
-				DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
-				DoubleReal intensity = int_precision_64 ? data_[int_index].decoded_64[n] : data_[int_index].decoded_32[n];
+				DoubleReal mz = mz_precision_64 ? data_[mz_index].floats_64[n] : data_[mz_index].floats_32[n];
+				DoubleReal intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
 				if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 				 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 				{
 					//add peak
 					PeakType tmp;
 					tmp.setIntensity(intensity);
-					tmp.setPosition(mz);
+					tmp.setMZ(mz);
 					spec_.push_back(tmp);
 
 					//add meta data
 					UInt meta_float_array_index = 0;
+					UInt meta_int_array_index = 0;
 					UInt meta_string_array_index = 0;
-					for (Size i=0; i<data_.size(); i++)
+					for (Size i=0; i<data_.size(); i++) //loop over all binary data arrays
 					{
-						if (n<data_[i].size && data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
+						if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array") // is meta data array?
 						{
-						if(data_[i].data_type == Base64::STRING && n < data_[i].decoded_char.size())
+							if(data_[i].data_type == BinaryData::DT_FLOAT)
 							{
-								String value = data_[i].decoded_char[n];
-								spec_.getStringDataArrays()[meta_string_array_index].push_back(value);
-								++meta_string_array_index;
-							}
-							else
-							{
-								DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
-								spec_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								if (n<data_[i].size)
+								{
+									DoubleReal value = (data_[i].precision==BinaryData::PRE_64) ? data_[i].floats_64[n] : data_[i].floats_32[n];
+									spec_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								}
 								++meta_float_array_index;
+							}
+							else if(data_[i].data_type == BinaryData::DT_INT)
+							{
+								if (n<data_[i].size)
+								{
+									Int64 value = (data_[i].precision==BinaryData::PRE_64) ? data_[i].ints_64[n] : data_[i].ints_32[n];
+									spec_.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+								}
+								++meta_int_array_index;
+							}
+							else if(data_[i].data_type == BinaryData::DT_STRING)
+							{
+								if (n < data_[i].decoded_char.size())
+								{
+									String value = data_[i].decoded_char[n];
+									spec_.getStringDataArrays()[meta_string_array_index].push_back(value);
+								}
+								++meta_string_array_index;
 							}
 						}
 					}
@@ -945,28 +995,28 @@ namespace OpenMS
 					//MS:1000518 ! binary data type
 					if (accession=="MS:1000523") //64-bit float
 					{
-						data_.back().precision = "64";
-						data_.back().data_type = Base64::FLOAT;
+						data_.back().precision = BinaryData::PRE_64;
+						data_.back().data_type = BinaryData::DT_FLOAT;
 					}
 					else if (accession=="MS:1000521") //32-bit float
 					{
-						data_.back().precision = "32";
-						data_.back().data_type = Base64::FLOAT;
+						data_.back().precision = BinaryData::PRE_32;
+						data_.back().data_type = BinaryData::DT_FLOAT;
 					}
 					else if(accession=="MS:1000519") //32-bit integer
 					{
-						data_.back().precision = "32";
-						data_.back().data_type = Base64::INTEGER;						
+						data_.back().precision = BinaryData::PRE_32;
+						data_.back().data_type = BinaryData::DT_INT;						
 					}
 					else if(accession=="MS:1000522") //64-bit integer
 					{
-						data_.back().precision = "64";
-						data_.back().data_type = Base64::INTEGER;						
+						data_.back().precision = BinaryData::PRE_64;
+						data_.back().data_type = BinaryData::DT_INT;						
 					}
 					else if(accession=="MS:1001479")
 					{
-						data_.back().precision = "0";
-						data_.back().data_type = Base64::STRING;
+						data_.back().precision = BinaryData::PRE_NONE;
+						data_.back().data_type = BinaryData::DT_STRING;
 					}
 					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
@@ -980,11 +1030,11 @@ namespace OpenMS
 					//MS:1000572 ! binary data compression type
 					else if (accession=="MS:1000574")//zlib compression
 					{
-						data_.back().compression = "zlib";
+						data_.back().compression = true;
 					}
 					else if (accession=="MS:1000576")// no compression
 					{
-						data_.back().compression = "none";
+						data_.back().compression = false;
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
@@ -1178,7 +1228,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursors().back().setCharge(value.toInt());
 				}
-				else if (accession=="MS:1000042") //intensity
+				else if (accession=="MS:1000042") //peak intensity
 				{
 					spec_.getPrecursors().back().setIntensity(value.toDouble());
 				}
@@ -1472,62 +1522,9 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setFileType(cv_.getTerm(accession).name);
 				}
-				//native ID format
-				else if (accession=="MS:1000768") //Thermo nativeID format
+				else if (cv_.isChildOf(accession,"MS:1000767")) //native spectrum identifier format as string
 				{
-					source_files_[current_id_].setNativeIDType(SourceFile::THERMO);
-				}
-				else if (accession=="MS:1000769") //Waters nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::WATERS);
-				}
-				else if (accession=="MS:1000770") //WIFF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::WIFF);
-				}
-				else if (accession=="MS:1000771") //Bruker/Agilent YEP nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_AGILENT);
-				}
-				else if (accession=="MS:1000772") //Bruker BAF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_BAF);
-				}
-				else if (accession=="MS:1000773") //Bruker FID nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_FID);
-				}
-				else if (accession=="MS:1000774") //multiple peak list nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::MULTIPLE_PEAK_LISTS);
-				}
-				else if (accession=="MS:1000775") //single peak list nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SINGLE_PEAK_LIST);
-				}
-				else if (accession=="MS:1000776") //scan number only nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SCAN_NUMBER);
-				}
-				else if (accession=="MS:1000777") //spectrum identifier nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::SPECTRUM_IDENTIFIER);
-				}
-				else if (accession=="MS:1000823") // Bruker U2 nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::BRUKER_U2);
-				}
-				else if (accession=="MS:1000824") //no nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::UNKNOWN_NATIVEID);
-				}
-				else if (accession=="MS:1001480") //AB SCIEX TOF/TOF nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::AB_SCIEX);
-				}
-				else if (accession=="MS:1001508") //Agilent MassHunter nativeID format
-				{
-					source_files_[current_id_].setNativeIDType(SourceFile::AGILENT_MASSHUNTER);
+					source_files_[current_id_].setNativeIDType(cv_.getTerm(accession).name);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
@@ -2600,71 +2597,24 @@ namespace OpenMS
 				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"\" />\n";
 			}
 			//file type
-			ControlledVocabulary::CVTerm sf_term = getChildWithName_("MS:1000560",source_file.getFileType());
-			if (sf_term.id!="")
+			ControlledVocabulary::CVTerm ft_term = getChildWithName_("MS:1000560",source_file.getFileType());
+			if (ft_term.id!="")
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"" << sf_term.id <<"\" name=\"" << sf_term.name << "\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"" << ft_term.id <<"\" name=\"" << ft_term.name << "\" />\n";
 			}
 			else //FORCED
 			{
 				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"PSI mzData file\" />\n";
 			}
 			//native ID format
-			if (source_file.getNativeIDType()==SourceFile::THERMO)
+			ControlledVocabulary::CVTerm id_term = getChildWithName_("MS:1000767",source_file.getNativeIDType());
+			if (id_term.id!="")
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000768\" name=\"Thermo nativeID format\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"" << id_term.id <<"\" name=\"" << id_term.name << "\" />\n";
 			}
-			else if (source_file.getNativeIDType()==SourceFile::WATERS)
+			else //FORCED
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000769\" name=\"Waters nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::WIFF)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000770\" name=\"WIFF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_AGILENT)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000771\" name=\"Bruker/Agilent YEP nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_BAF)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000772\" name=\"Bruker BAF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_FID)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000773\" name=\"Bruker FID nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::MULTIPLE_PEAK_LISTS)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000774\" name=\"multiple peak list nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SINGLE_PEAK_LIST)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000775\" name=\"single peak list nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SCAN_NUMBER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000776\" name=\"scan number only nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::SPECTRUM_IDENTIFIER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::BRUKER_U2)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000823\" name=\"Bruker U2 nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::AB_SCIEX)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001480\" name=\"AB SCIEX TOF/TOF nativeID format\" />\n";
-			}
-			else if (source_file.getNativeIDType()==SourceFile::AGILENT_MASSHUNTER)
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1001508\" name=\"Agilent MassHunter nativeID format\" />\n";
-			}
-			else
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000824\" name=\"no nativeID format\" />\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
 			}
 			writeUserParam_(os, source_file, 4);
 			os	<< "			</sourceFile>\n";
@@ -3866,7 +3816,7 @@ namespace OpenMS
 							os	<< "							<selectedIon>\n";
 							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
-							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << precursor.getIntensity() << "\" />\n";
+							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
 							for (Size j=0; j<precursor.getPossibleChargeStates().size(); ++j)
 							{
 								os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
@@ -3977,22 +3927,22 @@ namespace OpenMS
 							compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
 						}
 						String encoded_string;
-						std::vector<DoubleReal> data64_to_encode;
-						os	<< "				<binaryDataArrayList count=\"" << (spec.getFloatDataArrays().size()+2+spec.getStringDataArrays().size()) << "\">\n";
-						//write m/z array
-						data64_to_encode.resize(spec.size());
-						for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
-						decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-						os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-						os  << "						" << compression_term << "\n";
-						os	<< "						<binary>" << encoded_string << "</binary>\n";
-						os	<< "					</binaryDataArray>\n";
-						//write intensity array
+						os	<< "				<binaryDataArrayList count=\"" << (2+spec.getFloatDataArrays().size()+spec.getStringDataArrays().size()+spec.getIntegerDataArrays().size()) << "\">\n";
+						//write m/z array (64 bit precision)
 						{
-							std::vector<Real> data32_to_encode;
-							data32_to_encode.resize(spec.size());
+							std::vector<DoubleReal> data64_to_encode(spec.size());
+							for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
+							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+							os  << "						" << compression_term << "\n";
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
+						}
+						//write intensity array (32 bit precision)
+						{
+							std::vector<Real> data32_to_encode(spec.size());
 							for (Size p=0; p<spec.size(); ++p) data32_to_encode[p] = spec[p].getIntensity();
 							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
@@ -4002,11 +3952,11 @@ namespace OpenMS
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
-						//write meta data array
+						//write float data array
 						for (Size m=0; m<spec.getFloatDataArrays().size(); ++m)
 						{
 							const typename SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
-							data64_to_encode.resize(array.size());
+							std::vector<DoubleReal> data64_to_encode(array.size());
 							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
 							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 							String data_processing_ref_string = "";
@@ -4030,6 +3980,35 @@ namespace OpenMS
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
+						//write integer data array
+						for (Size m=0; m<spec.getIntegerDataArrays().size(); ++m)
+						{
+							const typename SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
+							std::vector<Int64> data64_to_encode(array.size());
+							for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
+							decoder_.encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+							String data_processing_ref_string = "";
+							if (array.getDataProcessing().size()!=0)
+							{
+								data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+							}
+							os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
+							os  << "						" << compression_term << "\n";
+							ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
+							if (bi_term.id!="")
+							{
+								os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\" />\n";
+							}
+							else
+							{
+								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+							}
+							writeUserParam_(os, array, 6);
+							os	<< "						<binary>" << encoded_string << "</binary>\n";
+							os	<< "					</binaryDataArray>\n";
+						}
+						//write string data arrays
 						for (Size m=0; m<spec.getStringDataArrays().size(); ++m)
 						{
 							const typename SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];

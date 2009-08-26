@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/BigString.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 namespace OpenMS 
 {
@@ -39,7 +40,8 @@ namespace OpenMS
 	/**
 		@brief wrapper for easy use of sufArray
 	*/
-class OPENMS_DLLAPI SuffixArrayPeptideFinder 
+class OPENMS_DLLAPI SuffixArrayPeptideFinder
+	: public WeightWrapper 
 {
 
 public:
@@ -51,13 +53,13 @@ public:
 
 	/**
 	@brief constructor
-	@param filename const string for location of FASTA File
-	@param method name of the method used (e.g. tryptic_compressed)
+	@param filename FASTA File name
+	@param method Name of the method used (trypticCompressed, seqan, trypticSeqan)
 	@throw FileNotFound is thrown if the filename is not found
 	@throw ParseError is thrown if a error in parsing of the fasta file occurs
 	@throw InvalidValue is thrown if an unknown method is supplied 
 	*/
-	SuffixArrayPeptideFinder(const String& filename, const String& method);
+	SuffixArrayPeptideFinder(const String& filename, const String& method, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
 	/**
 	@brief copy constructor
@@ -70,19 +72,21 @@ public:
 	virtual ~SuffixArrayPeptideFinder();
 
 	/**
-	@brief finds all candidate for given spectrum in the suffix array
-	@param spec const reference to double vector describing the MS spectrum
-	@param candidates output parameters which holds the candidates of the masses given in spec after the call
-	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
+	@brief finds all candidates for given spectrum in the suffix array
+	@param spec vector holding the mass values to query
+	@param candidates Output holding the candidates for input masses (one vector per mass)
+				 FASTAEntry contains the FASTA header and the peptide sequence
+				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@see sufArray.h
 	*/
-	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<double> & spec);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<DoubleReal> & spec);
 
 	/**
 	@brief finds all candidate for given DTA file
 	@param DTA_file DTA file location
 	@param candidates Output parameters which holds the candidates suitable for the mass given in the dta file
-	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
+				 FASTAEntry contains the FASTA header and the peptide sequence
+				 The String contains the modification (if any) in the format specified by getModificationOutputMethod()
 	@throw FileNotFound if DTA file does not exists
 	@throw ParseError is thrown if the dta file could not be parsed
 	@see sufArray.h
@@ -90,16 +94,16 @@ public:
 	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const String & DTA_file);
 
 	/**
-	@brief setter for tolerance
-	@param t const double tolerance
+	@brief allowed tolerance for mass match
+	@param t Tolerance in u
 	*/
-	void setTolerance(const double t);
+	void setTolerance(const DoubleReal t);
 
 	/**
-	@brief getter for tolerance
-	@return double with tolerance
+	@brief allowed tolerance for mass match
+	@return Tolerance in u
 	*/
-	double getTolerance() const;
+	DoubleReal getTolerance() const;
 
 	/**
 	@brief setter for number of modifications
@@ -139,7 +143,7 @@ public:
 	bool getUseTags();
 
 	/**
-	@brief setter for modification output method
+	@brief set modification output method (valid are: "mass", "stringUnchecked", "stringChecked")
 	@param s describing how modifications sould be given back
 	@throw InvalidValue is thrown if method s is not known
 	*/

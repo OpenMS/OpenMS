@@ -22,11 +22,32 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
-// $Authors: $
+// $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 /**
-  ... here be some documentation ...
+	@page TOPP_TOPPAS TOPPAS
+	
+	@brief An assistant for GUI-driven TOPP workflow design.
+	
+  TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
+  can be created conveniently in a GUI by means of mouse interactions. The
+  parameters of all involved tools can be edited within the application
+  and are also saved as part of the pipeline definition in the @em .toppas file.
+  Furthermore, TOPPAS interactively performs validity checks during the pipeline
+  editing process, in order to make it more difficult to create an invalid workflow.
+  Once set up and saved, a workflow can also be run without the GUI using
+  the @em TOPPAS @em -execute \<file\> command line option.
+  
+  The following figure shows a simple example pipeline that has just been created
+  and executed successfully:
+  
+  @image html TOPPAS_simple_example.png
+  
+  More information about TOPPAS can be found in the @ref TOPP_tutorial.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_TOPPAS.cli
 */
 
 //QT
@@ -38,9 +59,8 @@
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/SYSTEM/StopWatch.h> 
-
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -71,6 +91,7 @@ void print_usage()
 			 << "  --help           Shows this help" << endl
 			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << endl
 			 << "  -execute <File>  Executes the specified pipeline without starting the GUI" << endl
+			 << "  -out_dir <Dir>   Specifies the directory where output files will be written (when used with -execute)" << endl
 			 << endl ;
 }
 
@@ -81,6 +102,7 @@ int main( int argc, const char** argv )
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
 	valid_options["-execute"] = "execute";
+	valid_options["-out_dir"] = "out_dir";
 	
 	Param param;
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
@@ -110,20 +132,51 @@ int main( int argc, const char** argv )
 	try
 	{
 #endif
-		
-	  QApplication a( argc, const_cast<char**>(argv));
-	  
+
 	  if (param.exists("execute"))
 		{
-			TOPPASScene ts(0, QDir::tempPath()+QDir::separator());
+			QApplication a(argc, const_cast<char**>(argv), false);
+			TOPPASScene ts(0, QDir::tempPath()+QDir::separator(), false);
 			a.connect (&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()));
+			a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()));
 			String toppas_file = (String)param.getValue("execute");
 			ts.load(toppas_file);
+			
+			if (param.exists("out_dir"))
+			{
+				QString out_dir_name = ((String)param.getValue("out_dir")).toQString();
+				if (QDir::isRelativePath(out_dir_name))
+				{
+					out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
+				}
+				
+				if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
+				{
+					ts.setOutDir(out_dir_name);
+				}
+				else
+				{
+					cout << "The specified output directory does not exist. Aborting." << endl;
+					return 1;
+				}
+			}
+			else
+			{
+				cout << "No output directory specified. Trying current directory..." << endl;
+				
+				if (!File::writable("test_file_in_the_current_directory"))
+				{
+					cout << "You do not have permission to write in the current directory. Aborting." << endl;
+					return 1;
+				}
+			}
+			
 			ts.runPipeline();
 			
 			return a.exec();
 		}
 		
+		QApplication a( argc, const_cast<char**>(argv));
 		a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))

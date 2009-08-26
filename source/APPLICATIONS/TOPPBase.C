@@ -63,7 +63,7 @@ namespace OpenMS
 		// if version is empty, use the OpenMS/TOPP version and date/time
 		if (version_=="")
 		{
-			version_ = VersionInfo::getVersionAndTime();
+			version_ = VersionInfo::getVersion() + " " + VersionInfo::getTime();
 		}
 		// if the revision info is meaningful, show it as well
 		if ( !VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported" )
@@ -1905,7 +1905,6 @@ namespace OpenMS
 		tools_map["MascotAdapterOnline"] = StringList::create("");
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
 		tools_map["OMSSAAdapter"] = StringList::create("");
-		tools_map["PILISIdentification"] = StringList::create("");
 		tools_map["PILISModel"] = StringList::create("");
 		tools_map["PTModel"] = StringList::create("");
 		tools_map["PTPredict"] = StringList::create("");
@@ -1923,6 +1922,7 @@ namespace OpenMS
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["PrecursorIonSelector"] = StringList::create("");
+		tools_map["CompNovo"] = StringList::create("CompNovo,CompNovoCID");
 
 		return tools_map;
 	}

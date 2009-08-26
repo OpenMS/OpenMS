@@ -30,14 +30,18 @@
 
 namespace OpenMS
 {
+	/**
+		@brief Centralizes the file types recognized by FileHandler.
+		
+		FileType seperate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings and FileHandler and respective fileclasses (e.g. DTA2DFile). See also: FileHandler::nameToType, FileHandler::typeToName and FileHandler::NameOfTypes .
+
+		@ingroup FileIO
+	*/
 	struct FileTypes
 	{
-	/**
-		@brief Centralizes the file types recognized by FileHandler. FileType seperate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings and FileHandler and respective fileclasses (e.g. DTA2DFile). See also: FileHandler::nameToType, FileHandler::typeToName and FileHandler::NameOfTypes .
+		//NOTE: if you change/add something here, do not forget to change FileHandler::NameOfTypes[]
 
-				@ingroup FileIO
-	*/
-		//if you change here, do not forget to change FileHandler::NameOfTypes[]
+		///Actual file types enum.
 		enum Type
 		{
 			UNKNOWN,        		///< Unknown file extension
@@ -62,7 +66,8 @@ namespace OpenMS
 			OMSSAXML,						///< OMSSA XML file format for peptide identifications (.xml)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
-	}; //struct
+	};
+
 } //namespace OpenMS
 
 #endif //OPENMS_FORMAT_FILETYPES_H

@@ -136,7 +136,7 @@ namespace OpenMS
 		}
 		
 		/**
-			@brief Returns if @p a is approximately equal @p, allowing a tolerance of @p tol
+			@brief Returns if @p a is approximately equal @p b , allowing a tolerance of @p tol
 		
 			@ingroup MathFunctionsMisc
 		*/

@@ -23775,7 +23775,7 @@ is_a: MOD:00848 ! reagent derivatized residue
 [Term]
 id: MOD:09998
 name: NIC
-def: "NIC light label as defined in NBT"
+def: "NIC light label as defined in NBT" [UniMod:697]
 property_value: DiffAvg: "105.0941"
 property_value: DiffFormula: "H 3 C 6 N 1 O 1"
 property_value: DiffMono: "105.021464"
@@ -23789,7 +23789,7 @@ property_value: TermSpec: "N-term"
 [Term]
 id: MOD:09999
 name: dNIC
-def: "NIC heavy label as defined in NBT"
+def: "NIC heavy label as defined in NBT" [UniMod:698]
 property_value: DiffAvg: "109.1205"
 property_value: DiffFormula: "H 1 (2)H 3 C 6 N 1 O 1"
 property_value: DiffMono: "109.048119"

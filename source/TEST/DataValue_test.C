@@ -445,7 +445,7 @@ START_SECTION((QString toQString() const))
   a =DataValue(IntList::create("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
   a = DataValue(DoubleList::create("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.2323]")
+  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
 END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))

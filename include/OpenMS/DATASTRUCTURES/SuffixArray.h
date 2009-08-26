@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -72,13 +72,13 @@ public:
 
 	/**
 	@brief the function that will find all peptide candidates for a given spectrum
-	@param spec const reference of double vector describing the spectrum
+	@param spec const reference of DoubleReal vector describing the spectrum
 	@param candidates the candidates which are returned for the masses given in spec
 	@return a vector of SignedSize pairs.
 	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	*/
-	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>,double > > >& candidates, const std::vector<double> & spec) = 0;
+	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>,DoubleReal > > >& candidates, const std::vector<DoubleReal> & spec) = 0;
 
 	/**
 	@brief saves the suffix array to disc
@@ -97,16 +97,16 @@ public:
 
 	/**
 	@brief setter for tolerance
-	@param t double with tolerance
+	@param t DoubleReal with tolerance
 	@throw InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (double t) = 0;
+	virtual void setTolerance (DoubleReal t) = 0;
 
 	/**
 	@brief getter for tolerance
-	@return double with tolerance
+	@return DoubleReal with tolerance
 	*/
-	virtual double getTolerance () const  = 0;
+	virtual DoubleReal getTolerance () const  = 0;
 
 	/**
 	@brief returns if an enzyme will cut after first character

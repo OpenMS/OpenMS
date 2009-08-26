@@ -39,11 +39,10 @@
 namespace OpenMS
 {
   /**
-   @brief Simulates/Predicts predict retention times 
-   for peptides or peptide separation.
+   @brief Simulates/Predicts retention times for peptides or peptide separation.
    
    The retention times for the different peptides are determined based on
-   a SVM model or are all set to -1 in case of simulations without a LC
+   a SVM model or are all set to -1 in case of simulations without a HPLC
    column.
    
    @htmlinclude OpenMS_RTSimulation.parameters
@@ -111,6 +110,9 @@ namespace OpenMS
   
 		/// Size experiment and assign retention time grid
 		void createExperiment_(MSSimExperiment & experiment, Size number_of_scans);
+
+		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
+		void smoothRTDistortion_(MSSimExperiment & experiment);
 
 		/// Wrapper for the Migration time calculation (CE)
 		void calculateMT_(const FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);

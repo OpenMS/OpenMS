@@ -23,7 +23,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
 #include<OpenMS/VISUAL/ListEditor.h>
@@ -48,6 +48,9 @@ namespace OpenMS
 {
 	namespace Internal
 	{
+		//////////////////////////////////////////////////////////////
+		//DELEGATE
+		//////////////////////////////////////////////////////////////	
 		ListEditorDelegate::ListEditorDelegate(QObject* parent)
 			:QItemDelegate(parent)
 		{
@@ -118,14 +121,7 @@ namespace OpenMS
 				}
 				else if(qobject_cast<QLineEdit*>(editor))
 				{
-					if(str == "" && (type_ == ListEditor::INT || type_ == ListEditor::FLOAT))
-					{
-						static_cast<QLineEdit*>(editor)->setText("0");
-					}
-					else
-					{
-						static_cast<QLineEdit*>(editor)->setText(str);
-					}
+					static_cast<QLineEdit*>(editor)->setText(str);
 				}
 			}
 		}
@@ -142,14 +138,16 @@ namespace OpenMS
 				}
 				else if(type_ == ListEditor::INPUT_FILE || type_ == ListEditor::OUTPUT_FILE)
 				{
-
-						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());//file_name_;
-						file_name_ = "\0";
-
+					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());//file_name_;
+					file_name_ = "\0";
 				}
 				else
 				{
-					if(static_cast<QLineEdit*>(editor)->text() == "" &&(type_ == ListEditor::INT || type_ == ListEditor::FLOAT))
+					if(type_ == ListEditor::FLOAT && static_cast<QLineEdit*>(editor)->text() == "")
+					{
+						new_value = QVariant("0.0");
+					}
+					else if(type_ == ListEditor::INT && static_cast<QLineEdit*>(editor)->text() == "")
 					{
 						new_value = QVariant("0");
 					}
@@ -252,127 +250,139 @@ namespace OpenMS
 			restrictions_ = restrictions;
 		}
 		
-		void ListEditorDelegate::setTypeName(const QString& name)
+		void ListEditorDelegate::setTypeName(QString name)
 		{
 			typeName_ = name;
 		}
-		void ListEditorDelegate::setFileName(const QString& name)
+		void ListEditorDelegate::setFileName(QString name)
 		{
 			file_name_ = name;
 		}
 	
-//////////////////////////////////////////////////////////////
-//LISTTABLE
-//////////////////////////////////////////////////////////////	
-	ListTable::ListTable(QWidget* parent)
-	:QListWidget(parent)
-	{	
-		
-	}
-
-	StringList ListTable::getList()
-	{
-		String stringit;
-		list_.clear();
-		for(Int i = 0; i < count(); ++i)
+		//////////////////////////////////////////////////////////////
+		//LISTTABLE
+		//////////////////////////////////////////////////////////////	
+		ListTable::ListTable(QWidget* parent)
+		:QListWidget(parent)
+		{	
+		}
+	
+		StringList ListTable::getList()
 		{
-			stringit = item(i)->text();
-			if(stringit != "")
+			String stringit;
+			list_.clear();
+			for(Int i = 0; i < count(); ++i)
 			{
-				stringit.trim();
+				stringit = item(i)->text();
+				if(stringit != "")
+				{
+					stringit.trim();
+				}
+				list_.push_back(stringit);
 			}
-			list_.push_back(stringit);
+			return list_;
 		}
-		return list_;
-	}
-
-	void ListTable::setList(const StringList &list)
-	{
-		QListWidgetItem* item = NULL;
-		for(UInt i = 0; i < list.size(); ++i)
+	
+		void ListTable::setList(const StringList& list, ListEditor::Type type)
 		{
-			item = new QListWidgetItem(list[i].toQString());
-			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-
-			insertItem(i,item);
+			type_ = type;
+			
+			QListWidgetItem* item = NULL;
+			for(UInt i = 0; i < list.size(); ++i)
+			{
+				item = new QListWidgetItem(list[i].toQString());
+				item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+	
+				insertItem(i,item);
+			}
+			list_ = list;
+			adjustSize();
 		}
-		list_ = list;
-		adjustSize();
-	}
-
-	void ListTable::createNewRow()
-	{
-		QListWidgetItem *item = new QListWidgetItem("");
-		item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		addItem(item);
-		setItemSelected(item,true);
-		setCurrentRow(row(item));
-		itemActivated(item);
-		edit(currentIndex());
-	}
-
-	void ListTable::removeCurrentRow()
-	{
-		takeItem(currentRow());
-	}
-
-}
-////////////////////////////////////////////////////////////
-//ListEditor
-////////////////////////////////////////////////////////////
-ListEditor::ListEditor(QWidget *parent,QString title)
-	: QDialog(parent)
-{
-	listTable_ = new Internal::ListTable(this);
-	listTable_-> setRowHidden(-1,true);
-	listDelegate_ = new Internal::ListEditorDelegate(listTable_);
-	listTable_->setItemDelegate(listDelegate_);
 	
-	removeRowButton_ = new QPushButton(tr("&delete"));
-	newRowButton_ = new QPushButton(tr("&new"));
-	newRowButton_->setDefault(true);
-	OkButton_ = new QPushButton(tr("&ok"));
-	CancelButton_ = new QPushButton(tr("&cancel"));
-
-	connect(newRowButton_, SIGNAL(clicked()),
-					listTable_, SLOT(createNewRow()));
-	connect(removeRowButton_, SIGNAL(clicked()),
-					listTable_, SLOT(removeCurrentRow()));
+		void ListTable::createNewRow()
+		{
 	
-	QDialogButtonBox *rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,Qt::Vertical);
-	rightLayout -> addButton(newRowButton_,QDialogButtonBox::ActionRole);
-	rightLayout->addButton(removeRowButton_,QDialogButtonBox::ActionRole);
+			QListWidgetItem* item = 0;
+			switch(type_)
+			{
+				case ListEditor::INT:
+					item = new QListWidgetItem("0");
+					break;
+				case ListEditor::FLOAT:
+					item = new QListWidgetItem("0.0");
+					break;
+				default:
+					item = new QListWidgetItem("");
+			}	
+			item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+			addItem(item);
+			setItemSelected(item,true);
+			setCurrentRow(row(item));
+			itemActivated(item);
+			edit(currentIndex());
+		}
+	
+		void ListTable::removeCurrentRow()
+		{
+			takeItem(currentRow());
+		}
+	
+	}//namespace Internal
+	
+	////////////////////////////////////////////////////////////
+	//ListEditor
+	////////////////////////////////////////////////////////////
+	ListEditor::ListEditor(QWidget *parent,QString title)
+		: QDialog(parent)
+	{
+		listTable_ = new Internal::ListTable(this);
+		listTable_-> setRowHidden(-1,true);
+		listDelegate_ = new Internal::ListEditorDelegate(listTable_);
+		listTable_->setItemDelegate(listDelegate_);
+		
+		removeRowButton_ = new QPushButton(tr("&delete"));
+		newRowButton_ = new QPushButton(tr("&new"));
+		newRowButton_->setDefault(true);
+		OkButton_ = new QPushButton(tr("&ok"));
+		CancelButton_ = new QPushButton(tr("&cancel"));
+	
+		connect(newRowButton_, SIGNAL(clicked()), listTable_, SLOT(createNewRow()));
+		connect(removeRowButton_, SIGNAL(clicked()), listTable_, SLOT(removeCurrentRow()));
+		
+		QDialogButtonBox *rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,Qt::Vertical);
+		rightLayout -> addButton(newRowButton_,QDialogButtonBox::ActionRole);
+		rightLayout->addButton(removeRowButton_,QDialogButtonBox::ActionRole);
+	
+		connect(rightLayout,SIGNAL(accepted()), this,SLOT(accept()));
+		connect(rightLayout,SIGNAL(rejected()), this, SLOT(reject()));
+		QHBoxLayout *mainLayout = new QHBoxLayout;
+		mainLayout->addWidget(listTable_);
+		mainLayout->addWidget(rightLayout);
+		setLayout(mainLayout);
+		QString tit =  "List Editor"+title;
+		setWindowTitle(tit);
+		setMinimumSize(800,500);
+	}
+	
+	StringList ListEditor::getList() const
+	{
+		return listTable_->getList();
+	}
+	
+	void ListEditor::setList(const StringList& list, ListEditor::Type type)
+	{
+		type_ = type;
+		listTable_->setList(list,type_);
+		listDelegate_->setType(type_);
+	}
 
-	connect(rightLayout,SIGNAL(accepted()),
-					this,SLOT(accept()));
-	connect(rightLayout,SIGNAL(rejected()),
-					this, SLOT(reject()));
-	QHBoxLayout *mainLayout = new QHBoxLayout;
-	mainLayout->addWidget(listTable_);
-	mainLayout->addWidget(rightLayout);
-	setLayout(mainLayout);
-	QString tit =  "List Editor"+title;
-	setWindowTitle(tit);
-	setMinimumSize(800,500);
-}
-
-StringList ListEditor::getList() const
-{
-	return listTable_->getList();
-}
-
-void ListEditor::setList(const StringList& list, ListEditor::Type type)
-{
-	listTable_->setList(list);
-	listDelegate_->setType(type);
-}
 	void ListEditor::setListRestrictions(const String& restrictions)
 	{
 		listDelegate_->setRestrictions(restrictions);
 	}
 	
-	void ListEditor::setTypeName(const QString& name)
+	void ListEditor::setTypeName(QString name)
 	{
 		listDelegate_->setTypeName(name);
 	}

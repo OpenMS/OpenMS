@@ -22,12 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <cmath>
+
+#include <boost/math/special_functions/erf.hpp>
 
 using namespace std;
 
@@ -43,6 +45,7 @@ namespace OpenMS
 		defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
 		defaults_.setValidStrings("use_linear_factor", StringList::create("true,false"));
 		defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
+		defaults_.setValidStrings("use_gaussian_factor", StringList::create("true,false"));
 		defaultsToParam_();
   }
 
@@ -64,14 +67,14 @@ namespace OpenMS
     return *this;
   }
 
-	double SpectrumAlignmentScore::operator () (const PeakSpectrum& spec) const
+	DoubleReal SpectrumAlignmentScore::operator () (const PeakSpectrum& spec) const
 	{
 		return operator () (spec, spec);
 	}
 
-  double SpectrumAlignmentScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
+  DoubleReal SpectrumAlignmentScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {			
-		const double tolerance = (double)param_.getValue("tolerance");
+		const DoubleReal tolerance = (DoubleReal)param_.getValue("tolerance");
 		bool is_relative_tolerance = param_.getValue("is_relative_tolerance").toBool();
 		bool use_linear_factor = param_.getValue("use_linear_factor").toBool();
 		bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
@@ -90,7 +93,7 @@ namespace OpenMS
 		vector<pair<Size, Size> > alignment;
 		aligner.getSpectrumAlignment(alignment, s1, s2);
 
-		double score(0), sum(0), sum1(0), sum2(0);
+		DoubleReal score(0), sum(0), sum1(0), sum2(0);
 		for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
 		{
 			sum1 += it1->getIntensity() * it1->getIntensity();
@@ -103,17 +106,17 @@ namespace OpenMS
 		
 		for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
-			//double factor(0.0);
+			//DoubleReal factor(0.0);
 			//factor = (epsilon - fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0])) / epsilon;
-			double mz_tolerance(tolerance);
+			DoubleReal mz_tolerance(tolerance);
 
 			if (is_relative_tolerance)
 			{
 				mz_tolerance = mz_tolerance * s1[it->first].getPosition()[0] / 10e6;
 			}
 	
-			double mz_difference(fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0]));
-			double factor = 1.0;
+			DoubleReal mz_difference(fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0]));
+			DoubleReal factor = 1.0;
 			
 			if (use_linear_factor || use_gaussian_factor)
 			{
@@ -127,14 +130,15 @@ namespace OpenMS
     return score;
 	}
 
-	double SpectrumAlignmentScore::getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian) const
+	DoubleReal SpectrumAlignmentScore::getFactor_(DoubleReal mz_tolerance, DoubleReal mz_difference, bool is_gaussian) const
 	{
-		double factor(0.0);
+		DoubleReal factor(0.0);
 
 		if (is_gaussian)
 		{
-			throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			// to be implemented
+			static const DoubleReal denominator = mz_tolerance * 3.0 * sqrt(2.0);
+			factor = boost::math::erfc(mz_difference / denominator);
+			//cerr << "Factor: " << factor << " " << mz_tolerance << " " << mz_difference << endl;
 		}
 		else
 		{

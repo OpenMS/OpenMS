@@ -52,7 +52,7 @@ namespace OpenMS
 	
 	void TOPPASIOMappingDialog::fillComboBoxes_()
 	{
-		target_input_param_indices.clear();
+		target_input_param_indices_.clear();
 		
 		TOPPASVertex* source = edge_->getSourceVertex();
 		TOPPASVertex* target = edge_->getTargetVertex();
@@ -164,7 +164,7 @@ namespace OpenMS
 				item_name += ss.str();
 				
 				target_combo->addItem(item_name.toQString());
-				target_input_param_indices.push_back(param_counter);
+				target_input_param_indices_.push_back(param_counter);
 			}
 			if (target_combo->count() == 2) // only 1 parameter
 			{
@@ -188,7 +188,7 @@ namespace OpenMS
 		
 		int source_out = edge_->getSourceOutParam();
 		int target_in = edge_->getTargetInParam();
-		int combo_index = target_input_param_indices.indexOf(target_in) + 1;
+		int combo_index = target_input_param_indices_.indexOf(target_in) + 1;
 		if (source_out != -1)
 		{
 			source_combo->setCurrentIndex(source_out + 1);
@@ -225,9 +225,9 @@ namespace OpenMS
 		{
 			int target_index;
 			int tci = target_combo->currentIndex()-1;
-			if (0 <= tci && tci < target_input_param_indices.size())
+			if (0 <= tci && tci < target_input_param_indices_.size())
 			{
-				target_index = target_input_param_indices[tci];
+				target_index = target_input_param_indices_[tci];
 			}
 			else
 			{
@@ -238,10 +238,37 @@ namespace OpenMS
 		}
 		edge_->updateColor();
 		
-		if (edge_->getEdgeStatus() == TOPPASEdge::ES_VALID ||
-				edge_->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET)
+		TOPPASEdge::EdgeStatus es = edge_->getEdgeStatus();
+		if (es == TOPPASEdge::ES_VALID || es == TOPPASEdge::ES_NOT_READY_YET)
 		{
 			accept();
+		}
+		else
+		{
+			if (es == TOPPASEdge::ES_MISMATCH_FILE_LIST)
+			{
+				QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
+			}
+			else if (es == TOPPASEdge::ES_MISMATCH_LIST_FILE)
+			{
+				QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
+			}
+			else if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
+			{
+				QMessageBox::warning(0,"Invalid selection","You must specify the target input parameter!");
+			}
+			else if (es == TOPPASEdge::ES_NO_SOURCE_PARAM)
+			{
+				QMessageBox::warning(0,"Invalid selection","You must specify the source output parameter!");
+			}
+			else if (es == TOPPASEdge::ES_FILE_EXT_MISMATCH)
+			{
+				QMessageBox::warning(0,"Invalid selection","The file types of source output and target input parameter do not match!");
+			}
+			else
+			{
+				QMessageBox::warning(0,"Ooops","This should not have happened. Please contact the OpenMS mailing list and report this bug.");
+			}
 		}
 	}
 } // namespace

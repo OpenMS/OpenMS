@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="pepXML_std.xsl"?>
-<msms_pipeline_analysis date="2009-06-20T00:32:38" summary_xml="/tmp/2ddb/24/1245472324.10211_0/B08-08318.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v110.xsd">
-   <msms_run_summary base_name="B08-08318" search_engine="X! Tandem" msManufacturer="ThermoFinnigan" msModel="msModel" msIonization="msIonisation" msMassAnalyzer="msMassAnalyzer" msDetector="EMT" raw_data_type="raw" raw_data=".mzXML">
+<msms_pipeline_analysis date="2009-05-25T12:33:22" summary_xml="/tmp/2ddb/84/1243269184.2280_0/B09-05181_p.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v110.xsd">
+   <msms_run_summary base_name="B09-05181_p" search_engine="X! Tandem (k-score)" msManufacturer="ThermoFinnigan" msModel="msModel" msIonization="msIonisation" msMassAnalyzer="msMassAnalyzer" msDetector="EMT" raw_data_type="raw" raw_data=".mzXML">
       <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
 </sample_enzyme>
-<search_summary base_name="B08-08318" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+<search_summary base_name="B09-05181_p" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
          <search_database local_path="./current.fasta" type="AA"/>
          <enzymatic_search_constraint enzyme="trypsin" max_num_internal_cleavages="2" min_number_termini="2" />
          <aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N" />
          <aminoacid_modification aminoacid="C" massdiff="-17.0265" mass="143.0041" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
          <aminoacid_modification aminoacid="E" massdiff="-18.0106" mass="111.0320" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
-         <aminoacid_modification aminoacid="K" massdiff="145.0197" mass="273.1147" variable="Y" />
          <aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y" />
          <aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
          
@@ -25,7 +24,7 @@
          <parameter name="output, message" value="testing 1 2 3"/>
          <parameter name="output, one sequence copy" value="yes"/>
          <parameter name="output, parameters" value="yes"/>
-         <parameter name="output, path" value="B08-08318.mzXML.output.xml"/>
+         <parameter name="output, path" value="B09-05181_p.mzXML.output.xml"/>
          <parameter name="output, path hashing" value="no"/>
          <parameter name="output, performance" value="yes"/>
          <parameter name="output, proteins" value="yes"/>
@@ -55,18 +54,19 @@
          <parameter name="refine, sequence path" value=""/>
          <parameter name="refine, spectrum synthesis" value="yes"/>
          <parameter name="refine, tic percent" value="20"/>
-         <parameter name="refine, unanticipated cleavage" value="no"/>
+         <parameter name="refine, unanticipated cleavage" value="yes"/>
          <parameter name="refine, use potential modifications for full refinement" value="yes"/>
          <parameter name="residue, modification mass" value="57.021464@C"/>
-         <parameter name="residue, potential modification mass" value="15.99491@M,145.01975@K"/>
+         <parameter name="residue, potential modification mass" value="15.99491@M"/>
          <parameter name="residue, potential modification motif" value=""/>
          <parameter name="scoring, a ions" value="no"/>
+         <parameter name="scoring, algorithm" value="k-score"/>
          <parameter name="scoring, b ions" value="yes"/>
          <parameter name="scoring, c ions" value="no"/>
          <parameter name="scoring, cyclic permutation" value="no"/>
          <parameter name="scoring, include reverse" value="no"/>
          <parameter name="scoring, maximum missed cleavage sites" value="2"/>
-         <parameter name="scoring, minimum ion count" value="4"/>
+         <parameter name="scoring, minimum ion count" value="1"/>
          <parameter name="scoring, x ions" value="no"/>
          <parameter name="scoring, y ions" value="yes"/>
          <parameter name="scoring, z ions" value="no"/>
@@ -78,14 +78,15 @@
          <parameter name="spectrum, minimum fragment mz" value="150.0"/>
          <parameter name="spectrum, minimum parent m+h" value="300.0"/>
          <parameter name="spectrum, minimum peaks" value="6"/>
-         <parameter name="spectrum, parent monoisotopic mass error minus" value="25"/>
-         <parameter name="spectrum, parent monoisotopic mass error plus" value="25"/>
+         <parameter name="spectrum, parent monoisotopic mass error minus" value="25.0"/>
+         <parameter name="spectrum, parent monoisotopic mass error plus" value="25.0"/>
          <parameter name="spectrum, parent monoisotopic mass error units" value="ppm"/>
          <parameter name="spectrum, parent monoisotopic mass isotope error" value="no"/>
-         <parameter name="spectrum, path" value="B08-08318.mzXML"/>
+         <parameter name="spectrum, path" value="B09-05181_p.mzXML"/>
          <parameter name="spectrum, sequence batch size" value="1000"/>
          <parameter name="spectrum, threads" value="1"/>
          <parameter name="spectrum, total peaks" value="50"/>
+         <parameter name="spectrum, use conditioning" value="no"/>
          <parameter name="spectrum, use noise suppression" value="yes"/>
          <!-- Unused input parameters -->
          <parameter name="scoring, pluggable scoring" value="yes"/>
@@ -94,59 +95,146 @@
          <parameter name="list path, sequence source #1" value="./current.fasta"/>
          <parameter name="list path, sequence source description #1" value="no description"/>
          <parameter name="modelling, spectrum noise suppression ratio" value="0.00"/>
-         <parameter name="modelling, total peptides used" value="91716552"/>
+         <parameter name="modelling, total peptides used" value="69092616"/>
          <parameter name="modelling, total proteins used" value="119798"/>
-         <parameter name="modelling, total spectra used" value="16561"/>
-         <parameter name="process, start time" value="2009:06:20:00:32:38"/>
+         <parameter name="modelling, total spectra used" value="11023"/>
+         <parameter name="process, start time" value="2009:05:25:12:33:22"/>
          <parameter name="process, version" value="x! tandem TORNADO (2008.02.01.3)"/>
-         <parameter name="quality values" value="1020 759 689 723 694 688 662 669 681 648 612 548 527 488 439 381 361 367 307 219"/>
-         <parameter name="refining, # input models" value="784"/>
-         <parameter name="refining, # input spectra" value="6808"/>
-         <parameter name="refining, # partial cleavage" value="910"/>
+         <parameter name="quality values" value="723 528 401 358 269 165 117 63 44 32 21 12 4 1 1 1 0 0 0 0"/>
+         <parameter name="refining, # input models" value="1640"/>
+         <parameter name="refining, # input spectra" value="9694"/>
+         <parameter name="refining, # partial cleavage" value="190"/>
          <parameter name="refining, # point mutations" value="0"/>
          <parameter name="refining, # potential C-terminii" value="0"/>
          <parameter name="refining, # potential N-terminii" value="0"/>
-         <parameter name="refining, # unanticipated cleavage" value="0"/>
-         <parameter name="timing, initial modelling total (sec)" value="395.08"/>
-         <parameter name="timing, initial modelling/spectrum (sec)" value="0.024"/>
-         <parameter name="timing, load sequence models (sec)" value="0.20"/>
-         <parameter name="timing, refinement/spectrum (sec)" value="0.002"/>
+         <parameter name="refining, # unanticipated cleavage" value="30"/>
+         <parameter name="timing, initial modelling total (sec)" value="226.33"/>
+         <parameter name="timing, initial modelling/spectrum (sec)" value="0.021"/>
+         <parameter name="timing, load sequence models (sec)" value="0.21"/>
+         <parameter name="timing, refinement/spectrum (sec)" value="0.029"/>
       </search_summary>
-
-      <spectrum_query spectrum="B08-08318.00016.00016.2" start_scan="16" end_scan="16" precursor_neutral_mass="1217.6554" assumed_charge="2" index="12" retention_time_sec="7.6514">
+      
+      <spectrum_query spectrum="B09-05181_p.00002.00002.3" start_scan="2" end_scan="2" precursor_neutral_mass="1612.7918" assumed_charge="3" index="1" retention_time_sec="1.3653">
       <search_result>
-         <search_hit hit_rank="1" peptide="KRGYVPAEGNK" peptide_prev_aa="K" peptide_next_aa="K" protein="ddb000324841" num_tot_proteins="1" num_matched_ions="12" tot_num_ions="20" calc_neutral_pep_mass="1217.6516" massdiff="0.004" num_tol_term="2" num_missed_cleavages="1" is_rejected="0">
-            <search_score name="hyperscore" value="37.4"/>
-            <search_score name="nextscore" value="37.4"/>
-            <search_score name="bscore" value="14.2"/>
-            <search_score name="yscore" value="11.7"/>
-            <search_score name="expect" value="0.035"/>
-         </search_hit>
-      </search_result>
-      </spectrum_query>
-      <spectrum_query spectrum="B08-08318.00018.00018.2" start_scan="18" end_scan="18" precursor_neutral_mass="1049.5290" assumed_charge="2" index="13" retention_time_sec="8.9342">
-      <search_result>
-         <search_hit hit_rank="1" peptide="ACERFLVR" peptide_prev_aa="K" peptide_next_aa="H" protein="ddb000014895" num_tot_proteins="1" num_matched_ions="9" tot_num_ions="14" calc_neutral_pep_mass="1049.5437" massdiff="-0.015" num_tol_term="2" num_missed_cleavages="1" is_rejected="0">
+         <search_hit hit_rank="1" peptide="ELNKEMAAEKAKAAAG" peptide_prev_aa="R" peptide_next_aa="E" protein="ddb000449223" num_tot_proteins="3" num_matched_ions="17" tot_num_ions="60" calc_neutral_pep_mass="1612.8247" massdiff="-0.033" num_tol_term="1" num_missed_cleavages="3" is_rejected="0">
+            <alternative_protein protein="ddb000394137" num_tol_term="1"/>
+            <alternative_protein protein="ddb000015734" num_tol_term="1"/>
             <modification_info>
-               <mod_aminoacid_mass position="2" mass="160.0306" />
+               <mod_aminoacid_mass position="1" mass="111.0320" />
             </modification_info>
-            <search_score name="hyperscore" value="28.7"/>
-            <search_score name="nextscore" value="26.3"/>
-            <search_score name="bscore" value="12.2"/>
-            <search_score name="yscore" value="10.2"/>
-            <search_score name="expect" value="1.9"/>
+            <search_score name="hyperscore" value="329"/>
+            <search_score name="nextscore" value="323"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="1"/>
+            <search_score name="expect" value="8"/>
          </search_hit>
       </search_result>
       </spectrum_query>
-      <spectrum_query spectrum="B08-08318.00019.00019.2" start_scan="19" end_scan="19" precursor_neutral_mass="801.4111" assumed_charge="2" index="14" retention_time_sec="9.3669">
+      <spectrum_query spectrum="B09-05181_p.00003.00003.2" start_scan="3" end_scan="3" precursor_neutral_mass="1273.7547" assumed_charge="2" index="2" retention_time_sec="1.719">
       <search_result>
-         <search_hit hit_rank="1" peptide="ETSPRGR" peptide_prev_aa="K" peptide_next_aa="R" protein="ddb000000416" num_tot_proteins="2" num_matched_ions="9" tot_num_ions="12" calc_neutral_pep_mass="801.4093" massdiff="0.002" num_tol_term="2" num_missed_cleavages="1" is_rejected="0">
-            <alternative_protein protein="ddb000630664" num_tol_term="2"/>
-            <search_score name="hyperscore" value="26.8"/>
-            <search_score name="nextscore" value="26.3"/>
-            <search_score name="bscore" value="10.1"/>
-            <search_score name="yscore" value="11.7"/>
-            <search_score name="expect" value="9.1"/>
+         <search_hit hit_rank="1" peptide="QLPGVNIKPVVK" peptide_prev_aa="R" peptide_next_aa="V" protein="ddb000014286" num_tot_proteins="1" num_matched_ions="11" tot_num_ions="22" calc_neutral_pep_mass="1273.7757" massdiff="-0.021" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <modification_info>
+               <mod_aminoacid_mass position="1" mass="111.0321" />
+            </modification_info>
+            <search_score name="hyperscore" value="173"/>
+            <search_score name="nextscore" value="167"/>
+            <search_score name="bscore" value="0"/>
+            <search_score name="yscore" value="0"/>
+            <search_score name="expect" value="7.7"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00004.00004.2" start_scan="4" end_scan="4" precursor_neutral_mass="1354.7538" assumed_charge="2" index="3" retention_time_sec="2.0436">
+      <search_result>
+         <search_hit hit_rank="1" peptide="IFQAALYAAPYK" peptide_prev_aa="K" peptide_next_aa="S" protein="ddb000517740" num_tot_proteins="1" num_matched_ions="16" tot_num_ions="22" calc_neutral_pep_mass="1354.7287" massdiff="0.025" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <search_score name="hyperscore" value="274"/>
+            <search_score name="nextscore" value="250"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="0"/>
+            <search_score name="expect" value="4.9"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00006.00006.3" start_scan="6" end_scan="6" precursor_neutral_mass="2285.1617" assumed_charge="3" index="4" retention_time_sec="2.7843">
+      <search_result>
+         <search_hit hit_rank="1" peptide="EISPDTTLLDLQNNDISELR" peptide_prev_aa="K" peptide_next_aa="K" protein="ddb000026697" num_tot_proteins="4" num_matched_ions="40" tot_num_ions="76" calc_neutral_pep_mass="2285.1387" massdiff="0.023" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <alternative_protein protein="ddb000626345" num_tol_term="2"/>
+            <alternative_protein protein="ddb000626346" num_tol_term="2"/>
+            <alternative_protein protein="ddb005168372" num_tol_term="2"/>
+            <search_score name="hyperscore" value="807"/>
+            <search_score name="nextscore" value="446"/>
+            <search_score name="bscore" value="2"/>
+            <search_score name="yscore" value="2"/>
+            <search_score name="expect" value="0.00091"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00007.00007.2" start_scan="7" end_scan="7" precursor_neutral_mass="2285.1754" assumed_charge="2" index="5" retention_time_sec="3.085">
+      <search_result>
+         <search_hit hit_rank="1" peptide="EISPDTTLLDLQNNDISELR" peptide_prev_aa="K" peptide_next_aa="K" protein="ddb000026697" num_tot_proteins="4" num_matched_ions="29" tot_num_ions="38" calc_neutral_pep_mass="2285.1387" massdiff="0.037" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <alternative_protein protein="ddb000626345" num_tol_term="2"/>
+            <alternative_protein protein="ddb000626346" num_tol_term="2"/>
+            <alternative_protein protein="ddb005168372" num_tol_term="2"/>
+            <search_score name="hyperscore" value="705"/>
+            <search_score name="nextscore" value="309"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="2"/>
+            <search_score name="expect" value="7.9e-05"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00008.00008.3" start_scan="8" end_scan="8" precursor_neutral_mass="2307.1422" assumed_charge="3" index="6" retention_time_sec="3.4018">
+      <search_result>
+         <search_hit hit_rank="1" peptide="RSHTILNSSQSFAKGCVQCK" peptide_prev_aa="K" peptide_next_aa="H" protein="rev000025591" num_tot_proteins="3" num_matched_ions="20" tot_num_ions="76" calc_neutral_pep_mass="2307.1207" massdiff="0.022" num_tol_term="2" num_missed_cleavages="1" is_rejected="0">
+            <alternative_protein protein="rev000001143" num_tol_term="2"/>
+            <alternative_protein protein="rev000450478" num_tol_term="2"/>
+            <modification_info>
+               <mod_aminoacid_mass position="16" mass="160.0306" />
+               <mod_aminoacid_mass position="19" mass="160.0306" />
+            </modification_info>
+            <search_score name="hyperscore" value="350"/>
+            <search_score name="nextscore" value="349"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="1"/>
+            <search_score name="expect" value="14"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00010.00010.3" start_scan="10" end_scan="10" precursor_neutral_mass="2269.2134" assumed_charge="3" index="7" retention_time_sec="4.4573">
+      <search_result>
+         <search_hit hit_rank="1" peptide="VSLPNYPAIPSDATLEVQSLR" peptide_prev_aa="K" peptide_next_aa="S" protein="ddb000622429" num_tot_proteins="3" num_matched_ions="21" tot_num_ions="80" calc_neutral_pep_mass="2269.1957" massdiff="0.018" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <alternative_protein protein="ddb000622428" num_tol_term="2"/>
+            <alternative_protein protein="ddb000450900" num_tol_term="2"/>
+            <search_score name="hyperscore" value="463"/>
+            <search_score name="nextscore" value="431"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="1"/>
+            <search_score name="expect" value="0.65"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00011.00011.2" start_scan="11" end_scan="11" precursor_neutral_mass="1612.7726" assumed_charge="2" index="8" retention_time_sec="4.8288">
+      <search_result>
+         <search_hit hit_rank="1" peptide="NALWHTGDTESQVR" peptide_prev_aa="R" peptide_next_aa="L" protein="ddb000409092" num_tot_proteins="3" num_matched_ions="23" tot_num_ions="26" calc_neutral_pep_mass="1612.7597" massdiff="0.013" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+            <alternative_protein protein="ddb000394916" num_tol_term="2"/>
+            <alternative_protein protein="ddb000012684" num_tol_term="2"/>
+            <search_score name="hyperscore" value="478"/>
+            <search_score name="nextscore" value="278"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="1"/>
+            <search_score name="expect" value="0.0046"/>
+         </search_hit>
+      </search_result>
+      </spectrum_query>
+      <spectrum_query spectrum="B09-05181_p.00012.00012.2" start_scan="12" end_scan="12" precursor_neutral_mass="1023.5534" assumed_charge="2" index="9" retention_time_sec="5.1785">
+      <search_result>
+         <search_hit hit_rank="1" peptide="SSLKNYANK" peptide_prev_aa="R" peptide_next_aa="I" protein="rev000409159" num_tot_proteins="2" num_matched_ions="9" tot_num_ions="16" calc_neutral_pep_mass="1023.5347" massdiff="0.019" num_tol_term="2" num_missed_cleavages="1" is_rejected="0">
+            <alternative_protein protein="rev000459115" num_tol_term="2"/>
+            <search_score name="hyperscore" value="266"/>
+            <search_score name="nextscore" value="228"/>
+            <search_score name="bscore" value="1"/>
+            <search_score name="yscore" value="1"/>
+            <search_score name="expect" value="1.1"/>
          </search_hit>
       </search_result>
       </spectrum_query>

@@ -45,11 +45,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_SpectLibCreator
+  @page UTILS_SpecLibCreator SpecLibCreator
  
- @brief creates with given data a msp format spectral library.
- 
- */
+ 	@brief creates with given data a msp format spectral library.
+
+	@experimental This Utility is not well tested and some features might not work as expected.
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SpecLibCreator.cli 
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -59,7 +63,7 @@ class TOPPSpecLibCreator
 	{
 	public:
 		TOPPSpecLibCreator()
-		: TOPPBase("SpecLibCreator","Creates an MSP formated spectral library.")
+		: TOPPBase("SpecLibCreator","Creates an MSP formated spectral library.",false)
 		{
 		}
 		
@@ -300,3 +304,4 @@ int main( int argc, const char** argv )
 }
 
 /// @endcond
+

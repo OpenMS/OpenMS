@@ -46,8 +46,6 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASOutputFileVertex();
-			/// Constructor
-			TOPPASOutputFileVertex(const QString& file);
 			/// Copy constructor
 			TOPPASOutputFileVertex(const TOPPASOutputFileVertex& rhs);
 			/// Destructor
@@ -62,14 +60,16 @@ namespace OpenMS
 			virtual QPainterPath shape () const;
 			/// Starts the workflow ending in this node
 			void startComputation();
-			/// Returns the file name
-			const QString& getFilename();
 			/// Called when the parent node has finished execution
 			void finished();
-			/// Shows the dialog for editing the file name
-			void showFileDialog();
 			/// Returns whether we are finished
 			bool isFinished();
+			/// Returns the directory where the output file is stored
+			String getOutputDir();
+			/// Creates all necessary directories (called by the scene before the pipeline is run)
+			void createDirs(const QString& out_dir);
+			/// Sets the topological sort number and removes invalidated tmp files
+			virtual void setTopoNr(UInt nr);
 			
 		public slots:
 		
@@ -85,14 +85,13 @@ namespace OpenMS
 		
 		protected:
 			
-			/// The file name
-			QString file_;
 			/// Stores whether the pipeline ending in this vertex has finished already
 			bool finished_;
+			/// The output file name
+			QString file_;
 		
 			///@name reimplemented Qt events
       //@{
-      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			

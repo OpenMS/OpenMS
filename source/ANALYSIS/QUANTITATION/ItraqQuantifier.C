@@ -135,7 +135,7 @@ namespace OpenMS
 					 )
 	{
 
-		reconstruct_channel_info_(consensus_map_in);
+		reconstructChannelInfo_(consensus_map_in);
 
 		consensus_map_out = consensus_map_in;
 
@@ -520,7 +520,7 @@ namespace OpenMS
 	}
 
 	/// extract channel information (active channels, names, etc) from ConsensusMap
-	void ItraqQuantifier::reconstruct_channel_info_(const ConsensusMap& consensus_map)
+	void ItraqQuantifier::reconstructChannelInfo_(const ConsensusMap& consensus_map)
 	{
 		channel_map_.clear();
 
@@ -544,7 +544,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::reconstruct_channel_info_ The ConsensusMap provided is missing MetaInfo from ItraqChannelExtractor!");
+				throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::reconstructChannelInfo_ The ConsensusMap provided is missing MetaInfo from ItraqChannelExtractor!");
 			}
 		}
 	}

@@ -37,7 +37,8 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/TOPPASTabBar.h>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -78,7 +79,8 @@ namespace OpenMS
       DefaultParamHandler("TOPPASBase")
   {
   	setWindowTitle("TOPPAS");
-    //setWindowIcon(QIcon(toppas)); TODO
+    setWindowIcon(QIcon(":/TOPPAS.png"));
+
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
 
@@ -86,8 +88,8 @@ namespace OpenMS
     QWidget* dummy = new QWidget(this);
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
-    tab_bar_ = new EnhancedTabBar(dummy);
-    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
+    tab_bar_ = new TOPPASTabBar(dummy);
+    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.");
     tab_bar_->addTab("dummy",1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeId(1336);
@@ -114,7 +116,7 @@ namespace OpenMS
 		file->addSeparator();
 
     file->addSeparator();
-    file->addAction("&Preferences",this, SLOT(preferencesDialog()));
+    //file->addAction("&Preferences",this, SLOT(preferencesDialog()));
     file->addAction("&Quit",qApp,SLOT(quit()));
 
     //Advanced menu
@@ -126,6 +128,7 @@ namespace OpenMS
 		QMenu* pipeline = new QMenu("&Pipeline", this);
 		menuBar()->addMenu(pipeline);
 		pipeline->addAction("&Run",this,SLOT(runPipeline()));
+		pipeline->addAction("&Abort",this,SLOT(abortPipeline()));
 
 		//Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -157,8 +160,7 @@ namespace OpenMS
     //TOPP tools window
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
-    tools_tree_view_ = new QTreeWidget(topp_tools_bar);
-		connect (tools_tree_view_, SIGNAL(itemPressed(QTreeWidgetItem*, int)), this, SLOT(treeViewItemPressed_(QTreeWidgetItem*, int)));
+    tools_tree_view_ = new TOPPASTreeView(topp_tools_bar);
     tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
     tools_tree_view_->setColumnCount(1);
   	QStringList header_labels;
@@ -240,14 +242,6 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
   	savePreferences();
-  	
-  	//remove all temporary files
-		QDir tmp_dir(tmp_path_.toQString());
-    QStringList tmp_files = tmp_dir.entryList(QStringList("TOPPAS_*__tmp.out"), QDir::Files);
-		foreach (const QString& tmp_file, tmp_files)
-		{
-			QFile::remove(tmp_path_.toQString()+tmp_file);
-		}
   }
 
 	void TOPPASBase::refreshDefinitions()
@@ -262,8 +256,10 @@ namespace OpenMS
 		if (file_name != "")
 		{
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+			showAsWindow_(tw, File::basename(file_name));
 			TOPPASScene* scene = tw->getScene();
-			connect (scene, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+			
+			connect (scene, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
 			scene->load(file_name);
 			
 			//connect signals/slots for log messages
@@ -292,48 +288,78 @@ namespace OpenMS
 					continue;
 				}
 			}
-			
-			showAsWindow_(tw, File::basename(file_name));
+			scene->update(scene->sceneRect());
 		}
   }
   
   void TOPPASBase::newFileDialog()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-  	showAsWindow_(tw, "New");
+		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(saveMe()), this, SLOT(saveFileDialog()));
+  	showAsWindow_(tw, "(Untitled)");
   }
 	
 	void TOPPASBase::saveFileDialog()
 	{
-		TOPPASWidget* w = activeWindow_();
+		TOPPASWidget* w = 0;
+		QObject* sendr = QObject::sender();
+		QAction* save_button_clicked = qobject_cast<QAction*>(sendr);
+		
+		if (!save_button_clicked)
+		{
+			// scene has requested to be saved
+			TOPPASScene* ts = qobject_cast<TOPPASScene*>(sendr);
+			if (ts && ts->views().size() > 0)
+			{
+				w = qobject_cast<TOPPASWidget*>(ts->views().first());
+			}
+		}
+		else
+		{
+			w = activeWindow_();
+		}
+		
 		if (!w)
 		{
 			return;
 		}
 		
-		const String& file_name = w->getScene()->getSaveFileName();
+		String file_name = w->getScene()->getSaveFileName();
 		if (file_name != "")
 		{
+			if (!file_name.hasSuffix(".toppas"))
+			{
+				file_name += ".toppas";
+			}
 			w->getScene()->store(file_name);
 		}
 		else
 		{
-			saveAsFileDialog();
+			saveAsFileDialog(w);
 		}
 	}
 	
-	void TOPPASBase::saveAsFileDialog()
+	void TOPPASBase::saveAsFileDialog(TOPPASWidget* w)
 	{
-		TOPPASWidget* w = activeWindow_();
+		if (w == 0)
+		{
+			w = activeWindow_();
+		}
 		if (!w)
 		{
 			return;
 		}
-
+		
 		QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 		if (file_name != "")
 		{
+			if (!file_name.endsWith(".toppas"))
+			{
+				file_name += ".toppas";
+			}
 			w->getScene()->store(file_name);
+			tab_bar_->setTabText(tab_bar_->currentIndex(), File::basename(file_name).toQString());
 		}
 	}
 	
@@ -374,13 +400,36 @@ namespace OpenMS
 		{
 			tw->show();
 		}
+		TOPPASScene* ts = tw->getScene();
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(showSuccessLogMessage()));
+		connect (ts, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
+		connect (ts, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
+		ts->setSceneRect((tw->mapToScene(tw->rect())).boundingRect());
   }
 
 	
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
-  	ws_->closeAllWindows();
-  	event->accept();
+		bool close = true;
+		QList<QWidget*> all_windows = ws_->windowList();
+		foreach (QWidget* w, all_windows)
+		{
+			bool close_this = qobject_cast<TOPPASWidget*>(w)->getScene()->saveIfChanged();
+			if (!close_this)
+			{
+				close = false;
+				break;
+			}
+		}
+		if (close)
+		{
+			//ws_->closeAllWindows();
+			event->accept();
+		}
+		else
+		{
+			event->ignore();
+		}
   }
 
 	void TOPPASBase::showURL()
@@ -423,7 +472,12 @@ namespace OpenMS
   	if (window)
   	{
   		window->close();
-  		updateMenu();
+  		// if the window refused to close, do not remove tab
+			if (!window->isVisible())
+			{
+				tab_bar_->removeId(id);
+			}
+			updateMenu();
   	}
   }
 
@@ -545,11 +599,9 @@ namespace OpenMS
 		QGridLayout* grid = new QGridLayout(dlg);
 		dlg->setWindowTitle("About TOPPAS");
 
-		//image TODO
-		//QLabel* label = new QLabel(dlg);
-		//QPixmap image(Oesterberg);
-		//label->setPixmap(image);
-		//grid->addWidget(label,0,0);
+		QLabel* label = new QLabel(dlg);
+		label->setPixmap(QPixmap(":/TOPPView_about.png"));
+		grid->addWidget(label,0,0);
 
 		//text
 		QString text = QString("<BR>"
@@ -568,8 +620,8 @@ namespace OpenMS
 													 "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
 													 "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
 													 ).arg(VersionInfo::getVersion().toQString());
-		QLabel* label = new QLabel(text,dlg);
-		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
+		QLabel* text_label = new QLabel(text,dlg);
+		grid->addWidget(text_label,0,1,Qt::AlignTop | Qt::AlignLeft);
 
 		//execute
 		dlg->exec();
@@ -577,14 +629,43 @@ namespace OpenMS
 	
   void TOPPASBase::updateMenu()
   {
+  	TOPPASWidget* tw = activeWindow_();
+  	TOPPASScene* ts = 0;
+  	if (tw)
+  	{
+  		ts = tw->getScene();
+  	}
   	
+  	QList<QAction*> actions = this->findChildren<QAction*>("");
+		for (int i=0; i<actions.count(); ++i)
+		{
+			QString text = actions[i]->text();
+			
+			if (text=="&Run")
+			{
+				bool show = false;
+				if (tw && ts && !(ts->isPipelineRunning()))
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+			else if (text=="&Abort")
+			{
+				bool show = false;
+				if (tw && ts && ts->isPipelineRunning())
+				{
+					show = true;
+				}
+				actions[i]->setEnabled(show);
+			}
+		}
   }
 
   void TOPPASBase::showLogMessage_(TOPPASBase::LogState state, const String& heading, const String& body)
   {
 		//Compose current time string
-		DateTime d;
-		d.now();
+		DateTime d = DateTime::now();
 
 		String state_string;
 		switch(state)
@@ -601,6 +682,7 @@ namespace OpenMS
 
   	//show log tool window
 		qobject_cast<QWidget *>(log_->parent())->show();
+		log_->moveCursor(QTextCursor::End);
   }
 
 	void TOPPASBase::keyPressEvent(QKeyEvent* /*e*/)
@@ -681,6 +763,7 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
 			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 			
+			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
 			connect(ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
 			connect(ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
 		}
@@ -689,28 +772,14 @@ namespace OpenMS
 		scene->addVertex(tv);
 		
 		connect(tv,SIGNAL(clicked()),scene,SLOT(itemClicked()));
-		connect(tv,SIGNAL(doubleClicked()),scene,SLOT(itemDoubleClicked()));
+		connect(tv,SIGNAL(released()),scene,SLOT(itemReleased()));
 		connect(tv,SIGNAL(hoveringEdgePosChanged(const QPointF&)),scene,SLOT(updateHoveringEdgePos(const QPointF&)));
 		connect(tv,SIGNAL(newHoveringEdge(const QPointF&)),scene,SLOT(addHoveringEdge(const QPointF&)));
 		connect(tv,SIGNAL(finishHoveringEdge()),scene,SLOT(finishHoveringEdge()));
-	}
-	
-	void TOPPASBase::treeViewItemPressed_(QTreeWidgetItem* item, int /*column*/)
-	{
-		if (item == 0)
-		{
-			return;
-		}
+		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
 		
-		if (item->childCount() > 0)
-		{
-			// a tool with types was pressed but only its types are allowed to be dragged
-			tools_tree_view_->setDragEnabled(false);
-		}
-		else
-		{
-			tools_tree_view_->setDragEnabled(true);
-		}
+		scene->topoSort();
+		scene->setChanged(true);
 	}
 	
 	void TOPPASBase::runPipeline()
@@ -719,6 +788,15 @@ namespace OpenMS
 		if (w)
 		{
 			w->getScene()->runPipeline();
+		}
+	}
+	
+	void TOPPASBase::abortPipeline()
+	{
+		TOPPASWidget* w = activeWindow_();
+		if (w)
+		{
+			w->getScene()->abortPipeline();
 		}
 	}
 	
@@ -737,6 +815,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_NOTICE, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolFinished()
@@ -754,6 +833,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_NOTICE, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolCrashed()
@@ -771,6 +851,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_ERROR, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolFailed()
@@ -788,6 +869,7 @@ namespace OpenMS
 			
 			showLogMessage_(LS_ERROR, text, "");
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::outputVertexFinished(const String& file)
@@ -814,7 +896,9 @@ namespace OpenMS
 		qobject_cast<QWidget*>(log_->parent())->show();
 
 		//update log_
+		log_->moveCursor(QTextCursor::End);
 		log_->textCursor().insertText(text);
+		log_->moveCursor(QTextCursor::End);
 	}
 	
 	void TOPPASBase::showSuccessLogMessage()

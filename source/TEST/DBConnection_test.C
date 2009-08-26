@@ -58,7 +58,7 @@ bool do_tests=true;
 TextFile credentials;
 try
 {
-	credentials.load("DB_credentials.txt",true);
+	credentials.load(String(OPENMS_BINARY_PATH) + "/source/TEST/DB_credentials.txt",true);
 }
 catch(...)
 {
@@ -92,7 +92,7 @@ START_SECTION((void connect(const String &db, const String &user, const String &
 	  con.connect(db,user,password,host, port.toInt());
 END_SECTION
 
-START_SECTION((String DBName() const ))
+START_SECTION((String DBName() const))
 		DBConnection con;
 	  TEST_EQUAL(con.DBName(),"");
 	  con.connect(db,user,password,host, port.toInt());
@@ -114,7 +114,7 @@ START_SECTION((void disconnect()))
 	  TEST_EQUAL(con.isConnected(),false);
 END_SECTION
 
-START_SECTION((QSqlQuery executeQuery(const String &query)))
+START_SECTION((QSqlQuery executeQuery(const String &query, bool first=false)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy");

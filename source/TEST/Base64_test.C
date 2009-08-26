@@ -42,11 +42,6 @@
 
 using namespace std;
 
-
-
-
-
-
 START_TEST(Base64, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -68,13 +63,13 @@ START_SECTION((virtual ~Base64()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((template < typename FromType > void encode(std::vector< FromType > &in, ByteOrder to_byte_order, std::string &out, bool zlib_compression=false)))
+START_SECTION((template < typename FromType > void encode(std::vector< FromType > &in, ByteOrder to_byte_order, String &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
   std::vector<Real> data;
   std::vector<Real> res;
-  string dest;
+  String dest;
 
 	b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
 	TEST_EQUAL(dest, "");
@@ -106,11 +101,11 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
 	
 END_SECTION
 
-START_SECTION((template < typename ToType > void decode(const std::string &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
+START_SECTION((template < typename ToType > void decode(const String &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
-	string src;
+	String src;
 	std::vector<Real> res;
 	std::vector<DoubleReal> res_double;
 
@@ -153,7 +148,7 @@ END_SECTION
 START_SECTION([EXTRA] zlib functionality)
 	TOLERANCE_ABSOLUTE(0.001)
 	Base64 b64;
-	string str,src;
+	String str,src;
 	std::vector<Real> data,res;
 	std::vector<DoubleReal> data_double,res_double;
 	
@@ -218,72 +213,10 @@ START_SECTION([EXTRA] zlib functionality)
 	
 END_SECTION
 
-START_SECTION([EXTRA] integers and strings)
+START_SECTION((void encodeStrings(std::vector<String>& in, String& out, bool zlib_compression= false)))
 	Base64 b64;
 	String src,str;
-	vector<Real> res;
-	vector<DoubleReal> double_res;
-	//with zlib compression
-	src="eJwNw4c2QgEAANAniezMIrKyUrKyMooIIdki4/8/wr3n3CAIgjZDthu2w4iddhm12x577bPfAQeNOeSwI4465rhxE044adIpp00546xzzrtg2kWXXHbFVTOumTXnunk33HTLbXcsuOue+x54aNEjjz3x1JJlzzy34oWXVr3y2htr3nrnvXUfbPjok8+++Oqb737Y9NMvW377469//gPgoxL0";
-
-	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,res,true,Base64::INTEGER);
 	
-	for(Size i = 0 ; i < res.size();++i)
-	{
-		TEST_REAL_SIMILAR(res[i], (Real) i)
-	}
-	
-	src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
-	b64.decode(src,Base64::BYTEORDER_LITTLEENDIAN,double_res,true,Base64::INTEGER);
-	
-	for(Size i = 0 ; i < double_res.size();++i)
-	{
-			TEST_REAL_SIMILAR(double_res[i], (DoubleReal) i)
-	}
-	
-	src="eJxjZGBgYAJiZiAGAAA0AAc=";
-	b64.decode(src,Base64::BYTEORDER_BIGENDIAN,res,true,Base64::INTEGER);
-	TEST_REAL_SIMILAR(res[0],16777215)
-	TEST_REAL_SIMILAR(res[1],33554432 )
-	TEST_REAL_SIMILAR(res[2],50331648 )
-	
-	//without zlib compression 32bit
-	src = "AAAAAQAAAAUAAAAGAAAABwAAAAgAAAAJAAACCg==";
-	
-	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,res,false,Base64::INTEGER);
-	
-	TEST_REAL_SIMILAR(res[0],1)
-	TEST_REAL_SIMILAR(res[1],5)
-	TEST_REAL_SIMILAR(res[2],6)
-	TEST_REAL_SIMILAR(res[3],7)
-	TEST_REAL_SIMILAR(res[4],8)
-	TEST_REAL_SIMILAR(res[5],9)
-	TEST_REAL_SIMILAR(res[6],522)
-	//64bit
-	src = "AAAAAAAAAAUAAAAAAAAAAwAAAAAAAAAJ";	
-	b64.decode(src, Base64::BYTEORDER_BIGENDIAN,double_res,false,Base64::INTEGER);	
-	TEST_REAL_SIMILAR(double_res[0],5)
-	TEST_REAL_SIMILAR(double_res[1],3)
-	TEST_REAL_SIMILAR(double_res[2],9)	
-
-	//64bit
-	src = "BQAAAAAAAAADAAAAAAAAAAkAAAAAAAAA";	
-	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,double_res,false,Base64::INTEGER);	
-	TEST_REAL_SIMILAR(double_res[0],5)
-	TEST_REAL_SIMILAR(double_res[1],3)
-	TEST_REAL_SIMILAR(double_res[2],9)	
-	//32bit
-	src ="AQAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgIAAA==";
-	b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN,res,false,Base64::INTEGER);
-	
-	TEST_REAL_SIMILAR(res[0],1)
-	TEST_REAL_SIMILAR(res[1],5)
-	TEST_REAL_SIMILAR(res[2],6)
-	TEST_REAL_SIMILAR(res[3],7)
-	TEST_REAL_SIMILAR(res[4],8)
-	TEST_REAL_SIMILAR(res[5],9)
-	TEST_REAL_SIMILAR(res[6],522)
-	//encode and decode of strings
 	//without zlib compression
 	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0";
 	vector<String> strings;
@@ -294,7 +227,7 @@ START_SECTION([EXTRA] integers and strings)
 	TEST_EQUAL(strings[2],"ein")
 	TEST_EQUAL(strings[3],"test")
 	TEST_EQUAL(strings[4],"1234")
-	//same as above but this time the hole string is null-terminated as well
+	//same as above but this time the hole Stringis null-terminated as well
 	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
 	b64.decodeStrings(src,strings,false);
 	TEST_EQUAL(strings.size() == 5,true 	)
@@ -322,6 +255,152 @@ START_SECTION([EXTRA] integers and strings)
 	TEST_EQUAL(strings[2],"ein")
 	TEST_EQUAL(strings[3],"test")
 	TEST_EQUAL(strings[4],"1234")
+END_SECTION
+	
+START_SECTION((void decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression = false)))
+	//this functionality is tested in the encodeString test
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((template < typename ToType > void decodeIntegers(const String &in, ByteOrder from_byte_order, std::vector< ToType > &out, bool zlib_compression=false)))
+	Base64 b64;
+	String src,str;
+	vector<Int32> res;
+	vector<Int64> double_res;
+	//with zlib compression
+	src="eJwNw4c2QgEAANAniezMIrKyUrKyMooIIdki4/8/wr3n3CAIgjZDthu2w4iddhm12x577bPfAQeNOeSwI4465rhxE044adIpp00546xzzrtg2kWXXHbFVTOumTXnunk33HTLbXcsuOue+x54aNEjjz3x1JJlzzy34oWXVr3y2htr3nrnvXUfbPjok8+++Oqb737Y9NMvW377469//gPgoxL0";
+
+	b64.decodeIntegers(src, Base64::BYTEORDER_LITTLEENDIAN,res,true);
+	
+	for(Size i = 0 ; i < res.size();++i)
+	{
+		TEST_EQUAL(res[i], i)
+	}
+	
+	src="eJwtxdciAgAAAMDMZBWyiUrZLdlkZJRC9l79/0f04O7lAoF/bW53hzvd5W4H3eOQe93nfg940GFHPORhjzjqUY953BOe9JSnPeNZxzznecedcNILTjntRS952Ste9ZrXnXHWOedd8IaL3vSWt73jXe953wc+dMlHPvaJT132mc994UtXXPWVa6772je+dcN3vveDH/3kZ7/41W9+94c//eVv//jXf266BcFVEvQ=";
+	b64.decodeIntegers(src,Base64::BYTEORDER_LITTLEENDIAN,double_res,true);
+	
+	for(Size i = 0 ; i < double_res.size();++i)
+	{
+			TEST_EQUAL(double_res[i], i)
+	}
+	
+	src="eJxjZGBgYAJiZiAGAAA0AAc=";
+	b64.decodeIntegers(src,Base64::BYTEORDER_BIGENDIAN,res,true);
+	TEST_EQUAL(res[0],16777216)
+	TEST_EQUAL(res[1],33554432)
+	TEST_EQUAL(res[2],50331648)
+	
+	//without zlib compression 32bit
+	src = "AAAAAQAAAAUAAAAGAAAABwAAAAgAAAAJAAACCg==";
+	
+	b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,res,false);
+	
+	TEST_EQUAL(res[0],1)
+	TEST_EQUAL(res[1],5)
+	TEST_EQUAL(res[2],6)
+	TEST_EQUAL(res[3],7)
+	TEST_EQUAL(res[4],8)
+	TEST_EQUAL(res[5],9)
+	TEST_EQUAL(res[6],522)
+	//64bit
+	src = "AAAAAAAAAAUAAAAAAAAAAwAAAAAAAAAJ";	
+	b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,double_res,false);	
+	TEST_EQUAL(double_res[0],5)
+	TEST_EQUAL(double_res[1],3)
+	TEST_EQUAL(double_res[2],9)	
+
+	//64bit
+	src = "BQAAAAAAAAADAAAAAAAAAAkAAAAAAAAA";	
+	b64.decodeIntegers(src, Base64::BYTEORDER_LITTLEENDIAN,double_res,false);	
+	TEST_EQUAL(double_res[0],5)
+	TEST_EQUAL(double_res[1],3)
+	TEST_EQUAL(double_res[2],9)	
+	//32bit
+	src ="AQAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgIAAA==";
+	b64.decodeIntegers(src, Base64::BYTEORDER_LITTLEENDIAN,res,false);
+	
+	TEST_EQUAL(res[0],1)
+	TEST_EQUAL(res[1],5)
+	TEST_EQUAL(res[2],6)
+	TEST_EQUAL(res[3],7)
+	TEST_EQUAL(res[4],8)
+	TEST_EQUAL(res[5],9)
+	TEST_EQUAL(res[6],522)
+END_SECTION
+
+START_SECTION((template <typename FromType> void encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression=false)))
+	Base64 b64;
+	String tmp;
+	
+	//64 bit tests
+	vector<Int64> vec64, vec64_in, vec64_out;
+	vec64.push_back(0);
+	vec64.push_back(1);
+	vec64.push_back(2);
+	vec64.push_back(3);
+	vec64.push_back(4);
+	vec64.push_back(5);
+	
+	//test with little endian and without compression
+	tmp="";
+	vec64_in = vec64;
+	vec64_out.clear();
+	b64.encodeIntegers(vec64_in, Base64::BYTEORDER_LITTLEENDIAN, tmp, false);
+	b64.decodeIntegers(tmp, Base64::BYTEORDER_LITTLEENDIAN, vec64_out, false);
+	TEST_EQUAL(vec64.size(),vec64_out.size())
+	for (Size i=0; i<vec64.size(); ++i)
+	{
+		TEST_EQUAL(vec64[i],vec64_out[i])
+	}
+
+	//test with bit endian and compression
+	vec64.push_back(999999);
+	tmp = "";
+	vec64_in = vec64;
+	vec64_out.clear();
+	b64.encodeIntegers(vec64_in, Base64::BYTEORDER_BIGENDIAN, tmp, true);
+	b64.decodeIntegers(tmp, Base64::BYTEORDER_BIGENDIAN, vec64_out, true);
+	TEST_EQUAL(vec64.size(),vec64_out.size())
+	for (Size i=0; i<vec64.size(); ++i)
+	{
+		TEST_EQUAL(vec64[i],vec64_out[i])
+	}
+
+	//32 bit tests	
+	vector<Int32> vec32, vec32_in, vec32_out;
+	vec32.push_back(0);
+	vec32.push_back(5);
+	vec32.push_back(10);
+	vec32.push_back(15);
+	vec32.push_back(20);
+	vec32.push_back(25);
+
+	//test with little endian and without compression
+	tmp = "";
+	vec32_in = vec32;
+	vec32_out.clear();
+	b64.encodeIntegers(vec32_in, Base64::BYTEORDER_LITTLEENDIAN, tmp, false);
+	b64.decodeIntegers(tmp, Base64::BYTEORDER_LITTLEENDIAN, vec32_out, false);
+	TEST_EQUAL(vec32.size(),vec32_out.size())
+	for (Size i=0; i<vec32.size(); ++i)
+	{
+		TEST_EQUAL(vec32[i],vec32_out[i])
+	}
+
+	//test with bit endian and compression
+	vec32.push_back(999999);
+	tmp = "";
+	vec32_in = vec32;
+	vec32_out.clear();
+	b64.encodeIntegers(vec32_in, Base64::BYTEORDER_BIGENDIAN, tmp, true);
+	b64.decodeIntegers(tmp, Base64::BYTEORDER_BIGENDIAN, vec32_out, true);
+	TEST_EQUAL(vec32.size(),vec32_out.size())
+	for (Size i=0; i<vec32.size(); ++i)
+	{
+		TEST_EQUAL(vec32[i],vec32_out[i])
+	}
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

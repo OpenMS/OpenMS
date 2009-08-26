@@ -32,6 +32,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 #include <cmath>
 
@@ -41,8 +42,8 @@ namespace OpenMS
 {
 	ModificationsDB::ModificationsDB()
 	{
-		readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
 		readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
+		readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
 	}
 
 	ModificationsDB::~ModificationsDB()
@@ -69,94 +70,128 @@ namespace OpenMS
 	}
 
 	
-	set<String> ModificationsDB::searchModifications(const String& name) const
+	void ModificationsDB::searchTerminalModifications(set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const
 	{
+		//cerr << "searchTerminalModification(" << name << " " << term_spec << endl;
 		if (!modification_names_.has(name))
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
 		}
 		
-		set<const ResidueModification*> mods = modification_names_[name];
-		set<String> new_mods;
-		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+		set<const ResidueModification*> new_mods = modification_names_[name];
+		for (set<const ResidueModification*>::const_iterator it = new_mods.begin(); it != new_mods.end(); ++it)
 		{
-			new_mods.insert((*it)->getId());
+			//cerr << "Possible modification " << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
+			if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
+			{
+				//cerr << "Found correc term spec and adding '" << (*it)->getFullId() << "'" << endl;
+				mods.insert(*it);
+			}
 		}
-		return new_mods;
 	}
 
-	set<String> ModificationsDB::searchModifications(const String& name, const String& origin) const
+	void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& origin, const String& name, ResidueModification::Term_Specificity term_spec) const
 	{
+		//cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
 		if (!modification_names_.has(name))
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
 		}
 
-		set<const ResidueModification*> mods = modification_names_[name];
-		set<String> new_mods;
-		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+		set<const ResidueModification*> new_mods = modification_names_[name];
+		for (set<const ResidueModification*>::const_iterator it = new_mods.begin(); it != new_mods.end(); ++it)
 		{
+			//cerr << "Search: " << (*it)->getOrigin() << " " << origin << " " << name << endl;
 			if ((*it)->getOrigin() == origin)
 			{
-				new_mods.insert((*it)->getId());
+				//cerr << "SearchOrigin: " << (*it)->getOrigin() << " " << origin << " " << name << endl;
+				if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
+				{
+					mods.insert(*it);
+				}
 			}
 		}
-
-		return new_mods;
 	}
 
-	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
+
+	const ResidueModification& ModificationsDB::getTerminalModification(const String& mod_name, ResidueModification::Term_Specificity term_spec) const
 	{
-		set<const ResidueModification*> mods;
-		if (modification_names_.has(mod_name))
+		if (term_spec != ResidueModification::C_TERM && term_spec != ResidueModification::N_TERM)
 		{
-			mods = modification_names_[mod_name];
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification must be N or C-terminal! " + String(term_spec));
 		}
-		if (mods.size() != 1)
+		set<const ResidueModification*> mods;
+		searchTerminalModifications(mods, mod_name, term_spec);
+		if (mods.size() == 0)
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
 		}
+		if (mods.size() > 1)
+		{
+			cerr << "ModificationsDB::getTerminalModification: more than one modification found, picking first one (";
+			for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+			{
+				cerr << (*it)->getFullId() << ",";
+			}
+			cerr << ")" << endl;
+		}
 		return **mods.begin();
 	}
+
 	
-	const ResidueModification& ModificationsDB::getModification(const String& residue_name, const String& mod_name) const
+	const ResidueModification& ModificationsDB::getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec) const
 	{
-		if (ResidueDB::getInstance()->getResidue(residue_name) == 0)
+		//cerr << "getModification(" << residue_name << " " << mod_name << " " << term_spec << endl;
+		// either the mod is restricted to specific amino acid, or unspecific a the terminus
+		if (term_spec == ResidueModification::ANYWHERE && ResidueDB::getInstance()->getResidue(residue_name) == 0)
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
 		}
-		String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
-		set<String> mods = searchModifications(mod_name);
-		const ResidueModification* mod_res = 0;
-		const ResidueModification* mod_x = 0;
-		for (set<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
-		{
-			if (res == ModificationsDB::getInstance()->getModification(*it).getOrigin())
-			{
-				if (mod_res == 0)
-				{
-					mod_res = &ModificationsDB::getInstance()->getModification(*it);
-				}
-				else
-				{
-					cerr << "ModificationsDB::getModification: Warning more than one modification found for modification '" << mod_name << "' at residue '" << residue_name << "', picking first" << endl;
-				}
-			}
-			if ("X" == ModificationsDB::getInstance()->getModification(*it).getOrigin() && mod_x == 0)
-			{
-				mod_x = &ModificationsDB::getInstance()->getModification(*it);
-			}
-		}
 
-		if (mod_res == 0 && mod_x == 0)
+		String res = residue_name;
+		res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
+
+		//cerr << "getModification(" << res << " " << mod_name << endl;
+
+		set<const ResidueModification*> mods;
+		searchModifications(mods, res, mod_name, term_spec);
+    if (mods.size() == 0)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+    }
+    if (mods.size() > 1)
+    {
+      cerr << "ModificationsDB::getModification: more than one modification found, picking first one (";
+      for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+      {
+        cerr << (*it)->getFullId() << ",";
+      }
+			cerr << ")" << endl;
+    }
+    return **mods.begin();
+	}
+
+	const ResidueModification& ModificationsDB::getModification(const String& modification) const
+	{
+		if (!modification_names_.has(modification))
 		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name + "@" + residue_name);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
 		}
-		if (mod_res != 0)
-		{
-			return *mod_res;
-		}
-		return *mod_x;
+		set<const ResidueModification*> mods = modification_names_[modification];
+		if (mods.size() == 0)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
+    }
+    if (mods.size() > 1)
+    {
+      cerr << "ModificationsDB::getModification: more than one modification found, picking first one (";
+      for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+      {
+        cerr << (*it)->getFullId() << ",";
+      }
+			cerr << ")" << endl;
+    }
+    return **mods.begin();
 	}
 
 	Size ModificationsDB::findModificationIndex(const String& mod_name) const
@@ -192,7 +227,7 @@ namespace OpenMS
 		{
 			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
 			{
-				mods.push_back((*it)->getId());
+				mods.push_back((*it)->getFullId());
 			}
 		}
 	}
@@ -206,7 +241,7 @@ namespace OpenMS
 				String origin = (*it)->getOrigin();
 				if (ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
 				{
-					mods.push_back((*it)->getId());
+					mods.push_back((*it)->getFullId());
 				}
 			}
 		}
@@ -220,7 +255,7 @@ namespace OpenMS
 				{
 					if ((*it)->getOrigin() == "X")
 					{
-						mods.push_back((*it)->getId());
+						mods.push_back((*it)->getFullId());
 					}
 				}
 			}
@@ -232,51 +267,21 @@ namespace OpenMS
 		vector<ResidueModification*> new_mods;
 		UnimodXMLFile().load(filename, new_mods);
 
-		vector<ResidueModification*> to_delete;
-
     for (vector<ResidueModification*>::iterator it = new_mods.begin(); it != new_mods.end(); ++it)
     {
-			// search whether this modification is already contained in the DB
-			// this list contains all specificities of unimod as separat entries,
-			// because PSI-MOD handles them as different entries
-			if (modification_names_.has((*it)->getUniModAccession()))
-			{
-				String origin = (*it)->getOrigin();
+			(*it)->setFullId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
+			// e.g. Oxidation (M)
+			modification_names_[(*it)->getFullId()].insert(*it);
+			// e.g. Oxidation
+			modification_names_[(*it)->getId()].insert(*it);
+			// e.g. Oxidated
+			modification_names_[(*it)->getFullName()].insert(*it);
+			// e.g. UniMod:312
+			modification_names_[(*it)->getUniModAccession()].insert(*it);
+			mods_.push_back(*it);
 
-				bool found(false);
-				set<const ResidueModification*> mods = modification_names_[(*it)->getUniModAccession()];
-				for (set<const ResidueModification*>::iterator mit = mods.begin(); mit != mods.end(); ++mit)
-				{
-					if ((*mit)->getOrigin() == origin)
-					{
-						const_cast<ResidueModification*>(*mit)->setId((*it)->getId() + " (" + origin + ")");
-						modification_names_[(*mit)->getId()].insert(*mit);
-						to_delete.push_back(*it);
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
-					modification_names_[(*it)->getId()].insert(*it);
-					mods_.push_back(*it);
-				}
-			}
-			else
-			{
-				(*it)->setId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
-				modification_names_[(*it)->getId()].insert(*it);
-				mods_.push_back(*it);
-			}
+			//cerr << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
     }
-
-		// delete modifications which were not registered
-		for (vector<ResidueModification*>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
-		{
-			delete *it;
-		}
 
 		return;
 	}
@@ -417,26 +422,47 @@ namespace OpenMS
 			}
     }
 
-		if (id!="") //store last term
+		if (id != "") //store last term
 		{
 			all_mods[id] = mod;
 		}
 
+
 		// now use the term and all synonyms to build the database
 		for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
 		{
-			mods_.push_back(new ResidueModification(it->second));
-			
-			set<String> synonyms = it->second.getSynonyms();
-			synonyms.insert(it->first);
-			synonyms.insert(it->second.getFullName());
-			synonyms.insert(it->second.getUniModAccession());
-			synonyms.insert(it->second.getPSIMODAccession());
 
-			// now check each of the names and link it to the residue modification
-			for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)
+			// check whether a unimod definition alread exists, then simply add synonyms to it
+			if (it->second.getUniModAccession() != "")
 			{
-				modification_names_[*nit].insert(mods_.back());
+				//cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
+				set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
+				for (set<const ResidueModification*>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+				{
+					//cerr << "Adding PSIMOD accession: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
+					modification_names_[it->second.getPSIMODAccession()].insert(*mit);
+				}
+			}
+			else
+			{
+				// the mod has so far not been mapped to a unimod mod
+				// first check whether the mod is specific
+				if (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X")
+				{	
+					mods_.push_back(new ResidueModification(it->second));
+			
+					set<String> synonyms = it->second.getSynonyms();
+					synonyms.insert(it->first);
+					synonyms.insert(it->second.getFullName());
+					synonyms.insert(it->second.getUniModAccession());
+					synonyms.insert(it->second.getPSIMODAccession());
+
+					// now check each of the names and link it to the residue modification
+					for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)
+					{
+						modification_names_[*nit].insert(mods_.back());
+					}
+				}
 			}
 		}
 
@@ -449,10 +475,10 @@ namespace OpenMS
 		{
 			if ((*it)->getUniModAccession() != "")
 			{
-				cerr << (*it)->getUniModAccession() << endl;
-				modifications.push_back((*it)->getId());
+				modifications.push_back((*it)->getFullId());
 			}
 		}
+		sort(modifications.begin(), modifications.end());
 	}
 } // namespace OpenMS
 

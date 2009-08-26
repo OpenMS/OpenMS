@@ -35,6 +35,8 @@
 
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #ifdef _MSC_VER // disable some COIN-OR warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -86,22 +88,22 @@ namespace OpenMS {
 		DoubleReal scorel;
 		for	(PairsIndex i=0;i+allowedPairs-1<pairs.size();i+=allowedPairs)
 		{
-			scorel = compute_slice(me, pairs, i, i+allowedPairs,0,0);
+			scorel = computeSlice_(me, pairs, i, i+allowedPairs,0,0);
 			score += scorel;
 			//TODO take care of overlapping borders!!
 			std::cout << "slice (" << i << "-" << (i+allowedPairs) << ")score: " << scorel << std::endl; 
 		}
     #endif
-    score = compute_slice_(me, fm, pairs, 0, pairs.size());
+    score = computeSlice_(me, fm, pairs, 0, pairs.size());
 
 		return score;
 	}
 		
-	DoubleReal MIPWrapper::compute_slice_(const MassExplainer& me,
-																				const FeatureMap<> fm,
-																				PairsType& pairs, 
-																				const PairsIndex margin_left, 
-																				const PairsIndex margin_right)
+	DoubleReal MIPWrapper::computeSlice_(const MassExplainer& /*me*/,
+																			 const FeatureMap<> fm,
+																			 PairsType& pairs, 
+																			 const PairsIndex margin_left, 
+																			 const PairsIndex margin_right)
 	{
 
 		std::cout << "compute .." << std::endl;
@@ -120,8 +122,8 @@ namespace OpenMS {
 		//------------------------------------objective function-----------------------------------------------
 
 		// find maximal objective value
-		float score = 0;
-		float score_min=10e10f, score_max = -10e10f;
+		DoubleReal score = 0;
+		DoubleReal score_min=10e10f, score_max = -10e10f;
 
 		// fill in objective values 
 		std::ostringstream namebuf;
@@ -130,25 +132,28 @@ namespace OpenMS {
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
 
-     if(i==2797)
-     {
-        ChargePair t =  pairs[i];
-        std::cout << "found";
-      }
+     //if(i==2797)
+     //{
+     //   ChargePair t =  pairs[i];
+     //   std::cout << "found";
+     // }
 			
-			// 
+			// log scores are good for addition in ILP - but we need them to be > 0
 
-      score = -log(1-exp(getLogScore(i, pairs, fm, me)));
+      score = -log(1-exp(getLogScore_(i, pairs, fm)));
 			namebuf.str("");
 			namebuf<<"x#"<<i;
+			//std::cout << "score: " << score << "\n";
 			// create the new variable object
 			build.setColumnBounds(int(i-margin_left),0,1);
 			build.setInteger(int(i-margin_left));
 			build.setObjective(int(i-margin_left),score);
-			pairs[i].setEdgeScore(score);
+			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 			if (score_min > score ) score_min = score;
 			if (score_max < score ) score_max = score;
-			//std::cout << "added #"<< i << "\n";
+			
+			// DEBUG:
+			//std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
 		}
 		std::cout << "DONE adding variables..."<< std::endl;
 		std::cout << "score_min: " << score_min << " score_max: " << score_max << "\n";
@@ -158,32 +163,20 @@ namespace OpenMS {
 		bool is_conflicting;
 		std::vector<int> conflict_idx(4);
 
-		Adduct implicit_one(1, 1, 1, "H1", 0.9f);
+		Map< Size, std::vector<Size> > conflict_map;
 
 		for (PairsIndex i=margin_left; i<margin_right; ++i)
 		{
+			const Compomer& ci = pairs[i].getCompomer();
+	
 			for (PairsIndex j=i+1; j<margin_right; ++j)
 			{
+				const Compomer& cj = pairs[j].getCompomer();
+				
 				is_conflicting = false;
 				// add pairwise constraints (one for each two conflicting ChargePairs)
 				// if features are identical they must have identical charges (because any single
 				// feature can only have one unique charge)
-
-				const Compomer& ci = me.getCompomerById(pairs[i].getCompomerId());
-				const Compomer& cj = me.getCompomerById(pairs[j].getCompomerId());
-				
-				// getCharge should always be positive. getNegativeCharges() as well
-				int hc_i_0 = pairs[i].getCharge(0) - ci.getNegativeCharges(); // this should always be positive! check!!
-				int hc_j_0 = pairs[j].getCharge(0) - cj.getNegativeCharges(); // this should always be positive! check!!
-				int hc_i_1 = pairs[i].getCharge(1) - ci.getPositiveCharges(); // this should always be positive! check!!
-				int hc_j_1 = pairs[j].getCharge(1) - cj.getPositiveCharges(); // this should always be positive! check!!
-
-				if (hc_i_0 < 0 || hc_i_1 < 0 || hc_j_0 < 0 || hc_j_1 < 0 )
-				{
-					std::cout << "WARNING!!! implicit number of H+ is negative!!!\nCP_i: " << pairs[i] << "\n" << ci << "\nCP_j: " << pairs[j] << "\n" << cj  << std::endl;
-					exit(0);
-				}
-
 
         if(i==2796 && j==2797) // every conflict involving the missing edge...
         {
@@ -194,18 +187,18 @@ namespace OpenMS {
 				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
 				{
 					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(0))  ||
-							 ci.isConflicting(cj, true, true, implicit_one * hc_i_0, implicit_one * hc_j_0)  )
+							 ci.isConflicting(cj, Compomer::LEFT, Compomer::LEFT) )
 					{
 						is_conflicting = true;
 						++conflict_idx[0];
 					}
 				}
 
-				//incoming edges (from one feature)
+				//incoming edges (into one feature)
 				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(1))
 				{
 					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(1))  ||
-							 ci.isConflicting(cj, false, false, implicit_one * hc_i_1, implicit_one * hc_j_1) )
+							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::RIGHT) )
 					{
 						is_conflicting = true;
 						++conflict_idx[1];
@@ -216,18 +209,18 @@ namespace OpenMS {
 				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(0))
 				{
 					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(0))  ||
-							 ci.isConflicting(cj, false, true , implicit_one * hc_i_1, implicit_one * hc_j_0) )
+							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::LEFT) )
 					{
 						is_conflicting = true;
 						++conflict_idx[2];
 					}
 				}
 				
-				//incoming/outgoing edge (from one feature) -- this should not happen
+				//incoming/outgoing edge (from one feature) -- this should only happen to addiditonally inferred egdes
 				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(1))
 				{
 					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(1))  ||
-							 ci.isConflicting(cj, true, false, implicit_one * hc_i_0, implicit_one * hc_j_1) )
+							 ci.isConflicting(cj, Compomer::LEFT, Compomer::RIGHT) )
 					{
 						is_conflicting = true;
 						++conflict_idx[3];
@@ -237,6 +230,10 @@ namespace OpenMS {
 								
 				if (is_conflicting)
 				{
+				
+					conflict_map[i].push_back(j);
+					conflict_map[j].push_back(i);
+					
           if(i==150 || j==2797) // every conflict involving the missing edge...
           {
             ChargePair ti =  pairs[i];
@@ -266,7 +263,20 @@ namespace OpenMS {
 		// add rows into solver
 		solver.loadFromCoinModel(build);
 
-		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0!)" << std::endl << std::flush;
+		// DEBUG:
+		std::cout << " CONSTRAINTS count: " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl << std::flush;
+		TextFile conflict_map_out;
+		for (Map<Size, std::vector <Size> >::const_iterator it = conflict_map.begin(); it!= conflict_map.end(); ++it)
+		{
+			String s;
+			s = String(it->first) + ":";
+			for (Size i = 0; i<it->second.size(); ++i)
+			{
+				s+= " " + String(it->second[i]);
+			}
+			conflict_map_out.push_back(s);
+		}
+		//conflict_map_out.store("conflict_map.txt");
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
@@ -347,15 +357,21 @@ namespace OpenMS {
 				++active_edges;
 				pairs[margin_left+iColumn].setActive(true);
 				// for statistical purposes: collect compomer distribution
-				String cmp = me.getCompomerById(pairs[margin_left+iColumn].getCompomerId()).getAdductsAsString();
+				String cmp = pairs[margin_left+iColumn].getCompomer().getAdductsAsString();
 				count_cmp[cmp] = count_cmp[cmp] + 1;
+				//std::cerr << " edge " << iColumn << " with " << value << "(active)\n";
+			}
+			else
+			{
+				// DEBUG
+				//std::cerr << " edge " << iColumn << " with " << value << "\n";
 			}
 		}
 		std::cout << "active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
 		for (Map < String, Size >::const_iterator it=count_cmp.begin(); it != count_cmp.end(); ++it)
 		{
-			std::cout << "Cmp " << it->first << " x " << it->second << "\n";
+			//std::cout << "Cmp " << it->first << " x " << it->second << "\n";
 		}
 
 		DoubleReal opt_value = model.getObjValue();
@@ -364,7 +380,7 @@ namespace OpenMS {
 		return opt_value;
 	} // !compute
 
-	float MIPWrapper::getLogScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me)
+	DoubleReal MIPWrapper::getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm)
 	{
 		// TODO think of something better here!
 		DoubleReal score;
@@ -372,8 +388,8 @@ namespace OpenMS {
 		if (getenv ("M") != 0) e = String(getenv ("M"));
 		if (e == "")
 		{
-			std::cout << "1";
-			score = me.getCompomerById(pairs[i].getCompomerId()).getLogP();
+			//std::cout << "1";
+			score = pairs[i].getCompomer().getLogP();
 			DoubleReal charge_enhance = 0;
 			
 			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
@@ -387,7 +403,7 @@ namespace OpenMS {
 		}
 		else 
 		{
-			std::cout << "2";
+			//std::cout << "2";
 			DoubleReal rt_diff =  fabs(fm[pairs[i].getElementIndex(0)].getRT() - fm[pairs[i].getElementIndex(1)].getRT());
 			// enhance correct charge
 			DoubleReal charge_enhance = ( (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
@@ -397,7 +413,7 @@ namespace OpenMS {
 			score = charge_enhance * (1 / (pairs[i].getMassDiff()+1) + 1 / (rt_diff+1));
 		}
 		
-		
+		//std::cout << "logscore: " << score << "\n";
 		
 		return score;
 	}

@@ -68,13 +68,12 @@ namespace OpenMS
 		defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring");
 		defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions");
 		defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score");
-		defaults_.setValue("number_missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
+		defaults_.setValue("missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
 		defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
 		defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring");
-		//defaults_.setValue("fixed_modifications", "MOD:01329", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", );
-		defaults_.setValue("fixed_modifications", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		//defaults_.setValue("variable_modifications", "MOD:00719", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("variable_modifications", "MOD:00719,MOD:01329", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
 
 		defaultsToParam_();
 	}
@@ -106,7 +105,7 @@ namespace OpenMS
   	Peak1D p;
   	DoubleReal b_pos(0.0 + prefix);
 	  DoubleReal y_pos(h2o_mass + suffix);
-  	for (UInt i = 0; i != sequence.size() - 1; ++i)
+  	for (Size i = 0; i != sequence.size() - 1; ++i)
 	  {
   	  char aa(sequence[i]);
     	b_pos += aa_to_weight_[aa];
@@ -117,14 +116,14 @@ namespace OpenMS
     	if (b_pos > min_mz_ && b_pos < max_mz_)
     	{
       	p.setPosition(b_pos + Constants::PROTON_MASS_U);
-      	p.setIntensity(1.0);
+      	p.setIntensity(1.0f);
       	spec.push_back(p);
     	}
 
     	if (y_pos > min_mz_ && y_pos < max_mz_)
     	{
       	p.setPosition(y_pos + Constants::PROTON_MASS_U);
-      	p.setIntensity(1.0);
+      	p.setIntensity(1.0f);
       	spec.push_back(p);
     	}
   	}
@@ -133,7 +132,7 @@ namespace OpenMS
 		return;
 	}
 
-	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Int charge, DoubleReal prefix, DoubleReal suffix)
+	void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Size charge, DoubleReal prefix, DoubleReal suffix)
 	{
 		static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
 		static DoubleReal nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
@@ -143,24 +142,24 @@ namespace OpenMS
     DoubleReal y_pos(h2o_mass + suffix);
     bool b_H2O_loss(false), b_NH3_loss(false), y_NH3_loss(false);
 
-    for (UInt i = 0; i != sequence.size() - 1; ++i)
+    for (Size i = 0; i != sequence.size() - 1; ++i)
     {
       char aa(sequence[i]);
       b_pos += aa_to_weight_[aa];
 
       char aa2(sequence[sequence.size() - i - 1]);
       y_pos += aa_to_weight_[aa2];
-      for (Int z = 1; z <= charge && z < 3; ++z)
+      for (Size z = 1; z <= charge && z < 3; ++z)
       {
         // b-ions
 				if (b_pos >= min_mz_ && b_pos <= max_mz_)
 				{
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						if (z == 1 /*|| b_pos > MIN_DOUBLE_MZ*/)
 						{
         			p.setPosition((b_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j + Constants::NEUTRON_MASS_U)/(DoubleReal)z);
-        			p.setIntensity(isotope_distributions_[(Int)b_pos][j] * 0.8 / (z*z));
+        			p.setIntensity(isotope_distributions_[(Size)b_pos][j] * 0.8 / (z*z));
 							spec.push_back(p);
 						}
 					}
@@ -199,7 +198,7 @@ namespace OpenMS
 					{
         		// a-ions
         		p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass)/(DoubleReal)z);
-       			p.setIntensity(0.1);
+       			p.setIntensity(0.1f);
         		spec.push_back(p);
 					}
 				}
@@ -209,12 +208,12 @@ namespace OpenMS
 				if (y_pos > min_mz_ && y_pos < max_mz_)
 				{
         	// y-ions
-					for (UInt j = 0; j != max_isotope_; ++j)
+					for (Size j = 0; j != max_isotope_; ++j)
 					{
 						if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 						{
 							p.setPosition((y_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j * Constants::NEUTRON_MASS_U)/(DoubleReal)z);
-        			p.setIntensity(isotope_distributions_[(Int)y_pos][j] /(DoubleReal) (z*z));
+        			p.setIntensity(isotope_distributions_[(Size)y_pos][j] /(DoubleReal) (z*z));
         			spec.push_back(p);
 						}
 					}
@@ -224,7 +223,7 @@ namespace OpenMS
           p.setIntensity(0.1 / (DoubleReal)(z*z));
 					if (aa2 == 'Q') // pyroglutamic acid formation
 					{
-						p.setIntensity(0.5);
+						p.setIntensity(0.5f);
 					}	
 					if (z == 1/* || y_pos > MIN_DOUBLE_MZ*/)
 					{
@@ -258,7 +257,7 @@ namespace OpenMS
 			}*/
 
 			/*		
-			for (UInt j = 0; j != max_isotope; ++j)
+			for (Size j = 0; j != max_isotope; ++j)
 			{
       	p.setPosition((precursor_weight + charge - 1 + j)/(DoubleReal)charge);
       	p.setIntensity(isotope_distributions_[(Int)p.getPosition()[0]][j] * 0.1);
@@ -294,15 +293,15 @@ namespace OpenMS
   	return;
 	}
 
-	UInt CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
+	Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
 	{
-  	UInt missed_cleavages(0);
+  	Size missed_cleavages(0);
 
   	if (peptide.size() < 2)
   	{
     	return 0;
   	}
-  	for (UInt i = 0; i != peptide.size() - 1; ++i)
+  	for (Size i = 0; i != peptide.size() - 1; ++i)
   	{
     	if ((peptide[i] == 'R' || peptide[i] == 'K') && peptide[i + 1] != 'P')
     	{
@@ -354,13 +353,13 @@ namespace OpenMS
   	return;
 	}
 
-	void CompNovoIdentificationBase::selectPivotIons_(vector<UInt>& pivots, UInt left, UInt right, Map<DoubleReal, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, DoubleReal precursor_weight, bool full_range)
+	void CompNovoIdentificationBase::selectPivotIons_(vector<Size>& pivots, Size left, Size right, Map<DoubleReal, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, DoubleReal precursor_weight, bool full_range)
 	{
 #ifdef SELECT_PIVOT_DEBUG
   	cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
 #endif
 		
-		UInt max_number_pivot((UInt)param_.getValue("max_number_pivot"));
+		Size max_number_pivot((UInt)param_.getValue("max_number_pivot"));
 
   	// TODO better heuristic, MAX_PIVOT dynamic from range
   	if (right - left > 1)
@@ -374,13 +373,13 @@ namespace OpenMS
 			// use more narrow window
 			// diff between border and new pivot should be at least 57 - fragment_mass_tolerance (smallest aa)
 
-    	UInt new_right(right), new_left(left);
-    	for (UInt i = left - 1; i < right && CID_spec[i].getPosition()[0] - CID_spec[left - 1].getPosition()[0] < 57.0 - fragment_mass_tolerance_; ++i)
+    	Size new_right(right), new_left(left);
+    	for (Size i = left - 1; i < right && CID_spec[i].getPosition()[0] - CID_spec[left - 1].getPosition()[0] < 57.0 - fragment_mass_tolerance_; ++i)
     	{
       	new_left = i;
     	}
 
-    	for (UInt i = right + 1; i > new_left &&
+    	for (Size i = right + 1; i > new_left &&
          CID_spec[right + 1].getPosition()[0] - CID_spec[i].getPosition()[0] < 57.0 - fragment_mass_tolerance_;
          --i)
     	{
@@ -400,14 +399,14 @@ namespace OpenMS
 
 
     	Size old_num_used(0);
-    	set<UInt> used_pos;
-    	for (UInt p = 0; p != min(right - left - 1, max_number_pivot); ++p)
+    	set<Size> used_pos;
+    	for (Size p = 0; p != min(right - left - 1, max_number_pivot); ++p)
     	{
       	DoubleReal max(0);
-      	UInt max_pos(0);
+      	Size max_pos(0);
 
       	bool found_pivot(false);
-      	for (UInt i = left + 1; i < right; ++i)
+      	for (Size i = left + 1; i < right; ++i)
       	{
 					DoubleReal score = ion_scores[CID_spec[i].getPosition()[0]].score;
 					DoubleReal position = CID_spec[i].getPosition()[0];
@@ -419,7 +418,7 @@ namespace OpenMS
             // now check if a very similar ion is already selected +/- 3Da
             //bool has_similar(false);
 						/*
-            for (set<UInt>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
+            for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
             {
              	if (fabs(CID_spec[*it].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
              	{
@@ -471,7 +470,7 @@ namespace OpenMS
 		PeakSpectrum::ConstIterator it1 = s1.begin();
 		PeakSpectrum::ConstIterator it2 = s2.begin();
 
-		UInt num_matches(0);
+		Size num_matches(0);
 		while (it1 != s1.end() && it2 != s2.end())
 		{
 			DoubleReal pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
@@ -507,15 +506,15 @@ namespace OpenMS
 		return p1.getScore() > p2.getScore();
 	}
 
-	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, DoubleReal windowsize, UInt no_peaks)
+	void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, DoubleReal windowsize, Size no_peaks)
 	{
   	PeakSpectrum copy(spec);
   	vector<Peak1D> to_be_deleted;
-  	for (UInt i = 0; i < spec.size(); ++i)
+  	for (Size i = 0; i < spec.size(); ++i)
   	{
     	PeakSpectrum sub_spec;
     	bool end(false);
-    	for (UInt j = i;  spec[j].getPosition()[0] - spec[i].getPosition()[0] < windowsize; )
+    	for (Size j = i;  spec[j].getPosition()[0] - spec[i].getPosition()[0] < windowsize; )
     	{
       	sub_spec.push_back(spec[j]);
       	if (++j == spec.size())
@@ -527,7 +526,7 @@ namespace OpenMS
 
     	sub_spec.sortByIntensity(true);
 
-    	for (UInt k = no_peaks; k < sub_spec.size(); ++k)
+    	for (Size k = no_peaks; k < sub_spec.size(); ++k)
     	{
       	Peak1D p(sub_spec[k]);
       	to_be_deleted.push_back(p);
@@ -555,7 +554,7 @@ namespace OpenMS
 
 	void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition>& decomps)
 	{
-		UInt max_number_aa_per_decomp((UInt)param_.getValue("max_number_aa_per_decomp"));
+		Size max_number_aa_per_decomp((UInt)param_.getValue("max_number_aa_per_decomp"));
   	vector<MassDecomposition> tmp;
   	for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
   	{
@@ -568,43 +567,16 @@ namespace OpenMS
   	return;
 	}
 
-	void CompNovoIdentificationBase::init_()
-	{
-		aa_to_weight_.clear();
-
-		aa_to_weight_['K'] = 128.095;
-  	aa_to_weight_['M'] = 131.04;
-		aa_to_weight_['F'] = 147.068;
-  	aa_to_weight_['P'] = 97.0528;
-  	aa_to_weight_['S'] = 87.032;
-  	aa_to_weight_['T'] = 101.048;
-  	aa_to_weight_['W'] = 186.079;
-  	aa_to_weight_['Y'] = 163.063;
-  	aa_to_weight_['V'] = 99.0684;
-  	aa_to_weight_['A'] = 71.0371;
-  	aa_to_weight_['R'] = 156.101;
-  	aa_to_weight_['N'] = 114.043;
-  	aa_to_weight_['D'] = 115.027;
-  	aa_to_weight_['C'] = 103.00919;
-  	//aa_to_weight_['C'] = 161.01466;
-  	aa_to_weight_['E'] = 129.043;
-  	aa_to_weight_['Q'] = 128.059;
-  	aa_to_weight_['G'] = 57.0215;
-  	aa_to_weight_['H'] = 137.059;
-  	aa_to_weight_['I'] = 113.084;
-  	aa_to_weight_['L'] = 113.084;
-	}
-	
 	void CompNovoIdentificationBase::initIsotopeDistributions_()
 	{
   	IsotopeDistribution iso_dist(max_isotope_);
-  	for (Int i = 1; i <= (Int)(max_mz_ * 2); ++i)
+  	for (Size i = 1; i <= max_mz_ * 2; ++i)
   	{
     	iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     	iso_dist.renormalize();
     	vector<DoubleReal> iso(max_isotope_, 0.0);
 
-    	for (UInt j = 0; j != iso_dist.size(); ++j)
+    	for (Size j = 0; j != iso_dist.size(); ++j)
     	{
       	iso[j] = iso_dist.getContainer()[j].second;
     	}
@@ -649,8 +621,15 @@ namespace OpenMS
 
 	void 	CompNovoIdentificationBase::updateMembers_()
 	{
-		//pilis_model_.readFromFile("/share/usr/bertsch/AC_2007/model_d8_human.dat");
-		
+		// init residue mass table
+		String residue_set(param_.getValue("residue_set"));
+
+		set<const Residue*> residues = ResidueDB::getInstance()->getResidues(residue_set);
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		{
+			aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+		}
+
 		max_number_aa_per_decomp_ = (UInt)param_.getValue("max_number_aa_per_decomp");
 		tryptic_only_ = param_.getValue("tryptic_only").toBool();
 		fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
@@ -664,10 +643,9 @@ namespace OpenMS
 
 		name_to_residue_.clear();
 		residue_to_name_.clear();
-		init_();
 
 		// now handle the modifications
-		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
+		ModificationDefinitionsSet mod_set((StringList)param_.getValue("fixed_modifications"), (StringList)param_.getValue("variable_modifications"));
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
 
 		for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
@@ -720,7 +698,7 @@ namespace OpenMS
 
 			if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
 			{
-				cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+				cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
 				continue;
 			}
 			else
@@ -740,7 +718,7 @@ namespace OpenMS
 				}
 				else
 				{
-					cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+					cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
 					continue;
 				}
 			}
@@ -756,16 +734,15 @@ namespace OpenMS
 		
 		for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
 		{
-			cerr << it->first << " " << it->second << endl;
-		}
-		*/
+			cerr << it->first << " " << precisionWrapper(it->second) << endl;
+		}*/
 		
 		initIsotopeDistributions_();
 
 		Param decomp_param(mass_decomp_algorithm_.getParameters());
 		decomp_param.setValue("tolerance", fragment_mass_tolerance_);
-		decomp_param.setValue("fixed_modifications", (String)param_.getValue("fixed_modifications"));
-		decomp_param.setValue("variable_modifications", (String)param_.getValue("variable_modifications"));
+		decomp_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+		decomp_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
 		mass_decomp_algorithm_.setParameters(decomp_param);
 		
 		min_aa_weight_ = numeric_limits<DoubleReal>::max();

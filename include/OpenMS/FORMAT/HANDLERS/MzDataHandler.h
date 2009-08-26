@@ -47,7 +47,7 @@ namespace OpenMS
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
 			
-			@improvement Add implementation and tests of 'supDataArray' (Hiwi)
+			@improvement Add implementation and tests of 'supDataArray' to store IntegerDataArray and StringDataArray of MSSpectrum (Hiwi)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -247,7 +247,7 @@ namespace OpenMS
 			{
 				if (value!=0.0)
 				{
-					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << std::setprecision(writtenDigits(DoubleReal())) << value << "\"/>\n";
+					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
 				}
 			}
 			/**  
@@ -340,7 +340,7 @@ namespace OpenMS
 					os << "\t\t\t\t<arrayName>" << name << "</arrayName>\n";
 				}
 
-				std::string str;				
+				String str;				
 				decoder_.encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
 				data_to_encode_.clear();
 				os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
@@ -818,7 +818,7 @@ namespace OpenMS
 					{
 						PeakType tmp;
 						tmp.setIntensity(intensity);
-						tmp.setPosition(mz);
+						tmp.setMZ(mz);
 						spec_.push_back(tmp);
 						//load data from meta data arrays
 						for (Size i=0;i<spec_.getFloatDataArrays().size();++i)

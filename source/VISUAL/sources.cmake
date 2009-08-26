@@ -37,6 +37,8 @@ TOPPASInputFileListVertex.C
 TOPPASOutputFileVertex.C
 TOPPASOutputFileListVertex.C
 TOPPASEdge.C
+TOPPASTabBar.C
+TOPPASTreeView.C
 EnhancedWorkspace.C
 )
 

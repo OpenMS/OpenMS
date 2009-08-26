@@ -245,7 +245,7 @@ class TOPPFileConverter
 			//add data processing entry
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 				
-			MascotInfile2 f;
+			MascotGenericFile f;
 			Param p(f.getParameters());
 			p.setValue("peaklists_only", "true");
 			f.setParameters(p);

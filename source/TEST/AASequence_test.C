@@ -82,16 +82,16 @@ START_SECTION(AASequence(ConstIterator begin, ConstIterator end))
 END_SECTION
 
 START_SECTION(bool operator == (const char* rhs) const)
-  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq1("(Acetyl)DFPIANGER");
   AASequence seq2("DFPIANGER");
   TEST_EQUAL(seq2 == "DFPIANGER", true)
-  TEST_EQUAL(seq1 == "(MOD:00051)DFPIANGER", true)
+  TEST_EQUAL(seq1 == "(Acetyl)DFPIANGER", true)
 
-  AASequence seq3("DFPIANGER(MOD:00177)");
-  AASequence seq4("DFPIANGER(ArgN)");
+  AASequence seq3("DFPIANGER(ADP-Ribosyl)");
+  AASequence seq4("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 == "DFPIANGER", false)
-  TEST_EQUAL(seq3 == "DFPIANGER(MOD:00177)", true)
-  TEST_EQUAL(seq4 == "DFPIANGER(ArgN)", true)
+  TEST_EQUAL(seq3 == "DFPIANGER(ADP-Ribosyl)", true)
+  TEST_EQUAL(seq4 == "DFPIANGER(Amidated)", true)
   TEST_EQUAL(seq4 == "DFPIANGER", false)
 
   AASequence seq5("DFBIANGER");
@@ -100,16 +100,16 @@ START_SECTION(bool operator == (const char* rhs) const)
 END_SECTION
 
 START_SECTION(bool operator == (const String& rhs) const)
-  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq1("(Acetyl)DFPIANGER");
   AASequence seq2("DFPIANGER");
   TEST_EQUAL(seq2 == String("DFPIANGER"), true)
-  TEST_EQUAL(seq1 == String("(MOD:00051)DFPIANGER"), true)
+  TEST_EQUAL(seq1 == String("(Acetyl)DFPIANGER"), true)
 
-  AASequence seq3("DFPIANGER(MOD:00177)");
-  AASequence seq4("DFPIANGER(ArgN)");
+  AASequence seq3("DFPIANGER(ADP-Ribosyl)");
+  AASequence seq4("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 == String("DFPIANGER"), false)
-  TEST_EQUAL(seq3 == String("DFPIANGER(MOD:00177)"), true)
-  TEST_EQUAL(seq4 == String("DFPIANGER(ArgN)"), true)
+  TEST_EQUAL(seq3 == String("DFPIANGER(ADP-Ribosyl)"), true)
+  TEST_EQUAL(seq4 == String("DFPIANGER(Amidated)"), true)
   TEST_EQUAL(seq4 == String("DFPIANGER"), false)
 
   AASequence seq5("DFBIANGER");
@@ -118,16 +118,16 @@ START_SECTION(bool operator == (const String& rhs) const)
 END_SECTION
 
 START_SECTION(bool operator == (const AASequence& rhs) const)
-  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq1("(Acetyl)DFPIANGER");
   AASequence seq2("DFPIANGER");
   TEST_EQUAL(seq2 == AASequence("DFPIANGER"), true)
-  TEST_EQUAL(seq1 == AASequence("(MOD:00051)DFPIANGER"), true)
+  TEST_EQUAL(seq1 == AASequence("(Acetyl)DFPIANGER"), true)
 
-  AASequence seq3("DFPIANGER(MOD:00177)");
-  AASequence seq4("DFPIANGER(ArgN)");
+  AASequence seq3("DFPIANGER(ADP-Ribosyl)");
+  AASequence seq4("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 == AASequence("DFPIANGER"), false)
-  TEST_EQUAL(seq3 == AASequence("DFPIANGER(MOD:00177)"), true)
-  TEST_EQUAL(seq4 == AASequence("DFPIANGER(ArgN)"), true)
+  TEST_EQUAL(seq3 == AASequence("DFPIANGER(ADP-Ribosyl)"), true)
+  TEST_EQUAL(seq4 == AASequence("DFPIANGER(Amidated)"), true)
   TEST_EQUAL(seq4 == AASequence("DFPIANGER"), false)
 
   AASequence seq5("DFBIANGER");
@@ -171,12 +171,22 @@ START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Ful
 	TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
 
 	// test N-term modification
-	AASequence seq2("(MOD:09998)DFPIANGER");
+	AASequence seq2("(NIC)DFPIANGER");
 	TEST_REAL_SIMILAR(seq2.getMonoWeight(), double(1122.51));
 
+	// test old OpenMS NIC definition
+	AASequence seq2a("(MOD:09998)DFPIANGER");
+	TEST_EQUAL(seq2 == seq2a, true)
+
 	// test heavy modification
-	AASequence seq3("(MOD:09999)DFPIANGER");
+	AASequence seq3("(dNIC)DFPIANGER");
 	TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.51));
+
+	// test old OpenMS dNIC definition
+	AASequence seq3a("(MOD:09999)DFPIANGER");
+	TEST_EQUAL(seq3 == seq3a, true)
+	
+
 END_SECTION
 
 START_SECTION(const Residue& operator [] (SignedSize index) const)
@@ -360,7 +370,7 @@ START_SECTION(String toString() const)
 
 	TEST_STRING_EQUAL(seq1.toString(), "DFPIANGER")
 	TEST_STRING_EQUAL(seq2.toString(), "(MOD:00051)DFPIANGER")
-	TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated (N))GER")
+	TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated)GER")
 END_SECTION
 
 START_SECTION(String toUnmodifiedString() const)
@@ -389,7 +399,7 @@ END_SECTION
 START_SECTION(void setModification(Size index, const String &modification))
 	AASequence seq1("ACDEFNK");
 	seq1.setModification(5, "Deamidated");
-	TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "Deamidated (N)")
+	TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "Deamidated")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -422,39 +432,39 @@ END_SECTION
 
 START_SECTION(void setCTerminalModification(const String &modification))
 	AASequence seq1("DFPIANGER");
-	AASequence seq2("DFPIANGER(ArgN)");
+	AASequence seq2("DFPIANGER(Amidated)");
 
 	TEST_EQUAL(seq1 == seq2, false)
-	seq1.setCTerminalModification("ArgN");
+	seq1.setCTerminalModification("Amidated");
 	TEST_EQUAL(seq1 == seq2, true)
 
 	AASequence seq3("DABCDER");
-	AASequence seq4("DABCDER(ArgN)");
+	AASequence seq4("DABCDER(Amidated)");
 	TEST_EQUAL(seq3 == seq4, false)
 	TEST_EQUAL(seq3.isValid(), seq4.isValid())
-	seq3.setCTerminalModification("ArgN");
+	seq3.setCTerminalModification("Amidated");
 	TEST_EQUAL(seq3.isModified(), true)
 	TEST_EQUAL(seq4.isModified(), true)
 	TEST_EQUAL(seq3 == seq4, true)
 
 	AASequence seq5("DABCDER(MOD:00177)");
-	AASequence seq6("DABCDER(MOD:00177)(ArgN)");
+	AASequence seq6("DABCDER(MOD:00177)(Amidated)");
 	TEST_EQUAL(seq5.isModified(), true)
 	TEST_EQUAL(seq6.isModified(), true)
-	seq5.setCTerminalModification("ArgN");	
+	seq5.setCTerminalModification("Amidated");	
 	TEST_EQUAL(seq5 == seq6, true)
 
 	AASequence seq7("DFPIANGER(MOD:00177)");
-	AASequence seq8("DFPIANGER(MOD:00177)(ArgN)");
+	AASequence seq8("DFPIANGER(MOD:00177)(Amidated)");
 	TEST_EQUAL(seq7.isModified(), true)
 	TEST_EQUAL(seq8.isModified(), true)
-	seq7.setCTerminalModification("ArgN");
+	seq7.setCTerminalModification("Amidated");
 	TEST_EQUAL(seq5 == seq6, true)
 END_SECTION
 
 START_SECTION(const String& getCTerminalModification() const)
-  AASequence seq1("DFPIANGER(ArgN)");
-  TEST_EQUAL(seq1.getCTerminalModification(), "MOD:00091")
+  AASequence seq1("DFPIANGER(Amidated)");
+  TEST_EQUAL(seq1.getCTerminalModification(), "Amidated")
 
   AASequence seq2("DFPIANGER");
   TEST_EQUAL(seq2.getCTerminalModification(), "")	
@@ -519,7 +529,7 @@ START_SECTION(bool hasNTerminalModification() const)
 END_SECTION
  
 START_SECTION(bool hasCTerminalModification() const)
-	AASequence seq1("DFPIANGER(ArgN)");
+	AASequence seq1("DFPIANGER(Amidated)");
 	AASequence seq2("DFPIANGER");
 	TEST_EQUAL(seq1.hasCTerminalModification(), true)
 	TEST_EQUAL(seq2.hasCTerminalModification(), false)
@@ -535,7 +545,7 @@ START_SECTION(bool isModified() const)
 	TEST_EQUAL(seq2.isModified(), true)
 
 	AASequence seq3(seq1);
-	seq3.setCTerminalModification("ArgN");
+	seq3.setCTerminalModification("Amidated");
 	TEST_EQUAL(seq3.isModified(), true);
 
 	AASequence seq4("DFPIANGER(MOD:00177)");
@@ -564,10 +574,10 @@ START_SECTION(bool operator!=(const AASequence& rhs) const)
   TEST_EQUAL(seq1 != AASequence("(MOD:00051)DFPIANGER"), false)
 
   AASequence seq3("DFPIANGER(MOD:00177)");
-  AASequence seq4("DFPIANGER(ArgN)");
+  AASequence seq4("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 != AASequence("DFPIANGER"), true)
   TEST_EQUAL(seq3 != AASequence("DFPIANGER(MOD:00177)"), false)
-  TEST_EQUAL(seq4 != AASequence("DFPIANGER(ArgN)"), false)
+  TEST_EQUAL(seq4 != AASequence("DFPIANGER(Amidated)"), false)
   TEST_EQUAL(seq4 != AASequence("DFPIANGER"), true)
 
   AASequence seq5("DFBIANGER");
@@ -582,10 +592,10 @@ START_SECTION(bool operator!=(const String& rhs) const)
   TEST_EQUAL(seq1 != String("(MOD:00051)DFPIANGER"), false)
 
   AASequence seq3("DFPIANGER(MOD:00177)");
-  AASequence seq4("DFPIANGER(ArgN)");
+  AASequence seq4("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 != String("DFPIANGER"), true)
   TEST_EQUAL(seq3 != String("DFPIANGER(MOD:00177)"), false)
-  TEST_EQUAL(seq4 != String("DFPIANGER(ArgN)"), false)
+  TEST_EQUAL(seq4 != String("DFPIANGER(Amidated)"), false)
   TEST_EQUAL(seq4 != String("DFPIANGER"), true)
 
 	AASequence seq5("DFBIANGER");
@@ -600,10 +610,10 @@ START_SECTION(bool operator!=(const char *rhs) const)
 	TEST_EQUAL(seq1 != "(MOD:00051)DFPIANGER", false)
 
 	AASequence seq3("DFPIANGER(MOD:00177)");
-	AASequence seq4("DFPIANGER(ArgN)");
+	AASequence seq4("DFPIANGER(Amidated)");
 	TEST_EQUAL(seq3 != "DFPIANGER", true)
 	TEST_EQUAL(seq3 != "DFPIANGER(MOD:00177)", false)
-	TEST_EQUAL(seq4 != "DFPIANGER(ArgN)", false)
+	TEST_EQUAL(seq4 != "DFPIANGER(Amidated)", false)
 	TEST_EQUAL(seq4 != "DFPIANGER", true)
 
 	AASequence seq5("DFBIANGER");

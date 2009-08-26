@@ -50,13 +50,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_SpecLibSearcher SpecLibSearcher
+  @page TOPP_SpecLibSearcher SpecLibSearcher
  
- @brief Identifies peptide MS/MS spectra  by spectral matching with a searchable spectral library.
- 
+  @brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+
+	@experimental This TOPP-tool is not well tested and not all feature might be properly implemented.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_SpecLibSearcher.cli
- */
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -66,7 +68,7 @@ class TOPPSpecLibSearcher
 	{
 	public:
 		TOPPSpecLibSearcher()
-		: TOPPBase("SpecLibSearcher","Matches the experimental MS/MS spectra against the searchable spectral library.")
+		: TOPPBase("SpecLibSearcher","Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.")
 		{
 		}
 		

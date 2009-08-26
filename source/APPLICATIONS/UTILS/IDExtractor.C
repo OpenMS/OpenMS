@@ -43,9 +43,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDExtractor IDExtractor
+	@page UTILS_IDExtractor IDExtractor
 	
-	@brief This application is used to retrieve specific spectrum identifications from IdXML files.
+	@brief Extracts n peptides randomly or best n from IdXML files.
   	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDExtractor.cli
@@ -59,7 +59,7 @@ class TOPPIDExtractor
 {
 	public:
 		TOPPIDExtractor()
-			: TOPPBase("IDExtractor","extracts n peptides randomly or best n from IdXML files",false)
+			: TOPPBase("IDExtractor","Extracts n peptides randomly or best n from IdXML files.",false)
 		{
 			
 		}

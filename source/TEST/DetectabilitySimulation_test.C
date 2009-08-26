@@ -47,7 +47,7 @@ START_SECTION(DetectabilitySimulation())
 }
 END_SECTION
 
-START_SECTION(DetectabilitySimulation())
+START_SECTION(~DetectabilitySimulation())
 {
 	delete ptr;
 }
@@ -65,12 +65,6 @@ START_SECTION((DetectabilitySimulation(const DetectabilitySimulation &source)))
 }
 END_SECTION
 
-START_SECTION((virtual ~IonizationSimulation()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation &source)))
 {
   DetectabilitySimulation detect_sim1;
@@ -85,7 +79,7 @@ START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation 
 }
 END_SECTION
 
-START_SECTION((void filterDetectability(FeatureMapSim &)))
+START_SECTION((void filterDetectability(FeatureMapSim & features)))
 {
   // test no detect
   DetectabilitySimulation detect_off;
@@ -111,7 +105,7 @@ START_SECTION((void filterDetectability(FeatureMapSim &)))
   TEST_EQUAL(no_detect_features.size(), 4)
   for(Size i = 0 ; i < no_detect_features.size() ; ++i) 
   {
-    TEST_EQUAL(no_detect_features[i].getMetaValue("detectibility"), 1.0)
+    TEST_EQUAL(no_detect_features[i].getMetaValue("detectability"), 1.0)
   }
   
   // test svm
@@ -148,6 +142,13 @@ START_SECTION((void filterDetectability(FeatureMapSim &)))
     std::cout << (*it).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()  << " " << (*it).getMetaValue("detectibility") << std::endl;
   }
   */
+}
+END_SECTION
+
+START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels, std::vector<DoubleReal>& detectabilities)))
+{
+  // this method is called by "filterDetectability" so we already test it
+  NOT_TESTABLE
 }
 END_SECTION
 

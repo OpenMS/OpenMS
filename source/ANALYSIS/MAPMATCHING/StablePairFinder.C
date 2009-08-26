@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -49,9 +49,11 @@ namespace OpenMS
 
     defaults_.setValue("diff_exponent:RT", 1.0,
       "RT differences are raised to this power", StringList::create("advanced"));
+    defaults_.setMinFloat("diff_exponent:RT",0.);
 
     defaults_.setValue("diff_exponent:MZ", 2.0,
       "MZ differences are raised to this power", StringList::create("advanced"));
+    defaults_.setMinFloat("diff_exponent:MZ",0.);
 
     defaults_.setSectionDescription("diff_exponent",
       "Absolute position differences are raised to this power. "
@@ -61,12 +63,15 @@ namespace OpenMS
       "Intensity ratios are raised to this power.  "
         "If set to 0, intensities are not considered.", StringList::create(
         "advanced"));
+    defaults_.setMinFloat("intensity_exponent",0.);
 
     defaults_.setValue("max_pair_distance:RT", 100.0,
       "Maximal allowed distance in RT for a pair, when MZ is equal");
+    defaults_.setMinFloat("max_pair_distance:RT",0.);
 
     defaults_.setValue("max_pair_distance:MZ", 0.3,
       "Maximal allowed distance in MZ for a pair, when RT is equal");
+    defaults_.setMinFloat("max_pair_distance:MZ",0.);
 
     defaults_.setSectionDescription("max_pair_distance",
       "Maximal allowed distance for a pair. "
@@ -79,10 +84,12 @@ namespace OpenMS
     defaults_.setValue("second_nearest_gap", 2.0,
       "The distance for the second nearest neighbors must be larger "
         "by this factor than the distance for the matching pair itself");
+    defaults_.setMinFloat("second_nearest_gap",1.);
 
     defaults_.setValue("different_charge_penalty", 1.0,
       "If charge states are different, distance is multiplied by this factor.  "
       "If set to 1, charge has no influence.");
+    defaults_.setMinFloat("different_charge_penalty",1.);
 
     Base::defaultsToParam_();
   }

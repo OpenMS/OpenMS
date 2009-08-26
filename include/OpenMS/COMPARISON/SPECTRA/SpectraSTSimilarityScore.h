@@ -73,26 +73,26 @@ namespace OpenMS
 		/**
 			@brief: this function calculates only the dot product of the two spectrum like in SpectraST
 		*/
-		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+		DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 		
-	double operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
+		DoubleReal operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
 
-		double operator () (const PeakSpectrum& spec) const;
+		DoubleReal operator () (const PeakSpectrum& spec) const;
 		
 		/**
 			@return true if spectrum passes filtering
 		*/
-		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, UInt min_peak_number = 5, UInt max_peak_number = 150);
+		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 		
 		BinnedSpectrum transform(const PeakSpectrum& spec);
 		/**
 			@param dot_prdouct if -1 this value will be calculated as well.
 		*/
-		double dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, double dot_product = -1) const;
+		DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product = -1) const;
 		
-		double delta_D(double top_hit, double runner_up);
+		DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
 		
-		double compute_F(double dot_product, double delta_D, double delta_bias);
+		DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal delta_bias);
 		
 		/**
 			@brief: measures how much of the dot prudct is dominated by a few peaks

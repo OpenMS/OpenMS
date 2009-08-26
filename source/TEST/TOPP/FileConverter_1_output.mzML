@@ -12,7 +12,7 @@
 			<sourceFile id="sf_ru_0" name="MzDataFile_test_1.raw" location="/share/data/">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
-			<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 		<contact>

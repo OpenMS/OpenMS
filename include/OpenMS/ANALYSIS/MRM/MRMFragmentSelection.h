@@ -38,6 +38,8 @@ namespace OpenMS
 	/**
 		@brief This class can select appropriate fragment ions of an MS/MS spectrum of a peptide
 
+		@htmlinclude OpenMS_MRMFragmentSelection.parameters
+
 		Several user choices can influence the selection of the ions from the MS/MS spectrum. These
 		choices can be done using the parameters as described on the parameters page (see below). 
 		Basically there are two different ways of selecting suitable ions. One, using standardized 
@@ -45,6 +47,7 @@ namespace OpenMS
 		written from TheoreticalSpectrumGenerator, PILISModel...). The second one is simply using
 		the most abundant peaks in a specified m/z range.
 
+		@ingroup Analysis_MRM
 	*/
 	class OPENMS_DLLAPI MRMFragmentSelection : public DefaultParamHandler
 	{
@@ -74,8 +77,6 @@ namespace OpenMS
 
 		/// returns true if the selection of peak is allowed, according to the parameters set
 		bool peakselectionIsAllowed_(const RichPeak1D& peak);
-
-		void updateMembers_();
 	};
 }
 

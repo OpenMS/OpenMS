@@ -445,7 +445,7 @@ START_SECTION((static String random(UInt length)))
 	TEST_EQUAL(s2.size(),10);
 END_SECTION
 
-START_SECTION((bool split(char splitter, std::vector<String>& substrings, bool quote_protect=false) const))
+START_SECTION((bool split(const char splitter, std::vector<String>& substrings, bool quote_protect=false) const))
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);
@@ -667,16 +667,19 @@ START_SECTION((String& removeWhitespaces()))
 
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
+	
+	s = "test";
+	s.removeWhitespaces();
+	TEST_EQUAL(s,"test");
 
 	s = "\n\r\t test \n\r\t";
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 
-	s = "\n\r\t te \n\r\tst \n\r\t";
+	s = "\n\r\t t\ne \ts\rt \n\r\t";
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");
 END_SECTION
-
 
 const String fixed("test");
 

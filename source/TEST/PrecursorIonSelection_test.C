@@ -98,7 +98,7 @@ param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",1);
 param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
 preprocessing.setParameters(param);
-preprocessing.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),false);
+preprocessing.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_db.fasta"),false);
 
 param.setValue("max_iteration",10);
 param.setValue("type","IPS");

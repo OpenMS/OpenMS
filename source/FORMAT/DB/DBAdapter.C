@@ -123,7 +123,7 @@ namespace OpenMS
 		
 		query << "SELECT Type-1,Name,Value FROM META_TypeNameValue WHERE fid_MetaInfo='" << id << "'";
 		result = db_con_.executeQuery(query.str());
-		while(result.isValid())
+		while(result.next())
 		{
 			switch(result.value(0).toInt())
 			{
@@ -139,7 +139,6 @@ namespace OpenMS
 				default:
 					throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown META_TypeNameValue:type in DBAdapter!");
 			}
-			result.next();
 		}
 	}
 	
@@ -169,8 +168,7 @@ namespace OpenMS
 		bool debug=false;
 		
 		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE id='" << parent_id << "' AND fid_MetaInfo IS NOT NULL";
-		result = db_con_.executeQuery(query.str());
-		
+		result = db_con_.executeQuery(query.str(),true);
 		
 		//metainfo present => delete values of it
 		UID meta_id = 0;
@@ -274,23 +272,19 @@ namespace OpenMS
 		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE " << condition;
 		result_select = db_con_.executeQuery(query.str());
 		
-		while (result_select.isValid())
+		while (result_select.next())
 		{
 			query.str("");
 			query << "DELETE FROM META_TypeNameValue WHERE fid_MetaInfo='" << result_select.value(0).toInt() << "'";
-			result_delete = db_con_.executeQuery(query.str());
+			result_delete = db_con_.executeQuery(query.str(),true);
 			query.str("");
 			query << "DELETE FROM META_MetaInfo WHERE id='" << result_select.value(0).toInt() << "'";
 			result_delete = db_con_.executeQuery(query.str());
-			result_select.next();
 		}
 	}
 	
 	void DBAdapter::loadFile_(UID id, SourceFile& file)
 	{
-		QSqlQuery result;
-		stringstream query;
-		
 		// if there is no SourceFile to load (=NULL in DB), set empty SourceFile and return
 		if (id == 0)
 		{
@@ -298,16 +292,17 @@ namespace OpenMS
 			file = empty_sourcefile;
 			return;
 		}
-
-		query << "SELECT FileName, FilePath, Size, `Type`, sha1, ChecksumType-1,NativeIDType-1 FROM META_File WHERE id='" << id << "'";
-		result = db_con_.executeQuery(query.str());
+		
+		stringstream query;
+		query << "SELECT FileName, FilePath, Size, `Type`, sha1, ChecksumType-1,NativeIDType FROM META_File WHERE id='" << id << "'";
+		QSqlQuery result = db_con_.executeQuery(query.str(),true);
 
 		file.setNameOfFile(result.value(0).toString());
 		file.setPathToFile(result.value(1).toString());
 		file.setFileSize(result.value(2).toDouble());
 		file.setFileType(result.value(3).toString());
 		file.setChecksum(result.value(4).toString(), (SourceFile::ChecksumType)result.value(5).toInt());
-		file.setNativeIDType((SourceFile::NativeIDType)result.value(6).toInt());
+		file.setNativeIDType(result.value(6).toString());
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)
@@ -335,7 +330,7 @@ namespace OpenMS
 		query << "SELECT fid_File FROM " << parent_table << " WHERE id=";
 		query << String(parent_id) << " AND fid_File IS NOT NULL";
 		if (debug) cout << query.str() << endl;
-		result = db_con_.executeQuery(query.str());
+		result = db_con_.executeQuery(query.str(),true);
 		query.str("");
 		
 		if (result.size() > 0)				// reference already exists
@@ -361,7 +356,7 @@ namespace OpenMS
 		query << "sha1='" << file.getChecksum() << "',";
 		query << "`Type`='" << file.getFileType() << "'";
 		query << ",ChecksumType='" << 1u+file.getChecksumType() << "'";
-		query << ",NativeIDType='" << 1u+file.getNativeIDType() << "'";
+		query << ",NativeIDType='" << file.getNativeIDType() << "'";
 		query << end;
 
 		if (debug) cout << query.str() << endl;
@@ -505,7 +500,7 @@ namespace OpenMS
 		
 		query.str("");
 		query << "SELECT Name,SampleID,Mass,Volume,Concentration,State-1,Organism,Description,fid_MetaInfo FROM META_Sample WHERE id=" << id;
-		result = db_con_.executeQuery(query.str());
+		result = db_con_.executeQuery(query.str(),true);
 		
 		sample.setName(result.value(0).toString());
 		sample.setNumber(result.value(1).toString());
@@ -526,7 +521,7 @@ namespace OpenMS
 		query << "SELECT id,fid_Digestion,fid_Modification,Description,fid_MetaInfo FROM META_SampleTreatment WHERE fid_Sample=" << id;
 		result = db_con_.executeQuery(query.str());
 
-		while (result.isValid())
+		while (result.next())
 		{
 			meta_id = result.value(4).toInt();
 			// we got a digestion
@@ -536,7 +531,7 @@ namespace OpenMS
 				
 				query.str("");
 				query << "SELECT Enzyme,DigestionTime,Ph,Temperature FROM META_Digestion WHERE id=" << result.value(1).toInt();
-				sub_result = db_con_.executeQuery(query.str());
+				sub_result = db_con_.executeQuery(query.str(),true);
 				
 				digestion.setEnzyme(sub_result.value(0).toString());
 				digestion.setDigestionTime(sub_result.value(1).toDouble());
@@ -550,7 +545,7 @@ namespace OpenMS
 				// build query and boolean function to distinguish between tagging and modification (NULL values)
 				query.str("");
 				query << "SELECT ReagentName,AffectedAminoAcids,SpecificityType-1,Mass,MassShift,Variant-1,MassShift IS NOT NULL AND Variant IS NOT NULL FROM META_Modification WHERE id=" << result.value(2).toInt();
-				sub_result = db_con_.executeQuery(query.str());
+				sub_result = db_con_.executeQuery(query.str(),true);
 
 				// distinguish whether we are dealing with a tagging
 				if (sub_result.value(6).toInt() == 1)
@@ -575,20 +570,17 @@ namespace OpenMS
 					sample.addTreatment(modification);
 				}
 			}
-
-			result.next();
 		}
 
 		query.str("");
 		query << "SELECT id FROM META_Sample WHERE fid_Sample='" << id << "'";
 		result = db_con_.executeQuery(query.str());
 		
-		while (result.isValid())
+		while (result.next())
 		{
 			subsample = Sample();
 			loadSample_(result.value(0).toInt(), subsample);
 			subsamples.push_back(subsample);
-			result.next();
 		}
 		sample.setSubsamples(subsamples);
 	}
@@ -598,7 +590,7 @@ namespace OpenMS
 		QSqlQuery result;
 		try
 		{
-			result = db_con_.executeQuery("SELECT Version FROM ADMIN_Version");
+			result = db_con_.executeQuery("SELECT Version FROM ADMIN_Version", true);
 		}
 		catch(DBConnection::InvalidQuery)
 		{
@@ -686,10 +678,9 @@ namespace OpenMS
 		QSqlQuery result, dummy;
 		result = db_con_.executeQuery("SHOW TABLES;");
 		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;");
-		while (result.isValid())
+		while (result.next())
 		{
 			dummy = db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString() + "`;");
-			result.next();
 		}
 		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;");
 		*/

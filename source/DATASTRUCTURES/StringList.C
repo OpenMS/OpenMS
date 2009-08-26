@@ -73,10 +73,10 @@ namespace OpenMS
 		return *this;
 	}
 
-	StringList StringList::create(const String& list)
+	StringList StringList::create(const String& list, const char splitter)
 	{
 		StringList out;
-		if (!list.split(',',out) && list!="")
+		if (!list.split(splitter,out) && list!="")
 		{
 			out.push_back(list);
 		}

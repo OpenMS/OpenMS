@@ -133,11 +133,13 @@ namespace OpenMS {
     {
 			double symmetry = gsl_ran_flat (rnd_gen_, symmetry_down_, symmetry_up_);
 			double width = gsl_ran_flat (rnd_gen_, 5, 15);
+			// TODO: maybe this would be a better solution ..
+			//double width = 1;
       it_f->setMetaValue("rt_symmetry", symmetry);
       it_f->setMetaValue("rt_width", width);
     }
 		
-		Size number_of_scans = number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
+		Size number_of_scans = Size(gradient_time_ / rt_sampling_rate_);
 		//else if (param_.getValue("rt_column") == "CE") number_of_scans = Size((features.getMax()[0]+gradient_front_offset_) / rt_sampling_rate_);
      
     createExperiment_(experiment, number_of_scans);
@@ -159,7 +161,7 @@ namespace OpenMS {
   void RTSimulation::predictFeatureRT_(FeatureMapSim & features)
   {
     vector< DoubleReal>  predicted_retention_times;
-		bool is_relative;
+		bool is_relative = false;
     if (param_.getValue("rt_column") == "none")
     {
 			noRTColumn_(features);
@@ -171,7 +173,7 @@ namespace OpenMS {
 			calculateMT_(features, predicted_retention_times);
 			is_relative = (param_.getValue("CE:auto_scale")=="true");
 		}
-		if (param_.getValue("rt_column") == "HPLC")
+		else if (param_.getValue("rt_column") == "HPLC")
 		{
 			vector< String > peptides_vector(features.size());
 			for (Size i = 0; i < features.size(); ++i)
@@ -500,46 +502,13 @@ namespace OpenMS {
         // dice & store distortion
         DoubleReal distortion = exp(gsl_ran_flat (rnd_gen_, -distortion_, +distortion_));
         (*exp_it).setMetaValue("distortion", distortion);
-        
+
         // TODO (for CE) store peak broadening parameter
-        
-        // TODO: smooth?!
-        
-        /** WARNING: OLD CODE       
-				// moving average filter (width 3), implemented very inefficiently (guess why!)
-				if ( distortion_ != 0.0 ) // otherwise we want perfect EMG shape!
-				{
-					ElutionModel::ContainerType tmp;
-					tmp.resize(data.size());
-					for ( Size i = 1; i < data.size() - 1; ++i )
-					{
-						tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-					}
-					for ( Size i = 1; i < data.size() - 1; ++i )
-					{
-						data[i] = tmp[i];
-					}
-
-					const int num_rounds = 10;
-					for ( int rounds = 0; rounds < num_rounds; ++rounds)
-					{
-					//TODO: WTF!
-						data.swap(tmp);
-						for ( Size i = 1; i < data.size() - 1; ++i )
-						{
-							tmp[i] = ( data[i-1] + data[i] + data[i+1] ) / 3.0;
-						}
-						for ( Size i = 1; i < data.size() - 1; ++i )
-						{
-							data[i] = tmp[i];
-						}
-					}
-
-				}
-				**/
-                
         current_scan_rt += rt_sampling_rate_;
       }
+
+      // smooth the distortion with a moving average filter of width 3.0
+      smoothRTDistortion_(experiment);
     }
     else
     {
@@ -549,4 +518,48 @@ namespace OpenMS {
     std::cout << "done\n";
   }
     
+
+  void RTSimulation::smoothRTDistortion_(MSSimExperiment & experiment)
+  {
+    // how often do we move over the distortions
+    const UInt filter_iterations = 10;
+
+    DoubleReal previous,current,next;
+
+    for(UInt fi = 0 ; fi <= filter_iterations ; ++fi )
+    {
+      // initialize the previous value on position 0
+      previous = (DoubleReal) experiment[0].getMetaValue("distortion");
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+      cout << "d <- c(" << previous << ", ";
+      vector< DoubleReal > tmp;
+#endif
+      for(Size scan = 1 ; scan < experiment.size() - 1 ; ++scan)
+      {
+        current = (DoubleReal) experiment[scan].getMetaValue("distortion");
+        next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
+
+        DoubleReal smoothed = (previous + current + next) / 3.0;
+        previous = current;
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+        cout << current << ", ";
+        tmp.push_back(smoothed);
+#endif
+        experiment[scan].setMetaValue("distortion", smoothed);
+      }
+
+#ifdef MSSIM_DEBUG_MOV_AVG_FILTER
+      cout << next << ");" << endl;
+      cout << "smoothed <- c(";
+      cout << (DoubleReal) experiment[0].getMetaValue("distortion") << ", ";
+      for(Size i = 0 ; i  < tmp.size() ; ++i) {
+        cout << tmp[i] << ", ";
+      }
+      cout << next << ");" << endl;
+#endif
+    }
+  }
+
 }

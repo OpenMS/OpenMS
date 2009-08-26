@@ -77,16 +77,17 @@ namespace OpenMS
 		if (tag_ == "umod:specificity" || tag_ == "specificity")
 		{
 			// classification of mod
+			// TODO do this for all mods, do not overwrite for each specificity
 			String classification(attributeAsString_(attributes, "classification"));
 			modification_->setSourceClassification(classification);
 
 			// allowed site
 			String site(attributeAsString_(attributes, "site"));
-			sites_.push_back(site);
+			//sites_.push_back(site);
 
 			// allowed positions
 			ResidueModification::Term_Specificity position = ResidueModification::ANYWHERE;
-			String pos(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("position")))));
+			String pos(attributeAsString_(attributes, "position"));
 			if (pos == "Anywhere")
 			{
 				position = ResidueModification::ANYWHERE;
@@ -95,13 +96,13 @@ namespace OpenMS
 			{
 				if (pos == "Protein N-term")
 				{
-					position = ResidueModification::PROTEIN_N_TERM;
+					position = ResidueModification::N_TERM;
 				}
 				else
 				{
 					if (pos == "Protein C-term")
 					{
-						position = ResidueModification::PROTEIN_C_TERM;
+						position = ResidueModification::C_TERM;
 					}
 					else
 					{
@@ -123,8 +124,12 @@ namespace OpenMS
 					}
 				}
 			}
-			modification_->setTermSpecificity(position);
 
+			if (!pos.hasSubstring("Protein"))
+			{
+				term_specs_.push_back(position);
+				sites_.push_back(site);
+			}
 			return;
 		}
 	
@@ -185,20 +190,22 @@ namespace OpenMS
 		// write the modifications to vector
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
-			modification_->setAverageMass(avge_mass_);
-			modification_->setMonoMass(mono_mass_);
+			modification_->setDiffAverageMass(avge_mass_);
+			modification_->setDiffMonoMass(mono_mass_);
 			modification_->setDiffFormula(diff_formula_);
-
-			for (vector<String>::const_iterator it = sites_.begin(); it != sites_.end(); ++it)
+			for (Size i = 0; i != sites_.size(); ++i)
 			{
 				ResidueModification* new_mod = new ResidueModification(*modification_);
-				new_mod->setOrigin(*it);
+				new_mod->setOrigin(sites_[i]);
+				new_mod->setTermSpecificity(term_specs_[i]);
 				modifications_.push_back(new_mod);
 			}
 			
 			avge_mass_ = 0.0;
 			mono_mass_ = 0.0;
 			diff_formula_ = EmpiricalFormula();
+			term_specs_.clear();
+			sites_.clear();
 
 			delete modification_;
 			return;

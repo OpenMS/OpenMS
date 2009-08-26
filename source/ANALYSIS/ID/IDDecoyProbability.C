@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch, Sven Nahnsen $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <boost/math/special_functions/gamma.hpp>
@@ -139,9 +139,11 @@ namespace OpenMS
   	for (Size i = 0; i < number_of_bins; ++i)
   	{
     	DPosition<2> pos;
-    	pos.setX(((double)i) / (double)number_of_bins + 0.0001);  // TODO necessary????
+    	pos.setX(((double)i) / (double)number_of_bins + 0.0001);  // necessary????
     	pos.setY(rev_scores_normalized[i]);
     	rev_data.push_back(pos);
+
+			cerr << pos.getX() << " " << pos.getY() << endl;
   	}
 
 		Math::GammaDistributionFitter gdf;

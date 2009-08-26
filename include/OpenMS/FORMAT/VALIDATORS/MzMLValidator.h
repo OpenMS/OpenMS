@@ -74,6 +74,11 @@ namespace OpenMS
 				///Current referenceableParamGroup identifier
 				String current_id_;
 				
+				///Binary data array name
+				String binary_data_array_;
+				///Binary data array type
+				String binary_data_type_;
+				
 			private:
 				
 				/// Not implemented

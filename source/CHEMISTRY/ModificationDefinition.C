@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -114,14 +114,16 @@ namespace OpenMS
 
 	void ModificationDefinition::setModification(const String& modification)
 	{
+		//cerr << "setModification(" << modification << ")" << endl;
 		mod_ = &ModificationsDB::getInstance()->getModification(modification);
+		//cerr << "setModification: id=" << mod_->getId() << ", full_id=" << mod_->getFullId() << ", UniMod=" << mod_->getUniModAccession() << ", origin=" << mod_->getOrigin() << ", PSI-MOD=" << mod_->getPSIMODAccession() << endl;
 	}
 
 	String ModificationDefinition::getModification() const
 	{
 		if (mod_ != 0)
 		{
-			return mod_->getId();
+			return mod_->getFullId();
 		}
 		return "";
 	}

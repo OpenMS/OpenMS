@@ -243,7 +243,7 @@ namespace OpenMS {
 					for (UInt charge_site=0;charge_site<charge;++charge_site)
 					{
 						Size adduct_index = gsl_ran_discrete (rnd_gen_, gsl_ran_lookup_esi_charge_impurity);
-						cmp.add(esi_adducts_[adduct_index]);
+						cmp.add(esi_adducts_[adduct_index],Compomer::RIGHT);
 					}
 
 					// add 1 to abundance of sampled charge state
@@ -280,7 +280,7 @@ namespace OpenMS {
 					{
 						Feature charged_feature((*feature_it));
 
-						setFeatureProperties(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, feature_index);
+						setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, feature_index);
 	
 						if (!isFeatureValid_(charged_feature))
 						{
@@ -378,7 +378,7 @@ namespace OpenMS {
 					{
 						Feature charged_feature((*feature_it));
 						
-						setFeatureProperties(charged_feature, h_mono_weight*c, String("H")+String(c), c, charge_states[c], feature_index);
+						setFeatureProperties_(charged_feature, h_mono_weight*c, String("H")+String(c), c, charge_states[c], feature_index);
 
 						if (!isFeatureValid_(charged_feature))
 						{
@@ -413,12 +413,12 @@ namespace OpenMS {
 		gsl_ran_discrete_free (gsl_ran_lookup_maldi);
   }
   
-	void IonizationSimulation::setFeatureProperties(Feature & f, 
-																									const DoubleReal & adduct_mass, 
-																									const String & adduct_formula, 
-																									const SimChargeType charge,
-																									const SimIntensityType new_intensity,
-																									const Size parent_index)
+	void IonizationSimulation::setFeatureProperties_(Feature & f, 
+																									 const DoubleReal & adduct_mass, 
+																									 const String & adduct_formula, 
+																									 const SimChargeType charge,
+																									 const SimIntensityType new_intensity,
+																									 const Size parent_index)
 	{
 	
 		EmpiricalFormula feature_ef = f.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();

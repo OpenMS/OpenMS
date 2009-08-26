@@ -82,8 +82,6 @@ namespace OpenMS
 				DoubleReal min, max, avg;
 			};
 			
-			/// Iterates over RTs of an experiment
-			typedef LayerData::ExperimentType::ConstIterator RTIterator_;
 			/// Iterates over peaks of a spectrum
 			typedef LayerData::ExperimentType::SpectrumType::ConstIterator PeakIterator_;
 			/// Iterates over features of a feature map
@@ -99,8 +97,9 @@ namespace OpenMS
 			void computeFeatureStats_();
 			/// Computes the statistics of a consensus feature layer
 			void computeConsensusStats_();
-			/// Computes the statistics of all meta data contained in the FloatDataArray of a @p spectrum
-			void computeFloatDataArrayStats_(RTIterator_ spectrum);
+			/// Computes the statistics of all meta data contained in the FloatDataArray or IntegerDataArray of an MSSpectrum
+			template<typename MetaDataIterator>
+			void computeMetaDataArrayStats_(MetaDataIterator begin, MetaDataIterator end);
 			/// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
 			void bringInMetaStats_(const MetaInfoInterface& meta_interface);
 			/// Computes the averages of all meta values stored in meta_stats and meta_array_stats
@@ -144,6 +143,56 @@ namespace OpenMS
 			LayerStatisticsDialog();
 			
 	};
-	
+
+	template<typename MetaDataIterator>
+	void LayerStatisticsDialog::computeMetaDataArrayStats_(MetaDataIterator begin, MetaDataIterator end)
+	{
+		for(MetaDataIterator meta_array_it = begin; meta_array_it != end; meta_array_it++)
+		{
+			String meta_name = meta_array_it->getName();
+			MetaStatsValue_ meta_stats_value;
+			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats_.find(meta_name);
+			if (it != meta_array_stats_.end()) // stats about this meta name already exist -> bring this value in
+			{
+				meta_stats_value = it->second;
+				for(typename MetaDataIterator::value_type::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
+				{
+					Real value = *value_it;
+					meta_stats_value.count++;
+					if (value < meta_stats_value.min)
+					{
+						meta_stats_value.min = value;
+					}
+					else if (value > meta_stats_value.max)
+					{
+						meta_stats_value.max = value;
+					}
+					meta_stats_value.avg += value;
+				}
+				it->second = meta_stats_value;
+			}
+			else if (meta_array_it->size()>0)// meta name has not occurred before, create new stats for it:
+			{
+				Real init_value = *(meta_array_it->begin());
+				meta_stats_value = MetaStatsValue_(0,init_value,init_value,0);
+				for(typename MetaDataIterator::value_type::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
+				{
+					Real value = *value_it;
+					meta_stats_value.count++;
+					if (value < meta_stats_value.min)
+					{
+						meta_stats_value.min = value;
+					}
+					else if (value > meta_stats_value.max)
+					{
+						meta_stats_value.max = value;
+					}
+					meta_stats_value.avg += value;
+				}
+				meta_array_stats_.insert(make_pair(meta_name, meta_stats_value));
+			}
+		}
+	}
+
 }
 #endif // OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H

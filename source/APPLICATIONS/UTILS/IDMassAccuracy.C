@@ -49,9 +49,9 @@ using namespace Math;
 //-------------------------------------------------------------
 
 /**
-	@page IDMassAccuracy IDMassAccuracy
+	@page UTILS_IDMassAccuracy IDMassAccuracy
 	
-	@brief This small utility can create decoy databases used for decoy database searches.
+	@brief Calculates a distribution of the mass error from given mass spectra and IDs.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDMassAccuracy.cli
@@ -85,7 +85,7 @@ class TOPPIDMassAccuracy
 {
 	public:
 		TOPPIDMassAccuracy()
-			: TOPPBase("IDMassAccuracy","Given mass spectra and IDs a distribution of the mass error is written.", false)
+			: TOPPBase("IDMassAccuracy","Calculates a distribution of the mass error from given mass spectra and IDs.", false)
 		{
 			
 		}

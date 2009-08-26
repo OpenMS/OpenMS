@@ -22,11 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
 #include <gsl/gsl_fit.h>
@@ -41,12 +41,13 @@ namespace OpenMS
 		: MapAlignmentAlgorithm()
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
-	
+
 		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer().getParameters());
-		defaults_.insert("pairfinder:",DelaunayPairFinder().getParameters());
+		defaults_.insert("pairfinder:",StablePairFinder().getParameters());
 		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
 		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
-		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.");
+		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.  For using all peaks, set this to -1.");
+		defaults_.setMinInt("max_num_peaks_considered",-1);
 		//TODO 'max_num_peaks_considered' should apply to peaks and features!! (Clemens)
 		defaultsToParam_();
 	}
@@ -60,13 +61,13 @@ namespace OpenMS
 		// prepare transformations for output
 		transformations.clear();
 		transformations.resize(maps.size());
-		
+
 		const UInt max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		//define reference map (the one with most peaks)
 		Size reference_map_index = 0;
-		Size max_count = 0;		
+		Size max_count = 0;
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			// initialize getSize() by calling updateRanges()
@@ -77,18 +78,18 @@ namespace OpenMS
 				reference_map_index = m;
 			}
 		}
-		
+
     // build a consensus map of the elements of the reference map (take the 400 highest peaks)
     std::vector<ConsensusMap> input(2);
 		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0], max_num_peaks_considered );
-		
+
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
     superimposer.setParameters(param_.copy("superimposer:",true));
-    
-    DelaunayPairFinder pairfinder;
+
+    StablePairFinder pairfinder;
     pairfinder.setParameters(param_.copy("pairfinder:",true));
-		
+
 		for (Size i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
@@ -96,10 +97,10 @@ namespace OpenMS
 				// build scene_map
 				ConsensusMap::convert( i, maps[i], input[1], max_num_peaks_considered );
 
-				// run superimposer to find the global transformation 
+				// run superimposer to find the global transformation
 	      std::vector<TransformationDescription> si_trafos;
 	      superimposer.run(input, si_trafos);
-				
+
 				//apply transformation to consensus feature and contained feature handles
 				for (Size j=0; j<input[1].size(); ++j)
 				{
@@ -111,7 +112,7 @@ namespace OpenMS
 					//Set RT of consensus feature handles
 					input[1][j].begin()->asMutable().setRT(rt);
 				}
-				
+
 	      //run pairfinder fo find pairs
 				ConsensusMap result;
 				pairfinder.run(input,result);
@@ -127,7 +128,7 @@ namespace OpenMS
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setName("linear");
 					trafo.setParam("slope",1.0);
-					trafo.setParam("intercept",0.0); 
+					trafo.setParam("intercept",0.0);
 				}
 
 
@@ -149,7 +150,7 @@ namespace OpenMS
 		transformations[reference_map_index].setName("none");
 	}
 
-		
+
 	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps, std::vector<TransformationDescription>& transformations)
 	{
 		// prepare transformations for output
@@ -157,12 +158,12 @@ namespace OpenMS
 		transformations.resize(maps.size());
 
 		startProgress(0, 10 * maps.size(),"aligning feature maps");
-		
+
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		// define reference map (the one with most peaks)
 		Size reference_map_index = 0;
-		Size max_count = 0;		
+		Size max_count = 0;
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
@@ -171,17 +172,17 @@ namespace OpenMS
 				reference_map_index = m;
 			}
 		}
-		
+
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     std::vector<ConsensusMap> input(2);
 		ConsensusMap::convert(reference_map_index, maps[reference_map_index], input[0]);
-   
+
 		// init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
     superimposer.setParameters(param_.copy("superimposer:",true));
 		superimposer.setLogType(getLogType());
-    
-    DelaunayPairFinder pairfinder;
+
+    StablePairFinder pairfinder;
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		pairfinder.setLogType(getLogType());
 
@@ -234,8 +235,11 @@ namespace OpenMS
 				transformations[i].setName("linear");
 				transformations[i].setParam("slope",si_trafos[0].getParam("slope")*trafo.getParam("slope"));
 				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
-				
+
 				// apply transformation (global and local)
+#if 1 // do it the new way - "deep"
+				transformSingleFeatureMap(maps[i],transformations[i]);
+#else // do it the old way - "shallow", does not transform convex hulls etc.! - TODO remove this piece of code sooner or later
 				for (Size j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
@@ -245,6 +249,7 @@ namespace OpenMS
 					// transformations[i].getPairs().push_back(TransformationDescription::PairVector::value_type(rt_old,rt));
 				}
 				// std::sort(transformations[i].getPairs().begin(),transformations[i].getPairs().end());
+#endif
 				setProgress(10*i+6);
 			}
 		}
@@ -277,14 +282,14 @@ namespace OpenMS
 				continue;
 			}
 			rt_x = handle_x->getRT();
-			
+
 			ConsensusFeature::HandleSetType::const_iterator handle_y = iter->lower_bound(probe_y);
 			if ( handle_y == iter->end() || handle_y->getMapIndex() != index_y_map)
 			{
 				continue;
 			}
 			rt_y = handle_y->getRT();
-			
+
 			if (symmetric_regression)
 			{
 				vec_x.push_back(rt_y+rt_x);
@@ -337,4 +342,4 @@ namespace OpenMS
 		return lm;
 	}
 
-} //namespace 
+} //namespace

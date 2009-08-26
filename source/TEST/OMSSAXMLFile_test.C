@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -67,7 +67,7 @@ END_SECTION
 ptr = new OMSSAXMLFile();
 
 START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
-	ModificationDefinitionsSet mod_set("", "MOD:01214,MOD:00719,MOD:01061");
+	ModificationDefinitionsSet mod_set("", "Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)");
 	ptr->setModificationDefinitionsSet(mod_set);
 	NOT_TESTABLE
 END_SECTION

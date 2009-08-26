@@ -52,7 +52,7 @@ namespace OpenMS
 
 		A very important property of residues are their modifications. By default no 
 		modification is present. Any modification which is present in the ModificationsDB can 
-		by applied, if appropriate. 
+		be applied, if appropriate. 
 	*/
 	class OPENMS_DLLAPI Residue
 	{
@@ -239,7 +239,9 @@ namespace OpenMS
 				CIon, // N-terminus up to the amide/C-alpha bond
 				XIon, // amide/C-alpha bond up to the C-terminus
 				YIon, // peptide bond up to the C-terminus
-				ZIon  // C-alpha/carbonyl carbon bond 
+				ZIon  // C-alpha/carbonyl carbon bond
+
+				/// @todo add c+1, z+1, z+2 ion types (Andreas)
 			};
 			//@}
 			

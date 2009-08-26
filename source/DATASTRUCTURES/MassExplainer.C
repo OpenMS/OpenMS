@@ -31,18 +31,6 @@ namespace OpenMS
 {
 	
   MassExplainer me;
-	
-//	///Print the contents of an Adduct to a stream.
-//	std::ostream& MassExplainer::operator << (std::ostream& os, const Adduct& a)
-//	{
-//		os  << "---------- Adduct -----------------\n";
-//		os << "Charge: " << it->charge_ << std::endl;
-//		os << "Amount: " << it->amount_ << std::endl;
-//		os << "MassSingle: " << it->singleMass_ << std::endl;
-//		os << "Formula: " << it->formula_ << std::endl;
-//		os << "P: " << it->prob_ << std::endl;
-//	}
-//					
 
 } 
 

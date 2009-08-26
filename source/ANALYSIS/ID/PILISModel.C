@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -30,6 +30,7 @@
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
@@ -78,10 +79,20 @@ namespace OpenMS
 		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
 		defaults_.setValue("model_depth", 10, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value", StringList::create("advanced"));
 		defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled", StringList::create("advanced"));
+
+		// tolerances
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
 		defaults_.setValue("fragment_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
+		
+		// modification parameters
+		vector<String> all_mods;
+		ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:09997"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
+		defaults_.setValidStrings("variable_modifications", all_mods);
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
+		defaults_.setValidStrings("fixed_modifications", all_mods);
+
+
 		defaults_.setValue("min_enhancement_factor", 2.0, "Minimal factor for bxyz backbone cleavages.", StringList::create("advanced"));
 						
 		defaults_.setValue("min_y_ion_intensity", 0.0, "Minimal intensity for y ions.", StringList::create("advanced"));

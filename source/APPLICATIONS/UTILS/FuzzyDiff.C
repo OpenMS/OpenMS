@@ -37,9 +37,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FuzzyDiff FuzzyDiff
+	@page UTILS_FuzzyDiff FuzzyDiff
 	
-	@brief Diff tool that tolerates numeric differences to some extent.	
+	@brief Compares two files, tolerating numeric differences.
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_FuzzyDiff.cli

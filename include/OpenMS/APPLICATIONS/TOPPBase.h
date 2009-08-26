@@ -104,7 +104,6 @@ namespace OpenMS
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
   
-    @todo Add 'instr' parameter for instrument defaults (Marc, Andreas)
 		@todo write subsections if type was given or if no type is used see MascotAdapterOnline (Andreas)
   */
   class OPENMS_DLLAPI TOPPBase

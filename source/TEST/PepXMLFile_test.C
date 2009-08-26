@@ -30,6 +30,8 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/PepXMLFile.h>
 ///////////////////////////
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,62 +52,117 @@ START_SECTION(~PepXMLFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name))
-//TODO Hendrik
-ProteinIdentification protein;
-std::vector<PeptideIdentification> peptides;
-String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml"),
-	exp_name = "B08-08318";
-file.load(filename, protein, peptides, exp_name);
-
-// peptide IDs:
-TEST_EQUAL(peptides.size(), 3);
-PeptideIdentification first = peptides[0], last = peptides[2];
-TEST_REAL_SIMILAR(first.getMetaValue("RT"), 7.6514);
-TEST_REAL_SIMILAR(first.getMetaValue("MZ"), 609.835525);
-TEST_EQUAL(first.getHits().size(), 1);
-PeptideHit pep_hit = first.getHits()[0];
-TEST_EQUAL(pep_hit.getSequence().toString(), "KRGYVPAEGNK");
-TEST_EQUAL(pep_hit.getRank(), 1);
-// no use checking score, because implementation may still change
-TEST_EQUAL(pep_hit.getCharge(), 2);
-TEST_EQUAL(pep_hit.getProteinAccessions().size(), 1);
-TEST_EQUAL(pep_hit.getProteinAccessions()[0], "ddb000324841");
-TEST_EQUAL(pep_hit.getAABefore(), 'K');
-TEST_EQUAL(pep_hit.getAAAfter(), 'K');
-TEST_EQUAL(first.getIdentifier(), last.getIdentifier());
-pep_hit = last.getHits()[0];
-TEST_EQUAL(pep_hit.getProteinAccessions().size(), 2);
-// TODO: check handling of modifications on 2nd peptide ID ("peptides[1]")
-
-// protein ID:
-TEST_EQUAL(protein.getIdentifier(), first.getIdentifier());
-TEST_NOT_EQUAL(protein.getIdentifier(), "");
-TEST_EQUAL(protein.getSearchEngine(), "X! Tandem");
-std::vector<ProteinHit> prot_hits = protein.getHits();
-TEST_EQUAL(prot_hits.size(), 4);
-StringList accessions;
-for (std::vector<ProteinHit>::iterator it = prot_hits.begin();
-		 it != prot_hits.end(); ++it)
+START_SECTION(void load(const String &filename, ProteinIdentification &protein, std::vector< PeptideIdentification > &peptides, const String &experiment_name, MSExperiment<> &experiment))
 {
-	accessions << it->getAccession();
+	ProteinIdentification protein, protein2;
+	std::vector<PeptideIdentification> peptides, peptides2;
+	String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+	String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+	String exp_name = "B09-05181_p";
+	MSExperiment<> experiment;
+	MzMLFile().load(mz_file, experiment);
+	file.load(pep_file, protein, peptides, exp_name, experiment);
+	PeptideIdentification first = peptides[0];
+	TEST_EQUAL(first.getMetaValue("RT"), 0.5927);
+	TEST_EQUAL(first.getMetaValue("MZ"), 538.605);
+	// check that only RT and m/z changes compared to the other "load" method:
+	file.load(pep_file, protein2, peptides2);
+	TEST_EQUAL(peptides.size(), peptides2.size());
+	for (Size i = 0; i < peptides.size(); ++i)
+	{
+		peptides[i].clearMetaInfo();
+		peptides2[i].clearMetaInfo();
+	}
+	TEST_EQUAL(peptides == peptides2, true);
+	TEST_EQUAL(protein == protein2, true);
 }
-TEST_EQUAL(accessions.contains("ddb000324841"), true);
-TEST_EQUAL(accessions.contains("ddb000014895"), true);
-TEST_EQUAL(accessions.contains("ddb000000416"), true);
-TEST_EQUAL(accessions.contains("ddb000630664"), true);
+END_SECTION
 
-// search parameters:
-ProteinIdentification::SearchParameters params = protein.getSearchParameters();
-TEST_EQUAL(params.db, "./current.fasta");
-TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
-TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
-// TODO: check handling of modification info
+START_SECTION(void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name = ""))
+{
+	ProteinIdentification protein;
+	std::vector<PeptideIdentification> peptides;
+	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+	String exp_name = "B09-05181_p";
+	file.load(filename, protein, peptides, exp_name);
 
+	// peptide IDs:
+	TEST_EQUAL(peptides.size(), 9);
+	PeptideIdentification first = peptides[0], last = peptides[8];
+	TEST_EQUAL(first.getMetaValue("RT"), 1.3653); // RT of MS2 spectrum
+	TEST_REAL_SIMILAR(first.getMetaValue("MZ"), 538.605); // recomputed
+	TEST_EQUAL(first.getHits().size(), 1);
+	PeptideHit pep_hit = first.getHits()[0];
+	TEST_EQUAL(pep_hit.getSequence().toString(), "ELNKEMAAEKAKAAAG");
+	TEST_EQUAL(pep_hit.getRank(), 1);
+	// no use checking score, because implementation may still change
+	TEST_EQUAL(pep_hit.getCharge(), 3);
+	TEST_EQUAL(pep_hit.getProteinAccessions().size(), 3);
+	TEST_EQUAL(pep_hit.getProteinAccessions()[0], "ddb000449223");
+	TEST_EQUAL(pep_hit.getAABefore(), 'R');
+	TEST_EQUAL(pep_hit.getAAAfter(), 'E');
+	TEST_EQUAL(first.getIdentifier(), last.getIdentifier());
+	// TODO: check handling of modifications on 1st/2nd/6th peptide ID
+
+	// protein ID:
+	TEST_EQUAL(protein.getIdentifier(), first.getIdentifier());
+	TEST_NOT_EQUAL(protein.getIdentifier(), "");
+	TEST_EQUAL(protein.getSearchEngine(), "X! Tandem (k-score)");
+	std::vector<ProteinHit> prot_hits = protein.getHits();
+	TEST_EQUAL(prot_hits.size(), 20);
+	StringList accessions;
+	for (std::vector<ProteinHit>::iterator it = prot_hits.begin();
+			 it != prot_hits.end(); ++it)
+	{
+		accessions << it->getAccession();
+	}
+	// check a sample of the IDs that should be present:
+	TEST_EQUAL(accessions.contains("ddb000449223"), true);
+	TEST_EQUAL(accessions.contains("ddb000626346"), true);
+	TEST_EQUAL(accessions.contains("rev000409159"), true);
+
+	// search parameters:
+	ProteinIdentification::SearchParameters params = protein.getSearchParameters();
+	TEST_EQUAL(params.db, "./current.fasta");
+	TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
+	TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
+	// TODO: check handling of modification info
+
+	// with the wrong "experiment_name", there are no results:
+	file.load(filename, protein, peptides, "test");
+	TEST_EQUAL(protein.getSearchParameters() == ProteinIdentification::SearchParameters(), true);
+	TEST_EQUAL(protein.getHits().empty(), true);
+	TEST_EQUAL(peptides.empty(), true);
+
+	// throw an exception if the pepXML file does not exist:
+	NEW_TMP_FILE(filename);
+	TEST_EXCEPTION(Exception::FileNotFound,
+								 file.load(filename, protein, peptides, exp_name));
+
+}
 END_SECTION
 
 START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids))
-	//TODO Chris
+{
+	PepXMLFile file;
+	ProteinIdentification protein;
+	std::vector<PeptideIdentification> peptides;
+	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+	file.load(filename, protein, peptides);
+	
+	std::vector<ProteinIdentification> protein_ids;
+	protein_ids.push_back(protein);
+	
+	String cm_file_out;
+	NEW_TMP_FILE(cm_file_out);
+	String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
+	file.store(cm_file_out, protein_ids, peptides);
+	
+	FuzzyStringComparator fsc;
+	fsc.setWhitelist (StringList::create("base_name"));
+	TEST_EQUAL(fsc.compareFiles (cm_file_out.c_str(), filename_out.c_str()), true)
+
+}	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

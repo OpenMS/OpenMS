@@ -235,7 +235,7 @@ namespace OpenMS
 		{
 			//retention time
 			ss.str("");
-			ss << retention_time_;
+			ss << precisionWrapper(retention_time_);
 			cout << "No precursor m/z information for spectrum with rt: " 
 				<< ss.str() << " present" << endl;
 		}
@@ -251,29 +251,29 @@ namespace OpenMS
 			fputs ("BEGIN IONS\n",fp);
 
 			ss.str("");
-			ss << mz_ << "_" << retention_time_;
+			ss << precisionWrapper(mz_) << "_" << precisionWrapper(retention_time_);
 			fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
 			
 			//precursor data (includes mz and retention time)
 			ss.str("");
-			ss << mz_;
+			ss << precisionWrapper(mz_);
 			fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
 	
 			//retention time
 			ss.str("");
-			ss << retention_time_;
+			ss << precisionWrapper(retention_time_);
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 
 			for (PeakSpectrum::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
-				ss << it->getMZ();
+				ss << precisionWrapper(it->getMZ());
 				fputs (ss.str().c_str(),fp);
 				fputs (" ",fp);
 				//intensity
 				ss.str("");
-				ss << it->getIntensity();
+				ss << precisionWrapper(it->getIntensity());
 				fputs (ss.str().c_str(),fp);
 				fputs ("\n",fp);
 			}
@@ -317,24 +317,24 @@ namespace OpenMS
 			{
 				if (precursor_peak.getMZ() == 0)
 				{
-					cerr << "Warning: No precursor m/z information for spectrum with rt: " << experiment[i].getRT() << " present" << endl;
+					cerr << "Warning: No precursor m/z information for spectrum with rt: " << precisionWrapper(experiment[i].getRT()) << " present" << endl;
 				}
 				else
 				{
 					fputs ("\nBEGIN IONS\n",fp);
 
 					ss.str("");
-					ss << precursor_peak.getMZ() << "_" << experiment[i].getRT();
+					ss << precisionWrapper(precursor_peak.getMZ()) << "_" << precisionWrapper(experiment[i].getRT());
 					fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
 
 					//precursor data (includes mz and retention time)
 					ss.str("");
-					ss << precursor_peak.getMZ();
+					ss << precisionWrapper(precursor_peak.getMZ());
 					fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
 			
 					//retention time
 					ss.str("");
-					ss << experiment[i].getRT();
+					ss << precisionWrapper(experiment[i].getRT());
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
 
 					if (precursor_peak.getCharge() != 0)
@@ -359,12 +359,12 @@ namespace OpenMS
 					{
 						//mass
 						ss.str("");
-						ss << it->getMZ();
+						ss << precisionWrapper(it->getMZ());
 						fputs (ss.str().c_str(),fp);
 						fputs (" ",fp);
 						//intensity
 						ss.str("");
-						ss << it->getIntensity();
+						ss << precisionWrapper(it->getIntensity());
 						fputs (ss.str().c_str(),fp);
 						fputs ("\n",fp);
 					}

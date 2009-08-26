@@ -71,7 +71,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[2].toUnmodifiedString(), "SPAPLVPVRLR")			
 	TEST_EQUAL(temp_sequences[2].toString(), "SPAPLVPVRLR")
 	TEST_EQUAL(temp_sequences[3].toUnmodifiedString(), "QPYLHPSFSK")
-	TEST_EQUAL(temp_sequences[3].toString(), "Q(MOD:00137)PYLHPSFSK")
+	TEST_EQUAL(temp_sequences[3].toString(), "Q(Deamidated)PYLHPSFSK")
 	++it;
 	TEST_EQUAL(it->first, "404.875_14_333.442")			
 	temp_sequences = it->second;
@@ -83,11 +83,11 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[2].toUnmodifiedString(), "AEPAAELALEAK")			
 	TEST_EQUAL(temp_sequences[2].toString(), "AEPAAELALEAK")
 	TEST_EQUAL(temp_sequences[3].toUnmodifiedString(), "LANAASPAITQR")			
-	TEST_EQUAL(temp_sequences[3].toString(), "LANAASPAITQ(MOD:00137)R")
+	TEST_EQUAL(temp_sequences[3].toString(), "LANAASPAITQ(Deamidated)R")
 	TEST_EQUAL(temp_sequences[4].toUnmodifiedString(), "SGHSAVLLQDGK")			
-	TEST_EQUAL(temp_sequences[4].toString(), "SGHSAVLLQ(MOD:00137)DGK")
+	TEST_EQUAL(temp_sequences[4].toString(), "SGHSAVLLQ(Deamidated)DGK")
 	TEST_EQUAL(temp_sequences[5].toUnmodifiedString(), "AGAGIANVQAAIR")			
-	TEST_EQUAL(temp_sequences[5].toString(), "AGAGIAN(Deamidated (N))VQ(MOD:00137)AAIR")
+	TEST_EQUAL(temp_sequences[5].toString(), "AGAGIAN(Deamidated)VQ(Deamidated)AAIR")
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "VTAPAARSAALGK")
 	TEST_EQUAL(temp_sequences[6].toString(), "VTAPAARSAALGK")
 	++it;
@@ -97,17 +97,17 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[0].toUnmodifiedString(), "LLAWMGRTER")
 	TEST_EQUAL(temp_sequences[0].toString(), "LLAWMGRTER")
 	TEST_EQUAL(temp_sequences[1].toUnmodifiedString(), "VLALYRAAQAR")
-	TEST_EQUAL(temp_sequences[1].toString(), "VLALYRAAQ(MOD:00137)AR")			
+	TEST_EQUAL(temp_sequences[1].toString(), "VLALYRAAQ(Deamidated)AR")			
 	TEST_EQUAL(temp_sequences[2].toUnmodifiedString(), "RTLLMSLTGLK")
 	TEST_EQUAL(temp_sequences[2].toString(), "RTLLMSLTGLK")			
 	TEST_EQUAL(temp_sequences[3].toUnmodifiedString(), "LLGLSRFGLQK")
-	TEST_EQUAL(temp_sequences[3].toString(), "LLGLSRFGLQ(MOD:00137)K")			
+	TEST_EQUAL(temp_sequences[3].toString(), "LLGLSRFGLQ(Deamidated)K")			
 	TEST_EQUAL(temp_sequences[4].toUnmodifiedString(), "MGGIALLDEIGK")
-	TEST_EQUAL(temp_sequences[4].toString(), "M(MOD:00425)GGIALLDEIGK")			
+	TEST_EQUAL(temp_sequences[4].toString(), "M(Oxidation)GGIALLDEIGK")			
 	TEST_EQUAL(temp_sequences[5].toUnmodifiedString(), "DQMDNALRIR")
-	TEST_EQUAL(temp_sequences[5].toString(), "DQMDN(Deamidated (N))ALRIR")			
+	TEST_EQUAL(temp_sequences[5].toString(), "DQMDN(Deamidated)ALRIR")			
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "QTLAGRMVVQK")
-	TEST_EQUAL(temp_sequences[6].toString(), "Q(MOD:00137)TLAGRMVVQ(MOD:00137)K")				
+	TEST_EQUAL(temp_sequences[6].toString(), "Q(Deamidated)TLAGRMVVQ(Deamidated)K")				
 END_SECTION
 
 

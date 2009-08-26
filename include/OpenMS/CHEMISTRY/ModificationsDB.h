@@ -41,15 +41,22 @@ namespace OpenMS
 
 	/** @ingroup Chemistry
 	
-			@brief database which holds all residue modifications from PSI-MOD
+			@brief database which holds all residue modifications from UniMod
 			
 			This singleton class serves as a storage of the available modifications
-			represented by the PSI-MOD ontology. Each of the modifications is identified by
-			their unique PSI-MOD identifier, e.g. MOD:01214. This identifier is also used
-			in AASequence to specifiy modifications. Also residues can be modified by setting
-			a modification using the unique identifier. Some modifications also have synonyms 
-			which are also unique.
+			represented by UniMod (www.unimod.org). The modifications are identified
+			by there name and possibly other ids from UniMod or the PSI-MOD ontology.
+			Modifications can have different specificities, e.g. they can occur only
+			at the termini, anywhere or only at specific amino acids.
 
+			The modifications are defined in share/OpenMS/CHEMISTRY/unimod.xml and 
+			in share/OpenMS/CHEMISTRY/PSI-MOD.obo. The unimod file can be directly
+			downloaded from unimod.org and replaced if the modifications change.
+
+			To add a new modification, not contained in UniMod, one should follow
+			the way described at the unimod.org website and download the file then
+			from unimod.org. The same can be done to add support for the modifications
+			to search engines, e.g. Mascot.
 	*/
 	class OPENMS_DLLAPI ModificationsDB
 	{					
@@ -72,10 +79,10 @@ namespace OpenMS
 			const ResidueModification& getModification(Size index) const;
 
 			/// returns all modifications which have the given name as synonym
-			std::set<String> searchModifications(const String& name) const;
+			void searchTerminalModifications(std::set<const ResidueModification*>& mods, const String& name, ResidueModification::Term_Specificity term_spec) const;
 
 			/// returns all modification which have the given name as synonym and the given origin
-			std::set<String> searchModifications(const String& name, const String& origin) const;
+			void searchModifications(std::set<const ResidueModification*>& mods, const String& orgin, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
 			
 			/** @brief returns the modifications of the given name
 
@@ -86,20 +93,21 @@ namespace OpenMS
 					
 					@exception ElementNotFound is thrown if no or more than one element is found
 			*/
-			const ResidueModification& getModification(const String& name) const;
+			const ResidueModification& getTerminalModification(const String& name, ResidueModification::Term_Specificity term_spec) const;
 
-			
 			/// returns the modification with the given name and given residue 
-			const ResidueModification& getModification(const String& residue_name, const String& mod_name) const;
+			const ResidueModification& getModification(const String& residue_name, const String& mod_name, ResidueModification::Term_Specificity term_spec) const;
+
+			const ResidueModification& getModification(const String& modification) const;
 
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
 			Size findModificationIndex(const String& mod_name) const;
 
 			/// query the modifications DB to get the modifications with mass, without any specific origin
-			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, DoubleReal mass, DoubleReal error = 0.0);
 			
 			/// query the modifications DB to get modifications with the given mass at the given residue
-			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, double mass, double error = 0.0);
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, DoubleReal mass, DoubleReal error = 0.0);
 
 			/// adds modifications from a given file in OBO format
 			void readFromOBOFile(const String& filename);

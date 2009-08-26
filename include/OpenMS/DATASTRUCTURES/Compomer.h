@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
-#define OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
+#ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
+#define OPENMS_DATASTRUCTURES_COMPOMER_H
 
 #include <vector>
 #include <map>
@@ -36,20 +36,28 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
+/**
+	@brief TODO
+	
+	@todo Add docu here (Chris)
+*/
 class OPENMS_DLLAPI Compomer
 {
 public:
-	enum {LEFT=0, RIGHT};
-
-	typedef std::map<String,Adduct> CompomerComponents;
-	typedef std::set< std::pair<String, Int> > CompomerSide;
+	/// side of compomer (LEFT ^ substract; RIGHT ^ add)
+	enum SIDE {LEFT, RIGHT, BOTH};
 	
-	/// default Constructor
+	typedef Map<String,Adduct> CompomerSide; /// adducts and their abundance etc
+	typedef std::vector< CompomerSide > CompomerComponents; /// container for the two sides [0]=left, [1]=right
+	
+	/// Default Constructor
 	Compomer()
-		: cmp_(),
+		: cmp_(2),
 		net_charge_(0),
 		mass_(0),
 		pos_charges_(0),
@@ -61,7 +69,7 @@ public:
 
 	/// Constructor with net-charge and mass
 	Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p)
-		: cmp_(),
+		: cmp_(2),
 		net_charge_(net_charge),
 		mass_(mass),
 		pos_charges_(0),
@@ -82,23 +90,45 @@ public:
 			id_(p.id_)
 	{
 	}
-
-	/// Add a.amount of Adduct @param a to Compomer and update its properties
-	void add(const Adduct& a)
+	
+	/// Assignment Operator
+	Compomer& operator=(const Compomer& source)
 	{
-    if (cmp_.count(a.getFormula())==0)
+		if (&source == this) return *this;
+		cmp_ = source.cmp_;
+		net_charge_ = source.net_charge_;
+		mass_ = source.mass_;
+		pos_charges_ = source.pos_charges_;
+		neg_charges_ = source.neg_charges_;
+		log_p_ = source.log_p_;
+		id_ = source.id_;
+		
+		return *this;
+	}	
+
+	/// Add a.amount of Adduct @param a to Compomer's @param side and update its properties
+	void add(const Adduct& a, UInt side)
+	{
+		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::add() does not support this value for 'side'!", String(side));
+
+		if (a.getAmount() <=0) 
+		{	std::cerr << "Compomer::add() was given adduct with negative amount! Are you sure this is what you want?!\n"; }
+		if (a.getCharge() <=0) 
+		{	std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n"; }
+
+    if (cmp_[side].count(a.getFormula())==0)
     {
-      cmp_[a.getFormula()] = a;
+      cmp_[side][a.getFormula()] = a;
     }
     else
     {
-      cmp_[a.getFormula()] += a;//update adduct´s amount
+      cmp_[side][a.getFormula()] += a;//update adduct´s amount
     }
-		//
-		net_charge_ += a.getAmount()*a.getCharge();
-		mass_ += a.getAmount()*a.getSingleMass();
-		pos_charges_ +=  std::max(a.getAmount()*a.getCharge(),0);
-		neg_charges_ -=  std::min(a.getAmount()*a.getCharge(),0);
+		int mult[] = {-1,1};
+		net_charge_ += a.getAmount()*a.getCharge()*mult[side];
+		mass_ += a.getAmount()*a.getSingleMass()*mult[side];
+		pos_charges_ +=  std::max(a.getAmount()*a.getCharge()*mult[side],0);
+		neg_charges_ -=  std::min(a.getAmount()*a.getCharge()*mult[side],0);
 		log_p_ += std::abs((Real)a.getAmount())*a.getLogProb();
 	}
 
@@ -109,22 +139,30 @@ public:
 	 * @param left_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
 	 * @param left_other See above.
 	 */
-	bool isConflicting(const Compomer& cmp, bool left_this, bool left_other, const Adduct& implicit_this, const Adduct& implicit_other) const
+	bool isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
 	{
-		// build two sets (one for each compomer) and look at the difference of both. It should be empty!
-		CompomerSide side_this = getCompomerSide_(left_this, implicit_this);
-		CompomerSide side_other = cmp.getCompomerSide_(left_other, implicit_other);
+		if (side_this  >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
+		if (side_other >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
+		
+		bool conflict_found = false;
 		
 		// size is equal - we need to check more thorough...
-		if (side_this.size()==side_other.size())
+		if (cmp_[side_this].size()==cmp.getComponent()[side_other].size())
 		{
-			side_this.insert(side_other.begin(),side_other.end());
-			if (side_this.size()==side_other.size()) return false;
+			for (CompomerSide::const_iterator it = cmp_[side_this].begin(); it!=cmp_[side_this].end(); ++it)
+			{
+				if ((!cmp.getComponent()[side_other].has(it->first)) || cmp.getComponent()[side_other][it->first].getAmount() != it->second.getAmount())
+				{
+					conflict_found = true;
+					break;
+				}
+			}
 		}
+		else conflict_found = true;
     //
-		//std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
-		//					<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
-		return true; 
+		//if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
+		//										<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
+		return conflict_found; 
 	}
 
 	/// set an Id which allows unique identification of a compomer
@@ -138,6 +176,14 @@ public:
 		return id_;
 	}
 
+
+	/// return Id which allows unique identification of this compomer
+	const CompomerComponents& getComponent() const
+	{
+		return cmp_;
+	}
+
+	/// net charge of compomer (i.e. difference between left and right side of compomer)
 	const Int& getNetCharge() const
 	{
 		return net_charge_;
@@ -167,35 +213,141 @@ public:
 		return log_p_;
 	}	
 
-	/// get adducts with their abundance as compact string (amounts are absolute unless side=0)
-	/// @param side Use -1 for left, +1 for right and 0 for both
-	String getAdductsAsString(Int side=0) const
+	/// get adducts with their abundance as compact string for both sides
+	String getAdductsAsString() const
 	{
+		return "(" + getAdductsAsString(LEFT) + ")-(" + getAdductsAsString(RIGHT) + ")";
+	}
+
+	/// get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
+	/// @param side Use LEFT for left, RIGHT for right
+	String getAdductsAsString(UInt side) const
+	{
+		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+		
 		String r;
-		std::map<String,Adduct>::const_iterator it=cmp_.begin();
-		for (; it!=cmp_.end(); ++it)
+		CompomerSide::const_iterator it=cmp_[side].begin();
+		for (; it!=cmp_[side].end(); ++it)
 		{
 			Int f = it->second.getAmount();
-			//if (it!=cmp_.begin()) r+= " ";
 			
 			if (it->first.has('+')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "An Adduct contains ímplicit charge. This is not allowed!", it->first);
 			
 			EmpiricalFormula ef(it->first);
-			ef = ef * std::abs(f);
-
-			if ( (f < 0 && side==-1) ||
-					 (f > 0 && side==+1))
-			{
-			  r += ef.getString();
-			}
-			else if (side==0)
-			{
-				r += String(it->second.getAmount()) + "(" + it->first + ")";
-			}
+			ef = ef * f;
+		  r += ef.getString();
 		}
 
 		return r;
 	}
+	
+	/*
+	/// check if Compomer only contains a single adduct
+	bool isSimpleAdduct(Adduct& a)
+	{
+		if ((cmp_[LEFT].size() > 1) || (cmp_[RIGHT].size() > 1) return false;
+		
+		if ( ((cmp_[LEFT].size()==1) && (cmp_[LEFT].count(a.getFormula())==0)) ||
+				 ((cmp_[RIGHT].size()==1) && (cmp_[RIGHT].count(a.getFormula())==0)) ) return false;
+				
+		return true;
+	}
+	*/
+	
+	/**
+		@brief Remove all adducts of type @p a
+	
+		Remove ALL instances of the given adduct,
+		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
+	**/
+	Compomer removeAdduct(const Adduct& a) const
+	{
+		Compomer tmp = removeAdduct(a, LEFT);
+		tmp = tmp.removeAdduct(a, RIGHT);
+		return tmp;
+	}
+	
+	/**
+		@brief Remove all adducts of type @p a from @p side (LEFT or RIGHT)
+		
+		remove ALL instances of the given adduct from the given side (LEFT or RIGHT),
+		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
+	*/
+	Compomer removeAdduct(const Adduct& a, const UInt side) const
+	{
+		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
+	
+		Compomer tmp(*this);
+		if (tmp.cmp_[side].count(a.getFormula())>0)
+		{
+			{ // how many instances does this side contain?
+				Int amount = tmp.cmp_[side][a.getFormula()].getAmount();
+				int mult[] = {-1,1};
+				//const Adduct &to_remove = tmp.cmp_[side][a.getFormula()];
+				tmp.net_charge_ -= amount *a.getCharge()*mult[side];
+				tmp.mass_ -= amount *a.getSingleMass()*mult[side];
+				tmp.pos_charges_ -=  std::max(amount *a.getCharge()*mult[side],0);
+				tmp.neg_charges_ -= -std::min(amount *a.getCharge()*mult[side],0);
+				tmp.log_p_ -= std::abs((Real)amount) *a.getLogProb();
+			}
+			// remove entry from map
+			tmp.cmp_[side].erase(a.getFormula());
+		}
+		
+		return tmp;
+	}
+	
+	/// Adds @p add_side to this compomer.
+	void add(const CompomerSide& add_side, UInt side)
+	{
+		for (CompomerSide::const_iterator it=add_side.begin(); it!=add_side.end(); ++it)
+		{
+			this->add(it->second, side);
+		}
+	}
+	
+/*	Size augmentSide_(const CompomerSide& to_augment, const Adduct& to_replace, UInt side)
+	{
+		Size rvalue = 0;
+		Size free_charges;
+		Size free_charges_used = 0;
+		if (cmp_[side].count(to_replace.getFormula())==0)  free_charges = 0;
+    else free_charges = cmp_[side][a.getFormula()].getAmount() * cmp_[side][a.getFormula()].getCharge();
+    
+    for (CompomerSide::iterator it=to_augment.begin(); it!=to_augment.end(); ++it)
+		{
+			Size required_amount = it->second.getAmount();
+			if (cmp_[side].count(it->first)>0) required_amount = std::max(0, required_amount - cmp_[side][it->first]);
+			
+			if (required_amount>0)
+			{
+				*this = removeAdduct(cmp_[side][it->first], side);
+				add( it->second, side);
+				rvalue = 1;
+			}
+			
+			free_charges_used += required_amount * it->second.getCharge();
+		}
+		if (free_charges_used > free_charges) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "More replacements requested than available from replaceable adduct while augmenting compomer " + String(free_charges_used) + " > " + String(free_charges) << "!", free_charges_used);
+
+		// remove replacement adducts
+		if (free_charges_used>0)
+		{
+			if ((free_charges - free_charges_used) % to_replace.getCharge() != 0) return -1; // variable adduct cannot exactly compensate the augmented adducts
+	
+			Size amount = (free_charges - free_charges_used) / to_replace.getCharge();
+
+			*this = removeAdduct(to_replace, side);
+			Adduct refill(to_replace);
+			refill.setAmount(amount);
+			add( refill, side);
+			rvalue = 1;
+		}
+		
+		return rvalue;
+	}*/
+	
+	
 	
 	/// Sort compomer by (in order of importance): net-charge, mass, probability
 	friend OPENMS_DLLAPI bool operator< (const Compomer &c1, const Compomer &c2); 
@@ -207,47 +359,6 @@ public:
 	friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b);
 	
 private:	
-	
-	/// get the left(negative amount) or right(positive amount) side subset of the compomers adduct set
-	/// @note The result will give absolute amounts
-	CompomerSide getCompomerSide_(const bool left, const Adduct& implicit) const
-	{
-		CompomerSide side; //set()
-		CompomerComponents::const_iterator it=cmp_.begin(); // vec<String, Adduct>
-    Int extra_amount, normal_amount;
-
-		for (; it!=cmp_.end(); ++it)
-		{
-			if (it->first == implicit.getFormula())
-			{
-				extra_amount = implicit.getAmount();
-        OPENMS_POSTCONDITION(extra_amount >= 0, "Compomer.h::getCompomerSide_() has invalid implicit adduct!");
-			}
-			else extra_amount=0;
-				
-			normal_amount=0;
-			if (left && (it->second.getAmount()<0))
-			{
-        normal_amount = -it->second.getAmount();
-			}
-			else if((!left) && (it->second.getAmount()>0))
-			{
-        normal_amount = it->second.getAmount();
-			}
-      else if(it->second.getAmount()==0)
-      {
-        OPENMS_POSTCONDITION(extra_amount > 0, "Compomer.h::getCompomerSide_() has invalid adduct amount of 0!");
-      }
-
-      if (normal_amount + extra_amount > 0)
-      {
-				side.insert(std::make_pair(it->first, normal_amount + extra_amount));
-			}
-
-		}
-
-		return side;
-	}
 	
 	CompomerComponents cmp_;
 	Int net_charge_;
@@ -261,4 +372,4 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_DATASTRUCTURES_COMPOMER_H
+#endif //OPENMS_DATASTRUCTURES_COMPOMER_H

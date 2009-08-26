@@ -9,7 +9,6 @@ ElutionModel.C
 IonizationSimulation.C
 IsotopeModelGeneral.C
 MSSim.C
-MixtureModel.C
 PTMSimulation.C
 RTSimulation.C
 RawMSSignalSimulation.C

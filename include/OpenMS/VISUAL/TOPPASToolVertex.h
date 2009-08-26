@@ -37,6 +37,11 @@ namespace OpenMS
 {
 	/**
 		@brief A vertex representing a TOPP tool
+		
+		Besides TOPPASScene, this class contains most of the remaining functionality of
+		TOPPAS regarding the execution of pipelines. Once a pipeline run is started
+		from TOPPASScene, the execution is propagated from tool to tool and the
+		TOPP tools are actually called from here.
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -50,12 +55,32 @@ namespace OpenMS
 			/// Stores the information for input/output files/lists
 			struct IOInfo
 			{
+				///Standard constructor
+				IOInfo()
+					:	type(IOT_FILE),
+						param_name(),
+						valid_types(),
+						listified(false)
+				{
+				}
+				
+				///Copy constructor
+				IOInfo(const IOInfo& rhs)
+					:	type(rhs.type),
+						param_name(rhs.param_name),
+						valid_types(rhs.valid_types),
+						listified(rhs.listified)
+				{
+				}
+				
+				///The type
 				enum IOType
 				{
 					IOT_FILE,
 					IOT_LIST
 				};
 				
+				///Comparison operator
 				bool operator< (const IOInfo& rhs) const
 				{
 					if (type != rhs.type)
@@ -68,9 +93,24 @@ namespace OpenMS
 					}
 				}
 				
+				///Assignment operator
+				IOInfo& operator= (const IOInfo& rhs)
+				{
+					type = rhs.type;
+					param_name = rhs.param_name;
+					valid_types = rhs.valid_types;
+					listified = rhs.listified;
+					
+					return *this;
+				}
+				
+				///The type of the parameter
 				IOType type;
+				///The name of the parameter
 				String param_name;
+				///The valid file types for this parameter
 				StringList valid_types;
+				///Is the parameter actually a single file parameter but is used in list iteration?
 				bool listified;
 			};
 			
@@ -119,6 +159,8 @@ namespace OpenMS
 			void setStartedHere(bool b);
 			/// Sets the progress color
 			void setProgressColor(const QColor& c);
+			/// Returns the progress color
+			QColor getProgressColor();
 			/// Lets the user edit the parameters of the tool
 			void editParam();
 			/// Returns the number of iterations this tool has to perform
@@ -127,6 +169,12 @@ namespace OpenMS
 			bool listModeActive();
 			/// (Un)sets the list iteration mode
 			void setListModeActive(bool b);
+			/// Returns the directory where this tool stores its output files
+			String getOutputDir();
+			/// Creates all necessary directories (called by the scene before the pipeline is run)
+			void createDirs(const QString& out_dir);
+			/// Sets the topological sort number and removes invalidated tmp files
+			virtual void setTopoNr(UInt nr);
 			
 		public slots:
 		
@@ -151,7 +199,7 @@ namespace OpenMS
 			void toolCrashed();
 			/// Emitted when the tool execution fails
 			void toolFailed();
-			/// Emitted from showTOPPOutput() to forward the signal outside
+			/// Emitted from forwardTOPPOutput() to forward the signal outside
 			void toppOutputReady(const QString& out);
 		
 		protected:
@@ -173,8 +221,6 @@ namespace OpenMS
 			String type_;
 			/// The temporary path
 			String tmp_path_;
-			/// The temporary ini file
-			String ini_file_;
 			/// The parameters of the tool
 			Param param_;
 			/// Stores whether this node has already been processed during the current pipeline execution

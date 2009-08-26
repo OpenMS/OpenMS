@@ -51,7 +51,6 @@ namespace OpenMS
 		defaults_.setValue("rt_weighting:gauss_amplitude",100.,"amplitude at the gauss_mean");
 		defaults_.setValue("rt_weighting:gauss_mean",0.0,"mean of the gauss curve");
 		defaults_.setValue("rt_weighting:gauss_std",0.01,"std of the gauss curve");
-		//		defaults_.setMinFloat("rt_tolerance",0.);
 		defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
 		defaults_.setValidStrings("precursor_mass_tolerance_unit",StringList::create("ppm,Da"));
 		defaults_.setValue("preprocessing:preprocessed_db_path","","Path where the preprocessed database should be stored");
@@ -95,12 +94,6 @@ namespace OpenMS
 	}
 	
 	
-// 	const std::set<AASequence>& PrecursorIonSelectionPreprocessing::getSequences() const 
-// 	{
-// 	  return sequences_; 
-// 	}
-	
-	
 	const std::map<String,std::vector<DoubleReal> >& PrecursorIonSelectionPreprocessing::getProtMasses() const
 	{
 	  return prot_masses_; 
@@ -111,39 +104,16 @@ namespace OpenMS
 	  return prot_masses_[acc]; 
 	}
 	
-	DoubleReal PrecursorIonSelectionPreprocessing::getRT(String peptide)
-	{
-		if(rt_map_.size()>0)
-			{
-				if(rt_map_.find(peptide)!=rt_map_.end()) return rt_map_[peptide];
-				else return -1;
-			}
-		std::cout << "rt_map is empty, no rts predicted!"<<std::endl;
-		return -1;
-	}
-
-	
-	DoubleReal PrecursorIonSelectionPreprocessing::getPT(String peptide)
-	{
-		if(pt_map_.size()>0)
-			{
-				if(pt_map_.find(peptide)!=pt_map_.end()) return pt_map_[peptide];
-				else return 1;
-			}
-		std::cout << "pt_map is empty, no detectabilities predicted!"<<std::endl;
-		return 1;
-	}
-
 	DoubleReal PrecursorIonSelectionPreprocessing::getRT(String prot_id,Size peptide_index)
 	{
 		if(rt_prot_map_.size()>0)
 			{
-// 				if(rt_prot_map_.find(prot_id)!=rt_prot_map_.end())
-// 					{
+				if(rt_prot_map_.find(prot_id)!=rt_prot_map_.end())
+					{
 						if(rt_prot_map_[prot_id].size() >peptide_index)	return rt_prot_map_[prot_id][peptide_index];
 						else return -1;
-// 					}
-// 				else return -1;
+					}
+				else return -1;
 			}
 		std::cout << "rt_map is empty, no rts predicted!"<<std::endl;
 		return -1;
@@ -153,12 +123,12 @@ namespace OpenMS
 	{
 		if(pt_prot_map_.size()>0)
 			{
-// 				if(pt_prot_map_.find(prot_id)!=pt_prot_map_.end())
-// 					{
+				if(pt_prot_map_.find(prot_id)!=pt_prot_map_.end())
+					{
 						if(pt_prot_map_[prot_id].size() >peptide_index)	return pt_prot_map_[prot_id][peptide_index];
 						else return 1;
-// 					}
-// 				else return 1;
+					}
+				else return 1;
 			}
 		std::cout << "pt_map is empty, no detectabilities predicted!"<<std::endl;
 		return 1;
@@ -182,27 +152,6 @@ namespace OpenMS
 		return gauss_diff;
 	}
 
-
-	
-	DoubleReal PrecursorIonSelectionPreprocessing::getRTWeight(String peptide,DoubleReal meas_rt)
-	{
-		DoubleReal pred_rt = getRT(peptide);
-		std::cout << "pep: "<<peptide << "\t rt: "<<pred_rt << std::endl;
-		// TODO: what to return if no rt was predicted for this peptide?
-		if(pred_rt == -1) return 1.;
-		// determine difference of measured and predicted rt and normalize by total gradient time
-		DoubleReal diff = (meas_rt - pred_rt)/(DoubleReal)param_.getValue("rt_weighting:total_gradient_time");
-		// get parameters for gauss curve representing the distribution of the rt differences
-		DoubleReal a = param_.getValue("rt_weighting:gauss_amplitude");
-		DoubleReal m = param_.getValue("rt_weighting:gauss_mean");
-		DoubleReal s = param_.getValue("rt_weighting:gauss_std");
-		// get gauss value for the specific rt difference
-		DoubleReal gauss_diff = a*exp(-1.0 *pow(diff-m,2)/(2*pow(s,2)));
-		return gauss_diff;
-	}
-
-
-	
 	DoubleReal PrecursorIonSelectionPreprocessing::getWeight(DoubleReal mass)
 	{
 		if(param_.getValue("precursor_mass_tolerance_unit") == "Da")
@@ -253,7 +202,7 @@ namespace OpenMS
 	void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path,String rt_model_path,
 																													 String dt_model_path,bool save)
 	{
-		//#ifdef PISP_DEBUG
+#ifdef PISP_DEBUG
 		std::cout << "Parameters: "<< param_.getValue("preprocessing:preprocessed_db_path")
 							<< "\t" << param_.getValue("precursor_mass_tolerance")
 							<< " " << param_.getValue("precursor_mass_tolerance_unit")
@@ -266,15 +215,14 @@ namespace OpenMS
 							<< "\t" << param_.getValue("preprocessing:taxonomy")
 							<< "\t" << param_.getValue("tmp_dir") << "---"
 							<< std::endl;
-		//#endif
+#endif
 
 		FASTAFile fasta_file;
 		std::vector<FASTAFile::FASTAEntry> entries;
 		fasta_file.load(db_path,entries);
 		EnzymaticDigestion digest;
 		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
-		String tmp_filename = (String)param_.getValue("tmp_dir") + "/sequences";
-
+		std::map<String,std::vector<std::pair<String,Size> > > tmp_peptide_map;
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)
 			{
@@ -310,6 +258,17 @@ namespace OpenMS
 								//seq_file << *vec_iter << "\n";
 								DoubleReal mass = vec_iter->getMonoWeight(Residue::Full,1);
 								prot_masses.push_back(mass);
+								if(tmp_peptide_map.find(vec_iter->toUnmodifiedString())!=tmp_peptide_map.end())
+									{
+										tmp_peptide_map[vec_iter->toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
+																																												prot_masses.size()-1));
+									}
+								else
+									{
+										std::vector<std::pair<String,Size> > tmp_vec;
+										tmp_vec.push_back(make_pair(entries[e].identifier,prot_masses.size()-1));
+										tmp_peptide_map.insert(make_pair(vec_iter->toUnmodifiedString(),tmp_vec));
+									}
 								if(sequences_.count(*vec_iter)==0) // peptide sequences are considered only once
 									{
 										sequences_.insert(*vec_iter);
@@ -321,22 +280,24 @@ namespace OpenMS
 
 			}
 		entries.clear();
+#ifdef PIPS_DEBUG
 		std::cout << "now make the rt and pt predictions"<<std::endl;
+#endif
 		std::set<AASequence>::iterator seq_it = sequences_.begin();
 		std::vector<String> peptide_sequences;
 		UInt index = 0;
-		DoubleReal total_gradient_time = param_.getValue("rt_weighting:total_gradient_time");
-		DoubleReal gradient_offset = param_.getValue("rt_weighting:gradient_offset");
 		Param rt_param;
-		rt_param.setValue("rt_model_file",rt_model_path);
+		rt_param.setValue("HPLC:model_file",rt_model_path);
 		Param dt_param;
 		dt_param.setValue("dt_simulation_on","true");
 		dt_param.setValue("dt_model_file",dt_model_path);
 		gsl_rng* random_generator = gsl_rng_alloc(gsl_rng_mt19937);// not needed for this rt prediction, but needed for RTSimulation
 		// this is needed, as too many sequences require too much memory for the rt and dt prediction
 		Size max_peptides_per_run = (Int)param_.getValue("preprocessing:max_peptides_per_run");
-		peptide_sequences.resize(max_peptides_per_run);
+		peptide_sequences.resize(std::min(sequences_.size(),max_peptides_per_run));
+#ifdef PIPS_DEBUG
 		std::cout << sequences_.size()<<" peptides for predictions."<<std::endl;
+#endif
 		std::set<AASequence>::iterator seq_it_end = sequences_.end();
 		if(seq_it != seq_it_end)  --seq_it_end;
 		for(;seq_it!=sequences_.end();++seq_it)
@@ -353,7 +314,21 @@ namespace OpenMS
 						
 						for(Size index2 = 0; index2 < rts.size();++index2)
 							{
-								rt_map_.insert(std::make_pair(peptide_sequences[index2],rts[index2]*total_gradient_time+gradient_offset));
+								for(Size seq_idx =0; seq_idx < tmp_peptide_map[peptide_sequences[index2]].size();++seq_idx)
+									{
+										String acc = tmp_peptide_map[peptide_sequences[index2]][seq_idx].first;
+										Size tmp_idx = tmp_peptide_map[peptide_sequences[index2]][seq_idx].second;
+										if(rt_prot_map_.find(acc) != rt_prot_map_.end())
+											{
+												rt_prot_map_[acc][tmp_idx]= rts[index2];
+											}
+										else
+											{
+												std::vector<DoubleReal> rt_vec(prot_masses_[acc].size());
+												rt_prot_map_.insert(make_pair(acc,rt_vec));
+												rt_prot_map_[acc][tmp_idx]= rts[index2];
+											}
+									}
 							}
 						rts.clear();
 						
@@ -366,18 +341,34 @@ namespace OpenMS
 						
 						for(Size index2 = 0; index2 < detectabilities.size();++index2)
 							{
-								pt_map_.insert(make_pair(peptide_sequences[index2],detectabilities[index2]));
+								for(Size seq_idx =0; seq_idx < tmp_peptide_map[peptide_sequences[index2]].size();++seq_idx)
+									{
+										String acc = tmp_peptide_map[peptide_sequences[index2]][seq_idx].first;
+										Size tmp_idx = tmp_peptide_map[peptide_sequences[index2]][seq_idx].second;
+										if(pt_prot_map_.find(acc) != pt_prot_map_.end())
+											{
+												pt_prot_map_[acc][tmp_idx]= detectabilities[index2];
+											}
+										else
+											{
+												std::vector<DoubleReal> pt_vec(prot_masses_[acc].size());
+												pt_prot_map_.insert(make_pair(acc,pt_vec));
+												pt_prot_map_[acc][tmp_idx]=	detectabilities[index2];
+											}
+									}
 							}
 						peptide_sequences.clear();
 						Int size = std::min((int)distance(seq_it,sequences_.end())-1,(int)max_peptides_per_run);
-						std::cout << "peptide_sequences.resize(size) "<<size<<std::endl;
- 						peptide_sequences.resize(size);
+						peptide_sequences.resize(size);
 						index = 0;
 					}
 			}
 		peptide_sequences.clear();
+		tmp_peptide_map.clear();
 		sequences_.clear();
+#ifdef PISP_DEBUG
 		std::cout << "Finished predictions!"<<std::endl;
+#endif
 		if(masses_.size() == 0)
 			{
 				std::cout << "no masses entered" << std::endl;
@@ -732,7 +723,7 @@ namespace OpenMS
 					out << counter_[i] << "\t";
 			}
 		out << "\n";
-		if(path.hasSubstring("ppm"))
+		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
 #ifdef PISP_DEBUG
 				std::cout << (path + "_bin_masses") << std::endl;
@@ -818,7 +809,8 @@ namespace OpenMS
 								//seq_file << *vec_iter << "\n";
 								DoubleReal mass = vec_iter->getMonoWeight(Residue::Full,1);
 								// out : masse, rt, pt
-								out << "\t"<<mass << ","<<getRT(vec_iter->toString())<<","<<getPT(vec_iter->toString());
+								out << "\t"<<mass << ","<<getRT(entries[e].identifier,distance(vec.begin(),vec_iter))
+										<<","<<getPT(entries[e].identifier,distance(vec.begin(),vec_iter));
 							}
 						out << "\n";
 					}
@@ -845,7 +837,7 @@ namespace OpenMS
 					out << counter_[i] << "\t";
 			}
 		out << "\n";
-		if(path.hasSubstring("ppm"))
+		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
 #ifdef PISP_DEBUG
 				std::cout << (path + "_bin_masses") << std::endl;

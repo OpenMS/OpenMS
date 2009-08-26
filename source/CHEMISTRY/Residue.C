@@ -544,7 +544,7 @@ namespace OpenMS
 		//modification_ = modification;
 
 		ModificationsDB* mod_db = ModificationsDB::getInstance();
-		ResidueModification mod = mod_db->getModification(one_letter_code_, modification);
+		ResidueModification mod = mod_db->getModification(one_letter_code_, modification, ResidueModification::ANYWHERE);
 
 		modification_ = mod.getId();
 		// update all the members

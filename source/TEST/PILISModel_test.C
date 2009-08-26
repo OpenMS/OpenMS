@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -70,32 +70,27 @@ START_SECTION(PILISModel& operator = (const PILISModel& mode))
 END_SECTION
 
 START_SECTION(void writeGraphMLFile(const String& filename))
+	// TODO
 END_SECTION
 
 START_SECTION(void readFromFile(const String& filename))
-	ptr->readFromFile("PILIS/PILIS_default_model.dat");
+	// TODO 
 END_SECTION
 
 START_SECTION(void writeToFile(const String& filename))
-	String temp_filename(OPENMS_GET_TEST_DATA_PATH("PILISModel_model.dat"));
-	NEW_TMP_FILE(temp_filename)
-	ptr->writeToFile(temp_filename);
+	// TODO
 END_SECTION
 
 START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
-	RichPeakSpectrum spec;
-	ptr->getSpectrum(spec, peptide, 1);
-	TEST_EQUAL(spec.size(), 90)
+	// TODO
 END_SECTION
 
 START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
-	RichPeakSpectrum spec;
-	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), spec);
-	ptr->train(spec, peptide, 1);
+	// TODO
 END_SECTION
 
 START_SECTION(void evaluate())
-	ptr->evaluate();
+	// TODO
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

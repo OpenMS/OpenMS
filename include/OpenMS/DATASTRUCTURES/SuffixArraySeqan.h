@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -33,6 +33,7 @@
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 #ifdef _MSC_VER // disable some seqan warnings that distract from ours
 #	pragma warning( push ) // save warning state
@@ -59,7 +60,9 @@ namespace OpenMS
 
 	*/
 
-	class OPENMS_DLLAPI SuffixArraySeqan : public SuffixArray
+	class OPENMS_DLLAPI SuffixArraySeqan 
+		: public SuffixArray
+			,public WeightWrapper 
 	{
 
 		typedef seqan::TopDown<seqan::ParentLinks<> > TIterSpec;
@@ -77,7 +80,7 @@ namespace OpenMS
 		@throw FileNotFound is thrown if the given file is not found
 		@throw InvalidValue if the given suffix array string is invalid
 		*/
-		SuffixArraySeqan(const String& st, const String& filename);
+		SuffixArraySeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
 		/**
 		@brief copy constructor
@@ -96,13 +99,13 @@ namespace OpenMS
 
 		/**
 		@brief the function that will find all peptide candidates for a given spectrum
-		@param spec const reference of double vector describing the spectrum
+		@param spec const reference of DoubleReal vector describing the spectrum
 		@param candidates output parameters which holds the candidates of the masses given in spec after call
 		@return a vector of SignedSize pairs.
 
 		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
 		*/
-		void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double > > >& candidates, const std::vector<double> & spec);
+		void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal > > >& candidates, const std::vector<DoubleReal> & spec);
 
 		/**
 		@brief saves the suffix array to disc
@@ -123,16 +126,16 @@ namespace OpenMS
 
 		/**
 		@brief setter for tolerance
-		@param t double with tolerance, only 0 or greater is allowed
+		@param t DoubleReal with tolerance, only 0 or greater is allowed
 		@throw InvalidValue is thrown if given tolerance is negative
 		*/
-		void setTolerance(double t);
+		void setTolerance(DoubleReal t);
 
 		/**
 		@brief getter for tolerance
-		@return double with tolerance
+		@return DoubleReal with tolerance
 		*/
-		double getTolerance() const;
+		DoubleReal getTolerance() const;
 
 		/**
 		@brief returns if an enzyme will cut after first character
@@ -195,7 +198,7 @@ namespace OpenMS
 
 		@see goNext
 		*/
-		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
+		inline void goNextSubTree_(TIter& it, DoubleReal& m, std::stack<DoubleReal>& allm, std::stack<std::map<DoubleReal, SignedSize> >& mod_map)
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -274,7 +277,7 @@ namespace OpenMS
 
 		@see goNextSubTree_
 		*/
-		inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
+		inline void goNext_(TIter& it, DoubleReal& m, std::stack<DoubleReal>& allm, std::stack<std::map<DoubleReal, SignedSize> >& mod_map)
 		{
 			// preorder dfs
 			if (!goDown(it))
@@ -338,7 +341,7 @@ namespace OpenMS
 		@return SignedSize with the index of the first occurence
 		@note requires that there is at least one occurence
 		*/
-		SignedSize findFirst_ (const std::vector<double> & spec, double & m);
+		SignedSize findFirst_ (const std::vector<DoubleReal> & spec, DoubleReal & m);
 
 		/**
 		@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
@@ -349,11 +352,11 @@ namespace OpenMS
 		@return SignedSize with the index of the first occurence
 		@note requires that there is at least one occurence
 		*/
-		SignedSize findFirst_ (const std::vector<double> & spec, double & m,SignedSize start, SignedSize  end);
+		SignedSize findFirst_ (const std::vector<DoubleReal> & spec, DoubleReal & m,SignedSize start, SignedSize  end);
 
 		const String& s_; ///< reference to strings for which the suffix array is build
 
-		double masse_[255]; ///< amino acid masses
+		DoubleReal masse_[255]; ///< amino acid masses
 
 		SignedSize number_of_modifications_; ///< number of allowed modifications
 
@@ -361,7 +364,7 @@ namespace OpenMS
 
 		bool use_tags_; ///< if tags are used
 
-		double tol_; ///< tolerance
+		DoubleReal tol_; ///< tolerance
 	};
 }
 

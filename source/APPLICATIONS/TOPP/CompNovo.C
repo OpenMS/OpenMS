@@ -37,9 +37,23 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page CompNovo CompNovo
+	@page TOPP_CompNovo CompNovo
 	
+	@brief Performs a peptide/protein identification with the CompNovo engine.
 
+	The CompNovo engine can operate in CID/ETD mode were the ETD spectra of the
+	same precursor are used to support the de novo identification. In CID mode
+	all spectra are assumed to be CID spectra only.
+
+	The details are described in the publication 
+	"De novo peptide sequencing by tandem mass spectrometry using complementary 
+	collisionally-induced dissociation and electron transfer dissociation" 
+	(to appear)
+
+	@experimental This implementation may contain bugs!
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_CompNovo.cli
 */
 
 
@@ -51,8 +65,7 @@ class TOPPCompNovo
 {
 	public:
 		TOPPCompNovo()
-						// @todo change this to official if in OpenMS/TOPP
-			: TOPPBase("CompNovo", "performs a peptide/protein identification with the TOPPCompNovo engine", false)
+			: TOPPBase("CompNovo", "Performs a peptide/protein identification with the CompNovo engine.")
 		{
 		}
 	
@@ -145,8 +158,7 @@ class TOPPCompNovo
 			// writing output
 			//-------------------------------------------------------------
 
-  		DateTime now;
-  		now.now();
+  		DateTime now = DateTime::now();
   		String date_string = now.get();
   		String identifier(type + "_" + date_string);
 
@@ -159,6 +171,28 @@ class TOPPCompNovo
 		  vector<ProteinIdentification> prot_ids;
 		  ProteinIdentification prot_id;
 		  prot_id.setIdentifier(identifier);
+			prot_id.setDateTime(now);
+
+			ProteinIdentification::SearchParameters search_parameters;
+			search_parameters.charges = "+2-+3";
+			if (type_param.getValue("tryptic_only").toBool())
+			{
+				search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+			}
+			else
+			{
+				search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+			}
+      search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+      search_parameters.fixed_modifications = (StringList)type_param.getValue("fixed_modifications");
+      search_parameters.variable_modifications = (StringList)type_param.getValue("variable_modifications");
+
+      search_parameters.missed_cleavages = (UInt)type_param.getValue("missed_cleavages");
+      search_parameters.peak_mass_tolerance = (DoubleReal)type_param.getValue("fragment_mass_tolerance");
+      search_parameters.precursor_tolerance = (DoubleReal)type_param.getValue("precursor_mass_tolerance");
+			prot_id.setSearchParameters(search_parameters);
+			prot_id.setSearchEngineVersion("0.9beta");
+      prot_id.setSearchEngine("CompNovo");
 			prot_ids.push_back(prot_id);
 
   		IdXMLFile().store(out, prot_ids, pep_ids);

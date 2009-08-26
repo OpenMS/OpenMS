@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -50,7 +50,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
 
-START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename))
+START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
 	ptr = new SuffixArrayTrypticSeqan("$","");
@@ -70,8 +70,8 @@ END_SECTION
 
 
 
-START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double> & spec ))
-	double masse[255];
+START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleReal> & spec ))
+	DoubleReal masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -83,18 +83,26 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb->getResidue(aa[i]);
-		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
+		masse[(int)aa[i]]=r->getMonoWeight(Residue::Internal);
 	}
 	sa = new SuffixArrayTrypticSeqan(text,"");
-	vector<double> spec;
+	vector<DoubleReal> spec;
 	//spec.push_back(178.1864 + 18.0);
 	//spec.push_back(441.4806 + 18.0);
-	spec.push_back(245.2816);
-	spec.push_back(387.4392);
-	const vector<double> specc (spec);
-	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
-	sa->findSpec(res, specc);
-	TEST_EQUAL(res.size(),specc.size());
+	//spec.push_back(245.2816);               // AR
+	//spec.push_back(387.4392);
+
+
+	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));		// AR
+	spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));		// AAAR
+
+	cerr << 245.2816 << " " << AASequence("AR").getMonoWeight(Residue::Full) << endl;
+	cerr << 387.4392 << " " << AASequence("AAAR").getMonoWeight(Residue::Full) << endl;
+
+	vector <vector< pair<pair<SignedSize, SignedSize>,DoubleReal> > > res;
+	cerr << "res.size()=" << res.size() << endl;
+	sa->findSpec(res, spec);
+	TEST_EQUAL(res.size(),spec.size());
 	for (Size i = 0; i<res.size();i++)
 	{
 		TEST_EQUAL(res.at(i).size(),1);
@@ -105,13 +113,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	TEST_EQUAL(res.at(1).at(0).first.first,1)
 	TEST_EQUAL(res.at(1).at(0).first.second,4)
 	spec.clear();
-	const vector<double> specc2 (spec);
+	const vector<DoubleReal> specc2 (spec);
 	res.clear();
 	sa->findSpec(res, specc2);
 	TEST_EQUAL(res.size(),0);
 	spec.push_back(441.4806);	
 	spec.push_back(178.1864);
-	const vector<double> specc3 (spec);
+	const vector<DoubleReal> specc3 (spec);
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
@@ -119,13 +127,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	String txt;
 	getline(i_stream,txt);
 	sa = new SuffixArrayTrypticSeqan(txt,"");
-	vector<double> spec_new;
+	vector<DoubleReal> spec_new;
 	for (int i = 500; i < 5000; i += 197) 
 	{
-		spec_new.push_back((double)i);
+		spec_new.push_back((DoubleReal)i);
 	}
 
-	vector<double> specc_new(spec_new);
+	vector<DoubleReal> specc_new(spec_new);
 	res.clear();
 	sa->findSpec(res, specc_new);
 	
@@ -153,7 +161,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
 			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
-			double m = 18;
+			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m += masse[(int)seq[k]];
@@ -241,7 +249,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 		for (Size j = 0; j < res[i].size(); j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			double m = 18.0;
+			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length(); k++)
 			{
 				m += masse[(int)seq[k]];
@@ -250,6 +258,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 			TEST_REAL_SIMILAR(m + res[i][j].second, specc_new[i]);
 		}
 	}
+	
 END_SECTION
 
 

@@ -43,8 +43,6 @@ namespace OpenMS
 	/**
 		@brief Struct that stores the data for one layer
 		
-		@todo Add modifiable flag for feature layer (Marc)
-		
 		@ingroup SpectrumWidgets
 	*/
   struct LayerData
@@ -108,6 +106,7 @@ namespace OpenMS
 				gradient(),
 				filters(),
 				annotations_1d(),
+				modifiable(false),
 				modified(false),
 				label(L_NONE)
 		{
@@ -173,7 +172,9 @@ namespace OpenMS
 		///Annotations of all spectra of the experiment (1D view)
 		std::vector<Annotations1DContainer> annotations_1d;
 		
-		///Flag that indicates that the input data was modified since loading it
+		///Flag that indicates if the layer data can be modified (so far used for features only)
+		bool modifiable;
+		///Flag that indicates that the layer data was modified since loading it
 		bool modified;
 		
 		///Label type

@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Stephan Aiche$
+// $Authors: Chris Bielow, Stephan Aiche$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -55,23 +55,32 @@ END_SECTION
 
 START_SECTION((MSSim(const MSSim &source)))
 {
-  // TODO
-}
-END_SECTION
+  MSSim source;
+  Param p = source.getParameters();
+  p.setValue("Digestion:missed_cleavages",3);
+  source.setParameters(p);
 
-START_SECTION((virtual ~MSSim()))
-{
-  // TODO
+  MSSim target(source);
+  TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
 
 START_SECTION((MSSim& operator=(const MSSim &source)))
 {
-  // TODO
+  MSSim source;
+  Param p = source.getParameters();
+  p.setValue("Digestion:missed_cleavages",3);
+  source.setParameters(p);
+
+  MSSim target;
+
+  target = source;
+
+  TEST_EQUAL(source.getParameters(), target.getParameters())
 }
 END_SECTION
 
-START_SECTION((void simulate(const gsl_rng *rnd_gen, const SamplePeptides &peptides)))
+START_SECTION((void simulate(const gsl_rng *rnd_gen, const SampleProteins &peptides)))
 {
   // TODO
 #if 0 // core from old LCMSSim_test
@@ -118,7 +127,12 @@ END_SECTION
 
 START_SECTION((MSSimExperiment const& getExperiment() const ))
 {
-  // TODO
+  MSSimExperiment empty_experiment;
+  MSSim mssim;
+
+  TEST_EQUAL(mssim.getExperiment().getSize(), empty_experiment.getSize())
+
+  // TODO we need some more sophisticated testing here
 }
 END_SECTION
 
@@ -128,6 +142,11 @@ START_SECTION((FeatureMapSim const& getSimulatedFeatures() const ))
 }
 END_SECTION
 
+START_SECTION((ConsensusMap const & getSimulatedConsensus() const))
+{
+  // TODO
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

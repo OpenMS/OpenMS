@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -92,6 +92,69 @@ END_SECTION
 START_SECTION(const String& getName() const)
 	NOT_TESTABLE
 END_SECTION
+
+START_SECTION((void setNeutralLossDiffFormula(const EmpiricalFormula& loss)))
+	ptr->setNeutralLossDiffFormula(EmpiricalFormula("H2O2"));
+	TEST_EQUAL(ptr->getNeutralLossDiffFormula() == EmpiricalFormula("H2O2"), true)
+END_SECTION
+
+START_SECTION(const EmpiricalFormula& getNeutralLossDiffFormula() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(void setNeutralLossMonoMass(DoubleReal mono_mass))
+	ptr->setNeutralLossMonoMass(123.345678);
+	TEST_REAL_SIMILAR(ptr->getNeutralLossMonoMass(), 123.345678);
+END_SECTION
+
+START_SECTION((DoubleReal getNeutralLossMonoMass() const))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setNeutralLossAverageMass(DoubleReal average_mass)))
+	ptr->setNeutralLossAverageMass(23.345678);
+	TEST_REAL_SIMILAR(ptr->getNeutralLossAverageMass(), 23.345678)
+END_SECTION
+
+START_SECTION(DoubleReal getNeutralLossAverageMass() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((bool hasNeutralLoss() const))
+	TEST_EQUAL(ptr->hasNeutralLoss(), true)
+	ResidueModification mod;
+	TEST_EQUAL(mod.hasNeutralLoss(), false)
+	mod.setNeutralLossDiffFormula(EmpiricalFormula("H2O"));
+	TEST_EQUAL(mod.hasNeutralLoss(), true)
+END_SECTION
+
+START_SECTION((void setFullId(const String& full_id)))
+	ptr->setFullId("blubb_new_fullid");
+	TEST_STRING_EQUAL(ptr->getFullId(), "blubb_new_fullid")
+END_SECTION
+
+START_SECTION((const String& getFullId() const))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setUniModAccession(const String &id)))
+	ptr->setUniModAccession("blubb_new_UniModAccession");
+	TEST_STRING_EQUAL(ptr->getUniModAccession(), "blubb_new_UniModAccession")
+END_SECTION
+
+START_SECTION((const String& getUniModAccession() const))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setPSIMODAccession(const String& id)))
+	ptr->setPSIMODAccession("blubb_new_PSIMODAccession");
+	TEST_STRING_EQUAL(ptr->getPSIMODAccession(), "blubb_new_PSIMODAccession")
+END_SECTION
+
+START_SECTION((const String& getPSIMODAccession() const))
+	NOT_TESTABLE
+END_SECTION
+
 
 START_SECTION(void setTermSpecificity(Term_Specificity term_spec))
 	ptr->setTermSpecificity(ResidueModification::ANYWHERE);
@@ -170,39 +233,39 @@ START_SECTION(String getSourceClassificationName(Source_Classification classific
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::HYPOTHETICAL), "Hypothetical")
 END_SECTION
 
-START_SECTION(void setAverageMass(double mass))
+START_SECTION(void setAverageMass(DoubleReal mass))
 	ptr->setAverageMass(2.0);
 	TEST_REAL_SIMILAR(ptr->getAverageMass(), 2.0)
 END_SECTION
 
-START_SECTION(double getAverageMass() const)
+START_SECTION(DoubleReal getAverageMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setMonoMass(double mass))
+START_SECTION(void setMonoMass(DoubleReal mass))
 	ptr->setMonoMass(3.0);
 	TEST_REAL_SIMILAR(ptr->getMonoMass(), 3.0)
 END_SECTION
 
-START_SECTION(double getMonoMass() const)
+START_SECTION(DoubleReal getMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffAverageMass(double mass))
+START_SECTION(void setDiffAverageMass(DoubleReal mass))
 	ptr->setDiffAverageMass(4.0);
 	TEST_REAL_SIMILAR(ptr->getDiffAverageMass(), 4.0)
 END_SECTION
 
-START_SECTION(double getDiffAverageMass() const)
+START_SECTION(DoubleReal getDiffAverageMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffMonoMass(double mass))
+START_SECTION(void setDiffMonoMass(DoubleReal mass))
 	ptr->setDiffMonoMass(5.0);
 	TEST_REAL_SIMILAR(ptr->getDiffMonoMass(), 5.0)
 END_SECTION
 
-START_SECTION(double getDiffMonoMass() const)
+START_SECTION(DoubleReal getDiffMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -215,7 +278,7 @@ START_SECTION(const String& getFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffFormula(const EmpiricaFormula& diff_formula))
+START_SECTION(void setDiffFormula(const EmpiricalFormula& diff_formula))
 	EmpiricalFormula ef("C3H4S-3");
 	ptr->setDiffFormula(ef);
 	TEST_EQUAL(ptr->getDiffFormula() == ef, true)

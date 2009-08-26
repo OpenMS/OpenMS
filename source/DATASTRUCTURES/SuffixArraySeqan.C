@@ -22,14 +22,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <stack>
-#include <sstream>
-#include <iostream>
 #include <fstream>
 #include <cmath>
 #include <typeinfo>
@@ -50,13 +48,13 @@ namespace OpenMS
 	/**
 	@brief comperator for two doubles with a tolerance value
 	*/
-	struct FloatsWithTolLess : public binary_function<double , double, bool>
+	struct FloatsWithTolLess : public binary_function<DoubleReal , DoubleReal, bool>
 	{
 		/**
 		@brief constructor
 		@param t const reference to the tolerance
 		*/
-		FloatsWithTolLess(const double & t) : tol_(t) {}
+		FloatsWithTolLess(const DoubleReal & t) : tol_(t) {}
 		/**
 		@brief copy constructor
 		*/
@@ -64,24 +62,24 @@ namespace OpenMS
 
 		/**
 		@brief implementation of the '<' operator for two doubles with the tolerance value
-		@param f1 first double
-		@param f2 second double
-		@return true if first double '<' second double-tolerance
+		@param f1 first DoubleReal
+		@param f2 second DoubleReal
+		@return true if first DoubleReal '<' second DoubleReal-tolerance
 		*/
-		bool operator()( double f1, double f2) const
+		bool operator()( DoubleReal f1, DoubleReal f2) const
 		{
 			return (f1<(f2-tol_));
 		}
 
 	 protected:
-		double const & tol_; ///< tolerance value
+		DoubleReal const & tol_; ///< tolerance value
 	};
 
 	/**
 	@brief comperator for two doubles with a tolerance value
-	@todo Think about that this does and if it is really necessary (why double, double????) (Andreas, Clemens)
+	@todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
 	*/
-	struct IntsInRangeLess : public binary_function<double , double, bool>
+	struct IntsInRangeLess : public binary_function<DoubleReal , DoubleReal, bool>
 	{
 		/**
 		@brief constructor
@@ -95,9 +93,9 @@ namespace OpenMS
 
 		/**
 		@brief implementation of the '<' operator for two doubles with the tolerance value
-		@param f1 first double
-		@param f2 second double
-		@return true if first double '<' second double-tolerance
+		@param f1 first DoubleReal
+		@param f2 second DoubleReal
+		@return true if first DoubleReal '<' second DoubleReal-tolerance
 		*/
 		bool operator()( int f1, int f2) const
 		{
@@ -112,15 +110,16 @@ namespace OpenMS
 
 
 	// constructor
-	SuffixArraySeqan::SuffixArraySeqan(const String & st,const String & sa_file_name)
-	: s_(st)
-		//tol_(0.5),
-		//use_tags_(false),
-		//number_of_modifications_(0)
+	SuffixArraySeqan::SuffixArraySeqan(const String & st,const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode)
+	: WeightWrapper(weight_mode),
+		s_(st),
+		number_of_modifications_(0),
+		use_tags_(false),
+		tol_(0.5)
 	{
-		tol_ = 0.5;
-		use_tags_ = false;
-		number_of_modifications_ = 0;
+		//tol_ = 0.5;
+		//use_tags_ = false;
+		//number_of_modifications_ = 0;
 		if (st[0]!='$')
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empyt string ($)","");
@@ -143,7 +142,7 @@ namespace OpenMS
 		for (Size z = 0; z<strlen(aa);++z)
 		{
 			const Residue* r = rdb->getResidue(aa[z]);
-			masse_[(int)aa[z]] = r->getAverageWeight(Residue::Internal);
+			masse_[(int)aa[z]] = this->getWeight(*r,Residue::Internal);
 		}
 
 		if (sa_file_name != "")
@@ -172,6 +171,7 @@ namespace OpenMS
 
 	SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source)
 		: SuffixArray(source),
+			WeightWrapper(source),
 			index_(source.index_),
 			it_(source.it_),
 			s_(source.s_),
@@ -269,7 +269,7 @@ namespace OpenMS
 		return number_of_modifications_;
 	}
 
-	SignedSize SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m, SignedSize start, SignedSize	end)
+	SignedSize SuffixArraySeqan::findFirst_ (const vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize	end)
 	{
 
 		if (end-start<=1) return (spec.at(start)<m-tol_)?end:start;
@@ -288,7 +288,7 @@ namespace OpenMS
 	}
 
 
-	SignedSize SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m)
+	SignedSize SuffixArraySeqan::findFirst_ (const vector<DoubleReal> & spec, DoubleReal & m)
 	{
 		return findFirst_ (spec,m,0,spec.size()-1);
 	}
@@ -296,7 +296,7 @@ namespace OpenMS
 
 
 	// finds all occurences of a given spectrum
-	void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>,double> > >& candidates, const vector<double> & spec)
+	void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>,DoubleReal> > >& candidates, const vector<DoubleReal> & spec)
 	{
 		if (spec.size() == 0)
 		{
@@ -340,18 +340,18 @@ namespace OpenMS
 		it_ = new TIter(index_);
 
 		// preparing result vector
-		//vector<vector<pair<pair<SignedSize, SignedSize>,double> > > res;
+		//vector<vector<pair<pair<SignedSize, SignedSize>,DoubleReal> > > res;
 		for (Size i = 0; i < spec.size();i++)
 		{
-			vector<pair<pair<SignedSize, SignedSize>,double> > v;
+			vector<pair<pair<SignedSize, SignedSize>,DoubleReal> > v;
 			candidates.push_back(v);
 		}
-		double mmax = spec.back();
-		stack<double> allm;
-		stack<map<double, SignedSize> > history;
-		history.push(map<double, SignedSize>());
+		DoubleReal mmax = spec.back();
+		stack<DoubleReal> allm;
+		stack<map<DoubleReal, SignedSize> > history;
+		history.push(map<DoubleReal, SignedSize>());
 
-		double m = 18.0;
+		DoubleReal m = getWeight(EmpiricalFormula("H2O"));
 		goNext_(*it_, m, allm, history);
 		//goNextSubTree(*it_);
 		SignedSize nres = 0;
@@ -363,11 +363,11 @@ namespace OpenMS
 			SignedSize start_index_in_text = getOccurrence(*it_);
 			char start_char = s_[start_index_in_text];
 			char next_char = ((Size)start_index_in_text == length(s_) - 1)?'R':s_[start_index_in_text+1];
-			double subm = 0;
-			double mm = 0;
+			DoubleReal subm = 0;
+			DoubleReal mm = 0;
 			// br indicates if break was used
 			bool br = false;
-			map<double, SignedSize> modification_map (history.top());
+			map<DoubleReal, SignedSize> modification_map (history.top());
 
 			/*
 			because of searching only candidates generated by a specific digestion enzyme we are either looking for candidates with the specific start pattern or for the start indicated by the separator character
@@ -392,13 +392,13 @@ namespace OpenMS
 					mm = m + subm;
 
 					// we always have to substract the mass of the start character (either $ or for trypsin K or R)
-					double newm = (mm - masse_[(SignedSize)start_char]);
+					DoubleReal newm = (mm - masse_[(SignedSize)start_char]);
 
 					// if we reached the maxmimal mass we can directly skip the sub tree
 					if (newm > mmax+tol_	)
 					{
 						allm.push(0);
-						history.push(map<double, SignedSize>());
+						history.push(map<DoubleReal, SignedSize>());
 						goNextSubTree_(*it_,m,allm,history);
 						br = true;
 						break;
@@ -414,13 +414,13 @@ namespace OpenMS
 							// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
 							if ((!isDigestingEnd(s_[length_till_node+i+start_index_in_text-1],cc)))
 							{
-								vector<double> found_masses;
+								vector<DoubleReal> found_masses;
 								if (binary_search(spec.begin(),spec.end(),newm,FloatsWithTolLess(tol_)))
 								{
 									found_masses.push_back(0);
 								}
 								// if the mass is in spectrum we will add the entry to all matching masses
-								map<double, SignedSize>::iterator it;
+								map<DoubleReal, SignedSize>::iterator it;
 								for (it = modification_map.begin(); it!= modification_map.end();++it)
 								{
 									if (binary_search(spec.begin(),spec.end(),newm+it->first,FloatsWithTolLess(tol_)))
@@ -430,7 +430,7 @@ namespace OpenMS
 								}
 								for (Size o = 0; o < found_masses.size();o++)
 								{
-									double mass_with_mods = newm+ found_masses.at(o);
+									DoubleReal mass_with_mods = newm+ found_masses.at(o);
 									++steps4;
 									// getting all occurences and adding the to the specific masses
 									seqan::String<Size> occ = getOccurrences(*it_);
@@ -439,7 +439,7 @@ namespace OpenMS
 									for (Size k = 0; k <length(occ);++k)
 									{
 										Size first_occ = findFirst_ (spec, mass_with_mods);
-										pair<pair<SignedSize, SignedSize>,double> p (pair<SignedSize, SignedSize>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
+										pair<pair<SignedSize, SignedSize>,DoubleReal> p (pair<SignedSize, SignedSize>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
 
 										while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 										{
@@ -452,7 +452,7 @@ namespace OpenMS
 							}
 						}
 						// because of having reached a separator we can skip the sub tree
-						history.push(map<double, SignedSize>());
+						history.push(map<DoubleReal, SignedSize>());
 						allm.push(0);
 						goNextSubTree_(*it_,m,allm,history);
 						br = true;
@@ -463,7 +463,7 @@ namespace OpenMS
 					// if we reached a digesting site
 					// the case that i==(edge_length-1) means we are at a node. if we are at a node we cannot just look at one following caracter but instead we must look an the next of every outgoing edge and deciding whether this is a digenting site
 					if (i==(edge_length-1)||isDigestingEnd(cc,ccn)){
-						double newm = (mm-masse_[(int)start_char]);
+						DoubleReal newm = (mm-masse_[(int)start_char]);
 						// if the mass is in the spectrum
 						if (!use_tags_ || 
 								binary_search(tag_indices.begin(),tag_indices.end(),Size(length_till_node+i+start_index_in_text-2) /*, 
@@ -471,23 +471,23 @@ namespace OpenMS
 							 )
 						{
 							// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
-							vector<double> found_masses;
+							vector<DoubleReal> found_masses;
 							if (binary_search(spec.begin(),spec.end(),newm,FloatsWithTolLess(tol_)))
 							{
 								found_masses.push_back(0);
 							}
 							// if the mass is in spectrum we will add the entry to all matching masses
-							map<double, SignedSize>::iterator it;
+							map<DoubleReal, SignedSize>::iterator it;
 							for (it = modification_map.begin(); it!= modification_map.end();++it)
 							{
-								if (binary_search(spec.begin(),spec.end(),newm+(double)it->first,FloatsWithTolLess(tol_)))
+								if (binary_search(spec.begin(),spec.end(),newm+(DoubleReal)it->first,FloatsWithTolLess(tol_)))
 								{
 									found_masses.push_back(it->first);
 								}
 							}
 							for (Size o = 0; o < found_masses.size();o++)
 							{
-								double mass_with_mods = newm+ found_masses.at(o);
+								DoubleReal mass_with_mods = newm+ found_masses.at(o);
 								//if (binary_search(spec.begin(),spec.end(),(newm), FloatsWithTolLess(tol_))){
 								// getting all occurences and adding the to the specific masses
 								++steps4;
@@ -497,7 +497,7 @@ namespace OpenMS
 								for (Size k = 0; k <length(occ);k++){
 									if (i<(edge_length-1) || (isDigestingEnd(s_[occ[k]+length_till_node+i],s_[occ[k]+1+length_till_node+i]))) {
 										Size first_occ = findFirst_ (spec, mass_with_mods );
-										pair<pair<SignedSize, SignedSize>,double> p (pair<SignedSize, SignedSize>(occ[k]+1,length_till_node+i),found_masses.at(o));
+										pair<pair<SignedSize, SignedSize>,DoubleReal> p (pair<SignedSize, SignedSize>(occ[k]+1,length_till_node+i),found_masses.at(o));
 										++nres;
 										while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 										{
@@ -515,9 +515,10 @@ namespace OpenMS
 				{
 					m = mm;
 					//because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+					//TODO: why would that be?! (Andreas)
 					if (steps4>1000)
 					{
-						double mpart = 18.0;
+						DoubleReal mpart = getWeight(EmpiricalFormula("H2O"));
 						seqan::String<char> seq = representative(*it_);
 						for (Size w = 0; w < length(seq); ++w)
 						{
@@ -526,7 +527,7 @@ namespace OpenMS
 						m = mpart;
 						steps4 = 0;
 					}
-					history.push(map<double, SignedSize>(modification_map));
+					history.push(map<DoubleReal, SignedSize>(modification_map));
 					allm.push(subm);
 					goNext_(*it_,m,allm,history);
 				}
@@ -534,7 +535,7 @@ namespace OpenMS
 			}
 			else
 			{
-				history.push(map<double, SignedSize>());
+				history.push(map<DoubleReal, SignedSize>());
 				allm.push(0);
 				goNextSubTree_(*it_,m,allm,history);
 			}
@@ -546,7 +547,7 @@ namespace OpenMS
 		return;
 	}
 
-	void SuffixArraySeqan::setTolerance (double t)
+	void SuffixArraySeqan::setTolerance (DoubleReal t)
 	{
 		if (t < 0)
 		{
@@ -555,7 +556,7 @@ namespace OpenMS
 		tol_ = t;
 	}
 
-	double SuffixArraySeqan::getTolerance () const
+	DoubleReal SuffixArraySeqan::getTolerance () const
 	{
 		return (tol_);
 	}

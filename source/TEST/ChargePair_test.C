@@ -30,6 +30,8 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -52,14 +54,17 @@ START_SECTION(~ChargePair())
 }
 END_SECTION
 
-START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Size &compomer_id, const DoubleReal &mass_diff, const bool active)))
+Compomer cmp;
+cmp.setID(99);
+
+START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Compomer &compomer, const DoubleReal &mass_diff, const bool active)))
 {
-	ChargePair cp(34,45, 4,5, 99, 12.34, false);
+	ChargePair cp(34,45, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp.getElementIndex(0), 34);
 	TEST_EQUAL(cp.getElementIndex(1), 45);	
 	TEST_EQUAL(cp.getCharge(0), 4);
 	TEST_EQUAL(cp.getCharge(1), 5);	
-	TEST_EQUAL(cp.getCompomerId(), 99);
+	TEST_EQUAL(cp.getCompomer(), cmp);
 	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);	
 	TEST_EQUAL(cp.isActive(), false);	
 }
@@ -67,39 +72,34 @@ END_SECTION
 
 START_SECTION((ChargePair(const ChargePair &rhs)))
 {
-	ChargePair cp2(34,45, 4,5, 99, 12.34, false);
+	ChargePair cp2(34,45, 4,5, cmp, 12.34, false);
 	ChargePair cp (cp2);
 	TEST_EQUAL(cp.getElementIndex(0), 34);
 	TEST_EQUAL(cp.getElementIndex(1), 45);	
 	TEST_EQUAL(cp.getCharge(0), 4);
 	TEST_EQUAL(cp.getCharge(1), 5);	
-	TEST_EQUAL(cp.getCompomerId(), 99);
+	TEST_EQUAL(cp.getCompomer(), cmp);
 	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);
-	TEST_EQUAL(cp.getEdgeScore(), 0);	
+	TEST_EQUAL(cp.getEdgeScore(), 1);	
 	TEST_EQUAL(cp.isActive(), false);	
 }
 END_SECTION
 
 START_SECTION((ChargePair& operator=(const ChargePair &rhs)))
 {
-	ChargePair cp2(34,45, 4,5, 99, 12.34, false);
+	ChargePair cp2(34,45, 4,5, cmp, 12.34, false);
 	ChargePair cp = cp2;
 	TEST_EQUAL(cp.getElementIndex(0), 34);
 	TEST_EQUAL(cp.getElementIndex(1), 45);	
 	TEST_EQUAL(cp.getCharge(0), 4);
 	TEST_EQUAL(cp.getCharge(1), 5);	
-	TEST_EQUAL(cp.getCompomerId(), 99);
+	TEST_EQUAL(cp.getCompomer(), cmp);
 	TEST_REAL_SIMILAR(cp.getMassDiff(), 12.34);
-	TEST_EQUAL(cp.getEdgeScore(), 0);
+	TEST_EQUAL(cp.getEdgeScore(), 1);
 	TEST_EQUAL(cp.isActive(), false);	
 }
 END_SECTION
 
-START_SECTION((virtual ~ChargePair()))
-{
-	NOT_TESTABLE
-}
-END_SECTION
 
 START_SECTION((Int getCharge(UInt pairID) const ))
 {
@@ -133,17 +133,17 @@ START_SECTION((void setElementIndex(UInt pairID, Size e)))
 }
 END_SECTION
 
-START_SECTION((Size getCompomerId() const))
+START_SECTION((const Compomer& getCompomer() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setCompomerId(Size compomer_id)))
+START_SECTION((void setCompomer(const Compomer &compomer)))
 {
   ChargePair cp;
-	cp.setCompomerId(123);
-	TEST_EQUAL(cp.getCompomerId(), 123)
+	cp.setCompomer(cmp);
+	TEST_EQUAL(cp.getCompomer(), cmp)
 }
 END_SECTION
 
@@ -161,13 +161,13 @@ START_SECTION((void setMassDiff(DoubleReal mass_diff)))
 }
 END_SECTION
 
-START_SECTION((Real getEdgeScore() const))
+START_SECTION((DoubleReal getEdgeScore() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setEdgeScore(Real score)))
+START_SECTION((void setEdgeScore(DoubleReal score)))
 {
   ChargePair cp;
 	cp.setEdgeScore(1123.432f);
@@ -194,14 +194,14 @@ END_SECTION
 
 START_SECTION((virtual bool operator==(const ChargePair &i) const))
 {
-	ChargePair cp1(34,45, 4,5, 99, 12.34, false);
-	ChargePair cp2(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp1(34,45, 4,5, cmp, 12.34, false);
+	ChargePair cp2(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp1==cp2, false);
-	ChargePair cp3(34,15, 4,5, 99, 12.34, true);
-	ChargePair cp4(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp3(34,15, 4,5, cmp, 12.34, true);
+	ChargePair cp4(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp3==cp4, false);
-	ChargePair cp5(34,15, 4,5, 99, 12.34, false);
-	ChargePair cp6(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
+	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp5==cp6, true);
 	
 }
@@ -209,14 +209,14 @@ END_SECTION
 
 START_SECTION((virtual bool operator!=(const ChargePair &i) const))
 {
-	ChargePair cp1(34,45, 4,5, 99, 12.34, false);
-	ChargePair cp2(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp1(34,45, 4,5, cmp, 12.34, false);
+	ChargePair cp2(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp1!=cp2, true);
-	ChargePair cp3(34,15, 4,5, 99, 12.34, true);
-	ChargePair cp4(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp3(34,15, 4,5, cmp, 12.34, true);
+	ChargePair cp4(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp3!=cp4, true);
-	ChargePair cp5(34,15, 4,5, 99, 12.34, false);
-	ChargePair cp6(34,15, 4,5, 99, 12.34, false);
+	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
+	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp5!=cp6, false);
 }
 END_SECTION

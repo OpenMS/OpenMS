@@ -334,168 +334,173 @@ namespace OpenMS
     bool monoton;
 
     Int zeros_left_index  = wt.getLeftPaddingIndex();
-
-    // search for the left endpoint
-    while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
+		if(it_help != first)
 			{
-	
-#ifdef DEBUG_PEAK_PICKING
-				std::cout << "while left endpoint " << std::endl;
-#endif
-				// if the values are still falling to the left, everything is ok.
-				if ((it_help-1)->getIntensity() < it_help->getIntensity())
+				// search for the left endpoint
+				while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
 					{
-						--it_help;
-
+						
 #ifdef DEBUG_PEAK_PICKING
-						std::cout << "it_help " << it_help->getMZ() << std::endl;
+						std::cout << "while left endpoint " << std::endl;
 #endif
-
-					}
-				// if the values are _rising_, we have to check the cwt
-				else
-					{
-						if ((it_help-2) <= first)
+						// if the values are still falling to the left, everything is ok.
+						if ((it_help-1)->getIntensity() < it_help->getIntensity())
 							{
-#ifdef DEBUG_PEAK_PICKING        	
-								std::cout << "it_help-2) <= first"  << std::endl;
-#endif      
-								break;
-							}
-						// now check the value to the left of the problematic value
-						if ((it_help-2)->getIntensity() > (it_help-1)->getIntensity()) // we probably ran into another peak
-							{
-#ifdef DEBUG_PEAK_PICKING        	
-								std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
-#endif        		
-								break;
-							}
-
-
-						// to the left, the values are falling again => let the cwt decide if we
-						// are seeing a new peak or just noise
-
-						// compute the position of the corresponding point in the cwt
-						cwt_pos = distance(first, it_help);
-						vec_pos = it_help->getMZ();
-
-						// since the cwt is pretty smooth usually, we consider the point as noise
-						// if the cwt is monotonous in this region
-						// TODO: better monotonicity test... say two or three points more
-						monoton=true;
-
-						start   =   (cwt_pos < ep_radius)
-							? (distance_from_scan_border + zeros_left_index) + 2
-							: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
-						stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
-							?  (wt.getSize() - 2)
-							: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
-
+								--it_help;
+								
 #ifdef DEBUG_PEAK_PICKING
-						std::cout << "start " << start << " stop " << stop << std::endl;
-#endif					
-						for (; start < stop; ++start)
+								std::cout << "it_help " << it_help->getMZ() << std::endl;
+#endif
+								
+							}
+						// if the values are _rising_, we have to check the cwt
+						else
 							{
-								if (   (wt[start-1] - wt[start]  )
-											 * (wt[start]   - wt[start+1]) < 0 )
+								if ((it_help-2) <= first)
 									{
-										// different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
-															<< " " <<  wt.getSignal()[start].getMZ()
-															<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
-#endif            						
-										monoton=false;
+#ifdef DEBUG_PEAK_PICKING        	
+										std::cout << "it_help-2) <= first"  << std::endl;
+#endif      
 										break;
 									}
+								// now check the value to the left of the problematic value
+								if ((it_help-2)->getIntensity() > (it_help-1)->getIntensity()) // we probably ran into another peak
+									{
+#ifdef DEBUG_PEAK_PICKING        	
+										std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
+#endif        		
+										break;
+									}
+								
+								
+								// to the left, the values are falling again => let the cwt decide if we
+								// are seeing a new peak or just noise
+								
+								// compute the position of the corresponding point in the cwt
+								cwt_pos = distance(first, it_help);
+								vec_pos = it_help->getMZ();
+								
+								// since the cwt is pretty smooth usually, we consider the point as noise
+								// if the cwt is monotonous in this region
+								// TODO: better monotonicity test... say two or three points more
+								monoton=true;
+								
+								start   =   (cwt_pos < ep_radius)
+									? (distance_from_scan_border + zeros_left_index) + 2
+									: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+								stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
+									?  (wt.getSize() - 2)
+									: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+								
+#ifdef DEBUG_PEAK_PICKING
+								std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
+								for (; start < stop; ++start)
+									{
+										if (   (wt[start-1] - wt[start]  )
+													 * (wt[start]   - wt[start+1]) < 0 )
+											{
+												// different slopes at the sides => stop here
+#ifdef DEBUG_PEAK_PICKING            
+												std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
+																	<< " " <<  wt.getSignal()[start].getMZ()
+																	<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
+#endif            						
+												monoton=false;
+												break;
+											}
+									}
+								
+								if (!monoton)
+									{
+										break;
+									}
+								--it_help;
 							}
-
-						if (!monoton)
-							{
-								break;
-							}
-						--it_help;
 					}
 			}
     area.left=it_help;
 
     it_help=area.max+1;
-    // search for the right endpoint ???
-    while (((it_help+1) < last) && (it_help->getIntensity() > noise_level_))
+		if(it_help != last)
 			{
+				// search for the right endpoint ???
+				while (((it_help+1) < last) && (it_help->getIntensity() > noise_level_))
+					{
 #ifdef DEBUG_PEAK_PICKING    	
-				std::cout << "while right endpoint " << std::endl;
+						std::cout << "while right endpoint " << std::endl;
 #endif    		
-				//      if the values are still falling to the right, everything is ok.
-				if (it_help->getIntensity() > (it_help+1)->getIntensity())
-					{
-						++it_help;
+						//      if the values are still falling to the right, everything is ok.
+						if (it_help->getIntensity() > (it_help+1)->getIntensity())
+							{
+								++it_help;
 #ifdef DEBUG_PEAK_PICKING        
-						std::cout << "it_help " << it_help->getMZ() << std::endl;
+								std::cout << "it_help " << it_help->getMZ() << std::endl;
 #endif         	
-					}
-				// if the values are _rising_, we have to check the cwt
-				else
-					{
-						if ((it_help+2) >= last)
-							{
-#ifdef DEBUG_PEAK_PICKING        	
-								std::cout << "it_help+2) <= first"  << std::endl;
-#endif        		
-								break;
 							}
-						// now check the value to the right of the problematic value
-						if ((it_help+2)->getIntensity() > (it_help+1)->getIntensity()) // we probably ran into another peak
+						// if the values are _rising_, we have to check the cwt
+						else
 							{
-#ifdef DEBUG_PEAK_PICKING        	
-								std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
-#endif        		
-								break;
-							}
-
-						// to the left, the values are falling again => let the cwt decide if we
-						// are seeing a new peak or just noise
-						// compute the position of the corresponding point in the cwt
-						cwt_pos = distance(first, it_help);
-						//cwt_pos = distance(first, it_help);
-						vec_pos=it_help->getMZ();
-
-						// since the cwt is pretty smooth usually, we consider the point as noise
-						// if the cwt is monotonous in this region
-						// TODO: better monotonicity test... say two or three points more
-						monoton = true;
-
-						start   =   (cwt_pos < ep_radius)
-							? (distance_from_scan_border + zeros_left_index) + 2
-							: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
-						stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
-							?  (wt.getSize() - 2)
-							: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
-
-#ifdef DEBUG_PEAK_PICKING
-						std::cout << "start " << start << " stop " << stop << std::endl;
-#endif					
-						for (; start < stop; ++start)
-							{
-								if (   (wt[start-1] - wt[start])
-											 * (wt[start]  - wt[start+1]) < 0 )
+								if ((it_help+2) >= last)
 									{
-										// different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
-															<< " " <<  wt.getSignal()[start].getMZ()
-															<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
-#endif            						
-										monoton=false;
+#ifdef DEBUG_PEAK_PICKING        	
+										std::cout << "it_help+2) <= first"  << std::endl;
+#endif        		
 										break;
 									}
+								// now check the value to the right of the problematic value
+								if ((it_help+2)->getIntensity() > (it_help+1)->getIntensity()) // we probably ran into another peak
+									{
+#ifdef DEBUG_PEAK_PICKING        	
+										std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
+#endif        		
+										break;
+									}
+								
+								// to the left, the values are falling again => let the cwt decide if we
+								// are seeing a new peak or just noise
+								// compute the position of the corresponding point in the cwt
+								cwt_pos = distance(first, it_help);
+								//cwt_pos = distance(first, it_help);
+								vec_pos=it_help->getMZ();
+								
+								// since the cwt is pretty smooth usually, we consider the point as noise
+								// if the cwt is monotonous in this region
+								// TODO: better monotonicity test... say two or three points more
+								monoton = true;
+								
+								start   =   (cwt_pos < ep_radius)
+									? (distance_from_scan_border + zeros_left_index) + 2
+									: cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+								stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
+									?  (wt.getSize() - 2)
+									: cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+								
+#ifdef DEBUG_PEAK_PICKING
+								std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
+								for (; start < stop; ++start)
+									{
+										if (   (wt[start-1] - wt[start])
+													 * (wt[start]  - wt[start+1]) < 0 )
+											{
+												// different slopes at the sides => stop here
+#ifdef DEBUG_PEAK_PICKING            
+												std::cout << "monoton test " << wt.getSignal()[start-1].getMZ() 
+																	<< " " <<  wt.getSignal()[start].getMZ()
+																	<< " " <<  wt.getSignal()[start+1].getMZ() << std::endl;
+#endif            						
+												monoton=false;
+												break;
+											}
+									}
+								
+								if (!monoton)
+									{
+										break;
+									}
+								++it_help;
 							}
-
-						if (!monoton)
-							{
-								break;
-							}
-						++it_help;
 					}
 			}
     area.right=it_help;
@@ -538,22 +543,17 @@ namespace OpenMS
     // compute the centroid position (use weighted mean)
     while ((left_it >= area.left) && (left_it->getIntensity() >=rel_peak_height) )
 			{
-				if (left_it->getIntensity() >=rel_peak_height)
-					{
 						w+=left_it->getIntensity()*left_it->getMZ();
 						sum+=left_it->getIntensity();
-						--left_it;
-					}
+						if(left_it != area.left) --left_it;
+						else break;
 			}
 
     while ((right_it < area.right) && (right_it->getIntensity() >=rel_peak_height) )
 			{
-				if (right_it->getIntensity() >=rel_peak_height)
-					{
 						w+=right_it->getIntensity()*right_it->getMZ();
 						sum+=right_it->getIntensity();
-						++right_it;
-					}
+						if(right_it != area.right)  ++right_it;
 			}
 
     area.centroid_position = w / sum;

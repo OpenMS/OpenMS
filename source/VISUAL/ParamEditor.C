@@ -80,6 +80,7 @@ namespace OpenMS
 					list.append("");
 					list += restrictions.split(",");
 					editor->addItems(list);
+					connect(editor,SIGNAL(activated(int)),this, SLOT(commitAndCloseComboBox_()));
 					return editor;
 				}
 				else if(dtype == "output file")
@@ -104,8 +105,8 @@ namespace OpenMS
 					ListEditor *editor = new ListEditor(0,str);
 					editor->setTypeName(index.sibling(index.row(),0).data(Qt::DisplayRole).toString());
 					editor->setModal(true);
-					connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor()));
-					connect(editor,SIGNAL(rejected()),this, SLOT(closeListEditor()));
+					connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor_()));
+					connect(editor,SIGNAL(rejected()),this, SLOT(closeListEditor_()));
 					return editor;
 				}						
 				else //LineEditor for rest
@@ -340,14 +341,21 @@ namespace OpenMS
 			return false;
 		}
 		
-		void ParamEditorDelegate::commitAndCloseListEditor()
+		void ParamEditorDelegate::commitAndCloseListEditor_()
 		{
 			ListEditor* editor = qobject_cast<ListEditor*>(sender());
 			emit commitData(editor);
 			emit closeEditor(editor);
 		}
+
+		void ParamEditorDelegate::commitAndCloseComboBox_()
+		{
+			QComboBox* editor = qobject_cast<QComboBox*>(sender());
+			emit commitData(editor);
+			emit closeEditor(editor);
+		}
 		
-		void ParamEditorDelegate::closeListEditor()
+		void ParamEditorDelegate::closeListEditor_()
 		{
 			ListEditor* editor = qobject_cast<ListEditor*>(sender());
 			emit closeEditor(editor);

@@ -41,6 +41,15 @@ namespace OpenMS
 	
 	/**
 		@brief A container for all visual items of a TOPPAS workflow
+		
+		TOPPASScene is a subclass of QGraphicsScene and acts as a container for all visual items
+		(i.e. all vertices and edges). It is visualized by a TOPPASWidget (a subclass of QGraphicsView).
+		This class also provides large parts of the functionality of TOPPAS, e.g., the methods for loading,
+		saving, running, and aborting pipelines are located here.
+		
+		TOPPASScene can also be used without a visualizing TOPPASWidget (i.e., without a gui) which can
+		be indicated via the constructor. In this case, the signals for log message output are connected
+		to standard out. This is utilized for the TOPPAS -execute command line switch.
 	
 		@ingroup TOPPAS_elements
 	*/
@@ -51,21 +60,28 @@ namespace OpenMS
 		
 		public:
 			
+			/// The current action mode (creation of a new edge, or panning of the widget)
 			enum ActionMode
       {
       	AM_NEW_EDGE,
       	AM_MOVE
       };
       
+      /// The container for edges
       typedef QList<TOPPASEdge*> EdgeContainer;
+      /// A mutable iterator for edges
 			typedef EdgeContainer::iterator EdgeIterator;
+			/// A const iterator for edges
 			typedef EdgeContainer::const_iterator ConstEdgeIterator;
+			/// The container for vertices
 			typedef QList<TOPPASVertex*> VertexContainer;
+			/// A mutable iterator for vertices
 			typedef VertexContainer::iterator VertexIterator;
+			/// A const iterator for vertices
 			typedef VertexContainer::const_iterator ConstVertexIterator;
 			
 			/// Constructor
-			TOPPASScene(QObject* parent, const String& tmp_path = "");
+			TOPPASScene(QObject* parent, const String& tmp_path = "", bool gui = true);
 			
 			/// Destructor
 			virtual ~TOPPASScene();
@@ -104,13 +120,31 @@ namespace OpenMS
 			void setSaveFileName(const String& name);
 			/// Updates all output file names
 			void updateOutputFileNames();
+			/// Performs a topological sort of all vertices
+			void topoSort();
+			/// Returns the name of the directory for output files
+			const QString& getOutDir();
+			/// Sets the name of the directory for output files
+			void setOutDir(const QString& dir);
+			/// Creates the necessary output directories
+			void createDirs();
+			/// Saves the pipeline if it has been changed since the last save.
+			bool saveIfChanged();
+			/// Sets the changed flag
+			void setChanged(bool b);
+			/// Returns if a pipeline is currently running
+			bool isPipelineRunning();
+			/// Terminates the currently running pipeline
+			void abortPipeline();
+			/// Shows a dialog that allows to specify the output directory. If @p always_ask == false, the dialog won't be shown if a directory has been set, already.
+			bool askForOutputDir(bool always_ask = true);
 			
 		public slots:
 		
 			/// Called when an item is clicked
 			void itemClicked();
-			/// Called when an item is double-clicked
-			void itemDoubleClicked();
+			/// Called when an item is released
+			void itemReleased();
 			/// Called when the position of the hovering edge changes
 			void updateHoveringEdgePos(const QPointF& new_pos);
 			/// Called when a new out edge is supposed to be created
@@ -121,6 +155,26 @@ namespace OpenMS
 			void checkIfWeAreDone();
 			/// Called by vertices at which an error occured during pipeline execution
 			void pipelineErrorSlot();
+			/// Moves all selected items by dx, dy
+			void moveSelectedItems(qreal dx, qreal dy);
+			/// Sets if the running_ flag to true
+			void setPipelineRunning(bool b = true);
+			
+			///@name Slots for printing log/error output when no GUI is available
+      //@{
+      /// Writes the TOPP tool output to standard output
+      void noGuiTOPPOutput(const QString& out);
+      /// Writes the "tool started" message to standard output
+      void noGuiToolStarted();
+      /// Writes the "tool finished" message to standard output
+      void noGuiToolFinished();
+      /// Writes the "tool failed" message to standard output
+      void noGuiToolFailed();
+      /// Writes the "tool crashed" message to standard output
+      void noGuiToolCrashed();
+      /// Writes the "output file written" message to standard output
+      void noGuiOutputFileWritten(const String& file);
+			//@}
 			
 		signals:
 			
@@ -128,6 +182,10 @@ namespace OpenMS
 			void entirePipelineFinished();
 			/// Emitted when the pipeline execution has failed
 			void pipelineExecutionFailed();
+			/// Emitted when the pipeline should be saved (showing a save as file dialog and so on)
+			void saveMe();
+			/// Kills all connected TOPP processes
+			void terminateCurrentPipeline();
 			
 		protected:
 			
@@ -145,6 +203,16 @@ namespace OpenMS
 			String file_name_;
 			/// The path for temporary files
 			String tmp_path_;
+			/// Are we in a GUI or is the scene used by TOPPAS -execute (at the command line)?
+			bool gui_;
+			/// The directory where the output files will be written
+			QString out_dir_;
+			/// Flag that indicates if the pipeline has been changed since the last save
+			bool changed_;
+			/// Indicates if a pipeline is currently running
+			bool running_;
+			/// Indicates if the output directory has been specified by the user already
+			bool user_specified_out_dir_;
 			
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
 			TOPPASVertex* getVertexAt_(const QPointF& pos);

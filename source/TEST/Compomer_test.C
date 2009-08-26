@@ -65,11 +65,11 @@ END_SECTION
 START_SECTION((Compomer(const Compomer& p) ))
 {
 	Compomer c(34, 45.32f, 12.34f);
-	Adduct a1(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
 	Adduct b1(3, -2, 1.456f, "H", -0.13f);
 	c.setID(434);
-	c.add(a1);
-	c.add(b1);
+	c.add(a1, Compomer::RIGHT);
+	c.add(b1, Compomer::LEFT);
 
 	Compomer c2(c);
 	TEST_EQUAL(c2.getNetCharge(), c.getNetCharge());
@@ -82,13 +82,33 @@ START_SECTION((Compomer(const Compomer& p) ))
 }
 END_SECTION
 
+START_SECTION((Compomer& operator=(const Compomer &source)))
+{
+	Compomer c(34, 45.32f, 12.34f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
+	Adduct b1(3, -2, 1.456f, "H", -0.13f);
+	c.setID(434);
+	c.add(a1, Compomer::RIGHT);
+	c.add(b1, Compomer::LEFT);
+
+	Compomer c2 = c;
+	TEST_EQUAL(c2.getNetCharge(), c.getNetCharge());
+	TEST_REAL_SIMILAR(c2.getMass(), c.getMass());	
+	TEST_EQUAL(c2.getPositiveCharges(), c.getPositiveCharges());	
+	TEST_EQUAL(c2.getNegativeCharges(), c.getNegativeCharges());
+	TEST_REAL_SIMILAR(c2.getLogP(), c.getLogP());
+	TEST_EQUAL(c2.getID(), c.getID());
+}
+END_SECTION
+
+
 START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b))
 {
 	Compomer c(34, 45.32f, 12.34f);
-	Adduct a1(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct a1(123,  3, 123.456f, "S", -0.3453f);
 	Adduct b1(3, -2, 1.456f, "H", -0.13f);
 	c.setID(434);
-	c.add(a1);
+	c.add(a1, Compomer::RIGHT);
 	
 	Compomer c2(c);
 	TEST_EQUAL(c==c2, true);
@@ -98,16 +118,16 @@ START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, co
 }
 END_SECTION
 
-START_SECTION((void add(const Adduct &a)))
+START_SECTION((void add(const Adduct &a, UInt side)))
 {
 	//Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob
-	Adduct a1(123, 43, 123.456f, "SECRET", -0.3453f);
-	Adduct a2(123,  3, 123.456f, "SECRET", -0.3453f);
+	Adduct a1(123, 43, 123.456f, "S", -0.3453f);
+	Adduct a2(123,  3, 123.456f, "S", -0.3453f);
 
 	Adduct b1(3, -2, 1.456f, "H", -0.13f);
 
 	Compomer c;
-	c.add(a1);
+	c.add(a1, Compomer::RIGHT);
 	//PRECISION(0.0001);
 	TEST_EQUAL(c.getNetCharge(), 123*43);
 	TEST_REAL_SIMILAR(c.getMass(), 123.456*43);	
@@ -115,14 +135,14 @@ START_SECTION((void add(const Adduct &a)))
 	TEST_EQUAL(c.getPositiveCharges(), 123*43);
 	TEST_EQUAL(c.getNegativeCharges(), 0);
 	
-	c.add(a2);
+	c.add(a2, Compomer::RIGHT);
 	TEST_EQUAL(c.getNetCharge(), 123*46);
 	TEST_REAL_SIMILAR(c.getMass(), 123.456*46);	
 	TEST_REAL_SIMILAR(c.getLogP(), -0.3453*46);
 	TEST_EQUAL(c.getPositiveCharges(), 123*46);
 	TEST_EQUAL(c.getNegativeCharges(), 0);
 	
-	c.add(b1);
+	c.add(b1, Compomer::RIGHT);
 	TEST_EQUAL(c.getNetCharge(), 123*46+ 3*(-2));
 	TEST_REAL_SIMILAR(c.getMass(), 123.456*46 - 2*1.456);	
 	TEST_REAL_SIMILAR(c.getLogP(), -0.3453*46 -0.13*2);
@@ -133,27 +153,35 @@ START_SECTION((void add(const Adduct &a)))
 }
 END_SECTION
 
-START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left_other) const))
+START_SECTION(bool isConflicting(const Compomer &cmp, UInt side_this, UInt side_other) const)
 {
 	EmpiricalFormula ef("H");
 	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f));
 
 	{
-	Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
-	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Adduct a1(1, 1, 1.007f, "H1", -0.13f);
+	Adduct a2(1, 2, 123.456f, "NH4", -0.3453f);
 
-	Adduct b1(1, -1, 1.007f, "H1", -0.13f);
-
+	
 	Compomer c,d;
-	c.add(a1);
-	c.add(a2);
-	d.add(b1);
-	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*6,default_adduct*6), false);
-	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*2,default_adduct), true);
+	c.add(a1, Compomer::RIGHT);
+	d.add(a1, Compomer::RIGHT);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), true);
 
-	TEST_EQUAL(c.isConflicting(d,true,false,default_adduct,default_adduct), true);
-	TEST_EQUAL(c.isConflicting(d,false,true,default_adduct,default_adduct), true);
-	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct,default_adduct), true);
+	// this should not change the result	
+	c.add(a1, Compomer::RIGHT);
+	d.add(a1, Compomer::RIGHT);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), true);
+
+	// this neither
+	c.add(a2, Compomer::LEFT);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), true);
 	}
 	
 	{
@@ -163,16 +191,52 @@ START_SECTION((bool isConflicting(const Compomer &cmp, bool left_this, bool left
 	Adduct b1(1, 2, 1.007f, "H1", -0.13f);
 
 	Compomer c,d;
-	c.add(a1);
-	c.add(a2);
-	d.add(b1);
-	TEST_EQUAL(c.isConflicting(d,true,true,default_adduct*5,default_adduct*4), true);
-	TEST_EQUAL(c.isConflicting(d,true,false,default_adduct,default_adduct), true);
-	TEST_EQUAL(c.isConflicting(d,false,true,default_adduct,default_adduct), true);
-	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct,default_adduct), true);
-	TEST_EQUAL(c.isConflicting(d,false,false,default_adduct*5,default_adduct*4), false);
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	d.add(b1, Compomer::RIGHT);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::LEFT), false);
+	}
+
+	{
+  Adduct a1(1, 3, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, 3, 1.007f, "H1", -0.13f);
+
+	Compomer c,d;
+	c.add(a1, Compomer::RIGHT);
+	d.add(a1, Compomer::LEFT);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::LEFT), true);
+
+	c.add(a1, Compomer::LEFT);
+	c.add(a2, Compomer::RIGHT);
+	d.add(a1, Compomer::LEFT);
+	d.add(a2, Compomer::RIGHT);
+	//		C										D
+	//a1				a1a2	; 	a1a1	a2
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::LEFT), true);
+
+	c.add(a1, Compomer::RIGHT);
+	d.add(a2, Compomer::LEFT);
+	
+	d.add(a1, Compomer::RIGHT);
+	d.add(a1, Compomer::RIGHT);
+	//		C										D
+	//a1				a1a2a1	; 	a1a1a2	a2a1a1
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::LEFT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::RIGHT,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::RIGHT), true);
+	TEST_EQUAL(c.isConflicting(d,Compomer::LEFT,Compomer::LEFT), true);
 
 	}
+
 	
 }
 END_SECTION
@@ -212,8 +276,8 @@ START_SECTION((const Int& getPositiveCharges() const))
 	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f);
 	Adduct a2(6, 1, 1.007f, "H1", -0.13f);
 
-	c.add(a1);
-	c.add(a2);
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
 	TEST_EQUAL(c.getPositiveCharges(), 6)
 }
 END_SECTION
@@ -224,8 +288,8 @@ START_SECTION((const Int& getNegativeCharges() const))
 	Adduct a1(3, -2, 123.456f, "NH4", -0.3453f);
 	Adduct a2(6, 1, 1.007f, "H1", -0.13f);
 
-	c.add(a1);
-	c.add(a2);
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
 	TEST_EQUAL(c.getNegativeCharges(), 6)
 }
 END_SECTION
@@ -238,14 +302,94 @@ START_SECTION((const DoubleReal& getLogP() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString(Int side=0)))
+START_SECTION((String getAdductsAsString() const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
 	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
 	Compomer c;
-	c.add(a1);
-	c.add(a2);
-	TEST_EQUAL(c.getAdductsAsString(), "-1(H1)2(NH4)");
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	TEST_EQUAL(c.getAdductsAsString(), "()-(H-1H8N2)");
+	c.add(a1, Compomer::LEFT);
+	TEST_EQUAL(c.getAdductsAsString(), "(H8N2)-(H-1H8N2)");
+}
+END_SECTION
+
+START_SECTION((String getAdductsAsString(UInt side) const))
+{
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "");
+	TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
+	c.add(a1, Compomer::LEFT);
+	TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "H8N2");
+	TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
+}
+END_SECTION
+
+START_SECTION((const CompomerComponents& getComponent() const))
+{
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	Compomer::CompomerComponents comp(2);
+	TEST_EQUAL(c.getComponent()==comp, true);
+
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	c.add(a1, Compomer::LEFT);
+	comp[Compomer::RIGHT][a1.getFormula()] = a1;
+	comp[Compomer::RIGHT][a2.getFormula()] = a2;
+	comp[Compomer::LEFT][a1.getFormula()] = a1;
+	TEST_EQUAL(c.getComponent()==comp, true);
+}
+END_SECTION
+
+START_SECTION((Compomer removeAdduct(const Adduct& a) const))
+{
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	c.add(a1, Compomer::LEFT);
+	Compomer tmp = c.removeAdduct(a1);
+	TEST_EQUAL(tmp.getAdductsAsString(), "()-(H-1)");
+}
+END_SECTION
+
+START_SECTION((Compomer removeAdduct(const Adduct& a, const UInt side) const))
+{
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	c.add(a1, Compomer::LEFT);
+	Compomer tmp = c.removeAdduct(a1, Compomer::RIGHT);
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2)-(H-1)");
+					 tmp = c.removeAdduct(a1, Compomer::LEFT);
+	TEST_EQUAL(tmp.getAdductsAsString(), "()-(H-1H8N2)");	
+}
+END_SECTION
+
+START_SECTION((void add(const CompomerSide& add_side, UInt side)))
+{
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	c.add(a1, Compomer::LEFT);
+	TEST_EQUAL(c.getAdductsAsString(), "(H8N2)-(H-1H8N2)");
+	Compomer tmp = c;
+	tmp.add(c.getComponent()[Compomer::RIGHT], Compomer::RIGHT);
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H8N2)-(H-2H16N4)");
+	tmp.add(c.getComponent()[Compomer::RIGHT], Compomer::LEFT);
+	TEST_EQUAL(tmp.getAdductsAsString(), "(H-1H16N4)-(H-2H16N4)");	
 }
 END_SECTION
 

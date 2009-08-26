@@ -41,14 +41,15 @@ using namespace std;
 
 namespace OpenMS
 {
+	
 
-	String VersionInfo::getVersionAndTime()
+	String VersionInfo::getTime()
 	{
 		static bool is_initialized = false;
 		static String result;
 		if ( !is_initialized )
 		{
-			result = getVersion() + ", " + __DATE__ + ", " + __TIME__;
+			result = String(__DATE__) + ", " + __TIME__;
 			is_initialized = true;
 		}
 		return result;

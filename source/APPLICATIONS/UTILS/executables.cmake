@@ -13,7 +13,6 @@ IDExtractor
 LabeledEval
 MapAlignmentEvaluation
 MSSimulator
-RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
@@ -24,6 +23,8 @@ IDMassAccuracy
 SpectrumGeneratorNetworkTrainer
 PeptideIndexer
 ERPairFinder
+MRMPairFinder
+OpenMSInfo
 )
 
 ### pass source file list to the upper instance

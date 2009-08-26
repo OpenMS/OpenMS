@@ -54,6 +54,7 @@ namespace OpenMS
 		@todo Add DataProcessing to MetaInfoDescription (Hiwi, Mathias)
 		@todo Check if test is really complete (Hiwi, Mathias)
 		@todo Check that all values are quoted (Hiwi, Mathias)
+		@todo Implement StringDataArray and IntegerDataArray of spectrum (Hiwi, Mathias)
 
     @ingroup DatabaseIO
   */
@@ -362,8 +363,7 @@ namespace OpenMS
 		else
 		{
 			query << "SELECT id FROM META_HPLC WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
-			result = db_con_.executeQuery(query.str());
-			result.first();
+			result = db_con_.executeQuery(query.str(),true);
 			parent_id = result.value(0).toInt();
 
 			query.str("");
@@ -475,8 +475,7 @@ namespace OpenMS
 		else
 		{
 			query << "SELECT id FROM META_MSInstrument WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
-			result = db_con_.executeQuery(query.str());
-			result.first();
+			result = db_con_.executeQuery(query.str(),true);
 			parent_id = result.value(0).toInt();
 
 			query.str("");
@@ -861,8 +860,7 @@ namespace OpenMS
 
 				query.str("");
 				query << "SELECT id FROM DATA_Peak WHERE fid_Spectrum=" << exp_it->getPersistenceId();
-				result = db_con_.executeQuery(query.str());
-				result.first();
+				result = db_con_.executeQuery(query.str(),true);
 
 				query.str("");
 				query << "INSERT INTO DATA_PeakMetaData (fid_Peak,fid_MetaInfoDescription,Value) VALUES ";
@@ -898,8 +896,7 @@ namespace OpenMS
 			else
 			{
 				query << "SELECT id FROM META_InstrumentSettings WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
-				result = db_con_.executeQuery(query.str());
-				result.first();
+				result = db_con_.executeQuery(query.str(),true);
 				parent_id = result.value(0).toInt();
 
 				query.str("");
@@ -922,7 +919,7 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 
 			//handle several scan windows
-			std::vector<ScanWindow> wins = settings.getScanWindows();
+			const std::vector<ScanWindow>& wins = settings.getScanWindows();
 
 			// first delete all old values, no matter whether we're updating or not
 			// do we have to delete the MetaInfo as well?
@@ -959,8 +956,7 @@ namespace OpenMS
 			else
 			{
 				query << "SELECT id FROM META_AcquisitionInfo WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
-				result = db_con_.executeQuery(query.str());
-				result.first();
+				result = db_con_.executeQuery(query.str(),true);
 				acquisition_info_id = result.value(0).toInt();
 
 				query.str("");
@@ -1070,8 +1066,7 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 
 		query << "SELECT Date,fid_MetaInfo,Description,FractionIdentifier FROM META_MSExperiment WHERE id='" << id << "'";
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(), true);
 		
 		//Experiment meta info
 		try
@@ -1095,11 +1090,8 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT id, SearchEngine, SearchEngineVersion, Date, ScoreType, HigherScoreBetter, SignificanceThreshold, fid_MetaInfo, fid_File	FROM ID_ProteinIdentification WHERE fid_MSExperiment='" << id << "'";
-
 		result = db_con_.executeQuery(query.str());
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			parent_id = result.value(0).toInt();
 			pi.setSearchEngine(result.value(1).toString());
@@ -1116,9 +1108,8 @@ namespace OpenMS
 			//load searchparameters
 			query.str("");
 			query << "SELECT id,DB,DBVersion,Taxonomy,Charges,MassType-1,Enzyme-1,MissedCleavages,PeakMassTolerance,PrecursorTolerance,fid_MetaInfo FROM ID_SearchParameters WHERE fid_ProteinIdentification='" << parent_id << "'";
-			sub_result = db_con_.executeQuery(query.str());
+			sub_result = db_con_.executeQuery(query.str(),true);
 
-			sub_result.first();
 			UID sub_id = sub_result.value(0).toInt();
 			ProteinIdentification::SearchParameters params (pi.getSearchParameters());
 			params.db = sub_result.value(1).toString();
@@ -1136,20 +1127,16 @@ namespace OpenMS
 			query.str("");
 			query << "SELECT name FROM ID_VariableModifications WHERE fid_SearchParameters='" << sub_id << "'";
 			sub_result = db_con_.executeQuery(query.str());
-			sub_result.first();
-			while(sub_result.isValid())
+			while(sub_result.next())
 			{
 				params.variable_modifications.push_back(sub_result.value(0).toString());
-				sub_result.next();
 			}
 			query.str("");
 			query << "SELECT name FROM ID_FixedModifications WHERE fid_SearchParameters='" << sub_id << "'";
 			sub_result = db_con_.executeQuery(query.str());
-			sub_result.first();
-			while(sub_result.isValid())
+			while(sub_result.next())
 			{
 				params.fixed_modifications.push_back(sub_result.value(0).toString());
-				sub_result.next();
 			}
 			pi.setSearchParameters(params);
 
@@ -1157,9 +1144,7 @@ namespace OpenMS
 			query.str("");
 			query << "SELECT Score, Accession, Sequence, Rank, fid_MetaInfo FROM ID_ProteinHit WHERE fid_ProteinIdentification='" << parent_id << "'";
 			sub_result = db_con_.executeQuery(query.str());
-
-			sub_result.first();
-			while(sub_result.isValid())
+			while(sub_result.next())
 			{
 				ph.setScore(sub_result.value(0).toDouble());
 				ph.setAccession(sub_result.value(1).toString());
@@ -1169,15 +1154,11 @@ namespace OpenMS
 				loadMetaInfo_(sub_result.value(4).toInt(), ph);
 
 				ph_vec.push_back(ph);
-
-				sub_result.next();
 			}
 
 			pi.setHits(ph_vec);
 
 			pi_vec.push_back(pi);
-
-			result.next();
 		}
 
 		exp.setProteinIdentifications(pi_vec);
@@ -1187,8 +1168,7 @@ namespace OpenMS
 		query.str("");
 		// finding root of recursive sample tree
 		query << "SELECT id FROM META_Sample WHERE fid_MSExperiment='" << id << "' AND fid_Sample IS NULL";
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 		loadSample_ (result.value(0).toInt(), sample);
 		exp.setSample(sample);
 
@@ -1197,10 +1177,7 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT PreName,LastName,Affiliation,Email,Comment,fid_MetaInfo FROM META_ContactPerson WHERE fid_MSExperiment='" << id << "'";
 		result = db_con_.executeQuery(query.str());
-		result.first();
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			contact.setFirstName(result.value(0).toString());
 			contact.setLastName(result.value(1).toString());
@@ -1208,16 +1185,13 @@ namespace OpenMS
 			contact.setEmail(result.value(3).toString());
 			contact.setContactInfo(result.value(4).toString());
 			loadMetaInfo_(result.value(5).toInt(),contact);
-			result.next();
 			exp.getContacts().push_back(contact);
 		}
 
 		// HPLC
 		query.str("");
 		query << "SELECT id,InstrumentName,ColumnName,Description,Flux,Pressure,Temperature FROM META_HPLC WHERE fid_MSExperiment='" << id << "'";
-		result = db_con_.executeQuery(query.str());
-		result.first();
-
+		result = db_con_.executeQuery(query.str(),true);
 		parent_id=result.value(0).toInt();
 		exp.getHPLC().setInstrument(result.value(1).toString());
 		exp.getHPLC().setColumn(result.value(2).toString());
@@ -1237,28 +1211,22 @@ namespace OpenMS
 		/*
 		query << "SELECT id,Name FROM META_GradientEluent WHERE fid_HPLC=" << parent_id;
 		result = db_con_.executeQuery(query.str());
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			exp.getHPLC().getGradient().addEluent(result.value(0).toString());
-			result.next();
 		}
 
 		query.str("");
 		query << "SELECT id,Time FROM META_GradientTime WHERE fid_HPLC=" << parent_id;
 		result = db_con_.executeQuery(query.str());
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			exp.getHPLC().getGradient().addTimepoint(result.value(0).toInt());
-			result.next();
 		}
 		*/
 
 		query << "SELECT Name,Time,Percentage FROM META_GradientEluent, META_GradientTime, META_GradientPercentage WHERE META_GradientEluent.fid_HPLC=" << parent_id << " AND fid_GradientEluent=META_GradientEluent.id AND fid_GradientTime=META_GradientTime.id";
-		result = db_con_.executeQuery(query.str());
-		result.first();
-
+		result = db_con_.executeQuery(query.str(),true);
 		if (result.isValid())
 		{
 			last_name = result.value(0).toString();
@@ -1290,8 +1258,7 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT id,Model,Vendor,Description,IonOpticsType-1,fid_MetaInfo FROM META_MSInstrument WHERE fid_MSExperiment='" << id << "'";
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 
 		parent_id = result.value(0).toInt();
 		exp.getInstrument().setModel(result.value(1).toString());
@@ -1302,16 +1269,15 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT Name,Version,fid_MetaInfo, id FROM META_Software WHERE fid_SoftwareApplicator='" << result.value(0).toInt() << "' AND SoftwareApplicator = 'META_MSInstrument'";
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 		if(result.isValid())
 		{
-				Software sw;
-				sw.setName(result.value(0).toString());
-				sw.setVersion(result.value(1).toString());
-				loadMetaInfo_(result.value(2).toInt(),sw);
+			Software sw;
+			sw.setName(result.value(0).toString());
+			sw.setVersion(result.value(1).toString());
+			loadMetaInfo_(result.value(2).toInt(),sw);
 
-				exp.getInstrument().setSoftware(sw);
+			exp.getInstrument().setSoftware(sw);
 		}
 
 		//----------------------------------------------------------------------------------------
@@ -1321,9 +1287,7 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT AcquisitionMode-1,Type-1,Resolution,ADCSamplingFrequency,InstrumentOrder,fid_MetaInfo FROM META_IonDetector WHERE fid_MSInstrument='" << parent_id << "'";
 		result = db_con_.executeQuery(query.str());
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			IonDetector detector;
 			detector.setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).toInt());
@@ -1334,7 +1298,6 @@ namespace OpenMS
 			loadMetaInfo_(result.value(5).toInt(),detector);
 
 			detectors.push_back(detector);
-			result.next();
 		}
 		exp.getInstrument().setIonDetectors(detectors);
 
@@ -1345,9 +1308,7 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT InletType-1,IonizationMethod-1,IonizationMode-1,InstrumentOrder,fid_MetaInfo FROM META_IonSource WHERE fid_MSInstrument='" << parent_id << "'";
 		result = db_con_.executeQuery(query.str());
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			IonSource source;
 			source.setInletType((IonSource::InletType) result.value(0).toInt());
@@ -1357,7 +1318,6 @@ namespace OpenMS
 			loadMetaInfo_(result.value(4).toInt(),source);
 
 			sources.push_back(source);
-			result.next();
 		}
 		exp.getInstrument().setIonSources(sources);
 
@@ -1368,9 +1328,7 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT Accuracy,FinalMSExponent,IsolationWidth,MagneticFieldStrength,ReflectronState-1,Resolution,ResolutionMethod-1,ResolutionType-1,ScanDirection-1,ScanLaw-1,ScanRate,ScanTime,TOFPathLength,Type-1,InstrumentOrder,fid_MetaInfo FROM META_MassAnalyzer WHERE fid_MSInstrument='" << parent_id << "'";
 		result = db_con_.executeQuery(query.str());
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			MassAnalyzer analyzer;
 			analyzer.setAccuracy(result.value(0).toDouble());
@@ -1391,7 +1349,6 @@ namespace OpenMS
 			loadMetaInfo_(result.value(15).toInt(), analyzer);
 
 			analyzers.push_back(analyzer);
-			result.next();
 		}
 		exp.getInstrument().setMassAnalyzers(analyzers);
 
@@ -1432,12 +1389,10 @@ namespace OpenMS
 		result = db_con_.executeQuery(query.str());
 		exp.resize(result.size());
 		UInt i = 0;
-		result.first();
-		while (result.isValid())
+		while (result.next())
 		{
 			loadSpectrum(result.value(0).toInt(), exp[i]);
 			++i;
-			result.next();
 		}
 		
 	}
@@ -1459,8 +1414,7 @@ namespace OpenMS
 		UID parent_id;               // stores parent_id of Acquisition
 
 		query << "SELECT Type-1,NativeID, RetentionTime,MSLevel,Description,fid_MetaInfo,fid_File FROM DATA_Spectrum WHERE id='" << id << "'";
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 
 		//Spectrum meta info
 		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).toInt()));
@@ -1476,8 +1430,7 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 		query.str("");
 		query << "SELECT Polarity-1, ScanMode-1, ZoomScan, fid_MetaInfo FROM META_InstrumentSettings WHERE fid_Spectrum=" << id;
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 
 		settings.setPolarity((IonSource::Polarity) (result.value(0).toInt()));
 		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(1).toInt()));
@@ -1491,18 +1444,13 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT MZRangeBegin,MZRangeEnd,fid_MetaInfo FROM META_ScanWindows WHERE fid_Spectrum=" << id;
 		result = db_con_.executeQuery(query.str());
-		if(result.size() > 0)
-		{
-			result.first();
-		}
-		for(int res = 0; res < result.size(); ++res)
+		while(result.next())
 		{
 			ScanWindow window;
 			window.begin = result.value(0).toDouble();
 			window.end = result.value(1).toDouble();
 			loadMetaInfo_(result.value(2).toInt(),window);
 			spec.getInstrumentSettings().getScanWindows().push_back(window);
-			result.next();
 		}
 
 		//----------------------------------------------------------------------------------------
@@ -1519,9 +1467,7 @@ namespace OpenMS
 		query << "SELECT id, SignificanceThreshold, ScoreType, HigherScoreBetter, fid_MetaInfo, fid_File	FROM ID_PeptideIdentification WHERE fid_Spectrum='" << id << "'";
 
 		result = db_con_.executeQuery(query.str());
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			parent_id = result.value(0).toInt();
 			pei.setSignificanceThreshold(result.value(1).toDouble());
@@ -1536,8 +1482,7 @@ namespace OpenMS
 			query << "SELECT Score, Sequence, Charge, AABefore, AAAfter, fid_MetaInfo FROM ID_PeptideHit WHERE fid_Identification='" << parent_id << "'";
 			sub_result = db_con_.executeQuery(query.str());
 
-			sub_result.first();
-			while(sub_result.isValid())
+			while(sub_result.next())
 			{
 				peh.setScore(sub_result.value(0).toDouble());
 				peh.setSequence(String(sub_result.value(1).toString()));
@@ -1548,15 +1493,11 @@ namespace OpenMS
 				loadMetaInfo_(sub_result.value(5).toInt(), peh);
 
 				peh_vec.push_back(peh);
-
-				sub_result.next();
 			}
 
 			pei.setHits(peh_vec);
 
 			pei_vec.push_back(pei);
-
-			result.next();
 		}
 
 		spec.setPeptideIdentifications(pei_vec);
@@ -1567,8 +1508,7 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT id, MethodOfCombination FROM META_AcquisitionInfo WHERE fid_Spectrum=" << id;
-		result = db_con_.executeQuery(query.str());
-		result.first();
+		result = db_con_.executeQuery(query.str(),true);
 
 		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).toString());
 		parent_id = result.value(0).toInt();
@@ -1580,15 +1520,12 @@ namespace OpenMS
 		query << "SELECT Number,fid_MetaInfo FROM META_Acquisition WHERE fid_AcquisitionInfo='" << parent_id << "' ORDER BY id ASC";
 		result = db_con_.executeQuery(query.str());
 
-		Acquisition acquisition;
-
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
+			Acquisition acquisition;
 			acquisition.setIdentifier(result.value(0).toString());
 			loadMetaInfo_(result.value(1).toInt(), acquisition);
 			spec.getAcquisitionInfo().push_back(acquisition);
-			result.next();
 		}
 
 		//----------------------------------------------------------------------------------------
@@ -1597,10 +1534,8 @@ namespace OpenMS
 		query.str("");
 		query << "SELECT CompletionTime,fid_MetaInfo, id FROM META_DataProcessing WHERE fid_Spectrum='" << id << "'";
 		result = db_con_.executeQuery(query.str());
-		result.first();
 
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
 			DataProcessing processings;
 
@@ -1620,19 +1555,14 @@ namespace OpenMS
 			query.str("");
 			query << "SELECT ProcessingActionType-1 FROM META_ProcessingActions WHERE fid_DataProcessing='" << result.value(2).toInt() << "'";
 			sub_result = db_con_.executeQuery(query.str());
-			sub_result.first();
-
-			sub_result.first();
-			while(sub_result.isValid())
+			while(sub_result.next())
 			{
 				processings.getProcessingActions().insert((DataProcessing::ProcessingAction)sub_result.value(0).toInt());
-				sub_result.next();
 			}
 
 			query.str("");
 			query << "SELECT Name,Version,fid_MetaInfo, id FROM META_Software WHERE fid_SoftwareApplicator='" << result.value(2).toInt() << "' AND SoftwareApplicator = 'META_DataProcessing'";
-			sub_result = db_con_.executeQuery(query.str());
-			sub_result.first();
+			sub_result = db_con_.executeQuery(query.str(),true);
 			if(sub_result.isValid())
 			{
 				Software sw;
@@ -1643,7 +1573,6 @@ namespace OpenMS
 				processings.setSoftware(sw);
 			}
 
-			result.next();
 			spec.getDataProcessing().push_back(processings);
 		}
 
@@ -1653,18 +1582,15 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT Name, fid_MetaInfo FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
-
 		result = db_con_.executeQuery(query.str());
-		result.first();
 
-		while(result.isValid())
+		while(result.next())
 		{
 			typename SpectrumType::FloatDataArray meta_array;
 			meta_array.setName(result.value(0).toString());
 			loadMetaInfo_(result.value(1).toInt(), meta_array);
 			
 			spec.getFloatDataArrays().push_back(meta_array);
-			result.next();
 		}
 
 		//----------------------------------------------------------------------------------------
@@ -1675,12 +1601,9 @@ namespace OpenMS
 			query.str("");
 			query << "SELECT WindowMz,Intensity,Charge,ActivationEnergy,WindowLow,WindowUp,fid_MetaInfo,id FROM DATA_Precursor WHERE fid_Spectrum='" << id << "' HAVING Intensity IS NOT NULL";
 			result = db_con_.executeQuery(query.str());
-			if(result.size() > 0)
-			{
-				result.first();
-			}
 			spec.getPrecursors().resize(result.size());
-			for(int res = 0; res < result.size(); ++res)
+			UInt res = 0;
+			while(result.next())
 			{
 				spec.getPrecursors()[res].setMZ(result.value(0).toDouble());
 				spec.getPrecursors()[res].setIntensity(result.value(1).toDouble());
@@ -1691,36 +1614,24 @@ namespace OpenMS
 				loadMetaInfo_(result.value(6).toInt(),spec.getPrecursors()[res]);
 
 				UID prec_id = result.value(7).toInt();
-				QSqlQuery subresult;
 				query.str("");
 				query << "SELECT PossibleChargeStates FROM DATA_PrecursorPCS WHERE fid_Precursor='" << prec_id << "' HAVING PossibleChargeStates IS NOT NULL";
-				subresult = db_con_.executeQuery(query.str());
-				if(subresult.size() > 0)
-				{
-					subresult.first();
-				}
-				for(int subres = 0; subres < subresult.size(); ++subres)
+				QSqlQuery subresult = db_con_.executeQuery(query.str());
+				while(subresult.next())
 				{
 					spec.getPrecursors()[res].getPossibleChargeStates().push_back(subresult.value(0).toInt());
-					subresult.next();
 				}
 
 				query.str("");
 				query << "SELECT ActivationMethods-1 FROM DATA_PrecursorAM WHERE fid_Precursor='" << prec_id << "'";
 				subresult = db_con_.executeQuery(query.str());
-				if(subresult.size() > 0)
-				{
-					subresult.first();
-				}
 				std::set<Precursor::ActivationMethod> tmp_set;
-				for(int subres = 0; subres < subresult.size(); ++subres)
+				while(subresult.next())
 				{
 					tmp_set.insert((Precursor::ActivationMethod)(subresult.value(0).toInt()));
-					subresult.next();
 				}
 				spec.getPrecursors()[res].setActivationMethods(tmp_set);
-
-				result.next();
+				++res;
 			}
 		}
 
@@ -1729,20 +1640,17 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 		query.str("");
 		query << "SELECT WindowMz,WindowLow,WindowUp,fid_MetaInfo FROM DATA_Products WHERE fid_Spectrum='" << id << "'";
-			result = db_con_.executeQuery(query.str());
-			if(result.size() > 0)
-			{
-				result.first();
-			}
-			spec.getProducts().resize(result.size());
-			for(int res = 0; res < result.size(); ++res)
-			{
-				spec.getProducts()[res].setMZ(result.value(0).toDouble());
-				spec.getProducts()[res].setIsolationWindowLowerOffset(result.value(1).toDouble());
-				spec.getProducts()[res].setIsolationWindowUpperOffset(result.value(2).toDouble());
-				loadMetaInfo_(result.value(3).toInt(),spec.getProducts()[res]);
-				result.next();
-			}
+		result = db_con_.executeQuery(query.str());
+		spec.getProducts().resize(result.size());
+		UInt res=0;
+		while(result.next())
+		{
+			spec.getProducts()[res].setMZ(result.value(0).toDouble());
+			spec.getProducts()[res].setIsolationWindowLowerOffset(result.value(1).toDouble());
+			spec.getProducts()[res].setIsolationWindowUpperOffset(result.value(2).toDouble());
+			loadMetaInfo_(result.value(3).toInt(),spec.getProducts()[res]);
+			++res;
+		}
 		
 		//----------------------------------------------------------------------------------------
 		//--------------------------- load PEAKS/METADATAARRAYS	----------------------------------
@@ -1761,10 +1669,9 @@ namespace OpenMS
 		query << " ORDER BY mz ASC";
 		result = db_con_.executeQuery(query.str());
 
-		typename SpectrumType::PeakType p;
-		result.first();
-		while(result.isValid())
+		while(result.next())
 		{
+			typename SpectrumType::PeakType p;
 			p.setPosition(result.value(0).toDouble());
 			p.setIntensity(result.value(1).toDouble());
 			loadMetaInfo_(result.value(2).toInt(), p);
@@ -1774,16 +1681,13 @@ namespace OpenMS
 				query.str("");
 				query << "SELECT id FROM META_MetaInfoDescription WHERE Name='";
 				query << mdarrays_it->getName() << "' AND fid_Spectrum=" << id;
-				sub_result = db_con_.executeQuery(query.str());
-				sub_result.first();
+				sub_result = db_con_.executeQuery(query.str(),true);
 				query.str("");
 				query << "SELECT Value FROM DATA_PeakMetaData WHERE fid_Peak=";
 				query << result.value(3).toInt() << " AND fid_MetaInfoDescription=" << sub_result.value(0).toInt();
-				sub_result = db_con_.executeQuery(query.str());
-				sub_result.first();
+				sub_result = db_con_.executeQuery(query.str(),true);
 				mdarrays_it->push_back(sub_result.value(0).toDouble());
 			}
-			result.next();
 		}
 
 		//id

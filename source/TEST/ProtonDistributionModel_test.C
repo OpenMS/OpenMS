@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -68,9 +68,9 @@ START_SECTION(ProtonDistributionModel& operator = (const ProtonDistributionModel
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void getProtonDistribution(vector<double>& bb_charges, vector<double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
-	vector<double> bb_charges, sc_charges;
-	double bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
+START_SECTION(void getProtonDistribution(vector<DoubleReal>& bb_charges, vector<DoubleReal>& sc_charges, const AASequence& peptide, Int charge, Residue::ResidueType res_type = Residue::YIon))
+	vector<DoubleReal> bb_charges, sc_charges;
+	DoubleReal bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 	for (Size i = 0; i <= peptide.size(); ++i)
@@ -78,7 +78,7 @@ START_SECTION(void getProtonDistribution(vector<double>& bb_charges, vector<doub
 		TEST_REAL_SIMILAR(bb_charges[i], bb_tmp[i])
 	}
 
-	double sc_tmp[] = {2.7239e-23, 0, 0, 0, 0, 7.77547e-15, 0, 1.15343e-22, 1};
+	DoubleReal sc_tmp[] = {2.7239e-23, 0, 0, 0, 0, 7.77547e-15, 0, 1.15343e-22, 1};
 	for (Size i = 0; i != peptide.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(sc_charges[i], sc_tmp[i])
@@ -86,8 +86,8 @@ START_SECTION(void getProtonDistribution(vector<double>& bb_charges, vector<doub
 
 END_SECTION
 
-START_SECTION(void setPeptideProtonDistribution(const vector<double>& bb_charge, vector<double>& sc_charge))
-	vector<double> bb_charges, sc_charges;
+START_SECTION((void setPeptideProtonDistribution(const std::vector< DoubleReal > &bb_charge, const std::vector< DoubleReal > &sc_charge)))
+	vector<DoubleReal> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 
@@ -95,17 +95,17 @@ START_SECTION(void setPeptideProtonDistribution(const vector<double>& bb_charge,
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2, FragmentationType type))
-	vector<double> bb_charges, sc_charges;
+START_SECTION((void getChargeStateIntensities(const AASequence &peptide, const AASequence &n_term_ion, const AASequence &c_term_ion, int charge, Residue::ResidueType n_term_type, std::vector< DoubleReal > &n_term_intensities, std::vector< DoubleReal > &c_term_intensities, FragmentationType type)))
+	vector<DoubleReal> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 	
 	// set the full proton distribution
 	ptr->setPeptideProtonDistribution(bb_charges, sc_charges);
 
-	//double n_term1(0), n_term2(0), c_term1(0), c_term2(0);
+	//DoubleReal n_term1(0), n_term2(0), c_term1(0), c_term2(0);
 	AASequence pre1("DFP"), suf1("IANGER");
-	vector<double> pre_ints, suf_ints;
+	vector<DoubleReal> pre_ints, suf_ints;
 	ptr->getChargeStateIntensities(peptide, pre1, suf1, 1, Residue::YIon, pre_ints, suf_ints, ProtonDistributionModel::ChargeDirected);
 
 	//TEST_REAL_SIMILAR(n_term1, 0.0);

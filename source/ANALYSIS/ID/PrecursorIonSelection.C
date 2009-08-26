@@ -173,18 +173,6 @@ namespace OpenMS
 																std::cout <<prot_id_counter_[*acc_it].size()
 																					<< " >= "<<min_pep_ids_ << std::endl;
 #endif
-// 																// if enough peptides are found now
-// 																if(prot_id_counter_[*acc_it].size()>=min_pep_ids_ )
-// 																	{
-// 																		// change ordering of corresponding features ->down
-// 																		if(type_ == UPSHIFT || type_ == SPS) continue;
-// 																		shiftDown_(features,preprocessed_db,*acc_it);
-// 																	}
-// 																else if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
-// 																	{
-//  																		// change ordering of corresponding features ->up
-// 																		shiftUp_(features,preprocessed_db,*acc_it);
-// 																	}
 															}
 													}
 											}
@@ -197,12 +185,7 @@ namespace OpenMS
 												seq_set.insert(hits[h].getSequence().toString());
 												prot_id_counter_.insert(make_pair(*acc_it,seq_set));
 												status_changed.insert(*acc_it);
-// 												if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
-// 													{
-//   													// change ordering of corresponding features ->up
-// 														shiftUp_(features,preprocessed_db,*acc_it);
-// 													}
-											}
+										}
 									}
 							}
 			}
@@ -235,19 +218,6 @@ namespace OpenMS
 			}
 
 	}
-	
-// 	void PrecursorIonSelection::rescoreIncremental(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,
-// 																								 std::vector<ProteinIdentification>& prot_ids,
-// 																								 PrecursorIonSelectionPreprocessing& preprocessed_db)
-// 	{
-// 		std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(new_pep_ids);
-		
-// 		IDMapper mapper;
-// 		mapper.annotate(features,filtered_pep_ids,prot_ids);
-
-// 		rescore_(features,filtered_pep_ids,preprocessed_db);
-		
-// 	}
 
 
 	void PrecursorIonSelection::rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,

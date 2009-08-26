@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_CHANNELEXTRACTOR_H
-#define OPENMS_ANALYSIS_QUANTITATION_CHANNELEXTRACTOR_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
+#define OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 
 #include <vector>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -44,6 +44,8 @@ namespace OpenMS
 		Quantitation is done by adding all signals within a small delta around the expected m/z of each channel.
 		When all channels are found to be empty, the ConsensusFeature is not created.
 		No postprocessing is done here. Use ItraqQuantifier for that!
+	
+		@htmlinclude OpenMS_ItraqChannelExtractor.parameters	
 	
 	*/
 	class OPENMS_DLLAPI ItraqChannelExtractor
@@ -102,5 +104,5 @@ namespace OpenMS
 	
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_CHANNELEXTRACTOR_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
  

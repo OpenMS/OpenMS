@@ -57,7 +57,8 @@ END_SECTION
 
 START_SECTION((IDTagger(String toolname)))
 {
-  // TODO
+	IDTagger tagme("SomeTOPPTool");
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -65,12 +66,6 @@ START_SECTION((IDTagger(const IDTagger &source)))
 {
   IDTagger tagme("SomeTOPPTool");
 	NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((~IDTagger()))
-{
-  NOT_TESTABLE
 }
 END_SECTION
 
@@ -99,6 +94,23 @@ START_SECTION((bool operator!=(const IDTagger &source) const ))
 	TEST_EQUAL(tagme!=tagme2, true)
 }
 END_SECTION
+
+START_SECTION((String getPoolFile() const))
+{
+	NOT_TESTABLE; // tested below
+}
+END_SECTION
+			
+START_SECTION((void setPoolFile(const String& file)))
+{
+	String tmp_pool;
+	NEW_TMP_FILE(tmp_pool);
+	IDTagger tagme("SomeTOPPTool");
+	//use custom pool file
+	tagme.setPoolFile(tmp_pool);
+	TEST_EQUAL(tagme.getPoolFile(), tmp_pool)
+}
+END_SECTION			
 
 String tmp_pool;
 NEW_TMP_FILE(tmp_pool);

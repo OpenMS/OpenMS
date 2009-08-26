@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -38,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page MapAlignmentEvaluation MapAlignmentEvaluation
+	@page UTILS_MapAlignmentEvaluation MapAlignmentEvaluation
 		
-	@brief Evaluate alignment results against a ground truth.
+	@brief Evaluates alignment results against a ground truth.
 	
 	This tool implements the evaluation measures published in\n
 	"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements",\n
@@ -63,7 +63,7 @@ class TOPPMapAlignmentEvaluation
 
 public:
 	TOPPMapAlignmentEvaluation()
-		: TOPPBase("MapAlignmentEvaluation","Evaluate alignment results against a ground truth.", false)
+		: TOPPBase("MapAlignmentEvaluation","Evaluates alignment results against a ground truth.", false)
 	{
 	}
 

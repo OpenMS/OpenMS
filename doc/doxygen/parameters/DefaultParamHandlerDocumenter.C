@@ -30,10 +30,19 @@
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
+#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
+#include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
@@ -46,7 +55,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -114,12 +125,15 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-#include<OpenMS/SIMULATION/DigestSimulation.h>
-#include<OpenMS/SIMULATION/PTMSimulation.h>
-#include<OpenMS/SIMULATION/IonizationSimulation.h>
-#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
-#include<OpenMS/SIMULATION/RawMSSignalSimulation.h>
-#include<OpenMS/SIMULATION/MSSim.h>
+#include <OpenMS/SIMULATION/DigestSimulation.h>
+#include <OpenMS/SIMULATION/PTMSimulation.h>
+#include <OpenMS/SIMULATION/IonizationSimulation.h>
+#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
+#include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
+#include <OpenMS/SIMULATION/MSSim.h>
+#include <OpenMS/SIMULATION/ElutionModel.h>
+//#include <OpenMS/SIMULATION/MixtureModel.h>
+
 
 using namespace std;
 using namespace OpenMS;
@@ -285,6 +299,7 @@ int main (int argc , char** argv)
 	DOCME(DelaunayPairFinder);
   DOCME(DetectabilitySimulation);
 	DOCME(DigestSimulation);
+	DOCME(ElutionModel);
 	DOCME(EmgFitter1D);
 	DOCME(EmgModel);
 	DOCME(ExtendedIsotopeFitter1D);
@@ -344,6 +359,15 @@ int main (int argc , char** argv)
 	DOCME(PrecursorIonSelection);
 	DOCME(PrecursorIonSelectionPreprocessing);
 	DOCME(MorphologicalFilter);
+	DOCME(CompNovoIonScoring)
+	DOCME(CompNovoIonScoringCID)
+	DOCME(CompNovoIdentification)
+	DOCME(CompNovoIdentificationCID)
+	DOCME(MassDecompositionAlgorithm)
+	DOCME(PILISModel)
+	DOCME(MRMFragmentSelection)
+	DOCME(PILISCrossValidation)
+	DOCME(ProtonDistributionModel)
 	
 	//////////////////////////////////
 	// More complicated cases
@@ -354,6 +378,7 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
+	DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());

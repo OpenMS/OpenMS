@@ -352,6 +352,9 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  The implementation is done in namespace #OpenMS::Internal::ClassTest.
 
+ To create a test you can use the 'create_test.php' script in %OpenMS/tools/
+ (other useful scripts in the same directory - have a look).
+ 
  @ingroup Concept
 
  */
@@ -374,7 +377,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  The #START_TEST macro should be the first one to call in a test program. It
  opens a global <code>try</code> block to catch any unwanted exceptions.  If
- any of these exceptions occurs, all tests failed.  Exceptions defined by
+ any of these exceptions occurs, all tests fail.  Exceptions defined by
  %OpenMS (i.e. exception classes derived from Exception::BaseException)
  provide some additional information that is evaluated by the #END_TEST
  macro.  The #END_TEST macro also closes the <code>try</code> block.  This
@@ -493,6 +496,10 @@ int main(int argc, char **argv)																									\
  insert a line #START_SECTION(memFunc()) in your test program. If the test
  program is called in verbose mode, this leads to the name of the subtest
  being printed on execution.
+ If you are testing a non-public method you can use the [EXTRA] statement,
+ e.g. #START_SECTION([EXTRA]memFunc())
+ to indicate this. Otherwise you will trigger a warning by %OpenMS/tools/checker.php
+ due to this unexpected subtest.
 
  This macro also opens a <code>try</code> block to catch any unexpected
  exceptions thrown in the course of a subtest. To catch <em>wanted</em>
@@ -618,7 +625,11 @@ int main(int argc, char **argv)																									\
  Besides handling some internal stuff, it basically evaluates ((a) == (b)).
 
  Remember that operator == has to be defined somehow for the two argument
- types.
+ types. Additionally the << operator needs to be defined.
+ If only == is available you will get a compilation error. As workaround 
+ use TEST_EQUAL(a==b, true) thereby making bug tracing harder,
+ as you won't see the values of a and b.
+ 
 
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 

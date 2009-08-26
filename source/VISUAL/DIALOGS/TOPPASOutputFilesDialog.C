@@ -27,63 +27,82 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFileDialog.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
+#include <QtGui/QCompleter>
+#include <QtGui/QDirModel>
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
 
 #include <iostream>
 
 namespace OpenMS
 {
-	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QStringList& list)
+	TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name)
 	{
 		setupUi(this);
-		
-		output_file_list->setSelectionMode(QAbstractItemView::SingleSelection);
-		output_file_list->setSortingEnabled(false); // same order as output files of tool
-		
-		output_file_list->addItems(list);
-		
+		if (dir_name != "")
+		{
+			line_edit->setText(dir_name);
+		}
+		else
+		{
+			line_edit->setText(QDir::currentPath());
+		}
+		QCompleter* completer = new QCompleter(this);
+		QDirModel* dir_model = new QDirModel(completer);
+		dir_model->setFilter(QDir::AllDirs);
+		completer->setModel(dir_model);
+		line_edit->setCompleter(completer);
+		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
-		connect (edit_button,SIGNAL(clicked()),this,SLOT(editCurrentItem()));
 	}
 	
-	void TOPPASOutputFilesDialog::editCurrentItem()
+	void TOPPASOutputFilesDialog::showFileDialog()
 	{
-		QListWidgetItem* item = output_file_list->currentItem();
-		if (!item)
+		QFileDialog fd;
+		fd.setAcceptMode(QFileDialog::AcceptSave);
+		fd.setFileMode(QFileDialog::DirectoryOnly);
+		if (File::exists(File::path(line_edit->text())))
 		{
-			return;
+			fd.setDirectory(File::path(line_edit->text()).toQString());
 		}
-		
-		TOPPASOutputFileDialog tofd(item->text());
-		if (tofd.exec())
+		if (fd.exec() && !fd.selectedFiles().empty())
 		{
-			item->setText(tofd.getFilename());
+			line_edit->setText(fd.selectedFiles().first());
 		}
 	}
 	
-	
-	void TOPPASOutputFilesDialog::getFilenames(QStringList& files)
+	QString TOPPASOutputFilesDialog::getDirectory()
 	{
-		files.clear();
-		for (int i = 0; i < output_file_list->count(); ++i)
-		{
-			const QString& text = output_file_list->item(i)->text();
-			if (text != "<edit filename>")
-			{
-				files.push_back(text);
-			}
-		}
+		return line_edit->text();
 	}
 	
 	void TOPPASOutputFilesDialog::checkValidity_()
 	{
-		// ...
+		if (!dirNameValid(line_edit->text()))
+		{
+			QMessageBox::warning(0,"Invalid directory","Either the specified path is no directory, or you have no permission to write there.");
+			return;
+		}
+		
 		accept();
+	}
+	
+	bool TOPPASOutputFilesDialog::dirNameValid(const QString& dir_name)
+	{
+		QFileInfo fi(dir_name);
+		QString file_name = dir_name;
+		if (!file_name.endsWith(QDir::separator()))
+		{
+		 file_name += QDir::separator();
+		}
+		file_name += "test_file";
+		return (fi.isDir() && File::writable(file_name));
 	}
 	
 } // namespace

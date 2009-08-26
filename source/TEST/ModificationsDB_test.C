@@ -30,6 +30,7 @@
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <limits>
+#include <algorithm>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -54,31 +55,39 @@ START_SECTION(Size getNumberOfModifications() const)
 END_SECTION
 
 START_SECTION(const ResidueModification& getModification(Size index) const)
-	//TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
+	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
 END_SECTION
 
-START_SECTION(std::set<String> searchModifications(const String &name) const)
-	set<String> mods = ptr->searchModifications("Phosphorylation");
-	//TEST_EQUAL(mods.find("MOD:00046") != mods.end(), true)
-	//TEST_EQUAL(mods.find("MOD:00047") != mods.end(), true)
-	//TEST_EQUAL(mods.find("MOD:00048") != mods.end(), true)
+START_SECTION(void searchModifications(std::set<const ResidueModification*>& mods, const String& orgin, const String& mod_name, ResidueModification::Term_Specificity term_spec) const)
+	set<const ResidueModification*> mods;
+	ptr->searchModifications(mods, "T", "Phosphorylation", ResidueModification::ANYWHERE);
+	TEST_EQUAL(mods.size(), 1)
+	TEST_STRING_EQUAL((*mods.begin())->getFullId(), "Phospho (T)")
 END_SECTION
 
-START_SECTION(const ResidueModification& getModification(const String &name) const)
-	TEST_EQUAL(ptr->getModification("Carboxymethyl Cystenyl").getId(), "MOD:01062")
+START_SECTION((void searchTerminalModifications(std::set< const ResidueModification * > &mods, const String &name, ResidueModification::Term_Specificity term_spec) const))
+	set<const ResidueModification*> mods;
+	ptr->searchTerminalModifications(mods, "NIC", ResidueModification::N_TERM);
+	TEST_EQUAL(mods.size(), 1)
 END_SECTION
 
-START_SECTION(const ResidueModification& getModification(const String &residue_name, const String &mod_name) const)
-	//TEST_EQUAL(ptr->getModification("S", "Phosphorylation").getId(), "MOD:00046")
+START_SECTION(const ResidueModification& getModification(const String & modification) const)
+	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)")
+	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl")
+END_SECTION
+
+START_SECTION((const ResidueModification& getModification(const String &residue_name, const String &mod_name, ResidueModification::Term_Specificity term_spec) const))
+	TEST_EQUAL(ptr->getModification("S", "Phosphorylation", ResidueModification::ANYWHERE).getId(), "Phospho")
+	TEST_EQUAL(ptr->getModification("S", "Phosphorylation", ResidueModification::ANYWHERE).getFullId(), "Phospho (S)")
 END_SECTION
 
 START_SECTION(Size findModificationIndex(const String &mod_name) const)
 	Size index = numeric_limits<Size>::max();
-	//index = ptr->findModificationIndex("MOD:00046");
-	//TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
+	index = ptr->findModificationIndex("Phospho (T)");
+	TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
 END_SECTION
     
-START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error=0.0))
+START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, DoubleReal mass, DoubleReal error=0.0))
 	vector<String> mods;
 	ptr->getModificationsByDiffMonoMass(mods, 80.0, 0.1);
 	set<String> uniq_mods;
@@ -87,23 +96,10 @@ START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, d
 		uniq_mods.insert(*it);
 	}
 
-	//TEST_EQUAL(uniq_mods.find("MOD:00046") != uniq_mods.end(), true)
-	//TEST_EQUAL(uniq_mods.find("MOD:00047") != uniq_mods.end(), true)
-	//TEST_EQUAL(uniq_mods.find("MOD:00048") != uniq_mods.end(), true)
-	//TEST_EQUAL(uniq_mods.find("MOD:00180") != uniq_mods.end(), true)
-END_SECTION
-
-START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, double mass, double error=0.0))
-	vector<String> mods;
-	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
-	set<String> uniq_mods;
-	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
-	{
-		uniq_mods.insert(*it);
-	}
-
-	//TEST_EQUAL(uniq_mods.find("MOD:00046") != uniq_mods.end(), true)
-	//TEST_EQUAL(uniq_mods.find("MOD:00366") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("Phospho (S)") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("Phospho (T)") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("Phospho (Y)") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("Sulfo (S)") != uniq_mods.end(), true)
 END_SECTION
 
 START_SECTION(void readFromOBOFile(const String &filename))
@@ -115,6 +111,30 @@ START_SECTION(void readFromUnimodXMLFile(const String &filename))
 	// just provided for convenience at the moment
 	NOT_TESTABLE
 END_SECTION
+
+START_SECTION((const ResidueModification& getTerminalModification(const String &name, ResidueModification::Term_Specificity term_spec) const))
+	TEST_EQUAL(ptr->getTerminalModification("NIC", ResidueModification::N_TERM).getId(), "NIC")
+	TEST_EQUAL(ptr->getTerminalModification("NIC", ResidueModification::N_TERM).getFullId(), "NIC (N-term)")
+	TEST_EQUAL(ptr->getTerminalModification("Acetyl", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)")	
+END_SECTION
+
+START_SECTION((void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, DoubleReal mass, DoubleReal error=0.0)))
+	vector<String> mods;
+	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
+END_SECTION
+
+START_SECTION((void getAllSearchModifications(std::vector< String > &modifications)))
+	vector<String> mods;
+	ptr->getAllSearchModifications(mods);
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
+	TEST_EQUAL(find(mods.begin(), mods.end(), "NIC (N-term)") != mods.end(), true)
+	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho") != mods.end(), false)
+END_SECTION
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

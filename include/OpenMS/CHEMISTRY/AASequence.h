@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
@@ -33,6 +33,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iostream>
@@ -43,7 +44,7 @@ namespace OpenMS
 	/** 
 		@brief Representation of a peptide/protein sequence
 		
-		This class represents amino acid sequences in OpenMS. Basically a AASequence instance
+		This class represents amino acid sequences in @OpenMS. Basically a AASequence instance
 		consists of a sequence of residues. The residues are represented as instances of 
 		Residue. Each amino acid has only one instance which is accessible using the ResidueDB instance (singleton).
 
@@ -55,7 +56,7 @@ namespace OpenMS
 		AASequence seq("DFPIANGER") is sufficient to create a instance of AASequence with DFPIANGER as peptide.
 
 		Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
-		after the modified amino acid. For example AASequence seq("DFPIAM(MOD:01214)GER") creates an instance
+		after the modified amino acid. For example AASequence seq("DFPIAM(Oxidation)GER") creates an instance
 		of the peptide DFPIAMGER with an oxidized methionine. N-terminal modifications are specified by writing
 		the modification as prefix to the sequence. C-terminal modifications are specified by writing the 
 		modification as suffix. C-terminal modifications are distinguished from modifications of the last amino 
@@ -554,9 +555,9 @@ namespace OpenMS
 
 			bool valid_;
 
-			String n_term_mod_;
+			const ResidueModification* n_term_mod_;
 
-			String c_term_mod_;
+			const ResidueModification* c_term_mod_;
 	};			
 
 	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);

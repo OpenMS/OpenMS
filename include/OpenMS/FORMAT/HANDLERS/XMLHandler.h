@@ -29,7 +29,6 @@
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
 #include <iostream>
-#include <iomanip> // setprecision etc.
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>

@@ -269,6 +269,11 @@ namespace OpenMS
 				else if (filter.op==GREATER_EQUAL && consensus_feature.size()<filter.value) return false;
 				else if (filter.op==LESS_EQUAL && consensus_feature.size()>filter.value) return false;
 			}
+			else if (filter.field==META_DATA)
+			{
+				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(consensus_feature);
+				if(!metaPasses_(mii,filter,meta_indices_[i])) return false;
+			}
 		}
 		return true;
 	}

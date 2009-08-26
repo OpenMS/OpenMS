@@ -25,7 +25,6 @@ set(sources_list_h
 ANDIFile.h
 Base64.h
 CVMappingFile.h
-CVMappings.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
 CsvFile.h
@@ -43,7 +42,7 @@ LibSVMEncoder.h
 MS2File.h
 MSPFile.h
 MascotInfile.h
-MascotInfile2.h
+MascotGenericFile.h
 MascotOutfile.h
 MascotRemoteQuery.h
 MascotXMLFile.h

@@ -28,7 +28,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 
 #include <cmath>
-#include <cfloat>
 using namespace std;
 
 namespace OpenMS
@@ -57,14 +56,14 @@ namespace OpenMS
     return *this;
   }
 
-	double SpectraSTSimilarityScore::operator () (const PeakSpectrum& spec) const
+	DoubleReal SpectraSTSimilarityScore::operator () (const PeakSpectrum& spec) const
 	{
 		return operator () (spec, spec);
 	}
 	
-  double SpectraSTSimilarityScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
+  DoubleReal SpectraSTSimilarityScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
-		double score(0);
+		DoubleReal score(0);
 		BinnedSpectrum bin1(1,1,s1);
 		BinnedSpectrum bin2(1,1,s2);
 		
@@ -75,7 +74,7 @@ namespace OpenMS
 		Real magnitude2(0);
 		for(SparseVector<Real>::SparseVectorIterator iter1 = bin1.getBins().begin(); iter1 < bin1.getBins().end(); ++iter1)
 		{
-			magnitude1 += pow((double)*iter1,2);
+			magnitude1 += pow((DoubleReal)*iter1,2);
 		}
 		magnitude1 = sqrt(magnitude1);
 		//normalize bins of bin1
@@ -84,9 +83,9 @@ namespace OpenMS
 			*iter1 = (Real)*iter1/magnitude1;
 		}
 		
-		for(SparseVector<Real>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin1.getBins().end(); ++iter2)
+		for(SparseVector<Real>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin2.getBins().end(); ++iter2)
 		{
-			magnitude2 += pow((double)*iter2,2);
+			magnitude2 += pow((DoubleReal)*iter2,2);
 		}
 		magnitude2 = sqrt(magnitude2);
 		//normalize bins of bin1
@@ -98,9 +97,9 @@ namespace OpenMS
 		Size shared_bins = min(bin1.getBinNumber(),bin2.getBinNumber());
 		for(Size s = 0; s < shared_bins; ++s)
 		{
-			if((double)bin1.getBins()[s] >0.0 && (double)bin2.getBins()[s]>0.0)
+			if((DoubleReal)bin1.getBins()[s] >0.0 && (DoubleReal)bin2.getBins()[s]>0.0)
 			{
-				score += ((double)bin1.getBins()[s]*(double)bin2.getBins()[s]);
+				score += ((DoubleReal)bin1.getBins()[s]*(DoubleReal)bin2.getBins()[s]);
 			}
 		}	
 		
@@ -108,9 +107,9 @@ namespace OpenMS
 	
 	}
 	
-	double SpectraSTSimilarityScore::operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const
+	DoubleReal SpectraSTSimilarityScore::operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const
 	{
-		double score(0);
+		DoubleReal score(0);
 		
 		Size shared_bins = min(bin1.getBinNumber(),bin2.getBinNumber());
 		for(Size s = 0; s < shared_bins; ++s)
@@ -124,7 +123,7 @@ namespace OpenMS
     return score;	
 	}
 	
-	bool SpectraSTSimilarityScore::preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold,UInt cut_peaks_below ,UInt min_peak_number, UInt max_peak_number)
+	bool SpectraSTSimilarityScore::preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number)
 	{
 		spec.sortByIntensity(true);
 		DoubleReal min_high_intensity = 0;
@@ -165,7 +164,7 @@ namespace OpenMS
 		Real magnitude(0);
 		for(SparseVector<Real>::SparseVectorIterator iter = bin.getBins().begin(); iter < bin.getBins().end(); ++iter)
 		{
-			magnitude += pow((double)*iter,2);
+			magnitude += pow((DoubleReal)*iter,2);
 		}
 		magnitude = sqrt(magnitude);
 		//normalize bins
@@ -176,9 +175,9 @@ namespace OpenMS
 		return bin;
 	}
 	
-	double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, double dot_product) const
+	DoubleReal SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product) const
 	{
-		double numerator(0);
+		DoubleReal numerator(0);
 
 		Size shared_bins = min(bin1.getBinNumber(),bin2.getBinNumber());
 		for(Size s = 0; s < shared_bins; ++s)
@@ -192,22 +191,22 @@ namespace OpenMS
 		
 		if(dot_product)
 		{
-			return (double)numerator/dot_product;
+			return (DoubleReal)numerator/dot_product;
 		}
 		else
 		{
-			return (double)numerator/(*this)(bin1,bin2);
+			return (DoubleReal)numerator/(*this)(bin1,bin2);
 		}
 	}
 	
-	double SpectraSTSimilarityScore::delta_D(double top_hit, double runner_up)
+	DoubleReal SpectraSTSimilarityScore::delta_D(DoubleReal top_hit, DoubleReal runner_up)
 	{
-		return (double)(top_hit - runner_up)/top_hit;
+		return (DoubleReal)(top_hit - runner_up)/top_hit;
 	}
 	
-	double SpectraSTSimilarityScore::compute_F(double dot_product, double delta_D,double dot_bias)
+	DoubleReal SpectraSTSimilarityScore::compute_F(DoubleReal dot_product, DoubleReal delta_D,DoubleReal dot_bias)
 	{
-		double b(0);
+		DoubleReal b(0);
 		if(dot_bias < 0.1 || ( 0.35 < dot_bias && dot_bias <= 0.4))
 		{
 			b = 0.12;

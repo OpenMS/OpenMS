@@ -47,9 +47,9 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIonScoringCID
 
-		@ref CompNovoIonScoringCID_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_CompNovoIonScoringCID.parameters
 		
-		@ingroup Analysis_ID
+		@ingroup Analysis_DeNovo
 	*/
 	class OPENMS_DLLAPI CompNovoIonScoringCID : public CompNovoIonScoringBase
 	{
@@ -79,12 +79,12 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			void scoreSpectrum(Map<DoubleReal, IonScore>& CID_ion_scores, PeakSpectrum& CID_spec, DoubleReal precursor_weight, UInt charge);
+			void scoreSpectrum(Map<DoubleReal, IonScore>& CID_ion_scores, PeakSpectrum& CID_spec, DoubleReal precursor_weight, Size charge);
 			//@}
 
 		protected:
 
-			void scoreWitnessSet_(UInt charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec);
+			void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec);
 	};
 
 }

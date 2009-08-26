@@ -34,6 +34,7 @@
 #include <utility>
 
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -56,7 +57,7 @@ namespace OpenMS
   typedef Feature::ChargeType SimChargeType;
   
   /// Raw data point
-	typedef Peak1D SimPointType;
+	typedef RichPeak1D SimPointType;
 	
 	/// stores abundance information supported by the simulator
 	typedef Map<String, SimIntensityType> FASTAEntryEnhanced;
@@ -68,7 +69,7 @@ namespace OpenMS
 	typedef FeatureMap<> FeatureMapSim;
 
   /// Sim MSExperiment type
-  typedef MSExperiment< Peak1D > MSSimExperiment;
+  typedef MSExperiment< SimPointType > MSSimExperiment;
   
 	/// Probability of a modification to occur
 	typedef Real ProbabilityType;

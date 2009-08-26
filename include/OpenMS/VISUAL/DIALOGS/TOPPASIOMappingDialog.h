@@ -40,7 +40,11 @@ namespace OpenMS
 	class TOPPASEdge;
 	
 	/**
-		@brief Dialog which allows to specify a list of input files
+		@brief Dialog which allows to configure the input/output parameter mapping of an edge.
+		
+		This dialog allows to select an output parameter of the source vertex and an input
+		parameter of the target vertex. Only valid selections are allowed, i.e. the type
+		(file or list of files) and at least one valid file type of either vertex must match. 
 		
 		@ingroup TOPPAS_elements
 		@ingroup Dialogs
@@ -67,7 +71,7 @@ namespace OpenMS
 			TOPPASEdge* edge_;
 			
 			/// Vector storing the mapping of the target input combobox indices to param indices of edges
-			QVector<int> target_input_param_indices;
+			QVector<int> target_input_param_indices_;
 		
 		protected slots:
 		

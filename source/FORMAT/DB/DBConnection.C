@@ -86,7 +86,7 @@ namespace OpenMS
 		QSqlDatabase::removeDatabase(connection_name_);
 	}
 
-	QSqlQuery DBConnection::executeQuery(const String& query)
+	QSqlQuery DBConnection::executeQuery(const String& query, bool first)
 	{
 		QSqlDatabase db_handle = getDB_();
 		
@@ -102,7 +102,7 @@ namespace OpenMS
 		{
 	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle.lastError().text() );
 		}
-		result.first();
+		if (first) result.first();
 		
 		return result;
 	}
@@ -110,7 +110,7 @@ namespace OpenMS
 	UInt DBConnection::getId(const String& table, const String& column, const String& value)
 	{
 		String query = String("SELECT id FROM ") + table + " WHERE " + column + "='" + value + "' LIMIT 1";
-		return executeQuery(query).value(0).toInt();
+		return executeQuery(query, true).value(0).toInt();
 	}
 	
 	String DBConnection::DBName() const 
@@ -167,7 +167,7 @@ namespace OpenMS
 	{
 		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
 
-		QSqlQuery result = executeQuery(query);
+		QSqlQuery result = executeQuery(query, true);
 
 		if (!result.value(0).canConvert(QVariant::Int))
 		{
@@ -180,7 +180,7 @@ namespace OpenMS
 	{
 		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
 
-		QSqlQuery result = executeQuery(query);
+		QSqlQuery result = executeQuery(query, true);
 
 		if (!result.value(0).canConvert(QVariant::Double))
 		{
@@ -193,7 +193,7 @@ namespace OpenMS
 	{
 		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
 
-		QSqlQuery result = executeQuery(query);
+		QSqlQuery result = executeQuery(query, true);
 
 		if (!result.value(0).canConvert(QVariant::String))
 		{
@@ -204,7 +204,7 @@ namespace OpenMS
 	
 	UInt DBConnection::getAutoId()
 	{
-		QSqlQuery result = executeQuery("SELECT LAST_INSERT_ID()");
+		QSqlQuery result = executeQuery("SELECT LAST_INSERT_ID()", true);
 		if (!result.value(0).canConvert(QVariant::Int))
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed in DBConnection::getAutoId()!");

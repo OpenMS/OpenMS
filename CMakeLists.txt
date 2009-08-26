@@ -23,7 +23,7 @@ PROJECT("OpenMS")
 ###    manual entries (edit this for new release)    ###
 ########################################################
 
-set(CF_OPENMS_PACKAGE_VERSION "1.4" CACHE INTERNAL "OpenMS VERSION" FORCE)
+set(CF_OPENMS_PACKAGE_VERSION "1.5" CACHE INTERNAL "OpenMS VERSION" FORCE)
 
 
 ########################################################
@@ -108,7 +108,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 ## cuda checking
-set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled.")
+set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled (version <= 2.1 currently supported).")
 set(MT_CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
 if (MT_ENABLE_CUDA)
 	MESSAGE(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
@@ -232,7 +232,7 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.4.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.5.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
 
 if ("${CONTRIB_CONFIRM_DIR}" STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")
@@ -295,7 +295,18 @@ OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
 OPENMS_CHECKLIB(CONTRIB_CBC4 "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils" "COIN-OR Utils")
 OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
 OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
-OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "imsd;ims" "imslib")
+
+# if enabled stl-debug we need a imslib which is also built with stl-debug
+# "normal" debug mode is only supported manually
+if (STL_DEBUG)
+	OPENMS_CHECKLIB(CONTRIB_IMSLIB "imsd" "imsd" "imslib")
+else()
+	if (MSVC)
+		OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "imsd" "imslib")
+	else()
+		OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "ims" "imslib")
+	endif()
+endif()
 
 set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
 
@@ -371,9 +382,11 @@ if ("${INSTALL_PREFIX}" STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 else()
-	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")	
+	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 endif()
+
+
 
 set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
 
@@ -492,6 +505,22 @@ endif()
 ## user flag with default "QMYSQL"
 set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
+## DB test settings
+set(DB_TEST OFF CACHE BOOL "If true, the DB tests are enabled.")
+set(DB_TEST_HOST "localhost" CACHE STRING "Test database server name (only used if DB_TEST is true).")
+set(DB_TEST_PORT "3307" CACHE STRING "Test database server port (only used if DB_TEST is true).")
+set(DB_TEST_DB "OPENMS_TEST_DB" CACHE STRING "Test database name (only used for DB_TEST).")
+set(DB_TEST_USER "openms_test_user" CACHE STRING "Test database user name (only used for DB_TEST).")
+set(DB_TEST_PW "openms_test_password" CACHE STRING "Test database user password (only used for DB_TEST).")
+if (DB_TEST)
+	# output
+	message(STATUS "DB testing enabled")
+	message(STATUS "DB testing - creating credentials files ...")
+	# create assorted credentials files
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/DB_credentials.txt.in ${PROJECT_BINARY_DIR}/source/TEST/DB_credentials.txt)
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBImporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBImporter.ini)
+	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBExporter.ini)
+endif()
 
 ########################################################
 ###    Documentation    														 ###
@@ -611,10 +640,10 @@ foreach(i ${TOPP_executables})
 
     add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C ${resource_dir}/${i}.icns)         
     ## transform TOPPView and INIFileEditor to real Mac OS X applications
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.4")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.4")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.4")
-    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.4")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.5")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "1.5")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_VERSION "1.5")
+    set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING "1.5")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${i}.icns")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
     set_target_properties(${i} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${i}") 
@@ -878,11 +907,11 @@ if (NOT "${PACKAGE_TYPE}" STREQUAL "none")
 	set(CPACK_PACKAGE_NAME "OpenMS")
 	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
 	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "1.4.0")
+	set(CPACK_PACKAGE_VERSION "1.5.0")
 	set(CPACK_PACKAGE_VERSION_MAJOR "1")
-	set(CPACK_PACKAGE_VERSION_MINOR "4")
+	set(CPACK_PACKAGE_VERSION_MINOR "5")
 	set(CPACK_PACKAGE_VERSION_PATCH "0")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.4")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.5")
 	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
 	if (APPLE)
 		set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/License.txt)

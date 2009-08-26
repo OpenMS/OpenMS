@@ -41,9 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page SequenceCoverageCalculator SequenceCoverageCalculator
+	@page UTILS_SequenceCoverageCalculator SequenceCoverageCalculator
 	
-	@brief This application is used to get sequence coverage information
+	@brief Prints information about IdXML files.
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_SequenceCoverageCalculator.cli
@@ -57,7 +57,7 @@ class TOPPSequenceCoverageCalculator
 {
 	public:
 		TOPPSequenceCoverageCalculator()
-			: TOPPBase("SequenceCoverageCalculator","prints information about IdXML files",false)
+			: TOPPBase("SequenceCoverageCalculator","Prints information about IdXML files.",false)
 		{
 			
 		}

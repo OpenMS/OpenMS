@@ -39,12 +39,22 @@ namespace OpenMS
 	class PeakSpectrumCompareFunctor;
 	class PILISModel;
 
+
+	/** @brief Implementation of a cross valdidation training for the PILIS model
+
+      This class serves as an implementation of a cross validation training for
+      the PILIS model. It includes a range of parameters which can be set to
+      perform a GridSearch additionally.
+
+      @htmlinclude OpenMS_PILISCrossValidation.parameters
+  */
 	class OPENMS_DLLAPI PILISCrossValidation : public DefaultParamHandler
 	{
 
 		public:
 
 		/** @brief this struct represents a peptide spectrum pair
+
 		*/
 		struct Peptide
 		{
@@ -135,14 +145,14 @@ namespace OpenMS
 			{
 			}
 
-		  Option(Type t, double min, double max, double stepsize)
+		  Option(Type t, DoubleReal min, DoubleReal max, DoubleReal stepsize)
   		{
     		type = t;
     		if (type == INT)
     		{
-      		int_min = (int)min;
-      		int_max = (int)max;
-      	int_stepsize = (int)stepsize;
+      		int_min = (Int)min;
+      		int_max = (Int)max;
+      	int_stepsize = (Int)stepsize;
    			}
     		else
     		{
@@ -175,47 +185,56 @@ namespace OpenMS
   		}
 
   		Type type;
-  		int int_min;
-  		int int_max;
-  		int int_stepsize;
-  		double dbl_min;
-  		double dbl_max;
-  		double dbl_stepsize;
+  		Int int_min;
+  		Int int_max;
+  		Int int_stepsize;
+  		DoubleReal dbl_min;
+  		DoubleReal dbl_max;
+  		DoubleReal dbl_stepsize;
 		};
 
 
-
-		/** @brief Implementation of a cross valdidation training for the PILIS model
-
-				This class serves as an implementation of a cross validation training for
-				the PILIS model. It includes a range of parameters which can be set to 
-				perform a GridSearch additionally.
+		/** @name Constructors and destructors
 		*/
+		//@{
+		/// Default constructor
 		PILISCrossValidation();
 
+		/// copy constructor
 		PILISCrossValidation(const PILISCrossValidation& rhs);
 
+		/// desctructor
 		virtual ~PILISCrossValidation();
 
+		/// assignment operator 
 		PILISCrossValidation& operator = (const PILISCrossValidation& rhs);
+		//@}
 
+		/** @name Accessors
+		*/
+		//@{
+		/// sets the options which should be used for the cross validation
 		void setOptions(const Map<String, Option>& rhs)
 		{
 			cv_options_ = rhs;
 		}
 
+		/// sets a option to be used for the cross validation
 		void setOption(const String& name, const Option& option)
 		{
 			cv_options_[name] = option;
 		}
 
+		/// performs a cross validation and write optimized param into PILIS_param
 		void apply(Param& PILIS_param, const PILISModel& base_model, const std::vector<Peptide>& peptides);
 
-		double scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > >& sim_spectra, const std::vector<std::vector<RichPeakSpectrum> >& exp_spectra);
+		/// compares experimental and simulated spectra and returns a score
+		DoubleReal scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > >& sim_spectra, const std::vector<std::vector<RichPeakSpectrum> >& exp_spectra);
+		//@}
 
 		protected:
 
-		double scoreSpectra_(const RichPeakSpectrum& spec1, const RichPeakSpectrum& spec2);
+		DoubleReal scoreSpectra_(const RichPeakSpectrum& spec1, const RichPeakSpectrum& spec2);
 
 		void partition_(std::vector<std::vector<Peptide> >& parts, const std::vector<Peptide>& source);
 

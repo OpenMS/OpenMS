@@ -121,7 +121,7 @@ class TOPPSpectraFilter
       //-------------------------------------------------------------
       // if meta data arrays are present, remove them and warn
       //-------------------------------------------------------------
-			if (exp.clearFloatDataArrays())
+			if (exp.clearMetaDataArrays())
 			{
 				writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
 			}

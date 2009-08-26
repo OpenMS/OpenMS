@@ -16,7 +16,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,12 @@
 // The path to the directory where OpenMS data is installed
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
 #define OPENMS_PACKAGE_VERSION "@CF_OPENMS_PACKAGE_VERSION@"
+
+// The directory where OpenMS is build
+#define OPENMS_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
+
+// The directory where the OpenMS sources are located
+#define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
 
 // Macro to construct a c string containing the complete path to the test data
 #define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()

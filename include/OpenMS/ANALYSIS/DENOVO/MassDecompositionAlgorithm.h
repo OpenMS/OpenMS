@@ -25,11 +25,11 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYIS_ID_DECOMPOSITIONALGORITHM_H
-#define OPENMS_ANALYIS_ID_DECOMPOSITIONALGORITHM_H
+#ifndef OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
+#define OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITIONALGORITHM_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include "MassDecomposition.h"
+#include <OpenMS/ANALYSIS/DENOVO/MassDecomposition.h>
 
 // ims includes
 #ifdef OPENMS_COMPILER_MSVC
@@ -53,7 +53,10 @@ namespace OpenMS
 			A mass decomposition algorithm decomposes a mass or a mass difference into
 			possible amino acids and frequencies of them, which add up to the given mass.
 			This class is a wrapper for the algorithm published in 
-			@todo add reference
+
+			@htmlinclude OpenMS_MassDecompositionAlgorithm.parameters
+
+			@ingroup Analysis_DeNovo
 	*/
 	class OPENMS_DLLAPI MassDecompositionAlgorithm : public DefaultParamHandler
 	{
@@ -65,9 +68,6 @@ namespace OpenMS
 			/// Default constructor
 			MassDecompositionAlgorithm();
 
-			/// Copy constructor
-			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
-
 			/// Destructor
 			virtual ~MassDecompositionAlgorithm();
 			//@}
@@ -75,9 +75,6 @@ namespace OpenMS
 			/** @name Operators
 			*/
 			//@{
-			/// assignment operator
-			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
-
 			/// returns the possible decompositions given the weight
 			void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight);
 			//@}
@@ -89,6 +86,15 @@ namespace OpenMS
 			ims::Alphabet* alphabet_;
 
 			ims::RealMassDecomposer* decomposer_;
+
+		private: 
+			
+			// will not be implemented
+			/// Copy constructor
+			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
+
+			/// assignment operator
+			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
 	};
 
 } // namespace OpenMS

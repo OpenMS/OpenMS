@@ -22,13 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -41,9 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page CVInspector CVInspector
+	@page UTILS_CVInspector CVInspector
 	
-	@brief A tool for visualization and validation of PSI mapping and CV files
+	@brief A tool for visualization and validation of PSI mapping and CV files.
 	
 	This tool is used to validate the correct use of mapping files and CV files.
 	
@@ -61,7 +61,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files",false)
+		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files.",false)
 	{
 	}
 	
@@ -107,6 +107,15 @@ class TOPPCVInspector
 					units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
 				}
 				tags.push_back(String("units=") + units.concatenate(","));
+			}
+			if (child_term.xref_binary.size()>0)
+			{
+				StringList types;
+				for (StringList::const_iterator u_it=child_term.xref_binary.begin(); u_it!=child_term.xref_binary.end(); ++u_it)
+				{
+					types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+				}
+				tags.push_back(String("binary-array-types=") + types.concatenate(","));
 			}
 			if (tags.size()!=0)
 			{
@@ -165,9 +174,9 @@ class TOPPCVInspector
 			
 			//count the number of terms and add button to expend/collaps all terms
 			Int term_count = 0;
-			for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
+			for (vector<CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
 			{
-				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
+				for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
 				{
 					++term_count;
 				}
@@ -183,39 +192,39 @@ class TOPPCVInspector
 			file.push_back(collapse_all + "\">Collapse all</a>");
 			file.push_back("    <TABLE width=100% border=0>");
 			term_count = -1;
-			for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
+			for (vector<CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
 			{
 				//create rule line
 				file.push_back("      <TR><TD colspan=\"2\"><HR></TD></TR>");
 				file.push_back(String("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
 				file.push_back(String("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
-				if (it->getRequirementLevel()==CVMappings::CVMappingRule::MUST)
+				if (it->getRequirementLevel()==CVMappingRule::MUST)
 				{
 					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
 				}
-				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::SHOULD)
+				else if (it->getRequirementLevel()==CVMappingRule::SHOULD)
 				{
 					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"orange\">SHOULD</FONT></TD></TR>");
 				}
-				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::MAY)
+				else if (it->getRequirementLevel()==CVMappingRule::MAY)
 				{
 					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"green\">MAY</FONT></TD></TR>");
 				}
-				if (it->getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+				if (it->getCombinationsLogic()==CVMappingRule::AND)
 				{
 					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"red\">AND</FONT></TD></TR>");
 				}
-				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+				else if (it->getCombinationsLogic()==CVMappingRule::XOR)
 				{
-					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"yellow\">XOR</FONT></TD></TR>");
+					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"orange\">XOR</FONT></TD></TR>");
 				}
-				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::OR)
+				else if (it->getCombinationsLogic()==CVMappingRule::OR)
 				{
 					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"green\">OR</FONT></TD></TR>");
 				}
 				
 				//create table with terms
-				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
+				for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
 				{
 					//create term line
 					String term_line = String("      <TR><TD valign=\"top\">Term:</TD><TD>");
@@ -281,6 +290,15 @@ class TOPPCVInspector
 							}
 							tags.push_back(String("units=") + units.concatenate(","));
 						}
+						if (term.xref_binary.size()>0)
+						{
+							StringList types;
+							for (StringList::const_iterator u_it=term.xref_binary.begin(); u_it!=term.xref_binary.end(); ++u_it)
+							{
+								types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+							}
+							tags.push_back(String("binary-array-types=") + types.concatenate(","));
+						}
 					}
 					if (tags.size()!=0)
 					{
@@ -340,11 +358,11 @@ class TOPPCVInspector
 			ignore_cv_list.insert(*it);
 		}
 		set<String> used_terms;
-		for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
+		for (vector<CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
 		{
 			set<String> allowed_terms;
 			// iterate over all allowed terms
-			for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
+			for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
 			{
 				// check whether the term itself it allowed, or only its children
 				if (tit->getUseTerm())

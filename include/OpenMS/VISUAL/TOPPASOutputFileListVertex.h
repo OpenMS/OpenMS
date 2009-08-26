@@ -47,8 +47,6 @@ namespace OpenMS
 			
 			/// Default constructor
 			TOPPASOutputFileListVertex();
-			/// Constructor
-			TOPPASOutputFileListVertex(const QStringList& files);
 			/// Copy constructor
 			TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs);
 			/// Destructor
@@ -63,20 +61,16 @@ namespace OpenMS
 			virtual QPainterPath shape () const;
 			/// Starts the workflow ending in this node
 			void startComputation();
-			/// Returns the list of files
-			const QStringList& getFilenames();
 			/// Called when the parent node has finished execution
 			void finished();
-			/// Checks if the given list of file names is valid
-			bool fileNamesValid(const QStringList& files);
-			/// Returns whether this vertex is ready
-			bool isReady();
-			/// Updates the status (if ready or not)
-			void updateStatus();
-			/// Shows the dialog for editing the files
-			void showFilesDialog();
 			/// Returns whether we are finished
 			bool isFinished();
+			/// Returns the directory where the output files are stored
+			String getOutputDir();
+			/// Creates all necessary directories (called by the scene before the pipeline is run)
+			void createDirs(const QString& out_dir);
+			/// Sets the topological sort number and removes invalidated tmp files
+			virtual void setTopoNr(UInt nr);
 			
 		public slots:
 		
@@ -92,16 +86,13 @@ namespace OpenMS
 			
 		protected:
 		
-			/// The file names
-			QStringList files_;
-			/// Stores whether this vertex is ready (ready iff for every element of the list a name has been specified)
-			bool ready_;
 			/// Stores whether the pipeline ending in this vertex has finished already
 			bool finished_;
+			/// The output file names
+			QStringList files_;
 		
 			///@name reimplemented Qt events
       //@{
-      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 	};

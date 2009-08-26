@@ -119,7 +119,7 @@
 	@brief Database IO classes.
 
 	This module contains all classes that are involved in database IO.
-
+	
 	@ingroup Format
 */
 
@@ -315,4 +315,14 @@
 	@brief Dialogs for user interaction.
 
 	@ingroup Visual
+*/
+
+// ----------------------------- Simulation -------------------------------
+
+/**
+  @defgroup Simulation Simulation
+
+  @brief Simulation classes
+  
+  This module contains all classes involved in simulating different aspects of Mass Spectrometry Experiments.
 */

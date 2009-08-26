@@ -96,19 +96,6 @@ START_SECTION((virtual IsotopeModelGeneral& operator=(const IsotopeModelGeneral 
 }
 END_SECTION
 
-START_SECTION((UInt getCharge()))
-{
-	IsotopeModelGeneral img;
-	TEST_EQUAL(img.getCharge(),1)
-
-	Param p;
-  p.setValue("charge",3);
-	img.setParameters(p);
-
-	TEST_EQUAL(img.getCharge(),3)
-}
-END_SECTION
-
 START_SECTION((void setSamples(EmpiricalFormula formula)))
 {
 	TOLERANCE_ABSOLUTE(0.02)

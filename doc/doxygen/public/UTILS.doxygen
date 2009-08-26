@@ -39,27 +39,35 @@
  	
 
   <b>File handling</b>
-  - @subpage FuzzyDiff
-  - @subpage XMLValidator
-	- @subpage SemanticValidator
-  - @subpage CVInspector
+  - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
+	- @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
+  - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
   
   <b>Algorithm evaluation</b>
-  - @subpage FFEval
-  - @subpage LabeledEval
-	- @subpage CaapConvert
-	- @subpage MapAlignmentEvaluation
-  - @subpage RTEvaluation
-	- @subpage IdXMLEvaluation
+  - @subpage UTILS_FFEval - Evaluation tool for for feature detection algorithms.
+  - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
+	- @subpage UTILS_CaapConvert - Convert a CAAP ground truth file into consensusXML format.
+	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
+	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
   
   <b>Peptide identification</b>
-	- @subpage Digestor
-	- @subpage DecoyDatabase
-	- @subpage SequenceCoverageCalculator
-  - @subpage IDExtractor
-  - @subpage IDMassAccuracy
-	
-	<b>Misc</b>
-  - @subpage HistView
+	- @subpage UTILS_Digestor - Digests a protein database in-silico.
+	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
+	- @subpage UTILS_SequenceCoverageCalculator - Prints information about IdXML files.
+  - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.
+  - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
+  - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
+  - @subpage UTILS_PeptideIndexer - Refreshes the protein references for all peptide hits.
+  
+    <b>Quantitation</b>
+  - @subpage UTILS_ERPairFinder - Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_MRMPairFinder - Util which can be used to evaluate labeled pair ratios on MRM features.
 
+
+	<b>Misc</b>
+  - @subpage UTILS_HistView - A viewer for histograms.
+  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
+  - @subpage UTILS_SpectrumGeneratorNetworkTrainer - Trainer for Probabilistic network as input for AdvancedSpectrumGenerator.
+	
 */

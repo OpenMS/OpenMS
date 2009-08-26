@@ -20,4 +20,8 @@ do
     $1 -change $2/$lib.framework/Versions/4/$lib \
         $lib.framework/Versions/4/$lib \
         $3/INIFileEditor.app/Contents/MacOS/INIFileEditor.exe
+
+		$1 -change $2/$lib.framework/Versions/4/$lib \
+				$lib.framework/Versions/4/$lib \
+				$3/TOPPAS.app/Contents/MacOS/TOPPAS.exe
 done

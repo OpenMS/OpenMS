@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -114,7 +114,7 @@ START_SECTION(UInt getNumberOfThreads() const)
 END_SECTION
 
 START_SECTION(void setModifications(const ModificationDefinitionsSet &mods))
-	ModificationDefinitionsSet sets("MOD:00720,MOD:00719", "MOD:01061,MOD:01060");
+	ModificationDefinitionsSet sets("Oxidation (M)", "Carboxymethyl (C)");
 	ptr->setModifications(sets);
 	TEST_EQUAL(ptr->getModifications() == sets, true)
 END_SECTION

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ namespace OpenMS
 	/** 
 	  @brief Hidden Markov Model State class for the Hidden Markov Model
 	*/
-	class HMMState
+	class OPENMS_DLLAPI HMMState
 	{
 		public:
 
@@ -124,7 +124,7 @@ namespace OpenMS
 						The HMM is mostly used within PILIS. For further details have a look at
 						the docs of PILIS.
 	*/
-	class HiddenMarkovModel
+	class OPENMS_DLLAPI HiddenMarkovModel
 	{
 		public:
 					

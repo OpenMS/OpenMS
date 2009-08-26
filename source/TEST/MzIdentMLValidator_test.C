@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
-#include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 ///////////////////////////

@@ -25,8 +25,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_NNLS_H
-#define OPENMS_MATH_MISC_NNLS_H
+#ifndef OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H
+#define OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -62,5 +62,5 @@ namespace OpenMS
 	
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_NNLS_H
+#endif // OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H
  

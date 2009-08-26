@@ -92,12 +92,6 @@ START_SECTION((bool operator==(const DocumentIdentifier &rhs) const))
 }
 END_SECTION
 
-START_SECTION((virtual ~DocumentIdentifier()))
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((void setIdentifier(const String &id)))
 {
   DocumentIdentifier di1;
@@ -113,7 +107,7 @@ START_SECTION((const String& getIdentifier() const))
 }
 END_SECTION
 
-START_SECTION((void setLoadedFileType(const String &name)))
+START_SECTION((void setLoadedFileType(const String &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFileType( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
@@ -128,7 +122,7 @@ START_SECTION((const FileTypes::Type& getLoadedFileType() const))
 }
 END_SECTION
 
-START_SECTION((void setLoadedFilePath(const String &name)))
+START_SECTION((void setLoadedFilePath(const String &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFilePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));

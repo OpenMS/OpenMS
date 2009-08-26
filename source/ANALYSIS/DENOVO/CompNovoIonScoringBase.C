@@ -197,10 +197,10 @@ namespace OpenMS
   	return LONE;
 	}
 	
-	DoubleReal CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& ion_scores, UInt charge)
+	DoubleReal CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& ion_scores, Size charge)
 	{
   	DoubleReal it_pos(it->getMZ());  // ~ weight of the fragment
-		DoubleReal max_isotope_to_score(param_.getValue("max_isotope_to_score"));
+		UInt max_isotope_to_score(param_.getValue("max_isotope_to_score"));
 		DoubleReal double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
   	DoubleReal actual_pos = it_pos;
 
@@ -257,7 +257,7 @@ namespace OpenMS
   	DoubleReal score(0.0);
 
   	DoubleReal numerator(0), auto1(0), auto2(0);
-  	for (UInt i = 0; i != iso_dist.size(); ++i)
+  	for (Size i = 0; i != iso_dist.size(); ++i)
   	{
     	numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
     	auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
@@ -274,7 +274,7 @@ namespace OpenMS
       	ion_scores[it_pos].is_isotope_1_mono = 1;
     	}
 
-    	for (UInt i = 1; i < iso_pattern_its.size(); ++i)
+    	for (Size i = 1; i < iso_pattern_its.size(); ++i)
     	{
       	ion_scores[iso_pattern_its[i]->getPosition()[0]].is_isotope_1_mono = -1;
 #ifdef ION_SCORING_DEBUG
@@ -289,7 +289,7 @@ namespace OpenMS
 	}
 
 
-DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, UInt charge)
+DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Size charge)
 {
 //#ifdef ION_SCORING_DEBUG
 	cerr << "scoreIsotopes: " << spec.size() << " " << it->getPosition()[0] << " " << it->getIntensity() << " " << charge << endl;
@@ -359,7 +359,7 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
   DoubleReal score(0.0);
 
   DoubleReal numerator(0), auto1(0), auto2(0);
-  for (UInt i = 0; i != iso_dist.size(); ++i)
+  for (Size i = 0; i != iso_dist.size(); ++i)
   {
     numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
     auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
@@ -381,13 +381,13 @@ DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum& spec, PeakS
 		DoubleReal max_mz(param_.getValue("max_mz"));
 		UInt max_isotope(param_.getValue("max_isotope"));
   	IsotopeDistribution iso_dist(max_isotope);
-  	for (Int i = 1; i <= max_mz; ++i)
+  	for (Size i = 1; i <= max_mz; ++i)
   	{
     iso_dist.estimateFromPeptideWeight((DoubleReal)i);
     iso_dist.renormalize();
     vector<DoubleReal> iso(max_isotope, 0.0);
 
-    for (UInt j = 0; j != iso_dist.size(); ++j)
+    for (Size j = 0; j != iso_dist.size(); ++j)
     {
       iso[j] = iso_dist.getContainer()[j].second;
     }

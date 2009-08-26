@@ -62,7 +62,7 @@ namespace OpenMS
 				q_max_(5),
 				max_span_(3)
 		{
-				init(true);
+				init_(true);
 		}
 		
 		/// Constructor
@@ -73,7 +73,7 @@ namespace OpenMS
 				q_max_(5),
 				max_span_(3)
 		{
-				init(true);
+				init_(true);
 		}
 
 		/// Constructor
@@ -85,7 +85,7 @@ namespace OpenMS
 				max_span_(max_span),
 				thresh_p_(thresh_logp)
 		{
-				init(false);
+				init_(false);
 		}
 
 		/// Constructor
@@ -97,14 +97,14 @@ namespace OpenMS
 				max_span_(max_span),
 				thresh_p_(thresh_logp)
 		{
-				init(false);
+				init_(false);
 		}
 
 		
 	private:
 		/// check consistency of input
 		/// @param init_thresh_p set default threshold (set to "false" to keep current value)
-		void init(bool init_thresh_p)
+		void init_(bool init_thresh_p)
 		{
 				if (init_thresh_p)
 				{
@@ -181,18 +181,11 @@ namespace OpenMS
 					//warning: the following code assumes that max_nq == max_pq!!
 					while (abs(i*it->getCharge()) <= max_pq)
 					{
-							Compomer cmp;
 							Adduct a(*it);
 							// positive amount
 							a.setAmount(i);
-							cmp.add(a);
 							// this might not be a valid compomer (e.g. due to net_charge excess)
 							// ... but when combined with other adducts it might become feasible again
-							new_adducts.push_back(a);
-							Compomer cmp2;
-							// negative amount
-							a.setAmount(-i);
-							cmp2.add(a);
 							new_adducts.push_back(a);
 							++i;
 					}
@@ -207,22 +200,38 @@ namespace OpenMS
 					{
 							for (new_it = new_begin; new_it!=new_end; ++new_it)
 							{
-								Compomer cmp(explanations_[ci]);
-								cmp.add(*new_it);
-								if (compomer_valid(cmp)) explanations_.push_back(cmp); 
+								Compomer cmpl(explanations_[ci]);
+								cmpl.add(*new_it,Compomer::LEFT);
+								explanations_.push_back(cmpl);
+								
+								Compomer cmpr(explanations_[ci]);
+								cmpr.add(*new_it,Compomer::RIGHT);
+								explanations_.push_back(cmpr);
 							}
 					}
 					// finally add new compomers to the list itself
 					for (new_it = new_begin; new_it!=new_end; ++new_it)
 					{
-						Compomer cmp;
-						cmp.add(*new_it);
-						if (compomer_valid(cmp)) explanations_.push_back(cmp); 
+						Compomer cmpl;
+						cmpl.add(*new_it,Compomer::LEFT);
+						explanations_.push_back(cmpl);
+						
+						Compomer cmpr;
+						cmpr.add(*new_it,Compomer::RIGHT);
+						explanations_.push_back(cmpr);
 					}
 					
-					//std::cout << "valid explanations: " << explanations_.size() << " after " << it->formula_ << std::endl;
+					//std::cout << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
 					
 				} // END adduct add
+				
+				
+				std::vector< Compomer > valids_only;
+				for (size_t ci=0; ci < explanations_.size(); ++ci)
+				{
+					if (compomerValid_(explanations_[ci])) valids_only.push_back(explanations_[ci]);
+				}
+				explanations_.swap(valids_only);
 				
 				// sort according to (in-order) net-charge, mass, probability
 				std::sort(explanations_.begin(), explanations_.end());
@@ -233,7 +242,7 @@ namespace OpenMS
 				//#if DEBUG_FD
 				for (size_t ci=0; ci < explanations_.size(); ++ci)
 				{
-						std::cout << explanations_[ci] << " ";
+				//		std::cout << explanations_[ci] << " ";
 				}
 				//#endif
 		}
@@ -290,7 +299,7 @@ namespace OpenMS
 	 protected:
     
 	  ///check if the generated compomer is valid jugded by its probability, charges etc
-		bool compomer_valid(const Compomer& cmp)
+		bool compomerValid_(const Compomer& cmp)
 		{
 				// probability ok?
 				if (cmp.getLogP() < thresh_p_) return false;
@@ -317,7 +326,7 @@ namespace OpenMS
 			ef -= ("H" + String(charge)); // substracts x hydrogen
 			ef.setCharge(charge); // adds x protons
 			
-			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(0.7));
+			Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p));
 			
 			return a;
 		}

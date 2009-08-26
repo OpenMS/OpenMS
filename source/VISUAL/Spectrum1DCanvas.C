@@ -418,6 +418,35 @@ namespace OpenMS
 			selected_peak_ = findPeakAtPosition_(p);
 			update_(__PRETTY_FUNCTION__);
 		}
+		
+		//show coordinates
+		if (selected_peak_.isValid())
+		{
+				String status;
+				const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+				for (Size m=0; m<s.getFloatDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
+					{
+						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
+					}
+				}
+				for (Size m=0; m<s.getIntegerDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getIntegerDataArrays()[m].size())
+					{
+						status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][selected_peak_.peak] + " ";
+					}
+				}
+				for (Size m=0; m<s.getStringDataArrays().size();++m)
+				{
+					if (selected_peak_.peak < s.getStringDataArrays()[m].size())
+					{
+						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
+					}
+				}
+				emit sendStatusMessage(status, 0);
+		}
 	}
 
 	
@@ -1014,7 +1043,7 @@ namespace OpenMS
 		{
 			layers_.resize(getLayerCount()-1);
 			if (current_layer_!=0) current_layer_ = current_layer_-1;
-			QMessageBox::critical(this,"Error","Cannot add an empty dataset. Aborting!");
+			QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
 			return false;
 		}
 		

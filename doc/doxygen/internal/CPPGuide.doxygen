@@ -83,7 +83,7 @@ for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
 
 Using GCC a lot of common math functions are available (e.g. trunc(), round(), log2(), isnan() or isinf() etc). However, this is <b>not</b> required by the C++Standard,
 so Microsoft decided not to include them. You will break the windows port of %OpenMS if you use them!<br>
-You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (#include cmath).
+You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (@verbatim #include cmath @endverbatim).
 If you are not sure whats available try http://www.cplusplus.com/ or for VisualStudio specific problems: MSDN (http://msdn.microsoft.com/en-us/visualc/default.aspx).<br>
 
 <H3>round()</H3>
@@ -155,9 +155,10 @@ class OPENMS_DLLAPI Myclass
 
 It is enough to prefix the class with the macro (do not prefix the members or member functions).
 
-OPENMS_DLLAPI is also required for structs, global variables and global functions, as long as they are not templates.<br>
+OPENMS_DLLAPI is also required for structs, global (including 'extern') variables and global functions, as long as they are not templates.<br>
 Never prefix templates with OPENMS_DLLAPI!<br>
 The only exeption to this rule is when a template is fully specialized (i.e. it can be instantiated).
+Additionally you need to prefix nested public structs/classes with OPENMS_DLLAPI, otherwise you cannot use them from outside the library.
 
 A prominent global function is "operator <<", which is overloaded quite often for %OpenMS classes.
 Unless it is templatized, prefix it with OPENMS_DLLAPI. If the operator is declared a friend of some class, also make sure the

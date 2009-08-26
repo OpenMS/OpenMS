@@ -283,8 +283,8 @@
 	########################### MAINTAINERS ################################
 	
 	$files=array();
-	exec("cd $src_path && find include/OpenMS/ -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-	exec("cd $src_path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+	exec("cd $src_path && find include/OpenMS -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
+	exec("cd $src_path && find source -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 	
 	//look up Maintainer in first 40 lines of files
 	
@@ -482,7 +482,7 @@
 							$right_guard = includeToGuard(suffix($f,strlen($guard)));
 							if ($right_guard!=$guard OR !beginsWith($guard,"OPENMS_"))
 							{
-								realOutput("Wrong header guard '$guard' in '$f'",$user,$f);
+								realOutput("Wrong header guard '$guard' in '$f' should be '$right_guard'",$user,$f);
 							}					
 							break;
 						}
@@ -549,6 +549,7 @@
 				"/FORMAT/HANDLERS/",
 				"/VISUAL/",
 				"/CONCEPT/Types.h",
+				"/FORMAT/FileTypes.h",
 				"/CONCEPT/Macros.h",
 				"/CONCEPT/Exception.h",
 				"/CONCEPT/Benchmark.h",
@@ -556,6 +557,7 @@
 				"CONCEPT/ProgressLogger.h",
 				"/config.h",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+				"include/OpenMS/APPLICATIONS/TOPPASBase.h",
 				"include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
 				"_registerChildren.h",
 				"DataReducer.h",

@@ -25,8 +25,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYIS_DENOVO_DECOMPOSITION_H
-#define OPENMS_ANALYIS_DENOVO_DECOMPOSITION_H
+#ifndef OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITION_H
+#define OPENMS_ANALYSIS_DENOVO_MASSDECOMPOSITION_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -56,21 +56,26 @@ namespace OpenMS
 			MassDecomposition(const String& deco);
 			//@}
 
-			/** @name Operators
+			/** @name Operators and accessors
 			*/
 			//@{
 			/// assignment operator
 			MassDecomposition& operator = (const MassDecomposition& rhs);
 
+			/// adds the mass decomposition d to this object
 			MassDecomposition& operator += (const MassDecomposition& d);
 
+			/// returns the decomposition as a string
 			String toString() const;
 
+			/// returns the decomposition as a string; instead of frequencies the amino acids are repeated
 			String toExpandedString() const;
 			
+			/// adds this decomposition and the decomposition given and returns a new composition
 			MassDecomposition operator + (const MassDecomposition& rhs) const;
 			
-			UInt getNumberOfMaxAA() const;
+			/// returns the max frequency of this composition
+			Size getNumberOfMaxAA() const;
 			//@}
 
 			/** @name Predicates
@@ -91,15 +96,9 @@ namespace OpenMS
 
 		protected:
 
-			Map<char, UInt> decomp;
+			Map<char, Size> decomp_;
 			
-			UInt number_of;
-			
-			UInt number_of_max_aa;
-
-			UInt min_number;
-			
-			UInt max_number;
+			Size number_of_max_aa_;
 
 	};
 

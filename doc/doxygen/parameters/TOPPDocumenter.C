@@ -38,6 +38,8 @@ int main (int , char** )
 {	
 	//TOPP tools
 	map<String,StringList> topp_tools = TOPPBase::getToolList();
+	topp_tools["TOPPView"] = StringList();
+	topp_tools["TOPPAS"] = StringList();
 	for (map<String,StringList>::const_iterator it=topp_tools.begin(); it!=topp_tools.end(); ++it)
 	{
 		//start process
@@ -51,7 +53,7 @@ int main (int , char** )
 	}
 	
 	//UTILS
-	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation");
+	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,PeptideIndexer,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder");
 	for (Size i=0; i<utils_tools.size(); ++i)
 	{
 		//start process
@@ -66,3 +68,4 @@ int main (int , char** )
 	
   return 0;
 }
+

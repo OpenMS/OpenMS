@@ -49,8 +49,6 @@ namespace OpenMS
 		
 		@todo Use spectrum StringDataArray with name 'label' for peak annotations (Hiwi, Johannes)
 		
-		@todo Show FloatDataArray and StringDataArray entries of selected peak in status bar (Hiwi, Johannes)
-		
 		@htmlinclude OpenMS_Spectrum1DCanvas.parameters
 				
 		@ingroup SpectrumWidgets

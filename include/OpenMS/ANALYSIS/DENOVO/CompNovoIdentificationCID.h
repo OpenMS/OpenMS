@@ -30,7 +30,7 @@
 #define OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONCID_H
 
 // OpenMS includes
-#include "CompNovoIdentificationBase.h"
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
 
 // stl includes
 #include <vector>
@@ -40,8 +40,8 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIdentificationCID
 
-		@ref CompNovoIdentificationCID_Parameters are explained on a separate page.
-		
+		@htmlinclude OpenMS_CompNovoIdentificationCID.parameters	
+	
 		@ingroup Analysis_ID
 	*/
 	class OPENMS_DLLAPI CompNovoIdentificationCID : public CompNovoIdentificationBase
@@ -83,7 +83,7 @@ namespace OpenMS
 		protected:
 
 			/// call the DAC algorithm for the subspectrum defined via left and right peaks and fill the set with candidates sequences
-			void getDecompositionsDAC_(std::set<String>& sequences, UInt left, UInt right, DoubleReal peptide_weight, const PeakSpectrum& CID_orig_spec, Map<DoubleReal, IonScore>& CID_nodes);
+			void getDecompositionsDAC_(std::set<String>& sequences, Size left, Size right, DoubleReal peptide_weight, const PeakSpectrum& CID_orig_spec, Map<DoubleReal, IonScore>& CID_nodes);
 
 			/// reduces the given number of permuts by scoring the perumtations to the CID and ETD spec
 			void reducePermuts_(std::set<String>& permuts, const PeakSpectrum& CID_orig_spec, DoubleReal prefix, DoubleReal suffix);

@@ -22,10 +22,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+
+#include <boost/math/special_functions/erf.hpp>
 
 #include <cmath>
 
@@ -43,6 +45,7 @@ namespace OpenMS
 		defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
     defaults_.setValidStrings("use_linear_factor", StringList::create("true,false"));
 		defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
+    defaults_.setValidStrings("use_gaussian_factor", StringList::create("true,false"));
 		defaultsToParam_();
   }
 
@@ -212,8 +215,9 @@ namespace OpenMS
 
     if (is_gaussian)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-      // to be implemented
+			static const DoubleReal denominator = mz_tolerance * 3.0 * sqrt(2.0);
+			factor = boost::math::erfc(mz_difference / denominator);
+			//cerr << "Factor: " << factor << " " << mz_tolerance << " " << mz_difference << endl;
     }
     else
     {

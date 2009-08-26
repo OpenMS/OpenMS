@@ -724,7 +724,7 @@ namespace OpenMS
 						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 						 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 						{
-							peak.setPosition(data[n]);
+							peak.setMZ(data[n]);
 							peak.setIntensity(data[n+1]);
 							exp_->back().push_back(peak);
 						}
@@ -749,7 +749,7 @@ namespace OpenMS
 						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 						 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 						{
-							peak.setPosition(data[n]);
+							peak.setMZ(data[n]);
 							peak.setIntensity(data[n+1]);
 							exp_->back().push_back(peak);
 						}
@@ -1143,7 +1143,7 @@ namespace OpenMS
 						tmp.push_back(spec[i].getIntensity());
 					}
 					
-					std::string encoded;
+					String encoded;
 					decoder_.encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
 					os << encoded << "</peaks>\n";
 				}

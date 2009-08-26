@@ -219,7 +219,15 @@ svn propset svn:eol-style native MyClass.C
 				This is a bug in Visual Studio and there is a bugfix:
 				<a href="http://code.msdn.microsoft.com/KB946040" target="_blank">http://code.msdn.microsoft.com/KB946040</a><br>
 				Only apply it if you encounter the error. The bugfix might have unwanted side effects!
-
+			<LI><b>[Eclipse CDT] The indexer gets stuck at some file which \#includes seqan</b><br>
+				It seems that SeqAn code is just too confusing for older eclipse C++ indexers.
+				You should upgrade to eclipse galileo (CDT 6.0.x).
+				Also, increase the available memory limit in eclipse.ini, e.g. -Xmx1000m for one gig.
+			<LI><b>[Eclipse CDT] The parser is confused after OPENMS_DLLAPI and does not recognize standard C++ headers</b><br>
+				Go to Project -> Properties -> C/C++ Include Paths and Preprocessor Symbols -> Add Preprocessor symbol -> "OPENMMS_DLL=".
+			 	This tells eclipse that the macro is defined empty.<br>
+				In the same dialog you can also add an external include path to e.g. /usr/include/c++/4.3.3/, etc.
+				[Hints to resolve these issues using the cmake generator are welcome!]
 		</UL>
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
@@ -374,11 +382,11 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>What are the important files for adding a new tutorial section?</b><BR>
 		    %OpenMS tutorial:
-		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex
+		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex.in
 		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen
 
 				TOPP and TOPPView tutorial:
-		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
+		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex.in
 		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen
 
 		</UL>
@@ -438,26 +446,21 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Create the binary/source release packages (see below)
 					<LI> Update the SourceForge files section:
 						<OL>
-							<LI> Upload to sourceforge, here with sftp (see http://alexandria.wiki.sourceforge.net/File+Release+System+-+Offering+Files+for+Download#howtoupload)
-							<UL>
-								<LI> <em>sftp &lt;login&gt;@@frs.sourceforge.net</em>
-								<LI> <em>cd uploads</em>
-								<LI> <em>put &lt;file&gt;</em>
-							</UL>
-							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
-							<LI> Go to @a File @a Releases
-							<LI> Now you can add the release packages
+							<LI> Login in the @a Admin section and create a folder for the new release
+							<LI> Upload to sourceforge, e.g. with
+							  <BR><TT>scp &lt;file&gt; &lt;login&gt;,fooproject@frs.sourceforge.net:/home/frs/project/o/op/openms/OpenMS/OpenMS-&lt;version&gt;/</TT>
 						</OL>
-					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
+					<LI> Copy the HTML documentation and PDF tutorials of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
-					<LI> Update the website (news, changelog, XML schema files, tutorials)
+					<LI> Update the website (news, changelog, XML schema files)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
 				<LI><B>How is the platform-independent source release package created?</B>
 					<OL>
 						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and %OpenMS.
-						<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
+						<LI> Update version number of TOPPView and TOPPAS splash screen <TT>source/VISUAL/ICONS/</TT>.@n
+						     The PhotoShop files can be found in the @em images SVN module.
 						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_OPENMS_PACKAGE_VERSION variable)
 						<LI> Run cmake
 						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'EXAMPLES_exec')
@@ -544,11 +547,12 @@ svn propset svn:eol-style native MyClass.C
 						<LI> first, you need some graphics program (The GIMP is recommended)
 						<LI> think of a motive and remind yourself that you have limited space.
 					       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a>
-					       gives some usefull hints.
-						<LI> create at least a 16x16, 32x32 and 48x48 pixel version and save each of them in a seperate layer of the respective size.
+					       gives some useful hints.
+						<LI> create at least a 16x16, 32x32, 48x48 and 64x64 pixel version and save each of them in a separate layer of the respective size.
 						<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
-						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 9 layers.
-						<LI> now save the image as <i>&lt;binaryname&gt;.ico</i> (e.g. TOPPView.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth.
+						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 12 layers.
+						<LI> now save the image as <i>&lt;binaryname&gt;.ico</i> (e.g. TOPPView.ico) file, giving each group of equal sized layers a 32bit (8bit transparency), 8bit (1bit transparency), 4bit (1bit transparency) color depth.
+								<br>Attention: make sure to assign the higher color depth to the upper layers as Windows will not pick the highest possible color otherwise.
 					</OL>
 				<LI> Create a resource file:
 					<OL>
@@ -558,7 +562,7 @@ svn propset svn:eol-style native MyClass.C
 								 , replacing TOPPView with your binary name.
 					</OL>
 				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present).
-				<LI> Try to re-link your TOPP tool.
+				<LI> Re-run cmake and re-link your TOPP tool.
 				<LI> Voila. You should have an iconized TOPP tool.
 			</OL>
 

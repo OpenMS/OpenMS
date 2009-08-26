@@ -17,7 +17,9 @@
 	 - Qt4 (version 4.3 or higher; development package containing qmake and headers)
    - GNU make is required
 	 - patch
-	 - autoconf
+	 - autoconf (at least version 2.60)
+	 - automake (at least version 1.9)
+	 - libtool (libtoolize or glibtoolize)
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
@@ -30,7 +32,7 @@
   	<tr>
   		<td><B>Fedora 10</B></td>
   		<td><B>OpenSuse 11.1</B></td>
-  		<td><B>Ubuntu 8.10</B></td>
+  		<td><B>Ubuntu 8.10 or 9.4</B></td>
   	</tr>
   	<tr>
   		<td valign="top">
@@ -51,6 +53,7 @@
   			@n autoconf
   			@n qt4-dev-tools
   			@n patch
+				@n libtool
   		</td>
   	</tr>
   </table>
@@ -175,8 +178,11 @@
   &gt; make test
   </pre>
   
-  @note To test the DB connectivity, copy the file '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt' to 'DB_credentials.txt' and fill in your DB access details. As long as the 'DB_credentials.txt' file remains there, the DB will be tested with any subsequent call of 'make test'. In order to successfully test DB connectivity, the database must exist and the the given user must have write access to the database.
-
-  @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'. In order to successfully test the tools, the database must exist and the the given user must have write access to the database.
-
+  @note To enable DB connectivity tests, use the following CMake parameters:
+  - DB_TEST
+  - DB_TEST_HOST
+  - DB_TEST_PORT
+  - DB_TEST_DB
+  - DB_TEST_USER
+  - DB_TEST_PW
 */

@@ -68,7 +68,7 @@ namespace OpenMS {
 
     std::cout << "############## END DEBUG -- FEATURE MAP ##############" << std::endl;
 #else
-		if (feature_map.size()==0) std::cout << "dummy line";
+		if (feature_map.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -117,7 +117,7 @@ namespace OpenMS {
         3. Predict retention times
         4. predict detectibility
         5. simulate ionization
-        6. simulate the (lc)ms signal -> TODO: integrate parameter for signal in lc direction
+        6. simulate the ms signal
         7. select features for MS2
         8. generate MS2 signals for selected features
      */
@@ -214,7 +214,7 @@ namespace OpenMS {
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
     defaults_.insert("PostTranslationalModifications:",PTMSimulation(NULL).getDefaults());
     defaults_.insert("RTSimulation:",RTSimulation(NULL).getDefaults());
-    defaults_.insert("PeptideDetectibilitySimulation:",DetectabilitySimulation().getDefaults());
+    defaults_.insert("PeptideDetectabilitySimulation:",DetectabilitySimulation().getDefaults());
     defaults_.insert("Ionization:",IonizationSimulation(NULL).getDefaults());
     defaults_.insert("RawSignal:",RawMSSignalSimulation(NULL).getDefaults());
 		defaults_.insert("RawTandemSignal:",RawTandemMSSignalSimulation(NULL).getDefaults());

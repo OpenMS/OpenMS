@@ -35,7 +35,9 @@ namespace OpenMS
   namespace Internal
   {
 		MzMLValidator::MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
-			: SemanticValidator(mapping, cv)
+			: SemanticValidator(mapping, cv),
+				binary_data_array_(),
+				binary_data_type_()
 		{
 			setCheckUnits(true);
 		}
@@ -47,6 +49,7 @@ namespace OpenMS
 		//This method needed to be reimplemented to
 		// - check CV term values
 		// - handle referenceableParamGroups
+		// - check if binaryDataArray name and type match
 	  void MzMLValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	  {
 	    String tag = sm_.convert(qname);
@@ -66,6 +69,11 @@ namespace OpenMS
 				{
 					handleTerm_(path, terms[i]);
 				}
+	  	}
+	  	else if (tag=="binaryDataArray")
+	    {
+				binary_data_array_ = "";
+				binary_data_type_ = "";
 	  	}
 	    else if (tag==cv_tag_)
 	    {
@@ -114,12 +122,37 @@ namespace OpenMS
 			return path;
 		}
 		
-		//reimplemented to catch non-PSI CVs
+		//reimplemented to 
+		// - catch non-PSI CVs
+		// - check if binaryDataArray name and type match
 		void MzMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
 		{
-			//some CVs cannot be validates because they use 'part_of' which spoils the inheritance
+			//some CVs cannot be validated because they use 'part_of' which spoils the inheritance
 			if (parsed_term.accession.hasPrefix("GO:")) return;
 			if (parsed_term.accession.hasPrefix("BTO:")) return;
+			
+			//check binary data array terms
+			if (path.hasSuffix("/binaryDataArray/cvParam/@accession"))
+			{
+				//binary data array
+				if (cv_.isChildOf(parsed_term.accession,"MS:1000513"))
+				{
+					binary_data_array_ = parsed_term.accession;
+				}
+				//binary data type
+				if (cv_.isChildOf(parsed_term.accession,"MS:1000518"))
+				{
+					binary_data_type_ = parsed_term.accession;
+				}
+				//if both are parsed, check if they match
+				if (binary_data_type_!="" && binary_data_array_!="")
+				{
+					if (!cv_.getTerm(binary_data_array_).xref_binary.contains(binary_data_type_))
+					{
+						errors_.push_back(String("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
+					}
+				}
+			}
 			
 			SemanticValidator::handleTerm_(path,parsed_term);
 		}

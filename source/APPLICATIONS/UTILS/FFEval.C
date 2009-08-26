@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FFEval FFEval
+	@page UTILS_FFEval FFEval
 	
 	@brief Evaluation tool for for feature detection algorithms.
 		

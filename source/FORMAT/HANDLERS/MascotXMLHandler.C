@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
@@ -176,7 +176,21 @@ namespace OpenMS
 			String title = ((String) sm_.convert(chars)).trim();
 			if(title.hasSubstring("_")) 
 			{
-				id_data_[peptide_identification_index_].setMetaValue("RT", (title.suffix('_').toDouble()));
+				DoubleReal rt(0), mz(0);
+				try 
+				{
+					rt = title.suffix('_').toDouble();
+					mz = title.prefix('_').toDouble();
+				}
+				catch (Exception::BaseException& /*e*/)
+				{
+				}
+			
+				id_data_[peptide_identification_index_].setMetaValue("RT", rt);
+				if (mz != 0)
+				{
+					id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
+				}
 			}
 		}
 		else if (tag_ == "pep_exp_z")

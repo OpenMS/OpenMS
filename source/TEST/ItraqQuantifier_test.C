@@ -81,6 +81,35 @@ START_SECTION((ItraqQuantifier(Int itraq_type, const Param &param)))
 }
 END_SECTION
 
+
+START_SECTION((ItraqQuantifier(const ItraqQuantifier &cp)))
+{
+	Param p;
+	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
+  ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
+
+	ItraqQuantifier iq_cp(iq);
+	
+	TEST_EQUAL(iq_cp.getParameters(), iq.getParameters());
+
+}
+END_SECTION
+
+START_SECTION((ItraqQuantifier& operator=(const ItraqQuantifier &rhs)))
+{
+	Param p;
+	p.setValue("isotope_correction_values", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
+  ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
+
+	ItraqQuantifier iq_cp;
+	iq_cp = iq;
+	
+	TEST_EQUAL(iq_cp.getParameters(), iq.getParameters());
+
+}
+END_SECTION
+
+
 START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
 {
   ConsensusXMLFile cm_file;
@@ -102,8 +131,6 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 	
-	// TOLERANCE_ABSOLUTE(was: 0.01); // TODO   I want to see if default tolerances are good enough.  If these fail, you are welcome to uncomment this.  (Clemens)
-	// TOLERANCE_RELATIVE(your choice ????);  TODO ????
 	WHITELIST("<?xml-stylesheet");
 	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 }

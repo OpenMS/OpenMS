@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+Attention:
+This file is used by cmake to create 'DBImporter.ini'.
+Please use the CMake parameter 'DB_TEST' to enable the database tests.
+The CMake parameters 'DB_TEST_HOST', 'DB_TEST_PORT', 'DB_TEST_DB', 'DB_TEST_USER' and 'DB_TEST_PW' are used to set the credentials.
+-->
+
+<PARAMETERS>
+  <NODE name="DBImporter" >
+    <NODE name="1" >
+      <ITEM name="host" value="@DB_TEST_HOST@" type="string" />
+      <ITEM name="port" value="@DB_TEST_PORT@" type="int" />
+      <ITEM name="db" value="@DB_TEST_DB@" type="string" />
+      <ITEM name="user" value="@DB_TEST_USER@" type="string" />
+      <ITEM name="password" value="@DB_TEST_PW@" type="string" />
+    </NODE>
+  </NODE>
+</PARAMETERS>

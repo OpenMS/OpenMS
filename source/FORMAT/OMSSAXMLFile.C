@@ -169,7 +169,7 @@ namespace OpenMS
 			{
 				if (mods_map_[actual_mod_type_.toInt()].size() > 1)
 				{
-					warning(STORE, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
+					warning(LOAD, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
 				}
 				AASequence pep = actual_peptide_hit_.getSequence();
 				pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullName());
@@ -177,7 +177,7 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(STORE, String("Cannot find PSI-MOD mapping for mod -  ingoring '") + actual_mod_type_ + "'");
+				warning(LOAD, String("Cannot find PSI-MOD mapping for mod -  ingoring '") + actual_mod_type_ + "'");
 			}
 		}
 		

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -145,6 +145,8 @@ START_SECTION(bool operator == (const Element& element) const)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e == *e_ptr, false)
 END_SECTION
+
+delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

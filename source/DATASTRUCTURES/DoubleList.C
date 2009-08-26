@@ -123,12 +123,12 @@ namespace OpenMS
 		os << "[";
 		if (p.size()>0)
 		{
-			os << p[0];
+			os << precisionWrapper(p[0]);
 		}
 		
 		for (Size i=1; i<p.size(); ++i)
 		{
-			os << ", " << p[i];
+			os << ", " << precisionWrapper(p[i]);
 		}
 		os << "]";
 		return os;

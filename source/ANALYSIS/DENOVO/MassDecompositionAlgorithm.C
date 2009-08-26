@@ -43,8 +43,8 @@ namespace OpenMS
 	{
 		defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!");
 		defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
-		defaults_.setValue("fixed_modifications", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("variable_modifications", "MOD:00719,MOD:01329", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
+		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
 		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
 		set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
 		vector<String> valid_strings;
@@ -87,17 +87,19 @@ namespace OpenMS
 
 	void MassDecompositionAlgorithm::updateMembers_()
 	{
+		// todo add accessor to tolerance, it is called very often in CID mode
+
     Map<char, DoubleReal> aa_to_weight;
 
 		set<const Residue*> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
 
 		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
-			aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight();
+			aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
 		}
 
 		// now handle the modifications
-		ModificationDefinitionsSet mod_set((String)param_.getValue("fixed_modifications"), (String)param_.getValue("variable_modifications"));
+		ModificationDefinitionsSet mod_set((StringList)param_.getValue("fixed_modifications"), (StringList)param_.getValue("variable_modifications"));
 		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
@@ -105,7 +107,7 @@ namespace OpenMS
       char aa=' ';
       if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
       {
-        cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
@@ -125,7 +127,7 @@ namespace OpenMS
         }
         else
         {
-          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+          cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
@@ -137,13 +139,14 @@ namespace OpenMS
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
       ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+			//cerr << it->getModification() << " " << mod.getOrigin() << " " << mod.getId() << " " << mod.getFullId() << " " << mod.getUniModAccession() << " " << mod.getPSIMODAccession() << endl;
       char aa = (*actual_mod_name)[0];
       char origin_aa = ' ';
       ++actual_mod_name;
 
       if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
       {
-        cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else

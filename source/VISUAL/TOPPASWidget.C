@@ -53,7 +53,6 @@ namespace OpenMS
 		setAcceptDrops(true);
 		setDragMode(QGraphicsView::ScrollHandDrag);
 		setFocusPolicy(Qt::StrongFocus);
-		scene_->setSceneRect(mapToScene(rect()).boundingRect());
 	}
 	
 	TOPPASWidget::~TOPPASWidget()
@@ -74,6 +73,9 @@ namespace OpenMS
 			factor = 1.0 / factor;
 		}
 		scale(factor, factor);
+		
+		QRectF items_rect = scene_->itemsBoundingRect();
+		scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
 	}
 
 	
@@ -123,14 +125,35 @@ namespace OpenMS
 	
 	void TOPPASWidget::leaveEvent(QEvent* /*e*/)
 	{
-		//release keyboard, when the mouse pointer leaves
-		releaseKeyboard();
+		
 	}
 
 	void TOPPASWidget::enterEvent(QEvent* /*e*/)
 	{
-		//grab keyboard, as we need to handle key presses
-		grabKeyboard();
+		setFocus();
+	}
+	
+	void TOPPASWidget::resizeEvent(QResizeEvent* event)
+	{
+		QGraphicsView::resizeEvent(event);
+		if (scene_)
+		{
+			QRectF items_rect = scene_->itemsBoundingRect();
+			scene_->setSceneRect(items_rect.united(mapToScene(rect()).boundingRect()));
+		}
+	}
+	
+	void TOPPASWidget::closeEvent(QCloseEvent* e)
+	{
+		bool close = scene_->saveIfChanged();
+		if (close)
+		{
+			e->accept();
+		}
+		else
+		{
+			e->ignore();
+		}
 	}
 
 } //Namespace

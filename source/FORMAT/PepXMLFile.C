@@ -49,8 +49,8 @@ namespace OpenMS
 			experiment_(0),
 			scan_map_(0),
 			current_hit_(0),
-			rt_tol_(0.5),
-  		mz_tol_(0.5)
+			rt_tol_(10.0),
+  		mz_tol_(10.0)
 	{
 	}
 
@@ -74,8 +74,8 @@ namespace OpenMS
   	// initialize, load could be called several times
   	experiment_ = 0;
   	exp_name_ = "";
-  	rt_tol_ = 0.5;
-  	mz_tol_ = 0.5;
+  	rt_tol_ = 10.0;
+  	mz_tol_ = 10.0;
 		// assume mass type "average" (in case element "search_summary" is missing)
 		const ElementDB* db = ElementDB::getInstance();
 		Element hydrogen = *db->getElement("Hydrogen");
@@ -104,14 +104,15 @@ namespace OpenMS
 			{
 				experiment_ = &experiment;
 				MSExperiment<>::AreaType area = experiment_->getDataRange();
-				// set tolerance to 1% of data range:
-				rt_tol_ = (area.maxX() - area.minX()) * 0.01;
-				mz_tol_ = (area.maxY() - area.minY()) * 0.01;
+				// set tolerance to 1% of data range (if above a sensible minimum):
+				rt_tol_ = max((area.maxX() - area.minX()) * 0.01, rt_tol_);
+				mz_tol_ = max((area.maxY() - area.minY()) * 0.01, mz_tol_);
 			}
 		}
 
   	peptides.clear();
   	peptides_ = &peptides;
+		protein = ProteinIdentification();
 		protein_ = &protein;
 
 		if (experiment_)
@@ -158,7 +159,13 @@ namespace OpenMS
 			hit.setAccession(*a_it);
 			protein_->insertHit(hit);
 		}
-    
+
+		if (peptides.empty())
+		{
+			warning(LOAD, "No data found for experiment name '" + experiment_name +
+							"'");
+		}
+		
     // reset members
 		actual_sequence_.clear();
 		actual_modifications_.clear();

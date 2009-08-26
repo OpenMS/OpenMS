@@ -39,7 +39,7 @@ namespace OpenMS
    The peptide detectability is predicted based on a support-vector machine. Alternativly
    the detectability can be set to a default value for all peptides if no model is given.
 
-   @htmlinclude OpenMS_DetectibilitySimulation.parameters
+   @htmlinclude OpenMS_DetectabilitySimulation.parameters
 
    @ingroup Simulation
   */
@@ -92,10 +92,10 @@ namespace OpenMS
 
   protected:
     /// Filter the feature map using a svm model
-    void svm_filter(FeatureMapSim &);
+    void svmFilter_(FeatureMapSim &);
 
-    /// Do not filter the feature map, just set the detectability to a default values
-    void no_filter(FeatureMapSim &);
+    /// Do not filter the feature map, just set the detectability to a default value
+    void noFilter_(FeatureMapSim &);
 
   };
 

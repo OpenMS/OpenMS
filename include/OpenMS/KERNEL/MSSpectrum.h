@@ -78,6 +78,13 @@ namespace OpenMS
 		  {
 		  };
 
+		  ///Float data array class
+			class OPENMS_DLLAPI IntegerDataArray
+		    : public MetaInfoDescription,
+		    	public std::vector<Int>
+		  {
+		  };
+
 			///Comparator for the retention time.
 			struct RTLess
 				: public std::binary_function <MSSpectrum, MSSpectrum, bool>
@@ -100,6 +107,8 @@ namespace OpenMS
 			typedef std::vector<FloatDataArray> FloatDataArrays;
 			/// String data array vector type
 			typedef std::vector<StringDataArray> StringDataArrays;
+			/// Integer data array vector type
+			typedef std::vector<IntegerDataArray> IntegerDataArrays;
 			//@}
 
 			///@name Peak container iterator type definitions
@@ -125,7 +134,8 @@ namespace OpenMS
 				ms_level_(1),
 				name_(),
 				float_data_arrays_(),
-				string_data_arrays_()
+				string_data_arrays_(),
+				integer_data_arrays_()
 			{
 			}
 			
@@ -139,7 +149,8 @@ namespace OpenMS
 				ms_level_(source.ms_level_),
 				name_(source.name_),
 				float_data_arrays_(source.float_data_arrays_),
-				string_data_arrays_(source.string_data_arrays_)
+				string_data_arrays_(source.string_data_arrays_),
+				integer_data_arrays_(source.integer_data_arrays_)
 			{
 			}
 	    
@@ -163,6 +174,7 @@ namespace OpenMS
 				name_ = source.name_;
 				float_data_arrays_ = source.float_data_arrays_;
 				string_data_arrays_ = source.string_data_arrays_;
+				integer_data_arrays_ = source.integer_data_arrays_;
 				
 				return *this;
 			}
@@ -179,7 +191,8 @@ namespace OpenMS
 					retention_time_ == rhs.retention_time_ &&
 					ms_level_ == rhs.ms_level_ &&
 					float_data_arrays_ == rhs.float_data_arrays_ &&
-					string_data_arrays_ == rhs.string_data_arrays_
+					string_data_arrays_ == rhs.string_data_arrays_ &&
+					integer_data_arrays_ == rhs.integer_data_arrays_
 					;
 					//name_ can differ => it is not checked
 			}
@@ -244,7 +257,7 @@ namespace OpenMS
 			  These statements should help you chose which approach to use
 			  - Access to meta info arrays is slower than to a member variable
 			  - Access to meta info arrays is faster than to a %MetaInfoInterface
-			  - Meta info arrays are stored when using mzData or mzML format for storing
+			  - Meta info arrays are stored when using mzML format for storing
 			*/
 			//@{
 			/// Returns a const reference to the float meta data arrays
@@ -267,6 +280,16 @@ namespace OpenMS
 			{
 				return string_data_arrays_;
 			}
+			/// Returns a const reference to the integer meta data arrays
+			inline const IntegerDataArrays& getIntegerDataArrays() const
+			{
+				return integer_data_arrays_;
+			}
+			/// Returns a mutable reference to the integer meta data arrays
+			inline IntegerDataArrays& getIntegerDataArrays()
+			{
+				return integer_data_arrays_;
+			}
 			//@}
 
 			///@name Sorting peaks
@@ -278,7 +301,7 @@ namespace OpenMS
 			*/
 			void sortByIntensity(bool reverse=false)
 			{
-				if(float_data_arrays_.size() == 0 && string_data_arrays_.size())
+				if(float_data_arrays_.size() == 0 && string_data_arrays_.size() && integer_data_arrays_.size())
 				{
 					if (reverse)
 					{
@@ -335,6 +358,16 @@ namespace OpenMS
 						}
 						string_data_arrays_[i].swap(mda_tmp);
 					}
+
+					for (Size i=0; i < integer_data_arrays_.size(); ++i)
+					{
+						std::vector<Int> mda_tmp;
+						for (Size j=0; j < integer_data_arrays_[i].size(); ++j)
+						{
+							mda_tmp.push_back(*(integer_data_arrays_[i].begin()+(sorted_indices[j].second)));
+						}
+						integer_data_arrays_[i].swap(mda_tmp);
+					}
 				}
 			}
 			/**
@@ -386,7 +419,16 @@ namespace OpenMS
 						}
 						std::swap(string_data_arrays_[i],mda_tmp);
 					}
-					
+
+					for (Size i=0; i < integer_data_arrays_.size(); ++i)
+					{
+						std::vector<Int> mda_tmp;
+						for (Size j=0; j < integer_data_arrays_[i].size(); ++j)
+						{
+							mda_tmp.push_back(*(integer_data_arrays_[i].begin()+(sorted_indices[j].second)));
+						}
+						std::swap(integer_data_arrays_[i],mda_tmp);
+					}					
 				}
 			}
 			///Checks if all peaks are sorted with respect to ascending m/z
@@ -547,6 +589,9 @@ namespace OpenMS
 
 			///String data arrays
 			StringDataArrays string_data_arrays_;
+			
+			///Intager data arrays
+			IntegerDataArrays integer_data_arrays_;
 	};
 
 	///Print the contents to a stream.

@@ -42,9 +42,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IdXMLEvaluation IdXMLEvaluation
+	@page UTILS_IdXMLEvaluation IdXMLEvaluation
 	
-	@brief This application is used to evaluate tps, tns, fps, and fns for an IdXML file with predicted RTs
+	@brief Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
 	
 	The method needs an IdXML file with IDs and predicted RTs. The second input file is a file containing
 	the protein sequences which are considered as positive hits. This tool then evaluates the tps, fps, tns, 
@@ -64,7 +64,7 @@ class TOPPIdXMLEvaluation
 {
 	public:
 		TOPPIdXMLEvaluation()
-			: TOPPBase("IdXMLEvaluation","can be used to evaluate tps, tns, fps, and fns for an IdXML file with predicted RTs",false)
+			: TOPPBase("IdXMLEvaluation","Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.",false)
 		{
 			
 		}

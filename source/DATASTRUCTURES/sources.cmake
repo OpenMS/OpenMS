@@ -32,6 +32,10 @@ SuffixArrayPeptideFinder.C
 SuffixArraySeqan.C
 SuffixArrayTrypticCompressed.C
 SuffixArrayTrypticSeqan.C
+CVMappingTerm.C
+CVMappingRule.C
+CVReference.C
+CVMappings.C
 )
 
 ### add path to the filenames

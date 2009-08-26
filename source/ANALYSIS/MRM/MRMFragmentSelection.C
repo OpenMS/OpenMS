@@ -64,7 +64,7 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
-			// TODO
+			DefaultParamHandler::operator = (rhs);
 		}
 		return *this;
 	}
@@ -73,15 +73,15 @@ namespace OpenMS
 	{
     Size num_top_peaks = (UInt)param_.getValue("num_top_peaks");
 		bool consider_names(param_.getValue("consider_names").toBool());
-    double min_pos_precursor_percentage = (double)param_.getValue("min_pos_precursor_percentage") / 100.0;
-		double min_mz = (double)param_.getValue("min_mz");
-		double max_mz = (double)param_.getValue("max_mz");
+    DoubleReal min_pos_precursor_percentage = (DoubleReal)param_.getValue("min_pos_precursor_percentage") / 100.0;
+		DoubleReal min_mz = (DoubleReal)param_.getValue("min_mz");
+		DoubleReal max_mz = (DoubleReal)param_.getValue("max_mz");
 		if (spec.getPrecursors().size() == 0)
 		{
-			cerr << "No Precursor peaks defined! Bailing out..." << endl;
-			exit(1);
+			cerr << "MRMFragmentSelection: No Precursor peaks defined! Bailing out..." << endl;
+			return;
 		}
-		double precursor_pos =  spec.getPrecursors().begin()->getMZ();
+		DoubleReal precursor_pos =  spec.getPrecursors().begin()->getMZ();
     RichPeakSpectrum spec_copy = spec;
     spec_copy.sortByIntensity(true);
 
@@ -98,7 +98,6 @@ namespace OpenMS
          (!consider_names || peakselectionIsAllowed_(spec_copy[i])))
       {
         selected_peaks.push_back(spec_copy[i]);
-        cerr << " " << name << " " << spec_copy[i].getMZ() << " " << spec_copy[i].getIntensity() << ", ";
       }
     }
 
@@ -114,7 +113,6 @@ namespace OpenMS
 		{
 			name = peak.getMetaValue("IonName");
 		}
-
 		
 		if (name != "")
 		{
@@ -167,9 +165,6 @@ namespace OpenMS
 		return true;
 	}
 
-  void MRMFragmentSelection::updateMembers_()
-	{
-	}
 }
 
 

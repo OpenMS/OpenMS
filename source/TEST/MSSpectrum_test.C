@@ -132,6 +132,17 @@ START_SECTION((StringDataArrays& getStringDataArrays()))
   TEST_EQUAL(s.getStringDataArrays().size(),2)
 END_SECTION
 
+START_SECTION((const IntegerDataArrays& getIntegerDataArrays() const))
+	MSSpectrum<> s;
+  TEST_EQUAL(s.getIntegerDataArrays().size(),0)
+END_SECTION
+
+START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
+  MSSpectrum<> s;
+  s.getIntegerDataArrays().resize(2);
+  TEST_EQUAL(s.getIntegerDataArrays().size(),2)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // RangeManager
 
@@ -254,6 +265,10 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 	edit.getStringDataArrays().resize(5);
 	TEST_EQUAL(empty==edit, false);
 
+	edit = empty;
+	edit.getIntegerDataArrays().resize(5);
+	TEST_EQUAL(empty==edit, false);
+
 	//name is not checked => no change
 	edit = empty;
 	edit.setName("bla");
@@ -296,6 +311,10 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
+	edit.getIntegerDataArrays().resize(5);
+	TEST_EQUAL(edit!=empty,true);
+
+	edit = empty;
 	edit.getStringDataArrays().resize(5);
 	TEST_EQUAL(edit!=empty,true);
 
@@ -323,17 +342,19 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	Peak1D p;
 	MSSpectrum<>::FloatDataArray float_array;
 	MSSpectrum<>::StringDataArray string_array;
+	MSSpectrum<>::IntegerDataArray int_array;
 	std::vector<DoubleReal> mzs, intensities;
-	intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); 
-	intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); 
-	intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(423.269f); string_array.push_back("423.27"); 
-	intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(415.287f); string_array.push_back("415.29"); 
-	intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(413.800f); string_array.push_back("413.80"); 
-	intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(419.113f); string_array.push_back("419.11"); 
-	intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(416.293f); string_array.push_back("416.29"); 
-	intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(418.232f); string_array.push_back("418.23"); 
-	intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(414.301f); string_array.push_back("414.30"); 
-	intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(412.321f); string_array.push_back("412.32"); 
+	MSSpectrum<>::IntegerDataArray in_array;
+	intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); int_array.push_back(420);
+	intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); int_array.push_back(412);
+	intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(423.269f); string_array.push_back("423.27"); int_array.push_back(423);
+	intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(415.287f); string_array.push_back("415.29"); int_array.push_back(415);
+	intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(413.800f); string_array.push_back("413.80"); int_array.push_back(413);
+	intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(419.113f); string_array.push_back("419.11"); int_array.push_back(419);
+	intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(416.293f); string_array.push_back("416.29"); int_array.push_back(416);
+	intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(418.232f); string_array.push_back("418.23"); int_array.push_back(418);
+	intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(414.301f); string_array.push_back("414.30"); int_array.push_back(414);
+	intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(412.321f); string_array.push_back("412.32"); int_array.push_back(412);
 
 	for (Size i = 0; i < mzs.size(); ++i)
 	{
@@ -371,6 +392,9 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	ds.getStringDataArrays()[0].setName("s1");
 	ds.getStringDataArrays()[1].setName("s2");
 
+	ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(1, int_array);
+	ds.getIntegerDataArrays()[0].setName("i1");
+
 	ds.sortByIntensity();
 
 	TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
@@ -380,21 +404,26 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
 	TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
 
+	TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
+	
 	MSSpectrum<>::iterator it1 = ds.begin();
 	MSSpectrum<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
 	MSSpectrum<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+	MSSpectrum<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
 	TOLERANCE_ABSOLUTE(0.0001)
 	for(std::vector<DoubleReal>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
 	{
-		if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
+		if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end() && it4 != ds.getIntegerDataArrays()[0].end())
 		{
 			//metadataarray values == mz values
 			TEST_REAL_SIMILAR(it1->getIntensity(), *it);
 			TEST_REAL_SIMILAR(*it2 , it1->getMZ());
 			TEST_STRING_EQUAL(*it3 , String::number(it1->getMZ(),2));
+			TEST_EQUAL(*it4 , (Int)floor(it1->getMZ()));
 			++it1;
 			++it2;
 			++it3;
+			++it4;
 		}
 		else
 		{
@@ -408,17 +437,18 @@ START_SECTION((void sortByPosition()))
 	Peak1D p;
 	MSSpectrum<>::FloatDataArray float_array;
 	MSSpectrum<>::StringDataArray string_array;
+	MSSpectrum<>::IntegerDataArray int_array;
 	std::vector<DoubleReal> mzs, intensities;
-	intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");
-	intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201");
-	intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");
-	intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");
-	intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");
-	intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");
-	intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");
-	intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");
-	intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");
-	intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");
+	intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);  
+	intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201); 
+	intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
+	intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
+	intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
+	intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");  int_array.push_back(37);  
+	intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);  
+	intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");  int_array.push_back(34);  
+	intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");  int_array.push_back(60);  
+	intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);  
 
 	for (Size i = 0; i < mzs.size(); ++i)
 	{
@@ -451,6 +481,9 @@ START_SECTION((void sortByPosition()))
 	ds.getStringDataArrays()[0].setName("s1");
 	ds.getStringDataArrays()[1].setName("s2");
 
+	ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(2, int_array);
+	ds.getIntegerDataArrays()[0].setName("i1");
+	
 	ds.sortByPosition();
 
 	TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
@@ -459,10 +492,13 @@ START_SECTION((void sortByPosition()))
 
 	TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
 	TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
+	
+	TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
 	MSSpectrum<>::iterator it1 = ds.begin();
 	MSSpectrum<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
 	MSSpectrum<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+	MSSpectrum<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
 	for(std::vector<DoubleReal>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
 	{
 		if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
@@ -471,9 +507,11 @@ START_SECTION((void sortByPosition()))
 			TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
 			TEST_REAL_SIMILAR(*it2 , *rit);
 			TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
+			TEST_EQUAL(*it4 , (Int)floor(*rit));
 			++it1;
 			++it2;
 			++it3;
+			++it4;
 		}
 		else
 		{

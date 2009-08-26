@@ -67,13 +67,8 @@ FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_fe
 MSExperiment<> raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
-START_SECTION((void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,std::vector<PeptideIdentification>& pep_ids,FeatureMap<>& features,FeatureMap<>& optimal_set,bool filter)))
-{
-	FeatureMap<> optimal_map;
-}
-END_SECTION
 
-START_SECTION((void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features,MSExperiment< Peak1D > & experiment,MSExperiment< Peak1D > & ms2,std::set<Int>& charges_set,bool feature_based)))
+START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
 	MSExperiment<Peak1D> ms2;
 	std::set<Int> charges_set;
@@ -101,13 +96,27 @@ START_SECTION((void makePrecursorSelectionForKnownLCMSMap(FeatureMap<>& features
 	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),336.14)
 	TEST_REAL_SIMILAR(ms2[2].getRT(),60)
 	TEST_REAL_SIMILAR(ms2[2].getPrecursors()[0].getMZ(),336.14)
-	
+
+	ms2.clear();
+	feature_based = true;
+	param.setValue("exclude_overlapping_peaks","true");
+	param.setValue("min_peak_distance",40.);
+	ptr->setParameters(param);
+	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
+	TEST_EQUAL(ms2.size(),2)
+	TEST_REAL_SIMILAR(ms2[0].getRT(),40)
+	TEST_REAL_SIMILAR(ms2[0].getPrecursors()[0].getMZ(),336.14)
+	TEST_REAL_SIMILAR(ms2[1].getRT(),60)
+	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),478.29)
+		
 }
 END_SECTION	     
 
-START_SECTION((void getMassRanges(FeatureMap<>& features, MSExperiment<>& experiment,std::vector<std::vector<std::pair<Size,Size> > > & indices)))
+START_SECTION((template < typename InputPeakType > void getMassRanges(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
-	
+	Param param;
+	param.setValue("exclude_overlapping_peaks","false");
+	ptr->setParameters(param);
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
 	ptr->getMassRanges(map,raw_data,indices);
 	TEST_EQUAL(indices.size(),3)
@@ -120,11 +129,6 @@ START_SECTION((void getMassRanges(FeatureMap<>& features, MSExperiment<>& experi
 }
 END_SECTION
 
-START_SECTION((void computeOptimalSolution(std::vector<ProteinIdentification>& prot_ids,std::vector<PeptideIdentification>& pep_ids,MSExperiment<>& experiment,FeatureMap<>& features,FeatureMap<>& optimal_set,bool filter)))
-{
-	
-}
-END_SECTION	      
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

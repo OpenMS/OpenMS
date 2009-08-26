@@ -29,6 +29,8 @@
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
+#include <QtCore/QDir>
+
 namespace OpenMS
 {
 	TOPPASVertex::TOPPASVertex()
@@ -41,7 +43,9 @@ namespace OpenMS
 			brush_color_(),
 			dfs_color_(DFS_WHITE),
 			dfs_parent_(0),
-			id_(0)
+			id_(0),
+			topo_sort_marked_(false),
+			topo_nr_(0)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -57,7 +61,9 @@ namespace OpenMS
 			brush_color_(rhs.brush_color_),
 			dfs_color_(rhs.dfs_color_),
 			dfs_parent_(rhs.dfs_parent_),
-			id_(rhs.id_)
+			id_(rhs.id_),
+			topo_sort_marked_(rhs.topo_sort_marked_),
+			topo_nr_(rhs.topo_nr_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -78,6 +84,8 @@ namespace OpenMS
 		dfs_color_ = rhs.dfs_color_;
 		dfs_parent_ = rhs.dfs_parent_;
 		id_ = rhs.id_;
+		topo_sort_marked_ = rhs.topo_sort_marked_;
+		topo_nr_ = rhs.topo_nr_;
 		
 		return *this;
 	}
@@ -103,7 +111,7 @@ namespace OpenMS
 		}
 		else
 		{
-			setSelected(true);
+			emit released();
 			// resize scene rect in case item has been moved outside
 			const QRectF& scene_rect = scene()->sceneRect();
 			const QRectF& items_bounding = scene()->itemsBoundingRect();
@@ -127,18 +135,8 @@ namespace OpenMS
 		
 		if (isSelected())
 		{
-			ts->setActionMode(TOPPASScene::AM_MOVE);
-			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-			{
-				(*it)->prepareResize();
-			}
-			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-			{
-				(*it)->prepareResize();
-			}
-			
 			QPointF delta = e->pos() - e->lastPos();
-			moveBy(delta.x(), delta.y());
+			emit itemDragged(delta.x(), delta.y());
 		}
 		else
 		{
@@ -242,7 +240,84 @@ namespace OpenMS
 	{
 		// (overridden behavior in output and tool vertices)
 		
+		qobject_cast<TOPPASScene*>(scene())->setChanged(true);
 		emit somethingHasChanged();
 	}
-
+	
+	bool TOPPASVertex::isTopoSortMarked()
+	{
+		return topo_sort_marked_;
+	}
+	
+	void TOPPASVertex::setTopoSortMarked(bool b)
+	{
+		topo_sort_marked_ = b;
+	}
+	
+	UInt TOPPASVertex::getTopoNr()
+	{
+		return topo_nr_;
+	}
+	
+	void TOPPASVertex::setTopoNr(UInt nr)
+	{
+		// (overridden in tool and output vertices)
+		topo_nr_ = nr;
+	}
+	
+	String TOPPASVertex::get3CharsNumber_(UInt number)
+	{
+		String num_str(number);
+		int diff = 3 - (int)(num_str.size());
+		if (diff <= 0)
+		{
+			return num_str;
+		}
+		else
+		{
+			String res;
+			for (int i = 0; i < diff; ++i)
+			{
+				res += "0";
+			}
+			res += num_str;
+			return res;
+		}
+	}
+	
+	bool TOPPASVertex::removeDirRecursively_(const QString& dir_name)
+	{
+		bool fail = false;
+		
+		QDir dir(dir_name);
+		QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+		foreach (const QString& file_name, files)
+		{
+			if (!dir.remove(file_name))
+			{
+				std::cerr << "Could not remove file " << String(file_name) << "!" << std::endl;
+				fail = true;
+			}
+		}
+		QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+		foreach (const QString& contained_dir, contained_dirs)
+		{
+			if (!removeDirRecursively_(dir_name+QDir::separator()+contained_dir))
+			{
+				fail = true;
+			}
+		}
+		
+		QDir parent_dir(dir_name);
+		if (parent_dir.cdUp())
+		{
+			if (!parent_dir.rmdir(dir_name))
+			{
+				std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
+				fail = true;
+			}
+		}
+		
+		return !fail;
+	}
 }

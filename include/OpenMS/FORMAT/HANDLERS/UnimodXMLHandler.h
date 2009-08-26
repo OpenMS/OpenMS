@@ -30,13 +30,12 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 
 namespace OpenMS
 {
-	class ResidueModification;
-
 	namespace Internal
 	{
   /**
@@ -77,6 +76,8 @@ namespace OpenMS
 			std::vector<ResidueModification*>& modifications_;
 
 			std::vector<String> sites_;
+			
+			std::vector<ResidueModification::Term_Specificity> term_specs_;
   };
 
 	} // namespace Internal

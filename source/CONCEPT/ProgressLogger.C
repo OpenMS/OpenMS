@@ -124,18 +124,20 @@ namespace OpenMS
 				}
 				break;
 			case GUI:
-				if (begin_==end_)
+				if (value<begin_ || value >end_)
 				{
-					dlg_->setValue((int)value);
-				}
-				else if (value<begin_ || value >end_)
-				{
-					cout << "ProgressLogger: Invalid progress value '" << value
-							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
+					cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
 				else
 				{
-					dlg_->setValue((int)value);
+					if (dlg_)
+					{
+						dlg_->setValue((int)value);
+					}
+					else
+					{
+						cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << endl;
+					}
 				}
 				break;
 			case NONE:
@@ -161,7 +163,14 @@ namespace OpenMS
 				}
 				break;
 			case GUI:
-				dlg_->setValue((int)end_);
+				if (dlg_)
+				{
+					dlg_->setValue((int)end_);
+				}
+				else
+				{
+					cout << "ProgressLogger warning: 'endProgress' called before 'startProgress'!" << endl;
+				}
 				break;
 			case NONE:
 				break;

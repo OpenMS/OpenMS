@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Stephan Aiche$
+// $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -64,12 +64,6 @@ START_SECTION((RTSimulation(const RTSimulation &source)))
   RTSimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
   TEST_EQUAL(source.getGradientTime(), target.getGradientTime())
-}
-END_SECTION
-
-START_SECTION((virtual ~RTSimulation()))
-{
-  NOT_TESTABLE
 }
 END_SECTION
 
@@ -211,6 +205,12 @@ START_SECTION((SimCoordinateType getGradientTime() const ))
 }
 END_SECTION
 
+START_SECTION((void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)))
+{
+  // this method is called by "predictRT" so we already test it
+  NOT_TESTABLE
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

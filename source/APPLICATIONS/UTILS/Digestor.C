@@ -41,10 +41,12 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page Digestor Digestor
+	@page UTILS_Digestor Digestor
 	
-	@brief This application is used to digest a protein database to get all
-				 peptides given a cleavage enzyme. At the moment only trypsin is supported.
+	@brief Digests a protein database in-silico.
+	
+	This application is used to digest a protein database to get all
+	peptides given a cleavage enzyme. At the moment only trypsin is supported.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_Digestor.cli
@@ -58,7 +60,7 @@ class TOPPDigestor
 {
 	public:
 		TOPPDigestor()
-			: TOPPBase("Digestor","digests a protein database in-silico",false)
+			: TOPPBase("Digestor","Digests a protein database in-silico.",false)
 		{
 			
 		}
@@ -139,9 +141,8 @@ class TOPPDigestor
 				}
 				protein_identifications[0].insertHit(temp_protein_hit);
 			}
-			DateTime date_time;
+			DateTime date_time = DateTime::now();
 			String date_time_string = "";
-			date_time.now();
 			
 			date_time_string = date_time.get();
 			protein_identifications[0].setSearchParameters(search_parameters);

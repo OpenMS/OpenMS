@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Transformation name="linear">
-		<Param  type="float" name="slope" value="0.5002298"/>
-		<Param  type="float" name="intercept" value="-6.480914"/>
+		<Param type="float" name="slope" value="0.49999989293229"/>
+		<Param type="float" name="intercept" value="-5.99978072799513"/>
 	</Transformation>
 </TrafoXML>

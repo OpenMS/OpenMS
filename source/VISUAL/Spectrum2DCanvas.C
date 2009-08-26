@@ -1252,63 +1252,59 @@ namespace OpenMS
 			selected_peak_ = near_peak;
 			update_(__PRETTY_FUNCTION__);
 
-			//show coordinates
+			//show meta data in status bar (if available)
 			if (selected_peak_.isValid())
 			{
+				String status;
 				if (getCurrentLayer().type==LayerData::DT_FEATURE)
 				{
-					//coordinates
-					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
-					//additional feature info
-					String status;
-					status = status + "Quality: " + f.getOverallQuality();
-					if (f.getCharge()!=0)
-					{
-						status = status + " Charge: " + f.getCharge();
-					}
 					//add meta info
+					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
 					std::vector<String> keys;
 					f.getKeys(keys);
 					for (Size m=0; m<keys.size(); ++m)
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
-					emit sendStatusMessage(status, 0);
 				}
 				else if (getCurrentLayer().type==LayerData::DT_PEAK)
 				{
 					//meta info
-					String status;
 					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 					for (Size m=0; m<s.getFloatDataArrays().size();++m)
 					{
-						status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
+						if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
+						{
+							status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][selected_peak_.peak] + " ";
+						}
+					}
+					for (Size m=0; m<s.getIntegerDataArrays().size();++m)
+					{
+						if (selected_peak_.peak < s.getIntegerDataArrays()[m].size())
+						{
+							status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][selected_peak_.peak] + " ";
+						}
 					}
 					for (Size m=0; m<s.getStringDataArrays().size();++m)
 					{
-						status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
+						if (selected_peak_.peak < s.getStringDataArrays()[m].size())
+						{
+							status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][selected_peak_.peak] + " ";
+						}
 					}
-					emit sendStatusMessage(status, 0);
 				}
 				else // ConsensusFeature
 				{
-					//additional feature info
-					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
-					String status;
-					status = status + "Quality: " + f.getQuality();
-					if (f.getCharge()!=0)
-					{
-						status = status + " Charge: " + f.getCharge();
-					}
 					//add meta info
+					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
 					std::vector<String> keys;
 					f.getKeys(keys);
 					for (Size m=0; m<keys.size(); ++m)
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
-					emit sendStatusMessage(status, 0);
 				}
+				if (status!="") emit sendStatusMessage(status, 0);
 			}
 		}
 		else if (action_mode_==AM_ZOOM)
@@ -1337,7 +1333,7 @@ namespace OpenMS
 		{
 			if (e->buttons() & Qt::LeftButton)
 			{
-				if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
+				if (getCurrentLayer().modifiable && getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
 				{
 					PointType new_data = widgetToData_(pos);
 					DoubleReal mz = new_data[0];
@@ -1603,6 +1599,10 @@ namespace OpenMS
 				context_menu->addMenu(meta);
 				context_menu->addSeparator();
 			}
+			
+			//add modifiable flag
+			settings_menu->addSeparator();
+ 			settings_menu->addAction("Toggle edit/view mode");
 
 			finishContextMenu_(context_menu, settings_menu);
 
@@ -1710,6 +1710,10 @@ namespace OpenMS
 				{
 					getCurrentLayer_().label=LayerData::L_NONE;
 				}
+			}
+			else if (result->text()=="Toggle edit/view mode")
+			{
+				getCurrentLayer_().modifiable = ! getCurrentLayer_().modifiable;
 			}
 			else if (result->text()=="Show/hide elements")
 			{
@@ -2013,7 +2017,7 @@ namespace OpenMS
 
 		// Delete features
 		LayerData& layer = getCurrentLayer_();
-		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
+		if (getCurrentLayer().modifiable && layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
 		{
 			layer.features.erase(layer.features.begin()+selected_peak_.peak);
 			selected_peak_.clear();
@@ -2054,24 +2058,23 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
 	{
-		if (getCurrentLayer_().type==LayerData::DT_FEATURE)
+		LayerData& current_layer = getCurrentLayer_();
+		
+		if (current_layer.modifiable && current_layer.type==LayerData::DT_FEATURE)
 		{
+			Feature tmp;
 			if (selected_peak_.isValid()) //edit existing feature
 			{
 				FeatureEditDialog dialog(this);
-				dialog.setFeature(getCurrentLayer_().features[selected_peak_.peak]);
+				dialog.setFeature(current_layer.features[selected_peak_.peak]);
 				if (dialog.exec())
 				{
-					getCurrentLayer_().features[selected_peak_.peak] = dialog.getFeature();
-					update_buffer_ = true;
-					update_(__PRETTY_FUNCTION__);
-
-					modificationStatus_(activeLayerIndex(), true);
+					tmp = dialog.getFeature();
+					current_layer.features[selected_peak_.peak] = tmp;
 				}
 			}
 			else //create new feature
 			{
-				Feature tmp;
 				tmp.setRT(widgetToData_(e->pos())[1]);
 				tmp.setMZ(widgetToData_(e->pos())[0]);
 				FeatureEditDialog dialog(this);
@@ -2079,13 +2082,24 @@ namespace OpenMS
 				if (dialog.exec())
 				{
 					tmp = dialog.getFeature();
-					getCurrentLayer_().features.push_back(tmp);
-					update_buffer_ = true;
-					update_(__PRETTY_FUNCTION__);
-
-					modificationStatus_(activeLayerIndex(), true);
+					current_layer.features.push_back(tmp);
 				}
 			}
+			
+			//update gradient if the min/max intensity changes
+			if (tmp.getIntensity()<current_layer.features.getMinInt() || tmp.getIntensity()>current_layer.features.getMaxInt())
+			{
+				current_layer.features.updateRanges();
+				recalculateRanges_(0,1,2);
+				intensityModeChange_();
+			}
+			else //just repaint to show the changes
+			{
+				update_buffer_ = true;
+				update_(__PRETTY_FUNCTION__);
+			}
+			
+			modificationStatus_(activeLayerIndex(), true);
 		}
 	}
 

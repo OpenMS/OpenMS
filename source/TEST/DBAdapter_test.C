@@ -66,7 +66,7 @@ bool do_tests=true;
 TextFile credentials;
 try
 {
-	credentials.load("DB_credentials.txt",true);
+	credentials.load(String(OPENMS_BINARY_PATH) + "/source/TEST/DB_credentials.txt",true);
 }
 catch(...)
 {
@@ -350,7 +350,7 @@ END_SECTION
 		SourceFile source_file;
 		source_file.setNameOfFile("westberlin");
 		source_file.setPathToFile("/osten/");
-		source_file.setNativeIDType(SourceFile::WATERS);
+		source_file.setNativeIDType("Waters nativeID format");
 		spec.setSourceFile(source_file);
 
 		RichPeakSpectrum::FloatDataArray meta_data_array;
@@ -1006,7 +1006,7 @@ END_SECTION
 			//test update of others
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getRank(), 5u )
 			TEST_EQUAL(exp_new[0].getSourceFile().getChecksumType(), SourceFile::UNKNOWN_CHECKSUM )
-			TEST_EQUAL(exp_new[0].getSourceFile().getNativeIDType(), SourceFile::WATERS )
+			TEST_STRING_EQUAL(exp_new[0].getSourceFile().getNativeIDType(), "Waters nativeID format" )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getOrder() , 2 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getOrder() , 3 )
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getOrder(), 4)

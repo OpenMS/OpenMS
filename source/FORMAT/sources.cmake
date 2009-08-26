@@ -5,7 +5,6 @@ set(directory source/FORMAT)
 set(sources_list
 Base64.C
 CVMappingFile.C
-CVMappings.C
 ConsensusXMLFile.C
 ControlledVocabulary.C
 CsvFile.C
@@ -23,7 +22,7 @@ LibSVMEncoder.C
 MS2File.C
 MSPFile.C
 MascotInfile.C
-MascotInfile2.C
+MascotGenericFile.C
 MascotOutfile.C
 MascotRemoteQuery.C
 MascotXMLFile.C

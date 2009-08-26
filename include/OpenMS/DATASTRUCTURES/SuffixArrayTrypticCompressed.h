@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -31,7 +31,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
-
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
 namespace OpenMS {
 	class String;
@@ -43,7 +43,10 @@ namespace OpenMS {
 	Only the sufices that are matching the function isDigestingEnd are created. Besides a suffix will not reach till the end of the string but till the next occurence of the separator ($). So only the interessting sufices will be saved. This will reduce the used space.
 */
 
-class OPENMS_DLLAPI SuffixArrayTrypticCompressed : public SuffixArray {
+class OPENMS_DLLAPI SuffixArrayTrypticCompressed 
+	: public SuffixArray
+		,public WeightWrapper 
+{
 	
 public:
 
@@ -56,7 +59,7 @@ public:
 
 	The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of SignedSize pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
 	*/
-	SuffixArrayTrypticCompressed(const String& st, const String& filename);
+	SuffixArrayTrypticCompressed(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode=WeightWrapper::MONO);
 
 	/**
 	@brief copy constructor
@@ -75,14 +78,14 @@ public:
 
 	/**
 	@brief the function that will find all peptide candidates for a given spectrum
-	@param spec const reference of double vector describing the spectrum
+	@param spec const reference of DoubleReal vector describing the spectrum
 	@param candidates output parameter which contains the candidates of the masses given in spec
 	@return a vector of SignedSize pairs.
 	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
 	*/
-	void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double > > >& candidates, const std::vector<double> & spec);
+	void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal > > >& candidates, const std::vector<DoubleReal> & spec);
 
 	/**
 	@brief saves the suffix array to disc
@@ -101,16 +104,16 @@ public:
 
 	/**
 	@brief setter for tolerance
-	@param t double with tolerance
+	@param t DoubleReal with tolerance
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	void setTolerance(double t);
+	void setTolerance(DoubleReal t);
 
 	/**
 	@brief getter for tolerance
-	@return double with tolerance
+	@return DoubleReal with tolerance
 	*/
-	double getTolerance() const;
+	DoubleReal getTolerance() const;
 
 	/**
 	@brief returns if an enzyme will cut after first character
@@ -191,7 +194,7 @@ protected:
 	@return SignedSize with the index of the first occurence
 	@note requires that there is at least one occurence
 	*/
-	SignedSize findFirst_(const std::vector<double>& spec, double& m);
+	SignedSize findFirst_(const std::vector<DoubleReal>& spec, DoubleReal& m);
 
 	/**
 	@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
@@ -202,7 +205,7 @@ protected:
 	@return SignedSize with the index of the first occurence
 	@note requires that there is at least one occurence
 	*/
-	SignedSize findFirst_(const std::vector<double>& spec, double& m, SignedSize start, SignedSize end);
+	SignedSize findFirst_(const std::vector<DoubleReal>& spec, DoubleReal& m, SignedSize start, SignedSize end);
 
 	/**
 	@brief treats the suffix array as a tree and parses the tree using postorder traversion. This is realised by a recursive algorithm.
@@ -228,7 +231,7 @@ protected:
 
 	const String& s_; ///< the string with which the suffix array is build
 
-	double tol_; ///< mass tolerance for finding candidates
+	DoubleReal tol_; ///< mass tolerance for finding candidates
 	
 	std::vector<std::pair<SignedSize,SignedSize> > indices_; ///< vector of pairs of ints describing all relevant sufices
 
@@ -238,7 +241,7 @@ protected:
 
 	//const SignedSize getIndex_ (const String & s);
 
-	double masse_[256]; ///< mass table
+	DoubleReal masse_[256]; ///< mass table
 
 	Size number_of_modifications_; ///< number of allowed modifications
 

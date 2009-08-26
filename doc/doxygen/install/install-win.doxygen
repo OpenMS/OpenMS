@@ -32,6 +32,8 @@
 <b>Pre-Requisites (Software)</b>
   <UL>
     <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
+    <br> If you work with VS 2008, installation of the SP1 is recommended,
+    otherwise VS might crash during the compilation of the contrib package.
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
@@ -288,12 +290,13 @@ mysql> CREATE DATABASE OPENMS_TEST_DB;
 		</LI>
 	</OL>
 
-	To test if the DB is accessible by %OpenMS, copy &lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
-	To test the two TOPP tools that enable DB communication, go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these files remain there, the DB will be tested with any subsequent call of 'make TOPPtest'.
-
-
-
-
+  @note To enable DB connectivity tests, use the following CMake parameters:
+  - DB_TEST
+  - DB_TEST_HOST
+  - DB_TEST_PORT
+  - DB_TEST_DB
+  - DB_TEST_USER
+  - DB_TEST_PW
 
 */
 

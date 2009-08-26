@@ -1,16 +1,16 @@
-# OMSSA-internal-number, OMSSA-description, PSI-MOD-CV
-0,methylation of K,MOD:00323
-1,oxidation of M,MOD:00719,MOD:00720
-2,carboxymethyl C,MOD:01061,MOD:01062
-3,carbamidomethyl C,MOD:01214
-4,deamidation of N and Q,MOD:00684,MOD:00685
-5,propionamide C,MOD:00417
-6,phosphorylation of S,MOD:00046
-7,phosphorylation of T,MOD:00047
-8,phosphorylation of Y,MOD:00048
+# OMSSA-internal-number, OMSSA-description, UniMod term
+0,methylation of K,Methyl (K)
+1,oxidation of M,Oxidation (M)
+2,carboxymethyl C,Carboxymethyl (C)
+3,carbamidomethyl C,Carbamidomethyl (C)
+4,deamidation of N and Q, 
+5,propionamide C,Propionamide (C)
+6,phosphorylation of S,Phospho (S)
+7,phosphorylation of T,Phospho (T)
+8,phosphorylation of Y,Phospho (Y)
 9,M cleavage from protein n-term, 
-10,acetylation of protein n-term, 
-11,methylation of protein n-term, 
+10,acetylation of protein n-term,Acetyl (N-term)
+11,methylation of protein n-term,Methyl (N-term)
 12,tri-methylation of protein n-term, 
 13,beta methythiolation of D, 
 14,methylation of Q, 
@@ -52,7 +52,7 @@
 50,glucuronylation of protein n-term, 
 51,glutathione disulfide, 
 52,ubiquitinylation residue, 
-53,guanidination of K,MOD:00445
+53,guanidination of K,Guanidinyl (K)
 54,oxidation of H to N, 
 55,oxidation of H to D, 
 56,homoserine, 
@@ -114,7 +114,7 @@
 112,s-pyridylethylation of C, 
 113,SeMet, 
 114,sulfation of Y, 
-115,sulphone of M,MOD:00256
+115,sulphone of M,Dioxidation (M)
 116,tri-iodination of Y, 
 117,tri-methylation of R, 
 118,n-acyl diglyceride cysteine, 

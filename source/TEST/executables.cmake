@@ -39,6 +39,10 @@ set(datastructures_executables_list
 	ChargePair_test
 	Compomer_test
 	MassExplainer_test
+	CVMappingTerm_test
+	CVMappingRule_test
+	CVReference_test
+	CVMappings_test
 )
 
 set(metadata_executables_list
@@ -139,8 +143,6 @@ set(format_executables_list
   PepNovoOutfile_test
   PTMXMLFile_test
   ConsensusXMLFile_test
-  DBConnection_test
-  DBAdapter_test
   OMSSAXMLFile_test
   IdXMLFile_test
   BigString_test
@@ -156,10 +158,18 @@ set(format_executables_list
   SemanticValidator_test
   MzMLValidator_test
   MS2File_test
+	MascotGenericFile_test
+	MascotRemoteQuery_test
+	CVMappingFile_test
 	MzIdentMLFile_test
 	MzIdentMLValidator_test
 	TraMLFile_test
 )
+
+if (DB_TEST)
+  list(APPEND format_executables_list DBConnection_test)
+  list(APPEND format_executables_list DBAdapter_test)
+endif()
 
 if (USE_ANDIMS)
   list(APPEND format_executables_list ANDIFile_test)
@@ -270,6 +280,7 @@ set(chemistry_executables_list
 set(analysis_executables_list
   ItraqChannelExtractor_test
   ItraqQuantifier_test
+	ItraqConstants_test
   SVMWrapper_test
   TransformationDescription_test
   FeatureHandle_test
@@ -287,7 +298,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmUnlabeled_test
-#  FeatureDeconvolution_test
+	FeatureDeconvolution_test
   ConsensusID_test
   ProteinInference_test
   PILISScoring_test
@@ -302,6 +313,24 @@ set(analysis_executables_list
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   OfflinePrecursorIonSelection_test
+	DeNovoAlgorithm_test
+	DeNovoIdentification_test
+	DeNovoIonScoring_test
+	DeNovoPostScoring_test
+	MassDecomposition_test
+	MassDecompositionAlgorithm_test
+	CompNovoIdentificationBase_test 
+	CompNovoIdentification_test
+	CompNovoIonScoringCID_test
+	CompNovoIdentificationCID_test
+	CompNovoIonScoringBase_test
+	CompNovoIonScoring_test
+  ILPWrapper_test
+	MRMFragmentSelection_test
+	ProtonDistributionModel_test
+	HiddenMarkovModel_test
+	PILISModel_test
+	PILISModelGenerator_test
 )
 
 set(applications_executables_list
@@ -328,6 +357,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithmIsotopeWavelet_test
+  FeatureFinderAlgorithmMRM_test
   SimpleSeeder_test
   SimpleExtender_test
   GaussFitter1D_test
@@ -363,7 +393,6 @@ set(simulation_executables_list
   RawMSSignalSimulation_test
   ElutionModel_test
   IsotopeModelGeneral_test
-  MixtureModel_test
 )
 
 ### collect test executables

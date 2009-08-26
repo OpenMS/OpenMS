@@ -38,7 +38,7 @@ namespace OpenMS
 		@brief Validator for XML files.
 		
 		Validates an XML file against a given schema.
-		
+	
   	@ingroup FileIO
 	*/
   class OPENMS_DLLAPI XMLValidator

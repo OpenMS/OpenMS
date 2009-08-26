@@ -56,14 +56,14 @@ namespace OpenMS {
 		
 	private:
 		/// slicing the problem into subproblems
-		DoubleReal compute_slice_(const MassExplainer& me,
-															const FeatureMap<> fm,
-															PairsType& pairs, 
-															const PairsIndex margin_left, 
-															const PairsIndex margin_right);
+		DoubleReal computeSlice_(const MassExplainer& me,
+														 const FeatureMap<> fm,
+														 PairsType& pairs, 
+														 const PairsIndex margin_left, 
+														 const PairsIndex margin_right);
 
 		/// calculate a score for the i_th edge
-		float getLogScore(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm , const MassExplainer& me);
+		DoubleReal getLogScore_(const PairsIndex& i, const PairsType& pairs, const FeatureMap<>& fm);
 
 	}; // !class
     

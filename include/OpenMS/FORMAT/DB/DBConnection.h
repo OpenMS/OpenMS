@@ -47,8 +47,6 @@ namespace OpenMS
     
     @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
    	
-		@todo Do not call first in the executeQuery method (HiWi, Mathias)
-
     @ingroup DatabaseIO
   */
   class OPENMS_DLLAPI DBConnection
@@ -120,12 +118,16 @@ namespace OpenMS
       /**
       	@brief Executes a query and returns the result
       	
+      	The internal pointer of the returned result is positioned @b before the first row.
+      	
       	@param query an SQL query
+      	@param first if @em true, the internal pointer of the returned result is positioned to the first record.
 
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection
+				
       */
-      QSqlQuery executeQuery(const String& query);
+      QSqlQuery executeQuery(const String& query, bool first = false);
 
 			/**
 				@brief Returns a single field of a table as an integer

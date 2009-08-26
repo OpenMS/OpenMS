@@ -32,7 +32,7 @@
 #include <vector>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 namespace OpenMS
 {
@@ -59,9 +59,9 @@ namespace OpenMS
 				feature1_index_(0),
 				feature0_charge_(0),
 				feature1_charge_(0),
-				compomer_id_(),
+				compomer_(),
 				mass_diff_(0),
-				score_(0),
+				score_(1),
 				is_active_(false)
 		{
 		}
@@ -70,16 +70,16 @@ namespace OpenMS
 							 const Size& index1,
 							 const Int& charge0,
 							 const Int& charge1,
-							 const Size& compomer_id, 
+							 const Compomer& compomer, 
 							 const DoubleReal& mass_diff, 
 						   const bool active)
 			:	feature0_index_(index0),
 				feature1_index_(index1),
 				feature0_charge_(charge0),
 				feature1_charge_(charge1),
-				compomer_id_(compomer_id),
+				compomer_(compomer),
 				mass_diff_(mass_diff),
-				score_(0),
+				score_(1),
 				is_active_(active)
 		{
 		}
@@ -89,7 +89,7 @@ namespace OpenMS
 				feature1_index_(rhs.feature1_index_),
 				feature0_charge_(rhs.feature0_charge_),
 				feature1_charge_(rhs.feature1_charge_),
-				compomer_id_(rhs.compomer_id_),
+				compomer_(rhs.compomer_),
 				mass_diff_(rhs.mass_diff_),
 				score_(rhs.score_),
 				is_active_(rhs.is_active_)
@@ -104,7 +104,7 @@ namespace OpenMS
 				feature1_index_ = rhs.feature1_index_;
 				feature0_charge_ = rhs.feature0_charge_;
 				feature1_charge_ = rhs.feature1_charge_;
-				compomer_id_ = rhs.compomer_id_;
+				compomer_ = rhs.compomer_;
 				mass_diff_ = rhs.mass_diff_;
 				score_ = rhs.score_;
 				is_active_ = rhs.is_active_;
@@ -148,16 +148,14 @@ namespace OpenMS
 
 		
 		/// Returns the Id of the compomer that explains the mass difference
-		Size getCompomerId() const
+		const Compomer& getCompomer() const
 		{
-				return compomer_id_;
-				// TODO throw exception				
+				return compomer_;
 		}
 		/// Set the compomer id
-		void setCompomerId(Size compomer_id)
+		void setCompomer(const Compomer& compomer)
 		{
-			compomer_id_ = compomer_id;
-			// TODO throw exception		
+			compomer_ = compomer;
 		}
 		
 		/// Returns the mass difference
@@ -172,12 +170,12 @@ namespace OpenMS
 		}
 		
 		/// Returns the ILP edge score
-		Real getEdgeScore() const
+		DoubleReal getEdgeScore() const
 		{
 			return score_;
 		}
 		/// Sets the ILP edge score
-		void setEdgeScore(Real score)
+		void setEdgeScore(DoubleReal score)
 		{
 			score_ = score;
 		}		
@@ -202,7 +200,7 @@ namespace OpenMS
 							(feature1_index_ == i.feature1_index_) && 
 							(feature0_charge_ == i.feature0_charge_) && 
 							(feature1_charge_ == i.feature1_charge_) && 
-							(compomer_id_ == i.compomer_id_) && 
+							(compomer_ == i.compomer_) && 
 							(mass_diff_ == i.mass_diff_) &&
 							(is_active_ == i.is_active_) );
 		}
@@ -224,12 +222,12 @@ namespace OpenMS
 		Int feature0_charge_;
 		/// Assumed charge of the second feature
 		Int feature1_charge_;
-		/// id of compomer that explains the mass difference
-		Size compomer_id_;
+		/// Compomer that explains the mass difference
+		Compomer compomer_;
 		/// mass difference (after explanation by compomer)
 		DoubleReal mass_diff_;
 		/// Score of this edge used in ILP
-		Real score_;
+		DoubleReal score_;
 		/// was this pair realized by ILP?
 		bool is_active_;
   };

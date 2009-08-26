@@ -97,12 +97,6 @@ START_SECTION((MassExplainer& operator=(const MassExplainer &rhs)))
 }
 END_SECTION
 
-START_SECTION((virtual ~MassExplainer()))
-{
-  NOT_TESTABLE;
-}
-END_SECTION
-
 START_SECTION((void setAdductBase(AdductsType adduct_base)))
 {
 	MassExplainer::AdductsType va;
@@ -151,7 +145,7 @@ START_SECTION((SignedSize query(const Int net_charge, const float mass_to_explai
 			std::cout << *s << std::endl;
 	}
 	
-	TEST_EQUAL(hits, 19);
+	TEST_EQUAL(hits, 5);
 
 }
 END_SECTION

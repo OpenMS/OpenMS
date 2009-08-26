@@ -382,7 +382,7 @@ namespace OpenMS
 
 			@see concatenate().
 		*/
-		bool split(char splitter, std::vector<String>& substrings, bool quote_protect=false) const;
+		bool split(const char splitter, std::vector<String>& substrings, bool quote_protect=false) const;
 		
 		
 		/**

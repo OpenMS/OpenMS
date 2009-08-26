@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/SIMULATION/IsotopeModelGeneral.h>
-#include <OpenMS/SIMULATION/MixtureModel.h>
 #include <OpenMS/SIMULATION/ElutionModel.h>
 
 
@@ -41,13 +40,11 @@ using std::vector;
 namespace OpenMS {
 
   /**
-   TODO:
-    * add removeDuplicate Points
-    * review Ole's methods for improvment/changes
-    * BIG TODO: initialize members!!!!
-  */
+   * TODO: review Ole's methods for improvment/changes
+   */
   RawMSSignalSimulation::RawMSSignalSimulation(const gsl_rng * random_generator)
-  : DefaultParamHandler("RawSignalSimulation"), rnd_gen_(random_generator)
+  : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
+  intensity_error_mean_(), intensity_error_stddev_(), peak_std_(), rnd_gen_(random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -55,14 +52,16 @@ namespace OpenMS {
 
 
   RawMSSignalSimulation::RawMSSignalSimulation()
-    : DefaultParamHandler("RawSignalSimulation")
+    : DefaultParamHandler("RawSignalSimulation"), mz_sampling_rate_(), mz_error_mean_(), mz_error_stddev_(),
+    intensity_error_mean_(), intensity_error_stddev_(), peak_std_()
   {
     setDefaultParams_();
     updateMembers_();
   }
 
   RawMSSignalSimulation::RawMSSignalSimulation(const RawMSSignalSimulation& source)
-    : DefaultParamHandler(source)
+    : DefaultParamHandler(source), mz_sampling_rate_(source.mz_sampling_rate_), mz_error_mean_(source.mz_error_mean_), mz_error_stddev_(source.mz_error_stddev_),
+    intensity_error_mean_(source.intensity_error_mean_), intensity_error_stddev_(source.intensity_error_stddev_), peak_std_(source.peak_std_)
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
@@ -73,6 +72,16 @@ namespace OpenMS {
   {
     setParameters( source.getParameters() );
     rnd_gen_ = source.rnd_gen_;
+
+    mz_error_mean_ = source.mz_error_mean_;
+    mz_error_stddev_ = source.mz_error_stddev_;
+    mz_sampling_rate_ = source.mz_sampling_rate_;
+
+    intensity_error_mean_ = source.intensity_error_mean_;
+    intensity_error_stddev_ = source.intensity_error_stddev_;
+
+    peak_std_ = source.peak_std_;
+
     updateMembers_();
     return *this;
   }
@@ -188,6 +197,7 @@ namespace OpenMS {
   void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment)
   {
     // was: 3000 TODO: ???? why 1500
+    // TODO: we need to improve this
     SimIntensityType scale = active_feature.getIntensity() * 1500;
 
     Param p1;
@@ -246,7 +256,6 @@ namespace OpenMS {
 
     for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
     {
-      //++it;
       point.setMZ(mz);
       point.setIntensity( pm.getIntensity( DPosition<1>( mz ) ) );
 
@@ -274,7 +283,7 @@ namespace OpenMS {
   {
     if (rt_start <=0) rt_start = 0;
 
-    MSExperiment<Peak1D>::iterator exp_iter = experiment.RTBegin(rt_start);
+    MSSimExperiment::iterator exp_iter = experiment.RTBegin(rt_start);
     if(exp_iter == experiment.end() )
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
@@ -297,7 +306,6 @@ namespace OpenMS {
 			
       for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate_)
       {
-        //++it;
 
         point.setMZ(mz);
         point.setIntensity( pm.getIntensity( DPosition<2>( rt, mz) ) );
@@ -322,9 +330,6 @@ namespace OpenMS {
       }
     }
 
-    // This is a clear misuse of the Feature data structure
-    // but at this point, we couldn't care less ;-)
-    // TODO: this was currentFeature -> reimplement
     active_feature.setQuality(0,start_scan);
     active_feature.setQuality(1,end_scan);
 
@@ -368,7 +373,7 @@ namespace OpenMS {
 	
 		// find scan in experiment at which our elution starts
 		MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
-    for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i )
+    for ( Size i = 1; (i < data.size() - 1) && exp_it!=experiment.end(); ++i, ++exp_it )
     { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
 			data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
     }
@@ -444,13 +449,10 @@ namespace OpenMS {
   void RawMSSignalSimulation::compressSignals_(MSSimExperiment & experiment)
   {
 		// assume we changed every scan a priori
-    //changed_scans_.resize(experiment.size(), true);
-  
+
     Size count = 0;
     do
     { // TODO here we can improve on speed a lot by better compression! check if running times are significant
-      // TODO: either use in compressSignalsRun_ or delete the member
-	    //changed_scans_[ i ]  = false;
       count = compressSignalsRun_(experiment);
     } while (count != 0);
   }

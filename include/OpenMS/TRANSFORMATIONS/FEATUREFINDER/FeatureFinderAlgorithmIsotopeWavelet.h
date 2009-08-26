@@ -30,7 +30,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <iostream>
 #include <time.h>
 #include <algorithm>
@@ -134,7 +133,9 @@ namespace OpenMS
 				progress_counter_ = 0;
 				this->ff_->startProgress (0, 2*this->map_->size()*max_charge_, "analyzing spectra");
 			
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 				time_t start=time(NULL), end;	
+				#endif
 				
 				#if defined(OPENMS_HAS_TBB) && defined (OPENMS_HAS_CUDA)
 					if (use_tbb_)
@@ -311,9 +312,13 @@ namespace OpenMS
 					#endif
 				};
 				
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 				end=time(NULL);
-
+				#endif
+				
+				#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
 				std::cout << "Running time in seconds: " << difftime(end, start) << std::endl; 
+				#endif
 		}
 
 		static const String getProductName()

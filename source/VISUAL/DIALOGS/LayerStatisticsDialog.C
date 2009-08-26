@@ -269,15 +269,16 @@ namespace OpenMS
 		max_intensity_ = canvas_->getCurrentMaxIntensity();
 		avg_intensity_ = 0;
 		unsigned long divisor = 0;
-		for(RTIterator_ it_rt = layer_data_.peaks.begin(); it_rt != layer_data_.peaks.end(); it_rt++)
+		for(LayerData::ExperimentType::ConstIterator it_rt = layer_data_.peaks.begin(); it_rt != layer_data_.peaks.end(); it_rt++)
 		{
 			for(PeakIterator_ it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
 			{
 				avg_intensity_ += it_peak->getIntensity();
 				divisor++;
 			}
-			// collect stats about the FloatDataArray of this spectrum
-			computeFloatDataArrayStats_(it_rt);
+			// collect stats about the meta data arrays of this spectrum
+			computeMetaDataArrayStats_(it_rt->getFloatDataArrays().begin(),it_rt->getFloatDataArrays().end());
+			computeMetaDataArrayStats_(it_rt->getIntegerDataArrays().begin(),it_rt->getIntegerDataArrays().end());
 		}
 		if (divisor != 0) avg_intensity_ /= (DoubleReal)divisor;
 		computeMetaAverages_();
@@ -366,56 +367,6 @@ namespace OpenMS
 		}
 	}
 
-	void LayerStatisticsDialog::computeFloatDataArrayStats_(RTIterator_ spectrum_it)
-	{
-		const LayerData::ExperimentType::SpectrumType::FloatDataArrays& meta_arrays = spectrum_it->getFloatDataArrays();
-		for(LayerData::ExperimentType::SpectrumType::FloatDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
-		{
-			String meta_name = meta_array_it->getName();
-			MetaStatsValue_ meta_stats_value;
-			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats_.find(meta_name);
-			if (it != meta_array_stats_.end()) // stats about this meta name already exist -> bring this value in
-			{
-				meta_stats_value = it->second;
-				for(std::vector<Real>::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
-				{
-					Real value = *value_it;
-					meta_stats_value.count++;
-					if (value < meta_stats_value.min)
-					{
-						meta_stats_value.min = value;
-					}
-					else if (value > meta_stats_value.max)
-					{
-						meta_stats_value.max = value;
-					}
-					meta_stats_value.avg += value;
-				}
-				it->second = meta_stats_value;
-			}
-			else if (meta_array_it->size()>0)// meta name has not occurred before, create new stats for it:
-			{
-				Real init_value = *(meta_array_it->begin());
-				meta_stats_value = MetaStatsValue_(0,init_value,init_value,0);
-				for(std::vector<Real>::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
-				{
-					Real value = *value_it;
-					meta_stats_value.count++;
-					if (value < meta_stats_value.min)
-					{
-						meta_stats_value.min = value;
-					}
-					else if (value > meta_stats_value.max)
-					{
-						meta_stats_value.max = value;
-					}
-					meta_stats_value.avg += value;
-				}
-				meta_array_stats_.insert(make_pair(meta_name, meta_stats_value));
-			}
-		}
-	}
-	
 	void LayerStatisticsDialog::bringInMetaStats_(const MetaInfoInterface& meta_interface)
 	{
 		vector<UInt> new_meta_keys;

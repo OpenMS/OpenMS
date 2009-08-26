@@ -38,7 +38,11 @@ namespace OpenMS
 	
 	/**
 		@brief An edge representing a data flow in TOPPAS
-	
+		
+		Like all TOPPASVertex classes, TOPPASEdge is a subclass of QGraphicsItem and thus implements
+		methods to draw itself and to react on incoming events such as mouse clicks. It holds
+		the data needed to represent an edge between two vertices of a TOPPAS workflow.
+		
 		@ingroup TOPPAS_elements
 	*/
 	class OPENMS_DLLAPI TOPPASEdge

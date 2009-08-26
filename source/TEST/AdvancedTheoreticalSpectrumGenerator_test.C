@@ -33,10 +33,14 @@
 
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 ///////////////////////////
 
-START_TEST(AdvancedTheoreticalSpectrumGenerator, "$Id: TheoreticalSpectrumGenerator_test.C 4776 2009-03-05 14:14:35Z groepl $")
+START_TEST(AdvancedTheoreticalSpectrumGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -69,48 +73,61 @@ START_SECTION(AdvancedTheoreticalSpectrumGenerator& operator = (const AdvancedTh
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-//TODO when one probabilistic model is fix
-//This also tests the method: void loadProbabilisticModel();
+START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Int charge=1))
+  // init rng
+  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen, 0);
+  RichPeakSpectrum spec;
+  ptr->loadProbabilisticModel();
+  ptr->simulate(spec, peptide,rnd_gen);
+  gsl_rng_free(rnd_gen);
 
-/*RichPeakSpectrum spec;
-  ptr->getSpectrum(spec, peptide, 1);
-  TEST_EQUAL(spec.size(), 12)
+  MSExperiment<RichPeak1D>exp;
+  //exp.push_back(spec);
+  MzDataFile mz_data_file;
+  //mz_data_file.store("tmp_sandro.mzData", exp);
 
-  TOLERANCE_ABSOLUTE(0.001)
+  mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("AdvancedTheoreticalSpectrumGenerator_test.mzData"),exp);
 
-  double result[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
-  for (Size i = 0; i != spec.size(); ++i)
+  TEST_EQUAL(exp.size(), 1);
+  if(exp.size())
   {
-    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
-  }
+    TEST_EQUAL(spec.size(), exp[0].size());
+    Size min_size = min(spec.size(), exp[0].size());
 
-  spec.clear();
-  ptr->getSpectrum(spec, peptide, 2);
-  TEST_EQUAL(spec.size(), 24)
-  */
+    for(Size i = 0; i<min_size; ++i)
+    {
+      TEST_REAL_SIMILAR(spec[i].getPosition()[0],(exp[0][i]).getPosition()[0]);
+      TEST_EQUAL(spec[i].getIntensity(),(exp[0][i]).getIntensity());
+      }
+  }
 END_SECTION
 
-START_SECTION(UInt IndexConverter::operator(const UInt &type_id_a, const UInt &intensity_level_a, const UInt &intensity_level_parent, const UInt &number_intensity_levels))
+START_SECTION(void loadProbabilisticModel())
+NOT_TESTABLE
+END_SECTION
+
+
+
+START_SECTION([EXTRA]UInt IndexConverter::operator(const UInt &type_id_a, const UInt &intensity_level_a, const UInt &intensity_level_parent, const UInt &number_intensity_levels))
   AdvancedTheoreticalSpectrumGenerator::IndexConverter ind_conv;
   TEST_EQUAL(ind_conv(10,3,2,5), 263)
 END_SECTION
 
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork * tan_ptr = 0;
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork())
+START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork())
 tan_ptr = new AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork();
 TEST_NOT_EQUAL(tan_ptr, 0)
 END_SECTION
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::~TreeAugmentedNetwork())
+START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::~TreeAugmentedNetwork())
   delete tan_ptr;
 END_SECTION
 
 typedef AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork::TanEdge TanEdge;
 typedef std::vector<TanEdge>EdgeVector;
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(EdgeVector & edges))
 EdgeVector edges;
 TanEdge e1={1,2,-2.0};
 TanEdge e2={1,3,-5.0};
@@ -124,14 +141,12 @@ edges.push_back(e3);
 edges.push_back(e4);
 edges.push_back(e5);
 edges.push_back(e6);
-
 tan_ptr = new AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(edges);
-END_SECTION
 
 std::vector<Int>has_parent;
 std::vector<UInt>dfs_order;
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork void generateTree(std::vector<Int> &tree_structure))
+START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork void generateTree(std::vector<Int> &tree_structure))
 tan_ptr->generateTree(has_parent);
 TEST_EQUAL(has_parent.size(), 5)
 
@@ -150,7 +165,7 @@ TEST_EQUAL(dfs_order[2], 3)
 TEST_EQUAL(dfs_order[3], 2)
 END_SECTION
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
+START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork copy(*tan_ptr);
 std::vector<Int>copy_has_parent;
 std::vector<UInt>copy_dfs_order;
@@ -167,7 +182,7 @@ for(Size i=0; i<copy_dfs_order.size();++i)
   TEST_EQUAL(copy_dfs_order[i], dfs_order[i]);
 END_SECTION
 
-START_SECTION(AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork operator =(const AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
+START_SECTION([EXTRA]AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork operator =(const AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork & rhs))
 AdvancedTheoreticalSpectrumGenerator::TreeAugmentedNetwork copy;
 copy=*tan_ptr;
 

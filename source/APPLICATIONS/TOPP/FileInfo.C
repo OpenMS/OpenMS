@@ -78,16 +78,16 @@ namespace OpenMS
 		vector<PeptideIdentification> peptides;
 	};
 	
-	/// A little helper class to gather (and dump) some statistics from a std::vector<double>.  Uses statistical functions implemented in GSL.
+	/// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
 	struct SomeStatistics
 	{
 		/**@brief Initialize SomeStatistics from data.
 
 		@note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
 		*/
-		SomeStatistics & operator()(std::vector<double> &data)
+		SomeStatistics & operator()(vector<double> &data)
 		{
-			std::sort(data.begin(),data.end());
+			sort(data.begin(),data.end());
 			mean = gsl_stats_mean(&data.front(),1,data.size());
 			variance = gsl_stats_variance_m(&data.front(),1,data.size(),mean);
 			min = data.front();
@@ -104,13 +104,13 @@ namespace OpenMS
 	static ostream& operator << (ostream& os, const SomeStatistics& rhs)
 	{
 		return os <<
-			"  mean: " << rhs.mean << "\n"
-			"  min: " << rhs.min << "\n"
-			"  lower quartile: " << rhs.lowerq << "\n"
-			"  median: " << rhs.median << "\n"
-			"  upper quartile: " << rhs.upperq << "\n"
-			"  max: " << rhs.max << "\n"
-			"  variance: " << rhs.variance << '\n';
+			"  mean: " << rhs.mean << endl <<
+			"  min: " << rhs.min << endl <<
+			"  lower quartile: " << rhs.lowerq << endl <<
+			"  median: " << rhs.median << endl <<
+			"  upper quartile: " << rhs.upperq << endl <<
+			"  max: " << rhs.max << endl <<
+			"  variance: " << rhs.variance << endl;
 	}
 }
 
@@ -130,7 +130,7 @@ class TOPPFileInfo
 	{
 		registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML"));
-		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
+		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");
@@ -297,10 +297,10 @@ class TOPPFileInfo
 
 			os << "Number of features: " << feat.size() << endl
 				 << endl
-				 << "Ranges:\n"
-				 << "  retention time:  " << precisionWrapper(feat.getMin()[Peak2D::RT]) << " : " << precisionWrapper(feat.getMax()[Peak2D::RT]) << "\n"
-				 << "  mass-to-charge:  " << precisionWrapper(feat.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(feat.getMax()[Peak2D::MZ]) << "\n"
-				 << "  intensity:       " << precisionWrapper(feat.getMinInt()) << " : " << precisionWrapper(feat.getMaxInt()) << "\n"
+				 << "Ranges:" << endl
+				 << "  retention time:  " << precisionWrapper(feat.getMin()[Peak2D::RT]) << " : " << precisionWrapper(feat.getMax()[Peak2D::RT]) << endl
+				 << "  mass-to-charge:  " << precisionWrapper(feat.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(feat.getMax()[Peak2D::MZ]) << endl
+				 << "  intensity:       " << precisionWrapper(feat.getMinInt()) << " : " << precisionWrapper(feat.getMaxInt()) << endl
 				 << endl;
 
 			//Charge distribution
@@ -321,36 +321,31 @@ class TOPPFileInfo
 			ConsensusXMLFile().load(in,cons);
 			cons.updateRanges();
 
-			std::map<Size,UInt> num_consfeat_of_size;
+			map<Size,UInt> num_consfeat_of_size;
 			for ( ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit )
 			{
 				++num_consfeat_of_size[cmit->size()];
 			}
 
-			os <<
-				"\n"
-				"Number of consensus features:" << std::endl;
-			for ( std::map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+			os << endl << "Number of consensus features:" << endl;
+			for ( map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
 			{
-				os << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
+				os << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
 			}
-			os << "  total:      " << std::setw(6) << cons.size() << '\n';
+			os << "  total:      " << setw(6) << cons.size() << endl;
 
-			os <<
-				"\n"
-				"Ranges:\n"
-				"  retention time:  " << precisionWrapper(cons.getMin()[Peak2D::RT]) << " : " << precisionWrapper(cons.getMax()[Peak2D::RT]) << "\n"
-				"  mass-to-charge:  " << precisionWrapper(cons.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(cons.getMax()[Peak2D::MZ]) << "\n"
-				"  intensity:       " << precisionWrapper(cons.getMinInt()) << " : " << precisionWrapper(cons.getMaxInt()) <<
-				std::endl;
+			os << endl <<
+				"Ranges:" << endl <<
+				"  retention time:  " << precisionWrapper(cons.getMin()[Peak2D::RT]) << " : " << precisionWrapper(cons.getMax()[Peak2D::RT]) << endl <<
+				"  mass-to-charge:  " << precisionWrapper(cons.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(cons.getMax()[Peak2D::MZ]) << endl <<
+				"  intensity:       " << precisionWrapper(cons.getMinInt()) << " : " << precisionWrapper(cons.getMaxInt()) << endl;
 
 			//file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
 			if (descs.size()!=0)
 			{
-				os <<
-					"\n"
-					"File descriptions:\n";
+				os << endl <<
+					"File descriptions:" << endl;
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
 				{
 					os << " - " << it->second.filename << endl
@@ -452,7 +447,7 @@ class TOPPFileInfo
 				{
 					spacing.push_back(exp[i][j].getMZ()-exp[i][j-1].getMZ());
 				}
-				std::sort(spacing.begin(),spacing.end());
+				sort(spacing.begin(),spacing.end());
 				os << "estimated raw data spacing: " << spacing[spacing.size()/2] << " (min: " << spacing[0] << " max: " << spacing.back() << ")" << endl;
 			}
 			os << endl;
@@ -463,11 +458,13 @@ class TOPPFileInfo
 
 			os << "Number of peaks: " << exp.getSize() << endl
 				 << endl
-				 << "Ranges:\n"
-				 << "  retention time:  " << precisionWrapper(exp.getMinRT()) << " : " << precisionWrapper(exp.getMaxRT()) << "\n"
-				 << "  mass-to-charge:  " << precisionWrapper(exp.getMinMZ()) << " : " << precisionWrapper(exp.getMaxMZ()) << "\n"
-				 << "  intensity:       " << precisionWrapper(exp.getMinInt()) << " : " << precisionWrapper(exp.getMaxInt()) << "\n"
-				 << "MS levels: ";
+				 << "Ranges:" << endl
+				 << "  retention time:  " << precisionWrapper(exp.getMinRT()) << " : " << precisionWrapper(exp.getMaxRT()) << endl
+				 << "  mass-to-charge:  " << precisionWrapper(exp.getMinMZ()) << " : " << precisionWrapper(exp.getMaxMZ()) << endl
+				 << "  intensity:       " << precisionWrapper(exp.getMinInt()) << " : " << precisionWrapper(exp.getMaxInt()) << endl
+				 << endl;
+				 
+			os << "MS levels: ";
 			if (levels.size()!=0)
 			{
 				os << *(levels.begin());
@@ -476,7 +473,7 @@ class TOPPFileInfo
 					os << ", " << *it;
 				}
 			}
-			os << endl << endl;
+			os << endl;
 
 			//count how many spectra per MS level there are
 			vector<UInt> counts(5);
@@ -500,6 +497,30 @@ class TOPPFileInfo
 				for (i=0; i<it->getFloatDataArrays().size();++i)
 				{
 					String name = it->getFloatDataArrays()[i].getName();
+					if (meta_names.has(name))
+					{
+						meta_names[name]++;
+					}
+					else
+					{
+						meta_names[name] = 1;
+					}
+				}
+				for (i=0; i<it->getIntegerDataArrays().size();++i)
+				{
+					String name = it->getIntegerDataArrays()[i].getName();
+					if (meta_names.has(name))
+					{
+						meta_names[name]++;
+					}
+					else
+					{
+						meta_names[name] = 1;
+					}
+				}
+				for (i=0; i<it->getStringDataArrays().size();++i)
+				{
+					String name = it->getStringDataArrays()[i].getName();
 					if (meta_names.has(name))
 					{
 						meta_names[name]++;
@@ -547,21 +568,21 @@ class TOPPFileInfo
 				//RTs sorted?
 				if (!exp.isSorted(false))
 				{
-					os << "Error: Spectrum retention times are not sorted in ascending order" << std::endl;
+					os << "Error: Spectrum retention times are not sorted in ascending order" << endl;
 				}
-				std::vector<DoubleReal> ms1_rts;
+				vector<DoubleReal> ms1_rts;
 				ms1_rts.reserve(exp.size());
 				for (Size s=0; s<exp.size();++s)
 				{
 					//ms level = 0
 					if (exp[s].getMSLevel()==0)
 					{
-						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
 					//scan size = 0
 					if (exp[s].size()==0)
 					{
-						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
 					//duplicate meta data array names
 					Map<String,int> names;
@@ -570,7 +591,31 @@ class TOPPFileInfo
 						String name = exp[s].getFloatDataArrays()[m].getName();
 						if (names.has(name))
 						{
-							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						}
+						else
+						{
+							names[name] = 0;
+						}
+					}
+					for (Size m=0; m<exp[s].getIntegerDataArrays().size(); ++m)
+					{
+						String name = exp[s].getIntegerDataArrays()[m].getName();
+						if (names.has(name))
+						{
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						}
+						else
+						{
+							names[name] = 0;
+						}
+					}
+					for (Size m=0; m<exp[s].getStringDataArrays().size(); ++m)
+					{
+						String name = exp[s].getStringDataArrays()[m].getName();
+						if (names.has(name))
+						{
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 						}
 						else
 						{
@@ -581,10 +626,10 @@ class TOPPFileInfo
 					if (exp[s].getMSLevel()==1) ms1_rts.push_back(exp[s].getRT());
 				}
 				//duplicate scans (part 2)
-				std::sort(ms1_rts.begin(), ms1_rts.end());
+				sort(ms1_rts.begin(), ms1_rts.end());
 				for (Size i=1; i<ms1_rts.size(); ++i)
 				{
-					if (ms1_rts[i-1]==ms1_rts[i]) os << "Error: Duplicate spectrum retention time: " << ms1_rts[i] << std::endl;
+					if (ms1_rts[i-1]==ms1_rts[i]) os << "Error: Duplicate spectrum retention time: " << ms1_rts[i] << endl;
 				}
 				//check peaks
 				for (Size s=0; s<exp.size();++s)
@@ -592,25 +637,25 @@ class TOPPFileInfo
 					//peaks sorted?
 					if (!exp[s].isSorted())
 					{
-						os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
-					std::vector<DoubleReal> mzs;
+					vector<DoubleReal> mzs;
 					mzs.reserve(exp[s].size());
 					for (Size p=0; p<exp[s].size();++p)
 					{
 						//negative intensity
 						if (exp[s][p].getIntensity()<0.0)
 						{
-							os << "Warning: Negative peak intensity peak (RT: " << exp[s].getRT() << " MZ: " << exp[s][p].getMZ() << " intensity: " << exp[s][p].getIntensity() << ")" << std::endl;
+							os << "Warning: Negative peak intensity peak (RT: " << exp[s].getRT() << " MZ: " << exp[s][p].getMZ() << " intensity: " << exp[s][p].getIntensity() << ")" << endl;
 						}
 						//duplicate m/z (part 1)
 						mzs.push_back(exp[s][p].getMZ());
 					}
 					//duplicate m/z (part 2)
-					std::sort(mzs.begin(), mzs.end());
+					sort(mzs.begin(), mzs.end());
 					for (Size i=1; i<mzs.size(); ++i)
 					{
-						if (mzs[i-1]==mzs[i]) os << "Error: Duplicate peak m/z " << mzs[i] << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						if (mzs[i-1]==mzs[i]) os << "Error: Duplicate peak m/z " << mzs[i] << " in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
 				}
 			}
@@ -760,16 +805,16 @@ class TOPPFileInfo
 			{
 				Size size = feat.size();
 
-				std::vector<double> intensities;
+				vector<double> intensities;
 				intensities.reserve(size);
 
-				std::vector<double> overallqualities;
+				vector<double> overallqualities;
 				overallqualities.reserve(size);
 
-				std::vector<double> mz_qualities;
+				vector<double> mz_qualities;
 				mz_qualities.reserve(size);
 
-				std::vector<double> rt_qualities;
+				vector<double> rt_qualities;
 				rt_qualities.reserve(size);
 
 				for (FeatureMap<>::const_iterator fm_iter = feat.begin();
@@ -784,41 +829,41 @@ class TOPPFileInfo
 				}
 
 				os.precision(writtenDigits<>(Feature::IntensityType() ));
-				os << "Intensities:\n" << some_statistics(intensities) << endl;
+				os << "Intensities:" << endl << some_statistics(intensities) << endl;
 
 				os.precision(writtenDigits<>(Feature::QualityType() ));
-				os << "Overall qualities:\n" << some_statistics(overallqualities) << endl;
+				os << "Overall qualities:" << endl << some_statistics(overallqualities) << endl;
 
 				os.precision(writtenDigits<>(Feature::QualityType()));
-				os << "Qualities in retention time dimension:\n" << some_statistics(rt_qualities) << endl;
+				os << "Qualities in retention time dimension:" << endl << some_statistics(rt_qualities) << endl;
 
 				os.precision(writtenDigits<>(Feature::QualityType()));
-				os << "Qualities in mass-to-charge dimension:\n" << some_statistics(mz_qualities) << endl;
+				os << "Qualities in mass-to-charge dimension:" << endl << some_statistics(mz_qualities) << endl;
 
 			}
 			else if (in_type==FileTypes::CONSENSUSXML) //consensus features
 			{
 				Size size = cons.size();
 
-				std::vector<double> intensities;
+				vector<double> intensities;
 				intensities.reserve(size);
 
-				std::vector<double> qualities;
+				vector<double> qualities;
 				qualities.reserve(size);
 
-				std::vector<double> rt_delta_by_elems;
-				std::vector<double> rt_aad_by_elems;
-				std::vector<double> rt_aad_by_cfs;
+				vector<double> rt_delta_by_elems;
+				vector<double> rt_aad_by_elems;
+				vector<double> rt_aad_by_cfs;
 				rt_aad_by_cfs.reserve(size);
 
-				std::vector<double> mz_delta_by_elems;
-				std::vector<double> mz_aad_by_elems;
-				std::vector<double> mz_aad_by_cfs;
+				vector<double> mz_delta_by_elems;
+				vector<double> mz_aad_by_elems;
+				vector<double> mz_aad_by_cfs;
 				mz_aad_by_cfs.reserve(size);
 
-				std::vector<double> it_delta_by_elems;
-				std::vector<double> it_aad_by_elems;
-				std::vector<double> it_aad_by_cfs;
+				vector<double> it_delta_by_elems;
+				vector<double> it_aad_by_elems;
+				vector<double> it_aad_by_cfs;
 				it_aad_by_cfs.reserve(size);
 
 				for ( ConsensusMap::const_iterator cm_iter = cons.begin();
@@ -864,25 +909,25 @@ class TOPPFileInfo
 				}
 
 				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				os << "Intensities of consensus features:\n" << some_statistics(intensities) << endl;
+				os << "Intensities of consensus features:" << endl << some_statistics(intensities) << endl;
 
 				os.precision(writtenDigits(ConsensusFeature::QualityType()));
-				os << "Qualities of consensus features:\n" << some_statistics(qualities) << endl;
+				os << "Qualities of consensus features:" << endl << some_statistics(qualities) << endl;
 
 				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				os << "Retention time differences ( element-center, weight 1 per element):\n" << some_statistics(rt_delta_by_elems) << endl;
-				os << "Absolute retention time differences ( |element-center|, weight 1 per element):\n" << some_statistics(rt_aad_by_elems) << endl;
-				os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(rt_aad_by_cfs) << endl;
+				os << "Retention time differences ( element-center, weight 1 per element):" << endl << some_statistics(rt_delta_by_elems) << endl;
+				os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << some_statistics(rt_aad_by_elems) << endl;
+				os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(rt_aad_by_cfs) << endl;
 
 				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				os << "Mass-to-charge differences ( element-center, weight 1 per element):\n" << some_statistics(mz_delta_by_elems) << std::endl;
-				os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):\n" << some_statistics(mz_aad_by_elems) << std::endl;
-				os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(mz_aad_by_cfs) << std::endl;
+				os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << some_statistics(mz_delta_by_elems) << endl;
+				os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << some_statistics(mz_aad_by_elems) << endl;
+				os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(mz_aad_by_cfs) << endl;
 
 				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				os << "Intensity ratios ( element/center, weight 1 per element):\n" << some_statistics(it_delta_by_elems) << std::endl;
-				os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):\n" << some_statistics(it_aad_by_elems) << std::endl;
-				os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):\n" << some_statistics(it_aad_by_cfs) << std::endl;
+				os << "Intensity ratios ( element/center, weight 1 per element):" << endl << some_statistics(it_delta_by_elems) << endl;
+				os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << some_statistics(it_aad_by_elems) << endl;
+				os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << some_statistics(it_aad_by_cfs) << endl;
 
 			}
 			else if (in_type==FileTypes::IDXML) //identifications
@@ -894,7 +939,7 @@ class TOPPFileInfo
 				//copy intensities of  MS-level 1 peaks
 				exp.updateRanges(1);
 				Size size = exp.getSize();
-				std::vector<double> intensities;
+				vector<double> intensities;
 				intensities.reserve(size);
 				for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
 				{
@@ -910,7 +955,7 @@ class TOPPFileInfo
 
 				sort(intensities.begin(),intensities.end());
 				os.precision(writtenDigits(Peak1D::IntensityType()));
-				os << "Intensities:\n" << some_statistics(intensities) << endl;
+				os << "Intensities:" << endl << some_statistics(intensities) << endl;
 
 				//Statistics for meta information
 				for (Map<String,int>::ConstIterator it=meta_names.begin();it!=meta_names.end();++it)
@@ -924,10 +969,19 @@ class TOPPFileInfo
 						for (Size meta=0; meta<spec->getFloatDataArrays().size(); ++meta)
 						{
 							if (spec->getFloatDataArrays()[meta].getName()!=name) continue;
-							for (Size peak=0; peak < spec->size(); ++peak)
+							for (Size peak=0; peak < spec->getFloatDataArrays()[meta].size(); ++peak)
 							{
 								m_values.push_back(spec->getFloatDataArrays()[meta][peak]);
 								sum += spec->getFloatDataArrays()[meta][peak];
+							}
+						}
+						for (Size meta=0; meta<spec->getIntegerDataArrays().size(); ++meta)
+						{
+							if (spec->getIntegerDataArrays()[meta].getName()!=name) continue;
+							for (Size peak=0; peak < spec->getIntegerDataArrays()[meta].size(); ++peak)
+							{
+								m_values.push_back(spec->getIntegerDataArrays()[meta][peak]);
+								sum += spec->getIntegerDataArrays()[meta][peak];
 							}
 						}
 					}

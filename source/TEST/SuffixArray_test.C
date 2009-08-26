@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -69,7 +69,7 @@ START_SECTION((virtual String toString()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, DoubleReal > > > &candidates, const std::vector< DoubleReal > &spec)=0))
 {
   NOT_TESTABLE
 }
@@ -87,13 +87,13 @@ START_SECTION((virtual bool open(const String &filename)=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setTolerance(double t)=0))
+START_SECTION((virtual void setTolerance(DoubleReal t)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual double getTolerance() const =0))
+START_SECTION((virtual DoubleReal getTolerance() const =0))
 {
   NOT_TESTABLE
 }

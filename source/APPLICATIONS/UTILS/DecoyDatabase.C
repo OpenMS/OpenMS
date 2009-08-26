@@ -38,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page DecoyDatabase DecoyDatabase
+	@page UTILS_DecoyDatabase DecoyDatabase
 	
-	@brief This small utility can create decoy databases used for decoy database searches.
+	@brief Create decoy peptide databases from normal ones.
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_DecoyDatabase.cli
@@ -54,7 +54,7 @@ class TOPPDecoyDatabase
 {
 	public:
 		TOPPDecoyDatabase()
-			: TOPPBase("DecoyDatabase","Create decoy databases from normal ones", false)
+			: TOPPBase("DecoyDatabase","Create decoy peptide databases from normal ones.", false)
 		{
 			
 		}

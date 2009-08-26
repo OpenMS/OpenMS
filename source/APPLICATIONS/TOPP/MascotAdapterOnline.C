@@ -27,24 +27,15 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
-#include <OpenMS/FORMAT/MascotInfile2.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <sstream>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -89,10 +80,10 @@ class TOPPMascotAdapterOnline
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
-					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
-			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
+			registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
+			setValidFormats_("in", StringList::create("mzML"));
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n");
+			setValidFormats_("out", StringList::create("idXML"));
 
 			registerSubsection_("Mascot_server", "Mascot server details");
 			registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
@@ -108,7 +99,7 @@ class TOPPMascotAdapterOnline
 
 			if (section == "Mascot_parameters")
 			{
-				MascotInfile2 mascot_infile;
+				MascotGenericFile mascot_infile;
 				return mascot_infile.getParameters();
 			}
 
@@ -139,10 +130,11 @@ class TOPPMascotAdapterOnline
       //-------------------------------------------------------------
 
 			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-      MascotInfile2 mascot_infile;
+      MascotGenericFile mascot_infile;
 			mascot_infile.setParameters(mascot_param);
 
 			// get the spectra into string stream
+			writeDebug_("Writing Mascot mgf file to stringstream", 1);
 			stringstream ss;
 			mascot_infile.store(ss, in, exp);
 
@@ -153,7 +145,9 @@ class TOPPMascotAdapterOnline
 			QCoreApplication event_loop(argc, argv2);
 			MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
 			Param mascot_query_param = getParam_().copy("Mascot_server:", true);
+			writeDebug_("Setting parameters for Mascot query", 1);
 			mascot_query->setParameters(mascot_query_param);
+			writeDebug_("Setting spectra for Mascot query", 1);
 			mascot_query->setQuerySpectra(ss.str());
 
 			// remove unnecessary spectra
@@ -161,7 +155,9 @@ class TOPPMascotAdapterOnline
 
 		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
 			QTimer::singleShot(1000, mascot_query, SLOT(run()));
+			writeDebug_("Fire off Mascot query", 1);
 			event_loop.exec();
+			writeDebug_("Mascot query finished", 1);
 
 			if (mascot_query->hasError())
 			{

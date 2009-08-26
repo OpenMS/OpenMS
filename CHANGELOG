@@ -6,58 +6,84 @@ Main improvements of TOPPView:
 - Added new labeling options for feature data
 - Fixed crash when zooming in snap-mode
 - Added context menu to spectra selection bar
+- Feature editing mode can be enabled/disabled in the context menu (to avoid accidental editing)
 - Several minor fixes and improvements
 
 Main improvements of TOPP:
 - Made mzML 1.1.0 the default format for all TOPP tools
-- Added data processing information to all output files to improve tracability
-- FileFilter: added 'sort_peaks' option
+- Added data processing information to all output files to improve traceability
+- FileFilter: 
+  - added 'sort_peaks' option
+  - added filtering according to scan type
+  - added filtering according to activation type
 - FileInfo: 
   - added flag for data processing output
   - corrupt data checks: sorting is checked now, improved speed
 - Added new tool IDFileConverter, which can convert between identification file formats
+- Added TOPPAS, a tool for visual creation and execution of TOPP pipelines (beta)
+- TextImporter can now import SpecArray and msInspect feature files
+- Added CompNovo, a de novo identification tool for combined CID/ETD experiments
+- MapAligner uses a new algorithm for pose clustering with less parameters
+
+Main improvements of UTILS:
+- Added PeptideIndexer, assign proteins to peptides including target/decoy specification
+- Added MRMPairFinder, ERPairFinder to extract ratios of labeled experiments
+- Added IDMassAccurracy, given mzML files and identification, it calculates distributions of mass deviations
+- Added MapAlignmentEvaluation, a tool to evaluate alignment results
+- Added MSSimulator, a highly configurable simulator for mass spectrometry experiments
 
 Main improvements of OpenMS C++ library:
 - mzML 1.1.0 support
-
-Changes to OpenMS XML formats:
-
+- Improved the precision of mass values in several file formats
+  
 Detailed list of changes to specific OpenMS classes
-- New classes
-- Removed classes
+- New classes:
+  - CompNovo-classes
+  - StablePairFinder, which is now used by MapAligner and FeatureLinker
+  - Simulation-classes
+- Removed classes:
   - FeatureFinderAlgorithmWatershed
   - PeakIcon
   - FactoryProduct (replaced by DefaultParamHandler)
   - DSpectrum (all the functionalty was moved to MSSpectrum)
-- Renamed and moved classes
-  - Moved PersistentObject from FORMAT/ to FORMAT/DB/
-  - Renamed PepXMLFile to PepXMLFileMascot
-- Changes to Classes
+- Renamed and moved classes:
+  - moved PersistentObject from FORMAT/ to FORMAT/DB/
+  - renamed PepXMLFile to PepXMLFileMascot
+- Changes to Classes:
   - MSExperiment: added 'isSorted' method
-  - MSSpectrum
+  - MSSpectrum:
     - added 'isSorted' method
     - renamed MetaDataArray to FloatDataArray
-    - added StringDataArray
-  - DataValue: added constructor for std::string and QString
-  - MetaInfo: setValue method takes only DataValue now
-  - MetaInfoInterface: setMetaValue method takes only DataValue now
-  - Param: setValue method takes only DataValue now
-  - ExperimentalSettings: Moved DataProcessing to SpectrumSettings (for mzML)
+    - added IntegerDataArrays
+    - added StringDataArrays
+  - DataValue: added constructor for 'std::string' and QString
+  - MetaInfo: 'setValue' method takes only DataValue now
+  - MetaInfoInterface: 'setMetaValue' method takes only DataValue now
+  - Param: 'setValue' method takes only DataValue now
+  - ExperimentalSettings: moved DataProcessing to SpectrumSettings (for mzML)
   - Precursor: supports multiple dissociation methods now (for mzML)
   - MetaInfoDescription: removed comment and source file; added data processing (for MzML)
-  - ElementDB: Isotopes are now possible
-  - EmpiricalFormula: Isotopes are now possible (e.g. (2)HO for deuterium)
-  - PepXMLFile: added new load method (moved the old load method to PepXMLFileMascot)
-  - TextFile
+  - ElementDB: isotopes are now possible
+  - EmpiricalFormula: isotopes are now possible (e.g. (2)H for deuterium)
+  - ModificationsDB: switched completely to UniMod (www.unimod.org). PSI-MOD still provided for convenience
+  - PepXMLFile: added new 'load' method (moved the old 'load' method to PepXMLFileMascot)
+  - TextFile:
     - is now derived from StringList
-    - the asString() method was replaced by concatenate() from StringList
-  - MzMLFile: 
-    - Added support for integer and string binary arrays
-    - Added support for compressed binary data arrays 
-    - Loading a file with unknown CV terms in certain tags no longer causes an error
+    - the 'asString' method was replaced by 'concatenate' from StringList
+  - MzMLFile:
+    - added support for integer and string binary arrays
+    - added support for compressed binary data arrays 
+    - loading a file with unknown CV terms in certain tags no longer causes an error
+  - DBConnection:
+    - The 'executeQuery' method no longer sets the internal pointer to the first record of the result.
+      It is now positioned before the first record. A boolean flag can be used to switch to the old behaviour.
+  - SourceFile: changed native ID type to string
+  - PoseClusteringAffineSuperimposer: full rewrite, not using CGAL
 
 Changes to the contrib package:
 - Added CoinMP 1.3.3
+- Added IMSlib 0.1.0
+- Update Xerces-C to revision 806068 of SVN trunk
 
 Bug fixes:
 - [2778461]: mzData files containing 'supDataArray' elements no longer crash OpenMS 

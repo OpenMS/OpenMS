@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
@@ -36,20 +36,19 @@ namespace OpenMS
 {
 	/**
 		@brief A map alignment algorithm based on pose clustering.
-		
+
 		Pose clustering analyses pair distances to find the most probable transformation of retention times.
 
 		For further details see:
 		@n Eva Lange et.al
 		@n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
-		@n ISMB/ECCB 2007 
+		@n ISMB/ECCB 2007
 
 	  @htmlinclude OpenMS_MapAlignmentAlgorithmPoseClustering.parameters
 
 		@ingroup MapAlignment
 
 		@todo write test, work out the TODOs (Clemens)
-		@todo Add progress reporting (Clemens)
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering
 		: public MapAlignmentAlgorithm
@@ -63,22 +62,22 @@ namespace OpenMS
 
 		// Docu in base class
 		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
-				
+
 		// Docu in base class
 		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
-			
+
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
 		{
 			return new MapAlignmentAlgorithmPoseClustering();
 		}
-			
+
 		/// Returns the product name (for the Factory)
 		static String getProductName()
 		{
 			return "pose_clustering_affine";
 		}
-			
+
 	 protected:
 
 		/**
@@ -86,12 +85,12 @@ namespace OpenMS
 			features which contain feature handles from the x and the y map.  If there
 			is only one pair, assume slope is one and set intercept accordingly.  If
 			there is no pair at all, throw an exception.
-	
+
 			@throw Exception::Precondition if no consensus feature contains feature
 			handles from both maps
 		*/
 		TransformationDescription calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
-		
+
 	 private:
 
 		/// Copy constructor intentionally not implemented -> private
