@@ -1906,6 +1906,7 @@ namespace OpenMS
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
 		tools_map["OMSSAAdapter"] = StringList::create("");
 		tools_map["PILISModel"] = StringList::create("");
+		tools_map["PILISIdentification"] = StringList::create("");
 		tools_map["PTModel"] = StringList::create("");
 		tools_map["PTPredict"] = StringList::create("");
 		tools_map["PeakPicker"] = StringList::create("wavelet,high_res");
