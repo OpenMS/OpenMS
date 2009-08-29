@@ -63,7 +63,7 @@ START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 END_SECTION
 
-START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Size charge=0)))
+START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge=0)))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)
@@ -197,12 +197,12 @@ START_SECTION(bool hasElement(const Element* element) const)
 	TEST_EQUAL(e_ptr->hasElement(e), false)
 END_SECTION
 
-START_SECTION(void setCharge(Size charge))
+START_SECTION(void setCharge(SignedSize charge))
 	e_ptr->setCharge(1);
 	NOT_TESTABLE // will be tested in next check
 END_SECTION
 
-START_SECTION(Size getCharge() const)
+START_SECTION(SignedSize getCharge() const)
 	TEST_EQUAL(e_ptr->getCharge(), 1)
 	EmpiricalFormula ef1("C2+");
 	TEST_EQUAL(ef1.getCharge(), 1)
@@ -304,6 +304,37 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
 	{
 		TEST_REAL_SIMILAR(it->second, result[i])
 	}
+END_SECTION
+
+START_SECTION(([EXTRA] Check correct charge semantics))
+	EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
+	TEST_EQUAL(ef1.getNumberOf("H"), 4)
+	TEST_EQUAL(ef1.getNumberOf("C"), 1)
+	TEST_EQUAL(ef1.getCharge(), 1)
+	EmpiricalFormula ef2("H4C1+"); // ""
+  TEST_EQUAL(ef2.getNumberOf("H"), 4)
+  TEST_EQUAL(ef2.getNumberOf("C"), 1)
+  TEST_EQUAL(ef2.getCharge(), 1)
+	EmpiricalFormula ef3("H4C-1+"); // C-1 H4 +1 charge
+  TEST_EQUAL(ef3.getNumberOf("H"), 4)
+  TEST_EQUAL(ef3.getNumberOf("C"), -1)
+  TEST_EQUAL(ef3.getCharge(), 1)
+	EmpiricalFormula ef4("H4C-1"); // C-1 H4 0 charge
+  TEST_EQUAL(ef4.getNumberOf("H"), 4)
+  TEST_EQUAL(ef4.getNumberOf("C"), -1)
+  TEST_EQUAL(ef4.getCharge(), 0)
+	EmpiricalFormula ef5("H4C1-1"); // C1 H4 -1 charge
+  TEST_EQUAL(ef5.getNumberOf("H"), 4)
+  TEST_EQUAL(ef5.getNumberOf("C"), 1)
+  TEST_EQUAL(ef5.getCharge(), -1)
+	EmpiricalFormula ef6("H4C-1-1"); // C-1 H4 -1 charge
+  TEST_EQUAL(ef6.getNumberOf("H"), 4)
+  TEST_EQUAL(ef6.getNumberOf("C"), -1)
+  TEST_EQUAL(ef6.getCharge(), -1)
+	EmpiricalFormula ef7("H4C-1-"); // C-1 H4 -1 charge
+  TEST_EQUAL(ef7.getNumberOf("H"), 4)
+  TEST_EQUAL(ef7.getNumberOf("C"), -1)
+  TEST_EQUAL(ef7.getCharge(), -1)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

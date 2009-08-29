@@ -49,7 +49,10 @@ namespace OpenMS
 			The symbol or name is followed by a number. If not, the frequency is set to one. Examples 
 			are CH3OH or CarbonHydrogen3OH. The names must start with an capital letter (symbols always have
 		 	an upper-case letter at the beginning). Additionally charges can be used with '+' followed by 
-			a number, if no number follows the charge of +1 is set.
+			a number, if no number follows the charge of +1 is set. Negative charges can be added using a '-' 
+			sign. However, negative charges are only set if the last element in the string also has a number. 
+			E.g. H4C-1, does not set a negative charge, only -1 Carbon atoms, correctly it should be stated
+			H4C-1-.
 
 			This class also supports the usage of specific isotopes. By default "C" describes not one isotope
 			but a natural distribution or different isotopes. This distribution can be accessed via the 
@@ -93,7 +96,7 @@ namespace OpenMS
 			EmpiricalFormula(const String& rhs);
 
 			/// constructor with element pointer and number
-			EmpiricalFormula(SignedSize number, const Element* element, Size charge = 0);
+			EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
 
 			/// destructor
 			virtual ~EmpiricalFormula();
@@ -137,10 +140,10 @@ namespace OpenMS
 			Size getNumberOfAtoms() const;
 
 			/// returns the charge
-			Size getCharge() const;
+			SignedSize getCharge() const;
 
 			/// sets the charge
-			void setCharge(Size charge);
+			void setCharge(SignedSize charge);
 
 			/// returns the formula as a string
 			String getString() const;
@@ -179,29 +182,21 @@ namespace OpenMS
 			*/
 			EmpiricalFormula operator + (const String& rhs) const;
 
-			/** subtracts the elements of a formula
-
-					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
-			*/
+			/// subtracts the elements of a formula
 			EmpiricalFormula& operator -= (const EmpiricalFormula& rhs);
 
 			/** subtracts the elements of a formula given as string
 			
 					@throw throws ParseError if the formula cannot be parsed
-					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
 			*/
 			EmpiricalFormula& operator -= (const String& rhs);
 
-			/** subtracts the elements of a formula an returns a new formula
-
-					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
-			*/
+			/// subtracts the elements of a formula an returns a new formula
 			EmpiricalFormula operator - (const EmpiricalFormula& rhs) const;
 
 			/** subtracts the elements of a formula given as a String and returns a new formula
 
 					@throw throws ParseError if the formula cannot be parsed
-					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
 			*/
 			EmpiricalFormula operator - (const String& rhs) const;
 			//@}
@@ -258,11 +253,11 @@ namespace OpenMS
 
 			Map<const Element*, SignedSize> formula_;
 
-			Size charge_;
+			SignedSize charge_;
 
 			void readElementsFromFile_(const String& file_name);
 
-			Size parseFormula_(Map<const Element*, SignedSize>& ef,const String& formula) const;
+			SignedSize parseFormula_(Map<const Element*, SignedSize>& ef,const String& formula) const;
 
 			const ElementDB* element_db_;
 	};

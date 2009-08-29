@@ -55,7 +55,7 @@ namespace OpenMS
 		charge_ = parseFormula_(formula_, formula);
 	}
 
-	EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, Size charge)
+	EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge)
 	{
 		formula_[element] = number;
 		charge_ = charge;
@@ -68,7 +68,10 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getMonoWeight() const
 	{
 		DoubleReal weight(0);
-		weight += Constants::PROTON_MASS_U * charge_;
+		if (charge_ > 0)
+		{
+			weight += Constants::PROTON_MASS_U * charge_;
+		}
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
@@ -80,7 +83,10 @@ namespace OpenMS
 	DoubleReal EmpiricalFormula::getAverageWeight() const 
 	{
 		DoubleReal weight(0);
-		weight += Constants::PROTON_MASS_U * charge_;
+		if (charge_ > 0)
+		{
+			weight += Constants::PROTON_MASS_U * charge_;
+		}
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
@@ -162,12 +168,12 @@ namespace OpenMS
 		return num_atoms;
 	}
 	
-	void EmpiricalFormula::setCharge(Size charge)
+	void EmpiricalFormula::setCharge(SignedSize charge)
 	{
 		charge_ = charge;
 	}
 	
-	Size EmpiricalFormula::getCharge() const
+	SignedSize EmpiricalFormula::getCharge() const
 	{
 		return charge_;
 	}
@@ -242,7 +248,7 @@ namespace OpenMS
 	EmpiricalFormula EmpiricalFormula::operator + (const String& formula) const
 	{
 		EmpiricalFormula ef;
-		Size charge = parseFormula_(ef.formula_, formula);
+		SignedSize charge = parseFormula_(ef.formula_, formula);
 		Map<const Element*, SignedSize>::ConstIterator it=formula_.begin();
 		for (;it!=formula_.end();++it)
 		{
@@ -280,7 +286,7 @@ namespace OpenMS
 	EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
 	{
 		Map<const Element*, SignedSize> str_formula;
-		Size charge = parseFormula_(str_formula, formula);
+		SignedSize charge = parseFormula_(str_formula, formula);
 		charge_ += charge;
 		Map<const Element*, SignedSize>::ConstIterator it;
 		for (it=str_formula.begin(); it!=str_formula.end(); ++it)
@@ -299,7 +305,7 @@ namespace OpenMS
 	
 	EmpiricalFormula EmpiricalFormula::operator - (const EmpiricalFormula& formula) const
 	{
-		EmpiricalFormula ef;
+		EmpiricalFormula ef(*this);
 		Map<const Element*, SignedSize>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
 		{
@@ -307,9 +313,13 @@ namespace OpenMS
 			SignedSize num = it->second;
 			if (formula_.has(e))
 			{
-				if (formula_[e] - num != 0)
+				if (ef.formula_[e] - num != 0)
 				{
-					ef.formula_[e] = formula_[e] - num;
+					ef.formula_[e] -= num;
+				}
+				else
+				{
+					ef.formula_.erase(e);
 				}
 			}
 			else
@@ -318,51 +328,14 @@ namespace OpenMS
 			}
 		}
 
-		for (it=formula_.begin();it!=formula_.end();++it)
-		{
-			if (!ef.hasElement(it->first) && !formula.formula_.has(it->first))
-			{
-				ef.formula_[it->first] = it->second;
-			}
-		}
-		
 		ef.charge_ = charge_ - formula.charge_;
 		return ef;
 	}
 
 	EmpiricalFormula EmpiricalFormula::operator - (const String& formula) const
 	{
-		EmpiricalFormula ef;
-		Map<const Element*, SignedSize> str_formula;
-		Size charge = parseFormula_(str_formula, formula);
-		ef.charge_ = charge_ - charge;
-		Map<const Element*, SignedSize>::ConstIterator it=str_formula.begin();
-		for (; it!=str_formula.end(); ++it)
-		{
-			const Element * e = it->first;
-			SignedSize num = it->second;
-			if (formula_.has(e))
-			{
-				if (formula_[e] - num != 0)
-				{
-					ef.formula_[e] = formula_[e] - num;
-				}
-			}
-			else
-			{
-				ef.formula_[e] = -num;
-			}
-		}
-
-		for (it=formula_.begin();it!=formula_.end();++it)
-		{
-			if (!ef.hasElement(it->first) && !str_formula.has(it->first))
-			{
-				ef.formula_[it->first] = it->second;
-			}
-		}
-		
-		return ef;
+		EmpiricalFormula ef(formula);
+		return *this - ef;
 	}
 	
 	EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
@@ -393,7 +366,7 @@ namespace OpenMS
 	EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
 	{
 		Map<const Element*, SignedSize> str_formula;
-		Size charge = parseFormula_(str_formula, formula);
+		SignedSize charge = parseFormula_(str_formula, formula);
 		charge_ -= charge;
 		Map<const Element*, SignedSize>::ConstIterator it = str_formula.begin();
 		for (; it!=str_formula.end(); ++it)
@@ -472,7 +445,7 @@ namespace OpenMS
 	bool EmpiricalFormula::operator == (const String& formula) const
 	{
 		Map<const Element*, SignedSize> str_formula;
-		Size charge = parseFormula_(str_formula, formula);
+		SignedSize charge = parseFormula_(str_formula, formula);
 		return (formula_ == str_formula && charge_ == charge);
 	}
 	
@@ -484,7 +457,7 @@ namespace OpenMS
 	bool EmpiricalFormula::operator != (const String& formula) const
 	{
 		Map<const Element *, SignedSize> str_formula;
-		Size charge = parseFormula_(str_formula, formula);
+		SignedSize charge = parseFormula_(str_formula, formula);
 		return (formula_ != str_formula || charge_ != charge);
 	}
 	
@@ -504,7 +477,12 @@ namespace OpenMS
 				os << it->second;
 			}
 		}
-		if (formula.charge_ != 0)
+		if (formula.charge_ == 0)
+		{
+			return os;
+		}
+
+		if (formula.charge_ > 0)
 		{
 			if (formula.charge_ == 1)
 			{
@@ -512,25 +490,94 @@ namespace OpenMS
 			}
 			else
 			{
-				if (formula.charge_ == 1)
-				{
-					os << "+";
-				}
-				else
-				{
-					os << "+" << formula.charge_;
-				}
+				os << "+" << formula.charge_;
+			}
+		}
+		else
+		{
+			if (formula.charge_ == -1)
+			{
+				os << "-";
+			}
+			else
+			{
+				os << "-" << formula.charge_;
 			}
 		}
 		return os;
 	}
 
-	Size EmpiricalFormula::parseFormula_(Map<const Element*, SignedSize>& ef, const String& formula) const 
+	SignedSize EmpiricalFormula::parseFormula_(Map<const Element*, SignedSize>& ef, const String& input_formula) const 
 	{
-		Size charge = 0;
-		
-		String symbol;
-		String number;
+		SignedSize charge = 0;
+		String formula(input_formula), symbol, number;
+
+		// we start with the charge part, read until the begin of the formula or a element symbol occurs
+		String suffix;
+		for (String::const_reverse_iterator it = formula.rbegin(); it != formula.rend(); ++it)
+		{
+			if (!isalpha(*it))
+			{
+				suffix = *it + suffix;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		// determine charge
+		if (suffix.size() != 0)
+		{
+			String charge_part;
+			Size i = 1;
+			for (; i < suffix.size(); ++i)
+			{
+				if (!isdigit(suffix[i]))
+				{
+					break;
+				}
+			}
+			if (i != suffix.size())
+			{
+				// we found the charge part
+				String charge_str;
+				for (Size j = i + 1; j < suffix.size(); ++j)
+				{
+					charge_str += suffix[j];
+				}
+
+				SignedSize tmp_charge = 1;
+				if (charge_str.size() != 0)
+				{
+					tmp_charge = charge_str.toInt();
+				}
+				if (suffix[i] == '-')
+				{
+					charge = -1 * tmp_charge;
+				}
+				else
+				{
+					if (suffix[i] == '+')
+					{
+						charge = tmp_charge;
+					}
+					else
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "Cannot parse charge part of formula!");
+					}
+				}
+
+				// now remove the charge part from the formula
+				formula.resize(formula.size() - charge_str.size() - 1);
+			}
+
+			if (suffix.size() == 1 && suffix[0] == '+')
+			{
+				charge = 1;
+				formula.resize(formula.size() - 1);
+			}
+		}
 
 		// split the formula
 		vector<String> splitter;	
@@ -543,8 +590,7 @@ namespace OpenMS
 				for (Size i=0; i<formula.size(); ++i)
 				{
 					if ((isupper(formula[i]) && (!is_isotope || is_symbol))
-							|| formula[i] == '(' 
-							|| formula[i] == '+')
+							|| formula[i] == '(')
 					{
 						if (split != "")
 						{
@@ -575,10 +621,9 @@ namespace OpenMS
 			}
 		}
 
-		// add up the elements and charge
+		// add up the elements
 		for (Size i=0;i!=splitter.size();++i)
 		{
-			//cerr << "splitter[" << i << "]='" << splitter[i] << "'" << endl;
 			String split = splitter[i];
 			String number;
 			String symbol;
@@ -619,14 +664,7 @@ namespace OpenMS
 			}
 			else
 			{
-				if (symbol == "+")
-				{
-					charge += num;
-				}
-				else
-				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, split, symbol);
-				}
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, split, symbol);
 			}
 		}
 			
