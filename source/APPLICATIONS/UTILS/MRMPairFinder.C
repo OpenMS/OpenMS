@@ -298,7 +298,7 @@ class TOPPMRMPairFinder
 					}
 
 					DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (light_sum + heavy_sum);
-					cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios << endl;
+					cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/-" << absdev_ratios <<  " " << "(#scans for quantation=" + String(ratios.size()) + ")" << endl;
 				}
 			}
 

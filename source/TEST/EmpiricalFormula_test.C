@@ -335,6 +335,22 @@ START_SECTION(([EXTRA] Check correct charge semantics))
   TEST_EQUAL(ef7.getNumberOf("H"), 4)
   TEST_EQUAL(ef7.getNumberOf("C"), -1)
   TEST_EQUAL(ef7.getCharge(), -1)
+	EmpiricalFormula ef8("-"); // -1 Charge
+  TEST_EQUAL(ef8.getNumberOf("H"), 0)
+  TEST_EQUAL(ef8.getNumberOf("C"), 0)
+  TEST_EQUAL(ef8.getCharge(), -1)
+	EmpiricalFormula ef9("+"); // +1 Charge
+  TEST_EQUAL(ef9.getNumberOf("H"), 0)
+  TEST_EQUAL(ef9.getNumberOf("C"), 0)
+  TEST_EQUAL(ef9.getCharge(), 1)
+	EmpiricalFormula ef10("-3"); // -3 Charge
+  TEST_EQUAL(ef10.getNumberOf("H"), 0)
+  TEST_EQUAL(ef10.getNumberOf("C"), 0)
+  TEST_EQUAL(ef10.getCharge(), -3)
+	EmpiricalFormula ef11("+3"); // +3 Charge
+  TEST_EQUAL(ef11.getNumberOf("H"), 0)
+  TEST_EQUAL(ef11.getNumberOf("C"), 0)
+  TEST_EQUAL(ef11.getCharge(), 3)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

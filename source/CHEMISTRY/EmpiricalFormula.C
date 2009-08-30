@@ -30,7 +30,6 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <iostream>
 
 using namespace std;
 
@@ -514,11 +513,11 @@ namespace OpenMS
 
 		// we start with the charge part, read until the begin of the formula or a element symbol occurs
 		String suffix;
-		for (String::const_reverse_iterator it = formula.rbegin(); it != formula.rend(); ++it)
+		for (SignedSize reverse_i(formula.size() - 1); reverse_i >= 0; --reverse_i)
 		{
-			if (!isalpha(*it))
+			if (!isalpha(formula[reverse_i]))
 			{
-				suffix = *it + suffix;
+				suffix = formula[reverse_i] + suffix;
 			}
 			else
 			{
@@ -529,56 +528,75 @@ namespace OpenMS
 		// determine charge
 		if (suffix.size() != 0)
 		{
-			String charge_part;
-			Size i = 1;
-			for (; i < suffix.size(); ++i)
+		String charge_part;
+		Size i = 1;
+		for (; i < suffix.size(); ++i)
+		{
+			if (!isdigit(suffix[i]))
 			{
-				if (!isdigit(suffix[i]))
-				{
-					break;
-				}
+				break;
 			}
-			if (i != suffix.size())
+		}
+		if (i != suffix.size())
+		{
+			// we found the charge part
+			String charge_str;
+			for (Size j = i + 1; j < suffix.size(); ++j)
 			{
-				// we found the charge part
-				String charge_str;
-				for (Size j = i + 1; j < suffix.size(); ++j)
-				{
-					charge_str += suffix[j];
-				}
+				charge_str += suffix[j];
+			}
 
-				SignedSize tmp_charge = 1;
-				if (charge_str.size() != 0)
+			SignedSize tmp_charge = 1;
+			if (charge_str.size() != 0)
+			{
+				tmp_charge = charge_str.toInt();
+			}
+			if (suffix[i] == '-')
+			{
+				charge = -1 * tmp_charge;
+			}
+			else
+			{
+				if (suffix[i] == '+')
 				{
-					tmp_charge = charge_str.toInt();
-				}
-				if (suffix[i] == '-')
-				{
-					charge = -1 * tmp_charge;
+					charge = tmp_charge;
 				}
 				else
 				{
-					if (suffix[i] == '+')
-					{
-						charge = tmp_charge;
-					}
-					else
-					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "Cannot parse charge part of formula!");
-					}
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "Cannot parse charge part of formula!");
 				}
-
-				// now remove the charge part from the formula
-				formula.resize(formula.size() - charge_str.size() - 1);
 			}
 
-			if (suffix.size() == 1 && suffix[0] == '+')
-			{
-				charge = 1;
-				formula.resize(formula.size() - 1);
-			}
+			// now remove the charge part from the formula
+			formula.resize(formula.size() - charge_str.size() - 1);
+		}
 		}
 
+		if (suffix.size() == 1 && suffix[0] == '+')
+		{
+			charge = 1;
+			formula.resize(formula.size() - 1);
+		}
+		else if (suffix.size() == formula.size())
+		{
+			if (suffix.size() > 1)
+			{
+				if  (suffix[0] == '-' || suffix[0] == '+')
+				{
+					charge = suffix.toInt();
+					return charge;
+				}
+			}
+			else
+			{
+				if (suffix == "-")
+				{
+					charge = -1;
+					return charge;
+				}
+			}
+		}
+				
 		// split the formula
 		vector<String> splitter;	
 		if (formula.size() > 0)

@@ -380,8 +380,8 @@ class TOPPERPairFinder
 									continue;
 								}
 								DoubleReal deviation(0);
-								deviation = fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) + 
-														fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy);
+								deviation = fabs((fit1->f.getMZ() - pairs[fit1->idx].mz_light) -
+														(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy));
 								if (deviation < best_deviation && deviation < precursor_mass_tolerance)
 								{
 									best_light = fit1->f;
