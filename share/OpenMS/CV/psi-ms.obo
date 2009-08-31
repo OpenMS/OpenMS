@@ -1,11 +1,11 @@
 format-version: 1.2
-date: 06:08:2009 15:07
-saved-by: edeutsch
+date: 19:08:2009 0:07
+saved-by: andreas_bertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.24.0
-remark: release date: 2009-08-06
+remark: version: 2.25.1
+remark: release date: 2009-08-26
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: creator: Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de>
@@ -312,6 +312,9 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
 relationship: has_units MS:1000132 ! percent of base peak
 relationship: has_units MS:1000905 ! percent of base peak times 100
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000814 ! counts per second
+relationship: has_units UO:0000269 ! absorbance unit
 relationship: part_of MS:1000231 ! peak
 
 [Term]
@@ -6716,6 +6719,7 @@ name: retention time(s)
 def: "Retention time of the spectrum from the source file" [PSI:PI]
 is_a: MS:1001105 ! peptide result details
 is_a: MS:1001405 ! spectrum identification result details
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
 
@@ -9177,10 +9181,39 @@ is_a: MS:1000560 ! mass spectrometer file format
 [Term]
 id: MS:1001528
 name: Mascot query number
-def: "index=xsd:nonNegativeInteger" [PSI:MS]
+def: "query=xsd:nonNegativeInteger" [PSI:MS]
 comment: The spectrum (query) number in a Mascot results file, starting from 1.
 is_a: MS:1000767 ! native spectrum identifier format
 is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1001529
+name: spectra data details
+def: "Child-terms contain information to map the results back to spectra." [PSI:MS]
+is_a: MS:1001249 ! search input details
+
+[Term]
+id: MS:1001530
+name: mzML unique identifier
+def: "mzMLid=xsd:IDREF" [PSI:MS]
+comment: A unique identifier of a spectrum stored in an mzML file
+is_a: MS:1001529 ! spectra data details
+
+[Term]
+id: MS:1001531
+name: spectrum from ProteinScape database nativeID format
+def: "databaseky=xsd:long" [PSI:MS]
+comment: A unique identifier of a spectrum stored in a ProteinScape database.
+is_a: MS:1001529 ! spectra data details
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1001532
+name: spectrum from database nativeID format
+def: "databaseky=xsd:string" [PSI:MS]
+comment: A unique identifier of a spectrum stored in a database (e.g. a PRIMARY KEY identifier).
+is_a: MS:1001529 ! spectra data details
+is_a: MS:1000767 ! native spectrum identifier format
 
 [Typedef]
 id: has_regexp

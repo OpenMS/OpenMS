@@ -294,13 +294,13 @@ class TOPPFileInfo
 		{
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
-
+			
 			os << "Number of features: " << feat.size() << endl
 				 << endl
 				 << "Ranges:" << endl
-				 << "  retention time:  " << precisionWrapper(feat.getMin()[Peak2D::RT]) << " : " << precisionWrapper(feat.getMax()[Peak2D::RT]) << endl
-				 << "  mass-to-charge:  " << precisionWrapper(feat.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(feat.getMax()[Peak2D::MZ]) << endl
-				 << "  intensity:       " << precisionWrapper(feat.getMinInt()) << " : " << precisionWrapper(feat.getMaxInt()) << endl
+				 << "  retention time:  " << String::number(feat.getMin()[Peak2D::RT],2) << " : " << String::number(feat.getMax()[Peak2D::RT],2) << endl
+				 << "  mass-to-charge:  " << String::number(feat.getMin()[Peak2D::MZ],2) << " : " << String::number(feat.getMax()[Peak2D::MZ],2) << endl
+				 << "  intensity:       " << String::number(feat.getMinInt(),2) << " : " << String::number(feat.getMaxInt(),2) << endl
 				 << endl;
 
 			//Charge distribution
@@ -332,13 +332,12 @@ class TOPPFileInfo
 			{
 				os << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
 			}
-			os << "  total:      " << setw(6) << cons.size() << endl;
-
-			os << endl <<
-				"Ranges:" << endl <<
-				"  retention time:  " << precisionWrapper(cons.getMin()[Peak2D::RT]) << " : " << precisionWrapper(cons.getMax()[Peak2D::RT]) << endl <<
-				"  mass-to-charge:  " << precisionWrapper(cons.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(cons.getMax()[Peak2D::MZ]) << endl <<
-				"  intensity:       " << precisionWrapper(cons.getMinInt()) << " : " << precisionWrapper(cons.getMaxInt()) << endl;
+			os << "  total:      " << setw(6) << cons.size() << endl << endl;
+			
+			os << "Ranges:" << endl
+				 << "  retention time:  " << String::number(cons.getMin()[Peak2D::RT],2) << " : " << String::number(cons.getMax()[Peak2D::RT],2) << endl
+				 << "  mass-to-charge:  " << String::number(cons.getMin()[Peak2D::MZ],2) << " : " << String::number(cons.getMax()[Peak2D::MZ],2) << endl
+				 << "  intensity:       " << String::number(cons.getMinInt(),2) << " : " << String::number(cons.getMaxInt(),2) << endl;
 
 			//file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
@@ -455,13 +454,13 @@ class TOPPFileInfo
 			//basic info
 			exp.updateRanges();
 			vector<UInt> levels = exp.getMSLevels();
-
+			
 			os << "Number of peaks: " << exp.getSize() << endl
 				 << endl
 				 << "Ranges:" << endl
-				 << "  retention time:  " << precisionWrapper(exp.getMinRT()) << " : " << precisionWrapper(exp.getMaxRT()) << endl
-				 << "  mass-to-charge:  " << precisionWrapper(exp.getMinMZ()) << " : " << precisionWrapper(exp.getMaxMZ()) << endl
-				 << "  intensity:       " << precisionWrapper(exp.getMinInt()) << " : " << precisionWrapper(exp.getMaxInt()) << endl
+				 << "  retention time:  " << String::number(exp.getMinRT(),2) << " : " << String::number(exp.getMaxRT(),2) << endl
+				 << "  mass-to-charge:  " << String::number(exp.getMinMZ(),2) << " : " << String::number(exp.getMaxMZ(),2) << endl
+				 << "  intensity:       " << String::number(exp.getMinInt(),2) << " : " << String::number(exp.getMaxInt(),2) << endl
 				 << endl;
 				 
 			os << "MS levels: ";
