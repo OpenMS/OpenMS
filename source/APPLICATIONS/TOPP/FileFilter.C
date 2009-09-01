@@ -34,6 +34,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -105,6 +106,7 @@ class TOPPFileFilter
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
       registerFlag_("sort_peaks","sorts the peaks according to m/z.");
+			registerFlag_("no_chromatograms", "Skip conversion e.g. from SRM scans into real chromatograms (creates huge files).");
 			
 			addEmptyLine_();
 			addText_("Remove spectra: ");
@@ -169,6 +171,7 @@ class TOPPFileFilter
 
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
+			bool no_chromatograms(getFlag_("no_chromatograms"));
 
       //input file type
       FileTypes::Type in_type = FileHandler::getType(in);
@@ -245,6 +248,15 @@ class TOPPFileFilter
   			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
   			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
   			f.load(in,exp);
+
+				if (!no_chromatograms)
+				{
+					// convert the spectra chromatograms to real chromatograms
+					ChromatogramTools chrom_tools;
+					vector<MSChromatogram<> > chromatograms;
+					chrom_tools.convertSpectraToChromatograms(chromatograms, exp, true);
+					exp.setChromatograms(chromatograms);
+				}
 
   			//-------------------------------------------------------------
   			// calculations

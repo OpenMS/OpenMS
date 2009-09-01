@@ -551,7 +551,10 @@ namespace OpenMS
 				tmp.PersistentObject::operator=(*this);
 				this->PersistentObject::operator=(from);
 				from.PersistentObject::operator=(tmp);
-							
+			
+				// swap chromatograms
+				std::swap(chromatograms_, from.chromatograms_);
+
 				//swap peaks
 				Base::swap(from);
 

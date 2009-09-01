@@ -43,7 +43,7 @@ namespace OpenMS
 			precursor_(),
 			product_(),
 			data_processing_(),
-			type_()
+			type_(MASS_CHROMATOGRAM)
 	{
 	}
 

@@ -165,15 +165,7 @@ class TOPPFeatureFinder
 		//prevent loading of everthing except MRM MS/MS spectra
 		if (type == "mrm")
 		{
-			PeakMap exp2;
-			for (Size i = 0; i != exp.size(); ++i)
-			{
-				if (exp[i].getInstrumentSettings().getScanMode() == InstrumentSettings::SRM)
-				{
-					exp2.push_back(exp[i]);
-				}
-			}
-			exp = exp2;
+			exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::SRM)i, true)), exp.end());
 		}
 		else
 		{

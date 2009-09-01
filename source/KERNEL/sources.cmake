@@ -22,6 +22,7 @@ RichPeak2D.C
 StandardTypes.C
 ChromatogramPeak.C
 MSChromatogram.C
+ChromatogramTools.C
 )
 
 ### add path to the filenames

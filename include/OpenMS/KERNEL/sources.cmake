@@ -24,6 +24,7 @@ RichPeak2D.h
 StandardTypes.h
 ChromatogramPeak.h
 MSChromatogram.h
+ChromatogramTools.h
 )
 
 ### add path to the filenames
