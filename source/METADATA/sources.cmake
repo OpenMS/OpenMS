@@ -40,6 +40,7 @@ PeptideEvidence.C
 Identification.C
 SpectrumIdentification.C
 IdentificationHit.C
+ChromatogramSettings.C
 )
 
 ### add path to the filenames

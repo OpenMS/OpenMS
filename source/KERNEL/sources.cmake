@@ -20,6 +20,8 @@ RangeManager.C
 RichPeak1D.C
 RichPeak2D.C
 StandardTypes.C
+ChromatogramPeak.C
+MSChromatogram.C
 )
 
 ### add path to the filenames

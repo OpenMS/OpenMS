@@ -29,6 +29,7 @@
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/DB/PersistentObject.h>
@@ -56,7 +57,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <typename PeakT = Peak1D>
+	template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
 	class MSExperiment
 		:	public std::vector<MSSpectrum<PeakT> >,
 			public RangeManager<2>,
@@ -68,6 +69,8 @@ namespace OpenMS
 			//@{
 			/// Peak type
 			typedef PeakT PeakType;
+			/// Chromatogram type
+			typedef ChromatogramPeakT ChromatogramPeakType;
 			/// Area type
 			typedef DRange<2> AreaType;
 			/// Coordinate type of peak positions
@@ -112,7 +115,8 @@ namespace OpenMS
 				ExperimentalSettings(source),
 				PersistentObject(source),
 				ms_levels_(source.ms_levels_),
-				total_size_(source.total_size_)
+				total_size_(source.total_size_),
+				chromatograms_(source.chromatograms_)
 			{
 			}
 
@@ -128,6 +132,7 @@ namespace OpenMS
 
 				ms_levels_           = source.ms_levels_;
 				total_size_					 = source.total_size_;
+				chromatograms_       = source.chromatograms_;
         
         //no need to copy the alloc?!
         //alloc_
@@ -146,7 +151,7 @@ namespace OpenMS
 			/// Equality operator
 			bool operator== (const MSExperiment& rhs) const
 			{
-				return ExperimentalSettings::operator==(rhs) && std::operator==(rhs,*this);
+				return ExperimentalSettings::operator==(rhs) && std::operator==(rhs,*this) && chromatograms_ == rhs.chromatograms_;
 			}
 			/// Equality operator
 			bool operator!= (const MSExperiment& rhs) const
@@ -554,6 +559,24 @@ namespace OpenMS
 				ms_levels_.swap(from.ms_levels_);
 				std::swap(total_size_,from.total_size_);
 			}
+
+			/// sets the chromatogram list
+			void setChromatograms(const std::vector<MSChromatogram<ChromatogramPeakType> >& chromatograms)
+			{
+				chromatograms_ = chromatograms;
+			}
+
+			/// adds a chromatogram to the list
+			void addChromatogram(const MSChromatogram<ChromatogramPeakType> & chromatogram)
+			{
+				chromatograms_.push_back(chromatogram);
+			}
+
+			/// returns the chromatogram list
+			const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const
+			{
+				return chromatograms_;
+			}
 			
 		protected:
 	
@@ -570,11 +593,14 @@ namespace OpenMS
 	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points
 	    UInt64 total_size_;
+
+			/// chromatograms 
+			std::vector<MSChromatogram<ChromatogramPeakType> > chromatograms_;
 	};
 	
 	///Print the contents to a stream.
-	template <typename PeakT>
-	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT>& exp)
+	template <typename PeakT, typename ChromatogramPeakT>
+	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT, ChromatogramPeakT>& exp)
 	{
 	    os << "-- MSEXPERIMENT BEGIN --"<<std::endl;
 	
@@ -584,9 +610,15 @@ namespace OpenMS
 	    //spectra
 	    for (typename MSExperiment<PeakT>::const_iterator it=exp.begin(); it!=exp.end(); ++it)
 	    {
-	        os << *it;
+	      os << *it;
 	    }
-	
+
+			//chromatograms
+			for (typename std::vector<MSChromatogram<ChromatogramPeakT> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+			{
+				os << *it;
+			}
+
 	    os << "-- MSEXPERIMENT END --"<<std::endl;
 	
 	    return os;

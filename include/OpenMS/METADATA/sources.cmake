@@ -40,6 +40,7 @@ PeptideEvidence.h
 Identification.h
 SpectrumIdentification.h
 IdentificationHit.h
+ChromatogramSettings.h
 )
 
 ### add path to the filenames

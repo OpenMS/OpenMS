@@ -188,6 +188,13 @@ START_SECTION((~MzMLFile()))
 	delete ptr;
 END_SECTION
 
+START_SECTION(([EXTRA] Chromatogram section))
+	MzMLFile file;
+	PeakMap exp;
+	file.load("/share/usr/bertsch/MRM_example_1.1.0.mzML", exp);
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+END_SECTION
+
 START_SECTION(const PeakFileOptions& getOptions() const)
 	MzMLFile file;
 	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
@@ -771,16 +778,18 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		//test if everything worked
 		TEST_EQUAL(exp==exp_original,true)
 		//NOTE: If it does not work, use this code to find out where the difference is
-//		TEST_EQUAL(exp.size()==exp_original.size(),true)
-//		TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-//		TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
-//		TEST_EQUAL(exp[0]==exp_original[0],true);
-//		TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
-//		TEST_EQUAL(exp[1]==exp_original[1],true);
-//		TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
-//		TEST_EQUAL(exp[2]==exp_original[2],true);
-//		TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
-//		TEST_EQUAL(exp[3]==exp_original[3],true);
+		TEST_EQUAL(exp.size()==exp_original.size(),true)
+		TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
+		TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
+		TEST_EQUAL(exp[0]==exp_original[0],true)
+		TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
+		TEST_EQUAL(exp[1]==exp_original[1],true)
+		TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
+		TEST_EQUAL(exp[2]==exp_original[2],true)
+		TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
+		TEST_EQUAL(exp[3]==exp_original[3],true)
+		TEST_EQUAL(exp.getChromatograms().size(), exp_original.getChromatograms().size());
+		TEST_EQUAL(exp.getChromatograms() == exp_original.getChromatograms(), true);
 	}
 	
 	//test with empty map
@@ -880,7 +889,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
-	TEST_EQUAL(warnings.size(),0)
+	TEST_EQUAL(warnings.size(),10) // TODO add mappings for chromatogram/precursor/activation and selectedIon
 
 	//valid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)

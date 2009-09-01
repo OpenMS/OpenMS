@@ -89,6 +89,7 @@ namespace OpenMS
 					cexp_(0),
 					options_(),
 					spec_(),
+					chromatogram_(),
 					data_(),
 					default_array_length_(0),
 					in_spectrum_list_(false),
@@ -106,6 +107,7 @@ namespace OpenMS
 					cexp_(&exp),
 					options_(),
 					spec_(),
+					chromatogram_(),
 					data_(),
 					default_array_length_(0),
 					in_spectrum_list_(false),
@@ -144,8 +146,12 @@ namespace OpenMS
       
       /// Peak type
       typedef typename MapType::PeakType PeakType;
+			/// Chromatogram peak type
+			typedef typename MapType::ChromatogramPeakType ChromatogramPeakType;
       /// Spectrum type
 			typedef MSSpectrum<PeakType> SpectrumType;
+      /// Spectrum type
+			typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
 			
 			/// Spectrum representation
 			struct BinaryData
@@ -175,7 +181,9 @@ namespace OpenMS
 			//@{
 			/// The current spectrum
 			SpectrumType spec_;
-			/// The spectrum data
+			/// the current chromatogram
+			ChromatogramType chromatogram_;
+			/// The spectrum data (or chromatogram data)
 			std::vector<BinaryData> data_;
 			/// The default number of peaks in the current spectrum
 			UInt default_array_length_;
@@ -215,7 +223,10 @@ namespace OpenMS
 			UInt selected_ion_count_;
 			
 			/// Fills the current spectrum with peaks and meta data
-			void fillData_();			
+			void fillData_();
+
+			/// Fills the current chromatogram with datapoints and meta data
+			void fillChromatogramData_();
 
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
@@ -237,6 +248,13 @@ namespace OpenMS
 
 			/// Helper method that writes a data processing list
 			void writeDataProcessing_(std::ostream& os, const String& id, const std::vector<DataProcessing>& dps);
+
+			/// Helper method that write precursor information from spectra and chromatograms
+			void writePrecursor_(std::ostream& os, const Precursor& precursor);
+
+			/// Helper method that write precursor information from spectra and chromatograms
+			void writeProduct_(std::ostream& os, const Product& product);
+
 		};
 
 		//--------------------------------------------------------------------------------
@@ -250,12 +268,12 @@ namespace OpenMS
 			
 			String& current_tag = open_tags_.back();
 			
-			if (current_tag == "binary" && in_spectrum_list_)
+			if (current_tag == "binary"/* && in_spectrum_list_*/)
 			{
 				//chars may be split to several chunks => concatenate them
 				data_.back().base64 += transcoded_chars;
 			}
-			else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum" || current_tag == "binary")
+			else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum"/* || current_tag == "binary"*/)
 			{
 				//do nothing for
 				// - index
@@ -341,6 +359,28 @@ namespace OpenMS
 					spec_.setDataProcessing(processing_[default_processing_]);
 				}
 			}
+			else if (tag == "chromatogram")
+			{
+				chromatogram_ = ChromatogramType();
+				default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
+				String source_file_ref;
+				if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
+				{
+					chromatogram_.setSourceFile(source_files_[source_file_ref]);
+				}
+				// native id
+				chromatogram_.setNativeID(attributeAsString_(attributes, s_id));
+				// data processing
+				String data_processing_ref;
+				if(optionalAttributeAsString_(data_processing_ref,attributes, s_data_processing_ref))
+        {
+          chromatogram_.setDataProcessing(processing_[data_processing_ref]);
+        }
+        else
+        {
+          chromatogram_.setDataProcessing(processing_[default_processing_]);
+        }
+			}
 			else if (tag=="spectrumList")
 			{
 				//default data processing
@@ -354,11 +394,24 @@ namespace OpenMS
 		  	logger_.startProgress(0,count,"loading mzML file");
 				in_spectrum_list_ = true;
 			}
-			else if (tag=="binaryDataArrayList" && in_spectrum_list_)
+			else if (tag == "chromatogramList")
+			{
+				// default data processing
+				default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
+				
+				//Abort if we need meta data only
+				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					
+		  	UInt count = attributeAsInt_(attributes, s_count);
+				// do not reserve vector, simply do push_back
+				logger_.startProgress(0, count, "loading chromatograms");
+				in_spectrum_list_ = false;
+			}
+			else if (tag=="binaryDataArrayList"/* && in_spectrum_list_*/)
 			{
 				data_.reserve(attributeAsInt_(attributes, s_count));
 			}
-			else if (tag=="binaryDataArray" && in_spectrum_list_)
+			else if (tag=="binaryDataArray"/* && in_spectrum_list_*/)
 			{
 				data_.push_back(BinaryData());
 				
@@ -566,29 +619,57 @@ namespace OpenMS
 			}
 			else if (tag=="precursor")
 			{
-				//initialize
-				spec_.getPrecursors().push_back(Precursor());
+				if (in_spectrum_list_)
+				{
+					//initialize
+					spec_.getPrecursors().push_back(Precursor());
 				
-				//source file => meta data
-				String source_file_ref;
-				if(optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
-				{
-					spec_.getPrecursors().back().setMetaValue("source_file_name",source_files_[source_file_ref].getNameOfFile());
-					spec_.getPrecursors().back().setMetaValue("source_file_path",source_files_[source_file_ref].getPathToFile());
+					//source file => meta data
+					String source_file_ref;
+					if(optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
+					{
+						spec_.getPrecursors().back().setMetaValue("source_file_name",source_files_[source_file_ref].getNameOfFile());
+						spec_.getPrecursors().back().setMetaValue("source_file_path",source_files_[source_file_ref].getPathToFile());
+					}
+					//external spectrum id => meta data
+					String external_spectrum_id;
+					if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
+					{
+						spec_.getPrecursors().back().setMetaValue("external_spectrum_id",external_spectrum_id);
+					}
+					//reset selected ion count
+					selected_ion_count_ = 0;
 				}
-				//external spectrum id => meta data
-				String external_spectrum_id;
-				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
+				else
 				{
-					spec_.getPrecursors().back().setMetaValue("external_spectrum_id",external_spectrum_id);
+					chromatogram_.setPrecursor(Precursor());
+
+					String source_file_ref;
+					if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
+					{
+						chromatogram_.getPrecursor().setMetaValue("source_file_name",source_files_[source_file_ref].getNameOfFile());
+						chromatogram_.getPrecursor().setMetaValue("source_file_path",source_files_[source_file_ref].getPathToFile());
+					}
+
+					String external_spectrum_id;
+					if (optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
+					{
+						chromatogram_.getPrecursor().setMetaValue("external_spectrum_id",external_spectrum_id);
+					}
+					selected_ion_count_ = 0;
 				}
-				//reset selected ion count
-				selected_ion_count_ = 0;
 			}
 			else if (tag=="product")
 			{
 				//initialize
-				spec_.getProducts().push_back(Product());
+				if (in_spectrum_list_)
+				{
+					spec_.getProducts().push_back(Product());
+				}
+				else
+				{
+					chromatogram_.setProduct(Product());
+				}
 			}
 			else if (tag=="selectedIon")
 			{
@@ -613,9 +694,12 @@ namespace OpenMS
 		void MzMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			static UInt scan_count=0;
+			static UInt chromatogram_count = 0;
 			
 			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
+			static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
 			static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
+			static const XMLCh* s_chromatogram_list = xercesc::XMLString::transcode("chromatogramList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
 
 			open_tags_.pop_back();
@@ -638,7 +722,20 @@ namespace OpenMS
 				data_.clear();
 				default_array_length_ = 0;
 			}
+			else if (equal_(qname, s_chromatogram))
+			{
+				fillChromatogramData_();
+				exp_->addChromatogram(chromatogram_);
+				logger_.setProgress(++chromatogram_count);
+				data_.clear();
+				default_array_length_ = 0;
+			}
 			else if(equal_(qname,s_spectrum_list))
+			{
+				in_spectrum_list_ = false;
+				logger_.endProgress();
+			}
+			else if (equal_(qname, s_chromatogram_list))
 			{
 				in_spectrum_list_ = false;
 				logger_.endProgress();
@@ -646,6 +743,7 @@ namespace OpenMS
 			else if(equal_(qname,s_mzml))
 			{
 				scan_count = 0;
+				chromatogram_count = 0;
 				ref_param_.clear();
 				current_id_ = "";
 				source_files_.clear();
@@ -737,7 +835,7 @@ namespace OpenMS
 			}
 			
 			//Abort if no m/z or intensity array is present
-			if ( int_index == -1 || mz_index == -1 )
+			if (int_index == -1 || mz_index == -1)
 			{
 				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
 				if (default_array_length_!=0)
@@ -746,7 +844,7 @@ namespace OpenMS
 				}
 				return;
 			}
-			
+
 			//Warn if the decoded data has a different size than the the defaultArrayLength
 			Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
 			if (default_array_length_!=mz_size)
@@ -764,7 +862,7 @@ namespace OpenMS
 			{
 				for (Size i=0; i<data_.size(); i++)
 				{
-					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName()!="intensity array")
+					if (data_[i].meta.getName()!="m/z array" && data_[i].meta.getName() != "intensity array")
 					{
 						if(data_[i].data_type == BinaryData::DT_FLOAT)
 						{
@@ -867,6 +965,222 @@ namespace OpenMS
 				}
 			}				
 		}
+
+
+		template <typename MapType>
+		void MzMLHandler<MapType>::fillChromatogramData_()
+		{
+			//decode all base64 arrays
+			for (Size i=0; i<data_.size(); i++)
+			{
+				//remove whitespaces from binary data
+				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+				data_[i].base64.removeWhitespaces();
+				
+				//decode data and check if the length of the decoded data matches the expected length
+				if(data_[i].data_type == BinaryData::DT_FLOAT)
+				{
+					if (data_[i].precision==BinaryData::PRE_64)
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64,data_[i].compression);
+						if (data_[i].size!=data_[i].floats_64.size())
+						{
+							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+					else if (data_[i].precision==BinaryData::PRE_32)
+					{
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32,data_[i].compression);
+						if (data_[i].size!=data_[i].floats_32.size())
+						{
+							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+				}
+				else if(data_[i].data_type == BinaryData::DT_INT)
+				{
+					if (data_[i].precision==BinaryData::PRE_64)
+					{
+						decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64,data_[i].compression);
+						if (data_[i].size!=data_[i].ints_64.size())
+						{
+							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+					else if (data_[i].precision==BinaryData::PRE_32)
+					{
+						decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32,data_[i].compression);
+						if (data_[i].size!=data_[i].ints_32.size())
+						{
+							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
+						}
+					}
+				}
+				else if(data_[i].data_type == BinaryData::DT_STRING)
+				{
+					decoder_.decodeStrings(data_[i].base64,data_[i].decoded_char,data_[i].compression);
+					if (data_[i].size!=data_[i].decoded_char.size())
+					{
+						warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+					}
+				}
+			}
+
+			//look up the precision and the index of the intensity and m/z array
+			bool int_precision_64 = true;
+			bool rt_precision_64 = true;
+			SignedSize int_index = -1;
+			SignedSize rt_index = -1;
+			for (Size i=0; i<data_.size(); i++)
+			{
+				if (data_[i].meta.getName()=="intensity array")
+				{
+					int_index = i;
+					int_precision_64 = (data_[i].precision==BinaryData::PRE_64);
+				}
+				if (data_[i].meta.getName()=="time array")
+				{
+					rt_index = i;
+					rt_precision_64 = (data_[i].precision == BinaryData::PRE_64);
+				}
+			}
+			
+			//Abort if no m/z or intensity array is present
+			if (int_index == -1 || rt_index == -1)
+			{
+				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+				if (default_array_length_!=0)
+				{
+					warning(LOAD, String("The m/z or intensity array of chromatogram '") + chromatogram_.getNativeID() + "' is missing and default_array_length_ is " + default_array_length_ + ".");
+				}
+				return;
+			}
+
+			//Warn if the decoded data has a different size than the the defaultArrayLength
+			Size rt_size = rt_precision_64 ? data_[rt_index].floats_64.size() : data_[rt_index].floats_32.size();
+			if (default_array_length_!=rt_size)
+			{
+				warning(LOAD, String("The base64-decoded rt array of chromatogram '") + chromatogram_.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
+			}
+			Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
+			if (default_array_length_!=int_size)
+			{
+				warning(LOAD, String("The base64-decoded intensity array of chromatogram '") + chromatogram_.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_array_length_ + " (defaultArrayLength).");
+			}
+			
+			//create meta data arrays and reserve enough space for the content
+			if (data_.size()>2)
+			{
+				for (Size i=0; i<data_.size(); i++)
+				{
+					if (data_[i].meta.getName() != "intensity array" && data_[i].meta.getName() != "time array")
+					{
+						if(data_[i].data_type == BinaryData::DT_FLOAT)
+						{
+							//create new array
+							chromatogram_.getFloatDataArrays().resize(chromatogram_.getFloatDataArrays().size()+1);
+							//reserve space in the array
+							chromatogram_.getFloatDataArrays().back().reserve(data_[i].size);
+							//copy meta info into MetaInfoDescription
+							chromatogram_.getFloatDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
+						}
+						else if(data_[i].data_type == BinaryData::DT_INT)
+						{
+							//create new array
+							chromatogram_.getIntegerDataArrays().resize(chromatogram_.getIntegerDataArrays().size()+1);
+							//reserve space in the array
+							chromatogram_.getIntegerDataArrays().back().reserve(data_[i].size);
+							//copy meta info into MetaInfoDescription
+							chromatogram_.getIntegerDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
+						}
+						else if(data_[i].data_type == BinaryData::DT_STRING)
+						{
+							//create new array
+							chromatogram_.getStringDataArrays().resize(chromatogram_.getStringDataArrays().size()+1);
+							//reserve space in the array
+							chromatogram_.getStringDataArrays().back().reserve(data_[i].decoded_char.size());
+							//copy meta info into MetaInfoDescription
+							chromatogram_.getStringDataArrays().back().MetaInfoDescription::operator=(data_[i].meta);
+						}
+					}
+				}
+			}
+			
+			//copy meta data from time and intensity binary
+			//We don't have this as a separate location => store it in spectrum
+			for (Size i=0; i<data_.size(); i++)
+			{
+				if (data_[i].meta.getName() == "time array" || data_[i].meta.getName() == "intensity array")
+				{
+					std::vector<UInt> keys;
+					data_[i].meta.getKeys(keys);
+					for (Size k=0;k<keys.size(); ++k)
+					{
+						chromatogram_.setMetaValue(keys[k],data_[i].meta.getMetaValue(keys[k]));
+					}
+				}
+			}
+			
+			//add the peaks and the meta data to the container (if they pass the restrictions)
+			chromatogram_.reserve(default_array_length_);
+			for (Size n = 0 ; n < default_array_length_ ; n++)
+			{
+				DoubleReal rt = rt_precision_64 ? data_[rt_index].floats_64[n] : data_[rt_index].floats_32[n];
+				DoubleReal intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+				if ((!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(rt)))
+				 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
+				{
+					//add peak
+					ChromatogramPeakType tmp;
+					tmp.setIntensity(intensity);
+					tmp.setRT(rt);
+					chromatogram_.push_back(tmp);
+
+					//add meta data
+					UInt meta_float_array_index = 0;
+					UInt meta_int_array_index = 0;
+					UInt meta_string_array_index = 0;
+					for (Size i=0; i<data_.size(); i++) //loop over all binary data arrays
+					{
+						if (data_[i].meta.getName()!="intensity array" && data_[i].meta.getName()!="time array") // is meta data array?
+						{
+							if(data_[i].data_type == BinaryData::DT_FLOAT)
+							{
+								if (n<data_[i].size)
+								{
+									DoubleReal value = (data_[i].precision==BinaryData::PRE_64) ? data_[i].floats_64[n] : data_[i].floats_32[n];
+									chromatogram_.getFloatDataArrays()[meta_float_array_index].push_back(value);
+								}
+								++meta_float_array_index;
+							}
+							else if(data_[i].data_type == BinaryData::DT_INT)
+							{
+								if (n<data_[i].size)
+								{
+									Int64 value = (data_[i].precision==BinaryData::PRE_64) ? data_[i].ints_64[n] : data_[i].ints_32[n];
+									chromatogram_.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+								}
+								++meta_int_array_index;
+							}
+							else if(data_[i].data_type == BinaryData::DT_STRING)
+							{
+								if (n < data_[i].decoded_char.size())
+								{
+									String value = data_[i].decoded_char[n];
+									chromatogram_.getStringDataArrays()[meta_string_array_index].push_back(value);
+								}
+								++meta_string_array_index;
+							}
+						}
+					}
+				}
+			}				
+		}
+
+
+
+
+
 		
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession)
@@ -988,54 +1302,51 @@ namespace OpenMS
 			//------------------------- binaryDataArray ----------------------------
 			else if (parent_tag=="binaryDataArray")
 			{
-				if ( in_spectrum_list_)
+				//MS:1000518 ! binary data type
+				if (accession=="MS:1000523") //64-bit float
 				{
-					//MS:1000518 ! binary data type
-					if (accession=="MS:1000523") //64-bit float
-					{
-						data_.back().precision = BinaryData::PRE_64;
-						data_.back().data_type = BinaryData::DT_FLOAT;
-					}
-					else if (accession=="MS:1000521") //32-bit float
-					{
-						data_.back().precision = BinaryData::PRE_32;
-						data_.back().data_type = BinaryData::DT_FLOAT;
-					}
-					else if(accession=="MS:1000519") //32-bit integer
-					{
-						data_.back().precision = BinaryData::PRE_32;
-						data_.back().data_type = BinaryData::DT_INT;						
-					}
-					else if(accession=="MS:1000522") //64-bit integer
-					{
-						data_.back().precision = BinaryData::PRE_64;
-						data_.back().data_type = BinaryData::DT_INT;						
-					}
-					else if(accession=="MS:1001479")
-					{
-						data_.back().precision = BinaryData::PRE_NONE;
-						data_.back().data_type = BinaryData::DT_STRING;
-					}
-					//MS:1000513 ! binary data array
-					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
-					{
-						data_.back().meta.setName(value);
-					}
-					else if (cv_.isChildOf(accession,"MS:1000513")) //other array names as string
-					{
-						data_.back().meta.setName(cv_.getTerm(accession).name);
-					}
-					//MS:1000572 ! binary data compression type
-					else if (accession=="MS:1000574")//zlib compression
-					{
-						data_.back().compression = true;
-					}
-					else if (accession=="MS:1000576")// no compression
-					{
-						data_.back().compression = false;
-					}
-					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+					data_.back().precision = BinaryData::PRE_64;
+					data_.back().data_type = BinaryData::DT_FLOAT;
 				}
+				else if (accession=="MS:1000521") //32-bit float
+				{
+					data_.back().precision = BinaryData::PRE_32;
+					data_.back().data_type = BinaryData::DT_FLOAT;
+				}
+				else if(accession=="MS:1000519") //32-bit integer
+				{
+					data_.back().precision = BinaryData::PRE_32;
+					data_.back().data_type = BinaryData::DT_INT;						
+				}
+				else if(accession=="MS:1000522") //64-bit integer
+				{
+					data_.back().precision = BinaryData::PRE_64;
+					data_.back().data_type = BinaryData::DT_INT;						
+				}
+				else if(accession=="MS:1001479")
+				{
+					data_.back().precision = BinaryData::PRE_NONE;
+					data_.back().data_type = BinaryData::DT_STRING;
+				}
+				//MS:1000513 ! binary data array
+				else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
+				{
+					data_.back().meta.setName(value);
+				}
+				else if (cv_.isChildOf(accession,"MS:1000513")) //other array names as string
+				{
+					data_.back().meta.setName(cv_.getTerm(accession).name);
+				}
+				//MS:1000572 ! binary data compression type
+				else if (accession=="MS:1000574")//zlib compression
+				{
+					data_.back().compression = true;
+				}
+				else if (accession=="MS:1000576")// no compression
+				{
+					data_.back().compression = false;
+				}
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- spectrum ----------------------------
 			else if(parent_tag=="spectrum")
@@ -1220,19 +1531,47 @@ namespace OpenMS
 				if (accession=="MS:1000744") //selected ion m/z
 				{
 					//this overwrites the m/z of the isolation window, as it is probably more accurate
-					spec_.getPrecursors().back().setMZ(value.toDouble());
+					if (in_spectrum_list_)
+					{
+						spec_.getPrecursors().back().setMZ(value.toDouble());
+					}
+					else
+					{
+						chromatogram_.getPrecursor().setMZ(value.toDouble());
+					}
 				}
 				else if (accession=="MS:1000041") //charge state
 				{
-					spec_.getPrecursors().back().setCharge(value.toInt());
+					if (in_spectrum_list_)
+					{
+						spec_.getPrecursors().back().setCharge(value.toInt());
+					}
+					else
+					{
+						chromatogram_.getPrecursor().setCharge(value.toInt());
+					}
 				}
 				else if (accession=="MS:1000042") //peak intensity
 				{
-					spec_.getPrecursors().back().setIntensity(value.toDouble());
+					if (in_spectrum_list_)
+					{
+						spec_.getPrecursors().back().setIntensity(value.toDouble());
+					}
+					else
+					{
+						chromatogram_.getPrecursor().setIntensity(value.toDouble());
+					}
 				}
 				else if (accession=="MS:1000633") //possible charge state
 				{
-					spec_.getPrecursors().back().getPossibleChargeStates().push_back(value.toInt());
+					if (in_spectrum_list_)
+					{
+						spec_.getPrecursors().back().getPossibleChargeStates().push_back(value.toInt());
+					}
+					else
+					{
+						chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
+					}
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
@@ -1240,98 +1579,196 @@ namespace OpenMS
 			else if(parent_tag=="activation")
 			{
 				//precursor activation attribute
-				if (accession=="MS:1000245") //charge stripping
+				if (in_spectrum_list_)
 				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("charge stripping",String("true"));
+					if (accession=="MS:1000245") //charge stripping
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("charge stripping",String("true"));
+					}
+					else if (accession=="MS:1000045") //collision energy (ev)
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("collision energy",value); 
+					}
+					else if (accession=="MS:1000412") //buffer gas
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("buffer gas",value);
+					}
+					else if (accession=="MS:1000419") //collision gas
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("collision gas",value);
+					}
+					else if (accession=="MS:1000509") //activation energy (ev)
+					{
+						spec_.getPrecursors().back().setActivationEnergy(value.toDouble());
+					}
+					else if (accession=="MS:1000138") //percent collision energy
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("percent collision energy",value);
+					}
+					else if (accession=="MS:1000869") //collision gas pressure
+					{
+						//No member => meta data
+						spec_.getPrecursors().back().setMetaValue("collision gas pressure",value);
+					}
+					//dissociation method
+					else if (accession=="MS:1000044") //dissociation method
+					{
+						//nothing to do here
+					}
+					else if (accession=="MS:1000133") //collision-induced dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::CID);
+					}
+					else if (accession=="MS:1000134") //plasma desorption
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PD);
+					}
+					else if (accession=="MS:1000135") //post-source decay
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PSD);
+					}
+					else if (accession=="MS:1000136") //surface-induced dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SID);
+					}
+					else if (accession=="MS:1000242") //blackbody infrared radiative dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BIRD);
+					}
+					else if (accession=="MS:1000250") //electron capture dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ECD);
+					}
+					else if (accession=="MS:1000262") //infrared multiphoton dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::IMD);
+					}
+					else if (accession=="MS:1000282") //sustained off-resonance irradiation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
+					}
+					else if (accession=="MS:1000422") //high-energy collision-induced dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
+					}
+					else if (accession=="MS:1000433") //low-energy collision-induced dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LCID);
+					}
+					else if (accession=="MS:1000435") //photodissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PHD);
+					}
+					else if (accession=="MS:1000598") //electron transfer dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
+					}
+					else if (accession=="MS:1000599") //pulsed q dissociation
+					{
+						spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
+					}
+					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
-				else if (accession=="MS:1000045") //collision energy (ev)
+				else
 				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("collision energy",value); 
+					if (accession=="MS:1000245") //charge stripping
+        	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("charge stripping",String("true"));
+	        }
+ 		      else if (accession=="MS:1000045") //collision energy (ev)
+ 	       	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("collision energy",value);
+        	}
+        	else if (accession=="MS:1000412") //buffer gas
+        	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("buffer gas",value);
+        	}
+        	else if (accession=="MS:1000419") //collision gas
+        	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("collision gas",value);
+        	}
+        	else if (accession=="MS:1000509") //activation energy (ev)
+        	{
+          	chromatogram_.getPrecursor().setActivationEnergy(value.toDouble());
+        	}
+        	else if (accession=="MS:1000138") //percent collision energy
+        	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("percent collision energy",value);
+        	}
+        	else if (accession=="MS:1000869") //collision gas pressure
+        	{
+          	//No member => meta data
+          	chromatogram_.getPrecursor().setMetaValue("collision gas pressure",value);
+        	}
+        	//dissociation method
+        	else if (accession=="MS:1000044") //dissociation method
+        	{
+          	//nothing to do here
+        	}
+        	else if (accession=="MS:1000133") //collision-induced dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::CID);
+        	}
+        	else if (accession=="MS:1000134") //plasma desorption
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PD);
+        	}
+        	else if (accession=="MS:1000135") //post-source decay
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PSD);
+        	}
+        	else if (accession=="MS:1000136") //surface-induced dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SID);
+        	}
+        	else if (accession=="MS:1000242") //blackbody infrared radiative dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::BIRD);
+        	}
+        	else if (accession=="MS:1000250") //electron capture dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ECD);
+        	}
+					else if (accession=="MS:1000262") //infrared multiphoton dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::IMD);
+        	}
+        	else if (accession=="MS:1000282") //sustained off-resonance irradiation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
+        	}
+        	else if (accession=="MS:1000422") //high-energy collision-induced dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
+        	}
+        	else if (accession=="MS:1000433") //low-energy collision-induced dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LCID);
+        	}
+        	else if (accession=="MS:1000435") //photodissociation
+        	{
+						chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PHD);
+        	}
+        	else if (accession=="MS:1000598") //electron transfer dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+        	}
+        	else if (accession=="MS:1000599") //pulsed q dissociation
+        	{
+          	chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
+        	}
+					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
-				else if (accession=="MS:1000412") //buffer gas
-				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("buffer gas",value);
-				}
-				else if (accession=="MS:1000419") //collision gas
-				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("collision gas",value);
-				}
-				else if (accession=="MS:1000509") //activation energy (ev)
-				{
-					spec_.getPrecursors().back().setActivationEnergy(value.toDouble());
-				}
-				else if (accession=="MS:1000138") //percent collision energy
-				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("percent collision energy",value);
-				}
-				else if (accession=="MS:1000869") //collision gas pressure
-				{
-					//No member => meta data
-					spec_.getPrecursors().back().setMetaValue("collision gas pressure",value);
-				}
-				//dissociation method
-				else if (accession=="MS:1000044") //dissociation method
-				{
-					//nothing to do here
-				}
-				else if (accession=="MS:1000133") //collision-induced dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::CID);
-				}
-				else if (accession=="MS:1000134") //plasma desorption
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PD);
-				}
-				else if (accession=="MS:1000135") //post-source decay
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PSD);
-				}
-				else if (accession=="MS:1000136") //surface-induced dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SID);
-				}
-				else if (accession=="MS:1000242") //blackbody infrared radiative dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BIRD);
-				}
-				else if (accession=="MS:1000250") //electron capture dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ECD);
-				}
-				else if (accession=="MS:1000262") //infrared multiphoton dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::IMD);
-				}
-				else if (accession=="MS:1000282") //sustained off-resonance irradiation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
-				}
-				else if (accession=="MS:1000422") //high-energy collision-induced dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
-				}
-				else if (accession=="MS:1000433") //low-energy collision-induced dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LCID);
-				}
-				else if (accession=="MS:1000435") //photodissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PHD);
-				}
-				else if (accession=="MS:1000598") //electron transfer dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
-				}
-				else if (accession=="MS:1000599") //pulsed q dissociation
-				{
-					spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
-				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			//------------------------- isolationWindow ----------------------------
 			else if(parent_tag=="isolationWindow")
@@ -1340,15 +1777,36 @@ namespace OpenMS
 				{
 					if (accession=="MS:1000827") //isolation window target m/z
 					{
-						spec_.getPrecursors().back().setMZ(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getPrecursors().back().setMZ(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getPrecursor().setMZ(value.toDouble());
+						}
 					}
 					else if (accession=="MS:1000828") //isolation window lower offset
 					{
-						spec_.getPrecursors().back().setIsolationWindowLowerOffset(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getPrecursors().back().setIsolationWindowLowerOffset(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getPrecursor().setIsolationWindowLowerOffset(value.toDouble());
+						}
 					}
 					else if (accession=="MS:1000829") //isolation window upper offset
 					{
-						spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getPrecursor().setIsolationWindowUpperOffset(value.toDouble());
+						}
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
@@ -1356,15 +1814,36 @@ namespace OpenMS
 				{
 					if (accession=="MS:1000827") //isolation window target m/z
 					{
-						spec_.getProducts().back().setMZ(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getProducts().back().setMZ(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getProduct().setMZ(value.toDouble());
+						}
 					}
 					else if (accession=="MS:1000829") //isolation window upper offset
 					{
-						spec_.getProducts().back().setIsolationWindowUpperOffset(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getProducts().back().setIsolationWindowUpperOffset(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getProduct().setIsolationWindowUpperOffset(value.toDouble());
+						}
 					}
 					else if (accession=="MS:1000828") //isolation window lower offset
 					{
-						spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
+						if (in_spectrum_list_)
+						{
+							spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
+						}
+						else
+						{
+							chromatogram_.getProduct().setIsolationWindowLowerOffset(value.toDouble());
+						}
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 				}
@@ -2392,7 +2871,51 @@ namespace OpenMS
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
-			else if (parent_tag=="chromatogram" || parent_tag=="target")
+			else if (parent_tag=="chromatogram")
+			{
+				if (accession == "MS:1000810")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::MASS_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000235")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000627")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000628")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1001472")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1001473")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1001474")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000811")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000812")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::ABSORPTION_CHROMATOGRAM);
+				}
+				else if (accession == "MS:1000813")
+				{
+					chromatogram_.setChromatogramType(ChromatogramSettings::EMISSION_CHROMATOGRAM);
+				}
+				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+			}
+			else if (parent_tag=="target")
 			{
 				//allowed but, not needed
 			}
@@ -2465,6 +2988,10 @@ namespace OpenMS
 			{
 				spec_.setMetaValue(name,data_value);
 			}
+			else if (parent_tag=="chromatogram")
+			{
+				chromatogram_.setMetaValue(name, data_value);
+			}
 			else if (parent_tag=="scanList")
 			{
 				spec_.getAcquisitionInfo().setMetaValue(name,data_value);
@@ -2482,11 +3009,25 @@ namespace OpenMS
 				//We don't have this as a separate location => store it in the precursor
 				if (parent_parent_tag=="precursor")
 				{
-					spec_.getPrecursors().back().setMetaValue(name,data_value);
+					if (in_spectrum_list_)
+					{
+						spec_.getPrecursors().back().setMetaValue(name,data_value);
+					}
+					else
+					{
+						chromatogram_.getPrecursor().setMetaValue(name, data_value);
+					}
 				}
 				else if (parent_parent_tag=="product")
 				{
-					spec_.getProducts().back().setMetaValue(name,data_value);
+					if (in_spectrum_list_)
+					{
+						spec_.getProducts().back().setMetaValue(name,data_value);
+					}
+					else
+					{
+						chromatogram_.getProduct().setMetaValue(name, data_value);
+					}
 				} 
 			}
 			else if (parent_tag=="selectedIon")
@@ -2495,12 +3036,26 @@ namespace OpenMS
 				if (selected_ion_count_>1) return;
 
 				//We don't have this as a separate location => store it in the precursor
-				spec_.getPrecursors().back().setMetaValue(name,data_value);
+				if (in_spectrum_list_)
+				{
+					spec_.getPrecursors().back().setMetaValue(name,data_value);
+				}
+				else
+				{
+					chromatogram_.getPrecursor().setMetaValue(name, data_value);
+				}
 			}
 			else if (parent_tag=="activation")
 			{
 				//We don't have this as a separate location => store it in the precursor
-				spec_.getPrecursors().back().setMetaValue(name,data_value);
+				if (in_spectrum_list_)
+				{
+					spec_.getPrecursors().back().setMetaValue(name,data_value);
+				}
+				else
+				{
+					chromatogram_.getPrecursor().setMetaValue(name,data_value);
+				}
 			}
 			else if (parent_tag=="processingMethod")
 			{
@@ -2740,7 +3295,118 @@ namespace OpenMS
 			
 			os  << "		</dataProcessing>\n";
 		}
-		
+
+		template <typename MapType>
+		void MzMLHandler<MapType>::writePrecursor_(std::ostream& os, const Precursor& precursor)
+		{
+              os  << "          <precursor>\n";
+              //--------------------------------------------------------------------------------------------
+              //isolation window
+              //--------------------------------------------------------------------------------------------
+              os  << "            <isolationWindow>\n";
+              os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              os  << "            </isolationWindow>\n";
+              //userParam: no extra object for it => no user parameters
+
+              //--------------------------------------------------------------------------------------------
+              //selected ion list
+              //--------------------------------------------------------------------------------------------
+              os  << "            <selectedIonList count=\"1\">\n";
+              os  << "              <selectedIon>\n";
+              os  << "                <cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              os  << "                <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
+              os  << "                <cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
+              for (Size j=0; j<precursor.getPossibleChargeStates().size(); ++j)
+              {
+                os  << "                <cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+              }
+              //userParam: no extra object for it => no user parameters
+              os  << "              </selectedIon>\n";
+              os  << "            </selectedIonList>\n";
+
+              //--------------------------------------------------------------------------------------------
+              //activation
+              //--------------------------------------------------------------------------------------------
+              os  << "            <activation>\n";
+              os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
+              if (precursor.getActivationMethods().count(Precursor::CID)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::PD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::PSD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::SID)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::BIRD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::ECD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::IMD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::SORI)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::HCID)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::LCID)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::PHD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::ETD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().count(Precursor::PQD)!=0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
+              }
+              if (precursor.getActivationMethods().size()==0)
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
+              }
+              //as "precursor" has no own user param its userParam is stored here
+              writeUserParam_(os, precursor, 6);
+              os  << "          </activation>\n";
+              os  << "        </precursor>\n";
+ 
+		}
+
+		template <typename MapType>
+		void MzMLHandler<MapType>::writeProduct_(std::ostream& os, const Product& product)
+		{
+      os  << "          <product>\n";
+      os  << "            <isolationWindow>\n";
+      os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << product.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << product.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      os  << "              <cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << product.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      writeUserParam_(os, product, 7);
+      os  << "            </isolationWindow>\n";
+      os  << "        </product>\n";
+		}
+
 		template <typename MapType>
 		void MzMLHandler<MapType>::writeTo(std::ostream& os)
 		{
@@ -3790,6 +4456,16 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//precursor list
 					//--------------------------------------------------------------------------------------------
+					if (spec.getPrecursors().size() != 0)
+					{
+						os  << "      <precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
+						for (Size p = 0; p != spec.getPrecursors().size(); ++p)
+						{
+							writePrecursor_(os, spec.getPrecursors()[p]);
+						}
+						os  << "      </precursorList>\n";
+					}
+/*
 					if (spec.getPrecursors().size()!=0)
 					{
 						os	<< "				<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
@@ -3891,9 +4567,20 @@ namespace OpenMS
 						}
 						os	<< "			</precursorList>\n";
 					}
+*/
 					//--------------------------------------------------------------------------------------------
 					//product list
 					//--------------------------------------------------------------------------------------------
+					if (spec.getProducts().size()!=0)
+					{
+						os  << "        <productList count=\"" << spec.getProducts().size() << "\">\n";
+			      for (Size p=0; p < spec.getProducts().size(); ++p)
+      			{
+							writeProduct_(os, spec.getProducts()[p]);
+      			}
+			      os  << "      </productList>\n";
+					}
+/*
 					if (spec.getProducts().size()!=0)
 					{
 						os	<< "				<productList count=\"" << spec.getProducts().size() << "\">\n";
@@ -3910,6 +4597,8 @@ namespace OpenMS
 						}
 						os	<< "			</productList>\n";
 					}
+*/
+
 					//--------------------------------------------------------------------------------------------
 					//binary data array list
 					//--------------------------------------------------------------------------------------------
@@ -4034,6 +4723,188 @@ namespace OpenMS
 				}
 				os	<< "		</spectrumList>\n";
 			}
+
+			//--------------------------------------------------------------------------------------------
+			//chromatograms
+			//--------------------------------------------------------------------------------------------			
+			if (exp.getChromatograms().size() != 0)
+			{
+				os	<< "		<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n"; 
+				for (Size c = 0; c != exp.getChromatograms().size(); ++c)
+				{
+					// TODO native id with chromatogram=?? prefix?
+					const ChromatogramType& chromatogram = exp.getChromatograms()[c];
+					os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << std::endl;
+
+					// write cvParams (chromatogram type)
+					if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000235\" name=\"total ion current chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000627\" name=\"selected ion current chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::BASEPEAK_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000628\" name=\"basepeak chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1001472\" name=\"selected ion monitoring chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1001473\" name=\"selected reaction monitoring chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000811\" name=\"electromagnetic radiation chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::ABSORPTION_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000812\" name=\"absorption chromatogram\" />\n";
+					}
+					else if (chromatogram.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+					{
+						os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000813\" name=\"emission chromatogram\" />\n";
+					}
+					else 
+					{
+						// TODO
+					}
+					writePrecursor_(os, chromatogram.getPrecursor());
+					writeProduct_(os, chromatogram.getProduct());
+
+					//--------------------------------------------------------------------------------------------
+          //binary data array list
+          //--------------------------------------------------------------------------------------------
+            String compression_term;
+            if(options_.getCompression())
+            {
+              compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+            }
+            else
+            {
+              compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+            }
+            String encoded_string;
+            os  << "        <binaryDataArrayList count=\"" << (2+chromatogram.getFloatDataArrays().size()+chromatogram.getStringDataArrays().size()+chromatogram.getIntegerDataArrays().size()) << "\">\n";
+            //write m/z array (64 bit precision)
+            {
+              std::vector<DoubleReal> data64_to_encode(chromatogram.size());
+              for (Size p=0; p<chromatogram.size(); ++p) data64_to_encode[p] = chromatogram[p].getRT();
+              decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+              os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              os  << "            " << compression_term << "\n";
+              os  << "            <binary>" << encoded_string << "</binary>\n";
+              os  << "          </binaryDataArray>\n";
+            }
+            //write intensity array (32 bit precision)
+            {
+              std::vector<Real> data32_to_encode(chromatogram.size());
+              for (Size p=0; p<chromatogram.size(); ++p) data32_to_encode[p] = chromatogram[p].getIntensity();
+              decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+              os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+              os  << "            " << compression_term << "\n";
+              os  << "            <binary>" << encoded_string << "</binary>\n";
+              os  << "          </binaryDataArray>\n";
+            }
+            //write float data array
+            for (Size m=0; m<chromatogram.getFloatDataArrays().size(); ++m)
+            {
+              const typename ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
+              std::vector<DoubleReal> data64_to_encode(array.size());
+              for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
+              decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+              String data_processing_ref_string = "";
+              if (array.getDataProcessing().size()!=0)
+              {
+                data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
+              }
+              os  << "          <binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              os  << "            " << compression_term << "\n";
+              ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
+              if (bi_term.id!="")
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\" />\n";
+              }
+              else
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+              }
+              writeUserParam_(os, array, 6);
+              os  << "            <binary>" << encoded_string << "</binary>\n";
+              os  << "          </binaryDataArray>\n";
+            }
+            //write integer data array
+            for (Size m=0; m<chromatogram.getIntegerDataArrays().size(); ++m)
+            {
+              const typename ChromatogramType::IntegerDataArray& array = chromatogram.getIntegerDataArrays()[m];
+              std::vector<Int64> data64_to_encode(array.size());
+              for (Size p=0; p<array.size(); ++p) data64_to_encode[p] = array[p];
+              decoder_.encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+              String data_processing_ref_string = "";
+              if (array.getDataProcessing().size()!=0)
+              {
+                data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
+              }
+              os  << "          <binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
+              os  << "            " << compression_term << "\n";
+              ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
+              if (bi_term.id!="")
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\" />\n";
+              }
+              else
+              {
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+              }
+              writeUserParam_(os, array, 6);
+              os  << "            <binary>" << encoded_string << "</binary>\n";
+              os  << "          </binaryDataArray>\n";
+            }
+            //write string data arrays
+            for (Size m=0; m<chromatogram.getStringDataArrays().size(); ++m)
+            {
+              const typename ChromatogramType::StringDataArray& array = chromatogram.getStringDataArrays()[m];
+              std::vector<String> data_to_encode;
+              data_to_encode.resize(array.size());
+              for (Size p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
+              decoder_.encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+              String data_processing_ref_string = "";
+              if (array.getDataProcessing().size()!=0)
+              {
+                data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
+              }
+              os  << "          <binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
+              os  << "            " << compression_term << "\n";
+              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
+              writeUserParam_(os, array, 6);
+              os  << "            <binary>" << encoded_string << "</binary>\n";
+              os  << "          </binaryDataArray>\n";
+            }
+            os  << "        </binaryDataArrayList>\n";
+						os << "      </chromatogram>" << std::endl;
+					}
+					
+				
+				os  << "    </chromatogramList>" << std::endl;
+			}
+
+
+
 			os  << "	</run>\n";		
 			
 			os	<< "</mzML>";
