@@ -18,7 +18,8 @@ Changes to OpenMS XML formats:
 Changes to the contrib package:
 
 Bug fixes:
-- [2849201: Parameters in INI files are duplicated
+- [2849201]: Parameters in INI files are duplicated
+- [2849439]: Compilation error with Qt 4.3.x
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.5                                      ----
