@@ -448,7 +448,7 @@ svn propset svn:eol-style native MyClass.C
 						<OL>
 							<LI> Login in the @a Admin section and create a folder for the new release
 							<LI> Upload to sourceforge, e.g. with
-							  <BR><TT>scp &lt;file&gt; &lt;login&gt;,fooproject@frs.sourceforge.net:/home/frs/project/o/op/openms/OpenMS/OpenMS-&lt;version&gt;/</TT>
+							  <BR><TT>scp &lt;file&gt; &lt;login&gt;,open-ms@frs.sourceforge.net:/home/frs/project/o/op/openms/OpenMS/OpenMS-&lt;version&gt;/</TT>
 						</OL>
 					<LI> Copy the HTML documentation and PDF tutorials of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
