@@ -650,48 +650,50 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::updateProjections()
 	{
-		//try to find the right (peak) layer to project
-		const LayerData* layer = &(getCurrentLayer()); //first, try current layer
-		if (layer->type != LayerData::DT_PEAK) //second, check if more than one peak layer is present
+		//find the last (visible) peak layers
+		Size layer_count = 0;
+		Size last_layer = 0;
+		Size visible_layer_count = 0;
+		Size visible_last_layer = 0;
+		for (Size i=0; i<getLayerCount(); ++i)
 		{
-			UInt peak_layer_count = 0;
-			Size last_peak_layer = 0;
-			for (Size i=0; i<getLayerCount(); ++i)
+			if (getLayer(i).type==LayerData::DT_PEAK)
 			{
-				if (getLayer(i).type==LayerData::DT_PEAK)
+				layer_count++;
+				last_layer=i;
+				
+				if (getLayer(i).visible)
 				{
-					++peak_layer_count;
-					last_peak_layer = i;
+					visible_layer_count++;
+					visible_last_layer=i;
 				}
 			}
-			if (peak_layer_count==1)
-			{
-				layer = &(getLayer(last_peak_layer));
-			}
-		}
-		if (layer->type != LayerData::DT_PEAK) //third, check if more than one peak layer is visible
-		{
-			UInt peak_layer_count = 0;
-			Size last_peak_layer = 0;
-			for (Size i=0; i<getLayerCount(); ++i)
-			{
-				if (getLayer(i).type==LayerData::DT_PEAK && getLayer(i).visible)
-				{
-					++peak_layer_count;
-					last_peak_layer = i;
-				}
-			}
-			if (peak_layer_count==1)
-			{
-				layer = &(getLayer(last_peak_layer));
-			}
-		}
-		if (layer->type != LayerData::DT_PEAK)//forth, abort of no peak layer or several peak layers are present
-		{
-			QMessageBox::critical(this,"Error","Cannot show projections of feature layers!");
-			return;
 		}
 
+		//try to find the right layer to project
+		const LayerData* layer = 0;		
+		//first chioce: current layer
+		if (layer_count!=0 && getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+			layer = &(getCurrentLayer());
+		}
+		//second chioce: the only peak layer
+		else if (layer_count==1)
+		{
+			layer = &(getLayer(last_layer));
+		}
+		//third chioce: the only visible peak layer
+		else if (visible_layer_count==1)
+		{
+			layer = &(getLayer(visible_last_layer));
+		}
+		//do nothing
+		else
+		{
+			QMessageBox::critical(this,"Error","Cannot show projections!");
+			return;
+		}
+		
 		//create projection data
 		map<float, float> rt;
 		map<int, float> mzint;
@@ -706,9 +708,7 @@ namespace OpenMS
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
-				 i != layer->peaks.areaEndConst();
-				 ++i)
+		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); i != layer->peaks.areaEndConst(); ++i)
 		{
 			PeakIndex pi = i.getPeakIndex();
 			if (layer->filters.passes(layer->peaks[pi.spectrum],pi.peak))
