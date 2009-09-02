@@ -345,7 +345,7 @@ namespace OpenMS
 		// progress light
 		painter->setPen(Qt::black);
 		painter->setBrush(progress_color_);
-		painter->drawEllipse(QPointF(55.0,-45.0), 7.0, 7.0);
+		painter->drawEllipse(45,-52, 14, 14);
 		
 		//list mode symbol
 		if (list_mode_)
