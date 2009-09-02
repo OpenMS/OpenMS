@@ -319,23 +319,19 @@ namespace OpenMS
     	proposed_name = layer.filename;
     }
     
-  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;All files (*)");
+  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)");
 		if (!file_name.isEmpty())
 		{
-			//set up file adapter
-			MzMLFile f;
-			f.setLogType(ProgressLogger::GUI);
-		
-	  	if (visible) //only visible data
-	  	{
+    	if (visible) //only visible data
+    	{
 				ExperimentType out;
 				getVisiblePeakData(out);
 				addDataProcessing_(out, DataProcessing::FILTERING);
-			  f.store(file_name,out);
+				FileHandler().storeExperiment(file_name,out,ProgressLogger::GUI);
 			}
 			else //all data
 			{
-				f.store(file_name,layer.peaks);
+				FileHandler().storeExperiment(file_name,layer.peaks,ProgressLogger::GUI);
 			}
 		}
 	}

@@ -96,17 +96,17 @@ namespace OpenMS
 		/// Returns if the file type is supported in this build of the library
 		static bool isSupported(FileTypes::Type type);
 
-    /// Mutable access to the options for loading
+    /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
 
-    /// Non-mutable access to the options for loading
+    /// Non-mutable access to the options for loading/storing
     const PeakFileOptions& getOptions() const;
 
 		/**
 			@brief Loads a file into an MSExperiment
 			
-			@param filename the Filename of the file to load.
-			@param exp The MSExperiment to load the data into.
+			@param filename The file name of the file to load.
+			@param exp The experiment to load the data into.
 			@param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
 			@param log Progress logging mode
 			
@@ -212,9 +212,61 @@ namespace OpenMS
 		}
 
 		/**
+			@brief Stores an MSExperiment to a file
+			
+			The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
+			
+			@param filename The name of the file to store the data in.
+			@param exp The experiment to store.
+			@param log Progress logging mode
+			
+			@exception Exception::UnableToCreateFile is thrown if the file could not be written
+		*/
+		template <class PeakType> void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
+		{
+			//load right file
+			switch(getTypeByFileName(filename))
+			{
+				case FileTypes::DTA2D:
+					{
+						DTA2DFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.store(filename,exp);
+					}
+					break;
+				case FileTypes::MZXML:
+					{
+						MzXMLFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.store(filename,exp);
+					}
+					break;
+				case FileTypes::MZDATA:
+					{
+						MzDataFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.store(filename,exp);
+					}
+					break;
+				default:
+					{
+						MzMLFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.store(filename,exp);
+					}
+					break;
+			}
+		}
+
+
+		/**
 			@brief Loads a file into a FeatureMap
 			
-			@param filename the Filename of the file to load.
+			@param filename the file name of the file to load.
 			@param map The FeatureMap to load the data into.
 			@param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
 			

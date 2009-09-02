@@ -208,8 +208,22 @@ START_SECTION((template < class FeatureType > bool loadFeatures(const String &fi
 	TEST_EQUAL(map.size(),7);
 	TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),map), true)
 	TEST_EQUAL(map.size(),7);
-
 END_SECTION
+
+START_SECTION((template <class PeakType> void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
+	FileHandler fh;
+	MSExperiment<> exp;
+	fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
+	
+	//test mzML
+	String filename;
+	NEW_TMP_FILE(filename)
+	fh.storeExperiment(filename,exp);
+	TEST_EQUAL(fh.getTypeByContent(filename),FileTypes::MZML)
+		
+	//other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

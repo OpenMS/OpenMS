@@ -1382,7 +1382,7 @@ namespace OpenMS
     	proposed_name = layer.filename;
     }
 		
-		QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;All files (*)");
+		QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)");
 
 		if (!file_name.isEmpty())
 		{
@@ -1391,11 +1391,11 @@ namespace OpenMS
 				ExperimentType out;
 				getVisiblePeakData(out);
 				addDataProcessing_(out, DataProcessing::FILTERING);
-				MzMLFile().store(file_name,out);
+				FileHandler().storeExperiment(file_name,out);
 		  }
 		  else
 		  {
-				MzMLFile().store(file_name,layer.peaks);
+				FileHandler().storeExperiment(file_name,layer.peaks);
 		  }
 		}
 	}
