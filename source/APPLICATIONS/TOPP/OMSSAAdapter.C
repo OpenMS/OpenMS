@@ -456,6 +456,7 @@ class TOPPOMSSAAdapter
 
 						// add this to the usermods
 						user_mods.push_back(make_pair(user_mod_num++, *it));
+            writeDebug_("Inserting unknown fixed modification: '" + *it + "' into OMSSA", 1);
 					}
 				}
 				if (mod_list != "")
@@ -489,7 +490,7 @@ class TOPPOMSSAAdapter
 
             // add this to the usermods
             user_mods.push_back(make_pair(user_mod_num++, *it));
-            //cerr << "OMSSAAdapter: knows nothing about modification: '" << *it << "', ignoring it!" <<  endl;
+            writeDebug_("Inserting unknown variable modification: '" + *it + "' into OMSSA", 1);
           }
         }
 
@@ -499,10 +500,10 @@ class TOPPOMSSAAdapter
 				}				
 			}
 
-			writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
 			// write unknown modifications to user mods file	
 			if (user_mods.size() != 0)
 			{
+				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
 				parameters += " -mux " + File::absolutePath(unique_usermod_name);
 				ofstream out(unique_usermod_name.c_str());
 				out << "<?xml version=\"1.0\"?>" << endl;
@@ -599,7 +600,7 @@ class TOPPOMSSAAdapter
 			MascotInfile omssa_infile;
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
-			// @todo translate call to windows
+			/// @todo test/translate call to windows
 			String call = omssa_dir + "/omssacl " + parameters;
 
 			writeDebug_(call, 5);
@@ -628,6 +629,7 @@ class TOPPOMSSAAdapter
 			set<String> fixed_mod_names = mod_set.getFixedModificationNames();
 			vector<String> fixed_nterm_mods, fixed_cterm_mods;
 			Map<String, String> fixed_residue_mods;
+			writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
 			for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
 			{
 				ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
@@ -644,6 +646,7 @@ class TOPPOMSSAAdapter
 					fixed_nterm_mods.push_back(*it);
 				}
 			}
+			writeDebug_("Assigning modifications to peptides", 1);
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
 				vector<PeptideHit> hits = it->getHits();

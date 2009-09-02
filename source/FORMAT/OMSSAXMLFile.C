@@ -172,7 +172,18 @@ namespace OpenMS
 					warning(LOAD, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
 				}
 				AASequence pep = actual_peptide_hit_.getSequence();
-				pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullName());
+				if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::N_TERM)
+				{
+					pep.setNTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+				}
+				else if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::C_TERM)
+				{
+					pep.setCTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+				}
+				else
+				{
+					pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+				}
 				actual_peptide_hit_.setSequence(pep);
 			}
 			else
