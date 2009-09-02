@@ -18,6 +18,7 @@ Changes to OpenMS XML formats:
 Changes to the contrib package:
 
 Bug fixes:
+- [2849201: Parameters in INI files are duplicated
 
 ------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.5                                      ----

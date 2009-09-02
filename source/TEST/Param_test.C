@@ -782,6 +782,66 @@ START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream& os, const 
 	TEST_EQUAL(ss.str(), "\"tree|key\" -> \"17.5\"\n")
 END_SECTION
 
+START_SECTION((void insert(String prefix, const Param &param)))
+	Param p;
+	p.setValue("a",17,"intdesc");
+	p.setValue("n1:b",17.4f,"floatdesc");
+	p.setValue("n1:c","test,test,test","stringdesc");
+	p.setValue("n2:d",17.5f);
+	p.setSectionDescription("n1","sectiondesc");
+
+	Param p2;
+	
+	p2.insert("prefix",p);
+	TEST_EQUAL(p2.size(),4)
+	TEST_EQUAL(Int(p2.getValue("prefixa")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("prefixa"), "intdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("prefixn1:b")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("prefixn1:b"), "floatdesc")
+	TEST_EQUAL(p2.getValue("prefixn1:c"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("prefixn1:c"), "stringdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("prefixn2:d")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("prefixn2:d"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("prefixn1"),"sectiondesc")
+		
+	p2.insert("",p);
+	TEST_EQUAL(p2.size(),8)
+	TEST_EQUAL(Int(p2.getValue("a")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("a"), "intdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("n1:b")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("n1:b"), "floatdesc")
+	TEST_EQUAL(p2.getValue("n1:c"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("n1:c"), "stringdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("n2:d")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("n2:d"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("n1"),"sectiondesc")
+
+	p2.insert("n3:",p);
+	TEST_EQUAL(p2.size(),12)
+	TEST_EQUAL(Int(p2.getValue("n3:a")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("n3:a"), "intdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("n3:n1:b")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("n3:n1:b"), "floatdesc")
+	TEST_EQUAL(p2.getValue("n3:n1:c"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("n3:n1:c"), "stringdesc")
+	TEST_REAL_SIMILAR(float(p2.getValue("n3:n2:d")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("n3:n2:d"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("n3:n1"),"sectiondesc")
+	
+	p.clear();
+	p.setValue("a",18,"intdesc");
+	p.setValue("n1:b",17.7f,"floatdesc");
+	p.setValue("n1:c","test,test,test,test","stringdesc");
+	p.setValue("n2:d",17.8f);
+	
+	p2.insert("",p);
+	TEST_EQUAL(p2.size(),12)
+	TEST_EQUAL(Int(p2.getValue("a")), 18)
+	TEST_REAL_SIMILAR(float(p2.getValue("n1:b")), 17.7)
+	TEST_EQUAL(p2.getValue("n1:c"), "test,test,test,test")
+	TEST_REAL_SIMILAR(float(p2.getValue("n2:d")), 17.8)
+END_SECTION
+
 Param p;
 p.setValue("test:float",17.4f,"floatdesc");
 p.setValue("test:string","test,test,test","stringdesc");
@@ -790,71 +850,6 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
-
-START_SECTION((void insert(String prefix, const Param &param)))
-	Param p2;
-	p2.insert("test3",p);
-	
-	TEST_REAL_SIMILAR(float(p2.getValue("test3test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test3test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test3test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test3test:string"), "stringdesc")
-	TEST_EQUAL(Int(p2.getValue("test3test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test3test:int"), "intdesc")
-	TEST_REAL_SIMILAR(float(p2.getValue("test3test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test3test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test3test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test3test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test3test2:int")), 18)
-	TEST_STRING_EQUAL(p2.getDescription("test3test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getSectionDescription("test3test"),"sectiondesc")
-		
-	p2.insert("",p);
-	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
-	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
-
-	p2.insert("test3:",p);
-	
-	TEST_REAL_SIMILAR(float(p2.getValue("test3:test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:string"), "stringdesc")
-	TEST_EQUAL(Int(p2.getValue("test3:test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:int"), "intdesc")
-	TEST_REAL_SIMILAR(float(p2.getValue("test3:test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test3:test2:int")), 18)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getSectionDescription("test3:test"),"sectiondesc")
-		
-	p2.insert("",p);
-	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
-	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
-END_SECTION
 
 START_SECTION((Param(const Param& rhs)))
 	Param p2(p);

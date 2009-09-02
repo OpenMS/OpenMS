@@ -195,6 +195,7 @@ namespace OpenMS
 	
 	void Param::ParamNode::insert(const ParamNode& node, const String& prefix)
 	{
+		//cerr << "INSERT NODE  " << node.name << " (" << prefix << ")" << endl;
 		String prefix2 = prefix + node.name;
 		
 		ParamNode* insert_node = this;
@@ -221,8 +222,14 @@ namespace OpenMS
 		NodeIterator it = insert_node->findNode(prefix2);
 		if (it!=insert_node->nodes.end()) //append nodes and entries
 		{
-			it->nodes.insert(it->nodes.end(), node.nodes.begin(), node.nodes.end());
-			it->entries.insert(it->entries.end(), node.entries.begin(), node.entries.end());
+			for (ConstNodeIterator it2=node.nodes.begin(); it2!=node.nodes.end(); ++it2)
+			{
+				it->insert(*it2);
+			}
+			for (ConstEntryIterator it2=node.entries.begin(); it2!=node.entries.end(); ++it2)
+			{
+				it->insert(*it2);
+			}
 			if (it->description=="" || node.description!="") //replace description if not empty in new node
 			{
 				it->description = node.description;
@@ -238,7 +245,7 @@ namespace OpenMS
 
 	void Param::ParamNode::insert(const ParamEntry& entry, const String& prefix)
 	{
-		//cerr << "ParamEntry::Insert(ParamEntry)" << endl;
+		//cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")" << endl;
 		String prefix2 = prefix + entry.name;
 		//cerr << " - inserting: " << prefix2 << endl;
 		
@@ -429,8 +436,9 @@ namespace OpenMS
 		return it->description;
 	}
 	
-	void Param::insert(String prefix, const Param& param)
+	void Param::insert(const String& prefix, const Param& param)
 	{
+		//cerr << "INSERT PARAM (" << prefix << ")" << endl;
 		for (Param::ParamNode::NodeIterator it=param.root_.nodes.begin(); it!=param.root_.nodes.end(); ++it)
 		{
 			root_.insert(*it,prefix);
@@ -441,19 +449,21 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setDefaults(const Param& defaults, String prefix, bool showMessage)
+	void Param::setDefaults(const Param& defaults, const String& prefix, bool showMessage)
 	{
-		if ( !prefix.empty() )
+		String prefix2 = prefix;
+		if (prefix2!="")
 		{
-			prefix.ensureLastChar(':');
-		}	
+			prefix2.ensureLastChar(':');
+		}
+		
 		String pathname;
 		for(Param::ParamIterator it = defaults.begin(); it != defaults.end();++it)
 		{
-			if (!exists(prefix + it.getName()))
+			if (!exists(prefix2 + it.getName()))
 			{
-				if (showMessage) cerr << "Setting " << prefix+it.getName() << " to " << it->value << endl;
-				String name = prefix+it.getName();
+				if (showMessage) cerr << "Setting " << prefix2+it.getName() << " to " << it->value << endl;
+				String name = prefix2+it.getName();
 				root_.insert(ParamEntry("", it->value, it->description), name);
 				//copy tags
 				for (set<String>::const_iterator tag_it=it->tags.begin(); tag_it!=it->tags.end(); ++tag_it)
@@ -501,7 +511,7 @@ namespace OpenMS
 					{
 						//cerr << "## Setting description of " << prefix+real_pathname << " to"<< endl;
 						//cerr << "## " << description_new << endl;
-						setSectionDescription(prefix+real_pathname, description_new);
+						setSectionDescription(prefix2+real_pathname, description_new);
 					}
 				}
 			}
@@ -860,12 +870,13 @@ namespace OpenMS
 	}
 
 
-	void Param::parseCommandLine(const int argc , const char** argv, String prefix)
+	void Param::parseCommandLine(const int argc , const char** argv, const String& prefix)
 	{
 		//determine prefix
-		if (prefix!="")
+		String prefix2 = prefix;
+		if (prefix2!="")
 		{
-			prefix.ensureLastChar(':');
+			prefix2.ensureLastChar(':');
 		}
 		
 		//parse arguments
@@ -891,25 +902,25 @@ namespace OpenMS
       //flag (option without text argument)
       if(arg_is_option && arg1_is_option)
       {
-	    	root_.insert(ParamEntry(arg,String(),""),prefix);
+	    	root_.insert(ParamEntry(arg,String(),""),prefix2);
       }
       //option with argument
       else if(arg_is_option && !arg1_is_option)
       {
-      	root_.insert(ParamEntry(arg,arg1,""),prefix);
+      	root_.insert(ParamEntry(arg,arg1,""),prefix2);
       	++i;
       }      
       //just text arguments (not preceded by an option)
       else
       {
 
-      	ParamEntry* misc_entry = root_.findEntryRecursive(prefix+"misc");
+      	ParamEntry* misc_entry = root_.findEntryRecursive(prefix2+"misc");
       	if (misc_entry==0)
       	{
       		StringList sl;
       		sl << arg;
 					// create "misc"-Node: 
-      		root_.insert(ParamEntry("misc",sl,""),prefix);
+      		root_.insert(ParamEntry("misc",sl,""),prefix2);
       	}
       	else
       	{
@@ -1069,14 +1080,15 @@ namespace OpenMS
 		root_ = ParamNode("ROOT","");
 	}
 
-	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
+	void Param::checkDefaults(const String& name, const Param& defaults, const String& prefix, std::ostream& os) const
 	{
 		//Extract right parameters
-		if ( !prefix.empty() )
+		String prefix2 = prefix;
+		if (prefix2!="")
 		{
-			prefix.ensureLastChar(':');
-		}	
-		Param check_values = copy(prefix,true);
+			prefix2.ensureLastChar(':');
+		}
+		Param check_values = copy(prefix2,true);
 		
 		//check
 		for(ParamIterator it = check_values.begin(); it != check_values.end();++it)
@@ -1085,12 +1097,12 @@ namespace OpenMS
 			if (!defaults.exists(it.getName()))
 			{
 				os << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
-				if (!prefix.empty()) os << " in '" << prefix << "'";
+				if (!prefix2.empty()) os << " in '" << prefix2 << "'";
 				os << "!" << endl;
 			}
 
 			//different types
-			ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix+it.getName());
+			ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix2+it.getName());
 			if (default_value==0) continue;
 			if (default_value->value.valueType()!=it->value.valueType())
 			{
