@@ -93,6 +93,10 @@
 			<LI><b>Can the START_SECTION-macro not handle template methods that have two or more arguments?</b><BR>
 				Put round brackets around the method declaration. Then it should work.
 
+			<LI><b>Are there binary installers created from the SVN HEAD?</b><BR>
+			Currently binary installers from the HEAD are available only for Windows:
+			@n http://ftp.mi.fu-berlin.de/bielow/OpenMS/
+
 		</UL>
 	<H2 style="border-top:2px solid grey;">Build system</H2>
 		<UL>
@@ -234,22 +238,16 @@ svn propset svn:eol-style native MyClass.C
 		
 			<LI><b>How do I run a single test?</b><BR>
 			
-				You can list all tests with numbers using the command
-				<code>&gt; ctest -N</code>
+				You can can execute an %OpenMS class test using the CTest regular expressions:
+				@n <code>&gt; ctest -V -R "^<class>_test"</code>
+				@n To build a class test, you simply call the respective make target:
+				@n <code>&gt; make &lt;class&gt;_test</code>
 				
-				You can run a test by specifying its name using the <TT>-R</TT> flag.
-				E.g. to call all tests which contain the substring <TT>File</TT> use:
+				To run a TOPP test, you can use:
+				@n <code>&gt; ctest -V -R "TOPP_<tool>"</code>
+				@n To build the tool, use:
+				@n <code>&gt; make &lt;tool&gt;</code>
 				
-				<code>&gt; ctest -R File</code>
-			
-				You can only run single tests (or a range of tests), if you know the test number.
-				For the test 45, you would use the same start and end test number:
-				
-				<code>&gt; ctest -V -I 45,45</code>
-				
-				You can also select test using a regular expressions.
-				Have a look at the CTest help!
-
 	    <LI><b>How do I debug uncaught exceptions?</b><BR>
 	      There is a mechanism to have a core dumped if an uncaught
 	      exception occurs.
