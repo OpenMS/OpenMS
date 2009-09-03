@@ -536,23 +536,17 @@ function prompt ()
 {
     if eval $OpenMS_do_help_condition;
     then
-        echo "Set a colorful prompt string (PS1) with specified width (default: 20)."
-        echo "For width < 7 the prompt will be '$ '."
+        echo "Set a colorful prompt string (PS1) with specified width (default: 30)."
+        echo "For width = -9999 the prompt will be ' $ '."
         _OpenMS_where_defined
     else
         export PROMPT_LENGTH=${1:-30}
         if [[ $TERM == "xterm" ]];
         then
-            export PS1='\[\e]0;\u@\h:\w\007\]\[\e[47m\]\[\e[36m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[1;31m\]$(tmp=$?; if (($tmp)); then echo -e «$tmp»\ ; fi)\[\e[1;30m\]\$\[\e[0m\] '
+            export PS1='\[\e]0;\u@\h:\w\007\]\[\e[47m\]\[\e[36m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}+3:0))} \[\e[1;31m\]$(tmp=$?; if (($tmp)); then echo -e «$tmp»\ ; fi)\[\e[1;30m\]\$\[\e[0m\] '
         else
             export PS1='\[\e[1;35m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[32m\]\$\[\e[0m\] '
         fi
-#        export PS1='\[\e[1;30m\]${PWD:((${#PWD}>${PROMPT_LENGTH}?-${PROMPT_LENGTH}:0))} \[\e[32m\]\$\[\e[0m\] '
-#        export PS1="\[\e[1;30m\]\$(\
-#        if [ \${PROMPT_LENGTH} -gt 6 ]; \
-#        then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
-#        then echo -ne \"...\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
-#        else echo -ne \"\\w \"; fi; fi)\[\e[32m\]\$\[\e[0m\] "
     fi
 }
 
