@@ -164,7 +164,6 @@ namespace OpenMS
 		{
 			vector< String > modifications, mod_parts;
 			modification_line.split(':', modifications); // get the single modifications
-			if ( modifications.empty() ) modifications.push_back(modification_line);
 			
 			// to get masses from a formula
 			EmpiricalFormula add_formula, substract_formula;
@@ -183,7 +182,6 @@ namespace OpenMS
 				
 				// get the single parts of the modification string
 				mod_i->split(',', mod_parts);
-				if ( mod_parts.empty() ) mod_parts.push_back(*mod_i);
 				mass_or_composition_or_name = -1;
 				
 				// check whether the first part is a mass, composition or name

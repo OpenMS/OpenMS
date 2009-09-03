@@ -348,13 +348,6 @@ class TOPPPILISIdentification
 			search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
 			vector<String> fixed_mods;
 			getStringOption_("fixed_modifications").split(',', fixed_mods);
-			if (fixed_mods.size() == 0)
-			{
-				if (getStringOption_("fixed_modifications") != "")
-				{
-					fixed_mods.push_back(getStringOption_("fixed_modifications"));
-				}
-			}
 			search_parameters.fixed_modifications = fixed_mods;
 			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
 			search_parameters.missed_cleavages = 1;

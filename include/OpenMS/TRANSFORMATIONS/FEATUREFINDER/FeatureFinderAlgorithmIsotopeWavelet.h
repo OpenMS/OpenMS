@@ -371,10 +371,8 @@ namespace OpenMS
 			#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)
 				use_gpus_ = this->param_.getValue ("parallel:use_gpus");
 				std::vector<String> tokens; 
-				if (!use_gpus_.split(',', tokens))	
-				{
-					tokens.push_back(use_gpus_);
-				};			
+				use_gpus_.split(',', tokens);
+				if (tokens.size()==0) tokens.push_back("-1");
 					//Attention: updateMembers_ can be called several times!
 				gpu_ids_.clear();
 				if (tokens[0].trim().toInt() == -1) //no parallelization

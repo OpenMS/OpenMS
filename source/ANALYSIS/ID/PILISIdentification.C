@@ -437,10 +437,6 @@ namespace OpenMS
 			vector<String> mod_split;
 
 			fixed_modifications.split(',', mod_split); // comma separated modifications
-			if (mod_split.size() == 0)
-			{
-				mod_split.push_back(fixed_modifications);
-			}
 
 			// now get the modifications
 			for (Size i = 0; i != mod_split.size(); ++i)

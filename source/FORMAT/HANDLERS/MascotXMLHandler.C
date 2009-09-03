@@ -468,19 +468,11 @@ namespace OpenMS
 		{
 			String temp_string = (((String) sm_.convert(chars)).trim());
 			temp_string.split(',', search_parameters_.fixed_modifications);
-			if (search_parameters_.fixed_modifications.size() == 0 && temp_string != "")
-			{
-				search_parameters_.fixed_modifications.push_back(temp_string);
-			}
 		}
 		else if (tag_ == "IT_MODS")
 		{
 			String temp_string = (((String) sm_.convert(chars)).trim());
 			temp_string.split(',', search_parameters_.variable_modifications);
-			if (search_parameters_.variable_modifications.size() == 0 && temp_string != "")
-			{
-				search_parameters_.variable_modifications.push_back(temp_string);
-			}
 		}
 		else if (tag_ == "CLE")
 		{

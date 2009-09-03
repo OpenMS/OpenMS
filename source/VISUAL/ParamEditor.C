@@ -726,10 +726,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					if (!restrictions.split(',', parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',', parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -741,10 +738,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					if (!restrictions.split(',', parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',', parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -756,10 +750,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
-					if (!restrictions.split(',', parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',', parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -794,10 +785,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					if (!restrictions.split(',',parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',',parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -809,10 +797,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					if (!restrictions.split(',',parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',',parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
@@ -824,10 +809,7 @@ namespace OpenMS
 				if(restrictions!="")
 				{
 					vector<String> parts;
-					if (!restrictions.split(',',parts))
-					{
-						parts.push_back(restrictions);
-					}
+					restrictions.split(',',parts);
 					param_->setValidStrings(path,parts);
 				}
 			}
