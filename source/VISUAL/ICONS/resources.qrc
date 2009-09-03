@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 	<qresource>
+		
 		<!-- INIFileEditor -->
 		<file>INIFileEditor.png</file>
 		
@@ -12,7 +13,6 @@
 		<!-- TOPPView -->
 		<file>TOPPView.png</file>
 		<file>TOPPView_Splashscreen.png</file>
-		<file>TOPPView_about.png</file>
 		<file>convexhull.png</file>
 		<file>convexhulls.png</file>
 		<file>cursor_measure.png</file>
@@ -31,6 +31,9 @@
 		<file>tile_horizontal.png</file>
 		<file>tile_vertical.png</file>
 		
+		<!-- shared -->
+		<file>TOPP_about.png</file>
+
 	</qresource>
 </RCC>
 

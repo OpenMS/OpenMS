@@ -2581,7 +2581,7 @@ namespace OpenMS
 
 		//image
 		QLabel* label = new QLabel(dlg);
-		label->setPixmap(QPixmap(":/TOPPView_about.png"));
+		label->setPixmap(QPixmap(":/TOPP_about.png"));
 		grid->addWidget(label,0,0);
 
 		//text
