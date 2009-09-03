@@ -295,9 +295,10 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
 		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		result = OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
-		TEST_EQUAL(substrings.size(),0);
+		TEST_EQUAL(result, false);
+		TEST_EQUAL(substrings.size(), 0);
 		STATUS(substrings.size());
 	}
 	{

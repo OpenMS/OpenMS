@@ -80,19 +80,13 @@ namespace OpenMS
 
 	DoubleList DoubleList::create(const String& list)
 	{
-		vector<String>out;
 		DoubleList ret;
-		if (!list.split(',',out) && list!="")
+		vector<String> out;
+		list.split(',', out);
+		ret.resize(out.size());
+		for (Size i = 0; i < out.size(); ++i)
 		{
-			ret.push_back(list.toDouble());
-		}
-		else
-		{
-			ret.resize(out.size());
-			for (Size i=0; i< out.size(); ++i)
-			{
-				ret[i]=out[i].toDouble();
-			}
+			ret[i]=out[i].toDouble();
 		}
 		return ret;
 	}

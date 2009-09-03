@@ -81,19 +81,13 @@ namespace OpenMS
 
 	IntList IntList::create(const String& list)
 	{
-		vector<String>out;
 		IntList ret;
-		if (!list.split(',',out) && list!="")
+		vector<String> out;
+		list.split(',', out);
+		ret.resize(out.size());
+		for (Size i = 0; i < out.size(); ++i)
 		{
-			ret.push_back(list.toInt());
-		}
-		else
-		{
-			ret.resize(out.size());
-			for (Size i=0; i< out.size(); ++i)
-			{
-				ret[i]=out[i].toInt();
-			}
+			ret[i] = out[i].toInt();
 		}
 		return ret;
 	}

@@ -702,7 +702,7 @@ namespace OpenMS
 				precursor_mass_type = ( substrings[0] == "MONO" ) ? 1 : 0;
 				ion_mass_type = ( substrings[1] == "MONO" ) ? 1 : 0;
 			}
-			else if ( (!substrings.empty()) && substrings[0].length() > 5 && (substrings[0].size() == 10) && (substrings[0][2] == '/') && (substrings[0][5] == '/') )
+			else if ( (!substrings.empty()) && (substrings[0].size() == 10) && (substrings[0][2] == '/') && (substrings[0][5] == '/') )
 			{
 				datetime.setDate(substrings[0]);
 				buffer = substrings[1];

@@ -76,10 +76,7 @@ namespace OpenMS
 	StringList StringList::create(const String& list, const char splitter)
 	{
 		StringList out;
-		if (!list.split(splitter,out) && list!="")
-		{
-			out.push_back(list);
-		}
+		list.split(splitter,out);
 		return out;
 	}
 	

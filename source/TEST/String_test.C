@@ -269,7 +269,7 @@ END_SECTION
 START_SECTION((String prefix(char delim) const))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
-	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
+	TEST_EXCEPTION(Exception::ElementNotFound, s.prefix('Z'));
 END_SECTION
 
 START_SECTION((String suffix(char delim) const))
@@ -352,6 +352,19 @@ START_SECTION((String& trim()))
 	s = "\t\r\n ";
 	s.trim();
 	TEST_EQUAL(s,"");
+END_SECTION
+
+START_SECTION((String& quote(char c, bool escape)))
+  String s;
+  s.quote('\'');
+  TEST_EQUAL(s, "''");
+  s.quote('\'', true);
+  TEST_EQUAL(s, "'\\'\\''");
+  s = "ab\"cd\\ef";
+  s.quote('"', false);
+  TEST_EQUAL(s, "\"ab\"cd\\ef\"");
+  s.quote();
+  TEST_EQUAL(s, "\"\\\"ab\\\"cd\\\\ef\\\"\"");
 END_SECTION
 
 START_SECTION((String& simplify()))
@@ -470,6 +483,11 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
 	TEST_EQUAL(split[3],String("4"));
 	TEST_EQUAL(split[4],String("5"));
 
+  s = "";
+  result = s.split(',', split);
+  TEST_EQUAL(result, false);
+  TEST_EQUAL(split.size(), 0);
+
 	s = ";";
 	result = s.split(';', split);
 	TEST_EQUAL(result,true);
@@ -479,12 +497,12 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
 
 	result = s.split(',', split);
 	TEST_EQUAL(result,false);
-	TEST_EQUAL(split.size(),0);
+	TEST_EQUAL(split.size(),1);
 
 	s = "nodelim";
 	result = s.split(';', split);
 	TEST_EQUAL(result,false);
-	TEST_EQUAL(split.size(),0);
+	TEST_EQUAL(split.size(),1);
 
 	// testing quoting behaviour
 	s=" \"hello\", world, 23.3";
@@ -522,11 +540,44 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
 	s = " \"nodelim \"";
 	result = s.split(';', split, true);
 	TEST_EQUAL(result,false);
-	TEST_EQUAL(split.size(),0);
+	TEST_EQUAL(split.size(),1);
 
 	// testing invalid quoting...
 	s = " \"first\", \"seconds\"<thisshouldnotbehere>, third";
 	TEST_EXCEPTION(Exception::ConversionError, s.split(',', split, true));
+
+END_SECTION
+
+START_SECTION((bool split(const String& splitter, std::vector<String>& substrings) const))
+String s = "abcdabcdabcd";
+vector<String> substrings;
+bool result = s.split("cd", substrings);
+TEST_EQUAL(result, true);
+TEST_EQUAL(substrings.size(), 4);
+TEST_EQUAL(substrings[0], "ab");
+TEST_EQUAL(substrings[3], "");
+
+result = s.split("abcd", substrings);
+TEST_EQUAL(result, true);
+TEST_EQUAL(substrings.size(), 4);
+TEST_EQUAL(substrings[0], "");
+TEST_EQUAL(substrings[1], "");
+TEST_EQUAL(substrings[2], "");
+TEST_EQUAL(substrings[3], "");
+
+result = s.split("xy", substrings);
+TEST_EQUAL(result, false);
+TEST_EQUAL(substrings.size(), 1);
+
+result = s.split("", substrings);
+TEST_EQUAL(result, true);
+TEST_EQUAL(s.size(), substrings.size());
+TEST_EQUAL(substrings[0], "a");
+TEST_EQUAL(substrings[substrings.size() - 1], "d");
+
+result = String("").split(",", substrings);
+TEST_EQUAL(result, false);
+TEST_EQUAL(substrings.size(), 0);
 
 END_SECTION
 

@@ -221,6 +221,26 @@ namespace OpenMS
 		
 		/// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
 		String& trim();
+
+		/**
+			 @brief Wraps the string in quotation marks
+
+			 The quotation mark can be specified by parameter @p c (typically single or double quote); if @p escape is true, present backslashes and occurrences of @p c are escaped with a backslash
+
+			 @see unquote
+		*/
+		String& quote(char c = '"', bool escape = true);
+
+		/**
+			 @brief Reverses changes made by the @p quote method
+
+			 Removes surrounding quotation marks (given by parameter @p c); un-escapes backslashes and embedded quotation marks if @p unescape is true.
+
+			 @exception Exception::ConversionError is thrown if the string does not have the format produced by @p quote
+
+			 @see quote
+		*/
+		String& unquote(char c = '"', bool unescape = true);		
 		
 		/// merges subsequent whitespaces to one blank character
 		String& simplify();
@@ -361,7 +381,7 @@ namespace OpenMS
 		///returns a string for @p d with exactly @p n decimal places
 		static String number(DoubleReal d, UInt n);
 		/**
-			@brief returns a string with at maximum @p n characters for @p d
+			@brief Returns a string with at maximum @p n characters for @p d
 		
 			If @p d is larger, scientific notation is used.
 		*/
@@ -369,21 +389,36 @@ namespace OpenMS
 
 		
 		/**
-			@brief splits a string into @p substrings using @p splitter as delimiter
+			@brief Splits a string into @p substrings using @p splitter as delimiter
 			
-			If the @p splitter is not found, @p substrings is empty.
+			If @p splitter is not found, the whole string is put into @p substrings.
+			If @p splitter is empty, the string is split into individual characters.
+			If the invoking string is empty, @p substrings will also be empty.
 			
 			@p quote_protect (default: false) can be used to split only between quoted
 			blocks e.g. ' "a string" , "another string with , in it" '
 			results in only two substrings (with double quotation marks @em removed).
 			Every returned substring is trimmed and then (if present) has surrounding quotation marks removed.
 			
-			@return if the splitter was found (once or multiple times) in the string
-
+			@return @e true if one or more splits occurred, @e false otherwise
+			
 			@see concatenate().
 		*/
 		bool split(const char splitter, std::vector<String>& substrings, bool quote_protect=false) const;
-		
+
+		/**
+			@brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter
+			
+			If @p splitter is not found,  the whole string is put into @p substrings.
+			If @p splitter is empty, the string is split into individual characters.
+			If the invoking string is empty, @p substrings will also be empty.
+			
+			@return @e true if one or more splits occurred, @e false otherwise
+
+			@see concatenate().
+		*/
+		bool split(const String& splitter, std::vector<String>& substrings) const;
+	
 		
 		/**
 			@brief Concatenates all elements from @p first to @p last-1 and inserts @p glue between the elements

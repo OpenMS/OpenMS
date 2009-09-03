@@ -47,22 +47,25 @@ namespace OpenMS
 	{
 	}
 
+	
 	String::String(const string& s)
 		:	string(s)
 	{
 	}
 
+	
 	String::String(const char* s)
 		: string(s)
-	{
-		
+	{		
 	}
 
+	
 	String::String(const QString& s)
 		:	string(s.toStdString())
 	{
 	}
 
+	
 	String::String(const char* s, SizeType length)
 	{
 		SizeType count = 0;
@@ -73,16 +76,19 @@ namespace OpenMS
 		}
 	}
 
+	
 	String::String(const char c)
 		:	string(1,c)
 	{
 	}
 
+	
 	String::String(size_t len, char c)
 		:	string(len, c)
 	{
 	}
 
+	
 	String::String(int i)
 		: string()
 	{
@@ -91,6 +97,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(unsigned int i)
 		: string()
 	{
@@ -99,6 +106,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(short int i)
 		: string()
 	{
@@ -107,6 +115,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(short unsigned int i)
 		: string()
 	{
@@ -115,6 +124,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(long int i)
 		: string()
 	{
@@ -123,6 +133,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(long unsigned int i)
 		: string()
 	{
@@ -131,6 +142,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(long long unsigned int i)
 		: string()
 	{
@@ -139,6 +151,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(long long signed int i)
 		: string()
 	{
@@ -157,6 +170,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(double d)
 		: string()
 	{
@@ -166,6 +180,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	
 	String::String(long double ld)
 		: string()
 	{
@@ -174,44 +189,47 @@ namespace OpenMS
 		s << ld;
 		string::operator=(s.str());
 	}
+
 	
 	String String::numberLength(DoubleReal d, UInt n)
 	{
 		stringstream s;
 		//reserve one space for the minus sign
-		Int sign=0;
-		if (d<0) sign=1;
+		Int sign = 0;
+		if (d < 0) sign = 1;
 		d = fabs(d);
 		
-		if (d<pow(10.0,Int(n-sign-2)))
+		if (d < pow(10.0, Int(n - sign - 2)))
 		{
-			s.precision(writtenDigits(d)); // Note: Precision was formerly set to 10.  TODO: remove this comment.
-			if (sign==1) s << "-";
+			s.precision(writtenDigits(d));
+			if (sign == 1) s << "-";
 			s << d;
 		}
 		else
 		{
-			UInt exp=0;
-			while(d>pow(10.0,Int(n-sign-4)))
+			UInt exp = 0;
+			while(d > pow(10.0, Int(n - sign - 4)))
 			{
-				d/=10;
+				d /= 10;
 				++exp;
 			}
-			d = Int(d)/10.0;
-			exp+=1;
-			if (sign==1) s << "-";
-			s << d<<"e";
-			if (exp<10) s << "0";
-			s <<exp; 
+			d = Int(d) / 10.0;
+			exp += 1;
+			if (sign == 1) s << "-";
+			s << d << "e";
+			if (exp < 10) s << "0";
+			s << exp; 
 		}
-		return s.str().substr(0,n);		
+		return s.str().substr(0, n);		
 	}
 
+	
 	String String::number(DoubleReal d, UInt n)
 	{
 		return QString::number(d,'f',n);
 	}
 
+	
 	String& String::fillLeft(char c, UInt size)
 	{
 		if (string::size()<size)
@@ -221,6 +239,7 @@ namespace OpenMS
 		return *this;
 	}
 
+	
 	String& String::fillRight(char c, UInt size)
 	{
 		if (string::size()<size)
@@ -229,6 +248,7 @@ namespace OpenMS
 		}		
 		return *this;
 	}
+
 	
 	String::String(const DataValue& d)
 		: string()
@@ -236,6 +256,7 @@ namespace OpenMS
 		string::operator=(d.toString());
 	}
 
+	
 	bool String::hasPrefix(const String& string) const
 	{
 		if (string.size() > size())
@@ -249,6 +270,7 @@ namespace OpenMS
 		return (compare(0, string.size(), string) == 0);
 	}
 
+	
 	bool String::hasSuffix(const String& string) const
 	{
 		if (string.size() > size())
@@ -262,38 +284,19 @@ namespace OpenMS
 		return (compare(size()-string.size(), string.size(), string) == 0);
 	}
 
+	
 	bool String::hasSubstring(const String& string) const
 	{
-		if (string.size() > size())
-		{
-			return false;
-		}
-		if (string.size() == 0)
-		{
-			return true;
-		}
-		for (Size i=0;i!=size();++i)
-		{
-			if (compare(i, string.size(), string) == 0)
-			{
-				return true;
-			}
-		}
-		return false;
+		return string::find(string) != string::npos;
 	}
 
+	
 	bool String::has(Byte byte) const
 	{
-		for (Size i=0;i!=size();++i)
-		{
-			if ((*this)[i] == byte)
-			{
-				return true;
-			}
-		}
-		return false;
+		return string::find(char(byte)) != string::npos;
 	}
 
+	
 	String String::prefix(SizeType length) const
 	{
 		if (length > size())
@@ -303,6 +306,7 @@ namespace OpenMS
 		return substr(0, length);
 	}
 
+	
 	String String::suffix(SizeType length) const
 	{
 		if (length > size())
@@ -312,11 +316,12 @@ namespace OpenMS
 		return substr(size()-length, length);
 	}
 
+	
 	String String::prefix(Int length) const
 	{
 		if (length < 0)
 		{
-			throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0);
+			throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, 0);
 		}
 		if (length > Int(size()))
 		{
@@ -325,6 +330,7 @@ namespace OpenMS
 		return substr(0, length);
 	}
 
+	
 	String String::suffix(Int length) const
 	{
 		if (length < 0)
@@ -338,38 +344,31 @@ namespace OpenMS
 		return substr(size()-length, length);
 	}
 
+	
 	String String::prefix(char delim) const
 	{
-		ConstIterator it=begin();
-		while (it!=end() && *it!=delim)
+		Size pos = string::find(delim);
+		if (pos == string::npos) //char not found
 		{
-			++it;
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+																			 String(delim));
 		}
-		//char not found
-		if (it==end())
-		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(delim));
-		}
-		return String(begin(), it);
+		return string::substr(0, pos);
 	}
 
+	
 	String String::suffix(char delim) const
 	{
-		ConstIterator it=end();
-		--it;
-		while (it!=begin() && *it!=delim)
+		Size pos = string::rfind(delim);		
+		if (pos == string::npos) //char not found
 		{
-			--it;
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+																			 String(delim));
 		}
-		//char not found
-		if (it==begin() && *it!=delim)
-		{
-			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(delim));
-		}
-		++it;
-		return String(it, end());
+		return string::substr(++pos);
 	}
 
+	
 	String String::substr(SignedSize start, SignedSize n) const
 	{
 		SignedSize begin, end;
@@ -397,9 +396,9 @@ namespace OpenMS
 			begin = end;
 		}
 		return String(this->begin() + begin, this->begin() + end);
-		
 	}
 
+	
 	String String::substr(SignedSize start) const
 	{
 		SignedSize begin;
@@ -415,6 +414,7 @@ namespace OpenMS
 		return String(this->begin() + begin,this->end());
 	}
 
+	
 	String& String::trim()
 	{
 		//search for the begin of truncated string
@@ -451,6 +451,38 @@ namespace OpenMS
 		return *this;
 	}
 
+	
+	String& String::quote(char c, bool escape)
+	{
+		if (escape)
+		{
+			substitute(String("\\"), String("\\\\"));
+			substitute(String(c), "\\" + String(c));
+		}
+		string::operator=(c + *this + c);
+		return *this;
+	}
+
+
+	String& String::unquote(char c, bool unescape)
+	{
+		// check if input string matches output format of the "quote" method:
+		if ((size() < 2) || ((*this)[0] != c) || ((*this)[size() - 1] != c))
+		{
+			throw Exception::ConversionError(
+				__FILE__, __LINE__, __PRETTY_FUNCTION__,
+				"'" + *this + "' does not have the expected format of a quoted string");
+		}
+		string::operator=(string::substr(1, size() - 2)); // remove quotation marks
+		if (unescape)
+		{
+			substitute("\\" + String(c), String(c));
+			substitute(String("\\\\"), String("\\"));
+		}
+		return *this;
+	}
+
+	
 	String& String::simplify()
 	{
 		String simple;
@@ -478,6 +510,7 @@ namespace OpenMS
 		return *this;
 	}
 
+	
 	String String::random(UInt length)
 	{
 		srand(time(0));
@@ -502,6 +535,7 @@ namespace OpenMS
 		return tmp;
 	}
 
+	
 	String& String::reverse()
 	{
 		String tmp = *this;
@@ -512,55 +546,80 @@ namespace OpenMS
 		return *this;
 	}
 
-	bool String::split(const char splitter, std::vector<String>& substrings, bool quote_protect) const
+	
+	bool String::split(const char splitter, vector<String>& substrings,
+										 bool quote_protect) const
 	{
-		Int parts = count(this->begin(),this->end(),splitter);
 		substrings.clear();
-		if (parts == 0) return false;
+		if (empty()) return false;
+
+		Size nsplits = count(begin(), end(), splitter);
+		
+		if (!quote_protect && (nsplits == 0))
+		{
+			substrings.push_back(*this);
+			return false;
+		}
 		
 		// splitter(s) found
-		substrings.reserve(parts+1);		
-		
-		ConstIterator end = this->begin();
+		substrings.reserve(nsplits + 1);		
+
+		// why is "this->" needed here?
 		ConstIterator begin = this->begin();		
+		ConstIterator end = this->begin();
 		
 		if (quote_protect)
 		{
 			Int quote_count(0);
 			for (; end != this->end(); ++end)
 			{
-				if (quote_protect && (*end == '"'))
+				if (*end == '"')
 				{
 					++quote_count;
 				}
-				if ((quote_count%2==0) && (*end == splitter))
+				if ((quote_count % 2 == 0) && (*end == splitter))
 				{
 					String block = String(begin,end);
 					block.trim();
-					if (block.size()>=2 && (Int(block.prefix(1)==String("\""))+Int(block.suffix(1)==String("\""))==1))
-					{// block has start or end quote but not both (one quote is somewhere in the middle) 
-						throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not dequote string '")+block+"' due to wrongly placed '\"'.");
+					if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
+																			(block.suffix(1) == String("\""))))
+					{ // block has start or end quote, but not both
+						// (one quote is somewhere in the middle) 
+						throw Exception::ConversionError(
+							__FILE__, __LINE__, __PRETTY_FUNCTION__,
+							String("Could not dequote string '") + block +
+							"' due to wrongly placed '\"'.");
 					}
-					else if (block.size()>=2 && block.prefix(1)==String("\"") && block.suffix(1)==String("\""))
-					{// block has start and end quotes --> remove them
-						block = block.substr(1,block.size()-2);
+					else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
+									 (block.suffix(1) == String("\"")))
+					{ // block has start and end quotes --> remove them
+						block = block.substr(1, block.size() - 2);
 					}
 					substrings.push_back(block);
-					begin = end+1;
+					begin = end + 1;
 				}
 			}
 			// no valid splitter found - return empty list
-			if (substrings.size()==0) return false;
-			
-			String block = String(begin,end);
-			block.trim();
-			if (block.size()>=2 && (Int(block.prefix(1)==String("\""))+Int(block.suffix(1)==String("\""))==1))
-			{// block has start or end quote but not both (one quote is somewhere in the middle) 
-				throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not dequote string '")+block+"' due to wrongly placed '\"'.");
+			if (substrings.size() == 0) {
+				substrings.push_back(*this);
+				return false;
 			}
-			else if (block.size()>=2 && block.prefix(1)==String("\"") && block.suffix(1)==String("\""))
-			{// block has start and end quotes --> remove them
-				block = block.substr(1,block.size()-2);
+			
+			String block = String(begin, end);
+			block.trim();
+			if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
+																	(block.suffix(1) == String("\""))))
+			{ // block has start or end quote but not both
+				// (one quote is somewhere in the middle) 
+				throw Exception::ConversionError(
+					__FILE__, __LINE__, __PRETTY_FUNCTION__,
+					String("Could not dequote string '") + block +
+					"' due to wrongly placed '\"'.");
+			}
+			else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
+							 (block.suffix(1)==String("\"")))
+			{ // block has start and end quotes --> remove them
+				block = block.substr(1, block.size() - 2);
 			}
 			substrings.push_back(block);
 		}
@@ -570,21 +629,50 @@ namespace OpenMS
 			{
 				if (*end == splitter)
 				{
-					substrings.push_back(String(begin,end));
-					begin = end+1;
+					substrings.push_back(String(begin, end));
+					begin = end + 1;
 				}
 			}
-			substrings.push_back(String(begin,end));
+			substrings.push_back(String(begin, end));
 		}
 		
 		return true;
 	}
 
+	
+	bool String::split(const String& splitter, std::vector<String>& substrings)
+		const
+	{
+		substrings.clear();
+		if (empty()) return false;
+
+		if (splitter.empty())
+		{ // split after every character:
+			substrings.resize(size());
+			for (Size i = 0; i < size(); ++i)
+				substrings[i] = (*this)[i];
+			return true;
+		}
+		
+		Size len = splitter.size(), start = 0, pos = string::find(splitter);
+		if (len == 0) len = 1;
+		while (pos != string::npos)
+		{
+			substrings.push_back(string::substr(start, pos - start));
+			start = pos + len;
+			pos = string::find(splitter, start);
+		}
+		substrings.push_back(string::substr(start, size() - start));
+		return substrings.size() > 1;
+	}
+
+	
 	QString String::toQString() const
 	{
 		return QString(this->c_str());
 	}
 
+	
 	Int String::toInt() const
 	{
     std::stringstream ss(c_str());
@@ -593,6 +681,7 @@ namespace OpenMS
     return ret;
 	}
 
+	
 	Real String::toFloat() const
 	{
     std::stringstream ss(c_str());
@@ -601,6 +690,7 @@ namespace OpenMS
     return ret;    
 	}
 
+	
 	DoubleReal String::toDouble() const
 	{
     std::stringstream ss(c_str());
@@ -609,26 +699,30 @@ namespace OpenMS
     return ret;    
 	}
 
+	
 	String& String::toUpper()
 	{
-		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) toupper);
+		std::transform(begin(), end(), begin(), (int(*)(int)) toupper);
 		return *this;
 	}
 
+	
 	String& String::firstToUpper()
 	{
-		if (this->size()!=0)
+		if (size() != 0)
 		{
-			(*this)[0] = toupper ((*this)[0]);
+			(*this)[0] = toupper((*this)[0]);
 		}
 		return *this;
 	}
 
+	
 	String& String::toLower()
 	{
-		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) tolower);
+		std::transform(begin(), end(), begin(), (int(*)(int)) tolower);
 		return *this;
 	}
+
 	
 	String& String::substitute(char from, char to)
 	{
@@ -636,39 +730,33 @@ namespace OpenMS
 		return *this;
 	}
 
+	
 	String& String::substitute(const String& from, const String& to)
 	{
 		if (!from.empty())
 		{
-			if (to.hasSubstring(from))
-			{
-				cerr << "Warning: String::substitute 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
-				return *this;
-			}
-
-	   	string::size_type loc = this->find(from, 0);
-	   	while( loc != string::npos ) 
-	   	{
-				this->replace(loc, from.size(), to);
-				loc = this->find(from, 0);
-			}
+			vector<String> parts;
+			split(from, parts);
+			concatenate(parts.begin(), parts.end(), to);
 		}
-		
 		return *this;
 	}
 
+	
 	String& String::remove(char what)
 	{
 		this->erase(std::remove(this->begin(), this->end(), what),this->end());
 		return *this;
 	}
 
+	
 	String& String::ensureLastChar(char end)
 	{
 		if ( !this->hasSuffix(end) ) this->append(1, end);
 		return *this;
 	}
 
+	
 	String& String::removeWhitespaces()
 	{
 		bool contains_ws = false;
@@ -697,6 +785,7 @@ namespace OpenMS
 		return *this;
 	}
 
+	
 	String String::operator+ (int i) const
 	{
 		stringstream s;
@@ -704,6 +793,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (unsigned int i) const
 	{
 		stringstream s;
@@ -711,6 +801,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (short int i) const
 	{
 		stringstream s;
@@ -718,6 +809,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (short unsigned int i) const
 	{
 		stringstream s;
@@ -725,6 +817,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (long int i) const
 	{
 		stringstream s;
@@ -732,6 +825,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (long unsigned int i) const
 	{
 		stringstream s;
@@ -739,6 +833,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (long long unsigned int i) const
 	{
 		stringstream s;
@@ -746,6 +841,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (float f) const
 	{
 		stringstream s;
@@ -754,6 +850,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (double d) const
 	{
 		stringstream s;
@@ -762,6 +859,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (long double ld) const
 	{
 		stringstream s;
@@ -770,6 +868,7 @@ namespace OpenMS
 		return s.str();
 	}
 
+	
 	String String::operator+ (char c) const
 	{
 		String tmp(*this);
@@ -777,6 +876,7 @@ namespace OpenMS
 		return tmp;
 	}
 
+	
 	String String::operator+ (const char* s) const
 	{
 		String tmp(*this);
@@ -784,13 +884,15 @@ namespace OpenMS
 		return tmp;
 	}
 
+	
 		String String::operator+ (const String& s) const
 	{
 		String tmp(*this);
 		tmp.insert(tmp.end(),s.begin(),s.end());
 		return tmp;
 	}
-		
+
+	
 		String String::operator+ (const std::string& s) const
 	{
 		String tmp(*this);
@@ -798,84 +900,98 @@ namespace OpenMS
 		return tmp;
 	}
 
+	
 	String& String::operator+= (int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (unsigned int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (short int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (short unsigned int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (long int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (long unsigned int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (long long unsigned int i)
 	{
 		this->append(String(i));
 		return *this;
 	}
 
+	
 	String& String::operator+= (float f)
 	{
 		this->append(String(f));
 		return *this;
 	}
 
+	
 	String& String::operator+= (double d)
 	{
 		this->append(String(d));
 		return *this;
 	}
 
+	
 	String& String::operator+= (long double d)
 	{
 		this->append(String(d));
 		return *this;
 	}
 
+	
 	String& String::operator+= (char c)
 	{
 		this->append(String(c));
 		return *this;
 	}
 
+	
 	String& String::operator+= (const char* s)
 	{
 		this->append(s);
 		return *this;
 	}
 
+	
 	String& String::operator+= (const String& s)
 	{
 		this->append(s);
 		return *this;
 	}
-		
+
+	
 	String& String::operator+= (const std::string& s)
 	{
 		this->append(s);

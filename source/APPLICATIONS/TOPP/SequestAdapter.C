@@ -494,7 +494,6 @@ class TOPPSequestAdapter
 			{
 				Int range_start(-1), range_end(-1);
 				string_buffer.split(',', substrings);
-				if ( substrings.empty() ) substrings.push_back(string_buffer);
 
 				for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); )
 				{
@@ -564,7 +563,6 @@ class TOPPSequestAdapter
 				if ( sequest_in ) // if sequest_in is set, in are the spectra
 				{
 					string_buffer.split(',', spectra);
-					if ( spectra.empty() ) spectra.push_back(string_buffer);
 					out_directory = temp_data_directory;
 				}
 				else // if only sequest_out is set, in is the out_directory
@@ -583,7 +581,6 @@ class TOPPSequestAdapter
 					else
 					{
 						string_buffer.split(',', spectra);
-						if ( spectra.empty() ) spectra.push_back(string_buffer);
 					}
 				}
 			}
@@ -792,15 +789,13 @@ class TOPPSequestAdapter
 				if ( !string_buffer.empty() )
 				{
 					string_buffer.split(':', substrings);
-					if ( substrings.empty() ) substrings.push_back(string_buffer);
-
 					vector< String > enzyme_info;
 					for ( vector< String >::iterator einfo_it = substrings.begin(); einfo_it != substrings.end(); ++ einfo_it )
 					{
 						einfo_it->split(',', enzyme_info);
 						if ( (enzyme_info.size() < 3) || (enzyme_info.size() > 4) )
 						{
-							writeLog_("Illegal number of informations for enzyme (not in [3,4]). Aborting!");
+							writeLog_("Illegal number of entries for enzyme (not in [3,4]). Aborting!");
 							return ILLEGAL_PARAMETERS;
 						}
 						if ( !((enzyme_info[1] == "0") || (enzyme_info[1] == "1"))  )
@@ -962,13 +957,11 @@ class TOPPSequestAdapter
 					return PARSE_ERROR;
 				}
 				string_buffer = getStringOption_("partial_sequence");
-				string_buffer.split(',', substrings);
-				string_buffer.concatenate(substrings.begin(), substrings.end(), " ");
+				string_buffer.substitute(',', ' ');
 				sequest_infile.setPartialSequence(string_buffer);
 
 				string_buffer = getStringOption_("header_filter");
-				string_buffer.split(',', substrings);
-				string_buffer.concatenate(substrings.begin(), substrings.end(), " ");
+				string_buffer.substitute(',', ' ');
 				sequest_infile.setSequenceHeaderFilter(string_buffer);
 			}
 

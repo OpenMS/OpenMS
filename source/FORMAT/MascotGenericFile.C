@@ -305,9 +305,9 @@ namespace OpenMS
 						tmp.substitute('\t', ' ');
 						vector<String> split;
 						tmp.split(' ', split);
-						if (split.size() == 0)
+						if (split.size() == 1)
 						{
-							precursor_mz = tmp.trim().toDouble();
+							precursor_mz = split[0].trim().toDouble();
 						}
 						else
 						{
