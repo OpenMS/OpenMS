@@ -28,6 +28,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
+
 namespace OpenMS
 {
 
@@ -66,19 +67,21 @@ namespace OpenMS
 		std::vector<ConsensusMap> input(2);
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0] );
+		ConsensusMap::convert(reference_map_index, maps[reference_map_index],
+													input[0]);
 
 		// loop over all other maps, extend the groups
-		ConsensusMap result;
+		StablePairFinder pair_finder;
+		pair_finder.setParameters(param_.copy("", true));
+
 		for (Size i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
 				ConsensusMap::convert( i, maps[i], input[1] );
 				// compute the consensus of the reference map and map i
-				StablePairFinder pair_finder;
-				pair_finder.setParameters(param_.copy("",true));
-				pair_finder.run(input,result);
+				ConsensusMap result;
+				pair_finder.run(input, result);
 				input[0].swap(result);
 			}
 		}
@@ -88,6 +91,23 @@ namespace OpenMS
 		// copy back the input maps (they have been deleted while swapping)
 		out.getFileDescriptions() = input[0].getFileDescriptions();
 
+		// add protein IDs and unassigned peptide IDs to the result map here,
+		// to keep the same order as the input maps (useful for output later)
+		for (std::vector<FeatureMap<> >::const_iterator map_it = maps.begin();
+				 map_it != maps.end(); ++map_it)
+		{
+			// add protein identifications to result map
+			out.getProteinIdentifications().insert(
+				out.getProteinIdentifications().end(),
+				map_it->getProteinIdentifications().begin(),
+				map_it->getProteinIdentifications().end());
+
+			// add unassigned peptide identifications to result map
+			out.getUnassignedPeptideIdentifications().insert(
+				out.getUnassignedPeptideIdentifications().end(),
+				map_it->getUnassignedPeptideIdentifications().begin(),
+				map_it->getUnassignedPeptideIdentifications().end());
+		}
 
     // canonical ordering for checking the results, and the ids have no real meaning anyway
 #if 1 // the way this was done in DelaunayPairFinder and StablePairFinder

@@ -335,11 +335,8 @@ namespace OpenMS
     // canonical ordering for checking the results, and the ids have no real meaning anyway
     result_map.sortByMZ();
 
-    // Add protein identifications to result map
-    result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(),input_maps[1].getProteinIdentifications().begin(), input_maps[1].getProteinIdentifications().end());
-
-    // Add unassigned peptide identifications to result map
-    result_map.getUnassignedPeptideIdentifications().insert(result_map.getUnassignedPeptideIdentifications().end(),input_maps[1].getUnassignedPeptideIdentifications().begin(), input_maps[1].getUnassignedPeptideIdentifications().end());
+		// protein IDs and unassigned peptide IDs are added to the result by the
+		// FeatureGroupingAlgorithm!
 
     return;
   }

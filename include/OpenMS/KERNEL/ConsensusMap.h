@@ -160,6 +160,20 @@ namespace OpenMS
 				return *this;
 			}
 
+			/// Clear all data
+			void clear()
+			{
+				Base::clear();
+				MetaInfoInterface::clearMetaInfo();
+				RangeManagerType::clearRanges();
+				DocumentIdentifier(); // no "clear" method
+				file_description_.clear();
+				experiment_type_.clear();
+				protein_identifications_.clear();
+				unassigned_peptide_identifications_.clear();
+				data_processing_.clear();			
+			}		
+
 			/// Non-mutable access to the file descriptions
 			inline const FileDescriptions& getFileDescriptions() const
 			{

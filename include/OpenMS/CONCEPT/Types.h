@@ -194,7 +194,7 @@ namespace OpenMS
   std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
 
   long double l = NUMBER;
-  std::cout.precision(writtenDigits(1L); // argument is not used, but L suffix indicates a long double
+  std::cout.precision(writtenDigits(1L)); // argument is not used, but L suffix indicates a long double
   std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
 
   DoubleReal x = 88.99;
