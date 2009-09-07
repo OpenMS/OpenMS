@@ -791,7 +791,7 @@ namespace OpenMS
 	void SpectrumCanvas::getVisibleConsensusData(ConsensusMapType& map) const
 	{		
 		//clear output experiment
-		map.clear();
+		map.clear(true);
 		
     const LayerData& layer = getCurrentLayer();
   	if (layer.type==LayerData::DT_CONSENSUS)

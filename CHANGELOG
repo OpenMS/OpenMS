@@ -12,6 +12,10 @@ Main improvements of UTILS:
 Main improvements of OpenMS C++ library:
   
 Detailed list of changes to specific OpenMS classes
+- String:
+  - improved behaviour of split(...) method
+  - added support for quoting and unquoting of strings
+- ConsensusMap: added clear(...) method
 
 Changes to OpenMS XML formats:
 

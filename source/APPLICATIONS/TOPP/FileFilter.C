@@ -463,7 +463,7 @@ class TOPPFileFilter
         // copy all properties
         ConsensusMap consensus_map_filtered = consensus_map;
         //.. but delete feature information
-        consensus_map_filtered.clear();
+        consensus_map_filtered.resize(0);
 
 				for ( ConsensusMap::const_iterator citer = consensus_map.begin();
 							citer != consensus_map.end();

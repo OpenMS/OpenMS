@@ -741,7 +741,7 @@ namespace OpenMS
   	//Filename for error messages in XMLHandler
   	file_ = filename;
 
-    map.clear(); // clear map
+    map.clear(true); // clear map
     consensus_map_ = &map;
 
 		//set DocumentIdentifier

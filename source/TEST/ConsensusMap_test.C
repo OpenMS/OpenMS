@@ -364,7 +364,7 @@ START_SECTION((bool isValid(String& error_message) const))
 	TEST_EQUAL(cm.isValid(error_message),false)
 	TEST_NOT_EQUAL(error_message,"")
 	//one invalid feature (element index)
-	cm.clear();
+	cm.clear(false);
 	ConsensusFeature f2;
 	f2.insert(2,1,Feature());
 	cm.push_back(f2);
@@ -446,7 +446,7 @@ START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	edit.push_back(feature1);
 	edit.push_back(feature2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(empty==edit, false);
 END_SECTION
 
@@ -490,7 +490,7 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	edit.push_back(feature1);
 	edit.push_back(feature2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(empty!=edit, true);
 END_SECTION
 

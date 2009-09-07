@@ -699,7 +699,7 @@ namespace OpenMS
 
 				// remove empty ConsensusFeatures from map
 				ConsensusMap cons_map_tmp(cons_map);
-				cons_map_tmp.clear(); // keep other meta information (like ProteinIDs & Map)
+				cons_map_tmp.clear(false); // keep other meta information (like ProteinIDs & Map)
 				for (ConsensusMap::ConstIterator it = cons_map.begin(); it!=cons_map.end(); ++it)
 				{
 					// skip if empty

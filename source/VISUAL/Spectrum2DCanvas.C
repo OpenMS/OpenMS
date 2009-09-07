@@ -1904,7 +1904,7 @@ namespace OpenMS
 			catch(Exception::BaseException& e)
 			{
 				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-				layer.consensus.clear();
+				layer.consensus.clear(true);
 			}
 			layer.consensus.updateRanges();
 		}

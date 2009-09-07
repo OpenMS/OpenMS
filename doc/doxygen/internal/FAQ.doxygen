@@ -323,7 +323,7 @@ svn propset svn:eol-style native MyClass.C
 	    <LI><b>How do I create a branch?</b><BR>
 	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/[name]/</TT>
 
-			<LI><b>How does merging branches work?
+			<LI><b>How does merging branches work?</b><BR>
 				To merge changes from the <tt>source</tt> branch into the <tt>target</tt> branch, do the following:<BR>
 			  <OL>
 			  	<LI> Check out the <tt>target</tt> branch.

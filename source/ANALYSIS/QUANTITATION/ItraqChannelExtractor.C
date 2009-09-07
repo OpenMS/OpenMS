@@ -161,7 +161,7 @@ namespace OpenMS
 		std::cout << "we have " << ms_exp_MS2.size() << " scans left of level " << ms_exp_MS2[0].getMSLevel() << std::endl;
 		std::cout << "run: channel_map_ has " << channel_map_.size() << " entries!" << std::endl;
 		#endif
-		consensus_map.clear();
+		consensus_map.clear(false);
 		// set <mapList> header
 		Int index = 0;
 		for (ChannelMapType::const_iterator cm_it = channel_map_.begin(); cm_it!=channel_map_.end(); ++cm_it)

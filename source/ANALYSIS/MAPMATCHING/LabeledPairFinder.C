@@ -88,7 +88,7 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"the input maps have to be labeled 'light' and 'heavy'");
 		}
 		
-		result_map.clear();
+		result_map.clear(false);
 		
 		// sort consensus features by RT (and MZ) to speed up searching afterwards
 		typedef ConstRefVector<ConsensusMap> RefMap;

@@ -213,7 +213,7 @@ namespace OpenMS
                          ConsensusMap &result_map )
   {
     // Empty output destination
-    result_map.clear();
+    result_map.clear(false);
 
     if ( input_maps.size() != 2 )
     {

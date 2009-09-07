@@ -160,18 +160,26 @@ namespace OpenMS
 				return *this;
 			}
 
-			/// Clear all data
-			void clear()
+			/**
+				@brief Clears all data and meta data
+				
+				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+			*/ 
+			void clear(bool clear_meta_data)
 			{
 				Base::clear();
-				MetaInfoInterface::clearMetaInfo();
-				RangeManagerType::clearRanges();
-				DocumentIdentifier(); // no "clear" method
-				file_description_.clear();
-				experiment_type_.clear();
-				protein_identifications_.clear();
-				unassigned_peptide_identifications_.clear();
-				data_processing_.clear();			
+					
+				if (clear_meta_data)
+				{
+					clearMetaInfo();
+					clearRanges();
+					this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
+					file_description_.clear();
+					experiment_type_.clear();
+					protein_identifications_.clear();
+					unassigned_peptide_identifications_.clear();
+					data_processing_.clear();
+				}
 			}		
 
 			/// Non-mutable access to the file descriptions
@@ -282,7 +290,7 @@ namespace OpenMS
 			template <typename FeatureT>
 			static void convert(Size const input_map_index, FeatureMap<FeatureT> const & input_map, ConsensusMap& output_map )
       {
-				output_map.clear();
+				output_map.clear(false);
 				output_map.reserve(input_map.size());
 				for (Size element_index = 0; element_index < input_map.size(); ++element_index )
 				{
@@ -292,7 +300,6 @@ namespace OpenMS
 				output_map.getProteinIdentifications().insert(output_map.getProteinIdentifications().end(),input_map.getProteinIdentifications().begin(), input_map.getProteinIdentifications().end());
 				output_map.getUnassignedPeptideIdentifications().insert(output_map.getUnassignedPeptideIdentifications().end(),input_map.getUnassignedPeptideIdentifications().begin(), input_map.getUnassignedPeptideIdentifications().end());
 				output_map.updateRanges();
-				return;
 			}
 
 			/**
@@ -310,7 +317,7 @@ namespace OpenMS
 				{
 					n = input_map.getSize();
 				}
-				output_map.clear();
+				output_map.clear(false);
 				output_map.reserve(n);
 				std::vector<Peak2D> tmp;
 				tmp.reserve(input_map.getSize());
@@ -322,7 +329,6 @@ namespace OpenMS
 				}
 				output_map.getFileDescriptions()[input_map_index].size = n;
 				output_map.updateRanges();
-				return;
 			}
 
 			// Docu in base class

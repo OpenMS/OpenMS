@@ -263,7 +263,7 @@ namespace OpenMS
     }
 
     // Empty output destination
-    result_map.clear();
+    result_map.clear(true);
 
 		// In this we store the best ([0]) and second best ([1]) neighbours;
 		// essentially this is a regular bipartite graph of degree two.
