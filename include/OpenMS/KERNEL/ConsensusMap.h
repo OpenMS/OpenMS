@@ -290,7 +290,11 @@ namespace OpenMS
 			template <typename FeatureT>
 			static void convert(Size const input_map_index, FeatureMap<FeatureT> const & input_map, ConsensusMap& output_map )
       {
-				output_map.clear(false);
+      	//clear all data (except file descriptions)
+      	//ConsensusMap::FileDescriptions fd_tmp = output_map.getFileDescriptions();
+				output_map.clear(true);
+				//output_map.setFileDescriptions(fd_tmp);
+				
 				output_map.reserve(input_map.size());
 				for (Size element_index = 0; element_index < input_map.size(); ++element_index )
 				{
@@ -312,12 +316,16 @@ namespace OpenMS
 			*/
 			static void convert(Size const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n)
 			{
+      	//clear all data (except file descriptions)
+      	//ConsensusMap::FileDescriptions fd_tmp = output_map.getFileDescriptions();
+				output_map.clear(true);
+				//output_map.setFileDescriptions(fd_tmp);
+				
 				input_map.updateRanges(1);
 				if ( n > input_map.getSize() )
 				{
 					n = input_map.getSize();
 				}
-				output_map.clear(false);
 				output_map.reserve(n);
 				std::vector<Peak2D> tmp;
 				tmp.reserve(input_map.getSize());
