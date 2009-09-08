@@ -7,6 +7,7 @@ BaseGroupFinder.h
 BaseSuperimposer.h
 DelaunayPairFinder.h
 FeatureGroupingAlgorithm.h
+FeatureGroupingAlgorithmIdentification.h
 FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmUnlabeled.h
 LabeledPairFinder.h

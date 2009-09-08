@@ -75,7 +75,7 @@ public:
 protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFileList_("in","<files>",StringList(),"input files seperated by blanks",true);
+		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
 		setValidFormats_("in",StringList::create("featureXML"));
 		registerOutputFile_("out","<file>","","Output file",true);
 		setValidFormats_("out",StringList::create("consensusXML"));

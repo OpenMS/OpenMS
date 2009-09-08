@@ -7,6 +7,7 @@ BaseGroupFinder.C
 BaseSuperimposer.C
 DelaunayPairFinder.C
 FeatureGroupingAlgorithm.C
+FeatureGroupingAlgorithmIdentification.C
 FeatureGroupingAlgorithmLabeled.C
 FeatureGroupingAlgorithmUnlabeled.C
 LabeledPairFinder.C
