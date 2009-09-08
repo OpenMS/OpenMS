@@ -42,6 +42,8 @@ namespace OpenMS
 		// Nothing to do if there is no data
 		if (input_map.size()==0)
 		{
+		  features.clear();
+		  features.updateRanges();
 			return;
 		}
 	

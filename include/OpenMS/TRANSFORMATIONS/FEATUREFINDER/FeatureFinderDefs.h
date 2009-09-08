@@ -51,10 +51,10 @@ namespace OpenMS
 		/// A set of peak indices
 		typedef IsotopeCluster::IndexSet IndexSet;
 		
-		/// Flags that indicate if a peak is alread used in a feature
+		/// Flags that indicate if a peak is already used in a feature
 		enum Flag { UNUSED, USED };
 
-		/// Exception that is thrown if a method a invalid IndexPair is given
+		/// Exception that is thrown if a method an invalid IndexPair is given
 		class OPENMS_DLLAPI NoSuccessor :
 			public Exception::BaseException
 		{
