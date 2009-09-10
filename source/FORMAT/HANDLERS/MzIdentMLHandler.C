@@ -27,6 +27,10 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <set>
+
+using namespace std;
 
 namespace OpenMS
 {
@@ -39,7 +43,7 @@ namespace OpenMS
 			id_(0),
 			cid_(&id)
   {
-  	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
+  	cv_.loadFromOBO("PI",File::find("/CV/psi-ms.obo"));
   }
 
   MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger)
@@ -48,7 +52,7 @@ namespace OpenMS
 			id_(&id),
 			cid_(0)
   {
-  	cv_.loadFromOBO("PI",File::find("/CV/psi-pi.obo"));
+  	cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
   }	
 
 	MzIdentMLHandler::~MzIdentMLHandler()
@@ -58,6 +62,37 @@ namespace OpenMS
 	void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		tag_ = sm_.convert(qname);
+
+		open_tags_.push_back(tag_);
+
+		//determine parent tag
+    String parent_tag;
+    if (open_tags_.size() > 1)
+		{
+			 parent_tag = *(open_tags_.end()-2);
+		}
+    String parent_parent_tag;
+    if (open_tags_.size() > 2)
+		{
+			parent_parent_tag = *(open_tags_.end()-3);
+		}
+
+		static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+    static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+    static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
+    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+    static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+
+
+		if (tag_ == "cvParam")
+		{
+      String value, unit_accession, cv_ref;
+      optionalAttributeAsString_(value, attributes, s_value);
+      optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
+      optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);
+      handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
+		}
+
 		if (tag_ == "MzIdentML")
 		{
 			// TODO handle version
@@ -67,10 +102,10 @@ namespace OpenMS
 		if (tag_ == "Peptide")
 		{
 			// start new peptide
-
+			actual_peptide_ = AASequence();
 			// <Peptide id="peptide_1_1" sequenceMass="1341.72522" sequenceLength="12">
       //   <Modification location="0" residues="R" monoisotopicMassDelta="127.063324">
-      //     <pf:cvParam accession="UNIMOD:29" name="SMA" cvRef="UNIMOD" />
+      //     <cvParam accession="UNIMOD:29" name="SMA" cvRef="UNIMOD" />
       //   </Modification>
       //   <peptideSequence>DAGTISGLNVLR</peptideSequence>
     	// </Peptide>
@@ -166,6 +201,8 @@ namespace OpenMS
 	void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		tag_ = sm_.convert(qname);
+		open_tags_.pop_back();
+
 		if (tag_ == "DataCollection")
 		{
 			return;
@@ -198,7 +235,46 @@ namespace OpenMS
 			return;
 		}
 	}
-	
+
+	void MzIdentMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)	
+	{
+		if (parent_tag == "Modification")
+		{
+			if (cv_ref == "UNIMOD")
+			{
+				 //void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& origin, const String& name, ResidueModification::Term_Specificity term_spec) const
+				set<const ResidueModification*> mods;
+				Int loc = numeric_limits<Size>::max();
+				if (optionalAttributeAsInt_(loc, attributes, "location"))
+				{
+					String uni_mod_id = accession.suffix(':');
+					// TODO handle ambiguous residues
+					String residues;
+					if (optionalAttributeAsString_(residues, attributes, "residues"))
+					{
+						
+					}
+					if (loc == 0)
+					{
+        		ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::N_TERM);
+					}
+					else if (loc == actual_peptide_.size())
+					{
+        		ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::C_TERM);
+					}
+					else
+					{
+        		ModificationsDB::getInstance()->searchModifications(mods, residues, uni_mod_id, ResidueModification::ANYWHERE);
+					}
+				}
+				else
+				{
+					warning(LOAD, "location of modification not defined!");
+				}
+			}
+		}
+	}
+
 	void MzIdentMLHandler::writeTo(std::ostream& /*os*/)
 	{
 		// TODO

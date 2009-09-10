@@ -152,7 +152,7 @@ namespace OpenMS
 				Size min_num_peaks_per_feature((UInt)param_.getValue("min_num_peaks_per_feature"));
 				Size feature_id(0);
 				bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
-				bool write_debug_files(param_.getValue("write_debuginfo").toBool());
+				bool write_debug_files(param_.getValue("write_debug_files").toBool());
 				bool resample_traces(param_.getValue("resample_traces").toBool());
 
 				for (; it1 != traces.end(); ++it1)

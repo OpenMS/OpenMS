@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch$
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
@@ -94,7 +94,7 @@ namespace OpenMS
 			IdentificationHit current_id_hit_;
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
+			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref,  const String& unit_accession="");
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
@@ -115,6 +115,7 @@ namespace OpenMS
 				MzIdentMLHandler(const MzIdentMLHandler& rhs);
 				MzIdentMLHandler& operator = (const MzIdentMLHandler& rhs);
 				Map<String, AASequence> pep_sequences_;
+				AASequence actual_peptide_;
 		};
 	} // namespace Internal
 } // namespace OpenMS
