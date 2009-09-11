@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
-// $Authors: $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -53,7 +53,7 @@ int main (int , char** )
 	}
 	
 	//UTILS
-	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,PeptideIndexer,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder");
+	StringList utils_tools = StringList::create("IDMassAccuracy,DecoyDatabase,MapAlignmentEvaluation,CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,LabeledEval,SemanticValidator,SequenceCoverageCalculator,XMLValidator,IdXMLEvaluation,MSSimulator,ERPairFinder,PeptideIndexer,SpecLibCreator,SpectrumGeneratorNetworkTrainer,MRMPairFinder,DeMeanderize");
 	for (Size i=0; i<utils_tools.size(); ++i)
 	{
 		//start process

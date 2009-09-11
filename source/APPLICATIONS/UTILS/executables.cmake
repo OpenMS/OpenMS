@@ -25,6 +25,7 @@ PeptideIndexer
 ERPairFinder
 MRMPairFinder
 OpenMSInfo
+DeMeanderize
 )
 
 ### pass source file list to the upper instance
