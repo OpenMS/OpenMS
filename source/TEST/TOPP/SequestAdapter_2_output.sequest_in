@@ -23,7 +23,7 @@ mass_type_fragment = 0; 0=average masses, 1=monoisotopic masses
 normalize_xcorr = 0
 max_internal_cleavage_sites = 3
 create_output_files = 1
-partial_sequence = 
+partial_sequence = ABC
 sequence_header_filter = human !mouse
 match_peak_count = 2; number of auto-detected peaks to try matching (max 5)
 match_peak_allowed_error = 4
