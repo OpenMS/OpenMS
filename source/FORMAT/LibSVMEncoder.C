@@ -660,7 +660,7 @@ namespace OpenMS
 						if (sequence[k].isModified())
 						{
 				    	oligo_value += factor * (residue_values[(sequence.getResidue(k)).getOneLetterCode()]
-				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification()) + 1) * number_of_residues);
+				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification() + " (" + sequence.getResidue(k).getOneLetterCode() + ")") + 1) * number_of_residues);
 						}
 						else
 						{
@@ -686,7 +686,7 @@ namespace OpenMS
 						if (sequence[j - 1].isModified())
 						{
 							oligo_value -= factor * (residue_values[(sequence.getResidue(j - 1)).getOneLetterCode()]
-				    		+ (modifications->findModificationIndex(sequence.getResidue(j - 1).getModification()) + 1) * number_of_residues);
+				    		+ (modifications->findModificationIndex(sequence.getResidue(j - 1).getModification() + " (" + sequence.getResidue(j-1).getOneLetterCode() + ")") + 1) * number_of_residues);
 						}
 						else
 						{
@@ -695,7 +695,7 @@ namespace OpenMS
 						if (sequence[j + k_mer_length - 1].isModified())
 						{
 	            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()]
-	                    + (modifications->findModificationIndex(sequence[j + k_mer_length - 1].getModification()) + 1) * number_of_residues);
+	                    + (modifications->findModificationIndex(sequence[j + k_mer_length - 1].getModification() + " (" + sequence.getResidue(j + k_mer_length - 1).getOneLetterCode() + ")") + 1) * number_of_residues);
 	          }
 	          else
 	          {
@@ -721,7 +721,7 @@ namespace OpenMS
 						if (sequence[k].isModified())
 						{
 				    	oligo_value += factor * (residue_values[(sequence.getResidue(k)).getOneLetterCode()]
-				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification()) + 1) * number_of_residues);
+				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification() + " (" + sequence.getResidue(k).getOneLetterCode() + ")") + 1) * number_of_residues);
 						}
 						else
 						{
@@ -741,7 +741,7 @@ namespace OpenMS
 						if (sequence[(Size) j + k_mer_length].isModified())
 						{
 							oligo_value -= factor * (residue_values[(sequence.getResidue((Size) j + k_mer_length)).getOneLetterCode()]
-				    		+ (modifications->findModificationIndex(sequence.getResidue((Size) j + k_mer_length).getModification()) + 1) * number_of_residues);
+				    		+ (modifications->findModificationIndex(sequence.getResidue((Size) j + k_mer_length).getModification() + " (" + sequence.getResidue((Size) j + k_mer_length).getOneLetterCode() + ")") + 1) * number_of_residues);
 						}
 						else
 						{
@@ -750,7 +750,7 @@ namespace OpenMS
 						if (sequence[j].isModified())
 						{
 	            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j].getOneLetterCode()]
-	                    + (modifications->findModificationIndex(sequence[j].getModification()) + 1) * number_of_residues);
+	                    + (modifications->findModificationIndex(sequence[j].getModification() + " (" + sequence.getResidue(j).getOneLetterCode() + ")") + 1) * number_of_residues);
 	          }
 	          else
 	          {
