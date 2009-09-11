@@ -853,16 +853,17 @@ namespace OpenMS
 				{
 					if (res[j] == '(')
 					{
-						for (Size k = j + 1; res[k] != ')';++k)
+						if (res[res.size() - 1] != ')')
 						{
-							if (k == res.size())
-							{
-								valid_ = false;
-								sequence_string_.concatenate(split.begin(), split.end());
-								sequence.clear();
-								cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
-								return;
-							}
+							valid_ = false;
+							sequence_string_.concatenate(split.begin(), split.end());
+							sequence.clear();
+							cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
+							return;
+						}
+
+						for (Size k = j + 1; k < res.size() - 1; ++k) // skip last ')' 
+						{
 							mod += res[k];
 						}
 						break;

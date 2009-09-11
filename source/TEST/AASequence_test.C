@@ -81,6 +81,19 @@ START_SECTION(AASequence(ConstIterator begin, ConstIterator end))
 	TEST_EQUAL(seq2, seq3);
 END_SECTION
 
+START_SECTION(([EXTRA]Test modifications with brackets))
+	AASequence seq1("ANLVFK(Label:13C(6)15N(2))EIEK(Label:2H(4))");
+	TEST_EQUAL(seq1.isValid(), true)
+	TEST_EQUAL(seq1.hasNTerminalModification(), false)
+	TEST_EQUAL(seq1.hasCTerminalModification(), false)
+	TEST_EQUAL(seq1.isModified(), true)
+	AASequence seq2("ANLVFK(Label:13C(6)15N(2))EIEK(Label:2H(4))(Amidated)");
+	TEST_EQUAL(seq2.isValid(), true)
+	TEST_EQUAL(seq2.hasNTerminalModification(), false)
+	TEST_EQUAL(seq2.hasCTerminalModification(), true)
+	TEST_EQUAL(seq2.isModified(), true)
+END_SECTION
+
 START_SECTION(bool operator == (const char* rhs) const)
   AASequence seq1("(Acetyl)DFPIANGER");
   AASequence seq2("DFPIANGER");
