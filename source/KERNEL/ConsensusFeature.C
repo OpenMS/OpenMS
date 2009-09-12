@@ -30,6 +30,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
@@ -282,7 +283,7 @@ namespace OpenMS
   	DoubleReal m=0.0;
   	DoubleReal intensity=0.0;
 		
-		DoubleReal proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
+		DoubleReal proton_mass = Constants::PROTON_MASS_U;
 
     for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
     {

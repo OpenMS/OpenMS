@@ -386,7 +386,7 @@ namespace OpenMS
     std::multimap<DoubleReal, std::vector<PepHit> > pep_hits_xcorr; // consensus features sorted by total XCorr score
     std::vector<std::vector<PepHit> > pep_hits_max_xcorr; // list to add the c.f. with highest score
 
-    for ( std::multimap<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); ++itermap )
+    for ( std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); ++itermap )
     {
       DoubleReal xcorr_sum = 0.0;
 
