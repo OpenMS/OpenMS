@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -79,7 +80,7 @@ namespace OpenMS
 		// assume mass type "average" (in case element "search_summary" is missing)
 		const ElementDB* db = ElementDB::getInstance();
 		Element hydrogen = *db->getElement("Hydrogen");
-		hydrogen_mass_ = hydrogen.getAverageWeight();	
+		hydrogen_mass_ = hydrogen.getMonoWeight();	
   	
   	file_ = filename;	// filename for error messages in XMLHandler
 
@@ -197,8 +198,7 @@ namespace OpenMS
 		ofstream f(filename.c_str());
 		if (!f)
 		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-																					__PRETTY_FUNCTION__, filename);
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 
 		f.precision(writtenDigits<DoubleReal>());
@@ -212,7 +212,7 @@ namespace OpenMS
 		f << "<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << endl;
 		f << "</sample_enzyme>" << endl;
 
-		f << "<search_summary base_name=\"" << filename << "\" search_engine=\"SEQUEST\" precursor_mass_type=\"average\" fragment_mass_type=\"average\" out_data_type=\"out\" out_data=\".tgz\" search_id=\"1\">" << endl;
+		f << "<search_summary base_name=\"" << filename << "\" search_engine=\"SEQUEST\" precursor_mass_type=\"monoisotopic\" fragment_mass_type=\"monoisotopic\" out_data_type=\"out\" out_data=\".tgz\" search_id=\"1\">" << endl;
 	//	f << "		<search_summary base_name=\"\" search_engine=\"Mascot\" precursor_mass_type=\"average\" fragment_mass_type=\"average\">" << endl;
 		f << "		<search_database local_path=\"dbase/ipi.HUMAN.fasta.v2.31\" type=\"AA\"/>" << endl;
 
@@ -242,7 +242,7 @@ namespace OpenMS
 					{
 						if (p[i].isModified())
 						{
-							aa_mods.insert(p[i].getModification());
+							aa_mods.insert(ModificationsDB::getInstance()->getModification(p[i].getOneLetterCode(), p[i].getModification(), ResidueModification::ANYWHERE).getFullId());
 						}
 					}
 				}				
@@ -257,8 +257,8 @@ namespace OpenMS
 			ResidueModification mod = ModificationsDB::getInstance()->
 				getModification(*it);
 			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
-				<< "\" massdiff=\"" << mod.getDiffMonoMass() << "\" mass=\""
-				<< mod.getMonoMass()
+				<< "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
+				<< precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
 				<< endl;
 		}
@@ -269,7 +269,7 @@ namespace OpenMS
 			ResidueModification mod = ModificationsDB::getInstance()->
 				getModification(*it);
 			f << "<terminal_modification terminus=\"n\" massdiff=\""
-				<< mod.getDiffMonoMass() << "\" mass=\"" << mod.getMonoMass()
+				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
 				<< "\" protein_terminus=\"\"/>" << endl;
 		}
@@ -280,7 +280,7 @@ namespace OpenMS
 			ResidueModification mod = ModificationsDB::getInstance()->
 				getModification(*it);
 			f << "<terminal_modification terminus=\"c\" massdiff=\""
-				<< mod.getDiffMonoMass() << "\" mass=\"" << mod.getMonoMass()
+				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
 				<< "\" protein_terminus=\"\"/>" << endl;
 		}
@@ -289,26 +289,25 @@ namespace OpenMS
 		f << "    <analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << endl;
 		
 
-		UInt count(1);
+		Size count(1);
 		for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
 				 it != peptide_ids.end(); ++it, count++)
 		{
 			if (it->getHits().size() > 0)
 			{
 				PeptideHit h = *it->getHits().begin();
-				double precursor_neutral_mass(0);
-				precursor_neutral_mass = h.getSequence().getAverageWeight();
+				DoubleReal precursor_neutral_mass = h.getSequence().getMonoWeight();
 				
 				f << "		<spectrum_query spectrum=\"" << count << "\" start_scan=\""
 					<< count << "\" end_scan=\"" << count
-					<< "\" precursor_neutral_mass=\"" << precursor_neutral_mass
+					<< "\" precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass)
 					<< "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count
 					<< "\">" << endl;
 				f << " 		<search_result>" << endl;
 				f << "			<search_hit hit_rank=\"1\" peptide=\""
 					<< h.getSequence().toUnmodifiedString() << "\" peptide_prev_aa=\""
 					<< h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
-					<< "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precursor_neutral_mass
+					<< "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
 					<< "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << endl;
 				if (h.getSequence().isModified())
 				{
@@ -317,16 +316,16 @@ namespace OpenMS
 
 					if (h.getSequence().hasNTerminalModification())
 					{
-						f << " mod_nterm_mass=\"" << ModificationsDB::getInstance()->
+						f << " mod_nterm_mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
 							getModification(h.getSequence().getNTerminalModification()).
-							getMonoMass() << "\"";
+							getMonoMass()) << "\"";
 					}
 					
 					if (h.getSequence().hasCTerminalModification())
 					{
-						f << "mod_cterm_mass=\"" << ModificationsDB::getInstance()->
+						f << "mod_cterm_mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
 							getModification(h.getSequence().getCTerminalModification()).
-							getMonoMass() << "\"";
+							getMonoMass()) << "\"";
 					}
 
 					f << ">" << endl;
@@ -336,9 +335,9 @@ namespace OpenMS
 						if (h.getSequence()[i].isModified())
 						{
 							f << "         <mod_aminoacid_mass position=\"" << i
-								<< "\" mass=\"" << ModificationsDB::getInstance()->
+								<< "\" mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
 								getModification(h.getSequence()[i].getModification()).
-								getMonoMass() << "\"/>" << endl;
+								getMonoMass()) << "\"/>" << endl;
 						}
 					}
 
@@ -365,26 +364,32 @@ namespace OpenMS
 		
 	}
 
-  void PepXMLFile::matchModification_(DoubleReal mass, String& modification_description)
+  void PepXMLFile::matchModification_(DoubleReal mass, String& modification_description, const String& origin)
 	{
-		UInt i = 0;
-		bool found = false;
-		DoubleReal difference = 0.; 
-		
-		while(i < variable_modifications_.size() && !found)
-		{
-			difference = variable_modifications_[i].second - mass;
-			if (difference < 0)
-			{
-				difference *= -1;
-			}
-			if (difference < 0.001)
-			{
-				modification_description = variable_modifications_[i].first;
-				found = true;
-			}
-			++i;			
-		}			
+		DoubleReal new_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+		vector<String> mods;
+		ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, new_mass, 0.001);
+			
+		if (mods.size() == 1)
+    {
+			modification_description = mods[0];
+    }
+    else
+    {
+     	if (mods.size() == 0)
+      {
+      	error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "'");
+      }
+      else
+      {
+       	String mod_str;
+        for (vector<String>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+        {
+        	mod_str += " " + *mit;
+        }
+        error(LOAD, String("Found more than one modification ':") + mod_str +  "'");
+      }
+		}
 	}
 
 
@@ -529,45 +534,66 @@ namespace OpenMS
 		else if (element == "mod_aminoacid_mass")
 		{
 			DoubleReal modification_mass = 0.;
-			UInt 			 modification_position = 0;
+			Size 			 modification_position = 0;
 			String 		 temp_description = "";
 			
 			modification_position = attributeAsInt_(attributes, "position");
 			modification_mass = attributeAsDouble_(attributes, "mass");
 			
-			matchModification_(modification_mass, temp_description);
+			matchModification_(modification_mass, temp_description, String(actual_sequence_[modification_position - 1]));
 			
 			// the modification position is 1-based
 			actual_modifications_.push_back(make_pair(temp_description, modification_position));
 		}
 
-		else if ((element == "aminoacid_modification") || (element == "terminal_modification"))
-			// <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
+		else if ((element == "aminoacid_modification"))
 		{
-			String desc, is_variable = attributeAsString_(attributes, "variable");
-			bool has_desc = optionalAttributeAsString_(desc, attributes,
-																								 "description");
-			if (!has_desc)
-			{ // generate a dummy description
-				String sign, massdiff = attributeAsString_(attributes, "massdiff");
-				if (!massdiff.hasPrefix("-") && !massdiff.hasPrefix("+"))
-				{
-					sign = "+";
-				}
-				desc = attributeAsString_(attributes, "aminoacid") + sign + massdiff;
+			AminoAcidModification aa_mod;
+			String description;
+			if (optionalAttributeAsString_(description, attributes, "description"))
+			{
+				aa_mod.description = description;
 			}
+			aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
+			aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+			aa_mod.mass = attributeAsDouble_(attributes, "mass");
+			String is_variable = attributeAsString_(attributes, "variable");
 			if (is_variable == "Y")
 			{
-				variable_modifications_.push_back(make_pair(desc, attributeAsDouble_(attributes, "mass")));
-				params_.variable_modifications.push_back(desc);
+				variable_modifications_.push_back(aa_mod);
+				params_.variable_modifications.push_back(description); // TODO
 			}
 			else
 			{
-				fixed_modifications_.push_back(desc);
-				params_.fixed_modifications.push_back(desc);
+				fixed_modifications_.push_back(aa_mod);
+				params_.fixed_modifications.push_back(description); // TODO
 			}
 		}
-		
+		else if (element == "terminal_modification")
+		{
+			// <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
+			AminoAcidModification aa_mod;
+			String description;
+			if (optionalAttributeAsString_(description, attributes, "description"))
+			{
+				aa_mod.description = description;
+			}
+			aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
+      aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+      aa_mod.mass = attributeAsDouble_(attributes, "mass");
+			aa_mod.terminus = attributeAsString_(attributes, "terminus");
+      String is_variable = attributeAsString_(attributes, "variable");
+      if (is_variable == "Y")
+      {
+        term_variable_modifications_.push_back(aa_mod);
+        params_.variable_modifications.push_back(description); // TODO
+      }
+      else
+      {
+        term_fixed_modifications_.push_back(aa_mod);
+        params_.fixed_modifications.push_back(description); // TODO
+      }
+		}
 		else if (element == "search_summary")
 		{
 			const ElementDB* db = ElementDB::getInstance();
@@ -587,9 +613,21 @@ namespace OpenMS
 			}
 			// assuming "SearchParameters::mass_type" refers to the fragment mass
 			mass_type = attributeAsString_(attributes, "fragment_mass_type");
-			if (mass_type == "monoisotopic") params_.mass_type = ProteinIdentification::MONOISOTOPIC;
-			else if (mass_type == "average") params_.mass_type = ProteinIdentification::AVERAGE;
-			else error(LOAD,	"'fragment_mass_type' attribute of 'search_summary' tag should be 'monoisotopic' or 'average', not '" + mass_type + "'");
+			if (mass_type == "monoisotopic") 
+			{
+				params_.mass_type = ProteinIdentification::MONOISOTOPIC;
+			}
+			else 
+			{
+				if (mass_type == "average") 
+				{
+					params_.mass_type = ProteinIdentification::AVERAGE;
+				}
+				else 
+				{
+					error(LOAD,	"'fragment_mass_type' attribute of 'search_summary' tag should be 'monoisotopic' or 'average', not '" + mass_type + "'");
+				}
+			}
 			String search_engine = attributeAsString_(attributes, "search_engine");
 			protein_->setSearchEngine(search_engine);
 			// generate identifier from search engine and date:
@@ -650,7 +688,7 @@ namespace OpenMS
 			AASequence temp_aa_sequence = AASequence(actual_sequence_);
 			
 			// modification position is 1-based
-			for (vector<pair<String, UInt> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
+			for (vector<pair<String, Size> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
 			{
 				// e.g. Carboxymethyl (C)
 				vector<String> mod_split;
@@ -681,14 +719,9 @@ namespace OpenMS
 			}
 
 			// fixed modifications
-			for (vector<String>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
+			for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
 			{
-				// e.g. Carboxymethyl (C)
-				vector<String> mod_split;
-				it->split(' ', mod_split);
-				if (mod_split.size() == 2)
-				{
-					if (mod_split[1] == "(C-term)")
+					/*if (mod_split[1] == "(C-term)")
 					{
 						temp_aa_sequence.setCTerminalModification(mod_split[0]);
 					}
@@ -697,27 +730,37 @@ namespace OpenMS
 						if (mod_split[1] == "(N-term)")
 						{
 							temp_aa_sequence.setNTerminalModification(mod_split[0]);
-						}
-						else
+						}*/
+					DoubleReal new_mass = it->mass - ResidueDB::getInstance()->getResidue(it->aminoacid)->getMonoWeight(Residue::Internal);
+      		vector<String> mods;
+      		ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, 0.001);
+					if (mods.size() == 1)
+					{
+						for (Size i = 0; i != temp_aa_sequence.size(); ++i)
 						{
-							String origin = mod_split[1];
-							origin.remove(')');
-							origin.remove('(');
-							for (Size i = 0; i != temp_aa_sequence.size(); ++i)
+							if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
 							{
-								// best way we can check; because origin can be e.g. (STY)
-								if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
-								{
-									temp_aa_sequence.setModification(i, mod_split[0]);
-								}
+								temp_aa_sequence.setModification(i, mods[0]);
 							}
 						}
 					}
-				}
-				else
-				{
-					error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
-				}
+					else
+					{
+						if (mods.size() == 0)
+						{
+							error(LOAD, String("Cannot parse modification '") + it->aminoacid + " " +  + "'");
+						}
+						else
+						{
+							String mod_str;
+							for (vector<String>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+							{
+								mod_str += " " + *mit;
+							}
+							error(LOAD, String("Found more than one modification ':") + mod_str +  "'");
+						}
+					}
+				//}
 			}
 
 			current_hit_->setSequence(temp_aa_sequence);

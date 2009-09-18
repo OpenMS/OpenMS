@@ -72,9 +72,9 @@ class TOPPIDRTCalibration
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","", "input file ");
-		setValidFormats_("in",StringList::create("IdXML"));
+		setValidFormats_("in",StringList::create("idXML"));
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("IdXML"));
+		setValidFormats_("out",StringList::create("idXML"));
 		registerDoubleOption_("calibrant_1_reference","<RT>",0.1,"The RT of the first calibrant in the reference file", false);	
 		registerDoubleOption_("calibrant_2_reference","<RT>",0.9,"The RT of the second calibrant in the reference file", false);	
 		registerDoubleOption_("calibrant_1_input","<RT>",0.0,"The RT of the first calibrant in the input file");	

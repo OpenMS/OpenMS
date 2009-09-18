@@ -59,7 +59,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getRTDelta() const))
 	IDMapper mapper;
-	TEST_REAL_SIMILAR(mapper.getRTDelta(),0.5)
+	TEST_REAL_SIMILAR(mapper.getRTDelta(),5.0)
 END_SECTION
 
 START_SECTION((void setRTDelta(DoubleReal rt_delta)))
@@ -70,7 +70,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMZDelta() const))
 	IDMapper mapper;
-	TEST_REAL_SIMILAR(mapper.getMZDelta(),0.05)
+	TEST_REAL_SIMILAR(mapper.getMZDelta(),0.01)
 END_SECTION
 
 START_SECTION((void setMZDelta(DoubleReal mz_delta)))
@@ -112,7 +112,10 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	experiment[2].getPrecursors().push_back(precursor);
 	
 	//map
-	IDMapper().annotate(experiment, identifications, protein_identifications);
+	IDMapper mapper;
+	mapper.setRTDelta(0.5);
+	mapper.setMZDelta(0.05);
+	mapper.annotate(experiment, identifications, protein_identifications);
 	
 	//test
 	TEST_EQUAL(experiment.getProteinIdentifications().size(), 1)
@@ -145,7 +148,11 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	//TEST MAPPING TO CONVEX HULLS
 	FeatureMap<> fm;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm);
-	IDMapper().annotate(fm,identifications,protein_identifications);
+	
+	IDMapper mapper;
+	mapper.setRTDelta(0.0);
+	mapper.setMZDelta(0.0);
+	mapper.annotate(fm,identifications,protein_identifications);
 	
 	//test protein ids
 	TEST_EQUAL(fm.getProteinIdentifications().size(),1)
@@ -154,30 +161,31 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
 	
 	//test peptide ids
-	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),5)
+	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),7)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[5].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[6].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[5].getHits()[0].getSequence(),"F")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
 	
 	//test unassigned peptide ids
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(),5)
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"F")
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"H")
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[3].getHits()[0].getSequence(),"I")
-	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[4].getHits()[0].getSequence(),"L")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(),3)
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"G")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"H")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"L")
 		
 	//--------------------------------------------------------------------------------------
 	//TEST MAPPING TO CENTROIDS
 	FeatureMap<> fm2;
-	IDMapper mapper;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm2);
 	mapper.setRTDelta(4.0);
 	mapper.setMZDelta(1.5);

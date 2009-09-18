@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 	using namespace Math;
-	
+
 	HistogramWidget::HistogramWidget(const Histogram<>& distribution, QWidget* parent)
 	  : QWidget(parent),
 		dist_(distribution),
@@ -63,48 +63,48 @@ namespace OpenMS
 		bottom_axis_->setMargin(margin_);
 		bottom_axis_->setTickLevel(2);
 		bottom_axis_->setAxisBounds(dist_.min(),dist_.max());
-		
+
 		//signals and slots
 		setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 	}
-	
+
 	HistogramWidget::~HistogramWidget()
 	{
 		delete(bottom_axis_);
 	}
-	
+
 	DoubleReal HistogramWidget::getLeftSplitter()
 	{
-		return left_splitter_;	
+		return left_splitter_;
 	}
-	
+
 	DoubleReal HistogramWidget::getRightSplitter()
 	{
-		return right_splitter_;	
+		return right_splitter_;
 	}
-	
+
 	void HistogramWidget::showSplitters(bool on)
 	{
-		show_splitters_=on;	
+		show_splitters_=on;
 	}
-	
+
 	void HistogramWidget::setRightSplitter(DoubleReal pos)
 	{
 		right_splitter_=min(dist_.max(),pos);
 	}
-	
+
 	void HistogramWidget::setLeftSplitter(DoubleReal pos)
 	{
 		left_splitter_=max(dist_.min(),pos);
 	}
-	
+
 	void HistogramWidget::setLegend(const String& legend)
 	{
 		bottom_axis_->setLegend(legend);
 	}
-	
-	
+
+
 	void HistogramWidget::mousePressEvent(QMouseEvent* e)
 	{
 		if (show_splitters_ && e->button()==Qt::LeftButton)
@@ -116,7 +116,7 @@ namespace OpenMS
 			{
 				moving_splitter_=1;
 			}
-			
+
 			//right
 			p = margin_ + UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
 			if (e->x()<=p && e->x()>=p-5)
@@ -129,7 +129,7 @@ namespace OpenMS
 			e->ignore();
 		}
 	}
-	
+
 	void HistogramWidget::mouseMoveEvent(QMouseEvent* e)
 	{
 		if (show_splitters_ && (e->buttons() & Qt::LeftButton))
@@ -144,17 +144,17 @@ namespace OpenMS
 					left_splitter_ = right_splitter_-(dist_.max()-dist_.min())/50.0;
 				}
 				//lower bound
-				if (left_splitter_<dist_.min()) 
+				if (left_splitter_<dist_.min())
 				{
 					left_splitter_=dist_.min();
 				}
 				update();
 			}
-			
+
 			//right
 			if (moving_splitter_==2)
 			{
-				
+
 				right_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (right_splitter_<left_splitter_+(dist_.max()-dist_.min())/50.0)
@@ -162,7 +162,7 @@ namespace OpenMS
 					right_splitter_ = left_splitter_+(dist_.max()-dist_.min())/50.0;
 				}
 				//lower bound
-				if (right_splitter_>dist_.max()) 
+				if (right_splitter_>dist_.max())
 				{
 					right_splitter_=dist_.max();
 				}
@@ -174,7 +174,7 @@ namespace OpenMS
 			e->ignore();
 		}
 	}
-	
+
 	void HistogramWidget::mouseReleaseEvent(QMouseEvent* e)
 	{
 		if (show_splitters_)
@@ -186,7 +186,7 @@ namespace OpenMS
 			e->ignore();
 		}
 	}
-	
+
 	void HistogramWidget::paintEvent(QPaintEvent* /*e*/)
 	{
 		//histogram from buffer
@@ -200,38 +200,46 @@ namespace OpenMS
 		if (log_mode_) label = "log ( count )";
 		painter2.drawText(0,0,-height(), margin_, Qt::AlignHCenter|Qt::AlignVCenter, label);
 		painter2.end();
-		
+
 		//draw splitters
 		if (show_splitters_)
 		{
 			QPainter painter(this);
-			painter.setPen(Qt::green);
-			
+			painter.setPen(Qt::black);
+			QFont label_font;
+			label_font.setPointSize(8);
+
 			//cout << "Left splitter: " << left_splitter_<< " dist: " << dist_.min() << endl;
 			//cout << "Right splitter: " << right_splitter_<< " dist: " << dist_.max() << endl;
-	
+
 			//left
 			UInt p =  UInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
 			//cout << "Left splitter position: " << p << endl;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p+5,margin_-8);
 			painter.drawLine(p+5,margin_-8,p,margin_-3);
-	
+			painter.setFont(label_font);
+			painter.drawText ( p,margin_-8, "lower boundary" );
+			painter.setFont(QFont());
+
 			//right
 			p = UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p-5,margin_-8);
 			painter.drawLine(p-5,margin_-8,p,margin_-3);
+			painter.setFont(label_font);
+			painter.drawText ( p,margin_-8, "upper boundary" );
+			painter.setFont(QFont());
 		}
 	}
-	
+
 	void HistogramWidget::resizeEvent(QResizeEvent* /*e*/)
 	{
 		buffer_ = QPixmap(width()-margin_,height()-bottom_axis_->height());
 		bottom_axis_->setGeometry(margin_,height()-bottom_axis_->height(),width()-margin_,bottom_axis_->height());
 		invalidate_();
 	}
-	
+
 	void HistogramWidget::invalidate_()
 	{
 		//apply log trafo if needed
@@ -240,19 +248,19 @@ namespace OpenMS
 		{
 			dist.applyLogTransformation(100.0);
 		}
-		
+
 		QPainter painter(&buffer_);
 		buffer_.fill(palette().window().color());
 		UInt w = buffer_.width();
 		UInt h = buffer_.height();
 		UInt pen_width = std::min(margin_,UInt(0.5*w/dist.size()));
-		
-		//draw distribution	
+
+		//draw distribution
 		QPen pen;
 		pen.setWidth(pen_width);
 		pen.setColor(QColor(100,125,175));
 		painter.setPen(pen);
-		
+
 		for (Size i=0; i<dist.size();++i)
 		{
 			if (dist[i]!=0)
@@ -262,14 +270,14 @@ namespace OpenMS
 				painter.drawLine(bin_pos+1,h,bin_pos+1,h-bin_height);
 			}
 		}
-	
+
 		//calculate total intensity
 		DoubleReal total_sum=0;
 		for (Size i=0; i<dist.size();++i)
 		{
 			total_sum += dist[i];
-		}	
-	
+		}
+
 		// draw part of total intensity
 		painter.setPen(Qt::red);
 		QPoint last_point(1,h);
@@ -282,11 +290,11 @@ namespace OpenMS
 			point.setY(UInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);
 			last_point=point;
-		}	
+		}
 		//draw coord system	(on top distribution)
 		painter.setPen(Qt::black);
 		painter.drawLine(0,h-1,w-margin_+Int(0.5*pen_width),h-1);
-		
+
 		update();
 	}
 

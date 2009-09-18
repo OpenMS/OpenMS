@@ -37,7 +37,7 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 //STL
 #include <algorithm>
 
@@ -67,8 +67,18 @@ namespace OpenMS
     defaults_.setMinInt("interpolation_steps",1);
     defaults_.setMaxInt("interpolation_steps",1000);
     defaults_.setValue("dot:gradient", "Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
-    defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
+    defaults_.setValue("dot:feature_icon", "circle", "Icon used for features and consensus features.");
 		vector<String> strings;
+		strings.push_back("diamond");
+		strings.push_back("square");
+		strings.push_back("circle");
+		strings.push_back("triangle");
+		defaults_.setValidStrings("dot:feature_icon",strings);
+    defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
+    defaults_.setMinInt("dot:feature_icon_size",1);
+    defaults_.setMaxInt("dot:feature_icon_size",999);
+    defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
+		strings.clear();
 		strings.push_back("x_axis");
 		strings.push_back("y_axis");
 		defaults_.setValidStrings("mapping_of_mz_to",strings);
@@ -107,9 +117,13 @@ namespace OpenMS
 		{
 			dataToWidget_(peak.getPeak(getCurrentLayer().peaks).getMZ(), peak.getSpectrum(getCurrentLayer().peaks).getRT(), pos);
 		}
-		else
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
 		{
 			dataToWidget_(peak.getFeature(getCurrentLayer().consensus).getMZ(), peak.getFeature(getCurrentLayer().consensus).getRT(), pos);
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+			//TODO CHROM
 		}
 		
 		//paint highlighed peak
@@ -167,7 +181,7 @@ namespace OpenMS
 				}
 			}
 		}
-		else
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
 		{
 			for (ConsensusMapType::ConstIterator i = getCurrentLayer().consensus.begin();
 				   i != getCurrentLayer().consensus.end();
@@ -187,6 +201,10 @@ namespace OpenMS
 					}
 				}
 			}
+		}
+		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		{
+			//TODO CHROM
 		}
 		return PeakIndex();
 	}
@@ -211,6 +229,10 @@ namespace OpenMS
 			else if (layer.type != LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
 			{
 				percentage_factor_ = overall_data_range_.max()[2]/layer.consensus.getMaxInt();
+			}
+			else if (layer.type != LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
+			{
+				//TODO CHROM
 			}
 		}
 
@@ -390,6 +412,9 @@ namespace OpenMS
 		}
 		else if (layer.type==LayerData::DT_FEATURE) //features
 		{
+			Size line_spacing = QFontMetrics(painter.font()).lineSpacing();
+			String icon = layer.param.getValue("dot:feature_icon");
+			Size icon_size = (UInt) layer.param.getValue("dot:feature_icon_size");
 			bool show_label = (layer.label!=LayerData::L_NONE);
 			UInt num=0;
 			for (FeatureMapType::ConstIterator i = layer.features.begin();
@@ -417,11 +442,7 @@ namespace OpenMS
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 					{
-						buffer_.setPixel(pos.x()   ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()-1 ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()+1 ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
-						buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
+						paintIcon_(pos, color, icon, icon_size, painter);
 					}
 					//labels
 					if (show_label)
@@ -437,6 +458,16 @@ namespace OpenMS
 								painter.drawText(pos.x()+10,pos.y()+10,i->getPeptideIdentifications()[0].getHits()[0].getSequence().toString().toQString());
 							}
 						}
+						else if (layer.label==LayerData::L_ID_ALL)
+						{
+							if (i->getPeptideIdentifications().size() )
+							{
+								for (Size j=0; j< i->getPeptideIdentifications()[0].getHits().size(); ++j)
+								{
+									painter.drawText(pos.x()+10,pos.y()+10+j*line_spacing,i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+								}
+							}
+						}
 						else if (layer.label==LayerData::L_META_LABEL)
 						{
 							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue(3).toQString());
@@ -446,8 +477,11 @@ namespace OpenMS
 				++num;
 			}
 		}
-		else // consensus features
+		else if (layer.type==LayerData::DT_CONSENSUS)// consensus features
 		{
+			String icon = layer.param.getValue("dot:feature_icon");
+			Size icon_size = (UInt) layer.param.getValue("dot:feature_icon_size");
+			
 			for (ConsensusMapType::ConstIterator i = layer.consensus.begin();
 				   i != layer.consensus.end();
 				   ++i)
@@ -465,15 +499,78 @@ namespace OpenMS
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 					{
-						buffer_.setPixel(pos.x()   ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()-1 ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()+1 ,pos.y()   ,color);
-						buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
-						buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
+						paintIcon_(pos, color, icon, icon_size, painter);
 					}
 				}
 			}
 		}
+		else if (layer.type==LayerData::DT_CHROMATOGRAM)// chromatograms
+		{
+			const ExperimentType& map = layer.peaks;
+			//TODO CHROM implement layer filters
+			//TODO CHROM implement faster painting
+			for (vector<MSChromatogram<> >::const_iterator crom = map.getChromatograms().begin();
+					 crom != map.getChromatograms().end();
+					 ++crom)
+			{
+				for (MSChromatogram<>::const_iterator cp = crom->begin();
+						 cp != crom->end();
+						 ++cp)
+				{
+					QPoint pos;
+					dataToWidget_(crom->getProduct().getMZ(), cp->getRT(), pos);
+					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
+					{
+						buffer_.setPixel(pos.x() ,pos.y() ,Qt::black);
+						buffer_.setPixel(pos.x()-1 ,pos.y() ,Qt::black);
+						buffer_.setPixel(pos.x()+1 ,pos.y() ,Qt::black);
+						buffer_.setPixel(pos.x() ,pos.y()-1 ,Qt::black);
+						buffer_.setPixel(pos.x() ,pos.y()+1 ,Qt::black);
+					}
+				}
+			}
+		}
+	}
+
+	void Spectrum2DCanvas::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const
+	{
+		p.save();
+		p.setPen(color);
+		p.setBrush(QBrush(QColor(color),Qt::SolidPattern));
+		
+		Size s_half = s/2;
+		
+		if (icon=="diamond")
+		{
+			QPolygon pol;
+			pol.putPoints(0,4,pos.x() + s_half, pos.y(),
+												pos.x()         , pos.y() + s_half,
+												pos.x() - (int)s_half, pos.y()         ,
+												pos.x()         , pos.y() - (int)s_half);
+			p.drawConvexPolygon(pol);
+		}
+		else if (icon=="square")
+		{
+			QPolygon pol;
+			pol.putPoints(0,4,pos.x() + s_half, pos.y() + s_half,
+												pos.x() - (int)s_half, pos.y() + s_half,
+												pos.x() - (int)s_half, pos.y() - (int)s_half,
+												pos.x() + s_half, pos.y() - (int)s_half);
+			p.drawConvexPolygon(pol);
+		}
+		else if (icon=="circle")
+		{
+			p.drawEllipse(QRectF(pos.x()-s_half,pos.y()-s_half,s,s));
+		}
+		else if (icon=="triangle")
+		{
+			QPolygon pol;
+			pol.putPoints(0,3,pos.x()         , pos.y() + s_half,
+												pos.x() + s_half, pos.y() - (int)s_half,
+												pos.x() - (int)s_half, pos.y() - (int)s_half);
+			p.drawConvexPolygon(pol);
+		}
+		p.restore();
 	}
 
 	void Spectrum2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter& painter)
@@ -526,6 +623,34 @@ namespace OpenMS
 		}
 	}
 
+	void Spectrum2DCanvas::paintUnassignedHits_(Size layer_index, QPainter& painter)
+	{
+		painter.setPen(Qt::black);
+		const vector<PeptideIdentification>& ids = getLayer(layer_index).features.getUnassignedPeptideIdentifications();
+		
+		for (Size i=0; i<ids.size();++i)
+		{
+			if (ids[i].getHits().size()!=0)
+			{
+				DoubleReal rt = ids[i].getMetaValue("RT");
+				if (rt< visible_area_.min()[1] || rt > visible_area_.max()[1]) continue;
+				DoubleReal mz = ids[i].getMetaValue("MZ");
+				if (mz< visible_area_.min()[0] || mz > visible_area_.max()[0]) continue;
+				
+				//draw dot
+				QPoint pos;
+				dataToWidget_(mz, rt, pos);
+				painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
+				painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+				
+				//draw sequence
+				String sequence = ids[i].getHits()[0].getSequence().toString();
+				if (ids[i].getHits().size()>1) sequence += " ...";
+				painter.drawText(pos.x()+10,pos.y()+10,sequence.toQString());
+			}
+		}
+	}
+	
   void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, QPainter& painter)
   {
 		QPolygon points;
@@ -667,6 +792,10 @@ namespace OpenMS
 					visible_layer_count++;
 					visible_last_layer=i;
 				}
+			}
+			if (getLayer(i).type==LayerData::DT_CHROMATOGRAM)
+			{
+				//TODO CHROM
 			}
 		}
 
@@ -810,7 +939,7 @@ namespace OpenMS
 				return false;
 			}
 		}
-		else //consensus feature data
+		else if (layers_.back().type==LayerData::DT_CONSENSUS)//consensus feature data
 		{
 			getCurrentLayer_().consensus.updateRanges();
 
@@ -823,7 +952,24 @@ namespace OpenMS
 				return false;
 			}
 		}
+		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM)//chromatogram data
+		{
 
+			//TODO CHROM currentPeakData_().sortChromatograms(true);
+			currentPeakData_().updateRanges();
+
+			update_buffer_ = true;
+
+			//Abort if no data points are contained
+			if (currentPeakData_().getChromatograms().size()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no chromattograms. Aborting!");
+				return false;
+			}
+		}
+		
 		//Warn if negative intensities are contained
 		if (getMinIntensity(current_layer_)<0.0)
 		{
@@ -944,7 +1090,7 @@ namespace OpenMS
 							}
 						}
 					}
-					else
+					else if (getLayer(i).type==LayerData::DT_CONSENSUS) //features
 					{
 						for (ConsensusMapType::ConstIterator it = getLayer(i).consensus.begin();
 							   it != getLayer(i).consensus.end();
@@ -960,6 +1106,10 @@ namespace OpenMS
 								local_max = it->getIntensity();
 							}
 						}
+					}
+					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM) //features
+					{
+						//TODO CHROM
 					}
 					if (local_max>0.0)
 					{
@@ -1093,15 +1243,23 @@ namespace OpenMS
 						{
 							paintFeatureConvexHulls_(i, painter);
 						}
+						if (getLayerFlag(i,LayerData::F_UNASSIGNED))
+						{
+							paintUnassignedHits_(i,painter);
+						}
 						paintDots_(i, painter);
 					}
-					else
+					else if (getLayer(i).type==LayerData::DT_CONSENSUS)
 					{
 						if (getLayerFlag(i,LayerData::C_ELEMENTS))
 						{
 							paintConsensusElements_(i, painter);
 						}
 						paintDots_(i, painter);
+					}
+					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM)
+					{
+						//TODO CHROM
 					}
 				}
 				//timing
@@ -1140,9 +1298,13 @@ namespace OpenMS
 				{
 					dataToWidget_(selected_peak_.getPeak(getCurrentLayer().peaks).getMZ(),selected_peak_.getSpectrum(getCurrentLayer().peaks).getRT(),line_begin);
 				}
-				else
+				else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
 				{
 					dataToWidget_(selected_peak_.getFeature(getCurrentLayer().consensus).getMZ(),selected_peak_.getFeature(getCurrentLayer().consensus).getRT(),line_begin);
+				}
+				else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
+				{
+					//TODO CHROM
 				}
 			}
 			else
@@ -1157,11 +1319,14 @@ namespace OpenMS
 			{
 				dataToWidget_(measurement_start_.getPeak(getCurrentLayer().peaks).getMZ(),measurement_start_.getSpectrum(getCurrentLayer().peaks).getRT(),line_end);
 			}
-			else
+			else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
 			{
 				dataToWidget_(measurement_start_.getFeature(getCurrentLayer().consensus).getMZ(),measurement_start_.getFeature(getCurrentLayer().consensus).getRT(),line_end);
 			}
-
+			else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
+			{
+				//TODO CHROM
+			}
 			painter.drawLine(line_begin, line_end);
 
 			highlightPeak_(painter, measurement_start_);
@@ -1188,7 +1353,7 @@ namespace OpenMS
 		}
 		
 		//draw delta for measuring
-		if (action_mode_==AM_MEASURE && measurement_start_.isValid() && selected_peak_.isValid())
+		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
 		{
 			drawDeltas_(painter, measurement_start_, selected_peak_, true);
 		}
@@ -1293,7 +1458,7 @@ namespace OpenMS
 						}
 					}
 				}
-				else // ConsensusFeature
+				else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)// ConsensusFeature
 				{
 					//add meta info
 					const ConsensusFeature& f = selected_peak_.getFeature(getCurrentLayer().consensus);
@@ -1303,6 +1468,10 @@ namespace OpenMS
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
+				}
+				else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)// chromatogram
+				{
+					//TODO CHROM
 				}
 				if (status!="") emit sendStatusMessage(status, 0);
 			}
@@ -1572,6 +1741,7 @@ namespace OpenMS
  			settings_menu->addAction("Show/hide convex hull");
  			settings_menu->addAction("Show/hide trace convex hulls");
  			settings_menu->addAction("Show/hide numbers/labels");
+ 			settings_menu->addAction("Show/hide unassigned peptide hits");
 
 			//search for nearby features
 			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
@@ -1660,7 +1830,12 @@ namespace OpenMS
 				}
 			}
 		}
-
+		//------------------CHROMATOGRAMS----------------------------------
+		else if (layer.type==LayerData::DT_CHROMATOGRAM)
+		{
+			//TODO CHROM
+		}
+		
 		//common actions of peaks and features
 		if (result)
 		{
@@ -1699,6 +1874,10 @@ namespace OpenMS
 			else if (result->text()=="Show/hide trace convex hulls")
 			{
 				setLayerFlag(LayerData::F_HULLS,!getLayerFlag(LayerData::F_HULLS));
+			}
+			else if (result->text()=="Show/hide unassigned peptide hits")
+			{
+				setLayerFlag(LayerData::F_UNASSIGNED,!getLayerFlag(LayerData::F_UNASSIGNED));
 			}
 			else if (result->text()=="Show/hide numbers/labels")
 			{
@@ -1756,11 +1935,14 @@ namespace OpenMS
 	void Spectrum2DCanvas::showCurrentLayerPreferences()
 	{
 		Internal::Spectrum2DPrefDialog dlg(this);
+		LayerData& layer = getCurrentLayer_();
 
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
 		QComboBox* mapping = dlg.findChild<QComboBox*>("mapping");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
+		QComboBox* feature_icon = dlg.findChild<QComboBox*>("feature_icon");
+		QSpinBox* feature_icon_size = dlg.findChild<QSpinBox*>("feature_icon_size");
 
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
 		if (isMzToXAxis())
@@ -1771,18 +1953,22 @@ namespace OpenMS
 		{
 			mapping->setCurrentIndex(1);
 		}
-		gradient->gradient().fromString(getCurrentLayer_().param.getValue("dot:gradient"));
+		gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
 		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));
-
+		feature_icon->setCurrentIndex(feature_icon->findText(layer.param.getValue("dot:feature_icon").toQString()));
+		feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
+		
 		if (dlg.exec())
 		{
 			param_.setValue("background_color",bg_color->getColor().name());
 			param_.setValue("on_file_change", on_file_change->currentText());
+			layer.param.setValue("dot:feature_icon", feature_icon->currentText());
+			layer.param.setValue("dot:feature_icon_size", feature_icon_size->value());
 			if ((mapping->currentIndex()==0 && !isMzToXAxis()) || (mapping->currentIndex()==1 && isMzToXAxis()))
 			{
 				mzToXAxis(!isMzToXAxis());
 			}
-			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
+			layer.param.setValue("dot:gradient",gradient->gradient().toString());
 
 		  emit preferencesChange();
 		}
@@ -1844,7 +2030,7 @@ namespace OpenMS
 				modificationStatus_(activeLayerIndex(), false);
 			}
 	  }
-	  else //consensus feature data
+	  else if (layer.type==LayerData::DT_CONSENSUS) //consensus feature data
 	  {
 			QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"ConsensusXML files (*.consensusXML);;All files (*)");
 			if (!file_name.isEmpty())
@@ -1862,6 +2048,10 @@ namespace OpenMS
 				modificationStatus_(activeLayerIndex(), false);
 			}
 	  }
+	  else if (layer.type==LayerData::DT_CHROMATOGRAM) //chromatograms
+	  {
+			//TODO CHROM
+		}
 	}
 
 	void Spectrum2DCanvas::updateLayer_(Size i)
@@ -1877,7 +2067,7 @@ namespace OpenMS
 			catch(Exception::BaseException& e)
 			{
 				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-				layer.peaks.clear();
+				layer.peaks.clear(true);
 			}
 			layer.peaks.sortSpectra(true);
 			layer.peaks.updateRanges(1);
@@ -1891,7 +2081,7 @@ namespace OpenMS
 			catch(Exception::BaseException& e)
 			{
 				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-				layer.features.clear();
+				layer.features.clear(true);
 			}
 			layer.features.updateRanges();
 		}
@@ -1907,6 +2097,10 @@ namespace OpenMS
 				layer.consensus.clear(true);
 			}
 			layer.consensus.updateRanges();
+		}
+		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM) //chromatgram
+		{
+			//TODO CHROM
 		}
 		recalculateRanges_(0,1,2);
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway

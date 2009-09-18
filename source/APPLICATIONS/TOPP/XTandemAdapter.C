@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <QtCore/QFile>
+#include <QtCore/QProcess>
 
 #include <fstream>
 
@@ -62,7 +63,7 @@ using namespace std;
 	Refer to the docu of @em X!Tandem for further information about settings.
 
 	The major part of the setting can be directly adjusted using the "default_input.xml" of 
-	@em X!Tandem. A example of that file is contained in the "bin" folder of the 
+	@em X!Tandem. An example of that file is contained in the "bin" folder of the 
 	@em X!Tandem installation. The parameters "default_input_file" must point to a valid
 	file. Parameters set by this wrapper overwrite the default settings given in the file.
 
@@ -98,7 +99,7 @@ class TOPPXTandemAdapter
 			registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out",StringList::create("IdXML"));
+      setValidFormats_("out",StringList::create("idXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
 			
@@ -123,8 +124,8 @@ class TOPPXTandemAdapter
 	
 			addEmptyLine_();
 			addText_("X!Tandem specific options");
-			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
-			registerInputFile_("default_input_file", "<file>", "default_input.xml", "default parameters input file, if not given default parameters are used", false);			
+			registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true);
+			registerInputFile_("default_input_file", "<file>", "", "default parameters input file, if not given default parameters are used", false);			
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
@@ -139,7 +140,7 @@ class TOPPXTandemAdapter
 			String ini_location;
 			// path to the log file
 			String logfile(getStringOption_("log"));
-			String tandem_path(getStringOption_("XTandem_path"));
+			String xtandem_executable(getStringOption_("xtandem_executable"));
 			// log filestream (as long as the real logfile is not determined yet)
 			ofstream log;
 			String inputfile_name;
@@ -245,7 +246,7 @@ class TOPPXTandemAdapter
 				infile.setFragmentMassErrorUnit(XTandemInfile::PPM);
 			}
 
-			if (setByUser_("default_input_file"))
+			if (getStringOption_("default_input_file") != "")
 			{
 				infile.load(getStringOption_("default_input_file"));
 				infile.setDefaultParametersFilename(getStringOption_("default_input_file"));
@@ -273,10 +274,9 @@ class TOPPXTandemAdapter
 			// calculations
 			//-------------------------------------------------------------
 
-			// @todo translate call to windows
-			String call = tandem_path + "/./tandem.exe " + input_filename;
-			int status = system(call.c_str());
-
+			String call = xtandem_executable + " " + input_filename;
+			int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
+			
 			if (status != 0)
 			{
 				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");

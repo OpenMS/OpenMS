@@ -207,6 +207,7 @@ namespace OpenMS
 	void Spectrum3DCanvas::showCurrentLayerPreferences()
 	{
 		Internal::Spectrum3DPrefDialog dlg(this);
+		LayerData& layer = getCurrentLayer_();
 
 //		cout << "IN: " << param_ << endl;
 
@@ -217,17 +218,17 @@ namespace OpenMS
 		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 		
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));		
-		shade->setCurrentIndex(getCurrentLayer().param.getValue("dot:shade_mode"));
-		gradient->gradient().fromString(getCurrentLayer().param.getValue("dot:gradient"));
-		width->setValue(UInt(getCurrentLayer().param.getValue("dot:line_width")));
+		shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
+		gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
+		width->setValue(UInt(layer.param.getValue("dot:line_width")));
 		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));	
 
 		if (dlg.exec())
 		{
 			param_.setValue("background_color",bg_color->getColor().name());
-			getCurrentLayer_().param.setValue("dot:shade_mode",shade->currentIndex());
-			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
-			getCurrentLayer_().param.setValue("dot:line_width",width->value());
+			layer.param.setValue("dot:shade_mode",shade->currentIndex());
+			layer.param.setValue("dot:gradient",gradient->gradient().toString());
+			layer.param.setValue("dot:line_width",width->value());
 			param_.setValue("on_file_change", on_file_change->currentText());
 			
 		  emit preferencesChange();
@@ -349,7 +350,7 @@ namespace OpenMS
 		catch(Exception::BaseException& e)
 		{
 			QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-			layer.peaks.clear();
+			layer.peaks.clear(true);
 		}
 		layer.peaks.sortSpectra(true);
 		layer.peaks.updateRanges(1);

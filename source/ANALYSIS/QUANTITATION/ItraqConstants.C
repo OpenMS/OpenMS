@@ -143,7 +143,7 @@ namespace OpenMS {
 			info.description = "";
 			info.name = channel_names[itraq_type].getValue(i,0);
 			info.id = (Int)i;
-			info.center = double(info.name) + 0.1;
+			info.center = double(info.name) + 0.11;
 			info.active = false;
 			map[info.name] = info;
 		}

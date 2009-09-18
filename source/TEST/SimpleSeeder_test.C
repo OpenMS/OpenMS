@@ -101,7 +101,7 @@ START_SECTION(IndexPair nextSeed())
 	//create dummy FF instance (for flags)
   FeatureFinder ff;
   FeatureMap<Feature> features;
-  ff.run("none", exp,features, Param());
+  ff.run("none", exp,features, Param(), FeatureMap<>());
   
   //make two peaks used
 	ff.getPeakFlag(make_pair(0,4)) = FeatureFinderDefs::USED;

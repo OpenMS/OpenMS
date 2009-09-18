@@ -73,6 +73,10 @@ namespace OpenMS
 		{
 			list<<"FileFilter"<<"FileConverter"<<"FileInfo";
 		}
+		else if (type==LayerData::DT_CHROMATOGRAM)
+		{
+		  //TODO CHROM
+		}
 		//sort list alphabetically
 		list.sort();
 		list.push_front("<select tool>");

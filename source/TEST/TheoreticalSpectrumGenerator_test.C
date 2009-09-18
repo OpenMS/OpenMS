@@ -133,7 +133,7 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 		TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
 	}
 
-	spec.clear();
+	spec.clear(true);
 	ptr->getSpectrum(spec, peptide, 2);
 	TEST_EQUAL(spec.size(), 24)
 END_SECTION

@@ -186,7 +186,7 @@ namespace OpenMS {
 	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
 	{
     // clear feature map
-    feature_map.clear();
+    feature_map.clear(true);
     ProteinIdentification protIdent;
 
 		for (SampleProteins::const_iterator it=proteins.begin(); it!=proteins.end(); ++it)

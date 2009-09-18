@@ -27,9 +27,7 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 
@@ -360,21 +358,12 @@ namespace OpenMS
 				edge_type_ = ET_TOOL_TO_LIST;
 				// here too
 			}
-			else
-			{
-				edge_type_ = ET_TOOL_TO_FILE;
-				// and so on
-			}
 		}
 		else if (qobject_cast<TOPPASToolVertex*>(target))
 		{			
 			if (source_vertex_is_a_list)
 			{
 				edge_type_ = ET_LIST_TO_TOOL;
-			}
-			else
-			{
-				edge_type_ = ET_FILE_TO_TOOL;
 			}
 		}
 		else
@@ -418,52 +407,7 @@ namespace OpenMS
 			target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
 		}
 				
-		if (edge_type_ == ET_FILE_TO_TOOL)
-		{
-			if (target_param_has_list_type)
-			{
-				// source gives file, target takes list
-				return ES_MISMATCH_FILE_LIST;
-			}
-			else if (target_in_param_ == -1)
-			{
-				// no param selected
-				return ES_NO_TARGET_PARAM;
-			}
-			else if (target_param_types.empty())
-			{
-				// no restrictions specified
-				valid = true;
-			}
-			else
-			{
-				const String& file_name = String(qobject_cast<TOPPASInputFileVertex*>(source)->getFilename());
-				String::SizeType extension_start_index = file_name.rfind(".");
-				if (extension_start_index != String::npos)
-				{
-					const String& extension = file_name.substr(extension_start_index+1);
-					for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
-					{
-						if (*it == extension)
-						{
-							valid = true;
-							break;
-						}
-					}
-				}
-				else if (file_name == "")
-				{
-					// file name is not specified yet
-					return ES_NOT_READY_YET;
-				}
-				
-				if (!valid)
-				{
-					return ES_FILE_EXT_MISMATCH;
-				}
-			}
-		}
-		else if (edge_type_ == ET_LIST_TO_TOOL)
+		if (edge_type_ == ET_LIST_TO_TOOL)
 		{
 			if (!target_param_has_list_type)
 			{
@@ -499,10 +443,13 @@ namespace OpenMS
 						String::SizeType extension_start_index = file_name.rfind(".");
 						if (extension_start_index != String::npos)
 						{
-							const String& extension = file_name.substr(extension_start_index+1);
+							String extension = file_name.substr(extension_start_index+1);
+							extension.toLower();
 							for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
 							{
-								if (*it == extension)
+								String other_ext = *it;
+								other_ext.toLower();
+								if (extension == other_ext)
 								{
 									type_mismatch = false;
 									break;
@@ -526,29 +473,14 @@ namespace OpenMS
 				}
 			}
 		}
-		else if (edge_type_ == ET_TOOL_TO_FILE)
-		{
-			if (source_param_has_list_type)
-			{
-				// source gives list, target takes file
-				return ES_MISMATCH_LIST_FILE;
-			}
-			else if (source_out_param_ == -1)
-			{
-				// no param selected
-				return ES_NO_SOURCE_PARAM;
-			}
-			
-			valid = true;
-		}
 		else if (edge_type_ == ET_TOOL_TO_LIST)
 		{
-			if (!source_param_has_list_type)
-			{
-				// source gives file, target takes list
-				return ES_MISMATCH_FILE_LIST;
-			}
-			else if (source_out_param_ == -1)
+			//if (!source_param_has_list_type)
+			//{
+			//	// source gives file, target takes list
+			//	return ES_MISMATCH_FILE_LIST;
+			//}
+			if (source_out_param_ == -1)
 			{
 				// no param selected
 				return ES_NO_SOURCE_PARAM;
@@ -572,11 +504,10 @@ namespace OpenMS
 			{
 				return ES_MISMATCH_LIST_FILE;
 			}
-			if (!source_param_has_list_type && target_param_has_list_type)
-			{
-				return ES_MISMATCH_FILE_LIST;
-			}
-			
+			//if (!source_param_has_list_type && target_param_has_list_type)
+			//{
+			//	return ES_MISMATCH_FILE_LIST;
+			//}
 			
 			if (source_param_types.size() == 0 || target_param_types.size() == 0)
 			{
@@ -587,10 +518,14 @@ namespace OpenMS
 				bool types_ok = false;
 				for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
 				{
+					String ext_1 = *s_it;
+					ext_1.toLower();
 					bool found_match = false;
 					for (StringList::iterator t_it = target_param_types.begin(); t_it != target_param_types.end(); ++t_it)
 					{
-						if (*s_it == *t_it)
+						String ext_2 = *t_it;
+						ext_2.toLower();
+						if (ext_1 == ext_2)
 						{
 							found_match = true;
 							break;

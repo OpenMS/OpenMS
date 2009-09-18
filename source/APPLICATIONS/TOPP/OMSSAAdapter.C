@@ -93,13 +93,13 @@ class TOPPOMSSAAdapter
 			registerInputFile_("in", "<file>", "", "input file ");
 			setValidFormats_("in",StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file ");
-	  	setValidFormats_("out",StringList::create("IdXML"));
+	  	setValidFormats_("out",StringList::create("idXML"));
 		
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
       registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
       registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
-      registerStringOption_("database", "<file>", "", "NCBI formated fasta files. Only the basename should be given without .p* extensions, e.g. SwissProt.fasta");
+      registerInputFile_("database", "<fasta-file>", "", "NCBI formated fasta files. Only the basename should be given without .p* extensions, e.g. SwissProt.fasta");
       vector<String> valid_strings;
       //valid_strings.push_back("ppm"); // ppm disabled, as OMSSA does not support this feature
       valid_strings.push_back("Da");
@@ -122,7 +122,7 @@ class TOPPOMSSAAdapter
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-			registerStringOption_("omssa_dir", "<Directory>", "", "The directory of the OMSSA installation", true);
+			registerInputFile_("omssa_executable", "", "The \"omssacl\" executable of the OMSSA installation", true);
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 			
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
@@ -291,7 +291,7 @@ class TOPPOMSSAAdapter
 			String ini_location;
 			// path to the log file
 			String logfile(getStringOption_("log"));
-			String omssa_dir(getStringOption_("omssa_dir"));
+			String omssa_executable(getStringOption_("omssa_executable"));
 			String inputfile_name;
 			String outputfile_name;
 			PeakMap map;
@@ -309,8 +309,7 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 		
 			// get version of OMSSA
-			// @todo translate call to windows
-			String version_call = omssa_dir + "/omssacl -version > " + unique_version_name;
+			String version_call = omssa_executable + " -version > " + unique_version_name;
 			int status = system(version_call.c_str());
 			if (status != 0)
 			{
@@ -600,8 +599,7 @@ class TOPPOMSSAAdapter
 			MascotInfile omssa_infile;
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
-			/// @todo test/translate call to windows
-			String call = omssa_dir + "/omssacl " + parameters;
+			String call = omssa_executable + " " + parameters;
 
 			writeDebug_(call, 5);
 			status = system(call.c_str());

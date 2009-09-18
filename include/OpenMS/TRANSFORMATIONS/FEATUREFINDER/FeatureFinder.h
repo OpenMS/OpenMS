@@ -70,11 +70,12 @@ namespace OpenMS
 				@param input_map Input peak map
 				@param features Output feature map
 				@param param Algorithm parameters
+				@param seeds List of seeds to use
 
 				Implemented in FeatureFinder_impl.h
 			*/
 			template<class PeakType, class FeatureType>
-			void run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param);
+			void run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds);
 
 			/// Returns a non-mutable reference to a peak flag
 			const Flag& getPeakFlag(const IndexPair& index) const

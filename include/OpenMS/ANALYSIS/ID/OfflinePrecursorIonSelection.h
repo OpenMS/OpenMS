@@ -187,30 +187,30 @@ namespace OpenMS
 		xics.resize(experiment.size());
 		// for each feature
 		for(Size f = 0; f < mass_ranges.size();++f)
+		{
+			// is charge valid
+			if(charges_set.count(features[f].getCharge()) < 1)
 			{
-				// is charge valid
-				if(charges_set.count(features[f].getCharge()) < 1)
-					{
-						continue;
-					}
-				// go through all scans where the feature occurs
-				for(Size s = 0; s < mass_ranges[f].size();s+=2)
-					{
-						// sum intensity over all raw datapoints belonging to the feature in the current scan
-						DoubleReal weight = 0.;
-						for(Size j = mass_ranges[f][s].second;j <= mass_ranges[f][s+1].second;++j)
-							{
-								weight += experiment[mass_ranges[f][s].first][j].getIntensity();
-							}
-						// enter xic in the vector for scan s/2
-						xics[s/2].push_back(std::make_pair(f,weight));
-					}
+				continue;
 			}
+			// go through all scans where the feature occurs
+			for(Size s = 0; s < mass_ranges[f].size();s+=2)
+			{
+				// sum intensity over all raw datapoints belonging to the feature in the current scan
+				DoubleReal weight = 0.;
+				for(Size j = mass_ranges[f][s].second;j <= mass_ranges[f][s+1].second;++j)
+				{
+					weight += experiment[mass_ranges[f][s].first][j].getIntensity();
+				}
+				// enter xic in the vector for scan 
+				xics[mass_ranges[f][s].first].push_back(std::make_pair(f,weight));
+			}
+		}
 
 		for(Size s = 0; s < xics.size(); ++s)
-			{
-				sort(xics[s].begin(),xics[s].end(),PairComparatorSecondElement<std::pair<Size,DoubleReal> >());
-			}
+		{
+			sort(xics[s].begin(),xics[s].end(),PairComparatorSecondElement<std::pair<Size,DoubleReal> >());
+		}
 	}
 
 
@@ -225,7 +225,12 @@ namespace OpenMS
 		// get the mass ranges for each features for each scan it occurs in
 		std::vector<std::vector<std::pair<Size,Size> > >  indices;
 		getMassRanges(features,experiment,indices);
-
+		DoubleReal rt_dist = 0.;
+		if(experiment.size()>1)
+		{
+				rt_dist = experiment[1].getRT()-experiment[0].getRT();
+		}
+		
 		// feature based selection (e.g. with LC-MALDI)
 		if(feature_based)
 			{
@@ -258,12 +263,13 @@ namespace OpenMS
 						p.setCharge(features[feature_index].getCharge());
 						pcs.push_back(p);
 						ms2_spec.setPrecursors(pcs);
-						ms2_spec.setRT(scan->getRT());
-						ms2.push_back(ms2_spec);
+						ms2_spec.setRT(scan->getRT()+rt_dist/2.);
+						ms2_spec.setMSLevel(2);
 						// link ms2 spectrum with features overlapping its precursor
 						// Warning: this depends on the current order of features in the map
 						// Attention: make sure to name ALL features that overlap, not only one!
-						ms2.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
+						ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
+						ms2.push_back(ms2_spec);
 						std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 					
 					}
@@ -283,6 +289,7 @@ namespace OpenMS
 
 				Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
 
+		
 				// get best x signals for each scan
 				for(Size i = 0; i < experiment.size();++i)
 					{
@@ -299,12 +306,13 @@ namespace OpenMS
 								p.setCharge(features[(xics[i].end()-1-j)->first].getCharge());
 								pcs.push_back(p);
 								ms2_spec.setPrecursors(pcs);
-								ms2_spec.setRT(experiment[i].getRT());
+								ms2_spec.setMSLevel(2);
+								ms2_spec.setRT(experiment[i].getRT() + (j+1)*rt_dist/(max_spec+1) );
+								ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
 								ms2.push_back(ms2_spec);
 								// link ms2 spectrum with features overlapping its precursor
 								// Warning: this depends on the current order of features in the map
 								// Attention: make sure to name ALL features that overlap, not only one!
-								ms2.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
 #ifdef DEBUG_OPS
 								std::cout << " MS2 spectra generated at: " << experiment[i].getRT() << " x " << p.getMZ()
 													<< " int: "<<(xics[i].end()-1-j)->second<< "\n";

@@ -26,13 +26,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
 #include <QtGui/QGraphicsScene>
@@ -63,6 +60,8 @@ namespace OpenMS
 		initParam_();
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
+		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
+		connect (this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type, const String& tmp_path)
@@ -83,6 +82,8 @@ namespace OpenMS
 		initParam_();
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
+		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
+		connect (this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
 	}
 	
 	TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs)
@@ -102,6 +103,8 @@ namespace OpenMS
 		brush_color_ = QColor(245,245,245);
 		connect (this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
 		connect (this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
+		connect (this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
+		connect (this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
 	}
 
 	TOPPASToolVertex::~TOPPASToolVertex()
@@ -502,14 +505,6 @@ namespace OpenMS
 					}
 				}
 				
-				TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
-				if (ifv)
-				{
-					// list mode cannot be active in this case
-					args << ifv->getFilename();
-					continue;
-				}
-				
 				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 				if (iflv)
 				{
@@ -626,12 +621,6 @@ namespace OpenMS
 					tv->runToolIfInputReady();
 					continue;
 				}
-				TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>((*it)->getTargetVertex());
-				if (ofv)
-				{
-					ofv->finished();
-					continue;
-				}
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>((*it)->getTargetVertex());
 				if (oflv)
 				{
@@ -740,13 +729,6 @@ namespace OpenMS
 				}
 				else // IOT_FILE
 				{
-					TOPPASInputFileVertex* ifv = qobject_cast<TOPPASInputFileVertex*>((*it)->getSourceVertex());
-					if (ifv)
-					{
-						input_file_basenames.push_back(File::basename(ifv->getFilename()).toQString());
-						break;
-					}
-					
 					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 					if (tv)
 					{
@@ -865,6 +847,18 @@ namespace OpenMS
 		update(boundingRect());
 	}
 	
+	void TOPPASToolVertex::toolFailedSlot()
+	{
+		progress_color_ = Qt::red;
+		update(boundingRect());
+	}
+
+	void TOPPASToolVertex::toolCrashedSlot()
+	{
+		progress_color_ = Qt::red;
+		update(boundingRect());
+	}
+
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
 		// something has changed --> remove invalidated tmp files, if existent

@@ -159,7 +159,10 @@ namespace OpenMS
 			table_->setItem(3,3,item);
 
 		}
-		
+		else if (layer_data_.type == LayerData::DT_CHROMATOGRAM)
+		{
+			//TODO CHROM
+		}
 		// add computed intensity stats to the table
 		QTableWidgetItem* item = new QTableWidgetItem();
 		item->setText("-");

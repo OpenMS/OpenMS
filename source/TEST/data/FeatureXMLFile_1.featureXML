@@ -15,6 +15,11 @@
 
 	<IdentificationRun id="PI_0" date="2008-12-14T11:12:45" search_engine="Mascot" search_engine_version="2.1">
 		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+      <FixedModification name="C+57.0215" />
+      <VariableModification name="C-17.0265" />
+      <VariableModification name="E-18.0106" />
+      <VariableModification name="M+15.9949" />
+      <VariableModification name="Q-17.0265" />
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
@@ -29,6 +34,9 @@
 
 	<IdentificationRun id="PI_1" date="2008-12-14T11:12:46" search_engine="MaxKotzt" search_engine_version="2.1">
 		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+      <FixedModification name="C+1234.5678" />
+      <VariableModification name="C-1700" />
+      <VariableModification name="Q-1700" />
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_2" accession="a1" score="70.3000030517578" sequence="OPQREST">

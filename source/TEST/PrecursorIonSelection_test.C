@@ -105,7 +105,7 @@ param.setValue("type","IPS");
 param.setValue("min_pep_ids",2);
 param.remove("preprocessing:preprocessed_db_path");
 ptr->setParameters(param);
-next_features.clear();
+next_features.clear(true);
 
 START_SECTION(void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values=true))
   ptr->rescore(features,pep_ids,prot_ids,preprocessing,false);
@@ -115,7 +115,7 @@ END_SECTION
 
 START_SECTION( void simulateRun(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db,UInt step_size, String path))
   ptr->reset();
-	features.clear();
+	features.clear(true);
   f_file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_features.featureXML"),features);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);

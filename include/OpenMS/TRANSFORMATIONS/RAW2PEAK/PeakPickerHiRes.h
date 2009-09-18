@@ -76,7 +76,7 @@ namespace OpenMS
     void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
     {
 			// copy meta data of the input spectrum
-			output.clear();
+			output.clear(true);
 			output.SpectrumSettings::operator=(input);
 			output.MetaInfoInterface::operator=(input);
 			output.setRT(input.getRT());
@@ -266,7 +266,7 @@ namespace OpenMS
     void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
     {
 			// make sure that output is clear
-			output.clear();
+			output.clear(true);
 
 			// copy experimental settings
 			static_cast<ExperimentalSettings&>(output) = input;

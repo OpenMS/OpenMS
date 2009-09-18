@@ -48,6 +48,12 @@
 
 #include <QtCore/QDir>
 
+#ifdef _OPENMP
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <omp.h>
+#endif
+#endif
+
 namespace OpenMS
 {
 	/** 
@@ -58,6 +64,10 @@ namespace OpenMS
 		@improvement RT model with tailing/fronting (Marc)
 		@improvement More general MZ model - e.g. based on co-elution or with sulphur-averagines (Marc)
 		
+		@todo Fix output in parallel mode, change assignment of charges to threads, add parallel TOPP test (Marc)
+		@todo Implement user-specified seed lists support (Marc)
+		
+	
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmPicked 
@@ -68,6 +78,7 @@ namespace OpenMS
 			///@name Type definitions
 			//@{
 			typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
+			typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
 			typedef typename MapType::SpectrumType SpectrumType;
 			typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
 			//@}
@@ -338,20 +349,20 @@ namespace OpenMS
 					log_()
 			{
 				//debugging
-				defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
+				defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).");
 				defaults_.setValidStrings("debug",StringList::create("true,false"));
 				//intensity
-				defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.");
+				defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.\nThis parameter should be decreased, if the algorithm is used on small regions of a map.");
 				defaults_.setMinInt("intensity:bins",1);
 				defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
 				//mass trace search parameters
-				defaults_.setValue("mass_trace:mz_tolerance",0.03,"m/z difference tolerance of peaks belonging to the same mass trace.\n This value must be smaller than that 1/charge_high!");
+				defaults_.setValue("mass_trace:mz_tolerance",0.03,"Tolerated m/z deviation of peaks belonging to the same mass trace.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!");
 				defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
-				defaults_.setValue("mass_trace:min_spectra",10,"Number of spectra the have to show the same peak mass for a mass trace.");
+				defaults_.setValue("mass_trace:min_spectra",10,"Number of spectra that have to show a similar peak mass in a mass trace.");
 				defaults_.setMinInt("mass_trace:min_spectra",1);
-				defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
+				defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!");
 				defaults_.setMinInt("mass_trace:max_missing",0);
-				defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", StringList::create("advanced"));
+				defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to seperate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.");
 				defaults_.setMinFloat("mass_trace:slope_bound",0.0);
 				defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search parameters
@@ -359,7 +370,7 @@ namespace OpenMS
 				defaults_.setMinInt("isotopic_pattern:charge_low",1);
 				defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
 				defaults_.setMinInt("isotopic_pattern:charge_high",1);
-				defaults_.setValue("isotopic_pattern:mz_tolerance",0.03,"Tolerated mass deviation from the theoretical isotopic pattern.\nThis value must be smaller than that 1/charge_high!");		
+				defaults_.setValue("isotopic_pattern:mz_tolerance",0.03,"Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!");		
 				defaults_.setMinFloat("isotopic_pattern:mz_tolerance",0.0);
 				defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
 				defaults_.setMinFloat("isotopic_pattern:intensity_percentage",0.0);
@@ -375,7 +386,7 @@ namespace OpenMS
 				defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
 				defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Seed settings
-				defaults_.setValue("seed:min_score",0.8,"Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.");
+				defaults_.setValue("seed:min_score",0.8,"Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.\nIf your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.");
 				defaults_.setMinFloat("seed:min_score",0.0);
 				defaults_.setMaxFloat("seed:min_score",1.0);
 				defaults_.setSectionDescription("seed","Settings that determine which peaks are considered a seed");
@@ -394,7 +405,7 @@ namespace OpenMS
 				defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit of the feature before model fitting.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:min_isotope_fit",0.0);
 				defaults_.setMaxFloat("feature:min_isotope_fit",1.0);
-				defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.", StringList::create("advanced"));
+				defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.\nThis parameter is important for features that overlap in m/z dimension.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:min_trace_score",0.0);
 				defaults_.setMaxFloat("feature:min_trace_score",1.0);
 				defaults_.setValue("feature:min_rt_span",0.333, "Minimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
@@ -405,13 +416,28 @@ namespace OpenMS
 				defaults_.setValue("feature:max_intersection",0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:max_intersection",0.0);
 				defaults_.setMaxFloat("feature:max_intersection",1.0);
-				defaults_.setValue("feature:reported_mz","maximum", "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.");
+				defaults_.setValue("feature:reported_mz","monoisotopic", "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.");
 				defaults_.setValidStrings("feature:reported_mz",StringList::create("maximum,average,monoisotopic"));
 				defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
+				//user-specified seed settings
+				defaults_.setValue("user-seed:rt_tolerance",5.0, "Allowed RT deviation of seeds from the user-specified seed position.");
+				defaults_.setMinFloat("user-seed:rt_tolerance",0.0);
+				defaults_.setValue("user-seed:mz_tolerance",1.1, "Allowed m/z deviation of seeds from the user-specified seed position.");
+				defaults_.setMinFloat("user-seed:mz_tolerance",0.0);				
+				defaults_.setValue("user-seed:min_score",0.5, "Overwrites 'seed:min_score' for user-specified seeds. The cutoff is typically a bit lower in this case.");
+				defaults_.setMinFloat("user-seed:min_score",0.0);
+				defaults_.setMaxFloat("user-seed:min_score",1.0);
+				defaults_.setSectionDescription("user-seed","Settings for user-specified seeds.");
 				//debug settings
 				defaults_.setValue("debug:pseudo_rt_shift",500.0,"Pseudo RT shift used when .", StringList::create("advanced"));
 				defaults_.setMinFloat("debug:pseudo_rt_shift",1.0);
 				this->defaultsToParam_();
+			}
+
+			// docu in base class
+			virtual void setSeeds(const FeatureMapType& seeds)
+			{
+				seeds_ = seeds;
 			}
 			
 			/// Main method for actual FeatureFinder
@@ -424,8 +450,8 @@ namespace OpenMS
 				//quality estimation
 				DoubleReal min_feature_score = param_.getValue("feature:min_score");
 				//charges to look at				
-				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
-				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
+				SignedSize charge_low = (Int)param_.getValue("isotopic_pattern:charge_low");
+				SignedSize charge_high = (Int)param_.getValue("isotopic_pattern:charge_high");
 				//fitting settings
 				UInt max_iterations = param_.getValue("fit:max_iterations");
 				DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
@@ -434,29 +460,46 @@ namespace OpenMS
 				//copy the input map
 				map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
 				
+				//flag for user-specified seed mode
+				bool user_seeds = (seeds_.size()>0);
+				if (user_seeds)
+				{
+					seeds_.sortByMZ();
+				}
+				DoubleReal user_rt_tol = param_.getValue("user-seed:rt_tolerance");
+				DoubleReal user_mz_tol = param_.getValue("user-seed:mz_tolerance");
+				DoubleReal user_seed_score = param_.getValue("user-seed:min_score");
+				
 				//reserve space for calculated scores
-				UInt meta_array_count = 5 + charge_high - charge_low;
+				UInt charge_count = charge_high - charge_low + 1;
 				for (Size s=0; s<map_.size(); ++s)
 				{
 					Size scan_size = map_[s].size();
-					map_[s].getFloatDataArrays().resize(meta_array_count);
+					map_[s].getFloatDataArrays().resize(3 + 2*charge_count);
 					map_[s].getFloatDataArrays()[0].setName("trace_score");
 					map_[s].getFloatDataArrays()[0].assign(scan_size,0.0);
 					map_[s].getFloatDataArrays()[1].setName("intensity_score");
 					map_[s].getFloatDataArrays()[1].assign(scan_size,0.0);
-					map_[s].getFloatDataArrays()[2].setName("overall_score");
+					map_[s].getFloatDataArrays()[2].setName("local_max");
 					map_[s].getFloatDataArrays()[2].assign(scan_size,0.0);
-					map_[s].getFloatDataArrays()[3].setName("local_max");
-					map_[s].getFloatDataArrays()[3].assign(scan_size,0.0);
+					//create isotope pattern score arrays
 					UInt charge = charge_low;
-					for (Size i = 4; i< meta_array_count; ++i)
+					for (Size i = 3; i< 3+charge_count; ++i)
 					{
 						map_[s].getFloatDataArrays()[i].setName(String("pattern_score_")+charge);
 						map_[s].getFloatDataArrays()[i].assign(scan_size,0.0);
 						++charge;
 					}
+					//create overall score arrays
+					charge = charge_low;
+					for (Size i = 3+charge_count; i< 3+2*charge_count; ++i)
+					{
+						map_[s].getFloatDataArrays()[i].setName(String("overall_score_")+charge);
+						map_[s].getFloatDataArrays()[i].assign(scan_size,0.0);
+						++charge;
+					}
 				}
-				
+
 				bool debug = ( (String)(param_.getValue("debug"))=="true" );
 				//clean up / create folders for debug information
 				if (debug)
@@ -588,27 +631,100 @@ namespace OpenMS
 							
 							//store final score for later use
 							map_[s].getFloatDataArrays()[0][p] = trace_score;
-							map_[s].getFloatDataArrays()[3][p] = is_max_peak;
+							map_[s].getFloatDataArrays()[2][p] = is_max_peak;
 						}
 					}
 					ff_->endProgress();
 				}
 
+				//---------------------------------------------------------------------------
+				//Step 2.5:
+				//Prealculate isotope distributions for interesting mass ranges
+				//---------------------------------------------------------------------------
+				//new scope to make local variables disappear
+				{
+					DoubleReal max_mass = map_.getMaxMZ()*charge_high;
+					Size num_isotopes = std::ceil(max_mass/mass_window_width_);
+					ff_->startProgress(0, num_isotopes, "Precalculating isotope distributions");
+					
+					//reserve enough space
+					isotope_distributions_.resize(num_isotopes);
+
+					//calculate distribution if necessary
+					for (Size index=0; index<num_isotopes; ++index)
+					{
+						//log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
+						IsotopeDistribution d;
+						d.setMaxIsotope(20);
+						d.estimateFromPeptideWeight(0.5*mass_window_width_ + index * mass_window_width_);
+						//trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
+						Size size_before = d.size();
+						d.trimLeft(intensity_percentage_optional_);
+						isotope_distributions_[index].trimmed_left = size_before - d.size();
+						d.trimRight(intensity_percentage_optional_);
+						for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
+						{
+							isotope_distributions_[index].intensity.push_back(it->second);
+							//log_ << " - " << it->second << std::endl;
+						}
+						//determine the number of optional peaks at the beginning/end
+						Size begin = 0;
+						Size end = 0;
+						bool is_begin = true;
+						bool is_end = false;
+						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+						{
+							if (isotope_distributions_[index].intensity[i]<intensity_percentage_)
+							{
+								if (!is_end && !is_begin) is_end = true;
+								if (is_begin) ++begin;
+								else if (is_end) ++end;
+							}
+							else if (is_begin)
+							{
+								is_begin = false;
+							}
+						}
+						isotope_distributions_[index].optional_begin = begin;
+						isotope_distributions_[index].optional_end = end;
+						//scale the distibution to a maximum of 1
+						DoubleReal max = 0.0;
+						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+						{
+							if (isotope_distributions_[index].intensity[i]>max) max = isotope_distributions_[index].intensity[i];
+						}
+						isotope_distributions_[index].max = max;
+						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+						{
+							isotope_distributions_[index].intensity[i] /= max;
+						}
+						
+						//log_ << " - optinal begin/end:" << begin << " / " << end << std::endl;
+					}
+					
+					ff_->endProgress();
+				}
+				
 				//-------------------------------------------------------------------------
 				//Step 3:
 				//Charge loop (create seeds and features for each charge separately)
 				//-------------------------------------------------------------------------
-				Int plot_nr = -1; //counter for the number of plots (debug info)
-				for (UInt c=charge_low; c<=charge_high; ++c)
+				Int plot_nr_global = -1; //counter for the number of plots (debug info)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+				for (SignedSize c=charge_low; c<=charge_high; ++c)
 				{
-					UInt charge_index_meta = 4 + c - charge_low;
-					Size feature_count_before = features_->size();
+					UInt meta_index_isotope = 3 + c - charge_low;
+					UInt meta_index_overall = 3 + charge_count + c - charge_low;
+					
+					Size feature_candidates = 0;
 					std::vector<Seed> seeds;
 					
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
-					ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+c);
+					ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+String(c));
 					for (Size s=0; s<map_.size(); ++s)
 					{
 						ff_->setProgress(s);
@@ -636,21 +752,20 @@ namespace OpenMS
 							{
 								for (Size i=0; i<pattern.peak.size(); ++i)
 								{
-									if (pattern.peak[i]>=0 && pattern_score>map_[pattern.spectrum[i]].getFloatDataArrays()[charge_index_meta][pattern.peak[i]])
+									if (pattern.peak[i]>=0 && pattern_score>map_[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]])
 									{
-										map_[pattern.spectrum[i]].getFloatDataArrays()[charge_index_meta][pattern.peak[i]] = pattern_score;
+										map_[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]] = pattern_score;
 									}
 								}
 							}
 						}
 					}
 					ff_->endProgress();
-
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
 					//-----------------------------------------------------------		
-					ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+c);
+					ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+String(c));
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
 					for (Size s=0; s<map_.size(); ++s)
 					{
@@ -664,15 +779,40 @@ namespace OpenMS
 						for (Size p=0; p<map_[s].size(); ++p)
 						{	
 							FloatDataArrays& meta = map_[s].getFloatDataArrays();
-							meta[2][p] = std::pow(meta[0][p]*meta[1][p]*meta[charge_index_meta][p], 1.0f/3.0f);
+							DoubleReal overall_score = std::pow(meta[0][p]*meta[1][p]*meta[meta_index_isotope][p], 1.0f/3.0f);
+							meta[meta_index_overall][p] = overall_score;
 							//add seed to vector if certain conditions are fullfilled
-							if (meta[3][p]!=0.0 && meta[2][p]>min_seed_score)
+							if (meta[2][p]!=0.0) // local maximum of mass trace is prerequisite for all features
 							{
-								Seed seed;
-								seed.spectrum = s;
-								seed.peak = p;
-								seed.intensity = map_[s][p].getIntensity();								
-								seeds.push_back(seed);
+								//automatic seeds: overall score greater than the min seed score
+								if (!user_seeds && overall_score>=min_seed_score)
+								{
+									Seed seed;
+									seed.spectrum = s;
+									seed.peak = p;
+									seed.intensity = map_[s][p].getIntensity();								
+									seeds.push_back(seed);
+								}
+								//user-specified seeds: overall score greater than USER min seed score
+								else if (user_seeds && overall_score>=user_seed_score)
+								{
+									//only consider seeds, if they are near a user-specified seed
+									FeatureType tmp;
+									tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
+									for (typename FeatureMapType::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, typename FeatureType::MZLess()); it<seeds_.end(); ++it)
+									{
+										if (it->getMZ()>map_[s][p].getMZ() + user_mz_tol) break;
+										if (fabs(it->getMZ()-map_[s][p].getMZ())<user_mz_tol && fabs(it->getRT()-map_[s].getRT())<user_rt_tol)
+										{
+											Seed seed;
+											seed.spectrum = s;
+											seed.peak = p;
+											seed.intensity = map_[s][p].getIntensity();								
+											seeds.push_back(seed);
+											break;
+										}
+									}
+								} 
 							}
 						}
 					}
@@ -691,15 +831,15 @@ namespace OpenMS
 							const FloatDataArrays& meta = map_[spectrum].getFloatDataArrays();
 							Feature tmp;
 							tmp.setIntensity(seeds[i].intensity);
-							tmp.setOverallQuality(meta[2][peak]);
+							tmp.setOverallQuality(meta[meta_index_overall][peak]);
 							tmp.setRT(map_[spectrum].getRT());
 							tmp.setMZ(map_[spectrum][peak].getMZ());
 							tmp.setMetaValue("intensity_score",	meta[1][peak]);
-							tmp.setMetaValue("pattern_score",	meta[charge_index_meta][peak]);
+							tmp.setMetaValue("pattern_score",	meta[meta_index_isotope][peak]);
 							tmp.setMetaValue("trace_score",	meta[0][peak]);
 							seed_map.push_back(tmp);
 						}
-						FeatureXMLFile().store(String("debug/seeds_")+c+".featureXML", seed_map);
+						FeatureXMLFile().store(String("debug/seeds_")+String(c)+".featureXML", seed_map);
 					}
 					ff_->endProgress();
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
@@ -708,7 +848,7 @@ namespace OpenMS
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
-					ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
+					ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
 					for (Size i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
@@ -743,7 +883,7 @@ namespace OpenMS
 						log_ << "Collecting mass traces" << std::endl;
 						MassTraces traces;
 						traces.reserve(best_pattern.peak.size());
-						extendMassTraces_(best_pattern, traces);
+						extendMassTraces_(best_pattern, traces, meta_index_overall);
 
 						//check if the traces are still valid
 						DoubleReal seed_mz = map_[seeds[i].spectrum][seeds[i].peak].getMZ();
@@ -757,7 +897,11 @@ namespace OpenMS
 						//Step 3.3.2:
 						//Gauss fit (first fit to find the feature boundaries)
 						//------------------------------------------------------------------
-						++plot_nr;
+						Int plot_nr=-1;
+#ifdef _OPENMP
+#pragma omp critical (FeatureFinderAlgorithmPicked)
+#endif
+						plot_nr = ++plot_nr_global;
 						log_ << "Fitting model" << std::endl;
 					  const gsl_multifit_fdfsolver_type *T;
 					  gsl_multifit_fdfsolver *s;
@@ -766,7 +910,7 @@ namespace OpenMS
 						const size_t data_count = traces.getPeakCount();
 					  gsl_multifit_function_fdf func;
 
-						//TODO fit with baseline term once more
+						//TODO try fit with baseline term once more
 						//baseline estimate
 						traces.updateBaseline();
 						traces.baseline = 0.75 * traces.baseline;
@@ -1084,8 +1228,12 @@ namespace OpenMS
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
+#ifdef _OPENMP
+#pragma omp critical (FeatureFinderAlgorithmPicked)
+#endif
 						features_->push_back(f);
-	
+						feature_candidates++;
+						
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature
 						DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
@@ -1101,7 +1249,7 @@ namespace OpenMS
 						}
 					}
 					ff_->endProgress();
-					std::cout << "Found " << features_->size()-feature_count_before << " features candidates for charge " << c << "." << std::endl;
+					std::cout << "Found " << feature_candidates << " features candidates for charge " << c << "." << std::endl;
 				}
 					
 				//------------------------------------------------------------------
@@ -1109,7 +1257,7 @@ namespace OpenMS
 				//Resolve contradicting and overlapping features
 				//------------------------------------------------------------------
 				ff_->startProgress(0, features_->size()*features_->size(), "Resolving overlapping features");
-				log_ << "Resolving intersecting features" << std::endl;
+				log_ << "Resolving intersecting features (" << features_->size() << " candidates)" << std::endl;
 				//sort features according to m/z in order to speed up the resolution
 				features_->sortByMZ();
 				//precalculate BBs and maximum mz span
@@ -1260,12 +1408,14 @@ namespace OpenMS
 			/// editable copy of the map
 			MapType map_;
 			/// Output stream for log/debug info
-			std::ofstream log_; 
+			mutable std::ofstream log_; 
 			/// Array of abort reasons
 			std::map<String, UInt> aborts_;
 			/// Array of abort reasons
 			std::map<Seed, String> abort_reasons_;
-						
+			/// User-specified seed list
+			FeatureMapType seeds_;
+		
 			///@name Members for parameters often needed in methods
 			//@{
 			DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
@@ -1328,7 +1478,7 @@ namespace OpenMS
 
 			///Calculates the intersection between features.
 			///The value is normalized by the size of the smaller feature, so it rages from 0 to 1.
-			DoubleReal intersection_(const Feature& f1, const Feature& f2)
+			DoubleReal intersection_(const Feature& f1, const Feature& f2) const
 			{
 				//calculate the RT range sum of feature 1
 				DoubleReal s1 = 0.0;
@@ -1380,68 +1530,13 @@ namespace OpenMS
 			}
 			
 			///Returns the isotope distribution for a certain mass window
-			const TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass)
+			const TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
 			{
 				//calculate index in the vector
 				Size index = (Size)std::floor(mass/mass_window_width_);
 				
-				//enlarge vector if necessary
-				if (index>=isotope_distributions_.size())
-				{
-					isotope_distributions_.resize(index+1);
-				}
+				if (index>=isotope_distributions_.size()) std::cout << "INDEX: " << index << " SIZE: " << isotope_distributions_.size() << std::endl;
 				
-				//calculate distribution if necessary
-				if (isotope_distributions_[index].intensity.size()==0)
-				{
-					//log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-					IsotopeDistribution d;
-					d.setMaxIsotope(20);
-					d.estimateFromPeptideWeight(0.5*mass_window_width_ + index * mass_window_width_);
-					//trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
-					Size size_before = d.size();
-					d.trimLeft(intensity_percentage_optional_);
-					isotope_distributions_[index].trimmed_left = size_before - d.size();
-					d.trimRight(intensity_percentage_optional_);
-					for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
-					{
-						isotope_distributions_[index].intensity.push_back(it->second);
-						//log_ << " - " << it->second << std::endl;
-					}
-					//determine the number of optional peaks at the beginning/end
-					Size begin = 0;
-					Size end = 0;
-					bool is_begin = true;
-					bool is_end = false;
-					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
-					{
-						if (isotope_distributions_[index].intensity[i]<intensity_percentage_)
-						{
-							if (!is_end && !is_begin) is_end = true;
-							if (is_begin) ++begin;
-							else if (is_end) ++end;
-						}
-						else if (is_begin)
-						{
-							is_begin = false;
-						}
-					}
-					isotope_distributions_[index].optional_begin = begin;
-					isotope_distributions_[index].optional_end = end;
-					//scale the distibution to a maximum of 1
-					DoubleReal max = 0.0;
-					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
-					{
-						if (isotope_distributions_[index].intensity[i]>max) max = isotope_distributions_[index].intensity[i];
-					}
-					isotope_distributions_[index].max = max;
-					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
-					{
-						isotope_distributions_[index].intensity[i] /= max;
-					}
-					
-					//log_ << " - optinal begin/end:" << begin << " / " << end << std::endl;
-				}
 				//Return distribution
 				return isotope_distributions_[index];
 			}
@@ -1453,7 +1548,7 @@ namespace OpenMS
 				@param charge The charge of the pattern 
 				@param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
 			*/
-			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern)
+			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
 			{
 				log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;			
 				const SpectrumType& spectrum = map_[center.spectrum];
@@ -1540,7 +1635,7 @@ namespace OpenMS
 			}
 			
 			///Extends all mass traces of a isotope pattern in one step
-			void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces)
+			void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
 			{
 				//find index of the trace with the maximum intensity
 				DoubleReal max_int =  0.0;
@@ -1565,8 +1660,8 @@ namespace OpenMS
 				//initialize the trace and extend
 				MassTrace max_trace;
 				max_trace.peaks.push_back(std::make_pair(start_rt,start_peak));
-				extendMassTrace_(max_trace, start_index, start_mz, false);
-				extendMassTrace_(max_trace, start_index, start_mz, true);
+				extendMassTrace_(max_trace, start_index, start_mz, false, meta_index_overall);
+				extendMassTrace_(max_trace, start_index, start_mz, true, meta_index_overall);
 
 				DoubleReal rt_max = max_trace.peaks.back().first;
 				DoubleReal rt_min = max_trace.peaks.begin()->first;
@@ -1637,8 +1732,8 @@ namespace OpenMS
 					const PeakType* seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
 					//initialize trace with seed data and extend
 					trace.peaks.push_back(std::make_pair(map_[starting_peak.spectrum].getRT(),seed));
-					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, rt_min, rt_max);
-					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, rt_min, rt_max);
+					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, meta_index_overall, rt_min, rt_max);
+					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, meta_index_overall, rt_min, rt_max);
 					
 					//check if enough peaks were found
 					if (!trace.isValid())
@@ -1670,7 +1765,7 @@ namespace OpenMS
 				
 				@note this method assumes that it extends from a local maximum.
 			*/
-			void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool inc_rt, DoubleReal min_rt=0.0, DoubleReal max_rt = 0.0)
+			void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool inc_rt, Size meta_index_overall, DoubleReal min_rt=0.0, DoubleReal max_rt = 0.0) const
 			{
 				//Reverse peaks if we run the method for the second time (to keep them in chronological order)
 				if (inc_rt)
@@ -1713,7 +1808,7 @@ namespace OpenMS
 					{
 						peak_index=-1;
 					}
-					if (peak_index<0 || map_[spectrum_index].getFloatDataArrays()[2][peak_index]<0.01 || positionScore_( mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_)==0.0)
+					if (peak_index<0 || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index]<0.01 || positionScore_( mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_)==0.0)
 					{
 						++missing_peaks;
 						if(missing_peaks>max_missing_trace_peaks_)
@@ -1781,7 +1876,7 @@ namespace OpenMS
 				@param debug Flag that turn on debug info
 				@param peak_index starting index of the search (to avoid multiple binary searches)
 			*/
-			void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, bool debug, Size& peak_index)
+			void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, bool debug, Size& peak_index) const
 			{
 				if (debug) log_ << "   - Isotope " << pattern_index << ": "; 				
 				
@@ -1876,7 +1971,7 @@ namespace OpenMS
 			}
 
 			/// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances, bool debug)
+			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances, bool debug) const
 			{
 				if (debug) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
 				//Abort if a core peak is missing
@@ -1966,7 +2061,7 @@ namespace OpenMS
 				return best_int_score;
 			}
 			
-			DoubleReal intensityScore_(Size spectrum, Size peak)
+			DoubleReal intensityScore_(Size spectrum, Size peak) const
 			{
 				//calculate (half) bin numbers
 				DoubleReal intensity  = map_[spectrum][peak].getIntensity();
@@ -2032,10 +2127,10 @@ namespace OpenMS
 				return final;
 			}
 
-			DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity)
+			DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity) const
 			{
 				//interpolate score value according to quantiles(20)
-				std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
+				const std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
 				std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(),quantiles20.end(),intensity);
 				//bigger than the biggest value => return 1.0
 				if (it==quantiles20.end())

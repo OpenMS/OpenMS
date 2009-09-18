@@ -1222,7 +1222,7 @@ namespace OpenMS
 		}
 
 		//clear output container
-		output.clear();
+		output.clear(true);
 		
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(output) = input;
@@ -1258,7 +1258,7 @@ namespace OpenMS
 	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
 	{
 		// copy the spectrum meta data
-		output.clear();
+		output.clear(true);
 		output.SpectrumSettings::operator=(input);
 		output.MetaInfoInterface::operator=(input);
 		output.setRT(input.getRT());
@@ -1578,12 +1578,13 @@ namespace OpenMS
 				{
 					//store output peak
 					Peak1D picked_peak;
-					picked_peak.setIntensity(peak_shapes[i].height);
+          // store area as intensity, the maximal intensity is stored in the metadataarrays
+					picked_peak.setIntensity(peak_shapes[i].area);
 					picked_peak.setMZ(peak_shapes[i].mz_position);
 					output.push_back(picked_peak);
 					//store meta data
 					output.getFloatDataArrays()[0].push_back(peak_shapes[i].r_value);
-					output.getFloatDataArrays()[1].push_back(peak_shapes[i].area);
+					output.getFloatDataArrays()[1].push_back(peak_shapes[i].height);
 					output.getFloatDataArrays()[2].push_back(peak_shapes[i].getFWHM());
 					output.getFloatDataArrays()[3].push_back(peak_shapes[i].left_width);
 					output.getFloatDataArrays()[4].push_back(peak_shapes[i].right_width);

@@ -51,8 +51,6 @@ namespace OpenMS
   	
 		@htmlinclude OpenMS_Spectrum2DCanvas.parameters
 		
-    @todo Support different peak icons - cross, star, square - and sizes (HiWi)
-    
 		@improvement Add RT interpolation mode for high zoom in 2D View (Hiwi)
 		
 		@improvement Snap also to min intensity (Hiwi)
@@ -166,7 +164,15 @@ namespace OpenMS
       	@param p The QPainter to paint on.
       */
       void paintFeatureConvexHulls_(Size layer_index, QPainter& p);
-
+      
+      /**
+      	@brief Paints the unassigned peptide hits of a feature layer.
+      	
+      	@param layer_index Index of the layer.
+      	@param p The QPainter to paint on.
+      */
+      void paintUnassignedHits_(Size layer_index, QPainter& p);
+      
       /**
       	@brief Paints the consensus elements of a consensus features layer.
       	
@@ -241,7 +247,10 @@ namespace OpenMS
 
       /// Returns the nearest peak to position @p pos
       PeakIndex findNearestPeak_(const QPoint& pos);
-
+      
+      /// Paints a peak icon for feature and consensus feature peaks
+      void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
+      
       /// the nearest peak/feature to the mouse cursor
 			PeakIndex selected_peak_;
       /// start peak/feature of measuring mode

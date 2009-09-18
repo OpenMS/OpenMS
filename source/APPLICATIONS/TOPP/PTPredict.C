@@ -75,9 +75,9 @@ class TOPPPTPredict
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("IdXML"));
+			setValidFormats_("in",StringList::create("idXML"));
 			registerOutputFile_("out","<file>","","output file\n", false);
-			setValidFormats_("out",StringList::create("IdXML"));
+			setValidFormats_("out",StringList::create("idXML"));
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by PTModel)");
 			registerIntOption_("max_number_of_peptides", "<int>",100000,"the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n",false);
 		}

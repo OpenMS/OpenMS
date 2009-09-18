@@ -99,17 +99,17 @@ START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
 	FeatureFinderAlgorithmPicked<RichPeak1D,Feature> ffa;
 END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION((virtual void run()=0))
 	FFA<Peak1D,Feature> ffa;
 	ffa.run();
 END_SECTION
 
-START_SECTION(virtual Param getDefaultParameters() const)
+START_SECTION((virtual Param getDefaultParameters() const))
 	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla")),"bluff")
 END_SECTION
 
-START_SECTION(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff))
+START_SECTION((void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)))
 	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(ffa.getMap(),0)
 	TEST_EQUAL(ffa.getFeatures(),0)
@@ -124,7 +124,13 @@ START_SECTION(void setData(const MapType& map, FeatureMapType& features, Feature
 	TEST_NOT_EQUAL(ffa.getFeatures(),0)
 	TEST_NOT_EQUAL(ffa.getFF(),0)	
 END_SECTION
-		
+
+START_SECTION((virtual void setSeeds(const FeatureMapType& seeds)))
+	FFA<Peak1D,Feature> ffa;
+	FeatureMap<Feature> seeds;
+	seeds.resize(4);
+	TEST_EXCEPTION(Exception::IllegalArgument,ffa.setSeeds(seeds))	
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

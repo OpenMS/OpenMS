@@ -36,6 +36,7 @@
 #include <QtGui/QWorkspace>
 #include <QtGui/QButtonGroup>
 #include <QtCore/QProcess>
+#include <QtGui/QSplashScreen>
 
 class QToolBar;
 class QListWidget;
@@ -77,7 +78,11 @@ namespace OpenMS
       void loadPreferences(String filename="");
       /// stores the preferences (used when this window is closed)
       void savePreferences();
-			
+			/// loads the files and updates the splashscreen
+			void loadFiles(const StringList& list, QSplashScreen* splash_screen);
+			/// opens the file in a new window
+			void openFile(const String& file_name);
+
     public slots:
     	
     	/// shows the dialog for opening files

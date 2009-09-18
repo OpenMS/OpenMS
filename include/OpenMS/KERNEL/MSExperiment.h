@@ -374,6 +374,8 @@ namespace OpenMS
 					}
 				}
 				std::sort(ms_levels_.begin(), ms_levels_.end());
+				
+				//TODO CHROM update intensity, m/z and RT according to chromatograms as well!
 			}
 
 			/// returns the minimal m/z value
@@ -443,6 +445,7 @@ namespace OpenMS
 					}
 				}
 			}
+			
 			/**
 				@brief Checks if all spectra are sorted with respect to ascending RT
 				
@@ -579,6 +582,26 @@ namespace OpenMS
 			const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const
 			{
 				return chromatograms_;
+			}
+			
+			/**
+				@brief Clears all data and meta data
+				
+				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+			*/ 
+			void clear(bool clear_meta_data)
+			{
+				Base::clear();
+				
+				if (clear_meta_data)
+				{
+					clearRanges();
+					clearId();
+					this->ExperimentalSettings::operator=(ExperimentalSettings()); // no "clear" method
+					chromatograms_.clear();
+					ms_levels_.clear();
+					total_size_ = 0;
+				}
 			}
 			
 		protected:

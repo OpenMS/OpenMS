@@ -188,7 +188,7 @@ namespace OpenMS
 		}
 
 		for (Map<String, SignedSize>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
-		{						
+		{
 			formula += it->first + String(it->second);
 		}
 		return formula;

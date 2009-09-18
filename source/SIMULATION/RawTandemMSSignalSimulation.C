@@ -154,7 +154,12 @@ namespace OpenMS
 
   void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
-		if (param_.getValue("enabled") == "false") return;
+		std::cout << "Tandem MS Simulation ...\n";
+		if (param_.getValue("enabled") == "false")
+		{
+			std::cout << " disabled\n";
+			return;
+		}
 
 		// will hold the selected precursors
 		MSSimExperiment ms2;
@@ -174,13 +179,14 @@ namespace OpenMS
 		else ps.makePrecursorSelectionForKnownLCMSMap(features, experiment,ms2,qs_set,true);
 		
 		//** actual MS2 signal **//
-
+		std::cout << "MS2 features selected: " << ms2.size() << "\n";
+		
 		AdvancedTheoreticalSpectrumGenerator adv_spec_gen;
 		adv_spec_gen.loadProbabilisticModel();
 		for (Size i = 0; i < ms2.size(); ++i)
     {
 		  //RichPeakSpectrum ms2_tmp(ms2[i].size());
-		  IntList ids=ms2[i].getMetaValue("parent_feature_ids");
+		  IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
 //		  for(Size pk=0; pk<ms2[i].size();++pk)
 //		    ms2_tmp[pk]=ms2[i][pk];
 		  for(Size id =0; id<ids.size();++id)
@@ -191,7 +197,6 @@ namespace OpenMS
 //		  for(Size pk=0; pk<ms2[i].size();++pk)
 //		    ms2[i][pk]=ms2_tmp[pk];
     }
-
 
 		//** iTRAQ reporters **//
 		if (param_.getValue("iTRAQ:iTRAQ") != "off")
@@ -210,14 +215,12 @@ namespace OpenMS
 			// add signal...
 			for (MSSimExperiment::iterator it=ms2.begin(); it!=ms2.end(); ++it)
 			{
-				std::cout << "adding iTRAQ to MS2 @ " << it->getRT() << "\n";
-				
 				// reset sum matrix to 0
 				gsl_matrix_scale (itraq_intensity_sum, 0);
 				
 				// add up signal of all features
 				// TODO: take care of actual position of feature relative to precursor!
-				IntList parent_fs = ms2.getMetaValue("parent_feature_ids");
+				IntList parent_fs = (IntList) it->getMetaValue("parent_feature_ids");
 				for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 				{
 					// apply isotope matrix to active channels

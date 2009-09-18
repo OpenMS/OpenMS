@@ -80,9 +80,9 @@ class TOPPIDMapper
 
 			addEmptyLine_();
 			IDMapper mapper;
-			registerDoubleOption_("rt_delta","<value>",mapper.getRTDelta(), "Maximum allowed RT deviation between identification and feature.", false);
+			registerDoubleOption_("rt_delta","<value>",mapper.getRTDelta(), "Maximum allowed RT deviation between identification and peak/feature.", false);
 			setMinFloat_("rt_delta",0.0);
-			registerDoubleOption_("mz_delta","<value>",mapper.getMZDelta(), "Maximum allowed m/z deviation between identification and feature.", false);
+			registerDoubleOption_("mz_delta","<value>",mapper.getMZDelta(), "Maximum allowed m/z deviation between identification and peak/feature.", false);
 			setMinFloat_("mz_delta",0.0);
 		}
 

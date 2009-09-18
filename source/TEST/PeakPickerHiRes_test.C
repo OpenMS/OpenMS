@@ -112,7 +112,7 @@ TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
 		}
 END_SECTION
 
-output.clear();
+output.clear(true);
 
 
 
@@ -161,8 +161,8 @@ TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
 		}
 END_SECTION
 
-output.clear();
-input.clear();
+output.clear(true);
+input.clear(true);
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
 		}
 END_SECTION
 
-output.clear();
+output.clear(true);
 
 
 
@@ -268,7 +268,7 @@ TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
 		}
 END_SECTION
 
-output.clear();
+output.clear(true);
 
 /////////////////////////////////
 // repeat test with RichPeak1D //
@@ -317,8 +317,8 @@ TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(inRich), true)
 		}
 END_SECTION
 
-inRich.clear();
-outRich.clear();
+inRich.clear(true);
+outRich.clear(true);
 
 
 

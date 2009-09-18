@@ -253,7 +253,7 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	edit.push_back(feature1);
 	edit.push_back(feature2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(empty==edit, false);
 END_SECTION
 
@@ -286,7 +286,7 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	edit.push_back(feature1);
 	edit.push_back(feature2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(empty!=edit, true);
 END_SECTION
 
@@ -460,6 +460,24 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
 	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
+END_SECTION
+
+START_SECTION(void clear(bool clear_meta_data))
+  FeatureMap<> map1;
+	map1.setIdentifier("stupid comment");
+	map1.push_back(feature1);
+	map1.push_back(feature2);
+	map1.updateRanges();
+	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
+	
+	map1.clear(false);
+	TEST_EQUAL(map1.size(),0)
+	TEST_EQUAL(map1==FeatureMap<>(),false)
+
+	map1.clear(true);
+	TEST_EQUAL(map1==FeatureMap<>(),true)
 END_SECTION
 
 

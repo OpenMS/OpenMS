@@ -129,10 +129,10 @@ namespace OpenMS
 					for ( vector< String >::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						if ( (*s_i) == "#Index" ) columns["Index"] = s_i - substrings.begin();
-						else if ( (*s_i) == "Prob" ) columns["Prob"] = s_i - substrings.begin();
-						else if ( (*s_i) == "Score" ) columns["Score"] = s_i - substrings.begin();
-						else if ( (*s_i) == "N-mass" ) columns["N-mass"] = s_i - substrings.begin();
-						else if ( (*s_i) == "C-Mass" ) columns["C-Mass"] = s_i - substrings.begin();
+						else if ( (*s_i) == "RnkScr" ) columns["RnkScr"] = s_i - substrings.begin();
+						else if ( (*s_i) == "PnvScr" ) columns["PnvScr"] = s_i - substrings.begin();
+						else if ( (*s_i) == "N-Gap" ) columns["N-Gap"] = s_i - substrings.begin();
+						else if ( (*s_i) == "C-Gap" ) columns["C-Gap"] = s_i - substrings.begin();
 						else if ( (*s_i) == "[M+H]" ) columns["[M+H]"] = s_i - substrings.begin();
 						else if ( (*s_i) == "Charge" ) columns["Charge"] = s_i - substrings.begin();
 						else if ( (*s_i) == "Sequence" ) columns["Sequence"] = s_i - substrings.begin();
@@ -168,7 +168,9 @@ namespace OpenMS
 							peptide_hit = PeptideHit();
 							peptide_hit.setCharge(substrings[columns["Charge"]].toInt());
 							peptide_hit.setRank(substrings[columns["Index"]].toInt() + 1);
-							peptide_hit.setScore(substrings[columns["Score"]].toFloat());
+							peptide_hit.setScore(substrings[columns["RnkScr"]].toFloat());
+							peptide_hit.setMetaValue("N-Gap", substrings[columns["N-Gap"]].toFloat());
+							peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
 							//remove modifications (small characters and anything that's not in the alphabet)
 							sequence_with_mods = substrings[columns["Sequence"]];
 							sequence.clear();

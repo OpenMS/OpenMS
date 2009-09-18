@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -36,56 +36,56 @@ using namespace std;
 namespace OpenMS
 {
 	using namespace Math;
-	
-	HistogramDialog::HistogramDialog(const Histogram<>& distribution, QWidget* parent) 
+
+	HistogramDialog::HistogramDialog(const Histogram<>& distribution, QWidget* parent)
 		: QDialog(parent)
-	{ 	
+	{
 		setWindowTitle("Intensity Distribution");
-		
+
 		//layout
 		QGridLayout* layout = new QGridLayout(this);
 		layout->setRowStretch(0,100);
-	
+
 		//ok
-		QPushButton* ok_button_ = new QPushButton("&OK",this);
+		QPushButton* ok_button_ = new QPushButton("&Apply Filter",this);
 		ok_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 		connect(ok_button_,SIGNAL(clicked()),this,SLOT(accept()));
 		layout->addWidget(ok_button_,1,1);
-		
+
 		//cancel
 		QPushButton* cancel_button_ = new QPushButton("&Cancel",this);
 		cancel_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 		connect(cancel_button_,SIGNAL(clicked()),this,SLOT(reject()));
 		layout->addWidget(cancel_button_,1,2);
-		
+
 		//distribution
 		mw_ = new HistogramWidget(distribution, this);
 		mw_->showSplitters(true);
 		layout->addWidget(mw_,0,0,1,3);
-		
+
 		//resize dialog
 		adjustSize();
 	}
-	
+
 	HistogramDialog::~HistogramDialog()
-	{ 	
+	{
 	}
-	
+
 	Real HistogramDialog::getLeftSplitter()
-	{ 	
-		return mw_->getLeftSplitter();	
+	{
+		return mw_->getLeftSplitter();
 	}
-	
+
 	Real HistogramDialog::getRightSplitter()
-	{ 	
-		return mw_->getRightSplitter();	
+	{
+		return mw_->getRightSplitter();
 	}
-	
+
 	void HistogramDialog::setLeftSplitter(Real position)
 	{
 		mw_->setLeftSplitter(position);
 	}
-	
+
 	void HistogramDialog::setRightSplitter(Real position)
 	{
 		mw_->setRightSplitter(position);

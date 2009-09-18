@@ -1,7 +1,11 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>LayerStatisticsDialogTemplate</class>
- <widget class="QDialog" name="LayerStatisticsDialogTemplate" >
-  <property name="geometry" >
+ <widget class="QDialog" name="LayerStatisticsDialogTemplate">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,66 +13,69 @@
     <height>393</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
+  </property>
+  <property name="windowTitle">
    <string>Layer statistics</string>
   </property>
-  <layout class="QVBoxLayout" >
+  <layout class="QVBoxLayout">
    <item>
-    <widget class="QTableWidget" name="table_" >
-     <property name="enabled" >
+    <widget class="QTableWidget" name="table_">
+     <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="layoutDirection" >
+     <property name="layoutDirection">
       <enum>Qt::LeftToRight</enum>
      </property>
-     <property name="frameShape" >
+     <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
-     <property name="editTriggers" >
+     <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
-     <property name="selectionMode" >
+     <property name="selectionMode">
       <enum>QAbstractItemView::NoSelection</enum>
      </property>
-     <property name="textElideMode" >
+     <property name="textElideMode">
       <enum>Qt::ElideLeft</enum>
      </property>
-     <property name="verticalScrollMode" >
+     <property name="verticalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
-     <property name="horizontalScrollMode" >
+     <property name="horizontalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
      <row>
-      <property name="text" >
+      <property name="text">
        <string>Intensity</string>
       </property>
      </row>
      <column>
-      <property name="text" >
+      <property name="text">
        <string>Count</string>
       </property>
      </column>
      <column>
-      <property name="text" >
+      <property name="text">
        <string>Min</string>
       </property>
      </column>
      <column>
-      <property name="text" >
+      <property name="text">
        <string>Max</string>
       </property>
      </column>
      <column>
-      <property name="text" >
+      <property name="text">
        <string>Average</string>
       </property>
      </column>
      <column>
-      <property name="text" >
+      <property name="text">
        <string>Distribution</string>
       </property>
      </column>

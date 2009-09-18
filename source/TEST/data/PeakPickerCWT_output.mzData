@@ -4,7 +4,7 @@
 		<admin>
 			<sampleName></sampleName>
 			<contact>
-				<name></name>
+				<name> </name>
 				<institution></institution>
 			</contact>
 		</admin>
@@ -55,7 +55,7 @@
 				<data precision="32" endian="little" length="4">CVNqRM2MakTNzGpEzQxrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="4">ANKMRgAkCkYAwOFFAED3RA==</data>
+				<data precision="32" endian="little" length="4">SmgORhA4WUUivTVFkAhIRA==</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>rValue</arrayName>
@@ -63,7 +63,7 @@
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>maximumIntensity</arrayName>
-				<data precision="32" endian="little" length="4">SmgORhA4WUUivTVFkAhIRA==</data>
+				<data precision="32" endian="little" length="4">ANKMRgAkCkYAwOFFAED3RA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>fwhm</arrayName>
@@ -112,7 +112,7 @@
 				<data precision="32" endian="little" length="5">zUxqRM2MakTNzGpEzQxrRM1Ma0Q=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="5">AMhrRgA490UAgDJFAJAPRQDgzEQ=</data>
+				<data precision="32" endian="little" length="5">t7/JRe2xLkUONY9Ex7RfRKa29UM=</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>rValue</arrayName>
@@ -120,7 +120,7 @@
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>maximumIntensity</arrayName>
-				<data precision="32" endian="little" length="5">t7/JRe2xLkUONY9Ex7RfRKa29UM=</data>
+				<data precision="32" endian="little" length="5">AMhrRgA490UAgDJFAJAPRQDgzEQ=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>fwhm</arrayName>

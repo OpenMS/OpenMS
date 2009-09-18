@@ -93,7 +93,8 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein, 
 	TEST_REAL_SIMILAR(first.getMetaValue("MZ"), 538.605); // recomputed
 	TEST_EQUAL(first.getHits().size(), 1);
 	PeptideHit pep_hit = first.getHits()[0];
-	TEST_EQUAL(pep_hit.getSequence().toString(), "ELNKEMAAEKAKAAAG");
+	TEST_EQUAL(pep_hit.getSequence().toString(), "E(Glu->pyro-Glu)LNKEMAAEKAKAAAG");
+	TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
 	TEST_EQUAL(pep_hit.getRank(), 1);
 	// no use checking score, because implementation may still change
 	TEST_EQUAL(pep_hit.getCharge(), 3);

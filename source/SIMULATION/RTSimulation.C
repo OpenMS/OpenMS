@@ -192,7 +192,7 @@ namespace OpenMS {
     SimCoordinateType rt_shift_stddev = param_.getValue("rt_shift_stddev");      
     
     FeatureMapSim fm_tmp (features);
-    fm_tmp.clear();
+    fm_tmp.clear(false);
     StringList deleted_features;
     for (Size i = 0; i < predicted_retention_times.size(); ++i)
     {

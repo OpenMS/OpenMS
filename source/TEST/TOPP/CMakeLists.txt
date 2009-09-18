@@ -20,9 +20,9 @@
 
 
 ### General settings
-set(TOPP_BIN_PATH ${PROJECT_BINARY_DIR}/bin)
-set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR}/source/TEST/TOPP)
-set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR}/source/TEST/TOPP)
+set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
+set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR}/TOPP)
+set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR}/TOPP)
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
 ### AdditiveSeries tests
@@ -233,6 +233,8 @@ add_test("TOPP_PeakPicker_2" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_
 add_test("TOPP_PeakPicker_2_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_deconv_output.mzML)
 add_test("TOPP_PeakPicker_3" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_2Dopt_input.mzML -out PeakPicker.tmp)
 add_test("TOPP_PeakPicker_3_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_2Dopt_output.mzML)
+add_test("TOPP_PeakPicker_4" ${TOPP_BIN_PATH}/PeakPicker  -test -ini ${DATA_DIR_TOPP}/PeakPicker_parameters.ini -in ${DATA_DIR_TOPP}/PeakPicker_input.mzML -out PeakPicker.tmp -threads 2)
+add_test("TOPP_PeakPicker_4_out1" ${DIFF} -in1 PeakPicker.tmp -in2 ${DATA_DIR_TOPP}/PeakPicker_output.mzML)
 
 ### Resampler tests
 add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.tmp -sampling_rate 0.3)

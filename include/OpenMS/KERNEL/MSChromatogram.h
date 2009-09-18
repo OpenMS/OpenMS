@@ -40,7 +40,10 @@ namespace OpenMS
 {
 	/**
 		@brief The representation of a chromatogram.
-		
+			
+		@todo Rename RTLess, MZBegin, ... to new dimensions (Andreas)
+		@todo Add accessor to m/z position (Andreas)
+	
 		@ingroup Kernel
 	*/
 	template <typename PeakT = ChromatogramPeak>

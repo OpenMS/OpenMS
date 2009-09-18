@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 #include <vector>
@@ -52,7 +53,7 @@ namespace OpenMS
       /// Default constructor
       DTAFile();
 			/// Destructor
-      ~DTAFile();
+      virtual ~DTAFile();
       
       /**
  				@brief Loads a DTA file to a spectrum.
@@ -73,7 +74,7 @@ namespace OpenMS
 				}
 		
 				//  Delete old spectrum
-				spectrum.clear();
+				spectrum.clear(true);
 				
 				//temporary variables
 				String line;
@@ -154,7 +155,8 @@ namespace OpenMS
 					}
 					spectrum.push_back(p);
 				}
-				
+			
+				spectrum.setName(File::basename(filename));	
 				is.close();  	
       }
 

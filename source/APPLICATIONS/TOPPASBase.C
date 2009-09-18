@@ -33,8 +33,6 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
@@ -169,18 +167,11 @@ namespace OpenMS
     topp_tools_bar->setWidget(tools_tree_view_);
     
     QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Input file>");
+    item->setText(0, "<Input files>");
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Input file list>");
+    item->setText(0, "<Output files>");
     tools_tree_view_->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Output file>");
-    tools_tree_view_->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)0);
-    item->setText(0, "<Output file list>");
-    tools_tree_view_->addTopLevelItem(item);
-    
     
     Map<String,StringList> tools_list = TOPPBase::getToolList();
     QTreeWidgetItem* parent_item;
@@ -244,6 +235,17 @@ namespace OpenMS
   	savePreferences();
   }
 
+	void TOPPASBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
+  {
+    for (StringList::const_iterator it=list.begin(); it!=list.end(); ++it)
+    {
+			splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+			splash_screen->repaint();
+			QApplication::processEvents();
+			openFile(*it);
+    }
+  }
+
 	void TOPPASBase::refreshDefinitions()
 	{
 	
@@ -252,9 +254,28 @@ namespace OpenMS
 	void TOPPASBase::openFileDialog()
   {
 		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
-		
+		openFile(file_name);
+  }
+ 
+	void TOPPASBase::openFile(const String& file_name)
+	{
 		if (file_name != "")
 		{
+			String::SizeType dot_index = file_name.rfind(".");
+			if (dot_index == String::npos)
+			{
+				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+				return;
+			}
+
+			String extension = file_name.substr(dot_index+1);
+			extension.toLower();
+			if (extension != "toppas")
+			{
+				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+				return;
+			}
+
 			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
 			showAsWindow_(tw, File::basename(file_name));
 			TOPPASScene* scene = tw->getScene();
@@ -275,12 +296,6 @@ namespace OpenMS
 					connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 					continue;
 				}
-				TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(*it);
-				if (ofv)
-				{
-					connect (ofv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
-					continue;
-				}
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
 				if (oflv)
 				{
@@ -290,8 +305,8 @@ namespace OpenMS
 			}
 			scene->update(scene->sceneRect());
 		}
-  }
-  
+	}
+
   void TOPPASBase::newFileDialog()
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
@@ -712,27 +727,16 @@ namespace OpenMS
 		String tool_name = String(current_tool->text(0));
 		TOPPASVertex* tv = 0;
 		
-		if (tool_name == "<Input file list>")
+		if (tool_name == "<Input files>")
 		{
 			tv = new TOPPASInputFileListVertex();
 		}
-		else if (tool_name == "<Input file>")
-		{
-			tv = new TOPPASInputFileVertex();
-		}
-		else if (tool_name == "<Output file list>")
+		else if (tool_name == "<Output files>")
 		{
 			tv = new TOPPASOutputFileListVertex();
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 			connect (oflv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
-		}
-		else if (tool_name == "<Output file>")
-		{
-			tv = new TOPPASOutputFileVertex();
-			TOPPASOutputFileVertex* ofv = qobject_cast<TOPPASOutputFileVertex*>(tv);
-			connect (ofv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
-			connect (ofv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
 		}
 		else // node is a TOPP tool
 		{	
@@ -779,6 +783,7 @@ namespace OpenMS
 		connect(tv,SIGNAL(itemDragged(qreal,qreal)),scene,SLOT(moveSelectedItems(qreal,qreal)));
 		
 		scene->topoSort();
+		scene->snapToGrid();
 		scene->setChanged(true);
 	}
 	

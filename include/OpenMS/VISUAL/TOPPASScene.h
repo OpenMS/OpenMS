@@ -157,6 +157,8 @@ namespace OpenMS
 			void pipelineErrorSlot();
 			/// Moves all selected items by dx, dy
 			void moveSelectedItems(qreal dx, qreal dy);
+			/// Makes all vertices snap to the grid
+			void snapToGrid();
 			/// Sets if the running_ flag to true
 			void setPipelineRunning(bool b = true);
 			

@@ -1,10 +1,11 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>TOPPViewOpenDialogTemplate</class>
- <widget class="QDialog" name="TOPPViewOpenDialogTemplate" >
-  <property name="windowModality" >
+ <widget class="QDialog" name="TOPPViewOpenDialogTemplate">
+  <property name="windowModality">
    <enum>Qt::WindowModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -12,54 +13,54 @@
     <height>220</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string/>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" >
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QGroupBox" name="groupBox" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
         <string>Open as</string>
        </property>
-       <layout class="QVBoxLayout" >
+       <layout class="QVBoxLayout">
         <item>
-         <widget class="QRadioButton" name="window_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="window_">
+          <property name="text">
            <string>new window</string>
           </property>
-          <property name="checked" >
+          <property name="checked">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="layer_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="layer_">
+          <property name="text">
            <string>new layer</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="merge_" >
-          <property name="enabled" >
+         <widget class="QRadioButton" name="merge_">
+          <property name="enabled">
            <bool>false</bool>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>merge into layer</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="merge_combo_" >
-          <property name="enabled" >
+         <widget class="QComboBox" name="merge_combo_">
+          <property name="enabled">
            <bool>false</bool>
           </property>
-          <property name="minimumSize" >
+          <property name="minimumSize">
            <size>
             <width>200</width>
             <height>0</height>
@@ -71,41 +72,41 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_2" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
         <string>Map view</string>
        </property>
-       <layout class="QVBoxLayout" >
+       <layout class="QVBoxLayout">
         <item>
-         <widget class="QRadioButton" name="d1_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="d1_">
+          <property name="text">
            <string>1D</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="d2_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="d2_">
+          <property name="text">
            <string>2D</string>
           </property>
-          <property name="checked" >
+          <property name="checked">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="d3_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="d3_">
+          <property name="text">
            <string>3D</string>
           </property>
          </widget>
         </item>
         <item>
          <spacer>
-          <property name="orientation" >
+          <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeHint" stdset="0" >
+          <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
             <height>5</height>
@@ -117,37 +118,37 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_3" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="title">
         <string>Low intensity cutoff</string>
        </property>
-       <layout class="QVBoxLayout" >
+       <layout class="QVBoxLayout">
         <item>
-         <widget class="QRadioButton" name="cutoff_" >
-          <property name="text" >
+         <widget class="QRadioButton" name="cutoff_">
+          <property name="text">
            <string>on</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="nocutoff_" >
-          <property name="enabled" >
+         <widget class="QRadioButton" name="nocutoff_">
+          <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>off</string>
           </property>
-          <property name="checked" >
+          <property name="checked">
            <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
          <spacer>
-          <property name="orientation" >
+          <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeHint" stdset="0" >
+          <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
             <height>5</height>
@@ -162,13 +163,13 @@
    </item>
    <item>
     <spacer>
-     <property name="orientation" >
+     <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <property name="sizeType" >
+     <property name="sizeType">
       <enum>QSizePolicy::MinimumExpanding</enum>
      </property>
-     <property name="sizeHint" stdset="0" >
+     <property name="sizeHint" stdset="0">
       <size>
        <width>467</width>
        <height>16</height>
@@ -177,16 +178,16 @@
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
+    <layout class="QHBoxLayout">
      <item>
       <spacer>
-       <property name="orientation" >
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>111</width>
          <height>23</height>
@@ -195,22 +196,28 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ok_" >
-       <property name="enabled" >
+      <widget class="QPushButton" name="ok_">
+       <property name="enabled">
         <bool>true</bool>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Ok</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="cancel_" >
-       <property name="enabled" >
+      <widget class="QPushButton" name="cancel_">
+       <property name="enabled">
         <bool>true</bool>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Cancel</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -218,7 +225,7 @@
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>window_</tabstop>
   <tabstop>layer_</tabstop>
@@ -237,11 +244,11 @@
    <receiver>TOPPViewOpenDialogTemplate</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -253,11 +260,11 @@
    <receiver>TOPPViewOpenDialogTemplate</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>356</x>
      <y>269</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>244</x>
      <y>145</y>
     </hint>

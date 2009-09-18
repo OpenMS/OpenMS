@@ -52,9 +52,10 @@ namespace OpenMS
 		///Dataset types
 		enum DataType
 		{
-			DT_PEAK,		      ///< Peak/Raw data
+			DT_PEAK,		      ///< Spectrum profile or centroided data
 			DT_FEATURE,	      ///< Feature data
 			DT_CONSENSUS,     ///< Consensus feature data
+			DT_CHROMATOGRAM,  ///< Chromatogram data
 			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
 
@@ -63,6 +64,7 @@ namespace OpenMS
 		{
 			F_HULL,       ///< Features: Overall convex hull
 			F_HULLS,      ///< Features: Convex hulls of single mass traces 
+			F_UNASSIGNED,///< Features: Unassigned peptide hits
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS,///< Peaks: Show projections
 			C_ELEMENTS    ///< Consensus features: Show elements
@@ -75,6 +77,7 @@ namespace OpenMS
 			L_INDEX,						///< The element number is used
 			L_META_LABEL,				///< The 'label' meta information is used
 			L_ID,								///< The best peptide hit of the first identification run is used
+			L_ID_ALL,						///< All peptide hits of the first identification run are used
 			SIZE_OF_LABEL_TYPE
 		};
 		//Label names

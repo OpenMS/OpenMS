@@ -120,7 +120,7 @@ namespace OpenMS
 			}
 		}
 
-		///2D-version enlarge(x,y) is for convenience only
+		///Enlarges the bounding box such that it contains a position specified by two coordinates
 		void enlarge(CoordinateType x, CoordinateType y)
 		{
 			enlarge( PositionType(x,y) );

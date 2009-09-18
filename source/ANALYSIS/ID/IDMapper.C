@@ -32,8 +32,8 @@ using namespace std;
 namespace OpenMS 
 {
   IDMapper::IDMapper()
-  	: rt_delta_(0.5),
-  		mz_delta_(0.05)
+  	: rt_delta_(5.0),
+  		mz_delta_(0.01)
   { 
   }
 

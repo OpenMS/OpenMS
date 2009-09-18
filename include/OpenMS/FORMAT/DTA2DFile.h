@@ -215,7 +215,7 @@ namespace OpenMS
 						map.push_back(spec);
 					}
 					setProgress(0);
-					spec.clear();
+					spec.clear(true);
 					spec.setRT(rt);
 					spec.setNativeID(String("index=")+native_id);
 					++native_id;

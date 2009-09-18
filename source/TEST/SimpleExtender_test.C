@@ -103,7 +103,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	}
 	input.push_back(spec);
 
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(2);
 
 	DoubleReal its2[] = {1000, 1500, 2000, 1500, 1000};
@@ -118,7 +118,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	}
 	input.push_back(spec);
 
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(3);
 
 	DoubleReal its3[] = {1000, 1500, 5000, 1500, 1000};
@@ -133,7 +133,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	}
 	input.push_back(spec);
 
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(4);
 
 	// the last two data points should not be included (see param intensity_factor)
@@ -151,7 +151,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 	input.updateRanges();
 
-  ff.run("none", input, features, Param());
+  ff.run("none", input, features, Param(), FeatureMap<>());
 
 	// first two points are already in some other feature region
 	// => check if points included in other features are ignored
@@ -284,7 +284,7 @@ START_SECTION(([EXTRA] Extension on real-world data))
 
 	input.updateRanges();
 
-  ff.run("none", input, features, Param());
+  ff.run("none", input, features, Param(), FeatureMap<>());
 
 	ChargedIndexSet  set;
 	// SimpleExtender starts at maximum point
@@ -331,7 +331,7 @@ START_SECTION(([EXTRA] Extension on picked data))
 
 	input.updateRanges();
 
-  ff.run("none", input, features, Param());
+  ff.run("none", input, features, Param(), FeatureMap<>());
 
 	ChargedIndexSet  set;
 	// SimpleExtender starts at maximum point

@@ -285,7 +285,7 @@ START_SECTION((static void convert(Size const input_map_index, MSExperiment<> &i
   Peak1D p;
   for ( UInt m = 0; m < 3; ++m )
   {
-    mss.clear();
+    mss.clear(true);
     for ( UInt i = 0; i < 4; ++i )
     {
       p.setMZ( 10* m + i + 100.35);
@@ -537,6 +537,28 @@ START_SECTION((void sortByMaps()))
 }
 END_SECTION
 
+START_SECTION(void clear(bool clear_meta_data))
+{
+  ConsensusMap map1;
+	ConsensusFeature f;
+	f.insert(1,1,Feature());
+	map1.push_back(f);
+  map1.getFileDescriptions()[1].filename = "bla";
+	map1.getFileDescriptions()[1].size = 5;
+	map1.setIdentifier("LSID");
+	map1.setExperimentType("itraq");
+	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
+	
+	map1.clear(false);
+	TEST_EQUAL(map1.size(),0)
+	TEST_EQUAL(map1==ConsensusMap(),false)
+
+	map1.clear(true);
+	TEST_EQUAL(map1==ConsensusMap(),true)
+}
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

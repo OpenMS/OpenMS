@@ -638,7 +638,7 @@ namespace OpenMS
 								 << pep_id_number
 								 << std::endl;
 
-						new_features.clear();
+						new_features.clear(true);
 						getNextPrecursors(features,new_features,step_size);	
 						continue;
 					}
@@ -678,7 +678,7 @@ namespace OpenMS
 						 << precursors << "\t\t"
 						 << pep_id_number
 						 << std::endl;
-				new_features.clear();
+				new_features.clear(true);
 				getNextPrecursors(features,new_features,step_size);	
 #ifdef PIS_DEBUG
 				std::cout << new_features.size() << " compounds for msms"<< std::endl;

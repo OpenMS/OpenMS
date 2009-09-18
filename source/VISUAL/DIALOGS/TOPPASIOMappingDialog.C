@@ -27,9 +27,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
-#include <OpenMS/VISUAL/TOPPASInputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
@@ -50,6 +48,31 @@ namespace OpenMS
 		fillComboBoxes_();
 	}
 	
+	int TOPPASIOMappingDialog::firstExec()
+	{
+		// check if only 1 parameter, if yes: select it
+		if (source_combo->count() == 2) // <select> + 1 parameter
+		{
+			source_combo->setCurrentIndex(1);
+		}
+		if (target_combo->count() == 2)
+		{
+			target_combo->setCurrentIndex(1);
+		}
+		
+		// is there only 1 possible mapping? -> do not show dialog
+		if ((source_combo->count() == 2 || source_combo->count() == 0) &&
+				(target_combo->count() == 2 || target_combo->count() == 0))
+		{
+			checkValidity_();
+			return QDialog::Accepted;
+		}
+		else
+		{
+			return QDialog::exec();
+		}
+	}
+
 	void TOPPASIOMappingDialog::fillComboBoxes_()
 	{
 		target_input_param_indices_.clear();
@@ -96,13 +119,6 @@ namespace OpenMS
 			{
 				source_combo->setCurrentIndex(1);
 			}
-		}
-		else if (edge_->getEdgeType() == TOPPASEdge::ET_FILE_TO_TOOL)
-		{
-			source_label->setText("File");
-			source_type_label->setVisible(false);
-			source_combo->setVisible(false);
-			source_parameter_label->setVisible(false);
 		}
 		else if (edge_->getEdgeType() == TOPPASEdge::ET_LIST_TO_TOOL)
 		{
@@ -171,13 +187,6 @@ namespace OpenMS
 				target_combo->setCurrentIndex(1);
 			}
 		}
-		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_FILE)
-		{
-			target_label->setText("File");
-			target_type_label->setVisible(false);
-			target_combo->setVisible(false);
-			target_parameter_label->setVisible(false);
-		}
 		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_LIST)
 		{
 			target_label->setText("List");
@@ -217,11 +226,13 @@ namespace OpenMS
 			return;
 		}
 		
-		if (source_combo->isVisible())
+//		if (source_combo->isVisible())
+		if (edge_->getEdgeType() != TOPPASEdge::ET_LIST_TO_TOOL)
 		{
 			edge_->setSourceOutParam(source_combo->currentIndex()-1);
 		}
-		if (target_combo->isVisible())
+//		if (target_combo->isVisible())
+		if (edge_->getEdgeType() != TOPPASEdge::ET_TOOL_TO_LIST)
 		{
 			int target_index;
 			int tci = target_combo->currentIndex()-1;
@@ -245,13 +256,14 @@ namespace OpenMS
 		}
 		else
 		{
-			if (es == TOPPASEdge::ES_MISMATCH_FILE_LIST)
+			//if (es == TOPPASEdge::ES_MISMATCH_FILE_LIST)
+			//{
+			//	QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
+			//}
+			if (es == TOPPASEdge::ES_MISMATCH_LIST_FILE)
 			{
-				QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
-			}
-			else if (es == TOPPASEdge::ES_MISMATCH_LIST_FILE)
-			{
-				QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
+				//QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
+				qobject_cast<TOPPASToolVertex*>(edge_->getTargetVertex())->setListModeActive(true);
 			}
 			else if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
 			{

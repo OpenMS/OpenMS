@@ -41,7 +41,7 @@
 //clustering
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+//~ #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 
 //Contrib includes
@@ -71,47 +71,47 @@ using namespace OpenMS;
 	@brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
 
 	SILACAnalyzer is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
-	
-	<b>Algorithm</b> 
-	
+
+	<b>Algorithm</b>
+
 	The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-	
+
 	We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
-	- all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold and 
+	- all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold and
 	- the intensities within the first envelope (at m/z, m/z+0.5 and m/z+1) and second envelope (at m/z+3, m/z+3.5 and m/z+4) decrease successively.
-	
+
 	Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster centers around the unlabelled peptide of a pair. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
 
 	@image html SILACAnalyzer_algorithm.png
-	
+
 	<b>Parameter Tuning</b>
-	
+
 	<i>input:</i>
 	@n -in [*.mzML] - LC-MS data set to be analyzed
-	
+
 	<i>standard output:</i>
 	- out [*.consensusXML] - contains the list of identified peptide pairs (retention time and m/z of the lighter peptide, heavy-to-light ratio)
 	- out_visual [*.featureXML] - contains the complete set of data points (retention time, m/z, intensity) of all peptide pairs
 
 	The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
-	
+
 	<i>optional output:</i>
 	@n If -silac_debug is enabled, SILACAnalyzer generates a number of further files:
 	- [*.dat] - contains the list of identified peptide pairs in a simple text file, c.f. *.consensusXML
 	- [*_clusters.dat] -  contains the complete set of data points of all peptide pairs in a simple text file, c.f. *.featureXML
 	- [*.input] - gnuplot script for the visualization of the results. Running (gnuplot *.input) generates a number of *.eps plots. The range of clusters to be plotted can be specified by the parameters -cluster_min/max.
-	
+
 	The following parameters are straightforward:
 	- mass_separation - mass gap between light and heavy isotopic envelopes [Da]
 	- charge_min/max - range of charge states
 	- mz_step_width - step width with which the interpolated spectrum, Fig. (b), is scanned. The step width should be of about the same order with which the raw data were recorded, see Fig. (a).
-	
+
 	The remaining parameters should be tuned in the following order:
 	- intensity_cutoff - adjust the intensity cutoff such that the data points that pass the non-local filter (*.featureXML layer) form clear distinct clusters,  see Fig. (e). Ignore the coloring of the clusters at that stage.
 	- rt_scaling - pick a representative cluster. rt_scaling = (width of the cluster in Da)/(height of the cluster in sec)
 	- cluster_number_scaling - The clustering algorithm tries to determine the optimal number of clusters (i.e. the number of peptide pairs in the LC-MS data set). If neighboring clusters appear in the same color, the cluster number is too low. If a single cluster contains two colors, the cluster number is too high. The cluster number can be adjusted by this scaling factor.
 	- optimal_silhouette_tolerance - The clustering algorithm tries to maximize the average-silhouette-width, see details in reference. The parameter specifies the relative tolerance (in %) by which the optimum can deviate from the maximum.
-	
+
 	<b>References:</b>
 	@n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard, "SILACAnalyzer - a tool for differential quantitation of stable isotope derived data", unpublished.
 
@@ -406,7 +406,7 @@ class TOPPSILACAnalyzer
 		  			gsl_interp_accel_free(acc2);
 					}
 				}
-				exp.clear();
+				exp.clear(true);
 				logger_.endProgress();
 
 				//-------------------------------------------------------------
@@ -428,16 +428,17 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				// conduct clustering
 				//-------------------------------------------------------------
-				ClusterHierarchical ch;
+				//~ ClusterHierarchical ch;
 				AverageLinkage al;
+				al.setLogType(log_type_);
 				std::vector< BinaryTreeNode > tree;
-				ClusterAnalyzer ca;
 				al(distance_matrix_copy, tree, std::numeric_limits<float>::max());
 
 				//-----------------------------------------------------------------
 				// find number of clusters which maximizes average silhouette width
 				//-----------------------------------------------------------------
 
+				ClusterAnalyzer ca;
 				//choose asw that deviates at most the given percentage (optimal_silhouette_tolerance) from the max asw and contains the most clusters
 				std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
 				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));

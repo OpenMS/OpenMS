@@ -188,7 +188,7 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(LOAD, String("Cannot find PSI-MOD mapping for mod -  ingoring '") + actual_mod_type_ + "'");
+				warning(LOAD, String("Cannot find PSI-MOD mapping for mod -  ignoring '") + actual_mod_type_ + "'");
 			}
 		}
 		
@@ -403,54 +403,6 @@ namespace OpenMS
 	void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& mod_set)
 	{
 		mod_def_set_ = mod_set;
-
-	 	UInt user_mod_num(119);
-
-    set<String> fixed_mod_names = mod_set.getFixedModificationNames();
-    for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
-    {
-      Map<UInt, vector<ResidueModification> >::ConstIterator fit = mods_map_.end();
-      for (Map<UInt, vector<ResidueModification> >::ConstIterator mit = mods_map_.begin(); mit != mods_map_.end(); ++mit)
-      {
-				for (vector<ResidueModification>::const_iterator rit = mit->second.begin(); rit != mit->second.end(); ++rit)
-				{
-        	if (rit->getFullId() == *it)
-        	{
-          	fit = mit;
-          	break;
-					}
-        }
-      }
-      if (fit == mods_map_.end())
-			{
-				vector<ResidueModification> fixed_mods;
-				fixed_mods.push_back(ModificationsDB::getInstance()->getModification(*it));
-      	mods_map_[user_mod_num++] = fixed_mods;
-			}
-		}
-
-    set<String> var_mod_names = mod_set.getVariableModificationNames();
-    for (set<String>::const_iterator it = var_mod_names.begin(); it != var_mod_names.end(); ++it)
-    {
-			Map<UInt, vector<ResidueModification> >::ConstIterator fit = mods_map_.end();
-			for (Map<UInt, vector<ResidueModification> >::ConstIterator mit = mods_map_.begin(); mit != mods_map_.end(); ++mit)
-			{
-				for (vector<ResidueModification>::const_iterator rit = mit->second.begin(); rit != mit->second.end(); ++rit)
-				{
-					if (rit->getFullId() == *it)
-					{
-						fit = mit;
-						break;
-					}
-				}
-			}
-			if (fit == mods_map_.end())
-			{
-				vector<ResidueModification> var_mods;
-				var_mods.push_back(ModificationsDB::getInstance()->getModification(*it));
-      	mods_map_[user_mod_num++] = var_mods;
-			}
-		}
 	}
 	
 } // namespace OpenMS

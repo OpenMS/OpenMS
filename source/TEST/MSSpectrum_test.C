@@ -162,7 +162,7 @@ START_SECTION((virtual void updateRanges()))
 
   //test with only one peak
 
-	s.clear();
+	s.clear(true);
   s.push_back(p1);
   s.updateRanges();
   TEST_REAL_SIMILAR(s.getMaxInt(),1)
@@ -278,7 +278,7 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 	edit.push_back(p1);
 	edit.push_back(p2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(empty==edit, false);
 END_SECTION
 
@@ -327,7 +327,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 	edit.push_back(p1);
 	edit.push_back(p2);
 	edit.updateRanges();
-	edit.clear();
+	edit.clear(false);
 	TEST_EQUAL(edit!=empty,true);
 
 END_SECTION
@@ -374,7 +374,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 		TEST_EQUAL(it_ds->getIntensity(), *it);
 		++it_ds;
 	}
-	ds.clear();
+	ds.clear(true);
 	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
@@ -466,7 +466,7 @@ START_SECTION((void sortByPosition()))
 		TEST_EQUAL(it->getIntensity(), *rit);
 		++it;
 	}
-	ds.clear();
+	ds.clear(true);
 	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
@@ -812,6 +812,24 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
 	TEST_PRECONDITION_VIOLATED(tmp2.findNearest(427.3));
 END_SECTION
 
+START_SECTION(void clear(bool clear_meta_data))
+  MSSpectrum<> edit;
+  edit.getInstrumentSettings().getScanWindows().resize(1);
+	edit.resize(1);
+	edit.setMetaValue("label",String("bla"));
+	edit.setRT(5);
+	edit.setMSLevel(5);
+	edit.getFloatDataArrays().resize(5);
+	edit.getIntegerDataArrays().resize(5);
+	edit.getStringDataArrays().resize(5);
+
+	edit.clear(false);
+	TEST_EQUAL(edit.size(),0)
+	TEST_EQUAL(edit==MSSpectrum<>(),false)
+
+	edit.clear(true);
+	TEST_EQUAL(edit==MSSpectrum<>(),true)
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

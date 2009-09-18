@@ -63,8 +63,8 @@ namespace OpenMS
 		@brief Abstract base class for FeatureFinder algorithms
 
 	*/
-	template<class PeakType, class FeatureType> class FeatureFinderAlgorithm : 
-		public DefaultParamHandler
+	template<class PeakType, class FeatureType> class FeatureFinderAlgorithm
+		: public DefaultParamHandler
 	{
 		public:
 			/// Input map type
@@ -113,7 +113,20 @@ namespace OpenMS
 				features_ = &features;
 				ff_ = &ff;
 			}
-
+			
+			/**
+				@brief Sets a reference to the calling FeatureFinder
+				
+				@exception Exception::IllegalArgument is thrown if the algorithm does not support user-specified seed lists
+			*/
+			virtual void setSeeds(const FeatureMapType& seeds)
+			{
+				if (seeds.size()!=0)
+				{
+					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The used feature detection algorithm does not support user-specified seed lists!");
+				}
+			}
+			
 		protected:
 
 			/// Input data pointer
@@ -124,7 +137,7 @@ namespace OpenMS
 
 			/// Pointer to the calling FeatureFinder that is used to access the feature flags
 			FeatureFinder* ff_;
-
+		
 		private:
 
 			/// Not implemented

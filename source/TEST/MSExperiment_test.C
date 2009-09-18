@@ -140,7 +140,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);
 
 	// second spectrum (MS/MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(11.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
@@ -150,7 +150,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);
 
 	// third spectrum (MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
@@ -160,7 +160,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);
 
 	// forth spectrum (MS/MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(12.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;
@@ -311,7 +311,7 @@ START_SECTION((virtual void updateRanges()))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
@@ -319,7 +319,7 @@ START_SECTION((virtual void updateRanges()))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(3);
 	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
@@ -327,7 +327,7 @@ START_SECTION((virtual void updateRanges()))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(3);
 	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
@@ -433,7 +433,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
@@ -441,7 +441,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(3);
 	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
@@ -449,7 +449,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	s.push_back(p);
 	tmp.push_back(s);
 
-	s.clear();
+	s.clear(true);
 	s.setMSLevel(3);
 	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
@@ -873,6 +873,24 @@ START_SECTION((void swap(MSExperiment &from)))
 	TEST_EQUAL(exp2.getMSLevels().size(),1)
 	TEST_EQUAL(exp2.getSize(),2);
 	
+END_SECTION
+
+START_SECTION(void clear(bool clear_meta_data))
+  MSExperiment<> edit;
+  edit.getSample().setName("bla");
+	edit.resize(5);
+	edit.updateRanges();
+	edit.setMetaValue("label",String("bla"));
+	vector<MSChromatogram<> > tmp;
+	tmp.resize(5);
+	edit.setChromatograms(tmp);
+
+	edit.clear(false);
+	TEST_EQUAL(edit.size(),0)
+	TEST_EQUAL(edit==MSExperiment<>(),false)
+
+	edit.clear(true);
+	TEST_EQUAL(edit==MSExperiment<>(),true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

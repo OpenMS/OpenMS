@@ -206,7 +206,7 @@ namespace OpenMS {
 		
     // copy all meta data stored in the feature map
     FeatureMapSim temp_copy(features); 
-    temp_copy.clear();
+    temp_copy.clear(false);
     
     for (Size i = 0; i < peptides_vector.size(); ++i)
     {

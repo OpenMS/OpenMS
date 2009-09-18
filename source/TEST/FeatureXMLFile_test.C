@@ -122,6 +122,11 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(),2)
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"H")
+	
+	//test if loading a second file works (initialization)
+	FeatureMap<> e2;
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e2);
+	TEST_EQUAL(e==e2,true)
 
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested

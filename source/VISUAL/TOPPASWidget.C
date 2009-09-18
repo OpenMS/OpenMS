@@ -51,7 +51,7 @@ namespace OpenMS
 		setRenderHint(QPainter::Antialiasing);
 		setScene(scene_);
 		setAcceptDrops(true);
-		setDragMode(QGraphicsView::ScrollHandDrag);
+		setDragMode(QGraphicsView::RubberBandDrag);
 		setFocusPolicy(Qt::StrongFocus);
 	}
 	
@@ -103,7 +103,7 @@ namespace OpenMS
 	{
 		if (e->key() == Qt::Key_Control)
 		{
-			setDragMode(QGraphicsView::RubberBandDrag);
+			setDragMode(QGraphicsView::ScrollHandDrag);
 			e->accept();
 		}
 		else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
@@ -117,7 +117,7 @@ namespace OpenMS
 	{
 		if (e->key() == Qt::Key_Control)
 		{
-			setDragMode(QGraphicsView::ScrollHandDrag);
+			setDragMode(QGraphicsView::RubberBandDrag);
 			e->accept();
 		}
 		//e->ignore(); how does this work again?

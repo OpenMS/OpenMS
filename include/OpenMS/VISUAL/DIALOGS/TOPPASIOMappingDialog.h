@@ -61,7 +61,10 @@ namespace OpenMS
 			TOPPASIOMappingDialog(TOPPASEdge* parent);
 			
 		public slots:
-		
+	
+			/// Called instead of exec() after edge is constructed (in order to avoid showing the dialog if not necessary)
+			int firstExec();
+
 		protected:
 		
 			/// Fills the table

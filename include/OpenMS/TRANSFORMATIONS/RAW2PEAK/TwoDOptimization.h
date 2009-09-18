@@ -167,7 +167,7 @@ namespace OpenMS
 			@brief Find two dimensional peak clusters and optimize their peak parameters
 						
 			@note For the peak spectra, the following meta data arrays (see MSSpectrum) have to be present and have to be named just as listed here:
-			- area (index:1)
+			- intensity (index:1)
 			- leftWidth (index:3)
 			- rightWidth (index:4)
 			- peakShape (index:5) 
@@ -316,7 +316,7 @@ namespace OpenMS
 
 			if (!area || !wleft || !wright || !shape)
 			{
-				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: One or several meta data arrays missing (1:area, 5:shape, 3:left width, 4:right width)");
+				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: One or several meta data arrays missing (1:intensity, 5:shape, 3:left width, 4:right width)");
 			}
 		}
 		real_2D_ = real2D;
@@ -639,7 +639,7 @@ namespace OpenMS
 						std::vector<PeakIndex>::iterator iter_iter = (m_peaks_it)->second.begin();
 						for(;iter_iter != m_peaks_it->second.end();++iter_iter)
 							{
-								height = (iter_iter)->getPeak(ms_exp).getIntensity();
+								height = ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[1][(iter_iter)->peak];//(iter_iter)->getPeak(ms_exp).getIntensity();
 								avr_height += height;
 								av_mz += (iter_iter)->getPeak(ms_exp).getMZ() * height;
 								av_lw += ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[3][(iter_iter)->peak]* height; //left width
@@ -678,7 +678,7 @@ namespace OpenMS
 				fit_function.f   = (Int (*)(const gsl_vector * x, void * params, gsl_vector * f))&OpenMS::TwoDOptimization::residual2D_;
 				fit_function.df  = (Int (*)(const gsl_vector * x, void * params, gsl_matrix * J))&OpenMS::TwoDOptimization::jacobian2D_;
 				fit_function.fdf = (Int (*)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))&OpenMS::TwoDOptimization::evaluate2D_;
-				// dunno why, but gsl crashes when n is smaller than p!!!!!!!! ????
+				// gsl crashes when n is smaller than p!
 				fit_function.n   = std::max(num_positions+1,(Int)(nr_parameters));
 				fit_function.p   = nr_parameters;
 				fit_function.params = &d;
@@ -746,15 +746,17 @@ namespace OpenMS
 							{
 
 #ifdef DEBUG_2D
-								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getPeak(ms_exp).getIntensity()
+									std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][it->second[j].peak]//it->second[j].getPeak(ms_exp).getIntensity()
 													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
 													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
 
 #endif
 
 								ms_exp[it->second[j].spectrum][it->second[j].peak].setMZ(gsl_vector_get(fit->x,d.total_nr_peaks+3*i));
+								ms_exp[it->second[j].spectrum].getFloatDataArrays()[1][it->second[j].peak] =(gsl_vector_get(fit->x,peak_idx));
+								//TODO calculate area
+								//				ms_exp[it->second[j].spectrum][it->second[j].peak].setIntensity();
 
-								ms_exp[it->second[j].spectrum][it->second[j].peak].setIntensity(gsl_vector_get(fit->x,peak_idx));
 								ms_exp[it->second[j].spectrum].getFloatDataArrays()[3][it->second[j].peak] =
 									gsl_vector_get(fit->x,d.total_nr_peaks+3*i+1);
 								ms_exp[it->second[j].spectrum].getFloatDataArrays()[4][it->second[j].peak] =
@@ -762,7 +764,7 @@ namespace OpenMS
 
 
 #ifdef DEBUG_2D
-								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getPeak(ms_exp).getIntensity()
+								std::cout << "pos: "<<it->second[j].getPeak(ms_exp).getMZ()<<"\nint: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][it->second[j].peak]//it->second[j].getPeak(ms_exp).getIntensity()
 													<<"\nlw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][it->second[j].peak]
 													<<"\nrw: "<<it->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][it->second[j].peak] << "\n";
 
@@ -922,11 +924,11 @@ namespace OpenMS
 							{
 								const Size peak_index = set_iter->second;
 								const MSSpectrum<>& spec = ms_exp[set_iter->first];
-								PeakShape shape(spec[peak_index].getIntensity(),
+								PeakShape shape(spec.getFloatDataArrays()[1][peak_index],//intensity
 																spec[peak_index].getMZ(),
 																spec.getFloatDataArrays()[3][peak_index], //left width
 																spec.getFloatDataArrays()[4][peak_index], //right width
-																spec.getFloatDataArrays()[1][peak_index], //area
+																spec[peak_index].getIntensity(), //area is stored in peak intensity
 																std::vector<Peak1D>::iterator(),
 																std::vector<Peak1D>::iterator(),
 																PeakShape::Type(Int(spec.getFloatDataArrays()[5][peak_index]))); //shape

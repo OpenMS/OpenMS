@@ -52,7 +52,7 @@ namespace OpenMS
   	//Filename for error messages in XMLHandler
   	file_ = filename;
 
-  	feature_map.clear();
+  	feature_map.clear(true);
   	map_ = &feature_map;
 
 		//set DocumentIdentifier
@@ -62,14 +62,20 @@ namespace OpenMS
 		parse_(filename,this);
 
     //reset members
-		last_meta_ = 0;
+		current_feature_ = 0;
+    map_ = 0;
+    last_meta_ = 0;
 		prot_id_ = ProteinIdentification();
-		pep_id_ = PeptideIdentification();
+    pep_id_ = PeptideIdentification();
 		prot_hit_ = ProteinHit();
 		pep_hit_ = PeptideHit();
 		proteinid_to_accession_.clear();
-		map_ = 0;
+		accession_to_id_.clear();
+		identifier_id_.clear();
 		id_identifier_.clear();
+    search_param_ = ProteinIdentification::SearchParameters();
+
+		return;
 	}
 
 	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map)

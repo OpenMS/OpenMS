@@ -1,4 +1,4 @@
-// -*- mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 3; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -88,10 +88,8 @@ namespace OpenMS
 
 			/// default constructor 
 			FeatureFinderAlgorithmMRM() 
-				: FeatureFinderAlgorithm<PeakType,FeatureType>()
+				: FeatureFinderAlgorithm<PeakType, FeatureType>()
 			{
-				defaults_.setValue("binning_factor", 1000, "Factor which is used to descretize the m/z positions of the peaks.", StringList::create("advanced"));
-				defaults_.setMinInt("binning_factor",1);
 				defaults_.setValue("min_rt_distance", 10.0, "Minimal distance of MRM features in seconds.");
 				defaults_.setMinFloat("min_rt_distance", 0.0);
 				defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", StringList::create("advanced"));
@@ -118,35 +116,15 @@ namespace OpenMS
 				//-------------------------------------------------------------------------
 
 				Map<Size, Map<Size, std::vector<std::pair<DoubleReal, PeakType> > > > traces;
-				DoubleReal binning_factor(param_.getValue("binning_factor"));
-
-				ff_->startProgress(0, map_->size(), "Finding MRM traces.");	
-				for (Size i = 0; i != map_->size(); ++i)
-				{
-					DoubleReal prec_mz(0.0);
-					DoubleReal rt((*map_)[i].getRT());
-					if ((*map_)[i].getPrecursors().size() != 0)
-					{
-						prec_mz = (*map_)[i].getPrecursors().begin()->getMZ();
-					}
-					Size prec_bin((Size)(prec_mz * binning_factor));
-					for (Size j = 0; j != (*map_)[i].size(); ++j)
-					{
-						Size frag_bin((Size)((*map_)[i][j].getMZ() * binning_factor));
-						traces[prec_bin][frag_bin].push_back(std::make_pair(rt, (*map_)[i][j]));
-					}
-					ff_->setProgress(i);
-				}
-				ff_->endProgress();
-				
+			
 				SignalToNoiseEstimatorMeanIterative<RichPeakSpectrum> sne;
 				LinearResampler resampler;
 
 				// Split the whole map into traces (== MRM transitions)
 				ff_->startProgress(0, traces.size(), "Finding features in traces.");
 				Size counter(0);
-				typename Map<Size, Map<Size, std::vector<std::pair<DoubleReal, PeakType> > > >::const_iterator it1 = traces.begin();
-				typename Map<Size, std::vector<std::pair<DoubleReal, PeakType> > >::const_iterator it2;
+				//typename Map<Size, Map<Size, std::vector<std::pair<DoubleReal, PeakType> > > >::const_iterator it1 = traces.begin();
+				//typename Map<Size, std::vector<std::pair<DoubleReal, PeakType> > >::const_iterator it2;
 				DoubleReal min_rt_distance(param_.getValue("min_rt_distance"));
 				DoubleReal min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
 				Size min_num_peaks_per_feature((UInt)param_.getValue("min_num_peaks_per_feature"));
@@ -155,66 +133,58 @@ namespace OpenMS
 				bool write_debug_files(param_.getValue("write_debug_files").toBool());
 				bool resample_traces(param_.getValue("resample_traces").toBool());
 
-				for (; it1 != traces.end(); ++it1)
+				typename std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
+				for (; first_it != map_->getChromatograms().end(); ++first_it)
 				{
-					for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+					// throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
+					RichPeakSpectrum chromatogram;
+					//typename std::vector<std::pair<DoubleReal, PeakType> >::const_iterator it3 = it2->second.begin();
+					for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
 					{
-						if (write_debuginfo)
-						{
-							std::cerr << "Found trace, MS1=" << it1->first / binning_factor << ", MS3=" << it2->first / binning_factor << ", #peaks=" << it2->second.size() << std::endl;
-						}
-
-						// throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
-						RichPeakSpectrum chromatogram;
-						typename std::vector<std::pair<DoubleReal, PeakType> >::const_iterator it3 = it2->second.begin();
-						for (; it3 != it2->second.end(); ++it3)
-						{
-							RichPeak1D peak;
-							peak.setMZ(it3->first);
-							peak.setIntensity(it3->second.getIntensity());
-							chromatogram.push_back(peak);
-						}
+						RichPeak1D peak;
+						peak.setMZ(it->getRT());
+						peak.setIntensity(it->getIntensity());
+						chromatogram.push_back(peak);
+					}
 				
-						// TODO
-						// find presection of separated RTs of peaks;
-						// resampling to min distance?
-						// for each of the section, try to estimate S/N
-						// find core regions and fit them
-						//
+					// TODO
+					// find presection of separated RTs of peaks;
+					// resampling to min distance?
+					// for each of the section, try to estimate S/N
+					// find core regions and fit them
+					//
 						
-						if (resample_traces)
+					if (resample_traces)
+					{
+						// resample the chromatogram, first find minimal distance and use this as resampling distance
+						DoubleReal min_distance(std::numeric_limits<DoubleReal>::max()), old_rt(0);
+						for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
 						{
-							// resample the chromatogram, first find minimal distance and use this as resampling distance
-							DoubleReal min_distance(std::numeric_limits<DoubleReal>::max()), old_rt(0);
-							for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
-							{
-								if (write_debuginfo)
-								{
-									std::cerr << "CHROMATOGRAM: " << it->getMZ() << " " << it->getIntensity() << std::endl;
-								}
-								DoubleReal rt_diff = it->getMZ() - old_rt;
-								if (rt_diff < min_distance && rt_diff > 0)
-								{
-									min_distance = rt_diff;
-								}
-								old_rt = it->getMZ();
-							}
-						
 							if (write_debuginfo)
 							{
-								std::cerr << "Min_distance=" << min_distance << std::endl;
+								std::cerr << "CHROMATOGRAM: " << it->getMZ() << " " << it->getIntensity() << std::endl;
 							}
-
-							if (min_distance > 50 || chromatogram.size() < min_num_peaks_per_feature)
+							DoubleReal rt_diff = it->getMZ() - old_rt;
+							if (rt_diff < min_distance && rt_diff > 0)
 							{
-								continue;
+								min_distance = rt_diff;
 							}
-
-							Param resampler_param(resampler.getParameters());
-							resampler_param.setValue("spacing", min_distance);
-							resampler.setParameters(resampler_param);
-							resampler.raster(chromatogram);
+							old_rt = it->getMZ();
 						}
+						
+						if (write_debuginfo)
+						{
+							std::cerr << "Min_distance=" << min_distance << std::endl;
+						}
+						if (min_distance > 50 || chromatogram.size() < min_num_peaks_per_feature)
+						{
+							continue;
+						}
+						Param resampler_param(resampler.getParameters());
+						resampler_param.setValue("spacing", min_distance);
+						resampler.setParameters(resampler_param);
+						resampler.raster(chromatogram);
+					}
 
 						// now smooth the data
 						GaussFilter filter;
@@ -240,7 +210,7 @@ namespace OpenMS
 
 						if (write_debuginfo)
 						{
-							std::cerr << (DoubleReal)it1->first  / (DoubleReal)binning_factor << " " << (DoubleReal)it2->first / (DoubleReal)binning_factor << " ";
+							std::cerr << first_it->getPrecursor().getMZ() << " " << first_it->getProduct().getMZ() << " ";
 						}
 						for (RichPeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
 						{
@@ -377,7 +347,7 @@ namespace OpenMS
 			          for (Size j = 0; j < sections[i].size(); ++j)
 			          {
 			            hull_points[j][0] = sections[i][j].getX();
-									hull_points[j][1] = (DoubleReal)it2->first / (DoubleReal)binning_factor;
+									hull_points[j][1] = first_it->getProduct().getMZ();
 
 									rt_sum += sections[i][j].getX();
 									intensity_sum += sections[i][j].getY();
@@ -385,10 +355,10 @@ namespace OpenMS
 
 								// create the feature according to fit
 								f.setRT((DoubleReal)model_rt->getParameters().getValue("emg:retention"));
-								f.setMZ((DoubleReal)it2->first / (DoubleReal)binning_factor);
+								f.setMZ((DoubleReal)first_it->getPrecursor().getMZ());
 								f.setIntensity(intensity_sum);
 								f.getConvexHulls().push_back(hull_points);
-								f.setMetaValue("MZ", (DoubleReal)it1->first / (DoubleReal)binning_factor);
+								f.setMetaValue("MZ", (DoubleReal)first_it->getProduct().getMZ());
 
 
 								// add the model to the feature
@@ -450,16 +420,11 @@ namespace OpenMS
 								features_->push_back(f);
 							}
 						}
-					}
+
 					ff_->setProgress(++counter);
 				}
-				ff_->endProgress();
-
+			}
 				
-
-				// 
-			}			
-	
 			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
 			{
 				return new FeatureFinderAlgorithmMRM();

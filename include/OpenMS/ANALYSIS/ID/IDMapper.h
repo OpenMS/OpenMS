@@ -49,12 +49,12 @@ namespace OpenMS
       /// Default constructor
       IDMapper();
 			
-			/// Returns the allowed RT deviation (default: 0.5)
+			/// Returns the allowed RT deviation (default: 5.0)
 			DoubleReal getRTDelta() const;
 			/// Sets the allowed RT deviation
 			void setRTDelta(DoubleReal rt_delta);
 			
-			/// Returns the allowed RT deviation (default: 0.05)
+			/// Returns the allowed RT deviation (default: 0.01)
 			DoubleReal getMZDelta() const;
 			/// Sets the allowed RT deviation
 			void setMZDelta(DoubleReal mz_delta);
@@ -134,12 +134,12 @@ namespace OpenMS
 				@param map FeatureMap to receive the identifications
 			  @param ids PeptideIdentification for the ConsensusFeatures
 			  @param protein_ids ProteinIdentification for the ConsensusMap
-			  @param use_delta If @em true, the m/z and RT deviation parameters are used even if convex hulls are present
+			  @param use_centroids If @em true, the feature centoids are used, even if convex hulls are present
 			
 				@exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
 			*/
 			template <typename FeatureType>
-		  void annotate(FeatureMap<FeatureType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_delta=false)
+		  void annotate(FeatureMap<FeatureType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroids=false)
 			{
 				checkHits_(ids);
 				
@@ -148,51 +148,70 @@ namespace OpenMS
 
 				//check if all feature have at least one convex hull
 				//if not, use the controid and the given deltas
-				if (!use_delta)
+				if (!use_centroids)
 				{
 					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 					{
 						if (f_it->getConvexHulls().size()==0)
 						{
-							use_delta = true;
+							use_centroids = true;
+							std::cout << "IDMapper warning: at lease one feature has no convex hull => using centroids!" << std::endl;
 							break;
 						}
 					}
 				}
 				
-				//keep track of assigned/unassigned peptide identifications
-				std::set<Size> assigned;
+				//precalculate feature bounding boxes
+				DPosition<2> delta (rt_delta_, mz_delta_);
+				std::vector< DBoundingBox<2> > bbs;
+				if (!use_centroids)
+				{
+					bbs.reserve(map.size());
+					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
+					{
+						DBoundingBox<2> bb = f_it->getConvexHull().getBoundingBox();
+						bb.setMin(bb.min() - delta);
+						bb.setMax(bb.max() + delta);
+						bbs.push_back(bb);
+					}
+				}
 				
-				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
+				//keep track of assigned/unassigned peptide identifications
+				std::map<Size, Size> assigned;
+				std::vector< DBoundingBox<2> >::const_iterator bb_it = bbs.begin();
+				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it, ++bb_it)
 				{
 					//iterate over the IDs
 					for (Size i=0; i<ids.size(); ++i)
 					{
 						if (ids[i].getHits().size()==0) continue;
 
-						if (use_delta)
+						if (use_centroids)
 						{
 							if ( (fabs((DoubleReal)ids[i].getMetaValue("RT")-f_it->getRT()) <= rt_delta_) 
 								&& (fabs((DoubleReal)ids[i].getMetaValue("MZ")-f_it->getMZ()) <= mz_delta_)  )
 							{
 								f_it->getPeptideIdentifications().push_back(ids[i]);
-								assigned.insert(i);
+								assigned[i]++;
 							}
 						}
 						else
 						{
 							DPosition<2> id_pos(ids[i].getMetaValue("RT"),ids[i].getMetaValue("MZ"));
-							
 							//check if the ID lies within the bounding box
-							if (f_it->getConvexHull().getBoundingBox().encloses(id_pos))
+
+							if (bb_it->encloses(id_pos))
 							{
 								// iterate over all convex hulls
 								for(std::vector<ConvexHull2D>::iterator ch_it = f_it->getConvexHulls().begin(); ch_it!=f_it->getConvexHulls().end(); ++ch_it)
 								{
-									if (ch_it->encloses(id_pos))
+									DBoundingBox<2> bb = ch_it->getBoundingBox();
+									bb.setMin(bb.min() - delta);
+									bb.setMax(bb.max() + delta);
+									if (bb.encloses(id_pos))
 									{
 										f_it->getPeptideIdentifications().push_back(ids[i]);
-										assigned.insert(i);
+										assigned[i]++;
 										break;
 									}
 								}
@@ -201,14 +220,33 @@ namespace OpenMS
 					}
 				}
 				
+				Size matches_none = 0;
+				Size matches_single = 0;
+				Size matches_multi = 0;
+				
 				//append unassigned peptide identifications
 				for (Size i=0; i<ids.size(); ++i)
 				{
-					if (assigned.count(i)==0)
+					Size matches = assigned[i];
+					if (matches==0)
 					{
 						map.getUnassignedPeptideIdentifications().push_back(ids[i]);
+						matches_none++;
+					}
+					else if (matches==1)
+					{
+						matches_single++;
+					}
+					else
+					{
+						matches_multi++;
 					}
 				}
+				
+				//some statistics output
+				std::cout << "Unassigned peptides: " << matches_none << std::endl;
+				std::cout << "Peptides assigned to exactly one features: " << matches_single << std::endl;
+				std::cout << "Peptides assigned to multiple features: " << matches_multi << std::endl;
 			}
 			
 			/**

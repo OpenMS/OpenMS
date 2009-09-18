@@ -154,9 +154,9 @@ class TOPPPTModel
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in_positive","<file>","","input file with positive examples\n");
-			setValidFormats_("in_positive",StringList::create("IdXML"));
+			setValidFormats_("in_positive",StringList::create("idXML"));
 			registerInputFile_("in_negative","<file>","","input file with negative examples\n");
-			setValidFormats_("in_negative",StringList::create("IdXML"));
+			setValidFormats_("in_negative",StringList::create("idXML"));
 			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("svm_type","<type>","C_SVC","the type of the svm (NU_SVC or C_SVC)\n",false);

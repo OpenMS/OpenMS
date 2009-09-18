@@ -114,10 +114,12 @@ class TOPPFeatureFinder
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file ");
+		registerInputFile_("in","<file>","","input file");
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
+		registerInputFile_("seeds","<file>","","User-specified seed list. This feature is not supported by all algorithms!", false);
+		setValidFormats_("seeds",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
 		setValidStrings_("type", getToolList()[toolName_()] );
 		addEmptyLine_();
@@ -154,19 +156,28 @@ class TOPPFeatureFinder
 		MzMLFile f;
 		f.setLogType(log_type_);
 		PeakFileOptions options;
-
+		
+		//load seeds
+		FeatureMap<> seeds;
+		if (getStringOption_("seeds")!="")
+		{
+			FeatureXMLFile().load(getStringOption_("seeds"),seeds);
+		}
+		
 		if (type != "mrm")
 		{
 			//prevent loading of fragment spectra
 			options.setMSLevels(vector<Int>(1,1));
 			f.getOptions() = options;
 		}
-		f.load(in,exp);
+		f.load(in, exp);
 
 		//prevent loading of everthing except MRM MS/MS spectra
 		if (type == "mrm")
 		{
-			exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
+			//exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
+			// erase the spectra, we just need the chromatograms for the feature finder
+			exp.erase(exp.begin(), exp.end());
 		}
 		else
 		{
@@ -177,7 +188,7 @@ class TOPPFeatureFinder
 		FeatureMap<> features;
 
 		//running algorithm
-		ff.run(type, exp, features, feafi_param);
+		ff.run(type, exp, features, feafi_param, seeds);
 
 		//-------------------------------------------------------------
 		// writing files

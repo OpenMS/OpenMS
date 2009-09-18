@@ -538,7 +538,7 @@ namespace OpenMS
     	}
   	}
 
-  	spec.clear();
+  	spec.clear(true);
   	for (PeakSpectrum::ConstIterator it = copy.begin(); it != copy.end(); ++it)
   	{
     	if (find(to_be_deleted.begin(), to_be_deleted.end(), *it) == to_be_deleted.end())

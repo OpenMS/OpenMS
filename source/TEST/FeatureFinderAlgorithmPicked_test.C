@@ -52,7 +52,7 @@ START_SECTION((FeatureFinderAlgorithmPicked()))
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION(~FeatureFinderAlgorithmPicked())
+START_SECTION((~FeatureFinderAlgorithmPicked()))
 	delete ptr;
 END_SECTION
 

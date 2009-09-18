@@ -182,7 +182,9 @@ svn propset svn:eol-style native MyClass.C
           <LI>Add the new directory to <%OpenMS>/includes.cmake (you should add two lines - one for /source and one for /include).
           <LI>Create two new sources.cmake files (one for %OpenMS/source/MYDIR, one for %OpenMS/include/MYDIR), using existing sources.cmake files as template
 					<LI>Add the new sources.cmake file from %OpenMS/source/MYDIR to %OpenMS/cmake/includes.cmake.
-					<LI>If you created a new directory directly under %OpenMS/source, then have a look at %OpenMS/source/TEST/CMakeLists.txt and add a new section.
+					<LI>If you created a new directory directly under %OpenMS/source, then have a look at %OpenMS/source/TEST/executables.cmake (1. add a new section that
+							makes the unit testing system aware of the new (upcoming) tests, 2. look at the very bottom and augment "TEST_executables").
+							Add a new group target to %OpenMS/source/TEST/CMakeLists.txt
         </OL>
 
 	    <LI><b>How do I add a new test for the class <TT>MyClass</TT>?</b><BR>
@@ -209,7 +211,7 @@ svn propset svn:eol-style native MyClass.C
 				in in several threads using the @a make option @a -j:
 				- <code>make -j8 %OpenMS</code>
 				- <code>make -j8 TOPP</code>
-				- <code>make -j8 TEST</code>
+				- <code>make -j8 test_build</code>
 		
 		</UL>
 	<H2 style="border-top:2px solid grey;">Working in IDE's</H2>
@@ -240,7 +242,7 @@ svn propset svn:eol-style native MyClass.C
 			
 				You can can execute an %OpenMS class test using the CTest regular expressions:
 				@n <code>&gt; ctest -V -R "^<class>_test"</code>
-				@n To build a class test, you simply call the respective make target:
+				@n To build a class test, you simply call the respective make target in ./source/TEST:
 				@n <code>&gt; make &lt;class&gt;_test</code>
 				
 				To run a TOPP test, you can use:
@@ -470,9 +472,9 @@ svn propset svn:eol-style native MyClass.C
 						<LI> Update version number of contrib README file in CMakeLists.txt of contrib and %OpenMS.
 						<LI> Update version number of TOPPView and TOPPAS splash screen <TT>source/VISUAL/ICONS/</TT>.@n
 						     The PhotoShop files can be found in the @em images SVN module.
-						<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_OPENMS_PACKAGE_VERSION variable)
+						<LI> Update version number in <TT>CMakeLists.txt</TT> (three OPENMS_PACKAGE_VERSION_* variables)
 						<LI> Run cmake
-						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'EXAMPLES_exec')
+						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
 						<LI> Commit the changes to the SVN repository
 						<LI> Build the documentation that is needed for the release
 							<OL>

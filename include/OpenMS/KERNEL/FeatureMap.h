@@ -5,7 +5,7 @@
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
-//
+//cl
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
@@ -306,6 +306,25 @@ namespace OpenMS
 				data_processing_ = processing_method; 
 			}
 
+			/**
+				@brief Clears all data and meta data
+				
+				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+			*/ 
+			void clear(bool clear_meta_data)
+			{
+				Base::clear();
+				
+				if (clear_meta_data)
+				{
+					clearRanges();
+					this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
+					protein_identifications_.clear();
+					unassigned_peptide_identifications_.clear();
+					data_processing_.clear();
+				}
+			}
+		
 		protected:
 			
 			/// protein identifications

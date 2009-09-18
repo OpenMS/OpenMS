@@ -246,7 +246,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	exp.push_back(spec);
 
 	// second spectrum (MS/MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(11.5);
 	spec.getPrecursors().resize(1);
 	spec.getPrecursors()[0].setMZ(11.4);
@@ -258,7 +258,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	exp.push_back(spec);	
 
 	// third spectrum (MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
@@ -268,8 +268,9 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	exp.push_back(spec);	
 
 	// forth spectrum (MS/MS)
-	spec.clear();
+	spec.clear(true);
 	spec.setRT(12.5);
+	spec.getPrecursors().resize(1);
 	spec.getPrecursors()[0].setMZ(21.4);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;

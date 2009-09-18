@@ -1,6 +1,3 @@
-## the directory name
-set(directory source/TEST)
-
 set(concept_executables_list
 	ClassTest_test
 	Exception_Base_test
@@ -9,6 +6,7 @@ set(concept_executables_list
 	SingletonRegistry_test
 	VersionInfo_test
 	FuzzyStringComparator_test
+  LogStream_test
 )
 
 set(datastructures_executables_list
@@ -79,6 +77,7 @@ set(metadata_executables_list
   HPLC_test
   ExperimentalSettings_test
   DocumentIdentifier_test
+	ChromatogramSettings_test
 )
 
 set(system_executables_list
@@ -106,6 +105,9 @@ set(kernel_executables_list
   ConsensusMap_test
   ConsensusFeature_test
   AreaIterator_test
+	MSChromatogram_test
+	ChromatogramPeak_test
+	ChromatogramTools_test
 )
 
 set(visual_executables_list
@@ -411,12 +413,5 @@ set(TEST_executables
 		${analysis_executables_list}
 		${applications_executables_list}
 		${transformations_executables_list}
-		${simulation_executables_list})
-		
-
-### add filenames to Visual Studio solution tree
-set(sources_VS)
-foreach(i ${TEST_executables})
-	list(APPEND sources_VS "${i}.C")
-endforeach(i)
-source_group("" FILES ${sources_VS})
+		${simulation_executables_list}
+		)

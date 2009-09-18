@@ -61,7 +61,7 @@ namespace OpenMS
 			PepXMLFile();
 
 			/// Destructor
-			~PepXMLFile();
+			virtual ~PepXMLFile();
 			
 			/**
 				@brief Loads peptide sequences with modifications out of a PepXML file
@@ -102,20 +102,61 @@ namespace OpenMS
 
 		private:
 			
-		  void matchModification_(DoubleReal mass, String& modification_description);
-		
+		  void matchModification_(DoubleReal mass, String& modification_description, const String& origin);
+	
+			struct AminoAcidModification
+			{
+				String aminoacid;
+				String massdiff;
+				DoubleReal mass;
+				bool variable;
+				String description;
+				String terminus;
+
+				AminoAcidModification()
+					: mass(0),
+						variable(false)
+				{
+				}
+
+				AminoAcidModification(const AminoAcidModification& rhs)
+					:	aminoacid(rhs.aminoacid),
+						massdiff(rhs.massdiff),
+						mass(rhs.mass),
+						variable(rhs.variable),
+						description(rhs.description),
+						terminus(rhs.terminus)
+				{
+				}
+
+				virtual ~AminoAcidModification()
+				{
+				}
+
+				AminoAcidModification& operator = (const AminoAcidModification& rhs)
+				{
+					if (this != &rhs)
+					{
+						aminoacid = rhs.aminoacid;
+						massdiff = rhs.massdiff;
+						mass = rhs.mass;
+						variable = rhs.variable;
+						description = rhs.description;
+						terminus = rhs.terminus;
+					}
+					return *this;
+				}
+
+								
+
+			};
+	
 			/// The sequence of the actual peptide hit				
 			String actual_sequence_;
 			
 			/// The modifications of the actual peptide hit (position is 1-based)
-			std::vector<std::pair<String, UInt> > actual_modifications_;
+			std::vector<std::pair<String, Size> > actual_modifications_;
 			
-			/// stores the fixed residue modifications 
-			std::vector<String> fixed_modifications_;
-
-			/// stores the variable residue modifications
-			std::vector<std::pair<String, DoubleReal> > variable_modifications_;
-
 			/// Pointer to the ProteinIdentification
 			ProteinIdentification* protein_;
 						
@@ -160,7 +201,20 @@ namespace OpenMS
 						
 			/// Retention time and mass-to-charge tolerance
 			DoubleReal rt_tol_, mz_tol_;
+		
+			/// fixed aminoacid modifications
+			std::vector<AminoAcidModification> fixed_modifications_;	
 			
+			/// variable aminoacid modifications
+			std::vector<AminoAcidModification> variable_modifications_;
+
+      /// fixed aminoacid modifications
+      std::vector<AminoAcidModification> term_fixed_modifications_;
+
+      /// variable aminoacid modifications
+      std::vector<AminoAcidModification> term_variable_modifications_;
+
+		
 			//@}
 									
 	};

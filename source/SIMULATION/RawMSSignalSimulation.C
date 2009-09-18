@@ -152,11 +152,10 @@ namespace OpenMS {
     }
     else
     {
-      for(FeatureMap< >::iterator feature_it = features.begin();
-          feature_it != features.end();
-          ++feature_it)
+      for(Size idx=0; idx<features.size(); ++idx)
       {
-        add2DSignal_(*feature_it, experiment);
+        add2DSignal_(features[idx], experiment);
+        if (idx % (features.size()/10) == 0) std::cout << idx << " of " << features.size() << " MS1 features generated...\n";
       }
       addShotNoise_(experiment, minimal_mz_measurement_limit, maximal_mz_measurement_limit);
     }
@@ -473,7 +472,7 @@ namespace OpenMS {
 			{
 				// copy Spectrum and remove Peaks ..
 				MSSimExperiment::SpectrumType cont = experiment[i];
-				cont.clear();
+				cont.clear(false);
 				
 				for ( Size j = 0 ; j < experiment[i].size() -1 ; ++j )
 				{

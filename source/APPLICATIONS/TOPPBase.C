@@ -411,7 +411,18 @@ namespace OpenMS
 				// check if all parameters are registered and have the correct type
 				checkParam_(param_instance_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
-				checkParam_(param_common_, (String)value_ini, "common::" );
+				checkParam_(param_common_, (String)value_ini, "common:" );
+				
+				//check if the version of the parameters file matches the version of this tool
+				String file_version = "";
+				if (param_inifile_.exists(tool_name_ + ":version"))
+				{
+					file_version = param_inifile_.getValue(tool_name_ + ":version");
+					if (file_version!=VersionInfo::getVersion())
+					{
+						writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + VersionInfo::getVersion() + ").");
+					}
+				}
 			}
 
 			//-------------------------------------------------------------
@@ -1842,6 +1853,12 @@ namespace OpenMS
 				tmp.setSectionDescription(loc + it->first, it->second);
 			}
 		}
+		
+		//set tool version
+		tmp.setValue(tool_name_ + ":version", VersionInfo::getVersion(), "Version of the tool that generated this parameters file.", StringList::create("advanced"));
+		
+		//descriptions
+		tmp.setSectionDescription(tool_name_, tool_description_);
 		tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
 
 		// store "type" in INI-File (if given)

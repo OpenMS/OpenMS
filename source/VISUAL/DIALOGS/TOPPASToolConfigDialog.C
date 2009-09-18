@@ -136,7 +136,7 @@ namespace OpenMS
 	void TOPPASToolConfigDialog::storeINI_()
 	{
 		//nothing to save
-		if (arg_param_.empty()) return;
+		if (param_->empty()) return;
 		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),default_dir_.c_str(),tr("ini files (*.ini)"));
 		//not file selected
 		if(filename_.isEmpty())
@@ -156,6 +156,5 @@ namespace OpenMS
 			return;
 		}
 	}
-	
 }
 	

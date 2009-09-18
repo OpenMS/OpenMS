@@ -79,7 +79,7 @@ class TOPPSpecLibSearcher
 			setValidFormats_("in",StringList::create("mzData"));
 			registerInputFile_("lib","<file>","","searchable spectral library(MSP format)");
 			registerOutputFileList_("out","<files>",StringList::create(""),"Output files. Have to be as many as input files");
-			setValidFormats_("out",StringList::create("IdXML"));
+			setValidFormats_("out",StringList::create("idXML"));
 			registerDoubleOption_("precursor_mass_tolerance","<tolerance>",3,"Precursor mass tolerance, (Th)",false);
 			registerIntOption_("round_precursor_to_integer","<number>",10,"many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data",false,true);
 		//	registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);

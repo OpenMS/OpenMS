@@ -186,6 +186,10 @@ namespace OpenMS
 			void toolStartedSlot();
 			/// Called when the tool has finished
 			void toolFinishedSlot();
+			/// Called when the tool has crashed
+			void toolCrashedSlot();
+			/// Called when the tool has failed
+			void toolFailedSlot();
 			/// Called by an incoming edge when it has changed
 			virtual void inEdgeHasChanged();
 		

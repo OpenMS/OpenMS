@@ -175,7 +175,8 @@ namespace OpenMS
 					for(;vec_iter != map_iter->second.end();++vec_iter)
 						{
 						
-							old_height = (vec_iter)->getPeak(picked_peaks).getIntensity();
+								// intensity at peak position is stored in the metadataarray, not as intensity of the peak
+							old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
 							weight += old_height;
 							old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
 							old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak]* old_height;
@@ -325,7 +326,8 @@ namespace OpenMS
 										gsl_vector_get(x,total_nr_peaks+3*map_idx+1) :
 										gsl_vector_get(x,total_nr_peaks+3*map_idx+2);
 									++count;
-									DoubleReal weight = step*((picked_peaks[peak_iter->first]).begin()+peak_iter->second)->getIntensity();
+//									DoubleReal weight = step*((picked_peaks[peak_iter->first]).begin()+peak_iter->second)->getIntensity();
+									DoubleReal weight = step * picked_peaks[peak_iter->first].getFloatDataArrays()[1][peak_iter->second];
 									ov_weight[map_idx] += weight;
 									DoubleReal ddx0_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx);
 									DoubleReal ddl_left_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+1);
@@ -463,7 +465,7 @@ namespace OpenMS
 					DoubleReal penalty_h=0, penalty_l=0, penalty_r=0,penalty_p=0;
 					for(;vec_iter != map_iter->second.end();++vec_iter)
 						{
-							old_height = (vec_iter)->getPeak(picked_peaks).getIntensity();
+							old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
 							weight += old_height;
 							old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
 							old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak]* old_height;

@@ -83,7 +83,8 @@
   <pre>
   &gt; ccmake .
   </pre>
-  This works only after having executing <code>cmake .</code>.
+  
+  @note You need to execute <code>cmake</code> before using <code>ccmake</code>.
   
   The most important CMake variables are:
 
@@ -162,6 +163,11 @@
 
  @section install_mac_64bit Building OpenMS/TOPP with 64bit support
 
- Building %OpenMS with 64bit support is currently in preparation, but we depend on Qt to add 64bit support to there framework. This will hopefully be done with Qt 4.5 in March 2009. So stay tuned for %OpenMS 64bit on <a href="http://www.apple.com/macosx/" target="_new">Mac OS X</a>.
-
+ Building %OpenMS with 64bit support requires Qt 4.5 (or higher) build with 64bit support. You need to specify the required architecture in each compilation step, by adding the option
+ 
+ <code>
+ -D CMAKE_OSX_ARCHITECTURE="x86_64"
+ </code>
+ 
+ to each CMake call.
 */

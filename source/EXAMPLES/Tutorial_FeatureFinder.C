@@ -13,8 +13,10 @@ Int main()
   MSExperiment<> input;
   // ... set output data structure
   FeatureMap<> output;
+  // ... set user-specified seeds, if needed
+	FeatureMap<> seeds;
 
-  ff.run("simple", input, output, parameters);
+  ff.run("simple", input, output, parameters, seeds);
   
   return 0;
 } //end of main

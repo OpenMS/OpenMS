@@ -67,9 +67,9 @@ class TOPPIDMerger
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"two or more input files separated by blank");
-		setValidFormats_("in",StringList::create("IdXML"));
+		setValidFormats_("in",StringList::create("idXML"));
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("IdXML"));
+		setValidFormats_("out",StringList::create("idXML"));
 	}
 	
 	ExitCodes main_(int , const char**)

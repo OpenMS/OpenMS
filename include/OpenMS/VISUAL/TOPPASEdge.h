@@ -56,9 +56,7 @@ namespace OpenMS
 			/// The type of this edge
 			enum EdgeType
 			{
-				ET_FILE_TO_TOOL,
 				ET_LIST_TO_TOOL,
-				ET_TOOL_TO_FILE,
 				ET_TOOL_TO_LIST,
 				ET_TOOL_TO_TOOL,
 				ET_INVALID

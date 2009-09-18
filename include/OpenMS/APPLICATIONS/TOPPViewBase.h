@@ -46,6 +46,7 @@
 class QAction;
 class QComboBox;
 class QLabel;
+class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QTreeWidget;
@@ -71,17 +72,18 @@ namespace OpenMS
 
   /**
     @brief Main window of TOPPView tool
-		
+
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
-    
+
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Hiwi, Johannes)
-      
+
   	@todo Add TOPPView live-tutorial (Stephan, Marc)
-  	
+    @todo Remove mower support (Marc)
+  
     @ingroup TOPPView_elements
   */
-  class OPENMS_DLLAPI TOPPViewBase 
-  	: public QMainWindow, 
+  class OPENMS_DLLAPI TOPPViewBase
+  	: public QMainWindow,
   		public DefaultParamHandler
   {
       Q_OBJECT
@@ -98,17 +100,17 @@ namespace OpenMS
     	///Peak spectrum type
     	typedef ExperimentType::SpectrumType SpectrumType;
     	//@}
-    	
+
       ///Constructor
       TOPPViewBase(QWidget* parent=0);
       ///Destructor
       ~TOPPViewBase();
-      
+
       /**
       	@brief Opens and displays data from a file
-      	
+
       	Loads the data and adds it to the application by calling addData_()
-      	
+
       	@param filename The file to open
       	@param show_options If the options dialog should be shown (otherwise the defaults are used)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
@@ -119,9 +121,9 @@ namespace OpenMS
       void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption="", UInt window_id=0, Size spectrum_id=0);
       /**
       	@brief Opens and displays a data from a database
-      	
+
       	Loads the data and adds it to the application by calling addData_()
-      	
+
       	@param db_id The id in the database
       	@param show_options If the options dialog should be shown (otherwise the defaults are used)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
@@ -134,16 +136,16 @@ namespace OpenMS
 
       /**
       	@brief Loads the preferences from the filename given.
-      	
+
       	If the filename is empty, the application name + ".ini" is used as filename
       */
       void loadPreferences(String filename="");
       /// stores the preferences (used when this window is closed)
       void savePreferences();
-			
+
 			/// Returns the active Layer data (0 if no layer is active)
 			const LayerData* getCurrentLayer() const;
-			
+
     public slots:
       /// changes the current path according to the currently active window/layer
       void updateCurrentPath();
@@ -163,6 +165,8 @@ namespace OpenMS
       void layerStatistics();
       /// lets the user edit the meta data of a layer
       void editMetadata();
+      /// chooses searched spectrum
+      void chooseSpectrumByUser(const QString& text);
       /// closes the active window
       void closeFile();
       /// updates the toolbar
@@ -181,7 +185,7 @@ namespace OpenMS
       void tileHorizontal();
       /**
       	@brief Shows a status message in the status bar.
-      	
+
       	If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       	Otherwise the message is displayed for @p time ms.
       */
@@ -196,7 +200,7 @@ namespace OpenMS
       void showSpectrumGenerationDialog();
       /// Shows the spectrum alignment dialog
       void showSpectrumAlignmentDialog();
-      /// Shows the current peak data of the active layer in 3D 
+      /// Shows the current peak data of the active layer in 3D
       void showCurrentPeaksAs3D();
 			/// Shows the spectrum with index @p index of the active layer in 1D
 			void showSpectrumAs1D(int index);
@@ -224,7 +228,7 @@ namespace OpenMS
     protected slots:
       /** @name Layer manager and filter manager slots
       */
-      //@{  
+      //@{
     	/// slot for layer manager selection change
     	void layerSelectionChange(int);
     	/// Enables/disables the data filters for the current layer
@@ -254,7 +258,7 @@ namespace OpenMS
     	/// shows the spectrum browser and updates it
     	void showSpectrumBrowser();
       //@}
-      
+
       /** @name Tabbar slots
       */
       //@{
@@ -267,7 +271,7 @@ namespace OpenMS
 			/// Slot for drag-and-drop of layer manager to tabbar
 			void copyLayer(const QMimeData* data, QWidget* source, int id=-1);
       //@}
-      
+
       /** @name Toolbar slots
       */
       //@{
@@ -278,17 +282,17 @@ namespace OpenMS
       void resetZoom();
       void toggleProjections();
       //@}
-		
+
 			/// Appends process output to log window
 			void updateProcessLog();
-      
+
       /// Shows the tutorial browser
       void showTutorial();
-		
+
     protected:
   		/**
   			@brief Adds a peak or feature map to the viewer
-  			
+
   			@param feature_map The feature data (empty if not feature data)
   			@param consensus_map The consensus feature data (empty if not consensus feature data)
   			@param peak_map The peak data (empty if not peak data)
@@ -302,17 +306,17 @@ namespace OpenMS
       	@param spectrum_id determines the spectrum to show in 1D view.
       */
   		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0, Size spectrum_id=0);
-  
+
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
     	/**
     		@brief Shows a dialog where the user can select files
     	*/
     	QStringList getFileList_(const String& path_overwrite = "");
-    	
-      ///Returns the parameters for a SpectrumCanvas of dimension @p dim 
+
+      ///Returns the parameters for a SpectrumCanvas of dimension @p dim
       Param getSpectrumParameters_(UInt dim);
-      
+
       void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
       SpectrumWidget* window_(int id) const;
@@ -336,13 +340,15 @@ namespace OpenMS
       QTreeWidget* spectrum_selection_;
       /// Spectrum dock widget
       QDockWidget* spectrum_bar_;
+      QLineEdit* spectrum_search_box_;
+      QComboBox* spectrum_combo_box_;
 
       ///@name Data filter widgets
       //@{
       QListWidget* filters_;
       QCheckBox* filters_check_box_;
       //@}
-      
+
       /// Log output window
       QTextEdit* log_;
 
@@ -363,6 +369,7 @@ namespace OpenMS
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;
       QToolButton* dm_label_2d_;
+      QAction* dm_unassigned_2d_;
       QAction* dm_elements_2d_;
       QAction* projections_2d_;
       //@}
@@ -383,7 +390,7 @@ namespace OpenMS
       /// RT label for messages in the status bar
       QLabel* rt_label_;
 			//@}
-			
+
       /// @name Recent files
       //@{
       ///adds a Filename to the recent files
@@ -395,12 +402,12 @@ namespace OpenMS
 			/// list of the recently opened files actions (menu entries)
 			std::vector<QAction*> recent_actions_;
 			//@}
-			
+
 
       /// @name TOPP tool executio
       //@{
 			/// Runs the TOPP tool according to the information in topp_
-			void runTOPPTool_(); 
+			void runTOPPTool_();
 			///Information needed for execution of TOPP tools
 			struct
 			{
@@ -424,23 +431,23 @@ namespace OpenMS
       void closeEvent(QCloseEvent* event);
 			void keyPressEvent(QKeyEvent* e);
 			//@}
-			
+
 			///Log message states
 			enum LogState
-			{ 
+			{
 				LS_NOTICE,   ///< Notice
 				LS_WARNING,  ///< Warning
 				LS_ERROR     ///< Fatal error
 			};
-			/// Shows a log message in the log_ window 
-      void showLogMessage_(LogState state, const String& heading, const String& body); 
-      
+			/// Shows a log message in the log_ window
+      void showLogMessage_(LogState state, const String& heading, const String& body);
+
       ///Additional context menu for 2D layers
       QMenu* add_2d_context_;
-  		
+
   		/// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
       void showTOPPDialog_(bool visible);
-      
+
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;

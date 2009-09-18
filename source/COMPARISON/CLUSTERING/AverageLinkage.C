@@ -31,12 +31,12 @@
 namespace OpenMS
 {
 	AverageLinkage::AverageLinkage()
-	  : ClusterFunctor()
+	  : ClusterFunctor(), ProgressLogger()
 	{
 	}
 
 	AverageLinkage::AverageLinkage(const AverageLinkage& source)
-	  : ClusterFunctor(source)
+	  : ClusterFunctor(source), ProgressLogger(source)
 	{
 	}
 
@@ -49,6 +49,7 @@ namespace OpenMS
 		if (this != &source)
 		{
 			ClusterFunctor::operator = (source);
+			ProgressLogger::operator = (source);
 		}
 		return *this;
 	}
@@ -74,6 +75,10 @@ namespace OpenMS
 		// Initial minimum-distance pair
 		original_distance.updateMinElement();
 		std::pair<Size,Size> min = original_distance.getMinElementCoordinates();
+
+		Size overall_cluster_steps(original_distance.dimensionsize());
+		startProgress(0,original_distance.dimensionsize(),"clustering data");
+
 
 		while(original_distance(min.second,min.first) < threshold)
 		{
@@ -123,6 +128,7 @@ namespace OpenMS
 			{
 				break;
 			}
+			setProgress(overall_cluster_steps - original_distance.dimensionsize());
 
 		//repeat until only two cluster remains, last step skips matrix operations
 		}
@@ -131,6 +137,8 @@ namespace OpenMS
 		{
 			cluster_tree.push_back(BinaryTreeNode(0,1,-1.0));
 		}
+
+		endProgress();
 	}
 
 }

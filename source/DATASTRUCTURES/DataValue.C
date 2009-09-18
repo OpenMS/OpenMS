@@ -358,7 +358,6 @@ namespace OpenMS
 	{
 		if(value_type_ != INT_LIST)
 		{
-
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-IntList DataValue to IntList");
 		}
 		return *(data_.int_list_);

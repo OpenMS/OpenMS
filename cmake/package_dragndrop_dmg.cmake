@@ -32,12 +32,12 @@ add_custom_command(TARGET TOPPAS POST_BUILD
 
 # the OpenMS library
 install (TARGETS OpenMS
-	LIBRARY DESTINATION OpenMS-1.5/lib
-	ARCHIVE DESTINATION OpenMS-1.5/lib
+	LIBRARY DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib
+	ARCHIVE DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib
 	COMPONENT library)
 
 # Qt libs, hack! Copy files to destination first
-install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION OpenMS-1.5/lib/ COMPONENT library REGEX "libOpenMS.[A-Za-z]*" EXCLUDE)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib/ COMPONENT library REGEX "libOpenMS.[A-Za-z]*" EXCLUDE)
 
 # the TOPP tools
 foreach(TOPP_exe ${TOPP_executables})
@@ -49,29 +49,29 @@ foreach(TOPP_exe ${TOPP_executables})
   endif()
 	
   install(TARGETS ${TOPP_exe}
-		RUNTIME DESTINATION OpenMS-1.5/TOPP
-		BUNDLE DESTINATION OpenMS-1.5/
+		RUNTIME DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPP
+		BUNDLE DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
 		COMPONENT applications)
 endforeach()
 
 # share dir
 install(DIRECTORY share/
-	DESTINATION OpenMS-1.5/share
+	DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
 	COMPONENT share
 	REGEX ".svn" EXCLUDE)
 
 # install the documentation and the tutorials
-install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      		DESTINATION OpenMS-1.5/Documentation/ RENAME OpenMSAndTOPPDocumentation.html COMPONENT doc)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            		DESTINATION OpenMS-1.5/Documentation/ COMPONENT doc REGEX ".svn" EXCLUDE)
-install(FILES 		${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION OpenMS-1.5/Documentation/ COMPONENT doc)
-install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION OpenMS-1.5/Documentation/ COMPONENT doc)
+install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      		DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ RENAME OpenMSAndTOPPDocumentation.html COMPONENT doc)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            		DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc REGEX ".svn" EXCLUDE)
+install(FILES 		${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc)
+install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ COMPONENT doc)
 
 # install the TOPP command shell
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command DESTINATION OpenMS-1.5/ RENAME TOPP-shell PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ COMPONENT TOPPShell)
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile  DESTINATION OpenMS-1.5/ RENAME .TOPP_bash_profile COMPONENT TOPPShell)
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ RENAME TOPP-shell PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ COMPONENT TOPPShell)
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ RENAME .TOPP_bash_profile COMPONENT TOPPShell)
 
 # install background image for the folder
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png DESTINATION OpenMS-1.5/share/OpenMS/ COMPONENT share)
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share/OpenMS/ COMPONENT share)
 
 # copy DS_store file into folder
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store DESTINATION . RENAME .DS_store COMPONENT share)

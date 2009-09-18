@@ -79,34 +79,34 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 	ptr->setParameters(param);
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),3)
-	TEST_REAL_SIMILAR(ms2[0].getRT(),40)
+	TEST_REAL_SIMILAR(ms2[0].getRT(),45)
 	TEST_REAL_SIMILAR(ms2[0].getPrecursors()[0].getMZ(),336.14)
-	TEST_REAL_SIMILAR(ms2[1].getRT(),50)
+	TEST_REAL_SIMILAR(ms2[1].getRT(),55)
 	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),319.19)
-	TEST_REAL_SIMILAR(ms2[2].getRT(),60)
+	TEST_REAL_SIMILAR(ms2[2].getRT(),65)
 	TEST_REAL_SIMILAR(ms2[2].getPrecursors()[0].getMZ(),478.29)
 		
-	ms2.clear();
+	ms2.clear(true);
 	feature_based = false;
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),3)
-	TEST_REAL_SIMILAR(ms2[0].getRT(),40)
+	TEST_REAL_SIMILAR(ms2[0].getRT(),45)
 	TEST_REAL_SIMILAR(ms2[0].getPrecursors()[0].getMZ(),336.14)
-	TEST_REAL_SIMILAR(ms2[1].getRT(),50)
+	TEST_REAL_SIMILAR(ms2[1].getRT(),55)
 	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),336.14)
-	TEST_REAL_SIMILAR(ms2[2].getRT(),60)
+	TEST_REAL_SIMILAR(ms2[2].getRT(),65)
 	TEST_REAL_SIMILAR(ms2[2].getPrecursors()[0].getMZ(),336.14)
 
-	ms2.clear();
+	ms2.clear(true);
 	feature_based = true;
 	param.setValue("exclude_overlapping_peaks","true");
 	param.setValue("min_peak_distance",40.);
 	ptr->setParameters(param);
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),2)
-	TEST_REAL_SIMILAR(ms2[0].getRT(),40)
+	TEST_REAL_SIMILAR(ms2[0].getRT(),45)
 	TEST_REAL_SIMILAR(ms2[0].getPrecursors()[0].getMZ(),336.14)
-	TEST_REAL_SIMILAR(ms2[1].getRT(),60)
+	TEST_REAL_SIMILAR(ms2[1].getRT(),65)
 	TEST_REAL_SIMILAR(ms2[1].getPrecursors()[0].getMZ(),478.29)
 		
 }

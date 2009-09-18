@@ -252,7 +252,10 @@ namespace OpenMS
 		defaults->addAction("white");
 		defaults->addAction("red");
 		defaults->addAction("green");
+		defaults->addAction("blue");
 		defaults->addAction("magenta");
+		defaults->addAction("turquoise");
+		defaults->addAction("yellow");
 
 		//Interploate/Stairs
 		QMenu* inter = main_menu.addMenu("Interpolation");
@@ -297,9 +300,21 @@ namespace OpenMS
 			{
 				gradient_.fromString("Linear|0,#00ff00;100,#00ff00");
 			}
+			else if (result->text()=="blue")
+			{
+				gradient_.fromString("Linear|0,#0000ff;100,#0000ff");
+			}
 			else if (result->text()=="magenta")
 			{
 				gradient_.fromString("Linear|0,#ff00ff;100,#ff00ff");
+			}
+			else if (result->text()=="turquoise")
+			{
+				gradient_.fromString("Linear|0,#00ffff;100,#00ffff");
+			}
+			else if (result->text()=="yellow")
+			{
+				gradient_.fromString("Linear|0,#ffff00;100,#ffff00");
 			}
 			else if (result->text()=="None")
 			{

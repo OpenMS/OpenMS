@@ -116,7 +116,7 @@ namespace OpenMS
 						{
 							first_spec = false;
 						}
-						spec.clear();
+						spec.clear(true);
 						line.simplify();
 						std::vector<String> split;
 						line.split(' ', split);

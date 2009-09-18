@@ -129,7 +129,7 @@ namespace OpenMS
 			}
 		else
 			{
-				exp_peaks_.clear();
+				exp_peaks_.clear(true);
 				monoiso_peaks_.clear();
 				
 				// pick peaks (only in a certain distance to the reference masses)

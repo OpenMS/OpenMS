@@ -87,9 +87,9 @@ class TOPPConsensusID
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
-			setValidFormats_("in",StringList::create("IdXML,featureXML,consensusXML"));
+			setValidFormats_("in",StringList::create("idXML,featureXML,consensusXML"));
 			registerOutputFile_("out","<file>","","output file");
-			setValidFormats_("out",StringList::create("IdXML,featureXML,consensusXML"));
+			setValidFormats_("out",StringList::create("idXML,featureXML,consensusXML"));
 
 			addEmptyLine_();
 			registerDoubleOption_("rt_delta","<value>",0.1, "Maximum allowed precursor RT deviation between identifications.", false);

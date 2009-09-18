@@ -109,7 +109,7 @@ namespace OpenMS
 			}
 
 			// replace the old peaks by the new ones
-			spectrum.clear();
+			spectrum.clear(false);
 			for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
 			{
 				if (positions.find(it->getMZ()) != positions.end())
