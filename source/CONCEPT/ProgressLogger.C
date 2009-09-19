@@ -85,10 +85,9 @@ namespace OpenMS
 			case GUI:
 				begin_ = begin;
 				end_ = end;
-				if(!dlg_) dlg_ = new QProgressDialog();
-				dlg_->setRange((int)begin,(int)end);
-				dlg_->setLabelText(label.c_str());
+				if(!dlg_) dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
 				dlg_->setWindowTitle(label.c_str());
+				dlg_->setWindowModality(Qt::WindowModal);
 				dlg_->show();
 				break;
 			case NONE:

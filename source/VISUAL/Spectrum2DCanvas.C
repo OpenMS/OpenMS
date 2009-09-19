@@ -412,7 +412,7 @@ namespace OpenMS
 		}
 		else if (layer.type==LayerData::DT_FEATURE) //features
 		{
-			Size line_spacing = QFontMetrics(painter.font()).lineSpacing();
+			int line_spacing = QFontMetrics(painter.font()).lineSpacing();
 			String icon = layer.param.getValue("dot:feature_icon");
 			Size icon_size = (UInt) layer.param.getValue("dot:feature_icon_size");
 			bool show_label = (layer.label!=LayerData::L_NONE);
@@ -464,7 +464,7 @@ namespace OpenMS
 							{
 								for (Size j=0; j< i->getPeptideIdentifications()[0].getHits().size(); ++j)
 								{
-									painter.drawText(pos.x()+10,pos.y()+10+j*line_spacing,i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+									painter.drawText(pos.x()+10,pos.y()+10+int(j)*line_spacing,i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
 								}
 							}
 						}
@@ -538,7 +538,7 @@ namespace OpenMS
 		p.setPen(color);
 		p.setBrush(QBrush(QColor(color),Qt::SolidPattern));
 		
-		Size s_half = s/2;
+		int s_half = (int)s/2;
 		
 		if (icon=="diamond")
 		{
@@ -553,9 +553,9 @@ namespace OpenMS
 		{
 			QPolygon pol;
 			pol.putPoints(0,4,pos.x() + s_half, pos.y() + s_half,
-												pos.x() - (int)s_half, pos.y() + s_half,
-												pos.x() - (int)s_half, pos.y() - (int)s_half,
-												pos.x() + s_half, pos.y() - (int)s_half);
+												pos.x() - s_half, pos.y() + s_half,
+												pos.x() - s_half, pos.y() - s_half,
+												pos.x() + s_half, pos.y() - s_half);
 			p.drawConvexPolygon(pol);
 		}
 		else if (icon=="circle")
