@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -396,18 +397,26 @@ namespace OpenMS
 			return;
 		}
 		
-		bool we_depend_on_other_tools = false;
+		bool we_have_dependencies = false;
 		// recursive execution of all parent nodes that are tools
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (tv)
+			TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
+			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+			if (ttv)
 			{
-				we_depend_on_other_tools = true;
-				tv->runRecursively();
+				we_have_dependencies = true;
+				ttv->runRecursively();
+				continue;
+			}
+			TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>(tv);
+			if (tmv)
+			{
+				we_have_dependencies = true;
+				tmv->runRecursively();
 			}
 		}
-		if (!we_depend_on_other_tools)
+		if (!we_have_dependencies)
 		{
 			// start actual pipeline execution here
 			started_here_ = true;
@@ -505,6 +514,26 @@ namespace OpenMS
 					}
 				}
 				
+				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
+				if (mv)
+				{
+					const QStringList& input_files = mv->getOutputList();
+					if (list_mode_ && in_params[param_index].listified) // only possible for (actual) single file parameters
+					{
+						if (input_files.size() <= i)
+						{
+							std::cerr << "Listified parameter index out of bounds!" << std::endl;
+							break;
+						}
+						args << input_files[i];
+					}
+					else
+					{
+						args << input_files;
+						continue;
+					}
+				}
+
 				TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>((*it)->getSourceVertex());
 				if (iflv)
 				{
@@ -520,7 +549,7 @@ namespace OpenMS
 					}
 					else
 					{
-						args << iflv->getFilenames();
+						args << input_files;
 						continue;
 					}
 				}
@@ -609,7 +638,7 @@ namespace OpenMS
 		if (iteration_nr_ == numIterations()) // all iterations performed --> proceed in pipeline
 		{
 			finished_ = true;
-			ts->setPipelineRunning(false);
+			//ts->setPipelineRunning(false);
 			emit toolFinished();
 			
 			// notify all childs that we are finished
@@ -619,6 +648,12 @@ namespace OpenMS
 				if (tv)
 				{
 					tv->runToolIfInputReady();
+					continue;
+				}
+				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getTargetVertex());
+				if (mv)
+				{
+					mv->forwardPipelineExecution();
 					continue;
 				}
 				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>((*it)->getTargetVertex());
@@ -672,6 +707,12 @@ namespace OpenMS
 			if (tv)
 			{
 				tv->updateOutputFileNames();
+				continue;
+			}
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
+			if (mv)
+			{
+				mv->updateOutputFileNames();
 			}
 		}
 		
@@ -721,6 +762,19 @@ namespace OpenMS
 						const QStringList& input_files = tv->output_file_names_[out_param_index];
 						input_list_length_ = input_files.count();
 						foreach (const QString& str, input_files)
+						{
+							input_file_basenames.push_back(File::basename(str).toQString());
+						}
+						break;
+					}
+
+					TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
+					if (mv)
+					{
+						const QStringList& files = mv->getOutputList();
+						input_list_length_ = files.count();
+
+						foreach (const QString& str, files)
 						{
 							input_file_basenames.push_back(File::basename(str).toQString());
 						}

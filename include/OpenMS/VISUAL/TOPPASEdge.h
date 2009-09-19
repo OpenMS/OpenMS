@@ -53,15 +53,6 @@ namespace OpenMS
 		
 		public:
 			
-			/// The type of this edge
-			enum EdgeType
-			{
-				ET_LIST_TO_TOOL,
-				ET_TOOL_TO_LIST,
-				ET_TOOL_TO_TOOL,
-				ET_INVALID
-			};
-			
 			/// The status of this edge
 			enum EdgeStatus
 			{
@@ -71,6 +62,8 @@ namespace OpenMS
 				ES_NO_TARGET_PARAM,
 				ES_NO_SOURCE_PARAM,
 				ES_FILE_EXT_MISMATCH,
+				ES_MERGER_EXT_MISMATCH,
+				ES_MERGER_WITHOUT_TOOL,
 				ES_NOT_READY_YET,
 				ES_UNKNOWN
 			};
@@ -110,10 +103,6 @@ namespace OpenMS
 			void prepareResize();
 			/// Sets the color
 			void setColor(const QColor& color);
-			/// Determines the type of this edge
-			void determineEdgeType();
-			/// Returns the type of this edge
-			EdgeType getEdgeType();
 			/// Returns the status of this edge
 			EdgeStatus getEdgeStatus();
 			/// Sets the source output parameter index
@@ -157,8 +146,6 @@ namespace OpenMS
 			QPointF hover_pos_;
 			/// The color
 			QColor color_;
-			/// The type of this edge
-			EdgeType edge_type_;
 			/// The source output parameter index
 			int source_out_param_;
 			/// The target input parameter index

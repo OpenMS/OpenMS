@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 
@@ -171,6 +172,9 @@ namespace OpenMS
     tools_tree_view_->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
     item->setText(0, "<Output files>");
+    tools_tree_view_->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Merger>");
     tools_tree_view_->addTopLevelItem(item);
     
     Map<String,StringList> tools_list = TOPPBase::getToolList();
@@ -738,6 +742,10 @@ namespace OpenMS
 			connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
 			connect (oflv, SIGNAL(iAmDone()), scene, SLOT(checkIfWeAreDone()));
 		}
+		else if (tool_name == "<Merger>")
+		{
+			tv = new TOPPASMergerVertex();
+		}
 		else // node is a TOPP tool
 		{	
 			if (current_tool->childCount() > 0)
@@ -768,8 +776,8 @@ namespace OpenMS
 			connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 			
 			connect (ttv,SIGNAL(toolStarted()),scene,SLOT(setPipelineRunning()));
-			connect(ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
-			connect(ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
+			connect (ttv,SIGNAL(toolFailed()),scene,SLOT(pipelineErrorSlot()));
+			connect (ttv,SIGNAL(toolCrashed()),scene,SLOT(pipelineErrorSlot()));
 		}
 		
 		tv->setPos(x,y);

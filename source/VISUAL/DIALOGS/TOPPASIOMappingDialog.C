@@ -29,6 +29,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
 #include <QtGui/QMessageBox>
@@ -82,7 +83,12 @@ namespace OpenMS
 		
 		TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
 		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
+		TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
+		TOPPASMergerVertex* target_merger = qobject_cast<TOPPASMergerVertex*>(target);
+		TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
+		TOPPASOutputFileListVertex* target_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
 		
+
 		if (source_tool)
 		{
 			QVector<TOPPASToolVertex::IOInfo> source_output_files;
@@ -120,9 +126,16 @@ namespace OpenMS
 				source_combo->setCurrentIndex(1);
 			}
 		}
-		else if (edge_->getEdgeType() == TOPPASEdge::ET_LIST_TO_TOOL)
+		else if (source_list || source_merger)
 		{
-			source_label->setText("List");
+			if (source_list)
+			{
+				source_label->setText("List");
+			}
+			else if (source_merger)
+			{
+				source_label->setText("Merger");
+			}
 			source_type_label->setVisible(false);
 			source_combo->setVisible(false);
 			source_parameter_label->setVisible(false);
@@ -187,9 +200,16 @@ namespace OpenMS
 				target_combo->setCurrentIndex(1);
 			}
 		}
-		else if (edge_->getEdgeType() == TOPPASEdge::ET_TOOL_TO_LIST)
+		else if (target_list || target_merger)
 		{
-			target_label->setText("List");
+			if (target_list)
+			{
+				target_label->setText("List");
+			}
+			else if (target_merger)
+			{
+				target_label->setText("Merger");
+			}
 			target_type_label->setVisible(false);
 			target_combo->setVisible(false);
 			target_parameter_label->setVisible(false);
@@ -214,6 +234,11 @@ namespace OpenMS
 	{
 		const QString& source_text = source_combo->currentText();
 		const QString& target_text = target_combo->currentText();
+		
+		TOPPASVertex* source = edge_->getSourceVertex();
+		TOPPASVertex* target = edge_->getTargetVertex();
+		TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+		TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 
 		if (source_text == "<select>")
 		{
@@ -226,13 +251,11 @@ namespace OpenMS
 			return;
 		}
 		
-//		if (source_combo->isVisible())
-		if (edge_->getEdgeType() != TOPPASEdge::ET_LIST_TO_TOOL)
+		if (source_tool)
 		{
 			edge_->setSourceOutParam(source_combo->currentIndex()-1);
 		}
-//		if (target_combo->isVisible())
-		if (edge_->getEdgeType() != TOPPASEdge::ET_TOOL_TO_LIST)
+		if (target_tool)
 		{
 			int target_index;
 			int tci = target_combo->currentIndex()-1;
@@ -256,14 +279,10 @@ namespace OpenMS
 		}
 		else
 		{
-			//if (es == TOPPASEdge::ES_MISMATCH_FILE_LIST)
-			//{
-			//	QMessageBox::warning(0,"Invalid selection","The source output parameter is a file, but the target expects a list!");
-			//}
 			if (es == TOPPASEdge::ES_MISMATCH_LIST_FILE)
 			{
-				//QMessageBox::warning(0,"Invalid selection","The source output parameter is a list, but the target expects a file!");
 				qobject_cast<TOPPASToolVertex*>(edge_->getTargetVertex())->setListModeActive(true);
+				accept();
 			}
 			else if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
 			{
@@ -276,6 +295,14 @@ namespace OpenMS
 			else if (es == TOPPASEdge::ES_FILE_EXT_MISMATCH)
 			{
 				QMessageBox::warning(0,"Invalid selection","The file types of source output and target input parameter do not match!");
+			}
+			else if (es == TOPPASEdge::ES_MERGER_EXT_MISMATCH)
+			{
+				QMessageBox::warning(0,"Invalid selection","The file types of source output and the target input parameter do not match!");
+			}
+			else if (es == TOPPASEdge::ES_MERGER_WITHOUT_TOOL)
+			{
+				QMessageBox::warning(0,"Invalid selection","Mergers connecting input and output files directly are not allowed!");
 			}
 			else
 			{

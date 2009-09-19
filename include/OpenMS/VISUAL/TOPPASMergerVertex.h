@@ -54,6 +54,16 @@ namespace OpenMS
 			TOPPASMergerVertex& operator= (const TOPPASMergerVertex& rhs);
 			/// Returns the list of output files
 			QStringList getOutputList();
+			/// Starts the pipeline execution recursively	
+			void runRecursively();
+			/// Forwards the pipeline execution downstream
+			void forwardPipelineExecution();
+			/// Determines whether all inputs are ready
+			bool allInputsReady();
+			/// Updates all temporary output file names
+			void updateOutputFileNames();
+			/// Sets whether the currently running pipeline has already been started at this vertex
+      void setStartedHere(bool b);
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
@@ -62,7 +72,10 @@ namespace OpenMS
 			virtual QPainterPath shape () const;
 			
 		protected:
-		
+
+			// Stores whether the currently running pipeline has already been started at this vertex
+			bool started_here_;
+
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);

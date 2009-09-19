@@ -31,6 +31,7 @@
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -202,7 +203,6 @@ namespace OpenMS
 			TOPPASVertex* source = hover_edge_->getSourceVertex();
 			source->addOutEdge(hover_edge_);
 			target->addInEdge(hover_edge_);
-			hover_edge_->determineEdgeType();
 			hover_edge_->setColor(QColor(255,165,0));
 			connect (source, SIGNAL(somethingHasChanged()), hover_edge_, SLOT(sourceHasChanged()));
 			connect (hover_edge_, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
@@ -418,6 +418,11 @@ namespace OpenMS
 				tv->setStartedHere(false);
 				tv->setProgressColor(Qt::gray);
 			}
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(*it);
+			if (mv)
+			{
+				mv->setStartedHere(false);
+			}
 		}
 		update(sceneRect());
 		
@@ -490,6 +495,15 @@ namespace OpenMS
 				{
 					save_param.setValue("vertices:"+id+":list_mode", DataValue("false"));
 				}
+				continue;
+			}
+
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
+			if (mv)
+			{
+				save_param.setValue("vertices:"+id+":toppas_type", DataValue("merger"));
+				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
+				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
 				continue;
 			}
 		}
@@ -589,6 +603,11 @@ namespace OpenMS
 					
 					current_vertex = tv;
 				}
+				else if (current_type == "merger")
+				{
+					TOPPASMergerVertex* mv = new TOPPASMergerVertex();
+					current_vertex = mv;
+				}
 				else
 				{
 					std::cerr << "Unknown vertex type '" << current_type << "'" << std::endl;
@@ -665,7 +684,6 @@ namespace OpenMS
       	edge->setTargetVertex(tv_2);
       	tv_1->addOutEdge(edge);
       	tv_2->addInEdge(edge);
-      	edge->determineEdgeType();	
       	addEdge(edge);
       	connect (tv_1, SIGNAL(somethingHasChanged()), edge, SLOT(sourceHasChanged()));
 				connect (edge, SIGNAL(somethingHasChanged()), tv_2, SLOT(inEdgeHasChanged()));
@@ -724,7 +742,16 @@ namespace OpenMS
 				{
 					TOPPASEdge* in_edge = *e_it;
 					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
-					tv->updateOutputFileNames();
+					if (tv)
+					{
+						tv->updateOutputFileNames();
+						continue;
+					}
+					TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(in_edge->getSourceVertex());
+					if (mv)
+					{
+						mv->updateOutputFileNames();
+					}
 				}
 			}
 		}
