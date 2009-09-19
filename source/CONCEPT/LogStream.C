@@ -34,6 +34,7 @@
 	for the code ;)
 */
 
+#include <stdio.h>
 #include <limits>
 #include <cstring>
 #include <OpenMS/CONCEPT/LogStream.h>
