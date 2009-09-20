@@ -1940,6 +1940,7 @@ namespace OpenMS
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
 		tools_map["PrecursorIonSelector"] = StringList::create("");
+		tools_map["PeptideIndexer"] = StringList::create("");
 		tools_map["CompNovo"] = StringList::create("CompNovo,CompNovoCID");
 
 		return tools_map;

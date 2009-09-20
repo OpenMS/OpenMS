@@ -42,12 +42,12 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page UTILS_PeptideIndexer PeptideIndexer
+	@page TOPP_PeptideIndexer PeptideIndexer
 	
 	@brief Refreshes the protein references for all peptide hits.
 		
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_PeptideIndexer.cli
+	@verbinclude TOPP_PeptideIndexer.cli
 */
 
 // We do not want this class to show up in the docu:

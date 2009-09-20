@@ -99,7 +99,7 @@ class TOPPOMSSAAdapter
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
       registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
       registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
-      registerInputFile_("database", "<fasta-file>", "", "NCBI formated fasta files. Only the basename should be given without .p* extensions, e.g. SwissProt.fasta");
+      registerInputFile_("database", "<fasta-file>", "", "NCBI formated fasta files. Only the basename should be given without .p* extensions, e.g. 'SwissProt.fasta'");
       vector<String> valid_strings;
       //valid_strings.push_back("ppm"); // ppm disabled, as OMSSA does not support this feature
       valid_strings.push_back("Da");
@@ -122,7 +122,7 @@ class TOPPOMSSAAdapter
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
 			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-			registerInputFile_("omssa_executable", "", "The \"omssacl\" executable of the OMSSA installation", true);
+			registerInputFile_("omssa_executable", "", "The 'omssacl' executable of the OMSSA installation", true);
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 			
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");

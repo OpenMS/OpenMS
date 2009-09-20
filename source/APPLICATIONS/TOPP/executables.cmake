@@ -54,6 +54,7 @@ SILACAnalyzer
 PrecursorIonSelector
 IDFileConverter
 CompNovo
+PeptideIndexer
 )
 
 ### add filenames to Visual Studio solution tree

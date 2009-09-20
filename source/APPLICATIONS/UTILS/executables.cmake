@@ -21,7 +21,6 @@ IdXMLEvaluation
 DecoyDatabase
 IDMassAccuracy
 SpectrumGeneratorNetworkTrainer
-PeptideIndexer
 ERPairFinder
 MRMPairFinder
 OpenMSInfo
