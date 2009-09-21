@@ -84,12 +84,15 @@ endif()
 foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	add_dependencies(${i} TOPP UTILS Tutorials_build FuzzyDiff)
-  add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+	# should not be necessary if ctest_build entries are also done for this TEST directory
+	#add_dependencies(${i} TOPP UTILS Tutorials_build FuzzyDiff)
+	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
 
 ### "test_build" target
 add_custom_target(test_build)
+# UTILS and Tutorials_build are not necessarily needed, however very useful
+# for nightly builds (untested otherwise!)
 add_dependencies(test_build ${TEST_executables} TOPP UTILS Tutorials_build FuzzyDiff)
 
 ### add filenames to Visual Studio solution tree
