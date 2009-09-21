@@ -138,7 +138,7 @@ namespace OpenMS
 							chrom.push_back(p);
 						}
 
-						chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID());
+						chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID()); // TODO native id of spectra?
 						chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 						chromatograms.push_back(chrom);
 					}

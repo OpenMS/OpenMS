@@ -69,7 +69,7 @@ namespace OpenMS
 			//@{
 			/// Peak type
 			typedef PeakT PeakType;
-			/// Chromatogram type
+			/// Chromatogram peak type
 			typedef ChromatogramPeakT ChromatogramPeakType;
 			/// Area type
 			typedef DRange<2> AreaType;
@@ -81,6 +81,8 @@ namespace OpenMS
 			typedef RangeManager<2> RangeManagerType;
 			/// Spectrum Type
 			typedef MSSpectrum<PeakType> SpectrumType;
+			/// Chromatogram type
+			typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
 			/// STL base class type
 			typedef std::vector<SpectrumType> Base;
 			//@}
@@ -335,7 +337,7 @@ namespace OpenMS
 				total_size_ = 0;
 
 				//empty
-				if (this->size()==0)
+				if (this->size()==0 && chromatograms_.size() == 0)
 				{
 					return;
 				}
@@ -374,8 +376,36 @@ namespace OpenMS
 					}
 				}
 				std::sort(ms_levels_.begin(), ms_levels_.end());
-				
-				//TODO CHROM update intensity, m/z and RT according to chromatograms as well!
+
+				if (this->chromatograms_.size() == 0)
+				{
+					return;
+				}				
+
+				//TODO CHROM update intensity, m/z and RT according to chromatograms as well! (done????)
+
+				for (typename std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+				{
+					// update MZ
+					if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
+					if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
+
+					// do not update RT and in if the specturm is empty
+					if (it->size() == 0) continue;
+
+					total_size_ += it->size();
+
+					it->updateRanges();
+
+					// RT
+					if (it->getMin()[0] < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getMin()[0]);
+					if (it->getMax()[0] > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getMax()[0]);
+
+					// int
+					if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
+          if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
+					
+				}
 			}
 
 			/// returns the minimal m/z value
@@ -445,6 +475,25 @@ namespace OpenMS
 					}
 				}
 			}
+
+			/** 
+				@brief Sorts the data points of the chromatograms by m/z
+
+				@param sort_rt if @em true, chromatograms are sorted by rt position as well
+			*/
+			void sortChromatograms(bool sort_rt = true)
+			{
+				// sort the chromatograms according to their product m/z
+				std::sort(chromatograms_.begin(), chromatograms_.end(), typename ChromatogramType::MZLess());
+
+				if (sort_rt)
+				{
+					for (typename std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+					{
+						it->sortByPosition();
+					}
+				}
+			}
 			
 			/**
 				@brief Checks if all spectra are sorted with respect to ascending RT
@@ -466,6 +515,7 @@ namespace OpenMS
 						if (!this->operator[](i).isSorted()) return false;
 					}
 				}
+				// TODO CHROM
 				return true;
 			}
 			//@}

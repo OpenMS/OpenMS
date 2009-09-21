@@ -40,10 +40,6 @@ namespace OpenMS
 {
 	/**
 		@brief The representation of a chromatogram.
-			
-		@todo Rename RTLess, MZBegin, ... to new dimensions (Andreas)
-		@todo Add accessor to m/z position (Andreas)
-	
 		@ingroup Kernel
 	*/
 	template <typename PeakT = ChromatogramPeak>
@@ -78,12 +74,12 @@ namespace OpenMS
 		  };
 
 			///Comparator for the retention time.
-			struct RTLess
+			struct MZLess
 				: public std::binary_function <MSChromatogram, MSChromatogram, bool>
 			{
 				inline bool operator () (const MSChromatogram& a, const MSChromatogram& b) const
 				{
-					return (a.getRT() < b.getRT());
+					return (a.getMZ() < b.getMZ());
 				}
 			};
 			
@@ -91,7 +87,7 @@ namespace OpenMS
 			//@{
 			/// Peak type
 			typedef PeakT PeakType;
-			/// Coordinate (m/z) type
+			/// Coordinate (RT) type
 			typedef typename PeakType::CoordinateType CoordinateType;
 			/// Chromatogram base type
 			typedef std::vector<PeakType> ContainerType;
@@ -143,7 +139,7 @@ namespace OpenMS
 			}
 	    
 	 		/// Destructor
-			~MSChromatogram()
+			virtual ~MSChromatogram()
 			{
 			}
 	
@@ -207,10 +203,16 @@ namespace OpenMS
 			}
 			//@}
 
+			/// returns the mz of the product entry, makes sense especially for MRM scans
+			inline DoubleReal getMZ() const
+			{
+				return getProduct().getMZ();
+			}
+
 			/**
 				@name Peak data array methods
 	
-				These methods are used to annotate each peak in a spectrum with meta information.
+				These methods are used to annotate each peak in a chromatogram with meta information.
 				It is an intermediate way between storing the information in the peak's MetaInfoInterface
 				and deriving a new peak type with members for this information.
 	
@@ -333,7 +335,7 @@ namespace OpenMS
 			/**
 				@brief Lexicographically sorts the peaks by their position.
 	
-				The spectrum is sorted with respect to position. Meta data arrays will be sorted accordingly.
+				The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly.
 			*/
 			void sortByPosition()
 			{
@@ -391,12 +393,12 @@ namespace OpenMS
 					}					
 				}
 			}
-			///Checks if all peaks are sorted with respect to ascending m/z
+			///Checks if all peaks are sorted with respect to ascending RT
 			bool isSorted() const
 			{
 				for (Size i=1; i<this->size(); ++i)
 				{
-					if (this->operator[](i-1).getMZ()>this->operator[](i).getMZ()) return false;
+					if (this->operator[](i-1).getRT() > this->operator[](i).getRT()) return false;
 				}
 				return true;
 			}
@@ -405,29 +407,29 @@ namespace OpenMS
 			///@name Searching a peak or peak range
 			//@{
 			/**
-				@brief Binary search for the peak nearest to a specific m/z
+				@brief Binary search for the peak nearest to a specific RT
 	
-				@param mz The searched for mass-to-charge ratio searched
+				@param rt The searched for mass-to-charge ratio searched
 				@return Returns the index of the peak.
 	
-				@note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+				@note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
 	
-				@exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
+				@exception Exception::Precondition is thrown if the chromatogram is empty (not only in debug mode)
 			*/
-			Size findNearest(CoordinateType mz) const
+			Size findNearest(CoordinateType rt) const
 			{
 				//no peak => no search
 				if (ContainerType::size()==0) throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one peak to determine the nearest peak!");
 	
-				//searh for position for inserting
-				ConstIterator it = MZBegin(mz);
+				//search for position for inserting
+				ConstIterator it = RTBegin(rt);
 				//border cases
 				if (it==ContainerType::begin()) return 0;
 				if (it==ContainerType::end()) return ContainerType::size()-1;
 				//the peak before or the current peak are closest
 				ConstIterator it2 = it;
 				--it2;
-				if (std::fabs(it->getMZ()-mz)<std::fabs(it2->getMZ()-mz))
+				if (std::fabs(it->getRT() - rt)<std::fabs(it2->getRT() - rt))
 				{
 					return Size(it - ContainerType::begin());
 				}
@@ -439,90 +441,90 @@ namespace OpenMS
 			/**
 				 @brief Binary search for peak range begin
 	
-				 @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to retention time! Otherwise the result is undefined.
 			*/
-			Iterator MZBegin(CoordinateType mz)
+			Iterator RTBegin(CoordinateType rt)
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 			}
 			/**
 				 @brief Binary search for peak range begin
 	
-				 @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
 			*/
-			Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)
+			Iterator RTBegin(Iterator begin, CoordinateType rt, Iterator end)
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return lower_bound(begin, end, p, typename PeakType::PositionLess());
 			}
 			/**
 				 @brief Binary search for peak range end (returns the past-the-end iterator)
 	
-				 @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is undefined.
 			*/
-			Iterator MZEnd(CoordinateType mz)
+			Iterator RTEnd(CoordinateType rt)
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 			}		
 			/**
 				 @brief Binary search for peak range end (returns the past-the-end iterator)
 	
-				 @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is undefined.
 			*/
-			Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)
+			Iterator RTEnd(Iterator begin, CoordinateType rt, Iterator end)
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return upper_bound(begin, end, p, typename PeakType::PositionLess());
 			}
 	
 			/**
 				 @brief Binary search for peak range begin
 	
-				 @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
 			*/
-			ConstIterator MZBegin(CoordinateType mz) const
+			ConstIterator RTBegin(CoordinateType rt) const
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 			}
 			/**
 				 @brief Binary search for peak range begin
 	
-				 @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
 			*/
-			ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const
+			ConstIterator RTBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return lower_bound(begin, end, p, typename PeakType::PositionLess());
 			}
 			/**
 				 @brief Binary search for peak range end (returns the past-the-end iterator)
 	
-				 @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is undefined.
 			*/
-			ConstIterator MZEnd(CoordinateType mz) const
+			ConstIterator RTEnd(CoordinateType rt) const
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 			}		
 			/**
 				 @brief Binary search for peak range end (returns the past-the-end iterator)
 	
-				 @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+				 @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is undefined.
 			*/
-			ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const
+			ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const
 			{
 				PeakType p;
-				p.setPosition(mz);
+				p.setPosition(rt);
 				return upper_bound(begin, end, p, typename PeakType::PositionLess());
 			}
 	
@@ -554,7 +556,7 @@ namespace OpenMS
 	{
 		os << "-- MSSPECTRUM BEGIN --"<<std::endl;
 
-		//spectrum settings
+		//chromatogram settings
 		os << static_cast<const ChromatogramSettings&>(spec);
 
 		//peaklist

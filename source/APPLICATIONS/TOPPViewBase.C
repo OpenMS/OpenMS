@@ -1002,15 +1002,34 @@ namespace OpenMS
 				//remove chromatograms or spectra (we need only one of them)
 				if (is_2D)
 				{
-					if (peak_map.getChromatograms().size()!=0 && peak_map.size()!=0)
+					if (peak_map.getChromatograms().size() != 0)
 					{
-						ExperimentType chrom_map = peak_map;
-						chrom_map.clear(false);
-						if (!open_window->canvas()->addLayer(peak_map,filename)) return;
+						ExperimentType chrom_map = peak_map; //TODO CHROM only copy relevant information
+						chrom_map.resize(0); // clears all the spectra
+						if (!open_window->canvas()->addLayer(chrom_map,filename)) return;
 						peak_map.setChromatograms(vector< MSChromatogram<> >());
+
+						// check whether 2D data is available
+						Size ms1_scans = 0;
+        		for (Size i = 0; i < peak_map.size(); ++i)
+        		{
+          		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
+          		if (ms1_scans>1)
+          		{
+            		break;
+          		}
+        		}
+
+						if (ms1_scans > 0)
+						{
+							if (!open_window->canvas()->addLayer(peak_map,filename)) return;
+						}
 					}
-					//add peak data
-					if (!open_window->canvas()->addLayer(peak_map,filename)) return;
+					else
+					{
+						//add peak data
+						if (!open_window->canvas()->addLayer(peak_map,filename)) return;
+					}
 				}
 				else
 				{
@@ -1712,8 +1731,9 @@ namespace OpenMS
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")
 			{
-				QString name = QInputDialog::getText(this,"Rename layer","Name:");
-				if (name!="")
+				bool ok = false;
+				QString name = QInputDialog::getText(this,"Rename layer","Name:", QLineEdit::Normal, activeCanvas_()->getLayer(layer).name.toQString(), &ok);
+				if (ok)
 				{
 					activeCanvas_()->setLayerName(layer, name);
 				}
@@ -2421,7 +2441,20 @@ namespace OpenMS
 		}
 		else if (layer.type==LayerData::DT_CHROMATOGRAM)
 		{
-			//TODO CHROM
+			MzMLFile f;
+			f.setLogType(ProgressLogger::GUI);
+			if (topp_.visible)
+			{
+				ExperimentType exp;
+				//TODO CHROM
+				//activeCanvas_()->getVisibleChromatogramData(exp);
+				f.store(topp_.file_name + "_in", exp);
+			}
+			else
+			{
+				//TODO CHROM
+				//f.store(topp_.file_name + "_in", );
+			}
 		}
 
 		//compose argument list
@@ -3113,7 +3146,7 @@ namespace OpenMS
 			}
 			else
 			{
-				UInt ms1_scans = 0;
+				Size ms1_scans = 0;
 				for (Size i=0; i<peaks.size();++i)
 				{
 					if (peaks[i].getMSLevel()==1) ++ms1_scans;
@@ -3123,6 +3156,7 @@ namespace OpenMS
 						break;
 					}
 				}
+				if (peaks.getChromatograms().size() > 0) is_2D = true;
 			}
 
 			//add the data

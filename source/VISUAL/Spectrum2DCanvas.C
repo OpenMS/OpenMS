@@ -121,7 +121,7 @@ namespace OpenMS
 		{
 			dataToWidget_(peak.getFeature(getCurrentLayer().consensus).getMZ(), peak.getFeature(getCurrentLayer().consensus).getRT(), pos);
 		}
-		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 		{
 			//TODO CHROM
 		}
@@ -202,7 +202,7 @@ namespace OpenMS
 				}
 			}
 		}
-		else if (getCurrentLayer().type==LayerData::DT_CONSENSUS)
+		else if (getCurrentLayer().type==LayerData::DT_CHROMATOGRAM)
 		{
 			//TODO CHROM
 		}
@@ -230,9 +230,10 @@ namespace OpenMS
 			{
 				percentage_factor_ = overall_data_range_.max()[2]/layer.consensus.getMaxInt();
 			}
-			else if (layer.type != LayerData::DT_CONSENSUS && layer.consensus.getMaxInt()>0.0)
+			else if (layer.type != LayerData::DT_CHROMATOGRAM && layer.consensus.getMaxInt()>0.0)
 			{
 				//TODO CHROM
+				//percentage_factor_ = overall_data_range_.max()[2]/layer.peaks.getMaxInt();
 			}
 		}
 
@@ -509,7 +510,7 @@ namespace OpenMS
 			const ExperimentType& map = layer.peaks;
 			//TODO CHROM implement layer filters
 			//TODO CHROM implement faster painting
-			for (vector<MSChromatogram<> >::const_iterator crom = map.getChromatograms().begin();
+			for (vector<MSChromatogram<> >::const_iterator crom = map.getChromatograms().begin(); 
 					 crom != map.getChromatograms().end();
 					 ++crom)
 			{
@@ -518,7 +519,7 @@ namespace OpenMS
 						 ++cp)
 				{
 					QPoint pos;
-					dataToWidget_(crom->getProduct().getMZ(), cp->getRT(), pos);
+					dataToWidget_(crom->getMZ(), cp->getRT(), pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 					{
 						buffer_.setPixel(pos.x() ,pos.y() ,Qt::black);
@@ -955,8 +956,9 @@ namespace OpenMS
 		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM)//chromatogram data
 		{
 
-			//TODO CHROM currentPeakData_().sortChromatograms(true);
-			currentPeakData_().updateRanges();
+			//TODO CHROM 
+			currentPeakData_().sortChromatograms(true);
+			currentPeakData_().updateRanges(1);
 
 			update_buffer_ = true;
 
@@ -965,7 +967,7 @@ namespace OpenMS
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
-				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no chromattograms. Aborting!");
+				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no chromatograms. Aborting!");
 				return false;
 			}
 		}
@@ -1259,7 +1261,8 @@ namespace OpenMS
 					}
 					else if (getLayer(i).type==LayerData::DT_CHROMATOGRAM)
 					{
-						//TODO CHROM
+						// TODO CHROM
+						paintDots_(i, painter);
 					}
 				}
 				//timing
@@ -2101,6 +2104,18 @@ namespace OpenMS
 		else if (layers_.back().type==LayerData::DT_CHROMATOGRAM) //chromatgram
 		{
 			//TODO CHROM
+			try
+      {
+        FileHandler().loadExperiment(layer.filename,layer.peaks);
+      }
+      catch(Exception::BaseException& e)
+      {
+        QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        layer.peaks.clear(true);
+      }
+      layer.peaks.sortChromatograms(true);
+      layer.peaks.updateRanges(1);
+
 		}
 		recalculateRanges_(0,1,2);
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway

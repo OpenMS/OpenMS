@@ -172,7 +172,7 @@ namespace OpenMS
 		//store old zoom state
 		if (add_to_stack)
 		{
-			// if we scrolled in between zooming we want to store the last position before zomming as well
+			// if we scrolled in between zooming we want to store the last position before zooming as well
 			if (	 (zoom_stack_.size()>0)
 					&& (zoom_stack_.back()!=visible_area_))
 			{
@@ -372,7 +372,7 @@ namespace OpenMS
 		layers_.back().param = param_;
 		layers_.back().filename = filename;
 		layers_.back().peaks.swap(map);
-		if (map.getChromatograms().size()!=0)
+		if (layers_.back().peaks.getChromatograms().size()!=0)
 		{
 			layers_.back().type = LayerData::DT_CHROMATOGRAM;
 		}
