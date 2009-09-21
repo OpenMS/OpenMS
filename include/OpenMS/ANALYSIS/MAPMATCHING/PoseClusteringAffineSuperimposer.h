@@ -49,6 +49,8 @@ namespace OpenMS
    The affine transformation is then computed from this
    cluster of potential poses, hence the name pose clustering.
 
+   @sa PoseClusteringShiftSuperimposer
+
    @htmlinclude OpenMS_PoseClusteringAffineSuperimposer.parameters
 
    @ingroup MapAlignment

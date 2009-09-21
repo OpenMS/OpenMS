@@ -62,7 +62,7 @@ namespace OpenMS
 		transformations.clear();
 		transformations.resize(maps.size());
 
-		const UInt max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
+		const Int max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		//define reference map (the one with most peaks)
@@ -134,8 +134,8 @@ namespace OpenMS
 
 				// combine the two transformations
 				transformations[i].setName("linear");
-				transformations[i].setParam("slope",si_trafos[0].getParam("slope")*trafo.getParam("slope"));
-				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
+				transformations[i].setParam("slope",(DoubleReal)si_trafos[0].getParam("slope")*(DoubleReal)trafo.getParam("slope"));
+				transformations[i].setParam("intercept",(DoubleReal)trafo.getParam("slope")*(DoubleReal)si_trafos[0].getParam("intercept")+(DoubleReal)trafo.getParam("intercept"));
 
 				// apply transformation to all scans
 				for (Size j=0; j< maps[i].size(); ++j)
@@ -233,8 +233,8 @@ namespace OpenMS
 
 				// combine the two transformations
 				transformations[i].setName("linear");
-				transformations[i].setParam("slope",si_trafos[0].getParam("slope")*trafo.getParam("slope"));
-				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
+				transformations[i].setParam("slope",(DoubleReal)si_trafos[0].getParam("slope")*(DoubleReal)trafo.getParam("slope"));
+				transformations[i].setParam("intercept",(DoubleReal)trafo.getParam("slope")*(DoubleReal)si_trafos[0].getParam("intercept")+(DoubleReal)trafo.getParam("intercept"));
 
 				// apply transformation (global and local)
 #if 1 // do it the new way - "deep"

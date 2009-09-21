@@ -88,10 +88,10 @@ namespace OpenMS
     defaults_.setMinFloat("max_scaling",1.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-      "A serial number for each invocation will be added automatically.", StringList::create("advanced"));
+      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-      "A serial number for each invocation will be added automatically.", StringList::create("advanced"));
+      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaultsToParam_();
     return;
@@ -158,7 +158,7 @@ namespace OpenMS
     const PeakPointerArray_ & scene_map(scene_map_ini);
     {
       // truncate the data as necessary
-      const Size num_used_points = (Int) param_.getValue("num_used_points"); // I am not to blame for this extra conversion (Clemens)
+      const Size num_used_points = param_.getValue("num_used_points");
       if ( model_map_ini.size() > num_used_points )
       {
         model_map_ini.sortByIntensity(true);
@@ -173,7 +173,7 @@ namespace OpenMS
       }
       scene_map_ini.sortByComparator(Peak2D::MZLess());
       setProgress(++actual_progress);
-      // model_map_ini and scene_map_ini will not be used further below
+      // Note: model_map_ini and scene_map_ini will not be used further below
     }
     setProgress((actual_progress = 10));
 
@@ -255,7 +255,6 @@ namespace OpenMS
     // To speed up the calculation of the final transformation, we confine the number of
     // considered point pairs.  We match a point p in the model map only onto those points p'
     // in the scene map that lie in a certain mz interval.
-    // If  (p_mz - mz_pair_max_distance_) <= p'_mz <= (p_mz + mz_pair_max_distance_) then p and p' are partners.
 
     VV_(rt_pair_min_distance);
 

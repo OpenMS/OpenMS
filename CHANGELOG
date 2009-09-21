@@ -27,6 +27,8 @@ Detailed list of changes to specific OpenMS classes
 - IDMapper:
   - uses bounding boxes of mass traces instead of convex hulls now
   - the given deltas are used for features with convex hulls as well
+- PoseClusteringShiftSuperimposer:
+  - full rewrite, uses a similar algorithm like PoseClusteringAffineSuperimposer now
  
 Changes to OpenMS XML formats:
 
