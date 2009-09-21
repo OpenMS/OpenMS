@@ -93,11 +93,13 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
 
   std::vector<TransformationDescription> transformations;
   PoseClusteringShiftSuperimposer pcat;
-  Param params;
+#if 0 // switch this on for debugging
+	Param params;
   params.setValue("dump_buckets","tmp_PoseClusteringShiftSuperimposer_buckets");
   params.setValue("dump_pairs","tmp_PoseClusteringShiftSuperimposer_pairs");
   pcat.setParameters(params);
-  pcat.run(input,transformations);
+#endif
+	pcat.run(input,transformations);
   
 	TEST_EQUAL(transformations.size(),1)
   TEST_STRING_EQUAL(transformations[0].getName(),"linear")
