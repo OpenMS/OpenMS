@@ -29,7 +29,7 @@
 #include <stack>
 #include <fstream>
 #include <cmath>
-#include <cstring> // aaaah
+#include <cstring>
 #include <algorithm>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>

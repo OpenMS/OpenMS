@@ -32,7 +32,8 @@
 
 #include <algorithm>
 
-#include <seqan/index.h> 
+#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+
 
 using namespace OpenMS;
 using namespace std;

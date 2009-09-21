@@ -25,6 +25,7 @@ Map.h
 MassExplainer.h
 Matrix.h
 Param.h
+SeqanIncludeWrapper.h
 SparseVector.h
 String.h
 StringList.h
