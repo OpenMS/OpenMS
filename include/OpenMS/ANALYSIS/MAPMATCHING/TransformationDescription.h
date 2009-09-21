@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H
@@ -43,10 +43,7 @@ namespace OpenMS
 	- none : \f$ f(x) = x \f$
 	- linear : \f$ f(x) = \textit{intercept} + \textit{slope} * x \f$
 	- interpolated_linear : Linear interpolation between pairs, extrapolation using first and last pair. At least two pairs must be given.
-	- interpolated_cubic : Like interpolated_linear but cubic (?). <i>Not yet implemented!</i>
-		
-	You can also use transformation names not listed above, but you cannot apply
-	the tranformation using this class then.
+	- b_spline : Smoothing cubic B-spline.
 		
 	Additionally corresponding coordinate pairs can be stored, e.g.
 	to describe transformations that cannot be expressed as a simple function.
@@ -119,25 +116,41 @@ namespace OpenMS
 		{
 			pairs_ = pairs;
 		}
+
+    /**
+    @brief Convenience method for const access to parameters
+
+    @exception Exception::ElementNotFound is thrown if the parameter does not exist.
+    */
+    const DataValue& getParam(const String& name) const
+    {
+      return param_.getValue(name);
+    }
+
+    /// Convenience method to set double parameters
+    void setParam(const String& name, DoubleReal value)
+    {
+      delete trafo_;
+      trafo_ = 0;
+      param_.setValue(name,value);
+    }
 			
-		/**
-		@brief Convenience method to access double parameters
-					
-		@exception Exception::ElementNotFound is thrown if the parameter does not exist.
-		*/
-		DoubleReal getParam(const String& name) const
-		{
-			return param_.getValue(name);
-		}
-				
-		/// Convenience method to set double parameters
-		void setParam(const String& name, DoubleReal value)
+		/// Convenience method to set Int parameters
+		void setParam(const String& name, Int value)
 		{
 			delete trafo_;
 			trafo_ = 0;
 			param_.setValue(name,value);
 		}
 				
+    /// Convenience method to set String parameters
+    void setParam(const String& name, const String& value)
+    {
+      delete trafo_;
+      trafo_ = 0;
+      param_.setValue(name,value);
+    }
+
 		/**
 		@brief Apply the transformation to @p value.
 					 
@@ -170,9 +183,15 @@ namespace OpenMS
 		We could precompute slopes for each segment, but it is not clear if this
 		will pay off.)  </li>
 
+		<li>BSpline_ : Smoothing B-Spline transformation.  In between the
+    pairs, the transformation function is given by a cubic B-spline
+    approximating the pairs.  The number of breakpoints is given as a parameter.
+    Below and above the range spanned by the pairs, we extrapolate using a line through
+    the last point having the same slope as the spline at the last point, respectively.</li>
+
 		</ul>
 
-		(The derived classes are defined in TransformationDescription.C .)
+		(Note: The derived classes are defined in TransformationDescription.C .)
 		*/
 		struct OPENMS_DLLAPI Trafo_
 		{
@@ -210,6 +229,9 @@ namespace OpenMS
 		
 		/// See Trafo_ for documentation
 		struct InterpolatedLinear_;
+
+		/// See Trafo_ for documentation
+		struct BSpline_;
 		
 	};
 

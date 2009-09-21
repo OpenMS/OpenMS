@@ -163,6 +163,11 @@ namespace OpenMS
 			{
 				param_.setValue(attributeAsString_(attributes,"name"),String(attributeAsString_(attributes,"value")));
 			}
+			else
+			{
+			  error(LOAD, String("Unsupported parameter type: '")+type+"'");
+			}
+
 		}
 		else if ( element == "Pairs" )
 		{
@@ -171,6 +176,10 @@ namespace OpenMS
 		else if ( element == "Pair" )
 		{
 			pairs_.push_back(make_pair((Real)attributeAsDouble_(attributes,"from"),(Real)attributeAsDouble_(attributes,"to")));
+		}
+		else
+		{
+		  warning(LOAD,String("Unknown element: '")+element+"'");
 		}
 	}
 	

@@ -104,6 +104,13 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	trafo_xml.load(tmp_file_none,trafo2);
 	TEST_STRING_EQUAL(trafo2.getName(),"none");
 	TEST_EQUAL(trafo2.getParameters().empty(),true);
+	{
+    // The actual transformation will be constructed when it is applied for the first time, so let us try this out.
+	  DoubleReal pre_image = 234255132.43212;
+	  DoubleReal image = pre_image;
+	  trafo.apply(image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+	}
 	
 	String tmp_file_linear;
 	NEW_TMP_FILE(tmp_file_linear);
@@ -117,6 +124,13 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	TEST_EQUAL(trafo2.getParameters().size(),2);
 	TEST_REAL_SIMILAR(trafo2.getParam("slope"),3.141592653589793238);
 	TEST_REAL_SIMILAR(trafo2.getParam("intercept"),2.718281828459045235);
+  {
+    // The actual transformation will be constructed when it is applied for the first time, so let us try this out.
+    DoubleReal pre_image = 234255132.43212;
+    DoubleReal image = pre_image;
+    trafo.apply(image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
 
 	String tmp_file_pairs;
 	NEW_TMP_FILE(tmp_file_pairs);
@@ -138,6 +152,64 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	TEST_REAL_SIMILAR(trafo2.getPairs()[0].second,5.2);
 	TEST_REAL_SIMILAR(trafo2.getPairs()[1].second,6.25);
 	TEST_REAL_SIMILAR(trafo2.getPairs()[2].second,7.3);
+
+	trafo.setName("interpolated_linear");
+  {
+    // The actual transformation will be constructed when it is applied for the first time, so let us try this out.
+    DoubleReal pre_image = 234255132.43212;
+    DoubleReal image = pre_image;
+    trafo.apply(image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
+
+  trafo.setName("mumble_pfrwoarpfz");
+  {
+    // The actual transformation will be constructed when it is applied for the first time, so let us try this out.
+    DoubleReal pre_image = 234255132.43212;
+    DoubleReal image = pre_image;
+    TEST_EXCEPTION(Exception::IllegalArgument,trafo.apply(image));
+  }
+
+	String tmp_file_bspline;
+	NEW_TMP_FILE(tmp_file_bspline);
+	trafo.clear();
+	trafo.setName("b_spline");
+  trafo.setParam("num_breakpoints", 4);
+  pairs.clear();
+  pairs.push_back(make_pair(1.2,5.2));
+  pairs.push_back(make_pair(3.2,7.3));
+  pairs.push_back(make_pair(2.2,6.25));
+  pairs.push_back(make_pair(2.2,3.1));
+  pairs.push_back(make_pair(2.2,7.25));
+  pairs.push_back(make_pair(3.0,8.5));
+  pairs.push_back(make_pair(3.1,4.7));
+  pairs.push_back(make_pair(1.7,6));
+  pairs.push_back(make_pair(2.9,4.7));
+  pairs.push_back(make_pair(4.2,5.0));
+  pairs.push_back(make_pair(3.7,-2.4));
+  trafo.setPairs(pairs);
+  trafo_xml.store(tmp_file_pairs,trafo);
+  trafo_xml.load(tmp_file_pairs,trafo2);
+  TEST_STRING_EQUAL(trafo2.getName(),"b_spline");
+  TEST_EQUAL(trafo2.getParam("num_breakpoints"),4);
+  TEST_EQUAL(trafo2.getParameters().size(),1);
+  TEST_EQUAL(trafo2.getPairs().size(),11);
+  TEST_REAL_SIMILAR(trafo2.getPairs()[0].first,1.2);
+  TEST_REAL_SIMILAR(trafo2.getPairs()[0].second,5.2);
+  TEST_REAL_SIMILAR(trafo2.getPairs()[10].first,3.7);
+  TEST_REAL_SIMILAR(trafo2.getPairs()[10].second,-2.4);
+  for ( Int breaks = 0; breaks < 10; ++breaks)
+  {
+    if ( breaks == 1) continue;
+    trafo.setParam("num_breakpoints", breaks);
+    // The actual transformation will be constructed when it is applied for the first time, so let us try this out.
+    DoubleReal pre_image = 234255132.43212;
+    DoubleReal image = pre_image;
+    STATUS("breaks: " << breaks);
+    trafo.apply(image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
+
 }
 END_SECTION
 
