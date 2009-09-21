@@ -27,9 +27,11 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;
 using namespace std;
 
@@ -42,13 +44,16 @@ using namespace std;
 	
 	@brief Performs an internal calibration on an MS experiment.
 	
-	This is a simple calibration method: given a list of reference masses and an MS experiment, 
-	the relative errors of the peaks in the data are approximated by linear interpolation and
-	subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
-	be present in each scan, otherwise the scan can't be calibrated. If the input file contains
-	raw data, an additional peak picking step is performed.
+	This a simple calibration method: given a list of reference masses and an MS experiment, 
+	the relative errors of the peaks in the data are approximated by linear regression and
+	subtracted from the data. The user can choose whether the calibration function shall be
+	calculated for each spectrum separately or once for the whole map.
+	If this is done scanwise, at least two reference masses need to
+	be present in each scan to calculate the calibration function,
+	otherwise the spectrum can't be calibrated.
+	For the global calibration it is also possible to use a list of (significant) peptide identifications.
 	
-	@note The default input is raw data, if you have peak data, please use the flag peak_data.
+	@note The tool assumes the input data is already picked.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_InternalCalibration.cli
@@ -74,33 +79,30 @@ class TOPPInternalCalibration
 		 setValidFormats_("in",StringList::create("mzML"));
 		 registerOutputFile_("out","<file>","","output file ");
 	   setValidFormats_("out",StringList::create("mzML"));
-		 registerInputFile_("ref_masses","<file>","","input file containing reference masses (one per line)",true);
-		 registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
+		 registerInputFile_("ref_peaks","<file>","","input file containing reference m/z values (either as textfile with one m/z per line and no header or as IdXML file)",true);
+		 registerStringOption_("type","<calibration type>","spectrumwise","The kind of internal calibration that should be applied.");
+	   setValidStrings_("type",StringList::create("spectrumwise,global"));
 		 addEmptyLine_();
-		 addText_("If you want to calibrate raw data, it is necessary to perform a peak picking step before the "
-							"actual calibration is done. The parameters for the peak picking step can be given "
-							"given in the 'algorithm' part of INI file in the subsection PeakPicker.");
 		 addEmptyLine_();
-		 registerSubsection_("algorithm","Settings for the peak picking step.");
+		 registerSubsection_("algorithm","Settings for the internal calibration.");
 	 }
 	 
 	 Param getSubsectionDefaults_(const String& /* section*/) const
 	 {
 		 Param tmp;
-		 tmp.insert("PeakPicker:",PeakPickerCWT().getDefaults());
+		 tmp.insert("",InternalCalibration().getDefaults());
 		 return tmp;
 	 }
-	 
-	 
+
 	 ExitCodes main_(int , const char**)
 	 {
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-		
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
-		String ref = getStringOption_("ref_masses");
+		String ref = getStringOption_("ref_peaks");
+		String type = getStringOption_("type");
 		//-------------------------------------------------------------
 		// init InternalCalibration
 		//-------------------------------------------------------------
@@ -112,39 +114,46 @@ class TOPPInternalCalibration
 		//-------------------------------------------------------------
 		// loading input
 		//-------------------------------------------------------------
-		MSExperiment<Peak1D > ms_exp_raw;
-		
+
+		// get reference m/z values
+		std::vector<PeptideIdentification> pep_ids;
+		vector<DoubleReal> ref_masses;		
+		bool ids = FileHandler().getTypeByContent(ref) == FileTypes::IDXML;
+		if(ids)
+		{
+			std::vector<ProteinIdentification> prot_ids;
+			IdXMLFile().load(ref,prot_ids,pep_ids);
+		}
+		else
+		{
+			TextFile ref_file;
+			ref_file.load(ref,true);
+			for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+			{
+				ref_masses.push_back(atof(iter->c_str()));
+			}
+		}
+
+		MSExperiment<Peak1D > ms_exp_raw,ms_exp_calibrated;
 		MzMLFile mz_data_file;
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp_raw);
 		
-		
-		
-		vector<double> ref_masses;
-		TextFile ref_file;
-		
-		
-		ref_file.load(ref,true);
-		
-		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-		{
-			ref_masses.push_back(atof(iter->c_str()));
-		}
-		
 		//-------------------------------------------------------------
 		// perform calibration
 		//-------------------------------------------------------------
-		
-		calib.calibrate(ms_exp_raw,ref_masses,getFlag_("peak_data"));
+		if(type == "spectrumwise")	calib.calibrateMapSpectrumwise(ms_exp_raw,ms_exp_calibrated,ref_masses);
+		else if(ids) calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,pep_ids);
+		else calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,ref_masses);
 		
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
 		
 		//annotate output with data processing info
-		addDataProcessing_(ms_exp_raw, getProcessingInfo_(DataProcessing::CALIBRATION));
+		addDataProcessing_(ms_exp_calibrated, getProcessingInfo_(DataProcessing::CALIBRATION));
 		
-		mz_data_file.store(out,ms_exp_raw);
+		mz_data_file.store(out,ms_exp_calibrated);
 		
 		return EXECUTION_OK;
   }

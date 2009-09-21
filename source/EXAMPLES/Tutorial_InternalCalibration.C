@@ -9,7 +9,7 @@ using namespace std;
 Int main()
 {
   InternalCalibration ic;
-  PeakMap exp_raw;
+  PeakMap exp_raw,exp_calibrated;
   MzMLFile mzml_file;
   mzml_file.load("data/Tutorial_InternalCalibration.mzML",exp_raw);
 
@@ -22,7 +22,7 @@ Int main()
   param.setValue("PeakPicker:peak_width",0.15);
   ic.setParameters(param);
   
-  ic.calibrate(exp_raw,ref_masses);
+  ic.calibrateMapSpectrumwise(exp_raw,exp_calibrated,ref_masses);
   
   return 0;
 } //end of main

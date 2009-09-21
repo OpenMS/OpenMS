@@ -36,100 +36,85 @@ namespace OpenMS
 		:DefaultParamHandler("InternalCalibration"),
 		 ProgressLogger()
 	{
-		defaults_.setValue("window_length",5.0,"In a window of this radius around each reference mass peaks are picked.");
-		subsections_.push_back("PeakPicker");
+		defaults_.setValue("mz_tolerance",1.,"Allowed tolerance between peak and reference m/z.");
+		defaults_.setMinFloat("mz_tolerance",0.);
+		defaults_.setValue("mz_tolerance_unit","Da","Unit for mz_tolerance.");
+		defaults_.setValidStrings("mz_tolerance_unit",StringList::create("Da,ppm"));
+		defaults_.setValue("hires:percentage",30,"Percentage of spectra a signal has to appear in to be considered as background signal.");
 		defaultsToParam_();
-		updateMembers_();
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
 		: DefaultParamHandler(obj),
 			ProgressLogger(obj),
-		  exp_peaks_(obj.exp_peaks_),
 			monoiso_peaks_(obj.monoiso_peaks_)
-  {
-	
-  }
+  {}
   
   InternalCalibration& InternalCalibration::operator=(const InternalCalibration& obj)
   {
 		// take care of self assignments
     if (this == &obj)		return *this;
 		DefaultParamHandler::operator=(obj);
-
-		exp_peaks_=obj.exp_peaks_;
 		monoiso_peaks_=obj.monoiso_peaks_;
     return *this;
-
   }
 
-
-	void InternalCalibration::updateMembers_()
-  {
-		window_length_ = (float)param_.getValue("window_length");
-	}
-
-	void InternalCalibration::getMonoisotopicPeaks_()
+	void InternalCalibration::checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids)
 	{
-		
-		MSExperiment<>::iterator spec_iter = exp_peaks_.begin();
-		MSExperiment<>::SpectrumType::iterator peak_iter, help_iter;
+		 for(Size p_id = 0; p_id < pep_ids.size();++p_id)
+		 {
+				 if(pep_ids[p_id].getHits().size() > 1)
+				 {
+						 throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "InternalCalibration: Your Id-file contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits.");
+				 }
+				 if(!pep_ids[p_id].metaValueExists("RT"))
+				 {
+						 throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "InternalCalibration: meta data value 'RT' missing for peptide identification!"); 
+				 } 
+				 if(!pep_ids[p_id].metaValueExists("MZ"))
+				 {
+						 throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "InternalCalibration: meta data value 'MZ' missing for peptide identification!"); 
+				 }
+		 }
+	}	 
+
+
+	void InternalCalibration::makeLinearRegression_(std::vector<DoubleReal>& observed_masses, std::vector<DoubleReal>& theoretical_masses)
+	{
+			if(observed_masses.size() != theoretical_masses.size())
+			{
+					throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Number of observed and theoretical masses must agree."); 
+			}
 #ifdef DEBUG_CALIBRATION
-		spec_iter = exp_peaks_.begin();
-		std::cout << "\n\nbefore---------\n\n";
-		// iterate through all spectra
-		for(;spec_iter != exp_peaks_.end();++spec_iter)
-			{
-				peak_iter = spec_iter->begin();
-				// go through current scan
-				for(;peak_iter != spec_iter->end();++peak_iter)
-					{
-						std::cout << peak_iter->getMZ() << std::endl;
-					}
-			}
-
+			std::ofstream out("calibration_regression.txt");
 #endif
-		spec_iter = exp_peaks_.begin();
-		// iterate through all spectra
-		for(;spec_iter != exp_peaks_.end();++spec_iter)
+			std::vector<DoubleReal> rel_errors(observed_masses.size(),0.);
+			// determine rel error in ppm for the two reference masses
+			for(Size ref_peak=0; ref_peak < observed_masses.size();++ref_peak)
 			{
-				peak_iter = spec_iter->begin();
-				help_iter = peak_iter;
-				std::vector<unsigned int> vec;
-				// go through current scan
-				while(peak_iter < spec_iter->end())
-					{
-						while(peak_iter+1 < spec_iter->end() && ( (peak_iter+1)->getMZ() - peak_iter->getMZ() < 1.2) )
-							{
-								++peak_iter;
-							}
-						
-						vec.push_back(distance(spec_iter->begin(),help_iter));
-					
-						help_iter = peak_iter+1;
-						++peak_iter;
-						
-					}
-					monoiso_peaks_.push_back(vec);
-
-			}
-		
+				rel_errors[ref_peak] = (theoretical_masses[ref_peak]-observed_masses[ref_peak])/theoretical_masses[ref_peak] * 1e6;
 #ifdef DEBUG_CALIBRATION
-
-		
-		std::cout << "\n\nafter---------\n\n";
-
-		for(unsigned int i=0;i<monoiso_peaks_.size();++i)
-			{
-				for(unsigned int j=0;j<monoiso_peaks_[i].size();++j)
-					{
-						std::cout << ( (exp_peaks_.begin() + +i)->begin() + (monoiso_peaks_[i])[j])->getMZ() << std::endl;
-					}
-				std::cout << "--------------\n";
-						
-			}
-		std::cout << "--------------\n\n\n";
+				out << observed_masses[ref_peak] << "\t"<< rel_errors[ref_peak] << "\n";
 #endif
+			}
+
+			DoubleReal cov00, cov01, cov11, sumsq, slope,intercept;
+			// TODO: what exactly is stride?? used 1 here as in the gsl-example :)
+			gsl_fit_linear (&(observed_masses[0]), 1, &(rel_errors[0]), 1, observed_masses.size(), &intercept,&slope,&cov00,&cov01,&cov11,&sumsq);
+			
+
+			trafo_.setName("linear");
+			trafo_.setParam("slope",slope);
+			trafo_.setParam("intercept",intercept);
+
+//#ifdef DEBUG_CALIBRATION
+  	  printf ("# best fit: Y = %g + %g X\n", intercept, slope);
+      printf ("# covariance matrix:\n");
+      printf ("# [ %g, %g\n#   %g, %g]\n", 
+               cov00, cov01, cov01, cov11);
+      printf ("# sumsq = %g\n", sumsq);
+//#endif
 	}
-	
+
 }
+
