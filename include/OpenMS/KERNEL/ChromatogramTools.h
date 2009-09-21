@@ -44,7 +44,6 @@ namespace OpenMS
 		
 		@ingroup Kernel
 	*/
-	//template <typename ChromatogramT = MSChromatogram<>, typename ExperimentT = MSExperiment<> >
 	class ChromatogramTools
 	{
 
@@ -78,10 +77,49 @@ namespace OpenMS
           each data point. The disadvantage of storing chromatograms in spectra is its
           exhaustive memory consumption.
       */
-			template<typename ChromatogramType, typename ExperimentType>
-      void convertChromatogramsToSpectra(ExperimentType& exp, const std::vector<ChromatogramType>& chromatograms)
+			template<typename ExperimentType>
+      void convertChromatogramsToSpectra(ExperimentType& exp)
       {
+				for (std::vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+				{
+					// for each peak add a new spectrum
+					for (typename ExperimentType::ChromatogramType::const_iterator pit = it->begin(); pit != it->end(); ++pit)
+					{
+						typename ExperimentType::SpectrumType spec;
 
+						// add precursor and product peaks to spectrum settings
+						spec.getPrecursors().push_back(it->getPrecursor());
+						spec.getProducts().push_back(it->getProduct());
+						spec.setRT(pit->getRT());
+						spec.setMSLevel(2);
+						spec.setInstrumentSettings(it->getInstrumentSettings());
+						spec.setAcquisitionInfo(it->getAcquisitionInfo());
+						spec.setSourceFile(it->getSourceFile());
+
+						// TODO implement others
+						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+						{
+							spec.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+						}
+						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
+						{
+							spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+						}
+
+						
+						// new spec contains one peak, with product m/z and intensity
+						typename ExperimentType::PeakType peak;
+						peak.setMZ(it->getMZ());
+						peak.setIntensity(pit->getIntensity());
+						spec.push_back(peak);
+						
+						exp.push_back(spec);
+					}
+				}
+
+				exp.setChromatograms(std::vector<MSChromatogram<> >());
+
+				return;
       }
 
       /** @brief converts e.g. SRM spectra to chromatograms
@@ -93,13 +131,14 @@ namespace OpenMS
 
 					If @param remove_spectra is set to true, the chromatogram spectra are removed from the experiment
       */
-			template<typename ChromatogramType, typename ExperimentType>
-      void convertSpectraToChromatograms(std::vector<ChromatogramType>& chromatograms, ExperimentType& exp, bool remove_spectra = false)
+			template<typename ExperimentType>
+      void convertSpectraToChromatograms(ExperimentType& exp, bool remove_spectra = false)
       {
 				typedef typename ExperimentType::SpectrumType SpectrumType;
 				Map<DoubleReal, Map<DoubleReal, std::vector<SpectrumType> > > chroms;
 				for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 				{
+					// TODO other types
 					if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::SRM)
 					{
 						// exactly one precursor and one product ion
@@ -120,7 +159,7 @@ namespace OpenMS
 					typename Map<DoubleReal, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
 					for (; it2 != it1->second.end(); ++it2)
 					{
-						ChromatogramType chrom;
+						typename ExperimentType::ChromatogramType chrom;
 						chrom.setPrecursor(*it2->second.begin()->getPrecursors().begin());
 						Product prod;
 						prod.setMZ(it2->first);
@@ -132,15 +171,15 @@ namespace OpenMS
 						typename std::vector<SpectrumType>::const_iterator it3 = it2->second.begin();
 						for (; it3 != it2->second.end(); ++it3)
 						{
-							typename ChromatogramType::PeakType p;
+							typename ExperimentType::ChromatogramType::PeakType p;
 							p.setRT(it3->getRT());
 							p.setIntensity(it3->begin()->getIntensity());
 							chrom.push_back(p);
 						}
 
-						chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID()); // TODO native id of spectra?
+						chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID()); // TODO native id?
 						chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-						chromatograms.push_back(chrom);
+						exp.addChromatogram(chrom);
 					}
 				}
 

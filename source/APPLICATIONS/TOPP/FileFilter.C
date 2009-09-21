@@ -254,7 +254,7 @@ class TOPPFileFilter
 					// convert the spectra chromatograms to real chromatograms
 					ChromatogramTools chrom_tools;
 					vector<MSChromatogram<> > chromatograms;
-					chrom_tools.convertSpectraToChromatograms(chromatograms, exp, true);
+					chrom_tools.convertSpectraToChromatograms(exp, true);
 					exp.setChromatograms(chromatograms);
 				}
 

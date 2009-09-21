@@ -8,7 +8,7 @@
 	<featureList count="5">
 		<feature id="f_0">
 			<position dim="0">1617.00718131249</position>
-			<position dim="1">656.356</position>
+			<position dim="1">656.356994628906</position>
 			<intensity>3.91214e+06</intensity>
 			<quality dim="0">0.994226247090375</quality>
 			<quality dim="1">0</quality>
@@ -34,20 +34,19 @@
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1553.96</hposition>
-					<hposition dim="1">656.356</hposition>
+					<hposition dim="1">656.356994628906</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1755.86</hposition>
-					<hposition dim="1">656.356</hposition>
+					<hposition dim="1">656.356994628906</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="443.707"/>
-			<userParam type="int" name="spectrum_index" value="1372"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=1373"/>
+			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">2152.26572764145</position>
-			<position dim="1">722.403</position>
+			<position dim="1">722.403991699219</position>
 			<intensity>1.57211e+07</intensity>
 			<quality dim="0">0.996325348297198</quality>
 			<quality dim="1">0</quality>
@@ -73,20 +72,19 @@
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2130.65</hposition>
-					<hposition dim="1">722.403</hposition>
+					<hposition dim="1">722.403991699219</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">2258.03</hposition>
-					<hposition dim="1">722.403</hposition>
+					<hposition dim="1">722.403991699219</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="461.743"/>
-			<userParam type="int" name="spectrum_index" value="3948"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=3949"/>
+			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">2267.94328782799</position>
-			<position dim="1">722.403</position>
+			<position dim="1">722.403991699219</position>
 			<intensity>7700</intensity>
 			<quality dim="0">0.897967701462977</quality>
 			<quality dim="1">0</quality>
@@ -112,20 +110,19 @@
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2268.43</hposition>
-					<hposition dim="1">722.403</hposition>
+					<hposition dim="1">722.403991699219</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">2284.45</hposition>
-					<hposition dim="1">722.403</hposition>
+					<hposition dim="1">722.403991699219</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="461.743"/>
-			<userParam type="int" name="spectrum_index" value="5129"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=5130"/>
+			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_3">
 			<position dim="0">2299.80627336107</position>
-			<position dim="1">600.33</position>
+			<position dim="1">600.330993652344</position>
 			<intensity>3.27738e+06</intensity>
 			<quality dim="0">0.994916402731772</quality>
 			<quality dim="1">0</quality>
@@ -151,20 +148,19 @@
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2263.37</hposition>
-					<hposition dim="1">600.33</hposition>
+					<hposition dim="1">600.330993652344</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">2455.36</hposition>
-					<hposition dim="1">600.33</hposition>
+					<hposition dim="1">600.330993652344</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="554.256"/>
-			<userParam type="int" name="spectrum_index" value="5581"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=5582"/>
+			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 		<feature id="f_4">
 			<position dim="0">2511.65687358884</position>
-			<position dim="1">600.33</position>
+			<position dim="1">600.330993652344</position>
 			<intensity>2360</intensity>
 			<quality dim="0">0.881388225128449</quality>
 			<quality dim="1">0</quality>
@@ -190,16 +186,15 @@
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">2499.16</hposition>
-					<hposition dim="1">600.33</hposition>
+					<hposition dim="1">600.330993652344</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">2513.47</hposition>
-					<hposition dim="1">600.33</hposition>
+					<hposition dim="1">600.330993652344</hposition>
 				</hullpoint>
 			</convexhull>
 			<userParam type="float" name="MZ" value="554.256"/>
-			<userParam type="int" name="spectrum_index" value="8334"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=8335"/>
+			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>

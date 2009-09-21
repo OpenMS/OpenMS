@@ -186,6 +186,8 @@ class TOPPFileConverter
 			
 			MzDataFile f;
 			f.setLogType(log_type_);
+			MSExperimentType exp2 = exp;
+			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp2);
 			f.store(out,exp);
 		}
 		else if (out_type == FileTypes::MZXML)
@@ -195,7 +197,9 @@ class TOPPFileConverter
 			
 			MzXMLFile f;
 			f.setLogType(log_type_);
-			f.store(out,exp);
+			MSExperimentType exp2 = exp;
+			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp2);
+			f.store(out,exp2);
 		}
 		else if (out_type == FileTypes::DTA2D)
 		{
@@ -204,6 +208,8 @@ class TOPPFileConverter
 			
 			DTA2DFile f;
 			f.setLogType(log_type_);
+			MSExperimentType exp2 = exp;
+			ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp2);
 			f.store(out,exp);
 		}
 		else if (out_type == FileTypes::FEATUREXML)

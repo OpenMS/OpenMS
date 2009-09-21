@@ -110,7 +110,7 @@ namespace OpenMS
 			
 			/// Main method for actual FeatureFinder
 			virtual void run()
-			{
+				{
 				//-------------------------------------------------------------------------
 				//General initialization
 				//-------------------------------------------------------------------------
@@ -132,6 +132,11 @@ namespace OpenMS
 				bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
 				bool write_debug_files(param_.getValue("write_debug_files").toBool());
 				bool resample_traces(param_.getValue("resample_traces").toBool());
+
+				if (write_debuginfo)
+				{
+					std::cerr << "Starting feature finding #chromatograms=" << map_->getChromatograms().size() << ", #spectra=" << map_->size() << std::endl;
+				}
 
 				typename std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
 				for (; first_it != map_->getChromatograms().end(); ++first_it)
@@ -355,10 +360,10 @@ namespace OpenMS
 
 								// create the feature according to fit
 								f.setRT((DoubleReal)model_rt->getParameters().getValue("emg:retention"));
-								f.setMZ((DoubleReal)first_it->getPrecursor().getMZ());
+								f.setMZ((DoubleReal)first_it->getProduct().getMZ());
 								f.setIntensity(intensity_sum);
 								f.getConvexHulls().push_back(hull_points);
-								f.setMetaValue("MZ", (DoubleReal)first_it->getProduct().getMZ());
+								f.setMetaValue("MZ", (DoubleReal)first_it->getPrecursor().getMZ());
 
 
 								// add the model to the feature

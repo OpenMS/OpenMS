@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #ifdef USE_ANDIMS
@@ -159,6 +160,7 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
+						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
 						return true;
 					}
 					break;
@@ -168,6 +170,7 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
+						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
 						return true;
 					}
 					break;
@@ -177,6 +180,7 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
+						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
 						return true;
 					}
 					break;
@@ -240,7 +244,9 @@ namespace OpenMS
 						MzXMLFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						f.store(filename,exp);
+						MSExperiment<PeakType> exp2 = exp;
+						ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+						f.store(filename,exp2);
 					}
 					break;
 				case FileTypes::MZDATA:
@@ -248,7 +254,9 @@ namespace OpenMS
 						MzDataFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						f.store(filename,exp);
+						MSExperiment<PeakType> exp2 = exp;
+						ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+						f.store(filename,exp2);
 					}
 					break;
 				default:
