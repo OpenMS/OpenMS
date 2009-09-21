@@ -299,9 +299,9 @@ START_SECTION((operator float() const))
 END_SECTION
 
 START_SECTION((operator int() const ))
-	DataValue d((Int) 55);
+	DataValue d((Int) -55);
 	int k = d;
-	TEST_EQUAL(k,55)
+	TEST_EQUAL(k,-55)
 
   TEST_EXCEPTION(Exception::ConversionError, (int)DataValue(55.4))
 END_SECTION
@@ -316,9 +316,9 @@ START_SECTION((operator unsigned int() const ))
 END_SECTION
 
 START_SECTION((operator short int() const))
-	DataValue d((short int) 55);
+	DataValue d((short int) -55);
 	short int k = d;
-	TEST_EQUAL(k,55)
+	TEST_EQUAL(k,-55)
 
   TEST_EXCEPTION(Exception::ConversionError, (short int)DataValue(55.4))
 END_SECTION
@@ -333,9 +333,9 @@ START_SECTION((operator unsigned short int() const))
 END_SECTION
 
 START_SECTION((operator long int() const))
-	DataValue d((long int) 55);
+	DataValue d((long int) -55);
 	long int k = d;
-	TEST_EQUAL(k,55)
+	TEST_EQUAL(k,-55)
 
   TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
 END_SECTION

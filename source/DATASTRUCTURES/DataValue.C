@@ -234,7 +234,7 @@ namespace OpenMS
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to double");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to long double");
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
@@ -260,7 +260,7 @@ namespace OpenMS
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to Real");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to float");
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
@@ -273,7 +273,7 @@ namespace OpenMS
 	{
 		if (value_type_ != INT_VALUE)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to short int");
 		}
 		return data_.int_;
 	}
@@ -286,7 +286,7 @@ namespace OpenMS
 		}
 		if (data_.int_ < 0.0)
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned short int");
 		}
 		return abs(data_.int_);
 	}
@@ -295,7 +295,7 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to int");
     }
     return data_.int_;
   }
@@ -304,11 +304,11 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to unsigned int");
     }
     if (data_.int_ < 0.0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned int");
     }
     return abs(data_.int_);
   }
@@ -317,7 +317,7 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to long int");
     }
     return data_.int_;
   }
@@ -326,11 +326,11 @@ namespace OpenMS
 	{
 		if (value_type_ != INT_VALUE)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to unsigned long int");
 		}
 		if (data_.int_ < 0.0)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned long int");
 		}
 		return abs(data_.int_);
 	}
@@ -441,11 +441,11 @@ namespace OpenMS
 		{
 			switch(a.value_type_) 
 			{
-				case DataValue::EMPTY_VALUE: return true;
+				case DataValue::EMPTY_VALUE: return b.value_type_== DataValue::EMPTY_VALUE;
 	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
 	  		case DataValue::STRING_LIST: return *(a.data_.str_list_) == *(b.data_.str_list_);
-			case DataValue::INT_LIST: return *(a.data_.int_list_) == *(b.data_.int_list_);
-			case DataValue::DOUBLE_LIST: return *(a.data_.dou_list_)==*(b.data_.dou_list_);
+	  		case DataValue::INT_LIST: return *(a.data_.int_list_) == *(b.data_.int_list_);
+	  		case DataValue::DOUBLE_LIST: return *(a.data_.dou_list_)==*(b.data_.dou_list_);
 				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
