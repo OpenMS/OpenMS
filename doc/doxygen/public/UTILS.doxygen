@@ -58,7 +58,6 @@
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
-  - @subpage UTILS_PeptideIndexer - Refreshes the protein references for all peptide hits.
   
     <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
