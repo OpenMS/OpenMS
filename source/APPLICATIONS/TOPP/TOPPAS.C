@@ -196,7 +196,7 @@ int main( int argc, const char** argv )
 	  mw->show();
 
 		// Create the splashscreen that is displayed while the application loads
-		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"),Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"));
 		splash_screen->show();
 		splash_screen->showMessage("Loading parameters");
 		QApplication::processEvents();
