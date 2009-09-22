@@ -158,7 +158,7 @@ namespace OpenMS
     const PeakPointerArray_ & scene_map(scene_map_ini);
     {
       // truncate the data as necessary
-      const Size num_used_points = (Size) (SignedSize) param_.getValue("num_used_points");
+      const Size num_used_points = (Int) param_.getValue("num_used_points");
       if ( model_map_ini.size() > num_used_points )
       {
         model_map_ini.sortByIntensity(true);
