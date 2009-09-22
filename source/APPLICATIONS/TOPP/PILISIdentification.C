@@ -238,7 +238,7 @@ class TOPPPILISIdentification
 
 					map<String, UInt> cand;
 				
-					for (Size z = min_charge; z <= max_charge; ++z)
+					for (UInt z = min_charge; z <= max_charge; ++z)
 					{
 						double pre_weight = (it->getPrecursors()[0].getMZ()* (double)z) - (double)z;
 						for (vector<pair<pair<String, String>, String> >::const_iterator cit = sorted_candidates[pre_weight].begin(); cit != sorted_candidates[pre_weight].end(); ++cit)
