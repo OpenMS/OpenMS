@@ -11,17 +11,17 @@ Int main()
   PeakMap exp;
   
   MzMLFile mzml_file;
-  mzml_file.load("data/Tutorial_MorphologicalFilter.mzML",exp);
+  mzml_file.load("data/Tutorial_MorphologicalFilter.mzML", exp);
 
   Param parameters;
   parameters.setValue("struc_elem_length", 1.0);
-  parameters.setValue("struc_elem_unit","Thomson");
-  parameters.setValue("method","tophat");
+  parameters.setValue("struc_elem_unit", "Thomson");
+  parameters.setValue("method", "tophat");
 
-  MorphologicalFilter th;
-  th.setParameters(parameters);
+  MorphologicalFilter mf;
+  mf.setParameters(parameters);
  
-  th.filterExperiment(exp);
+  mf.filterExperiment(exp);
 
   return 0;
 } //end of main
