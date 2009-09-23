@@ -125,15 +125,15 @@ START_SECTION(void dbPreprocessing(String db_path,String rt_model_path,String dt
  	TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)	
 END_SECTION	
 
-START_SECTION(void DoubleReal getRT(String prot_id,Size peptide_index))
+START_SECTION(DoubleReal getRT(String prot_id,Size peptide_index))
   TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),0.09798)
 END_SECTION
 	
-START_SECTION(void DoubleReal getPT(String prot_id,Size peptide_index))
+START_SECTION(DoubleReal getPT(String prot_id,Size peptide_index))
   TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)
 END_SECTION
 
-START_SECTION(void DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt))
+START_SECTION(DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt))
 	TEST_REAL_SIMILAR(rt_pt_pp.getRTWeight("P01008",1,0.2),99.999)
 END_SECTION
 
