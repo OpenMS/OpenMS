@@ -4,12 +4,16 @@
 ## @param libnames_d List of library names which are searched (debug libs)
 ## @param human_libname Name of the library (for display only) 
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
+	# force find_library to run again
+	SET(${varname}_OPT "${varname}_OPT-NOTFOUND" CACHE FILEPATH "Cleared." FORCE)
 	FIND_LIBRARY(${varname}_OPT NAMES ${libnames} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} library dir" NO_DEFAULT_PATH)
 	if ("${varname}_OPT" STREQUAL "${varname}_OPT-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} library! Searched names are: [${libnames}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
 	else()
 		MESSAGE(STATUS "Found ${human_libname} library (Release) at: " ${${varname}_OPT})
 	endif()
+	# force find_library to run again
+	SET(${varname}_DBG "${varname}_DBG-NOTFOUND" CACHE FILEPATH "Cleared." FORCE)
 	FIND_LIBRARY(${varname}_DBG NAMES ${libnames_d} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} (Debug) library dir" NO_DEFAULT_PATH)
 	if ("${varname}_DBG" STREQUAL "${varname}_DBG-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} (Debug) library! Searched names are: [${libnames_d}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
