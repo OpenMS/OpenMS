@@ -136,8 +136,8 @@ public:
 	/**
 	 *  indicates if these two compomers can coexist for one feature
 	 * @param cmp The other Compomer we compare to
-	 * @param left_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
-	 * @param left_other See above.
+	 * @param side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
+	 * @param side_other See above.
 	 */
 	bool isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
 	{

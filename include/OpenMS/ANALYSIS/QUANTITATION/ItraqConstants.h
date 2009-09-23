@@ -81,7 +81,7 @@ namespace OpenMS
 		/**
 			@brief convert isotope correction matrix to stringlist
 
-			Each line is converted into a string of the format <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' 
+			Each line is converted into a string of the format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0' 
 			Useful for creating parameters or debug output.
 
 			@param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
@@ -92,7 +92,7 @@ namespace OpenMS
 		/**
 			@brief convert strings to isotope correction matrix rows
 
-			Each string of format <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' 
+			Each string of format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0' 
 			is parsed and the corresponding channel(row) in the matrix is updated.
 			Not all channels need to be present, missing channels will be left untouched.
 			Useful to update the matrix with user isotope correction values.
@@ -117,7 +117,7 @@ namespace OpenMS
 			@brief activate & annotate channels
 
 			State and description of iTRAQ channels are updated.
-			Each input string must have the format <channel>:<description>, e.g. "114:myref","115:liver"
+			Each input string must have the format &lt;channel&gt;:&lt;description&gt;, e.g. "114:myref","115:liver"
 
 			@param active_channels StringList with channel and description
 			@param map Storage to update

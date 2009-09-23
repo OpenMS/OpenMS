@@ -559,6 +559,7 @@
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				"include/OpenMS/APPLICATIONS/TOPPASBase.h",
 				"include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
+				"include/OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h",
 				"_registerChildren.h",
 				"DataReducer.h",
 				"SchemaFile.h",

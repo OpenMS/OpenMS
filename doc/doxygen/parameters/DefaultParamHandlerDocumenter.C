@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
@@ -54,6 +54,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -305,6 +308,7 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeFitter1D);
 	DOCME(ExtendedIsotopeModel);
 	DOCME(FalseDiscoveryRate);
+	DOCME(FeatureDeconvolution);
 	DOCME(FeatureGroupingAlgorithmLabeled);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
@@ -318,6 +322,8 @@ int main (int argc , char** argv)
 	DOCME(IsotopeFitter1D);
 	DOCME(IsotopeMarker);
 	DOCME(IsotopeModel);
+	DOCME(ItraqChannelExtractor);
+	DOCME(ItraqQuantifier);
 	DOCME(LabeledPairFinder);
 	DOCME(LinearResampler);
 	DOCME(LmaGaussFitter1D);

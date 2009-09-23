@@ -271,8 +271,12 @@ namespace OpenMS
 				
 		
 		/// search the mass database for explanations
-		/// @param thresh_log_p minimal log probability required
-		/// @return iterator range with candidates according to net_charge and mass
+		/// @param net_charge       net charge of compomer seeked
+		/// @param mass_to_explain  mass in Da that needs explanation
+		/// @param mass_delta       allowed deviation from exact mass
+		/// @param thresh_log_p		  minimal log probability required
+		/// @param firstExplanation begin range with candidates according to net_charge and mass
+		/// @param lastExplanation  end range
 		SignedSize query(const Int net_charge, 
 						  const float mass_to_explain, 
 							const float mass_delta,

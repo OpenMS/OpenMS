@@ -68,7 +68,8 @@ namespace OpenMS
 				
 				@param consensus_map Peptide quantitation with ProteinIdentifications attached, where
 							 Protein quantitation will be attached
-				
+				@param reference_map Index of (iTRAQ) reference channel within the consensus map
+							 
 				@throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
 			*/
 			void infer(ConsensusMap& consensus_map,

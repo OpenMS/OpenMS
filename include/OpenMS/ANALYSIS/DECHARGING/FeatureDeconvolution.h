@@ -56,7 +56,7 @@ namespace OpenMS
 {
   /** 
     @brief An algorithm to decharge features (i.e. as found by FeatureFinder).
-    
+
     @htmlinclude OpenMS_FeatureDeconvolution.parameters	
     
     @ingroup Analysis
@@ -172,9 +172,10 @@ namespace OpenMS
 
       /// compute a zero-charge feature map from a set of charged features (@p map)
 			/// i.e. find putative ChargePairs, then score them and hand over to ILP
-			/// @param map Input feature-map
-			/// @param map Output feature-map (sorted by position and augmented with user params)
-			/// @param cons_map [out] Output of grouped features belonging to a charge group
+			/// @param fm_in  Input feature-map
+			/// @param fm_out Output feature-map (sorted by position and augmented with user params)
+			/// @param cons_map   [out] Output of grouped features belonging to a charge group
+			/// @param cons_map_p [out] Output of paired features connected by an egde
       void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, ConsensusMap &cons_map, ConsensusMap &cons_map_p) 
       {
       
@@ -743,11 +744,16 @@ namespace OpenMS
 
     protected:
 
+			/**
+				@brief 1-sided Compomer for a feature
+				
+				Holds information on an explicit (with H+) 1-sided Compomer of a feature.
+			**/
 			struct CmpInfo_
 			{
-				String s_comp;
-				Size idx_cp;
-				UInt side_cp;
+				String s_comp; //< formula as String
+				Size idx_cp;	 //< index into compomer vector
+				UInt side_cp;	 //< side of parent compomer (LEFT or RIGHT)
 				
 				// C'tor
 				CmpInfo_(): s_comp(), idx_cp(), side_cp() {}
