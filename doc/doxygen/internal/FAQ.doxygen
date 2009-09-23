@@ -378,7 +378,7 @@ svn propset svn:eol-style native MyClass.C
 				@code
 @htmlinclude OpenMS_<class name>.parameters
 				@endcode
-				You can test if everything worked by calling @a make @a paramdoc .
+				You can test if everything worked by calling @a make @a doc_param_internal .
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>How is the command line documentation for TOPP/UTILS tools created?</b><BR>
@@ -388,7 +388,7 @@ svn propset svn:eol-style native MyClass.C
 				@code
 @verbinclude TOPP_<tool name>.cli
 				@endcode
-				You can test if everything worked by calling @a make @a paramdoc .
+				You can test if everything worked by calling @a make @a doc_param_internal .
 				The comand line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>What are the important files for adding a new tutorial section?</b><BR>
