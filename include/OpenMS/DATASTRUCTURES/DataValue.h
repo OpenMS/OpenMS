@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		- To choose one of these types, just use the apropriate constructor.
 		- Automatic conversion is supported and throws Exceptions in case of invalid conversions.
-		- An empty objects is created with the default constructor.
+		- An empty object is created with the default constructor.
 
 		@ingroup Datastructures
 	*/
@@ -91,18 +91,22 @@ namespace OpenMS
 			DataValue(double);
 			/// specific constructor for float values (note: the implementation uses DoubleReal)
 			DataValue(float);
-			/// specific constructor for short int values (note: the implementation uses Int)
+			/// specific constructor for short int values (note: the implementation uses SignedSize)
 			DataValue(short int);
-			/// specific constructor for unsigned short int values (note: the implementation uses Int)
+			/// specific constructor for unsigned short int values (note: the implementation uses SignedSize)
 			DataValue(unsigned short int);
-      /// specific constructor for int values (note: the implementation uses Int)
+      /// specific constructor for int values (note: the implementation uses SignedSize)
       DataValue(int);
-      /// specific constructor for unsigned int values (note: the implementation uses Int)
+      /// specific constructor for unsigned int values (note: the implementation uses SignedSize)
       DataValue(unsigned);
-      /// specific constructor for long int values (note: the implementation uses Int)
+      /// specific constructor for long int values (note: the implementation uses SignedSize)
       DataValue(long int);
-      /// specific constructor for unsigned long int values (note: the implementation uses Int)
+      /// specific constructor for unsigned long int values (note: the implementation uses SignedSize)
       DataValue(unsigned long);
+      /// specific constructor for long long int values (note: the implementation uses SignedSize)
+      DataValue(long long);
+      /// specific constructor for unsigned long long int values (note: the implementation uses SignedSize)
+      DataValue(unsigned long long);
 			/// copy constructor
 			DataValue(const DataValue&);
 			/// destructor
@@ -164,7 +168,7 @@ namespace OpenMS
 			/**
         @brief conversion operator to short int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
         @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
       */
@@ -172,7 +176,7 @@ namespace OpenMS
       /**
         @brief conversion operator to unsigned short int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
         @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
       */
@@ -180,7 +184,7 @@ namespace OpenMS
       /**
 				@brief conversion operator to int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
@@ -188,7 +192,7 @@ namespace OpenMS
 			/**
 				@brief conversion operator to unsigned int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
@@ -196,7 +200,7 @@ namespace OpenMS
 			/**
 				@brief conversion operator to long int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
@@ -204,11 +208,27 @@ namespace OpenMS
 			/**
 				@brief conversion operator to unsigned long int
 
-        Note: The implementation uses typedef Int.
+        Note: The implementation uses typedef SignedSize.
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
 			operator unsigned long int () const;
+			/**
+				@brief conversion operator to long long
+
+        Note: The implementation uses typedef SignedSize.
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator long long () const;
+			/**
+				@brief conversion operator to unsigned long long
+
+        Note: The implementation uses typedef SignedSize.
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator unsigned long long () const;
 			/**
 				@brief Convert DataValues to char*
 
@@ -267,7 +287,7 @@ namespace OpenMS
 			/// Space to store the data
 			union
 			{
- 				Int int_;
+ 				SignedSize ssize_;
 				DoubleReal dou_;
 				String* str_;
 				StringList* str_list_;

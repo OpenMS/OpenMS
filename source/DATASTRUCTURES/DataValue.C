@@ -86,34 +86,44 @@ namespace OpenMS
 	
 	DataValue::DataValue(short int p) : value_type_(INT_VALUE)
 	{
-		data_.int_ = p;
+		data_.ssize_ = p;
 	}
 
 	DataValue::DataValue(unsigned short int p) : value_type_(INT_VALUE)
 	{
-		data_.int_ = p;
+		data_.ssize_ = p;
 	}
 
   DataValue::DataValue(int p) : value_type_(INT_VALUE)
   {
-    data_.int_ = p;
+    data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned int p) : value_type_(INT_VALUE)
   {
-    data_.int_ = p;
+    data_.ssize_ = p;
   }
 
   DataValue::DataValue(long int p) : value_type_(INT_VALUE)
   {
-    data_.int_ = p;
+    data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long int p) : value_type_(INT_VALUE)
 	{
-		data_.int_ = p;
+		data_.ssize_ = p;
 	}
-	
+
+  DataValue::DataValue(long long p) : value_type_(INT_VALUE)
+	{
+		data_.ssize_ = p;
+	}
+
+  DataValue::DataValue(unsigned long long p) : value_type_(INT_VALUE)
+	{
+		data_.ssize_ = p;
+	}
+
 	DataValue::DataValue(const char* p)	:	value_type_(STRING_VALUE)
 	{ 
 		data_.str_ = new String(p);
@@ -238,7 +248,7 @@ namespace OpenMS
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return (long double)(data_.int_);
+		  return (long double)(data_.ssize_);
 		}
 		return data_.dou_; 
 	}
@@ -251,7 +261,7 @@ namespace OpenMS
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return double(data_.int_);
+		  return double(data_.ssize_);
 		}
 		return data_.dou_; 
 	}
@@ -264,7 +274,7 @@ namespace OpenMS
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return float(data_.int_);
+		  return float(data_.ssize_);
 		}
 		return data_.dou_; 
 	}
@@ -275,7 +285,7 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to short int");
 		}
-		return data_.int_;
+		return data_.ssize_;
 	}
 
 	DataValue::operator unsigned short int() const
@@ -284,11 +294,11 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
 		}
-		if (data_.int_ < 0.0)
+		if (data_.ssize_ < 0.0)
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned short int");
 		}
-		return abs(data_.int_);
+		return data_.ssize_;
 	}
 
   DataValue::operator int() const
@@ -297,7 +307,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to int");
     }
-    return data_.int_;
+    return data_.ssize_;
   }
 
   DataValue::operator unsigned int() const
@@ -306,11 +316,11 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to unsigned int");
     }
-    if (data_.int_ < 0.0)
+    if (data_.ssize_ < 0.0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned int");
     }
-    return abs(data_.int_);
+    return data_.ssize_;
   }
 
   DataValue::operator long int() const
@@ -319,7 +329,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to long int");
     }
-    return data_.int_;
+    return data_.ssize_;
   }
 
   DataValue::operator unsigned long int() const
@@ -328,13 +338,34 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to unsigned long int");
 		}
-		if (data_.int_ < 0.0)	
+		if (data_.ssize_ < 0.0)	
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned long int");
 		}
-		return abs(data_.int_);
+		return data_.ssize_;
 	}
+	
+  DataValue::operator long long() const
+  {
+    if (value_type_ != INT_VALUE)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
+    }
+    return data_.ssize_;
+  }
 
+  DataValue::operator unsigned long long() const
+	{
+		if (value_type_ != INT_VALUE)	
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
+		}
+		if (data_.ssize_ < 0.0)	
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
+		}
+		return data_.ssize_;
+	}
 	
 	DataValue::operator std::string() const
 	{
@@ -394,7 +425,7 @@ namespace OpenMS
 			case DataValue::STRING_LIST: ss << *(data_.str_list_) ; break;
 			case DataValue::INT_LIST: ss << *(data_.int_list_) ; break;
 			case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_) ; break;
-			case DataValue::INT_VALUE: ss << data_.int_ ; break;
+			case DataValue::INT_VALUE: ss << data_.ssize_ ; break;
 			case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_) ; break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
 		};
@@ -411,7 +442,7 @@ namespace OpenMS
 			case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()) ; break;
 			case DataValue::INT_LIST: result = QString::fromStdString(this->toString()) ; break;
 			case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()) ; break;
-			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
+			case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
 			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to QString");
 		};
@@ -446,7 +477,7 @@ namespace OpenMS
 	  		case DataValue::STRING_LIST: return *(a.data_.str_list_) == *(b.data_.str_list_);
 	  		case DataValue::INT_LIST: return *(a.data_.int_list_) == *(b.data_.int_list_);
 	  		case DataValue::DOUBLE_LIST: return *(a.data_.dou_list_)==*(b.data_.dou_list_);
-				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
+				case DataValue::INT_VALUE: return a.data_.ssize_ == b.data_.ssize_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
 		}
@@ -468,7 +499,7 @@ namespace OpenMS
 			case DataValue::STRING_LIST: os << *(p.data_.str_list_); break;
 			case DataValue::INT_LIST: os << *(p.data_.int_list_);break;
 			case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_);break;
-			case DataValue::INT_VALUE: os << p.data_.int_; break;
+			case DataValue::INT_VALUE: os << p.data_.ssize_; break;
 			case DataValue::DOUBLE_VALUE: os << precisionWrapper(p.data_.dou_); break;
 			case DataValue::EMPTY_VALUE: break;
 		};

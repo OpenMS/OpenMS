@@ -349,6 +349,42 @@ START_SECTION((operator unsigned long int() const))
   TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(55.4))
 END_SECTION
 
+START_SECTION((operator long long() const))
+	{
+	DataValue d((long long) 55);
+	long long k = d;
+	TEST_EQUAL(k,55)
+	}
+	{
+	DataValue d((long long) -1);
+	long long k = d;
+	TEST_EQUAL(k,-1)
+	}
+	{
+	DataValue d((SignedSize) -55);
+	SignedSize k = d;
+	TEST_EQUAL(k,-55)
+	}
+	
+	TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
+END_SECTION
+
+START_SECTION((operator unsigned long long() const))
+	{
+	DataValue d((unsigned long long) 55);
+	unsigned long long k = d;
+	TEST_EQUAL(k,55)
+	}
+	{
+	DataValue d((Size) 55);
+	Size k = d;
+	TEST_EQUAL(k,55)
+	}
+
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(55.4))
+END_SECTION
+
 START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.0);
