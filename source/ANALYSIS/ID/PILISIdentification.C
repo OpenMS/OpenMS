@@ -153,7 +153,7 @@ namespace OpenMS
 			ids.push_back(id);
 		}
 
-		if ((UInt)param_.getValue("use_evalue_scoring") != 0)
+		if ((Size)param_.getValue("use_evalue_scoring") != 0)
 		{
 			PILISScoring scoring;
 			scoring.getScores(ids);
@@ -232,7 +232,7 @@ namespace OpenMS
 			cerr << "RMS=" << sqrt(rms/double(id.getPeptideHits().size())) << endl;
 		}*/
 
-		if ((UInt)param_.getValue("use_evalue_scoring") != 0)
+		if ((Size)param_.getValue("use_evalue_scoring") != 0)
 		{
 			PILISScoring scoring;
 			scoring.getScore(id);

@@ -1093,8 +1093,8 @@ namespace OpenMS
 		recent_files_.prepend(tmp.toQString());
 
 		//remove those files exceeding the defined number
-		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
-		while ((UInt)recent_files_.size() > number_of_recent_files)
+		Size number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
+		while (recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
 		}
@@ -1105,7 +1105,7 @@ namespace OpenMS
   void TOPPViewBase::updateRecentMenu_()
   {
     //get/correct number of recent files
-		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
+		Size number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
 		if (number_of_recent_files>20)
 		{
 			number_of_recent_files = 20;
@@ -2700,7 +2700,7 @@ namespace OpenMS
 			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
 			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
 
-			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
+			active_1d_window->performAlignment(layer_index_1, layer_index_2, param);
 
 			DoubleReal al_score = cc->getAlignmentScore();
 			Size al_size = cc->getAlignmentSize();

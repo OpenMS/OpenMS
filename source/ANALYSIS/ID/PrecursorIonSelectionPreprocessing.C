@@ -221,7 +221,7 @@ namespace OpenMS
 		std::vector<FASTAFile::FASTAEntry> entries;
 		fasta_file.load(db_path,entries);
 		EnzymaticDigestion digest;
-		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
+		digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 		std::map<String,std::vector<std::pair<String,Size> > > tmp_peptide_map;
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)
@@ -507,7 +507,7 @@ namespace OpenMS
 		std::vector<FASTAFile::FASTAEntry> entries;
 		fasta_file.load(db_path,entries);
 		EnzymaticDigestion digest;
-		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
+		digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)
@@ -773,7 +773,7 @@ namespace OpenMS
 		std::vector<FASTAFile::FASTAEntry> entries;
 		fasta_file.load(db_path,entries);
 		EnzymaticDigestion digest;
-		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
+		digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 		
 		// first get all protein sequences and calculate digest
 		for(UInt e=0;e<entries.size();++e)

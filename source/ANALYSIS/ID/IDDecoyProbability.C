@@ -63,7 +63,7 @@ namespace OpenMS
 
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
 	{
-		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
+		Size number_of_bins(param_.getValue("number_of_bins"));
 		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
 
 		vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
@@ -324,7 +324,7 @@ namespace OpenMS
 	// normalize the bins to [0, 1]
 	void IDDecoyProbability::normalizeBins_(const vector<double>& scores, vector<double>& binned, Transformation_& trafo)
 	{
-		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
+		Size number_of_bins(param_.getValue("number_of_bins"));
   	// get the range of the scores
   	double max(numeric_limits<double>::min()), min(numeric_limits<double>::max());
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
@@ -386,7 +386,7 @@ namespace OpenMS
 																						double score)
 	{
   	double rho_rev(0), rho_fwd(0);
-		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
+		Size number_of_bins(param_.getValue("number_of_bins"));
 	
   	// first transform the score into a background distribution density value
   	double score_rev_trans = (score - gamma_trafo.min_score) / gamma_trafo.diff_score;
@@ -429,7 +429,7 @@ namespace OpenMS
 
 	void IDDecoyProbability::generateDistributionImage_(const vector<double>& ids, const String& formula, const String& filename)
 	{
-		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
+		Size number_of_bins(param_.getValue("number_of_bins"));
 		
   	// write distribution to file
   	ofstream o((filename + "_dist_tmp.dat").c_str());
@@ -453,7 +453,7 @@ namespace OpenMS
 
 	void IDDecoyProbability::generateDistributionImage_(const vector<double>& all_ids, const Transformation_& all_trans, const String& fwd_formula, const String& rev_formula, const String& filename)
 	{
-		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
+		Size number_of_bins(param_.getValue("number_of_bins"));
 
 		ofstream all_output((filename + "_all_tmp.dat").c_str());
     for (Size i = 0; i < number_of_bins; ++i)

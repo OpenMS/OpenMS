@@ -137,7 +137,7 @@ namespace OpenMS
 		}
 
 		bool use_local_scoring(true);
-		if ((UInt)param_.getValue("use_local_scoring") == 0)
+		if ((Size)param_.getValue("use_local_scoring") == 0)
 		{
 			use_local_scoring = false;
 		}

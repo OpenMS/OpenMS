@@ -415,7 +415,7 @@ namespace OpenMS
 		{
 			int line_spacing = QFontMetrics(painter.font()).lineSpacing();
 			String icon = layer.param.getValue("dot:feature_icon");
-			Size icon_size = (UInt) layer.param.getValue("dot:feature_icon_size");
+			Size icon_size = layer.param.getValue("dot:feature_icon_size");
 			bool show_label = (layer.label!=LayerData::L_NONE);
 			UInt num=0;
 			for (FeatureMapType::ConstIterator i = layer.features.begin();
@@ -481,7 +481,7 @@ namespace OpenMS
 		else if (layer.type==LayerData::DT_CONSENSUS)// consensus features
 		{
 			String icon = layer.param.getValue("dot:feature_icon");
-			Size icon_size = (UInt) layer.param.getValue("dot:feature_icon_size");
+			Size icon_size = layer.param.getValue("dot:feature_icon_size");
 			
 			for (ConsensusMapType::ConstIterator i = layer.consensus.begin();
 				   i != layer.consensus.end();

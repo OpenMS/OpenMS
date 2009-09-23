@@ -74,7 +74,7 @@ namespace OpenMS
 
 	void PILISCrossValidation::partition_(vector<vector<Peptide> >& parts, const vector<Peptide>& source)
 	{
-		Size nfold((UInt)param_.getValue("nfold"));
+		Size nfold(param_.getValue("nfold"));
   	parts = vector<vector<Peptide> >(nfold);
 
   	Size count = 0;
@@ -404,7 +404,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 				}
     	}
 			DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
-			cerr << "Avg. score in top " << (UInt)param_.getValue("num_top_peaks") << ": " << score << endl;
+			cerr << "Avg. score in top " << param_.getValue("num_top_peaks") << ": " << score << endl;
 			return score;
 		}
 
@@ -501,7 +501,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 				}
 			}
 			DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
-      cerr << "Avg. score in top " << (UInt)param_.getValue("num_top_peaks") << " with a least " << min_intensity * 100.0 << "% intensity: " << score << endl;
+      cerr << "Avg. score in top " << param_.getValue("num_top_peaks") << " with a least " << min_intensity * 100.0 << "% intensity: " << score << endl;
 			return score;
 		}
 

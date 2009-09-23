@@ -285,7 +285,7 @@ void CompNovoIonScoring::scoreWitnessSet_(Size charge, DoubleReal precursor_weig
 void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& ion_scores, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
 {
 	//DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
-	Size max_isotope_to_score((UInt)param_.getValue("max_isotope_to_score"));
+	Size max_isotope_to_score(param_.getValue("max_isotope_to_score"));
 
 	for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
 	{

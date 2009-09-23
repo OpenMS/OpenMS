@@ -182,8 +182,8 @@ namespace OpenMS
 			Param gen_param(gen.getParameters());
 			gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
 			gen_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
-			gen_param.setValue("model_depth", (UInt)param_.getValue("model_depth"));
-			gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
+			gen_param.setValue("model_depth", param_.getValue("model_depth"));
+			gen_param.setValue("visible_model_depth", param_.getValue("visible_model_depth"));
 			gen.setParameters(gen_param);
 			gen.getModel(hmm_);
 		}
@@ -445,9 +445,9 @@ namespace OpenMS
 			return;
 		}
 
-		if (peptide.size() >= (UInt)param_.getValue("visible_model_depth"))
+		if (peptide.size() >= (Size)param_.getValue("visible_model_depth"))
 		{
-			cerr << "PILISModel: cannot train peptide " << peptide << " of length " << peptide.size() << " (max for this model is " << (UInt)param_.getValue("visible_model_depth") << ", as defined by parameter \"visible_model_depth\")" << endl;
+			cerr << "PILISModel: cannot train peptide " << peptide << " of length " << peptide.size() << " (max for this model is " << param_.getValue("visible_model_depth") << ", as defined by parameter \"visible_model_depth\")" << endl;
 			return;
 		}
 
@@ -835,9 +835,9 @@ namespace OpenMS
 			return;
 		}
 
-		if (peptide.size() > (UInt)param_.getValue("visible_model_depth"))
+		if (peptide.size() > (Size)param_.getValue("visible_model_depth"))
 		{
-			cerr << "PILISModel: cannot generate spectra of peptide '" << peptide << "' of length " << peptide.size() << " (max of this model is " << (UInt)param_.getValue("visible_model_depth") << ", as defined by \"visible_model_depth\")" << endl;
+			cerr << "PILISModel: cannot generate spectra of peptide '" << peptide << "' of length " << peptide.size() << " (max of this model is " << param_.getValue("visible_model_depth") << ", as defined by \"visible_model_depth\")" << endl;
 			return;
 		}
 		

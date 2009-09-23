@@ -81,7 +81,7 @@ namespace OpenMS
 		{
 			double mzvariation = (double)param_.getValue("mz_variation");
     	double invariation = (double)param_.getValue("in_variation");
-    	UInt marks = (UInt)param_.getValue("marks");
+    	Size marks = param_.getValue("marks");
 			
     	spectrum.sortByPosition();
 			

@@ -180,7 +180,7 @@ namespace OpenMS
 
       size = rhs.pairs_.size();
       // set up cubic (k = 4) spline workspace:
-      Size num_breakpoints = (UInt) rhs.param_.getValue("num_breakpoints");
+      Size num_breakpoints = rhs.param_.getValue("num_breakpoints");
       if ( num_breakpoints < 2 )
         num_breakpoints = size - 2; // short-cut for natural splines
       workspace = gsl_bspline_alloc(4, num_breakpoints);

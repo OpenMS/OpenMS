@@ -127,7 +127,7 @@ namespace OpenMS
 				//typename Map<Size, std::vector<std::pair<DoubleReal, PeakType> > >::const_iterator it2;
 				DoubleReal min_rt_distance(param_.getValue("min_rt_distance"));
 				DoubleReal min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
-				Size min_num_peaks_per_feature((UInt)param_.getValue("min_num_peaks_per_feature"));
+				Size min_num_peaks_per_feature(param_.getValue("min_num_peaks_per_feature"));
 				Size feature_id(0);
 				bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
 				bool write_debug_files(param_.getValue("write_debug_files").toBool());

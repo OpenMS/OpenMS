@@ -277,8 +277,8 @@ namespace OpenMS
 		ion_scoring_param.setValue("fragment_mass_tolerance", fragment_mass_tolerance_);
 		ion_scoring_param.setValue("decomp_weights_precision", decomp_weights_precision_);
 		ion_scoring_param.setValue("double_charged_iso_threshold", (DoubleReal)param_.getValue("double_charged_iso_threshold"));
-		ion_scoring_param.setValue("max_isotope_to_score", (UInt)param_.getValue("max_isotope_to_score"));
-		ion_scoring_param.setValue("max_isotope",(UInt) max_isotope_);
+		ion_scoring_param.setValue("max_isotope_to_score", param_.getValue("max_isotope_to_score"));
+		ion_scoring_param.setValue("max_isotope",max_isotope_);
 		ion_scoring.setParameters(ion_scoring_param);
 		
 		Map<DoubleReal, IonScore> ion_scores;
@@ -449,7 +449,7 @@ namespace OpenMS
 		spectra_zhang.setParameters(zhang_param);
 	
     vector<PeptideHit> hits;
-		Size missed_cleavages = (UInt)param_.getValue("missed_cleavages");
+		Size missed_cleavages = param_.getValue("missed_cleavages");
     for (set<String>::const_iterator it = sequences.begin(); it != sequences.end(); ++it)
     {
 			
@@ -497,7 +497,7 @@ namespace OpenMS
 		}
 		*/
 		
-		Size number_of_prescoring_hits = (UInt)param_.getValue("number_of_prescoring_hits");
+		Size number_of_prescoring_hits = param_.getValue("number_of_prescoring_hits");
 		if (hits.size() > number_of_prescoring_hits)
 		{
 			hits.resize(number_of_prescoring_hits);
@@ -550,7 +550,7 @@ namespace OpenMS
 		}
 		*/
 
-		Size number_of_hits = (UInt)param_.getValue("number_of_hits");
+		Size number_of_hits = param_.getValue("number_of_hits");
 		if (id.getHits().size() > number_of_hits)
 		{
 			hits.resize(number_of_hits);

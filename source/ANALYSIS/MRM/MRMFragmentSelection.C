@@ -71,7 +71,7 @@ namespace OpenMS
 
 	void MRMFragmentSelection::selectFragments(vector<RichPeak1D>& selected_peaks, const RichPeakSpectrum& spec)
 	{
-    Size num_top_peaks = (UInt)param_.getValue("num_top_peaks");
+    Size num_top_peaks = param_.getValue("num_top_peaks");
 		bool consider_names(param_.getValue("consider_names").toBool());
     DoubleReal min_pos_precursor_percentage = (DoubleReal)param_.getValue("min_pos_precursor_percentage") / 100.0;
 		DoubleReal min_mz = (DoubleReal)param_.getValue("min_mz");
