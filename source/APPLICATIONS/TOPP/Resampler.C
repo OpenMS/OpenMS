@@ -68,38 +68,115 @@ class TOPPResampler
 {
  public:
 	TOPPResampler()
-		: TOPPBase("Resampler", "Transforms an LC/MS map into a resampled map or a png image.")
+		: TOPPBase("Resampler",
+							 "Transforms an LC/MS map into a resampled map or a PNG image.")
 	{
 	}
 
  protected:
 
+	void addMS2Point(int x, int y, QImage& image, QColor color = Qt::black,
+									 Size size = 2)
+		{		
+			int h = image.height(), w = image.width();
+			vector<int> xs(1, x), ys(1, y);
+			if (size == 2)
+			{
+				int xtemp[] = {x - 1, x, x, x + 1};
+				int ytemp[] = {y, y - 1, y + 1, y};
+				xs = vector<int>(xtemp, xtemp + 4);
+				ys = vector<int>(ytemp, ytemp + 4);
+			}
+			else if (size == 3)
+			{
+				int xtemp[] = {x - 2, x - 1, x - 1, x, x, x + 1, x + 1, x + 2};
+				int ytemp[] = {y, y + 1, y - 1, y + 2, y - 2, y + 1, y - 1, y};
+				xs = vector<int>(xtemp, xtemp + 8);
+				ys = vector<int>(ytemp, ytemp + 8);
+			}			
+			for (Size i = 0; i < xs.size(); ++i)
+			{
+				int xi = xs[i], yi = ys[i];
+				if ((xi > 0) && (xi < w) && (yi > 0) && (yi < h))
+				{
+					image.setPixel(xi, yi, color.rgb());
+				}
+			}
+		}
+
+	
+	void markMS2Locations(MSExperiment<>& exp, QImage& image, bool transpose,
+												QColor color, Size size)
+		{
+			double xcoef = image.width(), ycoef = image.height();
+			if (transpose)
+			{
+				xcoef /= exp.getMaxRT() - exp.getMinRT();
+				ycoef /= exp.getMaxMZ() - exp.getMinMZ();
+			}
+			else
+			{
+				xcoef /= exp.getMaxMZ() - exp.getMinMZ();
+				ycoef /= exp.getMaxRT() - exp.getMinRT();
+			}
+			for (MSExperiment<>::Iterator spec_iter = exp.begin();
+					 spec_iter != exp.end(); ++spec_iter)
+			{
+				if (spec_iter->getMSLevel() == 2)
+				{
+					double mz = spec_iter->getPrecursors()[0].getMZ();
+					double rt = exp.getPrecursorSpectrum(spec_iter)->getRT();
+					int x, y;
+					if (transpose)
+					{
+						x = int(xcoef * (rt - exp.getMinRT()));
+						y = int(ycoef * (exp.getMaxMZ() - mz));
+					}
+					else
+					{
+						x = int(xcoef * (mz - exp.getMinMZ()));
+						y = int(ycoef * (exp.getMaxRT() - rt));
+					}
+					addMS2Point(x, y, image, color, size);
+				}
+			}
+		}
+	
+
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in", "<file>", "", "input file ");
-		setValidFormats_("in",StringList::create("mzML"));
-		registerOutputFile_("out", "<file>", "", "output file in mzML format or png format");
-		registerFlag_("image", "Activates image mode (a png is written instead of a mzML file.");
+		setValidFormats_("in", StringList::create("mzML"));
+		registerOutputFile_("out", "<file>", "",
+												"output file in mzML format or PNG format");
+		setValidFormats_("out", StringList::create("mzML,PNG"));
 
 		addEmptyLine_();
 		addText_("Parameters affecting the mzML file:");
-		registerDoubleOption_("sampling_rate", "<rate>", 0.1, "New sampling rate in m/z dimension", false);
+		registerDoubleOption_("sampling_rate", "<rate>", 0.1,
+													"New sampling rate in m/z dimension", false);
 		setMinFloat_("sampling_rate",0.0);
 
 		addEmptyLine_();
 		addText_("Parameters affecting the PNG file:");
-		registerIntOption_("width", "<number>", 1000, "Number of pixels in m/z dimension.\nIf 0, for one pixel per Th.", false);
+		registerIntOption_("width", "<number>", 1000, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);
 		setMinInt_("width",0);
-		registerIntOption_("height", "<number>", 1000, "Number of pixels in RT dimension.\nIf 0, for one pixel per spectrum.", false);
+		registerIntOption_("height", "<number>", 1000, "Number of pixels in RT dimension.\nIf 0, one pixel per spectrum.", false);
 		setMinInt_("height",0);
 		registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines colors for the range between 0 and 100.\n"
 													"Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
-		registerDoubleOption_("maxintensity", "<int>", 0,
-													"Maximum peak intensity used to determine range for colors.\n"
-													"If 0, this is determined from data.", false);
+		registerDoubleOption_("maxintensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
+													"If 0, this is determined from the data.", false);
 		registerFlag_("log_intensity", "Apply logarithm to intensity values");
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
 															 "Per default, dimensions run bottom-up in RT and left-right in m/z.");
+		registerFlag_("precursors", "Mark locations of MS2 precursors.\n"
+									"Implied if 'precursor_color' or 'precursor_size' are set.");
+		registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black')", false);
+		registerIntOption_("precursor_size", "<number>", 2,
+											 "Size of the precursor marks", false);
+		setMinInt_("precursor_size", 1);
+		setMaxInt_("precursor_size", 3);
 	}
 
 	ExitCodes main_(int , const char**)
@@ -117,7 +194,7 @@ class TOPPResampler
 		//----------------------------------------------------------------
 		// PNG image
 		//----------------------------------------------------------------
-		if (getFlag_("image"))
+		if (out.suffix('.').toUpper() == "PNG")
 		{
 			exp.updateRanges(1);
 
@@ -147,31 +224,44 @@ class TOPPResampler
 			//Do the actual resampling
 			BilinearInterpolation<DoubleReal, DoubleReal> bilip;
 			bilip.getData().resize(rows, cols);
+			
 			if (!getFlag_("transpose"))
 			{
-				bilip.setMapping_0( 0, exp.getMaxRT(), rows-1, exp.getMinRT() ); // scans run bottom-up
-				bilip.setMapping_1( 0, exp.getMinMZ(), cols-1, exp.getMaxMZ() ); // peaks run left-right
+				// scans run bottom-up:
+				bilip.setMapping_0(0, exp.getMaxRT(), rows-1, exp.getMinRT());
+				// peaks run left-right:
+				bilip.setMapping_1(0, exp.getMinMZ(), cols-1, exp.getMaxMZ());
 
-				for ( MSExperiment<>::Iterator spec_iter = exp.begin(); spec_iter != exp.end(); ++spec_iter)
+				for (MSExperiment<>::Iterator spec_iter = exp.begin();
+						 spec_iter != exp.end(); ++spec_iter)
 				{
-					if (spec_iter->getMSLevel()!=1) continue;
-					for ( MSExperiment<>::SpectrumType::ConstIterator peak1_iter = spec_iter->begin(); peak1_iter != spec_iter->end(); ++peak1_iter )
+					if (spec_iter->getMSLevel() != 1) continue;
+					for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
+								 spec_iter->begin(); peak1_iter != spec_iter->end();
+							 ++peak1_iter)
 					{
-						bilip.addValue(spec_iter->getRT(), peak1_iter->getMZ(), peak1_iter->getIntensity());
+						bilip.addValue(spec_iter->getRT(), peak1_iter->getMZ(),
+													 peak1_iter->getIntensity());
 					}
 				}
 			}
 			else // transpose
 			{
-				bilip.setMapping_0( 0, exp.getMaxMZ(), rows-1, exp.getMinMZ() ); // spectra run bottom-up
-				bilip.setMapping_1( 0, exp.getMinRT(), cols-1, exp.getMaxRT() ); // scans run left-right
+				// spectra run bottom-up:
+				bilip.setMapping_0(0, exp.getMaxMZ(), rows-1, exp.getMinMZ());
+				// scans run left-right:
+				bilip.setMapping_1(0, exp.getMinRT(), cols-1, exp.getMaxRT());
 
-				for ( MSExperiment<>::Iterator spec_iter = exp.begin(); spec_iter != exp.end(); ++spec_iter )
+				for (MSExperiment<>::Iterator spec_iter = exp.begin();
+							spec_iter != exp.end(); ++spec_iter)
 				{
 					if (spec_iter->getMSLevel()!=1) continue;
-					for ( MSExperiment<>::SpectrumType::ConstIterator peak1_iter = spec_iter->begin(); peak1_iter != spec_iter->end(); ++peak1_iter)
+					for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
+								 spec_iter->begin(); peak1_iter != spec_iter->end();
+							 ++peak1_iter)
 					{
-						bilip.addValue(peak1_iter->getMZ(),  spec_iter->getRT(), peak1_iter->getIntensity());
+						bilip.addValue(peak1_iter->getMZ(), spec_iter->getRT(),
+													 peak1_iter->getIntensity());
 					}
 				}
 			}
@@ -189,7 +279,7 @@ class TOPPResampler
 			}
 			else
 			{
-				gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
+				gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#FFAA00;32,#FF0000;55,#AA00FF;78,#5500FF;100,#000000");
 			}
 
       bool use_log = getFlag_("log_intensity");
@@ -199,35 +289,32 @@ class TOPPResampler
 			DoubleReal factor = getDoubleOption_("maxintensity");
 			if ( factor == 0 )
 			{
-				factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
+				factor = (*std::max_element(bilip.getData().begin(),
+																		bilip.getData().end()));
 			}
-      // logarithmize maxintensity as well
-      if (use_log)
-      {
-        factor = std::log(factor);
-      }
+      // logarithmize max. intensity as well:
+      if (use_log) factor = std::log(factor);
+			
 			factor /= 100.0;
-      // apply logarithm to intensities
-      if (use_log)
-      {
-  			for (int i=0; i<scans; ++i)
-  			{
-  				for (int j=0; j<peaks; ++j)
-  				{
-  					image.setPixel(j, i, gradient.interpolatedColorAt(std::log(bilip.getData().getValue(i, j))/factor).rgb());
-  				}
-  			}
-      }
-      else
-      {
-        for (int i=0; i<scans; ++i)
-        {
-          for (int j=0; j<peaks; ++j)
-          {
-            image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
-          }
-        }
-      }
+			for (int i = 0; i < scans; ++i)
+			{
+				for (int j = 0; j < peaks; ++j)
+				{
+					double value = bilip.getData().getValue(i, j);
+					if (use_log) value = std::log(value);
+					image.setPixel(j, i, gradient.interpolatedColorAt(value/factor).
+												 rgb());
+				}
+			}
+
+			if (getFlag_("precursors") || setByUser_("precursor_color") ||
+					setByUser_("precursor_size"))
+			{
+				markMS2Locations(exp, image, getFlag_("transpose"),
+												 getStringOption_("precursor_color").toQString(),
+												 Size(getIntOption_("precursor_size")));
+			}
+			
 			image.save(out.toQString(), "PNG");
 		}
 		//----------------------------------------------------------------
@@ -252,7 +339,8 @@ class TOPPResampler
       exp.clearMetaDataArrays();
 
       //annotate output with data processing info
-			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
+			addDataProcessing_(exp,
+												 getProcessingInfo_(DataProcessing::DATA_PROCESSING));
       
       //store output
 			MzMLFile f;
