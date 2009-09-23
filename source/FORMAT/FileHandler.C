@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "ini", "TrafoXML", "mzML", "ms2", "pepXML", "mzIdentML", "GelML", "TraML", "MSP", "OMSSAXML", "PNG"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -136,6 +136,10 @@ namespace OpenMS
 		{
 			return FileTypes::MSP;
 		}
+		else if (tmp == "PNG")
+		{
+			return FileTypes::PNG;
+		}
 
 		return FileTypes::UNKNOWN;
 
@@ -205,6 +209,8 @@ namespace OpenMS
 			return true;
 		case FileTypes::OMSSAXML:
 			return true;
+		case FileTypes::PNG:
+			return true;
 		case FileTypes::TRAML:
 		default:
 			return false;
@@ -262,6 +268,10 @@ namespace OpenMS
 	
 		//OMSSAXML file
 		if (all_simple.hasSubstring("<MSResponse")) return FileTypes::OMSSAXML;
+
+		// PNG file (to be really correct, the first eight bytes of the file would
+		// have to be checked; see e.g. the wikipedia article)
+		if (file[0].substr(1, 3) == "PNG") return FileTypes::PNG;
 
 		//MSP (all lines)
 		for (Size i = 0; i != file.size(); ++i)

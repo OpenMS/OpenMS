@@ -56,6 +56,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");
+	TEST_EQUAL(tmp.typeToName(FileTypes::PNG),"PNG");
 END_SECTION
 
 START_SECTION((static FileTypes::Type nameToType(const String &name)))
@@ -73,6 +74,7 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
 	TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
 	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
+	TEST_EQUAL(FileTypes::PNG, tmp.nameToType("PNG"));
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename)))
@@ -90,6 +92,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
+	TEST_EQUAL(tmp.getTypeByFileName("test.png"), FileTypes::PNG)
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
