@@ -27,8 +27,8 @@
 
 #include<OpenMS/SIMULATION/MSSim.h>
 
-#include<OpenMS/SIMULATION/DigestSimulation.h>
-#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
+#include <OpenMS/SIMULATION/DigestSimulation.h>
+#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
@@ -156,7 +156,7 @@ namespace OpenMS {
 
 		// Detectability prediction
 		DetectabilitySimulation dt_sim;
-		dt_sim.setParameters(param_.copy("PeptideDetectibilitySimulation:",true));
+		dt_sim.setParameters(param_.copy("PeptideDetectabilitySimulation:",true));
 		dt_sim.filterDetectability(features_);
 
     // debug
