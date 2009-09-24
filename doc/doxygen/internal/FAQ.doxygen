@@ -195,7 +195,7 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>How do I add a new TOPP test?</b><BR>
         <OL>
-          <LI> Add commands to @em %OpenMS/source/TEST/TOPP/CTestTestfile.cmake
+          <LI> Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt
         </OL>
 
 		</UL>
