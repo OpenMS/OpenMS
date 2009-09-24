@@ -401,7 +401,7 @@ END_SECTION
 		exp_original.push_back(spec);
 
 		//MSMS spectrum
-		spec.clear();
+		spec.clear(false);
 		p.setIntensity(210.0f);
 		p.getPosition()[0] = 100.155;
 		spec.push_back(p);
