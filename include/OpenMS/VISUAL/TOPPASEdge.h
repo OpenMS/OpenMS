@@ -35,7 +35,9 @@
 namespace OpenMS
 {
 	class TOPPASVertex;
-	
+	class TOPPASToolVertex;
+	class TOPPASInputFileListVertex;
+
 	/**
 		@brief An edge representing a data flow in TOPPAS
 		
@@ -135,7 +137,13 @@ namespace OpenMS
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
       void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
-			
+		
+			///@name helper methods of getEdgeStatus()
+			//@{
+			EdgeStatus getToolToolStatus_(TOPPASToolVertex* source, int source_param_index, TOPPASToolVertex* target, int target_param_index);
+		 	EdgeStatus getListToolStatus_(TOPPASInputFileListVertex* source, TOPPASToolVertex* target, int target_param_index);	
+			//@}
+
 			/// Returns the point in the @p list that is nearest to @p origin
 			QPointF nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const;
 			/// Pointer to the source of this edge
