@@ -58,7 +58,7 @@ START_SECTION(~ILPWrapper())
 END_SECTION
 
 
-START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin)))
+START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSMapFeatureBased(FeatureMap<> &features, MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, std::vector< int > &solution_indices)))
 {
 	std::set<Int> charges_set;
 	charges_set.insert(1);
@@ -91,21 +91,10 @@ START_SECTION((template < typename InputPeakType > void encodeModelForKnownLCMSM
 	variable_indices.clear();
 	TEST_EQUAL(solution_indices.size(),3)
 
-		
-// 	// test if min_peak_distance prohibits nearby peaks	
- // 	ILPWrapper wrapper3;	
-// 	wrapper3.createAndSolveILPForKnownLCMSMapFeatureBased(map,raw_data,variable_indices,mass_ranges,charges_set,1,20.,solution_indices);
-// 	TEST_EQUAL(variable_indices.size(),2)
-//   TEST_EQUAL(solution_indices.size(),2)
-	
 }
 END_SECTION
 		
 	      
-START_SECTION((void solve(std::vector<int>& solution_indices)))
-{
-}
-END_SECTION	      
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
