@@ -1,10 +1,11 @@
 ### Build rules for Class tests
-PROJECT("OpenMS_tests")
+PROJECT("OpenMS_tests") ## do not change this name, as you will break Windows-NightlyBuilds
 
 enable_testing()
 INCLUDE(Dart)
 	
-## Warning: this needs to be the same as the TOPP tools dir (where the OpenMS.dll will be on windows) - otherwise the tests won't run!
+## Warning: in this directory the OpenMS.dll should already be present (e.g. by using the Dll's POST_BUILD command to copy it)  
+##          - otherwise the tests might not run!
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 include(executables.cmake)
 
@@ -84,16 +85,12 @@ endif()
 foreach(i ${TEST_executables})
 	add_executable(${i} ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	# should not be necessary if ctest_build entries are also done for this TEST directory
-	#add_dependencies(${i} TOPP UTILS Tutorials_build FuzzyDiff)
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
 
 ### "test_build" target
 add_custom_target(test_build)
-# UTILS and Tutorials_build are not necessarily needed, however very useful
-# for nightly builds (untested otherwise!)
-add_dependencies(test_build ${TEST_executables} TOPP UTILS Tutorials_build FuzzyDiff)
+add_dependencies(test_build ${TEST_executables} TOPP FuzzyDiff)
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
