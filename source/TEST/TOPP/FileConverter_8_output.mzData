@@ -76,7 +76,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</description>
-	<spectrumList count="4">
+	<spectrumList count="29">
 		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
@@ -223,6 +223,579 @@
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="0"></data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="5">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABwQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="6">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABgQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="7">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABQQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="8">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABAQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="9">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="4"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAwQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="10">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAgQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="11">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="6"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAQQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="12">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="7"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="13">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="8"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AADgQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="14">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="9"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AADAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="15">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="10"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACgQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="16">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="11"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="17">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="12"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="18">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="13"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="19">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="14"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACAPw==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="20">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAgQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="21">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAQQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="22">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAQQ==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="23">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AADgQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="24">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="4"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AADAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="25">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACgQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="26">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="6"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="27">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="7"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AABAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="28">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="8"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAQA==</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="29">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="9"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="1" spectrumRef="4">
+						<ionSelection>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="1">AAAAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="1">AACAPw==</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>

@@ -160,7 +160,6 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
-						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
 						return true;
 					}
 					break;
@@ -170,7 +169,6 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
-						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
 						return true;
 					}
 					break;
@@ -180,7 +178,7 @@ namespace OpenMS
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);
-						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp);
+						ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
 						return true;
 					}
 					break;
@@ -244,9 +242,16 @@ namespace OpenMS
 						MzXMLFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						MSExperiment<PeakType> exp2 = exp;
-						ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-						f.store(filename,exp2);
+						if (exp.getChromatograms().size() != 0)
+						{
+							MSExperiment<PeakType> exp2 = exp;
+							ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+							f.store(filename,exp2);
+						}
+						else
+						{
+							f.store(filename, exp);
+						}
 					}
 					break;
 				case FileTypes::MZDATA:
@@ -254,9 +259,16 @@ namespace OpenMS
 						MzDataFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						MSExperiment<PeakType> exp2 = exp;
-						ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-						f.store(filename,exp2);
+						if (exp.getChromatograms().size() != 0)
+						{
+							MSExperiment<PeakType> exp2 = exp;
+							ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+							f.store(filename,exp2);
+						}
+						else
+						{
+							f.store(filename, exp);
+						}
 					}
 					break;
 				default:
