@@ -179,7 +179,7 @@ namespace OpenMS
 				//keep track of assigned/unassigned peptide identifications
 				std::map<Size, Size> assigned;
 				std::vector< DBoundingBox<2> >::const_iterator bb_it = bbs.begin();
-				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it, ++bb_it)
+				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 				{
 					//iterate over the IDs
 					for (Size i=0; i<ids.size(); ++i)
@@ -216,6 +216,7 @@ namespace OpenMS
 									}
 								}
 							}
+							++bb_it;
 						}
 					}
 				}
