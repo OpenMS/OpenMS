@@ -1093,7 +1093,7 @@ namespace OpenMS
 		recent_files_.prepend(tmp.toQString());
 
 		//remove those files exceeding the defined number
-		Size number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
+		int number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
 		while (recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
@@ -1112,11 +1112,11 @@ namespace OpenMS
 			param_.setValue("preferences:number_of_recent_files",20);
 		}
 
-		for (Size i = 0; i < 20; ++i)
+		for (int i = 0; i < 20; ++i)
 		{
-			if (i < (UInt)(recent_files_.size()))
+			if (i < recent_files_.size())
 			{
-				recent_actions_[i]->setText(recent_files_[(int)i]);
+				recent_actions_[i]->setText(recent_files_[i]);
 				recent_actions_[i]->setVisible(true);
 			}
 			else

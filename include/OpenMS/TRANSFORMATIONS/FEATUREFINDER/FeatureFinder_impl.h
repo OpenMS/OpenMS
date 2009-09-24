@@ -103,7 +103,7 @@ namespace OpenMS
 		{
 			//index
 			Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
-			features[i].setMetaValue("spectrum_index",(UInt) spectrum_index);
+			features[i].setMetaValue("spectrum_index", spectrum_index);
 			//native id
 			if (spectrum_index < input_map.size())
 			{

@@ -429,7 +429,7 @@ namespace OpenMS {
 		// add meta information on compomer (mass)
 		f.setMetaValue("charge_adduct_mass", adduct_mass );
 		f.setMetaValue("charge_adducts", adduct_formula );
-		f.setMetaValue("parent_feature_number", (UInt) parent_index );
+		f.setMetaValue("parent_feature_number", parent_index );
 
 		// set "main" intensity
 		SimIntensityType old_intensity = f.getIntensity();
