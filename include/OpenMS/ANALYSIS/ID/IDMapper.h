@@ -216,9 +216,9 @@ namespace OpenMS
 									}
 								}
 							}
-							++bb_it;
 						}
 					}
+					if(!use_centroids)	++bb_it;
 				}
 				
 				Size matches_none = 0;
