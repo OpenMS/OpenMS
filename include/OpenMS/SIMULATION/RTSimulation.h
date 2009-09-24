@@ -92,7 +92,9 @@ namespace OpenMS
 		/// Wrapper for the SVM RT Prediction (HPLC)
 		void wrapSVM(std::vector<String>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
 
-    
+		/// Wrapper for the SVM RT Prediction (HPLC) using AASequences (TODO: eventually remove other wrapper function??)
+		void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times);
+
     SimCoordinateType getGradientTime() const;
 
   private:

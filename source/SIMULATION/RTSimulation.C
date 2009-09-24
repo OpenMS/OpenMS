@@ -176,12 +176,13 @@ namespace OpenMS {
 		else if (param_.getValue("rt_column") == "HPLC")
 		{
 			vector< String > peptides_vector(features.size());
+			vector< AASequence > peptides_aa_vector(features.size());
 			for (Size i = 0; i < features.size(); ++i)
 			{
-				peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
+				peptides_aa_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence();
 			}
 			is_relative = true;
-			wrapSVM(peptides_vector, predicted_retention_times);
+			wrapSVM(peptides_aa_vector, predicted_retention_times);
 		}	
     
     // scaling used when removing invalid RT predictions
@@ -364,13 +365,92 @@ namespace OpenMS {
     
     svm.setTrainingSample(training_data);
     svm.predict(prediction_data, predicted_retention_times);
-    
     delete training_data;
     delete prediction_data;
 		
 		cout << "done" << endl;
 	}
-	
+
+
+	void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)
+	{
+    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
+    SVMWrapper svm;
+		LibSVMEncoder encoder;
+		svm_problem* training_data = NULL;
+    svm_problem* prediction_data = NULL;
+    SVMData prediction_samples;
+		SVMData training_samples;
+    UInt k_mer_length = 0;
+    DoubleReal sigma = 0.0;
+    UInt border_length = 0;
+    
+		std::cout << "Predicting RT ... ";
+    
+    svm.loadModel(rt_model_file_);
+    
+    // load additional parameters
+    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+    {
+      String add_paramfile = rt_model_file_ + "_additional_parameters";
+      if (! File::readable( add_paramfile ) )
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: SVM parameter file " + add_paramfile + " is not readable");
+      }
+      
+      Param additional_parameters;
+      additional_parameters.load(add_paramfile);
+      
+      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No border length defined in additional parameters file.");
+      }
+      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
+      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No k-mer length defined in additional parameters file.");
+      }
+      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+      
+      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: No sigma defined in additional parameters file.");
+      }
+      
+      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+    }
+    
+    svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+    svm.setParameter(SVMWrapper::SIGMA, sigma);
+    
+    // Encoding test data
+    vector<DoubleReal> rts;
+    rts.resize(peptide_sequences.size(), 0);
+    //prediction_data =
+		encoder.encodeProblemWithOligoBorderVectors(peptide_sequences,k_mer_length, allowed_amino_acid_characters, border_length,prediction_samples.sequences);
+    prediction_samples.labels = rts;
+		
+    // loading model data
+    String sample_file = rt_model_file_ + "_samples";
+    if (! File::readable( sample_file ) )
+    {
+      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "RTSimulation: SVM sample file " + sample_file + " is not readable");
+    }
+    training_samples.load(sample_file);
+		svm.setTrainingSample(training_samples);
+    svm.setTrainingSample(training_data);
+
+    svm.predict(prediction_samples, predicted_retention_times);
+
+    delete training_data;
+    delete prediction_data;
+		
+		cout << "done" << endl;
+	}
+
   void RTSimulation::predictContaminantsRT(FeatureMapSim & contaminants)
   {
     // iterate of feature map
