@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Clemens Groepl $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -29,15 +29,9 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <OpenMS/svn_revision.h>
 
 using namespace std;
-//#ifndef  OPENMS_REVISION
-// #warning is not a standard preprocessor directive, but supported by many compilers, including GCC.
-//#ifdef   OPENMS_COMPILER_GXX
-//#warning "Note: OPENMS_REVISION is undefined.  OpenMS uses the subversion software for revision control, but now revision info is unavailable.  This is normally the case when you are compiling a released version (without .svn subdirectories)."
-//#endif
-//#define OPENMS_REVISION ""
-//#endif
 
 namespace OpenMS
 {
@@ -100,13 +94,7 @@ namespace OpenMS
 		static String result;
 		if ( !is_initialized )
 		{
-#ifdef OPENMS_HAS_SVNVERSION			
-			ifstream in(PACKAGE_REVISION_FILE);
-			getline(in, result, '\n');
-			result.trim();
-#else
-			result = "<unknown>";
-#endif
+			result = String(OPENMS_SVN_REVISION); // defined in svn_revision.h
 			is_initialized = true;
 		}
 		return result;

@@ -58,7 +58,6 @@
 
 // do we use SVN revision in VersionInfo.C?! [depending on the availability of svnversion(.exe)]
 #cmakedefine OPENMS_HAS_SVNVERSION
-#define PACKAGE_REVISION_FILE "@CF_PACKAGE_REVISION_FILE@"
 
 // Define compiler specifics (used in VERY few places only)
 // Microsoft Visual Studio .NET, 2005, 2008
