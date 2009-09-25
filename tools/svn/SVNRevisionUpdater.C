@@ -134,7 +134,7 @@ int main( int argc, const char* argv[] )
 	if (substrings.size() != 4)
 	{ 
 		std::cerr << "Input file " << svn_header_file << " not formatted as expected: got " << substrings.size() << " substrings, expected 4\n";
-		for (int i=0;i<substrings.size();++i)	
+		for (unsigned int i=0;i<substrings.size();++i)	
 		{
 			std::cerr << " " << substrings[i] << "\n";
 		}		
@@ -148,7 +148,7 @@ int main( int argc, const char* argv[] )
 		substrings[2] = svn_revision; // replace with new revision
 		ofstream hfile;
 		hfile.open (svn_header_file.c_str());
-		for (int i=0;i<substrings.size();++i)	
+		for (unsigned int i=0;i<substrings.size();++i)	
 		{
 			if (i!=0) hfile << " ";
 			hfile << substrings[i];
@@ -162,4 +162,4 @@ int main( int argc, const char* argv[] )
 		std::cout << "DEBUG - nothing to be done. Header file is up-to-date." << endl;
 	}
 	
-};
+}
