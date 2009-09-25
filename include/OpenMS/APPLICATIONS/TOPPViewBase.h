@@ -78,8 +78,7 @@ namespace OpenMS
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Hiwi, Johannes)
 
   	@todo Add TOPPView live-tutorial (Stephan, Marc)
-    @todo Remove mower support (Marc)
-  
+
     @ingroup TOPPView_elements
   */
   class OPENMS_DLLAPI TOPPViewBase
@@ -237,6 +236,8 @@ namespace OpenMS
     	void layerContextMenu(const QPoint& pos);
     	/// slot for spectrum manager context menu
     	void spectrumContextMenu(const QPoint& pos);
+    	/// slot for spectrum browser column header context menu
+    	void spectrumBrowserHeaderContextMenu(const QPoint& pos);
     	/// slot for log window context menu
     	void logContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)
@@ -336,12 +337,13 @@ namespace OpenMS
       /// Layer managment widget
       QListWidget* layer_manager_;
 
-			/// Spectrum selection widget
+      ///@name Spectrum selection widgets
+      //@{
       QTreeWidget* spectrum_selection_;
-      /// Spectrum dock widget
       QDockWidget* spectrum_bar_;
       QLineEdit* spectrum_search_box_;
       QComboBox* spectrum_combo_box_;
+      //@}
 
       ///@name Data filter widgets
       //@{

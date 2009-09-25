@@ -67,6 +67,7 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/Precursor.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -398,67 +399,73 @@ namespace OpenMS
     windows->addAction(layer_bar->toggleViewAction());
 
     //spectrum selection
-    spectrum_bar_ = new QDockWidget("Spectra", this);
-    addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);
+	spectrum_bar_ = new QDockWidget("Spectra", this);
+	addDockWidget(Qt::RightDockWidgetArea, spectrum_bar_);
 
-    QWidget* tmp_widget_spec_selec = new QWidget(); //dummy widget as QDockWidget takes only one widget
-    spectrum_bar_->setWidget(tmp_widget_spec_selec);
+	QWidget* tmp_widget_spec_browser = new QWidget(); //dummy widget as QDockWidget takes only one widget
+	QVBoxLayout* tmp_widget_spec_browser_layout = new QVBoxLayout(tmp_widget_spec_browser);
 
-    QBoxLayout* gbl_spec_selec = new QBoxLayout(QBoxLayout::TopToBottom,tmp_widget_spec_selec);
-    QBoxLayout* vbl_spec_selec = new QBoxLayout(QBoxLayout::TopToBottom,tmp_widget_spec_selec);
-    QBoxLayout* hbl_spec_selec = new QBoxLayout(QBoxLayout::RightToLeft,tmp_widget_spec_selec);
-    spectrum_selection_ = new QTreeWidget(tmp_widget_spec_selec);
-    spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
-	spectrum_selection_->setColumnCount(6);
+	spectrum_selection_ = new QTreeWidget(tmp_widget_spec_browser);
+	spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
+
+	//~ no good for huge experiments - omitted:
 	//~ spectrum_selection_->setSortingEnabled(true);
 	//~ spectrum_selection_->sortByColumn ( 1, Qt::AscendingOrder);
+
+	spectrum_selection_->setColumnCount(7);/// @improvement make dependend from global "header_labels" to change only once (otherwise changes must be applied in several slots too!)
+
 	spectrum_selection_->setColumnWidth(0,65);
 	spectrum_selection_->setColumnWidth(1,45);
 	spectrum_selection_->setColumnWidth(2,50);
 	spectrum_selection_->setColumnWidth(3,55);
-	spectrum_selection_->setColumnWidth(4,45);
+	spectrum_selection_->setColumnWidth(4,55);
 	spectrum_selection_->setColumnWidth(5,45);
-	//~ spectrum_selection_->resizeColumnToContents(0);
-	//~ spectrum_selection_->resizeColumnToContents(1);
-	//~ spectrum_selection_->resizeColumnToContents(2);
-	//~ spectrum_selection_->resizeColumnToContents(3);
-	//~ spectrum_selection_->resizeColumnToContents(4);
-	//~ spectrum_selection_->resizeColumnToContents(5);
+	spectrum_selection_->setColumnWidth(6,45);
 
-	QStringList header_labels;
+	///@improvement write the visibility-status of the columns in toppview.ini and read at start
+
+	QStringList header_labels; /// @improvement make this global to change only once (otherwise changes must be applied in several slots too!)
 	header_labels.append(QString("MS level"));
 	header_labels.append(QString("index"));
 	header_labels.append(QString("RT"));
 	header_labels.append(QString("precursor m/z"));
+	header_labels.append(QString("dissociation"));
 	header_labels.append(QString("scan type"));
 	header_labels.append(QString("zoom"));
 	spectrum_selection_->setHeaderLabels(header_labels);
 
 	spectrum_selection_->setDragEnabled(true);
 	spectrum_selection_->setContextMenuPolicy(Qt::CustomContextMenu);
+	spectrum_selection_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 	connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
 	connect(spectrum_selection_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumContextMenu(const QPoint&)));
-		windows->addAction(spectrum_bar_->toggleViewAction());
+	connect(spectrum_selection_->header(),SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(spectrumBrowserHeaderContextMenu(const QPoint&)));
 
-	spectrum_search_box_ = new QLineEdit("", tmp_widget_spec_selec);
-	connect(spectrum_search_box_,SIGNAL(textEdited ( const QString &)),this,SLOT(chooseSpectrumByUser(const QString&)));
+	tmp_widget_spec_browser_layout->addWidget(spectrum_selection_);
+
+	QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
+
+	spectrum_search_box_ = new QLineEdit("", tmp_widget_spec_browser);
 
 	QStringList qsl;
 	qsl.push_back("index");
 	qsl.push_back("RT");
 	qsl.push_back("MZ");
+	qsl.push_back("dissociation");
 	qsl.push_back("scan");
 	qsl.push_back("zoom");
-	spectrum_combo_box_ = new QComboBox(tmp_widget_spec_selec);
+	spectrum_combo_box_ = new QComboBox(tmp_widget_spec_browser);
 	spectrum_combo_box_->addItems(qsl);
-	vbl_spec_selec->addWidget(spectrum_selection_);
-	hbl_spec_selec->addWidget(spectrum_combo_box_);
-	hbl_spec_selec->addWidget(spectrum_search_box_);
-	gbl_spec_selec->insertLayout(0,vbl_spec_selec);
-	gbl_spec_selec->insertLayout(1,hbl_spec_selec);
 
-	spectrum_bar_->setWidget(tmp_widget_spec_selec);
+	connect(spectrum_search_box_,SIGNAL(textEdited ( const QString &)),this,SLOT(chooseSpectrumByUser(const QString&)));
+
+	tmp_hbox_layout->addWidget(spectrum_search_box_);
+	tmp_hbox_layout->addWidget(spectrum_combo_box_);
+	tmp_widget_spec_browser_layout->addLayout(tmp_hbox_layout);
+
+	spectrum_bar_->setWidget(tmp_widget_spec_browser);
+	windows->addAction(spectrum_bar_->toggleViewAction());
 
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
@@ -492,7 +499,7 @@ namespace OpenMS
 		connect(log_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(logContextMenu(const QPoint&)));
 		log_bar->setWidget(log_);
 		log_bar->hide();
-    windows->addAction(log_bar->toggleViewAction());
+		windows->addAction(log_bar->toggleViewAction());
 
 		//################## DEFAULTS #################
     //general
@@ -859,7 +866,6 @@ namespace OpenMS
       			break;
       		}
       	}
-				if (peak_map.getChromatograms().size()>1) is_2D=true;
       }
     }
     catch(Exception::BaseException& e)
@@ -999,43 +1005,7 @@ namespace OpenMS
 	    }
 	    else //peaks
 	    {
-				//remove chromatograms or spectra (we need only one of them)
-				if (is_2D)
-				{
-					if (peak_map.getChromatograms().size() != 0)
-					{
-						ExperimentType chrom_map = peak_map; //TODO CHROM only copy relevant information
-						chrom_map.resize(0); // clears all the spectra
-						if (!open_window->canvas()->addLayer(chrom_map,filename)) return;
-						peak_map.setChromatograms(vector< MSChromatogram<> >());
-
-						// check whether 2D data is available
-						Size ms1_scans = 0;
-        		for (Size i = 0; i < peak_map.size(); ++i)
-        		{
-          		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
-          		if (ms1_scans>1)
-          		{
-            		break;
-          		}
-        		}
-
-						if (ms1_scans > 0)
-						{
-							if (!open_window->canvas()->addLayer(peak_map,filename)) return;
-						}
-					}
-					else
-					{
-						//add peak data
-						if (!open_window->canvas()->addLayer(peak_map,filename)) return;
-					}
-				}
-				else
-				{
-					if (!open_window->canvas()->addLayer(peak_map,filename)) return;
-				}
-
+			  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
 	      //calculate noise
 	      if (use_mower && is_2D)
 	      {
@@ -1093,8 +1063,8 @@ namespace OpenMS
 		recent_files_.prepend(tmp.toQString());
 
 		//remove those files exceeding the defined number
-		int number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
-		while (recent_files_.size() > number_of_recent_files)
+		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
+		while ((UInt)recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
 		}
@@ -1105,18 +1075,18 @@ namespace OpenMS
   void TOPPViewBase::updateRecentMenu_()
   {
     //get/correct number of recent files
-		Size number_of_recent_files = param_.getValue("preferences:number_of_recent_files");
+		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
 		if (number_of_recent_files>20)
 		{
 			number_of_recent_files = 20;
 			param_.setValue("preferences:number_of_recent_files",20);
 		}
 
-		for (int i = 0; i < 20; ++i)
+		for (Size i = 0; i < 20; ++i)
 		{
-			if (i < recent_files_.size())
+			if (i < (UInt)(recent_files_.size()))
 			{
-				recent_actions_[i]->setText(recent_files_[i]);
+				recent_actions_[i]->setText(recent_files_[(int)i]);
 				recent_actions_[i]->setVisible(true);
 			}
 			else
@@ -1367,18 +1337,12 @@ namespace OpenMS
 	      tool_bar_2d_cons_->hide();
 			}
 			//consensus feature draw modes
-			else if(w2->canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+			else
 			{
       	dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
 	      tool_bar_2d_peak_->hide();
 	      tool_bar_2d_feat_->hide();
 	      tool_bar_2d_cons_->show();
-			}
-      else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
-      {
-	      tool_bar_2d_peak_->hide();
-	      tool_bar_2d_feat_->hide();
-	      tool_bar_2d_cons_->hide();
 			}
     }
 
@@ -1537,26 +1501,45 @@ namespace OpenMS
 				if (!cl.peaks[i].getPrecursors().empty())
 				{
 					item->setText(3,QString::number(cl.peaks[i].getPrecursors()[0].getMZ()));
+
+					if (!cl.peaks[i].getPrecursors().front().getActivationMethods().empty())
+					{
+						QString t;
+						for(std::set<Precursor::ActivationMethod>::const_iterator it = cl.peaks[i].getPrecursors().front().getActivationMethods().begin(); it != cl.peaks[i].getPrecursors().front().getActivationMethods().end(); ++it)
+						{
+							if(!t.isEmpty())
+							{
+								t.append(",");
+							}
+							t.append(QString::fromStdString(cl.peaks[i].getPrecursors().front().NamesOfActivationMethod[*(cl.peaks[i].getPrecursors().front().getActivationMethods().begin())]));
+						}
+						item->setText(4,t);
+					}
+					else
+					{
+						item->setText(4, "-");
+					}
 				}
 				else
 				{
 					item->setText(3, "-");
+					item->setText(4, "-");
 				}
 				if (cl.peaks[i].getInstrumentSettings().getScanMode()>0)
 				{
-					item->setText(4,QString::fromStdString(cl.peaks[i].getInstrumentSettings().NamesOfScanMode[cl.peaks[i].getInstrumentSettings().getScanMode()]));
+					item->setText(5,QString::fromStdString(cl.peaks[i].getInstrumentSettings().NamesOfScanMode[cl.peaks[i].getInstrumentSettings().getScanMode()]));
 				}
 				else
 				{
-					item->setText(4, "unknown");
+					item->setText(5, "-");
 				}
 				if (cl.peaks[i].getInstrumentSettings().getZoomScan())
 				{
-					item->setText(5,"yes");
+					item->setText(6,"yes");
 				}
 				else
 				{
-					item->setText(5, "no");
+					item->setText(6, "no");
 				}
 
 
@@ -1586,26 +1569,44 @@ namespace OpenMS
 					if (!cl.peaks[i].getPrecursors().empty())
 					{
 						item->setText(3,QString::number(cl.peaks[i].getPrecursors()[0].getMZ()));
+
+						if (!cl.peaks[i].getPrecursors().front().getActivationMethods().empty())
+						{
+							QString t;
+							for(std::set<Precursor::ActivationMethod>::const_iterator it = cl.peaks[i].getPrecursors().front().getActivationMethods().begin(); it != cl.peaks[i].getPrecursors().front().getActivationMethods().end(); ++it)
+							{
+								if(!t.isEmpty()){
+									t.append(",");
+								}
+								t.append(QString::fromStdString(cl.peaks[i].getPrecursors().front().NamesOfActivationMethod[*(cl.peaks[i].getPrecursors().front().getActivationMethods().begin())]));
+							}
+							item->setText(4,t);
+						}
+						else
+						{
+							item->setText(4, "-");
+						}
 					}
 					else
 					{
 						item->setText(3, "-");
+						item->setText(4, "-");
 					}
 					if (cl.peaks[i].getInstrumentSettings().getScanMode()>0)
 					{
-						item->setText(4,QString::fromStdString(cl.peaks[i].getInstrumentSettings().NamesOfScanMode[cl.peaks[i].getInstrumentSettings().getScanMode()]));
+						item->setText(5,QString::fromStdString(cl.peaks[i].getInstrumentSettings().NamesOfScanMode[cl.peaks[i].getInstrumentSettings().getScanMode()]));
 					}
 					else
 					{
-						item->setText(4, "unknown");
+						item->setText(5, "-");
 					}
 					if (cl.peaks[i].getInstrumentSettings().getZoomScan())
 					{
-						item->setText(5,"yes");
+						item->setText(6,"yes");
 					}
 					else
 					{
-						item->setText(5, "no");
+						item->setText(6, "no");
 					}
 					toplevel_items.push_back(item);
 					if (i == cl.current_spectrum)
@@ -1623,8 +1624,7 @@ namespace OpenMS
 				spectrum_selection_->scrollToItem(selected_item);
 			}
   	}
-		//TODO CHROM?
-		else
+  	else
   	{
   		item = new QTreeWidgetItem((QTreeWidget*)0);
   		item->setText(0, QString("No peak map"));
@@ -1731,9 +1731,8 @@ namespace OpenMS
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")
 			{
-				bool ok = false;
-				QString name = QInputDialog::getText(this,"Rename layer","Name:", QLineEdit::Normal, activeCanvas_()->getLayer(layer).name.toQString(), &ok);
-				if (ok)
+				QString name = QInputDialog::getText(this,"Rename layer","Name:");
+				if (name!="")
 				{
 					activeCanvas_()->setLayerName(layer, name);
 				}
@@ -1783,7 +1782,7 @@ namespace OpenMS
 		if (item)
 		{
 			//create menu
-			int spectrum_index = item->text(3).toInt();
+			int spectrum_index = item->text(1).toInt();
 			QMenu* context_menu = new QMenu(spectrum_selection_);
 			context_menu->addAction("Show in 1D view");
 			context_menu->addAction("Meta data");
@@ -1813,6 +1812,42 @@ namespace OpenMS
 
 			delete (context_menu);
 		}
+	}
+
+	void TOPPViewBase::spectrumBrowserHeaderContextMenu(const QPoint & pos)
+	{
+		//create menu
+		QMenu* context_menu = new QMenu(spectrum_selection_->header());
+		QStringList header_labels;
+		header_labels.append(QString("MS level"));
+		header_labels.append(QString("index"));
+		header_labels.append(QString("RT"));
+		header_labels.append(QString("precursor m/z"));
+		header_labels.append(QString("dissociation"));
+		header_labels.append(QString("scan type"));
+		header_labels.append(QString("zoom"));
+		for(int i = 0; i < header_labels.size(); ++i)
+		{
+			QAction* tmp = new QAction(header_labels[i],context_menu);
+			tmp->setCheckable(true);
+			tmp->setChecked(!spectrum_selection_->isColumnHidden(i));
+			context_menu->addAction(tmp);
+		}
+
+		//(show and) execute menu
+		QAction* selected = context_menu->exec(spectrum_selection_->mapToGlobal(pos));
+		if (selected!=0)
+		{
+			for(int i = 0; i < header_labels.size(); ++i)
+			{
+				if(selected->text()==header_labels[i])
+				{
+					selected->isChecked()?spectrum_selection_->setColumnHidden(i,false):spectrum_selection_->setColumnHidden(i,true);
+				}
+			}
+			updateSpectrumBar();
+		}
+		delete (context_menu);
 	}
 
 	void TOPPViewBase::logContextMenu(const QPoint & pos)
@@ -2093,6 +2128,9 @@ namespace OpenMS
 			int index = searched.first()->text(1).toInt();
 			searched.first()->setSelected(true);
 			spectrum_selection_->update();
+
+			spectrum_selection_->scrollToItem(searched.first());
+
 			Spectrum1DWidget* widget_1d = active1DWindow_();
 			if (widget_1d)
 			{
@@ -2426,7 +2464,7 @@ namespace OpenMS
 				FeatureXMLFile().store(topp_.file_name+"_in",layer.features);
 			}
 		}
-		else if (layer.type==LayerData::DT_CONSENSUS)
+		else
 		{
 			if (topp_.visible)
 			{
@@ -2437,23 +2475,6 @@ namespace OpenMS
 			else
 			{
 				ConsensusXMLFile().store(topp_.file_name+"_in",layer.consensus);
-			}
-		}
-		else if (layer.type==LayerData::DT_CHROMATOGRAM)
-		{
-			MzMLFile f;
-			f.setLogType(ProgressLogger::GUI);
-			if (topp_.visible)
-			{
-				ExperimentType exp;
-				//TODO CHROM
-				//activeCanvas_()->getVisibleChromatogramData(exp);
-				f.store(topp_.file_name + "_in", exp);
-			}
-			else
-			{
-				//TODO CHROM
-				//f.store(topp_.file_name + "_in", );
 			}
 		}
 
@@ -2577,7 +2598,7 @@ namespace OpenMS
 			{
 				IDMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
 			}
-			else if (layer.type==LayerData::DT_CONSENSUS)
+			else
 			{
 				IDMapper().annotate(const_cast<LayerData&>(layer).consensus,identifications,protein_identifications);
 			}
@@ -2700,7 +2721,7 @@ namespace OpenMS
 			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
 			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
 
-			active_1d_window->performAlignment(layer_index_1, layer_index_2, param);
+			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
 
 			DoubleReal al_score = cc->getAlignmentScore();
 			Size al_size = cc->getAlignmentSize();
@@ -2735,7 +2756,7 @@ namespace OpenMS
 		}
 		else
 		{
-      showLogMessage_(LS_NOTICE,"Wrong layer type","You cannot open feature, consensus feature or chromatogram data in 3D mode.");
+      showLogMessage_(LS_NOTICE,"Wrong layer type","You cannot open feature data in 3D mode.");
 		}
 	}
 
@@ -3114,6 +3135,13 @@ namespace OpenMS
 
 	void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
 	{
+		//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
+		//decode data to get the row
+		//QByteArray encoded_data = data->data(data->formats()[0]);
+		//QDataStream stream(&encoded_data, QIODevice::ReadOnly);
+		//int row, col;
+		//stream >> row >> col;
+
   	//set wait cursor
   	setCursor(Qt::WaitCursor);
 
@@ -3146,7 +3174,7 @@ namespace OpenMS
 			}
 			else
 			{
-				Size ms1_scans = 0;
+				UInt ms1_scans = 0;
 				for (Size i=0; i<peaks.size();++i)
 				{
 					if (peaks[i].getMSLevel()==1) ++ms1_scans;
@@ -3156,7 +3184,6 @@ namespace OpenMS
 						break;
 					}
 				}
-				if (peaks.getChromatograms().size() > 0) is_2D = true;
 			}
 
 			//add the data
