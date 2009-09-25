@@ -85,7 +85,7 @@ namespace OpenMS
 
     initialization_date_time_ = date_time;
     const UInt64 seed_64 = initialization_date_time_.toString("yyyyMMddhhmmsszzz").toLongLong();
-    const unsigned long int actually_used_seed = ((1UL<<32)-1)&((seed_64>>32)^seed_64); // just to mix the bits a bit
+    const unsigned long int actually_used_seed = ((UInt64(1)<<32)-1)&((seed_64>>32)^seed_64); // just to mix the bits a bit
     gsl_rng_set(random_number_generator_, actually_used_seed);
 
     info_.setValue("generator_type", gsl_rng_name(random_number_generator_));
