@@ -55,33 +55,38 @@ namespace OpenMS
 class OPENMS_DLLAPI UniqueIdGenerator
 {
 
-public:
+  public:
 
-  typedef UInt64 UniqueId;
+    /// Unique Ids are 64-bit unsigned integers
+    typedef UInt64 UniqueId;
 
-  /// Returns a new unique id
-  static UniqueId
-  getUID();
+    /// Returns a new unique id
+    static UniqueId
+    getUniqueId();
 
-  /// Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
-  static void setSeed(const DateTime&);
+    /// Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
+    static void
+    setSeed(const DateTime&);
 
-  /// Returns a summary of internal status
-  static Param const& getInfo();
+    /// Returns a summary of internal status
+    static Param const&
+    getInfo();
 
-private:
+  private:
 
-  UniqueIdGenerator();
+    UniqueIdGenerator();
 
-  ~UniqueIdGenerator();
+    ~UniqueIdGenerator();
 
-  static UniqueIdGenerator& getInstance_();
+    static UniqueIdGenerator&
+    getInstance_();
 
-  void init_( const DateTime& date_time );
+    void
+    init_(const DateTime& date_time);
 
-  gsl_rng * random_number_generator_;
-  Param info_;
-  DateTime initialization_date_time_;
+    gsl_rng * random_number_generator_;
+    Param info_;
+    DateTime initialization_date_time_;
 
 };
 

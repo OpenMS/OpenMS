@@ -35,11 +35,12 @@ namespace OpenMS
 {
 
   UniqueIdGenerator::UniqueId
-  UniqueIdGenerator::getUID()
+  UniqueIdGenerator::getUniqueId()
   {
     V_UniqueIdGenerator("UniqueIdGenerator::getUID()");
     gsl_rng * const rng = getInstance_().random_number_generator_;
-    return (gsl_rng_get(rng) << 32) + gsl_rng_get(rng);
+    return (UniqueIdGenerator::UniqueId(gsl_rng_get(rng)) << 32)
+      + UniqueIdGenerator::UniqueId(gsl_rng_get(rng));
   }
 
   const Param&
@@ -84,7 +85,7 @@ namespace OpenMS
 
     initialization_date_time_ = date_time;
     const UInt64 seed_64 = initialization_date_time_.toString("yyyyMMddhhmmsszzz").toLongLong();
-    const unsigned long int actually_used_seed = (seed_64 >> 32) ^ seed_64; // just to mix the bits a bit
+    const unsigned long int actually_used_seed = ((1UL<<32)-1)&((seed_64>>32)^seed_64); // just to mix the bits a bit
     gsl_rng_set(random_number_generator_, actually_used_seed);
 
     info_.setValue("generator_type", gsl_rng_name(random_number_generator_));

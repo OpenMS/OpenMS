@@ -53,9 +53,9 @@ START_SECTION(~UniqueIdGenerator())
 }
 END_SECTION
 
-START_SECTION((static UniqueId getUID()))
+START_SECTION((static UniqueId getUniqueId()))
 {
-  STATUS("OpenMS::UniqueIdGenerator::getUID(): " << OpenMS::UniqueIdGenerator::getUID());
+  STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
   // the actual values are unpredictable, but see setSeed() below
   NOT_TESTABLE;
 }
@@ -63,26 +63,26 @@ END_SECTION
 
 START_SECTION((static void setSeed(const DateTime &)))
 {
-  OpenMS::DateTime another_moment;
-  another_moment.set(5,4,666,3,2,1);
-  OpenMS::UniqueIdGenerator::setSeed(another_moment);
+  OpenMS::DateTime one_moment_in_time;
+  one_moment_in_time.set(5,4,666,3,2,1);
+  OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
   OpenMS::UniqueIdGenerator::UniqueId unique_ids[] =
-                  { 1663028827116059880UL, 16317018546938646277UL, 4499304917001700489UL, 14007980103328265649UL, 8982057078544736839UL };
+                  { 1663028827116059880, 16317018546938646277, 4499304917001700489, 14007980103328265649, 8982057078544736839 };
 
   const int num_num = sizeof(unique_ids)/sizeof(*unique_ids);
 
   for ( int i = 0; i < num_num; ++i )
   {
-    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUID();
+    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
 
-  OpenMS::UniqueIdGenerator::setSeed(another_moment);
+  OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
   for ( int i = 0; i < num_num; ++i )
   {
-    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUID();
+    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
 
@@ -98,7 +98,7 @@ START_SECTION((static Param const& getInfo()))
   TEST_STRING_EQUAL(param.getValue("generator_max"),"4294967295");
   TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_string"),"0666-05-04 03:02:01");
   TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_longlong"),"6660504030201000");
-  TEST_STRING_EQUAL(param.getValue("actually_used_seed"),"6660504028802329");
+  TEST_STRING_EQUAL(param.getValue("actually_used_seed"),"1890151705");
   STATUS(OpenMS::UniqueIdGenerator::getInfo());
 }
 END_SECTION
