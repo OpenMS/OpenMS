@@ -32,6 +32,7 @@
 #include <limits>
 #include <algorithm>
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 
@@ -46,7 +47,7 @@ namespace OpenMS
 
 		@ingroup SpectraClustering
 	*/
-	class OPENMS_DLLAPI SingleLinkage : public ClusterFunctor
+	class OPENMS_DLLAPI SingleLinkage : public ClusterFunctor, public ProgressLogger
 	{
 		public:
 

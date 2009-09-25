@@ -31,12 +31,12 @@
 namespace OpenMS
 {
 	SingleLinkage::SingleLinkage()
-	  : ClusterFunctor()
+	  : ClusterFunctor(), ProgressLogger()
 	{
 	}
 
 	SingleLinkage::SingleLinkage(const SingleLinkage& source)
-	  : ClusterFunctor(source)
+	  : ClusterFunctor(source), ProgressLogger()
 	{
 	}
 
@@ -49,6 +49,7 @@ namespace OpenMS
 		if (this != &source)
 		{
 			ClusterFunctor::operator = (source);
+			ProgressLogger::operator = (source);
 		}
 		return *this;
 	}
@@ -72,6 +73,9 @@ namespace OpenMS
 		pi.reserve(original_distance.dimensionsize());
 		std::vector<Real> lambda;
 		lambda.reserve(original_distance.dimensionsize());
+
+		startProgress(0,original_distance.dimensionsize(),"clustering data");
+
 
 		//initialize first pointer values
 		pi.push_back(0);
@@ -115,6 +119,7 @@ namespace OpenMS
 					pi[i] = k;
 				}
 			}
+			setProgress(k);
 		}
 
 		for (Size i = 0; i < pi.size()-1; ++i)
@@ -155,6 +160,7 @@ namespace OpenMS
 			}
 
 		}
+		endProgress();
 
 	}
 

@@ -79,7 +79,6 @@ namespace OpenMS
 		Size overall_cluster_steps(original_distance.dimensionsize());
 		startProgress(0,original_distance.dimensionsize(),"clustering data");
 
-
 		while(original_distance(min.second,min.first) < threshold)
 		{
 			//grow the tree
