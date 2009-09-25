@@ -99,6 +99,10 @@ namespace OpenMS
 		defaults_.setValidStrings("Precursor:exclude_overlapping_peaks", StringList::create("true,false"));
 		defaults_.setValue("Precursor:min_peak_distance",2.,"The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
 		defaults_.setMinFloat("Precursor:min_peak_distance",0.);
+		defaults_.setValue("Precursor:use_dynamic_exclusion","true","If true dynamic exclusion is applied.");
+		defaults_.setValidStrings("Precursor:use_dynamic_exclusion", StringList::create("true,false"));
+		defaults_.setValue("Precursor:exclusion_time",100.,"The time (in seconds) a feature is excluded after its last selection.");
+		defaults_.setMinFloat("Precursor:exclusion_time",0.);
 		
 		// sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");

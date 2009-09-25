@@ -44,7 +44,10 @@ OfflinePrecursorIonSelection::OfflinePrecursorIonSelection() : DefaultParamHandl
 	defaults_.setMinFloat("min_peak_distance",0.);
 	defaults_.setValue("exclude_overlapping_peaks","false","If true overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
 	defaults_.setValidStrings("exclude_overlapping_peaks",StringList::create("true,false"));
-
+	defaults_.setValue("use_dynamic_exclusion","false","If true dynamic exclusion is applied.");
+	defaults_.setValidStrings("use_dynamic_exclusion",StringList::create("true,false"));
+	defaults_.setValue("exclusion_time",100.,"The time (in seconds) a feature is excluded.");
+	defaults_.setMinFloat("exclusion_time",0.);	
 	defaultsToParam_();
 }
 
@@ -54,5 +57,16 @@ OfflinePrecursorIonSelection::~OfflinePrecursorIonSelection()
 }
 
 
+void OfflinePrecursorIonSelection::updateExclusionList_(std::vector<std::pair<Size,Size> >& exclusion_list)
+{
+	for(Size i = 0; i < exclusion_list.size();++i)
+		{
+			if(exclusion_list[i].second > 0) --exclusion_list[i].second;
+		}
+	sort(exclusion_list.begin(),exclusion_list.end(),PairComparatorSecondElementMore<std::pair<Size,Size> >());
+	std::vector<std::pair<Size,Size> >::iterator iter = exclusion_list.begin();
+	while(iter != exclusion_list.end() && iter->second != 0) ++iter;
+	exclusion_list.erase(iter,exclusion_list.end());
+}
 
 

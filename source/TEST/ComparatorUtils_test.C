@@ -382,6 +382,24 @@ START_SECTION(PairComaratorSecondElement())
   TEST_EQUAL(testcomp(i,j),false);
 END_SECTION
 
+START_SECTION(PairComparatorFirstElementMore())
+  std::pair<int,int> i(4,6), j(-3,7);
+  PairComparatorFirstElementMore<std::pair<int,int> > testcomp;
+  TEST_EQUAL(testcomp(i,j),true);
+  TEST_EQUAL(testcomp(j,i),false);
+  j = std::make_pair(4,7);
+  TEST_EQUAL(testcomp(i,j),false);
+  TEST_EQUAL(testcomp(j,i),false);
+
+END_SECTION
+
+START_SECTION(PairComparatorSecondElementMore())
+  std::pair<int,int> i(4,6), j(-3,7);
+  PairComparatorSecondElementMore<std::pair<int,int> > testcomp;
+  TEST_EQUAL(testcomp(i,j),false);
+  j = std::make_pair(4,6);
+  TEST_EQUAL(testcomp(i,j),false);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

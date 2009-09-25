@@ -102,6 +102,8 @@ namespace OpenMS
 		template <typename InputPeakType>		
 		void checkMassRanges_(std::vector<std::vector<std::pair<Size,Size> > >& mass_ranges,
 													MSExperiment<InputPeakType>&experiment);
+
+		void updateExclusionList_(std::vector<std::pair<Size,Size> >& exclusion_list);
   };
 
 	template <typename InputPeakType>
@@ -287,17 +289,37 @@ namespace OpenMS
 				std::vector<std::vector<std::pair<Size,DoubleReal> > > xics;			
 				calculateXICs_(features,indices,xics,experiment,charges_set);
 
-				Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
-
-		
+				bool dynamic_exclusion = param_.getValue("use_dynamic_exclusion") == "true" ? true : false;
+				std::vector<std::pair<Size,Size> > exclusion_list;
+				Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("exclusion_time") /(DoubleReal) rt_dist));
 				// get best x signals for each scan
 				for(Size i = 0; i < experiment.size();++i)
 					{
+						Size max_spec = (Int)param_.getValue("ms2_spectra_per_rt_bin");
 #ifdef DEBUG_OPS
 						std::cout << "scan "<<experiment[i].getRT() << ":";
 #endif
+						if(dynamic_exclusion) updateExclusionList_(exclusion_list);
 						for(Size j = 0; j < xics[i].size() && j < max_spec; ++j)
 							{
+								if(dynamic_exclusion)
+									{
+										// check if feature is currently dynamically excluded
+										bool exclude = false;
+										for(Size excl_idx = 0; excl_idx < exclusion_list.size();++excl_idx)
+											{
+												if((xics[i].end()-1-j)->first == exclusion_list[excl_idx].first)
+													{
+														exclude = true;
+														break;
+													}
+											}
+										if(exclude)
+											{
+												++max_spec;
+												continue;
+											}
+									}
 								typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
 								Precursor p;
 								std::vector< Precursor > pcs;
@@ -310,6 +332,12 @@ namespace OpenMS
 								ms2_spec.setRT(experiment[i].getRT() + (j+1)*rt_dist/(max_spec+1) );
 								ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String((xics[i].end()-1-j)->first)));
 								ms2.push_back(ms2_spec);
+								if(dynamic_exclusion)
+									{
+										//add feature to exclusion list
+										std::pair<Size,Size> pair(std::make_pair((xics[i].end()-1-j)->first,exclusion_specs+1));
+										exclusion_list.push_back(pair);
+									}
 								// link ms2 spectrum with features overlapping its precursor
 								// Warning: this depends on the current order of features in the map
 								// Attention: make sure to name ALL features that overlap, not only one!
