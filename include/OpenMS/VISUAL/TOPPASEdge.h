@@ -59,8 +59,6 @@ namespace OpenMS
 			enum EdgeStatus
 			{
 				ES_VALID,
-				ES_MISMATCH_FILE_LIST,
-				ES_MISMATCH_LIST_FILE,
 				ES_NO_TARGET_PARAM,
 				ES_NO_SOURCE_PARAM,
 				ES_FILE_EXT_MISMATCH,

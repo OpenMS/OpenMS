@@ -279,12 +279,7 @@ namespace OpenMS
 		}
 		else
 		{
-			if (es == TOPPASEdge::ES_MISMATCH_LIST_FILE)
-			{
-				qobject_cast<TOPPASToolVertex*>(edge_->getTargetVertex())->setListModeActive(true);
-				accept();
-			}
-			else if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
+			if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
 			{
 				QMessageBox::warning(0,"Invalid selection","You must specify the target input parameter!");
 			}

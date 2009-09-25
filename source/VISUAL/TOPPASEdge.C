@@ -330,17 +330,11 @@ namespace OpenMS
 		source_tool->getOutputParameters(source_output_files);
 		const TOPPASToolVertex::IOInfo& source_param = source_output_files[source_param_index];
 		StringList source_param_types = source_param.valid_types;
-		bool source_param_has_list_type = source_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
 		target_tool->getInputParameters(target_input_files);
 		const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_param_index];
 		StringList target_param_types = target_param.valid_types;
-		bool target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
 		
-		if (source_param_has_list_type && !target_param_has_list_type)
-		{
-			return ES_MISMATCH_LIST_FILE;
-		}
-		else if (source_param_types.size() == 0 || target_param_types.size() == 0)
+		if (source_param_types.size() == 0 || target_param_types.size() == 0)
 		{
 			// no type specified --> allow edge
 			return ES_VALID;
@@ -392,51 +386,44 @@ namespace OpenMS
 		target_tool->getInputParameters(target_input_files);
 		const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_param_index];
 		StringList target_param_types = target_param.valid_types;
-		bool target_param_has_list_type = target_param.type == TOPPASToolVertex::IOInfo::IOT_LIST;
-		
-		if (!target_param_has_list_type)
-		{
-			return ES_MISMATCH_LIST_FILE;
-		}
-		else if (target_param_types.empty())
+
+		if (target_param_types.empty())
 		{
 			// no file types specified --> allow
 			return ES_VALID;
 		}
-		else
-		{
-			// check file type compatibility
-			bool type_mismatch = false;
-			foreach (const QString& q_file_name, file_names)
-			{
-				type_mismatch = true;
-				const String& file_name = String(q_file_name);
-				String::SizeType extension_start_index = file_name.rfind(".");
-				if (extension_start_index != String::npos)
-				{
-					String extension = file_name.substr(extension_start_index+1);
-					extension.toLower();
-					for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
-					{
-						String other_ext = *it;
-						other_ext.toLower();
-						if (extension == other_ext)
-						{
-							type_mismatch = false;
-							break;
-						}
-					}
-				}
 
-				if (type_mismatch)
+		// check file type compatibility
+		bool type_mismatch = false;
+		foreach (const QString& q_file_name, file_names)
+		{
+			type_mismatch = true;
+			const String& file_name = String(q_file_name);
+			String::SizeType extension_start_index = file_name.rfind(".");
+			if (extension_start_index != String::npos)
+			{
+				String extension = file_name.substr(extension_start_index+1);
+				extension.toLower();
+				for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
 				{
-					return ES_FILE_EXT_MISMATCH;
+					String other_ext = *it;
+					other_ext.toLower();
+					if (extension == other_ext)
+					{
+						type_mismatch = false;
+						break;
+					}
 				}
 			}
 
-			// all file types ok
-			return ES_VALID;
-		}	
+			if (type_mismatch)
+			{
+				return ES_FILE_EXT_MISMATCH;
+			}
+		}
+
+		// all file types ok
+		return ES_VALID;
 	}
 		
 	TOPPASEdge::EdgeStatus TOPPASEdge::getEdgeStatus()

@@ -487,14 +487,7 @@ namespace OpenMS
 				save_param.insert("vertices:"+id+":parameters:", ttv->getParam());
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
-				if (ttv->listModeActive())
-				{
-					save_param.setValue("vertices:"+id+":list_mode", DataValue("true"));
-				}
-				else
-				{
-					save_param.setValue("vertices:"+id+":list_mode", DataValue("false"));
-				}
+				save_param.setValue("vertices:"+id+":list_mode", DataValue("false")); // obsolete, but keep it for compatibility with older versions..
 				continue;
 			}
 
@@ -581,14 +574,6 @@ namespace OpenMS
 					Param param_param = vertices_param.copy(current_id + ":parameters:", true);
 					TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type, tmp_path_);
 					tv->setParam(param_param);
-					if (vertices_param.getValue(current_id + ":list_mode") == "true")
-					{
-						tv->setListModeActive(true);
-					}
-					else
-					{
-						tv->setListModeActive(false);
-					}
 					connect(tv,SIGNAL(toolStarted()),this,SLOT(setPipelineRunning()));
 					connect(tv,SIGNAL(toolFailed()),this,SLOT(pipelineErrorSlot()));
 					connect(tv,SIGNAL(toolCrashed()),this,SLOT(pipelineErrorSlot()));

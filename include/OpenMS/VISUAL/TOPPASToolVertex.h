@@ -59,8 +59,7 @@ namespace OpenMS
 				IOInfo()
 					:	type(IOT_FILE),
 						param_name(),
-						valid_types(),
-						listified(false)
+						valid_types()
 				{
 				}
 				
@@ -68,8 +67,7 @@ namespace OpenMS
 				IOInfo(const IOInfo& rhs)
 					:	type(rhs.type),
 						param_name(rhs.param_name),
-						valid_types(rhs.valid_types),
-						listified(rhs.listified)
+						valid_types(rhs.valid_types)
 				{
 				}
 				
@@ -99,7 +97,6 @@ namespace OpenMS
 					type = rhs.type;
 					param_name = rhs.param_name;
 					valid_types = rhs.valid_types;
-					listified = rhs.listified;
 					
 					return *this;
 				}
@@ -110,8 +107,6 @@ namespace OpenMS
 				String param_name;
 				///The valid file types for this parameter
 				StringList valid_types;
-				///Is the parameter actually a single file parameter but is used in list iteration?
-				bool listified;
 			};
 			
 			/// Default constructor
@@ -165,10 +160,6 @@ namespace OpenMS
 			void editParam();
 			/// Returns the number of iterations this tool has to perform
 			int numIterations();
-			/// Returns whether the list iteration mode is enabled
-			bool listModeActive();
-			/// (Un)sets the list iteration mode
-			void setListModeActive(bool b);
 			/// Returns the directory where this tool stores its output files
 			String getOutputDir();
 			/// Creates all necessary directories (called by the scene before the pipeline is run)
@@ -233,16 +224,18 @@ namespace OpenMS
 			bool started_here_;
 			/// Stores the file names of the different output parameters
 			QVector<QStringList> output_file_names_;
-			/// Color representing the progress (red = waiting, yellow = processing, green = finished, else: gray)
+			/// Color representing the progress (red = failed, yellow = processing, green = finished, else: gray)
 			QColor progress_color_;
-			/// Stores whether we are currently in list mode
-			bool list_mode_;
 			/// The symbol for the list mode
 			static QImage symbol_image_;
 			/// The number of the current iteration
 			int iteration_nr_;
+			/// The overall number of iterations to perform within the current call
+			int num_iterations_;
 			/// The length of (all) input lists
 			int input_list_length_;
+			/// Stores whether the "-in" parameter has list type
+			bool in_parameter_has_list_type_;
 	};
 }
 
