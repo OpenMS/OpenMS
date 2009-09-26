@@ -124,7 +124,6 @@ class TOPPCompNovo
       options.clearMSLevels();
 			options.addMSLevel(2);
       f.getOptions() = options;
-
       f.load(in, exp);
 
 			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);

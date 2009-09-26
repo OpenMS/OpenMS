@@ -112,7 +112,7 @@ namespace OpenMS
 						fabs(etd_mz - cid_mz) < 0.01) // same precursor used
 				{
 					PeakSpectrum ETD_spec(*(++it));
-			
+		
 					subspec_to_sequences_.clear();
 					permute_cache_.clear();
 			
