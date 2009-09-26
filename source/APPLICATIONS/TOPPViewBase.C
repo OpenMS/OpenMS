@@ -70,32 +70,32 @@
 #include <OpenMS/METADATA/Precursor.h>
 
 //Qt
-#include <QtGui/QToolBar>
-#include <QtGui/QDockWidget>
-#include <QtGui/QListWidget>
-#include <QtGui/QListWidgetItem>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QToolButton>
-#include <QtGui/QMessageBox>
-#include <QtGui/QListWidgetItem>
-#include <QtGui/QToolTip>
-#include <QtGui/QFileDialog>
-#include <QtGui/QPainter>
-#include <QtCore/QDir>
 #include <QtCore/QDate>
+#include <QtCore/QDir>
 #include <QtCore/QTime>
-#include <QtGui/QWhatsThis>
-#include <QtGui/QInputDialog>
-#include <QtGui/QTextEdit>
+#include <QtCore/QUrl>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
-#include <QtCore/QUrl>
+#include <QtGui/QDockWidget>
+#include <QtGui/QFileDialog>
+#include <QtGui/QHeaderView>
+#include <QtGui/QInputDialog>
+#include <QtGui/QListWidget>
+#include <QtGui/QListWidgetItem>
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
+#include <QtGui/QMessageBox>
+#include <QtGui/QPainter>
 #include <QtGui/QSplashScreen>
+#include <QtGui/QStatusBar>
+#include <QtGui/QTextEdit>
+#include <QtGui/QToolBar>
+#include <QtGui/QToolTip>
+#include <QtGui/QToolButton>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QTreeWidgetItem>
+#include <QtGui/QWhatsThis>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
