@@ -114,7 +114,7 @@ namespace OpenMS
 			}
 		};
 		
-	private:
+	protected:
 		
 		template <typename InputPeakType>
 		void getXIC_(std::vector<std::pair<Size,Size> >& end_points,
