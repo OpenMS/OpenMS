@@ -67,8 +67,9 @@ START_SECTION((static void setSeed(const DateTime &)))
   one_moment_in_time.set(5,4,666,3,2,1);
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
+  // hoping that your compiler already supports the ull suffix
   OpenMS::UniqueIdGenerator::UniqueId unique_ids[] =
-                  { 1663028827116059880, 16317018546938646277, 4499304917001700489, 14007980103328265649, 8982057078544736839 };
+                  { 1663028827116059880ull, 16317018546938646277ull, 4499304917001700489ull, 14007980103328265649ull, 8982057078544736839ull };
 
   const int num_num = sizeof(unique_ids)/sizeof(*unique_ids);
 
