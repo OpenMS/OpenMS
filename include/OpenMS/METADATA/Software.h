@@ -30,6 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS 
 {
@@ -39,7 +40,8 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI Software
-  	: public MetaInfoInterface
+  	: public MetaInfoInterface,
+			public CVTermList
   {
     public:
     	/// Constructor

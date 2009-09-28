@@ -36,6 +36,7 @@ namespace OpenMS
 {
 	TransitionPrediction::TransitionPrediction()
 		:	MetaInfoInterface(),
+			CVTermList(),
 			intensity_rank_(0),
 			recommended_transition_rank_(0),
 			relative_intensity_(0),
@@ -45,6 +46,7 @@ namespace OpenMS
 
   TransitionPrediction::TransitionPrediction(const TransitionPrediction& rhs)
 		:	MetaInfoInterface(rhs),
+			CVTermList(rhs),
 			intensity_rank_(rhs.intensity_rank_),
       recommended_transition_rank_(rhs.recommended_transition_rank_),
       relative_intensity_(rhs.relative_intensity_),
@@ -60,6 +62,8 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
+			MetaInfoInterface::operator = (rhs);
+			CVTermList::operator = (rhs);
 			intensity_rank_ = rhs.intensity_rank_;
 			recommended_transition_rank_ = rhs.recommended_transition_rank_;
 			relative_intensity_ = rhs.relative_intensity_;

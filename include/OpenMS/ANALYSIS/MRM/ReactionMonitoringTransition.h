@@ -43,12 +43,15 @@ namespace OpenMS
 		set to numeric_limits<DoubleReal>::max(). Default values for 
 		precursor an product charge is set to numeric_limits<Int>::max().
 	*/
-	class OPENMS_DLLAPI ReactionMonitoringTransition : public MetaInfoInterface
+	class OPENMS_DLLAPI ReactionMonitoringTransition 
+		: public MetaInfoInterface,
+			public CVTermList
 	{
 
 		public:
 
 		struct Validation
+			: public CVTermList
 		{
 			String transition_source;
 			DoubleReal relative_intensity;
@@ -60,31 +63,31 @@ namespace OpenMS
 			{
 				if (this != &rhs)
 				{
+					CVTermList::operator = (rhs);
 					transition_source = rhs.transition_source;
 					relative_intensity = rhs.relative_intensity;
 					recommended_transition_rank = rhs.recommended_transition_rank;
 					intensity_rank = rhs.intensity_rank;
-					cvs = rhs.cvs;
 				}
 				return *this;
 			}
 		};
 
 		struct Configuration
+			: public CVTermList
 		{
 			String contact_ref;
 			String instrument_ref;
 			std::vector<Validation> validations;
-			std::vector<MetaInfoInterface> cvs;
 
 			Configuration& operator = (const Configuration& rhs)
 			{
 				if (this != &rhs)
 				{
+					CVTermList::operator = (rhs);
 					contact_ref = rhs.contact_ref;
 					instrument_ref = rhs.instrument_ref;
 					validations = rhs.validations;
-					cvs = rhs.cvs;
 				}
 				return *this;
 			}
@@ -149,6 +152,16 @@ namespace OpenMS
 		const std::vector<Configuration>& getConfigurations() const;
 
 		void addConfiguration(const Configuration& configuration);
+		//@}
+
+		/** @name Predicates
+		*/
+		//@{
+		/// equality operator
+		bool operator == (const ReactionMonitoringTransition& rhs) const;
+		
+		/// inequality operator
+		bool operator != (const ReactionMonitoringTransition& rhs) const;
 		//@}
 
 		protected:

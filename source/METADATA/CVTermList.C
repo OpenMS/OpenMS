@@ -79,6 +79,16 @@ namespace OpenMS
 		return cv_terms_.has(accession);
 	}
 
+	bool CVTermList::operator == (const CVTermList& cv_term_list) const
+	{
+		return cv_terms_ == cv_term_list.cv_terms_;
+	}
+
+	bool CVTermList::operator != (const CVTermList& cv_term_list) const
+	{
+		return !(*this == cv_term_list);
+	}
+
 } // namespace OpenMS
 
 

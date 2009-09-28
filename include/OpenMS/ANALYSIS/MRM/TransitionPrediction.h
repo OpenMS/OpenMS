@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_MRM_TRANSITIONPREDICTION_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -38,7 +39,9 @@ namespace OpenMS
 
 
 	*/
-	class OPENMS_DLLAPI TransitionPrediction : public MetaInfoInterface
+	class OPENMS_DLLAPI TransitionPrediction 
+		: public MetaInfoInterface,
+			public CVTermList
 	{
 
 		public:

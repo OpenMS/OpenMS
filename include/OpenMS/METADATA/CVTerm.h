@@ -52,6 +52,13 @@ namespace OpenMS
 					{
 					}
 
+					Unit(const String& p_accession, const String& p_name, const String& p_cv_ref)
+						: accession(p_accession),
+							name(p_name),
+							cv_ref(p_cv_ref)							
+					{
+					}
+
 					Unit(const Unit& rhs)
 						: accession(rhs.accession),
 							name(rhs.name),
@@ -92,8 +99,11 @@ namespace OpenMS
 				};
 
 
-				/// Defaults constructor
+				/// Default constructor
 				CVTerm();
+
+				/// Detailed constructor
+				CVTerm(const String& accession, const String& name, const String& cv_identifier_ref, const String& value, const Unit& unit);
 
 				/// Copy constructor
 				CVTerm(const CVTerm& rhs);
@@ -114,10 +124,10 @@ namespace OpenMS
 				const String& getAccession() const;
 
 				/// sets the name of the term
-				void setTermName(const String& term_name);
+				void setName(const String& name);
 
 				/// returns the name of the term
-				const String& getTermName() const;
+				const String& getName() const;
 
 				/// sets the cv identifier reference string, e.g. UO for unit obo 
 				void setCVIdentifierRef(const String& cv_identifier_ref);
@@ -158,7 +168,7 @@ namespace OpenMS
 				
 				String accession_;
 
-				String term_name_;
+				String name_;
 
 				String cv_identifier_ref_;
 

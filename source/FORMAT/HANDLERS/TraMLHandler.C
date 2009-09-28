@@ -91,11 +91,16 @@ namespace OpenMS
 
 		if (tag_ == "cvParam")
 		{
-			String value = "";
+			String value, cv_ref, unit_accession, unit_name, unit_cv_ref;
       optionalAttributeAsString_(value, attributes, "value");
-      String unit_accession = "";
-      optionalAttributeAsString_(unit_accession, attributes, "unit_accession");
-      handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, "accession"), attributeAsString_(attributes, "name"), value, unit_accession);
+      optionalAttributeAsString_(unit_accession, attributes, "unitAccession");
+      optionalAttributeAsString_(unit_name, attributes, "unitName");
+      optionalAttributeAsString_(unit_cv_ref, attributes, "unitCvRef");
+      optionalAttributeAsString_(cv_ref, attributes, "cvRef");
+			CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
+	    CVTerm cv_term(attributeAsString_(attributes, "accession"), attributeAsString_(attributes, "name"), cv_ref, value, unit);
+
+      handleCVParam_(parent_parent_tag, parent_tag, cv_term);
 			return;
 		}
 
@@ -107,28 +112,17 @@ namespace OpenMS
 
 		if (tag_ == "contact")
 		{
-			MetaInfoInterface meta;
-			String id = attributeAsString_(attributes, "id");
-			meta.setMetaValue("id", id);
-			actual_contact_ = meta;
 			return;
 		}
 
     if (tag_ == "publication")
     {
-      MetaInfoInterface meta;
-			String id = attributeAsString_(attributes, "id");
-			meta.setMetaValue("id", id);
-			actual_publication_ = meta;
       return;
     }
 
     if (tag_ == "instrument")
     {
-     	MetaInfoInterface meta;
-      String id = attributeAsString_(attributes, "id");
-      meta.setMetaValue("id", id);
-      actual_instrument_ = meta;
+			actual_instrument_ = CVTermList();
       return;
     }
 
@@ -427,12 +421,11 @@ namespace OpenMS
 		if (exp.getContacts().size() > 0)
 		{
 			os << "  <contactList>" << endl;
-			for (vector<MetaInfoInterface>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
+			Size contact_id(0);
+			for (vector<CVTermList>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
       {
-        os << "    <contact id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
-        MetaInfoInterface meta = *it;
-        meta.removeMetaValue("id");
-        writeUserParam_(os, meta, 3);
+        os << "    <contact id=\"contact_" << contact_id++ << "\">" << endl;
+        writeCVParams_(os, *it, 3);
         os << "    </contact>" << endl;
       }
       os << "  </contactList>" << endl;
@@ -442,12 +435,11 @@ namespace OpenMS
 		if (exp.getPublications().size() > 0)
 		{
 			os << "  <publicationList>"  << endl;
-			for (vector<MetaInfoInterface>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
+			Size publication_id(0);
+			for (vector<CVTermList>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
 			{	
-				os << "    <publication id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
-				MetaInfoInterface meta = *it;
-				meta.removeMetaValue("id");
-				writeUserParam_(os, meta, 3);
+				os << "    <publication id=\"publication_" << publication_id++ << "\">" << endl;
+				writeCVParams_(os, *it, 3);
 				os << "    </publication>" << endl;
 			}
 			os << "  </publicationList>" << endl;
@@ -457,12 +449,11 @@ namespace OpenMS
 		if (exp.getInstruments().size() > 0)
 		{
 			os << "  <instrumentList>" << endl;
-			for (vector<MetaInfoInterface>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
+			Size instrument_id(0);
+			for (vector<CVTermList>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
 			{
-				os << "    <instrument id=\"" << (String)it->getMetaValue("id") << "\">" << endl;
-				MetaInfoInterface meta = *it;
-				meta.removeMetaValue("id");
-				writeUserParam_(os, meta, 3);
+				os << "    <instrument id=\"instrument_" << instrument_id++ << "\">" << endl;
+				writeCVParams_(os, *it, 3);
 				os << "    </instrument>" << endl;
 			}
 			os << "  </instrumentList>" << endl;
@@ -475,7 +466,7 @@ namespace OpenMS
 			for (vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
 			{
 				os << "    <software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << endl;
-				writeUserParam_(os, *it, 3);
+				writeCVParams_(os, (CVTermList)*it, 3);
 				os << "    </software>" << endl;
 			}
 			os << "  </softwareList>" << endl;
@@ -501,7 +492,7 @@ namespace OpenMS
 			for (vector<MRMExperiment::Peptide>::const_iterator it = exp.getPeptides().begin(); it != exp.getPeptides().end(); ++it)
 			{
 				os << "    <peptide id=\"" << it->id << "\" proteinRef=\"" << it->protein_ref << "\" unmodifiedSequence=\"" << it->unmodified_sequence << "\" modifiedSequence=\"" << it->modified_sequence << "\" labelingCategory=\"" << it->labeling_category << "\" groupLabel=\"" << it->group_label << "\">" << endl;
-				writeUserParams_(os, it->cvs, 3);
+				writeCVParams_(os, (CVTermList)*it, 3);
 				
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
 				{
@@ -527,7 +518,7 @@ namespace OpenMS
 						os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
 					}
 					os << " >" << endl;
-					writeUserParams_(os, rit->cvs, 5);
+					writeCVParams_(os, (CVTermList)*rit, 5);
 					os << "       </retentionTime>" << endl;
 				}
 
@@ -537,7 +528,7 @@ namespace OpenMS
       for (vector<MRMExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
       {
         os << "    <compound id=\"" << it->id << "\">" << endl;
-        writeUserParams_(os, it->cvs, 3);
+        writeCVParams_(os, (CVTermList)*it, 3);
 
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
         {
@@ -563,7 +554,7 @@ namespace OpenMS
             os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
           }
           os << " >" << endl;
-          writeUserParams_(os, rit->cvs, 5);
+          writeCVParams_(os, (CVTermList)*rit, 5);
           os << "       </retentionTime>" << endl;
         }
 
@@ -664,7 +655,7 @@ namespace OpenMS
 						}
 						os << " >" << endl;
 
-						writeUserParams_(os, cit->cvs, 4);
+						writeCVParams_(os, cit->getCVTerms(), 4);
 
 						//for ()
 
@@ -686,7 +677,8 @@ namespace OpenMS
     return;
   }
 
-	void TraMLHandler::writeUserParam_(ostream& os, const MetaInfoInterface& meta, UInt indent) const
+/*
+	void TraMLHandler::writeUserParam_(ostream& os, const CVTermList& meta, UInt indent) const
 	{
 		vector<String> keys;
 		meta.getKeys(keys);
@@ -709,19 +701,43 @@ namespace OpenMS
 			}
 		}
 	}
+*/
 
-	void TraMLHandler::writeUserParams_(ostream& os, const vector<MetaInfoInterface>& meta, UInt indent) const
+/*
+	void TraMLHandler::writeUserParams_(ostream& os, const vector<CVTermList>& meta, UInt indent) const
 	{
-		for (vector<MetaInfoInterface>::const_iterator it = meta.begin(); it != meta.end(); ++it)
+		for (vector<CVTermList>::const_iterator it = meta.begin(); it != meta.end(); ++it)
 		{
 			writeUserParam_(os, *it, indent);
 		}
 	}
+*/
 
+	void TraMLHandler::writeCVParams_(ostream& os, const CVTermList& cv_terms, UInt indent) const
+	{
+		for (Map<String, vector<CVTerm> >::const_iterator it = cv_terms.getCVTerms().begin(); it != cv_terms.getCVTerms().end(); ++it)
+		{
+			for (vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
+			{
+				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
+				if (cit->hasValue())
+				{
+					os << " value=\"" << cit->getValue().toString() << "\"";
+				}
 
-	void TraMLHandler::handleCVParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value, const String& /*unit_accession*/)
+				if (cit->hasUnit())
+				{
+					os << " unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\" unitCvRef=\"" << cit->getUnit().cv_ref << "\"";
+				}
+				os << " />" << endl;
+			}
+		}
+	}
+
+	void TraMLHandler::handleCVParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const CVTerm& cv_term)
 	{
       //Error checks of CV values
+			String accession = cv_term.getAccession();
       if (cv_.exists(accession))
       {
         const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
@@ -731,7 +747,7 @@ namespace OpenMS
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         }
         //check if term name and parsed name match
-        String parsed_name = name;
+        String parsed_name = cv_term.getName();
         parsed_name.trim();
         String correct_name = term.name;
         correct_name.trim();
@@ -743,7 +759,8 @@ namespace OpenMS
         {
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         //values used in wrong places and wrong value types
-        if (value!="")
+				String value = cv_term.getValue().toString();
+        if (value != "")
         {
           if (term.xref_type==ControlledVocabulary::CVTerm::NONE)
           {
@@ -820,50 +837,42 @@ namespace OpenMS
 		// now handle the CVTerm and add it to the object
 		if (parent_tag == "software")
 		{
-			actual_software_.setMetaValue(accession, value);
+			actual_software_.addCVTerm(cv_term);
 		}
 
 		if (parent_tag == "publication")
 		{
-			actual_publication_.setMetaValue(accession, value);
+			actual_publication_.addCVTerm(cv_term);
 		}
 
 		if (parent_tag == "instrument")
 		{
-			actual_instrument_.setMetaValue(accession, value);
+			actual_instrument_.addCVTerm(cv_term);
 		}
 
 		if (parent_tag == "contact")
 		{
-			actual_contact_.setMetaValue(accession, value);
+			actual_contact_.addCVTerm(cv_term);
 		}
 
 		if (parent_tag == "retentionTime")
 		{
-			MetaInfoInterface meta;
-			meta.setMetaValue(accession, value);
-			actual_rt_.cvs.push_back(meta);
+			actual_rt_.addCVTerm(cv_term);
 		}
 		
 		if (parent_tag == "evidence")
 		{
-			MetaInfoInterface meta;
-			meta.setMetaValue(accession, value);
-			actual_peptide_.evidence.push_back(meta);
+			actual_peptide_.addCVTerm(cv_term);
 		}
 
 		if (parent_tag == "peptide")
 		{
-			MetaInfoInterface meta;
-			meta.setMetaValue(accession, value);
-			actual_peptide_.cvs.push_back(meta);
+			actual_peptide_.addCVTerm(cv_term);
 		}
 
     if (parent_tag == "compound")
     {
-      MetaInfoInterface meta;
-      meta.setMetaValue(accession, value);
-      actual_compound_.cvs.push_back(meta);
+      actual_compound_.addCVTerm(cv_term);
     }
 	}
 

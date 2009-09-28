@@ -100,47 +100,47 @@ namespace OpenMS
 		cvs_.push_back(cv);
 	}
 
-  void MRMExperiment::setContacts(const vector<MetaInfoInterface>& contacts)
+  void MRMExperiment::setContacts(const vector<CVTermList>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const vector<MetaInfoInterface>& MRMExperiment::getContacts() const
+  const vector<CVTermList>& MRMExperiment::getContacts() const
   {
     return contacts_;
   }
 
-  void MRMExperiment::addContact(const MetaInfoInterface& contact)
+  void MRMExperiment::addContact(const CVTermList& contact)
   {
     contacts_.push_back(contact);
   }
 
-	void MRMExperiment::setPublications(const vector<MetaInfoInterface>& publications)
+	void MRMExperiment::setPublications(const vector<CVTermList>& publications)
 	{
 		publications_ = publications;
 	}
 
-	const vector<MetaInfoInterface>& MRMExperiment::getPublications() const
+	const vector<CVTermList>& MRMExperiment::getPublications() const
 	{
 		return publications_;
 	}
 
-	void MRMExperiment::addPublication(const MetaInfoInterface& publication)
+	void MRMExperiment::addPublication(const CVTermList& publication)
 	{
 		publications_.push_back(publication);
 	}
 
-  void MRMExperiment::setInstruments(const vector<MetaInfoInterface>& instruments)
+  void MRMExperiment::setInstruments(const vector<CVTermList>& instruments)
   {
     instruments_ = instruments;
   }
 
-  const vector<MetaInfoInterface>& MRMExperiment::getInstruments() const
+  const vector<CVTermList>& MRMExperiment::getInstruments() const
   {
     return instruments_;
   }
 
-  void MRMExperiment::addInstrument(const MetaInfoInterface& instrument)
+  void MRMExperiment::addInstrument(const CVTermList& instrument)
   {
     instruments_.push_back(instrument);
   }

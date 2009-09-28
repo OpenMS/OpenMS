@@ -36,6 +36,7 @@ namespace OpenMS
 {
 	ReactionMonitoringTransition::ReactionMonitoringTransition()
 		:	MetaInfoInterface(),
+			CVTermList(),
 			precursor_mz_(numeric_limits<DoubleReal>::max()),
 			precursor_charge_(numeric_limits<Int>::max()),
 			product_mz_(numeric_limits<DoubleReal>::max()),
@@ -45,6 +46,7 @@ namespace OpenMS
 
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition& rhs)
 		:	MetaInfoInterface(rhs),
+			CVTermList(rhs),
 			name_(rhs.name_),
 			precursor_mz_(rhs.precursor_mz_),
       precursor_charge_(rhs.precursor_charge_),
@@ -65,6 +67,8 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
+			MetaInfoInterface::operator = (rhs);
+			CVTermList::operator = (rhs);
 			name_ = rhs.name_;
 			precursor_mz_ = rhs.precursor_mz_;
 			precursor_charge_ = rhs.precursor_charge_;
@@ -76,6 +80,26 @@ namespace OpenMS
 			configurations_ = rhs.configurations_;
 		}
 		return *this;
+	}
+
+	bool ReactionMonitoringTransition::operator == (const ReactionMonitoringTransition& rhs) const
+	{
+		return  MetaInfoInterface::operator == (rhs) &&
+			      CVTermList::operator == (rhs) &&
+			      name_ == rhs.name_ &&
+			      precursor_mz_ == rhs.precursor_mz_ &&
+			      precursor_charge_ == rhs.precursor_charge_ &&
+			      product_mz_ == rhs.product_mz_ &&
+			      product_charge_ == rhs.product_charge_ &&
+			      interpretation_list_ == rhs.interpretation_list_ &&
+			      peptide_ref_ == rhs.peptide_ref_ &&
+			      compound_ref_ == rhs.compound_ref_ &&
+			      configurations_ == rhs.configurations_;
+	}
+
+	bool ReactionMonitoringTransition::operator != (const ReactionMonitoringTransition& rhs) const
+	{
+		return !(*this == rhs);
 	}
 
 	void ReactionMonitoringTransition::setName(const String& name)

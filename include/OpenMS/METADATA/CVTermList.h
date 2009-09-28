@@ -81,6 +81,12 @@ namespace OpenMS
 				/** @name Predicates
 				*/
 				//@{
+				/// equality operator 
+				bool operator == (const CVTermList& cv_term_list) const;
+
+				/// inequality operator 
+				bool operator != (const CVTermList& cv_term_list) const;
+				
 				/// checks whether the term has a value
 				bool hasCVTerm(const String& accession) const;
 				

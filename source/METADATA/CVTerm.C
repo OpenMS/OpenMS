@@ -35,10 +35,19 @@ namespace OpenMS
 	CVTerm::CVTerm()
 	{
 	}
+			
+	CVTerm::CVTerm(const String& accession, const String& name, const String& cv_identifier_ref, const String& value, const Unit& unit)
+		:	accession_(accession),
+			name_(name),
+			cv_identifier_ref_(cv_identifier_ref),
+			unit_(unit),
+			value_(value)
+	{
+	}
 
 	CVTerm::CVTerm(const CVTerm& rhs)
   	:	accession_(rhs.accession_),
-			term_name_(rhs.term_name_),
+			name_(rhs.name_),
 			cv_identifier_ref_(rhs.cv_identifier_ref_),
 			unit_(rhs.unit_),
 			value_(rhs.value_)
@@ -54,7 +63,7 @@ namespace OpenMS
 		if (this != &rhs)
 		{
 			accession_ = rhs.accession_;
-			term_name_ = rhs.term_name_;
+			name_ = rhs.name_;
 			cv_identifier_ref_ = rhs.cv_identifier_ref_;
 			unit_ = rhs.unit_;
 			value_ = rhs.value_;
@@ -65,7 +74,7 @@ namespace OpenMS
 	bool CVTerm::operator == (const CVTerm& rhs) const
 	{
 		return 	accession_ == rhs.accession_ &&
-			      term_name_ == rhs.term_name_ &&
+			      name_ == rhs.name_ &&
 			      cv_identifier_ref_ == rhs.cv_identifier_ref_ &&
 						unit_ == rhs.unit_ &&
 						value_ == rhs.value_;
@@ -86,14 +95,14 @@ namespace OpenMS
 		return accession_;
 	}
 
-  void CVTerm::setTermName(const String& term_name)
+  void CVTerm::setName(const String& name)
 	{
-		term_name_ = term_name;
+		name_ = name;
 	}
 
-	const String& CVTerm::getTermName() const
+	const String& CVTerm::getName() const
 	{
-		return term_name_;
+		return name_;
 	}
 
 	void CVTerm::setCVIdentifierRef(const String& cv_identifier_ref)

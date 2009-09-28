@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_TRAMLHANDLER_H
@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/ANALYSIS/MRM/MRMExperiment.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS
 {
@@ -87,11 +88,11 @@ namespace OpenMS
 
 			const MRMExperiment* cexp_;
 
-			MetaInfoInterface actual_publication_;
+			CVTermList actual_publication_;
 
-			MetaInfoInterface actual_contact_;
+			CVTermList actual_contact_;
 
-			MetaInfoInterface actual_instrument_;
+			CVTermList actual_instrument_;
 
 			Software actual_software_;
 
@@ -108,7 +109,7 @@ namespace OpenMS
 			TransitionInterpretation actual_interpretation_;
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
+			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term);
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
@@ -117,6 +118,8 @@ namespace OpenMS
 			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
 
 			void writeUserParams_(std::ostream& os, const std::vector<MetaInfoInterface>& meta, UInt indent) const;
+
+			void writeCVParams_(std::ostream& os, const CVTermList& cv_terms, UInt indent) const;
 
 			
 			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
