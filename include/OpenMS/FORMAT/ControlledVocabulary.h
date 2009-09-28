@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm, Andreas Bertsch $
-// $Authors: $
+// $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H

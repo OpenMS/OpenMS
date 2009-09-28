@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_MRM_TRANSITIONINTERPRETATION_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -42,6 +43,7 @@ namespace OpenMS
 
 	*/
 	class OPENMS_DLLAPI TransitionInterpretation
+		: public CVTermList
 	{
 
 		public:
@@ -84,12 +86,6 @@ namespace OpenMS
 		void setProductSeries(const String& series);
 
 		const String& getProductSeries() const;
-
-		void setCVs(const std::vector<MetaInfoInterface>& cvs);
-		
-		void addCV(const MetaInfoInterface& cv);
-
-		const std::vector<MetaInfoInterface>& getCVs() const;
 		//@}
 
 		protected:
@@ -103,8 +99,6 @@ namespace OpenMS
 		Size product_ordinal_;
 		
 		String product_series_;
-
-		std::vector<MetaInfoInterface> cvs_;
 	};
 }
 

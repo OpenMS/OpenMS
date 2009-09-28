@@ -41,6 +41,8 @@ Identification.h
 SpectrumIdentification.h
 IdentificationHit.h
 ChromatogramSettings.h
+CVTerm.h
+CVTermList.h
 )
 
 ### add path to the filenames

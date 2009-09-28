@@ -35,19 +35,20 @@ using namespace std;
 namespace OpenMS
 {
 	TransitionInterpretation::TransitionInterpretation()
-		:	mz_delta_(numeric_limits<DoubleReal>::max()),
+		:	CVTermList(),
+			mz_delta_(numeric_limits<DoubleReal>::max()),
 			is_primary_(false),
 			product_ordinal_(numeric_limits<Size>::max())
 	{
 	}
 
   TransitionInterpretation::TransitionInterpretation(const TransitionInterpretation& rhs)
-		:	mz_delta_(rhs.mz_delta_),
+		:	CVTermList(rhs),
+			mz_delta_(rhs.mz_delta_),
       is_primary_(rhs.is_primary_),
       product_adjustment_(rhs.product_adjustment_),
       product_ordinal_(rhs.product_ordinal_),
-      product_series_(rhs.product_series_),
-			cvs_(rhs.cvs_)
+      product_series_(rhs.product_series_)
 	{
 	}
 
@@ -64,7 +65,6 @@ namespace OpenMS
 			product_adjustment_ = rhs.product_adjustment_;
 			product_ordinal_ = rhs.product_ordinal_;
 			product_series_ = rhs.product_series_;
-			cvs_ = rhs.cvs_;
 		}
 		return *this;
 	}
@@ -118,22 +118,6 @@ namespace OpenMS
 	{
 		return product_series_;
 	}
-
-	void TransitionInterpretation::addCV(const MetaInfoInterface& cv)
-	{
-		cvs_.push_back(cv);
-	}
-
-	void TransitionInterpretation::setCVs(const vector<MetaInfoInterface>& cvs)
-	{
-		cvs_ = cvs;
-	}
-
-	const vector<MetaInfoInterface>& TransitionInterpretation::getCVs() const
-	{
-		return cvs_;
-	}
-	
 }
 
 

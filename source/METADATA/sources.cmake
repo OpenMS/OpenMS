@@ -41,6 +41,8 @@ Identification.C
 SpectrumIdentification.C
 IdentificationHit.C
 ChromatogramSettings.C
+CVTerm.C
+CVTermList.C
 )
 
 ### add path to the filenames
