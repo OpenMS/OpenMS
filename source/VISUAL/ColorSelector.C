@@ -76,8 +76,12 @@ namespace OpenMS
 			e->ignore();
 			return;
 	  } 	
-		color_ = QColorDialog::getColor(color_,this);
-		repaint();
+		QColor tmp = QColorDialog::getColor(color_,this);
+		if (tmp.isValid())
+		{
+			color_ = tmp;
+			repaint();
+		}
 	}	
 	
 	const QColor& ColorSelector::getColor()
