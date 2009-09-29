@@ -69,7 +69,7 @@ START_SECTION((void setIntensity(IntensityType intensity)))
 {
   ChromatogramPeak p;
 	TEST_REAL_SIMILAR(p.getIntensity(), 0)
-	p.setIntensity(0.35);
+	p.setIntensity(0.35f);
 	TEST_REAL_SIMILAR(p.getIntensity(), 0.35)
 }
 END_SECTION

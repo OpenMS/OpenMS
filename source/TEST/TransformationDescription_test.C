@@ -277,17 +277,17 @@ START_SECTION((void apply(DoubleReal &value) const))
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
 
 	pairs.clear();
-  pairs.push_back(make_pair(1.2,5.2));
-  pairs.push_back(make_pair(3.2,7.3));
-  pairs.push_back(make_pair(2.2,6.25));
-  pairs.push_back(make_pair(2.2,3.1));
-  pairs.push_back(make_pair(2.2,7.25));
-  pairs.push_back(make_pair(3.0,8.5));
-  pairs.push_back(make_pair(3.1,4.7));
-  pairs.push_back(make_pair(1.7,6));
-  pairs.push_back(make_pair(2.9,4.7));
-  pairs.push_back(make_pair(4.2,5.0));
-  pairs.push_back(make_pair(3.7,-2.4));
+  pairs.push_back(make_pair(1.2f,5.2f));
+  pairs.push_back(make_pair(3.2f,7.3f));
+  pairs.push_back(make_pair(2.2f,6.25f));
+  pairs.push_back(make_pair(2.2f,3.1f));
+  pairs.push_back(make_pair(2.2f,7.25f));
+  pairs.push_back(make_pair(3.0f,8.5f));
+  pairs.push_back(make_pair(3.1f,4.7f));
+  pairs.push_back(make_pair(1.7f,6.0f));
+  pairs.push_back(make_pair(2.9f,4.7f));
+  pairs.push_back(make_pair(4.2f,5.0f));
+  pairs.push_back(make_pair(3.7f,-2.4f));
 
   td.setPairs(pairs);
 
