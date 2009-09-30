@@ -1,0 +1,1028 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="93">
+		<feature id="f_0">
+			<position dim="0">3259.8625</position>
+			<position dim="1">656.287751774645</position>
+			<intensity>7.55232e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">3259.8625</position>
+			<position dim="1">656.290751774646</position>
+			<intensity>7.40744e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">3259.8625</position>
+			<position dim="1">656.293751774646</position>
+			<intensity>5.27135e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">3261.6465</position>
+			<position dim="1">656.2859762769</position>
+			<intensity>1.06193e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">3261.6465</position>
+			<position dim="1">656.2889762769</position>
+			<intensity>1.2662e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">3261.6465</position>
+			<position dim="1">656.291976276901</position>
+			<intensity>1.1052e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">3261.6465</position>
+			<position dim="1">656.294976276901</position>
+			<intensity>6.92751e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">3263.4525</position>
+			<position dim="1">656.285711511586</position>
+			<intensity>1.2785e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_8">
+			<position dim="0">3263.4525</position>
+			<position dim="1">656.288711511586</position>
+			<intensity>1.53238e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_9">
+			<position dim="0">3263.4525</position>
+			<position dim="1">656.291711511586</position>
+			<intensity>1.34666e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_10">
+			<position dim="0">3263.4525</position>
+			<position dim="1">656.294711511586</position>
+			<intensity>8.49772e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_11">
+			<position dim="0">3265.0331</position>
+			<position dim="1">656.287060642369</position>
+			<intensity>1.66073e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_12">
+			<position dim="0">3265.0331</position>
+			<position dim="1">656.290060642369</position>
+			<intensity>1.76821e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_13">
+			<position dim="0">3265.0331</position>
+			<position dim="1">656.293060642369</position>
+			<intensity>1.37604e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_14">
+			<position dim="0">3265.0331</position>
+			<position dim="1">656.296060642369</position>
+			<intensity>7.49987e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_15">
+			<position dim="0">3266.8746</position>
+			<position dim="1">656.285013194847</position>
+			<intensity>1.49428e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_16">
+			<position dim="0">3266.8746</position>
+			<position dim="1">656.288013194847</position>
+			<intensity>1.95302e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_17">
+			<position dim="0">3266.8746</position>
+			<position dim="1">656.291013194847</position>
+			<intensity>1.86366e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_18">
+			<position dim="0">3266.8746</position>
+			<position dim="1">656.294013194847</position>
+			<intensity>1.28926e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_19">
+			<position dim="0">3268.5297</position>
+			<position dim="1">656.284791090752</position>
+			<intensity>1.63517e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_20">
+			<position dim="0">3268.5297</position>
+			<position dim="1">656.287791090752</position>
+			<intensity>2.18505e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_21">
+			<position dim="0">3268.5297</position>
+			<position dim="1">656.290791090752</position>
+			<intensity>2.13257e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_22">
+			<position dim="0">3268.5297</position>
+			<position dim="1">656.293791090752</position>
+			<intensity>1.51142e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_23">
+			<position dim="0">3268.5297</position>
+			<position dim="1">656.296791090752</position>
+			<intensity>7.22661e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_24">
+			<position dim="0">3270.3026</position>
+			<position dim="1">656.28419613239</position>
+			<intensity>1.39112e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_25">
+			<position dim="0">3270.3026</position>
+			<position dim="1">656.28719613239</position>
+			<intensity>2.02242e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_26">
+			<position dim="0">3270.3026</position>
+			<position dim="1">656.29019613239</position>
+			<intensity>2.13027e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_27">
+			<position dim="0">3270.3026</position>
+			<position dim="1">656.29319613239</position>
+			<intensity>1.64078e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_28">
+			<position dim="0">3270.3026</position>
+			<position dim="1">656.29619613239</position>
+			<intensity>8.83604e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_29">
+			<position dim="0">3272.027</position>
+			<position dim="1">656.286288634645</position>
+			<intensity>1.85979e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_30">
+			<position dim="0">3272.027</position>
+			<position dim="1">656.289288634645</position>
+			<intensity>2.17406e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_31">
+			<position dim="0">3272.027</position>
+			<position dim="1">656.292288634645</position>
+			<intensity>1.86564e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_32">
+			<position dim="0">3272.027</position>
+			<position dim="1">656.295288634645</position>
+			<intensity>1.14532e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_33">
+			<position dim="0">3272.027</position>
+			<position dim="1">656.793288634652</position>
+			<intensity>1.32397e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_34">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.286213748086</position>
+			<intensity>1.94209e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_35">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.289213748086</position>
+			<intensity>2.24748e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_36">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.292213748086</position>
+			<intensity>1.90735e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_37">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.295213748086</position>
+			<intensity>1.15657e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_38">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.790213748093</position>
+			<intensity>1.4988e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_39">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.793213748093</position>
+			<intensity>1.31845e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_40">
+			<position dim="0">3273.7017</position>
+			<position dim="1">656.796213748093</position>
+			<intensity>8.3299e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_41">
+			<position dim="0">3275.4079</position>
+			<position dim="1">656.283974056079</position>
+			<intensity>1.28633e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_42">
+			<position dim="0">3275.4079</position>
+			<position dim="1">656.286974056079</position>
+			<intensity>1.92485e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_43">
+			<position dim="0">3275.4079</position>
+			<position dim="1">656.289974056079</position>
+			<intensity>2.08138e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_44">
+			<position dim="0">3275.4079</position>
+			<position dim="1">656.292974056079</position>
+			<intensity>1.64867e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_45">
+			<position dim="0">3275.4079</position>
+			<position dim="1">656.295974056079</position>
+			<intensity>9.20469e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_46">
+			<position dim="0">3276.9959</position>
+			<position dim="1">656.2844394222</position>
+			<intensity>1.45658e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_47">
+			<position dim="0">3276.9959</position>
+			<position dim="1">656.2874394222</position>
+			<intensity>2.05716e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_48">
+			<position dim="0">3276.9959</position>
+			<position dim="1">656.2904394222</position>
+			<intensity>2.11414e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_49">
+			<position dim="0">3276.9959</position>
+			<position dim="1">656.2934394222</position>
+			<intensity>1.58593e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_50">
+			<position dim="0">3276.9959</position>
+			<position dim="1">656.2964394222</position>
+			<intensity>8.23243e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_51">
+			<position dim="0">3278.7809</position>
+			<position dim="1">656.286639459354</position>
+			<intensity>1.87e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_52">
+			<position dim="0">3278.7809</position>
+			<position dim="1">656.289639459354</position>
+			<intensity>2.09651e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_53">
+			<position dim="0">3278.7809</position>
+			<position dim="1">656.292639459354</position>
+			<intensity>1.72333e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_54">
+			<position dim="0">3278.7809</position>
+			<position dim="1">656.295639459354</position>
+			<intensity>1.00676e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_55">
+			<position dim="0">3280.4884</position>
+			<position dim="1">656.283570321661</position>
+			<intensity>1.15052e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_56">
+			<position dim="0">3280.4884</position>
+			<position dim="1">656.286570321661</position>
+			<intensity>1.77928e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_57">
+			<position dim="0">3280.4884</position>
+			<position dim="1">656.289570321661</position>
+			<intensity>1.98157e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_58">
+			<position dim="0">3280.4884</position>
+			<position dim="1">656.292570321661</position>
+			<intensity>1.61721e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_59">
+			<position dim="0">3280.4884</position>
+			<position dim="1">656.295570321661</position>
+			<intensity>9.3414e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_60">
+			<position dim="0">3282.3746</position>
+			<position dim="1">656.284599825908</position>
+			<intensity>1.25146e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_61">
+			<position dim="0">3282.3746</position>
+			<position dim="1">656.287599825908</position>
+			<intensity>1.77534e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_62">
+			<position dim="0">3282.3746</position>
+			<position dim="1">656.290599825908</position>
+			<intensity>1.82983e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_63">
+			<position dim="0">3282.3746</position>
+			<position dim="1">656.293599825908</position>
+			<intensity>1.37773e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_64">
+			<position dim="0">3282.3746</position>
+			<position dim="1">656.296599825908</position>
+			<intensity>7.2124e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_65">
+			<position dim="0">3283.9907</position>
+			<position dim="1">656.28496641178</position>
+			<intensity>1.3702e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_66">
+			<position dim="0">3283.9907</position>
+			<position dim="1">656.28796641178</position>
+			<intensity>1.81768e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_67">
+			<position dim="0">3283.9907</position>
+			<position dim="1">656.29096641178</position>
+			<intensity>1.76382e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_68">
+			<position dim="0">3283.9907</position>
+			<position dim="1">656.29396641178</position>
+			<intensity>1.24405e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_69">
+			<position dim="0">3283.9907</position>
+			<position dim="1">656.29696641178</position>
+			<intensity>5.95636e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_70">
+			<position dim="0">3285.8758</position>
+			<position dim="1">656.287461095291</position>
+			<intensity>1.31419e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_71">
+			<position dim="0">3285.8758</position>
+			<position dim="1">656.290461095291</position>
+			<intensity>1.32275e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_72">
+			<position dim="0">3285.8758</position>
+			<position dim="1">656.293461095291</position>
+			<intensity>9.71247e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_73">
+			<position dim="0">3285.8758</position>
+			<position dim="1">656.296461095291</position>
+			<intensity>4.91882e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_74">
+			<position dim="0">3287.8539</position>
+			<position dim="1">656.289052495354</position>
+			<intensity>1.11842e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_75">
+			<position dim="0">3287.8539</position>
+			<position dim="1">656.292052495354</position>
+			<intensity>9.66395e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_76">
+			<position dim="0">3287.8539</position>
+			<position dim="1">656.295052495354</position>
+			<intensity>5.99501e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_77">
+			<position dim="0">3289.51</position>
+			<position dim="1">656.289759494115</position>
+			<intensity>8.33313e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_78">
+			<position dim="0">3289.51</position>
+			<position dim="1">656.292759494115</position>
+			<intensity>6.8775e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="0"/>
+			<userParam type="string" name="color" value="#00FFFF"/>
+		</feature>
+		<feature id="f_79">
+			<position dim="0">3322.1858</position>
+			<position dim="1">658.828141398335</position>
+			<intensity>5.97651e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_80">
+			<position dim="0">3322.1858</position>
+			<position dim="1">658.831141398335</position>
+			<intensity>4.11171e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_81">
+			<position dim="0">3323.9527</position>
+			<position dim="1">658.825129081315</position>
+			<intensity>7.27104e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_82">
+			<position dim="0">3323.9527</position>
+			<position dim="1">658.828129081315</position>
+			<intensity>6.75652e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_83">
+			<position dim="0">3323.9527</position>
+			<position dim="1">658.831129081315</position>
+			<intensity>4.56161e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_84">
+			<position dim="0">3325.7254</position>
+			<position dim="1">658.825567648351</position>
+			<intensity>7.17602e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_85">
+			<position dim="0">3325.7254</position>
+			<position dim="1">658.828567648351</position>
+			<intensity>6.56332e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_86">
+			<position dim="0">3325.7254</position>
+			<position dim="1">658.831567648351</position>
+			<intensity>4.35543e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_87">
+			<position dim="0">3327.4606</position>
+			<position dim="1">658.825790162844</position>
+			<intensity>7.13484e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_88">
+			<position dim="0">3327.4606</position>
+			<position dim="1">658.828790162844</position>
+			<intensity>6.37904e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_89">
+			<position dim="0">3327.4606</position>
+			<position dim="1">658.831790162845</position>
+			<intensity>4.13098e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_90">
+			<position dim="0">3329.2425</position>
+			<position dim="1">658.829370808514</position>
+			<intensity>5.06389e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_91">
+			<position dim="0">3330.9308</position>
+			<position dim="1">658.827812221948</position>
+			<intensity>5.52986e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+		<feature id="f_92">
+			<position dim="0">3330.9308</position>
+			<position dim="1">658.830812221948</position>
+			<intensity>3.8984e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<userParam type="int" name="cluster_id" value="1"/>
+			<userParam type="string" name="color" value="#000000"/>
+		</feature>
+	</featureList>
+</featureMap>

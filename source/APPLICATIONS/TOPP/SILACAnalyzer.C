@@ -85,9 +85,13 @@ using namespace OpenMS;
   @image html SILACAnalyzer_algorithm.png
 
   <b>Parameter Tuning</b>
+ 
+  SILACAnalyzer can either search for SILAC pairs (as described in the above paragraph) or triplets:
+  - type - double (for SILAC pairs), triple (for SILAC triplets)
 
   <i>input:</i>
-  @n -in [*.mzML] - LC-MS data set to be analyzed
+  - in [*.mzML] - LC-MS dataset to be analyzed
+  - ini [*.ini] - file containing all parameters (see discussion below)
 
   <i>standard output:</i>
   - out [*.consensusXML] - contains the list of identified peptide pairs (retention time and m/z of the lighter peptide, heavy-to-light ratio)
@@ -102,7 +106,8 @@ using namespace OpenMS;
   - [*.input] - gnuplot script for the visualization of the results. Running (gnuplot *.input) generates a number of *.eps plots. The range of clusters to be plotted can be specified by the parameters -cluster_min/max.
 
   The following parameters are straightforward:
-  - mass_separation - mass gap between light and heavy isotopic envelopes [Da]
+  - mass_separation_light_medium - mass gap between light and medium isotopic envelopes [Da] (only relevant for the search for SILAC triplets, i.e. type triple)
+  - mass_separation_light_heavy - mass gap between light and heavy isotopic envelopes [Da]
   - charge_min/max - range of charge states
   - mz_step_width - step width with which the interpolated spectrum, Fig. (b), is scanned. The step width should be of about the same order with which the raw data were recorded, see Fig. (a).
 
@@ -276,63 +281,41 @@ class TOPPSILACAnalyzer
 
       if (SILAC_type == 2)
 	  {
-			// add your custom parameters here
-			//registerDoubleOption_("mass_separation","<dist>",6.0202,"mass gap between light and heavy isotopic envelopes, [Da]",false);
 			tmp.setValue("mass_separation_light_heavy",6.0202, "mass gap between light and heavy isotopic envelopes, [Da]" );
 	  } 
 	  else if (SILAC_type == 3)
 	  {
-			// ..
 			tmp.setValue("mass_separation_light_medium" , 6.0202, "mass gap between light and medium isotopic envelopes, [Da]");
 			tmp.setValue("mass_separation_light_heavy" , 8.0202, "mass gap between light and heavy isotopic envelopes, [Da]");
 	  }
 		
 	  tmp.setValue("charge_min", 2, "Charge state range begin");
       tmp.setMinInt("charge_min", 1);
-      //registerIntOption_("charge_min","<min>",2,"Charge state range begin",false);
-      //setMinInt_("charge_min",1);
 
       tmp.setValue("charge_max", 3, "Charge state range end");
       tmp.setMinInt("charge_max",1);
-      //registerIntOption_("charge_max","<max>",3,"Charge state range end",false);
-      //setMinInt_("charge_max",1);
 
       tmp.setValue("intensity_cutoff", 5000.0, "intensity cutoff");
       tmp.setMinFloat("intensity_cutoff", 0.0);
-      //registerDoubleOption_("intensity_cutoff","<double>",5000,"intensity cutoff",false,true);
-      //setMinFloat_("intensity_cutoff",0.0);
 
       tmp.setValue("mz_step_width", 0.01, "step width with which the (interpolated) spectrum is scanned, m/Z (Th)");
       tmp.setMinFloat("mz_step_width",0.0);
-      //registerDoubleOption_("mz_step_width","<double>",0.01,"step width with which the (interpolated) spectrum is scanned, m/Z (Th)",false,true);
-      //setMinFloat_("mz_step_width",0.0);
 
       tmp.setValue("rt_scaling",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)");
       tmp.setMinFloat("rt_scaling", 0.0);
-      //registerDoubleOption_("rt_scaling","<double>",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)",false,true);
-      //setMinFloat_("rt_scaling",0.0);
 
       tmp.setValue("optimal_silhouette_tolerance",0.0,"The partition with most clusters is chosen, which deviates from the optimal silhouette width at most by this percentage.");
       tmp.setMinFloat("optimal_silhouette_tolerance",0.0);
       tmp.setMaxFloat("optimal_silhouette_tolerance",100.0);
-      //registerDoubleOption_("optimal_silhouette_tolerance","<double>",0.0,"The partition with most clusters is chosen, which deviates from the optimal silhouette width at most by this percentage.",false,true);
-      //setMinFloat_("optimal_silhouette_tolerance",0.0);
-      //setMaxFloat_("optimal_silhouette_tolerance",100.0);
 
       tmp.setValue("cluster_number_scaling", 1.0, "scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)");
       tmp.setMinFloat("cluster_number_scaling", 0.0);
-      //registerDoubleOption_("cluster_number_scaling","<double>",1.0,"scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)",false,true); //still needed with blurred partition chooser?
-      //setMinFloat_("cluster_number_scaling",0.0);
 
       tmp.setValue("cluster_min", 0, "Start of the clusters range to be plotted by the gnuplot script");
       tmp.setMinInt("cluster_min", 0);
-      //registerIntOption_("cluster_min","<min>",0,"Start of the clusters range to be plotted by the gnuplot script", false,true);
-      //setMinInt_("cluster_min",0);
 
       tmp.setValue("cluster_max", 2, "End of the clusters range to be plotted by the gnuplot script");
       tmp.setMinInt("cluster_max", 0);      
-      //registerIntOption_("cluster_max","<max>",2,"End of the clusters range to be plotted by the gnuplot script", false,true);
-      //setMinInt_("cluster_max",0);
 
 
       return tmp;
@@ -370,10 +353,12 @@ class TOPPSILACAnalyzer
 
       //output variables
       ConsensusMap all_pairs;
-      all_pairs.getFileDescriptions()[0].filename = in;
-      all_pairs.getFileDescriptions()[0].label = "light";
-      all_pairs.getFileDescriptions()[1].filename = in;
-      all_pairs.getFileDescriptions()[1].label = "heavy";
+	  all_pairs.getFileDescriptions()[0].filename = in;
+	  all_pairs.getFileDescriptions()[0].label = "light";
+	  all_pairs.getFileDescriptions()[1].filename = in;
+	  all_pairs.getFileDescriptions()[1].label = "medium";
+      all_pairs.getFileDescriptions()[2].filename = in;
+      all_pairs.getFileDescriptions()[2].label = "heavy";
       all_pairs.setExperimentType("silac");
       FeatureMap<> all_cluster_points;
 
@@ -381,12 +366,9 @@ class TOPPSILACAnalyzer
       // determine file name for debug output
       //--------------------------------------------------------------
       String debug_trunk = in;
-      //std::cout << "in=" << in << std::endl;
       if (in.has('.'))
       {
-        //std::cout << "yes" << std::endl;
         debug_trunk = in.substr(0,-SignedSize(in.suffix('.').length())-1);
-        //std::cout << debug_trunk << std::endl;
       }
 
       // number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)
@@ -396,7 +378,6 @@ class TOPPSILACAnalyzer
       for (UInt charge=charge_min; charge<=charge_max; ++charge)
       {
 		std::cout << "charge state: " << charge << "+" << std::endl;
-		std::cout << "type: " << type << std::endl;
 		DoubleReal isotope_distance = 1.0 / (DoubleReal)charge;
 		DoubleReal envelope_distance_light_medium = mass_separation_light_medium / (DoubleReal)charge;
 		DoubleReal envelope_distance_light_heavy = mass_separation_light_heavy / (DoubleReal)charge;
@@ -415,8 +396,9 @@ class TOPPSILACAnalyzer
         if (charge==charge_min)
         {
           exp.updateRanges();
-          all_pairs.getFileDescriptions()[1].size = exp.getSize();
-          all_pairs.getFileDescriptions()[0].size = exp.getSize();
+		  all_pairs.getFileDescriptions()[0].size = exp.getSize();
+		  all_pairs.getFileDescriptions()[1].size = exp.getSize();
+          all_pairs.getFileDescriptions()[2].size = exp.getSize();
         }
 
         //-------------------------------------------------------------
@@ -543,22 +525,6 @@ class TOPPSILACAnalyzer
             break;
           }
         }
-
-        //~ debug output
-        //~ for (Size j = 0; j < asw.size(); ++j)
-        //~ {
-          //~ std::cout << "asw(" << j << "): " << asw[j] << std::endl;
-        //~ }
-        //~ std::cout << "best_n: " << best_n << std::endl;
-
-        //~ dunn indices nogood here, if not only the the last half considered
-        //~ std::vector<Real>dunn = ca.dunnIndices(tree,distance_matrix);
-        //~ for (Size j = 0; j < dunn.size(); ++j)
-        //~ {
-          //~ std::cout << "dunn: " << dunn[j] << std::endl;
-        //~ }
-        //~ max_el = (max_element(dunn.begin(),dunn.end()));
-        //~ best_n = tree.size() - (max_el-dunn.begin());
 
         //-------------------------------------------------------------
         // choose appropriate(best) partition of data from best_n
@@ -696,14 +662,13 @@ class TOPPSILACAnalyzer
 			Math::LinearRegression linear_reg_light_heavy;
 			linear_reg_light_medium.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i2.begin());
 			linear_reg_light_heavy.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i3.begin());
-            //create consensus feature
-// TO DO: writing triple SILAC results to consensusXML /////////////////////////////////////////////////////////////////////////////////
-            ConsensusFeature pair_light_heavy;
-            pair_light_heavy.setRT(rt);
-            pair_light_heavy.setMZ(mz);
-            pair_light_heavy.setIntensity(linear_reg_light_heavy.getSlope());
-            pair_light_heavy.setCharge(charge);
-            pair_light_heavy.setQuality(linear_reg_light_heavy.getRSquared());
+            //create consensus feature for light medium SILAC pair
+            ConsensusFeature pair_light_medium;
+            pair_light_medium.setRT(rt);
+            pair_light_medium.setMZ(mz);
+            pair_light_medium.setIntensity(linear_reg_light_medium.getSlope());
+            pair_light_medium.setCharge(charge);
+            pair_light_medium.setQuality(linear_reg_light_medium.getRSquared());
             FeatureHandle handle;
             handle.setRT(rt);
             handle.setMZ(mz);
@@ -711,15 +676,39 @@ class TOPPSILACAnalyzer
             handle.setCharge(charge);
             handle.setMapIndex(0);
             handle.setElementIndex(i);
-            pair_light_heavy.insert(handle);
+            pair_light_medium.insert(handle);
             handle.setRT(rt);
-            handle.setMZ(mz+envelope_distance_light_heavy);
-            handle.setIntensity(int_h);
+            handle.setMZ(mz+envelope_distance_light_medium);
+            handle.setIntensity(int_m);
             handle.setCharge(charge);
             handle.setMapIndex(1);
             handle.setElementIndex(i);
-            pair_light_heavy.insert(handle);
-            all_pairs.push_back(pair_light_heavy);
+            pair_light_medium.insert(handle);
+			if (type=="triple") {
+			  all_pairs.push_back(pair_light_medium);
+			}
+			//create consensus feature for light heavy SILAC pair
+            ConsensusFeature pair_light_heavy;
+			pair_light_heavy.setRT(rt);
+			pair_light_heavy.setMZ(mz);
+			pair_light_heavy.setIntensity(linear_reg_light_heavy.getSlope());
+			pair_light_heavy.setCharge(charge);
+			pair_light_heavy.setQuality(linear_reg_light_heavy.getRSquared());
+			handle.setRT(rt);
+			handle.setMZ(mz);
+			handle.setIntensity(int_l);
+			handle.setCharge(charge);
+			handle.setMapIndex(0);
+			handle.setElementIndex(i);
+			pair_light_heavy.insert(handle);
+			handle.setRT(rt);
+			handle.setMZ(mz+envelope_distance_light_heavy);
+			handle.setIntensity(int_h);
+			handle.setCharge(charge);
+			handle.setMapIndex(2);
+			handle.setElementIndex(i);
+			pair_light_heavy.insert(handle);
+			all_pairs.push_back(pair_light_heavy);
           }
         }
 
@@ -930,6 +919,9 @@ class TOPPSILACAnalyzer
 	  // strings repeatedly used in debug output
 	  String light_medium_string = String(0.01*floor(mass_separation_light_medium*100+0.5)); 
 	  String light_heavy_string = String(0.01*floor(mass_separation_light_heavy*100+0.5));
+	  String rt_scaling_string = String(0.01*floor(rt_scaling*100+0.5));
+	  String optimal_silhouette_tolerance_string = String(0.01*floor(optimal_silhouette_tolerance*100+0.5));
+	  String cluster_number_scaling_string = String(0.01*floor(cluster_number_scaling*100+0.5));
 		
 	  if (getFlag_("silac_debug"))
       {
@@ -963,10 +955,10 @@ class TOPPSILACAnalyzer
           // write *_clusters.eps
           stream_gnuplotscript << "set output \"" + debug_clusters + "\"" << std::endl;
 		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
           stream_gnuplotscript << "set xlabel \'m/Z (Th)\'" << std::endl;
           stream_gnuplotscript << "set ylabel \'RT (s)\'" << std::endl;
@@ -981,7 +973,7 @@ class TOPPSILACAnalyzer
 		  // write *_clustersIntLightMedium.eps
 		  if (type=="triple") {
 		    stream_gnuplotscript << "set output \"" + debug_clustersIntLightMedium + "\"" << std::endl;
-		    stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+		    stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		    stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
 		    stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + light_medium_string + "Th\'" << std::endl;
 		    stream_gnuplotscript << "plot";
@@ -996,10 +988,10 @@ class TOPPSILACAnalyzer
 		  // write *_clustersIntLightHeavy.eps
 		  stream_gnuplotscript << "set output \"" + debug_clustersIntLightHeavy + "\"" << std::endl;
 		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
 		  stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + light_heavy_string + "Th\'" << std::endl;
@@ -1019,7 +1011,7 @@ class TOPPSILACAnalyzer
 		  // write *_ratios_light_medium.eps
 		  if (type=="triple") {
 		    stream_gnuplotscript << "set output \"" + debug_ratios_light_medium + "\"" << std::endl;
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		    stream_gnuplotscript << "set nokey" << std::endl;
 		    stream_gnuplotscript << "set xlabel \'m/Z\'" << std::endl;
 		    stream_gnuplotscript << "set ylabel \'ratio light medium\'" << std::endl;
@@ -1030,10 +1022,10 @@ class TOPPSILACAnalyzer
 		  // write *_ratios_light_heavy.eps
           stream_gnuplotscript << "set output \"" + debug_ratios_light_heavy + "\"" << std::endl;
 		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  stream_gnuplotscript << "set nokey" << std::endl;
           stream_gnuplotscript << "set xlabel \'m/Z\'" << std::endl;
@@ -1049,10 +1041,10 @@ class TOPPSILACAnalyzer
           // write *_sizes.eps
           stream_gnuplotscript << "set output \"" + debug_sizes + "\"" << std::endl;
 		  if (type=="double") {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  else {
-			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+			stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << "\\n mass separation light medium= " << light_medium_string << ", mass separation light heavy= " << light_heavy_string << " Da, charge = " << charge << "+\\n intensity cutoff = " << intensity_cutoff << ", rt scaling = " << rt_scaling_string << ", optimal silhouette tolerance = " << optimal_silhouette_tolerance_string << ", cluster number scaling = " << cluster_number_scaling_string << "\"" << std::endl;
 		  }
 		  stream_gnuplotscript << "set nokey" << std::endl;
           stream_gnuplotscript << "set xlabel \'cluster ID\'" << std::endl;
