@@ -104,7 +104,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
 	FuzzyStringComparator fsc;
 	fsc.setWhitelist (StringList::create("xml-stylesheet,map id"));
-	fsc.setAcceptableAbsolute(0.0001);
+	fsc.setAcceptableAbsolute(0.01);
 	bool cmp = fsc.compareFiles(out_file, OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_output.consensusXML"));
 	TEST_EQUAL(cmp, true);
 
