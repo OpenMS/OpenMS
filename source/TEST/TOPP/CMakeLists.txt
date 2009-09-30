@@ -126,7 +126,8 @@ add_test("TOPP_FileFilter_10" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_10_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_10_output.mzML)
 add_test("TOPP_FileFilter_11" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_11_input.mzML -out FileFilter.tmp -remove_activation "Plasma desorption")
 add_test("TOPP_FileFilter_11_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_11_output.mzML)
-
+add_test("TOPP_FileFilter_12" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_12_input.mzML -out FileFilter.tmp -remove_chromatograms)
+add_test("TOPP_FileFilter_12_out1" ${DIFF} -in1 FileFilter.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_12_output.mzML)
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type DTA -no_progress -out FileInfo.tmp)

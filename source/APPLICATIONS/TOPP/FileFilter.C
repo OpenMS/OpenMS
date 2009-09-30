@@ -107,6 +107,7 @@ class TOPPFileFilter
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
       registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 			registerFlag_("no_chromatograms", "Skip conversion e.g. from SRM scans into real chromatograms (creates huge files).");
+			registerFlag_("remove_chromatograms", "Removes chromatograms stored in an file.");
 			
 			addEmptyLine_();
 			addText_("Remove spectra: ");
@@ -254,6 +255,12 @@ class TOPPFileFilter
 					// convert the spectra chromatograms to real chromatograms
 					ChromatogramTools chrom_tools;
 					chrom_tools.convertSpectraToChromatograms(exp, true);
+				}
+				
+				bool remove_chromatograms(getFlag_("remove_chromatograms"));
+				if (remove_chromatograms)
+				{
+					exp.setChromatograms(vector<MSChromatogram<> >());
 				}
 
   			//-------------------------------------------------------------
