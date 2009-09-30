@@ -1,30 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////usr/local/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/bertsch/OpenMS_x86_64_sl5/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.3" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2009-09-30T14:51:55">
-		<software name="SILACAnalyzer" version="1.5.0" />
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="SILACAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: in" value="SILACAnalyzer_double.mzML"/>
-		<userParam type="string" name="parameter: out" value="SILACAnalyzer_double.consensusXML"/>
-		<userParam type="string" name="parameter: ini" value="SILACAnalyzer_double.ini"/>
-		<userParam type="string" name="parameter: out_visual" value="SILACAnalyzer_double.featureXML"/>
-		<userParam type="string" name="parameter: type" value="double"/>
-		<userParam type="string" name="parameter: silac_debug" value="false"/>
-		<userParam type="string" name="parameter: log" value="TOPP.log"/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="1"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: test" value="false"/>
-		<userParam type="int" name="parameter: algorithm:charge_min" value="2"/>
-		<userParam type="int" name="parameter: algorithm:charge_max" value="2"/>
-		<userParam type="float" name="parameter: algorithm:intensity_cutoff" value="53000"/>
-		<userParam type="float" name="parameter: algorithm:mz_step_width" value="0.005"/>
-		<userParam type="float" name="parameter: algorithm:rt_scaling" value="0.025"/>
-		<userParam type="float" name="parameter: algorithm:optimal_silhouette_tolerance" value="0"/>
-		<userParam type="float" name="parameter: algorithm:cluster_number_scaling" value="1.05"/>
-		<userParam type="int" name="parameter: algorithm:cluster_min" value="0"/>
-		<userParam type="int" name="parameter: algorithm:cluster_max" value="2"/>
-		<userParam type="float" name="parameter: algorithm:mass_separation_light_heavy" value="6.0202"/>
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="3">
 		<map id="0" name="SILACAnalyzer_double.mzML" label="light" size="91924">
