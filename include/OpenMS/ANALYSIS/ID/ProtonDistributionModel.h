@@ -110,10 +110,8 @@ namespace OpenMS
 					@param c_term_ion the suffix ion sequence
 					@param charge the charge
 					@param n_term_type the ion type of the N-terminal ion; valid values are Residue::AIon, Residue::BIon
-					@param n_term1 the probability of seeing a singly charged prefix ion 
-					@param c_term1 the probability of seeing a singly charged suffix ion
-					@param n_term2 the probability of seeing a doubly charged prefix ion
-					@param c_term2 the probability of seeing a doubly charged suffix ion
+					@param n_term_intensities the probability of seeing a charged prefix ions (first index corresponds to ion of charge 1)
+					@param c_term_intensities the probability of seeing a charged suffix ions (first index corresponds to ion of charge 2)
 					@param type the type of fragmentation (charge-directed, charge-remote of side chain)
 			*/
 			//void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, Int charge, Residue::ResidueType n_term_type, DoubleReal& n_term1,  DoubleReal& c_term1, DoubleReal& n_term2, DoubleReal& c_term2, FragmentationType type);

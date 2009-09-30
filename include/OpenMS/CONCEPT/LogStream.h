@@ -44,7 +44,7 @@ namespace OpenMS
 
 			Logging, filtering, and storing messages.
 			Many programs emit warning messages, error messages, or simply
-			informations and remarks to their users. The  \link LogStream LogStream \endlink 
+			informations and remarks to their users. The  LogStream  
 			class provides a convenient and straight-forward interface 
 			to classify these messages according to their importance 
 			(via the loglevel), filter and store them in files or
@@ -262,9 +262,9 @@ namespace OpenMS
 			
 		/** Log levels.
 				Constants for the different predefined log levels.
-				Use  \link LogStream::ERROR ERROR \endlink  to indicate a severe error,  \link LogStream::WARNING WARNING \endlink  to 
+				Use  LogStream::ERROR to indicate a severe error,  LogStream::WARNING to 
 				indicate a problem that could be fixed or is of minor importance, 
-				and  \link LogStream::INFORMATION INFORMATION \endlink  for messages that do not indicate any problem 
+				and  LogStream::INFORMATION for messages that do not indicate any problem 
 				(e.g. progress messages).
 		*/
 		enum LogStreamLevel
@@ -291,9 +291,9 @@ namespace OpenMS
 		/** Constructor.
 				Creates a new LogStream object that is not associated with any stream.
 				If the argument <tt>associate_stdio</tt> is set to <b>true</b>,
-				<tt>cout</tt> is associated with all messages of levels  \link LogStream::INFORMATION INFORMATION \endlink  
-				and  \link LogStream::WARNING WARNING \endlink , and <tt>cerr</tt> is associated with all messages
-				of level  \link LogStream::ERROR ERROR \endlink .
+				<tt>cout</tt> is associated with all messages of levels  LogStream::INFORMATION   
+				and  LogStream::WARNING , and <tt>cerr</tt> is associated with all messages
+				of level  LogStream::ERROR .
 				@param	buf
 				@param  delete_buf
 				@param	associate_stdio bool, default is false
@@ -329,7 +329,7 @@ namespace OpenMS
 				This method assigns a new loglevel which will be used
 				for all messages sent to the LogStream after that call
 				(except for messages which use the temporary loglevel
-				set by  \link LogStream::level level \endlink ).
+				set by LogStream::level ).
 		*/
 		void setLevel(Int level);
 
@@ -358,19 +358,19 @@ namespace OpenMS
 		LogStream& level(Int level);
 
 		/**	Log an information message.
-				This method is equivalent to  \link LogStream::level level \endlink (LogStream::INFORMATION + n). 
+				This method is equivalent to LogStream::level (LogStream::INFORMATION + n). 
 				@param	n the channel 
 		*/
 		LogStream& info(Int n = 0);
 
 		/**	Log an error message.
-				This method is equivalent to  \link LogStream::level level \endlink (LogStream::ERROR + n). 
+				This method is equivalent to  LogStream::level (LogStream::ERROR + n). 
 				@param	n the channel 
 		*/
 		LogStream& error(Int n = 0);
 
 		/**	Log an information message.
-				This method is equivalent to  \link LogStream::level level \endlink (LogStream::WARNING + n). 
+				This method is equivalent to LogStream::level (LogStream::WARNING + n). 
 				@param	n the channel 
 		*/
 		LogStream& warn(Int n = 0);

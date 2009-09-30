@@ -129,8 +129,8 @@ namespace OpenMS
           which can be stored much more efficiently than spectra based chromatograms.
           However, most other file formats do not support chromatograms.
 
-					If @param remove_spectra is set to true, the chromatogram spectra are removed from the experiment
-					@param exp, the experiment to be converted
+					@param remove_spectra If set to true, the chromatogram spectra are removed from the experiment
+					@param exp , the experiment to be converted
       */
 			template<typename ExperimentType>
       void convertSpectraToChromatograms(ExperimentType& exp, bool remove_spectra = false)

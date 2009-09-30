@@ -22,8 +22,9 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 

@@ -22,9 +22,9 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRASTSIMILARITYSCORE_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRASTSIMILARITYSCORE_H
 
@@ -36,11 +36,11 @@ namespace OpenMS
 
   /**
 	  @brief Similarity score of SpectraST.
-	  			 Unlike the other similarity scores this score is used for matching a spectrum against a whole library, although
-	  			 the dot poduct seems to be an effective method for scoring on its own. For calculating the Spectrast score,
-	  			 first preprocess the spectra if not already done. Transform them and calculate the dot product and the dot bias.
-	  			 Afterwards get the best two hits and calculate delta_D. Now for every spectrum from the library you can calculate the final score.
-	  			 
+
+	  Unlike the other similarity scores this score is used for matching a spectrum against a whole library, although
+	  the dot poduct seems to be an effective method for scoring on its own. For calculating the Spectrast score,
+	  first preprocess the spectra if not already done. Transform them and calculate the dot product and the dot bias.
+	  Afterwards get the best two hits and calculate delta_D. Now for every spectrum from the library you can calculate the final score.
 
 		The details of the score can be found in:
 		H. Lam et al., Development and validation of a spectral library searching method for peptide identification from MS/MS,
@@ -80,13 +80,23 @@ namespace OpenMS
 		DoubleReal operator () (const PeakSpectrum& spec) const;
 		
 		/**
+			@brief Preprocesses the spectrum
+
+			The preprocessing removes peak below a intensity threshold, reject spectra that does
+			not have enough peaks, and cuts peaks exceeding the max_peak_number most intense peaks.
+
 			@return true if spectrum passes filtering
 		*/
 		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 		
 		BinnedSpectrum transform(const PeakSpectrum& spec);
+
 		/**
-			@param dot_prdouct if -1 this value will be calculated as well.
+			@brief Calculates the dot bias 
+
+			@param dot_prdoduct if -1 this value will be calculated as well.
+			@param bin1 first spectrum in binned representation
+			@param bin2 second spectrum in binned representation
 		*/
 		DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product = -1) const;
 		
