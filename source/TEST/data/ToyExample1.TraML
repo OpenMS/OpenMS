@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TraML version="0.20" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML0.2.xsd">
+<TraML version="0.9.0" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML0.9.0.xsd">
   <cvList>
-    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.15.0" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.15.0.obo"/>
     <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
   </cvList>
 
+  <sourceFileList>
+    <sourceFile id="sf1" name="OneTransition.tsv" location="file:///F:/data/Exp01">
+      <cvParam cvRef="MS" accession="MS:1000914" name="tab delimited text file" value=""/>
+      <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+    </sourceFile>
+  </sourceFileList>
+
   <contactList>
     <contact id="CS">
-      <cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Carly Sherwood"/>
-      <cvParam cvRef="MS" accession="MS:1000587" name="contact organization" value="Institute for Systems Biology"/>
+      <cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Eric Deutsch"/>
+      <cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="Institute for Systems Biology"/>
       <cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="1441 NE 34th St, Seattle WA 98103, USA"/>
       <cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.systemsbiology.org/"/>
       <cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="example@systemsbiology.org"/>
@@ -40,66 +47,88 @@
   </softwareList>
 
   <proteinList>
-    <protein id="Q12149" accession="Q12149" name="Q12149" description="Heat shock protein 1, alpha" comment="">
+    <protein id="Q12149">
+      <cvParam cvRef="MS" accession="MS:1000885" name="protein accession" value="Q00613"/>
+      <cvParam cvRef="MS" accession="MS:1000883" name="protein short name" value="HSF 1"/>
+      <cvParam cvRef="MS" accession="MS:1000886" name="protein name" value="Heat shock factor protein 1"/>
       <sequence>MSTEMETKAEDVETFAFQAEIAQLMSLIINTFYSNKEIFLRELISNSSDALDKIRYESLTDPSKLDNGKE</sequence>
     </protein>
   </proteinList>
 
   <compoundList>
-    <peptide id="ADTHFLLNIYDQLR-M1" proteinRef="Q12149"
-        unmodifiedSequence="ADTHFLLNIYDQLR" modifiedSequence="ADTHFLLNIYDQLR[162.10111]"
-        labelingCategory="heavy" groupLabel="1">
+    <peptide id="ADTHFLLNIYDQLR-M1" proteinRef="Q12149">
+      <cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
+      <cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
+      <cvParam cvRef="MS" accession="MS:1000891" name="heavy labeled peptide"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000863" name="predicted pI" value="5.22"/>
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22"/>
-      <retentionTime
-          localRetentionTime="40.02"
-          normalizedRetentionTime="38.43" normalizationStandard="H-PINS"
-          predictedRetentionTime="44.07" predictedRetentionTimeSoftwareRef="SSRCalc3.0"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
+      <retentionTime predictedRetentionTimeSoftwareRef="SSRCalc3.0">
+        <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+        <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="38.43" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+        <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard"/>
+        <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+      </retentionTime>
       <evidence>
-       <cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
+        <cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
       </evidence>
     </peptide>
     <compound id="glyoxylate">
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C2HO3"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
-      <retentionTime
-          localRetentionTime="23.56"/>
+      <retentionTime>
+        <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="23.56" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+      </retentionTime>
     </compound>
   </compoundList>
 
   <transitionList>
-    <transition
-        name="ADTHFLLNIYDQLR[162.10111]-T1"
-        peptideRef="ADTHFLLNIYDQLR-M1">
-      <precursor mz="862.9467" charge="2"/>
-      <product mz="1040.57" charge="1"/>
+    <transition id="ADTHFLLNIYDQLR[162.10111]-T1" peptideRef="ADTHFLLNIYDQLR-M1">
+      <precursor>
+        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="862.9467"/>
+        <cvParam cvRef="MS" accession="MS:1000211" name="charge number" value="2"/>
+      </precursor>
+      <product>
+        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1040.57"/>
+        <cvParam cvRef="MS" accession="MS:1000211" name="charge number" value="1"/>
+      </product>
       <interpretationList>
-        <interpretation productSeries="y" productOrdinal="8" productAdjustment="" mzDelta="0.03" primary="true"/>
-	<interpretation productSeries="b" productOrdinal="9" productAdjustment="-18^2" mzDelta="-0.43"/>
+        <interpretation primary="true">
+	  <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.03"/>
+        </interpretation>
+        <interpretation>
+	  <cvParam cvRef="MS" accession="MS:1001222" name="frag: b ion - H2O"/>
+	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="-0.43"/>
+        </interpretation>
       </interpretationList>
-      <prediction
-          transitionSource="transition predicted from consensus spectrum from ion trap spectra"
-          softwareRef="MaRiMba"
-          contactRef="CS"
-          relativeIntensity="10000"
-          recommendedTransitionRank="1"
-          intensityRank="1"/>
+      <prediction softwareRef="MaRiMba" contactRef="CS">
+	<cvParam cvRef="MS" accession="MS:1000912" name="transition purported from an MS/MS spectrum on a different, specified instrument"/>
+	<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap"/>
+	<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+	<cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="1"/>
+	<cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
+      </prediction>
       <configurationList>
         <configuration instrumentRef="QTRAP" contactRef="CS">
-          <cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="0.12"/>
-          <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26"/>
-          <cvParam cvRef="MS" accession="MS:1000875" name="declustering potential" value="64"/>
+          <cvParam cvRef="MS" accession="MS:1000502" name="dwell time" value="0.12" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+          <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="26" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+          <cvParam cvRef="MS" accession="MS:1000875" name="declustering potential" value="64" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
           <cvParam cvRef="MS" accession="MS:1000419" name="collision gas" value="argon"/>
-          <cvParam cvRef="MS" accession="MS:1000869" name="collision gas pressure" value="12"/>
-          <cvParam cvRef="MS" accession="MS:1000876" name="cone voltage" value="1200"/>
-          <cvParam cvRef="MS" accession="MS:1000857" name="interchannel delay" value="0.01"/>
-          <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23"/>
-          <validation
-              transitionSource="transition optimized on triple-quad"
-              relativeIntensity="4072"
-              recommendedTransitionRank="1"
-              intensityRank="1"/>
+          <cvParam cvRef="MS" accession="MS:1000869" name="collision gas pressure" value="12" unitCvRef="UO" unitAccession="UO:0000110" unitName="pascal"/>
+          <cvParam cvRef="MS" accession="MS:1000876" name="cone voltage" value="1200" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
+          <cvParam cvRef="MS" accession="MS:1000880" name="interchannel delay" value="0.01" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
+          <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
+          <validation>
+	    <cvParam cvRef="MS" accession="MS:1000910" name="transition optimized on specified instrument"/>
+	    <cvParam cvRef="MS" accession="MS:1000139" name="4000 Q TRAP"/>
+	    <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="4072" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+	    <cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="2"/>
+	    <cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
+          </validation>
         </configuration>
       </configurationList>
     </transition>

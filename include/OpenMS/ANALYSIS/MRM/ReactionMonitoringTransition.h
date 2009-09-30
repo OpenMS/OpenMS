@@ -129,17 +129,22 @@ namespace OpenMS
 
 		DoubleReal getPrecursorMZ() const;
 
-		void setPrecursorCharge(Int mz);
+		void setPrecursorCVTermList(const CVTermList& list);
 
-		Int getPrecursorCharge() const;
+		void addPrecursorCVTerm(const CVTerm& cv_term);
 
+		const CVTermList& getPrecursorCVTermList() const;
+
+		
 		void setProductMZ(DoubleReal mz);
 
 		DoubleReal getProductMZ() const;
 
-		void setProductCharge(Int mz);
+		void setProductCVTermList(const CVTermList& list);
 
-		Int getProductCharge() const;
+		void addProductCVTerm(const CVTerm& cv_term);
+
+		const CVTermList& getProductCVTermList() const;
 
 		void setInterpretations(const std::vector<TransitionInterpretation>& interpretations);
 
@@ -172,11 +177,11 @@ namespace OpenMS
 
 		DoubleReal precursor_mz_;
 
-		Int precursor_charge_;
+		CVTermList precursor_cv_terms_;
 
 		DoubleReal product_mz_;
 
-		Int product_charge_;
+		CVTermList product_cv_terms_;
 
 		std::vector<TransitionInterpretation> interpretation_list_;
 	

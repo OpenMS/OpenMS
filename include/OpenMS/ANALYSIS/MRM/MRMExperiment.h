@@ -77,20 +77,20 @@ namespace OpenMS
 			}
 
 			String id;
-			String accession;
-			String name;
-			String description;
-			String comment;
+			//String accession;
+			//String name;
+			//String description;
+			//String comment;
 			String sequence;
 
 			bool operator == (const Protein& rhs) const
 			{
 				return  CVTermList::operator == (rhs) &&
 								id == rhs.id &&
-								accession == rhs.accession &&
-								name == rhs.name &&
-								description == rhs.description &&
-								comment == rhs.comment && 
+								//accession == rhs.accession &&
+								//name == rhs.name &&
+								//description == rhs.description &&
+								//comment == rhs.comment && 
 								sequence == rhs.sequence;
 			}
 
@@ -100,10 +100,10 @@ namespace OpenMS
 				{
 					CVTermList::operator = (rhs);
         	id = rhs.id;
-          accession = rhs.accession;
-          name = rhs.name;
-          description = rhs.description;
-          comment = rhs.comment;
+          //accession = rhs.accession;
+          //name = rhs.name;
+          //description = rhs.description;
+          //comment = rhs.comment;
           sequence = rhs.sequence;
 				}
 				return *this;
@@ -224,10 +224,10 @@ namespace OpenMS
         : CVTermList(rhs),
 					rts(rhs.rts),
 					id(rhs.id),
-					group_label(rhs.group_label),
-					labeling_category(rhs.labeling_category),
-					modified_sequence(rhs.modified_sequence),
-					unmodified_sequence(rhs.unmodified_sequence),
+					//group_label(rhs.group_label),
+					//labeling_category(rhs.labeling_category),
+					//modified_sequence(rhs.modified_sequence),
+					//unmodified_sequence(rhs.unmodified_sequence),
 					protein_ref(rhs.protein_ref),
 					evidence(rhs.evidence)
       {
@@ -240,10 +240,10 @@ namespace OpenMS
 					CVTermList::operator = (rhs);
           rts = rhs.rts;
 					id = rhs.id;
-					group_label = rhs.group_label;
-					labeling_category = rhs.labeling_category;
-					modified_sequence = rhs.modified_sequence;
-					unmodified_sequence = rhs.unmodified_sequence;
+					//group_label = rhs.group_label;
+					//labeling_category = rhs.labeling_category;
+					//modified_sequence = rhs.modified_sequence;
+					//unmodified_sequence = rhs.unmodified_sequence;
 					protein_ref = rhs.protein_ref;
 					evidence = rhs.evidence;
         }
@@ -255,10 +255,10 @@ namespace OpenMS
 				return	CVTermList::operator == (rhs) && 
 								rts == rhs.rts &&
           			id == rhs.id &&
-          			group_label == rhs.group_label &&
-          			labeling_category == rhs.labeling_category &&
-          			modified_sequence == rhs.modified_sequence &&
-          			unmodified_sequence == rhs.unmodified_sequence &&
+          			//group_label == rhs.group_label &&
+          			//labeling_category == rhs.labeling_category &&
+          			//modified_sequence == rhs.modified_sequence &&
+          			//unmodified_sequence == rhs.unmodified_sequence &&
           			protein_ref == rhs.protein_ref &&
           			evidence == rhs.evidence;
       }
@@ -267,13 +267,74 @@ namespace OpenMS
 
       std::vector<RetentionTime> rts;
 			String id;
-			String group_label;
-			String labeling_category;
-			String modified_sequence;
-			String unmodified_sequence;
+			//String group_label;
+			//String labeling_category;
+			//String modified_sequence;
+			//String unmodified_sequence;
 			String protein_ref;
 			CVTermList evidence;
     };
+
+
+		class OPENMS_DLLAPI Prediction
+			: public CVTermList
+		{
+			Prediction()
+				: CVTermList(),
+					relative_intensity(0),
+					recommended_transition_rank(0),
+					intensity_rank(0)
+			{
+			}
+
+			Prediction(const Prediction& rhs)
+				:	CVTermList(rhs),
+					transition_source(rhs.transition_source),
+					software_ref(rhs.software_ref),
+					contact_ref(rhs.contact_ref),
+					relative_intensity(rhs.relative_intensity),
+					recommended_transition_rank(rhs.recommended_transition_rank),
+					intensity_rank(rhs.intensity_rank)
+			{
+			}
+
+			virtual ~Prediction()
+			{
+			}
+
+			Prediction& operator = (const Prediction& rhs)
+			{
+				if (this != &rhs)
+				{
+					CVTermList::operator = (rhs);
+					transition_source = rhs.transition_source;
+					software_ref = rhs.software_ref;
+					contact_ref = rhs.contact_ref;
+					relative_intensity = rhs.relative_intensity;
+					recommended_transition_rank = rhs.recommended_transition_rank;
+					intensity_rank = rhs.intensity_rank;
+				}
+				return *this;
+			}
+
+			bool operator == (const Prediction& rhs) const
+			{
+				return  CVTermList::operator == (rhs) &&
+								transition_source == rhs.transition_source &&
+								software_ref == rhs.software_ref &&
+								contact_ref == rhs.contact_ref &&
+								relative_intensity == rhs.relative_intensity && 
+								recommended_transition_rank == rhs.recommended_transition_rank &&
+								intensity_rank == rhs.intensity_rank;
+			}
+
+			String transition_source;
+			String software_ref;
+			String contact_ref;
+			DoubleReal relative_intensity;
+			Size recommended_transition_rank;
+			Size intensity_rank;
+		};
 
 
 
