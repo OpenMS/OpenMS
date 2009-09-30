@@ -334,6 +334,10 @@ set(analysis_executables_list
 	HiddenMarkovModel_test
 	PILISModel_test
 	PILISModelGenerator_test
+	TransitionPrediction_test
+	TransitionInterpretation_test
+	ReactionMonitoringTransition_test
+	MRMExperiment_test
 )
 
 set(applications_executables_list

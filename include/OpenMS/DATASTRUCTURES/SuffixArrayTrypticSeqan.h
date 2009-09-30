@@ -51,7 +51,7 @@ public:
 	
 			@param st the suffix array string, which is used to build the suffix array
 			@param filename filename of fasta file
-
+			@param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
 			@throw InvalidValue is thrown if string st if invalid
 			@throw FileNotFound is thrown if given file is not found
 	*/

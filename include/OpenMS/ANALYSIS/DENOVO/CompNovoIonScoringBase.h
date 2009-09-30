@@ -41,8 +41,6 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIonScoringBase
 
-		@htmlinclude OpenMS_CompNovoIonScoringBase.parameters
-		
 		@ingroup Analysis_DeNovo
 	*/
 	class OPENMS_DLLAPI CompNovoIonScoringBase : public DefaultParamHandler

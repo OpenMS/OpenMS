@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -79,11 +79,6 @@ namespace OpenMS
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge; returns the intensity sum of the matched peaks
 			double train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge, double peptide_weight);
-
-			/** reads the model parameters from the given files
-			    @param filename filename of the model
-			*/ 
-			//void readFromFile(const String& filename);
 
 			/// 
 			void getIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, double initial_prob);

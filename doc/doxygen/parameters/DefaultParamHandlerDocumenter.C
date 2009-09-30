@@ -31,6 +31,8 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -42,6 +44,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
+#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/ANALYSIS/DENOVO/MassDecompositionAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
@@ -59,6 +62,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AdvancedTheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -374,6 +378,10 @@ int main (int argc , char** argv)
 	DOCME(MRMFragmentSelection)
 	DOCME(PILISCrossValidation)
 	DOCME(ProtonDistributionModel)
+	DOCME(MascotRemoteQuery)
+	DOCME(MascotGenericFile)
+	DOCME(PILISNeutralLossModel)
+	DOCME(PILISModelGenerator)
 	
 	//////////////////////////////////
 	// More complicated cases

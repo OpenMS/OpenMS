@@ -46,8 +46,6 @@ namespace OpenMS
 	/**
 	  @brief  run with CompNovoIdentificationBase
 
-		@ref CompNovoIdentificationBase_Parameters are explained on a separate page.
-		
 		@ingroup Analysis_ID
 	*/
 	class OPENMS_DLLAPI CompNovoIdentificationBase : public DefaultParamHandler

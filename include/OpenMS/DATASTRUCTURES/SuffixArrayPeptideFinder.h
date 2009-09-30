@@ -55,6 +55,7 @@ public:
 	@brief constructor
 	@param filename FASTA File name
 	@param method Name of the method used (trypticCompressed, seqan, trypticSeqan)
+	@param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
 	@throw FileNotFound is thrown if the filename is not found
 	@throw ParseError is thrown if a error in parsing of the fasta file occurs
 	@throw InvalidValue is thrown if an unknown method is supplied 

@@ -54,6 +54,7 @@ public:
 	@brief constructor taking the string and the filename for writing or reading
 	@param st the string as const reference with which the suffix array will be build
 	@param filename the filename for writing or reading the suffix array
+	@param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
 	@throw Exception::InvalidValue if string does not start with empty string ($)
 	@throw FileNotFound is thrown if the given file was not found
 

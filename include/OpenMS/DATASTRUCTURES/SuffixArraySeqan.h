@@ -65,6 +65,7 @@ namespace OpenMS
 		@brief constructor
 		@param st const string reference with the string for which the suffix array should be build
 		@param filename const string reference with filename for opening or saving the suffix array
+		@param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
 		@throw FileNotFound is thrown if the given file is not found
 		@throw InvalidValue if the given suffix array string is invalid
 		*/

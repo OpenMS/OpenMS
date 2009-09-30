@@ -57,7 +57,7 @@ namespace OpenMS
     		@param filename The input file name.
     		@param is character which seperates the items.
     		@param ie Whether or not every item is enclosed.
-    		@param irst_n If set, only first_n lines the lines from the beginning of the file are read.
+    		@param first_n If set, only first_n lines the lines from the beginning of the file are read.
 
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened.
@@ -70,7 +70,7 @@ namespace OpenMS
     		@param filename The input file name.
     		@param is character which seperates the items.
     		@param ie Whether or not every item is enclosed.
-    		@param irst_n If set, only first_n lines the lines from the beginning of the file are read.
+    		@param first_n If set, only first_n lines the lines from the beginning of the file are read.
 
 				@exception Exception::FileNotFound is thrown if the file could not be opened.
     	*/

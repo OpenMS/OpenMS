@@ -130,6 +130,7 @@ namespace OpenMS
           However, most other file formats do not support chromatograms.
 
 					If @param remove_spectra is set to true, the chromatogram spectra are removed from the experiment
+					@param exp, the experiment to be converted
       */
 			template<typename ExperimentType>
       void convertSpectraToChromatograms(ExperimentType& exp, bool remove_spectra = false)
@@ -148,8 +149,13 @@ namespace OpenMS
 						}
 						else
 						{
-							// TODO
+							std::cerr << "ChromatogramTools: need exactly one precursor (given " << it->getPrecursors().size() << 
+											") and one product (" << it->getProducts().size() << "), skipping conversion of this spectrum to chromatogram." << std::endl;
 						}
+					}
+					else
+					{
+						std::cerr << "ChromatogramTools: cannot convert other chromatrogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
 					}
 				}
 

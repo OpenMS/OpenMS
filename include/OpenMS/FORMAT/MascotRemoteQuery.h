@@ -44,6 +44,7 @@ namespace OpenMS
 		server and reports the identifications provided be the Mascot server
 
 		@htmlinclude OpenMS_MascotRemoteQuery.parameters
+
 	*/
 	class OPENMS_DLLAPI MascotRemoteQuery 
 		: public QObject,
