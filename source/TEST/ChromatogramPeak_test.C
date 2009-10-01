@@ -91,7 +91,7 @@ START_SECTION((PositionType& getPosition()))
   TEST_REAL_SIMILAR(p.getPosition()[0], 1.0)
 END_SECTION
 
-START_SECTION((void setRT(CoordinateTypemz)))
+START_SECTION((void setRT(CoordinateType rt)))
   ChromatogramPeak p;
   p.setRT(5.0);
   TEST_REAL_SIMILAR(p.getRT(), 5.0)

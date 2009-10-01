@@ -342,7 +342,7 @@ START_SECTION((bool isSorted() const ))
 }
 END_SECTION
 
-START_SECTION((Size findNearest(CoordinateType mz) const ))
+START_SECTION((Size findNearest(CoordinateType rt) const ))
 {
   MSChromatogram<> tmp;
   ChromatogramPeak p;
@@ -387,7 +387,7 @@ START_SECTION((Size findNearest(CoordinateType mz) const ))
 END_SECTION
 
 
-START_SECTION((Iterator RTBegin(CoordinateType mz)))
+START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {
   MSChromatogram<> tmp;
   MSChromatogram<>::PeakType rdp;
@@ -810,6 +810,25 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(s.getMin()[0],2)
 }
 END_SECTION
+
+START_SECTION(void clear(bool clear_meta_data))
+  MSChromatogram<> edit;
+  edit.getInstrumentSettings().getScanWindows().resize(1);
+  edit.resize(1);
+  edit.setMetaValue("label",String("bla"));
+  edit.getProduct().setMZ(5);
+  edit.getFloatDataArrays().resize(5);
+  edit.getIntegerDataArrays().resize(5);
+  edit.getStringDataArrays().resize(5);
+
+  edit.clear(false);
+  TEST_EQUAL(edit.size(),0)
+  TEST_EQUAL(edit==MSChromatogram<>(),false)
+
+  edit.clear(true);
+  TEST_EQUAL(edit==MSChromatogram<>(),true)
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////
