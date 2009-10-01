@@ -75,7 +75,7 @@ namespace OpenMS
      @brief Predict retention times for given peptide features based on a SVM Model
      
      @param features Feature map for which the retention times will be predicted
-     @param features Experiment map which will be build from scratch
+     @param experiment Experiment map which will be build from scratch
      */
     void predictRT(FeatureMapSim & features, MSSimExperiment & experiment);
  

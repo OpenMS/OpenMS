@@ -183,7 +183,8 @@ namespace OpenMS
 */
 
       /**
-       @nested class
+       @brief nested class
+
       */
       //@{
       ///IonType is defined by a ResidueType, a neutral loss and charge state

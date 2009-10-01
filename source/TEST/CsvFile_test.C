@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: $
+// $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -51,7 +51,7 @@ START_SECTION(~CsvFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(bool getRow(UInt row,StringList &list))
+START_SECTION(bool getRow(Size row,StringList &list))
 	TOLERANCE_ABSOLUTE(0.01)
 	CsvFile f1,f3,f4;
 	TEST_EXCEPTION(Exception::FileNotFound, f1.fload("CsvFile_1.csv"))

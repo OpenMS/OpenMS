@@ -37,8 +37,6 @@ namespace OpenMS
 		
 		It evaluates an input consensus map with respect to a ground truth.
 
-	  @htmlinclude OpenMS_MapAlignmentEvaluationAlgorithmRecall.parameters
-	  
 		@ingroup MapAlignmentEvaluation
 	*/
 	class OPENMS_DLLAPI MapAlignmentEvaluationAlgorithmRecall

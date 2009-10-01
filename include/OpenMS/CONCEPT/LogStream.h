@@ -392,8 +392,8 @@ namespace OpenMS
 				If <tt>min_level</tt>	and <tt>max_level</tt> are equal, this function can be used
 				to listen to a specified channel.
 				@param	s a reference to the stream to be associated
-				@param	MIN_LEVEL the minimum level of messages copied to this stream
-				@param	MAX_LEVEL the maximum level of messages copied to this stream
+				@param	min_level the minimum level of messages copied to this stream
+				@param	max_level the maximum level of messages copied to this stream
 		*/
 		void insert
 			(std::ostream& s, Int min_level = LogStreamBuf::MIN_LEVEL, 

@@ -104,7 +104,7 @@ namespace OpenMS {
     /**
      @brief Samples signales for the given 1D model
 
-     @param pm The isotope model from which the signales will be sampled
+     @param iso The isotope model from which the signales will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
      @param experiment Experiment to which the sampled signales will be added

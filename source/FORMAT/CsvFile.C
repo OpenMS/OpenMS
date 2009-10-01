@@ -57,7 +57,7 @@ namespace OpenMS
 		load(filename,true,first_n);
 	}
 
-	bool CsvFile::getRow(UInt row,StringList &list)
+	bool CsvFile::getRow(Size row,StringList &list)
 	{
 		if(row > this->size())
 		{
@@ -68,7 +68,7 @@ namespace OpenMS
 		{
 			return splitted;
 		}
-		for(UInt i = 0; i< list.size(); i++)
+		for(Size i = 0; i< list.size(); i++)
 		{
 			if(itemenclosed)
 			{

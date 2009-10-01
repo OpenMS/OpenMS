@@ -80,21 +80,17 @@ namespace OpenMS
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge; returns the intensity sum of the matched peaks
 			double train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge, double peptide_weight);
 
-			/// 
+			/// given a peptide (a ion) the model returns the peaks with intensities relative to initial_prob
 			void getIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, double initial_prob);
 
-			///
+			/// sets the hidden markov model
 			void setHMM(const HiddenMarkovModel& model);
+			
 			/// writes the HMM to the given file in the GraphML format. A detailed description of the GraphML format can be found under http://graphml.graphdrawing.org/
 			const HiddenMarkovModel& getHMM() const;
-			//void writeGraphMLFile(const String& filename);
-
-			/** writes the model parameters into the given files
-			    @param filename filename of the base model
-			*/			 
-			//void writeToFile(const String& filename);
-			void generateModel();
 			
+			/// generates the models
+			void generateModel();
 			
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();

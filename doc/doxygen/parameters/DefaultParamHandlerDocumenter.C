@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
+#include <OpenMS/ANALYSIS/ID/OfflinePrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
@@ -57,6 +58,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
@@ -139,6 +141,8 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/ElutionModel.h>
+#include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
+#include <OpenMS/SIMULATION/RTSimulation.h>
 //#include <OpenMS/SIMULATION/MixtureModel.h>
 
 
@@ -382,6 +386,9 @@ int main (int argc , char** argv)
 	DOCME(MascotGenericFile)
 	DOCME(PILISNeutralLossModel)
 	DOCME(PILISModelGenerator)
+	DOCME(AdvancedTheoreticalSpectrumGenerator)
+	DOCME(FeatureGroupingAlgorithmIdentification)
+	DOCME(OfflinePrecursorIonSelection)
 	
 	//////////////////////////////////
 	// More complicated cases
@@ -405,6 +412,8 @@ int main (int argc , char** argv)
 	DOCME2(PTMSimulation, PTMSimulation(NULL));
   DOCME2(IonizationSimulation, IonizationSimulation(NULL));
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(NULL));
+	DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(NULL))
+	DOCME2(RTSimulation, RTSimulation(NULL))
   
   return 0;
 }

@@ -94,7 +94,7 @@ namespace OpenMS
 		/**
 			@brief Calculates the dot bias 
 
-			@param dot_prdoduct if -1 this value will be calculated as well.
+			@param dot_product if -1 this value will be calculated as well.
 			@param bin1 first spectrum in binned representation
 			@param bin2 second spectrum in binned representation
 		*/

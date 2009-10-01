@@ -92,6 +92,7 @@ namespace OpenMS {
 
      @param features FeatureMap which will be ionized
 		 @param charge_consensus ConsensusMap which groups childs(=charge variants) of input-features
+		 @param experiment MSSimExperiment map which contains the simulated experiment
      */
     void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment);
 
