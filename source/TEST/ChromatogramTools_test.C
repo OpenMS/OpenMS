@@ -113,22 +113,61 @@ START_SECTION(template <typename ExperimentType> void convertSpectraToChromatogr
 {
   PeakSpectrum spec1, spec2, spec3, spec4, spec5;
 	spec1.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+	spec2.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+	spec3.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+	spec4.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+	spec5.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+
+	Precursor prec1, prec2;
+	prec1.setMZ(500.1);
+	prec2.setMZ(500.2);
+	
+
 	Peak1D p;
 	p.setMZ(100.1);
 	p.setIntensity(20000000);
 	spec1.push_back(p);
+	spec1.setRT(0.1);
+	spec1.getPrecursors().push_back(prec1);
 
 	p.setMZ(100.2);
 	p.setIntensity(30000000);
 	spec2.push_back(p);
+	spec2.setRT(0.3);
+	spec2.getPrecursors().push_back(prec2);
 
 	p.setMZ(100.1);
 	p.setIntensity(40000000);
 	spec3.push_back(p);
+	spec3.setRT(0.4);
+	spec3.getPrecursors().push_back(prec1);
 
 	p.setMZ(100.2);
 	p.setIntensity(50000000);
 	spec4.push_back(p);
+	spec4.setRT(0.5);
+	spec4.getPrecursors().push_back(prec2);
+
+	PeakMap exp;
+	exp.push_back(spec1);
+	exp.push_back(spec2);
+	exp.push_back(spec3);
+	exp.push_back(spec4);
+	exp.push_back(spec5);
+
+	PeakMap exp2 = exp;
+
+	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(exp.getChromatograms().size(), 0)
+	ChromatogramTools().convertSpectraToChromatograms(exp);
+	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+
+	TEST_EQUAL(exp2.size(), 5)
+	TEST_EQUAL(exp2.getChromatograms().size(), 0)
+	ChromatogramTools().convertSpectraToChromatograms(exp2, true);
+	TEST_EQUAL(exp2.size(), 1)
+	TEST_EQUAL(exp2.getChromatograms().size(), 2)
 
 }
 END_SECTION

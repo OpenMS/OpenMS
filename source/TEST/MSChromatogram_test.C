@@ -829,6 +829,14 @@ START_SECTION(void clear(bool clear_meta_data))
   TEST_EQUAL(edit==MSChromatogram<>(),true)
 END_SECTION
 
+START_SECTION((DoubleReal getMZ() const))
+	MSChromatogram<> tmp;
+	Product prod;
+	prod.setMZ(0.1);
+	TEST_REAL_SIMILAR(tmp.getMZ(), 0.0)
+	tmp.setProduct(prod);
+	TEST_REAL_SIMILAR(tmp.getMZ(), 0.1)
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////
