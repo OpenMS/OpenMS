@@ -527,8 +527,29 @@ namespace OpenMS
 				p.setPosition(rt);
 				return upper_bound(begin, end, p, typename PeakType::PositionLess());
 			}
-	
+
+			/**
+        @brief Clears all data and meta data
+
+        @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      */
+      void clear(bool clear_meta_data)
+      {
+        ContainerType::clear();
+
+        if (clear_meta_data)
+        {
+          clearRanges();
+          clearId();
+          this->ChromatogramSettings::operator=(ChromatogramSettings()); // no "clear" method
+          name_.clear();
+          float_data_arrays_.clear();
+          string_data_arrays_.clear();
+          integer_data_arrays_.clear();
+        }
+      }
 			//@}
+
 
 		 protected:
 		 	

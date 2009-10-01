@@ -47,7 +47,7 @@ START_SECTION(ChromatogramTools())
 }
 END_SECTION
 
-START_SECTION(~ChromatogramTools())
+START_SECTION(virtual ~ChromatogramTools())
 {
 	delete ptr;
 }
@@ -55,13 +55,9 @@ END_SECTION
 
 START_SECTION((ChromatogramTools(const ChromatogramTools &)))
 {
-  // TODO
-}
-END_SECTION
-
-START_SECTION((virtual ~ChromatogramTools()))
-{
-  // TODO
+  ChromatogramTools tmp;
+	ChromatogramTools tmp2(tmp);
+	NOT_TESTABLE
 }
 END_SECTION
 
