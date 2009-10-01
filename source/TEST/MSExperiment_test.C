@@ -893,6 +893,109 @@ START_SECTION(void clear(bool clear_meta_data))
 	TEST_EQUAL(edit==MSExperiment<>(),true)
 END_SECTION
 
+START_SECTION((void sortChromatograms(bool sort_rt=true)))
+  MSExperiment<> exp;
+  MSChromatogram<> chrom1, chrom2;
+  ChromatogramPeak p1, p2, p3;
+  p1.setRT(0.3);
+  p1.setIntensity(10.0);
+  p2.setRT(0.2);
+  p2.setIntensity(10.2);
+  p3.setRT(0.1);
+  p3.setIntensity(10.4);
+
+	Product prod1;
+	prod1.setMZ(100.0);
+	chrom1.setProduct(prod1);
+  chrom1.push_back(p1);
+  chrom1.push_back(p2);
+
+	Product prod2;
+	prod2.setMZ(80.0);
+	chrom2.setProduct(prod2);
+  chrom2.push_back(p2);
+  chrom2.push_back(p3);
+
+  vector<MSChromatogram<> > chroms;
+  chroms.push_back(chrom1);
+  chroms.push_back(chrom2);
+  exp.setChromatograms(chroms);
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[0].getMZ(), 100.0)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1].getMZ(), 80.0)
+
+	// first sort without rt
+	exp.sortChromatograms(false);
+	TEST_REAL_SIMILAR(exp.getChromatograms()[0].getMZ(), 80.0)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1].getMZ(), 100.0)
+
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1][0].getRT(), 0.3)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1][1].getRT(), 0.2)
+
+	// now also sort rt
+	exp.sortChromatograms();
+
+	TEST_REAL_SIMILAR(exp.getChromatograms()[0].getMZ(), 80.0)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1].getMZ(), 100.0)
+
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1][0].getRT(), 0.2)
+	TEST_REAL_SIMILAR(exp.getChromatograms()[1][1].getRT(), 0.3)
+
+END_SECTION
+
+START_SECTION((void setChromatograms(const std::vector< MSChromatogram< ChromatogramPeakType > > &chromatograms)))
+	MSExperiment<> exp;
+	MSChromatogram<> chrom1, chrom2;
+	ChromatogramPeak p1, p2, p3;
+	p1.setRT(0.1);
+	p1.setIntensity(10.0);
+	p2.setRT(0.2);
+	p2.setIntensity(10.2);
+	p3.setRT(0.3);
+	p3.setIntensity(10.4);
+	chrom1.push_back(p1);
+	chrom1.push_back(p2);
+	chrom2.push_back(p2);
+	chrom2.push_back(p3);
+	vector<MSChromatogram<> > chroms;
+	chroms.push_back(chrom1);
+	chroms.push_back(chrom2);
+	exp.setChromatograms(chroms);
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+	TEST_EQUAL(exp.getChromatograms()[0] == chrom1, true)
+	TEST_EQUAL(exp.getChromatograms()[1] == chrom2, true)
+END_SECTION
+
+START_SECTION((void addChromatogram(const MSChromatogram< ChromatogramPeakType > &chromatogram)))
+  MSExperiment<> exp;
+  MSChromatogram<> chrom1, chrom2;
+  ChromatogramPeak p1, p2, p3;
+  p1.setRT(0.1);
+  p1.setIntensity(10.0);
+  p2.setRT(0.2);
+  p2.setIntensity(10.2);
+  p3.setRT(0.3);
+  p3.setIntensity(10.4);
+  chrom1.push_back(p1);
+  chrom1.push_back(p2);
+  chrom2.push_back(p2);
+  chrom2.push_back(p3);
+
+	TEST_EQUAL(exp.getChromatograms().size(), 0)
+	exp.addChromatogram(chrom1);
+	TEST_EQUAL(exp.getChromatograms().size(), 1)
+	TEST_EQUAL(exp.getChromatograms()[0] == chrom1, true)
+	exp.addChromatogram(chrom2);
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+	TEST_EQUAL(exp.getChromatograms()[0] == chrom1, true)	
+	TEST_EQUAL(exp.getChromatograms()[1] == chrom2, true)	
+END_SECTION
+
+START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const))
+	NOT_TESTABLE // tested above
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

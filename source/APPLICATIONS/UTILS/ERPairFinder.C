@@ -403,11 +403,7 @@ class TOPPERPairFinder
 	    			SILAC_feature.insert(0, feature_counter, best_light);
 	    			SILAC_feature.insert(1, feature_counter++, best_heavy);
   	  			results_map.push_back(SILAC_feature);
-
 						quantlets.push_back(SILACQuantitation(best_light.getIntensity(), best_heavy.getIntensity(), best_idx));
-
-
-
 					}
 				}
 			}

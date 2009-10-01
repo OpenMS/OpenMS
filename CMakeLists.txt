@@ -589,7 +589,8 @@ if (MSVC) ## Windows
 	## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
 	## we fix this by adding the dependencies of OpenMS directly to the executables as well.
 	set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-elseif (NOT APPLE) ## Linux
+#elseif (NOT APPLE) ## Linux
+else()
 	set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
 endif()
 
