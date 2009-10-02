@@ -79,6 +79,8 @@ set(metadata_executables_list
   ExperimentalSettings_test
   DocumentIdentifier_test
 	ChromatogramSettings_test
+	CVTerm_test
+	CVTermList_test
 )
 
 set(system_executables_list

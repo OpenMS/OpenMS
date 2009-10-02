@@ -25,8 +25,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CVTERMLIST_H
-#define OPENMS_DATASTRUCTURES_CVTERMLIST_H
+#ifndef OPENMS_METADATA_CVTERMLIST_H
+#define OPENMS_METADATA_CVTERMLIST_H
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>

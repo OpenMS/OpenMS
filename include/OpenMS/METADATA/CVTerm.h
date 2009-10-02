@@ -25,8 +25,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CVTERM_H
-#define OPENMS_DATASTRUCTURES_CVTERM_H
+#ifndef OPENMS_METADATA_CVTERM_H
+#define OPENMS_METADATA_CVTERM_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
