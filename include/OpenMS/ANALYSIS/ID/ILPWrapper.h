@@ -29,8 +29,8 @@
 #define OPENMS_ANALYSIS_ID_ILPWRAPPER_H
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-class CoinModel;
+#include "coin/CoinModel.hpp"
+//class CoinModel;
 namespace OpenMS
 {
 
@@ -143,10 +143,10 @@ namespace OpenMS
      *	@brief Solve the ILP.
      *	
      */
-    void solveILP_(CoinModel& model,std::vector<int>& solution_indices);
+    void solveILP_(std::vector<int>& solution_indices);
 
-
-		
+	// The model that is built. Attention: do not fill this model in the header file, this causes strange linker errors under Windows.
+	CoinModel model_;	
   };
 
 	template <typename InputPeakType>
