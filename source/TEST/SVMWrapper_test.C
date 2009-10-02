@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -53,7 +53,7 @@ START_SECTION((SVMWrapper()))
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((DoubleReal getDoubleParameter(SVMWrapper::SVM_parameter_type type)))
+START_SECTION((DoubleReal getDoubleParameter(SVM_parameters_type type)))
 	svm.setParameter(SVMWrapper::C, 1.0043);
 	svm.setParameter(SVMWrapper::NU, 0.0523);
 	svm.setParameter(SVMWrapper::P, 1.2319);
@@ -92,7 +92,7 @@ START_SECTION((DoubleReal getSVRProbability()))
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
 END_SECTION
 
-START_SECTION((Int getIntParameter(SVMWrapper::SVM_parameter_type type)))
+START_SECTION((Int getIntParameter(SVM_parameters_type type)))
 	svm.setParameter(SVMWrapper::SVM_TYPE, EPSILON_SVR);
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 	svm.setParameter(SVMWrapper::DEGREE, 2);
@@ -326,8 +326,8 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &start_values, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
+START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameters_type, DoubleReal > &start_values, const std::map< SVM_parameters_type, DoubleReal > &step_sizes, const std::map< SVM_parameters_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameters_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
+	map<SVMWrapper::SVM_parameters_type, DoubleReal> start_values;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
@@ -372,7 +372,7 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	TEST_NOT_EQUAL(parameters.size(), 0)
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVMWrapper::SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
+START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
@@ -833,7 +833,7 @@ START_SECTION((void setTrainingSample(SVMData &training_sample)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setParameter(SVMWrapper::SVM_parameter_type type, DoubleReal value)))
+START_SECTION((void setParameter(SVM_parameter_type type, DoubleReal value)))
  	svm.setParameter(SVMWrapper::C, 1.0043);
 	svm.setParameter(SVMWrapper::NU, 0.0523);
 	svm.setParameter(SVMWrapper::P, 1.2319);
@@ -843,7 +843,7 @@ START_SECTION((void setParameter(SVMWrapper::SVM_parameter_type type, DoubleReal
 	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::P), 1.2319)
 END_SECTION
 
-START_SECTION((void setParameter(SVMWrapper::SVM_parameter_type type, Int value)))
+START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	svm.setParameter(SVMWrapper::SVM_TYPE, EPSILON_SVR);
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 	svm.setParameter(SVMWrapper::DEGREE, 2);

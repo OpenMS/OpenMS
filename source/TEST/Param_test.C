@@ -782,7 +782,7 @@ START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream& os, const 
 	TEST_EQUAL(ss.str(), "\"tree|key\" -> \"17.5\"\n")
 END_SECTION
 
-START_SECTION((void insert(String prefix, const Param &param)))
+START_SECTION((void insert(const String& prefix, const Param &param)))
 	Param p;
 	p.setValue("a",17,"intdesc");
 	p.setValue("n1:b",17.4f,"floatdesc");
@@ -1181,7 +1181,7 @@ START_SECTION((void store(const String& filename) const))
 END_SECTION
 
 
-START_SECTION((void setDefaults(const Param& defaults, String prefix="", bool showMessage=false)))
+START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", bool showMessage=false)))
 	Param defaults;
 	defaults.setValue("float",1.0f,"float");	
 	defaults.setValue("float2",2.0f,"float2");
@@ -1302,7 +1302,7 @@ command_line4[7] = a8;
 command_line4[8] = a9;
 command_line4[9] = a10;
 
-START_SECTION((void parseCommandLine(const int argc, const char **argv, String prefix="")))
+START_SECTION((void parseCommandLine(const int argc, const char **argv, const String& prefix="")))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -1483,7 +1483,7 @@ START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
 END_SECTION
 
 
-START_SECTION((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
+START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="", std::ostream &os=std::cout) const))
 	//warnings for unknown parameters
 	ostringstream os;
 	Param p,d;

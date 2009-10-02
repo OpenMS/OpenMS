@@ -91,7 +91,7 @@ START_SECTION(double operator () (const PeakSpectrum& ) const)
 	TEST_REAL_SIMILAR(score, 0);
 END_SECTION
 
-START_SECTION(void CompareFouriertransform::transform(PeakSpectrum & spec) )
+START_SECTION(void transform(PeakSpectrum & spec) )
 	
 	MSSpectrum<> spectrum;
 	spectrum.setRT(1);

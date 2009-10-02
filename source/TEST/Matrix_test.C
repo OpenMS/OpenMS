@@ -82,9 +82,9 @@ START_SECTION((void resize(size_type i, size_type j, value_type value = value_ty
 }
 END_SECTION
 
-START_SECTION((void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())))
+START_SECTION((void resize(std::pair<Size, Size> const & size_pair, value_type value = value_type())))
 {
-	std::pair<UInt,UInt> const sizepair(2,2);
+	std::pair<Size, Size> const sizepair(2,2);
 	mi.resize(sizepair,3);
   STATUS("mi1:\n"<< mi);
 	mi.resize(2,3,7);
@@ -227,7 +227,7 @@ START_SECTION((SizeType rowIndex(SizeType index) const))
 }
 END_SECTION;
 
-START_SECTION((std::pair<Size,Size> const indexPair(UInt index) const))
+START_SECTION((std::pair<Size,Size> const indexPair(Size index) const))
 {
 	std::pair<Size,Size> result = mf.indexPair(30);
   TEST_EQUAL(result.first,4);
@@ -340,6 +340,11 @@ START_SECTION((template <typename  Value > std::ostream & operator<<(std::ostrea
 }
 END_SECTION
 
+START_SECTION((OPENMS_DLLAPI gsl_matrix * toGslMatrix()))
+{
+	NOT_TESTABLE // avoid warning
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

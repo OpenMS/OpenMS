@@ -645,7 +645,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
 }
 END_SECTION
 
-START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &ms_exp)))
+START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &exp)))
 {
  	MSSpectrum<Peak1D> raw;
 	raw.setComment("Let's see if this comment is copied by the filter.");
