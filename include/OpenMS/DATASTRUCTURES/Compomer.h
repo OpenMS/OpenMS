@@ -42,9 +42,12 @@ namespace OpenMS
 {
 
 /**
-	@brief TODO
+	@brief Holds information on an egde connecting two features from a (putative) charge ladder
 	
-	@todo Add docu here (Chris)
+	A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
+	holding the compomer. Additonally meta information on the edge (net_charge, edge score, id)
+	which is kept up-to-date when adducts are added to either side is stored.
+	
 */
 class OPENMS_DLLAPI Compomer
 {
@@ -240,19 +243,19 @@ public:
 
 		return r;
 	}
+
 	
-	/*
-	/// check if Compomer only contains a single adduct
-	bool isSimpleAdduct(Adduct& a)
+	/// check if Compomer only contains a single adduct on side @p side
+	bool isSingleAdduct(Adduct& a, const UInt side) const
 	{
-		if ((cmp_[LEFT].size() > 1) || (cmp_[RIGHT].size() > 1) return false;
+		if (side >= BOTH) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
+
+		if (cmp_[side].size() != 1) return false;
 		
-		if ( ((cmp_[LEFT].size()==1) && (cmp_[LEFT].count(a.getFormula())==0)) ||
-				 ((cmp_[RIGHT].size()==1) && (cmp_[RIGHT].count(a.getFormula())==0)) ) return false;
+		if (cmp_[side].count(a.getFormula())==0) return false;
 				
 		return true;
 	}
-	*/
 	
 	/**
 		@brief Remove all adducts of type @p a

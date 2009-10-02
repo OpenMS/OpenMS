@@ -141,14 +141,14 @@ namespace OpenMS {
 			// log scores are good for addition in ILP - but we need them to be > 0
 
       score = -log(1-exp(getLogScore_(i, pairs, fm)));
+			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 			namebuf.str("");
 			namebuf<<"x#"<<i;
 			//std::cout << "score: " << score << "\n";
 			// create the new variable object
 			build.setColumnBounds(int(i-margin_left),0,1);
 			build.setInteger(int(i-margin_left));
-			build.setObjective(int(i-margin_left),score);
-			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
+			build.setObjective(int(i-margin_left), pairs[i].getEdgeScore());
 			if (score_min > score ) score_min = score;
 			if (score_max < score ) score_max = score;
 			
@@ -276,7 +276,7 @@ namespace OpenMS {
 			}
 			conflict_map_out.push_back(s);
 		}
-		//conflict_map_out.store("conflict_map.txt");
+		conflict_map_out.store("c:/conflict_map.txt");
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");
@@ -392,13 +392,14 @@ namespace OpenMS {
 			score = pairs[i].getCompomer().getLogP();
 			DoubleReal charge_enhance = 0;
 			
-			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
+			/*if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
 				charge_enhance += log(0.9); else charge_enhance += log(0.1);
 				
 			if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) 
 				charge_enhance += log(0.9); else charge_enhance += log(0.1);
 		
 			score += charge_enhance;
+			*/
 
 		}
 		else 

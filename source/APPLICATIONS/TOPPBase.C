@@ -108,8 +108,8 @@ namespace OpenMS
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
-		registerStringOption_("write_ini","<file>","","Writes an example configuration file",false);
-		registerStringOption_("write_wsdl","<file>","","Writes an example WSDL file",false);
+		registerStringOption_("write_ini","<file>","","Writes the default configuration file",false);
+		registerStringOption_("write_wsdl","<file>","","Writes the default WSDL file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
 		if (id_tag_support_)
 		{
