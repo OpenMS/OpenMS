@@ -27,6 +27,7 @@
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <QDir>
 #include <sstream>
 
 namespace OpenMS
@@ -169,16 +170,16 @@ namespace OpenMS
 				prefix << "\n" <<
 				prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n" <<
 				prefix << "\n" <<
-				prefix << "in1:  " << File::absolutePath(input_1_name_) << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n" <<
+				prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n" <<
 				prefix << pre1 << "!\n" <<
 				prefix << pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n" <<
 				prefix <<  "\n" <<
-				prefix << "in2:  " << File::absolutePath(input_2_name_) << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n" <<
+				prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n" <<
 				prefix << pre2 << "!\n" <<
 				prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n" <<
 				prefix << "\n" <<
-				input_1_name_ << ':' << line_num_1_ << ":" << line_1_col << ":\n" <<
-				input_2_name_ << ':' << line_num_2_ << ":" << line_2_col << ":\n" <<
+				QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_ << ":" << line_1_col << ":\n" <<
+				QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_ << ":" << line_2_col << ":\n" <<
 				std::endl;
 		}
 
@@ -247,10 +248,10 @@ namespace OpenMS
 				*log_dest_ <<
 					prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
 					prefix << '\n' <<
-					input_1_name_ << ':' << line_num_1_max_ << ":\n" <<
+					QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
 					"\""<< line_str_1_max_ << "\"\n" <<
 					'\n' <<
-					input_2_name_ << ':' << line_num_2_max_ << ":\n" <<
+					QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
 					"\""<< line_str_2_max_ << "\"\n" <<
 					std::endl;
       }

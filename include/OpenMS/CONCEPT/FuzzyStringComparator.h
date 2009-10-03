@@ -60,7 +60,6 @@ namespace OpenMS
   /**
    @brief Fuzzy comparison of strings, tolerates numeric differences.
 
-   @todo Think about return values from compare_files (11 is not a bool :) (Clemens)
    */
   class OPENMS_DLLAPI FuzzyStringComparator
   {

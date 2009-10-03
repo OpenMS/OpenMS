@@ -276,7 +276,7 @@ namespace OpenMS {
 			}
 			conflict_map_out.push_back(s);
 		}
-		conflict_map_out.store("c:/conflict_map.txt");
+		//conflict_map_out.store("c:/conflict_map.txt");
 
 		// write the model (for debug)
 		//build.writeMps ("Y:/datasets/simulated/coinor.mps");

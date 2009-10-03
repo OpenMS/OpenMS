@@ -898,11 +898,11 @@ START_SECTION((void sortChromatograms(bool sort_rt=true)))
   MSChromatogram<> chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.3);
-  p1.setIntensity(10.0);
+  p1.setIntensity(10.0f);
   p2.setRT(0.2);
-  p2.setIntensity(10.2);
+  p2.setIntensity(10.2f);
   p3.setRT(0.1);
-  p3.setIntensity(10.4);
+  p3.setIntensity(10.4f);
 
 	Product prod1;
 	prod1.setMZ(100.0);
@@ -948,11 +948,11 @@ START_SECTION((void setChromatograms(const std::vector< MSChromatogram< Chromato
 	MSChromatogram<> chrom1, chrom2;
 	ChromatogramPeak p1, p2, p3;
 	p1.setRT(0.1);
-	p1.setIntensity(10.0);
+	p1.setIntensity(10.0f);
 	p2.setRT(0.2);
-	p2.setIntensity(10.2);
+	p2.setIntensity(10.2f);
 	p3.setRT(0.3);
-	p3.setIntensity(10.4);
+	p3.setIntensity(10.4f);
 	chrom1.push_back(p1);
 	chrom1.push_back(p2);
 	chrom2.push_back(p2);
@@ -971,11 +971,11 @@ START_SECTION((void addChromatogram(const MSChromatogram< ChromatogramPeakType >
   MSChromatogram<> chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.1);
-  p1.setIntensity(10.0);
+  p1.setIntensity(10.0f);
   p2.setRT(0.2);
-  p2.setIntensity(10.2);
+  p2.setIntensity(10.2f);
   p3.setRT(0.3);
-  p3.setIntensity(10.4);
+  p3.setIntensity(10.4f);
   chrom1.push_back(p1);
   chrom1.push_back(p2);
   chrom2.push_back(p2);
