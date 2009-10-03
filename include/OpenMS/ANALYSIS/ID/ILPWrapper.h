@@ -143,9 +143,9 @@ namespace OpenMS
      *	@brief Solve the ILP.
      *	
      */
-    void solveILP_(CoinModel& model,std::vector<int>& solution_indices);
+    void solveILP_(std::vector<int>& solution_indices);
 
-
+		CoinModel* cmodel_;
 		
   };
 

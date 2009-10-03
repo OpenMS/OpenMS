@@ -63,11 +63,12 @@ using namespace OpenMS;
 
 ILPWrapper::ILPWrapper()
 {
+		cmodel_ = new CoinModel();
 }
 
 ILPWrapper::~ILPWrapper()
 {
-  
+		delete cmodel_;
 }
 
 void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vector<DoubleReal> >& intensity_weights,
@@ -77,12 +78,17 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 																		Size number_of_scans)
 {
 	Int counter = 0;
-	CoinModel model;
+	if(cmodel_->numberElements()!=0)
+	{
+			delete cmodel_;
+			cmodel_ = new CoinModel();
+	}
+
 	std::cout << "Feature Based: Build model: first objective"<<std::endl;
 	///////////////////////////////////////////////////////////////////////
 	// add objective function
 	///////////////////////////////////////////////////////////////////////
-	model.setOptimizationDirection(-1); // maximize
+	cmodel_->setOptimizationDirection(-1); // maximize
 	// max \sum_j x_jk * signal_jk
 	//                    column_index, feature_index,scan
 	
@@ -116,7 +122,7 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 					////////////////////////////////////////////////////////////////////////
 
 						
-					model.setColumnName(counter,(String("x_")+i+","+s).c_str());
+					cmodel_->setColumnName(counter,(String("x_")+i+","+s).c_str());
 #ifdef DEBUG_OPS
 					std::cout << "add column "<<counter << std::endl;
 #endif
@@ -125,15 +131,15 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 					triple.scan = s;
 					triple.variable = counter;
 					variable_indices.push_back(triple);
-					model.setColumnUpper(counter,1.);
-					model.setColumnLower(counter,0.);
-					model.setColumnIsInteger(counter,true);
+					cmodel_->setColumnUpper(counter,1.);
+					cmodel_->setColumnLower(counter,0.);
+					cmodel_->setColumnIsInteger(counter,true);
 					
 #ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
 										<< intensity_weights[i][c] <<std::endl;
 #endif
-					model.setObjective(counter,intensity_weights[i][c]);
+					cmodel_->setObjective(counter,intensity_weights[i][c]);
 					++counter;
 					++c;
 				}
@@ -185,7 +191,7 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 #endif
 			String name = "PREC_ACQU_LIMIT_" + String(i);
 			
-			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
+			cmodel_->addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,1,name.c_str());
 #ifdef DEBUG_OPS
 			std::cout << stop-start << " "<<name<<std::endl;
 			std::cout << "added row"<<std::endl;
@@ -231,7 +237,7 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 #ifdef DEBUG_OPS
 			std::cout << "\nadd row "<<std::endl;
 #endif
-			model.addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
+			cmodel_->addRow((int)(stop-start),indices,entries,-COIN_DBL_MAX,ms2_spectra_per_rt_bin,(String("RT_CAP")+i).c_str());
 #ifdef DEBUG_OPS
 			std::cout << "added row"<<std::endl;
 #endif
@@ -243,15 +249,15 @@ void ILPWrapper::createAndSolveILP_(FeatureMap<>& features,std::vector<std::vect
 
 
 #ifdef DEBUG_OPS	
-	model.writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
+	cmodel_->writeMps("/home/zerck/data/tmp/test_pis_problem.mps",0,0,2,true);
 #endif
 	
-	solveILP_(model,solution_indices);
+	solveILP_(solution_indices);
 }
 
 
 
-void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
+void ILPWrapper::solveILP_(std::vector<int>& solution_indices)
 {
 #ifdef DEBUG_OPS	
   std::cout << "compute .." << std::endl;
@@ -264,20 +270,20 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 #endif
 
 	// test if model exists
-	if(cmodel.numberElements()==0)
+	if(cmodel_->numberElements()==0)
 		{
 			std::cout << "Model is empty." <<std::endl;
 			return;
 		}
 	
   // add rows into solver
-  solver.loadFromCoinModel(cmodel);
+  solver.loadFromCoinModel(*cmodel_);
 
   /* Now let MIP calculate a solution */
   // Pass to solver
   CbcModel model(solver);
 
-  model.setObjSense(cmodel.optimizationDirection()); // -1 = maximize, 1=minimize
+  model.setObjSense(cmodel_->optimizationDirection()); // -1 = maximize, 1=minimize
   model.solver()->setHintParam(OsiDoReducePrint,true,OsiHintTry);
 
   // Output details
@@ -353,7 +359,7 @@ void ILPWrapper::solveILP_(CoinModel& cmodel,std::vector<int>& solution_indices)
 			if (fabs(value)>0.5 && model.solver()->isInteger(column))
 				{
 #ifdef DEBUG_OPS	
-					std::cout << cmodel.getColumnName(column)<<" is in optimal solution"<<std::endl;
+					std::cout << cmodel_->getColumnName(column)<<" is in optimal solution"<<std::endl;
 #endif
 					solution_indices.push_back(column);
 				}
