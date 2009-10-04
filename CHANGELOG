@@ -29,7 +29,16 @@ Detailed list of changes to specific OpenMS classes
   - the given deltas are used for features with convex hulls as well
 - PoseClusteringShiftSuperimposer:
   - full rewrite, uses a similar algorithm like PoseClusteringAffineSuperimposer now
- 
+- VersionInfo:
+	- includes (if available) SVN Revision number that the library is build upon
+	  via support by the Build System.
+    SVN Revision information is displayed in the TOPP tools help text.
+	
+Changes to the Build System:
+- Unit tests are now in a separate sub-project in <OpenMS/source/TEST/> avoiding huge Solution files in MSVC IDE
+- new targets: test_build, tutorials_build, tutorials_exec
+- SVN Revision (if available) is determined and compiled into OpenMS before the library is build
+	
 Changes to OpenMS XML formats:
 
 Changes to the contrib package:
