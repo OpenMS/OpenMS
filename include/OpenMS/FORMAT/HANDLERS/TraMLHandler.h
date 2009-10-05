@@ -106,7 +106,7 @@ namespace OpenMS
 			
 			ReactionMonitoringTransition actual_transition_;
 	
-			TransitionInterpretation actual_interpretation_;
+			CVTermList actual_interpretation_;
 
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term);

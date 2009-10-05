@@ -216,32 +216,7 @@ namespace OpenMS
 
 		if (tag_ == "interpretation")
 		{
-			actual_interpretation_ = TransitionInterpretation();
-			String product_series;
-			if (optionalAttributeAsString_(product_series, attributes, "productSeries"))
-			{
-				actual_interpretation_.setProductSeries(product_series);
-			}
-			Int product_ordinal;
-			if (optionalAttributeAsInt_(product_ordinal, attributes, "productOrdinal"))
-			{
-				actual_interpretation_.setProductOrdinal((Size)product_ordinal);
-			}
-			String product_adjustment;
-			if (optionalAttributeAsString_(product_adjustment, attributes, "productAdjustment"))
-			{
-				actual_interpretation_.setProductAdjustment(product_adjustment);
-			}
-			DoubleReal mz_delta(0);
-			if (optionalAttributeAsDouble_(mz_delta, attributes, "mzDelta"))
-			{
-				actual_interpretation_.setMZDelta(mz_delta);
-			}
-			String primary("false");
-			if (optionalAttributeAsString_(primary, attributes, "primary"))
-			{
-				actual_interpretation_.setPrimary(DataValue(primary).toBool());
-			}
+			actual_interpretation_ = CVTermList();
 		}
 
 
@@ -574,8 +549,9 @@ namespace OpenMS
 				os << "      <product>";
 				writeCVParams_(os, it->getProductCVTermList(), 3);
 				os << "      </product>" << endl;
-
+/*
 				os << "      <interpretationList>" << endl;
+
 				for (vector<TransitionInterpretation>::const_iterator tit = it->getInterpretations().begin(); tit != it->getInterpretations().end(); ++tit)
 				{
 					os << "        <interpretation";
@@ -611,8 +587,9 @@ namespace OpenMS
 
 					os << "        </interpretation>" << endl;
 				}
-				os << "      </interpretationList>" << endl;
 
+				os << "      </interpretationList>" << endl;
+*/
 				// TODO
 				//os << "      <predictions>
 				//<prediction

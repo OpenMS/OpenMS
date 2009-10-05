@@ -5,8 +5,6 @@ set(directory source/ANALYSIS/MRM)
 set(sources_list
 MRMFragmentSelection.C
 ReactionMonitoringTransition.C
-TransitionInterpretation.C
-TransitionPrediction.C
 MRMExperiment.C
 )
 

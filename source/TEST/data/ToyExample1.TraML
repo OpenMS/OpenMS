@@ -95,22 +95,22 @@
       </product>
       <interpretationList>
         <interpretation primary="true">
-	  <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
-	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
-	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.03"/>
+				  <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+				  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+				  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.03"/>
         </interpretation>
         <interpretation>
-	  <cvParam cvRef="MS" accession="MS:1001222" name="frag: b ion - H2O"/>
-	  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
-	  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="-0.43"/>
+				  <cvParam cvRef="MS" accession="MS:1001222" name="frag: b ion - H2O"/>
+				  <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+				  <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="-0.43"/>
         </interpretation>
       </interpretationList>
       <prediction softwareRef="MaRiMba" contactRef="CS">
-	<cvParam cvRef="MS" accession="MS:1000912" name="transition purported from an MS/MS spectrum on a different, specified instrument"/>
-	<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap"/>
-	<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
-	<cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="1"/>
-	<cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
+				<cvParam cvRef="MS" accession="MS:1000912" name="transition purported from an MS/MS spectrum on a different, specified instrument"/>
+				<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap"/>
+				<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+				<cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="1"/>
+				<cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
       </prediction>
       <configurationList>
         <configuration instrumentRef="QTRAP" contactRef="CS">
@@ -123,11 +123,11 @@
           <cvParam cvRef="MS" accession="MS:1000880" name="interchannel delay" value="0.01" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/>
           <cvParam cvRef="MS" accession="MS:1000877" name="tube lens" value="23" unitCvRef="UO" unitAccession="UO:0000218" unitName="volt"/>
           <validation>
-	    <cvParam cvRef="MS" accession="MS:1000910" name="transition optimized on specified instrument"/>
-	    <cvParam cvRef="MS" accession="MS:1000139" name="4000 Q TRAP"/>
-	    <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="4072" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
-	    <cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="2"/>
-	    <cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
+	    			<cvParam cvRef="MS" accession="MS:1000910" name="transition optimized on specified instrument"/>
+				    <cvParam cvRef="MS" accession="MS:1000139" name="4000 Q TRAP"/>
+				    <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="4072" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
+				    <cvParam cvRef="MS" accession="MS:1000906" name="peak intensity rank" value="2"/>
+				    <cvParam cvRef="MS" accession="MS:1000907" name="peak targeting suitability rank" value="1"/>
           </validation>
         </configuration>
       </configurationList>

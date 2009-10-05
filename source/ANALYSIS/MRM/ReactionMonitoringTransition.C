@@ -181,17 +181,17 @@ namespace OpenMS
     return product_cv_terms_;
   }
 
-	void ReactionMonitoringTransition::setInterpretations(const vector<TransitionInterpretation>& interpretations)
+	void ReactionMonitoringTransition::setInterpretations(const vector<CVTermList>& interpretations)
 	{
 		interpretation_list_ = interpretations;
 	}
 
-	const vector<TransitionInterpretation>& ReactionMonitoringTransition::getInterpretations() const
+	const vector<CVTermList>& ReactionMonitoringTransition::getInterpretations() const
 	{
 		return interpretation_list_;
 	}
 
-	void ReactionMonitoringTransition::addInterpretation(const TransitionInterpretation& interpretation)
+	void ReactionMonitoringTransition::addInterpretation(const CVTermList& interpretation)
 	{
 		interpretation_list_.push_back(interpretation);
 	}

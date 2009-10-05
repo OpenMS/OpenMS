@@ -5,8 +5,6 @@ set(directory include/OpenMS/ANALYSIS/MRM)
 set(sources_list_h
 MRMFragmentSelection.h
 ReactionMonitoringTransition.h
-TransitionInterpretation.h
-TransitionPrediction.h
 MRMExperiment.h
 )
 

@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/ANALYSIS/MRM/TransitionInterpretation.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -134,7 +133,6 @@ namespace OpenMS
 		void addPrecursorCVTerm(const CVTerm& cv_term);
 
 		const CVTermList& getPrecursorCVTermList() const;
-
 		
 		void setProductMZ(DoubleReal mz);
 
@@ -146,17 +144,23 @@ namespace OpenMS
 
 		const CVTermList& getProductCVTermList() const;
 
-		void setInterpretations(const std::vector<TransitionInterpretation>& interpretations);
+		void setInterpretations(const std::vector<CVTermList>& interpretations);
 
-		const std::vector<TransitionInterpretation>& getInterpretations() const;
+		const std::vector<CVTermList>& getInterpretations() const;
 
-		void addInterpretation(const TransitionInterpretation& interpretation);
+		void addInterpretation(const CVTermList& interpretation);
 
 		void setConfigurations(const std::vector<Configuration>& configuration);
 		
 		const std::vector<Configuration>& getConfigurations() const;
 
 		void addConfiguration(const Configuration& configuration);
+
+		void setPrediction(const CVTermList& prediction);
+
+		void addPredictionTerm(const CVTerm& prediction);
+
+		const CVTermList& getPrediction() const;
 		//@}
 
 		/** @name Predicates
@@ -183,15 +187,15 @@ namespace OpenMS
 
 		CVTermList product_cv_terms_;
 
-		std::vector<TransitionInterpretation> interpretation_list_;
+		std::vector<CVTermList> interpretation_list_;
 	
-		//vector<Configuration> configurations_list_; why multiple configuration per transition????
-
 		String peptide_ref_;
 
 		String compound_ref_;
 
 		std::vector<Configuration> configurations_;
+
+		CVTermList prediction_;
 	};
 }
 

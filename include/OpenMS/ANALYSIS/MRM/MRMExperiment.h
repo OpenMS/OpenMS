@@ -30,7 +30,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -274,68 +278,6 @@ namespace OpenMS
 			String protein_ref;
 			CVTermList evidence;
     };
-
-
-		class OPENMS_DLLAPI Prediction
-			: public CVTermList
-		{
-			Prediction()
-				: CVTermList(),
-					relative_intensity(0),
-					recommended_transition_rank(0),
-					intensity_rank(0)
-			{
-			}
-
-			Prediction(const Prediction& rhs)
-				:	CVTermList(rhs),
-					transition_source(rhs.transition_source),
-					software_ref(rhs.software_ref),
-					contact_ref(rhs.contact_ref),
-					relative_intensity(rhs.relative_intensity),
-					recommended_transition_rank(rhs.recommended_transition_rank),
-					intensity_rank(rhs.intensity_rank)
-			{
-			}
-
-			virtual ~Prediction()
-			{
-			}
-
-			Prediction& operator = (const Prediction& rhs)
-			{
-				if (this != &rhs)
-				{
-					CVTermList::operator = (rhs);
-					transition_source = rhs.transition_source;
-					software_ref = rhs.software_ref;
-					contact_ref = rhs.contact_ref;
-					relative_intensity = rhs.relative_intensity;
-					recommended_transition_rank = rhs.recommended_transition_rank;
-					intensity_rank = rhs.intensity_rank;
-				}
-				return *this;
-			}
-
-			bool operator == (const Prediction& rhs) const
-			{
-				return  CVTermList::operator == (rhs) &&
-								transition_source == rhs.transition_source &&
-								software_ref == rhs.software_ref &&
-								contact_ref == rhs.contact_ref &&
-								relative_intensity == rhs.relative_intensity && 
-								recommended_transition_rank == rhs.recommended_transition_rank &&
-								intensity_rank == rhs.intensity_rank;
-			}
-
-			String transition_source;
-			String software_ref;
-			String contact_ref;
-			DoubleReal relative_intensity;
-			Size recommended_transition_rank;
-			Size intensity_rank;
-		};
-
 
 
 		/** @name Constructors and destructors
