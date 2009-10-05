@@ -128,7 +128,7 @@ namespace OpenMS
 		}
 		if (mods.size() > 1)
 		{
-			cerr << "ModificationsDB::getTerminalModification: more than one modification found, picking first one (";
+			cerr << "ModificationsDB::getTerminalModification: more than one modification (" << mod_name << ", term_spec=" << term_spec << ") found, picking first one (";
 			for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
 			{
 				cerr << (*it)->getFullId() << ",";
@@ -161,7 +161,7 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification found, picking first one (";
+      cerr << "ModificationsDB::getModification: more than one modification (residue='" << residue_name << "', modification='" << mod_name << "', term_spec=" << term_spec << ") found, picking first one (";
       for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
         cerr << (*it)->getFullId() << ",";
@@ -184,7 +184,7 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification found, picking first one (";
+      cerr << "ModificationsDB::getModification: more than one modification (" << modification << ") found, picking first one (";
       for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
         cerr << (*it)->getFullId() << ",";
@@ -220,7 +220,18 @@ namespace OpenMS
 		}
 		return idx;
 	}
-	
+
+	void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
+	{
+		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		{
+			if (fabs((*it)->getDiffMonoMass() - mass) <= error && (*it)->getTermSpecificity() == term_spec)
+			{
+				mods.push_back((*it)->getFullId());
+			}
+		}
+	}
+
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error)
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -454,8 +465,10 @@ namespace OpenMS
 					set<String> synonyms = it->second.getSynonyms();
 					synonyms.insert(it->first);
 					synonyms.insert(it->second.getFullName());
-					synonyms.insert(it->second.getUniModAccession());
+					//synonyms.insert(it->second.getUniModAccession());
 					synonyms.insert(it->second.getPSIMODAccession());
+					mods_.back()->setFullId(it->second.getFullName() + " (" + it->second.getOrigin() + ")");
+					synonyms.insert(mods_.back()->getFullId());
 
 					// now check each of the names and link it to the residue modification
 					for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)

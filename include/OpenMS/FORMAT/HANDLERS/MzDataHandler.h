@@ -1088,10 +1088,13 @@ namespace OpenMS
 						for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
 							const Acquisition& ac = spec.getAcquisitionInfo()[i];
-							Int acq_number;
+							Int acq_number = 0;
 							try
 							{
-								acq_number =  ac.getIdentifier().toInt();
+								if (ac.getIdentifier() != "")
+								{
+									acq_number =  ac.getIdentifier().toInt();
+								}
 							}
 							catch(...)
 							{

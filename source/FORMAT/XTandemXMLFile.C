@@ -219,11 +219,25 @@ namespace OpenMS
 			vector<String> possible_mods, possible_mass_mods;
 
 			// try to find a mod in the given mods that fits
-			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+
+			if (mod_pos == 0) // presumably a N-terminal mod
+			{
+				ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
+			}
+			else if (mod_pos == aa_seq.size())
+			{
+				ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::C_TERM);
+			}
+			
+			// if not found a terminal mod, try normal one
+			if (possible_mods.size() == 0)
+			{
+				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+			}
 
 			set<String> mod_names = mod_def_set_.getModificationNames();
 
-			// throw out any of the modifications that are not contained in the def set
+			// throw out any of the modifications that are not contained in the def set (throws out also s.th. like "Carbamidomethyl (N-term)"
 			for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
 			{
 				if (mod_names.find(*it) != mod_names.end())
@@ -278,7 +292,6 @@ namespace OpenMS
 						}
 						possible_mods = new_possible_mods;
 					}
-				
 					if (possible_mods.size() > 1)
 					{
 						String error_string = String("More than one modification found which fits residue '") + type + "' with mass '" + modified + "': ";

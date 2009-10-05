@@ -103,6 +103,9 @@ namespace OpenMS
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
 			Size findModificationIndex(const String& mod_name) const;
 
+			/// query the modifications DB to get the terminal modifications with mass
+			void getTerminalModificationsByDiffMonoMass(std::vector<String>& mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec);
+
 			/// query the modifications DB to get the modifications with mass, without any specific origin
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, DoubleReal mass, DoubleReal error = 0.0);
 			
