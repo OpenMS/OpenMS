@@ -191,8 +191,10 @@ END_SECTION
 START_SECTION(([EXTRA] Chromatogram section))
 	MzMLFile file;
 	PeakMap exp;
-	//file.load("/share/usr/bertsch/MRM_example_1.1.0.mzML", exp);
-	//TEST_EQUAL(exp.getChromatograms().size(), 2)
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
+	TEST_EQUAL(exp.getChromatograms().size(), 2)
+	TEST_EQUAL(exp.getChromatograms()[0].size(), 15)
+	TEST_EQUAL(exp.getChromatograms()[1].size(), 10)
 END_SECTION
 
 START_SECTION(const PeakFileOptions& getOptions() const)

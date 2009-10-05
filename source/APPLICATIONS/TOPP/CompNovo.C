@@ -65,7 +65,7 @@ class TOPPCompNovo
 {
 	public:
 		TOPPCompNovo()
-			: TOPPBase("CompNovo", "Performs a peptide/protein identification with the CompNovo engine.")
+			: TOPPBase("CompNovo", "Performs a de novo peptide identification using the CompNovo engine.")
 		{
 		}
 	

@@ -102,10 +102,15 @@ class TOPPSpecLibSearcher
      registerDoubleOption_("remove_peaks_below_threshold","<threshold>",2.01,"All peaks of a query spectrum with intensities below <threshold> will be zeroed.",false);    
      registerIntOption_("max_peaks","<number>",150,"Use only the top <number> of peaks.",false);
      registerIntOption_("cut_peaks_below","<number>",1000,"Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak",false);
-     
-     registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048 currently no effect", false);
-     registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214 MOD:00048", false);	
-		addEmptyLine_();
+
+			vector<String> all_mods;
+			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+     	registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+			setValidStrings_("fixed_modifications", all_mods);
+
+			registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);	
+			setValidStrings_("variable_modifications", all_mods);
+			addEmptyLine_();
 			addText_("");
 		}
 		

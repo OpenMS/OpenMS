@@ -67,7 +67,7 @@ for (Size s=0; s<output.size(); ++s)
   param.setValue("thresholds:peak_bound",1500.0);
   pp.setParameters(param);   
 
-START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput)))
+START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output)))
   MSSpectrum<> spec;
   pp.pick(input[0],spec);
   
@@ -80,7 +80,7 @@ START_SECTION((void pick(const MSSpectrum<>& input, MSSpectrum<>& ouput)))
 END_SECTION
 
 
-START_SECTION((void pickExperiment(const MSExperiment<>& input, MSExperiment<>& ouput)))
+START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &output)))
   MSExperiment<> exp;
   pp.pickExperiment(input,exp);
 

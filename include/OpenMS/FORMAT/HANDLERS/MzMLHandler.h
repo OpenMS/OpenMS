@@ -2913,6 +2913,10 @@ namespace OpenMS
 				{
 					chromatogram_.setChromatogramType(ChromatogramSettings::EMISSION_CHROMATOGRAM);
 				}
+				else if (accession == "MS:1000809")
+				{
+					chromatogram_.setName(value);
+				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="target")

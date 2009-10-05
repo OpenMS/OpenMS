@@ -95,7 +95,7 @@ START_SECTION((void setPeptideProtonDistribution(const std::vector< DoubleReal >
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void getChargeStateIntensities(const AASequence &peptide, const AASequence &n_term_ion, const AASequence &c_term_ion, int charge, Residue::ResidueType n_term_type, std::vector< DoubleReal > &n_term_intensities, std::vector< DoubleReal > &c_term_intensities, FragmentationType type)))
+START_SECTION((void getChargeStateIntensities(const AASequence &peptide, const AASequence &n_term_ion, const AASequence &c_term_ion, Int charge, Residue::ResidueType n_term_type, std::vector< DoubleReal > &n_term_intensities, std::vector< DoubleReal > &c_term_intensities, FragmentationType type)))
 	vector<DoubleReal> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);

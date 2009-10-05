@@ -155,7 +155,10 @@ namespace OpenMS
 					}
 					else
 					{
-						std::cerr << "ChromatogramTools: cannot convert other chromatrogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
+						// This does not makes sense to warn here, because it would also warn on simple mass spectra...
+						// TODO think what to to here
+						//std::cerr << "ChromatogramTools: cannot convert other chromatrogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
+						//
 					}
 				}
 

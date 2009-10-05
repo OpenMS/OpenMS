@@ -209,7 +209,7 @@ START_SECTION((void reduce(SizeType j)))
 }
 END_SECTION
 
-START_SECTION((std::pair<UInt,UInt> getMinElementCoordinates() const))
+START_SECTION((std::pair<SizeType,SizeType> getMinElementCoordinates() const))
 {
 	dm.updateMinElement();
 	pair<Size,Size> min = dm.getMinElementCoordinates();

@@ -168,7 +168,7 @@ START_SECTION((void filterIdentificationsByLength(const PeptideIdentification &i
 	TEST_EQUAL(peptide_hits[3].getSequence() , "TGCDTWGQGTLVTVSSASTK")
 END_SECTION
 
-START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::set<String> peptides, PeptideIdentification& filtered_identification)))
+START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdentification &identification, const std::set< String > &peptides, PeptideIdentification &filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;

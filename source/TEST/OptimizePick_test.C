@@ -67,7 +67,7 @@ START_SECTION((OptimizePick(const struct OptimizationFunctions::PenaltyFactors& 
  	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
 
-START_SECTION((void optimize(std::vector<PeakShape>& peaks)))
+START_SECTION((void optimize(std::vector< PeakShape > &peaks, Data &data)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;

@@ -41,11 +41,16 @@ namespace OpenMS
 		alphabet_(0),
 		decomposer_(0)
 	{
-		defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!");
+		defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
 		defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
-		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048");
-		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets");
+		
+		vector<String> all_mods;
+		ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+		defaults_.setValidStrings("fixed_modifications", all_mods);
+		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+		defaults_.setValidStrings("variable_modifications", all_mods);
+		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", StringList::create("advanced"));
 		set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
 		vector<String> valid_strings;
 		for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)

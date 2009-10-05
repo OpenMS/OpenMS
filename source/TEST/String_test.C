@@ -354,7 +354,7 @@ START_SECTION((String& trim()))
 	TEST_EQUAL(s,"");
 END_SECTION
 
-START_SECTION((String& quote(char c, bool escape)))
+START_SECTION((String& quote(char c= '"', bool escape = true)))
   String s;
   s.quote('\'');
   TEST_EQUAL(s, "''");
