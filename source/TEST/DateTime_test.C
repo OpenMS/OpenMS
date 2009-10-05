@@ -267,6 +267,14 @@ START_SECTION((void setTime(const String &date)))
 
 END_SECTION
 
+START_SECTION(([EXTRA] Three digit year should get leading zero according to Qt 4.4.3 documentation ))
+
+	DateTime one_moment_in_time;
+  one_moment_in_time.set(5,4,666,3,2,1);
+  TEST_STRING_EQUAL(one_moment_in_time.get(),"0666-05-04 03:02:01");
+
+END_SECTION
+
 START_SECTION((static DateTime now()))
   TEST_EQUAL(DateTime::now().isValid(), true)
 END_SECTION
