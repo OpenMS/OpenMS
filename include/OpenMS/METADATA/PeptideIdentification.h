@@ -106,8 +106,14 @@ namespace OpenMS
 
 			/// Sorts the hits by score and assigns ranks coording to the scores
 		  void assignRanks();
-		  /// Sorts the hits by score
+			
+			/**
+				 @brief Sorts the hits by score
+
+				 Sorting takes the score orientation (@p higher_score_better_) into account, i.e. after sorting, the best-scoring hit is the first.
+			*/
 		  void sort();
+			
 		  /// Returns if this PeptideIdentification result is empty
 		  bool empty() const;
 		  

@@ -606,7 +606,7 @@ namespace OpenMS
 		};
 		
     /**
-			@brief A method or algorithm argument contains is values
+			@brief A method or algorithm argument contains illegal values
 			
 			@ingroup Exceptions
 		*/
