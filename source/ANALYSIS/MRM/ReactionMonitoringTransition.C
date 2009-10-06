@@ -51,7 +51,8 @@ namespace OpenMS
       interpretation_list_(rhs.interpretation_list_),
 			peptide_ref_(rhs.peptide_ref_),
 			compound_ref_(rhs.compound_ref_),
-			configurations_(rhs.configurations_)
+			configurations_(rhs.configurations_),
+			prediction_(rhs.prediction_)
 	{
 	}
 
@@ -73,6 +74,7 @@ namespace OpenMS
 			peptide_ref_ = rhs.peptide_ref_;
 			compound_ref_ = rhs.compound_ref_;
 			configurations_ = rhs.configurations_;
+			prediction_ = rhs.prediction_;
 		}
 		return *this;
 	}
@@ -88,7 +90,8 @@ namespace OpenMS
 			      interpretation_list_ == rhs.interpretation_list_ &&
 			      peptide_ref_ == rhs.peptide_ref_ &&
 			      compound_ref_ == rhs.compound_ref_ &&
-			      configurations_ == rhs.configurations_;
+			      configurations_ == rhs.configurations_ &&
+						prediction_ == rhs.prediction_;
 	}
 
 	bool ReactionMonitoringTransition::operator != (const ReactionMonitoringTransition& rhs) const
@@ -206,6 +209,22 @@ namespace OpenMS
 	{
 		configurations_.push_back(configuration);
 	}
+
+	void ReactionMonitoringTransition::setPrediction(const CVTermList& prediction)
+	{
+		prediction_ = prediction;
+	}
+
+	const CVTermList& ReactionMonitoringTransition::getPrediction() const
+	{
+		return prediction_;
+	}
+
+	void ReactionMonitoringTransition::addPredictionTerm(const CVTerm& term)
+	{
+		prediction_.addCVTerm(term);
+	}
+	
 
   void ReactionMonitoringTransition::updateMembers_()
 	{

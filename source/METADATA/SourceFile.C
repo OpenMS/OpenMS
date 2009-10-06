@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SourceFile.h>
@@ -36,7 +36,7 @@ namespace OpenMS
 	const std::string SourceFile::NamesOfChecksumType[] = {"Unknown","SHA-1","MD5"};
 
 	SourceFile::SourceFile()
-		: MetaInfoInterface(),
+		: CVTermList(),
 		  name_of_file_(),
 		  path_to_file_(),
 			file_size_(),
@@ -49,7 +49,7 @@ namespace OpenMS
 	}
 	
 	SourceFile::SourceFile(const SourceFile& source)
-		: MetaInfoInterface(source),
+		: CVTermList(source),
 		  name_of_file_(source.name_of_file_),
 		  path_to_file_(source.path_to_file_),
 			file_size_(source.file_size_),
@@ -68,7 +68,7 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
-	  MetaInfoInterface::operator=(source);
+	  CVTermList::operator=(source);
 	  name_of_file_ = source.name_of_file_;
 	  path_to_file_ = source.path_to_file_;
 	  file_size_ = source.file_size_;
@@ -83,7 +83,7 @@ namespace OpenMS
 	bool SourceFile::operator== (const SourceFile& rhs) const
 	{
 		return 
-	  	MetaInfoInterface::operator==(rhs) &&
+	  	CVTermList::operator==(rhs) &&
 	    name_of_file_ == rhs.name_of_file_ &&
 	    path_to_file_ == rhs.path_to_file_ &&
 		  file_size_ == rhs.file_size_ &&

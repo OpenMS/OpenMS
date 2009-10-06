@@ -67,13 +67,23 @@ namespace OpenMS
     static set<String> tags_to_ignore;
     if (tags_to_ignore.size() == 0)
     {
-			tags_to_ignore.insert("TraML");
-      tags_to_ignore.insert("contactList");
-      tags_to_ignore.insert("cvList");
-      tags_to_ignore.insert("instrumentList");
-      tags_to_ignore.insert("softwareList");
-      tags_to_ignore.insert("publicationList");
-			tags_to_ignore.insert("proteinList");
+			tags_to_ignore.insert("TraML"); // base node
+      tags_to_ignore.insert("contactList"); // contains only contact sections
+      tags_to_ignore.insert("compoundList"); // contains only compounds
+      tags_to_ignore.insert("transitionList"); // contains only transitions
+      tags_to_ignore.insert("configurationList"); // contains only configurations
+      tags_to_ignore.insert("cvList"); // contains only CVs
+      tags_to_ignore.insert("instrumentList"); // contains only instruments
+      tags_to_ignore.insert("softwareList"); // contains only software 
+      tags_to_ignore.insert("publicationList"); // contains only publications
+			tags_to_ignore.insert("proteinList"); // contains only proteins
+      tags_to_ignore.insert("sourceFileList"); // contains only source files
+      tags_to_ignore.insert("interpretationList"); // contains only interpretations
+			tags_to_ignore.insert("evidence"); // only cv terms
+			tags_to_ignore.insert("validation"); // only cv terms
+			tags_to_ignore.insert("sequence"); // only sequence as characters
+			tags_to_ignore.insert("precursor"); // contains only cv terms
+			tags_to_ignore.insert("product"); // contains only cv terms
     }
 
     // skip tags where nothing is to do
@@ -103,96 +113,69 @@ namespace OpenMS
       handleCVParam_(parent_parent_tag, parent_tag, cv_term);
 			return;
 		}
-
-		if (tag_ == "cv")
+		else if (tag_ == "cv")
 		{
 			exp_->addCV(MRMExperiment::CV(attributeAsString_(attributes, "id"), attributeAsString_(attributes, "fullName"), attributeAsString_(attributes, "version"), attributeAsString_(attributes, "URI")));
-			return;
 		}
-
-		if (tag_ == "contact")
+		else if (tag_ == "contact")
 		{
-			return;
+			actual_contact_.setMetaValue("id", attributeAsString_(attributes, "id"));
 		}
-
-    if (tag_ == "publication")
+		else if (tag_ == "publication")
     {
-      return;
+      actual_publication_.setMetaValue("id", attributeAsString_(attributes, "id"));
     }
-
-    if (tag_ == "instrument")
+		else if (tag_ == "instrument")
     {
-			actual_instrument_ = CVTermList();
-      return;
+			actual_instrument_.setMetaValue("id", attributeAsString_(attributes, "id"));
     }
-
-    if (tag_ == "software")
+		else if (tag_ == "software")
     {
-      actual_software_ = Software();
+			actual_software_.setMetaValue("id", attributeAsString_(attributes, "id"));
 			actual_software_.setName(attributeAsString_(attributes, "id"));
 			actual_software_.setVersion(attributeAsString_(attributes, "version"));
-      return;
     }
-
-    if (tag_ == "protein")
+		else if (tag_ == "protein")
     {
       actual_protein_ = MRMExperiment::Protein();
 			actual_protein_.id = attributeAsString_(attributes, "id");
-      return;
     }
-
-		if (tag_ == "peptide")
+		else if (tag_ == "peptide")
 		{
 			actual_peptide_ = MRMExperiment::Peptide();
 			actual_peptide_.id = attributeAsString_(attributes, "id");
 			actual_peptide_.protein_ref = attributeAsString_(attributes, "proteinRef");
 		}
-
-		if (tag_ == "compound")
+		else if (tag_ == "compound")
 		{
 			actual_compound_ = MRMExperiment::Compound();
 			actual_compound_.id = attributeAsString_(attributes, "id");
 		}
-
-		if (tag_ == "retentionTime")
+		else if (tag_ == "prediction")
+		{
+			actual_prediction_.setMetaValue("softwareRef", attributeAsString_(attributes, "softwareRef"));
+			String contact_ref;
+			if (optionalAttributeAsString_(contact_ref, attributes, "contactRef"))
+			{
+				actual_prediction_.setMetaValue("contactRef", contact_ref);
+			}
+		}
+		else if (tag_ == "retentionTime")
 		{
 			actual_rt_ = MRMExperiment::RetentionTime();
-			DoubleReal local_retention_time(0);
-			if (optionalAttributeAsDouble_(local_retention_time, attributes, "localRetentionTime"))
-			{
-				actual_rt_.local_retention_time = local_retention_time;
-			}
-			DoubleReal normalized_retention_time(0);
-			if (optionalAttributeAsDouble_(normalized_retention_time, attributes, "normalizedRetentionTime"))
-			{
-				actual_rt_.normalized_retention_time = normalized_retention_time;
-			}
-			String normalization_standard;
-			if (optionalAttributeAsString_(normalization_standard, attributes, "normalizationStandard"))
-			{
-				actual_rt_.normalization_standard = normalization_standard;
-			}
-			
-			DoubleReal predicted_retention_time(0);
-			if (optionalAttributeAsDouble_(predicted_retention_time, attributes, "predictedRetentionTime"))
-			{
-				actual_rt_.predicted_retention_time = predicted_retention_time;
-			}
-
 			String predicted_retention_time_software_ref;
 			if (optionalAttributeAsString_(predicted_retention_time_software_ref, attributes, "predictedRetentionTimeSoftwareRef"))
 			{
 				actual_rt_.predicted_retention_time_software_ref = predicted_retention_time_software_ref;
 			}
 		}
-
-		if (tag_ == "transition")
+		else if (tag_ == "transition")
 		{
 			actual_transition_ = ReactionMonitoringTransition();
-			String name;
-			if (optionalAttributeAsString_(name, attributes, "name"))
+			String id;
+			if (optionalAttributeAsString_(id, attributes, "id"))
 			{
-				actual_transition_.setName(name);
+				actual_transition_.setMetaValue("id", id);
 			}
 			String peptide_ref;
 			if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
@@ -205,22 +188,33 @@ namespace OpenMS
 				actual_transition_.setCompoundRef(compound_ref);
 			}
 		}
-
-		if (tag_ == "precursor")
+		else if (tag_ == "interpretation")
 		{
+			String primary;
+			if (optionalAttributeAsString_(primary, attributes, "primary"))
+			{
+				actual_interpretation_.setMetaValue("primary", primary);
+			}
 		}
-
-    if (tag_ == "product")
-    {
-    }
-
-		if (tag_ == "interpretation")
+		else if (tag_ == "configuration")
 		{
-			actual_interpretation_ = CVTermList();
+			actual_configuration_.instrument_ref = attributeAsString_(attributes, "instrumentRef");
+			String contact_ref;
+			if (optionalAttributeAsString_(contact_ref, attributes, "contactRef"))
+			{
+				actual_configuration_.contact_ref = contact_ref;
+			}
 		}
-
-
-		cerr << "TraMLHandler: unknown tag opening: '" << tag_ << "'" << endl;
+		else if (tag_ == "sourceFile")
+		{
+			actual_sourcefile_.setMetaValue("id", attributeAsString_(attributes, "id"));
+			actual_sourcefile_.setNameOfFile(attributeAsString_(attributes, "name"));
+			actual_sourcefile_.setPathToFile(attributeAsString_(attributes, "location"));
+		}
+		else 
+		{
+			cerr << "TraMLHandler: unknown tag opening: '" << tag_ << "'" << endl;
+		}
 		return;
 	}
 
@@ -250,14 +244,24 @@ namespace OpenMS
 		static set<String> tags_to_ignore;
 		if (tags_to_ignore.size() == 0)
 		{
-			tags_to_ignore.insert("contactList");
-			tags_to_ignore.insert("cvList");
-			tags_to_ignore.insert("instrumentList");
-			tags_to_ignore.insert("softwareList");
-			tags_to_ignore.insert("publicationList");
-			tags_to_ignore.insert("proteinList");
-			tags_to_ignore.insert("precursor");
-			tags_to_ignore.insert("product");
+      tags_to_ignore.insert("TraML"); // base node
+      tags_to_ignore.insert("contactList"); // contains only contact sections
+      tags_to_ignore.insert("compoundList"); // contains only compounds
+      tags_to_ignore.insert("transitionList"); // contains only transitions
+      tags_to_ignore.insert("configurationList"); // contains only configurations
+      tags_to_ignore.insert("cvList"); // contains only CVs
+      tags_to_ignore.insert("instrumentList"); // contains only instruments
+      tags_to_ignore.insert("softwareList"); // contains only software 
+      tags_to_ignore.insert("publicationList"); // contains only publications
+      tags_to_ignore.insert("proteinList"); // contains only proteins
+      tags_to_ignore.insert("sourceFileList"); // contains only source files
+      tags_to_ignore.insert("interpretationList"); // contains only interpretations
+      tags_to_ignore.insert("evidence"); // only cv terms
+			tags_to_ignore.insert("cvParam"); // already handled
+			tags_to_ignore.insert("cv"); // already handled
+			tags_to_ignore.insert("sequence"); // already handled in characters
+			tags_to_ignore.insert("precursor"); // contains only cv terms
+			tags_to_ignore.insert("product"); // contains only cv terms
 		}
 
 		// skip tags where nothing is to do
@@ -265,83 +269,91 @@ namespace OpenMS
 		{
 			return;
 		}
-
-		if (tag_ == "cvParam")
-		{
-			return;
-		}
-
-		if (tag_ == "contact")
+		else if (tag_ == "contact")
 		{
 			exp_->addContact(actual_contact_);
-			return;
+			actual_contact_ = CVTermList();
 		}
-
-		if (tag_ == "cv")
-		{
-			return;
-		}
-
-		if (tag_ == "instrument")
+		else if (tag_ == "instrument")
 		{
 			exp_->addInstrument(actual_instrument_);
-			return;
+			actual_instrument_ = CVTermList();
 		}
-
-		if (tag_ == "publication")
+		else if (tag_ == "publication")
 		{
 			exp_->addPublication(actual_publication_);
-			return;
+			actual_publication_ = CVTermList();
 		}
-
-		if (tag_ == "software")
+		else if (tag_ == "software")
 		{
 			exp_->addSoftware(actual_software_);
-			return;
+			actual_software_ = Software();
 		}
-
-		if (tag_ == "protein")
+		else if (tag_ == "protein")
 		{
 			exp_->addProtein(actual_protein_);
-			return;
 		}
-
-		if (tag_ == "retentionTime")
+		else if (tag_ == "retentionTime")
 		{
 			if (parent_tag == "peptide")
 			{
 				actual_peptide_.rts.push_back(actual_rt_);
-				return;
+				actual_rt_ = MRMExperiment::RetentionTime();
 			}
-			if (parent_tag == "compound")
+			else if (parent_tag == "compound")
 			{
 				actual_compound_.rts.push_back(actual_rt_);
-				return;
+				actual_rt_ = MRMExperiment::RetentionTime();
 			}
-			cerr << "TraMLHandler: tag 'retentionTime' no allowed at parent tag '" << parent_tag << "'" << endl;
+			else 
+			{
+				cerr << "TraMLHandler: tag 'retentionTime' not allowed at parent tag '" << parent_tag << "'" << endl;
+			}
 		}
-
-		if (tag_ == "peptide")
+		else if (tag_ == "peptide")
 		{
 			exp_->addPeptide(actual_peptide_);
+			actual_peptide_ = MRMExperiment::Peptide();
 		}
-
-		if (tag_ == "compound")
+		else if (tag_ == "compound")
 		{
 			exp_->addCompound(actual_compound_);
+			actual_compound_ = MRMExperiment::Compound();
 		}
-
-		if (tag_ == "transition")
+		else if (tag_ == "transition")
 		{
 			exp_->addTransition(actual_transition_);
+			actual_transition_ = ReactionMonitoringTransition();
 		}
-	
-		if (tag_ == "interpretation")
+		else if (tag_ == "interpretation")
 		{
 			actual_transition_.addInterpretation(actual_interpretation_);
+			actual_interpretation_ = CVTermList();
 		}
-	
-		cerr << "TraMLHandler: unknown tag closing: '" << tag_ << "'" << endl;
+		else if (tag_ == "prediction")
+		{
+			actual_transition_.setPrediction(actual_prediction_);
+			actual_prediction_ = CVTermList();
+		}
+		else  if (tag_ == "configuration")
+		{
+			actual_transition_.addConfiguration(actual_configuration_);
+			actual_configuration_ = ReactionMonitoringTransition::Configuration();
+		}
+		else if (tag_ == "validation")
+		{
+			actual_configuration_.validations.push_back(actual_validation_);
+			actual_validation_ = CVTermList();
+		}
+		else if (tag_ == "sourceFile")
+		{
+			exp_->addSourceFile(actual_sourcefile_);
+			actual_sourcefile_ = SourceFile();
+		}
+		else 
+		{
+			cerr << "TraMLHandler: unknown tag closing: '" << tag_ << "'" << endl;
+		}
 		return;
 	}
 	
@@ -350,8 +362,8 @@ namespace OpenMS
     const MRMExperiment& exp = *(cexp_);
     //logger_.startProgress(0,exp.size(),"storing mzML file");
 
-    os  << "<?xml version=\"1.0\" encoding=\"UTF8\"?>" << endl;
-    os  << "<TraML version=\"0.90\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML0.9.xsd\">" << endl;
+    os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+    os  << "<TraML version=\"0.9.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML0.9.0.xsd\">" << endl;
     //--------------------------------------------------------------------------------------------
     // CV list
     //--------------------------------------------------------------------------------------------
@@ -375,10 +387,9 @@ namespace OpenMS
 		if (exp.getContacts().size() > 0)
 		{
 			os << "  <contactList>" << endl;
-			Size contact_id(0);
 			for (vector<CVTermList>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
       {
-        os << "    <contact id=\"contact_" << contact_id++ << "\">" << endl;
+        os << "    <contact id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
         writeCVParams_(os, *it, 3);
         os << "    </contact>" << endl;
       }
@@ -389,10 +400,9 @@ namespace OpenMS
 		if (exp.getPublications().size() > 0)
 		{
 			os << "  <publicationList>"  << endl;
-			Size publication_id(0);
 			for (vector<CVTermList>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
 			{	
-				os << "    <publication id=\"publication_" << publication_id++ << "\">" << endl;
+				os << "    <publication id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
 				writeCVParams_(os, *it, 3);
 				os << "    </publication>" << endl;
 			}
@@ -403,10 +413,9 @@ namespace OpenMS
 		if (exp.getInstruments().size() > 0)
 		{
 			os << "  <instrumentList>" << endl;
-			Size instrument_id(0);
 			for (vector<CVTermList>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
 			{
-				os << "    <instrument id=\"instrument_" << instrument_id++ << "\">" << endl;
+				os << "    <instrument id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
 				writeCVParams_(os, *it, 3);
 				os << "    </instrument>" << endl;
 			}
@@ -452,31 +461,21 @@ namespace OpenMS
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
 				{
 					os << "       <retentionTime";
-					if (rit->local_retention_time > 0)
-					{
-						os << " localRetentionTime=\"" << rit->local_retention_time << "\"";
-					}
-					if (rit->normalized_retention_time > 0)
-					{
-						os << " normalizedRetentionTime=\"" << rit->normalized_retention_time << "\"";
-					}
-					if (rit->normalization_standard != "")
-					{
-						os << " normalizationStandard=\"" << rit->normalization_standard << "\"";
-					}
-					if (rit->predicted_retention_time > 0)
-					{
-						os << " predictedRetentionTime=\"" << rit->predicted_retention_time << "\"";
-					}
 					if (rit->predicted_retention_time_software_ref != "")
 					{
 						os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
 					}
-					os << " >" << endl;
+					os << ">" << endl;
 					writeCVParams_(os, (CVTermList)*rit, 5);
 					os << "       </retentionTime>" << endl;
 				}
 
+				if (!it->evidence.empty())
+				{
+					os << "      <evidence>" << endl;
+					writeCVParams_(os, it->evidence, 4);
+					os << "      </evidence>" << endl;
+				}
 				os << "    </peptide>" << endl;
 			}
 
@@ -488,22 +487,6 @@ namespace OpenMS
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
         {
           os << "       <retentionTime";
-          if (rit->local_retention_time > 0)
-          {
-            os << " localRetentionTime=\"" << rit->local_retention_time << "\"";
-          }
-          if (rit->normalized_retention_time > 0)
-          {
-            os << " normalizedRetentionTime=\"" << rit->normalized_retention_time << "\"";
-          }
-          if (rit->normalization_standard != "")
-          {
-            os << " normalizationStandard=\"" << rit->normalization_standard << "\"";
-          }
-          if (rit->predicted_retention_time > 0)
-          {
-            os << " predictedRetentionTime=\"" << rit->predicted_retention_time << "\"";
-          }
           if (rit->predicted_retention_time_software_ref != "")
           {
             os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
@@ -526,9 +509,9 @@ namespace OpenMS
 			for (vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
 			{
 				os << "    <transition";
-				if (it->getName() != "")
+				if (it->metaValueExists("id"))
 				{
-					os << " name=\"" << it->getName() << "\"";
+					os << " id=\"" << it->getMetaValue("id").toString() << "\"";
 				}
 
 				if (it->getPeptideRef() != "")
@@ -542,89 +525,80 @@ namespace OpenMS
 				}
 				os << " >" << endl;
 
-				os << "      <precursor>";
-				writeCVParams_(os, it->getPrecursorCVTermList(), 3);
+				os << "      <precursor>" << endl; 
+				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\"/>" << endl;
+				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
 				os << "      </precursor>" << endl;
 			
-				os << "      <product>";
-				writeCVParams_(os, it->getProductCVTermList(), 3);
+				os << "      <product>" << endl;
+				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\"/>" << endl;
+				writeCVParams_(os, it->getProductCVTermList(), 4);
 				os << "      </product>" << endl;
-/*
-				os << "      <interpretationList>" << endl;
 
-				for (vector<TransitionInterpretation>::const_iterator tit = it->getInterpretations().begin(); tit != it->getInterpretations().end(); ++tit)
+				if (it->getInterpretations().size() != 0)
 				{
-					os << "        <interpretation";
-					//<interpretation productSeries="y" productOrdinal="8" productAdjustment="" mzDelta="0.03" primary="true"/>
-					if (tit->getProductSeries() != "")
+					os << "      <interpretationList>" << endl;
+					for (vector<CVTermList>::const_iterator iit = it->getInterpretations().begin(); iit != it->getInterpretations().end(); ++iit)
 					{
-						os << " productSeries=\"" << tit->getProductSeries() << "\"";
+						if (it->metaValueExists("primary"))
+						{
+							String primary = it->getMetaValue("primary").toBool() ? "true" : "false";
+							os << "        <interpretation primary=\"" << primary << "\">" << endl;
+							writeCVParams_(os, *iit, 5);
+							os << "        </interpretation>" << endl;
+						}
+						else
+						{
+							os << "        <interpretation>" << endl;
+							writeCVParams_(os, *iit, 5);
+							os << "        </interpretation>" << endl;
+						}
 					}
-					if (tit->getProductOrdinal() != numeric_limits<Size>::max())
-					{
-						os << " productOrdinal=\"" << tit->getProductOrdinal() << "\"";
-					}
-					if (tit->getProductAdjustment() != "")
-					{
-						os << " productAdjustment=\"" << tit->getProductAdjustment() << "\"";
-					}
-					if (tit->getMZDelta() != numeric_limits<DoubleReal>::max())
-					{
-						os << " mzDelta=\"" << tit->getMZDelta() << "\"";
-					}
-					if (tit->getPrimary() == 1)
-					{
-						os << " primary=\"true\"";
-					}
-
-					if (tit->getPrimary() == 0)
-					{
-						os << " primary=\"false\"";
-					}
-					os << " >" << endl; 
-
-					writeCVParams_(os, (CVTermList)*tit, 4);
-
-					os << "        </interpretation>" << endl;
+					os << "      </interpretationList>" << endl;
 				}
 
-				os << "      </interpretationList>" << endl;
-*/
-				// TODO
-				//os << "      <predictions>
-				//<prediction
-				//          transitionSource="transition predicted from consensus spectrum from ion trap spectra"
-				//                    softwareRef="MaRiMba"
-				//                              contactRef="CS"
-				//                                        relativeIntensity="10000"
-				//                                                  recommendedTransitionRank="1"
-				//                                                            intensityRank="1"/>
-				
-
+				if (!it->getPrediction().empty())
+				{
+					os << "      <prediction softwareRef=\"" << it->getPrediction().getMetaValue("softwareRef").toString() << "\"";
+					if (it->getPrediction().metaValueExists("contactRef"))
+					{
+						os << " contactRef=\"" << it->getPrediction().getMetaValue("contactRef").toString() << "\"";
+					}
+					os << ">" << endl;
+					writeCVParams_(os, it->getPrediction(), 4);
+					os << "      </prediction>" << endl;
+				}
 				
 				if (it->getConfigurations().size() > 0)
 				{
 					os << "      <configurationList>" << endl;
 					for (vector<ReactionMonitoringTransition::Configuration>::const_iterator cit = it->getConfigurations().begin(); cit != it->getConfigurations().end(); ++cit)
 					{
-						os << "       <configuration instrumentRef=\"" << cit->instrument_ref;
+						os << "       <configuration instrumentRef=\"" << cit->instrument_ref << "\"";
 						if (cit->contact_ref != "")
 						{
-							os << " contactRef=\"" << cit->contact_ref;
+							os << " contactRef=\"" << cit->contact_ref << "\"";
 						}
 						os << " >" << endl;
 
 						writeCVParams_(os, (CVTermList)*cit, 4);
-
-						//for ()
-
+						if (cit->validations.size() != 0)
+						{
+							for (vector<CVTermList>::const_iterator iit = cit->validations.begin(); iit != cit->validations.end(); ++iit)
+							{
+								if (!iit->empty())
+								{
+									os << "        <validation>" << endl;
+									writeCVParams_(os, *iit, 5);
+									os << "        </validation>" << endl;
+								}
+							}
+						}
 
 						os << "       </configuration>" << endl;
 					}
 					os << "      </configurationList>" << endl;
 				}
-				
-
 				os << "    </transition>" << endl;
 			}
 			os << "  </transitionList>" << endl;
@@ -686,9 +660,9 @@ namespace OpenMS
 
 				if (cit->hasUnit())
 				{
-					os << " unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\" unitCvRef=\"" << cit->getUnit().cv_ref << "\"";
+					os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
 				}
-				os << " />" << endl;
+				os << "/>" << endl;
 			}
 		}
 	}
@@ -816,7 +790,7 @@ namespace OpenMS
 		}
 		else if (parent_tag == "evidence")
 		{
-			actual_peptide_.addCVTerm(cv_term);
+			actual_peptide_.evidence.addCVTerm(cv_term);
 		}
 		else if (parent_tag == "peptide")
 		{
@@ -854,28 +828,29 @@ namespace OpenMS
 		{
 			if (cv_term.getAccession() == "MS:1000040")
 			{
-				actual_precursor_.setMZ(cv_term.getValue().toString().toDouble());
+				actual_transition_.setPrecursorMZ(cv_term.getValue().toString().toDouble());
 			}
-			else if (cv_term.getAccession() == "MS:1000211")
+			else 
 			{
-				actual_precursor_.setCharge(cv_term.getValue().toString().toInt());
+				actual_transition_.addPrecursorCVTerm(cv_term);
 			}
-      else
-      {
-        actual_product_.addCVTerm(cv_term);
-      }
 		}
     else if (parent_tag == "product")
     {
       if (cv_term.getAccession() == "MS:1000040")
       {
-        actual_product_.setMZ(cv_term.getValue().toString().toDouble());
+        actual_transition_.setProductMZ(cv_term.getValue().toString().toDouble());
       }
 			else 
 			{
-				actual_product_.addCVTerm(cv_term);
+				actual_transition_.addProductCVTerm(cv_term);
 			}
     }
+		else if (parent_tag == "sourceFile")
+		{
+			// TODO handle checksum type...
+			actual_sourcefile_.addCVTerm(cv_term);
+		} 
 		else 
 		{
 			warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));

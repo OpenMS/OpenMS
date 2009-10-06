@@ -21,14 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_SOURCEFILE_H
 #define OPENMS_METADATA_SOURCEFILE_H
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS 
 {
@@ -38,7 +38,7 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI SourceFile
-  	: public MetaInfoInterface
+  	: public CVTermList
   {
     public:
     	///Type of the checksum

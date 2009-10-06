@@ -81,20 +81,12 @@ namespace OpenMS
 			}
 
 			String id;
-			//String accession;
-			//String name;
-			//String description;
-			//String comment;
 			String sequence;
 
 			bool operator == (const Protein& rhs) const
 			{
 				return  CVTermList::operator == (rhs) &&
 								id == rhs.id &&
-								//accession == rhs.accession &&
-								//name == rhs.name &&
-								//description == rhs.description &&
-								//comment == rhs.comment && 
 								sequence == rhs.sequence;
 			}
 
@@ -104,10 +96,6 @@ namespace OpenMS
 				{
 					CVTermList::operator = (rhs);
         	id = rhs.id;
-          //accession = rhs.accession;
-          //name = rhs.name;
-          //description = rhs.description;
-          //comment = rhs.comment;
           sequence = rhs.sequence;
 				}
 				return *this;
@@ -121,19 +109,12 @@ namespace OpenMS
 			public: 
 
 			RetentionTime()
-				: CVTermList(),
-					local_retention_time(0),
-					normalized_retention_time(0),
-					predicted_retention_time(0)
+				: CVTermList()
 			{
 			}
 
 			RetentionTime(const RetentionTime& rhs)
         : CVTermList(rhs),
-					local_retention_time(rhs.local_retention_time),
-					normalization_standard(rhs.normalization_standard),
-					normalized_retention_time(rhs.normalized_retention_time),
-					predicted_retention_time(rhs.predicted_retention_time),
 					predicted_retention_time_software_ref(rhs.predicted_retention_time_software_ref)
       {
       }
@@ -147,10 +128,6 @@ namespace OpenMS
 				if (&rhs != this)
 				{
 					CVTermList::operator = (rhs);
-					local_retention_time = rhs.local_retention_time;
-					normalization_standard = rhs.normalization_standard;
-					normalized_retention_time = rhs.normalized_retention_time;
-					predicted_retention_time = rhs.predicted_retention_time;
 					predicted_retention_time_software_ref = rhs.predicted_retention_time_software_ref;
 				}
 				return *this;
@@ -159,18 +136,10 @@ namespace OpenMS
       bool operator == (const RetentionTime& rhs) const
       {
 				return	CVTermList::operator == (rhs) && 
-								local_retention_time == rhs.local_retention_time &&
-			          normalization_standard == rhs.normalization_standard &&
-          			normalized_retention_time == rhs.normalized_retention_time &&
-          			predicted_retention_time == rhs.predicted_retention_time &&
           			predicted_retention_time_software_ref == rhs.predicted_retention_time_software_ref;
       }
 
 
-			DoubleReal local_retention_time;
-			String normalization_standard;
-			DoubleReal normalized_retention_time;
-			DoubleReal predicted_retention_time;
 			String predicted_retention_time_software_ref;
 		};
 
@@ -228,10 +197,6 @@ namespace OpenMS
         : CVTermList(rhs),
 					rts(rhs.rts),
 					id(rhs.id),
-					//group_label(rhs.group_label),
-					//labeling_category(rhs.labeling_category),
-					//modified_sequence(rhs.modified_sequence),
-					//unmodified_sequence(rhs.unmodified_sequence),
 					protein_ref(rhs.protein_ref),
 					evidence(rhs.evidence)
       {
@@ -244,10 +209,6 @@ namespace OpenMS
 					CVTermList::operator = (rhs);
           rts = rhs.rts;
 					id = rhs.id;
-					//group_label = rhs.group_label;
-					//labeling_category = rhs.labeling_category;
-					//modified_sequence = rhs.modified_sequence;
-					//unmodified_sequence = rhs.unmodified_sequence;
 					protein_ref = rhs.protein_ref;
 					evidence = rhs.evidence;
         }
@@ -259,10 +220,6 @@ namespace OpenMS
 				return	CVTermList::operator == (rhs) && 
 								rts == rhs.rts &&
           			id == rhs.id &&
-          			//group_label == rhs.group_label &&
-          			//labeling_category == rhs.labeling_category &&
-          			//modified_sequence == rhs.modified_sequence &&
-          			//unmodified_sequence == rhs.unmodified_sequence &&
           			protein_ref == rhs.protein_ref &&
           			evidence == rhs.evidence;
       }
@@ -271,10 +228,6 @@ namespace OpenMS
 
       std::vector<RetentionTime> rts;
 			String id;
-			//String group_label;
-			//String labeling_category;
-			//String modified_sequence;
-			//String unmodified_sequence;
 			String protein_ref;
 			CVTermList evidence;
     };
@@ -368,6 +321,10 @@ namespace OpenMS
 
 		/// adds a transition to the list
 		void addTransition(const ReactionMonitoringTransition& transition);
+
+		//void setTargetLists(const TargetLists& target_lists);
+
+		//const TargetLists& getTargetLists() const;
 
 		/// sets the source files
 		void setSourceFiles(const std::vector<SourceFile>& source_files);

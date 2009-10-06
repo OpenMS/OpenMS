@@ -94,6 +94,9 @@ namespace OpenMS
 				
 				/// checks whether the stored terms fullfil a given CVMappingRule
 				bool checkCVTerms(const CVMappingRule& rule, const ControlledVocabulary& cv) const;
+
+				/// return true if no terms are available
+				bool empty() const;
 				//}
 
 				protected:
