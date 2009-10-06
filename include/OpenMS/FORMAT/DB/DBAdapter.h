@@ -113,6 +113,8 @@ namespace OpenMS
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const Peak1D& peak);
 			///Overloaded method for RichPeak1D, which is both a MetaInfoInterface and a Peak1D
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const RichPeak1D& peak);
+			///Overloaded method for RichPeak1D, which is both a MetaInfoInterface (via CVTermList) and a and a Peak1D
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const Precursor& peak);
 
 			///Loads MetaInfo data from database
 			void loadMetaInfo_(UID id, MetaInfoInterface& info);
@@ -120,6 +122,8 @@ namespace OpenMS
 			void loadMetaInfo_(UID id, Peak1D& peak);
 			///Overloaded method for RichPeak1D, which is both a MetaInfoInterface and a Peak1D
 			void loadMetaInfo_(UID id, RichPeak1D& peak);
+			///Overloaded method for Precursor, which is both a MetaInfoInterface (via CVTermList) and a Peak1D
+			void loadMetaInfo_(UID id, Precursor& peak);
 
 			/**
 				@brief Conditionally deletes MetaInfo data from database

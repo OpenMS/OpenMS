@@ -28,8 +28,8 @@
 #ifndef OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
 #define OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 #include <vector>
 
@@ -43,41 +43,17 @@ namespace OpenMS
 		precursor an product charge is set to numeric_limits<Int>::max().
 	*/
 	class OPENMS_DLLAPI ReactionMonitoringTransition 
-		: public MetaInfoInterface,
-			public CVTermList
+		: public CVTermList
 	{
 
 		public:
-
-		struct Validation
-			: public CVTermList
-		{
-			String transition_source;
-			DoubleReal relative_intensity;
-			Size recommended_transition_rank;
-			Size intensity_rank;
-			std::vector<MetaInfoInterface> cvs;
-
-			Validation& operator = (const Validation& rhs)
-			{
-				if (this != &rhs)
-				{
-					CVTermList::operator = (rhs);
-					transition_source = rhs.transition_source;
-					relative_intensity = rhs.relative_intensity;
-					recommended_transition_rank = rhs.recommended_transition_rank;
-					intensity_rank = rhs.intensity_rank;
-				}
-				return *this;
-			}
-		};
 
 		struct Configuration
 			: public CVTermList
 		{
 			String contact_ref;
 			String instrument_ref;
-			std::vector<Validation> validations;
+			std::vector<CVTermList> validations;
 
 			Configuration& operator = (const Configuration& rhs)
 			{

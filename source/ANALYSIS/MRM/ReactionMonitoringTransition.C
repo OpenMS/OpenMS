@@ -35,16 +35,14 @@ using namespace std;
 namespace OpenMS
 {
 	ReactionMonitoringTransition::ReactionMonitoringTransition()
-		:	MetaInfoInterface(),
-			CVTermList(),
+		:	CVTermList(),
 			precursor_mz_(numeric_limits<DoubleReal>::max()),
 			product_mz_(numeric_limits<DoubleReal>::max())
 	{
 	}
 
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition& rhs)
-		:	MetaInfoInterface(rhs),
-			CVTermList(rhs),
+		: CVTermList(rhs),
 			name_(rhs.name_),
 			precursor_mz_(rhs.precursor_mz_),
       precursor_cv_terms_(rhs.precursor_cv_terms_),
@@ -65,7 +63,6 @@ namespace OpenMS
 	{
 		if (&rhs != this)
 		{
-			MetaInfoInterface::operator = (rhs);
 			CVTermList::operator = (rhs);
 			name_ = rhs.name_;
 			precursor_mz_ = rhs.precursor_mz_;
@@ -82,8 +79,7 @@ namespace OpenMS
 
 	bool ReactionMonitoringTransition::operator == (const ReactionMonitoringTransition& rhs) const
 	{
-		return  MetaInfoInterface::operator == (rhs) &&
-			      CVTermList::operator == (rhs) &&
+		return  CVTermList::operator == (rhs) &&
 			      name_ == rhs.name_ &&
 			      precursor_mz_ == rhs.precursor_mz_ &&
 			      precursor_cv_terms_ == rhs.precursor_cv_terms_ &&

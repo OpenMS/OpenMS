@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 ///////////////////////////
 
 using namespace OpenMS;

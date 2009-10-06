@@ -61,7 +61,7 @@
       <cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
       <cvParam cvRef="MS" accession="MS:1000891" name="heavy labeled peptide"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1"/>
-      <cvParam cvRef="MS" accession="MS:1000863" name="predicted pI" value="5.22"/>
+      <cvParam cvRef="MS" accession="MS:1000863" name="predicted isoelectric point" value="5.22"/>
       <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <retentionTime predictedRetentionTimeSoftwareRef="SSRCalc3.0">
         <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>

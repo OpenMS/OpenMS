@@ -40,8 +40,7 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI Software
-  	: public MetaInfoInterface,
-			public CVTermList
+  	: public CVTermList
   {
     public:
     	/// Constructor
@@ -49,7 +48,7 @@ namespace OpenMS
       /// Copy constructor
       Software(const Software& source);
       /// Destructor
-      ~Software();
+      virtual ~Software();
  			
  			/// Assignment operator
       Software& operator= (const Software& source);

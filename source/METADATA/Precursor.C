@@ -35,7 +35,8 @@ namespace OpenMS
 	const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation","Post-source decay","Plasma desorption","Surface-induced dissociation","Blackbody infrared radiative dissociation","Electron capture dissociation","Infrared multiphoton dissociation","Sustained off-resonance irradiation","High-energy collision-induced dissociation","Low-energy collision-induced dissociation","Photodissociation","Electron transfer dissociation","Pulsed q dissociation"};
 
 	Precursor::Precursor():
-		RichPeak1D(),
+		CVTermList(),
+		Peak1D(),
 		activation_methods_(),
 		activation_energy_(0.0),
 		window_low_(0.0),
@@ -46,7 +47,8 @@ namespace OpenMS
 	}
 	
 	Precursor::Precursor(const Precursor& source):
-		RichPeak1D(source),
+		CVTermList(source),
+		Peak1D(source),
 	  activation_methods_(source.activation_methods_),
 	  activation_energy_(source.activation_energy_),
 	  window_low_(source.window_low_),
@@ -63,8 +65,9 @@ namespace OpenMS
 	Precursor& Precursor::operator = (const Precursor& source)
 	{
 	  if (&source == this) return *this;
-	  
-	  RichPeak1D::operator=(source);
+	 
+		CVTermList::operator=(source); 
+	  Peak1D::operator=(source);
 	  activation_methods_ = source.activation_methods_;
 	  activation_energy_ = source.activation_energy_;
 	  window_low_ = source.window_low_;
@@ -84,7 +87,8 @@ namespace OpenMS
 	    window_up_ == rhs.window_up_ &&
 			charge_ == rhs.charge_ &&
 			possible_charge_states_ == rhs.possible_charge_states_ &&
-			RichPeak1D::operator==(rhs)
+			Peak1D::operator==(rhs) &&
+			CVTermList::operator == (rhs)
  
  		;
   }

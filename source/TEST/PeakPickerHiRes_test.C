@@ -30,6 +30,7 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 ///////////////////////////
 
 using namespace OpenMS;

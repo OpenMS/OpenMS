@@ -33,7 +33,7 @@ namespace OpenMS
 {
 
 	Product::Product()
-		: MetaInfoInterface(),
+		: CVTermList(),
 			mz_(0.0),
 			window_low_(0.0),
 			window_up_(0.0)
@@ -41,7 +41,7 @@ namespace OpenMS
 	}
 	
 	Product::Product(const Product& source):
-		MetaInfoInterface(source),
+		CVTermList(source),
 	  mz_(source.mz_),
 	  window_low_(source.window_low_),
 	  window_up_(source.window_up_)
@@ -56,7 +56,7 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
-	  MetaInfoInterface::operator=(source);
+	  CVTermList::operator=(source);
 	  mz_ = source.mz_;
 	  window_low_ = source.window_low_;
 	  window_up_ = source.window_up_;
@@ -70,7 +70,7 @@ namespace OpenMS
 	    mz_ == rhs.mz_ &&
 	    window_low_ == rhs.window_low_ &&
 	    window_up_ == rhs.window_up_ &&
-			MetaInfoInterface::operator==(rhs)
+			CVTermList::operator==(rhs)
  		;
   }
   

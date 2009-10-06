@@ -834,7 +834,49 @@ namespace OpenMS
 		{
 			actual_protein_.addCVTerm(cv_term);
 		}
-		else
+		else if (parent_tag == "configuration")
+		{
+			actual_configuration_.addCVTerm(cv_term);
+		}
+		else if (parent_tag == "prediction")
+		{
+			actual_prediction_.addCVTerm(cv_term);
+		}
+		else if (parent_tag == "interpretation")
+		{
+			actual_interpretation_.addCVTerm(cv_term);
+		}
+		else if (parent_tag == "validation")
+		{
+			actual_validation_.addCVTerm(cv_term);
+		}
+		else if (parent_tag == "precursor")
+		{
+			if (cv_term.getAccession() == "MS:1000040")
+			{
+				actual_precursor_.setMZ(cv_term.getValue().toString().toDouble());
+			}
+			else if (cv_term.getAccession() == "MS:1000211")
+			{
+				actual_precursor_.setCharge(cv_term.getValue().toString().toInt());
+			}
+      else
+      {
+        actual_product_.addCVTerm(cv_term);
+      }
+		}
+    else if (parent_tag == "product")
+    {
+      if (cv_term.getAccession() == "MS:1000040")
+      {
+        actual_product_.setMZ(cv_term.getValue().toString().toDouble());
+      }
+			else 
+			{
+				actual_product_.addCVTerm(cv_term);
+			}
+    }
+		else 
 		{
 			warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
 		}

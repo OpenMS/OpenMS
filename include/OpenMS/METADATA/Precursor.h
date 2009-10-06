@@ -28,7 +28,8 @@
 #ifndef OPENMS_METADATA_PRECURSOR_H
 #define OPENMS_METADATA_PRECURSOR_H
 
-#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 #include <set>
 
@@ -45,7 +46,8 @@ namespace OpenMS
 		@ingroup Metadata
 	*/  
   class OPENMS_DLLAPI Precursor
-    : public RichPeak1D
+    : public CVTermList,
+			public Peak1D
   {
     
     public:
@@ -76,7 +78,7 @@ namespace OpenMS
       /// Copy constructor
       Precursor(const Precursor& source);
       /// Destructor
-      ~Precursor();
+      virtual ~Precursor();
       
       /// Assignment operator
       Precursor& operator= (const Precursor& source);

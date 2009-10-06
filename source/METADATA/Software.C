@@ -33,16 +33,14 @@ namespace OpenMS
 {
 
 	Software::Software()
-		: MetaInfoInterface(),
-			CVTermList(),
+		: CVTermList(),
 	  	name_(),
 	  	version_()
 	{
 	}
 	
 	Software::Software(const Software& rhs)
-		: MetaInfoInterface(rhs),
-			CVTermList(rhs),
+		: CVTermList(rhs),
 	  	name_(rhs.name_),
 	  	version_(rhs.version_)
 	{
@@ -56,7 +54,6 @@ namespace OpenMS
 	{
 	  if (&rhs == this) return *this;
 	  
-	  MetaInfoInterface::operator=(rhs);
 		CVTermList::operator = (rhs);
 	  name_ = rhs.name_;
 	  version_ = rhs.version_;
@@ -67,7 +64,6 @@ namespace OpenMS
 	bool Software::operator== (const Software& rhs) const
 	{
 		return
-			MetaInfoInterface::operator==(rhs) &&
 			CVTermList::operator == (rhs) &&
 	    name_ == rhs.name_ &&
 	    version_ == rhs.version_

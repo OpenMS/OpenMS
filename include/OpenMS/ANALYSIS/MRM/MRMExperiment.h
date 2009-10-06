@@ -368,6 +368,15 @@ namespace OpenMS
 
 		/// adds a transition to the list
 		void addTransition(const ReactionMonitoringTransition& transition);
+
+		/// sets the source files
+		void setSourceFiles(const std::vector<SourceFile>& source_files);
+
+		/// returns the source file list
+		const std::vector<SourceFile>& getSourceFiles() const;
+
+		/// adds a source file to the list
+		void addSourceFile(const SourceFile& source_file);
 		//@}
 
 		protected:
@@ -389,6 +398,8 @@ namespace OpenMS
 		std::vector<Peptide> peptides_;
 
 		std::vector<ReactionMonitoringTransition> transitions_;
+
+		std::vector<SourceFile> source_files_;
 
 	};
 }

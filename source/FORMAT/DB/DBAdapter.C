@@ -261,6 +261,11 @@ namespace OpenMS
 	{
 		return storeMetaInfo_(parent_table, parent_id, static_cast<const MetaInfoInterface&>(peak));
 	}
+
+  UID DBAdapter::storeMetaInfo_(const String& parent_table, UID parent_id, const Precursor& peak)
+  {
+    return storeMetaInfo_(parent_table, parent_id, static_cast<const MetaInfoInterface&>(peak));
+  }
 	
 	void DBAdapter::deleteMetaInfo_(const String& parent_table, const String& condition)
 	{
@@ -735,6 +740,7 @@ namespace OpenMS
   	return options_;
   }
 
+
 	void DBAdapter::loadMetaInfo_(UID, Peak1D&)
 	{
 	}
@@ -744,4 +750,8 @@ namespace OpenMS
 		loadMetaInfo_(id, static_cast<MetaInfoInterface&>(peak));
 	}
 
+	void DBAdapter::loadMetaInfo_(UID id, Precursor& peak)
+	{
+		loadMetaInfo_(id, static_cast<MetaInfoInterface&>(peak));
+	}
 } //namespace

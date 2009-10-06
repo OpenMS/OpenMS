@@ -29,6 +29,7 @@
 #define OPENMS_METADATA_CVTERMLIST_H
 
 #include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
@@ -44,6 +45,7 @@ namespace OpenMS
 	*/
 			///Represenation of a CV term used by CVMappings
 			class OPENMS_DLLAPI CVTermList
+				:	public MetaInfoInterface
 			{
 				public:
 			

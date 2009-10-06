@@ -33,11 +33,13 @@ namespace OpenMS
 {
 	// CV term implementation
 	CVTermList::CVTermList()
+		:	MetaInfoInterface()
 	{
 	}
 
 	CVTermList::CVTermList(const CVTermList& rhs)
-  	:	cv_terms_(rhs.cv_terms_)
+  	:	MetaInfoInterface(rhs),
+			cv_terms_(rhs.cv_terms_)
 	{
 	}
 
@@ -49,6 +51,7 @@ namespace OpenMS
 	{
 		if (this != &rhs)
 		{
+			MetaInfoInterface::operator = (rhs);
 			cv_terms_ = rhs.cv_terms_;
 		}
 		return *this;
@@ -81,7 +84,7 @@ namespace OpenMS
 
 	bool CVTermList::operator == (const CVTermList& cv_term_list) const
 	{
-		return cv_terms_ == cv_term_list.cv_terms_;
+		return MetaInfoInterface::operator == (cv_term_list) && cv_terms_ == cv_term_list.cv_terms_;
 	}
 
 	bool CVTermList::operator != (const CVTermList& cv_term_list) const

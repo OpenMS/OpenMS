@@ -31,6 +31,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 ///////////////////////////
 

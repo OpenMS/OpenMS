@@ -219,6 +219,21 @@ namespace OpenMS
 	{
 		transitions_.push_back(transition);
 	}
+
+	void MRMExperiment::setSourceFiles(const vector<SourceFile>& source_files)
+	{
+		source_files_ = source_files;
+	}
+
+	const vector<SourceFile>& MRMExperiment::getSourceFiles() const
+	{
+		return source_files_;
+	}
+
+	void MRMExperiment::addSourceFile(const SourceFile& source_file)
+	{
+		source_files_.push_back(source_file);
+	}
 }
 
 
