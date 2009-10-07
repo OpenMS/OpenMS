@@ -1218,9 +1218,12 @@ namespace OpenMS
 					std::cout<< "Aborting!"<<std::endl;
 					return;
 				}
-			else param_.setValue("peak_width",p_w);
+			else
+				{
+					param_.setValue("peak_width",p_w);
+					updateMembers_();
+				}
 		}
-
 		//clear output container
 		output.clear(true);
 		
@@ -1253,6 +1256,7 @@ namespace OpenMS
 			my_2d.optimize(input.begin(),input.end(),output,two_d_optimization_);
 		}
 		endProgress();
+
 	}
 
 	void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
@@ -1637,7 +1641,7 @@ namespace OpenMS
 							{
 								MSSpectrum<> spec;
 								param_.setValue("peak_width",widths[w]);
-								fwhm_bound_ = widths[w] *(DoubleReal) param_.getValue("fwhm_bound_factor");
+								updateMembers_();
 #ifdef DEBUG_PEAK_PICKING
 								std::cout << "peak_width "<<param_.getValue("peak_width")<<"\tfwhm_bound_ "<<fwhm_bound_<<"\t";
 #endif
