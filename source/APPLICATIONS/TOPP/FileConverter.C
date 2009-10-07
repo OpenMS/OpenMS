@@ -234,6 +234,8 @@ class TOPPFileConverter
 		    // fm.MetaInfoInterface::operator=(cm); // not available ...
 		    fm.DocumentIdentifier::operator=(cm);
 		    fm.UniqueIdInterface::operator=(cm);
+		    fm.setProteinIdentifications(cm.getProteinIdentifications());
+        fm.setUnassignedPeptideIdentifications(cm.getUnassignedPeptideIdentifications());
 		    for ( Size i = 0; i < cm.size(); ++i )
 		    {
 		      Feature & f = fm[i];

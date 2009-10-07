@@ -102,6 +102,8 @@ add_test("TOPP_FileConverter_7" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_
 add_test("TOPP_FileConverter_7_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_7_output.featureXML)
 add_test("TOPP_FileConverter_8" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter.tmp -out_type mzData)
 add_test("TOPP_FileConverter_8_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_8_output.mzData)
+add_test("TOPP_FileConverter_9" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_input.consensusXML -out FileConverter.tmp -out_type featureXML)
+add_test("TOPP_FileConverter_9_out1" ${DIFF} -in1 FileConverter.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML)
 
 ### FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter.tmp -rt :30 -mz :1000 -int :20000)
