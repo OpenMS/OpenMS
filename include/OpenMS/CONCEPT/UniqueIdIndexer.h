@@ -30,7 +30,17 @@
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
+#ifdef _MSC_VER // disable some BOOST warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4396 )
+#endif
+
 #include <boost/unordered_map.hpp>
+
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 namespace OpenMS
 {
