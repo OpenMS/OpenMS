@@ -207,8 +207,6 @@
 			<intensity>100</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
-			<quality dim="0">1</quality>
-			<quality dim="1">1</quality>
 			<overallquality>14</overallquality>
 			<charge>1</charge>
 		</feature>	
