@@ -130,6 +130,13 @@ namespace OpenMS
       last_map_ = attributeAsInt_(attributes, "id");
       last_meta_ = &consensus_map_->getFileDescriptions()[last_map_];
       consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes, "name");
+      String unique_id;
+      if ( XMLHandler::optionalAttributeAsString_(unique_id, attributes, "unique_id") )
+      {
+        UniqueIdInterface tmp;
+        tmp.setUniqueId(unique_id);
+        consensus_map_->getFileDescriptions()[last_map_].unique_id = tmp.getUniqueId();
+      }
       String label;
       if ( XMLHandler::optionalAttributeAsString_(label, attributes, "label") )
       {
@@ -146,18 +153,20 @@ namespace OpenMS
       setProgress(++progress_);
       act_cons_element_ = ConsensusFeature();
       last_meta_ = &act_cons_element_;
-      //set quality
+      // quality
       DoubleReal quality = 0.0;
       if ( optionalAttributeAsDouble_(quality, attributes, "quality") )
       {
         act_cons_element_.setQuality(quality);
       }
-      //charge
+      // charge
       Int charge = 0;
       if ( optionalAttributeAsInt_(charge, attributes, "charge") )
       {
         act_cons_element_.setCharge(charge);
       }
+      // unique id
+      act_cons_element_.setUniqueId(attributeAsString_(attributes,"id"));
       last_meta_ = &act_cons_element_;
     }
     else if ( tag == "centroid" )
@@ -184,15 +193,19 @@ namespace OpenMS
     else if ( tag == "element" )
     {
       FeatureHandle act_index_tuple;
+      UniqueIdInterface tmp_unique_id_interface;
+
       tmp_str = attributeAsString_(attributes, "map");
       if ( tmp_str != "" )
       {
-        UInt map_index = asUInt_(tmp_str);
-        tmp_str = attributeAsString_(attributes, "id");
+        tmp_unique_id_interface.setUniqueId(tmp_str);
+        UInt64 map_index = tmp_unique_id_interface.getUniqueId();
 
+        tmp_str = attributeAsString_(attributes, "id");
         if ( tmp_str != "" )
         {
-          UInt element_index = asUInt_(tmp_str);
+          tmp_unique_id_interface.setUniqueId(tmp_str);
+          UInt64 element_index = tmp_unique_id_interface.getUniqueId();
 
           act_index_tuple.setMapIndex(map_index);
           act_index_tuple.setElementIndex(element_index);
@@ -206,7 +219,6 @@ namespace OpenMS
           act_index_tuple.setPosition(pos);
           act_index_tuple.setIntensity(attributeAsDouble_(attributes, "it"));
 
-          //charge
           Int charge = 0;
           if ( optionalAttributeAsInt_(charge, attributes, "charge") )
           {
@@ -238,6 +250,12 @@ namespace OpenMS
       if ( optionalAttributeAsString_(id, attributes, "id") )
       {
         consensus_map_->setIdentifier(id);
+      }
+      //handle unique id
+      String unique_id;
+      if (optionalAttributeAsString_(unique_id, attributes, "unique_id"))
+      {
+        consensus_map_->setUniqueId(unique_id);
       }
       //handle experiment type
       String experiment_type;
@@ -509,6 +527,12 @@ namespace OpenMS
     progress_ = 0;
     setProgress(++progress_);
 
+    if ( Size invalid_unique_ids = consensus_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) > 0 )
+    {
+      // throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("found ")+invalid_unique_ids+" invalid unique ids");
+      std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<std::endl;
+    }
+
     //open stream
     ofstream os(filename.c_str());
     if ( !os )
@@ -532,9 +556,15 @@ namespace OpenMS
 
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
+    // file id
     if ( consensus_map.getIdentifier() != "" )
     {
       os << " id=\"" << consensus_map.getIdentifier() << "\"";
+    }
+    // unique id
+    if (consensus_map.hasValidUniqueId())
+    {
+      os << " unique_id=\"cm_" << consensus_map.getUniqueId() << "\"";
     }
     if ( consensus_map.getExperimentType() != "" )
     {
@@ -674,8 +704,14 @@ namespace OpenMS
     for ( ConsensusMap::FileDescriptions::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it )
     {
       setProgress(++progress_);
-      os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second.filename << "\" label=\"" << it->second.label << "\" size=\"" << it->second.size
-          << "\">\n";
+      os << "\t\t<map id=\"" << it->first;
+      os << "\" name=\"" << it->second.filename;
+      if ( UniqueIdInterface::isValid(it->second.unique_id) )
+      {
+        os << "\" unique_id=\"" << it->second.unique_id;
+      }
+      os << "\" label=\"" << it->second.label;
+      os << "\" size=\"" << it->second.size << "\">\n";
       writeUserParam_("userParam", os, it->second, 3);
       os << "\t\t</map>\n";
     }
@@ -688,7 +724,7 @@ namespace OpenMS
       setProgress(++progress_);
       // write a consensusElement
       const ConsensusFeature& elem = consensus_map[i];
-      os << "\t\t<consensusElement id=\"e_" << i << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
+      os << "\t\t<consensusElement id=\"e_" << elem.getUniqueId() << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
       if ( elem.getCharge() != 0 )
       {
         os << " charge=\"" << elem.getCharge() << "\"";

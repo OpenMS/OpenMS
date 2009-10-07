@@ -8,6 +8,8 @@ set(concept_executables_list
 	FuzzyStringComparator_test
   LogStream_test
   UniqueIdGenerator_test
+  UniqueIdInterface_test
+  UniqueIdIndexer_test
 )
 
 set(datastructures_executables_list

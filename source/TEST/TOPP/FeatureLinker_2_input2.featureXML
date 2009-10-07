@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<featureMap version="1.3" unique_id="fm_17129849834928765316" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2006-03-09T12:12:12" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
@@ -11,14 +10,12 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
-	
 	<featureList count="20">
-		<feature id="f_0">
+		<feature id="f_15025931485506509003">
 			<position dim="0">542.407</position>
 			<position dim="1">1465.55</position>
 			<intensity>2.43214e+08</intensity>
@@ -70,7 +67,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="TCVADESHAGCEK"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_757269036628510515">
 			<position dim="0">640.822</position>
 			<position dim="1">537.243</position>
 			<intensity>3.46578e+08</intensity>
@@ -120,13 +117,13 @@
 					<hposition dim="1">540.343</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="SHCIAEVEK"/>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
+			<userParam type="string" name="sequence" value="SHCIAEVEK"/>
 		</feature>
-		<feature id="f_2">
+		<feature id="f_5923487873389524717">
 			<position dim="0">788.996</position>
 			<position dim="1">778.315</position>
 			<intensity>2.97395e+08</intensity>
@@ -186,7 +183,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="DDPHACYSTVFDK"/>
 		</feature>
-		<feature id="f_3">
+		<feature id="f_8781789908765837138">
 			<position dim="0">818.552</position>
 			<position dim="1">1749.67</position>
 			<intensity>3.67003e+08</intensity>
@@ -234,7 +231,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="YNGVFQECCQAEDK"/>
 		</feature>
-		<feature id="f_4">
+		<feature id="f_510828531039388399">
 			<position dim="0">821.924</position>
 			<position dim="1">1504.57</position>
 			<intensity>1.45679e+08</intensity>
@@ -274,7 +271,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="EYEATLEECCAK"/>
 		</feature>
-		<feature id="f_5">
+		<feature id="f_8088443907873716601">
 			<position dim="0">846.342</position>
 			<position dim="1">1752.61</position>
 			<intensity>1.54686e+08</intensity>
@@ -310,7 +307,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="ECCHGDLLECADDR"/>
 		</feature>
-		<feature id="f_6">
+		<feature id="f_9891393289043950297">
 			<position dim="0">820.435</position>
 			<position dim="1">789.372</position>
 			<intensity>2.36463e+08</intensity>
@@ -366,7 +363,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LKPDPNTLCDEFK"/>
 		</feature>
-		<feature id="f_7">
+		<feature id="f_9947115975316200578">
 			<position dim="0">856.941</position>
 			<position dim="1">653.354</position>
 			<intensity>1.52129e+08</intensity>
@@ -426,7 +423,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HLVDEPQNLIK"/>
 		</feature>
-		<feature id="f_8">
+		<feature id="f_12352437987179506182">
 			<position dim="0">908.712</position>
 			<position dim="1">941.449</position>
 			<intensity>1.25569e+08</intensity>
@@ -478,7 +475,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="RPCFSALTPDETYVPK"/>
 		</feature>
-		<feature id="f_9">
+		<feature id="f_8721009512267762600">
 			<position dim="0">1006.93</position>
 			<position dim="1">642.352</position>
 			<intensity>2.64687e+08</intensity>
@@ -546,7 +543,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HPEYAVSVLLR"/>
 		</feature>
-		<feature id="f_10">
+		<feature id="f_6253636756564533798">
 			<position dim="0">1005.49</position>
 			<position dim="1">1014.61</position>
 			<intensity>2.35017e+08</intensity>
@@ -614,7 +611,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="QTALVELLK"/>
 		</feature>
-		<feature id="f_11">
+		<feature id="f_340792039157394434">
 			<position dim="0">1033.52</position>
 			<position dim="1">1163.62</position>
 			<intensity>2.93257e+08</intensity>
@@ -662,7 +659,7 @@
 			</PeptideIdentification>
 			<userParam type="string" name="sequence" value="LVNELTEFAK"/>
 		</feature>
-		<feature id="f_12">
+		<feature id="f_10964759451238497927">
 			<position dim="0">1098.74</position>
 			<position dim="1">1955.95</position>
 			<intensity>1.78653e+08</intensity>
@@ -702,7 +699,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="DAIPENLPPLTADFAEDK"/>
 		</feature>
-		<feature id="f_13">
+		<feature id="f_8816901613822006667">
 			<position dim="0">1036.53</position>
 			<position dim="1">1420.67</position>
 			<intensity>1.96041e+08</intensity>
@@ -742,7 +739,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="SLHTLFGDELCK"/>
 		</feature>
-		<feature id="f_14">
+		<feature id="f_18077057999411630341">
 			<position dim="0">1158.36</position>
 			<position dim="1">1479.79</position>
 			<intensity>3.762e+08</intensity>
@@ -786,7 +783,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LGEYGFQNALIVR"/>
 		</feature>
-		<feature id="f_15">
+		<feature id="f_17796243954070685414">
 			<position dim="0">1199.42</position>
 			<position dim="1">1399.69</position>
 			<intensity>3.17631e+08</intensity>
@@ -830,7 +827,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="TVMENFVAFVDK"/>
 		</feature>
-		<feature id="f_16">
+		<feature id="f_7894280344941030689">
 			<position dim="0">1192.41</position>
 			<position dim="1">954.949</position>
 			<intensity>1.93777e+08</intensity>
@@ -882,7 +879,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
 		</feature>
-		<feature id="f_17">
+		<feature id="f_3477191243131983109">
 			<position dim="0">1260.04</position>
 			<position dim="1">1725.81</position>
 			<intensity>3.674e+08</intensity>
@@ -938,7 +935,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="MPCTEDYLSLILNR"/>
 		</feature>
-		<feature id="f_18">
+		<feature id="f_6122245384109454407">
 			<position dim="0">1297.92</position>
 			<position dim="1">944.96</position>
 			<intensity>3.20176e+08</intensity>
@@ -998,7 +995,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HPYFYAPELLYYANK"/>
 		</feature>
-		<feature id="f_19">
+		<feature id="f_11001965471019981700">
 			<position dim="0">1468.79</position>
 			<position dim="1">2493.24</position>
 			<intensity>2.68544e+08</intensity>
@@ -1036,7 +1033,3 @@
 		</feature>
 	</featureList>
 </featureMap>
-<!-- Local Variables: -->
-<!-- mode: nxml -->
-<!-- tab-width: 2 -->
-<!-- End: -->

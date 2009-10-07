@@ -193,6 +193,7 @@ namespace OpenMS
 		{
 			// store RT&MZ of parent ion as centroid of ConsensusFeature
 			ConsensusFeature cf;
+			cf.setUniqueId();
 			cf.setRT(it->getRT());
 			if (it->getPrecursors().size()==1)
 			{

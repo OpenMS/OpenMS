@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -25,28 +25,11 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <vector>
 
 namespace OpenMS
-{
-	
-	FeatureHandle::FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature& point)
-		: Peak2D(point),
-			map_index_(map_index),
-			element_index_(element_index),
-			charge_(point.getCharge())
-	{
-	}
-
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
-  {
-    os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Index: " << cons.getElementIndex() << std::endl;
-    return os;
-  }
-} 
+{	
+	// just to instantiate this somehow
+	class VectorWithIndex : public std::vector< UniqueIdInterface >, public UniqueIdIndexer<std::vector< UniqueIdInterface > > {} default_vector_with_index;
+}

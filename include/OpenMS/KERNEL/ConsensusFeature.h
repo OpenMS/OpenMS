@@ -92,15 +92,15 @@ namespace OpenMS
 			{
 				return ( left.size() < right.size() );
 			}
-			inline bool operator () ( ConsensusFeature const & left, Size const & right ) const
+			inline bool operator () ( ConsensusFeature const & left, UInt64 const & right ) const
 			{
 				return ( left.size() < right );
 			}
-			inline bool operator () ( Size const & left, ConsensusFeature const & right ) const
+			inline bool operator () ( UInt64 const & left, ConsensusFeature const & right ) const
 			{
 				return ( left< right.size() );
 			}
-			inline bool operator () ( const Size & left,	const Size & right ) const
+			inline bool operator () ( const UInt64 & left,	const UInt64 & right ) const
 			{
 				return ( left < right );
 			}
@@ -139,7 +139,7 @@ namespace OpenMS
 			feature. Sets the consensus feature position and intensity to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const Peak2D& element);
+		ConsensusFeature(UInt64 map_index,	UInt64 element_index, const Peak2D& element);
 
 
 		/**
@@ -147,14 +147,14 @@ namespace OpenMS
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const Feature& element);
+		ConsensusFeature(UInt64 map_index,	UInt64 element_index, const Feature& element);
 
 		/**
 			@brief Constructor with map and element index for a singleton consensus
 			feature. Sets the consensus feature position, intensity, charge and quality to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(Size map_index,	Size element_index, const ConsensusFeature& element);
+		ConsensusFeature(UInt64 map_index,	UInt64 element_index, const ConsensusFeature& element);
 
 
 		/// Assignment operator
@@ -182,21 +182,21 @@ namespace OpenMS
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const Peak2D& element);
+		void insert(UInt64 map_index, UInt64 element_index, const Peak2D& element);
 
 		/**
 			@brief Creates a FeatureHandle and adds it
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const Feature& element);
+		void insert(UInt64 map_index, UInt64 element_index, const Feature& element);
 
 		/**
 			@brief Creates a FeatureHandle and adds it
 
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(Size map_index, Size element_index, const ConsensusFeature& element);
+		void insert(UInt64 map_index, UInt64 element_index, const ConsensusFeature& element);
 
 		/// Non-mutable access to the contained feature handles
 		const HandleSetType& getFeatures() const;

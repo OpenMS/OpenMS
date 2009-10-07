@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.3" unique_id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinder" version="version_string" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="8">
-		<feature id="f_0">
+		<feature id="f_13229490167902618598">
 			<position dim="0">4407.28165258273</position>
 			<position dim="1">646.240184561428</position>
 			<intensity>51254.8</intensity>
@@ -134,7 +134,7 @@
 			<userParam type="int" name="spectrum_index" value="88"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=89"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_5024549519481199379">
 			<position dim="0">4389.15835194944</position>
 			<position dim="1">648.256624914625</position>
 			<intensity>44671.9</intensity>
@@ -284,7 +284,7 @@
 			<userParam type="int" name="spectrum_index" value="83"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=84"/>
 		</feature>
-		<feature id="f_2">
+		<feature id="f_6211693768620736135">
 			<position dim="0">4301.01629439745</position>
 			<position dim="1">651.758480538276</position>
 			<intensity>34615.2</intensity>
@@ -400,7 +400,7 @@
 			<userParam type="int" name="spectrum_index" value="57"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=58"/>
 		</feature>
-		<feature id="f_3">
+		<feature id="f_2727934422266510952">
 			<position dim="0">4278.2709674553</position>
 			<position dim="1">653.77196829474</position>
 			<intensity>19429.1</intensity>
@@ -500,7 +500,7 @@
 			<userParam type="int" name="spectrum_index" value="50"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=51"/>
 		</feature>
-		<feature id="f_4">
+		<feature id="f_3318143123566627610">
 			<position dim="0">4201.86802180976</position>
 			<position dim="1">652.766081964071</position>
 			<intensity>12530.6</intensity>
@@ -624,7 +624,7 @@
 			<userParam type="int" name="spectrum_index" value="26"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=27"/>
 		</feature>
-		<feature id="f_5">
+		<feature id="f_16086848624660428181">
 			<position dim="0">4221.9943475599</position>
 			<position dim="1">646.766487275415</position>
 			<intensity>8512.87</intensity>
@@ -710,7 +710,7 @@
 			<userParam type="int" name="spectrum_index" value="32"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=33"/>
 		</feature>
-		<feature id="f_6">
+		<feature id="f_12945392992539867993">
 			<position dim="0">4183.18850187593</position>
 			<position dim="1">654.780693193393</position>
 			<intensity>7294.79</intensity>
@@ -796,7 +796,7 @@
 			<userParam type="int" name="spectrum_index" value="21"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=22"/>
 		</feature>
-		<feature id="f_7">
+		<feature id="f_177690319544281384">
 			<position dim="0">4201.88648651966</position>
 			<position dim="1">648.774249926495</position>
 			<intensity>5027.46</intensity>

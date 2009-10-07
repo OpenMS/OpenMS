@@ -6,7 +6,7 @@
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="1">
-		<feature id="f_0">
+		<feature id="f_12">
 			<position dim="0">945.103</position>
 			<position dim="1">471.142</position>
 			<intensity>65754</intensity>

@@ -35,14 +35,13 @@
 
 ///////////////////////////
 
+using namespace OpenMS;
+using namespace std;
+
 START_TEST(<Factory>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace std;
-
 
 // Factory is singleton, therefore we don't test the constructor
 START_SECTION(static FactoryProduct* create(const String& name))

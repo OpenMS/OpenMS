@@ -60,7 +60,7 @@
 
 	<featureList count="2">
 	
-		<feature id="f_0">
+		<feature id="f_1000">
 			<position dim="0">25</position>
 			<position dim="1">0</position>
 			<intensity>300</intensity>
@@ -73,7 +73,7 @@
 				<param name="b" value="10"/>
 			</model>
 			<subordinate>
-				<feature id="f_0_0">
+				<feature id="f_1000_2000">
 					<position dim="0">24</position>
 					<position dim="1">0</position>
 					<intensity>320</intensity>
@@ -82,7 +82,7 @@
 					<overallquality>0.1</overallquality>
 					<charge>1</charge>
 				</feature>
-				<feature id="f_0_1">
+				<feature id="f_1000_2001">
 					<position dim="0">23</position>
 					<position dim="1">11</position>
 					<intensity>11320</intensity>
@@ -110,7 +110,7 @@
 			<userParam type="float" name="floatparametername" value="4.551"/>
 		</feature>
 		
-		<feature id="f_1">
+		<feature id="f_1001">
 			<position dim="0">0</position>
 			<position dim="1">35</position>
 			<intensity>500</intensity>

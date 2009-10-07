@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="consensusXML">
@@ -372,6 +369,11 @@
 			<xs:attribute name="id" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>An optional id for the document. It is recommended to use LSIDs when possible.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="unique_id" type="xs:ID">
+				<xs:annotation>
+					<xs:documentation>An optional unique_id for the document, for internal use by OpenMS.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>

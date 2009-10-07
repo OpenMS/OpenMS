@@ -268,8 +268,12 @@ namespace OpenMS
 					}
 				}
 				
+				// assign unique ids
+				feature_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
 				//annotate output with data processing info
 				addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
+
 				// write output
 				FeatureXMLFile().store(out, feature_map);
 

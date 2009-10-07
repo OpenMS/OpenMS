@@ -190,6 +190,8 @@ class TOPPFeatureFinder
 		//running algorithm
 		ff.run(type, exp, features, feafi_param, seeds);
 
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
 		//-------------------------------------------------------------
 		// writing files
 		//-------------------------------------------------------------

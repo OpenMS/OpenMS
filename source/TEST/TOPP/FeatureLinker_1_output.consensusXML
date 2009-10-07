@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////home/groepl/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.3" unique_id="cm_5024549519481199379" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureLinker" version="version_string" />
 		<processingAction name="Feature grouping" />
@@ -21,17 +21,17 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
-		<map id="0" name="FeatureLinker_1_input.featureXML" label="light" size="16">
+		<map id="0" name="FeatureLinker_1_input.featureXML" unique_id="13194286469662031022" label="light" size="16">
 		</map>
-		<map id="1" name="FeatureLinker_1_input.featureXML" label="heavy" size="16">
+		<map id="1" name="FeatureLinker_1_input.featureXML" unique_id="13194286469662031022" label="heavy" size="16">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_0" quality="1" charge="2">
+		<consensusElement id="e_6211693768620736135" quality="1" charge="2">
 			<centroid rt="14.5" mz="532" it="100"/>
 			<groupedElementList>
-				<element map="0" id="8" rt="15" mz="530" it="100" charge="2"/>
-				<element map="1" id="10" rt="14" mz="534" it="100" charge="2"/>
+				<element map="0" id="9" rt="15" mz="530" it="100" charge="2"/>
+				<element map="1" id="11" rt="14" mz="534" it="100" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="C" charge="3" protein_refs="PH_0">
@@ -42,11 +42,11 @@
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_1" quality="1" charge="1">
+		<consensusElement id="e_2727934422266510952" quality="1" charge="1">
 			<centroid rt="10.5" mz="562" it="100"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="11" mz="558" it="100" charge="1"/>
-				<element map="1" id="6" rt="10" mz="566" it="100" charge="1"/>
+				<element map="0" id="3" rt="11" mz="558" it="100" charge="1"/>
+				<element map="1" id="7" rt="10" mz="566" it="100" charge="1"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="A" charge="3" protein_refs="PH_0">

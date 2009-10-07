@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.3" unique_id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinder" version="version_string" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="2">
-		<feature id="f_0">
+		<feature id="f_13229490167902618598">
 			<position dim="0">1245.79834926409</position>
 			<position dim="1">689.965454724992</position>
 			<intensity>3.17136e+06</intensity>
@@ -93,7 +93,7 @@
 				</hullpoint>
 			</convexhull>
 			<subordinate>
-				<feature id="f_0_0">
+				<feature id="f_13229490167902618598_5024549519481199379">
 					<position dim="0">1245.79834926409</position>
 					<position dim="1">690.002575026073</position>
 					<intensity>2.6505e+06</intensity>
@@ -172,7 +172,7 @@
 			<userParam type="int" name="spectrum_index" value="35"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=36"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_6211693768620736135">
 			<position dim="0">1246.55048895061</position>
 			<position dim="1">675.95836675251</position>
 			<intensity>372426</intensity>
@@ -255,7 +255,7 @@
 				</hullpoint>
 			</convexhull>
 			<subordinate>
-				<feature id="f_1_0">
+				<feature id="f_6211693768620736135_2727934422266510952">
 					<position dim="0">1246.55048895061</position>
 					<position dim="1">676.001340982679</position>
 					<intensity>299866</intensity>

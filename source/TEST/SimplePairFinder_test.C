@@ -77,10 +77,13 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   PositionType pos3(400,500);
   feat1.setPosition(pos1);
   feat1.setIntensity(100.0f);
+  feat1.setUniqueId(111111);
   feat2.setPosition(pos2);
   feat2.setIntensity(300.0f);
+  feat2.setUniqueId(222222);
   feat3.setPosition(pos3);
   feat3.setIntensity(400.0f);
+  feat3.setUniqueId(333333);
   scene.push_back(feat1);
   scene.push_back(feat2);
   scene.push_back(feat3);
@@ -94,10 +97,13 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   PositionType pos6(404,504);
   feat4.setPosition(pos4);
   feat4.setIntensity(100.0f);
+  feat4.setUniqueId(444444);
   feat5.setPosition(pos5);
   feat5.setIntensity(300.0f);
+  feat5.setUniqueId(555555);
   feat6.setPosition(pos6);
   feat6.setIntensity(400.0f);
+  feat6.setUniqueId(666666);
   model.push_back(feat4);
   model.push_back(feat5);
   model.push_back(feat6);
@@ -115,38 +121,25 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   ConsensusFeature::HandleSetType group2 = result[1].getFeatures();
   ConsensusFeature::HandleSetType group3 = result[2].getFeatures();
   
-  FeatureHandle ind1(0,0,feat1);
-  FeatureHandle ind2(0,1,feat2);
-  FeatureHandle ind3(0,2,feat3);
-  FeatureHandle ind4(1,0,feat4);
-  FeatureHandle ind5(1,1,feat5);
-  FeatureHandle ind6(1,2,feat6);
-
   ConsensusFeature::HandleSetType::const_iterator it;
 	it = group1.begin();
   STATUS(*it);
-	STATUS(ind1);
-	TEST_EQUAL(*(it) == ind1, true)
+	TEST_EQUAL(it->getElementIndex(),444444);
 	++it;
   STATUS(*it);
-	STATUS(ind4);
-  TEST_EQUAL(*(it) == ind4, true)
+  TEST_EQUAL(it->getElementIndex(),111111);
 	it = group2.begin();
   STATUS(*it);
-	STATUS(ind2);
-  TEST_EQUAL(*(it) == ind2, true)
+  TEST_EQUAL(it->getElementIndex(),555555);
 	++it;
   STATUS(*it);
-	STATUS(ind5);
-  TEST_EQUAL(*(it) == ind5, true)
+  TEST_EQUAL(it->getElementIndex(),222222);
   it = group3.begin();
   STATUS(*it);
-	STATUS(ind3);
-  TEST_EQUAL(*(it) == ind3, true)
+  TEST_EQUAL(it->getElementIndex(),666666);
 	++it;
   STATUS(*it);
-	STATUS(ind6);
-  TEST_EQUAL(*(it) == ind6, true)
+  TEST_EQUAL(it->getElementIndex(),333333);
 END_SECTION
 
 

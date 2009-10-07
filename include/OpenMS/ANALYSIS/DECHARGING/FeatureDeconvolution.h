@@ -602,6 +602,7 @@ namespace OpenMS
             }
 
             ConsensusFeature cf(fm_out[f0_idx]);
+            cf.setUniqueId();
             cf.insert(0,f0_idx, fm_out[f0_idx]);
             cf.insert(0,f1_idx, fm_out[f1_idx]);
             cf.setMetaValue("Local", String(old_q0)+":"+String(old_q1));
@@ -721,6 +722,7 @@ namespace OpenMS
           if (clique_register.count(i) > 0) continue;
 
           ConsensusFeature cf(fm_out[i]);
+          cf.setUniqueId();
           cf.insert(0, i, fm_out[i]);
 
           cons_map.push_back(cf);

@@ -39,21 +39,21 @@ START_TEST(UniqueIdGenerator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(UniqueIdGenerator())
+START_SECTION((UniqueIdGenerator()))
 {
   // singleton has private ctor
   NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(~UniqueIdGenerator())
+START_SECTION((~UniqueIdGenerator()))
 {
   // singleton has private dtor
   NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION((static UniqueId getUniqueId()))
+START_SECTION((static UInt64 getUniqueId()))
 {
   STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
   // the actual values are unpredictable, but see setSeed() below
@@ -68,14 +68,14 @@ START_SECTION((static void setSeed(const DateTime &)))
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
   // hoping that your compiler already supports the ull suffix for unsigned long long (aka Int64Type) integer literals
-  OpenMS::UniqueIdGenerator::UniqueId unique_ids[] =
+  OpenMS::UInt64 unique_ids[] =
                   { 1663028827116059880ull, 16317018546938646277ull, 4499304917001700489ull, 14007980103328265649ull, 8982057078544736839ull };
 
   const int num_num = sizeof(unique_ids)/sizeof(*unique_ids);
 
   for ( int i = 0; i < num_num; ++i )
   {
-    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUniqueId();
+    OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
 
@@ -83,7 +83,7 @@ START_SECTION((static void setSeed(const DateTime &)))
 
   for ( int i = 0; i < num_num; ++i )
   {
-    OpenMS::UniqueIdGenerator::UniqueId uid = OpenMS::UniqueIdGenerator::getUniqueId();
+    OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
 

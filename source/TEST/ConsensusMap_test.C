@@ -260,6 +260,7 @@ START_SECTION((template < typename FeatureT > static void convert(Size const inp
   {
     f.setRT(i*77.7);
     f.setMZ(i+100.35);
+    f.setUniqueId(i*33+17);
     fm.push_back(f);
   }
   ConsensusMap cm;
@@ -271,7 +272,7 @@ START_SECTION((template < typename FeatureT > static void convert(Size const inp
   {
     TEST_EQUAL(cm[i].size(),1);
     TEST_EQUAL(cm[i].begin()->getMapIndex(),33);
-    TEST_EQUAL(cm[i].begin()->getElementIndex(),i);
+    TEST_EQUAL(cm[i].begin()->getElementIndex(),i*33+17);
     TEST_REAL_SIMILAR(cm[i].begin()->getRT(),i*77.7);
     TEST_REAL_SIMILAR(cm[i].begin()->getMZ(),i+100.35);
   }

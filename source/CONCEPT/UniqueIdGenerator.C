@@ -27,6 +27,9 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
+#include <gsl/gsl_rng.h>
+
+
 // debugging
 #define V_UniqueIdGenerator(a) ;
 // #define V_UniqueIdGenerator(a) std::cout << "line " << __LINE__ << ": " << a << std::endl;
@@ -34,76 +37,97 @@
 namespace OpenMS
 {
 
-  UniqueIdGenerator::UniqueId
-  UniqueIdGenerator::getUniqueId()
+namespace
+{
+
+// Defined outside so that we can initialize from different places.
+// Note the "=0" and read the following comment.
+static UniqueIdGenerator* instance_ = 0;
+
+// Do not add a "=0" here:  The initialization is taken care of by init_() or setSeed().
+// Remember: The order of execution of static initializers is unspecified.
+// Well, actually that paragraph does not apply here (instance_ is just a pointer, not an object)...
+// But don't blame me ... just in case ...
+static gsl_rng * rng_;
+
+}
+
+
+UInt64
+UniqueIdGenerator::getUniqueId()
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::getUID()");
+  getInstance_();
+  return (UInt64(gsl_rng_get(rng_)) << 32) + UInt64(gsl_rng_get(rng_));
+}
+
+const Param&
+UniqueIdGenerator::getInfo()
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::getInfo()");
+  return getInstance_().info_;
+}
+
+// We can't add an underscore to a private constructor, sorry!  Even templates won't help.  ;-)
+UniqueIdGenerator::UniqueIdGenerator()
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::UniqueIdGenerator()");
+  rng_ = gsl_rng_alloc(gsl_rng_mt19937);
+  // The random seed is set by a call to init_()
+  // from within either getInstance_() or setSeed(),
+  // depending upon what is called first.
+  return;
+}
+
+UniqueIdGenerator&
+UniqueIdGenerator::getInstance_()
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::getInstance_()");
+  if ( !instance_ )
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::getUID()");
-    gsl_rng * const rng = getInstance_().random_number_generator_;
-    return (UniqueIdGenerator::UniqueId(gsl_rng_get(rng)) << 32)
-      + UniqueIdGenerator::UniqueId(gsl_rng_get(rng));
+    instance_ = new UniqueIdGenerator();
+    instance_->init_(OpenMS::DateTime::now());
   }
+  return *instance_;
+}
 
-  const Param&
-  UniqueIdGenerator::getInfo()
+void
+UniqueIdGenerator::setSeed(const DateTime& date_time)
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::setSeed()");
+  if ( !instance_ )
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::getInfo()");
-    return getInstance_().info_;
+    instance_ = new UniqueIdGenerator();
   }
+  instance_->init_(date_time);
+  return;
+}
 
-  UniqueIdGenerator&
-  UniqueIdGenerator::getInstance_()
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::getInstance_()");
-    static UniqueIdGenerator* instance_ = 0;
-    if ( !instance_ )
-    {
-      instance_ = new UniqueIdGenerator();
-    }
-    return *instance_;
-  }
+void
+UniqueIdGenerator::init_(const DateTime& date_time)
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::init_()");
 
-  UniqueIdGenerator::UniqueIdGenerator()
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::UniqueIdGenerator()");
-    random_number_generator_ = gsl_rng_alloc(gsl_rng_mt19937);
-    init_(OpenMS::DateTime::now());
-    return;
-  }
+  const UInt64 seed_64 = date_time.toString("yyyyMMddhhmmsszzz").toLongLong();
+  const unsigned long int actually_used_seed = ((UInt64(1) << 32) - 1) & ((seed_64 >> 32) ^ seed_64); // just to mix the bits a bit
+  gsl_rng_set(rng_, actually_used_seed);
 
-  void
-  UniqueIdGenerator::setSeed(const DateTime& date_time)
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::setSeed()");
-    getInstance_().init_(date_time);
-    return;
-  }
+  info_.setValue("generator_type", gsl_rng_name(rng_));
+  info_.setValue("generator_min", String(gsl_rng_min(rng_)));
+  info_.setValue("generator_max", String(gsl_rng_max(rng_)));
+  info_.setValue("initialization_date_time_as_string", date_time.get());
+  info_.setValue("initialization_date_time_as_longlong", String(seed_64));
+  info_.setValue("actually_used_seed", String(actually_used_seed));
+  V_UniqueIdGenerator("info:\n" << info_);
 
-  void
-  UniqueIdGenerator::init_(const DateTime& date_time)
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::init_()");
+  return;
+}
 
-    initialization_date_time_ = date_time;
-    const UInt64 seed_64 = initialization_date_time_.toString("yyyyMMddhhmmsszzz").toLongLong();
-    const unsigned long int actually_used_seed = ((UInt64(1)<<32)-1)&((seed_64>>32)^seed_64); // just to mix the bits a bit
-    gsl_rng_set(random_number_generator_, actually_used_seed);
-
-    info_.setValue("generator_type", gsl_rng_name(random_number_generator_));
-    info_.setValue("generator_min", String(gsl_rng_min(random_number_generator_)));
-    info_.setValue("generator_max", String(gsl_rng_max(random_number_generator_)));
-    info_.setValue("initialization_date_time_as_string", initialization_date_time_.get());
-    info_.setValue("initialization_date_time_as_longlong", String(seed_64));
-    info_.setValue("actually_used_seed", String(actually_used_seed));
-    V_UniqueIdGenerator("info:\n" << info_);
-
-    return;
-  }
-
-  UniqueIdGenerator::~UniqueIdGenerator()
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::~UniqueIdGenerator()");
-    gsl_rng_free( random_number_generator_);
-    return;
-  }
+UniqueIdGenerator::~UniqueIdGenerator()
+{
+  V_UniqueIdGenerator("UniqueIdGenerator::~UniqueIdGenerator()");
+  gsl_rng_free(rng_);
+  return;
+}
 
 }

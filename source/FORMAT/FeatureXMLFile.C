@@ -87,14 +87,26 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 
+		if ( Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) )
+		{
+		  // throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("found ")+invalid_unique_ids+" invalid unique ids");
+		  std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<std::endl;
+		}
+
 		os.precision(writtenDigits<DoubleReal>());
 
 		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			 << "<featureMap version=\"" << version_ << "\"";
+		// file id
 		if (feature_map.getIdentifier()!="")
 		{
 			os << " id=\"" << feature_map.getIdentifier() << "\"";
 		}
+		// unique id
+    if (feature_map.hasValidUniqueId())
+    {
+      os << " unique_id=\"fm_" << feature_map.getUniqueId() << "\"";
+    }
 		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
 		//write data processing
@@ -223,7 +235,8 @@ namespace OpenMS
 		os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
 		for (Size s=0; s<feature_map.size(); s++)
 		{
-			writeFeature_(filename, os, feature_map[s], "f_", s, 0);
+      writeFeature_(filename, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      // writeFeature_(filename, os, feature_map[s], "f_", s, 0);
 		}
 
 		os << "\t</featureList>\n";
@@ -253,6 +266,7 @@ namespace OpenMS
 		static const XMLCh* s_type = xercesc::XMLString::transcode("type");
 		static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
 		static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
 
 		String tag = sm_.convert(qname);
 		String parent_tag;
@@ -268,8 +282,9 @@ namespace OpenMS
 		}
 		else if (tag=="feature")
 		{
-			// create new feature at apropriate level
+			// create new feature at appropriate level
 			updateCurrentFeature_(true);
+			current_feature_->setUniqueId(attributeAsString_(attributes,s_id));
 		}
 		else if (tag=="subordinate")
 		{ // this is not safe towards malformed xml!
@@ -346,6 +361,12 @@ namespace OpenMS
 			{
 				map_->setIdentifier(id);
 			}
+			//handle unique id
+      String unique_id;
+      if (optionalAttributeAsString_(unique_id, attributes, s_unique_id))
+      {
+        map_->setUniqueId(unique_id);
+      }
 		}
 		else if (tag=="dataProcessing")
 		{
@@ -774,7 +795,8 @@ namespace OpenMS
 			UInt identifier_subordinate = 0;
 			for (size_t i=0;i<feat.getSubordinates().size();++i)
 			{
-				writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
+        writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", feat.getSubordinates()[i].getUniqueId(), indentation_level+2);
+        // writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
 				++identifier_subordinate;
 			}
 			os << indent << "\t\t\t</subordinate>\n";

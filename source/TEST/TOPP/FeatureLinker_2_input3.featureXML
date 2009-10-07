@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<featureMap version="1.3" unique_id="fm_4826876609996876827" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2006-03-09T13:13:13" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
@@ -11,14 +10,12 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="FCC" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
-
 	<featureList count="24">
-		<feature id="f_0">
+		<feature id="f_13955064838748220845">
 			<position dim="0">556.885</position>
 			<position dim="1">733.275</position>
 			<intensity>2.47446e+08</intensity>
@@ -82,7 +79,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="TCVADESHAGCEK"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_1966557505224183820">
 			<position dim="0">656.405</position>
 			<position dim="1">537.243</position>
 			<intensity>1.32679e+08</intensity>
@@ -142,7 +139,7 @@
 			</PeptideIdentification>
 			<userParam type="string" name="sequence" value="SHCIAEVEK"/>
 		</feature>
-		<feature id="f_2">
+		<feature id="f_10410627859860728742">
 			<position dim="0">771.616</position>
 			<position dim="1">1444.62</position>
 			<intensity>3.93811e+08</intensity>
@@ -190,7 +187,7 @@
 			</PeptideIdentification>
 			<userParam type="string" name="sequence" value="YICDNQDTISSK"/>
 		</feature>
-		<feature id="f_3">
+		<feature id="f_9588482092062192060">
 			<position dim="0">781.799</position>
 			<position dim="1">778.315</position>
 			<intensity>3.72998e+08</intensity>
@@ -242,7 +239,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="DDPHACYSTVFDK"/>
 		</feature>
-		<feature id="f_4">
+		<feature id="f_6004004326366812857">
 			<position dim="0">796.474</position>
 			<position dim="1">1108.49</position>
 			<intensity>6.83877e+07</intensity>
@@ -286,7 +283,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="EACFAVEGPK"/>
 		</feature>
-		<feature id="f_5">
+		<feature id="f_17198512653051715988">
 			<position dim="0">817.266</position>
 			<position dim="1">922.481</position>
 			<intensity>2.63046e+08</intensity>
@@ -338,7 +335,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="AEFVEVTK"/>
 		</feature>
-		<feature id="f_6">
+		<feature id="f_5572181956708182284">
 			<position dim="0">843.277</position>
 			<position dim="1">1749.67</position>
 			<intensity>1.82478e+08</intensity>
@@ -382,7 +379,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="YNGVFQECCQAEDK"/>
 		</feature>
-		<feature id="f_7">
+		<feature id="f_16395201437334876064">
 			<position dim="0">887.347</position>
 			<position dim="1">1504.57</position>
 			<intensity>3.65068e+08</intensity>
@@ -434,7 +431,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="EYEATLEECCAK"/>
 		</feature>
-		<feature id="f_8">
+		<feature id="f_4246219713694864557">
 			<position dim="0">863.346</position>
 			<position dim="1">1752.61</position>
 			<intensity>1.82817e+08</intensity>
@@ -486,7 +483,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="ECCHGDLLECADDR"/>
 		</feature>
-		<feature id="f_9">
+		<feature id="f_17528243079730408472">
 			<position dim="0">840.013</position>
 			<position dim="1">789.372</position>
 			<intensity>1.98826e+08</intensity>
@@ -546,7 +543,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LKPDPNTLCDEFK"/>
 		</feature>
-		<feature id="f_10">
+		<feature id="f_1045454825286354924">
 			<position dim="0">894.335</position>
 			<position dim="1">653.354</position>
 			<intensity>3.83015e+08</intensity>
@@ -610,7 +607,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HLVDEPQNLIK"/>
 		</feature>
-		<feature id="f_11">
+		<feature id="f_389001383939275187">
 			<position dim="0">955.248</position>
 			<position dim="1">1511.84</position>
 			<intensity>2.66276e+08</intensity>
@@ -658,7 +655,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="VPQVSTPTLVEVSR"/>
 		</feature>
-		<feature id="f_12">
+		<feature id="f_114882254392289457">
 			<position dim="0">942.787</position>
 			<position dim="1">941.449</position>
 			<intensity>2.77557e+08</intensity>
@@ -722,7 +719,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="RPCFSALTPDETYVPK"/>
 		</feature>
-		<feature id="f_13">
+		<feature id="f_15743766982953332227">
 			<position dim="0">1011.47</position>
 			<position dim="1">642.352</position>
 			<intensity>2.21253e+08</intensity>
@@ -778,7 +775,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HPEYAVSVLLR"/>
 		</feature>
-		<feature id="f_14">
+		<feature id="f_836885712912035377">
 			<position dim="0">1043.26</position>
 			<position dim="1">1014.61</position>
 			<intensity>3.42143e+08</intensity>
@@ -838,7 +835,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="QTALVELLK"/>
 		</feature>
-		<feature id="f_15">
+		<feature id="f_6290963726642619139">
 			<position dim="0">1100.81</position>
 			<position dim="1">1955.95</position>
 			<intensity>2.36733e+08</intensity>
@@ -878,7 +875,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="DAIPENLPPLTADFAEDK"/>
 		</feature>
-		<feature id="f_16">
+		<feature id="f_8585306356694916618">
 			<position dim="0">1114.9</position>
 			<position dim="1">710.835</position>
 			<intensity>2.71023e+08</intensity>
@@ -938,7 +935,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="SLHTLFGDELCK"/>
 		</feature>
-		<feature id="f_17">
+		<feature id="f_4653369483890906761">
 			<position dim="0">1236.12</position>
 			<position dim="1">1479.79</position>
 			<intensity>3.16815e+08</intensity>
@@ -986,7 +983,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LGEYGFQNALIVR"/>
 		</feature>
-		<feature id="f_18">
+		<feature id="f_8262010749831112791">
 			<position dim="0">1233.95</position>
 			<position dim="1">1399.69</position>
 			<intensity>1.19827e+08</intensity>
@@ -1022,7 +1019,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="TVMENFVAFVDK"/>
 		</feature>
-		<feature id="f_19">
+		<feature id="f_8160584573194146770">
 			<position dim="0">1291.02</position>
 			<position dim="1">954.949</position>
 			<intensity>2.66283e+08</intensity>
@@ -1094,7 +1091,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
 		</feature>
-		<feature id="f_20">
+		<feature id="f_866116738649891337">
 			<position dim="0">1292.27</position>
 			<position dim="1">1725.81</position>
 			<intensity>3.44727e+08</intensity>
@@ -1138,7 +1135,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="MPCTEDYLSLILNR"/>
 		</feature>
-		<feature id="f_21">
+		<feature id="f_6916883853867664495">
 			<position dim="0">1304.01</position>
 			<position dim="1">944.96</position>
 			<intensity>2.30701e+08</intensity>
@@ -1190,7 +1187,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="HPYFYAPELLYYANK"/>
 		</feature>
-		<feature id="f_22">
+		<feature id="f_10053481325799554694">
 			<position dim="0">1415.83</position>
 			<position dim="1">1567.74</position>
 			<intensity>2.20417e+08</intensity>
@@ -1238,7 +1235,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="DAFLGSFLYEYSR"/>
 		</feature>
-		<feature id="f_23">
+		<feature id="f_6589589462220824505">
 			<position dim="0">1531.86</position>
 			<position dim="1">1247.12</position>
 			<intensity>2.34128e+08</intensity>
@@ -1308,7 +1305,3 @@
 		</feature>
 	</featureList>
 </featureMap>
-<!-- Local Variables: -->
-<!-- mode: nxml -->
-<!-- tab-width: 2 -->
-<!-- End: -->

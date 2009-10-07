@@ -28,16 +28,17 @@
 #ifndef OPENMS_KERNEL_FEATUREMAP_H
 #define OPENMS_KERNEL_FEATUREMAP_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 
 #include <algorithm>
 #include <vector>
+#include <exception>
 
 namespace OpenMS
 {
@@ -60,7 +61,9 @@ namespace OpenMS
 	class FeatureMap
 		: public std::vector<FeatureT>,
 			public RangeManager<2>,
-			public DocumentIdentifier
+			public DocumentIdentifier,
+			public UniqueIdInterface,
+			public UniqueIdIndexer<FeatureMap<FeatureT> >
 	{
 		public:
 			/**	
@@ -87,6 +90,7 @@ namespace OpenMS
 				: Base(),
 					RangeManagerType(),
 					DocumentIdentifier(),
+					UniqueIdInterface(),
 					protein_identifications_(),
 					unassigned_peptide_identifications_(),
 					data_processing_()
@@ -98,6 +102,7 @@ namespace OpenMS
 				: Base(source),
 					RangeManagerType(source),
 					DocumentIdentifier(source),
+					UniqueIdInterface(source),
 					protein_identifications_(source.protein_identifications_),
 					unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
 					data_processing_(source.data_processing_)
@@ -119,6 +124,7 @@ namespace OpenMS
 				Base::operator=(rhs);
 				RangeManagerType::operator=(rhs);
 				DocumentIdentifier::operator=(rhs);
+	      UniqueIdInterface::operator = (rhs);
 				protein_identifications_ = rhs.protein_identifications_;
 				unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
 				data_processing_ = rhs.data_processing_;
@@ -133,6 +139,7 @@ namespace OpenMS
 					std::operator==(*this, rhs) &&
 					RangeManagerType::operator==(rhs) &&
 					DocumentIdentifier::operator==(rhs) &&
+					UniqueIdInterface::operator == (rhs) &&
 					protein_identifications_==rhs.protein_identifications_ &&
 					unassigned_peptide_identifications_==rhs.unassigned_peptide_identifications_ &&
 					data_processing_ == rhs.data_processing_
@@ -235,16 +242,22 @@ namespace OpenMS
 			{
 				FeatureMap tmp;
 
-				//range information
+        // swap the actual features
+        Base::swap(from);
+
+				// swap range information
 				tmp.RangeManagerType::operator=(*this);
 				this->RangeManagerType::operator=(from);
 				from.RangeManagerType::operator=(tmp);
 
-				//swap actual features
-				Base::swap(from);
-				
 				// swap DocumentIdentifier
 				DocumentIdentifier::swap(from);
+
+        // swap unique id
+        UniqueIdInterface::swap(from);
+
+        // swap unique id index
+        UniqueIdIndexer<FeatureMap<FeatureT> >::swap(from);
 				
 				// swap the remaining members
 				protein_identifications_.swap(from.protein_identifications_);
@@ -319,14 +332,51 @@ namespace OpenMS
 				{
 					clearRanges();
 					this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
+					clearUniqueId();
 					protein_identifications_.clear();
 					unassigned_peptide_identifications_.clear();
 					data_processing_.clear();
 				}
 			}
 		
+      /**@brief Applies a member function of Type to all features, including subordinates.
+         The returned values are accumulated.
+
+         <b>Example:</b>  The following will print the number of features with invalid unique ids:
+         @code
+         FeatureMap<> fm;
+         (...)
+         std::cout << fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) << std::endl;
+         @endcode
+         See e.g. UniqueIdInterface for what else can be done this way.
+      */
+      template < typename Type >
+      Size applyMemberFunction( Size (Type::*member_function)() )
+      {
+        Size assignments = 0;
+        assignments += ((*this).*member_function)();
+        for ( Iterator iter = this->begin(); iter != this->end(); ++iter)
+        {
+          assignments += iter->applyMemberFunction(member_function);
+        }
+        return assignments;
+      }
+
+      /// The "const" variant.
+      template < typename Type >
+      Size applyMemberFunction( Size (Type::*member_function)() const ) const
+      {
+        Size assignments = 0;
+        assignments += ((*this).*member_function)();
+        for ( ConstIterator iter = this->begin(); iter != this->end(); ++iter)
+        {
+          assignments += iter->applyMemberFunction(member_function);
+        }
+        return assignments;
+      }
+
 		protected:
-			
+
 			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
 
@@ -335,7 +385,6 @@ namespace OpenMS
 			
 			/// applied data processing
 			std::vector<DataProcessing> data_processing_;
-			
 	};
 	
 	/// Print content of a feature map to a stream.
@@ -343,13 +392,14 @@ namespace OpenMS
 	std::ostream& operator << (std::ostream& os, const FeatureMap<FeatureType>& map)
 	{
 		os << "# -- DFEATUREMAP BEGIN --"<< std::endl;
-		os << "# POSITION \tINTENSITY\tOVERALLQUALITY\tCHARGE" << std::endl; 
+		os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << std::endl;
 		for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter!=map.end(); iter++)
 		{
 			os << iter->getPosition() << '\t'
 				 << iter->getIntensity() << '\t'
 				 << iter->getOverallQuality() << '\t'
-				 << iter->getCharge()
+				 << iter->getCharge() << '\t'
+				 << iter->getUniqueId()
 				 << std::endl;
 		}
 		os << "# -- DFEATUREMAP END --"<< std::endl;

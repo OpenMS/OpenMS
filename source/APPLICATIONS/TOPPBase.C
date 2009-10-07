@@ -183,6 +183,11 @@ namespace OpenMS
 		if (param_cmdline_.exists("test"))
 		{
 			test_mode_ = true;
+
+			// initialize the random generator as early as possible!
+      DateTime date_time;
+      date_time.set("1999-12-31 23:59:59");
+			UniqueIdGenerator::setSeed(date_time);
 		}
 
 		// test if unknown options were given

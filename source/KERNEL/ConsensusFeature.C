@@ -79,7 +79,7 @@ namespace OpenMS
 	{
 	}
 
-	ConsensusFeature::ConsensusFeature(Size map_index,	Size element_index, const Peak2D& element)
+	ConsensusFeature::ConsensusFeature(UInt64 map_index,	UInt64 element_index, const Peak2D& element)
 		: RichPeak2D(element),
 			HandleSetType(),
 			quality_(0.0),
@@ -89,7 +89,7 @@ namespace OpenMS
 		insert(map_index,element_index,element);
 	}
 
-	ConsensusFeature::ConsensusFeature(Size map_index,	Size element_index, const Feature& element)
+	ConsensusFeature::ConsensusFeature(UInt64 map_index,	UInt64 element_index, const Feature& element)
 		: RichPeak2D(element),
 			HandleSetType(),
 			quality_(element.getOverallQuality()),
@@ -99,7 +99,7 @@ namespace OpenMS
 		insert(map_index,element_index,element);
 	}
 
-	ConsensusFeature::ConsensusFeature(Size map_index,	Size element_index, const ConsensusFeature& element)
+	ConsensusFeature::ConsensusFeature(UInt64 map_index,	UInt64 element_index, const ConsensusFeature& element)
 		: RichPeak2D(element),
 			HandleSetType(),
 			quality_(element.getQuality()),
@@ -155,7 +155,7 @@ namespace OpenMS
 
 		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 	*/
-	void ConsensusFeature::insert(Size map_index, Size element_index, const Peak2D& element)
+	void ConsensusFeature::insert(UInt64 map_index, UInt64 element_index, const Peak2D& element)
 	{
 		insert(FeatureHandle(map_index,element_index,element));
 	}
@@ -165,7 +165,7 @@ namespace OpenMS
 
 		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 	*/
-	void ConsensusFeature::insert(Size map_index, Size element_index, const Feature& element)
+	void ConsensusFeature::insert(UInt64 map_index, UInt64 element_index, const Feature& element)
 	{
 		insert(FeatureHandle(map_index,element_index,element));
 		peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
@@ -176,7 +176,7 @@ namespace OpenMS
 
 		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 	*/
-	void ConsensusFeature::insert(Size map_index, Size element_index, const ConsensusFeature& element)
+	void ConsensusFeature::insert(UInt64 map_index, UInt64 element_index, const ConsensusFeature& element)
 	{
 		insert(FeatureHandle(map_index,element_index,element));
 		peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());

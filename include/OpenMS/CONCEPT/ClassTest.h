@@ -40,6 +40,7 @@
 // Includes in the C-file are ok...
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <vector>
 #include <string>
@@ -388,24 +389,30 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @hideinitializer
  */
-#define START_TEST(class_name, version)																					\
-int main(int argc, char **argv)																									\
-{																																								\
- 																																								\
- TEST::version_string = version;																								\
-																																								\
-																																								\
-	if (argc > 1)																																	\
-	{																																							\
-		std::cerr																																		\
-			<< "This is " << argv[0] << ", the test program for the\n"								\
-			<< #class_name " class.\n"																								\
-			"\n"																																			\
-			"On successful operation it returns PASSED,\n"											      \
-			"otherwise FAILED is printed.\n";																					\
-		return 1;																																		\
-	}																																							\
-																																								\
+#define START_TEST(class_name, version)														\
+int main(int argc, char **argv)																		\
+{																																	\
+																																	\
+	{																																\
+		/* initialize the random generator as early as possible! */		\
+		OpenMS::DateTime date_time;																		\
+		date_time.set("1999-12-31 23:59:59");													\
+		OpenMS::UniqueIdGenerator::setSeed(date_time);								\
+	}																																\
+																																	\
+	TEST::version_string = version;																	\
+																																	\
+	if (argc > 1)																										\
+	{																																\
+		std::cerr																											\
+			<< "This is " << argv[0] << ", the test program for the\n"	\
+			<< #class_name " class.\n"																	\
+			"\n"																												\
+			"On successful operation it returns PASSED,\n"							\
+			"otherwise FAILED is printed.\n";														\
+		return 1;																											\
+	}																																\
+																																	\
 	try {
 
 /**	@brief End of the test program for a class.  @sa #START_TEST.

@@ -140,6 +140,7 @@ protected:
 		{
 			out_map.getFileDescriptions()[i].filename = ins[i];
 			out_map.getFileDescriptions()[i].size = maps[i].size();
+			out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
 		}
 		//Exception for 'labeled' algorithms: copy file descriptions
 		if (type=="labeled")
@@ -151,6 +152,9 @@ protected:
 
 		//group
 		algorithm->group(maps,out_map);
+
+    // assign unique ids
+    out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
 		//annotate output with data processing info
 		addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));

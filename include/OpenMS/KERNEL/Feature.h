@@ -31,7 +31,6 @@
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 
 namespace OpenMS
@@ -254,6 +253,44 @@ namespace OpenMS
 		{
 			subordinates_ = rhs;
 		}
+
+
+    /**@brief Applies a member function of Type to all features, including subordinates.
+       The returned values are accumulated.
+
+       <b>Example:</b>  The following will print the number of features with invalid unique ids:
+       @code
+       Feature f;
+       (...)
+       std::cout << f.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) << std::endl;
+       @endcode
+       See e.g. UniqueIdInterface for what else can be done this way.
+    */
+    template < typename Type >
+    Size applyMemberFunction( Size (Type::*member_function)() )
+    {
+      Size assignments = 0;
+      assignments += ((*this).*member_function)();
+      for ( std::vector<Feature>::iterator iter = subordinates_.begin(); iter != subordinates_.end(); ++iter)
+      {
+        assignments += iter->applyMemberFunction(member_function);
+      }
+      return assignments;
+    }
+
+    /// The "const" variant.
+    template < typename Type >
+    Size applyMemberFunction( Size (Type::*member_function)() const ) const
+    {
+      Size assignments = 0;
+      assignments += ((*this).*member_function)();
+      for ( std::vector<Feature>::const_iterator iter = subordinates_.begin(); iter != subordinates_.end(); ++iter)
+      {
+        assignments += iter->applyMemberFunction(member_function);
+      }
+      return assignments;
+    }
+
 
 	 protected:
 

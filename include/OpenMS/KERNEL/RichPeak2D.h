@@ -30,84 +30,91 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
 namespace OpenMS
 {
 
 	/**	
-		@brief A 2-dimensional raw data point or peak mith meta information.
+		@brief A 2-dimensional raw data point or peak with meta information.
 	 
-		This datastructure is intended for continuous data or peak data.
-		If wou do not need to annotated single peaks with meta data, use Peak2D instead.
+		This data structure is intended for continuous data or peak data.
+		If you do not need to annotated single peaks with meta data, use Peak2D instead.
 	
 		@ingroup Kernel
 	*/
 	class OPENMS_DLLAPI RichPeak2D 
 		: public Peak2D, 
-			public MetaInfoInterface
+			public MetaInfoInterface,
+			public UniqueIdInterface
 	{
 		public:
 		
 		/// Default constructor
 		RichPeak2D() 
 			: Peak2D(),
-				MetaInfoInterface()
+				MetaInfoInterface(),
+				UniqueIdInterface()
 		{
-			
 		}
 		
 		/// Copy constructor
-		inline RichPeak2D(const RichPeak2D& p) 
+		RichPeak2D(const RichPeak2D& p)
 			: Peak2D(p),
-				MetaInfoInterface(p)
+				MetaInfoInterface(p),
+				UniqueIdInterface(p)
 		{
 		}
 
-		/// Copy constructor
-		inline RichPeak2D(const Peak2D& p) 
+		/// Constructor from Peak2D
+		RichPeak2D(const Peak2D& p)
 			: Peak2D(p),
 				MetaInfoInterface()
 		{
+		  UniqueIdInterface::clearUniqueId();
 		}
 		
 		/// Destructor
-		~RichPeak2D() 
+		~RichPeak2D()
 		{
 		}
     
 		/// Assignment operator
-		inline RichPeak2D& operator = (const RichPeak2D& rhs)
+		RichPeak2D& operator = (const RichPeak2D& rhs)
 		{
 			if (this==&rhs) return *this;
 			
 			Peak2D::operator = (rhs);
 			MetaInfoInterface::operator = (rhs);
+			UniqueIdInterface::operator = (rhs);
 			
 			return *this;
 		}
 
 		/// Assignment operator
-		inline RichPeak2D& operator = (const Peak2D& rhs)
+		RichPeak2D& operator = (const Peak2D& rhs)
 		{
 			if (this==&rhs) return *this;
 			
 			Peak2D::operator = (rhs);
 			clearMetaInfo ();
+			UniqueIdInterface::clearUniqueId();
 			
 			return *this;
 		}
 		
 		/// Equality operator
-		inline bool operator == (const RichPeak2D& rhs) const
+		bool operator == (const RichPeak2D& rhs) const
 		{
 			return 
 				Peak2D::operator == (rhs) &&
-				MetaInfoInterface::operator == (rhs)
+				MetaInfoInterface::operator == (rhs) &&
+				UniqueIdInterface::operator == (rhs)
 			;
 		}
 
 		/// Equality operator
-		inline bool operator != (const RichPeak2D& rhs) const
+		bool operator != (const RichPeak2D& rhs) const
 		{
 			return !(operator == (rhs));
 		}

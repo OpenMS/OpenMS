@@ -261,7 +261,14 @@ namespace OpenMS
 																		PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev) *
 																		PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
 																	 );
-						matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
+
+						// Note: we used to copy the id from the light feature here, but that strategy does not generalize to more than two labels.
+						// We might want to report consensus features where the light one is missing but more than one heavier variant was found.
+						// Also, the old strategy is inconsistent with what was done in the unlabeled case.  Thus now we assign a new unique id here.
+						matches.push_back(ConsensusFeature());
+						matches.back().setUniqueId();
+
+						matches.back().insert(light_index,it->begin()->getElementIndex(),*it);
 						matches.back().clearMetaInfo();
 						matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
 						matches.back().setQuality(score);

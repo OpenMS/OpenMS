@@ -227,6 +227,75 @@ START_SECTION((const PeakFileOptions& getOptions() const))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
 END_SECTION
 
+START_SECTION([EXTRA])
+{
+  Feature f1;
+  f1.setRT(1001);
+  f1.setMZ(1002);
+  f1.setCharge(1003);
+  Feature f1_cpy(f1);
+  Feature f11;
+  f11.setRT(1101);
+  f11.setMZ(1102);
+  Feature f12;
+  f12.setRT(1201);
+  f12.setMZ(1202);
+  Feature f13;
+  f13.setRT(1301);
+  f13.setMZ(1302);
+  TEST_EQUAL(f1.getSubordinates().empty(),true);
+  f1.getSubordinates().push_back(f11);
+  TEST_EQUAL(f1.getSubordinates().size(),1);
+  f1.getSubordinates().push_back(f12);
+  TEST_EQUAL(f1.getSubordinates().size(),2);
+  f1.getSubordinates().push_back(f13);
+  TEST_EQUAL(f1.getSubordinates().size(),3);
+  TEST_EQUAL(f1.getRT(),1001);
+  TEST_EQUAL(f1.getSubordinates()[0].getRT(),1101);
+  TEST_EQUAL(f1.getSubordinates()[1].getRT(),1201);
+  TEST_EQUAL(f1.getSubordinates()[2].getRT(),1301);
+  const Feature &f1_cref = f1;
+  TEST_EQUAL(f1_cref.getMZ(),1002);
+  TEST_EQUAL(f1_cref.getSubordinates()[0].getMZ(),1102);
+  TEST_EQUAL(f1_cref.getSubordinates()[1].getMZ(),1202);
+  TEST_EQUAL(f1_cref.getSubordinates()[2].getMZ(),1302);
+  TEST_NOT_EQUAL(f1_cref,f1_cpy);
+  Feature f1_cpy2(f1);
+  TEST_EQUAL(f1_cpy2,f1);
+  f1.getSubordinates().clear();
+  TEST_EQUAL(f1_cref,f1_cpy);
+
+  Feature f2;
+  f2.setRT(1001);
+  f2.setMZ(1002);
+  f2.setCharge(1003);
+  TEST_NOT_EQUAL(f1_cpy2.getSubordinates().empty(),true);
+  f2.setSubordinates(f1_cpy2.getSubordinates());
+  TEST_EQUAL(f2,f1_cpy2);
+
+  String filename;
+  NEW_TMP_FILE(filename);
+  FeatureXMLFile f;
+  FeatureMap<> e;
+  e.push_back(f1);
+  e.push_back(f2);
+
+  // this will print the number of newly assigned unique ids
+  STATUS(e.applyMemberFunction(&UniqueIdInterface::ensureUniqueId));
+
+  f.store(filename, e);
+  FeatureMap<> e2;
+  f.load(filename,e2);
+  TEST_EQUAL(e==e2,true);
+  String filename2;
+  NEW_TMP_FILE(filename2);
+  f.store(filename2, e2);
+
+}
+END_SECTION
+
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

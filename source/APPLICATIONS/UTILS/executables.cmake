@@ -25,6 +25,7 @@ ERPairFinder
 MRMPairFinder
 OpenMSInfo
 DeMeanderize
+UniqueIdAssigner
 )
 
 ### pass source file list to the upper instance

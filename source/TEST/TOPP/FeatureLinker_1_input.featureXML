@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<featureMap version="1.3" unique_id="fm_13194286469662031022" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2006-03-09T11:31:52" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
@@ -11,13 +10,11 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
-
-	<featureList count="2">
+	<featureList count="16">
 		
 		<!-- FRAME FOR VIEWER -->
 		
@@ -30,7 +27,6 @@
 			<overallquality>1</overallquality>
 			<charge>1</charge>
 		</feature>
-		
 		<feature id="f_2">
 			<position dim="0">20</position>
 			<position dim="1">600</position>
@@ -40,9 +36,6 @@
 			<overallquality>1</overallquality>
 			<charge>1</charge>
 		</feature>
-
-		<!-- CHARGE 1 -->
-
 		<feature id="f_3">
 			<position dim="0">11</position>
 			<position dim="1">558</position>
@@ -53,11 +46,7 @@
 			<charge>1</charge>
 			<convexhull nr="0">
 				<hullpoint>
-					<hposition dim="0">11</hposition>
-					<hposition dim="1">560</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">12</hposition>
+					<hposition dim="0">10</hposition>
 					<hposition dim="1">558</hposition>
 				</hullpoint>
 				<hullpoint>
@@ -65,16 +54,19 @@
 					<hposition dim="1">556</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">10</hposition>
+					<hposition dim="0">12</hposition>
 					<hposition dim="1">558</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">11</hposition>
+					<hposition dim="1">560</hposition>
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="A" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-		</feature>	
-
+		</feature>
 		<feature id="f_4">
 			<position dim="0">9</position>
 			<position dim="1">566</position>
@@ -84,7 +76,6 @@
 			<overallquality>3</overallquality>
 			<charge>1</charge>
 		</feature>
-
 		<feature id="f_5">
 			<position dim="0">11</position>
 			<position dim="1">566</position>
@@ -94,7 +85,6 @@
 			<overallquality>4</overallquality>
 			<charge>1</charge>
 		</feature>
-
 		<feature id="f_6">
 			<position dim="0">10</position>
 			<position dim="1">559</position>
@@ -103,8 +93,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>5</overallquality>
 			<charge>1</charge>
-		</feature>		
-
+		</feature>
 		<feature id="f_7">
 			<position dim="0">10</position>
 			<position dim="1">566</position>
@@ -117,8 +106,7 @@
 				<PeptideHit score="35" sequence="E" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-		</feature>		
-
+		</feature>
 		<feature id="f_8">
 			<position dim="0">10</position>
 			<position dim="1">573</position>
@@ -143,8 +131,7 @@
 				<PeptideHit score="35" sequence="C" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-		</feature>	
-
+		</feature>
 		<feature id="f_10">
 			<position dim="0">14</position>
 			<position dim="1">531</position>
@@ -154,7 +141,6 @@
 			<overallquality>9</overallquality>
 			<charge>2</charge>
 		</feature>
-
 		<feature id="f_11">
 			<position dim="0">14</position>
 			<position dim="1">534</position>
@@ -167,8 +153,7 @@
 				<PeptideHit score="35" sequence="D" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-		</feature>		
-
+		</feature>
 		<feature id="f_12">
 			<position dim="0">14</position>
 			<position dim="1">537</position>
@@ -177,8 +162,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>11</overallquality>
 			<charge>2</charge>
-		</feature>		
-
+		</feature>
 		<feature id="f_13">
 			<position dim="0">15</position>
 			<position dim="1">534</position>
@@ -187,8 +171,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>12</overallquality>
 			<charge>2</charge>
-		</feature>		
-
+		</feature>
 		<feature id="f_14">
 			<position dim="0">13</position>
 			<position dim="1">534</position>
@@ -207,12 +190,9 @@
 			<intensity>100</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
-			<quality dim="0">1</quality>
-			<quality dim="1">1</quality>
 			<overallquality>14</overallquality>
 			<charge>1</charge>
-		</feature>	
-
+		</feature>
 		<feature id="f_16">
 			<position dim="0">17</position>
 			<position dim="1">558</position>
@@ -222,6 +202,5 @@
 			<overallquality>15</overallquality>
 			<charge>2</charge>
 		</feature>
-
 	</featureList>
 </featureMap>

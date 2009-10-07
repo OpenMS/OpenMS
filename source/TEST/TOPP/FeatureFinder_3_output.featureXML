@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.3" unique_id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinder" version="version_string" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="2">
-		<feature id="f_0">
+		<feature id="f_13229490167902618598">
 			<position dim="0">1245.63644234902</position>
 			<position dim="1">675.893173817309</position>
 			<intensity>115571</intensity>
@@ -86,7 +86,7 @@
 			<userParam type="int" name="spectrum_index" value="34"/>
 			<userParam type="string" name="spectrum_native_id" value="spectrum=35"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_5024549519481199379">
 			<position dim="0">1244.81231128703</position>
 			<position dim="1">690.057207193024</position>
 			<intensity>2.29875e+06</intensity>

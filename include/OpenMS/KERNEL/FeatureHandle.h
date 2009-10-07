@@ -63,7 +63,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor with map index, element index and position
-		FeatureHandle(Size map_index, Size element_index, const Peak2D& point)
+		FeatureHandle(UInt64 map_index, UInt64 element_index, const Peak2D& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -71,7 +71,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and Feature
-		FeatureHandle(Size map_index, Size element_index, const Feature& point)
+		FeatureHandle(UInt64 map_index, UInt64 element_index, const Feature& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -79,7 +79,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and ConsensusFeature
-		FeatureHandle(Size map_index, Size element_index, const ConsensusFeature& point);
+		FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature& point);
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: Peak2D(rhs),
@@ -91,8 +91,6 @@ namespace OpenMS
 		/// Assignment operator
 		FeatureHandle& operator = (const FeatureHandle& rhs)
 		{
-			if (&rhs == this) return *this;
-        
 			Peak2D::operator=(rhs);
 			map_index_ = rhs.map_index_;
 			element_index_ = rhs.element_index_;
@@ -125,22 +123,22 @@ namespace OpenMS
     ///@name Accessors
     //@{
 		/// Returns the map index
-		Size getMapIndex() const
+		UInt64 getMapIndex() const
 		{
 			return map_index_;
 		}
 		/// Set the map index
-		void setMapIndex(Size i)
+		void setMapIndex(UInt64 i)
 		{
 			map_index_ = i;
 		}
 		/// Returns the element index
-		Size getElementIndex() const
+		UInt64 getElementIndex() const
 		{
 			return element_index_;
 		}
 		/// Set the element index
-		void setElementIndex(Size e)
+		void setElementIndex(UInt64 e)
 		{
 			element_index_= e;
 		}
@@ -157,15 +155,18 @@ namespace OpenMS
 		//@}
 				
 		/// Equality operator
-		virtual bool operator == (const FeatureHandle& i) const
+		bool operator == (const FeatureHandle& i) const
 		{
-			return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
+			return  (Peak2D::operator==(i)) &&
+			    (map_index_ == i.map_index_) &&
+			    (element_index_ == i.element_index_) &&
+			    (charge_ == i.charge_);
 		}
 
 		/// Equality operator
-		virtual bool operator != (const FeatureHandle& i) const
+		bool operator != (const FeatureHandle& i) const
 		{
-			return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
+			return !(operator==(i));
 		}
 			
 		///Comparator by map and element index
@@ -187,9 +188,9 @@ namespace OpenMS
 	 protected:
     	
 		/// Int of the element's container
-		Size map_index_;
+    UInt64 map_index_;
 		/// Int of the element within element's container
-		Size element_index_;
+		UInt64 element_index_;
 		/// Charge of the feature
 		Int charge_;
   };

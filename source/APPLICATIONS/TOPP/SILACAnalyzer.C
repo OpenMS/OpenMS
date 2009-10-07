@@ -900,6 +900,10 @@ class TOPPSILACAnalyzer
       //--------------------------------------------------------------
       if (out!="")
       {
+
+        // assign unique ids
+        all_pairs.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
         //annotate output with data processing info
         addDataProcessing_(all_pairs, getProcessingInfo_(DataProcessing::QUANTITATION));
 
@@ -909,6 +913,9 @@ class TOPPSILACAnalyzer
 
       if (out_visual!="")
       {
+        // assign unique ids
+        all_cluster_points.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
         FeatureXMLFile f_file;
         f_file.store(out_visual,all_cluster_points);
       }

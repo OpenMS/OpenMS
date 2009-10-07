@@ -16,6 +16,8 @@ Types.h
 VersionInfo.h
 LogStream.h
 UniqueIdGenerator.h
+UniqueIdInterface.h
+UniqueIdIndexer.h
 )
 
 ### add path to the filenames

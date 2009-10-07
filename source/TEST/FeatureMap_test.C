@@ -29,6 +29,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+
+#include <algorithm>
 #include <string>
 
 ///////////////////////////
@@ -462,7 +464,7 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 
 END_SECTION
 
-START_SECTION(void clear(bool clear_meta_data))
+START_SECTION((void clear(bool clear_meta_data)))
   FeatureMap<> map1;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
@@ -480,6 +482,54 @@ START_SECTION(void clear(bool clear_meta_data))
 	TEST_EQUAL(map1==FeatureMap<>(),true)
 END_SECTION
 
+
+START_SECTION((void updateUniqueIdToIndex()))
+{
+	  FeatureMap<> fm;
+	  Feature f;
+	  f.setMZ(23.9);
+	  std::vector< std::pair < Size, UInt64 > > pairs;
+	  const Size num_features = 4;
+	  for ( Size i = 0; i < num_features; ++i )
+	  {
+	    f.setRT(i*100);
+	    f.setUniqueId();
+	    pairs.push_back(make_pair(i,f.getUniqueId()));
+      fm.push_back(f);
+	  }
+    for ( Size i = 0; i < num_features; ++i )
+    {
+      TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first);
+    }
+    STATUS("shuffling ...");
+    std::random_shuffle(pairs.begin(),pairs.end());
+    std::random_shuffle(fm.begin(),fm.end());
+    for ( Size i = 0; i < num_features; ++i )
+    {
+      STATUS("pairs[i]:  " << pairs[i].first << ", " << pairs[i].second )
+      TEST_EQUAL(fm.uniqueIdToIndex(fm[pairs[i].first].getUniqueId()),pairs[i].first);
+      TEST_EQUAL(fm[fm.uniqueIdToIndex(pairs[i].second)].getUniqueId(),pairs[i].second);
+    }
+
+    f.setRT(98765421);
+    f.setUniqueId();
+    pairs.push_back(make_pair(987654321,f.getUniqueId()));
+
+    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),Size(-1));
+    fm.push_back(f);
+    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),fm.size()-1);
+
+    fm.push_back(Feature());
+    fm.push_back(f);
+    fm.push_back(Feature());
+    fm.push_back(Feature());
+    STATUS("fm: " << fm);
+    fm.erase(fm.begin()+1);
+    fm.erase(fm.begin()+2);
+    STATUS("fm: " << fm);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,fm.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==7, num_valid_unique_id==4, uniqueid_to_index_.size()==3");
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

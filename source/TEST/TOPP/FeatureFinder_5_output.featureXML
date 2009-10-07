@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.3" unique_id="fm_16627578304933075941" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinder" version="version_string" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="5">
-		<feature id="f_0">
+		<feature id="f_13229490167902618598">
 			<position dim="0">1617.00718131249</position>
 			<position dim="1">656.356994628906</position>
 			<intensity>3.91214e+06</intensity>
@@ -44,7 +44,7 @@
 			<userParam type="float" name="MZ" value="443.707"/>
 			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
-		<feature id="f_1">
+		<feature id="f_5024549519481199379">
 			<position dim="0">2152.26572764145</position>
 			<position dim="1">722.403991699219</position>
 			<intensity>1.57211e+07</intensity>
@@ -82,7 +82,7 @@
 			<userParam type="float" name="MZ" value="461.743"/>
 			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
-		<feature id="f_2">
+		<feature id="f_6211693768620736135">
 			<position dim="0">2267.94328782799</position>
 			<position dim="1">722.403991699219</position>
 			<intensity>7700</intensity>
@@ -120,7 +120,7 @@
 			<userParam type="float" name="MZ" value="461.743"/>
 			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
-		<feature id="f_3">
+		<feature id="f_2727934422266510952">
 			<position dim="0">2299.80627336107</position>
 			<position dim="1">600.330993652344</position>
 			<intensity>3.27738e+06</intensity>
@@ -158,7 +158,7 @@
 			<userParam type="float" name="MZ" value="554.256"/>
 			<userParam type="int" name="spectrum_index" value="0"/>
 		</feature>
-		<feature id="f_4">
+		<feature id="f_3318143123566627610">
 			<position dim="0">2511.65687358884</position>
 			<position dim="1">600.330993652344</position>
 			<intensity>2360</intensity>

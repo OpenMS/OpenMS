@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -25,28 +25,42 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <iomanip>
 
 namespace OpenMS
 {
-	
-	FeatureHandle::FeatureHandle(UInt64 map_index, UInt64 element_index, const ConsensusFeature& point)
-		: Peak2D(point),
-			map_index_(map_index),
-			element_index_(element_index),
-			charge_(point.getCharge())
-	{
-	}
 
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
+void
+UniqueIdInterface::setUniqueId(const String & rhs)
+{
+  clearUniqueId();
+
+  String::size_type last_underscore = rhs.rfind('_');
+  // Note: String::npos is usually defined as size_t(-1).
+  // In any case, the condition of the next if() statement evaluates to a constant
+  // and can be "compiled away".
+  if ( String::npos + 1 != 0 )
   {
-    os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Index: " << cons.getElementIndex() << std::endl;
-    return os;
+    if ( last_underscore == String::npos )
+    {
+      last_underscore = -1;
+    }
   }
-} 
+  // For the next line to be correct in case rhs contains no '_', it is necessary that npos+1==0;
+  std::stringstream ss(rhs.substr(last_underscore + 1));
+  ss >> std::noskipws >> unique_id_;
+  // parsing successful?
+  if ( !ss )
+  {
+    clearUniqueId();
+  }
+
+  // See if any trash remains at end
+  if ( !ss.eof() )
+  {
+    clearUniqueId();
+  }
+}
+
+}

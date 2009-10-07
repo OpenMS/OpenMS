@@ -32,8 +32,6 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <gsl/gsl_rng.h>
-
 #include <iostream>
 
 namespace OpenMS
@@ -57,11 +55,8 @@ class OPENMS_DLLAPI UniqueIdGenerator
 
   public:
 
-    /// Unique Ids are 64-bit unsigned integers
-    typedef UInt64 UniqueId;
-
     /// Returns a new unique id
-    static UniqueId
+    static UInt64
     getUniqueId();
 
     /// Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
@@ -84,9 +79,7 @@ class OPENMS_DLLAPI UniqueIdGenerator
     void
     init_(const DateTime& date_time);
 
-    gsl_rng * random_number_generator_;
     Param info_;
-    DateTime initialization_date_time_;
 
 };
 

@@ -48,6 +48,8 @@ namespace OpenMS
 		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
 		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.  For using all peaks, set this to -1.");
 		defaults_.setMinInt("max_num_peaks_considered",-1);
+    defaults_.setValue("reference_map_index",-1,"The index of the reference map, in the range [0:#maps-1].  If set to -1, the map with the most peaks/features is automatically taken as the reference map.");
+    defaults_.setMinInt("reference_map_index",-1);
 		//TODO 'max_num_peaks_considered' should apply to peaks and features!! (Clemens)
 		defaultsToParam_();
 	}
@@ -162,16 +164,33 @@ namespace OpenMS
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		// define reference map (the one with most peaks)
+    const Int reference_map_index_signed = param_.getValue("reference_map_index");
 		Size reference_map_index = 0;
-		Size max_count = 0;
-		for (Size m=0; m<maps.size(); ++m)
-		{
-			if (maps[m].size()>max_count)
-			{
-				max_count = maps[m].size();
-				reference_map_index = m;
-			}
-		}
+    if ( reference_map_index_signed == -1 )
+    {
+      // compute reference_map_index
+      Size max_count = 0;
+      for ( Size m = 0; m < maps.size(); ++m )
+      {
+        if ( maps[m].size() > max_count )
+        {
+          max_count = maps[m].size();
+          reference_map_index = m;
+        }
+      }
+    }
+    else
+    {
+      if ( reference_map_index_signed >= 0 && reference_map_index_signed < (Int) maps.size() )
+      {
+        reference_map_index = (Size) reference_map_index_signed;
+      }
+      else
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("reference_map_index ")+reference_map_index+" must be in the range [-1:#maps-1]");
+      }
+    }
+
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     std::vector<ConsensusMap> input(2);
