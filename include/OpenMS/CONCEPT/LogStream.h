@@ -30,18 +30,19 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <ctime>
+
+#include <sstream>
 #include <iostream>
 #include <list>
 #include <vector>
+#include <ctime>
+
+
 
 namespace OpenMS 
 {
 
 	/**	@name Log streams
-			
-			Generously provided by the BALL people, taken from version 1.2
-
 			Logging, filtering, and storing messages.
 			Many programs emit warning messages, error messages, or simply
 			informations and remarks to their users. The  LogStream  
@@ -100,9 +101,9 @@ namespace OpenMS
 		/**	@name	Constants
 		*/
 		//@{
-		static const Int MAX_LEVEL;
-		static const Int MIN_LEVEL;
-		static const Time MAX_TIME;
+		static const int MAX_LEVEL;
+		static const int MIN_LEVEL;
+		static const time_t MAX_TIME;
 		//@}
 
 		/**	@name Constructors and Destructors
@@ -148,21 +149,21 @@ namespace OpenMS
 				Incomplete lines (not terminated by "\n" / "\r" are
 				stored in incomplete_line_.
 		*/
-		virtual Int sync();
+		virtual int sync();
 
 		/**	Overflow method.
 				This method calls sync and <tt>streambuf::overflow(c)</tt> to 
 				prevent a buffer overflow.
 		*/
-		virtual Int overflow(Int c = -1);
+		virtual int overflow(int c = -1);
 		//@}
 
 		OPENMS_DLLAPI struct StreamStruct
 		{
 			std::ostream*				stream;
-			String							prefix;
-			Int									min_level;
-			Int									max_level;
+			std::string							prefix;
+			int									min_level;
+			int									max_level;
 			LogStreamNotifier*	target;
 		
 			StreamStruct()
@@ -184,9 +185,9 @@ namespace OpenMS
 
 		struct LoglineStruct 
 		{	
-			Int     level;
-			String  text;
-			Time  time;
+			int     level;
+			std::string  text;
+			time_t  time;
 
 			LoglineStruct()
 				: level(0),
@@ -198,20 +199,20 @@ namespace OpenMS
 		typedef struct LoglineStruct Logline;
 
 
-		// interpret the prefix format String and return the expanded prefix
-		String expandPrefix_(const String& prefix, Int level, Time time) const;
+		// interpret the prefix format string and return the expanded prefix
+		std::string expandPrefix_(const std::string& prefix, int level, time_t time) const;
 
 		char* 									pbuf_;
 
-		std::vector<Logline> 				loglines_;
+		std::vector<Logline> 		loglines_;
 	
-		Int											level_;
+		int											level_;
 
-		Int											tmp_level_;
+		int											tmp_level_;
 		
-		std::list<StreamStruct>			stream_list_;
+		std::list<StreamStruct>	stream_list_;
 
-		String									incomplete_line_;
+		std::string									incomplete_line_;
 	};
 
 
@@ -231,8 +232,8 @@ namespace OpenMS
 
 		///
 		void registerAt(LogStream& log_stream,
-										Int min_level = LogStreamBuf::MIN_LEVEL, 
-										Int max_level = LogStreamBuf::MAX_LEVEL);
+										int min_level = LogStreamBuf::MIN_LEVEL, 
+										int max_level = LogStreamBuf::MAX_LEVEL);
 		///
 		void unregister();
 
@@ -331,20 +332,20 @@ namespace OpenMS
 				(except for messages which use the temporary loglevel
 				set by LogStream::level ).
 		*/
-		void setLevel(Int level);
+		void setLevel(int level);
 
 		/**	Return the current log level.
 				The LogStreamBuf object has an internal current log level (<tt>level_</tt>).
 				It is set to 0 by the LogStreamBuf default constructor.
 				This method returns <tt>rdbuf()->level_</tt> if rdbuf() does not
 				return a null pointer, 0 otherwise.
-				@return		Int the current log level
+				@return		int the current log level
 		*/
-		Int getLevel();
+		int getLevel();
 
 		/**	Set a temporary log level.
 				Using <b>level</b>, a temporary loglevel may be defined.
-				It is valid only until the next <b>flush</b> or <b>endl</b> is issued. \par
+				It is valid unly until the next <b>flush</b> or <b>endl</b> is issued. \par
 				Use this command to log a single line with a certain log level. \par
 				<b>Example:</b>
 					<tt>log << "log message 1" << endl;</tt> \par
@@ -355,25 +356,25 @@ namespace OpenMS
 				@return	LogStream the log stream
 				@param	level the temporary log level
 		*/
-		LogStream& level(Int level);
+		LogStream& level(int level);
 
 		/**	Log an information message.
 				This method is equivalent to LogStream::level (LogStream::INFORMATION + n). 
 				@param	n the channel 
 		*/
-		LogStream& info(Int n = 0);
+		LogStream& info(int n = 0);
 
 		/**	Log an error message.
 				This method is equivalent to  LogStream::level (LogStream::ERROR + n). 
 				@param	n the channel 
 		*/
-		LogStream& error(Int n = 0);
+		LogStream& error(int n = 0);
 
 		/**	Log an information message.
 				This method is equivalent to LogStream::level (LogStream::WARNING + n). 
 				@param	n the channel 
 		*/
-		LogStream& warn(Int n = 0);
+		LogStream& warn(int n = 0);
 
 		//@}
 
@@ -396,8 +397,8 @@ namespace OpenMS
 				@param	max_level the maximum level of messages copied to this stream
 		*/
 		void insert
-			(std::ostream& s, Int min_level = LogStreamBuf::MIN_LEVEL, 
-			 Int max_level = LogStreamBuf::MAX_LEVEL);
+			(std::ostream& s, int min_level = LogStreamBuf::MIN_LEVEL, 
+			 int max_level = LogStreamBuf::MAX_LEVEL);
 
 		/**	Remove an association with a stream.
 				Remove a stream from the stream list and avoid the copying of new messages to
@@ -412,8 +413,8 @@ namespace OpenMS
 		*/
 		void insertNotification(std::ostream& s, 
 														LogStreamNotifier& target,
-														Int min_level = LogStreamBuf::MIN_LEVEL, 
-														Int max_level = LogStreamBuf::MAX_LEVEL);
+														int min_level = LogStreamBuf::MIN_LEVEL, 
+														int max_level = LogStreamBuf::MAX_LEVEL);
 
 		/**	Set the minimum log level of an associated stream.
 				This method changes the minimum log level of an already
@@ -422,7 +423,7 @@ namespace OpenMS
 				@param	s the associated stream
 				@param	min_level the new minimum level
 		*/
-		void setMinLevel(const std::ostream& s, Int min_level);
+		void setMinLevel(const std::ostream& s, int min_level);
 		
 		/**	Set the maximum log level of an associated stream.
 				This method changes the maximum log level of an already
@@ -431,11 +432,11 @@ namespace OpenMS
 				@param	s the associated stream
 				@param	max_level the new minimum level
 		*/
-		void setMaxLevel(const std::ostream& s, Int max_level);
+		void setMaxLevel(const std::ostream& s, int max_level);
 
 		/**	Set prefix for output to this stream.
 				Each line written to the stream will be prefixed by
-				this String. The string may also contain trivial 
+				this string. The string may also contain trivial 
 				format specifiers to include loglevel and time/date 
 				of the logged message. \par
 				The following format tags are recognized:
@@ -451,7 +452,7 @@ namespace OpenMS
 					- <b>%%</b>	percent sign (escape sequence)
 				
 		*/
-		void setPrefix(const std::ostream& s, const String& prefix);
+		void setPrefix(const std::ostream& s, const std::string& prefix);
 
 		/// Disable all output
 		void disableOutput();
@@ -485,29 +486,29 @@ namespace OpenMS
 				@param	max_level the maximum log level for the counted messages
 		*/
 		Size getNumberOfLines
-			(Int min_level = LogStreamBuf::MIN_LEVEL, 
-			 Int max_level = LogStreamBuf::MAX_LEVEL) const;
+			(int min_level = LogStreamBuf::MIN_LEVEL, 
+			 int max_level = LogStreamBuf::MAX_LEVEL) const;
 
 		/**	Return the text of a specific line.
 				This method returns the content of a specific message without
 				time and level.
-				@return String the text of the message
+				@return string the text of the message
 				@param	index the index of the line
 		*/
-		String getLineText(const SignedSize& index) const;
+		std::string getLineText(const SignedSize& index) const;
 
 		/**	Return the log time of a specific line
 				@param index the index of the messages
-				@return Time the time of the message
+				@return time_t the time of the message
 		*/
-		Time getLineTime(const SignedSize& index) const;	
+		time_t getLineTime(const SignedSize& index) const;	
 	
 		/**	Return the log level of a specific line.
 				If the given line does not exists, {\em -1} is returned.
 				@param index the index of the message
-				@return Int the level
+				@return int the level
 		*/
-		Int getLineLevel(const SignedSize& index) const;
+		int getLineLevel(const SignedSize& index) const;
 		
 		/** Retrieve a list of indices of lines that match certain criteria.
 				If a criterion is left empty, it is not used.
@@ -517,10 +518,10 @@ namespace OpenMS
 				@param latest (long) the time of messages to stop filtering
 				@param s a string to look for
 		*/
-		std::list<Int>	filterLines
-			(Int min_level = LogStreamBuf::MIN_LEVEL, Int max_level = LogStreamBuf::MAX_LEVEL,
-			 Time earliest = 0, Time latest = LogStreamBuf::MAX_TIME, 
-			 const String& s = "") const;
+		std::list<int>	filterLines
+			(int min_level = LogStreamBuf::MIN_LEVEL, int max_level = LogStreamBuf::MAX_LEVEL,
+			 time_t earliest = 0, time_t latest = LogStreamBuf::MAX_TIME, 
+			 const std::string& s = "") const;
 		//@}
 
 		private:
@@ -544,7 +545,7 @@ namespace OpenMS
 			This instance of LogStream is by default bound to <b>cout</b> <b>cerr</b> by calling
 			the default constructor.
 	*/
-	//OPENMS_DLLAPI extern LogStream	Log;
+	OPENMS_DLLAPI extern LogStream	Log;
 
 	//@}
 	
