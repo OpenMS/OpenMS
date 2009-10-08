@@ -94,6 +94,7 @@ namespace OpenMS
 	///
 	/// @param ms_exp_data Raw data to read
 	/// @param consensus_map Output each MS² scan as a consensus feature
+	/// @throws Exception::MissingInformation if MS² scan has no precursor
 	void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
 	{
 		MSExperiment<> ms_exp_MS2;
@@ -131,32 +132,39 @@ namespace OpenMS
 			{
 				std::cerr << "Warning: OpenMS peak type estimation indicates that this is peak data already!";
 			}					
+		}
+		Param pepi_param = param_.copy("PeakPicker:",true);
+		PeakPickerCWT peak_picker;
+		peak_picker.setParameters(pepi_param);
 
-			Param pepi_param = param_.copy("PeakPicker:",true);
-			PeakPickerCWT peak_picker;
-			peak_picker.setParameters(pepi_param);
-
-			for (size_t idx=0; idx<ms_exp_data.size(); ++idx)
+		String mode = (String) param_.getValue("select_activation");
+		std::cout << "Selecting scans with activation mode: " << (mode=="" ? "any" : mode) << "\n";
+		HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(StringList::create(mode));
+		
+		for (size_t idx=0; idx<ms_exp_data.size(); ++idx)
+		{
+			if (ms_exp_data[idx].getMSLevel()==2)
 			{
-				if (ms_exp_data[idx].getMSLevel()==2)
+				if (mode=="" || activation_predicate(ms_exp_data[idx]) )
 				{
-					// copying is important, because the peakpicker does not preserve precusor peak information etc
-					MSSpectrum <Peak1D> spectrum_picked(ms_exp_data[idx]);
-					peak_picker.pick(ms_exp_data[idx],spectrum_picked);
-					ms_exp_MS2.push_back(spectrum_picked);
+					if (do_picking)
+					{	// pick peaks: copying is important, because the peakpicker does not preserve precusor peak information etc
+						MSSpectrum <Peak1D> spectrum_picked(ms_exp_data[idx]);
+						peak_picker.pick(ms_exp_data[idx],spectrum_picked);
+						ms_exp_MS2.push_back(spectrum_picked);
+					}
+					else
+					{ // copy only MS² scans
+						ms_exp_MS2.push_back(ms_exp_data[idx]);
+					}
 				}
+				else
+				{
+					//std::cout << "deleting spectrum # " << idx << " with RT: " << ms_exp_data[idx].getRT() << "\n";
+				}	
 			}
 		}
-		else
-		{ // copy only MS² scans
-			for (size_t idx=0; idx<ms_exp_data.size(); ++idx)
-			{
-				if (ms_exp_data[idx].getMSLevel()==2)
-				{
-					ms_exp_MS2.push_back(ms_exp_data[idx]);
-				}
-			}				
-		}
+
 		#ifdef ITRAQ_DEBUG
 		std::cout << "we have " << ms_exp_MS2.size() << " scans left of level " << ms_exp_MS2[0].getMSLevel() << std::endl;
 		std::cout << "run: channel_map_ has " << channel_map_.size() << " entries!" << std::endl;
@@ -189,19 +197,24 @@ namespace OpenMS
 		// now we have picked data
 		// --> assign peaks to channels
 		UInt element_index = 0;
+		
+		// for statistics
+		StringList emtpy_scans;
+		Map<Int, Size> empty_channel;
+		
 		for (MSExperiment<>::ConstIterator it=ms_exp_MS2.begin(); it!=ms_exp_MS2.end(); ++it)
 		{
 			// store RT&MZ of parent ion as centroid of ConsensusFeature
 			ConsensusFeature cf;
 			cf.setUniqueId();
 			cf.setRT(it->getRT());
-			if (it->getPrecursors().size()==1)
+			if (it->getPrecursors().size()>=1)
 			{
 				cf.setMZ(it->getPrecursors()[0].getMZ());
 			}
 			else
 			{
-				//TODO meckern?
+				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + String(it->getNativeID()) + " with RT " + String(it->getRT()));
 			}
 
 			Peak2D channel_value;
@@ -227,6 +240,7 @@ namespace OpenMS
 				}
 				
 				overall_intensity += channel_value.getIntensity();
+				if (channel_value.getIntensity() == 0) ++empty_channel[cm_it->second.name];
 
 				// add channel to ConsensusFeature
 				cf.insert (index++, element_index, channel_value);
@@ -242,12 +256,19 @@ namespace OpenMS
 			}
 			else
 			{
-				std::cout << "iTRAQ: skipping scan from RT " << cf.getRT() << " & MZ " << cf.getMZ() << "due to no iTRAQ information\n";
+				emtpy_scans.push_back(String(cf.getRT()));
 			}
 
 			// the tandem-scan in the order they appear in the experiment
 			++element_index;
 		} // ! Experiment iterator
+
+		std::cout <<   "iTRAQ: skipped " << emtpy_scans.size() << " of " << ms_exp_MS2.size() << " selected scans due to lack of iTRAQ information:\n  " << emtpy_scans.concatenate(", ") << "\n";
+		std::cout <<   "iTRAQ: emtpy channels\n";
+		for (Map<Int, Size>::ConstIterator it_ec=empty_channel.begin(); it_ec!=empty_channel.end();++it_ec)
+		{
+			std::cout << "      channel " << it_ec->first << ": " << it_ec->second << " / " <<  ms_exp_MS2.size() << "\n";
+		}
 
 		#ifdef ITRAQ_DEBUG
 		std::cout << "processed " << element_index << " scans" << std::endl;
@@ -260,6 +281,11 @@ namespace OpenMS
 
 	void ItraqChannelExtractor::setDefaultParams_()
 	{
+		defaults_.setValue("select_activation",Precursor::NamesOfActivationMethod[Precursor::HCID],"Operate only on MSn scans where any of its percursors features a certain activation method (usually HCD for iTRAQ)\n");
+		StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD-1]));
+		activation_list.push_back(""); // allow disabling this
+		defaults_.setValidStrings("select_activation",activation_list);
+			
 		defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected postion (of e.g. 114.1, 115.1)"); 
 		defaults_.setMinFloat ("reporter_mass_shift", 0.00000001);
 		defaults_.setMaxFloat ("reporter_mass_shift", 0.5);

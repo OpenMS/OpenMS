@@ -112,6 +112,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap 
 	mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"),exp);
 	Param p;
 	p.setValue("channel_active", StringList::create("114:ref,115:something,116:else"));
+	p.setValue("select_activation","");
   ItraqChannelExtractor ice(ItraqChannelExtractor::FOURPLEX, p);
 	ConsensusMap cm_out;
 	ice.run(exp, cm_out);
