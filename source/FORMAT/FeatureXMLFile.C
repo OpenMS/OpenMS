@@ -124,8 +124,8 @@ namespace OpenMS
 		}
 
 		// write identification runs
-		UInt prot_count = 0;
-		for ( UInt i = 0; i < feature_map.getProteinIdentifications().size(); ++i )
+		Size prot_count = 0;
+		for ( Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i )
 		{
 			const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
 			os << "\t<IdentificationRun ";
@@ -226,7 +226,7 @@ namespace OpenMS
 		}
 
 		//write unassigned peptide identifications
-		for ( UInt i = 0; i < feature_map.getUnassignedPeptideIdentifications().size(); ++i )
+		for ( Size i = 0; i < feature_map.getUnassignedPeptideIdentifications().size(); ++i )
 		{
 			writePeptideIdentification_(filename, os, feature_map.getUnassignedPeptideIdentifications()[i], "UnassignedPeptideIdentification", 1);
 		}
@@ -727,7 +727,7 @@ namespace OpenMS
 		}
 	}
 
-	void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, Size identifier, UInt indentation_level)
+	void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
 	{
 		String indent = String(indentation_level,'\t');
 
@@ -792,18 +792,18 @@ namespace OpenMS
 		if (!feat.getSubordinates().empty())
 		{
 			os << indent << "\t\t\t<subordinate>\n";
-			UInt identifier_subordinate = 0;
 			for (size_t i=0;i<feat.getSubordinates().size();++i)
 			{
-        writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", feat.getSubordinates()[i].getUniqueId(), indentation_level+2);
-        // writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
-				++identifier_subordinate;
+			  // These subordinate identifiers are a bit long, but who cares about subordinates anyway?  :-P
+			  // This way the parent stands out clearly.  However,
+			  // note that only the portion after the last '_' is parsed when this is read back.
+			  writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", feat.getSubordinates()[i].getUniqueId(), indentation_level+2);
 			}
 			os << indent << "\t\t\t</subordinate>\n";
 		}
 
 		// write PeptideIdentification
-		for ( UInt i = 0; i < feat.getPeptideIdentifications().size(); ++i )
+		for ( Size i = 0; i < feat.getPeptideIdentifications().size(); ++i )
 		{
 			writePeptideIdentification_(filename, os, feat.getPeptideIdentifications()[i], "PeptideIdentification", 3);
 		}
