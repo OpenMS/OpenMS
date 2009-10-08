@@ -42,6 +42,8 @@ namespace OpenMS
 
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
+    @todo take care that unique ids are assigned properly by TOPP tools before calling store().
+
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML (mzIdentML and mzQuantML) formats!
 
   	@ingroup FileIO

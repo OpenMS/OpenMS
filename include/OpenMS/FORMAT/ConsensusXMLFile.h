@@ -45,6 +45,8 @@ namespace OpenMS
 
 	A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
+  @todo take care that unique ids are assigned properly by TOPP tools before calling store().
+
 	@ingroup FileIO
   */
   class OPENMS_DLLAPI ConsensusXMLFile
