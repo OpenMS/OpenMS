@@ -64,12 +64,18 @@ END_SECTION
 START_SECTION((static void setSeed(const DateTime &)))
 {
   OpenMS::DateTime one_moment_in_time;
-  one_moment_in_time.set(5,4,666,3,2,1);
+  one_moment_in_time.set(5,4,6666,3,2,1);
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
   // hoping that your compiler already supports the ull suffix for unsigned long long (aka Int64Type) integer literals
   OpenMS::UInt64 unique_ids[] =
-                  { 1663028827116059880ull, 16317018546938646277ull, 4499304917001700489ull, 14007980103328265649ull, 8982057078544736839ull };
+                  {
+                    17506003619360897276ull,
+                    10043082726796495519ull,
+                    7830402478541866667ull,
+                    8002416538250417709ull,
+                    10620916023778653771ull
+                  };
 
   const int num_num = sizeof(unique_ids)/sizeof(*unique_ids);
 
@@ -97,9 +103,9 @@ START_SECTION((static Param const& getInfo()))
   TEST_STRING_EQUAL(param.getValue("generator_type"),"mt19937");
   TEST_STRING_EQUAL(param.getValue("generator_min"),"0");
   TEST_STRING_EQUAL(param.getValue("generator_max"),"4294967295");
-  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_string"),"0666-05-04 03:02:01");
-  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_longlong"),"6660504030201000");
-  TEST_STRING_EQUAL(param.getValue("actually_used_seed"),"1890151705");
+  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_string"),"6666-05-04 03:02:01");
+  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_longlong"),"66660504030201000");
+  TEST_STRING_EQUAL(param.getValue("actually_used_seed"),"262674376");
   STATUS(OpenMS::UniqueIdGenerator::getInfo());
 }
 END_SECTION
