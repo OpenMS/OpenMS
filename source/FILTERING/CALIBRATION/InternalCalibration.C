@@ -46,8 +46,7 @@ namespace OpenMS
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
 		: DefaultParamHandler(obj),
-			ProgressLogger(obj),
-			monoiso_peaks_(obj.monoiso_peaks_)
+			ProgressLogger(obj)
   {}
   
   InternalCalibration& InternalCalibration::operator=(const InternalCalibration& obj)
@@ -55,7 +54,6 @@ namespace OpenMS
 		// take care of self assignments
     if (this == &obj)		return *this;
 		DefaultParamHandler::operator=(obj);
-		monoiso_peaks_=obj.monoiso_peaks_;
     return *this;
   }
 

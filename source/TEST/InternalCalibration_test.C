@@ -56,21 +56,6 @@ END_SECTION
 
 ptr = new InternalCalibration();
 
-START_SECTION((InternalCalibration(InternalCalibration &obj)))
-{
-  InternalCalibration copy(*ptr);
-  TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
-}
-END_SECTION
-
-START_SECTION((InternalCalibration& operator=(const InternalCalibration &obj)))
-{
-  InternalCalibration copy;
-  copy = *ptr;
-  TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
-
-}
-END_SECTION
 
 //START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses)))
 //{
@@ -112,33 +97,6 @@ END_SECTION
 // }
 //END_SECTION
 
-START_SECTION((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
-{
-  std::vector<std::vector<UInt> > p;
-  std::vector<UInt> vec;
-  vec.push_back(1);
-  vec.push_back(2);
-  vec.push_back(3);
-  p.push_back(vec);
-  
-  p.push_back(vec);
-  ptr->setMonoisotopicPeaks(p);
-  TEST_EQUAL(ptr->getMonoisotopicPeaks()== p,true)
-}
-END_SECTION
-
-START_SECTION((void setMonoisotopicPeaks(const std::vector< std::vector< UInt > > &monoiso_peaks)))
-{
-  std::vector<std::vector<UInt> > p;
-  std::vector<UInt> vec;
-  vec.push_back(1);
-  vec.push_back(2);
-  vec.push_back(3);
-  p.push_back(vec);
-  ptr->setMonoisotopicPeaks(p);
-  TEST_EQUAL(ptr->getMonoisotopicPeaks()==p,true)
-}
-END_SECTION
 
 
 /////////////////////////////////////////////////////////////
