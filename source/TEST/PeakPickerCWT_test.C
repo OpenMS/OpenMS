@@ -98,7 +98,7 @@ END_SECTION
 
 START_SECTION(DoubleReal estimatePeakWidth(const MSExperiment<>& input))
   DoubleReal peak_width = pp.estimatePeakWidth(input);
-TEST_REAL_SIMILAR(peak_width,0.1875)
+TEST_REAL_SIMILAR(peak_width,0.421875)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

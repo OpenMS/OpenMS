@@ -1604,7 +1604,7 @@ namespace OpenMS
 		{
 				// the peak widths that are tested
 				//DoubleList widths = DoubleList::create("0.5,0.4,0.3,0.25,0.2,0.15,0.1,0.075,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-				DoubleList widths = DoubleList::create("0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
+				DoubleList widths = DoubleList::create("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
 #ifdef DEBUG_PEAK_PICKING
 				std::cout << "calculating max tic"<<std::endl;
 #endif
@@ -1626,14 +1626,12 @@ namespace OpenMS
 				}
 				// now sort the index_tic_vec according to tic and get the 3 highest spectra:
 				sort(index_tic_vec.begin(),index_tic_vec.end(),TICLess_());
-#ifdef DEBUG_PEK_PICKING
-				std::cout << input[(index_tic_vec.end()-1)->first].getRT() << " "
-									<<  input[(index_tic_vec.end()-2)->first].getRT() << " "
-									<<  input[ (index_tic_vec.end()-3)->first].getRT() << std::endl;
-#endif
 				std::vector<DoubleReal> estimated_widths;
 				for(Size s = 0; s < input.size()&& s < 3;++s)
 					{
+#ifdef DEBUG_PEAK_PICKING
+						std::cout << "RT: "<<input[s].getRT() << "\n";
+#endif
 					  index  = (index_tic_vec.end()-1-s)->first; 
 						// now pick this spectrum with the different peak widths
 						MSExperiment<> exp;
@@ -1661,7 +1659,8 @@ namespace OpenMS
 						
 						// determine slope
 						std::vector<DoubleReal> slopes;
-						DoubleReal m_max = 0.;
+						DoubleReal m_min = std::numeric_limits<DoubleReal>::max();
+						DoubleReal m_min_width = 0.;
 						for(Size i = 0; i < exp.size()-1; ++i)
 							{
 #ifdef DEBUG_PEAK_PICKING
@@ -1669,25 +1668,32 @@ namespace OpenMS
 #endif
 								DoubleReal m = (DoubleReal)((SignedSize)exp[i].size()-(SignedSize)exp[i+1].size())/(widths[i]-widths[i+1]);
 								slopes.push_back(m);
-								if(fabs(m) > m_max) m_max = fabs(m);
+								if(m < m_min)
+									{
+										m_min = m;
+										m_min_width =  (widths[i]+widths[i+1])/2;
+									}
 #ifdef DEBUG_PEAK_PICKING
 								std::cout << (widths[i]+widths[i+1])/2 << "\t"<< m << std::endl;
 #endif
 							}
-						// determine point where slope is decreasing again, there the plateau should begin
-						bool max_found = false;
+						// determine point where slope starts decreasing , there the plateau should end
+						bool min_found = false;
+#ifdef DEBUG_PEAK_PICKING
+						std::cout <<"m_min: "<<m_min<<std::endl;
+#endif
 						for(Size s = 0; s < slopes.size(); ++s)
 							{
 #ifdef DEBUG_PEAK_PICKING
-								std::cout << slopes[s]/m_max << std::endl;
+								std::cout << slopes[s] << std::endl;
 #endif
-								if(fabs(fabs(slopes[s])- m_max) < 0.01) max_found = true;
-								if(max_found && fabs(slopes[s]/m_max) <= 0.75)
+								if(fabs(slopes[s] - m_min) < 0.01) min_found = true;
+								if(min_found && slopes[s]/m_min < 0.5)
 									{
 #ifdef DEBUG_PEAK_PICKING
-										std::cout << "peak_width = "<< (widths[s]+widths[s+1])/2 <<std::endl;
+										std::cout << "peak_width = "<< (m_min_width+(widths[s]+widths[s+1])/2)/2 <<std::endl;
 #endif
-										estimated_widths.push_back((widths[s]+widths[s+1])/2);
+										estimated_widths.push_back((m_min_width+(widths[s]+widths[s+1])/2)/2);
 										break;
 									}
 							}
