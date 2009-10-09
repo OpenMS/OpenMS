@@ -98,7 +98,10 @@ END_SECTION
 START_SECTION((LogStreamBuf* rdbuf()))
 {
   LogStream l1(new LogStreamBuf());
-  //TEST_NOT_EQUAL(l1.rdbuf(), 0)
+  // small workaround since TEST_NOT_EQUAL(l1.rdbuf, 0) would expand to
+  // cout << ls.rdbuf()
+  // which leeds kills the cout buffer
+  TEST_NOT_EQUAL((l1.rdbuf()==0), true)
 }
 END_SECTION
   
