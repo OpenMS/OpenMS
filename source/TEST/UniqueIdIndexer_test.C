@@ -172,7 +172,7 @@ START_SECTION((void swap(UniqueIdIndexer &rhs)))
   canAccessTheUniqueIdMap(dvi).getUniqueIdMap().clear();
   TEST_EQUAL(canAccessTheUniqueIdMap(dvi).getUniqueIdMap().size(),0);
 
-  TEST_EQUAL(dvi.uniqueIdToIndex(4321234324124),Size(-1));
+  TEST_EQUAL(dvi.uniqueIdToIndex(4321234324124ull),Size(-1));
 
   TEST_EQUAL(canAccessTheUniqueIdMap(dvi).getUniqueIdMap().size(),num_uii);
 
