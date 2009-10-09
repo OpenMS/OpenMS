@@ -83,10 +83,10 @@ include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)
 include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)
 include (include/OpenMS/APPLICATIONS/sources.cmake)
 
+## add configured config.h&Co to source group
+source_group("Header Files\\OpenMS" FILES ${OPENMS_CONFIGURED_FILES})
 ## merge all headers to sources (for source group view in VS)
-#add configured config.h to source group
-source_group("Header Files\\OpenMS" FILES ${CONFIGURED_CONFIG_H} ${SVN_REVISION_FILE})
-list(APPEND OpenMS_sources ${OpenMS_sources_h} ${CONFIGURED_CONFIG_H} ${SVN_REVISION_FILE})
+list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OPENMS_CONFIGURED_FILES})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?

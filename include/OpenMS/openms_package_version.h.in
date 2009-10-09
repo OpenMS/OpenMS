@@ -1,0 +1,41 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// ==========================================================================
+//
+// IMPORTANT:
+// This is openms_package_version.h / openms_package_version.h.in
+// Please do ONLY change openms_package_version.h.in, as openms_package_version.h is automagically
+// created by CMAKE from openms_package_version.h.in
+// 
+// Use appropriate options to configure instead of changing openms_package_version.h.
+// Changes made in openms_package_version.h will be lost as soon as you call CMAKE again.
+//
+// ==========================================================================
+// 
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: $
+// --------------------------------------------------------------------------
+
+#define OPENMS_PACKAGE_VERSION "@CF_OPENMS_PACKAGE_VERSION@"
+

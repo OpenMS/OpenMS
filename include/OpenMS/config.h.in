@@ -6,10 +6,10 @@
 // IMPORTANT:
 // This is config.h / config.h.in
 // Please do ONLY change config.h.in, as config.h is automagically
-// created by configure from config.h.in
+// created by CMAKE from config.h.in
 // 
 // Use appropriate options to configure instead of changing config.h.
-// Changes made in config.h will be lost as soon as you call configure again.
+// Changes made in config.h will be lost as soon as you call CMAKE again.
 //
 // ==========================================================================
 // 
@@ -33,7 +33,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Chris Bielow $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -44,7 +44,6 @@
 
 // The path to the directory where OpenMS data is installed
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
-#define OPENMS_PACKAGE_VERSION "@CF_OPENMS_PACKAGE_VERSION@"
 
 // The directory where OpenMS is build
 #define OPENMS_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
