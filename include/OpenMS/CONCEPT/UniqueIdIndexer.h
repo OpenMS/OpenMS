@@ -52,7 +52,7 @@ namespace OpenMS
  * The RandomAccessContainer must support operator[], at(), and size().
  */
 template < typename RandomAccessContainer >
-  class OPENMS_DLLAPI UniqueIdIndexer
+  class UniqueIdIndexer
   {
     public:
 
