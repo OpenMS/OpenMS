@@ -36,6 +36,7 @@
 #include <limits>
 #include <string>
 #include <cstring>
+#include <cstdio>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #define BUFFER_LENGTH 32768
@@ -44,9 +45,9 @@ using namespace std;
 
 namespace OpenMS 
 {
-	const int LogStreamBuf::MIN_LEVEL = INT_MIN;
-	const int LogStreamBuf::MAX_LEVEL = INT_MAX;
-	const time_t LogStreamBuf::MAX_TIME = INT_MAX;
+	const int LogStreamBuf::MIN_LEVEL = numeric_limits<int>::min();
+	const int LogStreamBuf::MAX_LEVEL = numeric_limits<int>::max();
+	const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
 
 	LogStreamBuf::LogStreamBuf() 
 		: std::streambuf(),
