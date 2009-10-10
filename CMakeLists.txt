@@ -505,6 +505,9 @@ if (DB_TEST)
 	configure_file(${PROJECT_SOURCE_DIR}/source/TEST/TOPP/DBExporter.ini.in ${PROJECT_BINARY_DIR}/source/TEST/TOPP/DBExporter.ini)
 endif()
 
+## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
+set(BUILD_SHARED_LIBS true)
+
 ## replace any variables in config.h.in with current values
 set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/config.h.in ${CONFIGURED_CONFIG_H})
@@ -528,9 +531,6 @@ include(cmake/doc.cmake)
 
 #package type
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): 'none', 'rpm', 'deb', 'dmg' or 'nsis'")
-
-## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
-set(BUILD_SHARED_LIBS true)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")

@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/openms_package_version.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 
@@ -74,7 +75,7 @@ END_SECTION
 START_SECTION(static Int getMinorVersion())
 {
 	STATUS("We might need to update this for a new release, oops!");
-	TEST_EQUAL(VersionInfo::getMinorVersion(), 5);
+	TEST_EQUAL(VersionInfo::getMinorVersion(), 6);
 }
 END_SECTION
 
