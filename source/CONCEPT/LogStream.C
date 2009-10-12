@@ -52,11 +52,13 @@ namespace OpenMS
 	LogStreamBuf::LogStreamBuf() 
 		: std::streambuf(),
 			pbuf_(0),
-			loglines_(),
 			level_(0),
 			tmp_level_(0),
 			stream_list_(),
-			incomplete_line_()
+			incomplete_line_(),
+      log_cache_counter_(0),
+      log_cache_(),
+      log_time_cache_()
 	{
 		pbuf_ = new char [BUFFER_LENGTH];
 		std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
@@ -65,124 +67,197 @@ namespace OpenMS
 	LogStreamBuf::~LogStreamBuf() 
 	{
 		sync();
-
+    clearCache_();
 		delete [] pbuf_;
 	}
 
 
-int LogStreamBuf::overflow(int c)
-{
-	sync();
-	return ::std::streambuf::overflow(c);
-}
+  int LogStreamBuf::overflow(int c)
+  {
+    sync();
+    return ::std::streambuf::overflow(c);
+  }
 		
 
-LogStreamBuf* LogStream::rdbuf() 
-{
-	return (LogStreamBuf*)std::ios::rdbuf();
-}
+  LogStreamBuf* LogStream::rdbuf() 
+  {
+    return (LogStreamBuf*)std::ios::rdbuf();
+  }
 
 
-LogStreamBuf* LogStream::operator -> () 
-{
-	return rdbuf();
-}
+  LogStreamBuf* LogStream::operator -> () 
+  {
+    return rdbuf();
+  }
 
 
-void LogStream::setLevel(int level) 
-{
-	if (rdbuf() == 0)
-	{
-		return;
-	}
+  void LogStream::setLevel(int level) 
+  {
+    if (rdbuf() == 0)
+    {
+      return;
+    }
 
-	// set the new level
-	rdbuf()->level_ = level;
-
-	// set tmp_level_, too - to otherwise the
-	// new level would take effect in the line after 
-	// the next!
-	rdbuf()->tmp_level_ = level;
-}
-
-
-int LogStream::getLevel() 
-{
-	if (rdbuf() != 0)
-	{
-		return rdbuf()->level_;
-	}
-	else 
-	{
-		return 0;
-	}
-}
+    // set the new level
+    rdbuf()->level_ = level;
+  
+    // set tmp_level_, too - to otherwise the
+    // new level would take effect in the line after 
+    // the next!
+    rdbuf()->tmp_level_ = level;
+  }
 
 
-LogStream& LogStream::level(int level) 
-{
-	// set the temporary level 
-	// will be reset by sync(), i.e. at the end of the next line
-	if (rdbuf() != 0)
-	{
-		rdbuf()->tmp_level_ = level;
-	}
-
-	return *this;
-}
-
-
-LogStream& LogStream::error(int level)
-{
-	// set the temporary level to ERROR
-	// will be reset by sync(), i.e. at the end of the next line
-	if (rdbuf() != 0)
-	{
-		rdbuf()->tmp_level_ = ERROR_LEVEL + level;
-	}
-
-	return *this;
-}
+  int LogStream::getLevel() 
+  {
+    if (rdbuf() != 0)
+    {
+      return rdbuf()->level_;
+    }
+    else 
+    {
+      return 0;
+    }
+  }
 
 
-LogStream& LogStream::warn(int level)
-{
-	// set the temporary level to WARNING
-	// will be reset by sync(), i.e. at the end of the next line
-	if (rdbuf() != 0)
-	{
-		rdbuf()->tmp_level_ = WARNING_LEVEL + level;
-	}
-
-	return *this;
-}
-
-
-LogStream& LogStream::info(int level)
-{
-	// set the temporary level to INFORMATION
-	// will be reset by sync(), i.e. at the end of the next line
-	if (rdbuf() != 0)
-	{
-		rdbuf()->tmp_level_ = INFORMATION_LEVEL + level;
-	}
-
-	return *this;
-}
+  LogStream& LogStream::level(int level) 
+  {
+    // set the temporary level 
+    // will be reset by sync(), i.e. at the end of the next line
+    if (rdbuf() != 0)
+    {
+      rdbuf()->tmp_level_ = level;
+    }
+    
+    return *this;
+  }
 
 
-	void LogStreamBuf::dump(std::ostream& stream) 
-	{
-		char buf[BUFFER_LENGTH];
-		Size line;
-		for (line = (Size)loglines_.size(); line > 0; --line) 
-		{
-			strftime(&(buf[0]), BUFFER_LENGTH - 1, "%d.%m.%Y %H:%M:%S ", localtime(&(loglines_[line - 1].time)));
-			stream << buf << "[" << loglines_[line - 1].level
-						 << "]:" << loglines_[line - 1].text.c_str() << std::endl;
-		}
-	}
+  LogStream& LogStream::error(int level)
+  {
+    // set the temporary level to ERROR
+    // will be reset by sync(), i.e. at the end of the next line
+    if (rdbuf() != 0)
+    {
+      rdbuf()->tmp_level_ = ERROR_LEVEL + level;
+    }
+    
+    return *this;
+  }
+
+
+  LogStream& LogStream::warn(int level)
+  {
+    // set the temporary level to WARNING
+    // will be reset by sync(), i.e. at the end of the next line
+    if (rdbuf() != 0)
+    {
+      rdbuf()->tmp_level_ = WARNING_LEVEL + level;
+    }
+    
+    return *this;
+  }
+
+
+  LogStream& LogStream::info(int level)
+  {
+    // set the temporary level to INFORMATION
+    // will be reset by sync(), i.e. at the end of the next line
+    if (rdbuf() != 0)
+    {
+      rdbuf()->tmp_level_ = INFORMATION_LEVEL + level;
+    }
+    
+    return *this;
+  }
+
+  // caching methods
+  Size LogStreamBuf::getNextLogCounter_()
+  {
+    return ++log_cache_counter_;
+  }
+
+
+  bool LogStreamBuf::isInCache_(std::string const & line)
+  {
+    if(log_cache_.count(line) == 0) return false;
+    else {
+      // increment counter
+      log_cache_[line].counter++;
+      
+      // remove old entry 
+      log_time_cache_.erase(log_cache_[line].timestamp);
+
+      // update timestamp
+      Size counter_value = getNextLogCounter_();
+      log_cache_[line].timestamp = counter_value;
+      log_time_cache_[counter_value] = line;
+      return true;
+    }
+  }
  
+  std::string LogStreamBuf::addToCache_(std::string const & line)
+  {
+    std::string extra_message = "";
+
+    if(log_cache_.size() > 1) // check if we need to remove one of the entries
+    {
+      // get smallest key
+      map<Size, string>::iterator it = log_time_cache_.begin();
+
+      // check if message occured more then once
+      if(log_cache_[it->second].counter != 0) {
+        std::stringstream stream;
+        stream << "<" << it->second << "> occured " << ++log_cache_[it->second].counter << " times";
+        extra_message = stream.str();
+      }
+
+      log_cache_.erase(it->second);
+      log_time_cache_.erase(it);
+    }
+
+    Size counter_value =getNextLogCounter_();
+    log_cache_[line].counter = 0;
+    log_cache_[line].timestamp = counter_value;
+
+    log_time_cache_[counter_value] = line;
+
+    return extra_message;
+  }
+
+
+  void LogStreamBuf::clearCache_() 
+  {
+    // if there are any streams in our list, we
+    // copy the line into that streams, too and flush them
+    map<std::string, LogCacheStruct >::iterator it = log_cache_.begin();
+
+    for(; it != log_cache_.end() ; ++it) 
+    {
+      if((it->second).counter != 0) 
+      {
+        std::stringstream stream;
+        stream << "<" << it->first << "> occured " << ++(it->second).counter << " times";
+        std::list<StreamStruct>::iterator list_it = stream_list_.begin();
+        for (; list_it != stream_list_.end(); ++list_it)
+        {
+          // if the stream is open for that level, write to it...
+          if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
+          {
+            *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
+                               << stream.str().c_str() << std::endl;
+
+            if (list_it->target != 0)
+            {
+              list_it->target->logNotify();
+            }
+          }
+        }
+      }
+    }
+  }
+
 	int LogStreamBuf::sync() 
 	{
 		static char buf[BUFFER_LENGTH];
@@ -227,47 +302,53 @@ LogStream& LogStream::info(int level)
 					incomplete_line_ = "";
 					outstring += &(buf[0]);
 
-					// if there are any streams in our list, we
-					// copy the line into that streams, too and flush them
-					std::list<StreamStruct>::iterator list_it = stream_list_.begin();
-					for (; list_it != stream_list_.end(); ++list_it)
-					{
-						// if the stream is open for that level, write to it...
-						if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
-						{
-							*(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
-																 << outstring.c_str() << std::endl;
-							if (list_it->target != 0)
-							{
-								list_it->target->logNotify();
-							}
-						}
-					}
+          // chech if we already have that in line in our cache
+          if(!isInCache_(outstring)) 
+          {
+
+            // add line to the log cache
+            std::string extra_message = addToCache_(outstring);
+
+            // if there are any streams in our list, we
+            // copy the line into that streams, too and flush them
+            std::list<StreamStruct>::iterator list_it = stream_list_.begin();
+            for (; list_it != stream_list_.end(); ++list_it)
+            {
+              // if the stream is open for that level, write to it...
+              if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
+              {
+                // first print the message from cache 
+                if(extra_message != "") 
+                {
+                  *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
+                                     << extra_message.c_str() << std::endl;
+                }
+
+                *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
+                                   << outstring.c_str() << std::endl;
+
+                if (list_it->target != 0)
+                {
+                  list_it->target->logNotify();
+                }
+              }
+            }
 			
-					// update the line pointers (increment both)
-					line_start = ++line_end;
+            // update the line pointers (increment both)
+            line_start = ++line_end;
 					
-					// remove cr/lf from the end of the line				
-					while (outstring.size() && (outstring[outstring.size() - 1] == 10 || outstring[outstring.size() - 1] == 13))
-					{
-						std::string::iterator p = outstring.end();
-						p--;
-						outstring.erase(p);
-					}
+            // remove cr/lf from the end of the line				
+            while (outstring.size() && (outstring[outstring.size() - 1] == 10 || outstring[outstring.size() - 1] == 13))
+            {
+              std::string::iterator p = outstring.end();
+              p--;
+              outstring.erase(p);
+            }
 		
-					// store the line 
-					Logline	logline;
-
-					logline.text = outstring;
-					logline.level = tmp_level_;
-					logline.time = time(0);
-			
-					// store the new line
-					loglines_.push_back(logline);
-
-					// reset tmp_level_ to the previous level
-					// (needed for LogStream::level() only)
-					tmp_level_ = level_;
+            // reset tmp_level_ to the previous level
+            // (needed for LogStream::level() only)
+            tmp_level_ = level_;
+          } else { line_start = ++line_end; }
 				}
 			}
 
@@ -435,11 +516,6 @@ LogStream& LogStream::info(int level)
 			delete rdbuf();
 		}
 	}
-	
-	void LogStream::clear()
-	{
-		rdbuf()->loglines_.clear();
-	}
 
 	void LogStream::insert(std::ostream& stream, int min_level, int max_level) 
 	{
@@ -532,99 +608,6 @@ LogStream& LogStream::info(int level)
 		}		
 	}
 	
-	Size LogStream::getNumberOfLines(int min_level, int max_level) const  
-	{
-		if (!bound_()) return 0;
-
-		// iterate over all loglines and count the lines of interest
-		LogStream*	non_const_this = const_cast<LogStream*>(this);
-		vector<LogStreamBuf::Logline>::iterator	it = non_const_this->rdbuf()->loglines_.begin();
-		Size	count = 0;
-
-		for (; it != non_const_this->rdbuf()->loglines_.end(); ++it) 
-		{
-			if ((*it).level >= min_level && (*it).level <= max_level)
-			{
-				count++;
-			}
-		}
-
-		return count;
-	}
-
-	string LogStream::getLineText(const SignedSize& index) const
-	{
-		if ((signed)getNumberOfLines() < index)
-		{
-			return "";
-		}
-
-		if (!bound_()) return "";
-
-		return const_cast<LogStream*>(this)->rdbuf()->loglines_[index].text;	
-	}
-
-	int LogStream::getLineLevel(const SignedSize& index) const
-	{
-		if ((signed)getNumberOfLines() < index)
-		{
-			return -1;
-		}
-
-		if (!bound_()) return -1;
-
-		return const_cast<LogStream*>(this)->rdbuf()->loglines_[index].level;	
-	}
-
-
-	time_t LogStream::getLineTime(const SignedSize& index) const
-	{
-		if ((signed)getNumberOfLines() < index)
-		{
-			return 0;
-		}
-
-		if (!bound_()) return 0;
-
-		return const_cast<LogStream*>(this)->rdbuf()->loglines_[index].time;	
-	}
-
-	std::list<int>	LogStream::filterLines
-		(int min_level, int max_level,
-		 time_t earliest, time_t latest, const string& s) const
-	{
-		std::list<int>	list_indices;
-		Size pos = 0;
-		LogStreamBuf* log = const_cast<LogStream*>(this)->rdbuf();
-
-		while (pos < log->loglines_.size() && 
-					 log->loglines_[pos].time < earliest)
-		{
-			pos++;
-		}
-		while (pos < log->loglines_.size() && 
-					 log->loglines_[pos].time <= latest)
-		{
-			if (log->loglines_[pos].level >= min_level &&
-					log->loglines_[pos].level <= max_level)
-			{
-				if (s.length() > 0)
-				{
-					if (log->loglines_[pos].text.find(s, 0) != string::npos)
-					{
-						list_indices.push_back((int)pos);
-					}
-				}
-				else
-				{
-					list_indices.push_back((int)pos);
-				}
-			}
-			pos++;
-		}
-		return list_indices;
-	}
-
 	void LogStream::disableOutput()
 		
 	{

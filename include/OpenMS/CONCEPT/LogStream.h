@@ -36,8 +36,7 @@
 #include <list>
 #include <vector>
 #include <ctime>
-
-
+#include <map>
 
 namespace OpenMS 
 {
@@ -122,19 +121,6 @@ namespace OpenMS
 		
 		//@}
 		
-
-		/**	@name	Debugging and Diagnostics
-		*/
-		//@{
-		
-		/** Dump method.
-				Dumps the contents of the whole message buffer 
-				including time and log level.
-		*/
-		virtual void dump(std::ostream& s);
-
-		//@}
-
 		/**	@name	Stream methods 
 		*/
 		//@{
@@ -158,10 +144,14 @@ namespace OpenMS
 		virtual int overflow(int c = -1);
 		//@}
 
+    /**
+     * @brief Holds a stream that is connected to the LogStream incl. the minimum and maximum
+     * level at which the LogStream redirects messages to this stream.
+     */
 		OPENMS_DLLAPI struct StreamStruct
 		{
 			std::ostream*				stream;
-			std::string							prefix;
+      std::string         prefix;
 			int									min_level;
 			int									max_level;
 			LogStreamNotifier*	target;
@@ -183,28 +173,10 @@ namespace OpenMS
 
 		protected:
 
-		struct LoglineStruct 
-		{	
-			int     level;
-			std::string  text;
-			time_t  time;
-
-			LoglineStruct()
-				: level(0),
-					text(""),
-					time(0)
-			{}
-		};
-
-		typedef struct LoglineStruct Logline;
-
-
 		// interpret the prefix format string and return the expanded prefix
 		std::string expandPrefix_(const std::string& prefix, int level, time_t time) const;
 
 		char* 									pbuf_;
-
-		std::vector<Logline> 		loglines_;
 	
 		int											level_;
 
@@ -212,7 +184,63 @@ namespace OpenMS
 		
 		std::list<StreamStruct>	stream_list_;
 
-		std::string									incomplete_line_;
+		std::string             incomplete_line_;
+
+ 		/**	@name Caching
+		*/
+		//@{
+
+    /**
+     * @brief Holds a counter of occurences and an index for the occurence sequence 
+     * of the corresponding log message
+     */
+    struct LogCacheStruct 
+    {
+      Size timestamp;
+      int counter;
+    };
+
+    /**
+     * Sequential counter to remember the sequence of occurence 
+     * of the cached log messages
+     */
+    Size log_cache_counter_;
+
+    /// Cache of the last two log messages
+    std::map<std::string, LogCacheStruct> log_cache_;
+    /// Cache of the occurence sequence of the last two log messages
+    std::map<Size, std::string > log_time_cache_;
+
+    /**
+       Checks if the is already in the cache
+     */
+
+    bool isInCache_(std::string const & line);
+
+    /**
+       Adds the new line to the cache and removes an old one
+       if necessary
+
+       @param line The Log message that should be added to the cache
+       @return An additional massage if a reoccuring message was removed
+       from the cache
+     */
+    std::string addToCache_(std::string const & line);
+
+    /**
+     * Returns the next free index for a log message
+     */
+    Size getNextLogCounter_();
+
+    /**
+     * Checks if some of the cached entries where sent more then once
+     * to the LogStream and (if necessary) prints a corresponding messages
+     * into all affected Logs
+     */
+    void clearCache_();
+
+		//@}
+
 	};
 
 
@@ -466,63 +494,6 @@ namespace OpenMS
 		///
 		void flush();
 		//@}		
-		
-		/**	@name	Message Buffer Management */
-		//@{
-			
-		/** Clear the message buffer.
-				This method removes all stored messages from the 
-				message buffer.
-		*/
-		void clear();
-	
-		/**	Return the number of lines.
-				This method retruns the number of lines in the buffer 
-				for a given range of levels. \par
-				If the range is omitted, the total number of messages is
-				returned.
-				@return Size the number of lines matching the log level range
-				@param	min_level the minimum log level for the counted messages
-				@param	max_level the maximum log level for the counted messages
-		*/
-		Size getNumberOfLines
-			(int min_level = LogStreamBuf::MIN_LEVEL, 
-			 int max_level = LogStreamBuf::MAX_LEVEL) const;
-
-		/**	Return the text of a specific line.
-				This method returns the content of a specific message without
-				time and level.
-				@return string the text of the message
-				@param	index the index of the line
-		*/
-		std::string getLineText(const SignedSize& index) const;
-
-		/**	Return the log time of a specific line
-				@param index the index of the messages
-				@return time_t the time of the message
-		*/
-		time_t getLineTime(const SignedSize& index) const;	
-	
-		/**	Return the log level of a specific line.
-				If the given line does not exists, {\em -1} is returned.
-				@param index the index of the message
-				@return int the level
-		*/
-		int getLineLevel(const SignedSize& index) const;
-		
-		/** Retrieve a list of indices of lines that match certain criteria.
-				If a criterion is left empty, it is not used.
-				@param min_level the minimum level of messages
-				@param max_level the maximum level of messages
-				@param earliest (long) the time of messages to start filtering
-				@param latest (long) the time of messages to stop filtering
-				@param s a string to look for
-		*/
-		std::list<int>	filterLines
-			(int min_level = LogStreamBuf::MIN_LEVEL, int max_level = LogStreamBuf::MAX_LEVEL,
-			 time_t earliest = 0, time_t latest = LogStreamBuf::MAX_TIME, 
-			 const std::string& s = "") const;
-		//@}
 
 		private:
 
