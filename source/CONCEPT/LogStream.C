@@ -172,6 +172,20 @@ namespace OpenMS
     return *this;
   }
 
+/* TODO
+	LogStream& LogStream::debug(int level)
+	{
+  	// set the temporary level to DEBUG
+  	// will be reset by sync(), i.e. at the end of the next line
+  	if (rdbuf() != 0)
+  	{
+    	rdbuf()->tmp_level_ = DEBUG_LEVEL + level;
+  	}
+
+  	return *this;
+	}
+*/
+
   // caching methods
   Size LogStreamBuf::getNextLogCounter_()
   {

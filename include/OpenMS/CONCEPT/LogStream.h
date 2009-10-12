@@ -211,10 +211,7 @@ namespace OpenMS
     /// Cache of the occurence sequence of the last two log messages
     std::map<Size, std::string > log_time_cache_;
 
-    /**
-       Checks if the is already in the cache
-     */
-
+    /// Checks if the line is already in the cache
     bool isInCache_(std::string const & line);
 
     /**
@@ -238,7 +235,6 @@ namespace OpenMS
      * into all affected Logs
      */
     void clearCache_();
-
 		//@}
 
 	};
@@ -312,6 +308,28 @@ namespace OpenMS
 		};
 
 		//@}
+
+		/* TODO
+			 replace log level by this: 
+			 - The higher the level, the more critical are the errors
+       - Error level 0 throws out everything
+					
+    enum LogStreamLevel
+    {
+      /// Loglevels >= ERROR should be used to indicate errors
+      ERROR_LEVEL = 3000 ,
+
+      /// Loglevels >= WARNING should be used to indicate warnings
+      WARNING_LEVEL = 2000,
+
+      /// Loglevels >= INFORMATION indicate information messages
+      INFORMATION_LEVEL = 1000,
+
+      /// LogLevels >= DEBUG indicate debug messages
+      DEBUG_LEVEL = 0
+    };
+		*/
+
 	
 		/**	@name	Constructors and Destructors
 		*/
@@ -403,6 +421,9 @@ namespace OpenMS
 				@param	n the channel 
 		*/
 		LogStream& warn(int n = 0);
+
+		// TODO
+		//LogStream& debug(int n = 0);
 
 		//@}
 
@@ -517,6 +538,34 @@ namespace OpenMS
 			the default constructor.
 	*/
 	OPENMS_DLLAPI extern LogStream	Log;
+
+	/* TODO
+	Macros to define the log-level
+
+	#define LOG_ERROR \
+  Log.error()
+
+  #define LOG_ERROR_N(error_level) \
+  Log.error(error_level)
+
+  #define LOG_INFO \
+  Log.info()
+
+  #define LOG_INFO_N(info_level) \
+  Log.info(info_level) \
+
+  #define LOG_WARN \
+  Log.warn()
+
+  #define LOG_WARN_N(warn_level) \
+  Log.warn(warn_level)
+
+  #define LOG_DEBUG \
+  Log.debug()
+
+  #define LOG_DEBUG_N(debug_level) \
+  Log.debug(debug_level)
+	*/
 
 	//@}
 	
