@@ -128,6 +128,8 @@ namespace OpenMS
 			std::map<String,String> proteinid_to_accession_;
 			/// Document identitifier
 			String* document_id_;
+			/// true if a prot id is contained in the current run
+			bool prot_id_in_run_;
 			//@}
   };
  

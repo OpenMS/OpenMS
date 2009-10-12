@@ -342,6 +342,30 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   f.load(filename, protein_ids2, peptide_ids2, document_id);
 END_SECTION
 
+START_SECTION(([EXTRA] No protein identification bug))
+	IdXMLFile id_xmlfile;
+	vector<ProteinIdentification> protein_ids;
+	vector<PeptideIdentification> peptide_ids;
+	id_xmlfile.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_no_proteinhits.idXML"), protein_ids, peptide_ids);
+
+	TEST_EQUAL(protein_ids.size(), 1)
+	TEST_EQUAL(protein_ids[0].getHits().size(), 0)
+	TEST_EQUAL(peptide_ids.size(), 10)
+	TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
+
+	String filename;
+	NEW_TMP_FILE(filename)
+	id_xmlfile.store(filename , protein_ids, peptide_ids);
+
+	vector<ProteinIdentification> protein_ids2;
+	vector<PeptideIdentification> peptide_ids2;
+	id_xmlfile.load(filename, protein_ids2, peptide_ids2);
+	
+	TEST_EQUAL(protein_ids == protein_ids2, true)
+	TEST_EQUAL(peptide_ids == peptide_ids2, true)
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -511,6 +511,12 @@ namespace OpenMS
 		//PEPTIDES
 		else if (tag =="PeptideIdentification")
 		{
+			// check whether a prot id has been given, add "empty" one to list else
+			if (!prot_id_in_run_)
+			{
+				prot_ids_->push_back(prot_id_);
+				prot_id_in_run_ = true; // set to true, cause we have created one; will be reset for next run
+			}
 			
 			//set identifier
 			pep_id_.setIdentifier(prot_ids_->back().getIdentifier());
@@ -647,6 +653,7 @@ namespace OpenMS
 		//START
 		if (tag =="IdXML")
 		{
+			prot_id_in_run_ = false;
 		}
 		///SEARCH PARAMETERS
 		else if (tag =="SearchParameters")
@@ -663,26 +670,25 @@ namespace OpenMS
 			
 			last_meta_ = &param_;
 		}
-		
-		// RUN
-		else if (tag =="IdentificationRun")
-		{
-
-		}
-		
 		//PROTE IDENTIFICATIONS
 		else if (tag =="ProteinIdentification")
 		{
 			prot_ids_->push_back(prot_id_);
 			prot_id_ = ProteinIdentification();
 			last_meta_  = 0;		
+			prot_id_in_run_ = true;
+		}
+		else if (tag == "IdentificationRun")
+		{
+			prot_id_ = ProteinIdentification();
+			last_meta_ = 0;
+			prot_id_in_run_ = false;
 		}
 		else if (tag =="ProteinHit")
 		{
 			prot_id_.insertHit(prot_hit_);
 			last_meta_ = &prot_id_;
-		}
-		
+		}	
 		//PEPTIDES
 		else if (tag =="PeptideIdentification")
 		{
