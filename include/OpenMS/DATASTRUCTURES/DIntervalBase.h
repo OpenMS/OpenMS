@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marc Sturm  $
-// $Authors: $
+// $Maintainer: Clemens Groepl $
+// $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_DINTERVALBASE_H

@@ -22,8 +22,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Marc Sturm $
-# $Authors: $
+# $Maintainer: $
+# $Authors: Marc Sturm $
 # --------------------------------------------------------------------------
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);

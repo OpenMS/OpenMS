@@ -21,7 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
@@ -68,5 +69,4 @@ namespace OpenMS
 	}
 	
 } //namespace
-
 
