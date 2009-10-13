@@ -161,9 +161,6 @@ using namespace OpenMS;
         //Amino acid sequences used for obtaining prefix and suffix mass
         AASequence prefix, suffix;
 
-        //counter for the number of spectra that were actually used for training
-        UInt train_set_size = 0;
-
         //loading data
         RichPeakMap spectra_map;
         std::vector<PeptideIdentification> pep_id_vec;
@@ -187,6 +184,9 @@ using namespace OpenMS;
 
         for (UInt sector = 0; sector < number_of_sectors; ++sector)
         {
+          //counter for the number of spectra that were actually used for training
+          UInt train_set_size = 0;
+
           //only prefix masses with a ratio to parent mass between the lower and upper bounds are considered
           DoubleReal sector_lower_bound = (DoubleReal) sector / number_of_sectors;
           DoubleReal sector_upper_bound = (DoubleReal) (sector + 1) / number_of_sectors;

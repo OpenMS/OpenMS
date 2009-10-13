@@ -36,10 +36,10 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="15">XyJYQ3OUgkPxmZdDPlaeQzMZoEMyF6VDjBiuQ3Gh10OyHuVDppzlQwwg7kO6UwtEGhYXRMYVHkT5FiJE</data>
+				<data precision="32" endian="little" length="15">MyppQ3OUgkPxmZdDSxqmQ3Gh10OyHuVDDCDuQySi+kPy0ghEulMLRLSSC0Sa1RNEE9QZRMYVHkTzVSJE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="15">AAAAQAAAAEAAAIBAAACAQAAAAEAAAEBAAABAQAAAgEAAAABAAACAQAAAQEAAAABAAAAAQAAAgEAAAIBA</data>
+				<data precision="32" endian="little" length="15">AACAPwAAAEAAAEBAAAAAQAAAgD8AAABAAAAAQAAAgD8AAIA/AACAPwAAgD8AAABAAABAQAAAAEAAAABA</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>
