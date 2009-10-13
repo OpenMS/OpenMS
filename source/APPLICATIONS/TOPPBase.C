@@ -214,12 +214,73 @@ namespace OpenMS
 #endif
 
 			// '-write_ini' given
-			String ini_file("");
-			if (param_cmdline_.exists("write_ini")) ini_file = param_cmdline_.getValue("write_ini");
-			if (ini_file != "")
+			String write_ini_file("");
+			if (param_cmdline_.exists("write_ini")) write_ini_file = param_cmdline_.getValue("write_ini");
+			if (write_ini_file != "")
 			{
-				outputFileWritable_(ini_file);
-				getDefaultParameters_().store(ini_file);
+				Param default_params = getDefaultParameters_();
+				// check if augmentation with -ini param is needed
+				DataValue in_ini;
+				if (param_cmdline_.exists("ini")) in_ini = param_cmdline_.getValue("ini");
+				if (!in_ini.isEmpty())
+				{
+					Param ini_params;
+					ini_params.load( (String)in_ini );
+					// augment
+					for(Param::ParamIterator it = ini_params.begin(); it != ini_params.end();++it)
+					{
+						if (default_params.exists(it.getName()))
+						{
+							// param 'type': do not override!
+							if (it.getName().hasSuffix(":type"))
+							{	
+								if (default_params.getValue(it.getName()) != it->value)
+								{
+									writeLog_("Warning: Augmented and Default Ini-File differ in value. Default value will not be altered!");
+									continue;
+								}
+							}
+							
+							// all other parameters:
+							Param::ParamEntry entry = default_params.getEntry (it.getName());
+							if (entry.value.valueType() == it->value.valueType())
+							{
+								if (entry.value != it->value)
+								{
+									// check entry for consistency (in case restrictions have changed)							
+									entry.value = it->value;
+									String s;
+									if (entry.isValid(s))
+									{
+										// overwrite default value
+										writeDebug_(String("Overriding Default-Parameter ") + it.getName() + " with new value "+String(it->value) ,10); 
+										default_params.setValue(it.getName(),it->value, entry.description, default_params.getTags(it.getName()));
+									}
+									else
+									{
+										writeDebug_(String("Parameter ") + it.getName() + " does not fit into new restriction settings! Ignoring...",10); 
+									}
+								}
+								else
+								{
+									// value stayed the same .. nothing to be done
+								}
+							}
+							else
+							{
+								writeDebug_(String("Parameter ") + it.getName() + " has changed value type! Ignoring...",10); 
+							}
+						}
+						else
+						{
+							writeDebug_(String("Deprecated Parameter ") + it.getName() + " given in -ini argument! Ignoring...",10); 
+						}
+					}
+				
+				}
+				outputFileWritable_(write_ini_file);
+				
+				default_params.store(write_ini_file);
 				return EXECUTION_OK;
 			}
 

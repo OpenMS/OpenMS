@@ -393,6 +393,19 @@ START_SECTION((void add(const CompomerSide& add_side, UInt side)))
 }
 END_SECTION
 
+START_SECTION((bool isSingleAdduct(Adduct &a, const UInt side) const))
+  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f);
+	Adduct a2(1, -1, 1.007f, "H1", -0.13f);
+	Compomer c;
+	c.add(a1, Compomer::RIGHT);
+	c.add(a2, Compomer::RIGHT);
+	c.add(a1, Compomer::LEFT);
+	TEST_EQUAL(c.isSingleAdduct(a1,Compomer::LEFT), true);
+	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::LEFT), false);
+	TEST_EQUAL(c.isSingleAdduct(a1,Compomer::RIGHT), false);
+	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::RIGHT), false);
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

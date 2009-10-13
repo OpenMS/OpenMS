@@ -77,6 +77,84 @@ namespace OpenMS
 		}
 	}
 	
+	bool Param::ParamEntry::isValid(String& message) const
+	{
+			if (value.valueType()==DataValue::STRING_VALUE)
+			{
+				if (valid_strings.size()!=0 && std::find(valid_strings.begin(),valid_strings.end(), value) == valid_strings.end())
+				{
+					String valid;
+					valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
+					message = "Invalid string parameter value '"+(String)value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
+					return false;
+				}
+			}
+			else if(value.valueType()==DataValue::STRING_LIST)
+			{
+				String str_value;
+				StringList ls_value = (StringList) value;
+				for (Size i = 0; i < ls_value.size(); ++i)
+				{
+					str_value = ls_value[i];
+					
+					if (valid_strings.size()!=0 && std::find(valid_strings.begin(),valid_strings.end(), str_value) == valid_strings.end())
+					{
+						String valid;
+						valid.concatenate(valid_strings.begin(),valid_strings.end(),",");
+						message = String("Invalid string parameter value '")+str_value+"' for parameter '"+name+"' given! Valid values are: '"+valid+"'.";
+						return false;
+					}
+				}	
+			}
+			else if (value.valueType()==DataValue::INT_VALUE)
+			{
+				Int tmp = value;
+				if ((min_int != -std::numeric_limits<Int>::max() && tmp < min_int) || (max_int!=std::numeric_limits<Int>::max() && tmp > max_int))
+				{
+					message = String("Invalid integer parameter value '")+String(tmp)+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+					return false;
+				}
+			}
+			else if(value.valueType()==DataValue::INT_LIST)
+			{
+				Int int_value;
+				IntList ls_value =(IntList) value;
+				for (Size i = 0; i < ls_value.size(); ++i)
+				{
+					int_value = ls_value[i];
+					if ((min_int != -std::numeric_limits<Int>::max() && int_value < min_int) || (max_int!=std::numeric_limits<Int>::max() && int_value > max_int))
+					{
+						message = String("Invalid integer parameter value '")+int_value+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+						return false;
+					}
+				}
+			}
+			else if (value.valueType()==DataValue::DOUBLE_VALUE)
+			{
+				DoubleReal tmp = value;
+				if ((min_float!=-std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float!=std::numeric_limits<DoubleReal>::max() && tmp > max_float))
+				{
+					message = String("Invalid double parameter value '")+tmp+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+					return false;
+			}
+			}
+			else if(value.valueType()==DataValue::DOUBLE_LIST)
+			{
+				DoubleReal dou_value; 
+				DoubleList ls_value = (DoubleList)value;
+				for (Size i = 0; i < ls_value.size(); ++i)
+				{
+					dou_value = ls_value[i];
+					if ((min_float!=-std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float!=std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
+					{
+						message = String("Invalid double parameter value '")+dou_value+"' for parameter '"+name+"' given! The valid range is: ["+min_int+":"+max_int+"].";
+						return false;
+					}	
+				}
+			}	
+			return true;
+	}
+	
 	bool Param::ParamEntry::operator==(const ParamEntry& rhs) const
 	{
 		return name==rhs.name && value==rhs.value;
@@ -1120,73 +1198,10 @@ namespace OpenMS
 				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
 			}
 			//parameter restrictions
-			if (it->value.valueType()==DataValue::STRING_VALUE)
-			{
-				if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), it->value) == default_value->valid_strings.end())
-				{
-					String valid;
-					valid.concatenate(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
-				}
-			}
-			else if(it->value.valueType()==DataValue::STRING_LIST)
-			{
-				String str_value;
-				StringList ls_value = (StringList) it->value;
-				for (Size i = 0; i < ls_value.size(); ++i)
-				{
-						str_value = ls_value[i];
-					
-					if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), str_value) == default_value->valid_strings.end())
-					{
-						String valid;
-						valid.concatenate(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
-						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+str_value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
-					}
-				}	
-			}
-			else if (it->value.valueType()==DataValue::INT_VALUE)
-			{
-				Int tmp = it->value;
-				if ((default_value->min_int != -std::numeric_limits<Int>::max() && tmp < default_value->min_int) || (default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int))
-				{
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
-				}
-			}
-			else if(it->value.valueType()==DataValue::INT_LIST)
-			{
-				Int int_value;
-				IntList ls_value =(IntList) it->value;
-				for (Size i = 0; i < ls_value.size(); ++i)
-				{
-					int_value = ls_value[i];
-					if ((default_value->min_int != -std::numeric_limits<Int>::max() && int_value < default_value->min_int) || (default_value->max_int!=std::numeric_limits<Int>::max() && int_value > default_value->max_int))
-					{
-						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+int_value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
-					}
-				}
-			}
-			else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
-			{
-				DoubleReal tmp = it->value;
-				if ((default_value->min_float!=-std::numeric_limits<DoubleReal>::max() && tmp < default_value->min_float) || (default_value->max_float!=std::numeric_limits<DoubleReal>::max() && tmp > default_value->max_float))
-				{
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid double parameter value '"+(DoubleReal)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
-				}
-			}
-			else if(it->value.valueType()==DataValue::DOUBLE_LIST)
-			{
-				DoubleReal dou_value; 
-				DoubleList ls_value = (DoubleList)it->value;
-				for (Size i = 0; i < ls_value.size(); ++i)
-				{
-					dou_value = ls_value[i];
-					if ((default_value->min_float!=-std::numeric_limits<DoubleReal>::max() && dou_value < default_value->min_float) || (default_value->max_float!=std::numeric_limits<DoubleReal>::max() && dou_value > default_value->max_float))
-					{
-						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid double parameter value '"+dou_value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
-					}	
-				}
-			}
+			ParamEntry pe= *default_value;
+			pe.value = it->value;
+			String s;
+			if (!	pe.isValid(s))	throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": "+s);
 		}
 	}
 

@@ -71,6 +71,8 @@ namespace OpenMS
 				ParamEntry();
 				/// Constructor with name, description, value and advanced flag
 				ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t=StringList());
+				/// Check if 'value' fulfills restrictions
+				bool isValid(String& message) const;
 				/// Equality operator (only name and value are compared)
 				bool operator==(const ParamEntry& rhs) const;
 				
