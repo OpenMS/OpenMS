@@ -451,7 +451,8 @@
 			"IsotopeWaveletConstants.h",
 			"IsotopeWaveletCudaKernel.h",
 			"IsotopeWaveletParallelFor.h",
-			"svn_revision.h"
+			"openms_svn_revision.h",
+			"openms_package_version.h"
 			);
 
 		if (!endsWith($f,"_impl.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
@@ -572,7 +573,8 @@
 				"IsotopeWaveletCudaKernel.h",
 				"IsotopeWaveletConstants.h",
 				"IsotopeWaveletParallelFor.h",
-				"include/OpenMS/svn_revision.h"
+				"include/OpenMS/openms_svn_revision.h",
+				"include/OpenMS/openms_package_version.h"
 				);
 
 			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
