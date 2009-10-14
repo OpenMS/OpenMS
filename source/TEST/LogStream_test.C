@@ -99,108 +99,61 @@ START_SECTION((LogStreamBuf* rdbuf()))
 }
 END_SECTION
   
-START_SECTION((void setLevel(int level)))
+START_SECTION((void setLevel(LogStreamLevel level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0 , 98);
+  l1.insert(s, DEVELOPMENT_LEVEL , ERROR_LEVEL);
 
   l1 << "1" << endl;
-  l1.setLevel(97);
+  l1.setLevel(INFORMATION_LEVEL);
   l1 << "2" << endl;
-  l1.setLevel(99);
+  l1.setLevel(FATAL_ERROR_LEVEL);
   l1 << "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION((int getLevel()))
+START_SECTION((LogStreamLevel getLevel()))
 {
   LogStream l1(new LogStreamBuf());
-  TEST_EQUAL(l1.getLevel(), 0)
-  l1.setLevel(99);
-  TEST_EQUAL(l1.getLevel(), 99)
+  TEST_EQUAL(l1.getLevel(), DEVELOPMENT_LEVEL)
+  l1.setLevel(FATAL_ERROR_LEVEL);
+  TEST_EQUAL(l1.getLevel(), FATAL_ERROR_LEVEL)
 }
 END_SECTION
 
-START_SECTION((LogStream& level(int level)))
+START_SECTION((LogStream& level(LogStreamLevel level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0 , 98);
+  l1.insert(s, DEVELOPMENT_LEVEL , ERROR_LEVEL);
 
-  l1.level(0) << "1" <<endl;
-  l1.level(97) << "2" <<endl;
-  l1.level(99) << "X" <<endl;
+  l1.level(DEVELOPMENT_LEVEL) << "1" <<endl;
+  l1.level(ERROR_LEVEL) << "2" <<endl;
+  l1.level(FATAL_ERROR_LEVEL) << "X" <<endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION((LogStream& info(int n=0)))
+START_SECTION((void insert(std::ostream &s, LogStreamLevel min_level=LogStreamBuf::MIN_LEVEL, LogStreamLevel max_level=LogStreamBuf::MAX_LEVEL)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0 , LogStream::INFORMATION_LEVEL);
+  l1.insert(s, ERROR_LEVEL, ERROR_LEVEL);
 
-  l1.info() << "1" << endl;
-  l1.info() << "2" << endl;
-  l1.info(1) << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((LogStream& error(int n=0)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0 , LogStream::ERROR_LEVEL);
-
-  l1.error() << "1" << endl;
-  l1.error() << "2" << endl;
-  l1.error(1) << "X" << endl;
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((LogStream& warn(int n=0)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0 , LogStream::WARNING_LEVEL);
-
-  l1.warn() << "1" << endl;
-  l1.warn() << "2" << endl;
-  l1.warn(1) << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((void insert(std::ostream &s, int min_level=LogStreamBuf::MIN_LEVEL, int max_level=LogStreamBuf::MAX_LEVEL)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 99, 99);
-
-  l1.level(98) << "X" << endl;
-  l1.level(99) << "1" << endl;
-  l1.info(99)  << "2" << endl;
-  l1.level(100)<< "X" << endl;
+  l1.level(WARNING_LEVEL) << "X" << endl;
+  l1.level(ERROR_LEVEL) << "1" << endl;
+  l1.level(ERROR_LEVEL)  << "2" << endl;
+  l1.level(FATAL_ERROR_LEVEL)<< "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -248,33 +201,33 @@ START_SECTION(([EXTRA]removeNotification))
 }
 END_SECTION
 
-START_SECTION((void setMinLevel(const std::ostream &s, int min_level)))
+START_SECTION((void setMinLevel(const std::ostream &s, LogStreamLevel min_level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0);
-  l1.setMinLevel(s, 98);
-  l1.info(97) << "X" << endl;
-  l1.info(98) << "1" << endl;
-  l1.info(99) << "2" << endl;
+  l1.insert(s, DEVELOPMENT_LEVEL);
+  l1.setMinLevel(s, WARNING_LEVEL);
+  l1.level(INFORMATION_LEVEL) << "X" << endl;
+  l1.level(WARNING_LEVEL) << "1" << endl;
+  l1.level(ERROR_LEVEL) << "2" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION((void setMaxLevel(const std::ostream &s, int max_level)))
+START_SECTION((void setMaxLevel(const std::ostream &s, LogStreamLevel max_level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, 0);
-  l1.setMaxLevel(s, 98);
-  l1.info(97) << "1" << endl;
-  l1.info(98) << "2" << endl;
-  l1.info(99) << "X" << endl;
+  l1.insert(s, DEVELOPMENT_LEVEL);
+  l1.setMaxLevel(s, ERROR_LEVEL);
+  l1.level(WARNING_LEVEL) << "1" << endl;
+  l1.level(ERROR_LEVEL) << "2" << endl;
+  l1.level(FATAL_ERROR_LEVEL) << "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -282,31 +235,33 @@ END_SECTION
 
 START_SECTION((void setPrefix(const std::ostream &s, const String &prefix)))
 {
+	/*
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);;
-  l1.insert(s, 0);
+  l1.insert(s, DEVELOPMENT_LEVEL);
   l1.setPrefix(s, "%l"); //loglevel
-  l1.info(1) << "  1." << endl;
+  l1.level(1) << "  1." << endl;
   l1.setPrefix(s, "%y"); //message type ("Error", "Warning", "Information", "-")
-  l1.info(2) << "  2." << endl;
+  l1.level(2) << "  2." << endl;
   l1.setPrefix(s, "%T"); //time (HH:MM:SS)
-  l1.info(3) << "  3." << endl;
+  l1.level(3) << "  3." << endl;
   l1.setPrefix(s, "%t"); //time in short format (HH:MM)
-  l1.info(4) << "  4." << endl;
+  l1.level(4) << "  4." << endl;
   l1.setPrefix(s, "%D"); //date (DD.MM.YYYY)
-  l1.info(5) << "  5." << endl;
+  l1.level(5) << "  5." << endl;
   l1.setPrefix(s, "%d"); // date in short format (DD.MM.)
-  l1.info(6) << "  6." << endl;
+  l1.level(6) << "  6." << endl;
   l1.setPrefix(s, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
-  l1.info(7) << "  7." << endl;
+  l1.level(7) << "  7." << endl;
   l1.setPrefix(s, "%s"); //time and date in short format (DD.MM., HH:MM)
-  l1.info(8) << "  8." << endl;
+  l1.level(8) << "  8." << endl;
   l1.setPrefix(s, "%%"); //percent sign (escape sequence)
-  l1.info(9) << "  9." << endl;
+  l1.level(9) << "  9." << endl;
   l1.setPrefix(s, ""); //no prefix
-  l1.info(10) << " 10." << endl;
+  l1.level(10) << " 10." << endl;
+	*/
   /*
   TEST_EQUAL(l1.getNumberOfLines(), 10)
   */
@@ -352,7 +307,7 @@ START_SECTION(([EXTRA]Test log caching))
   ofstream s(filename.c_str(), std::ios::out);
   { 
     LogStream l1(new LogStreamBuf());
-    l1.insert(s, 0);
+    l1.insert(s, DEVELOPMENT_LEVEL);
 
     l1 << "This is a repeptitive message" << endl;
     l1 << "This is another repeptitive message" << endl;

@@ -45,15 +45,15 @@ using namespace std;
 
 namespace OpenMS 
 {
-	const int LogStreamBuf::MIN_LEVEL = numeric_limits<int>::min();
-	const int LogStreamBuf::MAX_LEVEL = numeric_limits<int>::max();
+	const LogStreamLevel LogStreamBuf::MIN_LEVEL = DEVELOPMENT_LEVEL;
+	const LogStreamLevel LogStreamBuf::MAX_LEVEL = FATAL_ERROR_LEVEL;
 	const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
 
 	LogStreamBuf::LogStreamBuf() 
 		: std::streambuf(),
 			pbuf_(0),
-			level_(0),
-			tmp_level_(0),
+			level_(DEVELOPMENT_LEVEL),
+			tmp_level_(DEVELOPMENT_LEVEL),
 			stream_list_(),
 			incomplete_line_(),
       log_cache_counter_(0),
@@ -91,7 +91,7 @@ namespace OpenMS
   }
 
 
-  void LogStream::setLevel(int level) 
+  void LogStream::setLevel(LogStreamLevel level) 
   {
     if (rdbuf() == 0)
     {
@@ -108,7 +108,7 @@ namespace OpenMS
   }
 
 
-  int LogStream::getLevel() 
+  LogStreamLevel LogStream::getLevel() 
   {
     if (rdbuf() != 0)
     {
@@ -116,12 +116,12 @@ namespace OpenMS
     }
     else 
     {
-      return 0;
+      return DEVELOPMENT_LEVEL;
     }
   }
 
 
-  LogStream& LogStream::level(int level) 
+  LogStream& LogStream::level(LogStreamLevel level) 
   {
     // set the temporary level 
     // will be reset by sync(), i.e. at the end of the next line
@@ -133,58 +133,6 @@ namespace OpenMS
     return *this;
   }
 
-
-  LogStream& LogStream::error(int level)
-  {
-    // set the temporary level to ERROR
-    // will be reset by sync(), i.e. at the end of the next line
-    if (rdbuf() != 0)
-    {
-      rdbuf()->tmp_level_ = ERROR_LEVEL + level;
-    }
-    
-    return *this;
-  }
-
-
-  LogStream& LogStream::warn(int level)
-  {
-    // set the temporary level to WARNING
-    // will be reset by sync(), i.e. at the end of the next line
-    if (rdbuf() != 0)
-    {
-      rdbuf()->tmp_level_ = WARNING_LEVEL + level;
-    }
-    
-    return *this;
-  }
-
-
-  LogStream& LogStream::info(int level)
-  {
-    // set the temporary level to INFORMATION
-    // will be reset by sync(), i.e. at the end of the next line
-    if (rdbuf() != 0)
-    {
-      rdbuf()->tmp_level_ = INFORMATION_LEVEL + level;
-    }
-    
-    return *this;
-  }
-
-/* TODO
-	LogStream& LogStream::debug(int level)
-	{
-  	// set the temporary level to DEBUG
-  	// will be reset by sync(), i.e. at the end of the next line
-  	if (rdbuf() != 0)
-  	{
-    	rdbuf()->tmp_level_ = DEBUG_LEVEL + level;
-  	}
-
-  	return *this;
-	}
-*/
 
   // caching methods
   Size LogStreamBuf::getNextLogCounter_()
@@ -374,7 +322,7 @@ namespace OpenMS
 	}
 
 	string LogStreamBuf::expandPrefix_
-		(const std::string& prefix, int level, time_t time) const
+		(const std::string& prefix, LogStreamLevel level, time_t time) const
 	{
 		string::size_type	index = 0;
 		Size copied_index = 0;
@@ -406,19 +354,19 @@ namespace OpenMS
 						break;
 
 					case 'y':	// append the message type (error/warning/information)
-						if (level >= LogStream::ERROR_LEVEL) 
+						if (level >= ERROR_LEVEL) 
 						{
 							result.append("ERROR");
 						}
 						else 
 						{
-							if (level >= LogStream::WARNING_LEVEL) 
+							if (level >= WARNING_LEVEL) 
 							{
 								result.append("WARNING");
 							}
 							else 
 							{
-								if (level >= LogStream::INFORMATION_LEVEL) 
+								if (level >= INFORMATION_LEVEL) 
 								{
 									result.append("INFORMATION");
 								}
@@ -498,7 +446,7 @@ namespace OpenMS
 		registered_at_ = 0;
 	}
 
-	void LogStreamNotifier::registerAt(LogStream& log, int min_level, int max_level)
+	void LogStreamNotifier::registerAt(LogStream& log, LogStreamLevel min_level, LogStreamLevel max_level)
 	{
 		unregister();
 
@@ -517,7 +465,7 @@ namespace OpenMS
 		{
 			// associate cout to informations and warnings,
 			// cerr to errors by default
-			insert(std::cout, INFORMATION_LEVEL, ERROR_LEVEL - 1);
+			insert(std::cout, WARNING_LEVEL, FATAL_ERROR_LEVEL);
 			insert(std::cerr, ERROR_LEVEL);
 		}
 	}
@@ -531,7 +479,7 @@ namespace OpenMS
 		}
 	}
 
-	void LogStream::insert(std::ostream& stream, int min_level, int max_level) 
+	void LogStream::insert(std::ostream& stream, LogStreamLevel min_level, LogStreamLevel max_level) 
 	{
 		if (!bound_() || hasStream_(stream))
 		{
@@ -558,7 +506,7 @@ namespace OpenMS
 	}
 
 	void LogStream::insertNotification(std::ostream& s, LogStreamNotifier& target,
-																		int min_level, int max_level)
+																		LogStreamLevel min_level, LogStreamLevel max_level)
 	{
 		if (!bound_()) return;
 
@@ -589,7 +537,7 @@ namespace OpenMS
 		return findStream_(stream) != rdbuf()->stream_list_.end();
 	}
 
-	void LogStream::setMinLevel(const std::ostream& stream, int level) 
+	void LogStream::setMinLevel(const std::ostream& stream, LogStreamLevel level) 
 	{
 		if (!bound_()) return;
 			
@@ -600,7 +548,7 @@ namespace OpenMS
 		}
 	}
 
-	void LogStream::setMaxLevel(const std::ostream& stream, int level) 
+	void LogStream::setMaxLevel(const std::ostream& stream, LogStreamLevel level) 
 	{
 		if (!bound_()) return;
 			
