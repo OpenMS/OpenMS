@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 #include <vector>
@@ -68,10 +69,10 @@ namespace OpenMS
 		
 		void XMLHandler::fatalError(ActionMode mode, const String& msg, UInt line, UInt column) const
 		{
-			if (mode==LOAD)  error_message_ =  String("Fatal error while loading '") + file_ + "': " + msg;
-			if (mode==STORE) error_message_ =  String("Fatal error while storing '") + file_ + "': " + msg;
+			if (mode==LOAD)  error_message_ =  String("While loading '") + file_ + "': " + msg;
+			if (mode==STORE) error_message_ =  String("While storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
-			cerr << error_message_ << endl;
+			LOG_FATAL_ERROR << error_message_ << endl;
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
@@ -80,15 +81,15 @@ namespace OpenMS
 			if (mode==LOAD)  error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
 			if (mode==STORE) error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
-			cerr << error_message_ << endl;
+			LOG_ERROR << error_message_ << endl;
 		}
 		
 		void XMLHandler::warning(ActionMode mode, const String& msg, UInt line, UInt column) const
 		{
-			if (mode==LOAD)  error_message_ =  String("Warning while loading '") + file_ + "': " + msg;
-			if (mode==STORE) error_message_ =  String("Warning while storing '") + file_ + "': " + msg;
+			if (mode==LOAD)  error_message_ =  String("While loading '") + file_ + "': " + msg;
+			if (mode==STORE) error_message_ =  String("While storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
-			cerr << error_message_ << endl;
+			LOG_WARN << error_message_ << endl;
 		}
 		
 		void XMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
