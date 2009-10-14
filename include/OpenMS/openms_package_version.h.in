@@ -37,5 +37,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_PACKAGE_VERSION_H
+#define OPENMS_PACKAGE_VERSION_H
+
 #define OPENMS_PACKAGE_VERSION "@CF_OPENMS_PACKAGE_VERSION@"
 
+#endif

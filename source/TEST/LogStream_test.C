@@ -99,7 +99,7 @@ START_SECTION((LogStreamBuf* rdbuf()))
 }
 END_SECTION
   
-START_SECTION((void setLevel(Int level)))
+START_SECTION((void setLevel(int level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -117,7 +117,7 @@ START_SECTION((void setLevel(Int level)))
 }
 END_SECTION
 
-START_SECTION((Int getLevel()))
+START_SECTION((int getLevel()))
 {
   LogStream l1(new LogStreamBuf());
   TEST_EQUAL(l1.getLevel(), 0)
@@ -126,7 +126,7 @@ START_SECTION((Int getLevel()))
 }
 END_SECTION
 
-START_SECTION((LogStream& level(Int level)))
+START_SECTION((LogStream& level(int level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -142,7 +142,7 @@ START_SECTION((LogStream& level(Int level)))
 }
 END_SECTION
 
-START_SECTION((LogStream& info(Int n=0)))
+START_SECTION((LogStream& info(int n=0)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -158,7 +158,7 @@ START_SECTION((LogStream& info(Int n=0)))
 }
 END_SECTION
 
-START_SECTION((LogStream& error(Int n=0)))
+START_SECTION((LogStream& error(int n=0)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -173,7 +173,7 @@ START_SECTION((LogStream& error(Int n=0)))
 }
 END_SECTION
 
-START_SECTION((LogStream& warn(Int n=0)))
+START_SECTION((LogStream& warn(int n=0)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -189,7 +189,7 @@ START_SECTION((LogStream& warn(Int n=0)))
 }
 END_SECTION
 
-START_SECTION((void insert(std::ostream &s, Int min_level=LogStreamBuf::MIN_LEVEL, Int max_level=LogStreamBuf::MAX_LEVEL)))
+START_SECTION((void insert(std::ostream &s, int min_level=LogStreamBuf::MIN_LEVEL, int max_level=LogStreamBuf::MAX_LEVEL)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -217,7 +217,7 @@ START_SECTION((void remove(std::ostream &s)))
 }
 END_SECTION
 
-START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, Int min_level=LogStreamBuf::MIN_LEVEL, Int max_level=LogStreamBuf::MAX_LEVEL)))
+START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, int min_level=LogStreamBuf::MIN_LEVEL, int max_level=LogStreamBuf::MAX_LEVEL)))
 {
   LogStream l1(new LogStreamBuf());
   TestTarget target;
@@ -248,7 +248,7 @@ START_SECTION(([EXTRA]removeNotification))
 }
 END_SECTION
 
-START_SECTION((void setMinLevel(const std::ostream &s, Int min_level)))
+START_SECTION((void setMinLevel(const std::ostream &s, int min_level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
@@ -264,7 +264,7 @@ START_SECTION((void setMinLevel(const std::ostream &s, Int min_level)))
 }
 END_SECTION
 
-START_SECTION((void setMaxLevel(const std::ostream &s, Int max_level)))
+START_SECTION((void setMaxLevel(const std::ostream &s, int max_level)))
 {
   String filename;
   NEW_TMP_FILE(filename)
