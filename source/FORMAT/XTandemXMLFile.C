@@ -220,7 +220,7 @@ namespace OpenMS
 
 			// try to find a mod in the given mods that fits
 
-			if (mod_pos == 0) // presumably a N-terminal mod
+			if (mod_pos == 0) // can (!) be a N-terminal mod
 			{
 				ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
 			}
@@ -230,9 +230,15 @@ namespace OpenMS
 			}
 			
 			// if not found a terminal mod, try normal one
-			if (possible_mods.size() == 0)
+			if (possible_mass_mods.size() == 0)
 			{
 				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+			}
+
+			cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << endl;
+			for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
+			{
+				cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << endl;	
 			}
 
 			set<String> mod_names = mod_def_set_.getModificationNames();
@@ -245,7 +251,14 @@ namespace OpenMS
 					possible_mods.push_back(*it);
 				}
 			}
-		
+			
+			cerr << "Possible mods (#=" << possible_mods.size() << "): " << endl;
+			for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+			{
+				cerr << *it << endl;
+			}
+			
+
 			// use all possible mass mods, because the modification was not predefined
 			if (possible_mods.size() == 0)
 			{
@@ -260,11 +273,13 @@ namespace OpenMS
 			{
 				if (possible_mods.size() > 1)
 				{
-					// if available use a specific one
+					// if available use a specific one, except if the modification is terminal
 					set<String> specific_ones;
 					for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
 					{
-						if (ModificationsDB::getInstance()->getModification(*it).getOrigin() == type)
+						String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+						ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+						if (origin == type && !(term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
 						{
 							specific_ones.insert(*it);
 						}
@@ -275,22 +290,71 @@ namespace OpenMS
 						possible_mods.clear();
 						possible_mods.push_back(*specific_ones.begin());
 					}
-					else
+					else 
 					{
-						// put the specific ones in front of the list
-						vector<String> new_possible_mods;
-						for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
+						if (specific_ones.size() == 0)
 						{
-							new_possible_mods.push_back(*it);
+							// maybe there are terminal modifications but none of them has been selected
+							// search unspecific but terminal residues
+							vector<String> new_possible_mods;
+							for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+							{
+								String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+								ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+								cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << endl;
+								if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
+								{
+									cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+									new_possible_mods.push_back(*it);
+								}
+							}
+
+							if (new_possible_mods.size() == 0)
+							{
+								// if we haven't found a generic terminal modification, we search for a specific terminal mods which fits
+								for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+								{
+									String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+									ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+									if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
+									{
+										cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+										new_possible_mods.push_back(*it);
+									}
+								}
+							}
+							if (new_possible_mods.size() != 0)
+							{
+								possible_mods = new_possible_mods;
+							}
 						}
-						for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+						else
 						{
-							if (specific_ones.find(*it) == specific_ones.end())
+							// also haven't found a non-specific terminal modification
+							//if (specific_ones.size() == 0)
+							//{
+							// put the specific ones in front of the list
+							vector<String> new_possible_mods;
+							for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
 							{
 								new_possible_mods.push_back(*it);
 							}
+							for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+							{
+								if (specific_ones.find(*it) == specific_ones.end())
+								{
+									new_possible_mods.push_back(*it);
+								}
+							}
+							possible_mods = new_possible_mods;
+						//}
+						//else 
+						//{
+						//	for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
+						//	{
+						//		possible_mods.push_back(*it);
+						//	}
 						}
-						possible_mods = new_possible_mods;
 					}
 					if (possible_mods.size() > 1)
 					{
