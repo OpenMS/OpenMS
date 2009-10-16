@@ -15,6 +15,10 @@ Main improvements of TOPP:
 - FeatureFinder (centroided algorithm)
   - supports parallel execution now
   - supports user-specified seeds now
+- TextExporter
+  - added option for string quoting
+  - improved export of consensusXML
+
 Main improvements of UTILS:
 - UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
 
@@ -23,6 +27,7 @@ Main improvements of OpenMS C++ library:
 Detailed list of changes to specific OpenMS classes
 - New classes:
   - UniqueIdGenerator, UniqueIdInterface, UniqueIdIndexer
+  - SVOutStream
 - String:
   - improved behaviour of split(...) method
   - added support for quoting and unquoting of strings
