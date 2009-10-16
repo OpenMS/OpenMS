@@ -1,5 +1,5 @@
 #FEATURE	rt	mz	intensity	charge	overall_quality	rt_quality	mz_quality	rt_start	rt_end
-#PEPTIDE	rt	mz	score	rank	sequence	charge	AA_before	AA_after	score_type	search_identifier
+#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
 FEATURE	5	500	100	1	1	1	1	-1	-1
 FEATURE	20	600	100	1	1	1	1	-1	-1
 FEATURE	11	558	100	1	2	1	1	10	12

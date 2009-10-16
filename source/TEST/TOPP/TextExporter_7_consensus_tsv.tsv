@@ -1,14 +1,14 @@
 #  Consensus features extracted from /home/groepl/OpenMS/source/TEST/TOPP/TextExporter_7_input.consensusXML on 2009-03-05 01:00:00
 #MAP	id	filename	label	size	channel_active	channel_center	channel_description	channel_id	channel_name
 MAP	2	attention: no size here	iTRAQ_116_	0	false	116.1		2	116
-MAP	3	attention .. no label here	""	31	false	117.1		3	117
+MAP	3	attention .. no label here		31	false	117.1		3	117
 MAP	50	id was 0, changed this to 50	iTRAQ_114_myReference	31	true	114.1	myReference	0	114
-MAP	199	""	iTRAQ_115_ - and empty name	31	false	115.1		1	115
+MAP	199		iTRAQ_115_ - and empty name	31	false	115.1		1	115
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	quality_cf	rt_2	mz_2	intensity_2	charge_2	rt_3	mz_3	intensity_3	charge_3	rt_50	mz_50	intensity_50	charge_50	rt_199	mz_199	intensity_199	charge_199
-#RUN	RunID	ScoreType	ScoreDirection	Date/Time	SearchEngineVersion	Parameters
-#PROTEIN	Score	Rank	Accession	Sequence
-#UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	AA_before	AA_after	score_type	search_identifier	accessions	predicted_RT
-#PEPTIDE	rt	mz	score	rank	sequence	charge	AA_before	AA_after	score_type	search_identifier
+#RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
+#PROTEIN	score	rank	accession	sequence
+#UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	predicted_rt
+#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier
 RUN	InsPecT_2008-10-29T10:17:55		higher-score-better	2008-10-29T10:17:55	20080404	db=, db_version=, taxonomy=, charges=, mass_type=average, fixed_modifications=, variable_modifications=, enzyme=Trypsin, missed_cleavages=0, peak_mass_tolerance=0.5, precursor_mass_tolerance=2
 PROTEIN	0	0	Q9HP81	MTIAWARRRYGVKLGLGYIATAGLLVGVGVTTNDVPSTIVAGIAGLLTLGSINAAETVASIKEIAAQTERVANGNLEQEVTSTRTDEFGSLADSIEQMRQSLRGRLNEMERTRADLEETQAEAETAREEAEQAKQEAQAAEREARELAATYQDTAKRYGETMEAAATGDLTQRVDVDTDHEAMETVGTAFNQMMDDLQATVRTVTTVADEIEAKTERMSETSADIEASAGDTVEAVSKIESQANDQRTELDSAADDVQQVSASAEEIAATIDDLASRSEDVATASDAARDSSKSALDEMSSIETEVDDAVGQVEQLRDQVAEITDIVDVITDIGEQTNMLALNASIEAARAGGNADGDGFSVVADEVKDLAEETQDRANEIAAVVEKVTAQTEDVTASIQQTRTRVESGSETVESTLRDIRTIADSIAEVSNSIDEIQRTTSEQAETVQSTATSVERVAGLSDDTTALASDAESAVIGQRESAEEIAASLEQFQNTAVEQLQSRVASFTVATEDSETAGGSVEQPVMRAGADGGGA
 PROTEIN	0	0	Q9HS51	MDTALVIGGTRFIGRHLVAELLAHDYDVTTFNRGTHDNPFADDDRVARVEGDRTERRALLDAKRTVDPDAVFDCVAYKPRDVESATDIFGDVDAYVYVSSGAAYAAEEVPKREGETRLESCSAEEATDDSSATYGARKAAGDRIVFEAAARGVPAMAVRPPVVYGPHDYTERLAYWVERVAERDEIVVPGDGTNLWQRVYVEDVARGLRLVAEDGEPGEAYNVGDRNAVTLDGMLDLIADALDTSVERSYTSPRELSIVDLGPGEFPLYRDAPHVLDTTKIAELGYESTPPAEAMQRTVDAHREHGRTGDDNGPDRETEDRLLDVLDTV

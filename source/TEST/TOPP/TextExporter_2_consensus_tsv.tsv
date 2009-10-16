@@ -1,8 +1,8 @@
-#  Consensus features extracted from /home/groepl/OpenMS/source/TEST/TOPP/TextExporter_2_input.consensusXML on 2009-03-05 00:51:26
+#Consensus features extracted from /home/groepl/OpenMS/source/TEST/TOPP/TextExporter_2_input.consensusXML on 2009-03-05 00:51:26
 #MAP	id	filename	label	size
-#MAP	0	6-17-03_020.featureXML	""	1
-#MAP	1	6-06-03_020.featureXML	""	1
-#MAP	2	7-17-03_020.featureXML	""	1
+#MAP	0	6-17-03_020.featureXML		1
+#MAP	1	6-06-03_020.featureXML		1
+#MAP	2	7-17-03_020.featureXML		1
 #rt_cf	mz_cf	intensity_cf	charge_cf	quality_cf	rt_0	mz_0	intensity_0	charge_0	rt_1	mz_1	intensity_1	charge_1	rt_2	mz_2	intensity_2	charge_2
 828.323666666667	424.653333333333	5.1111e+08	0	1	826.031	423.632	9.28753e+08	0	762.848	425.502	2.23605e+08	0	896.092	424.826	3.80972e+08	0
 859.160666666667	388.210333333333	6.00744e+08	0	1	875.004	387.927	4.97549e+08	0	737.686	388.307	1.0656e+09	0	964.792	388.397	2.39082e+08	0

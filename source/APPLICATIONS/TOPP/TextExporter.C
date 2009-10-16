@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl, Andreas Bertsch, Chris Bielow $
-// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -66,120 +67,277 @@ using namespace std;
 
 namespace OpenMS
 {
+	// write data from a feature to the output stream
+	void write_feature(SVOutStream& out, Peak2D::CoordinateType rt,
+										 Peak2D::CoordinateType mz, Peak2D::IntensityType intensity,
+										 Int charge)
+	{
+		out.writeValueOrNan(rt);
+		out.writeValueOrNan(mz);
+		out.writeValueOrNan(intensity);
+		out << charge;
+	}
 
-  // There is no standard how to print a nan (not-a-number) value.  So we do
-  // this on our own.
-  namespace
+	
+	// stream output operator for FeatureHandle
+	SVOutStream& operator<<(SVOutStream& out, const FeatureHandle& feature)
+	{
+		write_feature(out, feature.getRT(), feature.getMZ(), feature.getIntensity(),
+									feature.getCharge());
+		return out;
+	}
+
+
+	// stream output operator for ConsensusFeature
+	SVOutStream& operator<<(SVOutStream& out, const ConsensusFeature& feature)
+	{
+		write_feature(out, feature.getRT(), feature.getMZ(), feature.getIntensity(),
+									feature.getCharge());
+		return out;
+	}
+
+
+	// write the header for exporting ConsensusXML
+	void write_consensus_header(SVOutStream& out, const String& what,
+															const String& infile,	const String& now,
+															const StringList& add_comments = StringList(),
+															bool cf = false)
+	{
+		out.write("#" + what + (cf ? "" : " of consensus features") +
+							" extracted from " + infile + " on " + now + "\n");
+		for (StringList::const_iterator it = add_comments.begin();
+				 it != add_comments.end(); ++it)
+		{
+			out.write("#" + *it + "\n");
+		}
+		StringList elements = StringList::create("#rt,mz,intensity,charge");
+		bool old = out.modifyStrings(false);
+		for (StringList::iterator it = elements.begin(); it != elements.end();
+				 ++it)
+		{
+			if (cf) *it += "_cf";
+			out << *it;
+		}
+		if (!cf) out << endl;
+		out.modifyStrings(old);
+	}	
+
+
+	// write the header for run data
+	void write_run_header(SVOutStream& out)
+	{
+		bool old = out.modifyStrings(false);
+		out << "#RUN" << "run_id" << "score_type" << "score_direction"
+				<< "date_time" << "search_engine_version" << "parameters" << endl;
+		out.modifyStrings(old);
+	}
+
+
+	// write the header for protein data
+	void write_protein_header(SVOutStream& out)
+	{
+		bool old = out.modifyStrings(false);
+		out << "#PROTEIN" << "score" << "rank" << "accession" << "sequence" << endl;
+		out.modifyStrings(old);
+	}
+
+
+	// stream output operator for a ProteinHit
+	SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
+	{
+		out << hit.getScore() << hit.getRank() << hit.getAccession()
+				<< hit.getSequence();
+		return out;
+	}
+	
+
+	// stream output operator for SearchParameters
+	SVOutStream& operator<<(SVOutStream& out,
+													const ProteinIdentification::SearchParameters sp)
+	{
+		String param_line = "db=" + sp.db + ", db_version=" +	sp.db_version +
+			", taxonomy=" + sp.taxonomy + ", charges=" + sp.charges + ", mass_type=";
+		if (sp.mass_type == ProteinIdentification::MONOISOTOPIC)
+		{
+			param_line += "monoisotopic";
+		}
+		else param_line += "average";
+		param_line += ", fixed_modifications=";
+		for (vector<String>::const_iterator mit = sp.fixed_modifications.begin();
+				 mit != sp.fixed_modifications.end(); ++mit)
+		{
+			if (mit != sp.fixed_modifications.begin())
+			{
+				param_line += ";";
+			}
+			param_line += *mit;
+		}
+		param_line += ", variable_modifications=";
+		for (vector<String>::const_iterator mit = sp.variable_modifications.begin();
+				 mit != sp.variable_modifications.end(); ++mit)
+		{
+			if (mit != sp.variable_modifications.begin())
+			{
+				param_line += ";";
+			}
+			param_line += *mit;
+		}
+		param_line += ", enzyme=";
+		switch (sp.enzyme)
+		{
+		case ProteinIdentification::TRYPSIN:
+			param_line += "Trypsin";
+			break;
+		case ProteinIdentification::PEPSIN_A:
+			param_line += "PepsinA";
+			break;
+		case ProteinIdentification::PROTEASE_K:
+			param_line += "ProteaseK";
+			break;
+		case ProteinIdentification::CHYMOTRYPSIN:
+			param_line += "ChymoTrypsin";
+			break;
+		default:
+			param_line += "unknown";
+		}
+		param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
+			", peak_mass_tolerance=" + String(sp.peak_mass_tolerance) +
+			", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
+		out << param_line;
+		return out;
+	}
+
+	
+  // write a protein identification to the output stream
+	void write_protein_id(SVOutStream& out, const ProteinIdentification& pid)
+	{
+		// protein id header
+		out << "RUN" << pid.getIdentifier() << pid.getScoreType();
+		if (pid.isHigherScoreBetter()) out << "higher-score-better";
+		else out << "lower-score-better";
+		// using ISODate ensures that TOPP tests will run through regardless of
+		// locale setting
+		out << pid.getDateTime().toString(Qt::ISODate).toStdString()
+				<< pid.getSearchEngineVersion();
+		// search parameters
+		ProteinIdentification::SearchParameters sp = pid.getSearchParameters();
+		out << sp << endl;
+		for (vector<ProteinHit>::const_iterator hit_it = pid.getHits().begin();
+				 hit_it != pid.getHits().end(); ++hit_it)
+		{
+			out << "PROTEIN" << *hit_it << endl;
+		}
+	}
+	
+
+	// write the header for peptide data
+	void write_peptide_header(SVOutStream& out, const String& what = "PEPTIDE",
+														bool incl_pep_misc = true,
+														bool incl_accessions = false,
+														bool incl_pred_rt = false,
+														bool incl_first_dim = false)
+	{
+		bool old = out.modifyStrings(false);
+		out << "#" + what << "rt" << "mz" << "score" << "rank" << "sequence"
+				<< "charge" << "aa_before" << "aa_after";
+		if (incl_pep_misc) out << "score_type" << "search_identifier";
+		if (incl_accessions) out << "accessions";
+		if (incl_pred_rt) out << "predicted_rt";
+		if (incl_first_dim) out << "rt_first_dim" << "predicted_rt_first_dim";
+		out << endl;
+		out.modifyStrings(old);
+	}
+
+
+	// stream output operator for a PeptideHit
+	SVOutStream& operator<<(SVOutStream& out, const PeptideHit& hit)
+	{
+		out << hit.getScore() << hit.getRank() << hit.getSequence()
+				<< hit.getCharge() << hit.getAABefore() << hit.getAAAfter();
+		return out;
+	}
+
+	
+  // write a protein identification to the output stream	
+	void write_peptide_id(SVOutStream& out, const PeptideIdentification& pid,
+												const String& what = "PEPTIDE",
+												bool incl_pep_misc = true, bool incl_accessions = false,
+												bool incl_pred_rt = false, bool incl_first_dim = false)
+	{
+		for (vector<PeptideHit>::const_iterator hit_it = pid.getHits().begin();
+				 hit_it != pid.getHits().end(); ++hit_it)
+		{
+			out << what;
+			if (pid.metaValueExists("RT")) out << (DoubleReal) pid.getMetaValue("RT");
+			else out << "-1";
+			if (pid.metaValueExists("MZ")) out << (DoubleReal) pid.getMetaValue("MZ");
+			else out << "-1";
+			out << *hit_it;
+			if (incl_pep_misc) out << pid.getScoreType() << pid.getIdentifier();
+			if (incl_accessions)
+			{
+				String accessions;
+				for (vector<String>::const_iterator acc_it =
+							 hit_it->getProteinAccessions().begin(); acc_it !=
+							 hit_it->getProteinAccessions().end(); ++acc_it)
+				{
+					if (acc_it != hit_it->getProteinAccessions().begin())
+					{
+						accessions += ";";
+					}
+					accessions += *acc_it;
+				}
+				out << accessions;
+			}
+			if (incl_pred_rt)
+			{
+				if (hit_it->metaValueExists("predicted_RT"))
+				{
+					out << hit_it->getMetaValue("predicted_RT");
+				}
+				else out << "-1";
+			}
+			if (incl_first_dim)
+			{
+				if (pid.metaValueExists("first_dim_rt"))
+				{
+					out << pid.getMetaValue("first_dim_rt");
+				}
+				else out << "-1";
+				if (hit_it->metaValueExists("predicted_RT_first_dim"))
+				{
+					out << hit_it->getMetaValue("predicted_RT_first_dim");
+				}
+				else out << "-1";
+			}
+			out << endl;
+		}
+	}
+
+	
+	class TOPPTextExporter : public TOPPBase
   {
-    const char nan[] = "nan"; // that's what Linux GCC uses, and gnuplot understands.
-
-    template < typename NumberT >
-      std::ostream &
-      printValueOrNan( std::ostream & os, NumberT thing )
+	public:
+		TOPPTextExporter() :
+			TOPPBase("TextExporter", "Exports various XML formats to a text file.")
       {
-        if ( !boost::math::isnan(thing) )
-        {
-          return os << thing;
-        }
-        else
-        {
-          return os << nan;
-        }
-      }
-  }
-
-  /// Wrapper class to implement printing of FeatureHandle
-  struct FeatureHandlePrinter
-  {
-      FeatureHandlePrinter( const FeatureHandle &rhs ) :
-        ref_(rhs)
-      {
-      }
-      const FeatureHandle &ref_;
-  };
-
-  /// Output operator for a FeatureHandlePrinter.
-  std::ostream &
-  operator <<( std::ostream& os, const FeatureHandlePrinter& rhs )
-  {
-    const Size exponent_extra_digits = 6;
-    const Size charge_digits = 5;
-    const unsigned prec_save = os.precision();
-    os << std::setprecision(writtenDigits<> (FeatureHandle::CoordinateType()))
-        << std::setw(writtenDigits(FeatureHandle::CoordinateType())
-            + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getRT());
-    os << ' ' << std::setw(writtenDigits(FeatureHandle::CoordinateType())
-        + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getMZ());
-    os << ' ' << std::setprecision(writtenDigits<> (
-      FeatureHandle::IntensityType())) << std::setw(writtenDigits(
-      FeatureHandle::IntensityType()) + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getIntensity());
-    os << ' ' << std::setw(charge_digits) << rhs.ref_.getCharge()
-        << std::setprecision(prec_save);
-    return os;
-  }
-
-  /// Wrapper class to implement printing of ConsensusFeature
-  struct ConsensusFeaturePrinter
-  {
-      ConsensusFeaturePrinter( const ConsensusFeature &rhs ) :
-        ref_(rhs)
-      {
-      }
-      const ConsensusFeature &ref_;
-  };
-
-  /// Output operator for a ConsensusFeaturePrinter.
-  std::ostream &
-  operator <<( std::ostream& os, const ConsensusFeaturePrinter& rhs )
-  {
-    const Size exponent_extra_digits = 6;
-    const Size charge_digits = 5;
-    const unsigned prec_save = os.precision();
-    os << std::setprecision(writtenDigits(FeatureHandle::CoordinateType()))
-        << std::setw(writtenDigits(FeatureHandle::CoordinateType())
-            + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getRT());
-    os << ' ' << std::setw(writtenDigits(FeatureHandle::CoordinateType())
-        + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getMZ());
-    os << ' ' << std::setprecision(
-      writtenDigits(FeatureHandle::IntensityType())) << std::setw(
-      writtenDigits(FeatureHandle::IntensityType()) + exponent_extra_digits);
-    printValueOrNan(os, rhs.ref_.getIntensity());
-    os << ' ' << std::setw(charge_digits) << rhs.ref_.getCharge()
-        << std::setprecision(prec_save);
-    return os;
-  }
-
-  class TOPPTextExporter : public TOPPBase
-  {
-    public:
-      TOPPTextExporter() :
-        TOPPBase("TextExporter", "Exports various XML formats to a text file.")
-      {
       }
 
-    protected:
+	protected:
 
-      void
-      registerOptionsAndFlags_()
+		
+		void registerOptionsAndFlags_()
       {
         registerInputFile_("in", "<file>", "", "Input file ");
         setValidFormats_("in", StringList::create(
           "featureXML,consensusXML,idXML"));
         registerOutputFile_("out", "<file>", "",
-          "Output file (mandatory for FeatureXML and IdXML).", false);
-        registerStringOption_(
-          "separator",
-          "<sep>",
-          "",
-          "The used separator characters. If unset the 'tab' character is used.",
-          false);
-        registerFlag_("no_ids",
-          "Suppresses output of identification data.");
+          "Output file (mandatory for featureXML and idXML)", false);
+        registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
+				registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
+				registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
+				setValidStrings_("quoting", StringList::create("none,double,escape"));
+        registerFlag_("no_ids", "Suppresses output of identification data.");
         addEmptyLine_();
 
         addText_("Options for IdXML files:");
@@ -197,46 +355,40 @@ namespace OpenMS
           "Output file for centroids of consensus features", false);
         registerOutputFile_("consensus_elements", "<file>", "",
           "Output file for elements of consensus features", false);
-        registerOutputFile_(
-          "consensus_features",
-          "<file>",
-          "",
-          "Output file for consensus features and contained elements from all maps (writes 'nan's if element is missing)",
-          false);
+        registerOutputFile_("consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if element is missing)", false);
+				// use 'no_ids' option instead (i.e. include peptides by default)?
+				registerFlag_("include_peptides", "Include annotated peptide sequences (best hit only) in output (use with 'consensus_features')", false);
         registerStringOption_("sorting_method", "<method>", "none",
           "Sorting method", false);
-        setValidStrings_(
-          "sorting_method",
-          StringList::create(
-            "none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+        setValidStrings_("sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
         registerFlag_("sort_by_maps",
           "Apply a stable sort by the covered maps, lexicographically", false);
-        registerFlag_(
-          "sort_by_size",
-          "Apply a stable sort by decreasing size (i.e., the number of elements)",
-          false);
-        addText_(
-          "Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
+        registerFlag_("sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
+        addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
       }
 
-      ExitCodes
-      main_( int, const char** )
-      {
 
+		ExitCodes main_( int, const char** )
+      {
         //-------------------------------------------------------------
         // parameter handling
         //-------------------------------------------------------------
         String in = getStringOption_("in");
         String out = getStringOption_("out");
-        Size counter = 0;
         bool no_ids = getFlag_("no_ids");
         bool first_dim_rt = getFlag_("first_dim_rt");
 
-        //separator
+        // separator etc.
         String sep = getStringOption_("separator");
-        if ( sep == "" ) sep = "\t";
+        if (sep == "") sep = "\t";
+				String replacement = getStringOption_("replacement");
+				String quoting = getStringOption_("quoting");
+				String::QuotingMethod quoting_method;
+				if (quoting == "none") quoting_method = String::NONE;
+				else if (quoting == "double") quoting_method = String::DOUBLE;
+				else quoting_method = String::ESCAPE;		
 
-        //input file type
+        // input file type
         FileTypes::Type in_type = FileHandler::getType(in);
         writeDebug_(String("Input file type: ") + FileHandler::typeToName(
           in_type), 2);
@@ -259,93 +411,78 @@ namespace OpenMS
 
           // text output
           ofstream outstr(out.c_str());
+					SVOutStream output(outstr, sep, replacement, quoting_method);
 
           // stores one feature per line
-          if ( no_ids )
+					output.modifyStrings(false);
+          if (no_ids)
           {
-            outstr << "#rt" << sep << "mz" << sep << "intensity" << sep
-                << "charge" << sep << "overall_quality" << sep << "rt_quality"
-                << sep << "mz_quality" << sep << "rt_start" << sep << "rt_end"
-                << endl;
+            output << "#rt" << "mz" << "intensity" << "charge"
+									 << "overall_quality" << "rt_quality" << "mz_quality"
+									 << "rt_start" << "rt_end" << endl;
           }
           else
           {
-            outstr << "#FEATURE" << sep << "rt" << sep << "mz" << sep
-                << "intensity" << sep << "charge" << sep << "overall_quality"
-                << sep << "rt_quality" << sep << "mz_quality" << sep
-                << "rt_start" << sep << "rt_end" << endl;
-            outstr << "#PEPTIDE" << sep << "rt" << sep << "mz" << sep
-                << "score" << sep << "rank" << sep << "sequence" << sep
-                << "charge" << sep << "AA_before" << sep << "AA_after" << sep
-                << "score_type" << sep << "search_identifier" << endl;
+            output << "#FEATURE" << "rt" << "mz" << "intensity" << "charge"
+									 << "overall_quality" << "rt_quality" << "mz_quality"
+									 << "rt_start" << "rt_end" << endl;
+            output << "#PEPTIDE" << "rt" << "mz" << "score" << "rank"
+									 << "sequence" << "charge" << "aa_before" << "aa_after"
+									 << "score_type" << "search_identifier" << endl;
           }
+					output.modifyStrings(true);
           for ( FeatureMap<>::const_iterator citer = feature_map.begin(); citer
               != feature_map.end(); ++citer )
           {
-            if ( !no_ids ) outstr << "FEATURE" << sep;
-            outstr << citer->getPosition()[0] << sep << citer->getPosition()[1]
-                << sep << citer->getIntensity();
-            outstr << sep << citer->getCharge();
-            outstr << sep << citer->getOverallQuality();
-            outstr << sep << citer->getQuality(0) << sep
-                << citer->getQuality(1);
+            if (!no_ids) output << "FEATURE";
+            output << citer->getPosition()[0] << citer->getPosition()[1]
+									 << citer->getIntensity() << citer->getCharge()
+									 << citer->getOverallQuality() << citer->getQuality(0)
+									 << citer->getQuality(1);
 
-            if ( citer->getConvexHulls().size() > 0 )
+            if (citer->getConvexHulls().size() > 0)
             {
-              outstr << sep
-                  << citer->getConvexHulls().begin()->getBoundingBox().minX();
-              outstr << sep
-                  << citer->getConvexHulls().begin()->getBoundingBox().maxX();
+              output << citer->getConvexHulls().begin()->
+								getBoundingBox().minX() << citer->getConvexHulls().begin()->
+								getBoundingBox().maxX();
             }
-            else
-            {
-              outstr << sep << "-1";
-              outstr << sep << "-1";
-            }
-            outstr << endl;
+            else output << "-1" << "-1";
+            output << endl;
 
             //peptide ids
-            if ( !no_ids )
+            if (!no_ids)
             {
-              for ( vector<PeptideIdentification>::const_iterator pit =
-                  citer->getPeptideIdentifications().begin(); pit
-                  != citer->getPeptideIdentifications().end(); ++pit )
+              for (vector<PeptideIdentification>::const_iterator pit =
+										 citer->getPeptideIdentifications().begin(); pit !=
+										 citer->getPeptideIdentifications().end(); ++pit)
               {
-                for ( vector<PeptideHit>::const_iterator ppit =
-                    pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit )
+                for (vector<PeptideHit>::const_iterator ppit = pit->
+											 getHits().begin(); ppit != pit->getHits().end(); ++ppit)
                 {
-                  outstr << "PEPTIDE" << sep;
-                  if ( pit->metaValueExists("RT") )
-                  {
-                    outstr << (DoubleReal) pit->getMetaValue("RT") << sep;
+                  output << "PEPTIDE";
+                  if (pit->metaValueExists("RT"))
+									{
+										output << (DoubleReal) pit->getMetaValue("RT");
                   }
-                  else
+                  else output << "-1";
+                  if (pit->metaValueExists("MZ"))
                   {
-                    outstr << "-1" << sep;
+                    output << (DoubleReal) pit->getMetaValue("MZ");
                   }
-
-                  if ( pit->metaValueExists("MZ") )
-                  {
-                    outstr << (DoubleReal) pit->getMetaValue("MZ") << sep;
-                  }
-                  else
-                  {
-                    outstr << "-1" << sep;
-                  }
-                  outstr << ppit->getScore() << sep << ppit->getRank() << sep
-                      << ppit->getSequence() << sep << ppit->getCharge() << sep
-                      << ppit->getAABefore() << sep << ppit->getAAAfter()
-                      << sep << pit->getScoreType() << sep
-                      << pit->getIdentifier() << endl;
-                }
-              }
-            }
-          }
-          outstr.close();
-        }
-        else if ( in_type == FileTypes::CONSENSUSXML )
+                  else output << "-1";
+                  output << ppit->getScore() << ppit->getRank()
+												 << ppit->getSequence() << ppit->getCharge()
+												 << ppit->getAABefore() << ppit->getAAAfter()
+												 << pit->getScoreType() << pit->getIdentifier() << endl;
+								}
+							}
+						}
+					}
+					outstr.close();
+				}
+				
+        else if (in_type == FileTypes::CONSENSUSXML)
         {
-
           String consensus_centroids = getStringOption_("consensus_centroids");
           String consensus_elements = getStringOption_("consensus_elements");
           String consensus_features = getStringOption_("consensus_features");
@@ -358,109 +495,95 @@ namespace OpenMS
 
           consensus_xml_file.load(in, consensus_map);
 
-          if ( sorting_method == "none" )
+          if (sorting_method == "none")
           {
             // don't sort in this case
           }
-          else if ( sorting_method == "RT" )
-          {
-            consensus_map.sortByRT();
+          else if (sorting_method == "RT") consensus_map.sortByRT();
+          else if (sorting_method == "MZ") consensus_map.sortByMZ();
+          else if (sorting_method == "RT_then_MZ")
+					{
+						consensus_map.sortByPosition();
           }
-          else if ( sorting_method == "MZ" )
-          {
-            consensus_map.sortByMZ();
+          else if (sorting_method == "intensity")
+					{
+						consensus_map.sortByIntensity();
           }
-          else if ( sorting_method == "RT_then_MZ" )
-          {
-            consensus_map.sortByPosition();
-          }
-          else if ( sorting_method == "intensity" )
-          {
-            consensus_map.sortByIntensity();
-          }
-          else if ( sorting_method == "quality_decreasing" )
+          else if (sorting_method == "quality_decreasing")
           {
             consensus_map.sortByQuality(true);
           }
-          else if ( sorting_method == "quality_increasing" )
+          else if (sorting_method == "quality_increasing")
           {
             consensus_map.sortByQuality(false);
           }
 
-          if ( sort_by_maps )
-          {
-            consensus_map.sortByMaps();
-          }
+          if (sort_by_maps) consensus_map.sortByMaps();
 
-          if ( sort_by_size )
-          {
-            consensus_map.sortBySize();
-          }
+          if (sort_by_size) consensus_map.sortBySize();
 
           String date_time_now = DateTime::now().get();
 
-          // ----------------------------------------------------------------------
+          // -------------------------------------------------------------------
 
-          if ( !consensus_centroids.empty() )
+          if (!consensus_centroids.empty())
           {
             std::ofstream consensus_centroids_file(consensus_centroids.c_str());
-            if ( !consensus_centroids_file )
+            if (!consensus_centroids_file)
             {
               throw Exception::UnableToCreateFile(__FILE__, __LINE__,
                 __PRETTY_FUNCTION__, consensus_centroids);
             }
 
-            consensus_centroids_file
-                << "#  Centroids of consensus features extracted from " << in
-                << " on " << date_time_now << std::endl
-                << "# RT MZ Intensity Charge" << std::endl;
-            for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit
-                != consensus_map.end(); ++cmit )
+						SVOutStream output(consensus_centroids_file, sep, replacement,
+															 quoting_method);
+
+						write_consensus_header(output, "Centroids", in,	date_time_now);
+
+            for (ConsensusMap::const_iterator cmit = consensus_map.begin();
+								 cmit != consensus_map.end(); ++cmit)
             {
-              consensus_centroids_file << ConsensusFeaturePrinter(*cmit)
-                  << std::endl;
+              output << *cmit << endl;
             }
             consensus_centroids_file.close();
           }
 
-          // ----------------------------------------------------------------------
+          // -------------------------------------------------------------------
 
           if ( !consensus_elements.empty() )
           {
             std::ofstream consensus_elements_file(consensus_elements.c_str());
-            if ( !consensus_elements_file )
+            if (!consensus_elements_file)
             {
               throw Exception::UnableToCreateFile(__FILE__, __LINE__,
                 __PRETTY_FUNCTION__, consensus_elements);
             }
 
-            consensus_elements_file
-                << "#  Elements of consensus features extracted from " << in
-                << " on " << date_time_now << std::endl
-                << "# RT MZ Intensity Charge" << std::endl;
-            for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit
-                != consensus_map.end(); ++cmit )
+						SVOutStream output(consensus_elements_file, sep, replacement,
+															 quoting_method);
+						
+						write_consensus_header(output, "Elements", in, date_time_now);
+						
+            for (ConsensusMap::const_iterator cmit = consensus_map.begin();
+								 cmit != consensus_map.end(); ++cmit)
             {
-              consensus_elements_file << std::endl;
-              for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit
-                  != cmit->end(); ++cfit )
+              output << endl;
+              for (ConsensusFeature::const_iterator cfit = cmit->begin();
+									 cfit != cmit->end(); ++cfit)
               {
-                consensus_elements_file << "H " << FeatureHandlePrinter(*cfit)
-                    << "    " << ConsensusFeaturePrinter(*cmit) << std::endl;
+                output << "H" << *cfit << *cmit << endl;
               }
               // We repeat the first feature handle at the end of the list.
               // This way you can generate closed line drawings
               // See Gnuplot set datafile commentschars
-              consensus_elements_file << "L " << FeatureHandlePrinter(
-                *cmit->begin()) << "    " << ConsensusFeaturePrinter(*cmit)
-                  << std::endl;
+              output << "L" << *cmit->begin() << *cmit << endl;
             }
             consensus_elements_file.close();
           }
 
-          // ----------------------------------------------------------------------
+          // -------------------------------------------------------------------
 
-          if ( !consensus_features.empty() )
+					if (!consensus_features.empty())
           {
             std::ofstream consensus_features_file(consensus_features.c_str());
             if ( !consensus_features_file )
@@ -469,67 +592,134 @@ namespace OpenMS
                 __PRETTY_FUNCTION__, consensus_features);
             }
 
-            std::map<Size,Size> map_id_to_map_num;
+						SVOutStream output(consensus_features_file, sep, replacement,
+															 quoting_method);
+						
+						bool include_peptides = getFlag_("include_peptides");
+						std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
             std::vector<FeatureHandle> feature_handles;
             FeatureHandle feature_handle_NaN;
-            feature_handle_NaN.setRT(std::numeric_limits<
-                FeatureHandle::CoordinateType>::quiet_NaN());
-            feature_handle_NaN.setMZ(std::numeric_limits<
-                FeatureHandle::CoordinateType>::quiet_NaN());
-            feature_handle_NaN.setIntensity(std::numeric_limits<
-                FeatureHandle::IntensityType>::quiet_NaN());
+            feature_handle_NaN.setRT(
+							std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
+            feature_handle_NaN.setMZ(
+							std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
+            feature_handle_NaN.setIntensity(
+							std::numeric_limits<FeatureHandle::IntensityType>::quiet_NaN());
             // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max());
 
-            for ( ConsensusMap::FileDescriptions::const_iterator fdit =
-                consensus_map.getFileDescriptions().begin(); fdit
-                != consensus_map.getFileDescriptions().end(); ++fdit )
+            for (ConsensusMap::FileDescriptions::const_iterator fdit =
+									 consensus_map.getFileDescriptions().begin();
+								 fdit != consensus_map.getFileDescriptions().end(); ++fdit )
             {
               map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
               map_num_to_map_id.push_back(fdit->first);
             }
 
-            consensus_features_file << "#  Consensus features extracted from "
-                << in << " on " << date_time_now << std::endl
-                << "# RT_cf MZ_cf Intensity_cf Charge_cf";
-            for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
+						map<String, Size> prot_runs;
+						Size max_prot_run = 0;
+						StringList comments;
+						if (include_peptides) {
+							String pep_line = "Protein identification runs associated with peptide columns below: ";
+							for (vector<ProteinIdentification>::const_iterator prot_it =
+										 consensus_map.getProteinIdentifications().begin();
+									 prot_it != consensus_map.getProteinIdentifications().end();
+									 ++prot_it, ++max_prot_run)
+							{
+								String run_id = prot_it->getIdentifier();
+								// add to comment:
+								if (max_prot_run > 0) pep_line += ", ";
+								pep_line += String(max_prot_run) + ": '" + run_id + "'";
+								
+								map<String, Size>::iterator pos = prot_runs.find(run_id);
+								if (pos != prot_runs.end())
+								{
+									cerr << "Warning while exporting '" << in
+											 << "': protein identification run ID '" << run_id
+											 << "' occurs more than once" << endl;
+								}
+								else prot_runs[run_id] = max_prot_run;
+							}
+							--max_prot_run; // increased beyond max. at end of for-loop
+							comments << pep_line;
+						}
+
+						write_consensus_header(output, "Consensus features", in,
+																	 date_time_now,	comments, true);
+						output.modifyStrings(false);
+            for (Size fhindex = 0; fhindex < map_num_to_map_id.size();
+								 ++fhindex)
             {
               Size map_id = map_num_to_map_id[fhindex];
-              consensus_features_file << "    RT_" << map_id << " MZ_"
-                  << map_id << " Intensity_" << map_id << " Charge_" << map_id;
+              output << "rt_"+ String(map_id) << "mz_" + String(map_id)
+										 << "intensity_" + String(map_id)
+										 << "charge_" + String(map_id);
             }
-            consensus_features_file << std::endl;
-
-            for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit
-                != consensus_map.end(); ++cmit )
+						if (include_peptides)
+						{
+							for (Size i = 0; i <= max_prot_run; ++i)
+							{
+								output << "peptide_" + String(i)
+											 << "n_diff_peptides_" + String(i);
+							}
+						}					
+            output << endl;
+						output.modifyStrings(true);
+						
+            for (ConsensusMap::const_iterator cmit = consensus_map.begin();
+								 cmit != consensus_map.end(); ++cmit)
             {
               {
-                // please can anyone explain to me why putting the next two things into one statement doesnt work?
+                // please can anyone explain to me why putting the next two
+								// things into one statement doesnt work?
                 std::vector<FeatureHandle> tmp(map_num_to_map_id.size(),
-                  feature_handle_NaN);
+																							 feature_handle_NaN);
                 feature_handles.swap(tmp);
               }
-              consensus_features_file << ConsensusFeaturePrinter(*cmit);
-              for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit
-                  != cmit->end(); ++cfit )
+              output << *cmit;
+              for (ConsensusFeature::const_iterator cfit = cmit->begin();
+									 cfit != cmit->end(); ++cfit)
               {
                 feature_handles[map_id_to_map_num[cfit->getMapIndex()]] = *cfit;
               }
-              for ( Size fhindex = 0; fhindex < feature_handles.size(); ++fhindex )
+              for (Size fhindex = 0; fhindex < feature_handles.size();
+									 ++fhindex)
               {
-                consensus_features_file << "    " << FeatureHandlePrinter(
-                  feature_handles[fhindex]);
+								output << feature_handles[fhindex];
               }
-              consensus_features_file << std::endl;
+							if (include_peptides)
+							{
+								vector<set<String> > peptides_by_source(max_prot_run + 1);
+								for (vector<PeptideIdentification>::const_iterator pep_it =
+											 cmit->getPeptideIdentifications().begin(); pep_it !=
+											 cmit->getPeptideIdentifications().end(); ++pep_it)
+								{
+									Size index = prot_runs[pep_it->getIdentifier()];
+									for (vector<PeptideHit>::const_iterator hit_it = pep_it->
+												 getHits().begin(); hit_it != pep_it->getHits().end();
+											 ++hit_it)
+									{							
+										peptides_by_source[index].insert(hit_it->getSequence().
+																										 toString());
+									}
+								}
+								for (vector<set<String> >::iterator pbs_it = peptides_by_source.
+											 begin(); pbs_it != peptides_by_source.end(); ++pbs_it)
+								{
+									StringList seqs(vector<String>(pbs_it->begin(),
+																								 pbs_it->end()));
+									output << seqs.concatenate("/") << pbs_it->size();
+								}
+							}					
+              output << endl;
             }
             consensus_features_file.close();
           }
+					
+          // -------------------------------------------------------------------
 
-          // ----------------------------------------------------------------------
-
-          if ( !out.empty() )
+          if (!out.empty())
           {
-
             std::ofstream outstr(out.c_str());
             if ( !outstr )
             {
@@ -537,8 +727,10 @@ namespace OpenMS
                 __PRETTY_FUNCTION__, out);
             }
 
-            outstr << "#  Consensus features extracted from " << in << " on "
-                << date_time_now << std::endl;
+						SVOutStream output(outstr, sep, replacement, quoting_method);
+						output.modifyStrings(false);
+            output << "#Consensus features extracted from " + in + " on "	+
+							date_time_now << std::endl;
 
             std::map<Size,Size> map_id_to_map_num;
             std::vector<Size> map_num_to_map_id;
@@ -553,8 +745,9 @@ namespace OpenMS
             feature_handle_NaN.setCharge(0); // just to be sure...
             // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max()); // alternative ??
 
-            // Its hard to predict which meta keys will be used in file descriptions.
-            // So we assemble a list each time.  Represent keys by String, not UInt, for implicit sorting.
+            // It's hard to predict which meta keys will be used in file
+						// descriptions. So we assemble a list each time. Represent keys
+						// by String, not UInt, for implicit sorting.
             std::set<String> all_file_desc_meta_keys;
             std::vector<UInt> tmp_meta_keys;
             for ( ConsensusMap::FileDescriptions::const_iterator fdit =
@@ -564,560 +757,189 @@ namespace OpenMS
               map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
               map_num_to_map_id.push_back(fdit->first);
               fdit->second.getKeys(tmp_meta_keys);
-              for ( std::vector<UInt>::const_iterator kit =
-                  tmp_meta_keys.begin(); kit != tmp_meta_keys.end(); ++kit )
+              for (std::vector<UInt>::const_iterator kit =
+										 tmp_meta_keys.begin(); kit != tmp_meta_keys.end(); ++kit )
               {
                 all_file_desc_meta_keys.insert(
                   MetaInfoInterface::metaRegistry().getName(*kit));
               }
             }
 
-            outstr << "#MAP" << sep << "id" << sep << "filename" << sep
-                << "label" << sep << "size";
-            for ( std::set<String>::const_iterator kit =
-                all_file_desc_meta_keys.begin(); kit
-                != all_file_desc_meta_keys.end(); ++kit )
+            output << "#MAP" << "id" << "filename" << "label" << "size";
+            for (std::set<String>::const_iterator kit =
+									 all_file_desc_meta_keys.begin(); kit !=
+									 all_file_desc_meta_keys.end(); ++kit)
             {
-              outstr << sep << *kit;
+              output << *kit;
             }
-            outstr << std::endl;
+            output << endl;
+						output.modifyStrings(true);
 
             // list of maps (intentionally at the beginning, contrary to order in consensusXML)
-            for ( ConsensusMap::FileDescriptions::const_iterator fdit =
-                consensus_map.getFileDescriptions().begin(); fdit
-                != consensus_map.getFileDescriptions().end(); ++fdit )
+            for (ConsensusMap::FileDescriptions::const_iterator fdit =
+									 consensus_map.getFileDescriptions().begin(); fdit !=
+									 consensus_map.getFileDescriptions().end(); ++fdit)
             {
-              if ( no_ids )
+              if (no_ids) output << "#MAP";
+							else output << "MAP";
+              output << fdit->first << fdit->second.filename
+										 << fdit->second.label << fdit->second.size;
+              for (std::set<String>::const_iterator kit =
+										 all_file_desc_meta_keys.begin(); kit !=
+										 all_file_desc_meta_keys.end(); ++kit)
               {
-                outstr << "#";
-              }
-              outstr << "MAP" << sep << fdit->first << sep
-                  << ( fdit->second.filename.empty() ? "\"\""
-                      : fdit->second.filename ) << sep
-                  << ( fdit->second.label.empty() ? "\"\"" : fdit->second.label )
-                  << sep << fdit->second.size;
-              for ( std::set<String>::const_iterator kit =
-                  all_file_desc_meta_keys.begin(); kit
-                  != all_file_desc_meta_keys.end(); ++kit )
-              {
-                if ( fdit->second.metaValueExists(*kit) )
+                if (fdit->second.metaValueExists(*kit))
                 {
-                  outstr << sep << fdit->second.getMetaValue(*kit);
+                  output << fdit->second.getMetaValue(*kit);
                 }
-                else
-                {
-                  outstr << sep << "\"\""; // default is "" - reasonable?
-                }
+                else output << "";
               }
-              outstr << std::endl;
+              output << endl;
             }
 
             // stores one consensus feature per line
-            if ( no_ids )
+						output.modifyStrings(false);
+						if (no_ids) output << "#rt_cf";
+						else output << "#CONSENSUS" << "rt_cf";
+						output << "mz_cf" << "intensity_cf" << "charge_cf" << "quality_cf";
+						for (Size fhindex = 0; fhindex < map_num_to_map_id.size();
+								 ++fhindex)
+						{
+							Size map_id = map_num_to_map_id[fhindex];
+							output << "rt_" + String(map_id) << "mz_" + String(map_id)
+										 << "intensity_" + String(map_id)
+										 << "charge_" + String(map_id);
+						}
+						output << endl;
+						output.modifyStrings(true);
+            if (!no_ids)
             {
-              outstr << "#rt_cf" << sep << "mz_cf" << sep << "intensity_cf"
-                  << sep << "charge_cf" << sep << "quality_cf";
-              for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
-              {
-                Size map_id = map_num_to_map_id[fhindex];
-                outstr << sep << "rt_" << map_id << sep << "mz_" << map_id
-                    << sep << "intensity_" << map_id << sep << "charge_"
-                    << map_id;
-              }
-              outstr << std::endl;
-            }
-            else
-            {
-
-              outstr << "#CONSENSUS" << sep << "rt_cf" << sep << "mz_cf" << sep
-                  << "intensity_cf" << sep << "charge_cf" << sep << "quality_cf";
-              for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
-              {
-                Size map_id = map_num_to_map_id[fhindex];
-                outstr << sep << "rt_" << map_id << sep << "mz_" << map_id
-                    << sep << "intensity_" << map_id << sep << "charge_"
-                    << map_id;
-              }
-              outstr << std::endl;
-
-              outstr << "#RUN" << sep << "RunID" << sep << "ScoreType" << sep
-                  << "ScoreDirection" << sep << "Date/Time" << sep
-                  << "SearchEngineVersion" << sep << "Parameters" << std::endl;
-
-              outstr << "#PROTEIN" << sep << "Score" << sep << "Rank" << sep
-                  << "Accession" << sep << "Sequence" << std::endl;
-
-              outstr << "#UNASSIGNEDPEPTIDE" << sep << "rt" << sep << "mz"
-                  << sep << "score" << sep << "rank" << sep << "sequence"
-                  << sep << "charge" << sep << "AA_before" << sep << "AA_after"
-                  << sep << "score_type" << sep << "search_identifier" <<
-              // not sure if accessions really make sense, but it's copy&paste code anyway and predicted_RT is sensible
-                  sep << "accessions" << sep << "predicted_RT" << std::endl;
-
-              // protein accessions, predicted_RT
-
-              outstr << "#PEPTIDE" << sep << "rt" << sep << "mz" << sep
-                  << "score" << sep << "rank" << sep << "sequence" << sep
-                  << "charge" << sep << "AA_before" << sep << "AA_after" << sep
-                  << "score_type" << sep << "search_identifier" << std::endl;
-
+							write_run_header(output);
+							write_protein_header(output);
+							write_peptide_header(output, "UNASSIGNEDPEPTIDE", true, true,
+																	 true);
+							write_peptide_header(output, "PEPTIDE");
             }
 
-            //  proteins and unassigned peptides
-            if ( !no_ids )
-            {
-              // proteins
-              {
-                for ( vector<ProteinIdentification>::const_iterator it =
-                    consensus_map.getProteinIdentifications().begin(); it
-                    != consensus_map.getProteinIdentifications().end(); ++it )
-                {
-                  String actual_id = it->getIdentifier();
-                  // protein id header
-                  outstr << "RUN" << sep << actual_id << sep
-                      << it->getScoreType() << sep;
-                  if ( it->isHigherScoreBetter() )
-                  {
-                    outstr << "higher-score-better" << sep;
-                  }
-                  else
-                  {
-                    outstr << "lower-score-better" << sep;
-                  }
-                  // using ISODate ensures that TOPP tests will run through regardless of locale setting
-                  outstr
-                      << it->getDateTime().toString(Qt::ISODate).toStdString()
-                      << sep << it->getSearchEngineVersion() << sep;
-
-                  // search parameters
-                  ProteinIdentification::SearchParameters sp =
-                      it->getSearchParameters();
-                  outstr << "db=" << sp.db << ", db_version=" << sp.db_version
-                      << ", taxonomy=" << sp.taxonomy << ", charges="
-                      << sp.charges << ", mass_type=";
-                  if ( sp.mass_type == ProteinIdentification::MONOISOTOPIC )
-                  {
-                    outstr << "monoisotopic";
-                  }
-                  else
-                  {
-                    outstr << "average";
-                  }
-                  outstr << ", fixed_modifications=";
-                  for ( vector<String>::const_iterator mit =
-                      sp.fixed_modifications.begin(); mit
-                      != sp.fixed_modifications.end(); ++mit )
-                  {
-                    if ( mit != sp.fixed_modifications.begin() )
-                    {
-                      outstr << ";";
-                    }
-                    outstr << *mit;
-                  }
-                  outstr << ", variable_modifications=";
-                  for ( vector<String>::const_iterator mit =
-                      sp.variable_modifications.begin(); mit
-                      != sp.variable_modifications.end(); ++mit )
-                  {
-                    if ( mit != sp.variable_modifications.begin() )
-                    {
-                      outstr << ";";
-                    }
-                    outstr << *mit;
-                  }
-                  outstr << ", enzyme=";
-                  switch ( sp.enzyme )
-                  {
-                    case ProteinIdentification::TRYPSIN:
-                      outstr << "Trypsin";
-                      break;
-                    case ProteinIdentification::PEPSIN_A:
-                      outstr << "PepsinA";
-                      break;
-                    case ProteinIdentification::PROTEASE_K:
-                      outstr << "ProteaseK";
-                      break;
-                    case ProteinIdentification::CHYMOTRYPSIN:
-                      outstr << "ChymoTrypsin";
-                      break;
-                    default:
-                      outstr << "unknown";
-                  }
-                  outstr << ", missed_cleavages=" << sp.missed_cleavages
-                      << ", peak_mass_tolerance=" << sp.peak_mass_tolerance
-                      << ", precursor_mass_tolerance="
-                      << sp.precursor_tolerance << endl;
-
-                  for ( vector<ProteinHit>::const_iterator pit =
-                      it->getHits().begin(); pit != it->getHits().end(); ++pit )
-                  {
-                    outstr << "PROTEIN" << sep << pit->getScore() << sep
-                        << pit->getRank() << sep << pit->getAccession() << sep
-                        << pit->getSequence() << endl;
-                  }
-                }
-              }
-
+            // proteins and unassigned peptides
+            if (!no_ids)
+            { // proteins
+							for (vector<ProteinIdentification>::const_iterator it =
+										 consensus_map.getProteinIdentifications().begin(); it !=
+										 consensus_map.getProteinIdentifications().end(); ++it )
+							{
+								write_protein_id(output, *it);
+							}
+						 
               // unassigned peptides
-              {
-                for ( vector<PeptideIdentification>::const_iterator pit =
-                    consensus_map.getUnassignedPeptideIdentifications().begin(); pit
-                    != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit )
-                {
-                  for ( vector<PeptideHit>::const_iterator ppit =
-                      pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit )
-                  {
-                    outstr << "UNASSIGNEDPEPTIDE" << sep;
-                    if ( pit->metaValueExists("RT") )
-                    {
-                      outstr << (DoubleReal) pit->getMetaValue("RT") << sep;
-                    }
-                    else
-                    {
-                      outstr << "-1" << sep;
-                    }
-
-                    if ( pit->metaValueExists("MZ") )
-                    {
-                      outstr << (DoubleReal) pit->getMetaValue("MZ") << sep;
-                    }
-                    else
-                    {
-                      outstr << "-1" << sep;
-                    }
-                    outstr << ppit->getScore() << sep << ppit->getRank() << sep
-                        << ppit->getSequence() << sep << ppit->getCharge()
-                        << sep << ppit->getAABefore() << sep
-                        << ppit->getAAAfter() << sep << pit->getScoreType()
-                        << sep << pit->getIdentifier() << sep;
-
-                    for ( vector<String>::const_iterator ait =
-                        ppit->getProteinAccessions().begin(); ait
-                        != ppit->getProteinAccessions().end(); ++ait )
-                    {
-                      if ( ait != ppit->getProteinAccessions().begin() )
-                      {
-                        outstr << ";";
-                      }
-                      outstr << *ait;
-                    }
-                    if ( ppit->metaValueExists("predicted_RT") )
-                    {
-                      outstr << sep << ppit->getMetaValue("predicted_RT");
-                    }
-                    else
-                    {
-                      outstr << sep << "-1";
-                    }
-                    /* first_dim_... stuff not supported for now */
-                    //  if ( first_dim_rt )
-                    //  {
-                    //    if ( pit->metaValueExists("first_dim_rt") )
-                    //    {
-                    //      outstr << sep << pit->getMetaValue("first_dim_rt");
-                    //    }
-                    //    else
-                    //    {
-                    //      outstr << sep << "-1";
-                    //    }
-                    //    if ( ppit->metaValueExists("predicted_RT_first_dim") )
-                    //    {
-                    //      outstr << sep << ppit->getMetaValue(
-                    //        "predicted_RT_first_dim");
-                    //    }
-                    //    else
-                    //    {
-                    //      outstr << sep << "-1";
-                    //    }
-                    //  }
-                    outstr << std::endl;
-                  }
-                }
-              }
+							for (vector<PeptideIdentification>::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
+							{
+								write_peptide_id(output, *pit, "UNASSIGNEDPEPTIDE", true, true,
+																 true);
+								// first_dim_... stuff not supported for now
+							}
             }
 
-            for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit
-                != consensus_map.end(); ++cmit )
+            for (ConsensusMap::const_iterator cmit = consensus_map.begin();
+								 cmit != consensus_map.end(); ++cmit)
             {
               {
-                // please can anyone explain to me why putting the next two things into one statement doesnt work?
+                // please can anyone explain to me why putting the next two
+								// things into one statement doesnt work?
                 std::vector<FeatureHandle> tmp(map_num_to_map_id.size(),
-                  feature_handle_NaN);
+																							 feature_handle_NaN);
                 feature_handles.swap(tmp);
               }
-              if ( !no_ids ) outstr << "CONSENSUS" << sep;
-              outstr << precisionWrapper(cmit->getRT()) << sep
-                  << precisionWrapper(cmit->getMZ()) << sep
-                  << precisionWrapper(cmit->getIntensity()) << sep
-                  << cmit->getCharge() << sep << cmit->getQuality();
-              for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit
-                  != cmit->end(); ++cfit )
+              if (!no_ids) output << "CONSENSUS";
+              output << *cmit << cmit->getQuality();
+              for (ConsensusFeature::const_iterator cfit = cmit->begin();
+									 cfit != cmit->end(); ++cfit)
               {
                 feature_handles[map_id_to_map_num[cfit->getMapIndex()]] = *cfit;
               }
-              for ( Size fhindex = 0; fhindex < feature_handles.size(); ++fhindex )
+              for (Size fhindex = 0; fhindex < feature_handles.size();
+									 ++fhindex )
               {
-                outstr << sep << precisionWrapper(
-                  feature_handles[fhindex].getRT()) << sep << precisionWrapper(
-                  feature_handles[fhindex].getMZ()) << sep << precisionWrapper(
-                  feature_handles[fhindex].getIntensity()) << sep
-                    << feature_handles[fhindex].getCharge();
+								output << feature_handles[fhindex];
               }
-              outstr << std::endl;
+              output << endl;
 
               // peptide ids
-              if ( !no_ids )
+              if (!no_ids)
               {
-                for ( vector<PeptideIdentification>::const_iterator pit =
-                    cmit->getPeptideIdentifications().begin(); pit
-                    != cmit->getPeptideIdentifications().end(); ++pit )
+                for (vector<PeptideIdentification>::const_iterator pit =
+											 cmit->getPeptideIdentifications().begin(); pit !=
+											 cmit->getPeptideIdentifications().end(); ++pit)
                 {
-                  for ( vector<PeptideHit>::const_iterator ppit =
-                      pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit )
-                  {
-                    outstr << "PEPTIDE" << sep;
-                    if ( pit->metaValueExists("RT") )
-                    {
-                      outstr << precisionWrapper(pit->getMetaValue("RT"))
-                          << sep;
-                    }
-                    else
-                    {
-                      outstr << "-1" << sep;
-                    }
-
-                    if ( pit->metaValueExists("MZ") )
-                    {
-                      outstr << precisionWrapper(pit->getMetaValue("MZ"))
-                          << sep;
-                    }
-                    else
-                    {
-                      outstr << "-1" << sep;
-                    }
-                    outstr << precisionWrapper(ppit->getScore()) << sep
-                        << precisionWrapper(ppit->getRank()) << sep
-                        << ppit->getSequence() << sep << ppit->getCharge()
-                        << sep << ppit->getAABefore() << sep
-                        << ppit->getAAAfter() << sep << pit->getScoreType()
-                        << sep << pit->getIdentifier() << std::endl;
-                  }
+									write_peptide_id(output, *pit);								
                 }
               }
             }
           }
-
           return EXECUTION_OK;
         }
-        else if ( in_type == FileTypes::IDXML )
+				
+        else if (in_type == FileTypes::IDXML)
         {
           vector<ProteinIdentification> prot_ids;
           vector<PeptideIdentification> pep_ids;
           String document_id;
           IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
-          counter = 0;
           ofstream txt_out(out.c_str());
+					SVOutStream output(txt_out, sep, replacement, quoting_method);
 
-          txt_out << "#RUN" << sep << "RunID" << sep << "ScoreType" << sep
-              << "ScoreDirection" << sep << "Date/Time" << sep
-              << "SearchEngineVersion" << sep << "Parameters" << endl;
-          txt_out << "#PROTEIN" << sep << "Score" << sep << "Rank" << sep
-              << "Accession" << sep << "Sequence" << endl;
-
-          if ( first_dim_rt )
+					write_run_header(output);
+					write_protein_header(output);
+          if (first_dim_rt)
           {
-            txt_out << "#PEPTIDE" << sep << "RT" << sep << "MZ" << sep
-                << "Score" << sep << "Rank" << sep << "Sequence" << sep
-                << "Charge" << sep << "AABefore" << sep << "AAAfter" << sep
-                << "Accessions" << sep << "predicted_RT" << sep
-                << "RT_first_dim" << sep << "predicted_RT_first_dim" << endl;
+						write_peptide_header(output, "PEPTIDE", false, true, true, true);
           }
           else
           {
-            txt_out << "#PEPTIDE" << sep << "RT" << sep << "MZ" << sep
-                << "Score" << sep << "Rank" << sep << "Sequence" << sep
-                << "Charge" << sep << "AABefore" << sep << "AAAfter" << sep
-                << "Accessions" << sep << "predicted_RT" << endl;
+						write_peptide_header(output, "PEPTIDE", false, true, true);
           }
 
-          for ( vector<ProteinIdentification>::const_iterator it =
-              prot_ids.begin(); it != prot_ids.end(); ++it )
+          for (vector<ProteinIdentification>::const_iterator it =
+								 prot_ids.begin(); it != prot_ids.end(); ++it)
           {
             String actual_id = it->getIdentifier();
-            if ( !getFlag_("peptides_only") )
-            {
-              // protein id header
-              txt_out << "RUN" << sep << actual_id << sep << it->getScoreType()
-                  << sep;
-              if ( it->isHigherScoreBetter() )
-              {
-                txt_out << "higher-score-better" << sep;
-              }
-              else
-              {
-                txt_out << "lower-score-better" << sep;
-              }
-              // using ISODate ensures that TOPP tests will run through regardless of locale setting
-              txt_out << it->getDateTime().toString(Qt::ISODate).toStdString()
-                  << sep << it->getSearchEngineVersion() << sep;
 
-              // search parameters
-              ProteinIdentification::SearchParameters sp =
-                  it->getSearchParameters();
-              txt_out << "db=" << sp.db << ", db_version=" << sp.db_version
-                  << ", taxonomy=" << sp.taxonomy << ", charges=" << sp.charges
-                  << ", mass_type=";
-              if ( sp.mass_type == ProteinIdentification::MONOISOTOPIC )
-              {
-                txt_out << "monoisotopic";
-              }
-              else
-              {
-                txt_out << "average";
-              }
-              txt_out << ", fixed_modifications=";
-              for ( vector<String>::const_iterator mit =
-                  sp.fixed_modifications.begin(); mit
-                  != sp.fixed_modifications.end(); ++mit )
-              {
-                if ( mit != sp.fixed_modifications.begin() )
-                {
-                  txt_out << ";";
-                }
-                txt_out << *mit;
-              }
-              txt_out << ", variable_modifications=";
-              for ( vector<String>::const_iterator mit =
-                  sp.variable_modifications.begin(); mit
-                  != sp.variable_modifications.end(); ++mit )
-              {
-                if ( mit != sp.variable_modifications.begin() )
-                {
-                  txt_out << ";";
-                }
-                txt_out << *mit;
-              }
-              txt_out << ", enzyme=";
-              switch ( sp.enzyme )
-              {
-                case ProteinIdentification::TRYPSIN:
-                  txt_out << "Trypsin";
-                  break;
-                case ProteinIdentification::PEPSIN_A:
-                  txt_out << "PepsinA";
-                  break;
-                case ProteinIdentification::PROTEASE_K:
-                  txt_out << "ProteaseK";
-                  break;
-                case ProteinIdentification::CHYMOTRYPSIN:
-                  txt_out << "ChymoTrypsin";
-                  break;
-                default:
-                  txt_out << "unknown";
-              }
-              txt_out << ", missed_cleavages=" << sp.missed_cleavages
-                  << ", peak_mass_tolerance=" << sp.peak_mass_tolerance
-                  << ", precursor_mass_tolerance=" << sp.precursor_tolerance
-                  << endl;
-
-              for ( vector<ProteinHit>::const_iterator pit =
-                  it->getHits().begin(); pit != it->getHits().end(); ++pit )
-              {
-                txt_out << "PROTEIN" << sep << pit->getScore() << sep
-                    << pit->getRank() << sep << pit->getAccession() << sep
-                    << pit->getSequence() << endl;
-              }
-            }
-
-            if ( !getFlag_("proteins_only") )
+            if (!getFlag_("peptides_only"))	write_protein_id(output, *it);
+				
+            if (!getFlag_("proteins_only"))
             {
               // slight improvement on big idXML files with many different runs:
-              // index the identifiers and peptide ids to avoid running over them
-              // again and again
-              for ( vector<PeptideIdentification>::const_iterator pit =
-                  pep_ids.begin(); pit != pep_ids.end(); ++pit )
+              // index the identifiers and peptide ids to avoid running over
+							// them again and again
+              for (vector<PeptideIdentification>::const_iterator pit =
+										 pep_ids.begin(); pit != pep_ids.end(); ++pit)
               {
-                if ( pit->getIdentifier() == actual_id )
+                if (pit->getIdentifier() == actual_id)
                 {
-                  for ( vector<PeptideHit>::const_iterator ppit =
-                      pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit )
-                  {
-                    txt_out << "PEPTIDE" << sep;
-                    if ( pit->metaValueExists("RT") )
-                    {
-                      txt_out << (DoubleReal) pit->getMetaValue("RT") << sep;
-                    }
-                    else
-                    {
-                      txt_out << "-1" << sep;
-                    }
-
-                    if ( pit->metaValueExists("MZ") )
-                    {
-                      txt_out << (DoubleReal) pit->getMetaValue("MZ") << sep;
-                    }
-                    else
-                    {
-                      txt_out << "-1" << sep;
-                    }
-                    txt_out << ppit->getScore() << sep << ppit->getRank()
-                        << sep << ppit->getSequence() << sep
-                        << ppit->getCharge() << sep << ppit->getAABefore()
-                        << sep << ppit->getAAAfter() << sep;
-
-                    for ( vector<String>::const_iterator ait =
-                        ppit->getProteinAccessions().begin(); ait
-                        != ppit->getProteinAccessions().end(); ++ait )
-                    {
-                      if ( ait != ppit->getProteinAccessions().begin() )
-                      {
-                        txt_out << ";";
-                      }
-                      txt_out << *ait;
-                    }
-                    if ( ppit->metaValueExists("predicted_RT") )
-                    {
-                      txt_out << sep << ppit->getMetaValue("predicted_RT");
-                    }
-                    else
-                    {
-                      txt_out << sep << "-1";
-                    }
-                    if ( first_dim_rt )
-                    {
-                      if ( pit->metaValueExists("first_dim_rt") )
-                      {
-                        txt_out << sep << pit->getMetaValue("first_dim_rt");
-                      }
-                      else
-                      {
-                        txt_out << sep << "-1";
-                      }
-                      if ( ppit->metaValueExists("predicted_RT_first_dim") )
-                      {
-                        txt_out << sep << ppit->getMetaValue(
-                          "predicted_RT_first_dim");
-                      }
-                      else
-                      {
-                        txt_out << sep << "-1";
-                      }
-                    }
-                    txt_out << endl;
-                  }
+									if (first_dim_rt)
+									{
+										write_peptide_id(output, *pit, "PEPTIDE", false, true, true,
+																		 true);
+									}
+									else
+									{
+										write_peptide_id(output, *pit, "PEPTIDE", false, true,
+																		 true);
+									}
                 }
               }
             }
           }
-
+					
           txt_out.close();
         }
-
+				
         return EXECUTION_OK;
       }
   };
 }
+
 
 int
 main( int argc, const char** argv )
