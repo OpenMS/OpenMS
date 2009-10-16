@@ -61,6 +61,7 @@ PepXMLFileMascot.h
 ProtXMLFile.h
 SequestInfile.h
 SequestOutfile.h
+SVOutStream.h
 TextFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h

@@ -41,6 +41,7 @@ PepXMLFileMascot.C
 ProtXMLFile.C
 SequestInfile.C
 SequestOutfile.C
+SVOutStream.C
 TextFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C

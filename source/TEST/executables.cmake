@@ -171,6 +171,7 @@ set(format_executables_list
 	MzIdentMLFile_test
 	MzIdentMLValidator_test
 	TraMLFile_test
+	SVOutStream_test
 )
 
 if (DB_TEST)
