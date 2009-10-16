@@ -452,33 +452,35 @@ namespace OpenMS
 	}
 
 	
-	String& String::quote(char c, bool escape)
+	String& String::quote(char q, QuotingMethod method)
 	{
-		if (escape)
+		if (method == ESCAPE)
 		{
 			substitute(String("\\"), String("\\\\"));
-			substitute(String(c), "\\" + String(c));
+			substitute(String(q), "\\" + String(q));
 		}
-		string::operator=(c + *this + c);
+		else if (method == DOUBLE) substitute(String(q), String(q) + String(q));
+		string::operator=(q + *this + q);
 		return *this;
 	}
 
 
-	String& String::unquote(char c, bool unescape)
+	String& String::unquote(char q, QuotingMethod method)
 	{
 		// check if input string matches output format of the "quote" method:
-		if ((size() < 2) || ((*this)[0] != c) || ((*this)[size() - 1] != c))
+		if ((size() < 2) || ((*this)[0] != q) || ((*this)[size() - 1] != q))
 		{
 			throw Exception::ConversionError(
 				__FILE__, __LINE__, __PRETTY_FUNCTION__,
 				"'" + *this + "' does not have the expected format of a quoted string");
 		}
 		string::operator=(string::substr(1, size() - 2)); // remove quotation marks
-		if (unescape)
+		if (method == ESCAPE)
 		{
-			substitute("\\" + String(c), String(c));
+			substitute("\\" + String(q), String(q));
 			substitute(String("\\\\"), String("\\"));
 		}
+		else if (method == DOUBLE) substitute(String(q) + String(q), String(q));
 		return *this;
 	}
 
@@ -666,6 +668,71 @@ namespace OpenMS
 		return substrings.size() > 1;
 	}
 
+
+	bool String::split_quoted(const String& splitter,	vector<String>& substrings,
+														char q, QuotingMethod method) const
+	{
+		substrings.clear();
+		if (empty() || splitter.empty()) return false;
+		
+		bool in_quote = false;
+		char targets[2] = {q, splitter[0]}; // targets for "find_first_of"
+		std::string rest = splitter.substr(1, splitter.size() - 1);
+		Size start = 0;
+		for (Size i = 0; i < size(); ++i)
+		{
+			if (in_quote)
+			{ // skip to closing quotation mark
+				bool embedded = false;
+				if (method == ESCAPE)
+				{
+					for (; i < size(); ++i)
+					{
+						if ((*this)[i] == '\\') embedded = !embedded;
+						else if (((*this)[i] == q) && !embedded) break;
+						else embedded = false;
+					}
+				}
+				else // method: NONE or DOUBLE
+				{
+					for (; i < size(); ++i)
+					{
+						if ((*this)[i] == q) {
+							if (method == NONE) break; // found
+							// next character is also closing quotation mark:
+							if ((i < size() - 1) && ((*this)[i+1] == q)) embedded = !embedded;
+							// even number of subsequent quotes (doubled) => found
+							else if (!embedded) break;
+							// odd number of subsequent quotes => belongs to a pair
+							else embedded = false;
+						}
+					}
+				}				
+				in_quote = false; // end of quote reached
+			}
+			else
+			{
+				i = string::find_first_of(targets, i, 2);
+				if (i == string::npos) break; // nothing found
+				if ((*this)[i] == q) in_quote = true;
+				else if (string::compare(i + 1, rest.size(), rest) == 0)
+				{ // splitter found
+					substrings.push_back(string::substr(start, i - start));
+					start = i + splitter.size();
+					i = start - 1; // increased by loop
+				}
+			}
+		}
+		if (in_quote)
+		{ // reached end without finding closing quotation mark
+			throw Exception::ConversionError(
+				__FILE__, __LINE__, __PRETTY_FUNCTION__,
+				"unbalanced quotation marks in string '" + *this + "'");
+		}		
+		substrings.push_back(string::substr(start, size() - start));
+		return substrings.size() > 1;
+	}
+	
 	
 	QString String::toQString() const
 	{

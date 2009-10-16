@@ -42,7 +42,7 @@ namespace OpenMS
 	/**	
 		@brief A more convenient string class.
 		
-		It based on std::string but adds a lot of methods for convenience.
+		It is based on std::string but adds a lot of methods for convenience.
 		
 		@ingroup Datastructures
 	*/
@@ -68,6 +68,9 @@ namespace OpenMS
 		/// UInt type
 		typedef size_type	SizeType;
 
+		/// How to handle embedded quotes when quoting strings
+		enum QuotingMethod {NONE, ESCAPE, DOUBLE};
+		
 		//@}		
 		
 		/**	@name Constructors
@@ -225,22 +228,22 @@ namespace OpenMS
 		/**
 			 @brief Wraps the string in quotation marks
 
-			 The quotation mark can be specified by parameter @p c (typically single or double quote); if @p escape is true, present backslashes and occurrences of @p c are escaped with a backslash
+			 The quotation mark can be specified by parameter @p q (typically single or double quote); embedded quotation marks are handled according to @p method by backslash-escaping, doubling, or not at all.
 
-			 @see unquote
+			 @see unquote()
 		*/
-		String& quote(char c = '"', bool escape = true);
+		String& quote(char q = '"', QuotingMethod method = ESCAPE);
 
 		/**
 			 @brief Reverses changes made by the @p quote method
 
-			 Removes surrounding quotation marks (given by parameter @p c); un-escapes backslashes and embedded quotation marks if @p unescape is true.
+			 Removes surrounding quotation marks (given by parameter @p q); handles embedded quotes according to @p method.
 
 			 @exception Exception::ConversionError is thrown if the string does not have the format produced by @p quote
 
-			 @see quote
+			 @see quote()
 		*/
-		String& unquote(char c = '"', bool unescape = true);		
+		String& unquote(char q = '"', QuotingMethod method = ESCAPE);
 		
 		/// merges subsequent whitespaces to one blank character
 		String& simplify();
@@ -418,8 +421,24 @@ namespace OpenMS
 			@see concatenate().
 		*/
 		bool split(const String& splitter, std::vector<String>& substrings) const;
-	
-		
+
+		/**
+			@brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter, but does not split within quoted substrings
+
+			A "quoted substring" has the format as produced by @p quote(q, method), where @p q is the quoting character and @p method defines the handling of embedded quotes. Substrings will not be "unquoted" or otherwise processed.
+			
+			If @p splitter is not found,  the whole string is put into @p substrings.
+			If @p splitter or the invoking string is empty, @p substrings will also be empty.		
+			
+			@return @e true if one or more splits occurred, @e false otherwise
+			
+			@exception Exception::ConversionError is thrown if quotation marks are not balanced
+			
+			@see concatenate(), quote().
+		*/
+		bool split_quoted(const String& splitter,	std::vector<String>& substrings,
+											char q = '"', QuotingMethod method = ESCAPE) const;
+
 		/**
 			@brief Concatenates all elements from @p first to @p last-1 and inserts @p glue between the elements
 
