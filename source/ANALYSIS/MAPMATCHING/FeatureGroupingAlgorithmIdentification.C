@@ -137,7 +137,8 @@ namespace OpenMS
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
             // first step: identifications having a XCorr smaller than the threshold are discarded
-            if ( DoubleReal(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold )
+            //if ( DoubleReal(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold )
+            if ( (DoubleReal)peptide_hit.getScore() >= xcorr_threshold )
             {
               peptide_hit.setMetaValue("IDAlgorithm", (String) "true");
               peptide_hits.push_back(peptide_hit);

@@ -99,6 +99,21 @@ namespace OpenMS
 		
 		cerr << "FalseDiscoveryRate: #target sequences=" << target_scores.size() << ", #decoy sequences=" << decoy_scores.size() << endl;
 
+		if (decoy_scores.size() == 0)
+		{
+			cerr << "FalseDiscoveryRate: #decoy sequences is zero! Cannot proceed" << endl;
+		}
+
+		if (target_scores.size() == 0)
+		{
+			cerr << "FalseDiscoveryRate: #target sequences is zero! Cannot proceed" << endl;
+		}
+
+		if (target_scores.size() == 0 || decoy_scores.size() == 0)
+		{
+			return;
+		}
+
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
 
     // sort the scores

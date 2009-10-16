@@ -87,6 +87,7 @@ namespace OpenMS
 							entry.description = tag.suffix(tag.size() - position - 1);
 						}
 						entry.sequence = seq;
+						entry.sequence.removeWhitespaces();
 						data.push_back(entry);
 						tag = "";
 						seq = "";
