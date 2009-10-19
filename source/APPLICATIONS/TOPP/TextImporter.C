@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -290,8 +291,8 @@ namespace OpenMS
 						}
 						//create feature
 						Feature f;
-						f.setMZ(parts[5].toDouble());
 						f.setCharge(parts[4].toInt());
+						f.setMZ(parts[5].toDouble()/f.getCharge() + Constants::PROTON_MASS_U);
 						f.setRT(parts[11].toDouble());
 						f.setOverallQuality(parts[12].toDouble());
 						f.setIntensity(parts[8].toDouble());
@@ -306,6 +307,7 @@ namespace OpenMS
 						std::vector< ConvexHull2D > hulls;
 						hulls.push_back(hull);
 						f.setConvexHulls(hulls);
+						f.setMetaValue("Mass",parts[5].toDouble());
 						f.setMetaValue("FirstScan",parts[1].toDouble());
 						f.setMetaValue("LastScan",parts[2].toInt());
 						f.setMetaValue("NumOfScans",parts[3].toDouble());
