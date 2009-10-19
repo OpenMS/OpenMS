@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
@@ -235,11 +235,11 @@ namespace OpenMS
 				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
 			}
 
-			cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << endl;
-			for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
-			{
-				cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << endl;	
-			}
+			//cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << endl;
+			//for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
+			//{
+			//	cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << endl;	
+			//}
 
 			set<String> mod_names = mod_def_set_.getModificationNames();
 
@@ -252,10 +252,25 @@ namespace OpenMS
 				}
 			}
 			
-			cerr << "Possible mods (#=" << possible_mods.size() << "): " << endl;
-			for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+			//cerr << "Possible mods (#=" << possible_mods.size() << "): " << endl;
+			//for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+			//{
+			//	cerr << *it << endl;
+			//}
+			
+			// maybe we missed the real modification, even it is not terminal
+			if (possible_mods.size() == 0 && mod_pos == 0)
 			{
-				cerr << *it << endl;
+				vector<String> new_possible_mass_mods;
+				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(new_possible_mass_mods, type, modified.toDouble(), 0.01);
+				// now try to find this in the definitions which are set
+				for (vector<String>::const_iterator it = new_possible_mass_mods.begin(); it != new_possible_mass_mods.end(); ++it)
+				{
+					if (mod_names.find(*it) != mod_names.end())
+					{
+						possible_mods.push_back(*it);
+					}
+				}
 			}
 			
 
@@ -301,10 +316,10 @@ namespace OpenMS
 							{
 								String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
 								ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
-								cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << endl;
+								//cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << endl;
 								if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
 								{
-									cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+									//cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
 									new_possible_mods.push_back(*it);
 								}
 							}
@@ -318,7 +333,7 @@ namespace OpenMS
 									ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
 									if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
 									{
-										cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+										//cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
 										new_possible_mods.push_back(*it);
 									}
 								}

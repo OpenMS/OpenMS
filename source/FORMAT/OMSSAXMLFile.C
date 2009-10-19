@@ -363,7 +363,7 @@ namespace OpenMS
 					}
 					catch (...)
 					{
-						// if exception happens to occur here, s.th. went wrong, e.g. the value does not contains numbers
+						// if exception happens to occur here, s.th. went wrong, e.g. the value does not contain numbers
 					}
 				}
 			}
@@ -382,6 +382,7 @@ namespace OpenMS
 
 			if (it->size() > 0 && (*it)[0] != '#')
 			{
+				Int omssa_mod_num = split[0].trim().toInt();
 				if (split.size() < 2)
 				{
 					fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
@@ -392,10 +393,12 @@ namespace OpenMS
 					String tmp(split[i].trim());
 					if (tmp.size() != 0)
 					{
-						mods.push_back(ModificationsDB::getInstance()->getModification(tmp));
+						ResidueModification mod = ModificationsDB::getInstance()->getModification(tmp);
+						mods.push_back(mod);
+						mods_to_num_[mod.getFullId()] = omssa_mod_num;
 					}
 				}
-				mods_map_[split[0].trim().toInt()] = mods;
+				mods_map_[omssa_mod_num] = mods;
 			}
 		}
 	}
@@ -403,6 +406,15 @@ namespace OpenMS
 	void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& mod_set)
 	{
 		mod_def_set_ = mod_set;
+		UInt omssa_mod_num(119);
+		for (set<String>::const_iterator it = mod_set.getVariableModificationNames().begin(); it != mod_set.getVariableModificationNames().end(); ++it)
+		{
+			if (!mods_to_num_.has(*it))
+			{
+				mods_map_[omssa_mod_num++].push_back(ModificationsDB::getInstance()->getModification(*it));
+				mods_to_num_[*it] = omssa_mod_num;
+			}
+		}
 	}
 	
 } // namespace OpenMS

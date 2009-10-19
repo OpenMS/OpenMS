@@ -127,8 +127,11 @@ namespace OpenMS
 			/// should protein hits be read from the file?
 			bool load_proteins_;
 
-			/// modifications mapping file from OMSSA mod num to PSI-MOD onotology number
+			/// modifications mapping file from OMSSA mod num to UniMod accession
 			Map<UInt, std::vector<ResidueModification> > mods_map_;
+
+			/// modification mapping reverse, from the modification to the mod_num
+			Map<String, UInt> mods_to_num_;
 
 			/// modification definitions set of the search, needed to annotate fixed modifications
 			ModificationDefinitionsSet mod_def_set_;
