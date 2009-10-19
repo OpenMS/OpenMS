@@ -91,9 +91,10 @@ namespace OpenMS
 					RangeManagerType(),
 					DocumentIdentifier(),
 					UniqueIdInterface(),
+					UniqueIdIndexer< FeatureMap<FeatureT> >(),
 					protein_identifications_(),
 					unassigned_peptide_identifications_(),
-					data_processing_()
+					data_processing_() 
 			{
 			}
 			
@@ -103,6 +104,7 @@ namespace OpenMS
 					RangeManagerType(source),
 					DocumentIdentifier(source),
 					UniqueIdInterface(source),
+					UniqueIdIndexer< FeatureMap<FeatureT> >(source),
 					protein_identifications_(source.protein_identifications_),
 					unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
 					data_processing_(source.data_processing_)
