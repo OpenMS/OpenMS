@@ -27,8 +27,14 @@
 
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
+
+// This is generate simple examples of
+// inclusion and exclusion lists
+//#define WRITE_TARGET_INCLUDE_LIST
+//#define WRITE_TARGET_EXCLUDE_LIST
 
 using namespace std;
 
@@ -213,7 +219,7 @@ namespace OpenMS
 		}
 		else 
 		{
-			cerr << "TraMLHandler: unknown tag opening: '" << tag_ << "'" << endl;
+			error(LOAD, "TraMLHandler: unknown tag opening: '" + tag_ + "'");
 		}
 		return;
 	}
@@ -307,7 +313,7 @@ namespace OpenMS
 			}
 			else 
 			{
-				cerr << "TraMLHandler: tag 'retentionTime' not allowed at parent tag '" << parent_tag << "'" << endl;
+				error(LOAD, "TraMLHandler: tag 'retentionTime' not allowed at parent tag '" + parent_tag + "'");
 			}
 		}
 		else if (tag_ == "peptide")
@@ -352,13 +358,63 @@ namespace OpenMS
 		}
 		else 
 		{
-			cerr << "TraMLHandler: unknown tag closing: '" << tag_ << "'" << endl;
+			error(LOAD, "TraMLHandler: unknown tag closing: '" + tag_ + "'");
 		}
 		return;
 	}
 	
   void TraMLHandler::writeTo(std::ostream& os)
   {
+
+#ifdef WRITE_TARGET_INCLUDE_LIST
+StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVTKLVTDLTK,AFDEKLFTFHADICTLPDTEK,ALKAWSVAR,ATEEQLK,ATEEQLKTVMENFVAFVDK,AWSVAR,AWSVARLSQK,CASIQK,CASIQKFGER,CCAADDK,CCAADDKEACFAVEGPK,CCTESLVNR,CCTESLVNRRPCFSALTPDETYVPK,CCTKPESER,CCTKPESERMPCTEDYLSLILNR,DAFLGSFLYEYSR,DAFLGSFLYEYSRR,DAIPENLPPLTADFAEDK,DAIPENLPPLTADFAEDKDVCK,DDPHACYSTVFDK,DDPHACYSTVFDKLK,DDSPDLPK,DDSPDLPKLKPDPNTLCDEFK,DLGEEHFK,DLGEEHFKGLVLIAFSQYLQQCPFDEHVK,DTHKSEIAHR,DVCKNYQEAK,EACFAVEGPK,EACFAVEGPKLVVSTQTALA,ECCDKPLLEK,ECCDKPLLEKSHCIAEVEK,ECCHGDLLECADDR,ECCHGDLLECADDRADLAK,EKVLASSAR,ETYGDMADCCEK,ETYGDMADCCEKQEPER,EYEATLEECCAK,EYEATLEECCAKDDPHACYSTVFDK,FGERALK,FKDLGEEHFK,FPKAEFVEVTK,FWGKYLYEIAR,GACLLPK,GACLLPKIETMR,GLVLIAFSQYLQQCPFDEHVK,GLVLIAFSQYLQQCPFDEHVKLVNELTEFAK,HKPKATEEQLK,HLVDEPQNLIK,HLVDEPQNLIKQNCDQFEK,HPEYAVSVLLR,HPEYAVSVLLRLAK,HPYFYAPELLYYANK,HPYFYAPELLYYANKYNGVFQECCQAEDK,IETMREK,KQTALVELLK,KVPQVSTPTLVEVSR,LAKEYEATLEECCAK,LCVLHEK,LCVLHEKTPVSEK,LFTFHADICTLPDTEK,LFTFHADICTLPDTEKQIK,LGEYGFQNALIVR,LGEYGFQNALIVRYTR,LKECCDKPLLEK,LKHLVDEPQNLIK,LKPDPNTLCDEFK,LKPDPNTLCDEFKADEK,LRCASIQK,LSQKFPK,LVNELTEFAK,LVNELTEFAKTCVADESHAGCEK,LVTDLTK,LVTDLTKVHK,LVVSTQTALA,MKWVTFISLLLLFSSAYSR,MPCTEDYLSLILNR,MPCTEDYLSLILNRLCVLHEK,NECFLSHK,NECFLSHKDDSPDLPK,NYQEAK,NYQEAKDAFLGSFLYEYSR,QEPERNECFLSHK,QNCDQFEK,QNCDQFEKLGEYGFQNALIVR,QTALVELLK,QTALVELLKHKPK,RHPEYAVSVLLR,RHPYFYAPELLYYANK,RPCFSALTPDETYVPK,RPCFSALTPDETYVPKAFDEK,SEIAHR,SEIAHRFK,SHCIAEVEK,SHCIAEVEKDAIPENLPPLTADFAEDK,SLGKVGTR,SLHTLFGDELCK,SLHTLFGDELCKVASLR,TCVADESHAGCEK,TCVADESHAGCEKSLHTLFGDELCK,TPVSEK,TPVSEKVTK,TVMENFVAFVDK,TVMENFVAFVDKCCAADDK,VASLRETYGDMADCCEK,VGTRCCTKPESER,VHKECCHGDLLECADDR,VLASSAR,VLASSARQR,VPQVSTPTLVEVSR,VPQVSTPTLVEVSRSLGK,VTKCCTESLVNR,WVTFISLLLLFSSAYSR,WVTFISLLLLFSSAYSRGVFR,YICDNQDTISSK,YICDNQDTISSKLK,YLYEIAR,YLYEIARR,YNGVFQECCQAEDK,YNGVFQECCQAEDKGACLLPK");
+	
+	Map<String, MRMExperiment::Peptide> target_peptides;
+	for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
+	{
+		MRMExperiment::RetentionTime retention_time;
+		/// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+		CVTerm rt;
+		rt.setCVIdentifierRef("MS");
+		rt.setAccession("MS:1000897");
+		rt.setName("predicted retention time");
+		rt.setValue(AASequence(*it).getMonoWeight() / 50.0); // just guess some RT
+		CVTerm::Unit rt_unit;
+		rt_unit.cv_ref = "UO";
+		rt_unit.accession = "UO:0000031";
+		rt_unit.name = "minute";
+		rt.setUnit(rt_unit);
+		retention_time.addCVTerm(rt);
+		retention_time.predicted_retention_time_software_ref = "GUESSING1.0";
+		MRMExperiment::Peptide peptide;
+		peptide.rts.push_back(retention_time);
+		peptide.protein_ref = "BSA";
+
+		//<cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
+    //<cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
+		CVTerm unmod_seq;
+		unmod_seq.setCVIdentifierRef("MS");
+		unmod_seq.setAccession("MS:1000888");
+		unmod_seq.setName("unmodified peptide sequence");
+		unmod_seq.setValue(DataValue(*it));
+		peptide.addCVTerm(unmod_seq);
+		unmod_seq.setAccession("MS:1000889");
+		unmod_seq.setName("modified peptide sequence");
+		peptide.addCVTerm(unmod_seq);
+		
+		//<cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
+		CVTerm evidence;
+		evidence.setCVIdentifierRef("MS");
+		evidence.setAccession("MS:1001100");
+		evidence.setName("confident peptide");
+		evidence.setValue(DataValue(6));
+		peptide.evidence.addCVTerm(evidence);
+		
+		peptide.id = *it;
+		target_peptides[*it] = peptide;	
+	}
+#endif
+
     const MRMExperiment& exp = *(cexp_);
     //logger_.startProgress(0,exp.size(),"storing mzML file");
 
@@ -432,6 +488,12 @@ namespace OpenMS
 				writeCVParams_(os, (CVTermList)*it, 3);
 				os << "    </software>" << endl;
 			}
+
+#ifdef WRITE_TARGET_INCLUDE_LIST
+				os << "    <software id=\"GUESSING1.0\" version=\"1.0\">" << endl;
+
+				os << "    </software>" << endl;
+#endif
 			os << "  </softwareList>" << endl;
 		}
 
@@ -446,6 +508,14 @@ namespace OpenMS
 				os << "      <sequence>" << it->sequence << "</sequence>" << endl;
 				os << "    </protein>" << endl;
 			}
+#ifdef WRITE_TARGET_INCLUDE_LIST
+				os << "    <protein id=\"BSA\">" << endl;
+      	os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\">gi|162648|gb|AAA51411.1|\"/>" << endl;
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << endl;
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << endl;
+      	os << "      <sequence>MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA</sequence>" << endl;
+				os << "    </protein>" << endl;
+#endif
 			os << "  </proteinList>" << endl;
 		}
 
@@ -453,7 +523,16 @@ namespace OpenMS
 		if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
 		{
 			os << "  <compoundList>" << endl;
-			for (vector<MRMExperiment::Peptide>::const_iterator it = exp.getPeptides().begin(); it != exp.getPeptides().end(); ++it)
+			vector<MRMExperiment::Peptide> exp_peptides = exp.getPeptides();
+			
+#ifdef WRITE_TARGET_INCLUDE_LIST
+			for (Map<String, MRMExperiment::Peptide>::ConstIterator it = target_peptides.begin(); it != target_peptides.end(); ++it)
+			{
+				exp_peptides.push_back(it->second);
+			}
+#endif
+
+			for (vector<MRMExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
 			{
 				os << "    <peptide id=\"" << it->id << "\" proteinRef=\"" << it->protein_ref << "\">" << endl;
 				writeCVParams_(os, (CVTermList)*it, 3);
@@ -605,6 +684,61 @@ namespace OpenMS
 		
 		}
 
+		#ifdef WRITE_TARGET_INCLUDE_LIST
+
+/*
+<targetList>
+  <cvParam cvRef="MS" accession="MS:100XXXX" name="includes supersede excludes"/>
+  <targetIncludeList>
+    <target id=”PEPTIDEC2+” peptideRef=”PEPTIDEC”>
+      <precursor>
+        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="862.9467"/>
+        <cvParam cvRef="MS" accession="MS:1000211" name="charge number" value="2"/>
+      </precursor>
+      <configurationList>…</configurationList>
+    </target>
+    …
+  </targetIncludeList>
+  <targetExcludeList>
+    <target id=”PEPTIDEM3+” peptideRef=”PEPTIDEM”>
+        <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="698.3443"/>
+        <cvParam cvRef="MS" accession="MS:1000211" name="charge number" value="3"/>
+      <configurationList>…</configurationList>
+    </target>
+*/
+		// create and include list for all the peptides listed above
+		os << "  <targetList>" << endl;
+		os << "    <targetIncludeList>" << endl;
+		for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
+		{
+			for (Size i = 2; i <= 3; ++i)
+			{
+				DoubleReal weight = AASequence(*it).getMonoWeight();
+				os << "      <target id=\"" << *it << i << "+\" peptideRef=\"" << *it << "\">" << endl;
+				CVTerm mz;
+				mz.setAccession("MS:1000040");
+				mz.setCVIdentifierRef("MS");
+				mz.setName("m/z");
+				mz.setValue(DataValue((weight + (DoubleReal)i * Constants::PROTON_MASS_U) / (DoubleReal)i));
+				CVTermList cv_list;
+				CVTerm charge;
+				charge.setAccession("MS:1000211");
+				charge.setCVIdentifierRef("MS");
+				charge.setName("charge number");
+				charge.setValue(DataValue(i));
+				cv_list.addCVTerm(mz);
+				cv_list.addCVTerm(charge);
+				writeCVParams_(os, cv_list, 4);
+				os << "      </target>" << endl;
+			}
+		}
+		os << "    </targetIncludeList>" << endl;
+		os << "  </targetList>" << endl;
+
+
+		#endif
+
+
 
     os << "</TraML>" << endl;
     return;
@@ -630,7 +764,7 @@ namespace OpenMS
 			}
 			else
 			{
-				cerr << "TraMLHandler: unknown CV term '" << key << "' ignoring!" << endl;
+				error(LOAD, "TraMLHandler: unknown CV term '" + key + "' ignoring!");
 			}
 		}
 	}
