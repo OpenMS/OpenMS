@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -75,7 +76,7 @@ namespace OpenMS
         setValidFormats_("out",StringList::create( "featureXML"));
         registerStringOption_( "separator", "<sep>", "", "The used separator characters in the input. If unset the 'tab' character is used.", false);
 				registerStringOption_( "mode", "<mode>", "default", "Conversion mode (see below).", false);
-				setValidStrings_("mode",StringList::create("default,msInspect,SpecArray"));
+				setValidStrings_("mode",StringList::create("default,msInspect,SpecArray,Kroenik"));
 				addEmptyLine_();
 				addText_("The following conversion modes are supported:");
 				addText_("- default");
@@ -86,6 +87,8 @@ namespace OpenMS
 				addText_("    Imports an msInspect feature file.");
 				addText_("- SpecArray");
 				addText_("    Imports a SpecArray feature file.");
+				addText_("- Kroenik");
+				addText_("    Imports a Kroenik (of Hardklör) feature file.");
       }
 
       ExitCodes main_( int, const char** )
@@ -267,6 +270,51 @@ namespace OpenMS
 						feature_map.push_back(f);
 					}
 				}
+        //-------------------------------------------------------------
+        // HardKlör
+        //-------------------------------------------------------------
+				else if (mode=="Kroenik")
+				{
+					bool first_line = true;
+					for (Size i=1; i<input.size(); ++i)
+					{
+						String line = input[i];
+					
+						//split lines: File,	First Scan,	Last Scan,	Num of Scans,	Charge,	Monoisotopic Mass, Base Isotope Peak,	Best Intensity,	Summed Intensity,	First RTime,	Last RTime,	Best RTime,	Best Correlation,	Modifications
+						std::vector< String > parts;
+						line.split('\t', parts);
+						
+						if (parts.size() != 14)
+						{
+							std::cerr << "Line #" << (i+1) << " does not have the expected 14 tab-separated entries. Skipping this line!\n";
+						}
+						//create feature
+						Feature f;
+						f.setMZ(parts[5].toDouble());
+						f.setCharge(parts[4].toInt());
+						f.setRT(parts[11].toDouble());
+						f.setOverallQuality(parts[12].toDouble());
+						f.setIntensity(parts[8].toDouble());
+						ConvexHull2D hull;
+						ConvexHull2D::PointType point;
+						point.setX(parts[9].toDouble());
+						point.setY(f.getMZ());
+						hull.addPoint(point);
+						point.setX(parts[10].toDouble());
+						point.setY(f.getMZ());
+						hull.addPoint(point);
+						std::vector< ConvexHull2D > hulls;
+						hulls.push_back(hull);
+						f.setConvexHulls(hulls);
+						f.setMetaValue("FirstScan",parts[1].toDouble());
+						f.setMetaValue("LastScan",parts[2].toInt());
+						f.setMetaValue("NumOfScans",parts[3].toDouble());
+						f.setMetaValue("AveragineModifications",parts[13]);
+						feature_map.push_back(f);
+					}
+				}
+				
+				std::cout << "Converted " << feature_map.size() << " features!\n";
 				
 				// assign unique ids
 				feature_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
