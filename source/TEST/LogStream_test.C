@@ -331,7 +331,7 @@ START_SECTION(([EXTRA]Test log caching))
 }
 END_SECTION
 
-START_SECTION((String LogLevelToStringUpper(LogLevel level)))
+START_SECTION(([EXTRA] String LogLevelToStringUpper(LogLevel level)))
 {
 	TEST_STRING_EQUAL(LogLevelToStringUpper(FATAL_ERROR), "FATAL_ERROR")
 	TEST_STRING_EQUAL(LogLevelToStringUpper(ERROR), "ERROR")
@@ -343,7 +343,7 @@ START_SECTION((String LogLevelToStringUpper(LogLevel level)))
 }
 END_SECTION
 
-START_SECTION((String LogLevelToString(LogLevel level)))
+START_SECTION(([EXTRA] String LogLevelToString(LogLevel level)))
 {
 	TEST_STRING_EQUAL(LogLevelToString(FATAL_ERROR), "fatal_error")
 	TEST_STRING_EQUAL(LogLevelToString(ERROR), "error")

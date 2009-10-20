@@ -81,6 +81,8 @@ namespace OpenMS
 
     @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
 
+		@htmlinclude OpenMS_SpectrumCanvas.parameters
+
 		@ingroup SpectrumWidgets
 	*/
 	class OPENMS_DLLAPI SpectrumCanvas 

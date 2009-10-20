@@ -44,7 +44,9 @@ namespace OpenMS
 
 	Every derived class has to implement the static functions
 	"T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
-		  
+		
+	@htmlinclude OpenMS_Fitter1D.parameters
+  
 	@ingroup FeatureFinder
 	*/
 	class OPENMS_DLLAPI Fitter1D

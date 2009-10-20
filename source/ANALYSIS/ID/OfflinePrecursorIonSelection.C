@@ -32,7 +32,8 @@
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
-using namespace OpenMS;
+namespace OpenMS
+{
 
 OfflinePrecursorIonSelection::OfflinePrecursorIonSelection() : DefaultParamHandler("OfflinePrecursorIonSelection")
 {
@@ -69,4 +70,4 @@ void OfflinePrecursorIonSelection::updateExclusionList_(std::vector<std::pair<Si
 	exclusion_list.erase(iter,exclusion_list.end());
 }
 
-
+}

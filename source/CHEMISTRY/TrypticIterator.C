@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
  
 #include <OpenMS/CHEMISTRY/TrypticIterator.h>
@@ -33,7 +33,8 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 
-using namespace OpenMS; 
+namespace OpenMS
+{
 
 
 	typedef std::pair<String,String> FASTAEntry;
@@ -220,4 +221,4 @@ using namespace OpenMS;
 		return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
 	}
 		
-	
+} // namespace OpenMS	

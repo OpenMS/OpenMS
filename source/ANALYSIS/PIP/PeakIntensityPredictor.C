@@ -31,9 +31,11 @@
 #include <math.h>
 #include <string>
 	
-using namespace OpenMS;
 using namespace std;
 
+
+namespace OpenMS
+{
 
 	PeakIntensityPredictor::PeakIntensityPredictor()
 		: llm_()
@@ -237,7 +239,7 @@ using namespace std;
 					
 		return out;					
 	}
-
+}
 
 
 

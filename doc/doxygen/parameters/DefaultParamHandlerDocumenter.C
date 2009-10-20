@@ -134,6 +134,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 #include <OpenMS/SIMULATION/PTMSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
@@ -143,6 +144,9 @@
 #include <OpenMS/SIMULATION/ElutionModel.h>
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+
 //#include <OpenMS/SIMULATION/MixtureModel.h>
 
 
@@ -389,6 +393,9 @@ int main (int argc , char** argv)
 	DOCME(AdvancedTheoreticalSpectrumGenerator)
 	DOCME(FeatureGroupingAlgorithmIdentification)
 	DOCME(OfflinePrecursorIonSelection)
+	DOCME(TOPPViewBase)
+	DOCME(TOPPASBase)
+	DOCME(Fitter1D)
 	
 	//////////////////////////////////
 	// More complicated cases

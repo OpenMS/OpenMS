@@ -28,15 +28,17 @@
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
 
-using namespace OpenMS;
-
-SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename, const WeightWrapper::WEIGHTMODE weight_mode)
-	: SuffixArraySeqan(st, filename, weight_mode)
+namespace OpenMS
 {
-}
 
-bool SuffixArrayTrypticSeqan::isDigestingEnd(const char aa1, const char aa2) const
-{
-	return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
-}
+	SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename, const WeightWrapper::WEIGHTMODE weight_mode)
+		: SuffixArraySeqan(st, filename, weight_mode)
+	{
+	}
+
+	bool SuffixArrayTrypticSeqan::isDigestingEnd(const char aa1, const char aa2) const
+	{
+		return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
+	}
+} //namespace OpenMS
 

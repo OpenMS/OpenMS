@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -30,7 +30,8 @@
 #include <iostream>
 
 
-using namespace OpenMS;
+namespace OpenMS
+{
 
 typedef std::pair <String, String> FASTAEntry;
 
@@ -148,3 +149,5 @@ bool FastaIterator::isAtEnd ()
 {
 	return (is_at_end_);	
 }
+
+} //namespace OpenMS

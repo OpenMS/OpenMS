@@ -864,8 +864,30 @@
 		########################### DefaultParamHandler  #################################
 		if (in_array("defaults",$tests))
 		{
-			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
+			// don't report e.g. abstract base classes
+			$dont_report = array(
+				"include/OpenMS/VISUAL/SpectrumCanvas.h",
+        "include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+        "include/OpenMS/APPLICATIONS/TOPPASBase.h",
+        "include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
+        "include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
+				"include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
+				"include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h"
+        );
+
+			$ignore = false;
+      foreach ($dont_report as $i)
+      {
+        if (strpos($f,$i)!==FALSE)
+        {
+          $ignore = true;
+        }
+      }
+
+			if (endsWith($f,".h") && !endsWith($f,"_impl.h") && !$ignore)
 			{
+
+
 				//check if defaults are set in .h file
 				$is_dph = false;
 				$output = array();

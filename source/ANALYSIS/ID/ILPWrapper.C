@@ -58,7 +58,8 @@
 # pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
 
-using namespace OpenMS;
+namespace OpenMS
+{
 
 
 ILPWrapper::ILPWrapper()
@@ -368,3 +369,5 @@ void ILPWrapper::solveILP_(std::vector<int>& solution_indices)
 		
   
 }
+
+} // namespace OpenMS

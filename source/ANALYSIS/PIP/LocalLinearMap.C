@@ -31,9 +31,11 @@
 
 #include <fstream>
 
-using namespace OpenMS;
 using namespace std;
 
+
+namespace OpenMS
+{
 
   LocalLinearMap::LocalLinearMap() 
   {
@@ -225,4 +227,5 @@ using namespace std;
 	}
 
 
-//namespace OpenMS
+} //namespace OpenMS
+
