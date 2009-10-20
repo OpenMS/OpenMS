@@ -171,7 +171,7 @@ START_SECTION((void remove(std::ostream &s)))
 }
 END_SECTION
 
-START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, int min_level=LogStreamBuf::MIN_LEVEL, int max_level=LogStreamBuf::MAX_LEVEL)))
+START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, LogLevel min_level=LogStreamBuf::MIN_LEVEL, LogLevel max_level=LogStreamBuf::MAX_LEVEL)))
 {
   LogStream l1(new LogStreamBuf());
   TestTarget target;
@@ -234,8 +234,16 @@ START_SECTION((void setMaxLevel(const std::ostream &s, LogLevel max_level)))
 }
 END_SECTION
 
-START_SECTION((void setPrefix(const std::ostream &s, const String &prefix)))
+START_SECTION((void setPrefix(const std::string &prefix)))
 {
+  // TODO
+}
+END_SECTION
+
+START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix)))
+{
+  // TODO
+
 	/*
   String filename;
   NEW_TMP_FILE(filename)
