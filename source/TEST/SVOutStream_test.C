@@ -37,13 +37,13 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SVOutStream, "$Id: SVOutStream_test.C 5940 2009-09-03 13:01:59Z hendrikweisser $")
+START_TEST(SVOutStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
 SVOutStream* sv_ptr = 0;
 
-START_SECTION((SVOutStream(std::ostream& out, const String&, const String& replacement, String::QuotingMethod quoting)))
+START_SECTION((SVOutStream(std::ostream& out, const String& sep, const String& replacement, String::QuotingMethod quoting)))
 {
 	stringstream strstr;
 	sv_ptr = new SVOutStream(strstr);
@@ -63,14 +63,18 @@ START_SECTION((template <typename T> SVOutStream& operator<<(const T& value)))
 	SVOutStream out(strstr, ",");
  	out << 123 << 3.14 << -1.23e45 << endl;
 	out << 456 << endl;
-	TEST_EQUAL(strstr.str(), "123,3.14,-1.23e+45\n456\n");
+	// different cases for Unix/Windows:
+	TEST_EQUAL((strstr.str() == "123,3.14,-1.23e+45\n456\n") ||
+						 (strstr.str() == "123,3.14,-1.23e+045\n456\n"), true);
 }
 {
 	stringstream strstr;
 	SVOutStream out(strstr, "_/_");
 	out << 123 << 3.14 << -1.23e45 << endl;
 	out << 456 << endl;
-	TEST_EQUAL(strstr.str(), "123_/_3.14_/_-1.23e+45\n456\n");
+	// different cases for Unix/Windows:
+	TEST_EQUAL((strstr.str() == "123_/_3.14_/_-1.23e+45\n456\n") ||
+						 (strstr.str() == "123_/_3.14_/_-1.23e+045\n456\n"), true);
 }
 END_SECTION
 
@@ -163,9 +167,13 @@ START_SECTION((template <typename NumericT> SVOutStream& writeValueOrNan(Numeric
 {
 	stringstream strstr;
 	SVOutStream out(strstr, ",");
- 	out << 123 << 3.14 << -1.23e45 << endl;
-	out << 456 << std::numeric_limits<double>::quiet_NaN() << endl;
-	TEST_EQUAL(strstr.str(), "123,3.14,-1.23e+45\n456,nan\n");
+ 	out.writeValueOrNan(123);
+	out.writeValueOrNan(3.14);
+	out << endl;
+	out.writeValueOrNan(456);
+	out.writeValueOrNan(std::numeric_limits<double>::quiet_NaN());
+	out << endl;
+	TEST_EQUAL(strstr.str(), "123,3.14\n456,nan\n");
 }
 END_SECTION
 

@@ -120,7 +120,7 @@ namespace OpenMS
 		template <typename NumericT>
 		SVOutStream& writeValueOrNan(NumericT thing)
 			{
-				if (!boost::math::isnan(thing)) return operator<<(thing);
+				if (!(boost::math::isnan)(thing)) return operator<<(thing);
 				bool old = modifyStrings(false);
 				operator<<(nan_);
 				modifyStrings(old);
