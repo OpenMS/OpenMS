@@ -25,8 +25,8 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_SVOUTSTREAM_H
-#define OPENMS_DATASTRUCTURES_SVOUTSTREAM_H
+#ifndef OPENMS_FORMAT_SVOUTSTREAM_H
+#define OPENMS_FORMAT_SVOUTSTREAM_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <ostream>
