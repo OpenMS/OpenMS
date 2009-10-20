@@ -256,9 +256,18 @@ namespace OpenMS
 			return;
 		}
 
-    // find binary logarithm of n
-    Size log2n = 0;
-    for (; (Size(1) << log2n) < n; ++log2n) ;
+		Size log2n = 0;
+		// modification by Chris to prevent infinite loop when n > 2^63
+		if (n > (Size(1) << (std::numeric_limits<Size>::digits-1))) 
+		{
+			log2n = std::numeric_limits<Size>::digits;
+		}
+		else
+		{
+			// find binary logarithm of n
+			for (; (Size(1) << log2n) < n; ++log2n) ;
+		}
+		
 
 	  // get started
     if (n & 1)

@@ -91,6 +91,9 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::setDefaultParams_()
   {
+		defaults_.setValue("enabled","true","Enable RAW signal simulation?");
+		defaults_.setValidStrings("enabled", StringList::create("true,false"));
+		
     // noise params
     // m/z error
     defaults_.setValue("mz:error_mean",0.0,"Average systematic m/z error (Da)");
@@ -136,6 +139,10 @@ namespace OpenMS {
 
   void RawMSSignalSimulation::generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment)
   {
+    if (param_.getValue("enabled") == "false")
+    {
+			return;
+		}
 		// retrieve mz boundary parameters from experiment:
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
