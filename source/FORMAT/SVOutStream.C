@@ -1,8 +1,37 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2009 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Hendrik Weisser $
+// $Authors: Hendrik Weisser $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <limits>
 
-using namespace OpenMS;
 using namespace std;
+
+namespace OpenMS
+{
 
 SVOutStream::SVOutStream(ostream& out, const String& sep,
 												 const String& replacement,
@@ -18,18 +47,31 @@ SVOutStream::SVOutStream(ostream& out, const String& sep,
 SVOutStream& SVOutStream::operator<<(String str)
 {
 	if (str.find('\n') != string::npos)
-		throw Exception::IllegalArgument(
-			__FILE__, __LINE__, __PRETTY_FUNCTION__,
-			"argument must not contain newline characters");
-	if (!newline_) (ostream&)*this << sep_;
-	else newline_ = false;
+	{
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "argument must not contain newline characters");
+	}
+
+	if (!newline_) 
+	{
+		(ostream&)*this << sep_;
+	}
+	else
+	{
+		newline_ = false;
+	}
+	
 	if (!modify_strings_)
+	{
 		(ostream&)*this << str;
+	}
 	else if (quoting_ != String::NONE)
 	{
 		(ostream&)*this << str.quote('"', quoting_);
 	}
-	else (ostream&)*this << str.substitute(sep_, replacement_);
+	else 
+	{
+		(ostream&)*this << str.substitute(sep_, replacement_);
+	}
 	return *this;
 }
 
@@ -74,3 +116,7 @@ bool SVOutStream::modifyStrings(bool modify)
 	modify_strings_ = modify;
 	return old;
 }
+
+} // namespace OpenMS
+
+

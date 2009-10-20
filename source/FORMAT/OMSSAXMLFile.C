@@ -411,8 +411,9 @@ namespace OpenMS
 		{
 			if (!mods_to_num_.has(*it))
 			{
-				mods_map_[omssa_mod_num++].push_back(ModificationsDB::getInstance()->getModification(*it));
+				mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(*it));
 				mods_to_num_[*it] = omssa_mod_num;
+				++omssa_mod_num;
 			}
 		}
 	}
