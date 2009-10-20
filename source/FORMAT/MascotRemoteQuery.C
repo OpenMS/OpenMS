@@ -386,61 +386,67 @@ void MascotRemoteQuery::httpDone(bool error)
 	{
 		emit loginDone();
 	} 
-	else 
+	else if (new_bytes.contains("Error: You have entered an invalid password"))
 	{
-		if (new_bytes.contains("Click here to see Search Report")) 
-		{
-			//Extract date and file from this...
-			int pos=0;
-			results_path_ = "";
-			QString response(new_bytes);
-			QRegExp rx("file=\\.\\./data/(\\d+)/(\\w+\\.dat)");
-			pos=rx.indexIn(response);
+		error_message_ = "Error: You have entered an invalid password";
+		emit done();
+	}
+	else if (new_bytes.contains("Error: LarseNilse is not a valid user"))
+	{
+		error_message_ = "Error: LarseNilse is not a valid user";
+		emit done();
+	}
+	else if (new_bytes.contains("Click here to see Search Report")) 
+	{
+		//Extract date and file from this...
+		int pos=0;
+		results_path_ = "";
+		QString response(new_bytes);
+		QRegExp rx("file=\\.\\./data/(\\d+)/(\\w+\\.dat)");
+		pos=rx.indexIn(response);
 		
-			//This will get the xml...
-			results_path_.append("/mascot/cgi/export_dat_2.pl?file=../data/");
-			results_path_.append(rx.cap(1));
-			results_path_.append("/");
-			results_path_.append(rx.cap(2));
+		//This will get the xml...
+		results_path_.append("/mascot/cgi/export_dat_2.pl?file=../data/");
+		results_path_.append(rx.cap(1));
+		results_path_.append("/");
+		results_path_.append(rx.cap(2));
 #ifdef MASCOTREMOTEQUERY_DEBUG
-			cerr << "Results path to export: " << results_path_.toStdString() << endl;
+		cerr << "Results path to export: " << results_path_.toStdString() << endl;
 #endif
-			results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
+		results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
 		
-			if (param_.getValue("query_master").toBool())
-			{
-				results_path_.append("&query_master=1");
-			}
-			else
-			{
-				results_path_.append("&query_master=0");
-			}
-
+		if (param_.getValue("query_master").toBool())
+		{
+			results_path_.append("&query_master=1");
+		}
+		else
+		{
+			results_path_.append("&query_master=0");
+		}
 			//Finished search, fire off results retrieval
-			emit queryDone();
-		} 
-		else 
-		{	
-		
-			// check whether Mascot responded using an error code e.g. [M00440], pipe through results else
-			QString response_text = new_bytes;
-			QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
-			if (response_text.contains(mascot_error_regex))
-			{
-				QTextDocument doc;
-				doc.setHtml(response_text);
-				error_message_ = doc.toPlainText().toStdString();
-				emit done();
-			}
-			else
-			{
-				// seems to be fine so grab the xml
-				#ifdef MASCOTREMOTEQUERY_DEBUG
-				cerr << "Get the XML File" << endl;
-				#endif
-				mascot_xml_ = new_bytes;
-				emit done();
-			}
+		emit queryDone();
+	} 
+	else 
+	{	
+	
+		// check whether Mascot responded using an error code e.g. [M00440], pipe through results else
+		QString response_text = new_bytes;
+		QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
+		if (response_text.contains(mascot_error_regex))
+		{
+			QTextDocument doc;
+			doc.setHtml(response_text);
+			error_message_ = doc.toPlainText().toStdString();
+			emit done();
+		}
+		else
+		{
+			// seems to be fine so grab the xml
+			#ifdef MASCOTREMOTEQUERY_DEBUG
+			cerr << "Get the XML File" << endl;
+			#endif
+			mascot_xml_ = new_bytes;
+			emit done();
 		}
 	}
 }
