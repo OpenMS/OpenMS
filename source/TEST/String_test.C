@@ -354,7 +354,7 @@ START_SECTION((String& trim()))
 	TEST_EQUAL(s,"");
 END_SECTION
 
-START_SECTION((String& quote(char c = '"', QuotingMethod method = ESCAPE)))
+START_SECTION((String& quote(char q = '"', QuotingMethod method = ESCAPE)))
   String s;
   s.quote('\'', String::NONE);
   TEST_EQUAL(s, "''");
@@ -370,7 +370,7 @@ START_SECTION((String& quote(char c = '"', QuotingMethod method = ESCAPE)))
   TEST_EQUAL(s, "\"ab\"\"cd\\ef\"");
 END_SECTION
 
-START_SECTION((String& unquote(char c = '"', QuotingMethod method = ESCAPE)))
+START_SECTION((String& unquote(char q = '"', QuotingMethod method = ESCAPE)))
   String s;
   TEST_EXCEPTION(Exception::ConversionError, s.unquote());
   s = "''";
