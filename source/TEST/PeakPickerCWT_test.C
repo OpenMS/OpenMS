@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
@@ -51,10 +51,10 @@ START_SECTION((virtual ~PeakPickerCWT()))
 END_SECTION
 
 //load input and output data
-MzDataFile mz_data_file;
+MzMLFile mz_ml_file;
 MSExperiment<Peak1D> input, output;
-mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT.mzData"),input);
-mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_output.mzData"),output);
+mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test.mzML"),input);
+mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"),output);
 //set data type (this is not stored correctly in mzData)
 for (Size s=0; s<output.size(); ++s)
 {
@@ -64,14 +64,15 @@ for (Size s=0; s<output.size(); ++s)
 //set up PeakPicker
   PeakPickerCWT pp;
   Param param;
-  param.setValue("thresholds:peak_bound",1500.0);
+  param.setValue("peak_width",0.15);
+  param.setValue("signal_to_noise",3.);
   pp.setParameters(param);   
 
 START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output)))
   MSSpectrum<> spec;
   pp.pick(input[0],spec);
   
-  TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)
+// TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)-> are not equal as peak picking step is written to the spectrum settings
   for (Size p=0; p<spec.size(); ++p)
   {
     TEST_REAL_SIMILAR(spec[p].getMZ(), output[0][p].getMZ())
@@ -87,7 +88,7 @@ START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &
   TEST_EQUAL(exp.ExperimentalSettings::operator==(input), true)
   for (Size s=0; s<exp.size(); ++s)
   {
-    TEST_EQUAL(exp[s].SpectrumSettings::operator==(output[s]), true)
+		//    TEST_EQUAL(exp[s].SpectrumSettings::operator==(output[s]), true) -> are not equal as peak picking step is written to the spectrum settings
     for (Size p=0; p<exp[s].size(); ++p)
     {
       TEST_REAL_SIMILAR(exp[s][p].getMZ(), output[s][p].getMZ())
@@ -98,7 +99,7 @@ END_SECTION
 
 START_SECTION(DoubleReal estimatePeakWidth(const MSExperiment<>& input))
   DoubleReal peak_width = pp.estimatePeakWidth(input);
-TEST_REAL_SIMILAR(peak_width,0.421875)
+TEST_REAL_SIMILAR(peak_width,0.15)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
