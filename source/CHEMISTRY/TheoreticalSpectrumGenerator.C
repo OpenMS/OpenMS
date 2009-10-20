@@ -243,6 +243,21 @@ namespace OpenMS
 				for (set<String>::const_iterator it=losses.begin(); it!=losses.end(); ++it)
 				{
 					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
+					// thanks to Chris and Sandro
+					// check for negative element frequencies (might happen if losses are not allowed for specific ions)
+					bool negative_elements(false);
+					for (EmpiricalFormula::ConstIterator eit = loss_ion.begin(); eit != loss_ion.end(); ++eit)
+					{
+						if (eit->second < 0)
+						{
+							negative_elements = true;
+							break;
+						}
+					}
+					if (negative_elements)
+					{
+						continue;
+					}
 					DoubleReal loss_pos = loss_ion.getMonoWeight() / (DoubleReal)charge;
 					String loss_name = *it;
 					

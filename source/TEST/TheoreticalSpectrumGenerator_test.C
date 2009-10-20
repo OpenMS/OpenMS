@@ -138,6 +138,23 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 	TEST_EQUAL(spec.size(), 24)
 END_SECTION
 
+START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
+{
+	AASequence tmp_aa("RDAGGPALKK");
+  RichPeakSpectrum tmp;
+  TheoreticalSpectrumGenerator t_gen;
+  Param params;
+
+  params.setValue("add_isotopes", 1);
+  params.setValue("add_losses", 1);
+  t_gen.setParameters(params);
+
+  t_gen.getSpectrum(tmp, tmp_aa,1);
+  t_gen.addPeaks(tmp, tmp_aa, Residue::AIon);
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
