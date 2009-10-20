@@ -138,7 +138,7 @@ class TOPPTOFCalibration
 		
 		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
 		{
-			ref_masses.push_back(atof(iter->c_str()));
+			ref_masses.push_back(String(iter->c_str()).toDouble());
 		}
 		TextFile const_file;
 		const_file.load(conv,true);
@@ -147,22 +147,22 @@ class TOPPTOFCalibration
 		iter->split('\t',vec);
 
 		std::vector<double> ml1,ml2,ml3;
-		ml1.push_back(atof(vec[0].c_str()));
-		ml2.push_back(atof(vec[1].c_str()));
+		ml1.push_back(String(vec[0].c_str()).toDouble());
+		ml2.push_back(String(vec[1].c_str()).toDouble());
 		if(vec.size()==3)
 		{
-			ml3.push_back(atof(vec[2].c_str()));				
+			ml3.push_back(String(vec[2].c_str()).toDouble());
 		}
 		++iter;
 		
 		for(; iter != const_file.end(); ++iter)
 		{
 			iter->split('\t',vec);
-			ml1.push_back(atof(vec[0].c_str()));
-			ml2.push_back(atof(vec[1].c_str()));
+			ml1.push_back(String(vec[0].c_str()).toDouble());
+			ml2.push_back(String(vec[1].c_str()).toDouble());
 			if(vec.size()==3)
 			{
-				ml3.push_back(atof(vec[2].c_str()));				
+				ml3.push_back(String(vec[2].c_str()).toDouble());
 			}
 		}
 

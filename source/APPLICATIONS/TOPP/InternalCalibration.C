@@ -130,7 +130,7 @@ class TOPPInternalCalibration
 			ref_file.load(ref,true);
 			for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
 			{
-				ref_masses.push_back(atof(iter->c_str()));
+				ref_masses.push_back(String(iter->c_str()).toDouble());
 			}
 		}
 

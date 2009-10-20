@@ -922,7 +922,7 @@ class TOPPSequestAdapter
 					for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); ++substrings_it )
 					{
 						// the values are expected to be DoubleReal, otherwise they will be seen as 0!
-						Real_buffer = atof(substrings_it->c_str());
+						Real_buffer = String(substrings_it->c_str()).toDouble();
 						if ( (Real_buffer < 0) || (Real_buffer > 1) )
 						{
 							writeLog_("Illegal weights for ion series given. Aborting!");

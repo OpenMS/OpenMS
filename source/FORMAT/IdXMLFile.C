@@ -636,7 +636,7 @@ namespace OpenMS
 			}
 			else if (*type==*s_float)
 			{
-				last_meta_->setMetaValue(name, atof(sm_.convert(value)) );
+				last_meta_->setMetaValue(name, String(sm_.convert(value)).toDouble());
 			}
 			else if (*type==*s_string)
 			{

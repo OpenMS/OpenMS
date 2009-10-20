@@ -20,7 +20,7 @@ Int main()
   ref_file.load("data/Tutorial_TOFCalibration_masses.txt",true);
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
   {
-    ref_masses.push_back(atof(iter->c_str()));
+    ref_masses.push_back(String(iter->c_str()).toDouble());
   }
 
   std::vector<DoubleReal> ml1;

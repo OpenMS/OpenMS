@@ -633,21 +633,21 @@ namespace OpenMS
 		{
 			if (ids[i].getHits().size()!=0)
 			{
-				DoubleReal rt = ids[i].getMetaValue("RT");
+				DoubleReal rt = (DoubleReal)ids[i].getMetaValue("RT");
 				if (rt< visible_area_.min()[1] || rt > visible_area_.max()[1]) continue;
-				DoubleReal mz = ids[i].getMetaValue("MZ");
+				DoubleReal mz = (DoubleReal)ids[i].getMetaValue("MZ");
 				if (mz< visible_area_.min()[0] || mz > visible_area_.max()[0]) continue;
 				
 				//draw dot
 				QPoint pos;
 				dataToWidget_(mz, rt, pos);
-				painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
-				painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+				painter.drawLine(pos.x(),pos.y() - 1.0, pos.x(),pos.y() + 1.0);
+				painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 				
 				//draw sequence
 				String sequence = ids[i].getHits()[0].getSequence().toString();
 				if (ids[i].getHits().size()>1) sequence += " ...";
-				painter.drawText(pos.x()+10,pos.y()+10,sequence.toQString());
+				painter.drawText(pos.x() + 10.0 ,pos.y() + 10.0 ,sequence.toQString());
 			}
 		}
 	}
