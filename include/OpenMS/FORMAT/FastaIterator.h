@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
 
@@ -34,7 +34,9 @@
 #include <fstream>
 #include <vector>
 
-namespace OpenMS{
+namespace OpenMS
+{
+
 /**
 @brief Iterator over FASTA file
 
