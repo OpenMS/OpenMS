@@ -47,8 +47,6 @@ namespace OpenMS
     
     This class is used to load and store documents that implement the schema of PepXML files.
 		
-		@todo Write tests (Chris, Hendrik)
-		
   	@ingroup FileIO
   */
   class OPENMS_DLLAPI PepXMLFile
