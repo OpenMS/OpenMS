@@ -41,7 +41,8 @@ namespace OpenMS
 		: XMLHandler("","1.2"),
 			XMLFile("/SCHEMAS/IdXML_1_2.xsd","1.2"),
 			last_meta_(0),
-			document_id_()
+			document_id_(),
+			prot_id_in_run_(false)
 	{
 	}
 
@@ -364,6 +365,8 @@ namespace OpenMS
 		{
 			//check file version against schema version
 			String file_version="";
+			prot_id_in_run_ = false;
+
 			optionalAttributeAsString_(file_version,attributes,"version");
 			if (file_version=="") file_version="1.0"; //default version is 1.0
 			if (file_version.toDouble()>version_.toDouble())
