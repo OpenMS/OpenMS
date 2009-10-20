@@ -298,12 +298,27 @@ namespace OpenMS
 						f.setIntensity(parts[8].toDouble());
 						ConvexHull2D hull;
 						ConvexHull2D::PointType point;
+						
 						point.setX(parts[9].toDouble());
 						point.setY(f.getMZ());
 						hull.addPoint(point);
+
+						point.setX(parts[9].toDouble());
+						point.setY(f.getMZ()+3.0/(DoubleReal)f.getCharge());
+						hull.addPoint(point);
+
+						point.setX(parts[10].toDouble());
+						point.setY(f.getMZ()+3.0/(DoubleReal)f.getCharge());
+						hull.addPoint(point);
+
 						point.setX(parts[10].toDouble());
 						point.setY(f.getMZ());
 						hull.addPoint(point);
+						
+						point.setX(parts[9].toDouble());
+						point.setY(f.getMZ());
+						hull.addPoint(point);
+						
 						std::vector< ConvexHull2D > hulls;
 						hulls.push_back(hull);
 						f.setConvexHulls(hulls);
@@ -315,6 +330,8 @@ namespace OpenMS
 						feature_map.push_back(f);
 					}
 				}
+				
+				std::cout << "Warning: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
 				
 				std::cout << "Converted " << feature_map.size() << " features!\n";
 				
