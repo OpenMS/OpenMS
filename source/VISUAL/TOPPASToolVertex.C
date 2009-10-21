@@ -863,83 +863,22 @@ namespace OpenMS
 		TOPPASVertex::inEdgeHasChanged();
 	}
 	
-	void TOPPASToolVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+	void TOPPASToolVertex::openInTOPPView()
 	{
-		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		ts->unselectAll();
-		setSelected(true);
+		QVector<IOInfo> out_infos;
+		getOutputParameters(out_infos);
 		
-		QMenu menu;
-		
-		menu.addAction("Edit parameters");
-		
-		bool allow_resume = true;
-		// all predecessor nodes finished successfully?
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		if (out_infos.size() == output_file_names_.size())
 		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (tv && (tv->progress_color_ != Qt::green || !tv->isFinished()))
+			foreach (const QStringList& files, output_file_names_)
 			{
-				allow_resume = false;
-				break;
-			}
-			// input nodes are always ready -> no further checks
-		}
-		QAction* resume_action = menu.addAction("Resume");
-		if (!allow_resume)
-		{
-			resume_action->setEnabled(false);
-		}
-		
-		QAction* open_action = menu.addAction("Open output in TOPPView");
-		if (progress_color_ != Qt::green)
-		{
-			open_action->setEnabled(false);
-		}
-		
-		menu.addAction("Remove");
-		
-		QAction* selected_action = menu.exec(event->screenPos());
-		if (selected_action)
-		{
-			QString text = selected_action->text();
-			if (text == "Edit parameters")
-			{
-				editParam();
-			}
-			else if (text == "Resume")
-			{
-				if(ts->askForOutputDir(false))
+				if (files.size() > 0)
 				{
-					runToolIfInputReady();
+					QProcess* p = new QProcess();
+					p->setProcessChannelMode(QProcess::ForwardedChannels);
+					p->start("TOPPView", files);
 				}
 			}
-			else if (text == "Open output in TOPPView")
-			{
-				QVector<IOInfo> out_infos;
-				getOutputParameters(out_infos);
-				if (out_infos.size() == output_file_names_.size())
-				{
-					foreach (const QStringList& files, output_file_names_)
-					{
-						if (files.size() > 0)
-						{
-							QProcess* p = new QProcess();
-							p->setProcessChannelMode(QProcess::ForwardedChannels);
-							p->start("TOPPView", files);
-						}
-					}
-				}
-			}
-			else if (text == "Remove")
-			{
-				ts->removeSelected();
-			}
-			event->accept();
-		}
-		else
-		{
-			event->ignore();	
 		}
 	}
 	

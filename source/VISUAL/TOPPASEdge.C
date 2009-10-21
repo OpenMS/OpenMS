@@ -316,6 +316,11 @@ namespace OpenMS
 
 	void TOPPASEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
+		showIOMappingDialog();
+	}
+
+	void TOPPASEdge::showIOMappingDialog()
+	{
 		TOPPASIOMappingDialog dialog(this);
 		if (dialog.exec())
 		{

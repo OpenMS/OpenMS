@@ -117,6 +117,8 @@ namespace OpenMS
 			void updateColor();
 			/// Emits the somethingHasChanged() signal
 			void emitChanged();
+			/// Shows the I/O mapping dialog
+			void showIOMappingDialog();
 		
 		public slots:
 		

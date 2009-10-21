@@ -218,6 +218,11 @@ namespace OpenMS
 			bool isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v);
 			/// DFS helper method. Returns true, if a back edge has been discovered
 			bool dfsVisit_(TOPPASVertex* vertex);
+			
+			///@name reimplemented Qt events
+      //@{
+      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+			//@}
 	};
 
 }

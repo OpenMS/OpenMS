@@ -166,7 +166,9 @@ namespace OpenMS
 			void createDirs();
 			/// Sets the topological sort number and removes invalidated tmp files
 			virtual void setTopoNr(UInt nr);
-			
+			/// Opens the files in TOPPView
+			void openInTOPPView();
+		
 		public slots:
 		
 			/// Called when the execution of this tool has finished
@@ -202,7 +204,6 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 			/// Initializes the parameters with standard values (from -write_ini)

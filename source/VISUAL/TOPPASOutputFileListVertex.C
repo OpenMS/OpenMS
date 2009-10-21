@@ -192,43 +192,11 @@ namespace OpenMS
 		TOPPASVertex::inEdgeHasChanged();
 	}
 	
-	void TOPPASOutputFileListVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+	void TOPPASOutputFileListVertex::openInTOPPView()
 	{
-		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		ts->unselectAll();
-		setSelected(true);
-		
-		QMenu menu;
-		QAction* open_action = menu.addAction("Open files in TOPPView");
-		open_action->setEnabled(false);
-		if (!files_.empty())
-		{
-			open_action->setEnabled(true);
-		}
-		
-		menu.addAction("Remove");
-		
-		QAction* selected_action = menu.exec(event->screenPos());
-		if (selected_action)
-		{
-			QString text = selected_action->text();
-			if (text == "Remove")
-			{
-				ts->removeSelected();
-			}
-			else if (text == "Open files in TOPPView")
-			{
-				QProcess* p = new QProcess();
-				p->setProcessChannelMode(QProcess::ForwardedChannels);
-				p->start("TOPPView", files_);
-			}
-			
-			event->accept();
-		}
-		else
-		{
-			event->ignore();
-		}
+		QProcess* p = new QProcess();
+		p->setProcessChannelMode(QProcess::ForwardedChannels);
+		p->start("TOPPView", files_);
 	}
 	
 	bool TOPPASOutputFileListVertex::isFinished()

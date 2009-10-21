@@ -66,6 +66,8 @@ namespace OpenMS
 			bool fileNamesValid(const QStringList& files);
 			/// Shows the dialog for editing the files
 			void showFilesDialog();
+			/// Opens the files in TOPPView
+			void openInTOPPView();
 			
 		protected:
 		
@@ -75,7 +77,6 @@ namespace OpenMS
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
 			
 	};
