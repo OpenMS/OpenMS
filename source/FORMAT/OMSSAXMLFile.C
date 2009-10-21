@@ -407,7 +407,8 @@ namespace OpenMS
 	{
 		mod_def_set_ = mod_set;
 		UInt omssa_mod_num(119);
-		for (set<String>::const_iterator it = mod_set.getVariableModificationNames().begin(); it != mod_set.getVariableModificationNames().end(); ++it)
+		set<String> mod_names = mod_set.getVariableModificationNames();
+		for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
 		{
 			if (!mods_to_num_.has(*it))
 			{
