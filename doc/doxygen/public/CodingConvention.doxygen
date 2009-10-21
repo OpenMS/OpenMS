@@ -82,7 +82,31 @@ The resulting errors are hard to find. There are two ways to avoid these
 problems: (a) always use braces around a block (b) write everyting in a single
 line. We recommend method (a).
 However, this is mainly a question of personal style, so no explicit checking
-is performed to enforce this rule.
+is performed to enforce this rule. However, if there is an else following the
+if statement the braces are mandatory! One exception is several if/else 
+statements can be written as
+
+@code
+if (cond1)
+{
+  ...
+}
+else if (cond2)
+{
+  ...
+}
+else if (cond3)
+{
+ ...
+}
+else
+{
+  ...
+}
+@endcode
+
+which is save, because the first statement in each else branch is used,
+which is itself braced by the if branch.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Sample .h file</H2>
 
