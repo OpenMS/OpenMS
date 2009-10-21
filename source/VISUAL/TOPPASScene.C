@@ -402,12 +402,6 @@ namespace OpenMS
 			return;
 		}
 		
-		// make sure all output file names are updated
-		updateOutputFileNames();
-		
-		// create all directories
-		createDirs();
-		
 		//unset the finished flag and set progress color = red for all TOPP tool nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
@@ -716,32 +710,6 @@ namespace OpenMS
 		file_name_ = name;
 	}
 	
-	void TOPPASScene::updateOutputFileNames()
-	{
-		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
-		{
-			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-			if (oflv)
-			{
-				for (TOPPASVertex::EdgeIterator e_it = oflv->inEdgesBegin(); e_it != oflv->inEdgesEnd(); ++e_it)
-				{
-					TOPPASEdge* in_edge = *e_it;
-					TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(in_edge->getSourceVertex());
-					if (tv)
-					{
-						tv->updateOutputFileNames();
-						continue;
-					}
-					TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(in_edge->getSourceVertex());
-					if (mv)
-					{
-						mv->updateOutputFileNames();
-					}
-				}
-			}
-		}
-	}
-	
 	void TOPPASScene::unselectAll()
 	{
 		const QList<QGraphicsItem*>& all_items = items();	
@@ -932,26 +900,6 @@ namespace OpenMS
 	{
 		out_dir_ = dir;
 		user_specified_out_dir_ = true;
-	}
-	
-	void TOPPASScene::createDirs()
-	{
-		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
-		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
-			if (tv)
-			{
-				tv->createDirs(out_dir_);
-				continue;
-			}
-			
-			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-			if (oflv)
-			{
-				oflv->createDirs(out_dir_);
-				continue;
-			}
-		}
 	}
 	
 	void TOPPASScene::moveSelectedItems(qreal dx, qreal dy)

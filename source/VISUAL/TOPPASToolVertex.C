@@ -428,6 +428,9 @@ namespace OpenMS
 		}
 	
 		// all inputs are ready --> GO!
+		updateOutputFileNames();
+		createDirs();
+		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QString ini_file = ts->getOutDir()
 							+QDir::separator()
@@ -674,25 +677,6 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::updateOutputFileNames()
 	{
-		// recurse until we depend only on input vertices
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (tv)
-			{
-				tv->updateOutputFileNames();
-				continue;
-			}
-			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
-			if (mv)
-			{
-				mv->updateOutputFileNames();
-			}
-		}
-		
-		/*	Now, all parent vertices are up to date:
-				First, determine base names of input files (-in parameter) and store number
-				of input files in input_list_length_ (needed in executionFinished()) */ 
 		QVector<IOInfo> in_params;
 		input_list_length_ = 1; // stays like that if -in param is not a list
 		getInputParameters(in_params);
@@ -927,8 +911,6 @@ namespace OpenMS
 			{
 				if(ts->askForOutputDir(false))
 				{
-					ts->updateOutputFileNames();
-					ts->createDirs();
 					runToolIfInputReady();
 				}
 			}
@@ -972,9 +954,11 @@ namespace OpenMS
 		return dir;
 	}
 	
-	void TOPPASToolVertex::createDirs(const QString& out_dir)
+	void TOPPASToolVertex::createDirs()
 	{
-		QDir current_dir(out_dir);
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		QDir current_dir(ts->getOutDir());
+		
 		foreach (const QStringList& files, output_file_names_)
 		{
 			if (!files.isEmpty())

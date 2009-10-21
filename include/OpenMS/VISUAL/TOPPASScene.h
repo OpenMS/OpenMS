@@ -118,16 +118,12 @@ namespace OpenMS
 			const String& getSaveFileName();
 			/// Sets the file name
 			void setSaveFileName(const String& name);
-			/// Updates all output file names
-			void updateOutputFileNames();
 			/// Performs a topological sort of all vertices
 			void topoSort();
 			/// Returns the name of the directory for output files
 			const QString& getOutDir();
 			/// Sets the name of the directory for output files
 			void setOutDir(const QString& dir);
-			/// Creates the necessary output directories
-			void createDirs();
 			/// Saves the pipeline if it has been changed since the last save.
 			bool saveIfChanged();
 			/// Sets the changed flag

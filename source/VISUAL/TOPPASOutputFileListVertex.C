@@ -130,6 +130,8 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::finished()
 	{
+		createDirs();
+		
 		// copy tmp files to output dir
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
@@ -241,11 +243,13 @@ namespace OpenMS
 		return dir;
 	}
 	
-	void TOPPASOutputFileListVertex::createDirs(const QString& out_dir)
+	void TOPPASOutputFileListVertex::createDirs()
 	{
+		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+		QString out_dir = ts->getOutDir();
 		QDir current_dir(out_dir);
 		String new_dir = getOutputDir();
-		if (!File::exists(new_dir))
+		if (!File::exists(String(out_dir)+String(QDir::separator())+new_dir))
 		{
 			if (!current_dir.mkpath(new_dir.toQString()))
 			{
