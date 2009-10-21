@@ -44,7 +44,7 @@ using namespace std;
 /**
 	@page TOPP_NoiseFilter NoiseFilter
 	
-	@brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in a MS experiment.
+	@brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in an MS experiment.
 	
 	The idea of the Savitzky Golay filter is to find filter-coefficients
 	that preserve higher moments, which means to approximate the underlying
