@@ -41,6 +41,8 @@
 //clustering
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 //~ #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 
@@ -501,7 +503,7 @@ class TOPPSILACAnalyzer
         // conduct clustering
         //-------------------------------------------------------------
         //~ ClusterHierarchical ch;
-        AverageLinkage al;
+		AverageLinkage al;
         al.setLogType(log_type_);
         std::vector< BinaryTreeNode > tree;
         al(distance_matrix_copy, tree, std::numeric_limits<float>::max());
