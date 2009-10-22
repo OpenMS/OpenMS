@@ -67,45 +67,7 @@ namespace OpenMS
 					skip_spectrum_(false),
 					logger_(logger)
 	  	{
-				cv_terms_.resize(19);
-				// SampleState
-				String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';',cv_terms_[0]);
-				// IonizationMode
-				String(";PositiveIonMode;NegativeIonMode").split(';',cv_terms_[1]);
-				// ResolutionMethod
-				String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[2]);
-				// ResolutionType
-				String(";Constant;Proportional").split(';',cv_terms_[3]);
-				// ScanFunction
-				// is no longer used cv_terms_[4] is empty now
-				// ScanDirection
-				String(";Up;Down").split(';',cv_terms_[5]);
-				// ScanLaw
-				String(";Exponential;Linear;Quadratic").split(';',cv_terms_[6]);
-				// PeakProcessing
-				String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';',cv_terms_[7]);
-				// ReflectronState
-				String(";On;Off;None").split(';',cv_terms_[8]);
-				// AcquisitionMode
-				String(";PulseCounting;ADC;TDC;TransientRecorder").split(';',cv_terms_[9]);
-				// IonizationType
-				String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[10]);
-				// InletType
-				String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
-				// TandemScanningMethod
-				// is no longer used cv_terms_[12] is empty now
-				// DetectorType
-				String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
-				// AnalyzerType
-				String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
-				// EnergyUnits
-				// is no longer used cv_terms_[15] is empty now
-				// ScanMode
-				// is no longer used cv_terms_[16] is empty now
-				// Polarity
-				// is no longer used cv_terms_[17] is empty now
-				// ActivationMethod
-				String("CID;PSD;PD;SID").split(';',cv_terms_[18]);
+				init_();				
 			}
 
       /// Constructor for a read-only handler
@@ -119,45 +81,7 @@ namespace OpenMS
 					skip_spectrum_(false),
 					logger_(logger)
   		{
-				cv_terms_.resize(19);
-				// SampleState
-				String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';',cv_terms_[0]);
-				// IonizationMode
-				String(";PositiveIonMode;NegativeIonMode").split(';',cv_terms_[1]);
-				// ResolutionMethod
-				String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[2]);
-				// ResolutionType
-				String(";Constant;Proportional").split(';',cv_terms_[3]);
-				// ScanFunction
-				// is no longer used cv_terms_[4] is empty now
-				// ScanDirection
-				String(";Up;Down").split(';',cv_terms_[5]);
-				// ScanLaw
-				String(";Exponential;Linear;Quadratic").split(';',cv_terms_[6]);
-				// PeakProcessing
-				String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';',cv_terms_[7]);
-				// ReflectronState
-				String(";On;Off;None").split(';',cv_terms_[8]);
-				// AcquisitionMode
-				String(";PulseCounting;ADC;TDC;TransientRecorder").split(';',cv_terms_[9]);
-				// IonizationType
-				String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[10]);
-				// InletType
-				String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
-				// TandemScanningMethod
-				// is no longer used cv_terms_[12] is empty now
-				// DetectorType
-				String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
-				// AnalyzerType
-				String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
-				// EnergyUnits
-				// is no longer used cv_terms_[15] is empty now
-				// ScanMode
-				// is no longer used cv_terms_[16] is empty now
-				// Polarity
-				// is no longer used cv_terms_[17] is empty now
-				// ActivationMethod
-				String("CID;PSD;PD;SID").split(';',cv_terms_[18]);
+				init_();				
 			}
 
       /// Destructor
@@ -184,6 +108,51 @@ namespace OpenMS
 			{ 
 				options_ = options; 
 			}
+		
+		private:
+			void init_()
+			{
+				cv_terms_.resize(19);
+				// SampleState
+				String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';',cv_terms_[0]);
+				// IonizationMode
+				String(";PositiveIonMode;NegativeIonMode").split(';',cv_terms_[1]);
+				// ResolutionMethod
+				String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[2]);
+				// ResolutionType
+				String(";Constant;Proportional").split(';',cv_terms_[3]);
+				// ScanFunction
+				// is no longer used cv_terms_[4] is empty now
+				// ScanDirection
+				String(";Up;Down").split(';',cv_terms_[5]);
+				// ScanLaw
+				String(";Exponential;Linear;Quadratic").split(';',cv_terms_[6]);
+				// PeakProcessing
+				String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';',cv_terms_[7]);
+				// ReflectronState
+				String(";On;Off;None").split(';',cv_terms_[8]);
+				// AcquisitionMode
+				String(";PulseCounting;ADC;TDC;TransientRecorder").split(';',cv_terms_[9]);
+				// IonizationType
+				String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[10]);
+				// InletType
+				String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
+				// TandemScanningMethod
+				// is no longer used cv_terms_[12] is empty now
+				// DetectorType
+				String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
+				// AnalyzerType
+				String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
+				// EnergyUnits
+				// is no longer used cv_terms_[15] is empty now
+				// ScanMode
+				// is no longer used cv_terms_[16] is empty now
+				// Polarity
+				// is no longer used cv_terms_[17] is empty now
+				// ActivationMethod
+				String("CID;PSD;PD;SID").split(';',cv_terms_[18]);			
+			}
+
 
 		 protected:
       

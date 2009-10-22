@@ -68,19 +68,7 @@ namespace OpenMS
 					spec_write_counter_(1),
 					logger_(logger)
 	  		{
-	  			cv_terms_.resize(6);
-	  			//Polarity
-					String("any;+;-").split(';',cv_terms_[0]);
-					//Scan type
-					// is no longer used cv_terms_[1] is empty now
-					//Ionization method
-					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
-					//Mass analyzer
-					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
-					//Detector
-					String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
-					//Resolution method
-					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
+					init_();
 				}
 	
 	      /// Constructor for a write-only handler
@@ -95,19 +83,7 @@ namespace OpenMS
 					spec_write_counter_(1),
 					logger_(logger)
 	  		{
-	  			cv_terms_.resize(6);
-	  			//Polarity
-					String("any;+;-").split(';',cv_terms_[0]);
-					//Scan type
-					// is no longer used cv_terms_[1] is empty now
-					//Ionization method
-					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
-					//Mass analyzer
-					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
-					//Detector
-					String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
-					//Resolution method
-					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
+					init_();
 				}
 
 	  		/// Destructor
@@ -133,6 +109,44 @@ namespace OpenMS
 				{
 					options_ = options; 
 				}
+			
+			private:
+				// initialize members (call from C'tor)
+				void init_()
+				{
+					cv_terms_.resize(6);
+					//Polarity
+					String("any;+;-").split(';',cv_terms_[0]);
+					//Scan type
+					// is no longer used cv_terms_[1] is empty now
+					//Ionization method
+					String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;;;;;;MALDI").split(';',cv_terms_[2]);
+					cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
+					//Mass analyzer
+					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
+					cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+					//Detector
+					String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';',cv_terms_[4]);
+					cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
+					//Resolution method
+					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
+					cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+				/* // OLD:
+					cv_terms_.resize(6);
+					//Polarity
+					String("any;+;-").split(';',cv_terms_[0]);
+					//Scan type
+					// is no longer used cv_terms_[1] is empty now
+					//Ionization method
+					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
+					//Mass analyzer
+					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
+					//Detector
+					String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
+					//Resolution method
+					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);				
+					*/
+				}			
 	
 	    protected:
 				
@@ -151,7 +165,7 @@ namespace OpenMS
 				/// Options for loading and storing
 				PeakFileOptions options_;
 				
-				/**@name temporary datastructures to hold parsed data */
+				/**@name temporary data structures to hold parsed data */
 		    //@{
 				Base64 decoder_;
 				UInt peak_count_;
