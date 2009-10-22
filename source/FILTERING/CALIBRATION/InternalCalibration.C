@@ -94,7 +94,7 @@ namespace OpenMS
 #ifdef DEBUG_CALIBRATION
 				out << observed_masses[ref_peak] << "\t"<< rel_errors[ref_peak] << "\n";
 #endif
-				std::cout << observed_masses[ref_peak]<<"\t"<<rel_errors[ref_peak]<<std::endl;
+				//				std::cout << observed_masses[ref_peak]<<"\t"<<rel_errors[ref_peak]<<std::endl;
 			}
 
 			DoubleReal cov00, cov01, cov11, sumsq, slope,intercept;

@@ -231,9 +231,9 @@ namespace OpenMS
 							}
 						// now find closest peak
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMetaValue("MZ"));
-						std::cout << mz_iter->getMZ() <<" "<<(DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+						//					std::cout << mz_iter->getMZ() <<" "<<(DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
 						DoubleReal dist = (DoubleReal)ref_ids[p_id].getMetaValue("MZ") - mz_iter->getMZ();
-						std::cout << dist << "\t";
+						//					std::cout << dist << "\t";
 						if((mz_iter +1) != rt_iter->end()
 							 && fabs((mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist)
 							 && mz_iter != rt_iter->begin()
@@ -243,11 +243,11 @@ namespace OpenMS
 									 fabs((mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") *1e06< mz_tolerance) ||
 									 (!use_ppm && fabs((mz_iter+1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
 									{
-										std::cout <<(mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+										//		std::cout <<(mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
 										observed_masses.push_back((mz_iter +1)->getMZ());
 										theoretical_masses.push_back(theo_mass);
-										std::cout << (mz_iter +1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-															<< "\tplus 1"<< std::endl;
+										//									std::cout << (mz_iter +1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
+										//			<< "\tplus 1"<< std::endl;
 									}
 							}
 						else if(mz_iter != rt_iter->begin()
@@ -257,11 +257,11 @@ namespace OpenMS
 									 fabs((mz_iter -1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") *1e06< mz_tolerance) ||
 									 (!use_ppm && fabs((mz_iter-1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
 									{
-										std::cout <<(mz_iter -1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+										//									std::cout <<(mz_iter -1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
 										observed_masses.push_back((mz_iter -1)->getMZ());
 										theoretical_masses.push_back(theo_mass);
-										std::cout << (mz_iter -1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-															<< "\tminus 1"<< std::endl;
+										//									std::cout << (mz_iter -1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
+										//			<< "\tminus 1"<< std::endl;
 									}
 							}
 						else
@@ -273,8 +273,8 @@ namespace OpenMS
 										
 										observed_masses.push_back(mz_iter->getMZ());
 										theoretical_masses.push_back(theo_mass);
-										std::cout <<"\t"<< mz_iter->getMZ() << " ~ "<<theo_mass<< " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-															<< "\tat mz_iter"<< std::endl;
+// 										std::cout <<"\t"<< mz_iter->getMZ() << " ~ "<<theo_mass<< " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
+// 															<< "\tat mz_iter"<< std::endl;
 									}
 							}
 					}
