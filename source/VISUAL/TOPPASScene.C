@@ -39,6 +39,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtGui/QMessageBox>
+#include <QtCore/QSet>
 
 namespace OpenMS
 {
@@ -1093,47 +1094,47 @@ namespace OpenMS
 		}
 		
 		QMenu menu;
-		QList<QList<QString> > all_actions;
+		QList<QSet<QString> > all_actions;
 		
-		if (found_edge)
+		if (found_tool)
 		{
-			QList<QString> edge_actions;
-			edge_actions.push_back("Edit I/O mapping");
-			edge_actions.push_back("Remove");
-			all_actions.push_back(edge_actions);
+			QSet<QString> tool_actions;
+			tool_actions.insert("Edit parameters");
+			tool_actions.insert("Resume");
+			tool_actions.insert("Open files in TOPPView");
+			tool_actions.insert("Remove");
+			all_actions.push_back(tool_actions);
 		}
 		
 		if (found_input)
 		{
-			QList<QString> input_actions;
-			input_actions.push_back("Change files");
-			input_actions.push_back("Open files in TOPPView");
-			input_actions.push_back("Remove");
+			QSet<QString> input_actions;
+			input_actions.insert("Change files");
+			input_actions.insert("Open files in TOPPView");
+			input_actions.insert("Remove");
 			all_actions.push_back(input_actions);
 		}
 		
 		if (found_output)
 		{
-			QList<QString> output_actions;
-			output_actions.push_back("Open files in TOPPView");
-			output_actions.push_back("Remove");
+			QSet<QString> output_actions;
+			output_actions.insert("Open files in TOPPView");
+			output_actions.insert("Remove");
 			all_actions.push_back(output_actions);
 		}
 		
-		if (found_tool)
+		if (found_edge)
 		{
-			QList<QString> tool_actions;
-			tool_actions.push_back("Edit parameters");
-			tool_actions.push_back("Resume");
-			tool_actions.push_back("Open files in TOPPView");
-			tool_actions.push_back("Remove");
-			all_actions.push_back(tool_actions);
+			QSet<QString> edge_actions;
+			edge_actions.insert("Edit I/O mapping");
+			edge_actions.insert("Remove");
+			all_actions.push_back(edge_actions);
 		}
 		
-		QSet<QString> supported_actions_set = all_actions.first().toSet();
-		foreach (const QList<QString>& action_list, all_actions)
+		QSet<QString> supported_actions_set = all_actions.first();
+		foreach (const QSet<QString>& action_set, all_actions)
 		{
-			supported_actions_set.intersect(action_list.toSet());
+			supported_actions_set.intersect(action_set);
 		}
 		QList<QString> supported_actions = supported_actions_set.toList();
 		
