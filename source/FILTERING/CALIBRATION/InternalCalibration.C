@@ -100,7 +100,7 @@ namespace OpenMS
 			DoubleReal cov00, cov01, cov11, sumsq, slope,intercept;
 			// TODO: what exactly is stride?? used 1 here as in the gsl-example :)
 			gsl_fit_linear (&(observed_masses[0]), 1, &(theoretical_masses[0]), 1, observed_masses.size(), &intercept,&slope,&cov00,&cov01,&cov11,&sumsq);
- 			std::cout <<"\n\n---------------------------------\n\n"<< "after calibration "<<std::endl;
+			// 			std::cout <<"\n\n---------------------------------\n\n"<< "after calibration "<<std::endl;
 			trafo_.setName("linear");
 			trafo_.setParam("slope",slope);
 			trafo_.setParam("intercept",intercept);
@@ -109,17 +109,17 @@ namespace OpenMS
 					DoubleReal new_mass = observed_masses[i];
 					trafo_.apply(new_mass);
 					DoubleReal rel_error = (theoretical_masses[i]-(new_mass))/theoretical_masses[i] * 1e6;
-					std::cout << observed_masses[i]<<"\t"<<rel_error<<std::endl;
+					//	std::cout << observed_masses[i]<<"\t"<<rel_error<<std::endl;
 				}
 			
 			
-//#ifdef DEBUG_CALIBRATION
+#ifdef DEBUG_CALIBRATION
   	  printf ("# best fit: Y = %g + %g X\n", intercept, slope);
       printf ("# covariance matrix:\n");
       printf ("# [ %g, %g\n#   %g, %g]\n", 
                cov00, cov01, cov01, cov11);
       printf ("# sumsq = %g\n", sumsq);
-//#endif
+#endif
 	}
 
 }
