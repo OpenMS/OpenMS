@@ -22,12 +22,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Hendrik Weisser $
+// $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <gsl/gsl_bspline.h>
 #include <gsl/gsl_multifit.h>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -179,12 +180,6 @@ namespace OpenMS
       }
 
       size = rhs.pairs_.size();
-      // set up cubic (k = 4) spline workspace:
-      Size num_breakpoints = rhs.param_.getValue("num_breakpoints");
-      if ( num_breakpoints < 2 )
-        num_breakpoints = size - 2; // short-cut for natural splines
-      workspace = gsl_bspline_alloc(4, num_breakpoints);
-      ncoeffs = gsl_bspline_ncoeffs(workspace);
       x = gsl_vector_alloc(size);
       y = gsl_vector_alloc(size);
       w = gsl_vector_alloc(size);
@@ -196,7 +191,14 @@ namespace OpenMS
       }
       xmin = gsl_vector_min(x);
       xmax = gsl_vector_max(x);
-      gsl_bspline_knots_uniform(xmin, xmax, workspace);
+		
+      // set up cubic (k = 4) spline workspace:
+      Size num_breakpoints = rhs.param_.getValue("num_breakpoints");
+			if (num_breakpoints < 2) num_breakpoints = 2;
+			else if (num_breakpoints > size - 2) num_breakpoints = size - 2;
+			workspace = gsl_bspline_alloc(4, num_breakpoints);
+			gsl_bspline_knots_uniform(xmin, xmax, workspace);
+      ncoeffs = gsl_bspline_ncoeffs(workspace);
       xmin = gsl_vector_min(workspace->knots);
       xmax = gsl_vector_max(workspace->knots);
       compute_fit_();
@@ -230,7 +232,8 @@ namespace OpenMS
         }
       }
       // do the fit:
-      gsl_multifit_linear_workspace *multifit = gsl_multifit_linear_alloc(size, ncoeffs);
+      gsl_multifit_linear_workspace *multifit = gsl_multifit_linear_alloc(
+				size, ncoeffs);
       coeffs = gsl_vector_alloc(ncoeffs);
       cov = gsl_matrix_alloc(ncoeffs, ncoeffs);
       double chisq;
@@ -238,7 +241,7 @@ namespace OpenMS
       // clean-up:
       gsl_matrix_free(fit_matrix);
       gsl_multifit_linear_free(multifit);
-      // for linear extrapolation:
+      // for linear extrapolation (natural spline):
       compute_linear_(xmin, slope_min, offset_min);
       compute_linear_(xmax, slope_max, offset_max);
     }
