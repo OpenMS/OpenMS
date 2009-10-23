@@ -293,8 +293,8 @@ START_SECTION((void apply(DoubleReal &value) const))
 
 
 #if 0
-    // Since the numbers in this test were verified my manual (in fact, visual) inspection ...
-    // here is a receipt how this was done:
+    // Since the numbers in this test were verified by manual (in fact, visual) inspection...
+    // Here is a recipe how this was done:
     //
     // To grep for output, "pairs:" and "spline:", you might use a command line like this:
     // make TransformationDescription_test && ctest -V -R TransformationDescription_test &&  ctest -V -R TransformationDescription_test | grep pairs: > points.dat && ctest -V -R TransformationDescription_test | grep spline: > bla.dat

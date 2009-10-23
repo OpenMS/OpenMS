@@ -1249,7 +1249,7 @@ namespace OpenMS
 						}
 					}
 					ff_->endProgress();
-					std::cout << "Found " << feature_candidates << " features candidates for charge " << c << "." << std::endl;
+					std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << "." << std::endl;
 				}
 					
 				//------------------------------------------------------------------
