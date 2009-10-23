@@ -124,7 +124,7 @@ namespace OpenMS
 			/// Map from protein id to accession
 			Map<String,String> proteinid_to_accession_;
 			/// Map from search identifier concatenated with protein accession to id
-			Map<String,UInt> accession_to_id_;
+			Map<String,Size> accession_to_id_;
 			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
 			Map<String,String> identifier_id_;
 			/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)

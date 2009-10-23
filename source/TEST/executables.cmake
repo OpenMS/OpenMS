@@ -160,7 +160,7 @@ set(format_executables_list
   PepXMLFileMascot_test
   PepXMLFile_test
   PersistentObject_test
-  SVInStream_test
+#  SVInStream_test (not present!)
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
