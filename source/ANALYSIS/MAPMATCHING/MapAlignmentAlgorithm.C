@@ -31,6 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 // debugging yes/no
 // #define V_MapAlignmentAlgorithm(a) std::cout << a << std::endl;
@@ -41,6 +42,10 @@ namespace OpenMS
 	//register products here
 	void MapAlignmentAlgorithm::registerChildren()
 	{
+		Factory<MapAlignmentAlgorithm>::registerProduct(
+			MapAlignmentAlgorithmIdentification::getProductName(),
+			&MapAlignmentAlgorithmIdentification::create);		
+
 		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmPoseClustering::    getProductName(), &MapAlignmentAlgorithmPoseClustering::    create );
 		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmSpectrumAlignment:: getProductName(), &MapAlignmentAlgorithmSpectrumAlignment:: create );
 		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmApplyGivenTrafo::   getProductName(), &MapAlignmentAlgorithmApplyGivenTrafo::   create );

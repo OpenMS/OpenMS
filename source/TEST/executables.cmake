@@ -3,175 +3,176 @@ set(concept_executables_list
 	Exception_Base_test
 	FactoryBase_test
 	Factory_test
+	FuzzyStringComparator_test
 	SingletonRegistry_test
 	VersionInfo_test
-	FuzzyStringComparator_test
-  LogStream_test
-  UniqueIdGenerator_test
-  UniqueIdInterface_test
-  UniqueIdIndexer_test
+	LogStream_test
+	UniqueIdGenerator_test
+	UniqueIdIndexer_test
+	UniqueIdInterface_test
 )
 
 set(datastructures_executables_list
-	String_test
-	StringList_test
-	IntList_test
-	DoubleList_test
-	Date_test
-	Map_test
-	DPosition_test
-	DIntervalBase_test
-	DRange_test
-	DBoundingBox_test
-	DataValue_test
-	DateTime_test
-	RangeManager_test
-	Matrix_test
-	ConvexHull2D_test
-	DefaultParamHandler_test
-	SuffixArray_test
-	SuffixArraySeqan_test
-	SuffixArrayTrypticSeqan_test
-	SuffixArrayTrypticCompressed_test
-	SuffixArrayPeptideFinder_test
-	SparseVector_test
-	DistanceMatrix_test
 	Adduct_test
+	CVMappingRule_test
+	CVMappingTerm_test
+	CVMappings_test
+	CVReference_test
 	ChargePair_test
 	Compomer_test
+	ConvexHull2D_test
+	DBoundingBox_test
+	DIntervalBase_test
+	DPosition_test
+	DRange_test
+	DataValue_test
+	DateTime_test
+	Date_test
+	DefaultParamHandler_test
+	DistanceMatrix_test
+	DoubleList_test
+	IntList_test
+	Map_test
 	MassExplainer_test
-	CVMappingTerm_test
-	CVMappingRule_test
-	CVReference_test
-	CVMappings_test
+	Matrix_test
+	RangeManager_test
+	SparseVector_test
+	StringList_test
+	String_test
+	SuffixArrayPeptideFinder_test
+	SuffixArraySeqan_test
+	SuffixArrayTrypticCompressed_test
+	SuffixArrayTrypticSeqan_test
+	SuffixArray_test
 )
 
 set(metadata_executables_list
-  MetaInfoRegistry_test
-  MetaInfo_test
-  MetaInfoInterface_test
-  ScanWindow_test
-  IonSource_test
-  IonDetector_test
-  IDTagger_test
-  MassAnalyzer_test
-  Instrument_test
-  ProteinHit_test
-  PeptideHit_test
-  SampleTreatment_test
-  Digestion_test
-  Modification_test
-  Tagging_test
-  Sample_test
-  Acquisition_test
-  ProteinIdentification_test
-  PeptideIdentification_test
-  AcquisitionInfo_test
-  Precursor_test
-  Product_test
-  ContactPerson_test
-  SourceFile_test
-  Software_test
-  MetaInfoDescription_test
-  DataProcessing_test
-  InstrumentSettings_test
-  SpectrumSettings_test
-  Gradient_test
-  HPLC_test
-  ExperimentalSettings_test
-  DocumentIdentifier_test
-	ChromatogramSettings_test
-	CVTerm_test
+	AcquisitionInfo_test
+	Acquisition_test
 	CVTermList_test
+	CVTerm_test
+	ChromatogramSettings_test
+	ContactPerson_test
+	DataProcessing_test
+	Digestion_test
+	DocumentIdentifier_test
+	ExperimentalSettings_test
+	Gradient_test
+	HPLC_test
+	IDTagger_test
+	InstrumentSettings_test
+	Instrument_test
+	IonDetector_test
+	IonSource_test
+	MassAnalyzer_test
+	MetaInfoDescription_test
+	MetaInfoInterface_test
+	MetaInfoRegistry_test
+	MetaInfo_test
+	Modification_test
+	PeptideHit_test
+	PeptideIdentification_test
+	Precursor_test
+	Product_test
+	ProteinHit_test
+	ProteinIdentification_test
+	SampleTreatment_test
+	Sample_test
+	ScanWindow_test
+	Software_test
+	SourceFile_test
+	SpectrumSettings_test
+	Tagging_test
 )
 
 set(system_executables_list
-  StopWatch_test
   File_test
   FileWatcher_test
+  StopWatch_test
 )
 
 set(kernel_executables_list
-  PeakIndex_test
-  Peak1D_test
-  Peak2D_test
-  DPeak_test
-  RichPeak1D_test
-  RichPeak2D_test
-  DRichPeak_test
-  ConstRefVector_test
-  ComparatorUtils_test
-  StandardTypes_test
-  Feature_test
-  FeatureMap_test
-  RangeUtils_test
-  MSSpectrum_test
-  MSExperiment_test
-  ConsensusMap_test
-  ConsensusFeature_test
-  AreaIterator_test
-	MSChromatogram_test
+	AreaIterator_test
 	ChromatogramPeak_test
 	ChromatogramTools_test
+	ComparatorUtils_test
+	ConsensusFeature_test
+	ConsensusMap_test
+	ConstRefVector_test
+	DPeak_test
+	DRichPeak_test
+	FeatureMap_test
+	Feature_test
+	MSChromatogram_test
+	MSExperiment_test
+	MSSpectrum_test
+	Peak1D_test
+	Peak2D_test
+	PeakIndex_test
+	RangeUtils_test
+	RichPeak1D_test
+	RichPeak2D_test
+	StandardTypes_test
 )
 
 set(visual_executables_list
-  MultiGradient_test
   AxisTickCalculator_test
+  MultiGradient_test
 )
 
 set(format_executables_list
-  CsvFile_test
-  XMLValidator_test
-  TextFile_test
-  XMLFile_test
-  LibSVMEncoder_test
-  DTAFile_test
-  DTA2DFile_test
-  MascotInfile_test
-  MascotOutfile_test
   Base64_test
-  PersistentObject_test
+  BigString_test
+  CVMappingFile_test
+  ConsensusXMLFile_test
+  ControlledVocabulary_test
+  CsvFile_test
+  DTA2DFile_test
+  DTAFile_test
   FASTAFile_test
-  FileHandler_test
-  MzXMLFile_test
-  MzMLFile_test
-  MzDataFile_test
-  Param_test
   FeatureXMLFile_test
-  MascotXMLFile_test
-  PeakFileOptions_test
-  PeakTypeEstimator_test
+  FileHandler_test
+  IdXMLFile_test
   InspectInfile_test
   InspectOutfile_test
-  SequestInfile_test
-  SequestOutfile_test
+  LibSVMEncoder_test
+  MS2File_test
+  MSPFile_test
+  MascotGenericFile_test
+  MascotInfile_test
+  MascotOutfile_test
+  MascotRemoteQuery_test
+  MascotXMLFile_test
+  MzDataFile_test
+  MzIdentMLFile_test
+  MzIdentMLValidator_test
+  MzMLFile_test
+  MzMLValidator_test
+  MzXMLFile_test
+  OMSSACSVFile_test
+  OMSSAXMLFile_test
+  PTMXMLFile_test
+  Param_test
+  PeakFileOptions_test
+  PeakTypeEstimator_test
   PepNovoInfile_test
   PepNovoOutfile_test
-  PTMXMLFile_test
-  ConsensusXMLFile_test
-  OMSSAXMLFile_test
-  IdXMLFile_test
-  BigString_test
-  XTandemXMLFile_test
-  MSPFile_test
-  OMSSACSVFile_test
-  XTandemInfile_test
-  UnimodXMLFile_test
-  PepXMLFile_test
   PepXMLFileMascot_test
-  ControlledVocabulary_test
-  TransformationXMLFile_test
+  PepXMLFile_test
+  PersistentObject_test
+  SVInStream_test
+  SVOutStream_test
   SemanticValidator_test
-  MzMLValidator_test
-  MS2File_test
-	MascotGenericFile_test
-	MascotRemoteQuery_test
-	CVMappingFile_test
-	MzIdentMLFile_test
-	MzIdentMLValidator_test
-	TraMLFile_test
-	SVOutStream_test
+  SequestInfile_test
+  SequestOutfile_test
+  TextFile_test
+  TraMLFile_test
+  TransformationXMLFile_test
+  UnimodXMLFile_test
+  XMLFile_test
+  XMLValidator_test
+  XTandemInfile_test
+  XTandemXMLFile_test
 )
 
 if (DB_TEST)
@@ -184,163 +185,164 @@ if (USE_ANDIMS)
 endif()
 
 set(math_executables_list
-  LinearInterpolation_test
+  AsymmetricStatistics_test
   AveragePosition_test
   BasicStatistics_test
-  AsymmetricStatistics_test
-  StatisticFunctions_test
-  ROCCurve_test
-  Histogram_test
-  MathFunctions_test
-  LinearRegression_test
   BilinearInterpolation_test
   GammaDistributionFitter_test
   GaussFitter_test
+  Histogram_test
+  LinearInterpolation_test
+  LinearRegression_test
+  MathFunctions_test
   NonNegativeLeastSquaresSolver_test
+  ROCCurve_test
+  StatisticFunctions_test
 )
 
 set(filtering_executables_list
-  LinearResampler_test
-  MorphologicalFilter_test
-  SignalToNoiseEstimator_test
-  SignalToNoiseEstimatorMedian_test
-  SignalToNoiseEstimatorMeanIterative_test
+  BernNorm_test
+  ComplementFilter_test
+  ComplementMarker_test
+  DataFilters_test
+  FilterFunctor_test
   GaussFilter_test
-  PreprocessingFunctor_test
+  GoodDiffFilter_test
+  IDFilter_test
+  IntensityBalanceFilter_test
+  InternalCalibration_test
+  IsotopeDiffFilter_test
+  IsotopeMarker_test
+  LinearResampler_test
+  MarkerMower_test
+  MorphologicalFilter_test
   NLargest_test
-  Scaler_test
+  NeutralLossDiffFilter_test
+  NeutralLossMarker_test
   Normalizer_test
   ParentPeakMower_test
+  PeakMarker_test
+  PreprocessingFunctor_test
+  SavitzkyGolayFilter_test
+  Scaler_test
+  SignalToNoiseEstimatorMeanIterative_test
+  SignalToNoiseEstimatorMedian_test
+  SignalToNoiseEstimator_test
   SqrtMower_test
+  TICFilter_test
+  TOFCalibration_test
   ThresholdMower_test
   WindowMower_test
-  FilterFunctor_test
-  ComplementFilter_test
-  GoodDiffFilter_test
-  IntensityBalanceFilter_test
-  IsotopeDiffFilter_test
-  NeutralLossDiffFilter_test
-  TICFilter_test
-  PeakMarker_test
-  ComplementMarker_test
-  IsotopeMarker_test
-  NeutralLossMarker_test
-  MarkerMower_test
-  SavitzkyGolayFilter_test
-  InternalCalibration_test
-  IDFilter_test
-  TOFCalibration_test
-  BernNorm_test
-  DataFilters_test
 )
 
 set(comparison_executables_list
-  SpectrumCheapDPCorr_test
-  PeakSpectrumCompareFunctor_test
-  SpectrumPrecursorComparator_test
-  ZhangSimilarityScore_test
-  SpectrumAlignment_test
-  SpectrumAlignmentScore_test
-  SpectraSTSimilarityScore_test
-  SteinScottImproveScore_test
-  CompareFouriertransform_test
-  BinnedSpectrum_test
-  BinnedSpectrumCompareFunctor_test
-  BinnedSumAgreeingIntensities_test
-  BinnedSpectralContrastAngle_test
-  BinnedSharedPeakCount_test
-  ClusterFunctor_test
-  SingleLinkage_test
-  CompleteLinkage_test
   AverageLinkage_test
-  PeakAlignment_test
-  ClusterHierarchical_test
+  BinnedSharedPeakCount_test
+  BinnedSpectralContrastAngle_test
+  BinnedSpectrumCompareFunctor_test
+  BinnedSpectrum_test
+  BinnedSumAgreeingIntensities_test
   ClusterAnalyzer_test
+  ClusterFunctor_test
+  ClusterHierarchical_test
+  CompareFouriertransform_test
+  CompleteLinkage_test
   EuclideanSimilarity_test
+  PeakAlignment_test
+  PeakSpectrumCompareFunctor_test
+  SingleLinkage_test
+  SpectraSTSimilarityScore_test
+  SpectrumAlignmentScore_test
+  SpectrumAlignment_test
+  SpectrumCheapDPCorr_test
+  SpectrumPrecursorComparator_test
+  SteinScottImproveScore_test
+  ZhangSimilarityScore_test
 )
 
 set(chemistry_executables_list
-  IsotopeDistribution_test
-  Element_test
-  ElementDB_test
-  EmpiricalFormula_test
-  ResidueModification_test
-  Residue_test
-  ResidueDB_test
-  AASequence_test
   AAIndex_test
-  EnzymaticDigestion_test
-  TheoreticalSpectrumGenerator_test
+  AASequence_test
   AdvancedTheoreticalSpectrumGenerator_test
-  ModifierRep_test
-  FastaIterator_test
-  FastaIteratorIntern_test
-  PepIterator_test
-  EdwardsLippertIterator_test
   EdwardsLippertIteratorTryptic_test
-  TrypticIterator_test
-  ModificationsDB_test
+  EdwardsLippertIterator_test
+  ElementDB_test
+  Element_test
+  EmpiricalFormula_test
+  EnzymaticDigestion_test
+  FastaIteratorIntern_test
+  FastaIterator_test
+  IsotopeDistribution_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
+  ModificationsDB_test
+  ModifierRep_test
+  PepIterator_test
+  ResidueDB_test
+  ResidueModification_test
+  Residue_test
+  TheoreticalSpectrumGenerator_test
+  TrypticIterator_test
 )
 
 
 set(analysis_executables_list
-  ItraqChannelExtractor_test
-  ItraqQuantifier_test
-	ItraqConstants_test
-  SVMWrapper_test
-  TransformationDescription_test
-  FeatureHandle_test
-  MapAlignmentAlgorithm_test
-  MapAlignmentAlgorithmSpectrumAlignment_test
-  MapAlignmentAlgorithmPoseClustering_test
-  LabeledPairFinder_test
-  BaseGroupFinder_test
-  DelaunayPairFinder_test
-  SimplePairFinder_test
-  StablePairFinder_test
-  BaseSuperimposer_test
-  PoseClusteringAffineSuperimposer_test
-  PoseClusteringShiftSuperimposer_test
-  FeatureGroupingAlgorithm_test
-  FeatureGroupingAlgorithmLabeled_test
-  FeatureGroupingAlgorithmUnlabeled_test
-	FeatureDeconvolution_test
-  ConsensusID_test
-  ProteinInference_test
-  PILISScoring_test
-  IDDecoyProbability_test
-  FalseDiscoveryRate_test
-  LocalLinearMap_test
-  PeakIntensityPredictor_test
-  IDMapper_test
-  PrecursorIonSelectionPreprocessing_test
-  PrecursorIonSelection_test
-  MapAlignmentEvaluationAlgorithm_test
-  MapAlignmentEvaluationAlgorithmPrecision_test
-  MapAlignmentEvaluationAlgorithmRecall_test
-  OfflinePrecursorIonSelection_test
+	BaseGroupFinder_test
+	BaseSuperimposer_test
+	CompNovoIdentificationBase_test 
+	CompNovoIdentificationCID_test
+	CompNovoIdentification_test
+	CompNovoIonScoringBase_test
+	CompNovoIonScoringCID_test
+	CompNovoIonScoring_test
+	ConsensusID_test
 	DeNovoAlgorithm_test
 	DeNovoIdentification_test
 	DeNovoIonScoring_test
 	DeNovoPostScoring_test
-	MassDecomposition_test
-	MassDecompositionAlgorithm_test
-	CompNovoIdentificationBase_test 
-	CompNovoIdentification_test
-	CompNovoIonScoringCID_test
-	CompNovoIdentificationCID_test
-	CompNovoIonScoringBase_test
-	CompNovoIonScoring_test
-  ILPWrapper_test
-	MRMFragmentSelection_test
-	ProtonDistributionModel_test
+	DelaunayPairFinder_test
+	FalseDiscoveryRate_test
+	FeatureDeconvolution_test
+	FeatureGroupingAlgorithmLabeled_test
+	FeatureGroupingAlgorithmUnlabeled_test
+	FeatureGroupingAlgorithm_test
+	FeatureHandle_test
 	HiddenMarkovModel_test
-	PILISModel_test
-	PILISModelGenerator_test
-	ReactionMonitoringTransition_test
+	IDDecoyProbability_test
+	IDMapper_test
+	ILPWrapper_test
+	ItraqChannelExtractor_test
+	ItraqConstants_test
+	ItraqQuantifier_test
+	LabeledPairFinder_test
+	LocalLinearMap_test
 	MRMExperiment_test
+	MRMFragmentSelection_test
+	MapAlignmentAlgorithmIdentification_test
+	MapAlignmentAlgorithmPoseClustering_test
+	MapAlignmentAlgorithmSpectrumAlignment_test
+	MapAlignmentAlgorithm_test
+	MapAlignmentEvaluationAlgorithmPrecision_test
+	MapAlignmentEvaluationAlgorithmRecall_test
+	MapAlignmentEvaluationAlgorithm_test
+	MassDecompositionAlgorithm_test
+	MassDecomposition_test
+	OfflinePrecursorIonSelection_test
+	PILISModelGenerator_test
+	PILISModel_test
+	PILISScoring_test
+	PeakIntensityPredictor_test
+	PoseClusteringAffineSuperimposer_test
+	PoseClusteringShiftSuperimposer_test
+	PrecursorIonSelectionPreprocessing_test
+	PrecursorIonSelection_test
+	ProteinInference_test
+	ProtonDistributionModel_test
+	ReactionMonitoringTransition_test
+	SVMWrapper_test
+	SimplePairFinder_test
+	StablePairFinder_test
+	TransformationDescription_test
 )
 
 set(applications_executables_list
@@ -348,61 +350,61 @@ set(applications_executables_list
 )
 
 set(transformations_executables_list
-  ModelDescription_test
   BaseModel_test
-  EmgModel_test
-  LmaGaussModel_test
-  ExtendedIsotopeModel_test
-  InterpolationModel_test
-  GaussModel_test
+  BiGaussFitter1D_test
   BiGaussModel_test
-  IsotopeModel_test
-  LmaIsotopeModel_test
-  ProductModel_test
-  FeatureFinder_test
+  ContinuousWaveletTransformNumIntegration_test
+  ContinuousWaveletTransform_test
+  EmgFitter1D_test
+  EmgModel_test
+  ExtendedIsotopeFitter1D_test
+  ExtendedIsotopeModel_test
   FeaFiModule_test
-  FeatureFinderAlgorithm_test
-  FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithmSimplest_test
-  FeatureFinderAlgorithmSimple_test
-  FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithmIsotopeWavelet_test
   FeatureFinderAlgorithmMRM_test
-  SimpleSeeder_test
-  SimpleExtender_test
-  GaussFitter1D_test
-  BiGaussFitter1D_test
-  IsotopeFitter1D_test
-  EmgFitter1D_test
-  LmaGaussFitter1D_test
-  LmaIsotopeFitter1D_test
-  ExtendedIsotopeFitter1D_test
+  FeatureFinderAlgorithmPicked_test
+  FeatureFinderAlgorithmSimple_test
+  FeatureFinderAlgorithmSimplest_test
+  FeatureFinderAlgorithmWavelet_test
+  FeatureFinderAlgorithm_test
+  FeatureFinder_test
   Fitter1D_test
-  LevMarqFitter1D_test
-  MaxLikeliFitter1D_test
-  ModelFitter_test
-  IsotopeWavelet_test
+  GaussFitter1D_test
+  GaussModel_test
+  InterpolationModel_test
+  IsotopeFitter1D_test
+  IsotopeModel_test
   IsotopeWaveletTransform_test
-  ContinuousWaveletTransform_test
-  PeakShape_test
-  ContinuousWaveletTransformNumIntegration_test
+  IsotopeWavelet_test
+  LevMarqFitter1D_test
+  LmaGaussFitter1D_test
+  LmaGaussModel_test
+  LmaIsotopeFitter1D_test
+  LmaIsotopeModel_test
+  MaxLikeliFitter1D_test
+  ModelDescription_test
+  ModelFitter_test
+  OptimizePeakDeconvolution_test
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
-  OptimizePeakDeconvolution_test
+  PeakShape_test
+  ProductModel_test
+  SimpleExtender_test
+  SimpleSeeder_test
   TwoDOptimization_test
 )
 
 set(simulation_executables_list
-  MSSim_test
-  DigestSimulation_test
-  PTMSimulation_test
   DetectabilitySimulation_test
-  RTSimulation_test
-  IonizationSimulation_test
-  RawMSSignalSimulation_test
+  DigestSimulation_test
   ElutionModel_test
+  IonizationSimulation_test
   IsotopeModelGeneral_test
+  MSSim_test
+  PTMSimulation_test
+  RTSimulation_test
+  RawMSSignalSimulation_test
 )
 
 ### collect test executables
