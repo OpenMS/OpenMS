@@ -233,12 +233,31 @@ namespace OpenMS
 	
 	DoubleReal AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
 	{
-		return getFormula(type, charge).getAverageWeight();
+		// check whether tags are present
+		DoubleReal tag_offset(0);
+		for (ConstIterator it = this->begin(); it != this->end(); ++it)
+		{
+			if (it->getOneLetterCode() == "")
+			{
+				tag_offset += it->getMonoWeight();
+			}
+		}
+		return tag_offset + getFormula(type, charge).getAverageWeight();
 	}
 
 	DoubleReal AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
 	{
-		return getFormula(type, charge).getMonoWeight();
+		// check whether tags are present
+		DoubleReal tag_offset(0);
+		for (ConstIterator it = this->begin(); it != this->end(); ++it)
+    {
+      if (it->getOneLetterCode() == "")
+      {
+        tag_offset += it->getMonoWeight();
+      }
+    }
+
+		return tag_offset + getFormula(type, charge).getMonoWeight();
 	}
 
 	/*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const
@@ -689,7 +708,7 @@ namespace OpenMS
 				}
 				else
 				{
-					os << "[" << peptide.peptide_[i]->getMonoWeight() << "]";
+					os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
 				}
 				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getId();
 				if (id != "")
@@ -698,7 +717,7 @@ namespace OpenMS
 				}
 				else
 				{
-					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getDiffMonoMass() << "])";
+					os << "([" << precisionWrapper(ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getDiffMonoMass()) << "])";
 				}
 			}
 			else
@@ -715,7 +734,7 @@ namespace OpenMS
 					}
 					else
 					{
-						os << "[" << peptide.peptide_[i]->getMonoWeight() << "]";
+						os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
 					}
 				}
 			}
@@ -920,8 +939,8 @@ namespace OpenMS
 					if (res_ptr == 0)
 					{
 						Residue res(tag, String(""), String(""), EmpiricalFormula(""));
-						res.setMonoWeight(tag.toDouble() + Residue::getInternalToFullMonoWeight());
-						res.setAverageWeight(tag.toDouble() + Residue::getInternalToFullAverageWeight());
+						res.setMonoWeight(tag.toDouble());
+						res.setAverageWeight(tag.toDouble());
 						getResidueDB_()->addResidue(res);
 						sequence.push_back(getResidueDB_()->getResidue(tag));
 					}

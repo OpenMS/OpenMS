@@ -657,7 +657,12 @@ START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
 
 	TEST_EQUAL(table.size()==8, true);
 
-	END_SECTION
+END_SECTION
+
+
+START_SECTION([EXTRA] Tag in peptides)
+	// TODO
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
