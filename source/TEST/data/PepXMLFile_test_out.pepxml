@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
-<msms_run_summary base_name="/Users/andreasbertsch/Data/OpenMS/Oberjoch/OpenMS/source/TEST/PepXMLFile_test_158.tmp" msManufacturer="ThermoFinnigan" msModel="LCQ Classic" msIonization="ESI" msMassAnalyzer="Ion Trap" msDetector="UNKNOWN" raw_data_type="raw" raw_data=".mzXML">
+<msms_run_summary base_name="PepXMLFile_test_182.tmp" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem (k-score)">
 <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
 </sample_enzyme>
-<search_summary base_name="/Users/andreasbertsch/Data/OpenMS/Oberjoch/OpenMS/source/TEST/PepXMLFile_test_158.tmp" search_engine="SEQUEST" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="out" out_data=".tgz" search_id="1">
-		<search_database local_path="dbase/ipi.HUMAN.fasta.v2.31" type="AA"/>
+<search_summary base_name="PepXMLFile_test_182.tmp" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="./current.fasta" type="AA"/>
 <aminoacid_modification aminoacid="C" massdiff="57.021464" mass="0" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
-<aminoacid_modification aminoacid="Q" massdiff="-17.026549" mass="0" variable="Y" binary="N" description="Gln->pyro-Glu (Q)"/>
-<aminoacid_modification aminoacid="E" massdiff="-18.010565" mass="0" variable="Y" binary="N" description="Glu->pyro-Glu (E)"/>
+<terminal_modification terminus="n" massdiff="-17.026549" mass="0" variable="Y" description="Gln->pyro-Glu (Q)" protein_terminus=""/>
+<terminal_modification terminus="n" massdiff="-18.010565" mass="0" variable="Y" description="Glu->pyro-Glu (E)" protein_terminus=""/>
     </search_summary>
     <analysis_timestamp analysis="peptideprophet" time="2007-12-05T17:49:52" id="1"/>
 		<spectrum_query spectrum="1" start_scan="1" end_scan="1" precursor_neutral_mass="1612.8242908913" assumed_charge="3" index="1">
  		<search_result>
 			<search_hit hit_rank="1" peptide="ELNKEMAAEKAKAAAG" peptide_prev_aa="R" peptide_next_aa="E" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1612.8242908913" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-      <modification_info modified_peptide="E(Glu->pyro-Glu)LNKEMAAEKAKAAAG">
-         <mod_aminoacid_mass position="0" mass="0"/>
+      <modification_info modified_peptide="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" mod_nterm_mass="129.0425930976">
       </modification_info>
  			<analysis_result analysis="peptideprophet">
 			<peptideprophet_result probability="329" all_ntt_prob="(329,329,329)">
@@ -27,8 +26,7 @@
 		<spectrum_query spectrum="2" start_scan="2" end_scan="2" precursor_neutral_mass="1273.7758077312" assumed_charge="2" index="2">
  		<search_result>
 			<search_hit hit_rank="1" peptide="QLPGVNIKPVVK" peptide_prev_aa="R" peptide_next_aa="V" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1273.7758077312" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-      <modification_info modified_peptide="Q(Gln->pyro-Glu)LPGVNIKPVVK">
-         <mod_aminoacid_mass position="0" mass="0"/>
+      <modification_info modified_peptide="(Gln->pyro-Glu)QLPGVNIKPVVK" mod_nterm_mass="128.0585775146">
       </modification_info>
  			<analysis_result analysis="peptideprophet">
 			<peptideprophet_result probability="173" all_ntt_prob="(173,173,173)">
@@ -71,8 +69,8 @@
  		<search_result>
 			<search_hit hit_rank="1" peptide="RSHTILNSSQSFAKGCVQCK" peptide_prev_aa="K" peptide_next_aa="H" protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2307.1212180283" massdiff="" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
       <modification_info modified_peptide="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K">
-         <mod_aminoacid_mass position="15" mass="0"/>
-         <mod_aminoacid_mass position="18" mass="0"/>
+         <mod_aminoacid_mass position="15" mass="160.0306482446"/>
+         <mod_aminoacid_mass position="18" mass="160.0306482446"/>
       </modification_info>
  			<analysis_result analysis="peptideprophet">
 			<peptideprophet_result probability="350" all_ntt_prob="(350,350,350)">

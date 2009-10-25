@@ -73,8 +73,21 @@ namespace OpenMS
   void PepXMLFile::load(const String& filename, ProteinIdentification& protein, vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment)
   { 
   	// initialize, load could be called several times
-  	experiment_ = 0;
-  	exp_name_ = "";
+    actual_sequence_ = "";
+    actual_modifications_.clear();
+    experiment_ = 0;
+    exp_name_ = "";
+    hydrogen_mass_ = 0;
+    prot_id_ = "";
+    params_ = ProteinIdentification::SearchParameters();
+    charge_ = 0;
+    accessions_.clear();
+    rt_tol_ = 0;
+		mz_tol_ = 0;
+    fixed_modifications_.clear();
+
+
+
   	rt_tol_ = 10.0;
   	mz_tol_ = 10.0;
 		// assume mass type "average" (in case element "search_summary" is missing)
@@ -171,7 +184,6 @@ namespace OpenMS
 		actual_sequence_.clear();
 		actual_modifications_.clear();
 		fixed_modifications_.clear();
-		variable_modifications_.clear();
 		exp_name_.clear();
 		prot_id_.clear();
 		date_.clear();
@@ -193,7 +205,7 @@ namespace OpenMS
   }
 
 	
-	void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& /* protein_ids */, std::vector<PeptideIdentification>& peptide_ids)
+	void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
 	{
 		ofstream f(filename.c_str());
 		if (!f)
@@ -201,20 +213,51 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 
+		String search_engine_name;
+		ProteinIdentification::SearchParameters search_params;
+		if (protein_ids.size() != 0)
+		{
+			if (protein_ids.size() > 1)
+			{
+				warning(STORE, "More than one protein identification defined, only first one is written into pepXML more are not supported.");
+			}
+			search_params = protein_ids.begin()->getSearchParameters();
+			search_engine_name = protein_ids.begin()->getSearchEngine();
+		}
+
 		f.precision(writtenDigits<DoubleReal>());
 
 		f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
 		f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << endl;
-		f << "<msms_run_summary base_name=\"" << filename << "\" msManufacturer=\"ThermoFinnigan\" msModel=\"LCQ Classic\" msIonization=\"ESI\" msMassAnalyzer=\"Ion Trap\" msDetector=\"UNKNOWN\" raw_data_type=\"raw\" raw_data=\".mzXML\">"
-			<< endl;
+		f << "<msms_run_summary base_name=\"" << File::basename(filename) << "\" raw_data_type=\"raw\" raw_data=\".mzXML\" search_engine=\"" << search_engine_name << "\">" << endl;
 
 		f << "<sample_enzyme name=\"trypsin\">" << endl;
 		f << "<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << endl;
 		f << "</sample_enzyme>" << endl;
 
-		f << "<search_summary base_name=\"" << filename << "\" search_engine=\"SEQUEST\" precursor_mass_type=\"monoisotopic\" fragment_mass_type=\"monoisotopic\" out_data_type=\"out\" out_data=\".tgz\" search_id=\"1\">" << endl;
-	//	f << "		<search_summary base_name=\"\" search_engine=\"Mascot\" precursor_mass_type=\"average\" fragment_mass_type=\"average\">" << endl;
-		f << "		<search_database local_path=\"dbase/ipi.HUMAN.fasta.v2.31\" type=\"AA\"/>" << endl;
+		f << "<search_summary base_name=\"" << File::basename(filename);
+		f << "\" search_engine=\"" << search_engine_name;	
+		f << "\" precursor_mass_type=\"";
+		if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+		{
+			f << "monoisotopic";
+		}
+		else
+		{
+			f << "average";
+		}
+		f << "\" fragment_mass_type=\"";
+		if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+		{
+			f << "monoisotopic";
+		}
+		else
+		{
+			f << "average";
+		}
+		f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << endl;
+		f << "		<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << endl;
+
 
 		// register modifications
 		set<String> aa_mods;
@@ -231,11 +274,11 @@ namespace OpenMS
 					AASequence p = h.getSequence();
 					if (p.hasNTerminalModification())
 					{
-						n_term_mods.insert(p.getNTerminalModification());
+						n_term_mods.insert(ModificationsDB::getInstance()->getTerminalModification(p.getNTerminalModification(), ResidueModification::N_TERM).getFullId());
 					}
 					if (p.hasCTerminalModification())
 					{
-						c_term_mods.insert(p.getCTerminalModification());
+						c_term_mods.insert(ModificationsDB::getInstance()->getTerminalModification(p.getCTerminalModification(), ResidueModification::C_TERM).getFullId());
 					}
 
 					for (Size i = 0; i != p.size(); ++i)
@@ -254,8 +297,7 @@ namespace OpenMS
 		for (set<String>::const_iterator it = aa_mods.begin();
 				 it != aa_mods.end(); ++it)
 		{
-			ResidueModification mod = ModificationsDB::getInstance()->
-				getModification(*it);
+			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
 			f << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
 				<< "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
 				<< precisionWrapper(mod.getMonoMass())
@@ -263,10 +305,9 @@ namespace OpenMS
 				<< endl;
 		}
 
-		for (set<String>::const_iterator it = n_term_mods.begin();
-				 it != n_term_mods.end(); ++it)
+		for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
 		{
-			ResidueModification mod = ModificationsDB::getInstance()->
+			const ResidueModification& mod = ModificationsDB::getInstance()->
 				getModification(*it);
 			f << "<terminal_modification terminus=\"n\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
@@ -274,11 +315,9 @@ namespace OpenMS
 				<< "\" protein_terminus=\"\"/>" << endl;
 		}
 
-		for (set<String>::const_iterator it = n_term_mods.begin();
-				 it != n_term_mods.end(); ++it)
+		for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
 		{
-			ResidueModification mod = ModificationsDB::getInstance()->
-				getModification(*it);
+			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
 			f << "<terminal_modification terminus=\"c\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
@@ -296,8 +335,9 @@ namespace OpenMS
 			if (it->getHits().size() > 0)
 			{
 				PeptideHit h = *it->getHits().begin();
-				DoubleReal precursor_neutral_mass = h.getSequence().getMonoWeight();
-				
+				AASequence seq = h.getSequence();
+				DoubleReal precursor_neutral_mass = seq.getMonoWeight();
+
 				f << "		<spectrum_query spectrum=\"" << count << "\" start_scan=\""
 					<< count << "\" end_scan=\"" << count
 					<< "\" precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass)
@@ -305,39 +345,39 @@ namespace OpenMS
 					<< "\">" << endl;
 				f << " 		<search_result>" << endl;
 				f << "			<search_hit hit_rank=\"1\" peptide=\""
-					<< h.getSequence().toUnmodifiedString() << "\" peptide_prev_aa=\""
+					<< seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
 					<< h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
 					<< "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
 					<< "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << endl;
-				if (h.getSequence().isModified())
+				if (seq.isModified())
 				{
 					f << "      <modification_info modified_peptide=\""
-						<< h.getSequence() << "\"";
+						<< seq << "\"";
 
-					if (h.getSequence().hasNTerminalModification())
+					if (seq.hasNTerminalModification())
 					{
-						f << " mod_nterm_mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
-							getModification(h.getSequence().getNTerminalModification()).
-							getMonoMass()) << "\"";
+						const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
+						f << " mod_nterm_mass=\"" << 
+						precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
 					}
 					
-					if (h.getSequence().hasCTerminalModification())
+					if (seq.hasCTerminalModification())
 					{
-						f << "mod_cterm_mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
-							getModification(h.getSequence().getCTerminalModification()).
-							getMonoMass()) << "\"";
+						const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
+						f << "mod_cterm_mass=\"" << 
+						precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
 					}
 
 					f << ">" << endl;
 
-					for (Size i = 0; i != h.getSequence().size(); ++i)
+					for (Size i = 0; i != seq.size(); ++i)
 					{
-						if (h.getSequence()[i].isModified())
+						if (seq[i].isModified())
 						{
+							const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
 							f << "         <mod_aminoacid_mass position=\"" << i
-								<< "\" mass=\"" << precisionWrapper(ModificationsDB::getInstance()->
-								getModification(h.getSequence()[i].getModification()).
-								getMonoMass()) << "\"/>" << endl;
+								<< "\" mass=\"" << 
+								precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << endl;
 						}
 					}
 
@@ -560,13 +600,45 @@ namespace OpenMS
 			String is_variable = attributeAsString_(attributes, "variable");
 			if (is_variable == "Y")
 			{
-				variable_modifications_.push_back(aa_mod);
-				params_.variable_modifications.push_back(description); // TODO
+				if (description != "")
+				{
+					params_.variable_modifications.push_back(description); // TODO
+				}
+				else
+				{
+					String desc = aa_mod.aminoacid;
+					if (aa_mod.massdiff.toDouble() > 0)
+					{
+						desc += "+" + String(aa_mod.massdiff);
+					}
+					else
+					{
+						desc += String(aa_mod.massdiff);
+					}
+					params_.variable_modifications.push_back(desc);
+				}
 			}
 			else
 			{
 				fixed_modifications_.push_back(aa_mod);
-				params_.fixed_modifications.push_back(description); // TODO
+				if (description != "")
+				{
+					params_.fixed_modifications.push_back(description); // TODO
+				}
+				else
+				{
+          String desc = aa_mod.aminoacid;
+          if (aa_mod.massdiff.toDouble() > 0)
+          {
+            desc += "+" + String(aa_mod.massdiff);
+          }
+          else
+          {
+            desc += String(aa_mod.massdiff);
+          }
+					params_.fixed_modifications.push_back(desc);
+        }
+
 			}
 		}
 		else if (element == "terminal_modification")
@@ -585,13 +657,44 @@ namespace OpenMS
       String is_variable = attributeAsString_(attributes, "variable");
       if (is_variable == "Y")
       {
-        term_variable_modifications_.push_back(aa_mod);
-        params_.variable_modifications.push_back(description); // TODO
+      	if (description != "")
+        {
+          params_.variable_modifications.push_back(description); // TODO
+        }
+        else
+        {
+          String desc = aa_mod.aminoacid;
+          if (aa_mod.massdiff.toDouble() > 0)
+          {
+            desc += "+" + String(aa_mod.massdiff);
+          }
+          else
+          {
+            desc += String(aa_mod.massdiff);
+          }
+          params_.variable_modifications.push_back(desc);
+        }
       }
       else
       {
-        term_fixed_modifications_.push_back(aa_mod);
-        params_.fixed_modifications.push_back(description); // TODO
+				if (description != "")
+        {
+          params_.fixed_modifications.push_back(description); // TODO
+        }
+        else
+        {
+          String desc = aa_mod.aminoacid;
+          if (aa_mod.massdiff.toDouble() > 0)
+          {
+            desc += "+" + String(aa_mod.massdiff);
+          }
+          else
+          {
+            desc += String(aa_mod.massdiff);
+          }
+          params_.fixed_modifications.push_back(desc);
+        }
+
       }
 		}
 		else if (element == "search_summary")
@@ -695,13 +798,13 @@ namespace OpenMS
 				it->first.split(' ', mod_split);
 				if (mod_split.size() == 2)
 				{
-					if (mod_split[1] == "(C-term)")
+					if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(it->first).getTermSpecificity() == ResidueModification::C_TERM)
 					{
 						temp_aa_sequence.setCTerminalModification(mod_split[0]);
 					}
 					else
 					{
-						if (mod_split[1] == "(N-term)")
+						if (mod_split[1] == "(N-term)" || ModificationsDB::getInstance()->getModification(it->first).getTermSpecificity() == ResidueModification::N_TERM)
 						{
 							temp_aa_sequence.setNTerminalModification(mod_split[0]);
 						}

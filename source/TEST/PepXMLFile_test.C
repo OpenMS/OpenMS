@@ -93,9 +93,10 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein, 
 	TEST_REAL_SIMILAR(first.getMetaValue("MZ"), 538.605); // recomputed
 	TEST_EQUAL(first.getHits().size(), 1);
 	PeptideHit pep_hit = first.getHits()[0];
-	TEST_EQUAL(pep_hit.getSequence().toString(), "E(Glu->pyro-Glu)LNKEMAAEKAKAAAG");
+	TEST_EQUAL(pep_hit.getSequence().toString(), "(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
 	TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
 	TEST_EQUAL(pep_hit.getRank(), 1);
+
 	// no use checking score, because implementation may still change
 	TEST_EQUAL(pep_hit.getCharge(), 3);
 	TEST_EQUAL(pep_hit.getProteinAccessions().size(), 3);
@@ -103,7 +104,18 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein, 
 	TEST_EQUAL(pep_hit.getAABefore(), 'R');
 	TEST_EQUAL(pep_hit.getAAAfter(), 'E');
 	TEST_EQUAL(first.getIdentifier(), last.getIdentifier());
-	// TODO: check handling of modifications on 1st/2nd/6th peptide ID
+
+	TEST_EQUAL(first.getHits()[0].getSequence().isModified(), true)
+	TEST_EQUAL(first.getHits()[0].getSequence().hasNTerminalModification(), true)
+	TEST_EQUAL(first.getHits()[0].getSequence().hasCTerminalModification(), false)
+
+  TEST_EQUAL(peptides[1].getHits()[0].getSequence().isModified(), true)
+  TEST_EQUAL(peptides[1].getHits()[0].getSequence().hasNTerminalModification(), true)
+  TEST_EQUAL(peptides[1].getHits()[0].getSequence().hasCTerminalModification(), false)
+
+	TEST_EQUAL(peptides[5].getHits()[0].getSequence().isModified(), true)
+  TEST_EQUAL(peptides[5].getHits()[0].getSequence().hasNTerminalModification(), false)
+  TEST_EQUAL(peptides[5].getHits()[0].getSequence().hasCTerminalModification(), false)
 
 	// protein ID:
 	TEST_EQUAL(protein.getIdentifier(), first.getIdentifier());
@@ -127,7 +139,19 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein, 
 	TEST_EQUAL(params.db, "./current.fasta");
 	TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
 	TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
-	// TODO: check handling of modification info
+
+	vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
+	TEST_EQUAL(fix_mods.size(), 1)
+	TEST_EQUAL(var_mods.size(), 4)
+
+	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "C-17.0265") != var_mods.end(), true)
+	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "E-18.0106") != var_mods.end(), true)
+	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+15.9949") != var_mods.end(), true)
+	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Q-17.0265") != var_mods.end(), true)
+
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)	
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (Q)") != var_mods.end(), true)	
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (E)") != var_mods.end(), true)	
 
 	// with the wrong "experiment_name", there are no results:
 	file.load(filename, protein, peptides, "test");
@@ -136,9 +160,8 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein, 
 	TEST_EQUAL(peptides.empty(), true);
 
 	// throw an exception if the pepXML file does not exist:
-	NEW_TMP_FILE(filename);
-	TEST_EXCEPTION(Exception::FileNotFound,
-								 file.load(filename, protein, peptides, exp_name));
+	//NEW_TMP_FILE(filename);
+	TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", protein, peptides, exp_name));
 
 }
 END_SECTION
