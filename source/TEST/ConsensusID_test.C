@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Marc Sturm, Andreas Bertsch, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>

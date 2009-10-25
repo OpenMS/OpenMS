@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsens $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
@@ -46,12 +46,12 @@ namespace OpenMS
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
 										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n"
 										   "probability -- calculates a consensus probability by multiplying the probabilities for each peptide obtained from the individual search engines. Make sure to use PeptideIdentifications with score types converted to probabilites only!\n");
-  	defaults_.setValidStrings("algorithm",StringList::create("ranked,merge,average,probability"));
+  	defaults_.setValidStrings("algorithm",StringList::create("ranked,merge,average,probability,majority"));
 		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.");
 		defaults_.setMinInt("considered_hits",1);
-		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
+		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'ranked' and 'average' to compute the new scores. If not given, the number of input identifications is taken.");
 		defaults_.setMinInt("number_of_runs",0);
-		defaults_.setValue("min_number_of_engines", 2, "The minimum number of search engines used to generate peptide lists");
+		defaults_.setValue("min_number_of_engines", 2, "The minimum number of search engines used to generate peptide lists, used int 'majority' and 'average'. If less than the given number of search engines found the hit, it is skipped.");
 		defaults_.setMinInt("min_number_of_engines",2);
 		
 		defaultsToParam_();
@@ -104,7 +104,6 @@ namespace OpenMS
 
 	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
-		cout << "ranked_" << endl;
 		map<AASequence, DoubleReal> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
@@ -230,7 +229,7 @@ namespace OpenMS
 
 	void ConsensusID::average_(vector<PeptideIdentification>& ids)
 	{
-		map<AASequence,DoubleReal> scores;		
+		map<AASequence, DoubleReal> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
@@ -290,21 +289,46 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
-		ids.clear();
-		ids.resize(1);
-		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
-		ids[0].setHigherScoreBetter(higher_better);
+		vector<PeptideIdentification> new_ids;
+		new_ids.resize(1);
+		new_ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
+		new_ids[0].setHigherScoreBetter(higher_better);
+
 		for (map<AASequence,DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
 			hit.setScore(it->second);
-			ids[0].insertHit(hit);
+
+			// search this hit in the old peptide ids
+			for (vector<PeptideIdentification>::const_iterator pit = ids.begin(); pit != ids.end(); ++pit)
+			{
+				for (vector<PeptideHit>::const_iterator phit = pit->getHits().begin(); phit != pit->getHits().end(); ++phit)
+				{
+					if (phit->getSequence() == hit.getSequence())
+					{
+						hit.setCharge(phit->getCharge());
+						hit.setMetaValue(pit->getScoreType() + "_" + pit->getIdentifier()  + "_Score", phit->getScore());
+						
+						vector<String> keys;
+						phit->getKeys(keys);
+						for (vector<String>::const_iterator kit = keys.begin(); kit != keys.end(); ++kit)
+						{
+							hit.setMetaValue(*kit, phit->getMetaValue(*kit));
+						}
+					}
+				}
+			}
+
+
+			new_ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
 			cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
 #endif
 
 		}
+
+		ids = new_ids;
 	}
 	
 	
@@ -353,7 +377,7 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
 					cout << " - Multiplied: " << hit->getSequence() << " " << hit->getScore() << endl;
 #endif
-					float a=scores[hit->getSequence()] * hit->getScore();
+					DoubleReal a=scores[hit->getSequence()] * hit->getScore();
                     scores[hit->getSequence()]=a;  
 				}
 				++hit_count;
@@ -405,7 +429,7 @@ namespace OpenMS
 			{
 				if (pit->second.size() == number_of_runs)
 				{
-					double score(1);
+					DoubleReal score(1);
 					PeptideHit new_hit = *pit->second.begin();
 					for (vector<PeptideHit>::const_iterator hit = pit->second.begin(); hit != pit->second.end(); ++hit)
 					{
@@ -417,7 +441,7 @@ namespace OpenMS
               new_hit.setMetaValue(*kit, hit->getMetaValue(*kit));
             }
 					}
-					new_hit.setScore(pow(score, 1.0/(double)pit->second.size()));
+					new_hit.setScore(pow(score, 1.0/(DoubleReal)pit->second.size()));
 					new_hit.setProteinAccessions(vector<String>());
 					new_hits.push_back(new_hit);
 				}
@@ -425,7 +449,7 @@ namespace OpenMS
 				{
 					if (pit->second.size() < number_of_runs)
 					{
-						double score(1);
+						DoubleReal score(1);
 						PeptideHit new_hit = *pit->second.begin();
 						for (vector<PeptideHit>::const_iterator hit = pit->second.begin(); hit != pit->second.end(); ++hit)
 						{
@@ -437,7 +461,7 @@ namespace OpenMS
 								new_hit.setMetaValue(*kit, hit->getMetaValue(*kit));
 							}
 						}
-						new_hit.setScore(pow(score, 1.0/(double)pit->second.size())); // if 2 engines got the ID, 3 is number of runs -> score ** 3/2
+						new_hit.setScore(pow(score, 1.0/(DoubleReal)pit->second.size())); // if 2 engines got the ID, 3 is number of runs -> score ** 3/2
 						new_hit.setProteinAccessions(vector<String>());
 						new_hits.push_back(new_hit);
 					}

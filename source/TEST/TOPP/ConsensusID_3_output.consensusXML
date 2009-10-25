@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/groepl/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2009-10-07T04:08:15" search_engine="OpenMS/ConsensusID" search_engine_version="1.5.0">
+	<IdentificationRun id="PI_0" date="2009-10-25T20:07:16" search_engine="OpenMS/ConsensusID" search_engine_version="1.6.0">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -22,10 +22,14 @@
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="4.5" sequence="F" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="9"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="A" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="1"/>
+					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="3"/>
 				</PeptideHit>
 				<PeptideHit score="1" sequence="E" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="2"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -37,10 +41,14 @@
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="3.5" sequence="H" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="7"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="C" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="3"/>
+					<userParam type="float" name="Mascot__2005-01-27T17:47:42_Score" value="1"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="D" charge="0">
+					<userParam type="float" name="Mascot__2005-01-27T17:47:41_Score" value="4"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

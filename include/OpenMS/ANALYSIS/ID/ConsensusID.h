@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_CONSENSUSID_H
