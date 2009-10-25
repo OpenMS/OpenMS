@@ -50,7 +50,7 @@
 			<userParam name="cellular quality" type="xsd:string" value="11.11"/>
 		</sample>
 	</sampleList>
-	<softwareList count="5">
+	<softwareList count="8">
 		<software id="so_in_0" version="3.3.1 sp1" >
 			<cvParam cvRef="MS" accession="MS:1000533" name="Bioworks" />
 		</software>
@@ -66,10 +66,10 @@
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
-		<software id="so_dp_sp_2_pm_0" version="2.0.5" >
+		<software id="so_dp_sp_1_pm_0" version="2.0.5" >
 			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
 		</software>
-		<software id="so_dp_sp_2_pm_1" version="version_string" >
+		<software id="so_dp_sp_1_pm_1" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_1_bi_0_pm_0" version="1.6.1" >
@@ -128,7 +128,7 @@
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="3">
+	<dataProcessingList count="4">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
@@ -149,8 +149,8 @@
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_2">
-			<processingMethod order="0" softwareRef="so_dp_sp_2_pm_0">
+		<dataProcessing id="dp_sp_1">
+			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
@@ -158,7 +158,7 @@
 				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
 				<userParam name="p1" type="xsd:string" value="value1"/>
 			</processingMethod>
-			<processingMethod order="0" softwareRef="so_dp_sp_2_pm_1">
+			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_1">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
@@ -367,7 +367,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_2">
+			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />

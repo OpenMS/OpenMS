@@ -3598,23 +3598,49 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// software
 			//--------------------------------------------------------------------------------------------
-			os  << "	<softwareList count=\"" << (2+exp.size()) << "\">\n"; //TODO fix this number			
-			//write instrument software
-			writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
-			//write fallback software
-			writeSoftware_(os, "so_default", Software());
-			//write data processing (for each spectrum)
-			for (Size s=0; s<exp.size(); ++s)
+			
+			// create a list of all different data processings
+			std::vector<std::vector<DataProcessing> > dps;
+			Size num_software(2); // instrument software is always written
+			for (Size s = 0; s < exp.size(); ++s)
 			{
-				//the data processing info of the first spectrum is the default
-				if (s==0 || exp[s].getDataProcessing()!=exp[0].getDataProcessing())
+				if (find(dps.begin(), dps.end(), exp[s].getDataProcessing()) == dps.end())
 				{
-					for (Size i=0; i<exp[s].getDataProcessing().size(); ++i)
-					{
-						writeSoftware_(os, String("so_dp_sp_") + s + "_pm_" + i, exp[s].getDataProcessing()[i].getSoftware());
+					dps.push_back(exp[s].getDataProcessing());
+					num_software += exp[s].getDataProcessing().size();
+				}
+			}
+
+			// count binary data array software
+			Size num_bi_software(0);
+
+      for (Size s=0; s<exp.size(); ++s)
+      {
+        for (Size m=0; m<exp[s].getFloatDataArrays().size(); ++m)
+        {
+          for (Size i=0; i<exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
+          {
+						++num_bi_software;
 					}
 				}
 			}
+
+			os  << "	<softwareList count=\"" << num_software + num_bi_software << "\">\n";
+			//write instrument software
+			writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
+			
+			//write fallback software
+			writeSoftware_(os, "so_default", Software());
+
+			// write the software of the dps
+			for (Size s1 = 0; s1 != dps.size(); ++s1)
+			{
+				for (Size s2 = 0; s2 != dps[s1].size(); ++s2)
+				{
+					writeSoftware_(os, String("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2].getSoftware());
+				}
+			}
+
 			//write data processing (for each binary data array)
 			for (Size s=0; s<exp.size(); ++s)
 			{
@@ -4201,24 +4227,28 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// data processing
 			//--------------------------------------------------------------------------------------------
-			os  << "	<dataProcessingList count=\"" << std::max((Size)1,exp.size()) << "\">\n"; //TODO fix this number
+
+			// count number of float data array dps
+			Size num_bi_dps(0);
+			for (Size s=0; s<exp.size(); ++s)
+      {
+        for (Size m=0; m<exp[s].getFloatDataArrays().size(); ++m)
+        {
+					++num_bi_dps;
+				}
+			}
+
+			os  << "	<dataProcessingList count=\"" << std::max((Size)1, dps.size() + num_bi_dps) << "\">\n";
 			//default (first spectrum data or fictional data)
 			if (exp.size()==0)
 			{
 				std::vector<DataProcessing> dummy;
 				writeDataProcessing_(os, "dp_sp_0" , dummy);
 			}
-			else
+
+			for (Size s = 0; s < dps.size(); ++s)
 			{
-				writeDataProcessing_(os, "dp_sp_0" , exp[0].getDataProcessing());
-			}
-			//for each spectrum
-			for (Size s=1; s<exp.size(); ++s)
-			{
-				if (exp[s].getDataProcessing()!=exp[0].getDataProcessing())
-				{
-					writeDataProcessing_(os, String("dp_sp_") + s, exp[s].getDataProcessing());
-				}
+				writeDataProcessing_(os, String("dp_sp_") + s, dps[s]);
 			}
 
 			//for each binary data array
@@ -4295,9 +4325,22 @@ namespace OpenMS
 						os << " sourceFileRef=\"sf_sp_" << s << "\"";
 					}
 					//the data processing info of the first spectrum is the default
-					if (s==0 || spec.getDataProcessing()!=exp[0].getDataProcessing())
+					//if (s==0 || spec.getDataProcessing()!=exp[0].getDataProcessing())
+					if (s==0 || spec.getDataProcessing()!=dps[0])
 					{
-						os << " dataProcessingRef=\"dp_sp_" << s << "\"";
+						Size dp_ref_num = s;
+						if (s != 0)
+						{
+							for (Size i = 0; i < dps.size(); ++i)
+							{
+								if (spec.getDataProcessing() == dps[i])
+								{
+									dp_ref_num = i;
+									break;
+								}
+							}
+						}
+						os << " dataProcessingRef=\"dp_sp_" << dp_ref_num << "\"";
 					}
 					os  << ">\n";
 					
