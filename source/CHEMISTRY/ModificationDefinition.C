@@ -89,7 +89,7 @@ namespace OpenMS
 
 	bool ModificationDefinition::operator < (const ModificationDefinition& rhs) const
 	{
-		return mod_ < rhs.mod_;
+		return this->getModification() < rhs.getModification();
 	}
 	
 	void ModificationDefinition::setTermSpecificity(ResidueModification::Term_Specificity pos)

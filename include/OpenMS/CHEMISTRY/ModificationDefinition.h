@@ -107,7 +107,7 @@ namespace OpenMS
 			/// inequality operator
 			bool operator != (const ModificationDefinition& rhs) const;
 
-			/// less than operator for e.g. usage in maps; only mod accessions are compared!
+			/// less than operator for e.g. usage in maps; only mod FullIds are compared!
 			bool operator < (const OpenMS::ModificationDefinition&) const;
 			//@}
 
