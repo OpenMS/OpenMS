@@ -32,6 +32,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <xercesc/framework/XMLFormatter.hpp>
+
 namespace OpenMS
 {	
 	namespace Internal
@@ -49,7 +51,7 @@ namespace OpenMS
 				/// Constructor that sets the schema location
 				XMLFile(const String& schema_location, const String& version);
 				///Destructor
-				~XMLFile();
+				virtual ~XMLFile();
 				
 				/**
 					@brief Checks if a file validates against the XML schema
@@ -79,14 +81,51 @@ namespace OpenMS
 				  @exception Exception::UnableToCreateFile is thrown if the file cannot be created
 				*/
 				void save_(const String& filename, XMLHandler* handler) const;
-				
+			
 				/// XML schema file location
 				String schema_location_;
 				
 				/// Version string
 				String schema_version_;
 		};
-	}
+
+  	// implementation of an XMLFormatTarget
+  	class OpenMSXMLFormatTarget : public xercesc::XMLFormatTarget
+  	{
+
+			public:
+
+    	OpenMSXMLFormatTarget(std::string &str)
+      	: XMLFormatTarget(),
+    			str_(str)
+			{
+    	}
+
+    	virtual void writeChars(const XMLByte* const toWrite, const XMLSize_t count, xercesc::XMLFormatter* const /*formatter*/)
+    	{
+      	str_.append((const char*const)toWrite,count);
+    	}
+
+    	std::string &str_;
+  	};
+	
+ 	 /**
+	    @brief Escapes a string to be storable into an XML File
+    
+			Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and 
+  	  need to be escaped. Parsing those escaped strings is automatically done by xerces
+ 	 */
+	 	void writeXMLEscape(const String& to_escape, std::ostream& os);
+
+		/** 
+	  	@brief Escapes a string and returns the escaped string
+
+			Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and 
+    	need to be escaped. Parsing those escaped strings is automatically done by xerces
+		*/
+		String writeXMLEscape(const String& to_escape);
+
+	} // namespace Internal
 } // namespace OpenMS
 
 #endif // OPENMS_FOMAT_XMLFILE_H

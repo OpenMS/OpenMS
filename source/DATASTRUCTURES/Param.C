@@ -36,6 +36,7 @@
 
 using namespace std;
 using namespace OpenMS::Exception;
+using namespace OpenMS::Internal;
 
 namespace OpenMS
 {
@@ -761,11 +762,11 @@ namespace OpenMS
 				if (it2->opened) //opened node
 				{
 					String d = it2->description;
-					d.substitute('"','\'');
+					//d.substitute('"','\'');
 					d.substitute("\n","#br#");
-					d.substitute("<","&lt;");
-					d.substitute(">","&gt;");
-					os << indentation  << "<NODE name=\"" << it2->name << "\" description=\"" << d << "\">" << endl;
+					//d.substitute("<","&lt;");
+					//d.substitute(">","&gt;");
+					os << indentation  << "<NODE name=\"" << writeXMLEscape(it2->name) << "\" description=\"" << writeXMLEscape(d) << "\">" << endl;
 					indentation += "  ";
 				}
 				else //closed node
@@ -783,22 +784,22 @@ namespace OpenMS
 				switch(value_type)
 				{
 					case DataValue::INT_VALUE:
-						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"int\"";
+						os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"int\"";
 						break;
 					case DataValue::DOUBLE_VALUE:
-						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"float\"";
+						os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << it->value.toString() << "\" type=\"float\"";
 						break;
 					case DataValue::STRING_VALUE:
-						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"string\"";
+						os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"string\"";
 						break;
 					case DataValue::STRING_LIST:
-						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"string\"";
+						os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"string\"";
 						break;
 					case DataValue::INT_LIST:
-						os << indentation << " <ITEMLIST name=\"" << it->name << "\" type=\"int\"";
+						os << indentation << " <ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"int\"";
 						break;
 					case DataValue::DOUBLE_LIST:
-						os << indentation << " <ITEMLIST name=\"" << it->name << "\" type=\"float\"";
+						os << indentation << " <ITEMLIST name=\"" << writeXMLEscape(it->name) << "\" type=\"float\"";
 						break;
 					default:
 						break;
@@ -806,11 +807,11 @@ namespace OpenMS
 				
 				//replace all critical characters in description
 				String d = it->description;
-				d.substitute("\"","'");
+				//d.substitute("\"","'");
 				d.substitute("\n","#br#");
-				d.substitute("<","&lt;");
-				d.substitute(">","&gt;");
-				os << " description=\"" << d << "\"";
+				//d.substitute("<","&lt;");
+				//d.substitute(">","&gt;");
+				os << " description=\"" << writeXMLEscape(d) << "\"";
 				
 				//tags
 				if (!it->tags.empty())
@@ -821,7 +822,7 @@ namespace OpenMS
 						if (!list.empty()) list += ",";
 						list += *tag_it;
 					}
-					os << " tags=\"" << list << "\"";
+					os << " tags=\"" << writeXMLEscape(list) << "\"";
 				}
 
 				//restrictions
@@ -878,7 +879,7 @@ namespace OpenMS
 				};
 				if (restrictions!="")
 				{
-					os << " restrictions=\"" << restrictions << "\"";
+					os << " restrictions=\"" << writeXMLEscape(restrictions) << "\"";
 				}
 				
 				//finish opening tag
@@ -895,7 +896,7 @@ namespace OpenMS
 							const StringList& list = it->value;
 							for (Size i=0; i<list.size();++i)
 							{
-								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+								os << indentation << "  <LISTITEM value=\"" << writeXMLEscape(list[i]) << "\"/>" << endl;	
 							}
 							os << indentation << "</ITEMLIST>" << endl;	
 						}

@@ -37,6 +37,8 @@
 #include <fstream>
 #include <iomanip> // setprecision etc.
 
+using namespace std;
+
 namespace OpenMS
 {
 	namespace Internal
@@ -117,6 +119,26 @@ namespace OpenMS
 			// write data and close stream
 			handler->writeTo(os);
 			os.close();
+		}
+
+		void writeXMLEscape(const String& to_escape, ostream& os)
+		{
+			const XMLCh* xmlch = xercesc::XMLString::transcode(to_escape.c_str());
+
+			std::string out;
+    	OpenMSXMLFormatTarget ft(out);
+    	xercesc::XMLFormatter f("UTF-8", /* XMLUni::fgVersion1_1 */ "1.1", &ft);
+  	  f << xercesc::XMLFormatter::StdEscapes << xmlch;
+			os << out;
+			return;
+
+		}
+
+		String writeXMLEscape(const String& to_escape)
+		{
+			stringstream ss;
+			writeXMLEscape(to_escape, ss);
+			return String(ss.str());
 		}
 
 		bool XMLFile::isValid(const String& filename, std::ostream& os) 

@@ -1090,8 +1090,8 @@ START_SECTION((void store(const String& filename) const))
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), p3.getDescription("test:string"))
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), p3.getDescription("test:int"))
 	TEST_EQUAL(p3.getSectionDescription("test"),"sectiondesc")
-	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'<>\nnewline")
-	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
+	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc\"<>\nnewline")
+	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc\"<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
 	TEST_EQUAL(p3.hasTag("test2:b:b1","advanced"),true)
 	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
@@ -1751,6 +1751,32 @@ START_SECTION([EXTRA] loading and storing of lists)
 	
 END_SECTION
 
+
+START_SECTION(([Extra] Escapingi of characters))
+	Param p;
+	p.setValue("string",String("bla"),"string");
+	p.setValue("string_with_ampersand", String("bla2&blubb"), "string with ampersand");
+	p.setValue("string_with_ampersand_in_descr", String("blaxx"), "String with & in description");
+	p.setValue("string_with_single_quote", String("bla'xxx"), "String with single quotes");
+	p.setValue("string_with_single_quote_in_descr", String("blaxxx"), "String with ' quote in description");
+	p.setValue("string_with_double_quote", String("bla\"xxx"), "String with double quote");
+	p.setValue("string_with_double_quote_in_descr", String("bla\"xxx"), "String with \" description");
+	p.setValue("string_with_greater_sign", String("bla>xxx"), "String with greater sign");
+	p.setValue("string_with_greater_sign_in_descr", String("bla greater xxx"), "String with >");
+	p.setValue("string_with_less_sign", String("bla<xxx"), "String with less sign");
+	p.setValue("string_with_less_sign_in_descr", String("bla less sign_xxx"), "String with less sign <");
+
+
+	String filename;
+	NEW_TMP_FILE(filename)
+	p.store(filename);
+
+	Param p2;
+	p2.load(filename);
+
+	TEST_STRING_EQUAL(p2.getDescription("string"), "string")
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

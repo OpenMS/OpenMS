@@ -25,6 +25,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -116,7 +117,7 @@ namespace OpenMS
 			
 			for (Size i = 0; i!=keys.size();++i)
 			{
-				os << String(indent,'\t') << "<" << tag_name << " type=\"";
+				os << String(indent,'\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
 				
 				DataValue d = meta.getMetaValue(keys[i]);
 				//determine type
@@ -132,7 +133,7 @@ namespace OpenMS
 				{
 					os << "string"; 
 				}
-				os << "\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+				os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape((String)(d)) << "\"/>" << endl;
 			}
 		}
 		

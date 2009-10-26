@@ -66,6 +66,34 @@ START_SECTION(const String& getVersion() const)
 	TEST_EQUAL( f.getVersion(),"1.567")
 END_SECTION
 
+START_SECTION(([EXTRA] void writeXMLEscape(const String& to_escape, std::ostream& os)))
+	stringstream ss1, ss2, ss3;
+	String s1("nothing_to_escape. Just a regular string...");
+	String s2("This string contains an ampersand, &, which must be escaped.");
+	String s3("This string also contains characters which is not allowed, and must be escaped; the characters are '>' and '<'");
+
+	writeXMLEscape(s1, ss1);
+	TEST_STRING_EQUAL(ss1.str(), "nothing_to_escape. Just a regular string...")
+	
+	writeXMLEscape(s2, ss2);
+	TEST_STRING_EQUAL(ss2.str(), "This string contains an ampersand, &amp;, which must be escaped.")
+
+	writeXMLEscape(s3, ss3);
+	TEST_STRING_EQUAL(ss3.str(), "This string also contains characters which is not allowed, and must be escaped; the characters are &apos;&gt;&apos; and &apos;&lt;&apos;");
+
+END_SECTION
+
+START_SECTION(([EXTRA] String writeXMLEscape(const String& to_escape)))
+  String s1("nothing_to_escape. Just a regular string...");
+  String s2("This string contains an ampersand, &, which must be escaped.");
+  String s3("This string also contains characters which is not allowed, and must be escaped; the characters are '>' and '<'");
+
+  TEST_STRING_EQUAL(writeXMLEscape(s1), "nothing_to_escape. Just a regular string...")
+  TEST_STRING_EQUAL(writeXMLEscape(s2), "This string contains an ampersand, &amp;, which must be escaped.")
+  TEST_STRING_EQUAL(writeXMLEscape(s3), "This string also contains characters which is not allowed, and must be escaped; the characters are &apos;&gt;&apos; and &apos;&lt;&apos;");
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
