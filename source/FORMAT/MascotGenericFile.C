@@ -106,13 +106,13 @@ namespace OpenMS
 		//close file
 		if (!param_.getValue("peaklists_only").toBool())
 		{
-			os << endl << endl << "--" << param_.getValue("boundary") << "--" << endl;
+			os << "\n\n" << "--" << param_.getValue("boundary") << "--\n";
 		}
 	}
 	
 	void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
 	{
-		os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"" << name << "\"" << endl << endl;
+		os << "--" << param_.getValue("boundary") << "\n" << "Content-Disposition: form-data; name=\"" << name << "\"" << "\n\n";
 	}
 		
 	void MascotGenericFile::writeHeader_(ostream& os)
@@ -121,63 +121,63 @@ namespace OpenMS
 		if (param_.getValue("search_title") != "")
 		{
 			writeParameterHeader_("COM", os);
-			os << param_.getValue("search_title") << endl;
+			os << param_.getValue("search_title") << "\n";
 		}
 		
 		// user name
 		writeParameterHeader_("USERNAME", os);
-		os  << param_.getValue("username") << endl;
+		os  << param_.getValue("username") << "\n";
 
 		// format
 		writeParameterHeader_("FORMAT", os);
-		os << param_.getValue("format") << endl;
+		os << param_.getValue("format") << "\n";
 
 		// precursor mass tolerance unit : Da
 		writeParameterHeader_("TOLU", os);
-		os << param_.getValue("precursor_error_units") << endl;
+		os << param_.getValue("precursor_error_units") << "\n";
 
 		// ion mass tolerance unit : Da
 		writeParameterHeader_("ITOLU", os);
-		os << param_.getValue("fragment_error_units") << endl;
+		os << param_.getValue("fragment_error_units") << "\n";
 
 		// format version
 		writeParameterHeader_("FORMVER", os);
-		os << param_.getValue("form_version") << endl;
+		os << param_.getValue("form_version") << "\n";
 		
 		//db name
 		writeParameterHeader_("DB", os);
-		os << param_.getValue("database") << endl;
+		os << param_.getValue("database") << "\n";
 		
 		// search type
 		writeParameterHeader_("SEARCH", os);
-		os << param_.getValue("search_type") << endl;
+		os << param_.getValue("search_type") << "\n";
 
 		// number of peptide candidates in the list
 		writeParameterHeader_("REPORT", os);
 		UInt num_hits((UInt)param_.getValue("number_of_hits"));
 		if (num_hits != 0)
 		{
-			os << param_.getValue("number_of_hits") << endl;
+			os << param_.getValue("number_of_hits") << "\n";
 		}
 		else
 		{
-			os << "AUTO" << endl;
+			os << "AUTO" << "\n";
 		}
 		
 		//cleavage enzyme
 		writeParameterHeader_("CLE", os);
-		os << param_.getValue("enzyme") << endl;
+		os << param_.getValue("enzyme") << "\n";
 
 		//average/monoisotopic
 		writeParameterHeader_("MASS", os);
-		os << param_.getValue("mass_type") << endl;
+		os << param_.getValue("mass_type") << "\n";
 		
 		//fixed modifications	
 		StringList fixed_mods((StringList)param_.getValue("fixed_modifications"));
 		for(StringList::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
 		{
 			writeParameterHeader_("MODS", os);
-			os << *it << endl;
+			os << *it << "\n";
 		}
 
 		//variable modifications
@@ -185,32 +185,32 @@ namespace OpenMS
 		for(StringList::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
 		{
 			writeParameterHeader_("IT_MODS", os);
-			os << *it << endl;
+			os << *it << "\n";
 		}
 
 		//instrument
 		writeParameterHeader_("INSTRUMENT", os);
-		os << param_.getValue("instrument") << endl;
+		os << param_.getValue("instrument") << "\n";
 		
 		//missed cleavages
 		writeParameterHeader_("PFA", os);
-		os << param_.getValue("missed_cleavages") << endl;
+		os << param_.getValue("missed_cleavages") << "\n";
 
 		//precursor mass tolerance
 		writeParameterHeader_("TOL", os);
-		os << param_.getValue("precursor_mass_tolerance") << endl;
+		os << param_.getValue("precursor_mass_tolerance") << "\n";
 
 		//ion mass tolerance_
 		writeParameterHeader_("ITOL", os);
-		os << param_.getValue("fragment_mass_tolerance") << endl;
+		os << param_.getValue("fragment_mass_tolerance") << "\n";
 
 		//taxonomy
 		writeParameterHeader_("TAXONOMY", os);
-		os << param_.getValue("taxonomy") << endl;
+		os << param_.getValue("taxonomy") << "\n";
 
 		//charge
 		writeParameterHeader_("CHARGE", os);
-		os << param_.getValue("charges") << endl;
+		os << param_.getValue("charges") << "\n";
 	}
 	
 	void MascotGenericFile::writeSpectrum_(ostream& os,	const PeakSpectrum& spec)
@@ -222,7 +222,7 @@ namespace OpenMS
 		}
 		if (spec.getPrecursors().size()>1)
 		{
-			std::cerr << "Warning: The spectrum written to Mascot file has more than one precursor. The first precursor is used!" << std::endl;
+			cerr << "Warning: The spectrum written to Mascot file has more than one precursor. The first precursor is used!\n";
 		}
 		DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
 		int charge(precursor.getCharge());
@@ -230,32 +230,32 @@ namespace OpenMS
 		if (mz == 0)
 		{
 			//retention time
-			cout << "No precursor m/z information for spectrum with rt: " << rt << " present, skipping spectrum!" << endl;
+			cout << "No precursor m/z information for spectrum with rt: " << rt << " present, skipping spectrum!\n";
 		}
 		else
 		{
-			os << endl;
-			os << "BEGIN IONS" << endl;
-			os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << endl;
-			os << "PEPMASS=" << precisionWrapper(mz) <<  endl;
-			os << "RTINSECONDS=" << precisionWrapper(rt) << endl;
+			os << "\n";
+			os << "BEGIN IONS\n";
+			os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "\n";
+			os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
+			os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
 
 			bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
 			if (charge != 0)
 			{
 				if (!skip_spectrum_charges)
 				{
-					os << "CHARGE=" << charge << endl;
+					os << "CHARGE=" << charge << "\n";
 				}
 			}
 
-			os << endl;
+			os << "\n";
 
 			for (PeakSpectrum::const_iterator it = spec.begin() ; it != spec.end();++it)
 			{
-				os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << endl;
+				os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << "\n";
 			}
-			os << "END IONS" << endl;
+			os << "END IONS\n";
 		}
 	}
 
@@ -263,14 +263,14 @@ namespace OpenMS
 	{
 		if (!param_.getValue("peaklists_only").toBool())
 		{
-			os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << endl << endl;
+			os << "--" << param_.getValue("boundary") << "\n" << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << "\n" << "\n";
 		}
 
 		for (Size i = 0; i < experiment.size(); i++)
 		{
 			if (experiment[i].getMSLevel() == 0)
 			{
-				cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << endl;
+				cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
 			}
 			
 			if (experiment[i].getMSLevel() == 2)
@@ -422,4 +422,3 @@ namespace OpenMS
 	}
 	
 } // namespace OpenMS
-
