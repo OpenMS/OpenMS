@@ -181,7 +181,7 @@ namespace OpenMS
 		}
 		problem->x = node_vectors;
 		
-//		cout << "Problem encoded" << endl;
+//		cout << "Problem encoded" << "\n";
 		
 		return problem; 
 	}
@@ -275,7 +275,7 @@ namespace OpenMS
 				output_file << problem->x[i][j].index << ":" << problem->x[i][j].value << " " ;					
 				++j;
 			}
-			output_file << endl;
+			output_file << "\n";
 		}
 		output_file.flush();
 		output_file.close();

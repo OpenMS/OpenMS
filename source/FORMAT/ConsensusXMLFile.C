@@ -533,7 +533,7 @@ namespace OpenMS
       // TODO Take care outside that this does not happen.  We cannot fix this here due to constness.
 
       // throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("found ")+invalid_unique_ids+" invalid unique ids");
-      // std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<std::endl;
+      // std::cout<<String("\nfound ")+invalid_unique_ids+" invalid unique ids"<<"\n";
     }
 
     //open stream

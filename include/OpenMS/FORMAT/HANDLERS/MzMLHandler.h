@@ -3096,7 +3096,7 @@ namespace OpenMS
 				{
 					os << "xsd:string";
 				}
-				os << "\" value=\"" << (String)(d) << "\"/>" << std::endl;
+				os << "\" value=\"" << (String)(d) << "\"/>" << "\n";
 			}
 		}
 		
@@ -4781,7 +4781,7 @@ namespace OpenMS
 				{
 					// TODO native id with chromatogram=?? prefix?
 					const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-					os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << std::endl;
+					os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
 					// write cvParams (chromatogram type)
 					if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
@@ -4943,11 +4943,11 @@ namespace OpenMS
               os  << "          </binaryDataArray>\n";
             }
             os  << "        </binaryDataArrayList>\n";
-						os << "      </chromatogram>" << std::endl;
+						os << "      </chromatogram>" << "\n";
 					}
 					
 				
-				os  << "    </chromatogramList>" << std::endl;
+				os  << "    </chromatogramList>" << "\n";
 			}
 
 

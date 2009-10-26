@@ -123,7 +123,7 @@ namespace OpenMS
 				while ( abbreviations.find(abbreviation + "_" + String(counter)) != abbreviations.end() ) ++counter;
 				if ( counter ) abbreviation.append("_" + String(counter));
 				abbreviations.insert(abbreviation);
-				(*sstream_p) << residues << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   " + residues + "   " << abbreviation << "   " << mods_i->first << endl;
+				(*sstream_p) << residues << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   " + residues + "   " << abbreviation << "   " << mods_i->first << "\n";
 			}
 			else
 			{
@@ -135,12 +135,12 @@ namespace OpenMS
 					while ( abbreviations.find(abbreviation + "_" + String(counter)) != abbreviations.end() ) ++counter;
 					if ( counter ) abbreviation.append("_" + String(counter));
 					abbreviations.insert(abbreviation);
-					(*sstream_p) << *residue_i << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   ALL   " << abbreviation << "   " << mods_i->first << endl;
+					(*sstream_p) << *residue_i << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   ALL   " << abbreviation << "   " << mods_i->first << "\n";
 				}
 			}
 		}
 
-		file_content << "# Fixed PTMs" << endl << "#AA  offset      type    locations  symbol  PTM name" << endl << fixed_ptms.str() << endl <<  "# Optional PTMs" << endl << optional_ptms.str() << endl << "# Terminal PTMs" << endl << cterminal_ptms.str() << nterminal_ptms.str();
+		file_content << "# Fixed PTMs" << "\n" << "#AA  offset      type    locations  symbol  PTM name" << "\n" << fixed_ptms.str() << "\n" <<  "# Optional PTMs" << "\n" << optional_ptms.str() << "\n" << "# Terminal PTMs" << "\n" << cterminal_ptms.str() << nterminal_ptms.str();
 
 		for ( set< String >::const_iterator abbreviation_i = abbreviations.begin(); abbreviation_i != abbreviations.end(); ++abbreviation_i )
 		{

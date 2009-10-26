@@ -104,7 +104,7 @@ namespace OpenMS
 void MascotRemoteQuery::login() 
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG	
-	cerr << "void MascotRemoteQuery::login()" << endl;
+	cerr << "void MascotRemoteQuery::login()" << "\n";
 #endif
 
 	// header
@@ -169,9 +169,9 @@ void MascotRemoteQuery::login()
   loginbytes.append("--" + boundary + "--\r\n");	
 	
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << ">>>> Header to send: " << endl;
-	cerr << header.toString().toStdString() << endl;
-	cerr << "ended" << endl;
+	cerr << ">>>> Header to send: " << "\n";
+	cerr << header.toString().toStdString() << "\n";
+	cerr << "ended" << "\n";
 #endif
 
 	header.setContentLength(loginbytes.length());
@@ -183,7 +183,7 @@ void MascotRemoteQuery::getResults()
 {
 	//Tidy up again and run another request...
 #ifdef MASCOTREMOTEQUERY_DEBUG	
-	cerr << "void MascotRemoteQuery::getResults()" << endl;
+	cerr << "void MascotRemoteQuery::getResults()" << "\n";
 #endif
 	
 	QHttpRequestHeader header;
@@ -198,9 +198,9 @@ void MascotRemoteQuery::getResults()
 	}
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << ">>> Header to request results: " << endl;
-	cerr << header.toString().toStdString() << endl;
-	cerr << "ended: " << endl;
+	cerr << ">>> Header to request results: " << "\n";
+	cerr << header.toString().toStdString() << "\n";
+	cerr << "ended: " << "\n";
 #endif
 
 	http_->request(header);
@@ -209,7 +209,7 @@ void MascotRemoteQuery::getResults()
 void MascotRemoteQuery::execQuery() 
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << "void MascotRemoteQuery::execQuery()" << endl;
+	cerr << "void MascotRemoteQuery::execQuery()" << "\n";
 #endif
 
 	QHttpRequestHeader header;
@@ -229,13 +229,13 @@ void MascotRemoteQuery::execQuery()
 	querybytes.replace("\n", "\r\n");
  	header.setContentLength(querybytes.length());
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << ">>>> Header to request:" << endl;
-	cerr << header.toString().toStdString() << endl;
-	cerr << "ended: " << endl;
+	cerr << ">>>> Header to request:" << "\n";
+	cerr << header.toString().toStdString() << "\n";
+	cerr << "ended: " << "\n";
 
-	cerr << ">>>> Query:" << endl;
-	cerr << querybytes.constData() << endl;
-	cerr << "ended: " << endl;
+	cerr << ">>>> Query:" << "\n";
+	cerr << querybytes.constData() << "\n";
+	cerr << "ended: " << "\n";
 #endif
 	
 	http_->request(header, querybytes);
@@ -247,11 +247,11 @@ void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
 {
 	if (error)
 	{
-		cerr << "MascotRemoteQuery: An error occured (requestId=" << requestId << "): " << http_->errorString().toStdString() << endl;
+		cerr << "MascotRemoteQuery: An error occured (requestId=" << requestId << "): " << http_->errorString().toStdString() << "\n";
 	}
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << "Request Finished Id: " << requestId << endl;
-	cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << endl;
+	cerr << "Request Finished Id: " << requestId << "\n";
+	cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << "\n";
 #endif
 	
 }
@@ -268,7 +268,7 @@ bytes_total
 )
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << endl;
+	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << "\n";
 #endif
 }
 
@@ -283,7 +283,7 @@ bytes_total
 )
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << endl;
+	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << "\n";
 #endif
 }
 
@@ -297,7 +297,7 @@ requestId
 
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cout<<"Request started: "<<requestId<<endl;
+	cout<<"Request started: "<<requestId<<"\n";
 #endif
 }
 
@@ -308,7 +308,7 @@ state
 )
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cout<<"State change: "<<state<<endl;
+	cout<<"State change: "<<state<<"\n";
 #endif
 }
 
@@ -316,11 +316,11 @@ state
 void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header) 
 {
 #ifdef MASCOTREMOTEQUERY_DEBUG	
-	cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << endl;
+	cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
 
-	cerr << ">>>>> Header to read: " << endl;
-	cerr <<  response_header.toString().toStdString() << endl;
-	cerr << "ended" << endl;
+	cerr << ">>>>> Header to read: " << "\n";
+	cerr <<  response_header.toString().toStdString() << "\n";
+	cerr << "ended" << "\n";
 #endif
 
 	//Get session and username and so on...
@@ -349,7 +349,7 @@ void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_h
 		cookie_.append(mascot_user_ID);
 		
 #ifdef MASCOTREMOTEQUERY_DEBUG
-cout<<"Cookie created:"<<cookie_.toStdString()<<endl;
+cout<<"Cookie created:"<<cookie_.toStdString()<<"\n";
 #endif
 	}
 }	
@@ -358,27 +358,27 @@ void MascotRemoteQuery::httpDone(bool error)
 {
 	if (error)
 	{
-		cerr << "'" << http_->errorString().toStdString() << "'" << endl;
+		cerr << "'" << http_->errorString().toStdString() << "'" << "\n";
 	}
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << "void MascotRemoteQuery::httpDone(bool error): ";
 	if (error)
 	{
-		cerr << "'" << http_->errorString().toStdString() << "'" << endl;
+		cerr << "'" << http_->errorString().toStdString() << "'" << "\n";
 	}
 	else
 	{
-		cerr << endl;
+		cerr << "\n";
 	}
 #endif
 	
 	QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << "Response of query: " << endl;
+	cerr << "Response of query: " << "\n";
 	QTextDocument doc;
 	doc.setHtml(new_bytes.constData());
-	cerr << doc.toPlainText().toStdString() << endl;
+	cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 	
 	//Sucessful login? fire off the search
@@ -411,7 +411,7 @@ void MascotRemoteQuery::httpDone(bool error)
 		results_path_.append("/");
 		results_path_.append(rx.cap(2));
 #ifdef MASCOTREMOTEQUERY_DEBUG
-		cerr << "Results path to export: " << results_path_.toStdString() << endl;
+		cerr << "Results path to export: " << results_path_.toStdString() << "\n";
 #endif
 		results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
 		
@@ -443,7 +443,7 @@ void MascotRemoteQuery::httpDone(bool error)
 		{
 			// seems to be fine so grab the xml
 			#ifdef MASCOTREMOTEQUERY_DEBUG
-			cerr << "Get the XML File" << endl;
+			cerr << "Get the XML File" << "\n";
 			#endif
 			mascot_xml_ = new_bytes;
 			emit done();
@@ -474,7 +474,7 @@ void MascotRemoteQuery::httpDone(bool error)
 	void MascotRemoteQuery::updateMembers_()
 	{
 #ifdef MASCOTREMOTEQUERY_DEBUG
-		cerr << "MascotRemoteQuery::updateMembers_()" << endl;
+		cerr << "MascotRemoteQuery::updateMembers_()" << "\n";
 #endif
 		// clear all content from this class
 		delete http_;

@@ -90,7 +90,7 @@ namespace OpenMS
 	{		
 		String element = sm_.convert(qname);
 		
-		//cout << "Start: " << element << endl;
+		//cout << "Start: " << element << "\n";
 		
 		//SEARCH PARAMETERS
 		if (element == "aminoacid_modification")

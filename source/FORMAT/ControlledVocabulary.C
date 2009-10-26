@@ -116,7 +116,7 @@ namespace OpenMS
 
 						//check if the parent term name is correct
 						String parent_name = line.suffix('!').trim();
-						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': parent term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': parent term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
 					}
 					else
 					{
@@ -134,7 +134,7 @@ namespace OpenMS
 
 						//check if the parent term name is correct
 						String parent_name = line.suffix('!').trim();
-						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': DRV relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': DRV relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
 					}
 					else
 					{
@@ -151,7 +151,7 @@ namespace OpenMS
 
 						//check if the parent term name is correct
 						String parent_name = line.suffix('!').trim();
-						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << endl;
+						if (!checkName_(parent_id,parent_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
 					}
 					else
 					{
@@ -167,7 +167,7 @@ namespace OpenMS
 
 						//check if the parent term name is correct
 						String unit_name = line.suffix('!').trim();
-						if (!checkName_(unit_id,unit_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << endl;
+						if (!checkName_(unit_id,unit_name)) cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << "\n";
 					}
 					else
 					{
@@ -249,7 +249,7 @@ namespace OpenMS
 						term.xref_type = CVTerm::XSD_ANYURI;
 						continue;
 					}
-					cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << endl;
+					cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
 				}
 				else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
 				{
@@ -280,10 +280,10 @@ namespace OpenMS
 		// now build all child terms
 		for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
 		{
-			//cerr << it->first << endl;
+			//cerr << it->first << "\n";
 			for (set<String>::const_iterator pit = terms_[it->first].parents.begin(); pit != terms_[it->first].parents.end(); ++pit)
 			{
-				//cerr << "Parent: " << *pit << endl;
+				//cerr << "Parent: " << *pit << "\n";
 				terms_[*pit].children.insert(it->first);
 			}
 		}
@@ -306,7 +306,7 @@ namespace OpenMS
 
 	void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
 	{
-		//cerr << "Parent: " << parent << endl;
+		//cerr << "Parent: " << parent << "\n";
 		const set<String>& children = getTerm(parent).children;
 		for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
@@ -323,12 +323,12 @@ namespace OpenMS
 	
 	bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
 	{
-		//cout << "CHECK child:" << child << " parent: " << parent << endl;
+		//cout << "CHECK child:" << child << " parent: " << parent << "\n";
 		const CVTerm& ch = getTerm(child);
 		
 		for (set<String>::const_iterator it = ch.parents.begin(); it != ch.parents.end(); ++it)
 		{
-			//cout << "Parent: " << ch.parents[i] << endl;
+			//cout << "Parent: " << ch.parents[i] << "\n";
 			
 			//check if it is a direct parent
 			if (*it == parent)
@@ -349,12 +349,12 @@ namespace OpenMS
 	{
 		for (Map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it!=cv.terms_.end(); ++it)
 		{
-			os << "[Term]" << endl;
-			os << "id: '" << it->second.id << "'" <<endl;
-			os << "name: '" << it->second.name <<  "'" << endl;
+			os << "[Term]\n";
+			os << "id: '" << it->second.id << "'\n";
+			os << "name: '" << it->second.name <<  "'\n";
 			for (set<String>::const_iterator it2 = it->second.parents.begin(); it2!= it->second.parents.end(); ++it2)
 			{
-				cout << "is_a: '" << *it2 <<  "'" <<endl;
+				cout << "is_a: '" << *it2 <<  "'\n";
 			}
 		}
 		return os;

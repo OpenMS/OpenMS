@@ -418,111 +418,111 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
     const MRMExperiment& exp = *(cexp_);
     //logger_.startProgress(0,exp.size(),"storing mzML file");
 
-    os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-    os  << "<TraML version=\"0.9.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML0.9.0.xsd\">" << endl;
+    os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
+    os  << "<TraML version=\"0.9.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML0.9.0.xsd\">" << "\n";
     //--------------------------------------------------------------------------------------------
     // CV list
     //--------------------------------------------------------------------------------------------
-    os  << "  <cvList>" << endl;
+    os  << "  <cvList>" << "\n";
 
 		if (exp.getCVs().size() == 0)
 		{
-      os  << "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=\"unknown\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>" << endl
-        	<< "    <cv id=\"UO\" fullName=\"Unit Ontology\" version=\"unknown\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>" << endl;
+      os  << "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" version=\"unknown\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>" << "\n"
+        	<< "    <cv id=\"UO\" fullName=\"Unit Ontology\" version=\"unknown\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>" << "\n";
 		}
 		else
 		{
 			for (vector<MRMExperiment::CV>::const_iterator it = exp.getCVs().begin(); it != exp.getCVs().end(); ++it)
 			{
-				os << "    <cv id=\"" << it->id << "\" fullName=\"" << it->fullname << "\" version=\"" << it->version << "\" URI=\"" << it->URI << "\"/>" << endl;
+				os << "    <cv id=\"" << it->id << "\" fullName=\"" << it->fullname << "\" version=\"" << it->version << "\" URI=\"" << it->URI << "\"/>" << "\n";
 			}
 		}
-    os  << "  </cvList>" << endl;
+    os  << "  </cvList>" << "\n";
 
 		// contact list
 		if (exp.getContacts().size() > 0)
 		{
-			os << "  <contactList>" << endl;
+			os << "  <contactList>" << "\n";
 			for (vector<CVTermList>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
       {
-        os << "    <contact id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
+        os << "    <contact id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
         writeCVParams_(os, *it, 3);
-        os << "    </contact>" << endl;
+        os << "    </contact>" << "\n";
       }
-      os << "  </contactList>" << endl;
+      os << "  </contactList>" << "\n";
 		}
 
     // publication list
 		if (exp.getPublications().size() > 0)
 		{
-			os << "  <publicationList>"  << endl;
+			os << "  <publicationList>"  << "\n";
 			for (vector<CVTermList>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
 			{	
-				os << "    <publication id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
+				os << "    <publication id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
 				writeCVParams_(os, *it, 3);
-				os << "    </publication>" << endl;
+				os << "    </publication>" << "\n";
 			}
-			os << "  </publicationList>" << endl;
+			os << "  </publicationList>" << "\n";
 		}
 
     // instrument list
 		if (exp.getInstruments().size() > 0)
 		{
-			os << "  <instrumentList>" << endl;
+			os << "  <instrumentList>" << "\n";
 			for (vector<CVTermList>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
 			{
-				os << "    <instrument id=\"" << it->getMetaValue("id").toString() << "\">" << endl;
+				os << "    <instrument id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
 				writeCVParams_(os, *it, 3);
-				os << "    </instrument>" << endl;
+				os << "    </instrument>" << "\n";
 			}
-			os << "  </instrumentList>" << endl;
+			os << "  </instrumentList>" << "\n";
 		}
 
     // software list
 		if (exp.getSoftware().size() > 0)
 		{
-			os << "  <softwareList>" << endl;
+			os << "  <softwareList>" << "\n";
 			for (vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
 			{
-				os << "    <software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << endl;
+				os << "    <software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
-				os << "    </software>" << endl;
+				os << "    </software>" << "\n";
 			}
 
 #ifdef WRITE_TARGET_INCLUDE_LIST
-				os << "    <software id=\"GUESSING1.0\" version=\"1.0\">" << endl;
+				os << "    <software id=\"GUESSING1.0\" version=\"1.0\">" << "\n";
 
-				os << "    </software>" << endl;
+				os << "    </software>" << "\n";
 #endif
-			os << "  </softwareList>" << endl;
+			os << "  </softwareList>" << "\n";
 		}
 
     // protein list
 		if (exp.getProteins().size() > 0)
 		{
-			os << "  <proteinList>" << endl;
+			os << "  <proteinList>" << "\n";
 			for (vector<MRMExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
 			{
-				os << "    <protein id=\"" << it->id << "\" >" << endl;
+				os << "    <protein id=\"" << it->id << "\" >" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
-				os << "      <sequence>" << it->sequence << "</sequence>" << endl;
-				os << "    </protein>" << endl;
+				os << "      <sequence>" << it->sequence << "</sequence>" << "\n";
+				os << "    </protein>" << "\n";
 			}
 #ifdef WRITE_TARGET_INCLUDE_LIST
-				os << "    <protein id=\"BSA\">" << endl;
-      	os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\">gi|162648|gb|AAA51411.1|\"/>" << endl;
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << endl;
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << endl;
-      	os << "      <sequence>MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA</sequence>" << endl;
-				os << "    </protein>" << endl;
+				os << "    <protein id=\"BSA\">" << "\n";
+      	os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\">gi|162648|gb|AAA51411.1|\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << "\n";
+        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << "\n";
+      	os << "      <sequence>MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA</sequence>" << "\n";
+				os << "    </protein>" << "\n";
 #endif
-			os << "  </proteinList>" << endl;
+			os << "  </proteinList>" << "\n";
 		}
 
     // compound list
 		if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
 		{
-			os << "  <compoundList>" << endl;
+			os << "  <compoundList>" << "\n";
 			vector<MRMExperiment::Peptide> exp_peptides = exp.getPeptides();
 			
 #ifdef WRITE_TARGET_INCLUDE_LIST
@@ -534,7 +534,7 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 
 			for (vector<MRMExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
 			{
-				os << "    <peptide id=\"" << it->id << "\" proteinRef=\"" << it->protein_ref << "\">" << endl;
+				os << "    <peptide id=\"" << it->id << "\" proteinRef=\"" << it->protein_ref << "\">" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
 				
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
@@ -544,23 +544,23 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 					{
 						os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
 					}
-					os << ">" << endl;
+					os << ">" << "\n";
 					writeCVParams_(os, (CVTermList)*rit, 5);
-					os << "       </retentionTime>" << endl;
+					os << "       </retentionTime>" << "\n";
 				}
 
 				if (!it->evidence.empty())
 				{
-					os << "      <evidence>" << endl;
+					os << "      <evidence>" << "\n";
 					writeCVParams_(os, it->evidence, 4);
-					os << "      </evidence>" << endl;
+					os << "      </evidence>" << "\n";
 				}
-				os << "    </peptide>" << endl;
+				os << "    </peptide>" << "\n";
 			}
 
       for (vector<MRMExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
       {
-        os << "    <compound id=\"" << it->id << "\">" << endl;
+        os << "    <compound id=\"" << it->id << "\">" << "\n";
         writeCVParams_(os, (CVTermList)*it, 3);
 
 				for (vector<MRMExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
@@ -570,21 +570,21 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
           {
             os << " predictedRetentionTimeSoftwareRef=\"" << rit->predicted_retention_time_software_ref << "\"";
           }
-          os << " >" << endl;
+          os << " >" << "\n";
           writeCVParams_(os, (CVTermList)*rit, 5);
-          os << "       </retentionTime>" << endl;
+          os << "       </retentionTime>" << "\n";
         }
 
-				os << "    </compound>" << endl;
+				os << "    </compound>" << "\n";
 			}
 
-			os << "  </compoundList>" << endl;
+			os << "  </compoundList>" << "\n";
 		}
 
     // transition list
 		if (exp.getTransitions().size() > 0)
 		{
-			os << "  <transitionList>" << endl;
+			os << "  <transitionList>" << "\n";
 			for (vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
 			{
 				os << "    <transition";
@@ -602,38 +602,38 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 				{
 					os << " compoundRef=\"" << it->getCompoundRef() << "\"";
 				}
-				os << " >" << endl;
+				os << " >" << "\n";
 
-				os << "      <precursor>" << endl; 
-				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\"/>" << endl;
+				os << "      <precursor>" << "\n"; 
+				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\"/>" << "\n";
 				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
-				os << "      </precursor>" << endl;
+				os << "      </precursor>" << "\n";
 			
-				os << "      <product>" << endl;
-				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\"/>" << endl;
+				os << "      <product>" << "\n";
+				os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\"/>" << "\n";
 				writeCVParams_(os, it->getProductCVTermList(), 4);
-				os << "      </product>" << endl;
+				os << "      </product>" << "\n";
 
 				if (it->getInterpretations().size() != 0)
 				{
-					os << "      <interpretationList>" << endl;
+					os << "      <interpretationList>" << "\n";
 					for (vector<CVTermList>::const_iterator iit = it->getInterpretations().begin(); iit != it->getInterpretations().end(); ++iit)
 					{
 						if (it->metaValueExists("primary"))
 						{
 							String primary = it->getMetaValue("primary").toBool() ? "true" : "false";
-							os << "        <interpretation primary=\"" << primary << "\">" << endl;
+							os << "        <interpretation primary=\"" << primary << "\">" << "\n";
 							writeCVParams_(os, *iit, 5);
-							os << "        </interpretation>" << endl;
+							os << "        </interpretation>" << "\n";
 						}
 						else
 						{
-							os << "        <interpretation>" << endl;
+							os << "        <interpretation>" << "\n";
 							writeCVParams_(os, *iit, 5);
-							os << "        </interpretation>" << endl;
+							os << "        </interpretation>" << "\n";
 						}
 					}
-					os << "      </interpretationList>" << endl;
+					os << "      </interpretationList>" << "\n";
 				}
 
 				if (!it->getPrediction().empty())
@@ -643,14 +643,14 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 					{
 						os << " contactRef=\"" << it->getPrediction().getMetaValue("contactRef").toString() << "\"";
 					}
-					os << ">" << endl;
+					os << ">" << "\n";
 					writeCVParams_(os, it->getPrediction(), 4);
-					os << "      </prediction>" << endl;
+					os << "      </prediction>" << "\n";
 				}
 				
 				if (it->getConfigurations().size() > 0)
 				{
-					os << "      <configurationList>" << endl;
+					os << "      <configurationList>" << "\n";
 					for (vector<ReactionMonitoringTransition::Configuration>::const_iterator cit = it->getConfigurations().begin(); cit != it->getConfigurations().end(); ++cit)
 					{
 						os << "       <configuration instrumentRef=\"" << cit->instrument_ref << "\"";
@@ -658,7 +658,7 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 						{
 							os << " contactRef=\"" << cit->contact_ref << "\"";
 						}
-						os << " >" << endl;
+						os << " >" << "\n";
 
 						writeCVParams_(os, (CVTermList)*cit, 4);
 						if (cit->validations.size() != 0)
@@ -667,20 +667,20 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 							{
 								if (!iit->empty())
 								{
-									os << "        <validation>" << endl;
+									os << "        <validation>" << "\n";
 									writeCVParams_(os, *iit, 5);
-									os << "        </validation>" << endl;
+									os << "        </validation>" << "\n";
 								}
 							}
 						}
 
-						os << "       </configuration>" << endl;
+						os << "       </configuration>" << "\n";
 					}
-					os << "      </configurationList>" << endl;
+					os << "      </configurationList>" << "\n";
 				}
-				os << "    </transition>" << endl;
+				os << "    </transition>" << "\n";
 			}
-			os << "  </transitionList>" << endl;
+			os << "  </transitionList>" << "\n";
 		
 		}
 
@@ -707,14 +707,14 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
     </target>
 */
 		// create and include list for all the peptides listed above
-		os << "  <targetList>" << endl;
-		os << "    <targetIncludeList>" << endl;
+		os << "  <targetList>" << "\n";
+		os << "    <targetIncludeList>" << "\n";
 		for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
 		{
 			for (Size i = 2; i <= 3; ++i)
 			{
 				DoubleReal weight = AASequence(*it).getMonoWeight();
-				os << "      <target id=\"" << *it << i << "+\" peptideRef=\"" << *it << "\">" << endl;
+				os << "      <target id=\"" << *it << i << "+\" peptideRef=\"" << *it << "\">" << "\n";
 				CVTerm mz;
 				mz.setAccession("MS:1000040");
 				mz.setCVIdentifierRef("MS");
@@ -729,18 +729,18 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 				cv_list.addCVTerm(mz);
 				cv_list.addCVTerm(charge);
 				writeCVParams_(os, cv_list, 4);
-				os << "      </target>" << endl;
+				os << "      </target>" << "\n";
 			}
 		}
-		os << "    </targetIncludeList>" << endl;
-		os << "  </targetList>" << endl;
+		os << "    </targetIncludeList>" << "\n";
+		os << "  </targetList>" << "\n";
 
 
 		#endif
 
 
 
-    os << "</TraML>" << endl;
+    os << "</TraML>" << "\n";
     return;
   }
 
@@ -760,7 +760,7 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 				{
 					os << " value=\"" << (String)meta.getMetaValue(key) << "\"";
 				}
-				os << " />" << endl;
+				os << " />" << "\n";
 			}
 			else
 			{
@@ -796,7 +796,7 @@ StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVT
 				{
 					os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
 				}
-				os << "/>" << endl;
+				os << "/>" << "\n";
 			}
 		}
 	}

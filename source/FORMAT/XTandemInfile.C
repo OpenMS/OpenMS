@@ -91,9 +91,9 @@ namespace OpenMS
 	{
 		set<String> used_labels; // labels which are set by OpenMS not by the default parameters file
 
-		os << "<?xml version=\"1.0\"?>" << endl
-			 << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << endl
-			 << "<bioml>" << endl;
+		os << "<?xml version=\"1.0\"?>" << "\n"
+			 << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
+			 << "<bioml>" << "\n";
 
 		//////////////// list path parameters
 		writeNote_(os, "input", "list path, default parameters", default_parameters_file_);
@@ -231,7 +231,7 @@ namespace OpenMS
 			}
 
 			ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
-			//cerr << ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificityName(ts) << " " << ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin() << endl;
+			//cerr << ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificityName(ts) << " " << ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin() << "\n";
 			if (ts == ResidueModification::ANYWHERE)
 			{
 				mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
@@ -495,30 +495,30 @@ namespace OpenMS
 			}
 		}
 
-		os << "</bioml>" << endl;
+		os << "</bioml>" << "\n";
 
 	}
 
 	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const String& value)
 	{
-		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << value << "</note>" << endl;
+		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << value << "</note>" << "\n";
 	}
 
 	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const char* value)
 	{
 		String val(value);
-		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << val << "</note>" << endl;
+		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << val << "</note>" << "\n";
 	}
 	
 	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, bool value)
 	{
 		if (value)
 		{
-			os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">yes</note>" << endl;
+			os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">yes</note>" << "\n";
 		}
 		else
 		{
-			os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">no</note>" << endl;
+			os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">no</note>" << "\n";
 		}
 	}
 

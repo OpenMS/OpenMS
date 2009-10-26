@@ -227,13 +227,13 @@ namespace OpenMS
 
 		f.precision(writtenDigits<DoubleReal>());
 
-		f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-		f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << endl;
-		f << "<msms_run_summary base_name=\"" << File::basename(filename) << "\" raw_data_type=\"raw\" raw_data=\".mzXML\" search_engine=\"" << search_engine_name << "\">" << endl;
+		f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
+		f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << "\n";
+		f << "<msms_run_summary base_name=\"" << File::basename(filename) << "\" raw_data_type=\"raw\" raw_data=\".mzXML\" search_engine=\"" << search_engine_name << "\">" << "\n";
 
-		f << "<sample_enzyme name=\"trypsin\">" << endl;
-		f << "<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << endl;
-		f << "</sample_enzyme>" << endl;
+		f << "<sample_enzyme name=\"trypsin\">" << "\n";
+		f << "<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
+		f << "</sample_enzyme>" << "\n";
 
 		f << "<search_summary base_name=\"" << File::basename(filename);
 		f << "\" search_engine=\"" << search_engine_name;	
@@ -255,8 +255,8 @@ namespace OpenMS
 		{
 			f << "average";
 		}
-		f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << endl;
-		f << "		<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << endl;
+		f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << "\n";
+		f << "		<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << "\n";
 
 
 		// register modifications
@@ -302,7 +302,7 @@ namespace OpenMS
 				<< "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
 				<< precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
-				<< endl;
+				<< "\n";
 		}
 
 		for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
@@ -312,7 +312,7 @@ namespace OpenMS
 			f << "<terminal_modification terminus=\"n\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
-				<< "\" protein_terminus=\"\"/>" << endl;
+				<< "\" protein_terminus=\"\"/>" << "\n";
 		}
 
 		for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
@@ -321,11 +321,11 @@ namespace OpenMS
 			f << "<terminal_modification terminus=\"c\" massdiff=\""
 				<< precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
 				<< "\" variable=\"Y\" description=\"" << *it
-				<< "\" protein_terminus=\"\"/>" << endl;
+				<< "\" protein_terminus=\"\"/>" << "\n";
 		}
 
-		f << "    </search_summary>" << endl;
-		f << "    <analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << endl;
+		f << "    </search_summary>" << "\n";
+		f << "    <analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
 		
 
 		Size count(1);
@@ -342,13 +342,13 @@ namespace OpenMS
 					<< count << "\" end_scan=\"" << count
 					<< "\" precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass)
 					<< "\" assumed_charge=\"" << h.getCharge() << "\" index=\"" << count
-					<< "\">" << endl;
-				f << " 		<search_result>" << endl;
+					<< "\">" << "\n";
+				f << " 		<search_result>" << "\n";
 				f << "			<search_hit hit_rank=\"1\" peptide=\""
 					<< seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
 					<< h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
 					<< "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
-					<< "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << endl;
+					<< "\" massdiff=\"\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
 				if (seq.isModified())
 				{
 					f << "      <modification_info modified_peptide=\""
@@ -368,7 +368,7 @@ namespace OpenMS
 						precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
 					}
 
-					f << ">" << endl;
+					f << ">" << "\n";
 
 					for (Size i = 0; i != seq.size(); ++i)
 					{
@@ -377,28 +377,28 @@ namespace OpenMS
 							const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
 							f << "         <mod_aminoacid_mass position=\"" << i
 								<< "\" mass=\"" << 
-								precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << endl;
+								precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
 						}
 					}
 
-					f << "      </modification_info>" << endl;
+					f << "      </modification_info>" << "\n";
 									
 				}
 
-				f << " 			<analysis_result analysis=\"peptideprophet\">" << endl;
+				f << " 			<analysis_result analysis=\"peptideprophet\">" << "\n";
 				f << "			<peptideprophet_result probability=\"" << h.getScore()
 					<< "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
-					<< "," << h.getScore() << ")\">" << endl;
-				f << "			</peptideprophet_result>" << endl;
-				f << "			</analysis_result>" << endl;
-				f << "			</search_hit>" << endl;	
-				f << "		</search_result>" << endl;
-				f << "		</spectrum_query>" << endl;
+					<< "," << h.getScore() << ")\">" << "\n";
+				f << "			</peptideprophet_result>" << "\n";
+				f << "			</analysis_result>" << "\n";
+				f << "			</search_hit>" << "\n";	
+				f << "		</search_result>" << "\n";
+				f << "		</spectrum_query>" << "\n";
 			}
 		}
 
-		f << "	</msms_run_summary>" << endl;
-		f << "</msms_pipeline_analysis>" << endl;
+		f << "	</msms_run_summary>" << "\n";
+		f << "</msms_pipeline_analysis>" << "\n";
 		
 		f.close();
 		
@@ -440,7 +440,7 @@ namespace OpenMS
 	{		
 		String element = sm_.convert(qname);
 		
-		//cout << "Start: " << element << endl;
+		//cout << "Start: " << element << "\n";
 	
 		if (element == "msms_run_summary")
 		{
@@ -540,7 +540,7 @@ namespace OpenMS
 // 								 << diff / max(mz, prec_mz) * 100 << "%)\n";
 //  					diff = rt - prec_rt;
 //  					cout << "RT difference: " << diff << " ("
-//  							 << diff / max(rt, prec_rt) * 100 << "%)\n" << endl;
+//  							 << diff / max(rt, prec_rt) * 100 << "%)\n" << "\n";
 						mz = prec_mz;
 						rt = prec_rt;
 					}

@@ -74,9 +74,9 @@ namespace OpenMS
 		os.precision(writtenDigits<DoubleReal>());
 		
 		//write header
-		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
 		//add XSLT file if it can be found
-		os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
+		os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << "\n";
 				
 		// open tag
 		os << "\t<Transformation name=\"" << transformation.getName() << "\">\n";
@@ -123,7 +123,7 @@ namespace OpenMS
 		os << "\t</Transformation>\n";
 
 		//write footer
-		os << "</TrafoXML>" << endl;
+		os << "</TrafoXML>" << "\n";
 		
 		//close stream
 		os.close();

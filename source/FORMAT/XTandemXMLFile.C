@@ -235,10 +235,10 @@ namespace OpenMS
 				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
 			}
 
-			//cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << endl;
+			//cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
 			//for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
 			//{
-			//	cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << endl;	
+			//	cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << "\n";	
 			//}
 
 			set<String> mod_names = mod_def_set_.getModificationNames();
@@ -252,10 +252,10 @@ namespace OpenMS
 				}
 			}
 			
-			//cerr << "Possible mods (#=" << possible_mods.size() << "): " << endl;
+			//cerr << "Possible mods (#=" << possible_mods.size() << "): " << "\n";
 			//for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
 			//{
-			//	cerr << *it << endl;
+			//	cerr << *it << "\n";
 			//}
 			
 			// maybe we missed the real modification, even it is not terminal
@@ -316,10 +316,10 @@ namespace OpenMS
 							{
 								String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
 								ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
-								//cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << endl;
+								//cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << "\n";
 								if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
 								{
-									//cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+									//cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";
 									new_possible_mods.push_back(*it);
 								}
 							}
@@ -333,7 +333,7 @@ namespace OpenMS
 									ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
 									if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
 									{
-										//cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << endl;
+										//cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";
 										new_possible_mods.push_back(*it);
 									}
 								}

@@ -156,8 +156,8 @@ namespace OpenMS
 					{
 						if ( strings[i]=="RT" || strings[i]=="RETENTION_TIME" || strings[i]=="MASS-TO-CHARGE" || strings[i]=="IT" || strings[i]=="INTENSITY")
 						{
-							std::cerr << "Warning: This file contains the deprecated keyword '" << strings[i] << "'." << std::endl;
-							std::cerr << "         Please use only the new keywords SEC/MIN, MZ, INT." << std::endl;
+							std::cerr << "Warning: This file contains the deprecated keyword '" << strings[i] << "'." << "\n";
+							std::cerr << "         Please use only the new keywords SEC/MIN, MZ, INT." << "\n";
 						}
 						if ( ( strings[i]=="SEC" || strings[i]=="RT" || strings[i]=="RETENTION_TIME" ) && rt_set==false)
 						{
@@ -273,7 +273,7 @@ namespace OpenMS
 				for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 				{
 					// Write rt, m/z and intensity.
-					os	<< precisionWrapper(spec->getRT()) << " " << precisionWrapper(it->getPos()) << " "<< precisionWrapper(it->getIntensity()) << std::endl;
+					os	<< precisionWrapper(spec->getRT()) << " " << precisionWrapper(it->getPos()) << " "<< precisionWrapper(it->getIntensity()) << "\n";
 				}
 
 			}

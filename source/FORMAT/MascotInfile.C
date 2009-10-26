@@ -237,7 +237,7 @@ namespace OpenMS
 			ss.str("");
 			ss << precisionWrapper(retention_time_);
 			cout << "No precursor m/z information for spectrum with rt: " 
-				<< ss.str() << " present" << endl;
+				<< ss.str() << " present" << "\n";
 		}
 		else
 		{
@@ -305,19 +305,19 @@ namespace OpenMS
 			}
 			if (experiment[i].getPrecursors().size()>1)
 			{
-				std::cerr << "Warning: The spectrum written to the Mascot file '" << filename << "' has more than one precursor. The first precursor is used!" << std::endl;
+				std::cerr << "Warning: The spectrum written to the Mascot file '" << filename << "' has more than one precursor. The first precursor is used!" << "\n";
 			}
 				
 			if (experiment[i].getMSLevel() == 0)
 			{
-				cout << "MascotInfile: MSLevel is set to 0, ignoring this spectrum!" << endl;
+				cout << "MascotInfile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
 			}
 			
 			if (experiment[i].getMSLevel() == 2)
 			{
 				if (precursor_peak.getMZ() == 0)
 				{
-					cerr << "Warning: No precursor m/z information for spectrum with rt: " << precisionWrapper(experiment[i].getRT()) << " present" << endl;
+					cerr << "Warning: No precursor m/z information for spectrum with rt: " << precisionWrapper(experiment[i].getRT()) << " present" << "\n";
 				}
 				else
 				{

@@ -194,7 +194,7 @@ namespace OpenMS
 							String origin  = single_mod[1];
 							Size position = single_mod[0].toInt();
 
-							//cerr << "MSP modification: " << origin << " " << mod_name << " " << position << endl;
+							//cerr << "MSP modification: " << origin << " " << mod_name << " " << position << "\n";
 
 							if (position > 0 && position < peptide.size() - 1)
 							{
@@ -226,7 +226,7 @@ namespace OpenMS
 							}
 							else
 							{
-								cerr << "MSPFile: Error: ignoring modification: '" << line << "'" << endl;
+								cerr << "MSPFile: Error: ignoring modification: '" << line << "'" << "\n";
 							}
             }
             vector<PeptideHit> hits(ids.back().getHits());
@@ -326,8 +326,8 @@ namespace OpenMS
 						peptide += pit->getOneLetterCode();
 					}
 				}
-				out << "Name: " << peptide << "/" << hit.getCharge() << endl;
-				out << "MW: " << hit.getSequence().getMonoWeight() << endl;
+				out << "Name: " << peptide << "/" << hit.getCharge() << "\n";
+				out << "MW: " << hit.getSequence().getMonoWeight() << "\n";
 				out << "Comment:";
 			
 				// modifications
@@ -376,14 +376,14 @@ namespace OpenMS
 						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Carbamidomethyl";
 						continue;
 					}
-					cerr << "MSPFile: modification '" << mod << "' not handled so far" << endl;
+					cerr << "MSPFile: modification '" << mod << "' not handled so far" << "\n";
 				}
 			
 				String mods;
 				mods.concatenate(modifications.begin(), modifications.end(), "/");
 				out << " Mods=" << String(num_mods)  << "/" << mods;
-				out << " Inst=it" << endl; // TODO write mods, instrument type protein ...
-				out << "Num peaks: " << it->size() << endl;
+				out << " Inst=it\n"; // TODO write mods, instrument type protein ...
+				out << "Num peaks: " << it->size() << "\n";
 				// TODO normalize to 10000
 				for (RichPeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
 				{
@@ -396,9 +396,9 @@ namespace OpenMS
 					{
 						out << "\"?\"";
 					}
-					out << endl;
+					out << "\n";
 				}
-				out << endl;
+				out << "\n";
 			}
 		}
 	}

@@ -242,100 +242,100 @@ namespace OpenMS
 		}
 		
 		// the header
-		file_content << "[SEQUEST]" << endl;
+		file_content << "[SEQUEST]" << "\n";
 		
-		file_content << "database_name = " << database_ << endl;
+		file_content << "database_name = " << database_ << "\n";
 		
-		file_content << "peptide_mass_tolerance = " << precursor_mass_tolerance_ << endl;
+		file_content << "peptide_mass_tolerance = " << precursor_mass_tolerance_ << "\n";
 		
-		file_content << "peptide_mass_units = " << peptide_mass_unit_ << "; 0=amu, 1=mmu, 2=ppm" << endl;
+		file_content << "peptide_mass_units = " << peptide_mass_unit_ << "; 0=amu, 1=mmu, 2=ppm" << "\n";
 		
-		file_content << "ion_series = " << neutral_losses_for_ions_ << " " << ion_series_weights_  << ";nABY ABCDVWXYZ" << endl;
+		file_content << "ion_series = " << neutral_losses_for_ions_ << " " << ion_series_weights_  << ";nABY ABCDVWXYZ" << "\n";
 		
-		file_content << "fragment_ion_tolerance = " << peak_mass_tolerance_ << endl;
+		file_content << "fragment_ion_tolerance = " << peak_mass_tolerance_ << "\n";
 		
-		file_content << "num_output_lines = " << output_lines_ << endl;
+		file_content << "num_output_lines = " << output_lines_ << "\n";
 		
-		file_content << "num_results = " << output_lines_ << endl;
+		file_content << "num_results = " << output_lines_ << "\n";
 		
-		file_content << "num_description_lines = 0" << endl;
+		file_content << "num_description_lines = 0" << "\n";
 		
-		file_content << "show_fragment_ions = " << show_fragment_ions_ << endl;
+		file_content << "show_fragment_ions = " << show_fragment_ions_ << "\n";
 		
-		file_content << "print_duplicate_references = " << print_duplicate_references_ << endl;
+		file_content << "print_duplicate_references = " << print_duplicate_references_ << "\n";
 		
-		file_content << "enzyme_number = " << enzyme_number_ << endl;
+		file_content << "enzyme_number = " << enzyme_number_ << "\n";
 		
-		file_content << "diff_search_options = " << dyn_mods_string << endl;
+		file_content << "diff_search_options = " << dyn_mods_string << "\n";
 		
-		file_content << "term_diff_search_options = " << dyn_n_term_mod << " " << dyn_c_term_mod << endl;
+		file_content << "term_diff_search_options = " << dyn_n_term_mod << " " << dyn_c_term_mod << "\n";
 		
-		file_content << "remove_precursor_peak = " << remove_precursor_near_peaks_ << endl;
+		file_content << "remove_precursor_peak = " << remove_precursor_near_peaks_ << "\n";
 		
-		file_content << "ion_cutoff_percentage = " << ion_cutoff_percentage_ << endl;
+		file_content << "ion_cutoff_percentage = " << ion_cutoff_percentage_ << "\n";
 		
-		file_content << "protein_mass_filter = " << protein_mass_filter_ << endl;
+		file_content << "protein_mass_filter = " << protein_mass_filter_ << "\n";
 		
-		file_content << "max_differential_AA_per_mod = " << max_AA_per_mod_per_peptide_ << endl;
+		file_content << "max_differential_AA_per_mod = " << max_AA_per_mod_per_peptide_ << "\n";
 		
-		file_content << "max_differential_per_peptide = " << max_mods_per_peptide_ << endl;
+		file_content << "max_differential_per_peptide = " << max_mods_per_peptide_ << "\n";
 		
-		file_content << "nucleotide_reading_frame = " << nucleotide_reading_frame_ << "; 0=protein db, 1-6, 7 = forward three, 8-reverse three, 9=all six" << endl;
+		file_content << "nucleotide_reading_frame = " << nucleotide_reading_frame_ << "; 0=protein db, 1-6, 7 = forward three, 8-reverse three, 9=all six" << "\n";
 		
-		file_content << "mass_type_parent = " << mass_type_parent_ << "; 0=average masses, 1=monoisotopic masses" << endl;
+		file_content << "mass_type_parent = " << mass_type_parent_ << "; 0=average masses, 1=monoisotopic masses" << "\n";
 		
-		file_content << "mass_type_fragment = " << mass_type_fragment_ << "; 0=average masses, 1=monoisotopic masses" << endl;
+		file_content << "mass_type_fragment = " << mass_type_fragment_ << "; 0=average masses, 1=monoisotopic masses" << "\n";
 		
-		file_content << "normalize_xcorr = " << normalize_xcorr_ << endl;
+		file_content << "normalize_xcorr = " << normalize_xcorr_ << "\n";
 		
-		file_content << "max_internal_cleavage_sites = " << max_internal_cleavage_sites_ << endl;
+		file_content << "max_internal_cleavage_sites = " << max_internal_cleavage_sites_ << "\n";
 		
-		file_content << "create_output_files = 1" << endl;
+		file_content << "create_output_files = 1" << "\n";
 		
-		file_content << "partial_sequence = " << partial_sequence_ << endl;
+		file_content << "partial_sequence = " << partial_sequence_ << "\n";
 		
-		file_content << "sequence_header_filter = " << sequence_header_filter_ << endl;
+		file_content << "sequence_header_filter = " << sequence_header_filter_ << "\n";
 		
-		file_content << "match_peak_count = " << match_peak_count_ << "; number of auto-detected peaks to try matching (max 5)" << endl;
+		file_content << "match_peak_count = " << match_peak_count_ << "; number of auto-detected peaks to try matching (max 5)" << "\n";
 		
-		file_content << "match_peak_allowed_error = " << match_peak_allowed_error_ << endl;
+		file_content << "match_peak_allowed_error = " << match_peak_allowed_error_ << "\n";
 		
-		file_content << "match_peak_tolerance = " << match_peak_tolerance_ << endl;
+		file_content << "match_peak_tolerance = " << match_peak_tolerance_ << "\n";
 		
-		file_content << "residues_in_upper_case = " << residues_in_upper_case_ << endl << endl << endl;
+		file_content << "residues_in_upper_case = " << residues_in_upper_case_ << "\n" << "\n" << "\n";
 		
-		file_content << "add_Nterm_peptide = " << stat_n_term_mod << endl;
+		file_content << "add_Nterm_peptide = " << stat_n_term_mod << "\n";
 		
-		file_content << "add_Cterm_peptide = " << stat_c_term_mod << endl;
+		file_content << "add_Cterm_peptide = " << stat_c_term_mod << "\n";
 		
-		file_content << "add_Nterm_protein = " << stat_n_term_prot_mod << endl;
+		file_content << "add_Nterm_protein = " << stat_n_term_prot_mod << "\n";
 		
-		file_content << "add_Cterm_protein = " << stat_c_term_prot_mod << endl << endl;
+		file_content << "add_Cterm_protein = " << stat_c_term_prot_mod << "\n" << "\n";
 		
-		file_content << "add_G_Glycine = " << stat_mods['G'] << "; added to G - avg.  57.0519, mono.  57.02146" << endl;
-		file_content << "add_A_Alanine = " << stat_mods['A'] << "; added to A - avg.  71.0788, mono.  71.03711" << endl;
-		file_content << "add_S_Serine = " << stat_mods['S'] << "; added to S - avg.  87.0782, mono.  87.03203" << endl;
-		file_content << "add_P_Proline = " << stat_mods['P'] << "; added to P - avg.  97.1167, mono.  97.05276" << endl;
-		file_content << "add_V_Valine = " << stat_mods['V'] << "; added to V - avg.  99.1326, mono.  99.06841" << endl;
-		file_content << "add_T_Threonine = " << stat_mods['T'] << "; added to T - avg. 101.1051, mono. 101.04768" << endl;
-		file_content << "add_C_Cysteine = " << stat_mods['C'] << "; added to C - avg. 103.1388, mono. 103.00919" << endl;
-		file_content << "add_L_Leucine = " << stat_mods['L'] << "; added to L - avg. 113.1594, mono. 113.08406" << endl;
-		file_content << "add_I_Isoleucine = " << stat_mods['I'] << "; added to I - avg. 113.1594, mono. 113.08406" << endl;
-		file_content << "add_X_LorI = " << stat_mods['X'] << "; added to X - avg. 113.1594, mono. 113.08406" << endl;
-		file_content << "add_N_Asparagine = " << stat_mods['N'] << "; added to N - avg. 114.1038, mono. 114.04293" << endl;
-		file_content << "add_O_Ornithine = " << stat_mods['O'] << "; added to O - avg. 114.1472, mono  114.07931" << endl;
-		file_content << "add_B_avg_NandD = " << stat_mods['B'] << "; added to B - avg. 114.5962, mono. 114.53494" << endl;
-		file_content << "add_D_Aspartic_Acid = " << stat_mods['D'] << "; added to D - avg. 115.0886, mono. 115.02694" << endl;
-		file_content << "add_Q_Glutamine = " << stat_mods['Q'] << "; added to Q - avg. 128.1307, mono. 128.05858" << endl;
-		file_content << "add_K_Lysine = " << stat_mods['K'] << "; added to K - avg. 128.1741, mono. 128.09496" << endl;
-		file_content << "add_Z_avg_QandE = " << stat_mods['Z'] << "; added to Z - avg. 128.6231, mono. 128.55059" << endl;
-		file_content << "add_E_Glutamic_Acid = " << stat_mods['E'] << "; added to E - avg. 129.1155, mono. 129.04259" << endl;
-		file_content << "add_M_Methionine = " << stat_mods['M'] << "; added to M - avg. 131.1926, mono. 131.04049" << endl;
-		file_content << "add_H_Histidine = " << stat_mods['H'] << "; added to H - avg. 137.1411, mono. 137.05891" << endl;
-		file_content << "add_F_Phenylalanine = " << stat_mods['F'] << "; added to F - avg. 147.1766, mono. 147.06841" << endl;
-		file_content << "add_R_Arginine = " << stat_mods['R'] << "; added to R - avg. 156.1875, mono. 156.10111" << endl;
-		file_content << "add_Y_Tyrosine = " << stat_mods['Y'] << "; added to Y - avg. 163.1760, mono. 163.06333" << endl;
-		file_content << "add_W_Tryptophan = " << stat_mods['W'] << "; added to W - avg. 186.2132, mono. 186.07931" << endl << endl;
+		file_content << "add_G_Glycine = " << stat_mods['G'] << "; added to G - avg.  57.0519, mono.  57.02146" << "\n";
+		file_content << "add_A_Alanine = " << stat_mods['A'] << "; added to A - avg.  71.0788, mono.  71.03711" << "\n";
+		file_content << "add_S_Serine = " << stat_mods['S'] << "; added to S - avg.  87.0782, mono.  87.03203" << "\n";
+		file_content << "add_P_Proline = " << stat_mods['P'] << "; added to P - avg.  97.1167, mono.  97.05276" << "\n";
+		file_content << "add_V_Valine = " << stat_mods['V'] << "; added to V - avg.  99.1326, mono.  99.06841" << "\n";
+		file_content << "add_T_Threonine = " << stat_mods['T'] << "; added to T - avg. 101.1051, mono. 101.04768" << "\n";
+		file_content << "add_C_Cysteine = " << stat_mods['C'] << "; added to C - avg. 103.1388, mono. 103.00919" << "\n";
+		file_content << "add_L_Leucine = " << stat_mods['L'] << "; added to L - avg. 113.1594, mono. 113.08406" << "\n";
+		file_content << "add_I_Isoleucine = " << stat_mods['I'] << "; added to I - avg. 113.1594, mono. 113.08406" << "\n";
+		file_content << "add_X_LorI = " << stat_mods['X'] << "; added to X - avg. 113.1594, mono. 113.08406" << "\n";
+		file_content << "add_N_Asparagine = " << stat_mods['N'] << "; added to N - avg. 114.1038, mono. 114.04293" << "\n";
+		file_content << "add_O_Ornithine = " << stat_mods['O'] << "; added to O - avg. 114.1472, mono  114.07931" << "\n";
+		file_content << "add_B_avg_NandD = " << stat_mods['B'] << "; added to B - avg. 114.5962, mono. 114.53494" << "\n";
+		file_content << "add_D_Aspartic_Acid = " << stat_mods['D'] << "; added to D - avg. 115.0886, mono. 115.02694" << "\n";
+		file_content << "add_Q_Glutamine = " << stat_mods['Q'] << "; added to Q - avg. 128.1307, mono. 128.05858" << "\n";
+		file_content << "add_K_Lysine = " << stat_mods['K'] << "; added to K - avg. 128.1741, mono. 128.09496" << "\n";
+		file_content << "add_Z_avg_QandE = " << stat_mods['Z'] << "; added to Z - avg. 128.6231, mono. 128.55059" << "\n";
+		file_content << "add_E_Glutamic_Acid = " << stat_mods['E'] << "; added to E - avg. 129.1155, mono. 129.04259" << "\n";
+		file_content << "add_M_Methionine = " << stat_mods['M'] << "; added to M - avg. 131.1926, mono. 131.04049" << "\n";
+		file_content << "add_H_Histidine = " << stat_mods['H'] << "; added to H - avg. 137.1411, mono. 137.05891" << "\n";
+		file_content << "add_F_Phenylalanine = " << stat_mods['F'] << "; added to F - avg. 147.1766, mono. 147.06841" << "\n";
+		file_content << "add_R_Arginine = " << stat_mods['R'] << "; added to R - avg. 156.1875, mono. 156.10111" << "\n";
+		file_content << "add_Y_Tyrosine = " << stat_mods['Y'] << "; added to Y - avg. 163.1760, mono. 163.06333" << "\n";
+		file_content << "add_W_Tryptophan = " << stat_mods['W'] << "; added to W - avg. 186.2132, mono. 186.07931" << "\n" << "\n";
 		
 		file_content << getEnzymeInfoAsString();
 		
@@ -355,7 +355,7 @@ namespace OpenMS
 		String::size_type max_name_length(0);
 		String::size_type max_cut_before_length(0);
 		String::size_type max_doesnt_cut_after_length(0);
-		ss << "[SEQUEST_ENZYME_INFO]" << endl;
+		ss << "[SEQUEST_ENZYME_INFO]" << "\n";
 		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i )
 		{
 			max_name_length = max(max_name_length, einfo_i->first.length());
@@ -364,7 +364,7 @@ namespace OpenMS
 		}
 		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++i )
 		{
-			ss << i << ".  " << einfo_i->first << String(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << String(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << endl;
+			ss << i << ".  " << einfo_i->first << String(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << String(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << "\n";
 		}
 		return String(ss.str());
 	}

@@ -186,7 +186,7 @@ namespace OpenMS
 				}
 				if (spectrum.getPrecursors().size()>1)
 				{
-					std::cerr << "Warning: The spectrum written to the DTA file '" << filename << "' has more than one precursor. The first precursor is used!" << std::endl;
+					std::cerr << "Warning: The spectrum written to the DTA file '" << filename << "' has more than one precursor. The first precursor is used!" << "\n";
 				}
 				//unknown charge
 				if (precursor.getCharge()==0)
@@ -199,7 +199,7 @@ namespace OpenMS
 					os << ((precursor.getMZ() - 1.0) * precursor.getCharge() +1.0);
 				}
 				//charge
-				os << " " << precursor.getCharge() << std::endl;
+				os << " " << precursor.getCharge() << "\n";
 
 				// Iterate over all peaks of the spectrum and
 				// write one line for each peak of the spectrum.
@@ -207,7 +207,7 @@ namespace OpenMS
 				for (; it != spectrum.end(); ++it)
 				{
 					// Write m/z and intensity.
-					os << it->getPosition() << " " << it->getIntensity() << std::endl;
+					os << it->getPosition() << " " << it->getIntensity() << "\n";
 				}
 		
 				// Done.

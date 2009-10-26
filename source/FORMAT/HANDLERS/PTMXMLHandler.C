@@ -52,16 +52,16 @@ namespace OpenMS
 
 		void PTMXMLHandler::writeTo(std::ostream& os)
 		{
-			os << "<PTMs>" << std::endl;
+			os << "<PTMs>" << "\n";
 			for ( map< String, pair< String, String > >::const_iterator ptm_i = ptm_informations_.begin(); ptm_i != ptm_informations_.end(); ++ptm_i )
 			{
-					os << "\t<PTM>" << std::endl;
-					os << "\t\t<name>" << ptm_i->first << "</name>" << std::endl; // see header
-					os << "\t\t<composition>" << ptm_i->second.first << "</composition>" << std::endl;
-					os << "\t\t<possible_amino_acids>" << ptm_i->second.second << "</possible_amino_acids>" << std::endl;
-					os << "\t</PTM>" << std::endl;
+					os << "\t<PTM>" << "\n";
+					os << "\t\t<name>" << ptm_i->first << "</name>" << "\n"; // see header
+					os << "\t\t<composition>" << ptm_i->second.first << "</composition>" << "\n";
+					os << "\t\t<possible_amino_acids>" << ptm_i->second.second << "</possible_amino_acids>" << "\n";
+					os << "\t</PTM>" << "\n";
 			}
-			os << "</PTMs>" << std::endl;
+			os << "</PTMs>" << "\n";
 		}
 
 		void PTMXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& /*attributes*/)

@@ -124,13 +124,13 @@ namespace OpenMS
 		}
 		stringstream file_content;
 
-		file_content << "spectra," << spectra_ << endl;
+		file_content << "spectra," << spectra_ << "\n";
 
-		if ( !db_.empty() ) file_content << "db," << db_ << endl;
+		if ( !db_.empty() ) file_content << "db," << db_ << "\n";
 
-		if ( !enzyme_.empty() ) file_content << "protease," << enzyme_ << endl;
+		if ( !enzyme_.empty() ) file_content << "protease," << enzyme_ << "\n";
 		
-		if ( blind_ != 2 ) file_content << "blind," << blind_ << endl;
+		if ( blind_ != 2 ) file_content << "blind," << blind_ << "\n";
 
 		//mod,+57,C,fix,carbamidomethylation
 		for ( Map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
@@ -138,22 +138,22 @@ namespace OpenMS
 			// fix", "cterminal", "nterminal", and "opt
 			mods_i->second[2].toLower();
 			if ( mods_i->second[2].hasSuffix("term") ) mods_i->second[2].append("inal");
-			file_content << "mod," << mods_i->second[1] << "," << mods_i->second[0] << "," << mods_i->second[2] << "," << mods_i->first << endl;
+			file_content << "mod," << mods_i->second[1] << "," << mods_i->second[0] << "," << mods_i->second[2] << "," << mods_i->first << "\n";
 		}
 
-		if ( modifications_per_peptide_ > -1 ) file_content << "mods," << modifications_per_peptide_ << endl;
+		if ( modifications_per_peptide_ > -1 ) file_content << "mods," << modifications_per_peptide_ << "\n";
 
-		if ( maxptmsize_ >= 0) file_content << "maxptmsize," << maxptmsize_ << endl;
+		if ( maxptmsize_ >= 0) file_content << "maxptmsize," << maxptmsize_ << "\n";
 
-		if ( precursor_mass_tolerance_ >= 0 ) file_content << "PM_tolerance," << precursor_mass_tolerance_ << endl;
+		if ( precursor_mass_tolerance_ >= 0 ) file_content << "PM_tolerance," << precursor_mass_tolerance_ << "\n";
 
-		if ( peak_mass_tolerance_ >= 0 ) file_content << "IonTolerance," << peak_mass_tolerance_ << endl;
+		if ( peak_mass_tolerance_ >= 0 ) file_content << "IonTolerance," << peak_mass_tolerance_ << "\n";
 
-		if ( multicharge_ != 2 ) file_content << "multicharge," << multicharge_ << endl;
+		if ( multicharge_ != 2 ) file_content << "multicharge," << multicharge_ << "\n";
 
-		if ( !instrument_.empty() ) file_content << "instrument," << instrument_ << endl;
+		if ( !instrument_.empty() ) file_content << "instrument," << instrument_ << "\n";
 
-		if ( tag_count_ >= 0 ) file_content << "TagCount," << tag_count_ << endl;
+		if ( tag_count_ >= 0 ) file_content << "TagCount," << tag_count_ << "\n";
 		
 		ofs << file_content.str();
 		

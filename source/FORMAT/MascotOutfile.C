@@ -222,7 +222,7 @@ namespace OpenMS
 	  	
 			if (it == f.end())
 			{
-				cout << "no \"proteins\" tag found " << endl;
+				cout << "no \"proteins\" tag found " << "\n";
 			}
 
 	  	//Go to first protein hit entry

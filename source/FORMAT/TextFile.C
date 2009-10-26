@@ -98,16 +98,16 @@ namespace OpenMS
 			{
 				if (it->hasSuffix("\r\n"))
 				{
-					os << it->substr(0,-2)<< endl;
+					os << it->substr(0,-2)<< "\n";
 				}
 				else
 				{
-					os << it->substr(0,-1) << endl;
+					os << it->substr(0,-1) << "\n";
 				}
 			}
 			else
 			{
-				os << *it << endl;
+				os << *it << "\n";
 			}
 		}
 		os.close();

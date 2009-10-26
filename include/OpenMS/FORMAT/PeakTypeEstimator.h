@@ -76,10 +76,10 @@ namespace OpenMS
 	    		}
 	    	}
 	
-	    	//std::cout << "Min  : " << min << std::endl;
-	    	//std::cout << "Max  : " << max << std::endl;
-	    	//std::cout << "Left : " << left << std::endl;
-	    	//std::cout << "Right: " << right << std::endl;
+	    	//std::cout << "Min  : " << min << "\n";
+	    	//std::cout << "Max  : " << max << "\n";
+	    	//std::cout << "Left : " << left << "\n";
+	    	//std::cout << "Right: " << right << "\n";
 	    	
 	    	//raw data with zeros
 	    	if ((max-min)<0.5)
