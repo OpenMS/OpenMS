@@ -90,7 +90,7 @@ namespace OpenMS
 		};
 
   	// implementation of an XMLFormatTarget
-  	class OpenMSXMLFormatTarget : public xercesc::XMLFormatTarget
+  	class OPENMS_DLLAPI OpenMSXMLFormatTarget : public xercesc::XMLFormatTarget
   	{
 
 			public:
@@ -115,7 +115,7 @@ namespace OpenMS
 			Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and 
   	  need to be escaped. Parsing those escaped strings is automatically done by xerces
  	 */
-	 	void writeXMLEscape(const String& to_escape, std::ostream& os);
+	 	void OPENMS_DLLAPI writeXMLEscape(const String& to_escape, std::ostream& os);
 
 		/** 
 	  	@brief Escapes a string and returns the escaped string
@@ -123,7 +123,7 @@ namespace OpenMS
 			Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and 
     	need to be escaped. Parsing those escaped strings is automatically done by xerces
 		*/
-		String writeXMLEscape(const String& to_escape);
+		String OPENMS_DLLAPI writeXMLEscape(const String& to_escape);
 
 	} // namespace Internal
 } // namespace OpenMS
