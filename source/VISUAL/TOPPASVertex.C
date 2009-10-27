@@ -45,7 +45,8 @@ namespace OpenMS
 			dfs_parent_(0),
 			id_(0),
 			topo_sort_marked_(false),
-			topo_nr_(0)
+			topo_nr_(0),
+			subtree_finished_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -63,7 +64,8 @@ namespace OpenMS
 			dfs_parent_(rhs.dfs_parent_),
 			id_(rhs.id_),
 			topo_sort_marked_(rhs.topo_sort_marked_),
-			topo_nr_(rhs.topo_nr_)
+			topo_nr_(rhs.topo_nr_),
+			subtree_finished_(rhs.subtree_finished_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -86,6 +88,7 @@ namespace OpenMS
 		id_ = rhs.id_;
 		topo_sort_marked_ = rhs.topo_sort_marked_;
 		topo_nr_ = rhs.topo_nr_;
+		subtree_finished_ = rhs.subtree_finished_;
 		
 		return *this;
 	}
@@ -320,4 +323,64 @@ namespace OpenMS
 		
 		return !fail;
 	}
+	
+	void TOPPASVertex::propagateDownwardsMergeComplete()
+	{
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* target = (*it)->getTargetVertex();
+			target->propagateDownwardsMergeComplete();
+		}
+	}
+	
+	void TOPPASVertex::propagateUpwardsSubtreeFinished()
+	{
+		// check if entire subtree below this node is finished now, else return
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* target = (*it)->getTargetVertex();
+			if (!target->isSubtreeFinished())
+			{
+				return;
+			}
+		}
+		
+		subtree_finished_ = true;
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* source = (*it)->getSourceVertex();
+			source->propagateUpwardsSubtreeFinished();
+		}
+	}
+	
+	bool TOPPASVertex::isSubtreeFinished()
+	{
+		return subtree_finished_;
+	}
+	
+	void TOPPASVertex::setSubtreeFinished(bool b)
+	{
+		subtree_finished_ = b;
+	}
+	
+	void TOPPASVertex::reset(bool /*reset_all_files*/)
+	{
+		subtree_finished_ = false;
+	}
+	
+	void TOPPASVertex::resetSubtree(bool including_this_node)
+	{
+		if (including_this_node)
+		{
+			reset(false);
+		}
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->reset(false);
+			tv->resetSubtree(including_this_node);
+		}
+	}
+	
 }

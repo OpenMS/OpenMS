@@ -62,7 +62,7 @@ namespace OpenMS
 			/// Starts the workflow ending in this node
 			void startComputation();
 			/// Called when the parent node has finished execution
-			void finished();
+			void finish();
 			/// Returns whether we are finished
 			bool isFinished();
 			/// Returns the directory where the output files are stored

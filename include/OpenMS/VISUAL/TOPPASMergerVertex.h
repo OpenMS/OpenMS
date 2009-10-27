@@ -52,35 +52,60 @@ namespace OpenMS
 			virtual ~TOPPASMergerVertex();
 			/// Assignment operator
 			TOPPASMergerVertex& operator= (const TOPPASMergerVertex& rhs);
-			/// Returns the list of output files
-			QStringList getOutputList();
+			/// Returns the current list of output files
+			QStringList getCurrentOutputList();
 			/// Starts the pipeline execution recursively	
 			void runRecursively();
 			/// Forwards the pipeline execution downstream
 			void forwardPipelineExecution();
 			/// Determines whether all inputs are ready
 			bool allInputsReady();
-			/// Updates all temporary output file names
-			void updateOutputFileNames();
-			/// Sets whether the currently running pipeline has already been started at this vertex
-      void setStartedHere(bool b);
+			/// Determines whether all merge rounds have been performed
+			bool mergeComplete();
+			/// Sets whether all merge rounds have been performed
+			void setMergeComplete(bool b);
+			/// Determines whether this merger is merging round based or merging all inputs into one list
+			bool roundBasedMode();
+			/// Sets whether this merger is merging round based or merging all inputs into one list
+			void setRoundBasedMode(bool b);
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
+			// documented in base class
+			virtual void propagateDownwardsMergeComplete();
+			// documented in base class
+			virtual void propagateUpwardsSubtreeFinished();
+			// documented in base class
+			virtual void reset(bool reset_all_files = false);
+			// documented in base class
+			virtual bool isSubtreeFinished();
 			
 		protected:
 
-			// Stores whether the currently running pipeline has already been started at this vertex
+			/// Stores whether the currently running pipeline has already been started at this vertex
 			bool started_here_;
+			/// Stores whether this merger is merging round based or merging all inputs into one list
+			bool round_based_mode_;
+			/// Stores whether all merge rounds have been performed
+			bool merge_complete_;
+			/// The counter for the merging process
+			int merge_counter_;
 
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
 			//@}
+			
+			/// Returns the minimum length of all incoming lists
+			int minInputListLength_();
+			/// Returns the number of iterations we have to perform
+			int numIterations_();
+			/// Returns the list of all written output files of the parents
+			QStringList getAllIncomingFiles_();
+
 			
 	};
 }

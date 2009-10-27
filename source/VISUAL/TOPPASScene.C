@@ -140,9 +140,14 @@ namespace OpenMS
 		{
 			return;
 		}
-		unselectAll();
-		sender->setSelected(true);
-
+		
+		// unselect all items except for the one under the cursor, but only if no multiple selection
+		if (selectedItems().size() <= 1)
+		{
+			unselectAll();
+			sender->setSelected(true);
+		}
+		
 		snapToGrid();
 	}
 	
@@ -403,21 +408,10 @@ namespace OpenMS
 			return;
 		}
 		
-		//unset the finished flag and set progress color = red for all TOPP tool nodes
+		//reset all nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
-			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
-			if (tv)
-			{
-				tv->setFinished(false);
-				tv->setStartedHere(false);
-				tv->setProgressColor(Qt::gray);
-			}
-			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(*it);
-			if (mv)
-			{
-				mv->setStartedHere(false);
-			}
+			(*it)->reset(true);
 		}
 		update(sceneRect());
 		
@@ -727,6 +721,11 @@ namespace OpenMS
 		{
 			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
 			if (oflv && !oflv->isFinished())
+			{
+				return;
+			}
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(*it);
+			if (mv && !mv->mergeComplete())
 			{
 				return;
 			}
@@ -1046,6 +1045,7 @@ namespace OpenMS
 		bool found_tool = false;
 		bool found_input = false;
 		bool found_output = false;
+		bool found_merger = false;
 		bool found_edge = false;
 		bool disable_resume = false;
 		//bool disable_toppview = true;
@@ -1091,6 +1091,11 @@ namespace OpenMS
 				found_output = true;
 				continue;
 			}
+			if (qobject_cast<TOPPASMergerVertex*>(tv))
+			{
+				found_merger = true;
+				continue;
+			}
 		}
 		
 		QMenu menu;
@@ -1129,6 +1134,14 @@ namespace OpenMS
 			edge_actions.insert("Edit I/O mapping");
 			edge_actions.insert("Remove");
 			all_actions.push_back(edge_actions);
+		}
+		
+		if (found_merger)
+		{
+			QSet<QString> merger_actions;
+			merger_actions.insert("Remove");
+			merger_actions.insert("Change mode");
+			all_actions.push_back(merger_actions);
 		}
 		
 		QSet<QString> supported_actions_set = all_actions.first();
@@ -1217,6 +1230,18 @@ namespace OpenMS
 					if (text == "Open files in TOPPView")
 					{
 						ofv->openInTOPPView();
+					}
+					
+					continue;
+				}
+				
+				TOPPASMergerVertex* mv = dynamic_cast<TOPPASMergerVertex*>(gi);
+				if (mv)
+				{
+					if (text == "Change mode")
+					{
+						mv->setRoundBasedMode(!mv->roundBasedMode());
+						mv->update(mv->boundingRect());
 					}
 					
 					continue;

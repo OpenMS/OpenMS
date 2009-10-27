@@ -123,6 +123,8 @@ namespace OpenMS
 			UInt getID();
 			/// Sets the unique ID for this node
 			void setID(UInt id);
+			/// Sets whether all tools in the subtree below this node are finished
+			void setSubtreeFinished(bool b);
 			/// Returns whether the vertex has been marked already (during topological sort)
 			bool isTopoSortMarked();
 			/// (Un)marks the vertex (during topological sort)
@@ -131,6 +133,16 @@ namespace OpenMS
 			UInt getTopoNr();
 			/// Sets the topological sort number (overridden in tool and output vertices)
 			virtual void setTopoNr(UInt nr);
+			/// Propagates downwards that a running merging process has finished (all rounds complete)
+			virtual void propagateDownwardsMergeComplete();
+			/// Propagates upwards that the tools in the subtree below this node have finished
+			virtual void propagateUpwardsSubtreeFinished();
+			/// Resets the status
+			virtual void reset(bool reset_all_files = false);
+			/// Returns whether all tools in the subtree below this node are finished
+			virtual bool isSubtreeFinished();
+			/// Resets the whole subtree below this node
+			void resetSubtree(bool including_this_node = true);
 		
 		public slots:
 		
@@ -176,6 +188,8 @@ namespace OpenMS
 			bool topo_sort_marked_;
 			/// The number in a topological sort of the entire graph
 			UInt topo_nr_;
+			/// Indicates whether all tools in the subtree below this node are finished
+			bool subtree_finished_;
 			
 			///@name reimplemented Qt events
       //@{

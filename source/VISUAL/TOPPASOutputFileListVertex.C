@@ -128,26 +128,26 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASOutputFileListVertex::finished()
+	void TOPPASOutputFileListVertex::finish()
 	{
-		createDirs();
-		
 		// copy tmp files to output dir
+		
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
-		const QVector<QStringList>& output_files = tv->getOutputFileNames();
+		const QVector<QStringList>& output_files = tv->getCurrentOutputFileNames();
 		int param_index = e->getSourceOutParam();
 		const QStringList& tmp_file_names = output_files[param_index];
 		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
+		createDirs();
 		files_.clear();
+
 		if (!tmp_file_names.isEmpty())
 		{
-			QString dir = File::path(tmp_file_names.first()).toQString();
-			QStringList files = QDir(dir).entryList(QDir::Files | QDir::NoDotAndDotDot);
-			foreach (const QString& relative_f, files)
+			//QString dir = File::path(tmp_file_names.first()).toQString();
+			//QStringList files = QDir(dir).entryList(QDir::Files | QDir::NoDotAndDotDot);
+			foreach (const QString& f, tmp_file_names)
 			{
-				QString f = dir + QDir::separator() + relative_f;
 				if (!File::exists(f))
 				{
 					std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
@@ -182,6 +182,7 @@ namespace OpenMS
 		}
 		
 		finished_ = true;
+		propagateUpwardsSubtreeFinished();
 		emit iAmDone();
 	}
 	
@@ -228,10 +229,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::setTopoNr(UInt nr)
 	{
-		if (topo_nr_ != nr)
-		{
-			topo_nr_ = nr;
-		}
+		topo_nr_ = nr;
 	}
 }
 
