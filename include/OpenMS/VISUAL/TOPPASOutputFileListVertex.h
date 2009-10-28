@@ -59,8 +59,8 @@ namespace OpenMS
 			virtual QRectF boundingRect() const;
 			// documented in base class
 			virtual QPainterPath shape () const;
-			/// Starts the workflow ending in this node
-			void startComputation();
+			// documented in base class
+			virtual void reset(bool reset_all_files = false);
 			/// Called when the parent node has finished execution
 			void finish();
 			/// Returns whether we are finished

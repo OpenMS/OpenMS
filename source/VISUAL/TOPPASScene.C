@@ -418,11 +418,11 @@ namespace OpenMS
 		// start recursive execution at every output node
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
-			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-			if (oflv)
+			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+			if (iflv)
 			{
 				running_ = true;
-				oflv->startComputation();
+				iflv->startPipeline();
 			}
 		}
 	}

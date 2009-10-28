@@ -35,7 +35,6 @@ namespace OpenMS
 {
 	TOPPASMergerVertex::TOPPASMergerVertex()
 		:	TOPPASVertex(),
-			started_here_(false),
 			round_based_mode_(true),
 			merge_complete_(false),
 			merge_counter_(0)
@@ -46,7 +45,6 @@ namespace OpenMS
 	
 	TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs)
 		:	TOPPASVertex(rhs),
-			started_here_(rhs.started_here_),
 			round_based_mode_(rhs.round_based_mode_),
 			merge_complete_(rhs.merge_complete_),
 			merge_counter_(rhs.merge_counter_)
@@ -63,7 +61,6 @@ namespace OpenMS
 	TOPPASMergerVertex& TOPPASMergerVertex::operator= (const TOPPASMergerVertex& rhs)
 	{
 		TOPPASVertex::operator=(rhs);
-		started_here_ = rhs.started_here_;
 		round_based_mode_ = rhs.round_based_mode_;
 		merge_complete_ = rhs.merge_complete_;
 		merge_counter_ = rhs.merge_counter_;
@@ -123,7 +120,7 @@ namespace OpenMS
 				}
 				else
 				{
-					out_files << source_merger->getAllIncomingFiles_();
+					out_files << source_merger->getAllCollectedFiles_();
 				}
 				continue;
 			}
@@ -132,7 +129,7 @@ namespace OpenMS
 		return out_files;
 	}
 	
-	QStringList TOPPASMergerVertex::getAllIncomingFiles_()
+	QStringList TOPPASMergerVertex::getAllCollectedFiles_()
 	{
 		QStringList out_files;
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
@@ -157,7 +154,7 @@ namespace OpenMS
 			TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
 			if (source_merger)
 			{
-				out_files << source_merger->getAllIncomingFiles_();
+				out_files << source_merger->getAllCollectedFiles_();
 				continue;
 			}
 		}
@@ -183,39 +180,6 @@ namespace OpenMS
 			}
 		}
 		return true;
-	}
-
-	void TOPPASMergerVertex::runRecursively()
-	{
-	 if (started_here_)
-    {
-      // make sure pipelines are not run multiple times
-      return;
-    }
-    bool we_have_dependencies = false;
-    // recursive execution of all parent nodes that are tools/mergers
-    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-    {
-			TOPPASVertex* source = (*it)->getSourceVertex();
-      TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(source);
-	    if (tv)
-	    {
-	      we_have_dependencies = true;
-	      tv->runRecursively();
-	    }
-			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(source);
-			if (mv)
-			{
-				we_have_dependencies = true;
-				mv->runRecursively();
-			}
-	  }
-	  if (!we_have_dependencies)
-	  {
-	    // start actual pipeline execution here
-	    started_here_ = true;
-	    forwardPipelineExecution();
-	  }
 	}
 
 	void TOPPASMergerVertex::forwardPipelineExecution()
@@ -404,7 +368,6 @@ namespace OpenMS
 	void TOPPASMergerVertex::reset(bool /*reset_all_files*/)
 	{
 		TOPPASVertex::reset();
-		started_here_ = false;
 		merge_complete_ = false;
 		merge_counter_ = 0;
 	}

@@ -41,16 +41,13 @@
 #include <QtGui/QImage>
 
 namespace OpenMS
-{
-	QImage TOPPASToolVertex::symbol_image_ = QImage(":/circle_arrow.png");
-	
+{	
 	TOPPASToolVertex::TOPPASToolVertex()
 		:	TOPPASVertex(),
 			name_(),
 			type_(),
 			param_(),
 			finished_(false),
-			started_here_(false),
 			progress_color_(Qt::gray),
 			iteration_nr_(0),
 			input_list_length_(1)
@@ -71,7 +68,6 @@ namespace OpenMS
 			tmp_path_(tmp_path),
 			param_(),
 			finished_(false),
-			started_here_(false),
 			progress_color_(Qt::gray),
 			iteration_nr_(0),
 			input_list_length_(1)
@@ -92,7 +88,6 @@ namespace OpenMS
 			tmp_path_(rhs.tmp_path_),
 			param_(rhs.param_),
 			finished_(rhs.finished_),
-			started_here_(rhs.started_here_),
 			progress_color_(rhs.progress_color_),
 			iteration_nr_(rhs.iteration_nr_),
 			input_list_length_(rhs.input_list_length_)
@@ -119,7 +114,6 @@ namespace OpenMS
 		type_ = rhs.type_;
 		tmp_path_ = rhs.tmp_path_;
 		finished_ = rhs.finished_;
-		started_here_ = rhs.started_here_;
 		progress_color_ = rhs.progress_color_;
 		iteration_nr_ = rhs.iteration_nr_;
 		input_list_length_ = rhs.input_list_length_;
@@ -341,16 +335,6 @@ namespace OpenMS
 		painter->setBrush(progress_color_);
 		painter->drawEllipse(45,-52, 14, 14);
 		
-//		//list mode symbol
-//		if (list_mode_)
-//		{
-//			qreal symbol_width = 20.0;
-//			qreal x_pos = -63.0;
-//			qreal y_pos = -54.0;
-//			QRectF symbol_rect(QPointF(x_pos, y_pos), QSizeF(symbol_width, symbol_width));
-//			painter->drawImage(symbol_rect, symbol_image_);
-//		}
-		
 		//topo sort number
 		qreal x_pos = -62.0;
 		qreal y_pos = 48.0; 
@@ -377,41 +361,6 @@ namespace OpenMS
 	const String& TOPPASToolVertex::getType()
 	{
 		return type_;
-	}
-	
-	void TOPPASToolVertex::runRecursively()
-	{
-		if (started_here_)
-		{
-			// make sure pipelines are not run multiple times
-			return;
-		}
-		
-		bool we_have_dependencies = false;
-		// recursive execution of all parent nodes that are tools
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
-			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
-			if (ttv)
-			{
-				we_have_dependencies = true;
-				ttv->runRecursively();
-				continue;
-			}
-			TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>(tv);
-			if (tmv)
-			{
-				we_have_dependencies = true;
-				tmv->runRecursively();
-			}
-		}
-		if (!we_have_dependencies)
-		{
-			// start actual pipeline execution here
-			started_here_ = true;
-			runToolIfInputReady();
-		}
 	}
 	
 	void TOPPASToolVertex::runToolIfInputReady()
@@ -804,11 +753,6 @@ namespace OpenMS
 			}
 		}
 	}
-	
-	void TOPPASToolVertex::setStartedHere(bool b)
-	{
-		started_here_ = b;
-	}
 
 	void TOPPASToolVertex::forwardTOPPOutput()
 	{
@@ -858,15 +802,8 @@ namespace OpenMS
 
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
-		// something has changed --> remove invalidated tmp files, if existent
-		QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-		if (File::exists(remove_dir))
-		{
-			removeDirRecursively_(remove_dir);
-		}
-		
-		progress_color_ = Qt::gray;
-		update(boundingRect());
+		// something has changed --> tmp files might be invalid --> reset
+		reset(true);
 		
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -926,17 +863,9 @@ namespace OpenMS
 	{
 		if (topo_nr_ != nr)
 		{
+			// topological number changes --> output dir changes --> reset
+			reset(true);
 			topo_nr_ = nr;
-			
-			// topological number changed --> remove invalidated tmp files, if existent
-			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
-			if (File::exists(remove_dir))
-			{
-				removeDirRecursively_(remove_dir);
-			}
-			setProgressColor(Qt::gray);
-			update(boundingRect());
-			
 			emit somethingHasChanged();
 		}
 	}
@@ -945,7 +874,6 @@ namespace OpenMS
 	{
 		TOPPASVertex::reset();
 		finished_ = false;
-		started_here_ = false;
 		current_output_files_.clear();
 		progress_color_ = Qt::gray;
 		update(boundingRect());
@@ -953,6 +881,11 @@ namespace OpenMS
 		if (reset_all_files)
 		{
 			all_written_output_files_.clear();
+			QString remove_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir() + QDir::separator() + getOutputDir().toQString();
+			if (File::exists(remove_dir))
+			{
+				removeDirRecursively_(remove_dir);
+			}
 		}
 	}
 	

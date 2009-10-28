@@ -56,6 +56,8 @@ namespace OpenMS
 			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
 			/// Returns the list of files
 			const QStringList& getFilenames();
+			/// Starts all tools below this node
+			void startPipeline();
 			// documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class

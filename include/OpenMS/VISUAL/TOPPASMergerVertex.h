@@ -54,8 +54,6 @@ namespace OpenMS
 			TOPPASMergerVertex& operator= (const TOPPASMergerVertex& rhs);
 			/// Returns the current list of output files
 			QStringList getCurrentOutputList();
-			/// Starts the pipeline execution recursively	
-			void runRecursively();
 			/// Forwards the pipeline execution downstream
 			void forwardPipelineExecution();
 			/// Determines whether all inputs are ready
@@ -85,8 +83,6 @@ namespace OpenMS
 			
 		protected:
 
-			/// Stores whether the currently running pipeline has already been started at this vertex
-			bool started_here_;
 			/// Stores whether this merger is merging round based or merging all inputs into one list
 			bool round_based_mode_;
 			/// Stores whether all merge rounds have been performed
@@ -103,8 +99,8 @@ namespace OpenMS
 			int minInputListLength_();
 			/// Returns the number of iterations we have to perform
 			int numIterations_();
-			/// Returns the list of all written output files of the parents
-			QStringList getAllIncomingFiles_();
+			/// Returns the list of all written output files (during the entire pipeline execution) of the parents
+			QStringList getAllCollectedFiles_();
 
 			
 	};

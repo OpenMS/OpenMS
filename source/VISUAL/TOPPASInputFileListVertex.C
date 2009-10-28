@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -142,6 +144,26 @@ namespace OpenMS
 		QProcess* p = new QProcess();
 		p->setProcessChannelMode(QProcess::ForwardedChannels);
 		p->start("TOPPView", files_);
+	}
+	
+	void TOPPASInputFileListVertex::startPipeline()
+	{
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+			if (ttv)
+			{
+				ttv->runToolIfInputReady();
+				continue;
+			}
+			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
+			if (mv)
+			{
+				mv->forwardPipelineExecution();
+				continue;
+			}
+		}
 	}
 	
 }

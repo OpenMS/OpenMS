@@ -109,25 +109,6 @@ namespace OpenMS
 		return shape;
 	}
 	
-	void TOPPASOutputFileListVertex::startComputation()
-	{
-		finished_ = false;
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
-			if (ttv)
-			{
-				ttv->runRecursively();
-				continue;
-			}
-			TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>((*it)->getSourceVertex());
-			if (tmv)
-			{
-				tmv->runRecursively();
-			}
-		}
-	}
-	
 	void TOPPASOutputFileListVertex::finish()
 	{
 		// copy tmp files to output dir
@@ -140,7 +121,6 @@ namespace OpenMS
 		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
 		createDirs();
-		files_.clear();
 
 		if (!tmp_file_names.isEmpty())
 		{
@@ -188,7 +168,7 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()
 	{
-		files_.clear();
+		reset(true);
 		qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -229,7 +209,24 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::setTopoNr(UInt nr)
 	{
-		topo_nr_ = nr;
+		if (topo_nr_ != nr)
+		{
+			// topological number changes --> output dir changes --> reset
+			reset(true);
+			topo_nr_ = nr;
+		}
+	}
+	
+	void TOPPASOutputFileListVertex::reset(bool reset_all_files)
+	{
+		TOPPASVertex::reset();
+		finished_ = false;
+		
+		if (reset_all_files)
+		{
+			files_.clear();
+			// do not actually delete the output files here
+		}
 	}
 }
 
