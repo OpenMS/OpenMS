@@ -66,6 +66,8 @@
 #include <QtGui/QLabel>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
+#include <QtCore/QSet>
+#include <QtCore/QMap>
 
 using namespace std;
 
@@ -154,6 +156,69 @@ namespace OpenMS
     //tool_bar_ = addToolBar("Basic tool bar");
     //tool_bar_->show();
 
+		//################## DEFAULTS #################
+    //general
+   	defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
+		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
+		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
+		
+		//tool categories
+		defaults_.setValue("tool_categories:AdditiveSeries", "Quantitation");
+		defaults_.setValue("tool_categories:BaselineFilter", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:ConsensusID", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:DBExporter", "File Handling");
+		defaults_.setValue("tool_categories:DBImporter", "File Handling");
+		defaults_.setValue("tool_categories:DTAExtractor", "File Handling");
+		defaults_.setValue("tool_categories:Decharger", "Quantitation");
+		defaults_.setValue("tool_categories:FalseDiscoveryRate", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:FeatureFinder", "Quantitation");
+		defaults_.setValue("tool_categories:FeatureLinker", "Quantitation");
+		defaults_.setValue("tool_categories:FileConverter", "File Handling");
+		defaults_.setValue("tool_categories:FileFilter", "File Handling");
+		defaults_.setValue("tool_categories:FileInfo", "File Handling");
+		defaults_.setValue("tool_categories:FileMerger", "File Handling");
+		defaults_.setValue("tool_categories:IDDecoyProbability", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:IDFileConverter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:IDFilter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:IDMapper", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:IDMerger", "File Handling");
+		defaults_.setValue("tool_categories:IDRTCalibration", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:ITRAQAnalyzer", "Quantitation");
+		defaults_.setValue("tool_categories:InspectAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:InternalCalibration", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:MapAligner", "Quantitation");
+		defaults_.setValue("tool_categories:MapNormalizer", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:MascotAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:MascotAdapterOnline", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:NoiseFilter", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:OMSSAAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:PILISModel", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:PILISIdentification", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:PTModel", "Peptide property prediction");
+		defaults_.setValue("tool_categories:PTPredict", "Peptide property prediction");
+		defaults_.setValue("tool_categories:PeakPicker", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:PepNovoAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:RTModel", "Peptide property prediction");
+		defaults_.setValue("tool_categories:RTPredict", "Peptide property prediction");
+		defaults_.setValue("tool_categories:Resampler", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:SILACAnalyzer", "Quantitation");
+		defaults_.setValue("tool_categories:SequestAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:SpectraFilter", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:SpecLibSearcher", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:TOFCalibration", "Signal processing and preprocessing");
+		defaults_.setValue("tool_categories:TextExporter", "File Handling");
+		defaults_.setValue("tool_categories:TextImporter", "File Handling");
+		defaults_.setValue("tool_categories:XTandemAdapter", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:PrecursorIonSelector", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:PeptideIndexer", "Protein/peptide Identification");
+		defaults_.setValue("tool_categories:CompNovo", "Protein/peptide Identification");
+		
+  	defaultsToParam_();
+
+  	//load param file
+    loadPreferences();
+
 		//################## Dock widgets #################
     
     //TOPP tools window
@@ -163,7 +228,7 @@ namespace OpenMS
     tools_tree_view_->setWhatsThis("TOPP tools list<BR><BR>All available TOPP tools are shown here.");
     tools_tree_view_->setColumnCount(1);
   	QStringList header_labels;
-  	header_labels.append(QString("Tool"));
+  	header_labels.append(QString("TOPP tools"));
   	tools_tree_view_->setHeaderLabels(header_labels);
     topp_tools_bar->setWidget(tools_tree_view_);
     
@@ -177,13 +242,41 @@ namespace OpenMS
     item->setText(0, "<Merger>");
     tools_tree_view_->addTopLevelItem(item);
     
+    Param category_param = param_.copy("tool_categories:", true);
+    
+    QSet<QString> category_set;
+    for (Param::ParamIterator it = category_param.begin(); it != category_param.end(); ++it)
+    {
+    	category_set << String(it->value).toQString();
+    }
+    
+    Map<QString,QTreeWidgetItem*> category_map;
+    
+    foreach (const QString& category, category_set)
+    {
+    	item = new QTreeWidgetItem((QTreeWidget*)0);
+    	item->setText(0, category);
+    	tools_tree_view_->addTopLevelItem(item);
+    	category_map[category] = item;
+    }
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+		item->setText(0, "Misc");
+		tools_tree_view_->addTopLevelItem(item);
+		category_map["Misc"] = item;
+    
     Map<String,StringList> tools_list = TOPPBase::getToolList();
     QTreeWidgetItem* parent_item;
     for (Map<String,StringList>::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-    	item = new QTreeWidgetItem((QTreeWidget*)0);
+    	if (category_param.exists(it->first))
+    	{
+    		item = new QTreeWidgetItem(category_map[String(category_param.getValue(it->first)).toQString()]);
+    	}
+    	else
+    	{
+    		item = new QTreeWidgetItem(category_map["Misc"]);
+    	}
     	item->setText(0, it->first.toQString());
-    	tools_tree_view_->addTopLevelItem(item);
    		parent_item = item;
    		StringList types = it->second;
    		for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
@@ -192,6 +285,13 @@ namespace OpenMS
    			item->setText(0, types_it->toQString());
    		}
     }
+    
+    if (category_map["Misc"]->childCount() == 0)
+    {
+    	int index = tools_tree_view_->indexOfTopLevelItem(category_map["Misc"]);
+    	tools_tree_view_->takeTopLevelItem(index);
+    }
+    
     tools_tree_view_->resizeColumnToContents(0);
     
 		windows->addAction(topp_tools_bar->toggleViewAction());
@@ -212,17 +312,6 @@ namespace OpenMS
 		log_bar->hide();
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
 		windows->addAction(log_bar->toggleViewAction());
-		//################## DEFAULTS #################
-    //general
-   	defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
-		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-		
-  	defaultsToParam_();
-
-  	//load param file
-    loadPreferences();
 		
 		//set current path
 		current_path_ = param_.getValue("preferences:default_path");
@@ -600,10 +689,12 @@ namespace OpenMS
 		//set version
 		param_.setValue("preferences:version",VersionInfo::getVersion());
 
-    //save only the subsection that begins with "preferences:"
+    Param save_param = param_.copy("preferences:");
+    save_param.insert("",param_.copy("tool_categories:"));
+    
     try
     {
-      param_.copy("preferences:").store(string(param_.getValue("PreferencesFile")));
+      save_param.store(string(param_.getValue("PreferencesFile")));
     }
     catch(Exception::UnableToCreateFile& /*e*/)
     {
@@ -750,11 +841,11 @@ namespace OpenMS
 		{	
 			if (current_tool->childCount() > 0)
 			{
-				// tool has types, but tool name is selected (instead of type)
+				// category or tool name with types is selected (instead of a concrete type)
 				return;
 			}
 			String tool_type;
-			if (current_tool->parent() != 0)
+			if (current_tool->parent() != 0 && current_tool->parent()->parent() != 0)
 			{
 				// selected item is a type
 				tool_type = String(current_tool->text(0));

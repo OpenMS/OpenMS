@@ -75,7 +75,7 @@ namespace OpenMS
 		}
 		if (currentItem() && currentItem()->childCount() > 0)
 		{
-			// drag item is a tool with types - one of the types must be selected
+			// drag item is a category or a tool with types - one of the types must be selected
 			return;
 		}
 	
