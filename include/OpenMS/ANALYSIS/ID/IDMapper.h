@@ -125,8 +125,8 @@ namespace OpenMS
 			/**
 				@brief Mapping method for feature maps
 
-		 		If @em all features have at least one convex hull, the identification are mapped to the contex hull.
-		 		If not, the allowed m/z and RT deviation from the feature centroid position is checked.
+		 		If @em all features have at least one convex hull, the identification are mapped to the convex hull.
+		 		If not, the allowed m/z and RT deviation from the feature centroid (RT,MZ) position is checked.
 		
 			  If several features lie inside the allowed deviation, the peptide identifications
 			  are mapped to all the features.
@@ -134,7 +134,7 @@ namespace OpenMS
 				@param map FeatureMap to receive the identifications
 			  @param ids PeptideIdentification for the ConsensusFeatures
 			  @param protein_ids ProteinIdentification for the ConsensusMap
-			  @param use_centroids If @em true, the feature centoids are used, even if convex hulls are present
+			  @param use_centroids If @em true, the feature centroids (RT,MZ position) are used, even if convex hulls are present
 			
 				@exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
 			*/
@@ -147,7 +147,7 @@ namespace OpenMS
 				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
 				//check if all feature have at least one convex hull
-				//if not, use the controid and the given deltas
+				//if not, use the centroid and the given deltas
 				if (!use_centroids)
 				{
 					for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)

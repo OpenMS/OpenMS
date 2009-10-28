@@ -84,6 +84,8 @@ class TOPPIDMapper
 			setMinFloat_("rt_delta",0.0);
 			registerDoubleOption_("mz_delta","<value>",mapper.getMZDelta(), "Maximum allowed m/z deviation between identification and peak/feature.", false);
 			setMinFloat_("mz_delta",0.0);
+			registerFlag_("use_centroids","[FeatureMap only] use RT&MZ coordinate instead of convex hull");
+			registerFlag_("use_subelements","[ConsensusMap only] use RT&MZ coordinate of sub-features instead of consensus RT&MZ");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -116,7 +118,9 @@ class TOPPIDMapper
 				ConsensusMap map;
 				file.load(in,map);
 				
-				mapper.annotate(map,peptide_ids,protein_ids);
+				bool measure_from_subelements=getFlag_("use_subelements");
+				
+				mapper.annotate(map,peptide_ids,protein_ids,measure_from_subelements);
 				
 				//annotate output with data processing info
 				addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
@@ -132,8 +136,10 @@ class TOPPIDMapper
 				FeatureMap<> map;
 				FeatureXMLFile file;
 				file.load(in,map);
+
+				bool measure_from_centroids=getFlag_("use_centroids");
 				
-				mapper.annotate(map,peptide_ids,protein_ids);
+				mapper.annotate(map,peptide_ids,protein_ids,measure_from_centroids);
 				
 				//annotate output with data processing info
 				addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
