@@ -48,19 +48,19 @@ UniqueIdInterface::setUniqueId(const String & rhs)
     }
   }
   // For the next line to be correct in case rhs contains no '_', it is necessary that npos+1==0;
-  std::stringstream ss(rhs.substr(last_underscore + 1));
-  ss >> std::noskipws >> unique_id_;
-  // parsing successful?
-  if ( !ss )
-  {
-    clearUniqueId();
-  }
+	String s=rhs.substr(last_underscore + 1);
 
-  // See if any trash remains at end
-  if ( !ss.eof() )
-  {
-    clearUniqueId();
+	for (String::const_iterator s_i=s.begin();s_i<s.end();++s_i)
+	{
+		int i = (*s_i -'0');
+		if (i<0 || i>9) 
+		{
+			clearUniqueId();
+			return;
+		}
+    unique_id_ = 10*unique_id_ + i;
   }
+	
 }
 
 }
