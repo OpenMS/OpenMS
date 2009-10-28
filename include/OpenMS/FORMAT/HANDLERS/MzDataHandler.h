@@ -1051,6 +1051,11 @@ namespace OpenMS
 						{
 							os << "continuous";
 						}
+						else
+						{
+							warning(STORE, "Spectrum type is unknown, assuming 'discrete'");
+							os << "discrete";
+						}
 	
 						os << "\" methodOfCombination=\"" << spec.getAcquisitionInfo().getMethodOfCombination() << "\""
 						   << " count=\"" << spec.getAcquisitionInfo().size() << "\">\n";
