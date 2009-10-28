@@ -123,13 +123,14 @@ namespace OpenMS
 
 		void writeXMLEscape(const String& to_escape, ostream& os)
 		{
-			const XMLCh* xmlch = xercesc::XMLString::transcode(to_escape.c_str());
+			XMLCh* xmlch = xercesc::XMLString::transcode(to_escape.c_str());
 
 			std::string out;
     	OpenMSXMLFormatTarget ft(out);
     	xercesc::XMLFormatter f("UTF-8", /* XMLUni::fgVersion1_1 */ "1.1", &ft);
   	  f << xercesc::XMLFormatter::StdEscapes << xmlch;
 			os << out;
+			xercesc::XMLString::release(&xmlch);
 			return;
 
 		}
