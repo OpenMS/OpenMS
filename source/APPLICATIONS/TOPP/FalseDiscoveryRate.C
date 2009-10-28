@@ -72,7 +72,8 @@ class TOPPFalseDiscoveryRate
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence databse", false);
+			addText_("Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input:");
+			registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
 			setValidFormats_("in", StringList::create("idXML"));
 			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward", false);
 			setValidFormats_("fwd_in", StringList::create("idXML"));
@@ -80,7 +81,7 @@ class TOPPFalseDiscoveryRate
 			setValidFormats_("rev_in", StringList::create("idXML"));
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
 			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
-			registerFlag_("peptides_only", "if set, the FDR of the peptides only is caluclated");
+			registerFlag_("peptides_only", "if set, the FDR of the peptides only is calculated");
 			registerFlag_("q_value", "if set, the q-values will be calculated instead of the FDRs");
 		
 			addEmptyLine_();		

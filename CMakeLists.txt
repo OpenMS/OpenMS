@@ -80,7 +80,6 @@ elseif (MSVC)
 
 	## disable explicit template instantiation request for partially defined classes
 	add_definitions(/wd4661)
-
 	
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
@@ -92,14 +91,14 @@ elseif (MSVC)
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
 	
-	## compile such that GSL is in DLL mode
+	## removed: (GSL is static now) compile such that GSL is in DLL mode 
 	#add_definitions(/DGSL_DLL)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	add_definitions(/bigobj)
 	
 	## minimal code rebuild
-	#add_definitions(/Gm /Zi)
+	add_definitions(/Gm /Zi)
 
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
@@ -230,7 +229,8 @@ set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib pat
 
 if ("${CONTRIB_CUSTOM_DIR}" STREQUAL "")
 	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
-  message(STATUS "If you want to set your own path to contrib use -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\"")
+  message(STATUS "If you want to set your own path to contrib use:")
+	message(STATUS "   cmake <..more options..> -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\" \"${PROJECT_SOURCE_DIR}\"")
 else()
 	set(CONTRIB_DIR ${CONTRIB_CUSTOM_DIR})
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")

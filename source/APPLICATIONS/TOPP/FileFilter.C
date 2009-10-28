@@ -104,7 +104,7 @@ class TOPPFileFilter
       
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
-			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
+			registerIntList_("level","\"i,j,...\"",IntList::create("1,2,3"),"MS levels to extract", false);
       registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 			registerFlag_("no_chromatograms", "Skip conversion e.g. from SRM scans into real chromatograms (creates huge files).");
 			registerFlag_("remove_chromatograms", "Removes chromatograms stored in an file.");

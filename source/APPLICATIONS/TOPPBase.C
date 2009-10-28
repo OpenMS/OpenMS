@@ -688,7 +688,7 @@ namespace OpenMS
 						String tmp = it->default_value.toString();
 						if (tmp!="" && tmp!="[]")
 						{
-							addons.push_back(String("default: '") + tmp + "'");
+							addons.push_back(String("default: \"") + tmp + "\"");
 						}
 					}
 					break;
@@ -714,7 +714,7 @@ namespace OpenMS
 						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
 								it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST) add = " formats";
 
-						addons.push_back(String("valid") + add + ": '" + tmp + "'");
+						addons.push_back(String("valid") + add + ": \"" + tmp + "\"");
 					}
 					break;
 				case ParameterInformation::INT:
@@ -783,7 +783,7 @@ namespace OpenMS
 
 		if (subsections_.size()!=0)
 		{
-			//determin indentation of description
+			//determine indentation of description
 			UInt indent = 0;
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
@@ -1064,7 +1064,7 @@ namespace OpenMS
 					{
 						String valid_strings = "";
 						valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
-						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter \"" + name + "\" given. Valid strings are: \"" + valid_strings + "\".");
 					}
 				}
 				else if (p.type==ParameterInformation::INPUT_FILE)
