@@ -26,14 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
-
-#include <gsl/gsl_fit.h>
-
-#include <iostream>
-#include <algorithm>
-
 
 using namespace std;
 
