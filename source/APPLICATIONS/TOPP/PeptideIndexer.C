@@ -34,7 +34,6 @@
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 
-
 using namespace OpenMS;
 using namespace std;
 
@@ -109,8 +108,8 @@ class TOPPPeptideIndexer
 			// build map accessions to proteins
 			Map<String, vector<Size> > acc_to_prot;
 			Size pos = 0;
-			Map<Size, Size> idx_to_protein; // stores the the begin indices the the 'all_protein_sequences' string the corresponding protein indices (proteins vector)
-			vector<Size> protein_idx_vector; // contains all being indices of the proteins in the 'all_protein_sequences' string
+			Map<Size, Size> idx_to_protein; // stores the begin indices of the 'all_protein_sequences' string and the corresponding protein indices (proteins vector)
+			vector<Size> protein_idx_vector; // contains all begin indices of the proteins in the 'all_protein_sequences' string
 			for (Size i = 0; i != proteins.size(); ++i)
 			{
 				protein_idx_vector.push_back(pos);
@@ -121,7 +120,7 @@ class TOPPPeptideIndexer
 				String acc = proteins[i].identifier;
 				if (acc_to_prot.has(acc))
 				{
-					cerr << "PeptideIndexer: error, identifiers of proteins should by unique to a database, identifier '" << acc << "' found multiply." << endl;
+					writeLog_(String("PeptideIndexer: error, identifiers of proteins should by unique to a database, identifier '") + acc + String("' found multiply."));
 				}
 				acc_to_prot[acc].push_back(i);
 			}
@@ -147,7 +146,7 @@ class TOPPPeptideIndexer
 
 					for (Size i = hits.i1; i < hits.i2; ++i)
 					{
-						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), suffix_array[i]);
+						vector<Size>::const_iterator lower_bound_iter = lower_bound(protein_idx_vector.begin(), protein_idx_vector.end(), suffix_array[i]) - 1;
 						Size prot_idx = idx_to_protein[*lower_bound_iter];
 						it2->addProteinAccession(proteins[prot_idx].identifier);
 
