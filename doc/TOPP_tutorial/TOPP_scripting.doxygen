@@ -755,17 +755,18 @@ TextExporter -in infile.idXML -out outfile.txt
 		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter. The default mode accepts comma separated values
 		containing the following columns: RT, m/z, intensity. Additionally meta data columns may follow. If meta data is used, meta data column names have to be specified in a header line.
 		Without headers:
-		@code
+		@verbatim
 1201	503.123	1435000
 1201	1006.246	1235200
-		@endcode
+		@endverbatim
 		Or with headers:
-		@code
+		@verbatim
 RT	m/z	Int	isHeavy	myMeta
 1201	503.123	1435000	true	2
 1201	1006.246	1235200	maybe	1
-		@endcode
-
+		@endverbatim
+		
+Example invocation:
 		@code
 TextImporter -in infile.txt -out outfile.featureXML
 		@endcode

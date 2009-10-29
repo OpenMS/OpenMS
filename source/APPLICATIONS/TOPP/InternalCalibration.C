@@ -80,7 +80,7 @@ class TOPPInternalCalibration
 		 registerOutputFile_("out","<file>","","output file ");
 	   setValidFormats_("out",StringList::create("mzML"));
 		 registerInputFile_("ref_peaks","<file>","","input file containing reference m/z values (either as textfile with one m/z per line and no header or as IdXML file)",true);
-		 registerStringOption_("type","<calibration type>","spectrumwise","The kind of internal calibration that should be applied.");
+		 registerStringOption_("type","<calibration type>","spectrumwise","The kind of internal calibration that should be applied.", false);
 	   setValidStrings_("type",StringList::create("spectrumwise,global"));
 		 addEmptyLine_();
 		 addEmptyLine_();
