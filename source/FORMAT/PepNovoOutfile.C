@@ -59,8 +59,8 @@ namespace OpenMS
 		const string& result_filename,
 		vector< PeptideIdentification >&	peptide_identifications,
 		ProteinIdentification& protein_identification,
-		const Real& p_value_threshold,
-		const map< String, Real >& dta_filenames_and_precursor_retention_times)
+		const Real& score_threshold,
+		const map< String, Real >& rt_and_index)
 	{
 		// generally used variables
 		vector< String > substrings;
@@ -92,8 +92,8 @@ namespace OpenMS
 
 		UInt line_number(0); // used to report in which line an error occured
 
-		score_type = "PepNovo2";
-		version = "v2.00";
+		score_type = "PepNovo3";
+		version = "v3.00";
 
 		if ( protein_identification.getSearchEngineVersion().empty() )
 		{
@@ -113,11 +113,11 @@ namespace OpenMS
 				if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
 				peptide_identification = PeptideIdentification();
 				
-				filename = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
-				if ( dta_filenames_and_precursor_retention_times.find(filename) != dta_filenames_and_precursor_retention_times.end() ) peptide_identification.setMetaValue("RT",  dta_filenames_and_precursor_retention_times.find(filename)->second);
+				String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
+				if ( rt_and_index.find(index) != rt_and_index.end() ) peptide_identification.setMetaValue("RT",  rt_and_index.find(index)->second);
 				else peptide_identification.setMetaValue("RT", 0);
 				
-				peptide_identification.setSignificanceThreshold(p_value_threshold);
+				peptide_identification.setSignificanceThreshold(score_threshold);
 				peptide_identification.setScoreType(score_type);
 				peptide_identification.setIdentifier(identifier);
 			}
@@ -129,10 +129,10 @@ namespace OpenMS
 					for ( vector< String >::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						if ( (*s_i) == "#Index" ) columns["Index"] = s_i - substrings.begin();
-						else if ( (*s_i) == "Prob" ) columns["Prob"] = s_i - substrings.begin();
-						else if ( (*s_i) == "Score" ) columns["Score"] = s_i - substrings.begin();
-						else if ( (*s_i) == "N-mass" ) columns["N-mass"] = s_i - substrings.begin();
-						else if ( (*s_i) == "C-Mass" ) columns["C-Mass"] = s_i - substrings.begin();
+						else if ( (*s_i) == "RnkScr" ) columns["RnkScr"] = s_i - substrings.begin();
+						else if ( (*s_i) == "PnvScr" ) columns["PnvScr"] = s_i - substrings.begin();
+						else if ( (*s_i) == "N-Gap" ) columns["N-Gap"] = s_i - substrings.begin();
+						else if ( (*s_i) == "C-Gap" ) columns["C-Gap"] = s_i - substrings.begin();
 						else if ( (*s_i) == "[M+H]" ) columns["[M+H]"] = s_i - substrings.begin();
 						else if ( (*s_i) == "Charge" ) columns["Charge"] = s_i - substrings.begin();
 						else if ( (*s_i) == "Sequence" ) columns["Sequence"] = s_i - substrings.begin();
@@ -163,12 +163,15 @@ namespace OpenMS
 							result_file.clear();
 							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 						}
-						if ( 1 - substrings[columns["Prob"]].toFloat() <= p_value_threshold + std::numeric_limits<Real>::epsilon() )
+						if ( 1 - substrings[columns["Prob"]].toFloat() <= score_threshold + std::numeric_limits<Real>::epsilon() )
 						{
 							peptide_hit = PeptideHit();
 							peptide_hit.setCharge(substrings[columns["Charge"]].toInt());
 							peptide_hit.setRank(substrings[columns["Index"]].toInt() + 1);
-							peptide_hit.setScore(substrings[columns["Score"]].toFloat());
+							peptide_hit.setScore(substrings[columns["PnvScr"]].toFloat());
+							peptide_hit.setMetaValue("RnkScr", substrings[columns["RnkScr"]].toFloat());
+							peptide_hit.setMetaValue("N-Gap", substrings[columns["N-Gap"]].toFloat());
+							peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
 							//remove modifications (small characters and anything that's not in the alphabet)
 							sequence_with_mods = substrings[columns["Sequence"]];
 							sequence.clear();
@@ -177,7 +180,6 @@ namespace OpenMS
 								if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
 							}
 							peptide_hit.setSequence(sequence);
-
 							peptide_identification.insertHit(peptide_hit);
 						}
 					}
@@ -185,7 +187,6 @@ namespace OpenMS
 				peptide_identification.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
 			}
 		}
-		
 		if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
 		
 		result_file.close();

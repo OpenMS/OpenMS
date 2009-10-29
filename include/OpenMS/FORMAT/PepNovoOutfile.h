@@ -71,7 +71,7 @@ namespace OpenMS
 				@param result_filename the file to be loaded
 				@param peptide_identifications the peptide identification
 				@param protein_identification the protein identifications
-				@param p_value_threshold the significance level (for the peptide hit scores)
+				@param score_threshold cutoff threshold for the PepNovo score (PnvScr)
 				@param dta_filenames_and_precursor_retention_times retention times
 
 				@throw Exception::FileNotFound is thrown if the result file could not be found
@@ -80,7 +80,7 @@ namespace OpenMS
 				This class serves to read in a PepNovo outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times);
+			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& score_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times);
 
 			/** get the search engine and it's version from a file that is the output of PepNovo run without parameters
 

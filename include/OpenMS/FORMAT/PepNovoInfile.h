@@ -29,6 +29,8 @@
 #define OPENMS_FORMAT_PEPNOVOINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <map>
 
@@ -65,7 +67,7 @@ namespace OpenMS
 					@param filename the file which the input file is stored into
 					@throw Exception::UnableToCreateFile is thrown if the given file could not be created
 			*/
-			String store(const String& filename);
+			void store(const String& filename);
 
 			/** retrieves the name, mass change, affected residues, type and position for all modifications from a string
 					
@@ -76,13 +78,20 @@ namespace OpenMS
 					@throw FileNotReadable is thrown if the given file is not readable
 					@throw ParseError is throw if the given file could not be parsed
 			*/
-			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic);
+			String handlePTMs(const String &modification, const bool variable);
+
+			void setModifications(const StringList &fixed_mods, const StringList &variable_mods);
 
 			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
-			const std::map< String, std::vector< String > >& getModifications() const;
+			///void getModifications(std::vector<Modification>&) const;
+			void getModifications(std::map<String,String>& modification_key_map) const;
 
 		private:
-			std::map< String, std::vector< String > > PTMname_residues_mass_type_;///< the modification names map to the affected residues, the mass change and the type
+			ModificationDefinitionsSet mods_;
+			std::map<String,String>mods_and_keys_;
+			TextFile ptm_file_;
+			void generate_pepnovo_lines();
+
   };
 
 } // namespace OpenMS

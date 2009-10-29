@@ -40,6 +40,10 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <QtCore/QFile>
+#include <QtCore/QDir>
 
 #include <cstdlib>
 #include <vector>
@@ -112,615 +116,286 @@ class TOPPPepNovoAdapter
 
 		void registerOptionsAndFlags_()
 		{
-			addText_("The definitions for the parameters are taken from the site:\n"
-										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerInputFile_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
-					 																			"Note: In mode 'pepnovo_out' a directory with PepNovo results files\n"
-																								"(*.out) is read", false);
-			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
-			                                           "Note: In mode 'pepnovo_in' a PepNovo input file is written.", false);
-			registerFlag_("pepnovo_in", "if this flag is set the PepNovoAdapter will read in mzXML or mzData\n"
-																								"and write an PepNovo input file\n"
-																								"and create dta files from the given mzXML or mzData files");
-			registerFlag_("pepnovo_out", "if this flag is set the PepNovoAdapter will read in PepNovo result files\n"
-																									"and write idXML");
-			registerStringOption_("mz_files", "<file>", "", "when using pepnovo_out the mzXML or mzData files (comma-separated)\n"
-																																							"have to be given to retrieve the retention times", false);
-			registerStringOption_("pepnovo_directory", "<dir>", "", "the PepNovo working directory", false);
-			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
-			registerStringOption_("charges", "[1,3,5]", "", "comma-seperated list of charge states (or ranges).", false);
-			registerStringOption_("model_directory", "<file>", "", "name of the directory where the model files are kept.");
-			registerFlag_("list_models", "show a list of the available models");
-			registerStringOption_("model", "<file>", "", "name of the model that should be used (e.g. tryp_model.txt).");
-			registerStringOption_("cleavage", "<enz>", "Trypsin", "the name of the enzyme used for digestion (currently there's only distinction\nbetween Trypsin and everything else)", false);
-			registerIntOption_("max_number_of_tags", "<num>", -1, "maximal number of tags used (zero means not set).", false);
-			registerStringOption_("dta_list", "<file>", "", "name of the file that holds the names of the dta files (created from the input) to be\nsearched. This name has to be given, if pepnovo_in is used only!", false);
-			registerDoubleOption_("precursor_mass_tolerance", "<tol>", -1 , "the precursor mass tolerance", false);
-			registerDoubleOption_("peak_mass_tolerance", "<tol>", -1, "the peak mass tolerance", false);
-			registerFlag_("list_modifications", "show a list of the available modifications");
-			registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
-																																														"<name>,<type>, e.g.: Deamidation,opt or\n"
-																																														"<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
-																																														"<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
-																																														"Valid values for type are \"fix\" and \"opt\" (default)\n"
-																																														"If you want terminal PTMs, write \"cterm\" or \"nterm\" instead of residues", false);
-			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
-			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
-			registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
-			registerIntOption_("min_sequence_length", "<min>", 3, "minimal number of amino acids in predicted sequence", false);
-			registerIntOption_("max_sequence_length", "<max>", 40, "maximal number of amino acids in predicted sequence", false);
-			registerIntOption_("num_results", "<num>", 20, "the number of possible peptides per scan", false);
-			registerFlag_("keep_dta_files", "If set, the dta-files that were created from the mzXML or mzData files are not removed");
-			registerOutputFile_("pepnovo_output", "<file>", "", "name for the output file of PepNovo (may only be used in a full run)", false);
-			registerInputFile_("pepnovo_input", "<file>", "", "name for the input file of PepNovo (may only be used in a full run)", false);
-			registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
-			registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
-			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
+			registerInputFile_("in", "<file>", "", "input file ");
+			setValidFormats_("in",StringList::create("mzXML"));
+
+			registerOutputFile_("out", "<file>", "", "output file ");
+			setValidFormats_("out",StringList::create("idXML"));
+
+			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true);
+			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
+			registerFlag_("correct_pm", "find optimal precursor mass and charge values.");
+			registerFlag_("use_spectrum_charge", "do not correct charge");
+			registerFlag_("use_spectrum_mz", "do not correct the precursor m/z value that appears in the file.");
+			registerFlag_("no_quality_filter", "do not remove low quality spectra.");
+			registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "the fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
+			registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "the precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
+			registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
+			registerStringOption_("model", "<file>", "CID_IT_TRYP", "name of the model that should be used", false);
+
+			registerStringOption_("digest", "", "TRYPSIN", "enzyme used for digestion (default TRYPSIN)", false);
+			setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
+
+			registerIntOption_("tag_length", "<num>", -1, "returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
+
+			registerIntOption_("num_solutions", "<num>", 20, "number of solutions to be computed", false);
+			setMinInt_("num_solutions",1);
+			setMaxInt_("num_solutions",2000);
+
+			std::vector<String>all_possible_modifications;
+			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
+			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			//setValidStrings_("fixed_modifications", all_possible_modifications);
+			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
+			//setValidStrings_("variable_modifications", all_possible_modifications);
 		}
 
-  UInt MSExperiment2DTAs(MSExperiment<Peak1D>& msexperiment, const String& common_name,	const vector< Int >& charges,	map< String, Real >& dta_filenames_and_precursor_retention_times, bool make_dtas = true)
-		{
-			DTAFile dtafile;
-			String filename;
-			UInt scan_number(0);
-			UInt msms_spectra(0);
-
-			for ( MSExperiment<Peak1D>::Iterator spec_it = msexperiment.begin(); spec_it != msexperiment.end(); ++spec_it )
-			{
-				++scan_number;
-				if ( (spec_it->getMSLevel() == 2) && (!spec_it->empty()) )
-				{
-					++msms_spectra;
-					if ( spec_it->getPrecursors()[0].getCharge() )
-					{
-						filename = common_name + "." + String(scan_number) + "." + String(spec_it->getPrecursors()[0].getCharge()) + ".dta";
-						if ( make_dtas ) dtafile.store(filename, *spec_it);
-						dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
-					}
-					else
-					{
-						for ( vector< Int >::const_iterator i = charges.begin(); i != charges.end(); ++i )
-						{
-							filename = common_name + "." + String(scan_number) + "." + *i + ".dta";
-							// for PepNovo the precursor mass may not be less than the highest peak mass
-							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursors()[0].getMZ() - 1.0) * (*i) +1.0) )
-							{
-								if ( make_dtas )
-								{
-									spec_it->getPrecursors()[0].setCharge(*i);
-									dtafile.store(filename, *spec_it);
-								}
-								dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
-							}
-						}
-						spec_it->getPrecursors()[0].setCharge(0);
-					}
-				}
-			}
-
-			return msms_spectra;
-		}
 
 		ExitCodes main_(int , const char**)
 		{
-			//-------------------------------------------------------------
-			// (1) variables
-			//-------------------------------------------------------------
 
-			// (1.0) variables for running the program
-			PepNovoInfile pepnovo_infile;
-			PepNovoOutfile pepnovo_outfile;
+			// path to the log file
+			String logfile(getStringOption_("log"));
+			String pepnovo_executable(getStringOption_("pepnovo_executable"));
 
-			String
-				logfile,
-				output_filename,
-				input_filename,
-				pepnovo_output_filename,
-				temp_data_directory,
-				string_buffer,
-				pepnovo_directory,
-				dta_list,
-				model,
-				model_directory,
-				modifications_filename,
-				default_model,
-				cleavage,
-				basename,
-				dta_files_common_name,
-				pepnovo_modifications_filename,
-				call,
-				abbreviation_string;
+			//ofstream log;
+			String inputfile_name, outputfile_name, model_directory;
+			PeakMap exp;
 
-			Int
-				max_number_of_tags(0),
-				min_sequence_length(0),
-				max_sequence_length(0),
-				num_results(0);
-
-			UInt
-				msms_spectra_altogether(0),
-				msms_spectra_in_file(0);
-
-			Real
-				p_value(1.0),
-				precursor_mass_tolerance(0.0),
-				peak_mass_tolerance(0.0);
-
-			bool
-				pepnovo_in(false),
-				pepnovo_out(false),
-				keep_dta_files(false),
-				monoisotopic(false),
-				make_dtas(false);
-
-			vector<String>
-				substrings,
-				substrings2,
-				spectra;
-			
-			StringList models;
-
-			FileHandler fh;
-			FileTypes::Type type;
-			MSExperiment<Peak1D> msexperiment;
-			vector< PeptideIdentification > peptide_identifications;
-			ProteinIdentification protein_identification;
-			ContactPerson contact_person;
-			ExitCodes exit_code = EXECUTION_OK;
-
-			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
-			map< String, UInt > files;
-			UInt const
-				exist(1),
-				readable(2),
-				writable(4),
-				delete_afterwards(8);
-
-			vector<Int> charges;
-
-			map<String, Real> dta_filenames_and_precursor_retention_times;
-
-			/*
-				LTQ - linear quadrupole ion trap
-				FT - fourier transformation
-				ORBI - Orbitrap
-			*/
-
-			//-------------------------------------------------------------
-			// (2) parsing and checking parameters
-			//-------------------------------------------------------------
-
-			modifications_filename = getStringOption_("modifications_xml_file");
-
-			if ( getFlag_("list_modifications") )
+			inputfile_name = getStringOption_("in");
+			writeDebug_(String("Input file: ") + inputfile_name, 1);
+			if (inputfile_name == "")
 			{
-				if ( modifications_filename.empty() )
-				{
-					writeLog_("No modifications XML file given. Aborting!");
-					return INPUT_FILE_NOT_FOUND;
-				}
-				if ( !File::readable(modifications_filename) )
-				{
-					writeLog_("Modifications XML file is not readable. Aborting!");
-					return INPUT_FILE_NOT_READABLE;
-				}
-				map< String, pair< String, String > > PTM_informations;
-				try
-				{
-					PTMXMLFile().load(modifications_filename, PTM_informations);
-				}
-				catch ( Exception::ParseError pe )
-				{
-					writeLog_(pe.getMessage());
-					return PARSE_ERROR;
-				}
-
-				// output the information
-				stringstream PTM_info;
-				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
-				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
-				{
-					max_name_length = max(max_name_length, mod_it->first.length());
-					max_composition_length = max(max_composition_length, mod_it->second.first.length());
-					max_amino_acids_length = max(max_amino_acids_length, mod_it->second.second.length());
-				}
-				PTM_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
-				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
-				{
-					PTM_info << mod_it->first << String(max_name_length - mod_it->first.length(), ' ') << "\t" << mod_it->second.first << String(max_composition_length - mod_it->second.first.length(), ' ') << "\t" << mod_it->second.second << String(max_amino_acids_length - mod_it->second.second.length(), ' ') << endl;
-				}
-				std::cout << PTM_info.str() << std::endl;
-
-				return EXECUTION_OK;
-			}
-
-			if ( getFlag_("list_models") )
-			{
-				model_directory = getStringOption_("model_directory");
-				if ( model_directory.empty() )
-				{
-					writeLog_("No model directory given. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-				File::absolutePath(model_directory);
-				model_directory.ensureLastChar('/');
-				if ( File::fileList(model_directory, String("*_config.txt"), models) )
-				{
-					for ( StringList::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
-					{
-						model_it->erase(model_it->length() - strlen("_config.txt"));
-					}
-				}
-				if ( models.empty() )
-				{
-					writeLog_("No models found in the model directory (" + model_directory + "). Aborting!");
-				}
-				else
-				{
-					cout << "Available Models:" << endl;
-					for ( StringList::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
-					{
-						cout << *model_it << endl;
-					}
-				}
-				return EXECUTION_OK;
-			}
-
-			pepnovo_in = getFlag_("pepnovo_in");
-			pepnovo_out = getFlag_("pepnovo_out");
-
-			// a 'normal' pepnovo run corresponds to both pepnovo_in and pepnovo_out set
-			if ( !pepnovo_in && !pepnovo_out ) pepnovo_in = pepnovo_out = true;
-
-			logfile = getStringOption_("log");
-			if ( logfile.empty() )
-			{
-				logfile = "temp.pepnovo.log";
-				files[logfile] = (writable | delete_afterwards);
-			}
-			else files[logfile] = writable;
-
-			string_buffer = getStringOption_("charges");
-			if ( string_buffer.empty() )
-			{
-				writeLog_("No charge states given. Aborting!");
+				writeLog_("No input file specified. Aborting!");
+				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-			else
+
+			outputfile_name = getStringOption_("out");
+			writeDebug_(String("Output file: ") + outputfile_name, 1);
+			if (outputfile_name == "")
 			{
-				Int range_start(0), range_end(0);
-				string_buffer.split(',', substrings);
-				if ( substrings.empty() ) substrings.push_back(string_buffer);
-
-				for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); )
-				{
-					if ( substrings_it->empty() ) substrings.erase(substrings_it);
-					else
-					{
-						substrings_it->split('}', substrings2);
-						if ( substrings2.size() < 2 ) // only one number, no range
-						{
-							if ( (*substrings_it)[substrings_it->length()-1] == '-' ) charges.push_back(-1 * substrings_it->toInt());
-							else charges.push_back(substrings_it->toInt());
-						}
-						else // range of charge states
-						{
-							if ( substrings2.size() > 2 )
-							{
-								writeLog_("Illegal range of charge states given: " + *substrings_it + ". Aborting!");
-								return ILLEGAL_PARAMETERS;
-							}
-
-							if ( substrings2[0][substrings2[0].length()-1] == '-' ) range_start = -1 * substrings2[0].toInt();
-							else range_start = substrings[0].toInt();
-
-							if ( substrings2[1][substrings2[1].length()-1] == '-' ) range_end = -1 * substrings2[1].toInt();
-							else range_end = substrings2[1].toInt();
-
-							for ( Int i = min(range_start, range_end); i <= max(range_start, range_end); ++i )
-							{
-								if ( i ) charges.push_back(i);
-							}
-						}
-						++substrings_it;
-					}
-				}
-
-				if ( charges.empty() )
-				{
-					writeLog_("No charges states given. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-				sort(charges.begin(), charges.end());
-				for ( vector< Int >::iterator i = charges.begin(); i != --charges.end(); )
-				{
-					if ( (*i) == (*(i+1)) ) charges.erase(i+1);
-					else ++i;
-				}
-				for ( vector< Int >::iterator i = charges.begin(); i != charges.end(); ++i )
-				{
-					if ( (*i) < 1 || (*i) > 3 )
-					{
-						writeLog_("Charges states allowed in [1,3] only. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-				}
+				writeLog_("No output file specified. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
 			}
 
-			temp_data_directory = getStringOption_("temp_data_directory");
-			if ( temp_data_directory.empty() )
+			model_directory = getStringOption_("model_directory");
+			writeDebug_(String("model directory: ") + model_directory, 1);
+			if (model_directory == "")
+			{
+				writeLog_("No model directory specified. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			String model_name = getStringOption_("model");
+			writeDebug_(String("model directory: ") + model_name, 1);
+			if (model_name == "")
+			{
+				writeLog_("No model specified. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
+			if(fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
+			{
+				writeLog_("Invalid fragment tolerance");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			DoubleReal pm_tolerance = getDoubleOption_("pm_tolerance");
+			if(pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
+			{
+				writeLog_("Invalid fragment tolerance");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			Int tag_length = getIntOption_("tag_length");
+			if( tag_length!=-1 && (tag_length<3 || tag_length>6))
+			{
+				writeLog_("Invalid fragment tolerance");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			//-------------------------------------------------------------
+			// reading input
+			//-------------------------------------------------------------
+
+			// only load msLevel 2
+			MzXMLFile mzdata_infile;
+			mzdata_infile.getOptions().addMSLevel(2);
+			mzdata_infile.setLogType(log_type_);
+			mzdata_infile.load(inputfile_name, exp);
+
+			// we need to replace the native id with a simple numbering schema, to be able to
+			// map the IDs back to the spectra (RT, and MZ infomration)
+			std::map<String, Real>id_to_rt;
+			Size native_id(1);
+			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+			{
+				id_to_rt[native_id]=it->getRT();
+				it->setNativeID(native_id++);
+			}
+
+			logfile = getStringOption_("log");
+			
+			QString temp_data_directory = getStringOption_("temp_data_directory").c_str();
+			if ( temp_data_directory=="")
 			{
 				writeLog_("No directory for temporary files given. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			File::absolutePath(temp_data_directory);
-			temp_data_directory.ensureLastChar('/');
 
-			string_buffer = getStringOption_("in");
-			if ( string_buffer.empty() )
+			//File::absolutePath(temp_data_directory);
+			//if(!temp_data_directory.  ('/');
+
+			QDir qdir_temp(temp_data_directory);
+			QDir qdir_models_source(model_directory.c_str());
+
+			if(!qdir_temp.exists())
 			{
-				writeLog_("No input file specified. Aborting!");
-				return ILLEGAL_PARAMETERS;
+				writeLog_("The temporary directory does not exist");
+				return INPUT_FILE_NOT_FOUND;
 			}
-			else
+			if(!qdir_temp.exists())
 			{
-				if ( pepnovo_in ) // if pepnovo_in is set, in are the spectra
-				{
-					string_buffer.split(',', spectra);
-					if ( spectra.empty() ) spectra.push_back(string_buffer);
-					for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
-					{
-						files[*spectra_it] = readable;
-					}
-				}
-				else // otherwise the pepnovo output is the input
-				{
-					pepnovo_output_filename = string_buffer;
-
-					// if only pepnovo_out is set, the mz files have to be given to retrieve the retention times
-					string_buffer = getStringOption_("mz_files");
-					if ( string_buffer.empty() )
-					{
-						writeLog_("No mz files specified. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					else
-					{
-						string_buffer.split(',', spectra);
-						if ( spectra.empty() ) spectra.push_back(string_buffer);
-						for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
-						{
-							files[*spectra_it] = readable;
-						}
-					}
-				}
+				writeLog_("The model directory does not exist");
+				return INPUT_FILE_NOT_FOUND;
 			}
 
-			keep_dta_files = getFlag_("keep_dta_files");
-			if ( pepnovo_in && !pepnovo_out ) keep_dta_files = true;
+			try{
 
-			contact_person.setName(getStringOption_("contact_name"));
-			contact_person.setInstitution(getStringOption_("contact_institution"));
-			contact_person.setContactInfo(getStringOption_("contact_info"));
-
-			min_sequence_length = getIntOption_("min_sequence_length");
-			if ( min_sequence_length < 3 || min_sequence_length > 40 )
-			{
-				writeLog_("min_sequence_length not in [3, 40]. Aborting!");
-				return ILLEGAL_PARAMETERS;
-			}
-
-			max_sequence_length = getIntOption_("max_sequence_length");
-			if ( max_sequence_length < 3 || max_sequence_length > 40 )
-			{
-				writeLog_("max_sequence_length not in [3, 40]. Aborting!");
-				return ILLEGAL_PARAMETERS;
-			}
-			if ( max_sequence_length < min_sequence_length )
-			{
-				writeLog_("max_sequence_length is less than min_sequence_length. Aborting!");
-				return ILLEGAL_PARAMETERS;
-			}
-
-			if ( pepnovo_in )
-			{
-				// if pepnovo_in is set (independ whether pepnovo_out is set)
-				precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-				if ( precursor_mass_tolerance != -1 && precursor_mass_tolerance < 0 )
+				if(qdir_temp.cd("Models"))
 				{
-					writeLog_("Precursor mass tolerance < 0. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-
-				peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
-				if ( peak_mass_tolerance != -1 && peak_mass_tolerance < 0 )
-				{
-					writeLog_("peak mass tolerance < 0. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-
-				num_results = getIntOption_("num_results");
-				if ( (num_results < 1) )
-				{
-					writeLog_("Illegal number of results (< 1). Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-
-				pepnovo_directory = getStringOption_("pepnovo_directory");
-				if ( pepnovo_directory.empty() ) writeLog_("PepNovo working directory not given. Assuming PATH variable to be set accordingly.");
-				else
-				{
-					File::absolutePath(pepnovo_directory);
-					pepnovo_directory.ensureLastChar('/');
-				}
-
-				// set the protease (trypsin or not trypsin)
-				cleavage = getStringOption_("cleavage");
-
-				// maximal number of tags to use for identification
-				max_number_of_tags = getIntOption_("max_number_of_tags");
-				if ( max_number_of_tags != -1 && (max_number_of_tags < 0 || max_number_of_tags > 200) )
-				{
-					writeLog_("Maximal number of tags not in [1,200]. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-
-				// model directory and model used if tryptic model (default) is used, pepnovo v1 is used, otherwise pepnovo v2 is used)
-				model_directory = getStringOption_("model_directory");
-				if ( model_directory.empty() )
-				{
-					writeLog_("No model directory given. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-				File::absolutePath(model_directory);
-				model_directory.ensureLastChar('/');
-				if ( File::fileList(model_directory, String("*_config.txt"), models) )
-				{
-					for ( StringList::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
-					{
-						models_it->erase(models_it->length() - strlen("_config.txt"));
-					}
-				}
-				if ( models.empty() )
-				{
-					writeLog_("No models found in the model directory (" + model_directory + "). Aborting!");
-					return INPUT_FILE_EMPTY;
+					writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
+					return CANNOT_WRITE_OUTPUT_FILE;
 				}
 				else
 				{
-					model = getStringOption_("model");
-					if ( model.empty() )
-					{
-						writeLog_("No model file given. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					else if ( find(models.begin(), models.end(), model) == models.end() ) // if a model was given, that's not in the model directory, abort
-					{
-						writeLog_("No model file given. Aborting!");
-						writeLog_("Available Models:");
-						for ( StringList::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
-						{
-							writeLog_(*models_it);
-						}
-						return ILLEGAL_PARAMETERS;
-					}
-					else // if a correct model was given, check what maximal charge may be used
-					{
-						if ( !File::readable(model_directory + model + "_break_score.txt") )
-						{
-							return INPUT_FILE_NOT_READABLE;
-						}
-						else
-						{
-							String model_filename = model_directory + model + "_break_score.txt";
-							ifstream model_file( model_filename.c_str() );
-							while ( getline(model_file, string_buffer) )
-							{
-								if ( string_buffer.hasPrefix("#MAX_CHARGE ") )
-								{
-									if ( !string_buffer.empty() && (string_buffer[string_buffer.length()-1] < 33) ) string_buffer.resize(string_buffer.length()-1);
-									string_buffer.trim();
-									while ( charges.back() > string_buffer.substr(strlen("#MAX_CHARGE ")).toInt() ) charges.pop_back();
-									break;
-								}
-							}
-							model_file.close();
-						}
-					}
+					qdir_temp.mkdir("Models");
+					qdir_temp.cd("Models");
 				}
 
-				// the list with the names of the dta files to be analyzed
-				dta_list = getStringOption_("dta_list");
-				if ( dta_list.empty() )
+	//			//copy the Models folder of OpenMS into the temp_data_directory
+				String temp_pepnovo_outfile = qdir_temp.filePath("tmp_pepnovo_out.txt");
+				QStringList pepnovo_files = qdir_models_source.entryList();
+				if(pepnovo_files.empty())
 				{
-					if ( !pepnovo_out ) // if only pepnovo_in is given, the dta_list name has to be given
-					{
-						writeLog_("No name for dta list given (has to be given when only pepnovo_in is set). Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					dta_list = temp_data_directory + "tmp.dta.list";
-					files[dta_list] = (writable | delete_afterwards);
-				}
-				else
-				{
-					File::absolutePath(dta_list);
-					files[dta_list] = writable;
-				}
-
-				// modifications
-				string_buffer = getStringOption_("modifications");
-				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
-				try
-				{
-					pepnovo_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
-				}
-				catch ( Exception::FileNotFound fnf_e )
-				{
-					writeLog_("No modifications XML file given. Aborting!");
+					writeLog_("The \"Model\" directory does not contain model files. Aborting!");
 					return INPUT_FILE_NOT_FOUND;
 				}
-				catch ( Exception::FileNotReadable fnr_e )
+
+				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
 				{
-					writeLog_("Modifications XML file is not readable. Aborting!");
-					return INPUT_FILE_NOT_READABLE;
-				}
-				catch ( Exception::ParseError p_e )
-				{
-					writeLog_(p_e.getMessage());
-					return PARSE_ERROR;
+					QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
 				}
 
-				if ( !pepnovo_infile.getModifications().empty() )
+				//generate PTM File and store in temp directory
+				PepNovoInfile p_novo_infile;
+				String ptm_command;
+				if(!getStringList_("fixed_modifications").empty() || !getStringList_("variable_modifications").empty())
 				{
-					pepnovo_modifications_filename = model_directory + "PepNovo_PTMs.txt";
-					files[pepnovo_modifications_filename] = writable;
+					p_novo_infile.setModifications(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
+					p_novo_infile.store(qdir_temp.filePath("PepNovo_PTMs.txt"));
+					pepnovo_files.append("PepNovo_PTMs.txt");
+					std::map<String, String>mods_and_keys;
+					p_novo_infile.getModifications(mods_and_keys);
+
+					for(std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
+					{
+						if(ptm_command!="")
+						{
+							ptm_command+=":";
+						}
+						ptm_command+= key_it->second;
+					}
 				}
+
+				//-------------------------------------------------------------
+				// (3) running program according to parameters
+				//-------------------------------------------------------------
+
+				String call;
+				call = pepnovo_executable;
+				//call.append("PepNovo_bin");
+				call.append(" -file " + inputfile_name);
+				call.append(" -model " + model_name);
+				if (pm_tolerance != -1 ) call.append(" -pm_tolerance " + String(pm_tolerance));
+				if (fragment_tolerance != -1 ) call.append(" -fragment_tolerance " + String(fragment_tolerance));
+				if (!ptm_command.empty()) call.append(" -PTMs " + ptm_command);
+				call.append(" -digest "+ getStringOption_("digest"));
+				call.append(" -num_solutions " + String(getIntOption_("num_solutions")));
+				if(tag_length!=-1)call.append(" -tag_length " + String(tag_length));
+				call.append(" -model_dir " + model_directory);
+				call.append(String(" > ") + temp_pepnovo_outfile);
+
+				writeLog_("Use this line to call PepNovo: ");
+				writeLog_(call);
+
+				Int status=system(call.c_str());
+
+				if (status != 0)
+				{
+					writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+					// clean temporary files
+					for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+					{
+						qdir_temp.remove(*file_it);
+					}
+					qdir_temp.cdUp();
+					qdir_temp.remove("tmp_pepnovo_out.txt");
+					qdir_temp.rmdir("Models");
+
+					return EXTERNAL_PROGRAM_ERROR;
+				}
+
+				//if PepNovo finished succesfully use PepNovoOutfile to parse the results and generate idxml
+				std::vector< PeptideIdentification > peptide_identifications;
+				ProteinIdentification protein_identification;
+				//DoubleReal score_threshold;, const std::map< String, Real >& dta_filenames_and_precursor_retention_times);
+
+				PepNovoOutfile p_novo_outfile;
+				p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, INFINITY, id_to_rt);
+
+				IdXMLFile().store(outputfile_name,std::vector<ProteinIdentification>(1,protein_identification),peptide_identifications);
+
+				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+				{
+					qdir_temp.remove(*file_it);
+				}
+				qdir_temp.cdUp();
+				qdir_temp.remove("tmp_pepnovo_out.txt");
+				qdir_temp.rmdir("Models");
+
+				return EXECUTION_OK;
+
 			}
-
-			if ( pepnovo_out )
+			catch(...)
 			{
-				output_filename = getStringOption_("out");
-				if ( output_filename.empty() )
+				//remove all possibly created files and folders ion case of uexpected behavior
+				qdir_temp.setPath(temp_data_directory);
+				if(qdir_temp.cd("Models"))
 				{
-					writeLog_("No output file specified. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
-				File::absolutePath(output_filename);
-				files[output_filename] = writable;
-
-				// if only pepnovo out is set, -in gives the pepnovo_output_filename
-				if ( pepnovo_output_filename.empty() ) pepnovo_output_filename = getStringOption_("pepnovo_output");
-				if ( pepnovo_in )
-				{
-					if ( pepnovo_output_filename.empty() )
+					QStringList pepnovo_files = qdir_models_source.entryList();
+					for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
 					{
-						pepnovo_output_filename = temp_data_directory + "tmp.pepnovo.output";
-						files[pepnovo_output_filename] = (writable | delete_afterwards);
+						qdir_temp.remove(*file_it);
 					}
-					else
-					{
-						File::absolutePath(pepnovo_output_filename);
-						files[pepnovo_output_filename] = writable;
-					}
+					qdir_temp.cdUp();
+					qdir_temp.remove("tmp_pepnovo_out.txt");
+					qdir_temp.rmdir("Models");
 				}
-				else
-				{
-					File::absolutePath(pepnovo_output_filename);
-					files[pepnovo_output_filename] = readable;
-				}
-
-				p_value = getDoubleOption_("p_value");
-				if ( (p_value <= 0) || (p_value > 1) )
-				{
-					writeLog_("P-value not in (0, 1]. Aborting!");
-					return ILLEGAL_PARAMETERS;
-				}
+				return EXTERNAL_PROGRAM_ERROR;
 			}
+		}
 
-			//-------------------------------------------------------------
-			// (3) running program according to parameters
-			//-------------------------------------------------------------
-
+/*
+			c
 			// (3.1) checking accessability of files
 			bool existed(false);
 			UInt file_tag(0);
@@ -963,6 +638,7 @@ class TOPPPepNovoAdapter
 
 			return exit_code;
 		}
+		*/
 };
 
 //@endcond

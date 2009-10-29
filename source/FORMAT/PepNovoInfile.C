@@ -29,6 +29,9 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <algorithm>
 #include <set>
@@ -46,17 +49,19 @@ namespace OpenMS
 	
 	PepNovoInfile::PepNovoInfile(const PepNovoInfile& pepnovo_infile)
 	{
-		PTMname_residues_mass_type_ = pepnovo_infile.getModifications();
+		//PTMname_residues_mass_type_ = pepnovo_infile.getModifications();
+		mods_=pepnovo_infile.mods_;
 	}
 
 	PepNovoInfile::~PepNovoInfile()
 	{
-		PTMname_residues_mass_type_.clear();
+		//PTMname_residues_mass_type_.clear();
+		//mods_.;
 	}
 	
 	PepNovoInfile& PepNovoInfile::operator=(const PepNovoInfile& pepnovo_infile)
 	{
-		if ( this != &pepnovo_infile ) PTMname_residues_mass_type_ = pepnovo_infile.getModifications();
+		if ( this != &pepnovo_infile ) mods_ = pepnovo_infile.mods_;
 		return *this;
 	}
 	
@@ -64,260 +69,123 @@ namespace OpenMS
 	{
 		if ( this != &pepnovo_infile )
 		{
-			return ( PTMname_residues_mass_type_ == pepnovo_infile.getModifications() );
+			//return ( PTMname_residues_mass_type_ == pepnovo_infile.getModifications() );
+			return(mods_ == pepnovo_infile.mods_);
 		}
 		return true;
 	}
 
-	String PepNovoInfile::store(const String& filename)
+
+	String PepNovoInfile::handlePTMs(const String &modification, const bool variable)
 	{
-		ofstream ofs(filename.c_str());
-		if ( !ofs )
+		String locations, key, type;
+
+		ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
+
+		String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
+		DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getMonoMass();
+		String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
+
+		if(variable)
+			key="OPTIONAL";
+		else
+			key="FIXED";
+
+		switch(ts)
 		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+			case ResidueModification::C_TERM: locations="C_TERM";
+			break;
+			case ResidueModification::N_TERM: locations="N_TERM";
+			break;
+			case ResidueModification::ANYWHERE: locations="ALL";
+			break;
+			default:throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Term_Specificity", String(ts));
 		}
-		
-		stringstream file_content;
-		String line, abbreviation_string;
-		set< String > abbreviations;
-		
-		stringstream fixed_ptms, optional_ptms, cterminal_ptms, nterminal_ptms;
-		stringstream* sstream_p = NULL;
-		String residues, abbreviation;
-		String rounded_mass;
-		Int counter(-1);
-		// first write the fixed ptms
-		for ( map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
+
+		if(ts==ResidueModification::C_TERM || ts==ResidueModification::N_TERM)
 		{
-			residues = mods_i->second[0];
-			rounded_mass = mods_i->second[1].toFloat()< 0 ? String((Int) (mods_i->second[1].toFloat() - .5)) : "+" + String((Int) (mods_i->second[1].toFloat() + .5));
-			if ( residues == "CTERM" )
+			if(origin.empty())
 			{
-				sstream_p = &cterminal_ptms;
-				residues = "C_TERM";
-				mods_i->second[2] = "OPTIONAL";
-			}
-			else if ( residues == "NTERM" )
-			{
-				sstream_p = &nterminal_ptms;
-				residues = "N_TERM";
-				mods_i->second[2] = "OPTIONAL";
-			}
-			else if ( mods_i->second[2] == "FIX" )
-			{
-				sstream_p = &fixed_ptms;
-				mods_i->second[2] = "FIXED";
-			}
-			else if ( mods_i->second[2] == "OPT" )
-			{
-				sstream_p = &optional_ptms;
-				mods_i->second[2] = "OPTIONAL";
-			}
-			
-			if ( residues == "C_TERM" || residues == "N_TERM" )
-			{
-				if ( residues == "C_TERM" ) abbreviation = "§" + rounded_mass;
-				if ( residues == "N_TERM" ) abbreviation = "^" + rounded_mass;
-				counter = 0;
-				// make sure no abbreviation appears more than once
-				while ( abbreviations.find(abbreviation + "_" + String(counter)) != abbreviations.end() ) ++counter;
-				if ( counter ) abbreviation.append("_" + String(counter));
-				abbreviations.insert(abbreviation);
-				(*sstream_p) << residues << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   " + residues + "   " << abbreviation << "   " << mods_i->first << "\n";
+				origin=locations;
 			}
 			else
 			{
-				for ( String::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i )
-				{
-					counter = 0;
-					abbreviation = *residue_i + rounded_mass;
-					// make sure no abbreviation appears more than once
-					while ( abbreviations.find(abbreviation + "_" + String(counter)) != abbreviations.end() ) ++counter;
-					if ( counter ) abbreviation.append("_" + String(counter));
-					abbreviations.insert(abbreviation);
-					(*sstream_p) << *residue_i << "   " << mods_i->second[1] << "   " << mods_i->second[2] << "   ALL   " << abbreviation << "   " << mods_i->first << "\n";
-				}
+				locations="+1";
 			}
 		}
 
-		file_content << "# Fixed PTMs" << "\n" << "#AA  offset      type    locations  symbol  PTM name" << "\n" << fixed_ptms.str() << "\n" <<  "# Optional PTMs" << "\n" << optional_ptms.str() << "\n" << "# Terminal PTMs" << "\n" << cterminal_ptms.str() << nterminal_ptms.str();
-
-		for ( set< String >::const_iterator abbreviation_i = abbreviations.begin(); abbreviation_i != abbreviations.end(); ++abbreviation_i )
+		if(ts==ResidueModification::C_TERM)
 		{
-			abbreviation_string.append(*abbreviation_i + ":");
+			key="$";
 		}
-		abbreviation_string.erase(abbreviation_string.length() - 1); // remove the last ':'
-		
-		ofs << file_content.str();
-		ofs.close();
-		ofs.clear();
-		
-		return abbreviation_string;
+
+		else if(ts==ResidueModification::N_TERM)
+		{
+			key="^";
+		}
+
+		if(origin!=locations)
+		{
+			key+=origin;
+		}
+
+		key+=String(mass);
+
+		String line="";
+		line+=origin;
+		line+="\t";
+		line+=mass;
+		line+="\t";
+		line+=type;
+		line+="\t";
+		line+=key;
+		line+="\t";
+		line+=full_name;
+
+		mods_and_keys_[modification]=key;
+
+		return line;
 	}
 
-	void PepNovoInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
+	void PepNovoInfile::generate_pepnovo_lines()
 	{
-		PTMname_residues_mass_type_.clear();
-		// to store the information about modifications from the ptm xml file
-		map< String, pair< String, String > > ptm_informations;
-		if ( !modification_line.empty() ) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
+		//TextFile ptm_file_;
+		ptm_file_.reserve(mods_.getNumberOfModifications()+1);
+
+		//writeDebug_("Setting modifications", 1);
+
+		ptm_file_.push_back("AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
+
+		// fixed modifications
+		std::set<String>fixed_modifications=mods_.getFixedModificationNames();
+		for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
 		{
-			vector< String > modifications, mod_parts;
-			modification_line.split(':', modifications); // get the single modifications
-			
-			// to get masses from a formula
-			EmpiricalFormula add_formula, substract_formula;
-			
-			String types = "OPT#FIX#";
-			String name, residues, mass, type;
-			
-			// 0 - mass; 1 - composition; 2 - ptm name
-			Int mass_or_composition_or_name(-1);
-			
-			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
-			{
-				if ( mod_i->empty() ) continue;
-				// clear the formulae
-				add_formula = substract_formula = name = residues = mass = type = "";
-				
-				// get the single parts of the modification string
-				mod_i->split(',', mod_parts);
-				mass_or_composition_or_name = -1;
-				
-				// check whether the first part is a mass, composition or name
-				
-				// check whether it is a mass
-				try
-				{
-					mass = mod_parts.front();
-					// to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
-					// remove + signs because they don't appear in a float
-					if ( mass.hasPrefix("+") ) mass.erase(0, 1);
-					if ( mass.hasSuffix("+") ) mass.erase(mass.length() - 1, 1);
-					if ( mass.hasSuffix("-") ) // a - sign at the end will not be converted
-					{
-						mass.erase(mass.length() - 1, 1);
-						mass.insert(0, "-");
-					}
-					// if it is a mass
-					if ( String(mass.toFloat()) == mass ) mass_or_composition_or_name = 0;
-				}
-				catch ( Exception::ConversionError c_e ){ mass_or_composition_or_name = -1; }
-				
-				// check whether it is a name (look it up in the corresponding file)
-				if ( mass_or_composition_or_name == -1 )
-				{
-					if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
-					{
-						if ( !File::exists(modifications_filename) )
-						{
-							throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
-						}
-						if ( !File::readable(modifications_filename) )
-						{
-							throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
-						}
-						
-						// getting all available modifications from a file
-						PTMXMLFile().load(modifications_filename, ptm_informations);
-					}
-					// if the modification cannot be found
-					if ( ptm_informations.find(mod_parts.front()) != ptm_informations.end() )
-					{
-						mass = ptm_informations[mod_parts.front()].first; // composition
-						residues = ptm_informations[mod_parts.front()].second; // residues
-						name = mod_parts.front(); // name
-						
-						mass_or_composition_or_name = 2;
-					}
-				}
-				
-				// check whether it's an empirical formula / if a composition was given, get the mass
-				if ( mass_or_composition_or_name == -1 ) mass = mod_parts.front();
-				if ( mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2 )
-				{
-					// check whether there is a positive and a negative formula
-					String::size_type pos = mass.find("-");
-					try
-					{
-						if ( pos != String::npos )
-						{
-							add_formula = mass.substr(0, pos);
-							substract_formula = mass.substr(++pos);
-						}
-						else
-						{
-							add_formula = mass;
-						}
-						// sum up the masses
-						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
-						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
-						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
-					}
-					catch ( Exception::ParseError pe )
-					{
-						PTMname_residues_mass_type_.clear();
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");
-					}
-				}
-				
-				// now get the residues
-				mod_parts.erase(mod_parts.begin());
-				if ( mass_or_composition_or_name < 2 )
-				{
-					if ( mod_parts.empty() )
-					{
-						PTMname_residues_mass_type_.clear();
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "No residues for modification given. Aborting!");
-					}
-					
-					// get the residues
-					residues = mod_parts.front();
-					residues.substitute('*', 'X');
-					residues.toUpper();
-					mod_parts.erase(mod_parts.begin());
-				}
-				
-				// get the type
-				if ( mod_parts.empty() ) type = "OPT";
-				else
-				{
-					type = mod_parts.front();
-					type.toUpper();
-					if ( types.find(type) != String::npos ) mod_parts.erase(mod_parts.begin());
-					else type = "OPT";
-				}
-				
-				if ( mod_parts.size() > 1 )
-				{
-					PTMname_residues_mass_type_.clear();
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with the type of this modification. Aborting!");
-				}
-				
-				// get the name
-				if ( mass_or_composition_or_name < 2 )
-				{
-					if ( mod_parts.empty() ) name = "PTM_" + String(PTMname_residues_mass_type_.size());
-					else name = mod_parts.front();
-				}
-				
-				// insert the modification
-				if ( PTMname_residues_mass_type_.find(name) == PTMname_residues_mass_type_.end() )
-				{
-					PTMname_residues_mass_type_[name] = vector< String >(3);
-					PTMname_residues_mass_type_[name][0] = residues;
-					// mass must not have more than 5 digits after the . (otherwise the test may fail)
-					PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
-					PTMname_residues_mass_type_[name][2] = type;
-				}
-				else
-				{
-					PTMname_residues_mass_type_.clear();
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's already a modification with this name. Aborting!");
-				}
-			}
+			ptm_file_.push_back(handlePTMs(*it, false));
 		}
+		// variable modifications
+		std::set<String>variable_modifications=mods_.getVariableModificationNames();
+		for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+		{
+			ptm_file_.push_back(handlePTMs(*it, true));
+		}
+		//ptm_file_.store(filename);
 	}
 
-	const map< String, vector< String > >& PepNovoInfile::getModifications() const {return PTMname_residues_mass_type_;}
-}
+	void PepNovoInfile::store(const String& filename)
+	{
+		ptm_file_.store(filename);
+	}
+
+	void PepNovoInfile::setModifications(const StringList &fixed_mods, const StringList &variable_mods)
+	{
+		mods_.setModifications(fixed_mods,variable_mods);
+		mods_and_keys_.clear();
+		generate_pepnovo_lines();
+	}
+
+	void PepNovoInfile::getModifications(std::map<String,String>& modification_key_map) const
+	{
+		modification_key_map = mods_and_keys_;
+	}
+
+}//namespace
