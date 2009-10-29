@@ -83,13 +83,15 @@ namespace OpenMS
 		ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
 
 		String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
-		DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getMonoMass();
+		DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
 		String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
 
+		std::cout<<"Mass of modification: "<<mass<<std::endl;
+
 		if(variable)
-			key="OPTIONAL";
+			type="OPTIONAL";
 		else
-			key="FIXED";
+			type="FIXED";
 
 		switch(ts)
 		{
@@ -129,7 +131,7 @@ namespace OpenMS
 			key+=origin;
 		}
 
-		key+=String(mass);
+		key+="+"+String((Int)mass);
 
 		String line="";
 		line+=origin;
@@ -138,11 +140,15 @@ namespace OpenMS
 		line+="\t";
 		line+=type;
 		line+="\t";
+		line+=locations;
+		line+="\t";
 		line+=key;
 		line+="\t";
 		line+=full_name;
 
 		mods_and_keys_[modification]=key;
+		std::cout<<"pepNovo Line:"<<line<<std::endl;
+		std::cout<<"pepNovo key:"<<key<<std::endl;
 
 		return line;
 	}
@@ -154,7 +160,7 @@ namespace OpenMS
 
 		//writeDebug_("Setting modifications", 1);
 
-		ptm_file_.push_back("AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
+		ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
 
 		// fixed modifications
 		std::set<String>fixed_modifications=mods_.getFixedModificationNames();

@@ -145,9 +145,9 @@ class TOPPPepNovoAdapter
 			std::vector<String>all_possible_modifications;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
 			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
-			//setValidStrings_("fixed_modifications", all_possible_modifications);
+			setValidStrings_("fixed_modifications", all_possible_modifications);
 			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "list of fixed modifications", false);
-			//setValidStrings_("variable_modifications", all_possible_modifications);
+			setValidStrings_("variable_modifications", all_possible_modifications);
 		}
 
 
@@ -270,6 +270,9 @@ class TOPPPepNovoAdapter
 
 			try{
 
+			  //temporary File to store PepNovo output
+			  String temp_pepnovo_outfile = qdir_temp.filePath("tmp_pepnovo_out.txt");
+
 				if(qdir_temp.cd("Models"))
 				{
 					writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
@@ -281,8 +284,9 @@ class TOPPPepNovoAdapter
 					qdir_temp.cd("Models");
 				}
 
-	//			//copy the Models folder of OpenMS into the temp_data_directory
-				String temp_pepnovo_outfile = qdir_temp.filePath("tmp_pepnovo_out.txt");
+				String tmp_models_dir=qdir_temp.absolutePath();
+
+				//copy the Models folder of OpenMS into the temp_data_directory
 				QStringList pepnovo_files = qdir_models_source.entryList();
 				if(pepnovo_files.empty())
 				{
@@ -292,6 +296,7 @@ class TOPPPepNovoAdapter
 
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
 				{
+				  std::cout<<file_it->toStdString()<<std::endl;
 					QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
 				}
 
@@ -331,7 +336,7 @@ class TOPPPepNovoAdapter
 				call.append(" -digest "+ getStringOption_("digest"));
 				call.append(" -num_solutions " + String(getIntOption_("num_solutions")));
 				if(tag_length!=-1)call.append(" -tag_length " + String(tag_length));
-				call.append(" -model_dir " + model_directory);
+				call.append(" -model_dir " + tmp_models_dir);
 				call.append(String(" > ") + temp_pepnovo_outfile);
 
 				writeLog_("Use this line to call PepNovo: ");
@@ -343,14 +348,15 @@ class TOPPPepNovoAdapter
 				{
 					writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 					// clean temporary files
+					/*
 					for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
 					{
 						qdir_temp.remove(*file_it);
 					}
 					qdir_temp.cdUp();
-					qdir_temp.remove("tmp_pepnovo_out.txt");
+					//qdir_temp.remove("tmp_pepnovo_out.txt");
 					qdir_temp.rmdir("Models");
-
+					*/
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 
