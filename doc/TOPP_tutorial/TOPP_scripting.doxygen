@@ -688,9 +688,9 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	./MascotAdapter -in Run4_aligned.mzML -out Run4_aligned.IdXML -ini Mascot.ini
 	./IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
 	./RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
-	./RTPredict -in Run2_aligned.mzML -out Run2_predicted.mzML
-	./RTPredict -in Run3_aligned.mzML -out Run3_predicted.mzML
-	./RTPredict -in Run4_aligned.mzML -out Run4_predicted.mzML
+	./RTPredict -in Run2_aligned.IdXML -out Run2_predicted.IdXML -svm_model Run1.model
+	./RTPredict -in Run3_aligned.IdXML -out Run3_predicted.IdXML -svm_model Run1.model
+	./RTPredict -in Run4_aligned.IdXML -out Run4_predicted.IdXML -svm_model Run1.model
 	./IDFilter -in Run2_predicted.mzML -out Run2_filtered.mzML -rt_filtering
 	./IDFilter -in Run3_predicted.mzML -out Run3_filtered.mzML -rt_filtering
 	./IDFilter -in Run4_predicted.mzML -out Run4_filtered.mzML -rt_filtering
@@ -752,12 +752,26 @@ TextExporter -in infile.idXML -out outfile.txt
 	@section TOPP_example_convert_import_feature Import of feature data to OpenMS
 
 		%OpenMS offers a lot of visualization and analysis functionality for feature data.
-		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter:
+		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter. The default mode accepts comma separated values
+		containing the following columns: RT, m/z, intensity. Additionally meta data columns may follow. If meta data is used, meta data column names have to be specified in a header line.
+		Without headers:
+		@code
+1201	503.123	1435000
+1201	1006.246	1235200
+		@endcode
+		Or with headers:
+		@code
+RT	m/z	Int	isHeavy	myMeta
+1201	503.123	1435000	true	2
+1201	1006.246	1235200	maybe	1
+		@endcode
+
 		@code
 TextImporter -in infile.txt -out outfile.featureXML
 		@endcode
 
-
+		The tool also supports data from msInspect,SpecArray and Kroenik(Hardkloer sibling), just specify the -mode option accordingly.
+		
 	@section TOPP_example_convert_import_id Import of protein/peptide identification data to OpenMS
 		
 		Peptide/protein identification data from several identification engines can be converted to idXML format using the @b IDFileConverter tool.

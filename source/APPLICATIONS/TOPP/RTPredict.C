@@ -85,11 +85,11 @@ class TOPPRTPredict
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file ");
-			//			setValidFormats_("in",StringList::create("idXML"));
-			registerOutputFile_("out","<file>","","output file (peptide RT prediction)\n", false);
-			setValidFormats_("out",StringList::create("idXML"));
-			registerFlag_("textfile_input", "if this flag is set, RTPredict expects a textfile instead of an IdXML file as input which contains one peptide sequence per line output as a textfile is switched on as well");
+			registerInputFile_("in","<file>","","input file (valid formats: \"idXML\" or textfile [see below])");
+			//setValidFormats_("in",StringList::create("idXML"));
+			registerOutputFile_("out","<file>","","output file with peptide RT prediction (valid formats: \"idXML\" or textfile [see below])\n", false);
+			//setValidFormats_("out",StringList::create("idXML"));
+			registerFlag_("textfile_input", "if this flag is set, RTPredict expects a textfile instead of an IdXML file as input which contains one peptide sequence per line; output as a textfile is switched on as well");
 			registerFlag_("textfile_output", "if this flag is set, RTPredict just writes a peptide sequence with the corresponding predicted retention time per line");
 			registerOutputFile_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)\n", false);
 			setValidFormats_("out_positive",StringList::create("idXML"));

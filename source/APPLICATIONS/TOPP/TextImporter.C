@@ -89,7 +89,7 @@ namespace OpenMS
 				addText_("- SpecArray");
 				addText_("    Imports a SpecArray feature file.");
 				addText_("- Kroenik");
-				addText_("    Imports a Kroenik (of Hardklör) feature file.");
+				addText_("    Imports a Kroenik (Hardkloer sibling) feature file.");
       }
 
       ExitCodes main_( int, const char** )
@@ -132,6 +132,7 @@ namespace OpenMS
 						rt = headers[0].toDouble();
 						mz = headers[1].toDouble();
 						it = headers[2].toDouble();
+						if (headers.size()>3) throw Exception::BaseException();
 					}
 					catch (Exception::BaseException&)
 					{
@@ -329,9 +330,9 @@ namespace OpenMS
 						f.setMetaValue("AveragineModifications",parts[13]);
 						feature_map.push_back(f);
 					}
+
+					std::cout << "Warning: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
 				}
-				
-				std::cout << "Warning: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
 				
 				std::cout << "Converted " << feature_map.size() << " features!\n";
 				
