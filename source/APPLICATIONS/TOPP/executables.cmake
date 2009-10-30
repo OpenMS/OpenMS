@@ -39,7 +39,6 @@ RTPredict
 Resampler
 PILISModel
 PILISIdentification
-SeedListGenerator
 SequestAdapter
 SpecLibSearcher
 SpectraFilter
@@ -64,5 +63,3 @@ foreach(i ${TOPP_executables})
 	list(APPEND sources_VS "${i}.C")
 endforeach(i)
 source_group("" FILES ${sources_VS})
-
-

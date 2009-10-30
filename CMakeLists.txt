@@ -276,26 +276,26 @@ OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
 OPENMS_CHECKLIB(CONTRIB_CBC4 "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils" "COIN-OR Utils")
 OPENMS_CHECKLIB(CONTRIB_CBC5 "libOsi;Osi" "libOsid;Osi" "COIN-OR Osi")
 OPENMS_CHECKLIB(CONTRIB_CBC6 "libOsiClp;OsiClp" "libOsiClpd;OsiClp" "COIN-OR OsiClp")
+set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
 
-OPENMS_CHECKLIB(CONTRIB_ZLIB "z" "z" "ZLIB")
-OPENMS_CHECKLIB(CONTRIB_BZIP2 "bz2" "bz2" "BZIP2")
+OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;z" "ZLIB")
+OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;bz2" "BZIP2")
 
-
-# if enabled stl-debug we need a imslib which is also built with stl-debug
-# "normal" debug mode is only supported manually
-if (STL_DEBUG)
-	OPENMS_CHECKLIB(CONTRIB_IMSLIB "imsd" "imsd" "imslib")
+## IMS
+if (MSVC)
+	OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "imsd" "imslib")
 else()
-	if (MSVC)
-		OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "imsd" "imslib")
+	# if enabled stl-debug we need a imslib which is also built with stl-debug
+	# "normal" debug mode is only supported manually
+	if (STL_DEBUG)
+		OPENMS_CHECKLIB(CONTRIB_IMSLIB "imsd" "imsd" "imslib")
 	else()
 		OPENMS_CHECKLIB(CONTRIB_IMSLIB "ims" "ims" "imslib")
 	endif()
 endif()
 
-set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
-
-if (NOT MSVC AND USE_ANDIMS)
+## ANDIMS
+if (USE_ANDIMS)
 	OPENMS_CHECKLIB(CONTRIB_ANDIMS "ms10lib.a" "ms10lib.a" "ms10lib")
 
 	OPENMS_CHECKLIB(CONTRIB_NETCDF_CPP "libnetcdf_c++.a" "libnetcdf_c++.a" "netCDF_c++")
@@ -303,12 +303,12 @@ if (NOT MSVC AND USE_ANDIMS)
 	set(CONTRIB_NETCDF ${CONTRIB_NETCDF_CPP} ${CONTRIB_NETCDF_C})
 endif()
 
-## libSVM support
+## libSVM
 if (MSVC) 
-	## we created a lib here, because we cannot just add an object..
+	## we created a lib here, because we cannot just add an object ...
 	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
 else()
-	## there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
+	## there is no FIND_OBJECT ... so just hard-code it (FIND_LIBRARY won't work)
 	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
