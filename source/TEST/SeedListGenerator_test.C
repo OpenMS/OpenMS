@@ -36,7 +36,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SeedListGenerator, "$Id: SeedListGenerator_test.C 6152 2009-10-20 22:36:21Z hendrikweisser $")
+START_TEST(SeedListGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
