@@ -122,5 +122,88 @@ namespace OpenMS
 #endif
 	}
 
+
+
+	void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,
+																								 String trafo_file_name)
+	{
+		// check if the ids 
+		checkReferenceIds_(feature_map);
+		// first collect theoretical and observed m/z values
+		std::vector<DoubleReal> observed_masses;
+		std::vector<DoubleReal> theoretical_masses;
+		for(Size f = 0; f < feature_map.size();++f)
+			{
+				// if more than one peptide id exists for this feature we can't use it as reference
+				if(feature_map[f].getPeptideIdentifications().size() > 1) continue;
+				if(!feature_map[f].getPeptideIdentifications().empty())
+					{
+#ifdef DEBUG_CALIBRATION
+						std::cout << feature_map[f].getRT() <<" " <<feature_map[f].getMZ() <<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits().size()<<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence()<<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge()<<std::endl;
+#endif
+						Int charge = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge();
+						DoubleReal theo_mass = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge;
+						theoretical_masses.push_back(theo_mass);
+						observed_masses.push_back(feature_map[f].getMZ());
+					}
+			}
+		// then make the linear regression
+		makeLinearRegression_(observed_masses,theoretical_masses);
+		// apply transformation
+		calibrated_feature_map = feature_map;
+		for(Size f = 0; f < feature_map.size();++f)
+			{
+				DoubleReal mz = feature_map[f].getMZ();
+				trafo_.apply(mz);
+				calibrated_feature_map[f].setMZ(mz);
+
+				// apply transformation to convex hulls and subordinates
+				for(Size s = 0; s < calibrated_feature_map[f].getSubordinates().size();++s)
+					{
+						// subordinates
+						DoubleReal mz = calibrated_feature_map[f].getSubordinates()[s].getMZ();
+						trafo_.apply(mz);
+						calibrated_feature_map[f].getSubordinates()[s].setMZ(mz);
+					}
+				for(Size s = 0; s < calibrated_feature_map[f].getConvexHulls().size();++s)
+					{
+						// convex hulls
+						std::vector<DPosition<2> > point_vec = calibrated_feature_map[f].getConvexHulls()[s].getPoints();
+						calibrated_feature_map[f].getConvexHulls()[s].clear();
+						for(Size p = 0; p < point_vec.size(); ++p)
+							{
+								DoubleReal mz = point_vec[p][1];
+								trafo_.apply(mz);
+								point_vec[p][1] = mz;
+							}
+					}
+			}
+		if(trafo_file_name != "")
+			{
+				TransformationXMLFile().store(trafo_file_name,trafo_);
+			}
+	}
+
+
+	void InternalCalibration::checkReferenceIds_(const FeatureMap<>& feature_map)
+	{
+		Size num_ids = 0;
+		for(Size f = 0; f < feature_map.size();++f)
+			{
+				if(!feature_map[f].getPeptideIdentifications().empty() && feature_map[f].getPeptideIdentifications()[0].getHits().size() > 1)
+					{
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "InternalCalibration: Your feature map contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits before you map the ids to the feature map.");
+					}
+				else if(!feature_map[f].getPeptideIdentifications().empty())  ++num_ids;
+			}
+		if(num_ids < 2)
+			{
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "InternalCalibration: Your feature map contains less than two PeptideIdentifications, can't perform a linear regression on your data.");
+			}
+	}
+
 }
 

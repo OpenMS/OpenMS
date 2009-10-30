@@ -76,12 +76,14 @@ class TOPPInternalCalibration
 	 void registerOptionsAndFlags_()
 	 {
 		 registerInputFile_("in","<file>","","input raw data or peak file ");
-		 setValidFormats_("in",StringList::create("mzML"));
+		 setValidFormats_("in",StringList::create("mzML,featureXML"));
 		 registerOutputFile_("out","<file>","","output file ");
-	   setValidFormats_("out",StringList::create("mzML"));
-		 registerInputFile_("ref_peaks","<file>","","input file containing reference m/z values (either as textfile with one m/z per line and no header or as IdXML file)",true);
+	   setValidFormats_("out",StringList::create("mzML,featureXML"));
+		 registerInputFile_("ref_peaks","<file>","","input file containing reference m/z values (either as textfile with one m/z per line and no header or as IdXML file)",false);
 		 registerStringOption_("type","<calibration type>","spectrumwise","The kind of internal calibration that should be applied.", false);
-	   setValidStrings_("type",StringList::create("spectrumwise,global"));
+		 setValidStrings_("type",StringList::create("spectrumwise,global"));
+		 registerOutputFile_("trafo","<file>","","transformation file (only for global calibration)",false);
+		 setValidFormats_("trafo",StringList::create("trafoXML"));
 		 addEmptyLine_();
 		 addEmptyLine_();
 		 registerSubsection_("algorithm","Settings for the internal calibration.");
@@ -103,6 +105,7 @@ class TOPPInternalCalibration
 		String out = getStringOption_("out");
 		String ref = getStringOption_("ref_peaks");
 		String type = getStringOption_("type");
+		String trafo = getStringOption_("trafo");
 		//-------------------------------------------------------------
 		// init InternalCalibration
 		//-------------------------------------------------------------
@@ -117,7 +120,27 @@ class TOPPInternalCalibration
 
 		// get reference m/z values
 		std::vector<PeptideIdentification> pep_ids;
-		vector<DoubleReal> ref_masses;		
+		vector<DoubleReal> ref_masses;
+		bool features = FileHandler().getTypeByContent(in) == FileTypes::FEATUREXML;
+		if(ref == "" && !features)
+			{
+				std::cout << "Need a file containing the reference peaks!"<<std::endl;
+				return ILLEGAL_PARAMETERS;
+			}
+		if(type == "spectrumwise" && features)
+			{
+				std::cout << "Can't perform a spectrumwise calibration on a feature map!"<<std::endl;
+				return ILLEGAL_PARAMETERS;
+			}
+		if(features)
+			{
+				FeatureMap<> feature_map,calibrated_feature_map;
+				FeatureXMLFile f_file;
+				f_file.load(in,feature_map);
+				calib.calibrateMapGlobally(feature_map,calibrated_feature_map,trafo);
+				f_file.store(out,calibrated_feature_map);
+				return EXECUTION_OK;
+			}
 		bool ids = FileHandler().getTypeByContent(ref) == FileTypes::IDXML;
 		if(ids)
 		{
@@ -143,8 +166,8 @@ class TOPPInternalCalibration
 		// perform calibration
 		//-------------------------------------------------------------
 		if(type == "spectrumwise")	calib.calibrateMapSpectrumwise(ms_exp_raw,ms_exp_calibrated,ref_masses);
-		else if(ids) calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,pep_ids);
-		else calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,ref_masses);
+		else if(ids) calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,pep_ids,trafo);
+		else calib.calibrateMapGlobally(ms_exp_raw,ms_exp_calibrated,ref_masses,trafo);
 		
 		//-------------------------------------------------------------
 		// writing output

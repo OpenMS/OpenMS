@@ -28,12 +28,13 @@
 
 #ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
 #define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
  #include <gsl/gsl_fit.h>
 
@@ -82,15 +83,22 @@ namespace OpenMS
 
 		*/		
     template<typename InputPeakType>
-    void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp,MSExperiment<InputPeakType>& calibrated_exp, std::vector<DoubleReal>& ref_masses);
+    void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp,MSExperiment<InputPeakType>& calibrated_exp, std::vector<DoubleReal>& ref_masses,String trafo_file_name = "");
 
 		/**
 			 Calibrate a map using given identifications. The calibration function is calculated for the whole map.
 
 		*/
     template<typename InputPeakType>
-    void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,std::vector<PeptideIdentification>& ref_ids);
+    void calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,std::vector<PeptideIdentification>& ref_ids,String trafo_file_name = "");
 
+		/**
+			 Calibrate an annotated (!) feature map using the features' identifications. The calibration function is calculated for the whole map.
+
+		*/
+    void calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,String trafo_file_name = "");
+
+		
     template<typename InputPeakType>
 		void calibrateMapList(std::vector<MSExperiment<InputPeakType> >& exp_list,std::vector<MSExperiment<InputPeakType> >& calibrated_exp_list, std::vector<DoubleReal>& ref_masses, std::vector<DoubleReal>& detected_background_masses);
 
@@ -101,6 +109,8 @@ namespace OpenMS
 		void makeLinearRegression_(std::vector<DoubleReal>& observed_masses, std::vector<DoubleReal>& theoretical_masses);
 
 		void checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids);
+
+		void checkReferenceIds_(const FeatureMap<>& feature_map);
 
 		// here the transformation is stored
 		TransformationDescription trafo_;
@@ -198,8 +208,9 @@ namespace OpenMS
 
 	 
   template<typename InputPeakType>
-  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,
-																								 std::vector<PeptideIdentification>& ref_ids)
+  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType>& exp,
+																								 MSExperiment<InputPeakType>& calibrated_exp,
+																								 std::vector<PeptideIdentification>& ref_ids,String trafo_file_name)
 	{
 		bool use_ppm = param_.getValue("mz_tolerance_unit") == "ppm" ? true : false;
 		DoubleReal mz_tolerance = param_.getValue("mz_tolerance");
@@ -310,11 +321,15 @@ namespace OpenMS
 
 					}
       }// for(Size spec=0;spec <  exp.size(); ++spec)
+		if(trafo_file_name != "")
+			{
+				TransformationXMLFile().store(trafo_file_name,trafo_);
+			}
 	}
 
 
 	template<typename InputPeakType>
-  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,std::vector<DoubleReal>& ref_masses)
+  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType>& exp, MSExperiment<InputPeakType>& calibrated_exp,std::vector<DoubleReal>& ref_masses,String trafo_file_name)
 	{
 		if(exp.empty())
 			{
@@ -402,6 +417,10 @@ namespace OpenMS
 				setProgress(spec);
       }// for(Size spec=0;spec <  exp.size(); ++spec)
 		endProgress();
+		if(trafo_file_name != "")
+			{
+				TransformationXMLFile().store(trafo_file_name,trafo_);
+			}
 	}
 
 
