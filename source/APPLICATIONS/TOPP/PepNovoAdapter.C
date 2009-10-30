@@ -251,9 +251,6 @@ class TOPPPepNovoAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 
-			//File::absolutePath(temp_data_directory);
-			//if(!temp_data_directory.  ('/');
-
 			QDir qdir_temp(temp_data_directory);
 			QDir qdir_models_source(model_directory.c_str());
 
@@ -271,7 +268,8 @@ class TOPPPepNovoAdapter
 			try{
 
 			  //temporary File to store PepNovo output
-			  String temp_pepnovo_outfile = qdir_temp.filePath("tmp_pepnovo_out.txt");
+			  String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
+			  String tmp_models_dir=qdir_temp.absoluteFilePath("Models");
 
 				if(qdir_temp.cd("Models"))
 				{
@@ -284,10 +282,8 @@ class TOPPPepNovoAdapter
 					qdir_temp.cd("Models");
 				}
 
-				String tmp_models_dir=qdir_temp.absolutePath();
-
 				//copy the Models folder of OpenMS into the temp_data_directory
-				QStringList pepnovo_files = qdir_models_source.entryList();
+				QStringList pepnovo_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
 				if(pepnovo_files.empty())
 				{
 					writeLog_("The \"Model\" directory does not contain model files. Aborting!");
@@ -296,8 +292,25 @@ class TOPPPepNovoAdapter
 
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
 				{
-				  std::cout<<file_it->toStdString()<<std::endl;
-					QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
+				  if(qdir_models_source.cd(*file_it))
+				  {
+				    //std::cout<<"if: "<<file_it->toStdString()<<std::endl;
+				    qdir_temp.mkdir(*file_it);
+				    qdir_temp.cd(*file_it);
+				    QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
+				    for(QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+            {
+				      //std::cout<<subdir_file_it->toStdString()<<std::endl;
+				      QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
+            }
+				    qdir_temp.cdUp();
+				    qdir_models_source.cdUp();
+				  }
+          else
+          {
+            //std::cout<<"else: "<<file_it->toStdString()<<std::endl;
+            QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
+          }
 				}
 
 				//generate PTM File and store in temp directory
@@ -363,17 +376,29 @@ class TOPPPepNovoAdapter
 				//if PepNovo finished succesfully use PepNovoOutfile to parse the results and generate idxml
 				std::vector< PeptideIdentification > peptide_identifications;
 				ProteinIdentification protein_identification;
-				//DoubleReal score_threshold;, const std::map< String, Real >& dta_filenames_and_precursor_retention_times);
 
 				PepNovoOutfile p_novo_outfile;
 				p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, INFINITY, id_to_rt);
-
 				IdXMLFile().store(outputfile_name,std::vector<ProteinIdentification>(1,protein_identification),peptide_identifications);
 
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
-				{
-					qdir_temp.remove(*file_it);
-				}
+        {
+          //std::cout<<file_it->toStdString()<<std::endl;
+          if(qdir_temp.cd(*file_it))
+          {
+            QStringList subdir_files = qdir_temp.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
+            for(QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+            {
+              qdir_temp.remove(*subdir_file_it);
+            }
+            qdir_temp.cdUp();
+            qdir_temp.rmdir(*file_it);
+          }
+          else
+          {
+            qdir_temp.remove(*file_it);
+          }
+        }
 				qdir_temp.cdUp();
 				qdir_temp.remove("tmp_pepnovo_out.txt");
 				qdir_temp.rmdir("Models");
@@ -387,17 +412,31 @@ class TOPPPepNovoAdapter
 				qdir_temp.setPath(temp_data_directory);
 				if(qdir_temp.cd("Models"))
 				{
-					QStringList pepnovo_files = qdir_models_source.entryList();
+					QStringList pepnovo_files = qdir_temp.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
 					for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
-					{
-						qdir_temp.remove(*file_it);
-					}
+          {
+            //std::cout<<file_it->toStdString()<<std::endl;
+            if(qdir_temp.cd(*file_it))
+            {
+              QStringList subdir_files = qdir_temp.entryList();
+              for(QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+              {
+                qdir_temp.remove(*subdir_file_it);
+              }
+              qdir_temp.cdUp();
+              qdir_temp.rmdir(*file_it);
+            }
+            else
+            {
+              qdir_temp.remove(*file_it);
+            }
 					qdir_temp.cdUp();
 					qdir_temp.remove("tmp_pepnovo_out.txt");
 					qdir_temp.rmdir("Models");
 				}
-				return EXTERNAL_PROGRAM_ERROR;
 			}
+      return EXTERNAL_PROGRAM_ERROR;
+		}
 		}
 
 /*
