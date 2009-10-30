@@ -1961,6 +1961,7 @@ namespace OpenMS
 
 		tools_map["AdditiveSeries"] = StringList::create("");
 		tools_map["BaselineFilter"] = StringList::create("");
+		tools_map["CompNovo"] = StringList::create("CompNovo,CompNovoCID");
 		tools_map["ConsensusID"] = StringList::create("");
 		tools_map["DBExporter"] = StringList::create("");
 		tools_map["DBImporter"] = StringList::create("");
@@ -1988,26 +1989,26 @@ namespace OpenMS
 		tools_map["MascotAdapterOnline"] = StringList::create("");
 		tools_map["NoiseFilter"] = StringList::create("sgolay,gaussian");
 		tools_map["OMSSAAdapter"] = StringList::create("");
-		tools_map["PILISModel"] = StringList::create("");
 		tools_map["PILISIdentification"] = StringList::create("");
+		tools_map["PILISModel"] = StringList::create("");
 		tools_map["PTModel"] = StringList::create("");
 		tools_map["PTPredict"] = StringList::create("");
 		tools_map["PeakPicker"] = StringList::create("wavelet,high_res");
 		tools_map["PepNovoAdapter"] = StringList::create("");
+		tools_map["PeptideIndexer"] = StringList::create("");
+		tools_map["PrecursorIonSelector"] = StringList::create("");
 		tools_map["RTModel"] = StringList::create("");
 		tools_map["RTPredict"] = StringList::create("");
 		tools_map["Resampler"] = StringList::create("");
 		tools_map["SILACAnalyzer"] = StringList::create("");
+		tools_map["SeedListGenerator"] = StringList::create("");
 		tools_map["SequestAdapter"] = StringList::create("");
-		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
 		tools_map["SpecLibSearcher"] = StringList::create("");
+		tools_map["SpectraFilter"] = Factory<PreprocessingFunctor>::registeredProducts();
 		tools_map["TOFCalibration"] = StringList::create("");
 		tools_map["TextExporter"] = StringList::create("");
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
-		tools_map["PrecursorIonSelector"] = StringList::create("");
-		tools_map["PeptideIndexer"] = StringList::create("");
-		tools_map["CompNovo"] = StringList::create("CompNovo,CompNovoCID");
     tools_map["SILACAnalyzer"] = StringList::create("double,triple");
 
 		return tools_map;

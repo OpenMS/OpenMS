@@ -15,9 +15,14 @@ Main improvements of TOPP:
 - FeatureFinder (centroided algorithm)
   - supports parallel execution now
   - supports user-specified seeds now
+- new tool: SeedListGenerator
+  - generates seed lists for feature detection (still experimental)
 - TextExporter
   - added option for string quoting
   - improved export of consensusXML
+- MapAligner
+  - new "identification" algorithm for alignment based on identified peptides (still experimental)
+
 
 Main improvements of UTILS:
 - UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
@@ -28,6 +33,8 @@ Detailed list of changes to specific OpenMS classes
 - New classes:
   - UniqueIdGenerator, UniqueIdInterface, UniqueIdIndexer
   - SVOutStream
+  - MapAlignmentAlgorithmIdentification
+  - SeedListGenerator
 - String:
   - improved behaviour of split(...) method
   - added support for quoting and unquoting of strings
@@ -37,10 +44,12 @@ Detailed list of changes to specific OpenMS classes
   - the given deltas are used for features with convex hulls as well
 - PoseClusteringShiftSuperimposer:
   - full rewrite, uses a similar algorithm like PoseClusteringAffineSuperimposer now
+- TranformationDescription:
+  - added cubic b-spline transformation
 - VersionInfo:
 	- includes (if available) SVN Revision number that the library is build upon
 	  via support by the Build System.
-    SVN Revision information is displayed in the TOPP tools help text.
+    - SVN Revision information is displayed in the TOPP tools help text.
 	
 Changes to the Build System:
 - Unit tests are now in a separate sub-project in <OpenMS/source/TEST/> avoiding huge Solution files in MSVC IDE

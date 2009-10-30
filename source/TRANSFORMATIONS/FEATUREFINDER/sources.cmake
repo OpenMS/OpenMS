@@ -35,6 +35,7 @@ MaxLikeliFitter1D.C
 ModelDescription.C
 ModelFitter.C
 ProductModel.C
+SeedListGenerator.C
 SimpleExtender.C
 SimpleSeeder.C
 )

@@ -40,6 +40,7 @@ MaxLikeliFitter1D.h
 ModelDescription.h
 ModelFitter.h
 ProductModel.h
+SeedListGenerator.h
 SimpleExtender.h
 SimpleSeeder.h
 )
