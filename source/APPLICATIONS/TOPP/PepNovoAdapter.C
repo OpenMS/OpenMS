@@ -378,7 +378,7 @@ class TOPPPepNovoAdapter
 				ProteinIdentification protein_identification;
 
 				PepNovoOutfile p_novo_outfile;
-				p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, INFINITY, id_to_rt);
+				p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, std::numeric_limits<Real>::max(), id_to_rt);
 				IdXMLFile().store(outputfile_name,std::vector<ProteinIdentification>(1,protein_identification),peptide_identifications);
 
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
