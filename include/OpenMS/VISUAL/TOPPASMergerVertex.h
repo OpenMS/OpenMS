@@ -55,13 +55,11 @@ namespace OpenMS
 			/// Returns the current list of output files
 			QStringList getCurrentOutputList();
 			/// Forwards the pipeline execution downstream
-			void forwardPipelineExecution();
+			void forwardPipelineExecution(bool start_merge_all = false);
 			/// Determines whether all inputs are ready
 			bool allInputsReady();
 			/// Determines whether all merge rounds have been performed
 			bool mergeComplete();
-			/// Sets whether all merge rounds have been performed
-			void setMergeComplete(bool b);
 			/// Determines whether this merger is merging round based or merging all inputs into one list
 			bool roundBasedMode();
 			/// Sets whether this merger is merging round based or merging all inputs into one list
@@ -73,20 +71,20 @@ namespace OpenMS
 			// documented in base class
 			virtual QPainterPath shape () const;
 			// documented in base class
-			virtual void propagateDownwardsMergeComplete();
+			virtual void checkIfAllUpstreamMergersFinished();
 			// documented in base class
-			virtual void propagateUpwardsSubtreeFinished();
+			virtual void checkIfSubtreeFinished();
 			// documented in base class
-			virtual void reset(bool reset_all_files = false);
+			virtual void reset(bool reset_all_files = false, bool mergers_finished = true);
 			// documented in base class
 			virtual bool isSubtreeFinished();
+			// documented in base class
+			virtual bool isAllUpstreamMergersFinished();
 			
 		protected:
 
 			/// Stores whether this merger is merging round based or merging all inputs into one list
 			bool round_based_mode_;
-			/// Stores whether all merge rounds have been performed
-			bool merge_complete_;
 			/// The counter for the merging process
 			int merge_counter_;
 

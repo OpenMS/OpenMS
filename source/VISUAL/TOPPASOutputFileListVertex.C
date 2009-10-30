@@ -124,8 +124,6 @@ namespace OpenMS
 
 		if (!tmp_file_names.isEmpty())
 		{
-			//QString dir = File::path(tmp_file_names.first()).toQString();
-			//QStringList files = QDir(dir).entryList(QDir::Files | QDir::NoDotAndDotDot);
 			foreach (const QString& f, tmp_file_names)
 			{
 				if (!File::exists(f))
@@ -162,7 +160,7 @@ namespace OpenMS
 		}
 		
 		finished_ = true;
-		propagateUpwardsSubtreeFinished();
+		checkIfSubtreeFinished();
 		emit iAmDone();
 	}
 	

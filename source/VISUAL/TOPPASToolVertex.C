@@ -599,6 +599,17 @@ namespace OpenMS
 			}
 		}
 		
+		/*	Normally, the subtree finished signal is propagated upstream from finished output nodes.
+				However, if there is a blocking "merge all" node in the way, this will not happen
+				--> additionally check here if subtree is finished ("merge all" nodes will return true
+				in every case)	*/
+		checkIfSubtreeFinished();
+		
+		/*	Because "merge all" nodes wait for the signal that all round-based mergers above them have completed
+				their merging rounds, we additionally check this here (in case there is no merger that sends this signal
+				downwards	*/ 
+		checkIfAllUpstreamMergersFinished();
+		
 		//clean up
 		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
 		if (p)
@@ -803,7 +814,7 @@ namespace OpenMS
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
 		// something has changed --> tmp files might be invalid --> reset
-		reset(true);
+		reset(true,true);
 		
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -813,9 +824,9 @@ namespace OpenMS
 		QVector<IOInfo> out_infos;
 		getOutputParameters(out_infos);
 		
-		if (out_infos.size() == current_output_files_.size())
+		if (out_infos.size() == all_written_output_files_.size())
 		{
-			foreach (const QStringList& files, current_output_files_)
+			foreach (const QStringList& files, all_written_output_files_)
 			{
 				if (files.size() > 0)
 				{
@@ -864,15 +875,15 @@ namespace OpenMS
 		if (topo_nr_ != nr)
 		{
 			// topological number changes --> output dir changes --> reset
-			reset(true);
+			reset(true,true);
 			topo_nr_ = nr;
 			emit somethingHasChanged();
 		}
 	}
 	
-	void TOPPASToolVertex::reset(bool reset_all_files)
+	void TOPPASToolVertex::reset(bool reset_all_files, bool mergers_finished)
 	{
-		TOPPASVertex::reset();
+		TOPPASVertex::reset(reset_all_files, mergers_finished);
 		finished_ = false;
 		current_output_files_.clear();
 		progress_color_ = Qt::gray;

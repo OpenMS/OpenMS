@@ -137,7 +137,7 @@ namespace OpenMS
 			// documented in base class
 			virtual void setTopoNr(UInt nr);
 			// documented in base class
-			virtual void reset(bool reset_all_files = false);
+			virtual void reset(bool reset_all_files = false, bool mergers_finished = true);
 			/// Returns whether this node has already been processed during the current pipeline execution
 			bool isFinished();
 			/// Sets the Param object of this tool

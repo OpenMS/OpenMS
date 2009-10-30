@@ -411,7 +411,7 @@ namespace OpenMS
 		//reset all nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
-			(*it)->reset(true);
+			(*it)->reset(true,true);
 		}
 		update(sceneRect());
 		

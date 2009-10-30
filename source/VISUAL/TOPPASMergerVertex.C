@@ -36,7 +36,6 @@ namespace OpenMS
 	TOPPASMergerVertex::TOPPASMergerVertex()
 		:	TOPPASVertex(),
 			round_based_mode_(true),
-			merge_complete_(false),
 			merge_counter_(0)
 	{
 		pen_color_ = Qt::black;
@@ -46,7 +45,6 @@ namespace OpenMS
 	TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs)
 		:	TOPPASVertex(rhs),
 			round_based_mode_(rhs.round_based_mode_),
-			merge_complete_(rhs.merge_complete_),
 			merge_counter_(rhs.merge_counter_)
 	{
 		pen_color_ = Qt::black;
@@ -62,7 +60,6 @@ namespace OpenMS
 	{
 		TOPPASVertex::operator=(rhs);
 		round_based_mode_ = rhs.round_based_mode_;
-		merge_complete_ = rhs.merge_complete_;
 		merge_counter_ = rhs.merge_counter_;
 		
 		return *this;
@@ -95,7 +92,6 @@ namespace OpenMS
 					const QStringList& file_names = output_files[param_index];
 					out_files << file_names;
 				}
-				
 				continue;
 			}
 			TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
@@ -182,9 +178,9 @@ namespace OpenMS
 		return true;
 	}
 
-	void TOPPASMergerVertex::forwardPipelineExecution()
+	void TOPPASMergerVertex::forwardPipelineExecution(bool start_merge_all)
 	{
-		if (!allInputsReady())
+		if (!allInputsReady() || (!round_based_mode_ && !start_merge_all))
 		{
 			return;
 		}
@@ -255,12 +251,7 @@ namespace OpenMS
 	
 	bool TOPPASMergerVertex::mergeComplete()
 	{
-		return merge_complete_;
-	}
-	
-	void TOPPASMergerVertex::setMergeComplete(bool b)
-	{
-		merge_complete_ = b;
+		return merge_counter_ == numIterations_();
 	}
 	
 	bool TOPPASMergerVertex::roundBasedMode()
@@ -328,20 +319,38 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASMergerVertex::propagateDownwardsMergeComplete()
+	void TOPPASMergerVertex::checkIfAllUpstreamMergersFinished()
 	{
-		/*	We do not have to forward this (TODO: or do we?) (unlike in the base class implementation).
-				Proceed in pipeline if this merger is a "collecting" merger (instead of round based)	*/
+		/*	We do not have to forward this (unlike in the base class implementation).
+				Proceed in pipeline if this merger is a "merge all" merger (instead of round based).
+				Ignore this signal (and do not propagate it downstream) if this merger is a normal round based merger
+				("merge all" mergers only wait for the nearest round-based mergers upstream in the pipeline) */
 		
+		if (round_based_mode_)
+		{
+			return;
+		}
 		
+		// check if all mergers above this node have finished merging
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* source = (*it)->getSourceVertex();
+			if (!source->isAllUpstreamMergersFinished())
+			{
+				return;
+			}
+		}
+		
+		// all preceding upstream mergers finished merging --> ready --> go
+		forwardPipelineExecution(true);
 	}
 	
-	void TOPPASMergerVertex::propagateUpwardsSubtreeFinished()
+	void TOPPASMergerVertex::checkIfSubtreeFinished()
 	{
 		/*	Proceed with next merging round, if this merger is still running and
 				if all children have finished already. If merge is complete, propagate
 				this upwards. */
-		
+
 		// all children's subtrees finished?
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
@@ -352,23 +361,34 @@ namespace OpenMS
 			}
 		}
 		
-		if (merge_counter_ < numIterations_())
+		if (!mergeComplete())
 		{
-			resetSubtree(false);
+			// proceed with next merge iteration
+			resetSubtree(false,false);
 			forwardPipelineExecution();
 		}
 		else
 		{
-			merge_complete_ = true;
-			//actually propagate upwards
-			TOPPASVertex::propagateUpwardsSubtreeFinished();
+			// merge complete --> propagate this upwards (for other round-based mergers)
+			subtree_finished_ = true;
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				TOPPASVertex* source = (*it)->getSourceVertex();
+				source->checkIfSubtreeFinished();
+			}
+			// and downwards (for waiting "merge all" mergers)
+			all_upstream_mergers_finished_ = true;
+			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+			{
+				TOPPASVertex* target = (*it)->getTargetVertex();
+				target->checkIfAllUpstreamMergersFinished();
+			}
 		}
 	}
 	
-	void TOPPASMergerVertex::reset(bool /*reset_all_files*/)
+	void TOPPASMergerVertex::reset(bool /*reset_all_files*/, bool mergers_finished)
 	{
-		TOPPASVertex::reset();
-		merge_complete_ = false;
+		TOPPASVertex::reset(false, mergers_finished);
 		merge_counter_ = 0;
 	}
 	
@@ -376,13 +396,27 @@ namespace OpenMS
 	{
 		if (!round_based_mode_)
 		{
-			/*	HACK: the (waiting) merger has to wait for all round-based mergers upstream
+			/*	HACK: the waiting "merge all" merger has to wait for all round-based mergers upstream
 					to finish, which can only happen if it claims to have finished here	*/
 			return true;
 		}
 		else
 		{
 			return TOPPASVertex::isSubtreeFinished();
+		}
+	}
+	
+	bool TOPPASMergerVertex::isAllUpstreamMergersFinished()
+	{
+		if (!round_based_mode_)
+		{
+			/*	HACK: a waiting "merge all" merger performs only 1 merge round, so it
+					can claim to have finished merging here	*/
+			return true;
+		}
+		else
+		{
+			return TOPPASVertex::isAllUpstreamMergersFinished();
 		}
 	}
 }

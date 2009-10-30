@@ -133,16 +133,18 @@ namespace OpenMS
 			UInt getTopoNr();
 			/// Sets the topological sort number (overridden in tool and output vertices)
 			virtual void setTopoNr(UInt nr);
-			/// Propagates downwards that a running merging process has finished (all rounds complete)
-			virtual void propagateDownwardsMergeComplete();
-			/// Propagates upwards that the tools in the subtree below this node have finished
-			virtual void propagateUpwardsSubtreeFinished();
+			/// Checks if all mergers above this node have finished (all rounds complete) and if yes, propagates this downwards
+			virtual void checkIfAllUpstreamMergersFinished();
+			/// Checks if the tools in the subtree below this node have finished and if yes, propagates this upwards
+			virtual void checkIfSubtreeFinished();
 			/// Resets the status
-			virtual void reset(bool reset_all_files = false);
+			virtual void reset(bool reset_all_files = false, bool mergers_finished = true);
 			/// Returns whether all tools in the subtree below this node are finished
 			virtual bool isSubtreeFinished();
+			/// Indicates whether all mergers above this node are finished
+			virtual bool isAllUpstreamMergersFinished();
 			/// Resets the whole subtree below this node
-			void resetSubtree(bool including_this_node = true);
+			void resetSubtree(bool including_this_node = true, bool mergers_finished = false);
 		
 		public slots:
 		
@@ -190,6 +192,8 @@ namespace OpenMS
 			UInt topo_nr_;
 			/// Indicates whether all tools in the subtree below this node are finished
 			bool subtree_finished_;
+			/// Indicates whether all mergers above this node are finished
+			bool all_upstream_mergers_finished_;
 			
 			///@name reimplemented Qt events
       //@{
