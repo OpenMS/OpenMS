@@ -1,21 +1,22 @@
 
 -- General information --
 
-file name: FileInfo_6_input.mzData
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
 file type: mzData
 
 peak type (metadata) : Peak data
 peak type (estimated): Raw data
 estimated raw data spacing: 0.994568 (min: 0.922302 max: 1.08313)
 
-Number of peaks: 9
+Number of spectra: 2
+Number of peaks:   9
 
 Ranges:
-  retention time:  474.558 : 475.321
-  mass-to-charge:  937.276428222656 : 941.200012207031
-  intensity:       1639 : 18025
-MS levels: 1
+  retention time:  474.56 : 475.32
+  mass-to-charge:  937.28 : 941.20
+  intensity:       1639.00 : 18025.00
 
+MS levels: 1
 Spectra of MS Level 1: 2
 
 Meta data array: SignalToNoise (for 2 spectra)
@@ -41,7 +42,7 @@ Intensities:
   median: 7224
   upper quartile: 8841
   max: 18025
-  variance: 3.54513e+007
+  variance: 3.54513e+07
 
 Meta data: SignalToNoise
   count: 9

@@ -1,20 +1,21 @@
 
 -- General information --
 
-file name: FileInfo_4_input.mzXML
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_4_input.mzXML
 file type: mzXML
 
 peak type (metadata) : Peak data
 peak type (estimated): Peak data
 
-Number of peaks: 6864
+Number of spectra: 20
+Number of peaks:   6864
 
 Ranges:
-  retention time:  0.260352 : 37.6401
-  mass-to-charge:  207.508331298828 : 1496.07702636719
-  intensity:       12.1487121582031 : 25903.892578125
-MS levels: 1, 2
+  retention time:  0.26 : 37.64
+  mass-to-charge:  207.51 : 1496.08
+  intensity:       12.15 : 25903.89
 
+MS levels: 1, 2
 Spectra of MS Level 1: 14
 Spectra of MS Level 2: 6
 

@@ -454,8 +454,9 @@ class TOPPFileInfo
 			//basic info
 			exp.updateRanges();
 			vector<UInt> levels = exp.getMSLevels();
-			
-			os << "Number of peaks: " << exp.getSize() << endl
+		
+			os << "Number of spectra: "	<< exp.size() << endl;
+			os << "Number of peaks:   " << exp.getSize() << endl
 				 << endl
 				 << "Ranges:" << endl
 				 << "  retention time:  " << String::number(exp.getMinRT(),2) << " : " << String::number(exp.getMaxRT(),2) << endl
@@ -538,6 +539,48 @@ class TOPPFileInfo
 				}
 				os << endl;
 			}
+
+			// some chromatogram information
+			if (exp.getChromatograms().size() != 0)
+			{
+				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
+				
+				Size num_chrom_peaks(0);
+				Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
+				for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+				{
+					num_chrom_peaks += it->size();
+					if (chrom_types.has(it->getChromatogramType()))
+					{
+						chrom_types[it->getChromatogramType()]++;
+					}
+					else
+					{
+						chrom_types[it->getChromatogramType()] = 1;
+					}
+				}
+				os << "Number of chrom. peaks: " << num_chrom_peaks << endl << endl;
+
+				os << "#Chromatograms of types: " << endl;
+				for (Map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
+				{
+					switch (it->first)
+					{
+						case ChromatogramSettings::MASS_CHROMATOGRAM:                         os << "   Mass chromatogram:                         " << it->second << endl; break;
+						case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:            os << "   Total ion current chromatogram:            " << it->second << endl; break;
+						case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         os << "   Selected ion current chromatogram:         " << it->second << endl; break;
+						case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     os << "   Basepeak chromaogram:                      " << it->second << endl; break;
+						case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      os << "   Selected ion monitoring chromatogram:      " << it->second << endl; break;
+						case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: os << "   Selected reaction monitoring chromatogram: " << it->second << endl; break;
+						case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:    os << "   Electromagnetic radiation chromatogram:    " << it->second << endl; break;
+						case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   os << "   Absorption chromatogram:                   " << it->second << endl; break;
+						case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     os << "   Emission chromatogram:                     " << it->second << endl; break;
+						default: 								                                              os << "   Unknown chromatogram:                      " << it->second << endl;
+					
+					}
+				}
+			}
+
 
 			// Detailed listing of scans
 			if (getFlag_("d"))

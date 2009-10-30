@@ -1,14 +1,14 @@
 
 -- General information --
 
-file name: FileInfo_3_input.featureXML
+file name: /home/andreas/DATA/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
 file type: FeatureXML
 Number of features: 10
 
 Ranges:
-  retention time:  537.1101 : 539.5316
-  mass-to-charge:  407.281 : 648.688
-  intensity:       1376 : 6712
+  retention time:  537.11 : 539.53
+  mass-to-charge:  407.28 : 648.69
+  intensity:       1376.00 : 6712.00
 
 Charge distribution
 charge 2: 4
@@ -37,7 +37,7 @@ Intensities:
   median: 3049
   upper quartile: 4930.25
   max: 6712
-  variance: 3.49692e+006
+  variance: 3.49692e+06
 
 Overall qualities:
   mean: 0.79855

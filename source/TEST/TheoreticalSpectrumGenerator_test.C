@@ -151,6 +151,7 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
 
   t_gen.getSpectrum(tmp, tmp_aa,1);
   t_gen.addPeaks(tmp, tmp_aa, Residue::AIon);
+	TEST_EQUAL(tmp.size(), 18)
 }
 END_SECTION
 
