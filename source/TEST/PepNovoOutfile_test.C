@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Martin Langwisch $
+// $Maintainer: Sandro Andreotti $
+// $Authors:  $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -87,83 +87,81 @@ START_SECTION(void load(const std::string& result_filename, std::vector< Peptide
 	map< String, Real > filenames_and_precursor_retention_times;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
+	//TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out1"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out1", " in: Not enough columns in file in line 2 (should be 8)!"))
+	//TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out1"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out1", " in: Not enough columns in file in line 2 (should be 8)!"))
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out2"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out2", " in: Not enough columns in file in line 7 (should be 8)!" ))
+	//TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out2"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out2", " in: Not enough columns in file in line 7 (should be 8)!" ))
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
 	
 	
 	// test the actual program
-	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times);
-	
+	map<String, String>key_to_mod;
+	map< String, Real > rt_and_index;
+
+	key_to_mod["K+42"]="Acetyl (K)";
+	key_to_mod["Y+42"]="Acetyl (Y)";
+
+	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 9.000f, rt_and_index, key_to_mod);
+
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
-		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
-		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.915)
+		//TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 9.0)
 		if( peptide_identifications[0].getHits().size() == 2)
 		{
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 9.888)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "VKEAMAPK")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
 			
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 9.236)
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KEAMAPK")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
 		}
 	}
-	
-	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 0.94f, filenames_and_precursor_retention_times);
+
+	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 0.000f, rt_and_index, key_to_mod);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
-		TEST_EQUAL(peptide_identifications[0].getHits().size(), 4)
-		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
-		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.94)
-		if( peptide_identifications[0].getHits().size() == 4)
+		TEST_EQUAL(peptide_identifications[0].getHits().size(), 20)
+		//TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.0)
+		if( peptide_identifications[0].getHits().size() == 20)
 		{
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[11].getScore(),8.045)
+			TEST_EQUAL(peptide_identifications[0].getHits()[11].getSequence(), "GK(Acetyl)EAMAPK")
+			TEST_EQUAL(peptide_identifications[0].getHits()[11].getRank(), 12)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
-			
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
-			
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[2].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[2].getSequence(), "KCPTND")
-			TEST_EQUAL(peptide_identifications[0].getHits()[2].getRank(), 3)
-			TEST_EQUAL(peptide_identifications[0].getHits()[2].getCharge(), 2)
-			
-			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[3].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[0].getHits()[3].getSequence(), "CKPTND")
-			TEST_EQUAL(peptide_identifications[0].getHits()[3].getRank(), 4)
-			TEST_EQUAL(peptide_identifications[0].getHits()[3].getCharge(), 2)
 		}
 	}
-END_SECTION
+
+	END_SECTION
+
 
 START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
 	ProteinIdentification protein_identification;
 	
-	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file 'a' could not be found")
-	
-	
 	// test the actual program
-	file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile_version_file.txt"), protein_identification);
-	TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo");
-	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "v2.00");
+	file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), protein_identification);
+	TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo+");
+	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "Build 20081230");
+	TEST_EQUAL(protein_identification.getSearchParameters().peak_mass_tolerance, 0.5);
+	TEST_REAL_SIMILAR(protein_identification.getSearchParameters().peak_mass_tolerance, 0.5);
+	TEST_REAL_SIMILAR(protein_identification.getSearchParameters().precursor_tolerance, 2.5);
+	TEST_EQUAL(protein_identification.getSearchParameters().variable_modifications.size(), 2);
+	if(protein_identification.getSearchParameters().variable_modifications.size()== 2)
+	{
+	  TEST_EQUAL(protein_identification.getSearchParameters().variable_modifications[0], "K+42");
+	  TEST_EQUAL(protein_identification.getSearchParameters().variable_modifications[1], "Y+42");
+	}
 END_SECTION
 
 

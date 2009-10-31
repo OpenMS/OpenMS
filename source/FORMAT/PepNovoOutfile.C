@@ -21,11 +21,12 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -60,7 +61,9 @@ namespace OpenMS
 		vector< PeptideIdentification >&	peptide_identifications,
 		ProteinIdentification& protein_identification,
 		const Real& score_threshold,
-		const map< String, Real >& rt_and_index)
+		const map< String, Real >& rt_and_index,
+		const map<String, String>& keys_to_id
+		)
 	{
 		// generally used variables
 		vector< String > substrings;
@@ -91,10 +94,10 @@ namespace OpenMS
 		}
 
 		UInt line_number(0); // used to report in which line an error occured
+		score_type = "PepNovo";
+		version = "unknown";
 
-		score_type = "PepNovo3";
-		version = "v3.00";
-
+		getSearchEngineAndVersion(result_filename, protein_identification);
 		if ( protein_identification.getSearchEngineVersion().empty() )
 		{
 			protein_identification.setSearchEngine("PepNovo");
@@ -102,6 +105,34 @@ namespace OpenMS
 		}
 		identifier = protein_identification.getSearchEngine() + "_" + datetime.getDate();
 		protein_identification.setIdentifier(identifier);
+
+		map<String, String>mod_mask_map;
+		const vector<String> &mods=protein_identification.getSearchParameters().variable_modifications;
+		for(vector<String>::const_iterator mod_it= mods.begin(); mod_it!=mods.end(); ++mod_it)
+		{
+		  if(mod_it->empty())
+		    continue;
+		  //cout<<*mod_it<<endl;
+		  if(keys_to_id.find(*mod_it)!=keys_to_id.end())
+		  {
+		    //cout<<keys_to_id.find(*mod_it)->second<<endl;
+		    ResidueModification tmp_mod =ModificationsDB::getInstance()->getModification(keys_to_id.find(*mod_it)->second);
+		    mod_mask_map[*mod_it]=tmp_mod.getOrigin()+"("+tmp_mod.getId()+")";
+		  }
+		  else
+		  {
+        if(mod_it->prefix(1)!=String('^') && mod_it->prefix(1)!=String('$'))
+        {
+          mod_mask_map[*mod_it]=mod_it->prefix(1)+"["+mod_it->substr(1)+"]";
+          cout<<mod_mask_map[*mod_it]<<endl;
+        }
+        else
+        {
+          //mod_mask_map[*mod_it]="["+*mod_it+"]";
+          cout<<mod_mask_map[*mod_it]<<endl;
+        }
+		  }
+		}
 
 		while ( getline(result_file, line) )
 		{
@@ -114,6 +145,7 @@ namespace OpenMS
 				peptide_identification = PeptideIdentification();
 				
 				String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
+				//cout<<"INDEX: "<<index<<endl;
 				if ( rt_and_index.find(index) != rt_and_index.end() ) peptide_identification.setMetaValue("RT",  rt_and_index.find(index)->second);
 				else peptide_identification.setMetaValue("RT", 0);
 				
@@ -145,7 +177,6 @@ namespace OpenMS
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 					}
 				}
-
 				while ( getline(result_file, line) )
 				{
 					++line_number;
@@ -163,21 +194,22 @@ namespace OpenMS
 							result_file.clear();
 							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 						}
-						if ( 1 - substrings[columns["Prob"]].toFloat() <= score_threshold + std::numeric_limits<Real>::epsilon() )
+						if ( substrings[columns["RnkScr"]].toFloat() >= score_threshold)
 						{
 							peptide_hit = PeptideHit();
 							peptide_hit.setCharge(substrings[columns["Charge"]].toInt());
 							peptide_hit.setRank(substrings[columns["Index"]].toInt() + 1);
-							peptide_hit.setScore(substrings[columns["PnvScr"]].toFloat());
-							peptide_hit.setMetaValue("RnkScr", substrings[columns["RnkScr"]].toFloat());
+							peptide_hit.setScore(substrings[columns["RnkScr"]].toFloat());
+							peptide_hit.setMetaValue("RnkScr", substrings[columns["PnvScr"]].toFloat());
 							peptide_hit.setMetaValue("N-Gap", substrings[columns["N-Gap"]].toFloat());
 							peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
 							//remove modifications (small characters and anything that's not in the alphabet)
-							sequence_with_mods = substrings[columns["Sequence"]];
-							sequence.clear();
-							for ( String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i )
+							//sequence_with_mods = substrings[columns["Sequence"]];
+							sequence = substrings[columns["Sequence"]];
+							for(map<String, String>::iterator mask_it=mod_mask_map.begin(); mask_it!=mod_mask_map.end(); ++mask_it)
 							{
-								if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
+							  //cout<<mask_it->first<<" "<<mask_it->second<<endl;
+							  sequence.substitute(mask_it->first, mask_it->second);
 							}
 							peptide_hit.setSequence(sequence);
 							peptide_identification.insertHit(peptide_hit);
@@ -204,6 +236,7 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
 		}
 
+		ProteinIdentification::SearchParameters search_param;
 		// searching for something like this: PepNovo v1.03
 		String line;
 		vector< String > substrings;
@@ -212,16 +245,43 @@ namespace OpenMS
 			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
 			line.trim();
 			if ( line.empty() ) continue;
-			if ( !line.hasPrefix("PepNovo") ) continue;
-			else
+			if (line.hasPrefix("PepNovo"))
 			{
-				line.split(' ', substrings);
-				if ( substrings.empty() ) substrings.push_back(line);
-				protein_identification.setSearchEngine(substrings[0]);
-				if ( substrings.size() >= 2 ) protein_identification.setSearchEngineVersion(substrings[1]);
-				return;
+			  line.split(',', substrings);
+			  if(substrings.size()==2)
+			  {
+			    protein_identification.setSearchEngine(substrings[0].trim());
+			    protein_identification.setSearchEngineVersion(substrings[1].trim());//else something is strange and we use defaults later
+			  }
+			}
+			if (line.hasPrefix("PM"))
+      {
+			  line.split(' ', substrings);
+        search_param.precursor_tolerance=substrings.back().toFloat();
+      }
+			if (line.hasPrefix("Fragment"))
+      {
+        line.split(' ', substrings);
+        search_param.peak_mass_tolerance=substrings.back().toFloat();
+      }
+			if (line.hasPrefix("PTM"))
+      {
+        line.split(':', substrings);
+        substrings.erase(substrings.begin());
+        for(vector<String>::iterator ptm_it=substrings.begin(); ptm_it!=substrings.end();++ptm_it)
+        {
+          ptm_it->trim();
+        }
+        search_param.variable_modifications=substrings;
+      }
+			if(line.hasPrefix(">>"))
+			{
+			  break;
 			}
 		}
-	}
+		protein_identification.setSearchParameters(search_param);
+  }
+
+
 
 } //namespace OpenMS

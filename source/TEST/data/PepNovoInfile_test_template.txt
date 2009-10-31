@@ -1,14 +1,4 @@
-# Fixed PTMs
-#AA  offset      type    locations  symbol  PTM name
-K   10.3   FIXED   ALL   K+10   PTM_0
-R   10.3   FIXED   ALL   R+10   PTM_0
-L   10.3   FIXED   ALL   L+10   PTM_0
-N   10.3   FIXED   ALL   N+10   PTM_0
-H   10.3   FIXED   ALL   H+10   PTM_0
-
-# Optional PTMs
-C   16   OPTIONAL   ALL   C+16   PTM_1
-
-# Terminal PTMs
-C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_2
-N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_3
+#AA	offset	type	locations	symbol	PTM	name
+C	79.966331	FIXED	ALL	C+80	Phosphorylation
+C-TERM	43.042199	OPTIONAL	C_TERM	$+43	Carboxyl modification with ethanolamine
+D	79.966331	OPTIONAL	ALL	D+80	Phosphorylation

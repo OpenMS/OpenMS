@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -59,8 +59,8 @@ namespace OpenMS
 			/// assignment operator
 			PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile);
 
-			/// equality operator
-			bool operator==(const PepNovoInfile& pepnovo_infile) const;
+//			/// equality operator
+  			bool operator==(const PepNovoInfile& pepnovo_infile) const;
 
 			/** stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
 					
@@ -69,16 +69,6 @@ namespace OpenMS
 			*/
 			void store(const String& filename);
 
-			/** retrieves the name, mass change, affected residues, type and position for all modifications from a string
-					
-					@param modification_line
-					@param modifications_filename
-					@param monoisotopic
-					@throw FileNotFound is thrown if the given file is not found
-					@throw FileNotReadable is thrown if the given file is not readable
-					@throw ParseError is throw if the given file could not be parsed
-			*/
-			String handlePTMs(const String &modification, const bool variable);
 
 			void setModifications(const StringList &fixed_mods, const StringList &variable_mods);
 
@@ -90,8 +80,20 @@ namespace OpenMS
 			ModificationDefinitionsSet mods_;
 			std::map<String,String>mods_and_keys_;
 			TextFile ptm_file_;
-			void generate_pepnovo_lines();
 
+
+			//void generate_pepnovo_lines();
+
+     /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
+
+            @param modification_line
+            @param modifications_filename
+            @param monoisotopic
+            @throw FileNotFound is thrown if the given file is not found
+            @throw FileNotReadable is thrown if the given file is not readable
+            @throw ParseError is throw if the given file could not be parsed
+        */
+        String handlePTMs(const String &modification, const bool variable);
   };
 
 } // namespace OpenMS

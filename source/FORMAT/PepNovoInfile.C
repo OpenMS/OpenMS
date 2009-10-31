@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Sandro Andreotti $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 
 #include <algorithm>
 #include <set>
@@ -49,19 +50,23 @@ namespace OpenMS
 	
 	PepNovoInfile::PepNovoInfile(const PepNovoInfile& pepnovo_infile)
 	{
-		//PTMname_residues_mass_type_ = pepnovo_infile.getModifications();
 		mods_=pepnovo_infile.mods_;
+		mods_and_keys_=pepnovo_infile.mods_and_keys_;
+		ptm_file_=pepnovo_infile.ptm_file_;
 	}
 
 	PepNovoInfile::~PepNovoInfile()
 	{
-		//PTMname_residues_mass_type_.clear();
-		//mods_.;
 	}
 	
 	PepNovoInfile& PepNovoInfile::operator=(const PepNovoInfile& pepnovo_infile)
 	{
-		if ( this != &pepnovo_infile ) mods_ = pepnovo_infile.mods_;
+		if ( this != &pepnovo_infile )
+		  {
+        mods_ = pepnovo_infile.mods_;
+        mods_and_keys_=pepnovo_infile.mods_and_keys_;
+        ptm_file_=pepnovo_infile.ptm_file_;
+		  }
 		return *this;
 	}
 	
@@ -81,12 +86,11 @@ namespace OpenMS
 		String locations, key, type;
 
 		ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
-
 		String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
 		DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
 		String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
+    String full_id = ModificationsDB::getInstance()->getModification(modification).getFullId();
 
-		std::cout<<"Mass of modification: "<<mass<<std::endl;
 
 		if(variable)
 			type="OPTIONAL";
@@ -104,37 +108,28 @@ namespace OpenMS
 			default:throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Term_Specificity", String(ts));
 		}
 
-		if(ts==ResidueModification::C_TERM || ts==ResidueModification::N_TERM)
-		{
-			if(origin.empty())
-			{
-				origin=locations;
-			}
-			else
-			{
-				locations="+1";
-			}
-		}
-
 		if(ts==ResidueModification::C_TERM)
 		{
 			key="$";
 		}
-
 		else if(ts==ResidueModification::N_TERM)
 		{
 			key="^";
 		}
-
-		if(origin!=locations)
+		//cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
+		if(origin!="C-term" && origin!="N-Term")
 		{
-			key+=origin;
+			key=origin;
 		}
 
-		key+="+"+String((Int)mass);
+		if(mass>=0)
+		  key+="+"+String(round(mass));
+		else
+		  key+=String(round(mass));
+
 
 		String line="";
-		line+=origin;
+		line+=origin.toUpper();
 		line+="\t";
 		line+=mass;
 		line+="\t";
@@ -146,35 +141,11 @@ namespace OpenMS
 		line+="\t";
 		line+=full_name;
 
-		mods_and_keys_[modification]=key;
-		std::cout<<"pepNovo Line:"<<line<<std::endl;
-		std::cout<<"pepNovo key:"<<key<<std::endl;
+		mods_and_keys_[key]=full_id;
+		//std::cout<<"pepNovo Line:"<<line<<std::endl;
+		//std::cout<<"pepNovo key:"<<key<<std::endl;
 
 		return line;
-	}
-
-	void PepNovoInfile::generate_pepnovo_lines()
-	{
-		//TextFile ptm_file_;
-		ptm_file_.reserve(mods_.getNumberOfModifications()+1);
-
-		//writeDebug_("Setting modifications", 1);
-
-		ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
-
-		// fixed modifications
-		std::set<String>fixed_modifications=mods_.getFixedModificationNames();
-		for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
-		{
-			ptm_file_.push_back(handlePTMs(*it, false));
-		}
-		// variable modifications
-		std::set<String>variable_modifications=mods_.getVariableModificationNames();
-		for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
-		{
-			ptm_file_.push_back(handlePTMs(*it, true));
-		}
-		//ptm_file_.store(filename);
 	}
 
 	void PepNovoInfile::store(const String& filename)
@@ -186,7 +157,23 @@ namespace OpenMS
 	{
 		mods_.setModifications(fixed_mods,variable_mods);
 		mods_and_keys_.clear();
-		generate_pepnovo_lines();
+
+		//TextFile ptm_file_;
+    ptm_file_.reserve(mods_.getNumberOfModifications()+1);
+    ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
+
+    // fixed modifications
+    std::set<String>fixed_modifications=mods_.getFixedModificationNames();
+    for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    {
+      ptm_file_.push_back(handlePTMs(*it, false));
+    }
+    // variable modifications
+    std::set<String>variable_modifications=mods_.getVariableModificationNames();
+    for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+    {
+      ptm_file_.push_back(handlePTMs(*it, true));
+    }
 	}
 
 	void PepNovoInfile::getModifications(std::map<String,String>& modification_key_map) const
