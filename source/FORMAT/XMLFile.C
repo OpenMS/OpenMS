@@ -30,10 +30,11 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <OpenMS/FORMAT/CompressedInputSource.h>
+
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
-
 #include <fstream>
 #include <iomanip> // setprecision etc.
 
@@ -82,13 +83,27 @@ namespace OpenMS
 			parser->setContentHandler(handler);
 			parser->setErrorHandler(handler);
 			
-			// try to parse file
-			xercesc::LocalFileInputSource source(StringManager().convert(filename.c_str()));
-				
+			//is it bzip2 or gzip compressed?
+			std::ifstream file(filename.c_str());
+			char bz[2];
+			file.read(bz,2);
+			xercesc::InputSource *source;
+			char g1 = 0x1f;
+			char g2 = 0x8b;
+			if((bz[0] == 'B' && bz[1] =='Z' ) || 	(bz[0] == g1 && bz[1] == g2))
+			{
+				source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);
+			}
+			else
+			{
+				source = new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str()));
+			}	
+			// try to parse file	
 			try 
 			{
-				parser->parse(source);
+				parser->parse(*source);
 				delete(parser);
+				delete source;
 			}
 			catch (const xercesc::XMLException& toCatch) 
 			{

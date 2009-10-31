@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+
 using namespace OpenMS;
 using namespace std;
 
@@ -176,7 +177,7 @@ START_TEST(MzMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
+/*
 
 MzMLFile* ptr = 0;
 START_SECTION((MzMLFile()))
@@ -207,7 +208,7 @@ START_SECTION(PeakFileOptions& getOptions())
 	file.getOptions().addMSLevel(1);
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 END_SECTION
-
+*/
 TOLERANCE_ABSOLUTE(0.01)
 
 START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
@@ -678,10 +679,97 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			}
 		}
 	}
+
+	//Testing gzip compression of a whole file
+	MSExperiment<> exp_whole_comp;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz"),exp_whole_comp);
+	TEST_EQUAL(exp_ucomp.size(),exp_whole_comp.size())
+	for (Size s=0; s< exp_ucomp.size(); ++s)
+	{
+		//check if the same number of peak and meta data arrays is present
+		TEST_EQUAL(exp_ucomp[s].size(),exp_whole_comp[s].size())
+		TEST_EQUAL(exp_ucomp[s].getFloatDataArrays().size(),exp_whole_comp[s].getFloatDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_whole_comp[s].getIntegerDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_whole_comp[s].getStringDataArrays().size())
+		//check content of peak array
+		for (Size p=0; p< exp_ucomp[s].size(); ++p)
+		{
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_whole_comp[s][p].getMZ())
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_whole_comp[s][p].getIntensity())
+		}
+		//check content of float arrays
+		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
+			{
+				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_whole_comp[s].getFloatDataArrays()[a][m])
+			}
+		}
+		//check content of integer arrays
+		for (Size a=0; a<exp_ucomp[s].getIntegerDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getIntegerDataArrays()[a].size(); ++m)
+			{
+				TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays()[a][m],exp_whole_comp[s].getIntegerDataArrays()[a][m])
+			}
+		}
+		//check content of string arrays
+		for (Size a=0; a<exp_ucomp[s].getStringDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getStringDataArrays()[a].size(); ++m)
+			{
+				TEST_STRING_EQUAL(exp_ucomp[s].getStringDataArrays()[a][m],exp_whole_comp[s].getStringDataArrays()[a][m])
+			}
+		}
+	}
 	
-	//test if it works with different peak types
-	MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e_rich);
+	//Testing bzip2 compression of a whole file
+	MSExperiment<> exp_bz;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2"),exp_bz);
+	TEST_EQUAL(exp_ucomp.size(),exp_bz.size())
+	for (Size s=0; s< exp_ucomp.size(); ++s)
+	{
+		//check if the same number of peak and meta data arrays is present
+		TEST_EQUAL(exp_ucomp[s].size(),exp_bz[s].size())
+		TEST_EQUAL(exp_ucomp[s].getFloatDataArrays().size(),exp_bz[s].getFloatDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_bz[s].getIntegerDataArrays().size())
+		TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_bz[s].getStringDataArrays().size())
+		//check content of peak array
+		for (Size p=0; p< exp_ucomp[s].size(); ++p)
+		{
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_bz[s][p].getMZ())
+			TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_bz[s][p].getIntensity())
+		}
+		//check content of float arrays
+		for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getFloatDataArrays()[a].size(); ++m)
+			{
+				TEST_REAL_SIMILAR(exp_ucomp[s].getFloatDataArrays()[a][m],exp_bz[s].getFloatDataArrays()[a][m])
+			}
+		}
+		//check content of integer arrays
+		for (Size a=0; a<exp_ucomp[s].getIntegerDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getIntegerDataArrays()[a].size(); ++m)
+			{
+				TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays()[a][m],exp_bz[s].getIntegerDataArrays()[a][m])
+			}
+		}
+		//check content of string arrays
+		for (Size a=0; a<exp_ucomp[s].getStringDataArrays().size(); ++a)
+		{
+			for (Size m=0; m< exp_ucomp[s].getStringDataArrays()[a].size(); ++m)
+			{
+				TEST_STRING_EQUAL(exp_ucomp[s].getStringDataArrays()[a][m],exp_bz[s].getStringDataArrays()[a][m])
+			}
+		}
+	}
+	//Testing corrupted files	
+		MSExperiment<> exp_cor;
+	TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
+			MSExperiment<> exp_cor2;
+	TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
 
 END_SECTION
 

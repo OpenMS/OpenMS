@@ -123,7 +123,10 @@ set(visual_executables_list
 set(format_executables_list
   Base64_test
   BigString_test
+  Bzip2Ifstream_test
+  Bzip2InputStream_test
   CVMappingFile_test
+  CompressedInputSource_test
   ConsensusXMLFile_test
   ControlledVocabulary_test
   CsvFile_test
@@ -132,6 +135,8 @@ set(format_executables_list
   FASTAFile_test
   FeatureXMLFile_test
   FileHandler_test
+  GzipIfstream_test
+  GzipInputStream_test
   IdXMLFile_test
   InspectInfile_test
   InspectOutfile_test
