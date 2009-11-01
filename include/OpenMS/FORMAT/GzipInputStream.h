@@ -40,7 +40,7 @@ namespace OpenMS
 		@brief Implements the BinInputStream class of the xerces-c library in order to read gzip compressed XML files.
 		
 	*/
-	class GzipInputStream
+	class OPENMS_DLLAPI GzipInputStream
 		:	public xercesc::BinInputStream
 	{
 		public:
@@ -51,7 +51,7 @@ namespace OpenMS
    		
    		
    		///Destructor
-   		~GzipInputStream();
+   		virtual ~GzipInputStream();
    		///returns true if file is open
    		 bool getIsOpen() const;
     	/**

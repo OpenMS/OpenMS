@@ -40,7 +40,7 @@ namespace OpenMS
 		@brief Implements the BinInputStream class of the xerces-c library in order to read bzip2 compressed XML files.
 		
 	*/
-	class Bzip2InputStream
+	class OPENMS_DLLAPI Bzip2InputStream
 		:	public xercesc::BinInputStream
 	{
 		public:
@@ -51,7 +51,7 @@ namespace OpenMS
    		
    		
    		///Destructor
-   		~Bzip2InputStream();
+   		virtual ~Bzip2InputStream();
    		///returns true if file is open
    		 bool getIsOpen() const;
     	/**

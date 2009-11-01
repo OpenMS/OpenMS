@@ -36,7 +36,7 @@ namespace OpenMS
 /**
 	@brief Decompresses files which are compressed in the bzip2 format (*.bz2)
 */
-	class Bzip2Ifstream 
+	class OPENMS_DLLAPI Bzip2Ifstream 
 	{
 		public: 
 			///Default Constructor
@@ -44,7 +44,7 @@ namespace OpenMS
 			/// 
 			Bzip2Ifstream(const char * filename);
 			///Destructor
-			~Bzip2Ifstream();
+			virtual ~Bzip2Ifstream();
 			
 			//operator>>();
 			/**

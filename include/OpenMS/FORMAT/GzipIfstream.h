@@ -35,7 +35,7 @@ namespace OpenMS
 /**
 	@brief Decompresses files which are compressed in the gzip format (*.gzip)
 */
-	class GzipIfstream 
+	class OPENMS_DLLAPI GzipIfstream 
 	{
 		public: 
 			///Default Constructor
@@ -43,7 +43,7 @@ namespace OpenMS
 			/// 
 			GzipIfstream(const char * filename);
 			///Destructor
-			~GzipIfstream();
+			virtual ~GzipIfstream();
 			
 			//operator>>();
 			/**
