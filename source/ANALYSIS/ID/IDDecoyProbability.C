@@ -96,7 +96,7 @@ namespace OpenMS
 					{
           	fwd_scores.push_back(score);
 					} 
-					else if (target_decoy == "decoy");
+					else if (target_decoy == "decoy")
 					{
 						rev_scores.push_back(score);
 					}
