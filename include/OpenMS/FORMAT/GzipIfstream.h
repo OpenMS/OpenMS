@@ -28,6 +28,7 @@
 #ifndef OPENMS_FORMAT_GZIP_IFSTREAM_H
 #define	OPENMS_FORMAT_GZIP_IFSTREAM_H
 
+#include <OpenMS/config.h>
 #include <zlib.h>
 
 namespace OpenMS

@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		@brief This class is based on xercesc::LocalFileInputSource
 	*/
-	class CompressedInputSource 
+	class OPENMS_DLLAPI CompressedInputSource 
 		:	public xercesc::InputSource
 	{
 		public:
@@ -46,7 +46,7 @@ namespace OpenMS
 			///Constructor
 			CompressedInputSource(const   XMLCh* const file_path,const char* header, xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
 		  ///Constructor
-		  ~CompressedInputSource();
+		  virtual ~CompressedInputSource();
 		 
 		 /**
 		  	@brief Depending on the header in the Constructor a Bzip2InputStream or a GzipInputStream object is returned
