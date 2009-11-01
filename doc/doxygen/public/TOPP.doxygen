@@ -56,6 +56,7 @@
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
 	- @subpage TOPP_InternalCalibration - Applies an internal calibration.
 	- @subpage TOPP_TOFCalibration - Applies time of flight calibration.
+	- @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
 
   <b>Quantitation</b>
  	- @subpage TOPP_FeatureFinder - Detects two-dimensional features in LC-MS data.
@@ -64,6 +65,7 @@
 	- @subpage TOPP_FeatureLinker - Groups corresponding features in one map or across maps.
 	- @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
 	- @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
+	- @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
   <b>Protein/peptide Identification</b>
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.

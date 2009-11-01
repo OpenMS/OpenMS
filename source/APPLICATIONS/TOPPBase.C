@@ -2010,6 +2010,7 @@ namespace OpenMS
 		tools_map["TextImporter"] = StringList::create("");
 		tools_map["XTandemAdapter"] = StringList::create("");
     tools_map["SILACAnalyzer"] = StringList::create("double,triple");
+    tools_map["PrecursorMassCorrector"] = StringList::create("");
 
 		return tools_map;
 	}

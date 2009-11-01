@@ -56,6 +56,7 @@ PrecursorIonSelector
 IDFileConverter
 CompNovo
 PeptideIndexer
+PrecursorMassCorrector
 )
 
 ### add filenames to Visual Studio solution tree
