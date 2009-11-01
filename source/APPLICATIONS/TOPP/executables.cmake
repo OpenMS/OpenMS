@@ -39,6 +39,7 @@ RTPredict
 Resampler
 PILISModel
 PILISIdentification
+SeedListGenerator
 SequestAdapter
 SpecLibSearcher
 SpectraFilter
