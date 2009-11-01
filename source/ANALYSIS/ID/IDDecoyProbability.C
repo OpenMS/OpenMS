@@ -105,6 +105,9 @@ namespace OpenMS
         it->setHits(hits);
       }
     }
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << ids.size() << " " << rev_scores.size() << " " << fwd_scores.size() << " " << all_scores.size() << endl;
+#endif
 		apply_(ids, rev_scores, fwd_scores, all_scores);
 		return;
 	}
@@ -197,8 +200,9 @@ namespace OpenMS
     	pos.setX(((DoubleReal)i) / (DoubleReal)number_of_bins + 0.0001);  // necessary????
     	pos.setY(rev_scores_normalized[i]);
     	rev_data.push_back(pos);
-
+#ifdef IDDECOYPROBABILITY_DEBUG
 			cerr << pos.getX() << " " << pos.getY() << endl;
+#endif
   	}
 
 		Math::GammaDistributionFitter gdf;
@@ -258,7 +262,7 @@ namespace OpenMS
 			Size fwd(0), rev(0);
 			fwd = fwd_bins[i];
 			rev = rev_bins[i];
-    	if (fwd > rev && max_reverse_bin < i)
+    	if ((DoubleReal)fwd > (DoubleReal)(1.3 * rev) && max_reverse_bin < i)
     	{
       	diff_scores[i] = (DoubleReal)(fwd - rev) / (DoubleReal)max_bin;
     	}
