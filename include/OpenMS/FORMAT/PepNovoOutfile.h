@@ -80,7 +80,11 @@ namespace OpenMS
 				This class serves to read in a PepNovo outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& score_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times, const std::map<String, String> &keys_to_id);
+			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications,
+			    ProteinIdentification& protein_identification,
+			    const Real& score_threshold,
+			    const std::map< String, std::pair<Real,Real> >& dta_filenames_and_precursor_retention_times,
+			    const std::map<String, String> &keys_to_id);
 
 			/** get the search engine and it's version from a file that is the output of PepNovo run without parameters
 

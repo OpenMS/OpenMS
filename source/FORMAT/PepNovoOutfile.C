@@ -61,7 +61,7 @@ namespace OpenMS
 		vector< PeptideIdentification >&	peptide_identifications,
 		ProteinIdentification& protein_identification,
 		const Real& score_threshold,
-		const map< String, Real >& rt_and_index,
+		const map< String, pair<Real, Real> >& rt_and_index,
 		const map<String, String>& keys_to_id
 		)
 	{
@@ -141,14 +141,18 @@ namespace OpenMS
 			++line_number;
 			if ( line.hasPrefix(">> ") ) // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
 			{
-				if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
+				if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() )
+				  peptide_identifications.push_back(peptide_identification);
+
 				peptide_identification = PeptideIdentification();
 				
 				String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
 				//cout<<"INDEX: "<<index<<endl;
-				if ( rt_and_index.find(index) != rt_and_index.end() ) peptide_identification.setMetaValue("RT",  rt_and_index.find(index)->second);
-				else peptide_identification.setMetaValue("RT", 0);
-				
+				if ( rt_and_index.find(index) != rt_and_index.end() )
+				{
+				  peptide_identification.setMetaValue("RT",  rt_and_index.find(index)->second.first);
+				  peptide_identification.setMetaValue("MZ",  rt_and_index.find(index)->second.second);
+				}
 				peptide_identification.setSignificanceThreshold(score_threshold);
 				peptide_identification.setScoreType(score_type);
 				peptide_identification.setIdentifier(identifier);
@@ -203,8 +207,7 @@ namespace OpenMS
 							peptide_hit.setMetaValue("RnkScr", substrings[columns["PnvScr"]].toFloat());
 							peptide_hit.setMetaValue("N-Gap", substrings[columns["N-Gap"]].toFloat());
 							peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
-							//remove modifications (small characters and anything that's not in the alphabet)
-							//sequence_with_mods = substrings[columns["Sequence"]];
+							peptide_hit.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
 							sequence = substrings[columns["Sequence"]];
 							for(map<String, String>::iterator mask_it=mod_mask_map.begin(); mask_it!=mod_mask_map.end(); ++mask_it)
 							{
@@ -216,7 +219,6 @@ namespace OpenMS
 						}
 					}
 				}
-				peptide_identification.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
 			}
 		}
 		if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);

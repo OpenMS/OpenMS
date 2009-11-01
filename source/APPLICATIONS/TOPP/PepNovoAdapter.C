@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 
@@ -231,17 +233,16 @@ class TOPPPepNovoAdapter
 			mzdata_infile.getOptions().addMSLevel(2);
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
-			//exp[0].setNativeID("native ID");
-			//mzdata_infile.store("test.mzXML", exp);
 
-			// we need to replace the native id with a simple numbering schema, to be able to
-			// map the IDs back to the spectra (RT, and MZ infomration)
-			std::map<String, Real>id_to_rt;
-			Size native_id(1);
+			// we map the native id to the MZ and RT to be able to
+			// map the IDs back to the spectra (RT, and MZ Meta Information)
+			std::map<String, pair<Real, Real> >id_to_rt;
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				id_to_rt[native_id]=it->getRT();
-				it->setNativeID(native_id++);
+			  String native_id=it->getNativeID();
+			  if(native_id.find('=')!=native_id.length())
+			    native_id=native_id.substr(native_id.find('=')+1);//replace entries "scan=number" by "number"as PepNovo uses it as identifier in output
+				id_to_rt[native_id.trim()]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
 			}
 
 			logfile = getStringOption_("log");
@@ -368,8 +369,10 @@ class TOPPPepNovoAdapter
           vector<PeptideIdentification>::iterator id_vec_it=peptide_identifications.begin();
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
+          std::vector<ProteinIdentification>prot_ids;
           p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, (-1)*std::numeric_limits<Real>::max(), id_to_rt, mods_and_keys);
-          IdXMLFile().store(outputfile_name,std::vector<ProteinIdentification>(1,protein_identification),peptide_identifications);
+          prot_ids.push_back(protein_identification);
+          IdXMLFile().store(outputfile_name,prot_ids, peptide_identifications);
         }
 				//remove the temporary files
 				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
@@ -416,7 +419,6 @@ class TOPPPepNovoAdapter
             std::cout<<file_it->toStdString()<<std::endl;
             if(qdir_temp.cd(*file_it))
             {
-              //cout<<"is folder"<<file_it->toStdString()<<endl;
               QStringList subdir_files = qdir_temp.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
               for(QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
               {

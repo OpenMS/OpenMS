@@ -99,7 +99,7 @@ START_SECTION(void load(const std::string& result_filename, std::vector< Peptide
 	
 	// test the actual program
 	map<String, String>key_to_mod;
-	map< String, Real > rt_and_index;
+	map< String, pair<Real, Real> > rt_and_index;
 
 	key_to_mod["K+42"]="Acetyl (K)";
 	key_to_mod["Y+42"]="Acetyl (Y)";
