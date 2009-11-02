@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
 #include <set>
@@ -123,9 +123,9 @@ namespace OpenMS
 		}
 
 		if(mass>=0)
-		  key+="+"+String(round(mass));
+		  key+="+"+String(Math::round(mass));
 		else
-		  key+=String(round(mass));
+		  key+=String(Math::round(mass));
 
 
 		String line="";

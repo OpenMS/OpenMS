@@ -50,7 +50,7 @@ namespace OpenMS
 	{
 		if(gzfile != NULL)
 		{
-  		n_buffer = gzread (gzfile, s, n/* size of buf */ );		
+  		n_buffer = gzread (gzfile, s,(unsigned int) n/* size of buf */ );		
 			if(gzeof(gzfile) == 1) 
 			{
    			close();

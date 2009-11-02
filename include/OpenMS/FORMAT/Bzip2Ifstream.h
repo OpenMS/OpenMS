@@ -53,10 +53,10 @@ namespace OpenMS
 					
 					@param s will be filled with bytes
 					@param n is the size of the buffer s
-					@ret the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
+					@return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
 					
 					@exception Exception::ConversionError is thrown if decompression fails
-					@exception Exception::IllegalArgument is thrwon if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+					@exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
 					@note it is undefined what will happen if parameter n is bigger than the length of the buffer
 			*/
 			size_t read(char* s, size_t n);
@@ -64,7 +64,7 @@ namespace OpenMS
 			/**
 				@brief indicates whether the read function can be used safely
 				
-				@ret true if end of file was reached. Otherwise false.
+				@return true if end of file was reached. Otherwise false.
 			*/
 			bool streamEnd() const;
 			
@@ -88,7 +88,7 @@ namespace OpenMS
 			FILE*   file;
 			/// a pointer to a BZFILE object. Necessary for decompression
 			BZFILE* bzip2file;
-			///counts the last read bufffer
+			///counts the last read buffer
 			size_t     n_buffer;
 			///saves the last returned error by the read function
 			int     bzerror;
@@ -103,7 +103,7 @@ namespace OpenMS
 	//return bzip2file???!!!!????
 	inline bool Bzip2Ifstream::isOpen() const
 	{
-		return (file);
+		return (file != NULL);
 	}
 	
 	inline bool Bzip2Ifstream::streamEnd() const

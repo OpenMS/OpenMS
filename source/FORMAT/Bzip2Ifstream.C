@@ -64,7 +64,7 @@ namespace OpenMS
 		if(bzip2file != NULL)
 		{
 			bzerror = BZ_OK;
-  		n_buffer = BZ2_bzRead ( &bzerror, bzip2file, s, n/* size of buf */ );		
+  		n_buffer = BZ2_bzRead ( &bzerror, bzip2file, s, (unsigned int)n/* size of buf */ );		
 	  	if(bzerror == BZ_OK) 
 	 		{
     			return n_buffer;
