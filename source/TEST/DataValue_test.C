@@ -114,6 +114,18 @@ START_SECTION((DataValue(unsigned long)))
   TEST_EQUAL((unsigned long int)d, 3000u)
 END_SECTION
 
+START_SECTION((DataValue(long long)))
+	long long n = -3000;
+	DataValue d(n);
+	TEST_EQUAL((long long) d, -3000)
+END_SECTION
+
+START_SECTION((DataValue(unsigned long long)))
+	unsigned long long n = 3000;
+	DataValue d(n);
+	TEST_EQUAL((unsigned long long) d, 3000)
+END_SECTION
+
 START_SECTION((DataValue(const char*)))
 	const char* s = "test char";
 	DataValue d(s);
