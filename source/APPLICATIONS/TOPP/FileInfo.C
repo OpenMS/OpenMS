@@ -129,9 +129,17 @@ class TOPPFileInfo
 	virtual void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
+#ifdef USE_ANDIMS
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML"));
+#else
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML"));
+#endif
 		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content", false);
+#ifdef USE_ANDIMS
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+#else
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML"));
+#endif
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");
 		registerFlag_("p","Shows data processing information");
@@ -398,13 +406,13 @@ class TOPPFileInfo
 				}
 			}
 			
-			cout << "Number of runs: " << runs_count << endl;
-			cout << "Number of protein hits: " << protein_hit_count << endl;
-			cout << "Number of unique protein hits: " << proteins.size() << endl;
-			cout << endl;
-			cout << "Number of spectra: " << spectrum_count << endl;
-			cout << "Number of peptide hits: " << peptide_hit_count << endl;
-			cout << "Number of unique peptide hits: " << peptides.size() << endl;
+			os << "Number of runs: " << runs_count << endl;
+			os << "Number of protein hits: " << protein_hit_count << endl;
+			os << "Number of unique protein hits: " << proteins.size() << endl;
+			os << endl;
+			os << "Number of spectra: " << spectrum_count << endl;
+			os << "Number of peptide hits: " << peptide_hit_count << endl;
+			os << "Number of unique peptide hits: " << peptides.size() << endl;
 		}
 		else //peaks
 		{
