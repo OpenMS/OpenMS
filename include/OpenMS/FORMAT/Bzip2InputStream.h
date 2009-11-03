@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BZIP2InputStream_H
-#define OPENMS_FORMAT_BZIP2InputStream_H
+#ifndef OPENMS_FORMAT_BZIP2INPUTSTREAM_H
+#define OPENMS_FORMAT_BZIP2INPUTSTREAM_H
 
 #include <xercesc/util/BinInputStream.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
