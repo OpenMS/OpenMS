@@ -28,6 +28,8 @@
 #ifndef OPENMS_FORMAT_FILETYPES_H
 #define OPENMS_FORMAT_FILETYPES_H
 
+#include <OpenMS/config.h>
+
 namespace OpenMS
 {
 	/**
