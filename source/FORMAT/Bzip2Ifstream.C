@@ -31,18 +31,18 @@
 using namespace std;
 namespace OpenMS
 {
-	Bzip2Ifstream::Bzip2Ifstream(const char * filename) : n_buffer(0),stream_at_end(false)
+	Bzip2Ifstream::Bzip2Ifstream(const char * filename) : n_buffer_(0),stream_at_end_(false)
 	{
-		file = fopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
+		file_ = fopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
 		
 		//aborting, ahhh!
-		if( !file ) 
+		if( !file_ ) 
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 		
-		bzip2file = BZ2_bzReadOpen ( &bzerror, file, 0, 0, NULL, 0 );
-		if ( bzerror != BZ_OK ) 
+		bzip2file_ = BZ2_bzReadOpen ( &bzerror_, file_, 0, 0, NULL, 0 );
+		if ( bzerror_ != BZ_OK ) 
 		{
 	  	close();
 	  	throw Exception::ConversionError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"bzip2 compression failed: ");
@@ -50,7 +50,7 @@ namespace OpenMS
 	}
 	
 	Bzip2Ifstream::Bzip2Ifstream()
-		: file(NULL),bzip2file(NULL),n_buffer(0),bzerror(0),stream_at_end(true)
+		: file_(NULL),bzip2file_(NULL),n_buffer_(0),bzerror_(0),stream_at_end_(true)
 	{
 	}
 	
@@ -61,15 +61,15 @@ namespace OpenMS
 	
 	size_t Bzip2Ifstream::read(char* s, size_t n)
 	{
-		if(bzip2file != NULL)
+		if(bzip2file_ != NULL)
 		{
-			bzerror = BZ_OK;
-  		n_buffer = BZ2_bzRead ( &bzerror, bzip2file, s, (unsigned int)n/* size of buf */ );		
-	  	if(bzerror == BZ_OK) 
+			bzerror_ = BZ_OK;
+  		n_buffer_ = BZ2_bzRead ( &bzerror_, bzip2file_, s, (unsigned int)n/* size of buf */ );		
+	  	if(bzerror_ == BZ_OK) 
 	 		{
-    			return n_buffer;
+    			return n_buffer_;
   		}
-			else if(bzerror != BZ_STREAM_END) 
+			else if(bzerror_ != BZ_STREAM_END) 
 			{
    			close();
    			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"	","bzip2 compression failed: ");
@@ -77,7 +77,7 @@ namespace OpenMS
 			else 
 			{
    			close();
-   			return n_buffer;
+   			return n_buffer_;
 			}
 		}
 		else
@@ -89,36 +89,36 @@ namespace OpenMS
 	void Bzip2Ifstream::open(const char* filename)
 	{
 		close();
-		file = fopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
+		file_ = fopen( filename, "rb" ); //read binary: always open in binary mode because windows and mac open in text mode
 		
 		//aborting, ahhh!
-		if( !file ) 
+		if( !file_ ) 
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 		
-		bzip2file = BZ2_bzReadOpen ( &bzerror, file, 0, 0, NULL, 0 );
-		if ( bzerror != BZ_OK ) 
+		bzip2file_ = BZ2_bzReadOpen ( &bzerror_, file_, 0, 0, NULL, 0 );
+		if ( bzerror_ != BZ_OK ) 
 		{
 	  	close();
 	  	throw Exception::ConversionError(__FILE__,__LINE__,__PRETTY_FUNCTION__,"bzip2 compression failed: ");
 		}
-		stream_at_end = false;
+		stream_at_end_ = false;
 	}
 	
 	void Bzip2Ifstream::close()
 	{
-		if(bzip2file != NULL)
+		if(bzip2file_ != NULL)
 		{
-			BZ2_bzReadClose(&bzerror,bzip2file);
+			BZ2_bzReadClose(&bzerror_,bzip2file_);
 		}
-		if(file != NULL)
+		if(file_ != NULL)
 		{
-			fclose(file);
+			fclose(file_);
 		}
-		file = NULL;
-		bzip2file = NULL;
-		stream_at_end = true;
+		file_ = NULL;
+		bzip2file_ = NULL;
+		stream_at_end_ = true;
 	}	
 
 } //namespace OpenMS

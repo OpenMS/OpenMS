@@ -35,7 +35,7 @@ using namespace OpenMS;
 
 ///////////////////////////
 
-START_TEST(GzipIfstream, "$Id:$")
+START_TEST(GzipIfstream, "$Id$")
 
 GzipIfstream* ptr = 0;
 START_SECTION((GzipIfstream()))
@@ -62,7 +62,7 @@ START_SECTION(GzipIfstream(const char * filename))
 
 END_SECTION
 
-START_SECTION(open(const char * filename))
+START_SECTION(void open(const char *filename))
 	GzipIfstream gzip;
 	TEST_EXCEPTION(Exception::FileNotFound, gzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
@@ -78,7 +78,7 @@ START_SECTION(open(const char * filename))
 	
 END_SECTION
 
-START_SECTION(read(char* s, size_t n))
+START_SECTION(size_t read(char *s, size_t n))
 	//tested in open(const char * filename)
 	GzipIfstream gzip(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1_corrupt.gz"));
 		char buffer[30];
@@ -132,15 +132,15 @@ START_SECTION(read(char* s, size_t n))
 	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
 END_SECTION
 
-START_SECTION(close())
+START_SECTION(void close())
 	//tested in read
 	NOT_TESTABLE
 END_SECTION
-START_SECTION(streamEnd()(char* s, size_t n))
+START_SECTION(bool streamEnd())
 	//tested in open(const char * filename) and read
 	NOT_TESTABLE
 END_SECTION
-START_SECTION(isOpen())
+START_SECTION(bool isOpen() const)
 	//tested in open(const char * filename) and read
 	NOT_TESTABLE
 END_SECTION

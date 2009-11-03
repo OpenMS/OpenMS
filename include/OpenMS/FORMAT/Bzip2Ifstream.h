@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BZIP2_IFSTREAM_H
-#define	OPENMS_FORMAT_BZIP2_IFSTREAM_H
+#ifndef OPENMS_FORMAT_BZIP2IFSTREAM_H
+#define	OPENMS_FORMAT_BZIP2IFSTREAM_H
 
 #include <OpenMS/config.h>
 #include <bzlib.h>
@@ -85,15 +85,15 @@ namespace OpenMS
 			void close();
 		protected:
 			/// pointer to a FILE object. Necessary for opening the file
-			FILE*   file;
+			FILE*   file_;
 			/// a pointer to a BZFILE object. Necessary for decompression
-			BZFILE* bzip2file;
+			BZFILE* bzip2file_;
 			///counts the last read buffer
-			size_t     n_buffer;
+			size_t     n_buffer_;
 			///saves the last returned error by the read function
-			int     bzerror;
+			int     bzerror_;
 			///true if end of file is reached
-			bool stream_at_end;
+			bool stream_at_end_;
 			
 			//not implemented
 			Bzip2Ifstream(const Bzip2Ifstream& bzip2);
@@ -103,13 +103,13 @@ namespace OpenMS
 	//return bzip2file???!!!!????
 	inline bool Bzip2Ifstream::isOpen() const
 	{
-		return (file != NULL);
+		return (file_ != NULL);
 	}
 	
 	inline bool Bzip2Ifstream::streamEnd() const
 	{
-		return stream_at_end;
+		return stream_at_end_;
 	}
 
 } //namespace OpenMS
-#endif //OPENMS_FORMAT_BZIP2_IFSTREAM_H
+#endif //OPENMS_FORMAT_BZIP2IFSTREAM_H

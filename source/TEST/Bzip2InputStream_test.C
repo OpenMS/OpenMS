@@ -35,10 +35,10 @@ using namespace OpenMS;
 
 ///////////////////////////
 
-START_TEST(Bzip2InputStream, "$Id: $")
+START_TEST(Bzip2InputStream, "$Id$")
 
 Bzip2InputStream* ptr = 0;
-START_SECTION(Bzip2InputStream())
+START_SECTION(Bzip2InputStream(const   char* const     file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	ptr = new Bzip2InputStream(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	TEST_NOT_EQUAL(ptr, 0)
@@ -49,12 +49,20 @@ START_SECTION((~Bzip2InputStream()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read))
+START_SECTION(Bzip2InputStream(const String& file_name))
+	TEST_EXCEPTION(Exception::FileNotFound, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	String filename = OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2");
+	ptr = new Bzip2InputStream(filename);
+	TEST_NOT_EQUAL(ptr, 0)
+	TEST_EQUAL(ptr->getIsOpen(),true)
+	delete ptr;
+END_SECTION
+
+START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_t max_to_read))
 	
 	Bzip2InputStream bzip(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	char buffer[31];
 	buffer[30] = buffer[29] = '\0';
-	size_t len = 30;
 	XMLByte*  xml_buffer = reinterpret_cast<XMLByte* >(buffer);
 		TEST_EQUAL(bzip.getIsOpen(),true)
 	TEST_EQUAL(bzip.readBytes(xml_buffer,(XMLSize_t)10),10)
@@ -72,19 +80,18 @@ START_SECTION(XMLFilePos curPos() const)
   TEST_EQUAL(bzip.curPos(), 0)
 	char buffer[31];
 	buffer[30] = buffer[29] = '\0';
-	size_t len = 30;
 	XMLByte*  xml_buffer = reinterpret_cast<XMLByte* >(buffer);
 	bzip.readBytes(xml_buffer,(XMLSize_t)10);
 	TEST_EQUAL(bzip.curPos(),10)
 	
 END_SECTION
 
-START_SECTION(getIsOpen())
+START_SECTION(bool getIsOpen() const)
 	//test above
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(getContentType())
+START_SECTION(virtual const XMLCh* getContentType() const)
 	Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	TEST_EQUAL(bzip2.getContentType(),0)
 END_SECTION

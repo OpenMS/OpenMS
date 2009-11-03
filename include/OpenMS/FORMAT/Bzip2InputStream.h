@@ -82,7 +82,7 @@ namespace OpenMS
     ///pointer to an compression stream
     	Bzip2Ifstream* 	bzip2_;
     	///current index of the actual file
-    	XMLSize_t       file_current_index;
+    	XMLSize_t       file_current_index_;
     	
     	//not implemented
     	Bzip2InputStream();
@@ -92,7 +92,7 @@ namespace OpenMS
 	
 	inline XMLFilePos Bzip2InputStream::curPos() const
 	{
-    return file_current_index;
+    return file_current_index_;
 	}
 	
 	inline bool Bzip2InputStream::getIsOpen() const

@@ -82,7 +82,7 @@ namespace OpenMS
     ///pointer to an compression stream
     	GzipIfstream* 	gzip_;
     	///current index of the actual file
-    	XMLSize_t       file_current_index;
+    	XMLSize_t       file_current_index_;
     	
     	//not implemented
     	GzipInputStream();
@@ -92,7 +92,7 @@ namespace OpenMS
 	
 	inline XMLFilePos GzipInputStream::curPos() const
 	{
-    return file_current_index;
+    return file_current_index_;
 	}
 	
 	inline bool GzipInputStream::getIsOpen() const

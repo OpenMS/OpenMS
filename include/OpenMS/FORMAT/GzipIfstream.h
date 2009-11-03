@@ -25,8 +25,8 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIP_IFSTREAM_H
-#define	OPENMS_FORMAT_GZIP_IFSTREAM_H
+#ifndef OPENMS_FORMAT_GZIPIFSTREAM_H
+#define	OPENMS_FORMAT_GZIPIFSTREAM_H
 
 #include <OpenMS/config.h>
 #include <zlib.h>
@@ -103,13 +103,13 @@ namespace OpenMS
 		protected:
 
 			///a gzFile object(void*) . Necessary for decompression
-			gzFile gzfile;
+			gzFile gzfile_;
 			///counts the last read bufffer
-			int     n_buffer;
+			int     n_buffer_;
 			///saves the last returned error by the read function
-			int     gzerror;
+			int     gzerror_;
 			///true if end of file is reached
-			bool stream_at_end;
+			bool stream_at_end_;
 			
 			//needed if one wants to know whetther file is okay
 			//unsigned long original_crc;
@@ -123,12 +123,12 @@ namespace OpenMS
 	
 	inline bool GzipIfstream::isOpen() const
 	{
-		return (gzfile != NULL);
+		return (gzfile_ != NULL);
 	}
 	
 	inline bool GzipIfstream::streamEnd() const
 	{
-		return stream_at_end;
+		return stream_at_end_;
 	}
 /*	inline bool GzipIfstream::isCorrupted()
 	{
@@ -137,4 +137,4 @@ namespace OpenMS
 	}*/	
 
 } //namespace OpenMS
-#endif //OPENMS_FORMAT_GZIP_IFSTREAM_H
+#endif //OPENMS_FORMAT_GZIPIFSTREAM_H

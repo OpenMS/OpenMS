@@ -44,13 +44,13 @@ namespace OpenMS
 	{
     	if(sizeof(header)/sizeof(char)  > 1)
     	{
-    		head[0] = header[0];
-    		head[1] = header[1];
+    		head_[0] = header[0];
+    		head_[1] = header[1];
     	}
     	else
     	{
-    		head[0] = '\0';
-    		head[1] = '\0';
+    		head_[0] = '\0';
+    		head_[1] = '\0';
     	}
     	//
     	//  If the path is relative, then complete it acording to the current
@@ -96,13 +96,13 @@ namespace OpenMS
 	{
     	if(sizeof(header)/sizeof(char) > 1)
     	{
-    		head[0] = header[0];
-    		head[1] = header[1];
+    		head_[0] = header[0];
+    		head_[1] = header[1];
     	}
     	else
     	{
-    		head[0] = '\0';
-    		head[1] = '\0';
+    		head_[0] = '\0';
+    		head_[1] = '\0';
     	}
     	//
     	//  If the path is relative, then complete it acording to the current
@@ -148,7 +148,7 @@ namespace OpenMS
 
 BinInputStream* CompressedInputSource::makeStream() const
 {
-		if(head[0] == 'B' && head[1] =='Z' )
+		if(head_[0] == 'B' && head_[1] =='Z' )
     {
     	Bzip2InputStream* retStrm = new Bzip2InputStream(Internal::StringManager().convert(getSystemId()));
     	    if (!retStrm->getIsOpen())
