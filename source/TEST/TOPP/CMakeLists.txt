@@ -17,7 +17,9 @@
 #
 # Warning: When passing parameters avoid usage of "<" and ">" signs, as this will confuse CDASH when 
 #          interpreting the test results file (which happens to be XML)
-
+#
+# Hint: Most TOPP tools add DataProcessing information to their output.
+#       The -test flag ensures that this output is independent of local path settings etc, so use it when *testing* TOPP tools!
 
 ### General settings
 set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
