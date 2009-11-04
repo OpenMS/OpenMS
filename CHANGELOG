@@ -16,7 +16,9 @@ Main improvements of TOPP-Framework:
 	identical path&names from an old ini file into a new one.
 
 Main improvements of TOPP-Tools:
-- IDMapper assigns more peptides to features with convex hulls (the deltas are used)
+- IDMapper
+	- has new default m/z tolerance and uses ppm as new default measure! Da is still supported.
+	- assigns more peptides to features with convex hulls (the deltas are used)
 - FeatureFinder (centroided algorithm)
   - supports parallel execution now
   - supports user-specified seeds now
