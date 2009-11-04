@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap>
+	<featureList count="6">
+	
+		<feature id="1">
+			<position dim="0">64</position>
+			<position dim="1">10</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+		<feature id="2">
+			<position dim="0">64</position>
+			<position dim="1">10.0001</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+		<feature id="3">
+			<position dim="0">117</position>
+			<position dim="1">110.0003</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+		<feature id="4">
+			<position dim="0">117</position>
+			<position dim="1">110.0004</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+		<feature id="5">
+			<position dim="0">182</position>
+			<position dim="1">1999.995</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+		<feature id="6">
+			<position dim="0">182</position>
+			<position dim="1">2000.007</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+		</feature>
+
+
+	</featureList>
+</featureMap>

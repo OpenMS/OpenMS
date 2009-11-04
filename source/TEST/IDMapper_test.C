@@ -243,6 +243,45 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[5].getHits()[0].getSequence(),"H")
 	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
 	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[7].getHits()[0].getSequence(),"L")
+	
+	// ******* PPM test *******
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.idXML"), protein_identifications, identifications);
+	
+	FeatureMap<> fm_ppm;
+	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.featureXML"), fm_ppm);
+	p.setValue("rt_delta", 4.0);
+	p.setValue("mz_delta", 3.0);
+	p.setValue("mz_measure","ppm");
+	mapper.setParameters(p);
+
+	mapper.annotate(fm_ppm,identifications,protein_identifications, false);
+	
+	//test peptide ids
+	TEST_EQUAL(fm_ppm[0].getPeptideIdentifications().size(),1)
+	TEST_EQUAL(fm_ppm[0].getPeptideIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm_ppm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"LHASGITVTEIPVTATNFK")
+
+	TEST_EQUAL(fm_ppm[1].getPeptideIdentifications().size(),0)
+	
+	TEST_EQUAL(fm_ppm[2].getPeptideIdentifications().size(),1)
+	TEST_EQUAL(fm_ppm[2].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm_ppm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(),"HSKLSAK")
+
+	TEST_EQUAL(fm_ppm[3].getPeptideIdentifications().size(),0)
+
+	TEST_EQUAL(fm_ppm[4].getPeptideIdentifications().size(),1)
+	TEST_EQUAL(fm_ppm[4].getPeptideIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm_ppm[4].getPeptideIdentifications()[0].getHits()[0].getSequence(),"RASNSPQDPQSATAHSFR")
+
+	TEST_EQUAL(fm_ppm[5].getPeptideIdentifications().size(),0)
+
+		
+	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications().size(),2)
+	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"DEAD")
+	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[1].getSequence(),"DEADA")
+	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"DEADAA")
+	TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"DEADAAA")
+	
 END_SECTION
 
 
