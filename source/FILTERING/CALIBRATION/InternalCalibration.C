@@ -27,6 +27,7 @@
 
 
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <stdio.h>
 
 namespace OpenMS
@@ -40,6 +41,7 @@ namespace OpenMS
 		defaults_.setMinFloat("mz_tolerance",0.);
 		defaults_.setValue("mz_tolerance_unit","Da","Unit for mz_tolerance.");
 		defaults_.setValidStrings("mz_tolerance_unit",StringList::create("Da,ppm"));
+    defaults_.setValue("rt_tolerance",10,"Allowed tolerance between peak and reference rt.");
 		defaults_.setValue("hires:percentage",30,"Percentage of spectra a signal has to appear in to be considered as background signal.");
 		defaultsToParam_();
 	}
@@ -153,7 +155,48 @@ namespace OpenMS
 		// then make the linear regression
 		makeLinearRegression_(observed_masses,theoretical_masses);
 		// apply transformation
-		calibrated_feature_map = feature_map;
+    applyTransformation_(feature_map,calibrated_feature_map);
+		if(trafo_file_name != "")
+			{
+				TransformationXMLFile().store(trafo_file_name,trafo_);
+			}
+	}
+
+
+	void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,std::vector<PeptideIdentification>& ref_ids,String trafo_file_name)
+	{
+    checkReferenceIds_(ref_ids);
+    
+    calibrated_feature_map = feature_map;
+    // clear the ids
+    for(Size f = 0;f < feature_map.size();++f)
+    {
+      calibrated_feature_map[f].getPeptideIdentifications().clear();
+    }
+
+    // map the reference ids onto the features
+    IDMapper mapper;
+    Param param;
+    param.setValue("rt_delta",param_.getValue("rt_tolerance"));
+    param.setValue("mz_delta",param_.getValue("mz_tolerance"));
+    param.setValue("mz_measure",param_.getValue("mz_tolerance_unit"));
+    mapper.setParameters(param);
+    std::vector<ProteinIdentification> vec;
+    mapper.annotate(calibrated_feature_map,ref_ids,vec);
+    
+    // calibrate
+    calibrateMapGlobally(calibrated_feature_map,calibrated_feature_map,trafo_file_name);
+
+    // copy the old ids
+    for(Size f = 0;f < feature_map.size();++f)
+    {
+      calibrated_feature_map[f].setPeptideIdentifications(feature_map[f].getPeptideIdentifications());
+    }
+	}
+
+  void InternalCalibration::applyTransformation_(const FeatureMap<>& feature_map,FeatureMap<>& calibrated_feature_map)
+  {
+    calibrated_feature_map = feature_map;
 		for(Size f = 0; f < feature_map.size();++f)
 			{
 				DoubleReal mz = feature_map[f].getMZ();
@@ -181,12 +224,7 @@ namespace OpenMS
 							}
 					}
 			}
-		if(trafo_file_name != "")
-			{
-				TransformationXMLFile().store(trafo_file_name,trafo_);
-			}
-	}
-
+  }
 
 	void InternalCalibration::checkReferenceIds_(const FeatureMap<>& feature_map)
 	{

@@ -44,7 +44,7 @@ using namespace std;
 	
 	@brief Performs an internal calibration on an MS experiment.
 	
-	This a simple calibration method: given a list of reference masses and an MS experiment, 
+	This a simple calibration method: given a list of reference masses and an MS experiment or a feature map, 
 	the relative errors of the peaks in the data are approximated by linear regression and
 	subtracted from the data. The user can choose whether the calibration function shall be
 	calculated for each spectrum separately or once for the whole map.
@@ -52,8 +52,9 @@ using namespace std;
 	be present in each scan to calculate the calibration function,
 	otherwise the spectrum can't be calibrated.
 	For the global calibration it is also possible to use a list of (significant) peptide identifications.
+  
 	
-	@note The tool assumes the input data is already picked.
+	@note The tool assumes the input data is already picked or feature maps.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_InternalCalibration.cli
@@ -120,6 +121,26 @@ class TOPPInternalCalibration
 		// get reference m/z values
 		std::vector<PeptideIdentification> pep_ids;
 		vector<DoubleReal> ref_masses;
+    bool ids;
+    if(ref!="")
+    {
+      ids = FileHandler().getTypeByContent(ref) == FileTypes::IDXML;
+		  if(ids)
+		  {
+			  std::vector<ProteinIdentification> prot_ids;
+			  IdXMLFile().load(ref,prot_ids,pep_ids);
+		  }
+		  else
+		  {
+			  TextFile ref_file;
+			  ref_file.load(ref,true);
+			  for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+			  {
+				  ref_masses.push_back(String(iter->c_str()).toDouble());
+			  }
+      }
+		}
+
 		bool features = FileHandler().getTypeByContent(in) == FileTypes::FEATUREXML;
 		if(ref == "" && !features)
 			{
@@ -136,25 +157,20 @@ class TOPPInternalCalibration
 				FeatureMap<> feature_map,calibrated_feature_map;
 				FeatureXMLFile f_file;
 				f_file.load(in,feature_map);
-				calib.calibrateMapGlobally(feature_map,calibrated_feature_map,trafo);
+				if(ref == "") 
+        {
+          std::cout << "Using the peptide identifications stored in the feature map as reference peaks.\n";
+          calib.calibrateMapGlobally(feature_map,calibrated_feature_map,trafo);
+        }
+        else
+        {
+          std::cout << "Using peptide identifications given with -ref_peaks as reference peaks.\n";
+          calib.calibrateMapGlobally(feature_map,calibrated_feature_map,pep_ids,trafo);
+        }
 				f_file.store(out,calibrated_feature_map);
 				return EXECUTION_OK;
 			}
-		bool ids = FileHandler().getTypeByContent(ref) == FileTypes::IDXML;
-		if(ids)
-		{
-			std::vector<ProteinIdentification> prot_ids;
-			IdXMLFile().load(ref,prot_ids,pep_ids);
-		}
-		else
-		{
-			TextFile ref_file;
-			ref_file.load(ref,true);
-			for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-			{
-				ref_masses.push_back(String(iter->c_str()).toDouble());
-			}
-		}
+		
 
 		MSExperiment<Peak1D > ms_exp_raw,ms_exp_calibrated;
 		MzMLFile mz_data_file;
