@@ -31,34 +31,53 @@ using namespace std;
 
 namespace OpenMS 
 {
-  IDMapper::IDMapper()
-  	: rt_delta_(5.0),
-  		mz_delta_(0.01)
-  { 
+
+	IDMapper::IDMapper()
+  	: DefaultParamHandler("IDMapper"),
+  		rt_delta_(5.0),
+  		mz_delta_(1),
+  		measure_(MEASURE_PPM)
+  {
+		defaults_.setValue("rt_delta",rt_delta_, "allowed RT delta in seconds"); 
+		defaults_.setMinFloat("rt_delta",0);
+		defaults_.setValue("mz_delta", mz_delta_, "allowed m/z delta in ppm or Da"); 
+		defaults_.setMinFloat("mz_delta",0);
+		defaults_.setValue("mz_measure", "ppm", "unit of mz_delta (ppm or Da)"); 
+		defaults_.setValidStrings("mz_measure", StringList::create("ppm,Da"));
+		defaultsToParam_();  
   }
 
 			
-	DoubleReal IDMapper::getRTDelta() const
+	IDMapper::IDMapper(const IDMapper& cp)
+	: DefaultParamHandler(cp),
+		rt_delta_(cp.rt_delta_),
+  	mz_delta_(cp.mz_delta_),
+  	measure_(cp.measure_)
 	{
-		return rt_delta_;
-	}
-	
-	void IDMapper::setRTDelta(DoubleReal rt_delta)
-	{
-		rt_delta_ = rt_delta;
-	}
-	
-	DoubleReal IDMapper::getMZDelta() const
-	{
-		return mz_delta_;
-	}
-	
-	void IDMapper::setMZDelta(DoubleReal mz_delta)
-	{
-		mz_delta_ = mz_delta;
+		updateMembers_();
 	}
 
-  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
+	IDMapper& IDMapper::operator = (const IDMapper& rhs)
+	{
+		if (this == &rhs) return *this;
+		
+		DefaultParamHandler::operator = (rhs);
+		rt_delta_=rhs.rt_delta_;
+  	mz_delta_=rhs.mz_delta_;
+  	measure_=rhs.measure_;
+		updateMembers_();
+		
+		return *this;
+	}
+
+	void IDMapper::updateMembers_()
+	{
+		rt_delta_ = param_.getValue("rt_delta");
+		mz_delta_ = param_.getValue("mz_delta");
+		measure_ = param_.getValue("mz_measure")=="ppm"? MEASURE_PPM : MEASURE_DA;
+	}	
+	
+	void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
 	{
 		checkHits_(ids);
 				
@@ -86,7 +105,7 @@ namespace OpenMS
 				//check if we compare distance from centroid or subelements
 				if (!measure_from_subelements)
 				{
-					if ( (fabs(rt_pep-map[cm_index].getRT()) <= rt_delta_) && (fabs(mz_pep-map[cm_index].getMZ()) <= mz_delta_)  )
+					if ( isMatch_(rt_pep-map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) )
 					{
 						map[cm_index].getPeptideIdentifications().push_back(ids[i]);
 						assigned.insert(i);
@@ -98,7 +117,7 @@ namespace OpenMS
 							it_handle != map[cm_index].getFeatures().end(); 
 							++it_handle)
 					{
-						if ( (fabs(rt_pep - it_handle->getRT()) <= rt_delta_) && (fabs(mz_pep - it_handle->getMZ()) <= mz_delta_) )
+						if (isMatch_(rt_pep - it_handle->getRT(), mz_pep,it_handle->getMZ()))
 						{
 							if (mapping[cm_index].count(i) == 0)
 							{
@@ -122,6 +141,47 @@ namespace OpenMS
 			}
 		}
 
+	}
+
+	const DoubleReal IDMapper::getAbsoluteMZDelta_(const DoubleReal mz) const
+	{
+		if (measure_==MEASURE_PPM)
+		{
+			return (mz * mz_delta_ / 1e6);
+		} 
+		else if (measure_==MEASURE_DA)
+		{
+			return mz_delta_;
+		}
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteDelta_(): illegal internal state of measure_!", String(measure_));
+	}
+
+	const bool IDMapper::isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const
+	{
+		if (measure_==MEASURE_PPM)
+		{
+			return (fabs(rt_distance) <= rt_delta_) && (fabs((mz_theoretical*1e6-mz_observed*1e6)/mz_theoretical) <= mz_delta_);
+		} 
+		else if (measure_==MEASURE_DA)
+		{
+			return (fabs(rt_distance) <= rt_delta_) && (fabs(mz_theoretical-mz_observed) <= mz_delta_);
+		}
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteDelta_(): illegal internal state of measure_!", String(measure_));
+	}
+
+	void IDMapper::checkHits_(const std::vector<PeptideIdentification>& ids) const
+	{
+		for (Size i=0; i<ids.size(); ++i)
+		{
+			if (!ids[i].metaValueExists("RT"))
+			{
+				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDMapper: meta data value 'RT' missing for peptide identification!"); 
+			}
+			if (!ids[i].metaValueExists("MZ"))
+			{
+				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDMapper: meta data value 'MZ' missing for peptide identification!"); 
+			}
+		}
 	}
 
 } // namespace OpenMS

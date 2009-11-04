@@ -82,9 +82,8 @@ class TOPPInternalCalibration
 		 registerInputFile_("ref_peaks","<file>","","input file containing reference m/z values (either as textfile with one m/z per line and no header or as IdXML file)",false);
 		 registerStringOption_("type","<calibration type>","spectrumwise","The kind of internal calibration that should be applied.", false);
 		 setValidStrings_("type",StringList::create("spectrumwise,global"));
-		 registerOutputFile_("trafo","<file>","","transformation file (only for global calibration)",false);
+		 registerOutputFile_("trafo","<file>","","output transformation file (only for global calibration)",false);
 		 setValidFormats_("trafo",StringList::create("trafoXML"));
-		 addEmptyLine_();
 		 addEmptyLine_();
 		 registerSubsection_("algorithm","Settings for the internal calibration.");
 	 }

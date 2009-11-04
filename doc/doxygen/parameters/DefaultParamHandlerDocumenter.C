@@ -28,6 +28,7 @@
 #include <fstream>
 #include <QtGui/QApplication>
 
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
@@ -329,6 +330,7 @@ int main (int argc , char** argv)
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
 	DOCME(IDDecoyProbability);
+	DOCME(IDMapper);
 	DOCME(InternalCalibration);
 	DOCME(InterpolationModel);
 	DOCME(IsotopeDiffFilter);
