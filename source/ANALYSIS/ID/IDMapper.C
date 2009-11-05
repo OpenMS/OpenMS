@@ -44,6 +44,9 @@ namespace OpenMS
 		defaults_.setMinFloat("mz_delta",0);
 		defaults_.setValue("mz_measure", "ppm", "unit of mz_delta (ppm or Da)"); 
 		defaults_.setValidStrings("mz_measure", StringList::create("ppm,Da"));
+		defaults_.setValue("mz_reference", "PrecursorMZ", "Method to determine m/z of identification"); 
+		defaults_.setValidStrings("mz_reference", StringList::create("PeptideMass,PrecursorMZ"));
+		
 		defaultsToParam_();  
   }
 
@@ -79,6 +82,7 @@ namespace OpenMS
 	
 	void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
 	{
+		// validate "RT" and "MZ" metavalues exist
 		checkHits_(ids);
 				
 		//append protein identifications to Map
@@ -90,47 +94,67 @@ namespace OpenMS
 		// store which peptides fit which feature (and avoid double entries)
 		// consensusMap -> {peptide_index}
 		std::vector < std::set< size_t> > mapping(map.size());
+
+		std::vector<DoubleReal> mz_values;
+		DoubleReal rt_pep;
 		
 		//iterate over the peptide IDs
 		for (Size i=0; i<ids.size(); ++i)
 		{
 			if (ids[i].getHits().size()==0) continue;
-
-			DoubleReal rt_pep = ids[i].getMetaValue("RT");
-			DoubleReal mz_pep = ids[i].getMetaValue("MZ");
+			
+			getRTandMZofID_(ids[i], rt_pep, mz_values);
 
 			//iterate over the features
 			for(Size cm_index = 0 ; cm_index<map.size(); ++cm_index)
 			{
-				//check if we compare distance from centroid or subelements
-				if (!measure_from_subelements)
+				// if set to TRUE, we leave the i_mz-loop as we added the whole ID with all hits
+				bool was_added=false; // was current pep-m/z matched?!
+
+				// iterate over m/z values of pepIds
+				for (Size i_mz=0;i_mz<mz_values.size();++i_mz)
 				{
-					if ( isMatch_(rt_pep-map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) )
+					DoubleReal mz_pep = mz_values[i_mz];
+					
+					//check if we compare distance from centroid or subelements
+					if (!measure_from_subelements)
 					{
-						map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-						assigned.insert(i);
-					}
-				}
-				else
-				{
-					for(ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin(); 
-							it_handle != map[cm_index].getFeatures().end(); 
-							++it_handle)
-					{
-						if (isMatch_(rt_pep - it_handle->getRT(), mz_pep,it_handle->getMZ()))
+						if ( isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) )
 						{
-							if (mapping[cm_index].count(i) == 0)
-							{
-								map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-								assigned.insert(i);
-								mapping[cm_index].insert(i);
-							}
-							continue; // we added this peptide already.. no need to check further
+							was_added = true;
+							map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+							assigned.insert(i);
 						}
 					}
-				}
-			}
-		}
+					else
+					{
+						for(ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin(); 
+								it_handle != map[cm_index].getFeatures().end(); 
+								++it_handle)
+						{
+							if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()))
+							{
+								was_added = true;
+								if (mapping[cm_index].count(i) == 0)
+								{
+									map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+									assigned.insert(i);
+									mapping[cm_index].insert(i);
+								}
+								break; // we added this peptide already.. no need to check other handles
+							}
+						}
+						// continue to here
+					}
+					
+					if (was_added) break;
+					
+				} // m/z values to check
+				
+				// break to here
+					
+			} // features
+		} // Identifications
 
 		//append unassigned peptide identifications
 		for (Size i=0; i<ids.size(); ++i)
@@ -183,5 +207,28 @@ namespace OpenMS
 			}
 		}
 	}
+	
+	void IDMapper::getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, std::vector<DoubleReal>& mz_values) const
+	{
+		mz_values.clear();
+		
+		rt_pep = id.getMetaValue("RT");
+		
+		// collect m/z values of pepId
+		if (param_.getValue("mz_reference")=="PrecursorMZ")
+		{ // use precursor m/z of pepId
+			mz_values.push_back(id.getMetaValue("MZ"));
+		}
+		else if (param_.getValue("mz_reference")=="PeptideMass")
+		{ // use mass of each pepHit (assuming H+ adducts)
+			for (Size i_hit=0; i_hit< id.getHits().size(); ++i_hit)
+			{
+				Int charge = id.getHits()[i_hit].getCharge();
+				mz_values.push_back(id.getHits()[i_hit].getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge);
+			}
+		}
+		
+	}
+	
 
 } // namespace OpenMS

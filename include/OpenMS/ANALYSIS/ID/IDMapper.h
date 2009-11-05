@@ -42,6 +42,9 @@ namespace OpenMS
  		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
  		be given in the MetaInfoInterface as the values 'MZ' and 'RT'.
  		
+ 		m/z-Matching on the peptide side can be done either with the precursor m/z value of the peptideIdentification or
+ 		the masses of the peptideHits (see 'mz_reference' parameter).
+ 		
  		@htmlinclude OpenMS_IDMapper.parameters
  		
   */
@@ -178,6 +181,11 @@ namespace OpenMS
 				
 				//keep track of assigned/unassigned peptide identifications
 				std::map<Size, Size> assigned;
+				
+				std::vector<DoubleReal> mz_values;
+				DoubleReal rt_pep;
+			
+				// features...
 				std::vector< DBoundingBox<2> >::const_iterator bb_it = bbs.begin();
 				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 				{
@@ -186,39 +194,56 @@ namespace OpenMS
 					{
 						if (ids[i].getHits().size()==0) continue;
 
-						if (use_centroids)
-						{
-							if ( isMatch_((DoubleReal)ids[i].getMetaValue("RT")-f_it->getRT(), (DoubleReal)ids[i].getMetaValue("MZ"), f_it->getMZ()) )
-							{
-								f_it->getPeptideIdentifications().push_back(ids[i]);
-								assigned[i]++;
-							}
-						}
-						else
-						{
-							DPosition<2> id_pos(ids[i].getMetaValue("RT"),ids[i].getMetaValue("MZ"));
-							//check if the ID lies within the bounding box
+						getRTandMZofID_(ids[i], rt_pep, mz_values);
+						// if set to TRUE, we leave the i_mz-loop as we added the whole ID with all hits
+						bool was_added=false; // was current pep-m/z matched?!
 
-							if (bb_it->encloses(id_pos))
+						// iterate over m/z values of pepIds
+						for (Size i_mz=0;i_mz<mz_values.size();++i_mz)
+						{
+							DoubleReal mz_pep = mz_values[i_mz];
+
+							if (use_centroids)
 							{
-								// iterate over all convex hulls
-								for(std::vector<ConvexHull2D>::iterator ch_it = f_it->getConvexHulls().begin(); ch_it!=f_it->getConvexHulls().end(); ++ch_it)
+							
+
+								if ( isMatch_(rt_pep - f_it->getRT(), mz_pep, f_it->getMZ()) )
 								{
-									DBoundingBox<2> bb = ch_it->getBoundingBox();
-									bb.setMin(bb.min() - DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.min().getY())));
-									bb.setMax(bb.max() + DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.max().getY())));
-									if (bb.encloses(id_pos))
-									{
-										f_it->getPeptideIdentifications().push_back(ids[i]);
-										assigned[i]++;
-										break;
-									}
+									was_added = true;
+									f_it->getPeptideIdentifications().push_back(ids[i]);
+									assigned[i]++;
 								}
 							}
-						}
-					}
+							else
+							{
+								DPosition<2> id_pos(rt_pep, mz_pep);
+								//check if the ID lies within the bounding box
+
+								if (bb_it->encloses(id_pos))
+								{
+									// iterate over all convex hulls
+									for(std::vector<ConvexHull2D>::iterator ch_it = f_it->getConvexHulls().begin(); ch_it!=f_it->getConvexHulls().end(); ++ch_it)
+									{
+										DBoundingBox<2> bb = ch_it->getBoundingBox();
+										bb.setMin(bb.min() - DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.min().getY())));
+										bb.setMax(bb.max() + DPosition<2>(rt_delta_, getAbsoluteMZDelta_(bb.max().getY())));
+										if (bb.encloses(id_pos))
+										{
+											was_added = true;
+											f_it->getPeptideIdentifications().push_back(ids[i]);
+											assigned[i]++;
+											break;
+										}
+									}
+								} 
+							} // !centroids
+							
+							if (was_added) break;
+						} // m/z values to check
+
+					} // ID's
 					if(!use_centroids)	++bb_it;
-				}
+				} // features
 				
 				Size matches_none = 0;
 				Size matches_single = 0;
@@ -285,6 +310,10 @@ namespace OpenMS
 			///Helper function that checks if all peptide hits are annotated with RT and MZ meta values
 			void checkHits_(const std::vector<PeptideIdentification>& ids) const;
 			
+			///get RT and M/Z value(s) of a peptideIdentification
+			/// - multiple m/z values are returned if "mz_reference" is set to "PeptideMass" (one for each PeptideHit)
+			/// - one m/z value is returned if "mz_reference" is set to "PrecursorMZ"
+			void getRTandMZofID_(const PeptideIdentification& id, DoubleReal& rt_pep, std::vector<DoubleReal>& mz_values) const;
   };
  
 } // namespace OpenMS

@@ -85,8 +85,10 @@ class TOPPIDMapper
 			setMinFloat_("rt_delta",0.0);
 			registerDoubleOption_("mz_delta","<value>",p.getValue("mz_delta"), "Maximum allowed m/z delta (ppm or Da) between identification and peak/feature.", false);
 			setMinFloat_("mz_delta",0.0);
-			registerStringOption_("mz_measure","<String>",p.getEntry("mz_measure").valid_strings[0],"Unit of mz_delta (ppm or Da)", false);
+			registerStringOption_("mz_measure","<String>",p.getEntry("mz_measure").valid_strings[0],"Unit of mz_delta", false);
 			setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
+			registerStringOption_("mz_reference","<String>",p.getEntry("mz_reference").valid_strings[0],"Method to determine m/z of identification", false);
+			setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
 			registerFlag_("use_centroids","[FeatureMap only] use RT&MZ coordinate instead of convex hull");
 			registerFlag_("use_subelements","[ConsensusMap only] use RT&MZ coordinate of sub-features instead of consensus RT&MZ");
 		}
@@ -113,6 +115,7 @@ class TOPPIDMapper
 			p.setValue("rt_delta", getDoubleOption_("rt_delta"));
 			p.setValue("mz_delta", getDoubleOption_("mz_delta"));
 			p.setValue("mz_measure",getStringOption_("mz_measure"));
+			p.setValue("mz_reference",getStringOption_("mz_reference"));
 			mapper.setParameters(p);
 
 			//----------------------------------------------------------------
