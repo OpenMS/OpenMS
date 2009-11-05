@@ -277,10 +277,10 @@ namespace OpenMS
 			/// compute absolute Da delta, for a given m/z,
 			/// when @p measure is MEASURE_DA, the value is unchanged,
 			/// for MEASURE_PPM it is computed according to currently allowed ppm delta
-			const DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) const;
+			DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) const;
 			
 			/// check if distance constraint is fulfilled (using @p rt_delta_, @p mz_delta_ and @p measure_)
-			const bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const;
+			bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const;
 			
 			///Helper function that checks if all peptide hits are annotated with RT and MZ meta values
 			void checkHits_(const std::vector<PeptideIdentification>& ids) const;

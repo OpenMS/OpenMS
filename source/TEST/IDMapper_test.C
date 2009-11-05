@@ -328,7 +328,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 }
 END_SECTION
 
-START_SECTION([EXTRA] const DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) const)
+START_SECTION([EXTRA] DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) const)
 	IDMapper2 mapper;
 	TEST_REAL_SIMILAR(mapper.getAbsoluteMZDelta2_(1000), 0.001)
 	Param p = mapper.getParameters();
@@ -340,15 +340,15 @@ START_SECTION([EXTRA] const DoubleReal getAbsoluteMZDelta_(const DoubleReal mz) 
 	TEST_REAL_SIMILAR(mapper.getAbsoluteMZDelta2_(1000), 3)
 END_SECTION
 
-START_SECTION([EXTRA] const bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const)
+START_SECTION([EXTRA] bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const)
 	IDMapper2 mapper;
 	TEST_EQUAL(mapper.isMatch2_(1, 1000, 1000.001), true)
 	Param p = mapper.getParameters();
 	p.setValue("mz_delta", 3.0);
 	mapper.setParameters(p);
-	TEST_EQUAL(mapper.isMatch2_(4, 1000, 1000.003), true)
+	TEST_EQUAL(mapper.isMatch2_(4, 1000, 1000.0028), true)
 	TEST_EQUAL(mapper.isMatch2_(4, 1000, 1000.004), false)
-	TEST_EQUAL(mapper.isMatch2_(4, 1000, 999.997), true)
+	TEST_EQUAL(mapper.isMatch2_(4, 1000, 999.9972), true)
 	TEST_EQUAL(mapper.isMatch2_(4, 1000, 999.996), false)
 	p.setValue("mz_measure","Da");
 	mapper.setParameters(p);

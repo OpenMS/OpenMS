@@ -143,7 +143,7 @@ namespace OpenMS
 
 	}
 
-	const DoubleReal IDMapper::getAbsoluteMZDelta_(const DoubleReal mz) const
+	DoubleReal IDMapper::getAbsoluteMZDelta_(const DoubleReal mz) const
 	{
 		if (measure_==MEASURE_PPM)
 		{
@@ -156,7 +156,7 @@ namespace OpenMS
 		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteDelta_(): illegal internal state of measure_!", String(measure_));
 	}
 
-	const bool IDMapper::isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const
+	bool IDMapper::isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const
 	{
 		if (measure_==MEASURE_PPM)
 		{
