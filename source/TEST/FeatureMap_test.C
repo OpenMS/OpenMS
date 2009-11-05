@@ -462,6 +462,16 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
 	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
+	to_be_sorted.sortByOverallQuality(true);
+
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1);
+
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30);
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10);
+
 END_SECTION
 
 START_SECTION((void clear(bool clear_meta_data)))

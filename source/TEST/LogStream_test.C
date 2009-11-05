@@ -304,6 +304,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]Test minimum string length of output))
 {
+  // taken from BALL tests, it seems that it checks if the logger crashs if one
+  // uses longer lines
+  NOT_TESTABLE
   LogStream l1(new LogStreamBuf());
   l1 << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
 }
