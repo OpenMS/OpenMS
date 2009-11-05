@@ -25,7 +25,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/METADATA/IDTagger.h>
+#include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <boost/interprocess/sync/file_lock.hpp>
@@ -41,24 +41,24 @@ using namespace std;
 
 namespace OpenMS 
 {
-  IDTagger::IDTagger(String toolname): 
+  DocumentIDTagger::DocumentIDTagger(String toolname): 
     toolname_(toolname),
 		pool_file_()
   {
 		pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
   
-  IDTagger::IDTagger(const IDTagger& source):
+  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger& source):
     toolname_(source.toolname_),
 	  pool_file_(source.pool_file_)
   {
   }
    
-  IDTagger::~IDTagger()
+  DocumentIDTagger::~DocumentIDTagger()
   {
   }
   
-  IDTagger& IDTagger::operator = (const IDTagger& source)
+  DocumentIDTagger& DocumentIDTagger::operator = (const DocumentIDTagger& source)
   {
     if (source == *this) return *this;
 		toolname_ = source.toolname_;
@@ -66,28 +66,28 @@ namespace OpenMS
     return *this;
   }
 
-  bool IDTagger::operator == (const IDTagger& rhs) const
+  bool DocumentIDTagger::operator == (const DocumentIDTagger& rhs) const
   {
     return ( (toolname_ == rhs.toolname_)
 					&& (pool_file_ == rhs.pool_file_));
   }
 
-  bool IDTagger::operator != (const IDTagger& rhs) const
+  bool DocumentIDTagger::operator != (const DocumentIDTagger& rhs) const
   {
     return !(operator == (rhs));
   }
 
-	String IDTagger::getPoolFile() const
+	String DocumentIDTagger::getPoolFile() const
 	{
 		return pool_file_;
 	}
 
-	void IDTagger::setPoolFile(const String& file)
+	void DocumentIDTagger::setPoolFile(const String& file)
 	{
 		pool_file_ = file;
 	}
 
-	bool IDTagger::getID_(String& id, Int& free, bool idcount_only) const
+	bool DocumentIDTagger::getID_(String& id, Int& free, bool idcount_only) const
 	{
 		free = 0;
 
@@ -182,7 +182,7 @@ namespace OpenMS
 		return true;
 	}
 
-	bool IDTagger::tag(DocumentIdentifier& map) const
+	bool DocumentIDTagger::tag(DocumentIdentifier& map) const
 	{
 		String id="";Int free(0);
 		try
@@ -207,7 +207,7 @@ namespace OpenMS
 		throw Exception::DepletedIDPool(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDTagger", msg);
 	}
 
-	bool IDTagger::countFreeIDs(Int& free) const
+	bool DocumentIDTagger::countFreeIDs(Int& free) const
 	{
 		String id="";
 		try

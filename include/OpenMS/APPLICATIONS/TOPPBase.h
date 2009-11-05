@@ -38,7 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/IDTagger.h>
+#include <OpenMS/METADATA/DocumentIDTagger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -261,8 +261,8 @@ namespace OpenMS
 			/// Tool indicates it supports assignment of unique DocumentID from IDPool
 			bool id_tag_support_;
 
-			/// Instance of IDTagger, which can be accessed using getIDTagger_()
-			IDTagger id_tagger_;
+			/// Instance of DocumentIDTagger, which can be accessed using getDocumentIDTagger_()
+			DocumentIDTagger id_tagger_;
 
       ///Instance number
       Int const instance_number_;
@@ -832,8 +832,8 @@ namespace OpenMS
 
       //@}
       
-			/// get IDTagger to assign DocumentIDs to maps
-			const IDTagger& getIDTagger_() const;
+			/// get DocumentIDTagger to assign DocumentIDs to maps
+			const DocumentIDTagger& getDocumentIDTagger_() const;
 			
 			/**
 				@brief Test mode 

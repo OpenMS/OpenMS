@@ -12,7 +12,7 @@ DocumentIdentifier.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
-IDTagger.h
+DocumentIDTagger.h
 Instrument.h
 InstrumentSettings.h
 IonDetector.h

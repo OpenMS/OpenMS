@@ -152,7 +152,7 @@ class TOPPITRAQAnalyzer
 		
 
 		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
-		if (getStringOption_("id_pool").trim().length()>0) getIDTagger_().tag(consensus_map_raw);
+		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_raw);
 
 		// annotate output file with MetaInformation
 		Param metainfo_param(getParam_().copy("algorithm:MetaInformation:",true));

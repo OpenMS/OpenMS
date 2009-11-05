@@ -1934,7 +1934,7 @@ namespace OpenMS
 	}
 
 
-	const IDTagger& TOPPBase::getIDTagger_() const
+	const DocumentIDTagger& TOPPBase::getDocumentIDTagger_() const
 	{
 		if (!id_tag_support_)
 		{
