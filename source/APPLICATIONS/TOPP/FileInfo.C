@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -130,15 +131,15 @@ class TOPPFileInfo
 	{
 		registerInputFile_("in","<file>","","input file ");
 #ifdef USE_ANDIMS
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML"));
 #else
-		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML"));
 #endif
 		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content", false);
 #ifdef USE_ANDIMS
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,idXML,pepXML"));
 #else
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML"));
 #endif
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");
@@ -146,7 +147,7 @@ class TOPPFileInfo
 		registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 		registerFlag_("d","Show detailed listing of all spectra (peak files only)");
 		registerFlag_("c","Check for corrupt data in the file (peak files only)");
-		registerFlag_("v","Validate the file only (for mzML, mzData, mzXML, featureXML, IdXML, consensusXML)");
+		registerFlag_("v","Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)");
 	}
 
 	ExitCodes outputTo(ostream& os)
@@ -194,33 +195,37 @@ class TOPPFileInfo
 			os << endl << "Validating " << fh.typeToName(in_type) << " file";
 			switch(in_type)
 			{
-				case FileTypes::MZDATA :
-					os << " against XML schema version " << MzDataFile().getVersion() << endl;
-					valid = MzDataFile().isValid(in,os);
-					break;
-				case FileTypes::MZML :
-					os << " against XML schema version " << MzMLFile().getVersion() << endl;
-					valid = MzMLFile().isValid(in,os);
-					break;
-				case FileTypes::FEATUREXML :
-					os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
-					valid = FeatureXMLFile().isValid(in,os);
-					break;
-				case FileTypes::IDXML :
-					os << " against XML schema version " << IdXMLFile().getVersion() << endl;
-					valid = IdXMLFile().isValid(in,os);
-					break;
-				case FileTypes::CONSENSUSXML :
-					os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
-					valid = ConsensusXMLFile().isValid(in,os);
-					break;
-				case FileTypes::MZXML :
-					os << " against XML schema version " << MzXMLFile().getVersion() << endl;
-					valid = MzXMLFile().isValid(in,os);
-					break;
-				default:
-					os << endl << "Aborted: Validation of this file type is not supported!" << endl;
-					return EXECUTION_OK;
+			case FileTypes::MZDATA :
+				os << " against XML schema version " << MzDataFile().getVersion() << endl;
+				valid = MzDataFile().isValid(in,os);
+				break;
+			case FileTypes::MZML :
+				os << " against XML schema version " << MzMLFile().getVersion() << endl;
+				valid = MzMLFile().isValid(in,os);
+				break;
+			case FileTypes::FEATUREXML :
+				os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
+				valid = FeatureXMLFile().isValid(in,os);
+				break;
+			case FileTypes::IDXML :
+				os << " against XML schema version " << IdXMLFile().getVersion() << endl;
+				valid = IdXMLFile().isValid(in,os);
+				break;
+			case FileTypes::CONSENSUSXML :
+				os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
+				valid = ConsensusXMLFile().isValid(in,os);
+				break;
+			case FileTypes::MZXML :
+				os << " against XML schema version " << MzXMLFile().getVersion() << endl;
+				valid = MzXMLFile().isValid(in,os);
+				break;
+			case FileTypes::PEPXML:
+				os << " against XML schema version " << PepXMLFile().getVersion() << endl;
+				valid = PepXMLFile().isValid(in, os);
+				break;
+			default:
+				os << endl << "Aborted: Validation of this file type is not supported!" << endl;
+				return EXECUTION_OK;
 			};
 
 			if (valid)
@@ -414,6 +419,12 @@ class TOPPFileInfo
 			os << "Number of peptide hits: " << peptide_hit_count << endl;
 			os << "Number of unique peptide hits: " << peptides.size() << endl;
 		}
+		
+		else if (in_type == FileTypes::PEPXML)
+		{
+			os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << endl;
+		}
+		
 		else //peaks
 		{
 			if (! fh.loadExperiment(in,exp,in_type,log_type_) )
@@ -733,6 +744,10 @@ class TOPPFileInfo
 			{
 				os << "Document id       : " << id_data.identifier << endl << endl;
 			}
+			else if (in_type == FileTypes::PEPXML)
+			{
+				// TODO
+			}
 			else //peaks
 			{
 
@@ -808,6 +823,10 @@ class TOPPFileInfo
 			else if (in_type==FileTypes::IDXML) //identifications
 			{
 			}
+			else if (in_type == FileTypes::PEPXML)
+			{
+				// TODO
+			}		
 			else //peaks
 			{
 				if (exp.size()!=0)
@@ -983,6 +1002,10 @@ class TOPPFileInfo
 			else if (in_type==FileTypes::IDXML) //identifications
 			{
 				//TODO
+			}
+			else if (in_type == FileTypes::PEPXML)
+			{
+				// TODO
 			}
 			else //peaks
 			{
