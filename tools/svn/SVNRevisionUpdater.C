@@ -40,9 +40,9 @@
 using namespace std;
 
 /// print usage of this tool
-string usage(const string name)
+string usage(const string toolname)
 {
-	return string("Usage: \n  ") + name + string(" <project source dir> <header file>\n");
+	return string("Usage: \n  ") + toolname + string(" <project source dir> <header file>\n");
 }
 
 /// grab output of given command
