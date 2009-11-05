@@ -333,7 +333,7 @@ add_test("TOPP_SpectraFilter_3" ${TOPP_BIN_PATH}/SpectraFilter -test -in ${DATA_
 add_test("TOPP_SpectraFilter_3_out1" ${DIFF} -in1 SpectraFilter.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilter_3_output.mzML)
 
 ### InternalCalibration tests
-add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -ini ${DATA_DIR_TOPP}/InternalCalibration_parameters.ini -type spectrumwise)
+add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -type spectrumwise)
 #add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzML)
 
 ### TOFCalibration tests
