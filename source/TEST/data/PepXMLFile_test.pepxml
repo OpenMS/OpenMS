@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="pepXML_std.xsl"?>
-<msms_pipeline_analysis date="2009-05-25T12:33:22" summary_xml="/tmp/2ddb/84/1243269184.2280_0/B09-05181_p.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v110.xsd">
+<msms_pipeline_analysis date="2009-05-25T12:33:22" summary_xml="/tmp/2ddb/84/1243269184.2280_0/B09-05181_p.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v110.xsd">
    <msms_run_summary base_name="B09-05181_p" search_engine="X! Tandem (k-score)" msManufacturer="ThermoFinnigan" msModel="msModel" msIonization="msIonisation" msMassAnalyzer="msMassAnalyzer" msDetector="EMT" raw_data_type="raw" raw_data=".mzXML">
       <sample_enzyme name="trypsin">
 <specificity cut="KR" no_cut="P" sense="C"/>
