@@ -568,11 +568,9 @@ if (OPENMS_HAS_SVNVERSION)
 	# run SvnRevisionUpdater to update svn_revision.h
 	add_custom_target(svn_revision_update COMMENT "update the openms_svn_revision.h with current svn revision number")
 	add_dependencies(svn_revision_update SVNRevisionUpdater)
-	get_filename_component(SVNVERSION_EXECUTABLE_PATH "${SVNVERSION_EXECUTABLE}" PATH)
 	add_custom_command(TARGET svn_revision_update
 										 PRE_BUILD
-										 COMMAND "${SVNRevisionUpdater_LOCATION}" "${PROJECT_SOURCE_DIR}" "${SVN_REVISION_FILE}"
-										 WORKING_DIRECTORY ${SVNVERSION_EXECUTABLE_PATH})
+										 COMMAND ${SVNRevisionUpdater_LOCATION} ${PROJECT_SOURCE_DIR} ${SVN_REVISION_FILE})
 	
 								 
 	add_dependencies(OpenMS svn_revision_update)
