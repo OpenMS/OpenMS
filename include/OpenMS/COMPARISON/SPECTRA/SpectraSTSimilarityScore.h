@@ -65,18 +65,20 @@ namespace OpenMS
     virtual ~SpectraSTSimilarityScore();
 		// @}
 
-		// @name Operators
-		// @{
     /// assignment operator
     SpectraSTSimilarityScore& operator = (const SpectraSTSimilarityScore& source);
 	
 		/**
-			@brief: this function calculates only the dot product of the two spectrum like in SpectraST
+			@brief: calculates the dot product of the two spectra
 		*/
 		DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
-		
+		/**
+			@brief: calculates the dot product of the two spectra
+		*/		
 		DoubleReal operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
-
+		/**
+			@brief: calculates the dot product of itself
+		*/
 		DoubleReal operator () (const PeakSpectrum& spec) const;
 		
 		/**
@@ -89,10 +91,12 @@ namespace OpenMS
 		*/
 		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 		
+		
+		///spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized.
 		BinnedSpectrum transform(const PeakSpectrum& spec);
 
 		/**
-			@brief Calculates the dot bias 
+			@brief Calculates how much of the dot prudct is dominated by a few peaks
 
 			@param dot_product if -1 this value will be calculated as well.
 			@param bin1 first spectrum in binned representation
@@ -100,27 +104,39 @@ namespace OpenMS
 		*/
 		DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product = -1) const;
 		
-		DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
-		
-		DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal delta_bias);
-		
 		/**
-			@brief: measures how much of the dot prudct is dominated by a few peaks
+			@brief calculates the normalized distance between top_hit and runner_up.
+			@param top_hit is the best score for a given match.
+			@param runner_up a match with a worse score than top_hit. e.g. the second best score.
+			
+			@return normalized distance
+			@throw DividedByZero exception if top_hit is 0.
+			
+			@note Range of the dot products is between 0 and 1.
 		*/
-		// @}
+		DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
+				
+		/**
+			@brief: computes the overall all score
+			@param dot_product of a match
+			@param delta_D should be calculated after all dot products for a unidentified spectrum are computed
+			@param dot_bias 
+			
+			@return the SpectraST similarity score
+		*/
+		DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias);
+		
 
-		// @name Accessors
-		// @{
+
 		///
     static PeakSpectrumCompareFunctor* create() { return new SpectraSTSimilarityScore(); }
 
-		///
+		///Reimplemented from PeakSpectrumCompareFunctor.
 		static const String getProductName()
 		{
 			return "SpectraSTSimilarityScore";
 		}
 
-		// @}
 
 		protected:
 

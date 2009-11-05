@@ -39,7 +39,7 @@
 #include <QtCore/QString>
 #include <QtCore/QTime>
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <iostream>
 using namespace std;
 
 START_TEST(Base64, "$Id$")
@@ -157,6 +157,7 @@ START_SECTION([EXTRA] zlib functionality)
 	data_double.push_back(303.998);
 	data_double.push_back(304.6);
 	b64.encode(data_double,Base64::BYTEORDER_BIGENDIAN,str,true);
+	cout<<"str: "<<str<<endl;
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN, res_double,true);
 	TEST_REAL_SIMILAR(res_double[0],300.15);
 	TEST_REAL_SIMILAR(res_double[1],303.998);

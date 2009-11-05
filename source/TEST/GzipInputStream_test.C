@@ -58,7 +58,7 @@ START_SECTION(GzipInputStream(const String& file_name))
 	delete ptr;
 END_SECTION
 
-START_SECTION(readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read))
+START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_t max_to_read))
 	
 	GzipInputStream gzip(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	char buffer[31];
@@ -86,12 +86,12 @@ START_SECTION(XMLFilePos curPos() const)
 	
 END_SECTION
 
-START_SECTION(getIsOpen())
+START_SECTION(bool getIsOpen() const )
 	//test above
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(getContentType())
+START_SECTION(virtual const XMLCh* getContentType() const )
 	GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	TEST_EQUAL(gzip2.getContentType(),0)
 END_SECTION

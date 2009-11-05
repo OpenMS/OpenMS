@@ -90,8 +90,8 @@ namespace OpenMS
     	bool getRow(Size row, StringList& list);
 			
 		private:
-			char itemseperator;
-			bool itemenclosed;
+			char itemseperator_;
+			bool itemenclosed_;
 
 			
   };

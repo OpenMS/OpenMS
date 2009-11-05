@@ -67,7 +67,7 @@ namespace OpenMS
 				@param to_fill is the buffer which is written to
 				@param max_to_read is the size of the buffer
 				
-				@ret returns the number of bytes which were actually read
+				@return returns the number of bytes which were actually read
 			
 			*/
    	 	virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);

@@ -26,7 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-
+#include <OpenMS/CONCEPT/Exception.h>
 #include <cmath>
 using namespace std;
 
@@ -148,14 +148,7 @@ namespace OpenMS
 		}
 		spec = tmp;
 		//if not enough peaks in the specturm pass that one out
-		if(spec.size() >= min_peak_number)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return (spec.size() >= min_peak_number);
 	}
 	
 	BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum& spec)
@@ -201,7 +194,14 @@ namespace OpenMS
 	
 	DoubleReal SpectraSTSimilarityScore::delta_D(DoubleReal top_hit, DoubleReal runner_up)
 	{
-		return (DoubleReal)(top_hit - runner_up)/top_hit;
+		if(top_hit ==0)
+		{
+			throw Exception::DivisionByZero(__FILE__,__LINE__,__FUNCTION__);
+		}
+		else
+		{
+			return (DoubleReal)(top_hit - runner_up)/top_hit;
+		}
 	}
 	
 	DoubleReal SpectraSTSimilarityScore::compute_F(DoubleReal dot_product, DoubleReal delta_D,DoubleReal dot_bias)

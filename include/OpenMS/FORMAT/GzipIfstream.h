@@ -52,7 +52,7 @@ namespace OpenMS
 					
 					@param s will be filled with bytes
 					@param n is the size of the buffer s
-					@ret the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
+					@return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
 					
 					@exception Exception::ConversionError is thrown if decompression fails
 					@exception Exception::IllegalArgument is thrwon if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
@@ -62,7 +62,7 @@ namespace OpenMS
 			/**
 				@brief indicates whether the read function can be used safely
 				
-				@ret true if end of file was reached. Otherwise false.
+				@return true if end of file was reached. Otherwise false.
 			*/
 			bool streamEnd() const;
 			
@@ -93,7 +93,7 @@ namespace OpenMS
 			*
 				@brief	checks if data is corrupted after crc32 was computed
 				@note 	it can only be used if updateCRC32 was called after every call of function read
-				@ret true if the buffer and hence the file is corrupted; no decompression is possible
+				@return true if the buffer and hence the file is corrupted; no decompression is possible
 			*
 			bool isCorrupted();
 			
@@ -116,7 +116,7 @@ namespace OpenMS
 			//needed if one wants to know whetther file is okay			
     	//		unsigned long crc;
 			
-			//not implemented
+			///not implemented
 			GzipIfstream(const GzipIfstream& bzip2);
 			GzipIfstream& operator=(const GzipIfstream& bzip2);
 	};

@@ -136,8 +136,8 @@ START_SECTION(void close())
 	//tested in read
 	NOT_TESTABLE
 END_SECTION
-START_SECTION(bool streamEnd())
-	//tested in open(const char * filename) and read
+START_SECTION(bool streamEnd() const )
+	//!!!tested in open(const char * filename) and read
 	NOT_TESTABLE
 END_SECTION
 START_SECTION(bool isOpen() const)
@@ -145,14 +145,14 @@ START_SECTION(bool isOpen() const)
 	NOT_TESTABLE
 END_SECTION
 /*
-START_SECTION(updateCRC32(char* s, size_t n))
+(updateCRC32(char* s, size_t n))
 	//tested in open(const char * filename) and read
-	NOT_TESTABLE
-END_SECTION
-START_SECTION(isCorrupted())
+	_TESTABLE
+_SECTION
+_SECTION(isCorrupted())
 	//tested in open(const char * filename) and read
-	NOT_TESTABLE
-END_SECTION*/
+	TESTABLE
+_SECTION*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
