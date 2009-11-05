@@ -177,7 +177,7 @@ namespace OpenMS
     // map the reference ids onto the features
     IDMapper mapper;
     Param param;
-    param.setValue("rt_delta",param_.getValue("rt_tolerance"));
+    param.setValue("rt_delta",(DoubleReal)param_.getValue("rt_tolerance"));
     param.setValue("mz_delta",param_.getValue("mz_tolerance"));
     param.setValue("mz_measure",param_.getValue("mz_tolerance_unit"));
     mapper.setParameters(param);
@@ -221,7 +221,9 @@ namespace OpenMS
 								DoubleReal mz = point_vec[p][1];
 								trafo_.apply(mz);
 								point_vec[p][1] = mz;
+								calibrated_feature_map[f].getConvexHulls()[s].addPoint(point_vec[p]);
 							}
+						
 					}
 			}
   }
