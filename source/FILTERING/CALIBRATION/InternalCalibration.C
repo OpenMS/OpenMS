@@ -169,10 +169,10 @@ namespace OpenMS
     
     calibrated_feature_map = feature_map;
     // clear the ids
-    for(Size f = 0;f < feature_map.size();++f)
+    for(Size f = 0;f < calibrated_feature_map.size();++f)
     {
-      calibrated_feature_map[f].getPeptideIdentifications().clear();
-    }
+			calibrated_feature_map[f].getPeptideIdentifications().clear();
+		}
 
     // map the reference ids onto the features
     IDMapper mapper;
@@ -187,10 +187,15 @@ namespace OpenMS
     // calibrate
     calibrateMapGlobally(calibrated_feature_map,calibrated_feature_map,trafo_file_name);
 
-    // copy the old ids
+		// copy the old ids
+		calibrated_feature_map.setUnassignedPeptideIdentifications(feature_map.getUnassignedPeptideIdentifications());
     for(Size f = 0;f < feature_map.size();++f)
     {
-      calibrated_feature_map[f].setPeptideIdentifications(feature_map[f].getPeptideIdentifications());
+			calibrated_feature_map[f].getPeptideIdentifications().clear();
+			if(!feature_map[f].getPeptideIdentifications().empty())
+				{
+					calibrated_feature_map[f].setPeptideIdentifications(feature_map[f].getPeptideIdentifications());
+				}
     }
 	}
 
