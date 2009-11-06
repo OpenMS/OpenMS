@@ -30,7 +30,10 @@ Main improvements of TOPP-Tools:
   - improved export of consensusXML
 - MapAligner
   - new "identification" algorithm for alignment based on identified peptides (still experimental)
-
+- InternalCalibration
+  - supports calibration functions calculated seperately for each spectrum or one global function
+  - supports peptide ids as reference peaks
+  - works on peak or feature data now
 
 Main improvements of UTILS:
 - UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
