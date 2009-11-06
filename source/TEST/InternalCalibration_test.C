@@ -30,6 +30,7 @@
 ///////////////////////////
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -56,20 +57,21 @@ END_SECTION
 
 ptr = new InternalCalibration();
 
+MSExperiment<> exp;
+MzDataFile file;
+file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
+std::vector<double> ref_masses;
+ref_masses.push_back(1296.68476942);
+ref_masses.push_back(2465.19833942);
+Param param;
+param.setValue("mz_tolerance",100.);
+param.setValue("mz_tolerance_unit","ppm");
+
 START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses)))
 {
   TOLERANCE_ABSOLUTE(0.000001)
-  MSExperiment<> exp;
   MSExperiment<> calibrated_exp;
-  MzDataFile file;
-  file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
-  std::vector<double> ref_masses;
-  ref_masses.push_back(1296.68476942);
-  ref_masses.push_back(2465.19833942);
   
-  Param param;
-  param.setValue("mz_tolerance",100.);
-  param.setValue("mz_tolerance_unit","ppm");
   ptr->setParameters(param);
   ptr->calibrateMapSpectrumwise(exp,calibrated_exp,ref_masses);
   
@@ -87,13 +89,53 @@ END_SECTION
 
 START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses, String trafo_file_name="")))
 {
+  TOLERANCE_ABSOLUTE(0.000001)
+  MSExperiment<> calibrated_exp;
+  ptr->setParameters(param);
+  ptr->calibrateMapGlobally(exp,calibrated_exp,ref_masses);
+  
+  Peak1D peak;
+  peak.setMZ(1296.68476942);
+  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
+  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
 
+  peak.setMZ(2465.19833942);
+  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
+  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
 }
 END_SECTION
-
+IdXMLFile id_file;
+std::vector<ProteinIdentification> prot_ids;
+std::vector<PeptideIdentification> pep_ids;
+id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_1.IdXML"),prot_ids,pep_ids);
 START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
 {
+  TOLERANCE_ABSOLUTE(0.000001)
+  MSExperiment<> calibrated_exp;
+  ptr->setParameters(param);
+  ptr->calibrateMapGlobally(exp,calibrated_exp,pep_ids);
+  
+  Peak1D peak;
+  peak.setMZ(1296.68476942);
+  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
+  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
 
+  peak.setMZ(2465.19833942);
+  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
+  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
 }
 END_SECTION
 
