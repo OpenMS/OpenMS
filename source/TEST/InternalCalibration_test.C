@@ -56,46 +56,64 @@ END_SECTION
 
 ptr = new InternalCalibration();
 
+START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses)))
+{
+  TOLERANCE_ABSOLUTE(0.000001)
+  MSExperiment<> exp;
+  MSExperiment<> calibrated_exp;
+  MzDataFile file;
+  file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
+  std::vector<double> ref_masses;
+  ref_masses.push_back(1296.68476942);
+  ref_masses.push_back(2465.19833942);
+  
+  Param param;
+  param.setValue("mz_tolerance",100.);
+  param.setValue("mz_tolerance_unit","ppm");
+  ptr->setParameters(param);
+  ptr->calibrateMapSpectrumwise(exp,calibrated_exp,ref_masses);
+  
+  Peak1D peak;
+  peak.setMZ(1296.68476942);
+  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
+  peak.setMZ(2465.19833942);
+  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
+  --it;
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
 
-//START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses)))
-//{
-//     TOLERANCE_ABSOLUTE(0.000001)
-//   MSExperiment<Peak1D> exp;
-//   MSExperiment<> exp_peaks;
-//   MzDataFile file;
-//   file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
-//   std::vector<double> ref_masses;
-//   ref_masses.push_back(1296.68476942);
-//   ref_masses.push_back(2465.19833942);
-	
-//   Param param;
-// 	param.setValue("PeakPicker:peak_width",0.15);
-//   param.setValue("PeakPicker:thresholds:peak_bound",800.0);
-//   param.setValue("PeakPicker:fwhm_bound_factor",0.0);
-//   param.setValue("PeakPicker:thresholds:correlation",0.0);
-// //  param.setValue("PeakPicker:centroid_percentage",0.6);
-//   ptr->setParameters(param);
-//   ptr->calibrate(exp,ref_masses);
-	
-//   PeakPickerCWT pp;
-//   Param pp_param;
-// 	param.setValue("peak_width",0.15);
-// 	pp_param.setValue("thresholds:correlation",0.0);
-//   pp_param.setValue("thresholds:peak_bound",800.0);
-//   pp_param.setValue("fwhm_bound_factor",0.0);
-//   pp.setParameters(pp_param);
-//   pp.pickExperiment(exp,exp_peaks);
-//   Peak1D peak;
-//   peak.setMZ(1296.68476942);
-//   MSExperiment<>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
-//   --it;
-//   TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
-//   peak.setMZ(2465.19833942);
-//   it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
-//   --it;
-//   TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
-// }
-//END_SECTION
+}
+END_SECTION
+
+START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses, String trafo_file_name="")))
+{
+
+}
+END_SECTION
+
+START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
+{
+
+}
+END_SECTION
+
+START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, String trafo_file_name="")))
+{
+
+}
+END_SECTION
+
+START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
+{
+
+}
+END_SECTION
+
+START_SECTION((template < typename InputPeakType > void calibrateMapList(std::vector< MSExperiment< InputPeakType > > &exp_list, std::vector< MSExperiment< InputPeakType > > &calibrated_exp_list, std::vector< DoubleReal > &ref_masses, std::vector< DoubleReal > &detected_background_masses)))
+{
+  NOT_TESTABLE  // not yet existing
+}
+END_SECTION
 
 
 

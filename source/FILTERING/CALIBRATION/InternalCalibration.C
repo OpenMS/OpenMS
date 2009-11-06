@@ -46,19 +46,6 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 	
-  InternalCalibration::InternalCalibration(InternalCalibration& obj)
-		: DefaultParamHandler(obj),
-			ProgressLogger(obj)
-  {}
-  
-  InternalCalibration& InternalCalibration::operator=(const InternalCalibration& obj)
-  {
-		// take care of self assignments
-    if (this == &obj)		return *this;
-		DefaultParamHandler::operator=(obj);
-    return *this;
-  }
-
 	void InternalCalibration::checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids)
 	{
 		 for(Size p_id = 0; p_id < pep_ids.size();++p_id)

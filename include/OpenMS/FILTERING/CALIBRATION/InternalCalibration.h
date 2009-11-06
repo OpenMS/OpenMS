@@ -63,13 +63,6 @@ namespace OpenMS
 		/// Destructor
     ~InternalCalibration(){}
 
-		/// Copy c'tor
-    InternalCalibration(InternalCalibration& obj);
-
-		/// Assignment operator
-    InternalCalibration& operator=(const InternalCalibration& obj);
-
-
 	/**
 		 Calibrate a map using given reference masses. The calibration function is calculated for each spectrum
 		 separately. If not enough reference masses are found for a spectrum it is left uncalibrated.
