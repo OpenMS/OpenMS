@@ -167,6 +167,7 @@ class TOPPInternalCalibration
           std::cout << "Using peptide identifications given with -ref_peaks as reference peaks.\n";
           calib.calibrateMapGlobally(feature_map,calibrated_feature_map,pep_ids,trafo);
         }
+        addDataProcessing_(calibrated_feature_map, getProcessingInfo_(DataProcessing::CALIBRATION));
 				f_file.store(out,calibrated_feature_map);
 				return EXECUTION_OK;
 			}
