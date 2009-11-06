@@ -200,7 +200,7 @@ START_SECTION((PeakIterator getRightEndpoint() const))
 END_SECTION
 
 
-START_SECTION((void setRightEndpoint()))
+START_SECTION((void setRightEndpoint(PeakIterator right_endpoint)))
     DoubleReal height = 100.0;
     DoubleReal mz_position = 4.0;
     DoubleReal left_width = 3.0;
@@ -246,7 +246,7 @@ START_SECTION((PeakIterator getLeftEndpoint() const))
 END_SECTION
 
 
-START_SECTION((void setLeftEndpoint()))
+START_SECTION((void setLeftEndpoint(PeakIterator left_endpoint)))
     DoubleReal height = 100.0;
     DoubleReal mz_position = 4.0;
     DoubleReal left_width = 3.0;
