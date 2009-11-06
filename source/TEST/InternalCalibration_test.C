@@ -31,6 +31,7 @@
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -139,15 +140,32 @@ START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(con
 }
 END_SECTION
 
+FeatureMap<> f_map;
+FeatureXMLFile f_file;
+f_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_annotated.featureXML"),f_map);
 START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, String trafo_file_name="")))
 {
-
+  FeatureMap<> calibrated_f_map;
+  ptr->calibrateMapGlobally(f_map,calibrated_f_map);
+  TEST_REAL_SIMILAR(calibrated_f_map[0].getMZ(),687.841430243171)
+  TEST_REAL_SIMILAR(calibrated_f_map[1].getMZ(),720.005082366204)
+  TEST_REAL_SIMILAR(calibrated_f_map[2].getMZ(),927.493444113771)
+  TEST_REAL_SIMILAR(calibrated_f_map[3].getMZ(),1052.06529617992)
+  TEST_REAL_SIMILAR(calibrated_f_map[4].getMZ(),1224.59976809287)
+  TEST_REAL_SIMILAR(calibrated_f_map[5].getMZ(),998.486309862771)
 }
 END_SECTION
-
+id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2.IdXML"),prot_ids,pep_ids);
 START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
 {
-
+  FeatureMap<> calibrated_f_map;
+  ptr->calibrateMapGlobally(f_map,calibrated_f_map,pep_ids);
+  TEST_REAL_SIMILAR(calibrated_f_map[0].getMZ(),687.841430243171)
+  TEST_REAL_SIMILAR(calibrated_f_map[1].getMZ(),720.005082366204)
+  TEST_REAL_SIMILAR(calibrated_f_map[2].getMZ(),927.493444113771)
+  TEST_REAL_SIMILAR(calibrated_f_map[3].getMZ(),1052.06529617992)
+  TEST_REAL_SIMILAR(calibrated_f_map[4].getMZ(),1224.59976809287)
+  TEST_REAL_SIMILAR(calibrated_f_map[5].getMZ(),998.486309862771)
 }
 END_SECTION
 

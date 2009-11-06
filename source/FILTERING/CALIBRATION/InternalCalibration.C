@@ -79,9 +79,10 @@ namespace OpenMS
 			// determine rel error in ppm for the two reference masses
 			for(Size ref_peak=0; ref_peak < observed_masses.size();++ref_peak)
 			{
-				rel_errors[ref_peak] = (theoretical_masses[ref_peak]-observed_masses[ref_peak])/theoretical_masses[ref_peak] * 1e6;
+        rel_errors[ref_peak] = (theoretical_masses[ref_peak]-observed_masses[ref_peak])/theoretical_masses[ref_peak] * 1e6;
 #ifdef DEBUG_CALIBRATION
 				out << observed_masses[ref_peak] << "\t"<< rel_errors[ref_peak] << "\n";
+        std::cout << observed_masses[ref_peak] <<" "<<theoretical_masses[ref_peak]<<std::endl;
 #endif
 				//				std::cout << observed_masses[ref_peak]<<"\t"<<rel_errors[ref_peak]<<std::endl;
 			}
@@ -127,16 +128,16 @@ namespace OpenMS
 				if(feature_map[f].getPeptideIdentifications().size() > 1) continue;
 				if(!feature_map[f].getPeptideIdentifications().empty())
 					{
-#ifdef DEBUG_CALIBRATION
-						std::cout << feature_map[f].getRT() <<" " <<feature_map[f].getMZ() <<std::endl;
-						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits().size()<<std::endl;
-						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence()<<std::endl;
-						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge()<<std::endl;
-#endif
 						Int charge = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge();
 						DoubleReal theo_mass = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence().getMonoWeight(Residue::Full,charge)/(DoubleReal)charge;
 						theoretical_masses.push_back(theo_mass);
 						observed_masses.push_back(feature_map[f].getMZ());
+#ifdef DEBUG_CALIBRATION
+						std::cout << feature_map[f].getRT() <<" " <<feature_map[f].getMZ() <<" "<<theo_mass<<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits().size()<<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence()<<std::endl;
+						std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge()<<std::endl;
+#endif
 					}
 			}
 		// then make the linear regression

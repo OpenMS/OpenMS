@@ -1,0 +1,1155 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2009-10-28T09:03:22" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="18mix092106" db_version="18mix092106_hinf_20080831.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="1.2" peak_mass_tolerance="0.6" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+	</IdentificationRun>
+	<featureList count="6">
+		<feature id="f_689">
+			<position dim="0">1185.88880709214</position>
+			<position dim="1">687.841691385357</position>
+			<intensity>128007</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.837590488788931</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1176.26</hposition>
+					<hposition dim="1">687.840884531113</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1190.1</hposition>
+					<hposition dim="1">687.84093631688</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1196.89</hposition>
+					<hposition dim="1">687.842188470463</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1194.62</hposition>
+					<hposition dim="1">687.842247306166</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1178.58</hposition>
+					<hposition dim="1">687.842234816867</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">1178.58</hposition>
+					<hposition dim="1">688.343923467605</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1183.18</hposition>
+					<hposition dim="1">688.342437075852</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1190.1</hposition>
+					<hposition dim="1">688.3410652884</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1194.62</hposition>
+					<hposition dim="1">688.343966091873</hposition>
+				</hullpoint>
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="27" MZ="688.04" RT="1182.23" >
+				<PeptideHit score="0" sequence="VVDLM(Oxidation)VHMASKE" charge="2" >
+					<userParam type="float" name="Mascot_score" value="58.12"/>
+					<userParam type="float" name="homology_threshold" value="0"/>
+					<userParam type="float" name="identity_threshold" value="27"/>
+					<userParam type="float" name="EValue" value="4.4e-05"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			</feature>
+		<feature id="f_280">
+			<position dim="0">1233.7256334339</position>
+			<position dim="1">720.004673057583</position>
+			<intensity>542584</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.845700594933665</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1223.62</hposition>
+					<hposition dim="1">720.006696878571</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1228.6</hposition>
+					<hposition dim="1">720.005289677069</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1233.35</hposition>
+					<hposition dim="1">720.005254183923</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.45</hposition>
+					<hposition dim="1">720.00524557634</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1242.11</hposition>
+					<hposition dim="1">720.006718405989</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1226.16</hposition>
+					<hposition dim="1">720.006712972394</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">1221.13</hposition>
+					<hposition dim="1">720.338097171878</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1246.45</hposition>
+					<hposition dim="1">720.339660413899</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1244.33</hposition>
+					<hposition dim="1">720.341259331864</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1223.62</hposition>
+					<hposition dim="1">720.339578344313</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">1223.62</hposition>
+					<hposition dim="1">720.674391292519</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1226.16</hposition>
+					<hposition dim="1">720.672829022566</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1233.35</hposition>
+					<hposition dim="1">720.672882922713</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.98</hposition>
+					<hposition dim="1">720.674277741702</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1244.33</hposition>
+					<hposition dim="1">720.675894444118</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1228.6</hposition>
+					<hposition dim="1">720.675818417309</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">1226.16</hposition>
+					<hposition dim="1">721.00794219976</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1237.78</hposition>
+					<hposition dim="1">721.007867567744</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1239.98</hposition>
+					<hposition dim="1">721.009343076534</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1235.64</hposition>
+					<hposition dim="1">721.009456237201</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1228.6</hposition>
+					<hposition dim="1">721.009384681397</hposition>
+				</hullpoint>
+			</convexhull>
+			<subordinate>
+				<feature id="f_280_0">
+					<position dim="0">1233.75202481188</position>
+					<position dim="1">720.005469465866</position>
+					<intensity>496138</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.832023589826109</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">1223.62</hposition>
+							<hposition dim="1">720.006696878571</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1228.6</hposition>
+							<hposition dim="1">720.005289677069</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1233.35</hposition>
+							<hposition dim="1">720.005254183923</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1246.45</hposition>
+							<hposition dim="1">720.00524557634</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1242.11</hposition>
+							<hposition dim="1">720.006718405989</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1226.16</hposition>
+							<hposition dim="1">720.006712972394</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">1226.16</hposition>
+							<hposition dim="1">721.00794219976</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1237.78</hposition>
+							<hposition dim="1">721.007867567744</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.98</hposition>
+							<hposition dim="1">721.009343076534</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1235.64</hposition>
+							<hposition dim="1">721.009456237201</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1228.6</hposition>
+							<hposition dim="1">721.009384681397</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="457"/>
+					<userParam type="float" name="score_fit" value="0.718359488575741"/>
+					<userParam type="float" name="score_correlation" value="0.963672457921651"/>
+				</feature>
+				<feature id="f_280_1">
+					<position dim="0">1234.02806107856</position>
+					<position dim="1">720.674499090021</position>
+					<intensity>255955</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.781718251383682</overallquality>
+					<charge>3</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">1223.62</hposition>
+							<hposition dim="1">720.674391292519</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1226.16</hposition>
+							<hposition dim="1">720.672829022566</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1233.35</hposition>
+							<hposition dim="1">720.672882922713</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.98</hposition>
+							<hposition dim="1">720.674277741702</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1244.33</hposition>
+							<hposition dim="1">720.675894444118</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1228.6</hposition>
+							<hposition dim="1">720.675818417309</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">1226.16</hposition>
+							<hposition dim="1">721.00794219976</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1237.78</hposition>
+							<hposition dim="1">721.007867567744</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1239.98</hposition>
+							<hposition dim="1">721.009343076534</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1235.64</hposition>
+							<hposition dim="1">721.009456237201</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1228.6</hposition>
+							<hposition dim="1">721.009384681397</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="2">
+						<hullpoint>
+							<hposition dim="0">1228.6</hposition>
+							<hposition dim="1">721.343342495925</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1235.64</hposition>
+							<hposition dim="1">721.341625726474</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1233.35</hposition>
+							<hposition dim="1">721.343123489291</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="4660"/>
+					<userParam type="float" name="score_fit" value="0.67886597588328"/>
+					<userParam type="float" name="score_correlation" value="0.90015326479026"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="24" MZ="720.39" RT="1229.42" >
+				<PeptideHit score="0" sequence="GGADATEDVTAVEVDPADRNR" charge="3" >
+					<userParam type="float" name="Mascot_score" value="41.41"/>
+					<userParam type="float" name="homology_threshold" value="24"/>
+					<userParam type="float" name="identity_threshold" value="28"/>
+					<userParam type="float" name="EValue" value="0.0024"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_191">
+			<position dim="0">1367.33184593799</position>
+			<position dim="1">927.493629181792</position>
+			<intensity>913980</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.893748795892036</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1353.44</hposition>
+					<hposition dim="1">927.4936575459</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1358.15</hposition>
+					<hposition dim="1">927.493601251244</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1382.53</hposition>
+					<hposition dim="1">927.493595542552</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1380.3</hposition>
+					<hposition dim="1">927.493694608576</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">1353.44</hposition>
+					<hposition dim="1">928.494814572025</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1380.3</hposition>
+					<hposition dim="1">928.497228221994</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1382.53</hposition>
+					<hposition dim="1">928.497429810911</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1375.95</hposition>
+					<hposition dim="1">928.497437177057</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1369.38</hposition>
+					<hposition dim="1">928.497405781228</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1360.46</hposition>
+					<hposition dim="1">928.497310514851</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">1355.82</hposition>
+					<hposition dim="1">928.497204030079</hposition>
+				</hullpoint>
+			</convexhull>
+			<subordinate>
+				<feature id="f_191_0">
+					<position dim="0">1367.21332304322</position>
+					<position dim="1">928.497233256587</position>
+					<intensity>368449</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.805219577281225</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">1353.44</hposition>
+							<hposition dim="1">928.494814572025</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1380.3</hposition>
+							<hposition dim="1">928.497228221994</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1382.53</hposition>
+							<hposition dim="1">928.497429810911</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1375.95</hposition>
+							<hposition dim="1">928.497437177057</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1369.38</hposition>
+							<hposition dim="1">928.497405781228</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1360.46</hposition>
+							<hposition dim="1">928.497310514851</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1355.82</hposition>
+							<hposition dim="1">928.497204030079</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">1358.15</hposition>
+							<hposition dim="1">929.497944608288</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1373.75</hposition>
+							<hposition dim="1">929.498088270656</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1375.95</hposition>
+							<hposition dim="1">929.503026653592</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">1360.46</hposition>
+							<hposition dim="1">929.503025229477</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="1261"/>
+					<userParam type="float" name="score_fit" value="0.69806505171811"/>
+					<userParam type="float" name="score_correlation" value="0.928822558930768"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="25" MZ="927.46" RT="1375.28" >
+				<PeptideHit score="0.0101920815366523" sequence="YLYEIAR" charge="1" >
+					<userParam type="float" name="Mascot_score" value="23.57"/>
+					<userParam type="float" name="homology_threshold" value="25"/>
+					<userParam type="float" name="identity_threshold" value="27"/>
+					<userParam type="float" name="EValue" value="0.13"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_431">
+			<position dim="0">2122.76921244379</position>
+			<position dim="1">1052.06470153116</position>
+			<intensity>284449</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.909522431253511</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2115.97</hposition>
+					<hposition dim="1">1052.06940097315</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2120.36</hposition>
+					<hposition dim="1">1052.06599801864</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2131.74</hposition>
+					<hposition dim="1">1052.06592385449</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2134.09</hposition>
+					<hposition dim="1">1052.06941015929</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">2115.97</hposition>
+					<hposition dim="1">1052.56883186239</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2118.11</hposition>
+					<hposition dim="1">1052.5656035028</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2136.44</hposition>
+					<hposition dim="1">1052.56560036008</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2134.09</hposition>
+					<hposition dim="1">1052.56884536864</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2127.06</hposition>
+					<hposition dim="1">1052.56887978851</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">2115.97</hposition>
+					<hposition dim="1">1053.06877745434</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2129.46</hposition>
+					<hposition dim="1">1053.06538518014</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2131.74</hposition>
+					<hposition dim="1">1053.06560357027</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2134.09</hposition>
+					<hposition dim="1">1053.06872887251</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2127.06</hposition>
+					<hposition dim="1">1053.07205224141</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2120.36</hposition>
+					<hposition dim="1">1053.07194313812</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2118.11</hposition>
+					<hposition dim="1">1053.07189419373</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">2120.36</hposition>
+					<hposition dim="1">1053.57232870644</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2127.06</hposition>
+					<hposition dim="1">1053.56935358369</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2124.79</hposition>
+					<hposition dim="1">1053.57272835637</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2122.54</hposition>
+					<hposition dim="1">1053.57261201816</hposition>
+				</hullpoint>
+			</convexhull>
+			<subordinate>
+				<feature id="f_431_0">
+					<position dim="0">2122.33761317068</position>
+					<position dim="1">1052.0676399636</position>
+					<intensity>232257</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.930146134454932</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2113.76</hposition>
+							<hposition dim="1">1052.06607611059</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2120.36</hposition>
+							<hposition dim="1">1052.06599801864</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2131.74</hposition>
+							<hposition dim="1">1052.06592385449</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2134.09</hposition>
+							<hposition dim="1">1052.06941015929</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2115.97</hposition>
+							<hposition dim="1">1052.06940097315</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2115.97</hposition>
+							<hposition dim="1">1053.06877745434</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2129.46</hposition>
+							<hposition dim="1">1053.06538518014</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2131.74</hposition>
+							<hposition dim="1">1053.06560357027</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2134.09</hposition>
+							<hposition dim="1">1053.06872887251</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2127.06</hposition>
+							<hposition dim="1">1053.07205224141</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2120.36</hposition>
+							<hposition dim="1">1053.07194313812</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2118.11</hposition>
+							<hposition dim="1">1053.07189419373</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="902"/>
+					<userParam type="float" name="score_fit" value="0.907440275693975"/>
+					<userParam type="float" name="score_correlation" value="0.953420136415922"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="15" MZ="1052.28" RT="2126.71" >
+				<PeptideHit score="0" sequence="GIDALPLTGQYTHYALNKK" charge="2" >
+					<userParam type="float" name="Mascot_score" value="37.76"/>
+					<userParam type="float" name="homology_threshold" value="15"/>
+					<userParam type="float" name="identity_threshold" value="25"/>
+					<userParam type="float" name="EValue" value="0.003"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_49">
+			<position dim="0">2254.31657180902</position>
+			<position dim="1">1224.59798835114</position>
+			<intensity>5.76512e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.915608842832252</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2240.21</hposition>
+					<hposition dim="1">1224.60044352965</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2254.5</hposition>
+					<hposition dim="1">1224.60048529137</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2261.19</hposition>
+					<hposition dim="1">1224.60054594891</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2265.85</hposition>
+					<hposition dim="1">1224.60059170732</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2268.2</hposition>
+					<hposition dim="1">1224.60068152512</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2242.67</hposition>
+					<hposition dim="1">1224.60051953078</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">2240.21</hposition>
+					<hposition dim="1">1225.10445684532</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2242.67</hposition>
+					<hposition dim="1">1225.10029909811</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2245.17</hposition>
+					<hposition dim="1">1225.10019352017</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2249.95</hposition>
+					<hposition dim="1">1225.10017949845</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2261.19</hposition>
+					<hposition dim="1">1225.1002233023</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2263.45</hposition>
+					<hposition dim="1">1225.1002589367</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2268.2</hposition>
+					<hposition dim="1">1225.10448136473</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">2240.21</hposition>
+					<hposition dim="1">1225.60445322559</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2242.67</hposition>
+					<hposition dim="1">1225.60027005027</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2254.5</hposition>
+					<hposition dim="1">1225.60029720356</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2268.2</hposition>
+					<hposition dim="1">1225.60446957719</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2263.45</hposition>
+					<hposition dim="1">1225.60462037699</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">2240.21</hposition>
+					<hposition dim="1">1226.1050783089</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2252.26</hposition>
+					<hposition dim="1">1226.10479602649</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2263.45</hposition>
+					<hposition dim="1">1226.10497066969</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2268.2</hposition>
+					<hposition dim="1">1226.1052062895</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2265.85</hposition>
+					<hposition dim="1">1226.10939180471</hposition>
+				</hullpoint>
+			</convexhull>
+			<subordinate>
+				<feature id="f_49_0">
+					<position dim="0">2254.24773828533</position>
+					<position dim="1">1224.60053939221</position>
+					<intensity>4.89049e+06</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.823686855778708</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1224.60044352965</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2254.5</hposition>
+							<hposition dim="1">1224.60048529137</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2261.19</hposition>
+							<hposition dim="1">1224.60054594891</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1224.60059170732</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1224.60068152512</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2242.67</hposition>
+							<hposition dim="1">1224.60051953078</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1225.60445322559</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2242.67</hposition>
+							<hposition dim="1">1225.60027005027</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2254.5</hposition>
+							<hposition dim="1">1225.60029720356</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1225.60446957719</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1225.60462037699</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="2">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.61019078351</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2245.17</hposition>
+							<hposition dim="1">1226.60145010406</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.60549058915</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.60596383012</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2258.95</hposition>
+							<hposition dim="1">1226.61017635133</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="135"/>
+					<userParam type="float" name="score_fit" value="0.704125205658478"/>
+					<userParam type="float" name="score_correlation" value="0.963550276187227"/>
+				</feature>
+				<feature id="f_49_1">
+					<position dim="0">2254.34507980921</position>
+					<position dim="1">1225.10048835114</position>
+					<intensity>4.83534e+06</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.769808186268915</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1225.10445684532</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2242.67</hposition>
+							<hposition dim="1">1225.10029909811</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2245.17</hposition>
+							<hposition dim="1">1225.10019352017</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2249.95</hposition>
+							<hposition dim="1">1225.10017949845</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2261.19</hposition>
+							<hposition dim="1">1225.1002233023</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1225.1002589367</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1225.10448136473</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.1050783089</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2252.26</hposition>
+							<hposition dim="1">1226.10479602649</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1226.10497066969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.1052062895</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.10939180471</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="111"/>
+					<userParam type="float" name="score_fit" value="0.654891225553737"/>
+					<userParam type="float" name="score_correlation" value="0.904890187138429"/>
+				</feature>
+				<feature id="f_49_2">
+					<position dim="0">2254.26203747174</position>
+					<position dim="1">1225.60309559229</position>
+					<intensity>3.30911e+06</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.789141567416994</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1225.60445322559</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2242.67</hposition>
+							<hposition dim="1">1225.60027005027</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2254.5</hposition>
+							<hposition dim="1">1225.60029720356</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1225.60446957719</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1225.60462037699</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.1050783089</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2252.26</hposition>
+							<hposition dim="1">1226.10479602649</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1226.10497066969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.1052062895</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.10939180471</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="2">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.61019078351</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2245.17</hposition>
+							<hposition dim="1">1226.60145010406</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.60549058915</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.60596383012</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2258.95</hposition>
+							<hposition dim="1">1226.61017635133</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="2310"/>
+					<userParam type="float" name="score_fit" value="0.670071684561897"/>
+					<userParam type="float" name="score_correlation" value="0.92936983873973"/>
+				</feature>
+				<feature id="f_49_3">
+					<position dim="0">2254.09174072478</position>
+					<position dim="1">1226.10517719074</position>
+					<intensity>1.37766e+06</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.717412213095545</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.1050783089</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2252.26</hposition>
+							<hposition dim="1">1226.10479602649</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1226.10497066969</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.1052062895</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.10939180471</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2240.21</hposition>
+							<hposition dim="1">1226.61019078351</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2245.17</hposition>
+							<hposition dim="1">1226.60145010406</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1226.60549058915</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2268.2</hposition>
+							<hposition dim="1">1226.60596383012</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2258.95</hposition>
+							<hposition dim="1">1226.61017635133</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="2">
+						<hullpoint>
+							<hposition dim="0">2242.67</hposition>
+							<hposition dim="1">1227.10711807046</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2245.17</hposition>
+							<hposition dim="1">1227.1026896756</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2258.95</hposition>
+							<hposition dim="1">1227.10254943524</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2265.85</hposition>
+							<hposition dim="1">1227.10265542247</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2263.45</hposition>
+							<hposition dim="1">1227.10715508488</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2256.69</hposition>
+							<hposition dim="1">1227.11151587738</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="2634"/>
+					<userParam type="float" name="score_fit" value="0.581428426823446"/>
+					<userParam type="float" name="score_correlation" value="0.885199724943848"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="23" MZ="1224.77" RT="2250.93" >
+				<PeptideHit score="0" sequence="VIPAADLSEQISTAGTEASGTGNMK" charge="2" >
+					<userParam type="float" name="Mascot_score" value="107.02"/>
+					<userParam type="float" name="homology_threshold" value="23"/>
+					<userParam type="float" name="identity_threshold" value="26"/>
+					<userParam type="float" name="EValue" value="4e-10"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+		<feature id="f_256">
+			<position dim="0">2303.54801516891</position>
+			<position dim="1">998.488953057261</position>
+			<intensity>614786</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.931497482094073</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">2290.63</hposition>
+					<hposition dim="1">998.489089496416</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2304.35</hposition>
+					<hposition dim="1">998.488851309897</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2319.04</hposition>
+					<hposition dim="1">998.488824093965</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2316.63</hposition>
+					<hposition dim="1">998.488872711665</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2292.83</hposition>
+					<hposition dim="1">998.489192641808</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">2292.83</hposition>
+					<hposition dim="1">999.492123931758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2319.04</hposition>
+					<hposition dim="1">999.489173808362</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2316.63</hposition>
+					<hposition dim="1">999.491900098741</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">2297.36</hposition>
+					<hposition dim="1">999.492167599821</hposition>
+				</hullpoint>
+			</convexhull>
+			<subordinate>
+				<feature id="f_256_0">
+					<position dim="0">2303.35190395581</position>
+					<position dim="1">999.491926173609</position>
+					<intensity>253630</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.815715116364355</overallquality>
+					<charge>1</charge>
+					<convexhull nr="0">
+						<hullpoint>
+							<hposition dim="0">2292.83</hposition>
+							<hposition dim="1">999.492123931758</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2319.04</hposition>
+							<hposition dim="1">999.489173808362</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2316.63</hposition>
+							<hposition dim="1">999.491900098741</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2297.36</hposition>
+							<hposition dim="1">999.492167599821</hposition>
+						</hullpoint>
+					</convexhull>
+					<convexhull nr="1">
+						<hullpoint>
+							<hposition dim="0">2297.36</hposition>
+							<hposition dim="1">1000.49677443645</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2301.97</hposition>
+							<hposition dim="1">1000.49384807163</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2306.7</hposition>
+							<hposition dim="1">1000.49408785674</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2316.63</hposition>
+							<hposition dim="1">1000.49687321019</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2314.1</hposition>
+							<hposition dim="1">1000.49701909075</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2309.19</hposition>
+							<hposition dim="1">1000.49712375379</hposition>
+						</hullpoint>
+						<hullpoint>
+							<hposition dim="0">2299.62</hposition>
+							<hposition dim="1">1000.49713855591</hposition>
+						</hullpoint>
+					</convexhull>
+					<userParam type="int" name="label" value="1442"/>
+					<userParam type="float" name="score_fit" value="0.724439828243906"/>
+					<userParam type="float" name="score_correlation" value="0.918490570401506"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="17" MZ="998.42" RT="2303.35" >
+				<PeptideHit score="0.00830696202531645" sequence="DLTDYLMK" charge="1" >
+					<userParam type="float" name="Mascot_score" value="23.98"/>
+					<userParam type="float" name="homology_threshold" value="17"/>
+					<userParam type="float" name="identity_threshold" value="26"/>
+					<userParam type="float" name="EValue" value="0.091"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</feature>
+	</featureList>
+</featureMap>
