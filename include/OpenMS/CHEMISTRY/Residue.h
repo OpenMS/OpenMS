@@ -195,24 +195,24 @@ namespace OpenMS
 			// c-1 ion
       inline static const EmpiricalFormula& getCIonMinusOneToFull()
       {
-        static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("");
+        static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-2");
         return c_ion_to_full;
       }
       inline static DoubleReal getCIonMinusOneToFullAverageWeight()
       {
-        static const DoubleReal c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
+        static const DoubleReal c_ion_to_full_average_weight = getCIonMinusOneToFull().getAverageWeight();
         return c_ion_to_full_average_weight;
       }
       inline static DoubleReal getCIonMinusOneToFullMonoWeight()
       {
-        static const DoubleReal c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
+        static const DoubleReal c_ion_to_full_mono_weight = getCIonMinusOneToFull().getMonoWeight();
         return c_ion_to_full_mono_weight;
       }
 
 			// c+1 ion
       inline static const EmpiricalFormula& getCIonPlusOneToFull()
       {
-        static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H");
+        static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("");
         return c_ion_to_full;
       }
 
