@@ -84,8 +84,8 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 		{
 			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
 			{
-				double prob(pit->getScore());
-				double orig_score((double)pit->getMetaValue("XTandem_score"));
+				DoubleReal prob(pit->getScore());
+				DoubleReal orig_score((DoubleReal)pit->getMetaValue("XTandem_score"));
 				if (orig_score > 40.0)
 				{
 					TEST_EQUAL(prob > 0.9, true)
@@ -99,6 +99,61 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 	}
 }
 END_SECTION
+
+START_SECTION((void apply(std::vector< PeptideIdentification > &ids)))
+{
+	IDDecoyProbability decoy;
+	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev, prot_ids;
+  vector<PeptideIdentification> pep_ids_fwd, pep_ids_rev, prob_ids, pep_ids;
+  String document_id;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), prot_ids_fwd, pep_ids_fwd, document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), prot_ids_rev, pep_ids_rev, document_id);
+
+  for (vector<PeptideIdentification>::iterator it = pep_ids_fwd.begin(); it != pep_ids_fwd.end(); ++it)
+  {
+    vector<PeptideHit> hits = it->getHits();
+    for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+    {
+      pit->setMetaValue("target_decoy", "target");
+    }
+    it->setHits(hits);
+    pep_ids.push_back(*it);
+  }
+  for (vector<PeptideIdentification>::iterator it = pep_ids_rev.begin(); it != pep_ids_rev.end(); ++it)
+  {
+    vector<PeptideHit> hits = it->getHits();
+    for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+    {
+      pit->setMetaValue("target_decoy", "decoy");
+    }
+    it->setHits(hits);
+    pep_ids.push_back(*it);
+  }
+
+  decoy.apply(pep_ids);
+
+  for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+  {
+    if (it->getHits().size() > 0)
+    {
+      for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+      {
+        DoubleReal prob(pit->getScore());
+        DoubleReal orig_score((DoubleReal)pit->getMetaValue("XTandem_score"));
+        if (orig_score > 40.0)
+        {
+          TEST_EQUAL(prob > 0.9, true)
+        }
+        if (orig_score < 20)
+        {
+          TEST_EQUAL(prob < 0.05, true)
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

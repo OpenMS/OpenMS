@@ -27,33 +27,68 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
-#include <OpenMS/DATASTRUCTURES/CVMappings.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
+///////////////////////////
+#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
 ///////////////////////////
 
-START_TEST(MzIdentMLValidator, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 using namespace OpenMS;
-using namespace OpenMS::Internal;
 using namespace std;
 
-CVMappings mapping;
-ControlledVocabulary cv;
+START_TEST(PILISCrossValidation, "$Id$")
 
-SemanticValidator* ptr = 0;
-START_SECTION((MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
-	ptr = new MzIdentMLValidator(mapping,cv);
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+PILISCrossValidation* ptr = 0;
+START_SECTION(PILISCrossValidation())
+{
+	ptr = new PILISCrossValidation();
 	TEST_NOT_EQUAL(ptr, 0)
+}
 END_SECTION
 
-START_SECTION((virtual ~MzIdentMLValidator()))
+START_SECTION(virtual ~PILISCrossValidation())
+{
 	delete ptr;
+}
 END_SECTION
+
+START_SECTION((PILISCrossValidation(const PILISCrossValidation &rhs)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((PILISCrossValidation& operator=(const PILISCrossValidation &rhs)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((void setOptions(const Map<String, Option> &rhs)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((void setOption(const String &name, const Option &option)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((void apply(Param &PILIS_param, const PILISModel &base_model, const std::vector< Peptide > &peptides)))
+{
+  // TODO
+}
+END_SECTION
+
+START_SECTION((DoubleReal scoreHits(const std::vector< std::vector< std::vector< RichPeakSpectrum > > > &sim_spectra, const std::vector< std::vector< RichPeakSpectrum > > &exp_spectra)))
+{
+  // TODO
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -149,10 +149,12 @@ set(format_executables_list
   MascotRemoteQuery_test
   MascotXMLFile_test
   MzDataFile_test
+	MzDataValidator_test
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLValidator_test
   MzXMLFile_test
+	TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   PTMXMLFile_test

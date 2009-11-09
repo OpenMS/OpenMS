@@ -86,9 +86,8 @@ namespace OpenMS
 
      /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
 
-            @param modification_line
-            @param modifications_filename
-            @param monoisotopic
+            @param modification the modification
+						@param variable should be set to true if it variable
             @throw FileNotFound is thrown if the given file is not found
             @throw FileNotReadable is thrown if the given file is not readable
             @throw ParseError is throw if the given file could not be parsed

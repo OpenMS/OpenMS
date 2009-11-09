@@ -112,9 +112,12 @@ namespace OpenMS
 
 		};
 
+		/** @brief This struct represents a cross validation option
 
+		*/
 		struct Option
 		{
+			/// Type of the parameters
   		enum Type
   		{
     		INT = 0,
@@ -123,6 +126,7 @@ namespace OpenMS
     		STRINGLIST = 3
   		};
 
+			/// Default constructor
 		  Option()
     		: type(INT),
       		int_min(0),
@@ -134,6 +138,7 @@ namespace OpenMS
   		{
   		}
 
+			/// copy constructor
 			Option(const Option& rhs)
 				: type(rhs.type),
 					int_min(rhs.int_min),
@@ -145,6 +150,7 @@ namespace OpenMS
 			{
 			}
 
+			/// detailed constructors
 		  Option(Type t, DoubleReal min, DoubleReal max, DoubleReal stepsize)
   		{
     		type = t;
@@ -169,6 +175,7 @@ namespace OpenMS
     		}
   		}
 
+			/// assignment operator
   		Option& operator = (const Option& rhs)
  			{
     		if (&rhs != this)

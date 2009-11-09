@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,54 +25,41 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_TRAMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_TRAMLVALIDATOR_H
+#include <OpenMS/CONCEPT/ClassTest.h>
 
+///////////////////////////
+#include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
+///////////////////////////
 
-#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+using namespace OpenMS;
+using namespace OpenMS::Internal;
+using namespace std;
 
+START_TEST(TraMLValidator, "$Id$")
 
-namespace OpenMS 
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+CVMappings mapping;
+ControlledVocabulary cv;
+
+TraMLValidator* ptr = 0;
+START_SECTION((TraMLValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
-	class ControlledVocabulary;
-	namespace Internal
-	{
-		
-	  /**
-	    @brief Semantically validates MzXML files.
-	  */
-	  class OPENMS_DLLAPI TraMLValidator
-			: public SemanticValidator
-	  {
-	    public:
-	      /**
-	      	@brief Constructor
-	      
-					@param mapping The mapping rules
-					@param cv @em All controlled vocabularies required for the mapping 
-				*/
-	      TraMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
-				
-				/// Destructor
-				virtual ~TraMLValidator();
-				
-			private:
-				
-				/// Not implemented
-				TraMLValidator();
-				
-				/// Not implemented
-				TraMLValidator(const TraMLValidator& rhs);
-	
-				/// Not implemented
-				TraMLValidator& operator = (const TraMLValidator& rhs);
-	
-	  };
- 
-	} // namespace Internal
- 
-} // namespace OpenMS
+	ptr = new TraMLValidator(mapping, cv);
+	TEST_NOT_EQUAL(ptr, 0)
+}
+END_SECTION
 
-#endif
+START_SECTION(virtual ~TraMLValidator())
+{
+	delete ptr;
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
 

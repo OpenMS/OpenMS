@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
@@ -44,85 +44,5 @@ namespace OpenMS
 		{
 		}
 		
-		//This method needed to be reimplemented to
-		// - check CV term values
-		// - handle referenceableParamGroups
-	  void MzIdentMLValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
-	  {
-	    String tag = sm_.convert(qname);
-	    String parent_tag;
-	    if (open_tags_.size()>0) parent_tag = open_tags_.back();
-	    String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
-	    open_tags_.push_back(tag);
-
-	    if (tag=="referenceableParamGroup")
-	    {
-				current_id_ = attributeAsString_(attributes,"id");
-	  	}
-	  	else if (tag=="referenceableParamGroupRef")
-	    {
-	    	const std::vector<CVTerm>& terms = param_groups_[attributeAsString_(attributes,"ref")];
-				for (Size i=0; i< terms.size(); ++i)
-				{
-					handleTerm_(path, terms[i]);
-				}
-	  	}
-	    else if (tag==cv_tag_)
-	    {
-		    //extract accession, name and value
-		    CVTerm parsed_term;
-		    getCVTerm_(attributes, parsed_term);
-	
-				//check if the term is unknown
-				if (!cv_.exists(parsed_term.accession))
-				{
-					warnings_.push_back(String("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
-					return;
-				}
-				
-				//check if the term is obsolete
-				if (cv_.getTerm(parsed_term.accession).obsolete)
-				{
-					warnings_.push_back(String("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
-				}
-				
-				//actual handling of the term
-	    	if (parent_tag=="referenceableParamGroup")
-	    	{
-	    		param_groups_[current_id_].push_back(parsed_term);
-	    	}
-	    	else
-	    	{	
-					handleTerm_(path, parsed_term);
-				}
-			}
-	  }
-		
-		//reimplemented in order to remove the "indexmzML" tag from the front (if present)
-		String MzIdentMLValidator::getPath_(UInt remove_from_end) const
-		{
-			String path;
-			if (open_tags_.size()!=0 && open_tags_.front()=="indexedmzML")
-			{
-				path.concatenate(open_tags_.begin()+1, open_tags_.end()-remove_from_end,"/");
-			}
-			else
-			{
-				path.concatenate(open_tags_.begin(), open_tags_.end()-remove_from_end,"/");
-			}
-			path = String("/") + path;
-			return path;
-		}
-		
-		//reimplemented to catch non-PSI CVs
-		void MzIdentMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
-		{
-			//some CVs cannot be validates because they use 'part_of' which spoils the inheritance
-			if (parsed_term.accession.hasPrefix("GO:")) return;
-			if (parsed_term.accession.hasPrefix("BTO:")) return;
-			
-			SemanticValidator::handleTerm_(path,parsed_term);
-		}
-
 	} // namespace Internal
 } // namespace OpenMS
