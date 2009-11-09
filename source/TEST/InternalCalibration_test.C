@@ -75,15 +75,9 @@ START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise
   
   ptr->setParameters(param);
   ptr->calibrateMapSpectrumwise(exp,calibrated_exp,ref_masses);
-  
-  Peak1D peak;
-  peak.setMZ(1296.68476942);
-  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
-  peak.setMZ(2465.19833942);
-  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
+	
+  TEST_REAL_SIMILAR(calibrated_exp[0][14].getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(calibrated_exp[0][77].getMZ(),2465.19833942)
 
 }
 END_SECTION
@@ -95,20 +89,10 @@ START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(con
   ptr->setParameters(param);
   ptr->calibrateMapGlobally(exp,calibrated_exp,ref_masses);
   
-  Peak1D peak;
-  peak.setMZ(1296.68476942);
-  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
-  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
-  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
-
-  peak.setMZ(2465.19833942);
-  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
-  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
+  TEST_REAL_SIMILAR(calibrated_exp[0][14].getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(calibrated_exp[1][40].getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(calibrated_exp[0][77].getMZ(),2465.19833942)
+  TEST_REAL_SIMILAR(calibrated_exp[1][90].getMZ(),2465.19833942)
 }
 END_SECTION
 IdXMLFile id_file;
@@ -122,21 +106,11 @@ START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(con
   ptr->setParameters(param);
   ptr->calibrateMapGlobally(exp,calibrated_exp,pep_ids);
   
-  Peak1D peak;
-  peak.setMZ(1296.68476942);
-  MSExperiment<>::SpectrumType::Iterator it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
-  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
-  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
 
-  peak.setMZ(2465.19833942);
-  it = lower_bound(calibrated_exp[0].begin(),calibrated_exp[0].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
-  it = lower_bound(calibrated_exp[1].begin(),calibrated_exp[1].end(),peak,Peak1D::PositionLess());
-  --it;
-  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
+	TEST_REAL_SIMILAR(calibrated_exp[0][14].getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(calibrated_exp[1][40].getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(calibrated_exp[0][77].getMZ(),2465.19833942)
+  TEST_REAL_SIMILAR(calibrated_exp[1][90].getMZ(),2465.19833942)
 }
 END_SECTION
 
