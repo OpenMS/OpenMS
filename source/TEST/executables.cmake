@@ -170,7 +170,6 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   TextFile_test
-  TraMLFile_test
   TransformationXMLFile_test
   UnimodXMLFile_test
   XMLFile_test
@@ -320,7 +319,6 @@ set(analysis_executables_list
 	ItraqQuantifier_test
 	LabeledPairFinder_test
 	LocalLinearMap_test
-	MRMExperiment_test
 	MRMFragmentSelection_test
 	MapAlignmentAlgorithmIdentification_test
 	MapAlignmentAlgorithmPoseClustering_test
@@ -342,7 +340,6 @@ set(analysis_executables_list
 	PrecursorIonSelection_test
 	ProteinInference_test
 	ProtonDistributionModel_test
-	ReactionMonitoringTransition_test
 	SVMWrapper_test
 	SimplePairFinder_test
 	StablePairFinder_test
