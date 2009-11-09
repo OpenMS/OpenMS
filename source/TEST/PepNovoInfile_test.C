@@ -59,7 +59,7 @@ fix_mods.push_back("Phospho (C)");
 var_mods.push_back("Phospho (D)");
 var_mods.push_back("Ethanolamine (C-term)");
 
-START_SECTION((PepNovoInfile& operator==(const PepNovoInfile& pepnovo_infile)))
+START_SECTION((bool operator==(const PepNovoInfile& pepnovo_infile)))
   PepNovoInfile pepnovo_infile1;
   pepnovo_infile1.setModifications(fix_mods, var_mods);
   PepNovoInfile pepnovo_infile2;
@@ -84,12 +84,16 @@ START_SECTION((PepNovoInfile(const PepNovoInfile &pepnovo_infile)))
   TEST_EQUAL(( pepnovo_infile1 == pepnovo_infile2 ), true)
 END_SECTION
 
-START_SECTION(void getModifications(std::map<String,String>& modification_key_map) const)
-PepNovoInfile pepnovo_infile;
-pepnovo_infile.setModifications(fix_mods, var_mods);
-pepnovo_infile.getModifications(keys_and_mods);
+START_SECTION((void setModification(const StringList &fixed_mods, const StringList &variable_mods)))
+	NOT_TESTABLE // will be tested in next section
+END_SECTION
 
-TEST_EQUAL(keys_and_mods.size(), 3)
+START_SECTION(void getModifications(std::map<String,String>& modification_key_map) const)
+	PepNovoInfile pepnovo_infile;
+	pepnovo_infile.setModifications(fix_mods, var_mods);
+	pepnovo_infile.getModifications(keys_and_mods);
+
+	TEST_EQUAL(keys_and_mods.size(), 3)
 
   if(keys_and_mods.size()==3)
   {
@@ -100,7 +104,7 @@ TEST_EQUAL(keys_and_mods.size(), 3)
   }
 END_SECTION
 
-START_SECTION(String store(const String& filename))
+START_SECTION(void store(const String& filename))
   PepNovoInfile pepnovo_infile;
   pepnovo_infile.setModifications(fix_mods, var_mods);
 	String filename;

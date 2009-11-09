@@ -55,7 +55,7 @@ namespace OpenMS
       IDFilter();
       
       /// Destructor
-      ~IDFilter();
+      virtual ~IDFilter();
 
       /// filters a ProteinIdentification or PeptideIdentification corresponding to the @p threshold_fraction
       template <class IdentificationType>

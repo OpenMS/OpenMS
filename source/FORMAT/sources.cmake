@@ -53,7 +53,6 @@ UnimodXMLFile.C
 XMLFile.C
 XTandemInfile.C
 XTandemXMLFile.C
-MzIdentMLFile.C
 )
 
 if (USE_ANDIMS) 	 

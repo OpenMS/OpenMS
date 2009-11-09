@@ -55,13 +55,6 @@ END_SECTION
 
 START_SECTION((bool operator==(const CVTerm &rhs) const ))
 {
-
-//setAccession(const String &accession)
-//setName(const String &name)
-//setCVIdentifierRef(const String &cv_identifier_ref)
-//setValue(const DataValue &value)
-//setUnit(const Unit &unit)
-
 	CVTerm term1, term2;
 	TEST_EQUAL(term1 == term2, true)
 	
@@ -126,13 +119,19 @@ END_SECTION
 
 START_SECTION((bool hasValue() const ))
 {
-  // TODO
+  CVTerm term;
+	TEST_EQUAL(term.hasValue(), false)
+	term.setValue(DataValue(0.5));
+	TEST_EQUAL(term.hasValue(), true)
 }
 END_SECTION
 
 START_SECTION((bool hasUnit() const ))
 {
-  // TODO
+	CVTerm term;
+	TEST_EQUAL(term.hasUnit(), false)
+	term.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
+	TEST_EQUAL(term.hasUnit(), true)
 }
 END_SECTION
 
