@@ -87,7 +87,7 @@ class TOPPIDMapper
 			setMinFloat_("mz_delta",0.0);
 			registerStringOption_("mz_measure","<String>",p.getEntry("mz_measure").valid_strings[0],"Unit of mz_delta", false);
 			setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
-			registerStringOption_("mz_reference","<String>",p.getEntry("mz_reference").valid_strings[0],"Method to determine m/z of identification", false);
+			registerStringOption_("mz_reference","<String>",p.getEntry("mz_reference").valid_strings[1],"Method to determine m/z of identification", false);
 			setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
 			registerFlag_("use_centroids","[FeatureMap only] use RT&MZ coordinate instead of convex hull");
 			registerFlag_("use_subelements","[ConsensusMap only] use RT&MZ coordinate of sub-features instead of consensus RT&MZ");
