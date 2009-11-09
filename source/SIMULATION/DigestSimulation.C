@@ -214,7 +214,7 @@ namespace OpenMS {
         it_gf != generated_features.end();
         ++it_gf)
     {
-      // TODO: document the rounding
+      // round up intensity
       (it_gf->second).setIntensity(ceil((it_gf->second).getIntensity()));
       feature_map.push_back(it_gf->second);
     }
