@@ -137,10 +137,8 @@ namespace OpenMS
         id.insertHit(PeptideHit(0, 0, split2[1].toInt(), peptide));
         ids.push_back(id);
 				inst_type_correct = true;
-				continue;
       }
-
-      if (line.hasPrefix("MW:"))
+			else if (line.hasPrefix("MW:"))
       {
 				vector<String> split;
 				line.split(' ', split);
@@ -151,8 +149,7 @@ namespace OpenMS
         	spec.getPrecursors()[0].setMZ((split[1].toDouble() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge);
 				}
       }
-
-      if (line.hasPrefix("Comment:"))
+			else if (line.hasPrefix("Comment:"))
       {
         // slow, but we need the modifications from the header and the instrument type
         vector<String> split;
@@ -239,10 +236,8 @@ namespace OpenMS
         {
           parseHeader_(line, spec);
         }
-				continue;
       }
-
-			if (line.hasPrefix("Num peaks:"))
+			else if (line.hasPrefix("Num peaks:"))
 			{
 				if (!inst_type_correct)
 				{
@@ -274,6 +269,10 @@ namespace OpenMS
       	spectrum_number++;
 			}
     }
+
+		// last spectrum, if available
+
+
   }
 
 
@@ -317,7 +316,7 @@ namespace OpenMS
 				for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
 				{
 					if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-							fabs(ModificationsDB::getInstance()->getModification(pit->getModification()).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+							fabs(ModificationsDB::getInstance()->getModification("M", pit->getModification(), ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
 					{
 						peptide += "M(O)";
 					}
@@ -337,17 +336,13 @@ namespace OpenMS
 				if (hit.getSequence().hasNTerminalModification())
 				{
 					String mod = hit.getSequence().getNTerminalModification();
-					if (ModificationsDB::getInstance()->getModification(mod).getSynonyms().find("Acetyl") != 
-							ModificationsDB::getInstance()->getModification(mod).getSynonyms().end())
-					{
-						++num_mods;
-						String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",Acetyl";
-						modifications.push_back(modification);
-					}
-
+					++num_mods;
+					String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",";
+					modification += ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM).getId();
+					modifications.push_back(modification);
 				}
 				
-				// @todo implement writing (Andreas)
+				// @improvement improve writing support (Andreas)
 				UInt pos(0);
 				for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit, ++pos)
 				{
@@ -355,37 +350,52 @@ namespace OpenMS
 					{
 						continue;	
 					}
+
 					String mod = pit->getModification();
-					if (mod == "MOD:00425" || mod == "MOD:00719")
-					{
-						++num_mods;
-						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Oxidation";
-						modifications.push_back(modification);
-						continue;
-					}
-					if (mod == "MOD:00399" || mod == "MOD:01061" || mod == "MOD:01062")
-					{
-						++num_mods;
-						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Carboxymethyl";
-						modifications.push_back(modification);
-						continue;
-					}
-					if (mod == "MOD:01214" || mod == "MOD:00397")
-					{
-						++num_mods;
-						String modification = String(pos) + "," + pit->getOneLetterCode() + ",Carbamidomethyl";
-						continue;
-					}
-					cerr << "MSPFile: modification '" << mod << "' not handled so far" << "\n";
+					String res = pit->getOneLetterCode();
+					++num_mods;
+					String modification = String(pos) + "," + res + ",";
+					modification += ModificationsDB::getInstance()->getModification(res, mod, ResidueModification::ANYWHERE).getId();
+					modifications.push_back(modification);
 				}
 			
 				String mods;
 				mods.concatenate(modifications.begin(), modifications.end(), "/");
-				out << " Mods=" << String(num_mods)  << "/" << mods;
-				out << " Inst=it\n"; // TODO write mods, instrument type protein ...
+				if (mods.size() != 0)
+				{
+					out << " Mods=" << String(num_mods)  << "/" << mods;
+				}
+				else
+				{
+					out << " Mods=0";
+				}
+				out << " Inst=it\n"; // @improvement write instrument type, protein...and other information
 				out << "Num peaks: " << it->size() << "\n";
-				// TODO normalize to 10000
-				for (RichPeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
+
+				// normalize to 10,000
+				RichPeakSpectrum rich_spec = *it;
+				DoubleReal max_int(0);
+				for (RichPeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+				{
+					if (sit->getIntensity() > max_int)
+					{
+						max_int = sit->getIntensity();
+					}
+				}
+
+				if (max_int != 0)
+				{
+					for (RichPeakSpectrum::Iterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+					{
+						sit->setIntensity(sit->getIntensity() / max_int * 10000.0);
+					}
+				}
+				else
+				{
+					cerr << "MSPFile: spectrum contains only zero intensities!" << endl;
+				}
+				
+				for (RichPeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
 				{
 					out << sit->getPosition()[0] << "\t" << sit->getIntensity() << "\t";
 					if (sit->metaValueExists("IonName"))

@@ -81,7 +81,7 @@ namespace OpenMS
 	}
 
 
-	String PepNovoInfile::handlePTMs(const String &modification, const bool variable)
+	String PepNovoInfile::handlePTMs_(const String &modification, const bool variable)
 	{
 		String locations, key, type;
 
@@ -166,13 +166,13 @@ namespace OpenMS
     std::set<String>fixed_modifications=mods_.getFixedModificationNames();
     for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
-      ptm_file_.push_back(handlePTMs(*it, false));
+      ptm_file_.push_back(handlePTMs_(*it, false));
     }
     // variable modifications
     std::set<String>variable_modifications=mods_.getVariableModificationNames();
     for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
-      ptm_file_.push_back(handlePTMs(*it, true));
+      ptm_file_.push_back(handlePTMs_(*it, true));
     }
 	}
 

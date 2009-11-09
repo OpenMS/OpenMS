@@ -59,7 +59,7 @@ fix_mods.push_back("Phospho (C)");
 var_mods.push_back("Phospho (D)");
 var_mods.push_back("Ethanolamine (C-term)");
 
-START_SECTION((bool operator==(const PepNovoInfile& pepnovo_infile)))
+START_SECTION((bool operator==(const PepNovoInfile &pepnovo_infile) const))
   PepNovoInfile pepnovo_infile1;
   pepnovo_infile1.setModifications(fix_mods, var_mods);
   PepNovoInfile pepnovo_infile2;
@@ -84,7 +84,7 @@ START_SECTION((PepNovoInfile(const PepNovoInfile &pepnovo_infile)))
   TEST_EQUAL(( pepnovo_infile1 == pepnovo_infile2 ), true)
 END_SECTION
 
-START_SECTION((void setModification(const StringList &fixed_mods, const StringList &variable_mods)))
+START_SECTION((void setModifications(const StringList &fixed_mods, const StringList &variable_mods)))
 	NOT_TESTABLE // will be tested in next section
 END_SECTION
 

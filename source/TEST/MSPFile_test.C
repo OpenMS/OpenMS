@@ -119,8 +119,39 @@ END_SECTION
 
 START_SECTION(void store(const String& filename, const RichPeakMap& exp) const)
 	MSPFile msp_file;
-	RichPeakMap exp;
-	// @todo write test for writing
+	vector<PeptideIdentification> ids;
+  RichPeakMap exp;
+  msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
+	for (Size i = 0; i != ids.size(); ++i)
+	{
+		exp[i].getPeptideIdentifications().push_back(ids[i]);
+	}
+	String filename;
+	NEW_TMP_FILE(filename)
+	msp_file.store(filename, exp);
+
+	exp.clear(true);
+	ids.clear();
+	msp_file.load(filename, ids, exp);
+	TEST_EQUAL(ids.size(), 5)
+	TEST_EQUAL(exp.size(), 5)
+
+	TEST_EQUAL(ids[0].getHits().size(), 1)
+	TEST_EQUAL(ids[1].getHits().size(), 1)
+	TEST_EQUAL(ids[2].getHits().size(), 1)
+	TEST_EQUAL(ids[3].getHits().size(), 1)
+	TEST_EQUAL(ids[4].getHits().size(), 1)
+	TEST_EQUAL(ids[0].getHits().begin()->getSequence().isModified(), false)
+	TEST_EQUAL(ids[1].getHits().begin()->getSequence().isModified(), false)
+	TEST_EQUAL(ids[2].getHits().begin()->getSequence().isModified(), false)
+	TEST_EQUAL(ids[3].getHits().begin()->getSequence().isModified(), true)
+	TEST_EQUAL(ids[4].getHits().begin()->getSequence().isModified(), false)
+	TEST_EQUAL(ids[0].getHits().begin()->getCharge(), 2)
+	TEST_EQUAL(ids[1].getHits().begin()->getCharge(), 2)
+	TEST_EQUAL(ids[2].getHits().begin()->getCharge(), 2)
+	TEST_EQUAL(ids[3].getHits().begin()->getCharge(), 2)
+	TEST_EQUAL(ids[4].getHits().begin()->getCharge(), 3)
+	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

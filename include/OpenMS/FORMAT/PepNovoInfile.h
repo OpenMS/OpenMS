@@ -93,7 +93,7 @@ namespace OpenMS
             @throw FileNotReadable is thrown if the given file is not readable
             @throw ParseError is throw if the given file could not be parsed
         */
-        String handlePTMs(const String &modification, const bool variable);
+        String handlePTMs_(const String &modification, const bool variable);
   };
 
 } // namespace OpenMS
