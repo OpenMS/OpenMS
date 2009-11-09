@@ -133,7 +133,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION(DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) cons)
+START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) const))
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -235,7 +235,7 @@ TEST_REAL_SIMILAR(spectrast.delta_D(5,4),0.2)
 TEST_REAL_SIMILAR(spectrast.delta_D(25,1),0.96)
 END_SECTION
 
-START_SECTION(DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal delta_bias))
+START_SECTION((DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias)))
 //pretty straightforward function
 NOT_TESTABLE
 END_SECTION

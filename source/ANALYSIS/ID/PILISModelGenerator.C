@@ -43,7 +43,7 @@ namespace OpenMS
 	{
 		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
-		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:01214"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
+		defaults_.setValue("variable_modifications", StringList::create("Oxidation (M),Carbamidomethyl (C)"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
 		defaultsToParam_();
 	}

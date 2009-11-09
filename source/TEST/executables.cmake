@@ -334,6 +334,8 @@ set(analysis_executables_list
 	PILISModelGenerator_test
 	PILISModel_test
 	PILISScoring_test
+	PILISCrossValidation_test
+	PILISNeutralLossModel_test
 	PeakIntensityPredictor_test
 	PoseClusteringAffineSuperimposer_test
 	PoseClusteringShiftSuperimposer_test

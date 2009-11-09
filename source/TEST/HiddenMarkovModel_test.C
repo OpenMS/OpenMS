@@ -262,10 +262,12 @@ END_SECTION
 
 START_SECTION((void clearInitialTransitionProbabilities()))
 	ptr->clearInitialTransitionProbabilities();
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((void clearTrainingEmissionProbabilities()))
 	ptr->clearTrainingEmissionProbabilities();
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((void dump()))
@@ -279,14 +281,22 @@ END_SECTION
 START_SECTION((void write(std::ostream& out) const))
 	stringstream ss;
 	ptr->write(ss);
+	String str_stream = ss.str();
+	TEST_EQUAL(str_stream.hasSubstring("State"), true);
+	TEST_EQUAL(str_stream.hasSubstring("Transition"), true);
+	TEST_EQUAL(str_stream.hasSubstring("Synonym"), true);
 END_SECTION
 
 START_SECTION((void writeGraphMLFile(const String& filename)))
-	NOT_TESTABLE // just for convenience provided
+	String filename;
+	NEW_TMP_FILE(filename)
+	ptr->writeGraphMLFile(filename);
+	TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("HiddenMarkovModel_test.graphML"))
 END_SECTION
 
 START_SECTION((void setVariableModifications(const StringList &modifications)))
-
+	StringList mods = StringList::create("Carboxymethyl (C),Oxidation (M)");
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((void clear()))
@@ -301,6 +311,7 @@ END_SECTION
   
 START_SECTION(void setPseudoCounts(double pseudo_counts))
 	ptr->setPseudoCounts(10e-3);
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION(double getPseudoCounts() const)
