@@ -46,7 +46,7 @@ namespace OpenMS
 
      This class implements a simle calibration method: given a list of reference masses,
      the relative errors of the peaks in the data are approximated by linear interpolation and
-     subtracted from the data. If the input data is raw data peak picking is done first.
+     subtracted from the data. 
 	
 	   @htmlinclude OpenMS_InternalCalibration.parameters
 
@@ -88,7 +88,7 @@ namespace OpenMS
     void calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,String trafo_file_name = "");
 
 	/**
-		 Calibrate a feature map using given reference masses. The calibration function is calculated for the whole map.
+		 Calibrate a feature map using given reference identifications. The calibration function is calculated for the whole map. Even if the features are already annotated with peptide ids these annotations are ignored for the calibration, only the reference ids are used.
 	*/
     void calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,std::vector<PeptideIdentification>& ref_ids,String trafo_file_name = "");
 
@@ -102,11 +102,14 @@ namespace OpenMS
 
 	// the actual calibration function
 	void makeLinearRegression_(std::vector<DoubleReal>& observed_masses, std::vector<DoubleReal>& theoretical_masses);
-
+		
+	// check if reference ids contain RT and MZ information as meta values
 	void checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids);
-
+		
+	// check if reference ids contain RT and MZ information as meta values
 	void checkReferenceIds_(const FeatureMap<>& feature_map);
-
+		
+	// apply transformation to all features (including subordinates and convex hulls)
   void applyTransformation_(const FeatureMap<>& feature_map,FeatureMap<>& calibrated_feature_map);
 
 	// here the transformation is stored
