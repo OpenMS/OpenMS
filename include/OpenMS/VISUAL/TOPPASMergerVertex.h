@@ -76,6 +76,8 @@ namespace OpenMS
 			virtual void reset(bool reset_all_files = false);
 			// documented in base class
 			virtual bool isSubtreeFinished();
+			// documented in base class
+			virtual void resetSubtree(bool including_this_node);
 			
 		protected:
 
@@ -83,8 +85,8 @@ namespace OpenMS
 			bool round_based_mode_;
 			/// The counter for the merging process
 			int merge_counter_;
-			/// The number of parent nodes that have been notified that this merger has finished merging
-			int notified_parents_counter_;
+			/// Is set to true while the parents are notified that this node has finished merging
+			bool currently_notifying_parents_;
 
 			///@name reimplemented Qt events
       //@{

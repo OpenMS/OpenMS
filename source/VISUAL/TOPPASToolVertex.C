@@ -424,7 +424,7 @@ namespace OpenMS
 		
 		for (int i = 0; i < num_iterations_; ++i)
 		{
-			debugOut_(String("Starting process nr ")+i);
+			debugOut_(String("Enqueueing process nr ")+i);
 			QStringList args = shared_args;
 			
 			// add all input file parameters
@@ -523,16 +523,15 @@ namespace OpenMS
 				}
 			}
 			
-			//start process
+			//create process
 			QProcess* p = new QProcess();
 			p->setProcessChannelMode(QProcess::MergedChannels);
 			connect(p,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(executionFinished(int,QProcess::ExitStatus)));
 			connect(p,SIGNAL(readyReadStandardOutput()),this,SLOT(forwardTOPPOutput()));
 			connect(ts,SIGNAL(terminateCurrentPipeline()),p,SLOT(kill()));
 			
-			//start process
-			p->start(name_.toQString(), args);
-			p->waitForStarted();
+			//enqueue process
+			ts->enqueueProcess(p, name_.toQString(), args);
 		}
 		
 		__DEBUG_END_METHOD__
@@ -542,12 +541,7 @@ namespace OpenMS
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		++iteration_nr_;
-		
-		debugOut_(String("Increased iteration_nr_ to ")+iteration_nr_+" / "+num_iterations_);
-		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-		
 		if (es != QProcess::NormalExit)
 		{
 			ts->setPipelineRunning(false);
@@ -575,6 +569,12 @@ namespace OpenMS
 			__DEBUG_END_METHOD__
 			return;
 		}
+		
+		++iteration_nr_;
+		debugOut_(String("Increased iteration_nr_ to ")+iteration_nr_+" / "+num_iterations_);
+		
+		// notify the scene that this process has finished (so the next pending one can run)
+		ts->runNextProcess();
 		
 		if (iteration_nr_ == num_iterations_) // all iterations performed --> proceed in pipeline
 		{

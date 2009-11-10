@@ -37,7 +37,7 @@ namespace OpenMS
 		:	TOPPASVertex(),
 			round_based_mode_(true),
 			merge_counter_(0),
-			notified_parents_counter_(0)
+			currently_notifying_parents_(false)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -47,7 +47,7 @@ namespace OpenMS
 		:	TOPPASVertex(rhs),
 			round_based_mode_(rhs.round_based_mode_),
 			merge_counter_(rhs.merge_counter_),
-			notified_parents_counter_(rhs.notified_parents_counter_)
+			currently_notifying_parents_(rhs.currently_notifying_parents_)
 	{
 		pen_color_ = Qt::black;
 		brush_color_ = Qt::lightGray;
@@ -63,7 +63,7 @@ namespace OpenMS
 		TOPPASVertex::operator=(rhs);
 		round_based_mode_ = rhs.round_based_mode_;
 		merge_counter_ = rhs.merge_counter_;
-		notified_parents_counter_ = rhs.notified_parents_counter_;
+		currently_notifying_parents_ = rhs.currently_notifying_parents_;
 		
 		return *this;
 	}
@@ -224,9 +224,9 @@ namespace OpenMS
 			return;
 		}
 		
-		if (subtree_finished_ && notified_parents_counter_ != in_edges_.size()) // merger was run and has finished, but not all parents have been informed yet
+		if (currently_notifying_parents_) // merger was run and has finished, but not all parents have been informed yet
 		{
-			debugOut_("Not run because !notified_parents_counter != in_edges_.size()");
+			debugOut_("Not run because not all parents notified yet!");
 			
 			__DEBUG_END_METHOD__
 			return;
@@ -240,6 +240,7 @@ namespace OpenMS
 			debugOut_("Resetting subtree");
 			
 			TOPPASVertex::resetSubtree(true);
+			subtree_finished_ = false;
 		}
 		
 		debugOut_("Proceeding in pipeline...");
@@ -443,6 +444,7 @@ namespace OpenMS
 			debugOut_("Merge not complete yet, resetting subtree...");
 			// proceed with next merge iteration
 			TOPPASVertex::resetSubtree(false);
+			subtree_finished_ = false;
 			debugOut_("Subtree successfully reset");
 			forwardPipelineExecution();
 			debugOut_("forwardPipelineExecution() successfully called");
@@ -452,14 +454,14 @@ namespace OpenMS
 			debugOut_("Merge complete - notifying parents");
 			// merge complete --> propagate this upwards (for other round-based mergers)
 			subtree_finished_ = true;
+			currently_notifying_parents_ = true;
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
 				TOPPASVertex* source = (*it)->getSourceVertex();
 				debugOut_(String("Notifying parent ")+source->getTopoNr()+" that merging round complete");
-				++notified_parents_counter_;
-				debugOut_(String("Increased notified_parents_counter_ to ")+notified_parents_counter_);
 				source->checkIfSubtreeFinished();
 			}
+			currently_notifying_parents_ = false;
 			debugOut_("Upstream notification successful");
 		}
 		
@@ -472,7 +474,6 @@ namespace OpenMS
 		
 		TOPPASVertex::reset(false);
 		merge_counter_ = 0;
-		notified_parents_counter_ = 0;
 		
 		__DEBUG_END_METHOD__
 	}
@@ -489,5 +490,27 @@ namespace OpenMS
 		{
 			return TOPPASVertex::isSubtreeFinished();
 		}
+	}
+	
+	
+	void TOPPASMergerVertex::resetSubtree(bool including_this_node)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		if (including_this_node)
+		{
+			// save the subtree_finished flag for mergers
+			bool tmp = subtree_finished_;
+			reset(false);
+			subtree_finished_ = tmp;
+		}
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->resetSubtree(true);
+		}
+		
+		__DEBUG_END_METHOD__
 	}
 }

@@ -418,7 +418,10 @@ namespace OpenMS
 		}
 		update(sceneRect());
 		
-		// start recursive execution at every output node
+		//reset processes
+		topp_processes_queue_.clear();
+		
+		// start at input nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
@@ -998,6 +1001,12 @@ namespace OpenMS
 	void TOPPASScene::abortPipeline()
 	{
 		emit terminateCurrentPipeline();
+		resetProcessesQueue();
+	}
+	
+	void TOPPASScene::resetProcessesQueue()
+	{
+		topp_processes_queue_.clear();
 	}
 	
 	void TOPPASScene::setPipelineRunning(bool b)
@@ -1260,6 +1269,33 @@ namespace OpenMS
 		}
 		
 		event->accept();
+	}
+	
+	void TOPPASScene::enqueueProcess(QProcess* p, const QString& command, const QStringList& args)
+	{
+		topp_processes_queue_ << TOPPProcess(p, command, args);
+		
+		// run first process
+		if (topp_processes_queue_.size() == 1)
+		{
+			const TOPPProcess& tp = topp_processes_queue_.first();
+			tp.proc->start(tp.command, tp.args);
+		}
+	}
+	
+	void TOPPASScene::runNextProcess()
+	{
+		if (topp_processes_queue_.empty())
+		{
+			return;
+		}
+		
+		topp_processes_queue_.removeFirst();
+		if (!topp_processes_queue_.empty())
+		{
+			const TOPPProcess& tp = topp_processes_queue_.first();
+			tp.proc->start(tp.command, tp.args);
+		}
 	}
 	
 } //namespace OpenMS
