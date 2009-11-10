@@ -411,7 +411,7 @@ namespace OpenMS
 		//reset all nodes
 		for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
 		{
-			(*it)->reset(true,true);
+			(*it)->reset(true);
 		}
 		update(sceneRect());
 		
@@ -1158,6 +1158,13 @@ namespace OpenMS
 			{
 				new_action->setEnabled(false);
 			}
+			
+			// TODO (temporarily disabled)
+			if (supported_action == "Change mode")
+			{
+				new_action->setEnabled(false);
+			}
+			//
 		}
 		
 		// ------ execute action on all selected items ------

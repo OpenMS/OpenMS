@@ -71,15 +71,13 @@ namespace OpenMS
 			// documented in base class
 			virtual QPainterPath shape () const;
 			// documented in base class
-			virtual void checkIfAllUpstreamMergersFinished();
-			// documented in base class
 			virtual void checkIfSubtreeFinished();
 			// documented in base class
-			virtual void reset(bool reset_all_files = false, bool mergers_finished = true);
+			virtual void reset(bool reset_all_files = false);
 			// documented in base class
 			virtual bool isSubtreeFinished();
 			// documented in base class
-			virtual bool isAllUpstreamMergersFinished();
+			virtual void resetSubtreeUpToNextMergers(bool including_this_node = true);
 			
 		protected:
 
@@ -87,6 +85,8 @@ namespace OpenMS
 			bool round_based_mode_;
 			/// The counter for the merging process
 			int merge_counter_;
+			/// The number of parent nodes that have been notified that this merger has finished merging
+			int notified_parents_counter_;
 
 			///@name reimplemented Qt events
       //@{

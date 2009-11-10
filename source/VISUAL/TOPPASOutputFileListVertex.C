@@ -217,6 +217,8 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::reset(bool reset_all_files)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		TOPPASVertex::reset();
 		finished_ = false;
 		
@@ -225,6 +227,8 @@ namespace OpenMS
 			files_.clear();
 			// do not actually delete the output files here
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 }
 

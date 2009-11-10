@@ -365,6 +365,8 @@ namespace OpenMS
 	
 	void TOPPASToolVertex::runToolIfInputReady()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		//check if everything ready
 		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
@@ -372,12 +374,16 @@ namespace OpenMS
 			if (tv && !tv->isFinished())
 			{
 				// some tool that we depend on has not finished execution yet --> do not start yet
+				debugOut_("Not run (parent not finished)");
+				
+				__DEBUG_END_METHOD__
 				return;
 			}
 		}
-	
+		
 		// all inputs are ready --> GO!
 		updateCurrentOutputFileNames();
+		
 		createDirs();
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
@@ -418,6 +424,7 @@ namespace OpenMS
 		
 		for (int i = 0; i < num_iterations_; ++i)
 		{
+			debugOut_(String("Starting process nr ")+i);
 			QStringList args = shared_args;
 			
 			// add all input file parameters
@@ -527,11 +534,17 @@ namespace OpenMS
 			p->start(name_.toQString(), args);
 			p->waitForStarted();
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)
 	{
-		iteration_nr_++;
+		__DEBUG_BEGIN_METHOD__
+		
+		++iteration_nr_;
+		
+		debugOut_(String("Increased iteration_nr_ to ")+iteration_nr_+" / "+num_iterations_);
 		
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		
@@ -545,6 +558,7 @@ namespace OpenMS
 			{
 				delete p;
 			}
+			__DEBUG_END_METHOD__
 			return;
 		}
 		
@@ -558,11 +572,14 @@ namespace OpenMS
 			{
 				delete p;
 			}
+			__DEBUG_END_METHOD__
 			return;
 		}
 		
 		if (iteration_nr_ == num_iterations_) // all iterations performed --> proceed in pipeline
 		{
+			debugOut_("All iterations finished!");
+			
 			finished_ = true;
 			emit toolFinished();
 			
@@ -578,37 +595,37 @@ namespace OpenMS
 			// notify all childs that we are finished, proceed in pipeline
 			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
-				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>((*it)->getTargetVertex());
-				if (tv)
+				TOPPASVertex* tv = (*it)->getTargetVertex();
+				debugOut_(String("Starting child ")+tv->getTopoNr());
+				
+				TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
+				if (ttv)
 				{
-					tv->runToolIfInputReady();
+					ttv->runToolIfInputReady();
 					continue;
 				}
-				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>((*it)->getTargetVertex());
+				TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
 				if (mv)
 				{
 					mv->forwardPipelineExecution();
 					continue;
 				}
-				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>((*it)->getTargetVertex());
+				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
 				if (oflv)
 				{
 					oflv->finish();
 					continue;
 				}
 			}
+			
+			debugOut_("All children started!");
 		}
 		
 		/*	Normally, the subtree finished signal is propagated upstream from finished output nodes.
 				However, if there is a blocking "merge all" node in the way, this will not happen
 				--> additionally check here if subtree is finished ("merge all" nodes will return true
 				in every case)	*/
-		checkIfSubtreeFinished();
-		
-		/*	Because "merge all" nodes wait for the signal that all round-based mergers above them have completed
-				their merging rounds, we additionally check this here (in case there is no merger that sends this signal
-				downwards	*/ 
-		checkIfAllUpstreamMergersFinished();
+		//checkIfSubtreeFinished(); TODO
 		
 		//clean up
 		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
@@ -616,6 +633,8 @@ namespace OpenMS
 		{
 			delete p;
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	bool TOPPASToolVertex::isFinished()
@@ -814,7 +833,7 @@ namespace OpenMS
 	void TOPPASToolVertex::inEdgeHasChanged()
 	{
 		// something has changed --> tmp files might be invalid --> reset
-		reset(true,true);
+		reset(true);
 		
 		TOPPASVertex::inEdgeHasChanged();
 	}
@@ -875,15 +894,17 @@ namespace OpenMS
 		if (topo_nr_ != nr)
 		{
 			// topological number changes --> output dir changes --> reset
-			reset(true,true);
+			reset(true);
 			topo_nr_ = nr;
 			emit somethingHasChanged();
 		}
 	}
 	
-	void TOPPASToolVertex::reset(bool reset_all_files, bool mergers_finished)
+	void TOPPASToolVertex::reset(bool reset_all_files)
 	{
-		TOPPASVertex::reset(reset_all_files, mergers_finished);
+		__DEBUG_BEGIN_METHOD__
+		
+		TOPPASVertex::reset(reset_all_files);
 		finished_ = false;
 		current_output_files_.clear();
 		progress_color_ = Qt::gray;
@@ -898,6 +919,8 @@ namespace OpenMS
 				removeDirRecursively_(remove_dir);
 			}
 		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 }
