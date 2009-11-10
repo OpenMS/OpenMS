@@ -12,7 +12,7 @@ set(sources_list
 	UnimodXMLHandler.C
 	XMLHandler.C
 	XTandemInfileXMLHandler.C
-	MzIdentMLHandler.C
+	#MzIdentMLHandler.C
 )
 
 if (USE_ANDIMS) 	 

@@ -36,10 +36,10 @@ SpectrumSettings.h
 Tagging.h
 ScanWindow.h
 Product.h
-PeptideEvidence.h
-Identification.h
-SpectrumIdentification.h
-IdentificationHit.h
+#PeptideEvidence.h
+#Identification.h
+#SpectrumIdentification.h
+#IdentificationHit.h
 ChromatogramSettings.h
 CVTerm.h
 CVTermList.h
