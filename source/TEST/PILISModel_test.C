@@ -97,7 +97,7 @@ START_SECTION(void writeToFile(const String& filename))
 	RichPeakSpectrum spec, spec2;
 	model.getSpectrum(spec, "DER", 1);
 	model2.getSpectrum(spec2, "DER", 1);
-	TOLERANCE_ABSOLUTE(0.01) // arithmetic with small numbers...
+	TOLERANCE_ABSOLUTE(0.1) // arithmetic with small numbers...
 	TEST_EQUAL(spec.size(), spec2.size())
 	for (Size i = 0; i != spec.size(); ++i)
 	{
