@@ -102,12 +102,6 @@ namespace OpenMS
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
-			/// sets the main hidden Markov model
-			void setHMM(const HiddenMarkovModel& model);
-
-			/// set the precursor hidden Markov model
-			void setPrecursorHMM(const HiddenMarkovModel& model);
-			
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
 			//@}

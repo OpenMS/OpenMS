@@ -4,11 +4,13 @@ saved-by: andreas_bertsch
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 2.25.1
-remark: release date: 2009-08-26
+remark: version: 2.27.0
+remark: release date: 2009-10-27
 remark: coverage: Mass spectrometer output files and spectra interpretation
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: creator: Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de>
+remark: creator: Marius Kallhardt <Marius.Kallhardt <-at-> bdal.de>
+remark: creator: Eric Deutsch <edeutsch <-at-> systemsbiology.org>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group 
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
 import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.21
@@ -303,6 +305,8 @@ name: charge state
 def: "The charge state of the ion, single or multiple and positive or negatively charged." [PSI:MS]
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
+synonym: "z" EXACT []
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000042
@@ -956,15 +960,15 @@ is_a: MS:1000495 ! Applied Biosystems instrument model
 
 [Term]
 id: MS:1000141
-name: APEX IV
-def: "Bruker Daltonics APEX IV MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: apex IV
+def: "Bruker Daltonics' apex IV: ESI, MALDI, Nanospray, APCI, APPI, Qh-FT_ICR." [PSI:MS]
+is_a: MS:1001556 ! Bruker Daltonics apex series
 
 [Term]
 id: MS:1000142
-name: APEX-Q
-def: "Bruker Daltonics APEX-Q MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: apex Q
+def: "Bruker Daltonics' apex Q: ESI, MALDI, Nanospray, APCI, APPI, Qh-FT_ICR." [PSI:MS]
+is_a: MS:1001556 ! Bruker Daltonics apex series
 
 [Term]
 id: MS:1000143
@@ -998,15 +1002,15 @@ is_a: MS:1000121 ! AB SCIEX instrument model
 
 [Term]
 id: MS:1000148
-name: autoFlex II
-def: "Bruker Daltonics autoFlex II MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: autoflex II
+def: "Bruker Daltonics' autoflex II: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000149
-name: autoFlex TOF/TOF
-def: "Bruker Daltonics autoFlex TOF/TOF MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: autoflex TOF/TOF
+def: "Bruker Daltonics' autoflex TOF/TOF MS: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000150
@@ -1016,15 +1020,15 @@ is_a: MS:1000126 ! Waters instrument model
 
 [Term]
 id: MS:1000151
-name: Bio TOF II
-def: "Bruker Daltonics BioTOF II MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: BioTOF II
+def: "Bruker Daltonics' BioTOF II: ESI TOF." [PSI:MS]
+is_a: MS:1001535 ! Bruker Daltonics BioTOF series
 
 [Term]
 id: MS:1000152
-name: Bio TOF Q
-def: "Bruker Daltonics BioTOF Q MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: BioTOF-Q
+def: "Bruker Daltonics' BioTOF-Q: ESI Q-TOF." [PSI:MS]
+is_a: MS:1001535 ! Bruker Daltonics BioTOF series
 
 [Term]
 id: MS:1000153
@@ -1046,15 +1050,15 @@ relationship: part_of MS:1000479 ! purgatory
 
 [Term]
 id: MS:1000156
-name: esquire4000
-def: "Bruker Daltonics esquire4000 MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: esquire 4000
+def: "Bruker Daltonics' esquire 4000: linear ion trap, ESI, MALDI, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001533 ! Bruker Daltonics esquire series
 
 [Term]
 id: MS:1000157
-name: esquire6000
-def: "Bruker Daltonics esquire6000 MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: esquire 6000
+def: "Bruker Daltonics' esquire 6000: linear ion trap, ESI, MALDI, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001533 ! Bruker Daltonics esquire series
 
 [Term]
 id: MS:1000158
@@ -1071,14 +1075,14 @@ is_a: MS:1000126 ! Waters instrument model
 [Term]
 id: MS:1000160
 name: HCT
-def: "Bruker Daltonics HCT MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' HCT: ESI Q-TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1000697 ! Bruker Daltonics HCT series
 
 [Term]
 id: MS:1000161
-name: HCT Plus
-def: "Bruker Daltonics HCTPlus MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: HCTplus
+def: "Bruker Daltonics' HCTplus: ESI Q-TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1000697 ! Bruker Daltonics HCT series
 
 [Term]
 id: MS:1000162
@@ -1172,15 +1176,15 @@ is_a: MS:1000493 ! Finnigan MAT instrument model
 
 [Term]
 id: MS:1000177
-name: microFlex
-def: "Bruker Daltonics microFlex MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: microflex
+def: "Bruker Daltonics' microflex: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000178
-name: microTOFLC
-def: "Bruker Daltonics microTOFLC MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: microTOF LC
+def: "Bruker Daltonics' microTOF LC: ESI TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
 
 [Term]
 id: MS:1000179
@@ -1209,8 +1213,8 @@ is_a: MS:1000123 ! IonSpec instrument model
 [Term]
 id: MS:1000183
 name: OmniFlex
-def: "Bruker Daltonics OminFlex MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' OmniFlex: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000184
@@ -1316,15 +1320,15 @@ is_a: MS:1000123 ! IonSpec instrument model
 
 [Term]
 id: MS:1000201
-name: ultraFlex
-def: "Bruker Daltonics ultraFlex MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: ultraflex
+def: "Bruker Daltonics' ultraflex: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000202
-name: ultraFlex TOF/TOF
-def: "Bruker Daltonics ultraFlex TOF/TOF MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+name: ultraflex TOF/TOF
+def: "Bruker Daltonics' ultraflex TOF/TOF: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000203
@@ -1390,11 +1394,12 @@ is_a: MS:1000231 ! peak
 
 [Term]
 id: MS:1000211
-name: charge number
-def: "The total charge on an ion divided by the electron charge e." [PSI:MS]
+name: OBSOLETE charge number
+def: "OBSOLETE. The total charge on an ion divided by the electron charge e. OBSOLETED 2009-10-27 since this was viewed as a duplication of 00041 charge state." [PSI:MS]
 synonym: "z" EXACT []
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 is_a: MS:1000507 ! ion attribute
+is_obsolete: true
 
 [Term]
 id: MS:1000212
@@ -4627,68 +4632,68 @@ is_a: MS:1000531 ! software
 [Term]
 id: MS:1000695
 name: apex ultra
-def: "Bruker Daltonics apex ultra." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' apex ultra: ESI, MALDI, Nanospray, APCI, APPI, Qh-FT_ICR." [PSI:MS]
+is_a: MS:1001556 ! Bruker Daltonics apex series
 
 [Term]
 id: MS:1000696
 name: autoflex III smartbeam
-def: "Bruker Daltonics autoflex III smartbeam." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' autoflex III smartbeam: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000697
-name: HCT Series
+name: Bruker Daltonics HCT Series
 def: "Bruker Daltonics HCT Series" [PSI:MS]
 is_a: MS:1000122 ! Bruker Daltonics instrument model
 
 [Term]
 id: MS:1000698
 name: HCTultra
-def: "Bruker Daltonics HCTultra" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' HCTultra: ESI TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1000697 ! Bruker Daltonics HCT series
 
 [Term]
 id: MS:1000699
 name: HCTultra PTM
-def: "Bruker Daltonics HCTultra PTM Discovery System" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' HCTultra PTM: ESI TOF, Nanospray, APCI, APPI, PTR" [PSI:MS]
+is_a: MS:1000697 ! Bruker Daltonics HCT series
 
 [Term]
 id: MS:1000700
 name: HCTultra ETD II
-def: "Bruker Daltonics HCTultra ETD II System" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' HCTultra ETD II: ESI Q-TOF, Nanospray, APCI, APPI, ETD" [PSI:MS]
+is_a: MS:1000697 ! Bruker Daltonics HCT series
 
 [Term]
 id: MS:1000701
 name: microflex LT
-def: "Bruker Daltonics microflex MS." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' microflex LT: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000702
 name: micrOTOF
-def: "Bruker Daltonics micrOTOF" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' micrOTOF: ESI TOF, APCI, APPI." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
 
 [Term]
 id: MS:1000703
 name: micrOTOF-Q
-def: "Bruker Daltonics micrOTOF-Q" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' micrOTOF-Q: ESI Q-TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
 
 [Term]
 id: MS:1000704
 name: micrOTOF-Q II
-def: "Bruker Daltonics micrOTOF-Q II" [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' micrOTOF-Q II: ESI Q-TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
 
 [Term]
 id: MS:1000705
 name: ultraflex III TOF/TOF
-def: "Bruker Daltonics ultraflex III TOF/TOF." [PSI:MS]
-is_a: MS:1000122 ! Bruker Daltonics instrument model
+def: "Bruker Daltonics' ultraflex III TOF/TOF: MALDI TOF" [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
 
 [Term]
 id: MS:1000706
@@ -6103,6 +6108,80 @@ id: MS:1000914
 name: tab delimited text file
 def: "A file that has two or more columns of tabular data where each column is separated by a TAB character." [PSI:MS]
 is_a: MS:1001459 ! file format
+
+[Term]
+id: MS:1000915
+name: retention time window attribute
+def: "An attribute of a window in time about which a peptide might elute from the column." [PSI:MS]
+relationship: part_of MS:1000894 ! retention time
+
+[Term]
+id: MS:1000916
+name: retention time window lower offset
+def: "The extent of the retention time window in time units below the target retention time. The lower and upper offsets may be asymetric about the target time." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000915 ! retention time window attribute
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000917
+name: retention time window upper offset
+def: "The extent of the retention time window in time units above the target retention time. The lower and upper offsets may be asymetric about the target time." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000915 ! retention time window attribute
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
+
+[Term]
+id: MS:1000918
+name: target list
+def: "A list of peptides or compounds and their expected m/z coordinates that can be used to cause a mass spectrometry to obtain spectra of those molecules specifically." [PSI:MS]
+relationship: part_of MS:1001458 ! spectrum generation information
+
+[Term]
+id: MS:1000919
+name: target inclusion exclusion priority
+def: "A priority setting specifying whether included or excluded targets have priority over the other." [PSI:MS]
+relationship: part_of MS:1000918 ! target list
+
+[Term]
+id: MS:1000920
+name: includes supersede excludes
+def: "A priority setting specifying that included targets have priority over the excluded targets if there is a conflict." [PSI:MS]
+is_a: MS:1000919 ! target inclusion exclusion priority
+
+[Term]
+id: MS:1000921
+name: excludes supersede includes
+def: "A priority setting specifying that excluded targets have priority over the included targets if there is a conflict." [PSI:MS]
+is_a: MS:1000919 ! target inclusion exclusion priority
+
+[Term]
+id: MS:1000922
+name: Skyline
+def: "Software used to predict, select, and optimize transitions as well as analyze the results of selected reaction monitoring runs developed and distributed by the MacCoss lab at the University of Washington. https://brendanx-uw1.gs.washington.edu/labkey/wiki/home/software/Skyline/page.view?name=default." [PSI:MS]
+is_a: MS:1000871 ! SRM software
+
+[Term]
+id: MS:1000923
+name: TIQAM
+def: "Software used to predict, select, and optimize transitions for selected reaction monitoring experiments developed and distributed by the Institute for Systems Biology. http://tools.proteomecenter.org/TIQAM/TIQAM.html." [PSI:MS]
+is_a: MS:1000871 ! SRM software
+
+[Term]
+id: MS:1000924
+name: MaRiMba
+def: "Software used to predict transitions for selected reaction monitoring experiments based on observed spectrum libraries developed and distributed by the Institute for Systems Biology. http://tools.proteomecenter.org/wiki/index.php?title=Software:TPP-MaRiMba." [PSI:MS]
+is_a: MS:1000871 ! SRM software
+
+[Term]
+id: MS:1000925
+name: ATAQS
+def: "Software suite used to predict, select, and optimize transitions as well as analyze the results of selected reaction monitoring runs developed and distributed by the Institute for Systems Biology." [PSI:MS]
+is_a: MS:1000871 ! SRM software
+
+
 
 [Term]
 id: MS:1001000
@@ -9202,7 +9281,7 @@ is_a: MS:1001529 ! spectra data details
 [Term]
 id: MS:1001531
 name: spectrum from ProteinScape database nativeID format
-def: "databaseky=xsd:long" [PSI:MS]
+def: "databasekey=xsd:long" [PSI:MS]
 comment: A unique identifier of a spectrum stored in a ProteinScape database.
 is_a: MS:1001529 ! spectra data details
 is_a: MS:1000767 ! native spectrum identifier format
@@ -9210,10 +9289,135 @@ is_a: MS:1000767 ! native spectrum identifier format
 [Term]
 id: MS:1001532
 name: spectrum from database nativeID format
-def: "databaseky=xsd:string" [PSI:MS]
+def: "databasekey=xsd:string" [PSI:MS]
 comment: A unique identifier of a spectrum stored in a database (e.g. a PRIMARY KEY identifier).
 is_a: MS:1001529 ! spectra data details
 is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1001533
+name: Bruker Daltonics esquire series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001534
+name: Bruker Daltonics flex series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001535
+name: Bruker Daltonics BioTOF series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001536
+name: Bruker Daltonics micrOTOF series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001537
+name: BioTOF
+def: "Bruker Daltonics' BioTOF: ESI TOF" [PSI:MS]
+is_a: MS:1001535 ! Bruker Daltonics BioTOF series
+
+[Term]
+id: MS:1001538
+name: BioTOF III
+def: "Bruker Daltonics' BioTOF III: ESI TOF" [PSI:MS]
+is_a: MS:1001535 ! Bruker Daltonics BioTOF series
+
+[Term]
+id: MS:1001539
+name: UltroTOF-Q
+def: "Bruker Daltonics' UltroTOF-Q: ESI Q-TOF (MALDI optional)." [PSI:MS]
+is_a: MS:1001535 ! Bruker Daltonics BioTOF series
+
+[Term]
+id: MS:1001540
+name: micrOTOF II
+def: "Bruker Daltonics' micrOTOF II: ESI TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
+
+[Term]
+id: MS:1001541
+name: maXis
+def: "Bruker Daltonics' maXis: ESI Q-TOF, Nanospray, APCI, APPI." [PSI:MS]
+is_a: MS:1001547 ! Bruker Daltonics maXis series
+
+[Term]
+id: MS:1001542
+name: amaZon ETD
+def: "Bruker Daltonics' amaZon ETD: ESI quadrupole ion trap, Nanospray, APCI, APPI, ETD, PTR." [PSI:MS]
+is_a: MS:1001545 ! Bruker Daltonics amaZon series
+
+[Term]
+id: MS:1001543
+name: microflex LRF
+def: "Bruker Daltonics' microflex LRF: MALDI TOF." [PSI-MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001544
+name: ultrafleXtreme
+def: "Bruker Daltonics' ultrafleXtreme: MALDI TOF." [PSI-MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001545
+name: Bruker Daltonics amaZon series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001546
+name: amaZon X
+def: "Bruker Daltonics' amaZon X: ESI quadrupole ion trap, APCI, APPI, ETD, PTR." [PSI:MS]
+is_a: MS:1001545 ! Bruker Daltonics amaZon series
+
+[Term]
+id: MS:1001547
+name: Bruker Daltonics maXis series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001548
+name: Bruker Daltonics solarix series
+def: "Bruker Daltonics' solarix: ESI quadrupole ion trap, APCI, APPI, ETD, PTR." [PSI:MS]
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1001549
+name: solariX
+def: "Bruker Daltonics' solariX: ESI, MALDI, Qh-FT_ICR." [PSI:MS]
+is_a: MS:1001548 ! Bruker Daltonics solarix series
+
+[Term]
+id: MS:1001550
+name: microflex II
+def: "Bruker Daltonics' microflex II: MALDI TOF." [PSI-MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001553
+name: autoflex II TOF/TOF
+def: "Bruker Daltonics' autoflex II TOF/TOF: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001554
+name: autoflex III TOF/TOF smartbeam
+def: "Bruker Daltonics' autoflex III TOF/TOF smartbeam: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001555
+name: autoflex
+def: "Bruker Daltonics' autoflex: MALDI TOF." [PSI:MS]
+is_a: MS:1001534 ! Bruker Daltonics flex series
+
+[Term]
+id: MS:1001556
+name: Bruker Daltonics apex series
+is_a: MS:1000122 ! Bruker Daltonics instrument model
 
 [Typedef]
 id: has_regexp
