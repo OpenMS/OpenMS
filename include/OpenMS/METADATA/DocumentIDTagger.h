@@ -45,11 +45,11 @@ namespace OpenMS
 				
 		@ingroup Metadata
   */
-  class OPENMS_DLLAPI IDTagger
+  class OPENMS_DLLAPI DocumentIDTagger
   {
 		private:
 			/// Constructor (declared away)
-      IDTagger();
+      DocumentIDTagger();
 		
 			/**
 				@brief retrieve an ID from the pool
@@ -67,19 +67,19 @@ namespace OpenMS
 
 		public:
 			/// Constructor
-      IDTagger(String toolname);
+      DocumentIDTagger(String toolname);
 			/// Copy constructor
-      IDTagger(const IDTagger& source);
+      DocumentIDTagger(const DocumentIDTagger& source);
       /// Destructor
-      ~IDTagger();
+      ~DocumentIDTagger();
       
       /// Assignment operator
-      IDTagger& operator = (const IDTagger& source);
+      DocumentIDTagger& operator = (const DocumentIDTagger& source);
       
       /// Equality operator
-      bool operator == (const IDTagger& source) const;
+      bool operator == (const DocumentIDTagger& source) const;
       /// Equality operator
-      bool operator != (const IDTagger& source) const;
+      bool operator != (const DocumentIDTagger& source) const;
 
 
 			/**

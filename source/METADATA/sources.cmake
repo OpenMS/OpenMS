@@ -12,7 +12,7 @@ DocumentIdentifier.C
 ExperimentalSettings.C
 Gradient.C
 HPLC.C
-IDTagger.C
+DocumentIDTagger.C
 Instrument.C
 InstrumentSettings.C
 IonDetector.C

@@ -30,67 +30,69 @@
 #include <cstdio>
 #include <cstdlib>
 ///////////////////////////
-#include <OpenMS/METADATA/IDTagger.h>
+#include <OpenMS/METADATA/DocumentIDTagger.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(IDTagger, "$Id$")
+START_TEST(DocumentIDTagger, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IDTagger* ptr = 0;
-START_SECTION(IDTagger())
+DocumentIDTagger* ptr = 0;
+START_SECTION(DocumentIDTagger())
 {
-	ptr = new IDTagger("someTOPPTool");
+	ptr = new DocumentIDTagger("someTOPPTool");
 	TEST_NOT_EQUAL(ptr, 0)
 }
 END_SECTION
 
-START_SECTION(~IDTagger())
+START_SECTION(~DocumentIDTagger())
 {
 	delete ptr;
 }
 END_SECTION
 
-START_SECTION((IDTagger(String toolname)))
+START_SECTION((DocumentIDTagger(String toolname)))
 {
-	IDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme("SomeTOPPTool");
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((IDTagger(const IDTagger &source)))
+START_SECTION((DocumentIDTagger(const DocumentIDTagger &source)))
 {
-  IDTagger tagme("SomeTOPPTool");
-	NOT_TESTABLE
+  DocumentIDTagger tagme("SomeTOPPTool");
+  DocumentIDTagger tagme2(tagme);
+
+  TEST_EQUAL(tagme==tagme2, true)
 }
 END_SECTION
 
-START_SECTION((IDTagger& operator=(const IDTagger &source)))
+START_SECTION((DocumentIDTagger& operator=(const DocumentIDTagger &source)))
 {
-  IDTagger tagme("SomeTOPPTool");
-	IDTagger tagme2 = tagme;
+  DocumentIDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme2 = tagme;
 	TEST_EQUAL(tagme==tagme2,true)
 }
 END_SECTION
 
-START_SECTION((bool operator==(const IDTagger &source) const ))
+START_SECTION((bool operator==(const DocumentIDTagger &source) const ))
 {
-  IDTagger tagme("SomeTOPPTool");
-	IDTagger tagme2 = tagme;
+  DocumentIDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme2 = tagme;
 	TEST_EQUAL(tagme==tagme2, true)
-	IDTagger tagme3(tagme);
+	DocumentIDTagger tagme3(tagme);
 	TEST_EQUAL(tagme==tagme3, true)
 }
 END_SECTION
 
-START_SECTION((bool operator!=(const IDTagger &source) const ))
+START_SECTION((bool operator!=(const DocumentIDTagger &source) const ))
 {
-  IDTagger tagme("SomeTOPPTool");
-	IDTagger tagme2("SomeOtherTOPPTool");
+  DocumentIDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme2("SomeOtherTOPPTool");
 	TEST_EQUAL(tagme!=tagme2, true)
 }
 END_SECTION
@@ -105,7 +107,7 @@ START_SECTION((void setPoolFile(const String& file)))
 {
 	String tmp_pool;
 	NEW_TMP_FILE(tmp_pool);
-	IDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme("SomeTOPPTool");
 	//use custom pool file
 	tagme.setPoolFile(tmp_pool);
 	TEST_EQUAL(tagme.getPoolFile(), tmp_pool)
@@ -123,7 +125,7 @@ START_SECTION((bool tag(DocumentIdentifier &map) const ))
 {
 	DocumentIdentifier myD;
 	myD.setIdentifier("");
-	IDTagger tagme("SomeTOPPTool");
+	DocumentIDTagger tagme("SomeTOPPTool");
 	//use custom pool file
 	tagme.setPoolFile(tmp_pool);
 	Int cnt(0);
