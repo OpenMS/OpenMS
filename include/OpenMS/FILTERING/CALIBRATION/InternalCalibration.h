@@ -100,19 +100,19 @@ namespace OpenMS
 
   protected:
 
-	// the actual calibration function
+	/// the actual calibration function
 	void makeLinearRegression_(std::vector<DoubleReal>& observed_masses, std::vector<DoubleReal>& theoretical_masses);
 		
-	// check if reference ids contain RT and MZ information as meta values
+	/// check if reference ids contain RT and MZ information as meta values
 	void checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids);
 		
-	// check if reference ids contain RT and MZ information as meta values
+	/// check if reference ids contain RT and MZ information as meta values
 	void checkReferenceIds_(const FeatureMap<>& feature_map);
 		
-	// apply transformation to all features (including subordinates and convex hulls)
+	/// apply transformation to all features (including subordinates and convex hulls)
   void applyTransformation_(const FeatureMap<>& feature_map,FeatureMap<>& calibrated_feature_map);
 
-	// here the transformation is stored
+	/// here the transformation is stored
 	TransformationDescription trafo_;
   };// class InternalCalibration
 
