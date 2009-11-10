@@ -171,8 +171,8 @@ namespace OpenMS
 			virtual void reset(bool reset_all_files = false);
 			/// Returns whether all tools in the subtree below this node are finished
 			virtual bool isSubtreeFinished();
-			/// Resets the subtree below this node up to the next mergers on all paths to the output nodes
-			virtual void resetSubtreeUpToNextMergers(bool including_this_node = true);
+			/// Resets the subtree below this node
+			virtual void resetSubtree(bool including_this_node = true);
 		
 		public slots:
 		

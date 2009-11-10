@@ -111,12 +111,20 @@ namespace OpenMS
 	
 	void TOPPASOutputFileListVertex::finish()
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		// copy tmp files to output dir
 		
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
 		const QVector<QStringList>& output_files = tv->getCurrentOutputFileNames();
 		int param_index = e->getSourceOutParam();
+		if (output_files.size() <= param_index)
+		{
+			std::cerr << "Parent tool has no output files. This is a bug, please report it!" << std::endl;
+			__DEBUG_END_METHOD__
+			return;
+		}
 		const QStringList& tmp_file_names = output_files[param_index];
 		QString parent_dir = qobject_cast<TOPPASScene*>(scene())->getOutDir();
 		
@@ -162,6 +170,8 @@ namespace OpenMS
 		finished_ = true;
 		checkIfSubtreeFinished();
 		emit iAmDone();
+		
+		__DEBUG_END_METHOD__
 	}
 	
 	void TOPPASOutputFileListVertex::inEdgeHasChanged()

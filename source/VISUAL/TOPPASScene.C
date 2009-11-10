@@ -319,7 +319,10 @@ namespace OpenMS
 					&& qobject_cast<TOPPASOutputFileListVertex*>(v)) ||
 				// nor multiple incoming edges for a single output file/list node
 				(qobject_cast<TOPPASOutputFileListVertex*>(v)
-					&& v->inEdgesBegin() != v->inEdgesEnd()))
+					&& v->inEdgesBegin() != v->inEdgesEnd()) ||
+				// nor mergers connected directly to an output node
+				(qobject_cast<TOPPASMergerVertex*>(u)
+					&& qobject_cast<TOPPASOutputFileListVertex*>(v)))
 		{
 			return false;
 		}

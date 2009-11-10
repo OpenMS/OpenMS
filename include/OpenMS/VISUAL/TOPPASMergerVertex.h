@@ -76,8 +76,6 @@ namespace OpenMS
 			virtual void reset(bool reset_all_files = false);
 			// documented in base class
 			virtual bool isSubtreeFinished();
-			// documented in base class
-			virtual void resetSubtreeUpToNextMergers(bool including_this_node = true);
 			
 		protected:
 

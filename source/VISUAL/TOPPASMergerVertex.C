@@ -239,7 +239,7 @@ namespace OpenMS
 			// this merger was run and has finished already and is now asked to run a second time --> reset subtree first
 			debugOut_("Resetting subtree");
 			
-			TOPPASVertex::resetSubtreeUpToNextMergers(true);
+			TOPPASVertex::resetSubtree(true);
 		}
 		
 		debugOut_("Proceeding in pipeline...");
@@ -442,7 +442,7 @@ namespace OpenMS
 		{
 			debugOut_("Merge not complete yet, resetting subtree...");
 			// proceed with next merge iteration
-			TOPPASVertex::resetSubtreeUpToNextMergers(false);
+			TOPPASVertex::resetSubtree(false);
 			debugOut_("Subtree successfully reset");
 			forwardPipelineExecution();
 			debugOut_("forwardPipelineExecution() successfully called");
@@ -489,13 +489,5 @@ namespace OpenMS
 		{
 			return TOPPASVertex::isSubtreeFinished();
 		}
-	}
-	
-	void TOPPASMergerVertex::resetSubtreeUpToNextMergers(bool /*including_this_node*/)
-	{
-		__DEBUG_BEGIN_METHOD__
-		debugOut_("Not doing anything");
-		// this node _is_ a merger --> stop here, do not reset
-		__DEBUG_END_METHOD__
 	}
 }

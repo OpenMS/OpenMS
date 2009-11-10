@@ -373,7 +373,7 @@ namespace OpenMS
 		__DEBUG_END_METHOD__
 	}
 	
-	void TOPPASVertex::resetSubtreeUpToNextMergers(bool including_this_node)
+	void TOPPASVertex::resetSubtree(bool including_this_node)
 	{
 		__DEBUG_BEGIN_METHOD__
 		
@@ -385,7 +385,7 @@ namespace OpenMS
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
-			tv->resetSubtreeUpToNextMergers(true);
+			tv->resetSubtree(true);
 		}
 		
 		__DEBUG_END_METHOD__
