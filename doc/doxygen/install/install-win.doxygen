@@ -98,7 +98,7 @@
     <OL>
       <LI>non-commercial:
         <OL>
-          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://trolltech.com/downloads/opensource/appdev/windows-cpp)
+          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://qt.nokia.com/downloads/windows-cpp)
           <LI>extract zip file
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>
