@@ -102,7 +102,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
 	for (RichPeakSpectrum::ConstIterator it = spec1.begin(); it != spec1.end(); ++it)
 	{
 		String ion_name = (String)it->getMetaValue("IonName");
-		Size charge = count(ion_name.begin(), ion_name.end(), '+');
+		UInt charge = (UInt)count(ion_name.begin(), ion_name.end(), '+');
 		if (ion_name.hasSubstring("y"))
 		{
 			ion_name.remove('+');
@@ -115,7 +115,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
   for (RichPeakSpectrum::ConstIterator it = spec2.begin(); it != spec2.end(); ++it)
   {
     String ion_name = (String)it->getMetaValue("IonName");
-    Size charge = count(ion_name.begin(), ion_name.end(), '+');
+    UInt charge = (UInt)count(ion_name.begin(), ion_name.end(), '+');
     if (ion_name.hasSubstring("y"))
     {
 			ion_name.remove('+');
@@ -128,7 +128,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
   for (RichPeakSpectrum::ConstIterator it = spec2.begin(); it != spec2.end(); ++it)
   {
     String ion_name = (String)it->getMetaValue("IonName");
-    Size charge = count(ion_name.begin(), ion_name.end(), '+');
+    UInt charge = (UInt)count(ion_name.begin(), ion_name.end(), '+');
     if (ion_name.hasSubstring("y"))
     {
 			ion_name.remove('+');
