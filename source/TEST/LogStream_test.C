@@ -296,7 +296,8 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 		{
 		QRegExp rx(regex_list[i].c_str());
 		QRegExpValidator v(rx, 0);
-		TEST_EQUAL(v.validate(to_validate_list[i].toQString(),pos)==QValidator::Acceptable, true)
+		QString to_validate = to_validate_list[i].toQString();
+		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
 	}
 }
 END_SECTION
@@ -354,8 +355,10 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 	{
 		QRegExp rx(regex_list[i].c_str());
 		QRegExpValidator v(rx, 0);
-		TEST_EQUAL(v.validate(to_validate_list[i].toQString(),pos)==QValidator::Acceptable, true)
-		TEST_EQUAL(v2.validate(to_validate_list2[i].toQString(),pos)==QValidator::Acceptable, true)
+		QString to_validate = to_validate_list[i].toQString();
+		QString to_validate2 = to_validate_list2[i].toQString();
+		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+		TEST_EQUAL(v2.validate(to_validate2,pos)==QValidator::Acceptable, true)
 		
 	}
 	
