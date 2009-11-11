@@ -103,15 +103,25 @@ START_SECTION((void getChargeStateIntensities(const AASequence &peptide, const A
 	// set the full proton distribution
 	ptr->setPeptideProtonDistribution(bb_charges, sc_charges);
 
-	//DoubleReal n_term1(0), n_term2(0), c_term1(0), c_term2(0);
 	AASequence pre1("DFP"), suf1("IANGER");
 	vector<DoubleReal> pre_ints, suf_ints;
 	ptr->getChargeStateIntensities(peptide, pre1, suf1, 1, Residue::YIon, pre_ints, suf_ints, ProtonDistributionModel::ChargeDirected);
 
-	//TEST_REAL_SIMILAR(n_term1, 0.0);
-	//TEST_REAL_SIMILAR(n_term2, 0.0);
-	//TEST_REAL_SIMILAR(c_term1, 1.0);
-	//TEST_REAL_SIMILAR(c_term2, 0.0);
+	TEST_EQUAL(pre_ints.size(), 1)
+	TEST_EQUAL(suf_ints.size(), 1)
+	TEST_REAL_SIMILAR(pre_ints[0], 0.0);
+	TEST_REAL_SIMILAR(suf_ints[0], 1.0);
+
+	pre_ints.clear();
+	suf_ints.clear();
+	ptr->getChargeStateIntensities(peptide, pre1, suf1, 2, Residue::YIon, pre_ints, suf_ints, ProtonDistributionModel::ChargeDirected);
+	TEST_EQUAL(pre_ints.size(), 2)
+	TEST_EQUAL(suf_ints.size(), 2)
+	TOLERANCE_ABSOLUTE(0.01)
+	TEST_REAL_SIMILAR(pre_ints[0], 0.40526)
+	TEST_REAL_SIMILAR(pre_ints[1], 0.0)
+	TEST_REAL_SIMILAR(suf_ints[0], 0.4922)
+	TEST_REAL_SIMILAR(suf_ints[1], 0.1025)
 
 END_SECTION
 

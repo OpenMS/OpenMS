@@ -101,7 +101,6 @@ END_SECTION
 /*
 START_SECTION((bool checkCVTerms(const CVMappingRule &rule, const ControlledVocabulary &cv) const ))
 {
-  // TODO
 }
 END_SECTION
 */

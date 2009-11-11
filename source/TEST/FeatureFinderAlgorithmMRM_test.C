@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -57,7 +58,33 @@ ptr = new FeatureFinderAlgorithmMRM<Peak1D, Feature>();
 
 START_SECTION((virtual void run()))
 {
-  // TODO
+	FeatureFinder ff;
+  ff.setLogType(ProgressLogger::NONE);
+
+	PeakMap exp;
+	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
+
+	FeatureMap<> features, seeds;
+	Param ff_param(ptr->getParameters());
+	ff.run("mrm", exp, features, ff_param, seeds);
+
+	TEST_EQUAL(exp.getChromatograms().size(), 3)
+
+	FeatureMap<> new_features;
+	for (Size i = 0; i != features.size(); ++i)
+	{
+		if (features[i].getQuality(0) > 0.99)
+		{
+			new_features.push_back(features[i]);
+		}
+	}
+	
+	TEST_EQUAL(new_features.size(), 3)
+	
+	for (Size i = 0; i != new_features.size(); ++i)
+	{
+		TEST_EQUAL(new_features[i].getIntensity() > 100000, true)
+	}
 }
 END_SECTION
 
@@ -75,7 +102,6 @@ START_SECTION((static const String getProductName()))
   TEST_STRING_EQUAL(ptr->getProductName(), "mrm")
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
