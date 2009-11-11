@@ -390,9 +390,9 @@ namespace OpenMS {
 		{
 			//std::cout << "1";
 			score = pairs[i].getCompomer().getLogP();
-			DoubleReal charge_enhance = 0;
+			/*DoubleReal charge_enhance = 0;
 			
-			/*if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
+			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
 				charge_enhance += log(0.9); else charge_enhance += log(0.1);
 				
 			if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) 

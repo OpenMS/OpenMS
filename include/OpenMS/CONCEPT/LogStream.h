@@ -516,10 +516,8 @@ namespace OpenMS
 		}
 
 		/// turn a log level into a human readable uppercase string
-		static String LogLevelToStringUpper(LogLevel level)
-		{
-			return LogLevelToString(level).toUpper();
-		}
+		static String LogLevelToStringUpper(LogLevel level);
+
 	} // namespace Logger
 
 

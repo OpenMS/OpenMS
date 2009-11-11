@@ -29,6 +29,7 @@
 /**
 
 	Generously provided by the BALL people, taken from version 1.2
+	with slight modifications
 
 	Originally implemented by OK who refused to take any responsibility
 	for the code ;)
@@ -586,6 +587,11 @@ namespace OpenMS
 		if (disable_output_) return;
 
 		std::ostream::flush();
+	}
+	
+	static String LogLevelToStringUpper(LogLevel level)
+	{
+		return LogLevelToString(level).toUpper();
 	}
 
 	bool LogStream::bound_() const

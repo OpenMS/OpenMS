@@ -277,7 +277,6 @@ namespace OpenMS
         //-------------------------------------------------------------
 				else if (mode=="Kroenik")
 				{
-					bool first_line = true;
 					for (Size i=1; i<input.size(); ++i)
 					{
 						String line = input[i];
