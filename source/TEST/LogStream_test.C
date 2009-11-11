@@ -36,6 +36,8 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <QRegExpValidator>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -77,16 +79,28 @@ END_SECTION
 
 START_SECTION((virtual ~LogStream()))
 {
-  LogStream* l1 = new LogStream((LogStreamBuf*)0);
-  delete l1;
+	ostringstream stream_by_logger;
+  {
+		LogStream* l1 = new LogStream(new LogStreamBuf());
+		l1->insert(stream_by_logger);
+		*l1 << "flushtest" << endl;
+		TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+		*l1 << "unfinishedline...";
+		TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+		delete l1;
+		// testing if loggers' d'tor will distribute the unfinished line to its children...
+	}
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\nunfinishedline...\n")
+	
 }
 END_SECTION
-// if we add these two tests to the end of the TEST 
-// we have correct out put on the command line
+
+
 START_SECTION((LogStreamBuf* operator->()))
 {
   LogStream l1(new LogStreamBuf());
-  l1->sync();
+  l1->sync(); // if it doesn't crash we're happy
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -163,11 +177,15 @@ END_SECTION
 START_SECTION((void remove(std::ostream &s)))
 {
   LogStream l1(new LogStreamBuf());
-  ofstream s;
+  ostringstream s;
+  l1 << "BLA"<<endl;
   l1.insert(s);
+  l1 << "to_stream"<<endl;
   l1.remove(s);
   // make sure we can remove it twice without harm
   l1.remove(s);
+	l1 << "BLA2"<<endl;
+  TEST_EQUAL(s.str(),"to_stream\n");
 }
 END_SECTION
 
@@ -236,69 +254,126 @@ END_SECTION
 
 START_SECTION((void setPrefix(const std::string &prefix)))
 {
-  // TODO
+	LogStream l1(new LogStreamBuf());
+	ostringstream stream_by_logger;
+	l1.insert(stream_by_logger);
+	l1.setLevel(DEVELOPMENT);
+	l1.setPrefix("%y"); //message type ("Error", "Warning", "Information", "-")
+	l1 << "  2." << endl;
+	l1.setPrefix("%T"); //time (HH:MM:SS)
+	l1 << "  3." << endl;
+	l1.setPrefix( "%t"); //time in short format (HH:MM)
+	l1 << "  4." << endl;
+	l1.setPrefix("%D"); //date (DD.MM.YYYY)
+	l1 << "  5." << endl;
+	l1.setPrefix("%d"); // date in short format (DD.MM.)
+	l1 << "  6." << endl;
+	l1.setPrefix("%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+	l1 << "  7." << endl;
+	l1.setPrefix("%s"); //time and date in short format (DD.MM., HH:MM)
+	l1 << "  8." << endl;
+	l1.setPrefix("%%"); //percent sign (escape sequence)
+	l1 << "  9." << endl;
+	l1.setPrefix(""); //no prefix
+	l1 << " 10." << endl;
+
+	StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+	TEST_EQUAL(to_validate_list.size(),10)
+
+	StringList regex_list;
+	regex_list.push_back("DEVELOPMENT  2\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+	regex_list.push_back("%  9\\.");
+	regex_list.push_back(" 10\\.");
+
+	int pos(0);
+	for (Size i=0;i<regex_list.size();++i)
+		{
+		QRegExp rx(regex_list[i].c_str());
+		QRegExpValidator v(rx, 0);
+		TEST_EQUAL(v.validate(to_validate_list[i].toQString(),pos)==QValidator::Acceptable, true)
+	}
 }
 END_SECTION
 
 START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix)))
 {
-  // TODO
-
-	/*
-  String filename;
-  NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);;
-  l1.insert(s, DEVELOPMENT);
-  l1.setPrefix(s, "%l"); //loglevel
-  l1.level(1) << "  1." << endl;
-  l1.setPrefix(s, "%y"); //message type ("Error", "Warning", "Information", "-")
-  l1.level(2) << "  2." << endl;
-  l1.setPrefix(s, "%T"); //time (HH:MM:SS)
-  l1.level(3) << "  3." << endl;
-  l1.setPrefix(s, "%t"); //time in short format (HH:MM)
-  l1.level(4) << "  4." << endl;
-  l1.setPrefix(s, "%D"); //date (DD.MM.YYYY)
-  l1.level(5) << "  5." << endl;
-  l1.setPrefix(s, "%d"); // date in short format (DD.MM.)
-  l1.level(6) << "  6." << endl;
-  l1.setPrefix(s, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
-  l1.level(7) << "  7." << endl;
-  l1.setPrefix(s, "%s"); //time and date in short format (DD.MM., HH:MM)
-  l1.level(8) << "  8." << endl;
-  l1.setPrefix(s, "%%"); //percent sign (escape sequence)
-  l1.level(9) << "  9." << endl;
-  l1.setPrefix(s, ""); //no prefix
-  l1.level(10) << " 10." << endl;
-	*/
-  /*
-  TEST_EQUAL(l1.getNumberOfLines(), 10)
-  */
-  //TEST_FILE_REGEXP(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_setPrefix.txt"))
-}
-END_SECTION
+  ostringstream stream_by_logger;
+	ostringstream stream_by_logger_otherprefix;
+  l1.insert(stream_by_logger);
+  l1.insert(stream_by_logger_otherprefix);
+  l1.setPrefix(stream_by_logger_otherprefix, "BLABLA"); //message type ("Error", "Warning", "Information", "-")
+  l1.setLevel(DEVELOPMENT);
+  l1.setPrefix(stream_by_logger, "%y"); //message type ("Error", "Warning", "Information", "-")
+  l1 << "  2." << endl;
+  l1.setPrefix(stream_by_logger, "%T"); //time (HH:MM:SS)
+  l1 << "  3." << endl;
+  l1.setPrefix(stream_by_logger, "%t"); //time in short format (HH:MM)
+  l1 << "  4." << endl;
+  l1.setPrefix(stream_by_logger, "%D"); //date (DD.MM.YYYY)
+  l1 << "  5." << endl;
+  l1.setPrefix(stream_by_logger, "%d"); // date in short format (DD.MM.)
+  l1 << "  6." << endl;
+  l1.setPrefix(stream_by_logger, "%S"); //time and date (DD.MM.YYYY, HH:MM:SS)
+  l1 << "  7." << endl;
+  l1.setPrefix(stream_by_logger, "%s"); //time and date in short format (DD.MM., HH:MM)
+  l1 << "  8." << endl;
+  l1.setPrefix(stream_by_logger, "%%"); //percent sign (escape sequence)
+  l1 << "  9." << endl;
+  l1.setPrefix(stream_by_logger, ""); //no prefix
+  l1 << " 10." << endl;
+	
+	StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+	TEST_EQUAL(to_validate_list.size(),10)
+	StringList to_validate_list2 = StringList::create(String(stream_by_logger_otherprefix.str()),'\n');
+	TEST_EQUAL(to_validate_list2.size(),10)
 
-START_SECTION((void disableOutput()))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void enableOutput()))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((bool outputEnabled() const ))
-{
-  // TODO
+	StringList regex_list;
+	regex_list.push_back("DEVELOPMENT  2\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]  3\\.");
+	regex_list.push_back("[0-2][0-9]:[0-5][0-9]  4\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+  5\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.  6\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\.[0-9]+, [0-2][0-9]:[0-5][0-9]:[0-5][0-9]  7\\.");
+	regex_list.push_back("[0-3][0-9]\\.[0-1][0-9]\\., [0-2][0-9]:[0-5][0-9]  8\\.");
+	regex_list.push_back("%  9\\.");
+	regex_list.push_back(" 10\\.");
+	
+	String other_stream_regex = "BLABLA [ 1][0-9]\\.";
+	QRegExp rx2(other_stream_regex.c_str());
+	QRegExpValidator v2(rx2, 0);
+	
+	int pos(0);
+	for (Size i=0;i<regex_list.size();++i)
+	{
+		QRegExp rx(regex_list[i].c_str());
+		QRegExpValidator v(rx, 0);
+		TEST_EQUAL(v.validate(to_validate_list[i].toQString(),pos)==QValidator::Acceptable, true)
+		TEST_EQUAL(v2.validate(to_validate_list2[i].toQString(),pos)==QValidator::Acceptable, true)
+		
+	}
+	
 }
 END_SECTION
 
 START_SECTION((void flush()))
 {
-  // TODO
+	LogStream l1(new LogStreamBuf());
+	ostringstream stream_by_logger;
+	l1.insert(stream_by_logger);
+	l1 << "flushtest" << endl;
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+	l1 << "unfinishedline...\n";
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\n")
+	l1.flush();
+	TEST_EQUAL(stream_by_logger.str(),"flushtest\nunfinishedline...\n")
+	
 }
 END_SECTION
 

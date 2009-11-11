@@ -72,6 +72,7 @@ namespace OpenMS
 	{
 		sync();
     clearCache_();
+		if (incomplete_line_.size()>0) distribute_(incomplete_line_);
 		delete [] pbuf_;
 	}
 
@@ -172,10 +173,10 @@ namespace OpenMS
       // get smallest key
       map<Size, string>::iterator it = log_time_cache_.begin();
 
-      // check if message occured more then once
+      // check if message occurred more then once
       if(log_cache_[it->second].counter != 0) {
         std::stringstream stream;
-        stream << "<" << it->second << "> occured " << ++log_cache_[it->second].counter << " times";
+        stream << "<" << it->second << "> occurred " << ++log_cache_[it->second].counter << " times";
         extra_message = stream.str();
       }
 
@@ -204,22 +205,8 @@ namespace OpenMS
       if((it->second).counter != 0) 
       {
         std::stringstream stream;
-        stream << "<" << it->first << "> occured " << ++(it->second).counter << " times";
-        std::list<StreamStruct>::iterator list_it = stream_list_.begin();
-        for (; list_it != stream_list_.end(); ++list_it)
-        {
-          // if the stream is open for that level, write to it...
-          if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
-          {
-            *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
-                               << stream.str().c_str() << std::endl;
-
-            if (list_it->target != 0)
-            {
-              list_it->target->logNotify();
-            }
-          }
-        }
+        stream << "<" << it->first << "> occurred " << ++(it->second).counter << " times";
+        distribute_(stream.str());
       }
     }
   }
@@ -268,53 +255,27 @@ namespace OpenMS
 					incomplete_line_ = "";
 					outstring += &(buf[0]);
 
-          // chech if we already have that in line in our cache
+          // check if we already have that in line in our cache
           if(!isInCache_(outstring)) 
           {
 
             // add line to the log cache
             std::string extra_message = addToCache_(outstring);
 
-            // if there are any streams in our list, we
-            // copy the line into that streams, too and flush them
-            std::list<StreamStruct>::iterator list_it = stream_list_.begin();
-            for (; list_it != stream_list_.end(); ++list_it)
-            {
-              // if the stream is open for that level, write to it...
-              if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
-              {
-                // first print the message from cache 
-                if(extra_message != "") 
-                {
-                  *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
-                                     << extra_message.c_str() << std::endl;
-                }
-
-                *(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
-                                   << outstring.c_str() << std::endl;
-
-                if (list_it->target != 0)
-                {
-                  list_it->target->logNotify();
-                }
-              }
-            }
-			
+						if (extra_message.size()>0) distribute_(extra_message);
+						distribute_(outstring);
+						
             // update the line pointers (increment both)
             line_start = ++line_end;
-					
-            // remove cr/lf from the end of the line				
-            while (outstring.size() && (outstring[outstring.size() - 1] == 10 || outstring[outstring.size() - 1] == 13))
-            {
-              std::string::iterator p = outstring.end();
-              p--;
-              outstring.erase(p);
-            }
 		
             // reset tmp_level_ to the previous level
             // (needed for LogStream::level() only)
             tmp_level_ = level_;
-          } else { line_start = ++line_end; }
+          } 
+          else // in cache
+          {
+						line_start = ++line_end;
+					}
 				}
 			}
 
@@ -324,6 +285,28 @@ namespace OpenMS
 	
 		return 0;
 	}
+
+	void LogStreamBuf::distribute_(std::string outstring)
+	{
+	// if there are any streams in our list, we
+	// copy the line into that streams, too and flush them
+	std::list<StreamStruct>::iterator list_it = stream_list_.begin();
+	for (; list_it != stream_list_.end(); ++list_it)
+		{
+		// if the stream is open for that level, write to it...
+		if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
+			{
+			*(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
+				<< outstring.c_str() << std::endl;
+
+			if (list_it->target != 0)
+				{
+				list_it->target->logNotify();
+				}
+			}
+		}
+	}
+
 
 	string LogStreamBuf::expandPrefix_
 		(const std::string& prefix, LogLevel level, time_t time) const
@@ -350,11 +333,6 @@ namespace OpenMS
 				{
 					case '%': // append a '%' (escape sequence)
 						result.append("%");
-						break;
-
-					case 'l': // append the loglevel
-						sprintf(buf, "%d", level);
-						result.append(buf);
 						break;
 
 					case 'y':	// append the message type (error/warning/information)
@@ -484,6 +462,9 @@ namespace OpenMS
 		StreamIterator it = findStream_(stream);
 		if (it != rdbuf()->stream_list_.end())
 		{
+			rdbuf()->sync();
+			// HINT: we do NOT clear the cache (because we cannot access it from here) 
+			//			 and we do not flush incomplete_line_!!!
 			rdbuf()->stream_list_.erase(it);
 		}
 	}
@@ -562,34 +543,29 @@ namespace OpenMS
 		}
 	}
 	
-	void LogStream::disableOutput()
-		
-	{
-		disable_output_ = true;
-	}
-
-	void LogStream::enableOutput()
-		
-	{
-		disable_output_ = false;
-		std::ostream::flush();
-	}
-
-	bool LogStream::outputEnabled() const
-		
-	{
-		return disable_output_;
-	}
-
 	void LogStream::flush()
-		
 	{
-		if (disable_output_) return;
-
 		std::ostream::flush();
 	}
 	
-	static String LogLevelToStringUpper(LogLevel level)
+	String LogLevelToString(LogLevel level)
+	{
+		switch (level)
+			{
+			case FATAL_ERROR:   return "fatal_error";
+			case ERROR:         return "error";
+			case WARNING:       return "warning";
+			case INFORMATION:   return "information";
+			case DEBUG:         return "debug";
+			case DEBUG_INTENSE: return "debug_intense";
+			case DEVELOPMENT:   return "development";
+			default:
+				return "unknown";
+			}
+		return "unknown";
+	}
+	
+	String LogLevelToStringUpper(LogLevel level)
 	{
 		return LogLevelToString(level).toUpper();
 	}

@@ -105,7 +105,7 @@ namespace OpenMS
 	class LogStreamNotifier;
 
 	/** Stream buffer used by LogStream.
-			This class implements the low level behaviour of
+			This class implements the low level behavior of
 			LogStream . It takes care of the buffers and stores
 			the lines written into the LogStream object.
 			It also contains a list of streams that are associated with
@@ -206,7 +206,10 @@ namespace OpenMS
 
 
 		protected:
-
+		
+		/// distribute a new message to connected streams
+		void distribute_(std::string outstring);
+		
 		// interpret the prefix format string and return the expanded prefix
 		std::string expandPrefix_(const std::string& prefix, LogLevel level, time_t time) const;
 
@@ -451,13 +454,12 @@ namespace OpenMS
 				of the logged message. \par
 				The following format tags are recognized:
 
-					- <b>%l</b>	loglevel
 					- <b>%y</b>	message type ("Error", "Warning", "Information", "-")
-					- <b>%T</b>  time (HH:MM:SS)
+					- <b>%T</b> time (HH:MM:SS)
 					- <b>%t</b>  time in short format (HH:MM)
 					- <b>%D</b>	date (DD.MM.YYYY)
 					- <b>%d</b>  date in short format (DD.MM.)
-					- <b>%S</b>  time and date (DD.MM.YYYY, HH:MM:SS)
+					- <b>%S</b> time and date (DD.MM.YYYY, HH:MM:SS)
 					- <b>%s</b>  time and date in short format (DD.MM., HH:MM)
 					- <b>%%</b>	percent sign (escape sequence)
 				
@@ -467,15 +469,6 @@ namespace OpenMS
 
 		///	Set prefix of all output streams, details see setPrefix method with ostream
 		void setPrefix(const std::string& prefix);
-
-		/// Disable all output
-		void disableOutput();
-
-		/// Enable all output
-		void enableOutput();
-
-		/// Is Output enabled?
-		bool outputEnabled() const;
 
 		///
 		void flush();
@@ -495,28 +488,13 @@ namespace OpenMS
 		// also deletes the buffer.
 		bool	delete_buffer_;
 		bool  disable_output_;
-	};
+	}; //LogStream
 
 		/// turns a log level into a human readable string
-		static String LogLevelToString(LogLevel level)
-		{
-			switch (level)
-			{
-				case FATAL_ERROR:   return "fatal_error";
-				case ERROR:         return "error";
-				case WARNING:       return "warning";
-				case INFORMATION:   return "information";
-				case DEBUG:         return "debug";
-				case DEBUG_INTENSE: return "debug_intense";
-				case DEVELOPMENT:   return "development";
-				default:
-					return "unknown";
-			}
-			return "unknown";
-		}
+		OPENMS_DLLAPI String LogLevelToString(LogLevel level);
 
 		/// turn a log level into a human readable uppercase string
-		static String LogLevelToStringUpper(LogLevel level);
+		OPENMS_DLLAPI String LogLevelToStringUpper(LogLevel level);
 
 	} // namespace Logger
 
