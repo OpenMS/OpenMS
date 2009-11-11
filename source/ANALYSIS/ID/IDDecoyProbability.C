@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <boost/math/special_functions/gamma.hpp>
+#include <cmath>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 
 #include <fstream>
@@ -64,6 +65,7 @@ namespace OpenMS
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& ids)
 	{	
 		DoubleReal lower_score_better_default_value_if_zero((DoubleReal)param_.getValue("lower_score_better_default_value_if_zero"));
+		DoubleReal lower_score_better_default_value_if_zero_exp = pow((DoubleReal)10.0, -lower_score_better_default_value_if_zero);
     vector<DoubleReal> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
@@ -81,7 +83,7 @@ namespace OpenMS
 
           if (!it->isHigherScoreBetter())
           {
-            if (score == 0)
+            if (score < lower_score_better_default_value_if_zero_exp)
             {
               score = lower_score_better_default_value_if_zero;
             }
@@ -115,6 +117,7 @@ namespace OpenMS
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
 	{
 		DoubleReal lower_score_better_default_value_if_zero((DoubleReal)param_.getValue("lower_score_better_default_value_if_zero"));
+		DoubleReal lower_score_better_default_value_if_zero_exp = pow((DoubleReal)10.0, -lower_score_better_default_value_if_zero);
 		vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
   	vector<DoubleReal> rev_scores, fwd_scores, all_scores;
 
@@ -133,7 +136,7 @@ namespace OpenMS
 					
        		if (!it->isHigherScoreBetter())
        		{
-						if (score == 0)
+						if (score < lower_score_better_default_value_if_zero_exp)
 						{
 							score = lower_score_better_default_value_if_zero;
 						}
@@ -159,7 +162,7 @@ namespace OpenMS
         	DoubleReal score = pit->getScore();
         	if (!it->isHigherScoreBetter())
         	{
-						if (score == 0)
+						if (score < lower_score_better_default_value_if_zero_exp)
 						{
 							score = lower_score_better_default_value_if_zero;
 						}
@@ -183,6 +186,8 @@ namespace OpenMS
   void IDDecoyProbability::apply_(vector<PeptideIdentification>& ids, const vector<DoubleReal>& rev_scores, const vector<DoubleReal>& fwd_scores, const vector<DoubleReal>& all_scores)
 	{
 		Size number_of_bins(param_.getValue("number_of_bins"));
+
+
 
   	// normalize distribution to [0, 1]
   	vector<DoubleReal> fwd_scores_normalized(number_of_bins, 0.0), rev_scores_normalized(number_of_bins, 0.0), diff_scores(number_of_bins, 0.0), all_scores_normalized(number_of_bins, 0.0);
@@ -276,7 +281,7 @@ namespace OpenMS
 #endif
   	// diff scores fitting
   	vector<DPosition<2> > diff_data;
-		DoubleReal gauss_A(0), gauss_x0(0);
+		DoubleReal gauss_A(0), gauss_x0(0), norm_factor(0);
   	for (Size i = 0; i < number_of_bins; ++i)
   	{
     	DPosition<2> pos;
@@ -287,13 +292,16 @@ namespace OpenMS
 			{
 				gauss_A = pos.getY();
 			}
-			gauss_x0 += pos.getX();
+			gauss_x0 += pos.getX() * pos.getY();
+			norm_factor += pos.getY();
+
 			
     	diff_data.push_back(pos);
   	}
 
 		DoubleReal gauss_sigma(0);
 		gauss_x0 /= (DoubleReal)diff_data.size();
+		gauss_x0 /= norm_factor;
 		
 		for (Size i = 0; i <= number_of_bins; ++i)
 		{
