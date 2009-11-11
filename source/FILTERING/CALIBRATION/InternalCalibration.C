@@ -98,8 +98,10 @@ namespace OpenMS
 				{
 					DoubleReal new_mass = observed_masses[i];
 					trafo_.apply(new_mass);
+#ifdef DEBUG_CALIBRATION
 					DoubleReal rel_error = (theoretical_masses[i]-(new_mass))/theoretical_masses[i] * 1e6;
-					//	std::cout << observed_masses[i]<<"\t"<<rel_error<<std::endl;
+					std::cout << observed_masses[i]<<"\t"<<rel_error<<std::endl;
+#endif					
 				}
 			
 			
