@@ -92,8 +92,8 @@ namespace OpenMS
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
 		//topo sort number
-		qreal x_pos = -62.0;
-		qreal y_pos = 28.0; 
+		qreal x_pos = -63.0;
+		qreal y_pos = -19.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 	}
 	

@@ -148,6 +148,11 @@ namespace OpenMS
 	
 	void TOPPASInputFileListVertex::startPipeline()
 	{
+		if (files_.empty())
+		{
+			return;
+		}
+		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
@@ -164,6 +169,23 @@ namespace OpenMS
 				continue;
 			}
 		}
+	}
+	
+	void TOPPASInputFileListVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool /*merger*/, bool /*round_based*/)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		sc_files_per_round_ = files_.size();
+		sc_files_total_ = sc_files_per_round_;
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
+		
+		__DEBUG_END_METHOD__
 	}
 	
 }

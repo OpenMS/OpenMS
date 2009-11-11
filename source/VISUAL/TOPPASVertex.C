@@ -338,16 +338,19 @@ namespace OpenMS
 			TOPPASVertex* target = (*it)->getTargetVertex();
 			if (!target->isSubtreeFinished())
 			{
+				debugOut_(String("Child ")+target->getTopoNr()+": subtree NOT finished. Returning.");
 				__DEBUG_END_METHOD__
 				return;
 			}
 		}
 		
+		debugOut_("Subtrees of all children finished! Notifying parents...");
 		subtree_finished_ = true;
     // tell parents
     for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASVertex* source = (*it)->getSourceVertex();
+			debugOut_(String("Notifying parent ")+source->getTopoNr());
 			source->checkIfSubtreeFinished();
 		}
 		
@@ -369,6 +372,10 @@ namespace OpenMS
 		__DEBUG_BEGIN_METHOD__
 		
 		subtree_finished_ = false;
+		sc_files_per_round_ = 0;
+		sc_files_total_ = 0;
+		sc_list_length_checked_ = false;
+		update(boundingRect());
 		
 		__DEBUG_END_METHOD__
 	}
@@ -386,6 +393,79 @@ namespace OpenMS
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
 			tv->resetSubtree(true);
+		}
+		
+		__DEBUG_END_METHOD__
+	}
+	
+	void TOPPASVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger, bool round_based)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		//all parents checked?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if (!((*it)->getSourceVertex()->sc_list_length_checked_))
+			{
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		// do all input lists have equal length?
+		int per_round = (*inEdgesBegin())->getSourceVertex()->sc_files_per_round_;
+		int total = (*inEdgesBegin())->getSourceVertex()->sc_files_total_;		
+		
+		if (!merger)
+		{
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				if ((*it)->getSourceVertex()->sc_files_per_round_ != per_round)
+				{
+					unequal_per_round.push_back(QString::number(topo_nr_));
+					break;
+				}
+			}
+			
+			sc_files_per_round_ = (*inEdgesBegin())->getSourceVertex()->sc_files_per_round_;
+			sc_files_total_ = (*inEdgesBegin())->getSourceVertex()->sc_files_total_;
+		}
+		else // merger
+		{
+			if (round_based)
+			{
+				for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+				{
+					if ((*it)->getSourceVertex()->sc_files_total_ != total)
+					{
+						unequal_over_entire_run.push_back(QString::number(topo_nr_));
+						break;
+					}
+				}
+				
+				// number of in edges determines list length per merging round
+				sc_files_per_round_ = inEdgesEnd() - inEdgesBegin();
+				// assume all sc_files_total_'s of inputs are equal already
+				sc_files_total_ = sc_files_per_round_ * total;
+			}
+			else
+			{
+				// no check needed, waiting merger does not care about unequal input list lengths
+				sc_files_per_round_ = 0;
+				for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+				{
+					sc_files_per_round_ += (*it)->getSourceVertex()->sc_files_total_;
+				}
+				sc_files_total_ = sc_files_per_round_;
+			}
+		}
+		
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
 		}
 		
 		__DEBUG_END_METHOD__

@@ -246,6 +246,8 @@ namespace OpenMS
 			bool isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v);
 			/// DFS helper method. Returns true, if a back edge has been discovered
 			bool dfsVisit_(TOPPASVertex* vertex);
+			/// Performs a sanity check of the pipeline and notifies user when it finds something strange. Returns if pipeline OK.
+			bool sanityCheck();
 			
 			///@name reimplemented Qt events
       //@{

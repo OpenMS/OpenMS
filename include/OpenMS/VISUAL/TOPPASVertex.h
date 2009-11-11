@@ -173,6 +173,8 @@ namespace OpenMS
 			virtual bool isSubtreeFinished();
 			/// Resets the subtree below this node
 			virtual void resetSubtree(bool including_this_node = true);
+			/// Recursive sanity check for mergers
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger = false, bool round_based = false);
 		
 		public slots:
 		
@@ -220,6 +222,12 @@ namespace OpenMS
 			UInt topo_nr_;
 			/// Indicates whether all tools in the subtree below this node are finished
 			bool subtree_finished_;
+			/// Used during sanity check, stores the number of files at this node per merging round
+			int sc_files_per_round_;
+			/// Used during sanity check, stores the overall number of files at this node over all merging rounds
+			int sc_files_total_;
+			/// Used during sanity check, stores if this node has been checked already
+			bool sc_list_length_checked_;
 			
 			#ifdef TOPPAS_DEBUG
 			// Indentation level for nicer debug output

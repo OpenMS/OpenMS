@@ -333,12 +333,28 @@ namespace OpenMS
 		// progress light
 		painter->setPen(Qt::black);
 		painter->setBrush(progress_color_);
-		painter->drawEllipse(45,-52, 14, 14);
+		painter->drawEllipse(46,-52, 14, 14);
 		
 		//topo sort number
-		qreal x_pos = -62.0;
-		qreal y_pos = 48.0; 
+		qreal x_pos = -63.0;
+		qreal y_pos = -39.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+		
+		if (progress_color_ != Qt::gray)
+		{
+			QString text;
+			if (in_parameter_has_list_type_)
+			{
+				text = QString::number(iteration_nr_ == 1 ? input_list_length_ : 0);
+				text += QString(" / ") + QString::number(input_list_length_); 
+			}
+			else
+			{
+				text = QString::number(iteration_nr_)+" / "+QString::number(num_iterations_);
+			}
+			QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+			painter->drawText((int)(62.0-text_boundings.width()), 48, text);
+		}
 	}
 	
 	QRectF TOPPASToolVertex::boundingRect() const
@@ -457,6 +473,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= source_out_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << source_out_files[i];
 					}
 					continue;
@@ -473,6 +494,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= input_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << input_files[i];
 					}
 					continue;
@@ -488,6 +514,11 @@ namespace OpenMS
 					}
 					else
 					{
+						if (i >= input_files.size())
+						{
+							std::cerr << "Input list too short!" << std::endl;
+							break;
+						}
 						args << input_files[i];
 					}
 					continue;
@@ -515,6 +546,11 @@ namespace OpenMS
 						}
 						else
 						{
+							if (i >= output_files.size())
+							{
+								std::cerr << "Output list too short!" << std::endl;
+								break;
+							}
 							args << output_files[i];
 						}
 						
@@ -571,6 +607,7 @@ namespace OpenMS
 		}
 		
 		++iteration_nr_;
+		update(boundingRect());
 		debugOut_(String("Increased iteration_nr_ to ")+iteration_nr_+" / "+num_iterations_);
 		
 		// notify the scene that this process has finished (so the next pending one can run)
@@ -873,6 +910,9 @@ namespace OpenMS
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QDir current_dir(ts->getOutDir());
 		
+		// if no output files, create at least _tmp dir for ini file
+		
+		
 		foreach (const QStringList& files, current_output_files_)
 		{
 			if (!files.isEmpty())
@@ -904,11 +944,9 @@ namespace OpenMS
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		TOPPASVertex::reset(reset_all_files);
 		finished_ = false;
 		current_output_files_.clear();
 		progress_color_ = Qt::gray;
-		update(boundingRect());
 		
 		if (reset_all_files)
 		{
@@ -919,6 +957,8 @@ namespace OpenMS
 				removeDirRecursively_(remove_dir);
 			}
 		}
+		
+		TOPPASVertex::reset(reset_all_files);
 		
 		__DEBUG_END_METHOD__
 	}

@@ -77,7 +77,7 @@ namespace OpenMS
 			// documented in base class
 			virtual bool isSubtreeFinished();
 			// documented in base class
-			virtual void resetSubtree(bool including_this_node);
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger = false, bool round_based = false);
 			
 		protected:
 
@@ -87,14 +87,14 @@ namespace OpenMS
 			int merge_counter_;
 			/// Is set to true while the parents are notified that this node has finished merging
 			bool currently_notifying_parents_;
+			/// The minimum length of all incoming lists
+			int min_input_list_length_;
 
 			///@name reimplemented Qt events
       //@{
       void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
 			//@}
 			
-			/// Returns the minimum length of all incoming lists
-			int minInputListLength_();
 			/// Returns the number of iterations we have to perform
 			int numIterations_();
 			/// Returns the list of all written output files (during the entire pipeline execution) of the parents
