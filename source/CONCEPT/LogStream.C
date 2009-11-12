@@ -230,7 +230,7 @@ namespace OpenMS
 				if (line_end >= pptr()) 
 				{
 					// Copy the incomplete line to the incomplete_line_ buffer
-					size_t length = line_end - line_start + 1;
+					size_t length = line_end - line_start;
 					length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
 					strncpy(&(buf[0]), line_start, length);
 
