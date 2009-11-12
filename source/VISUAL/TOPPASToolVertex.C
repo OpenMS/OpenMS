@@ -963,5 +963,76 @@ namespace OpenMS
 		__DEBUG_END_METHOD__
 	}
 	
+	void TOPPASToolVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		//all parents checked?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if (!((*it)->getSourceVertex()->isScListLengthChecked()))
+			{
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		// do all input lists have equal length?
+		int parent_per_round = (*inEdgesBegin())->getSourceVertex()->getScFilesPerRound();
+		int parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();		
+		
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if ((*it)->getSourceVertex()->getScFilesPerRound() != parent_per_round)
+			{
+				unequal_per_round.push_back(QString::number(topo_nr_));
+				break;
+			}
+		}
+		
+		// n:1 tool? --> files per round = 1
+		QVector<IOInfo> input_infos;
+		getInputParameters(input_infos);
+		QVector<IOInfo> output_infos;
+		getOutputParameters(output_infos);
+		bool in_param_list_type = false;
+		bool out_param_file_type = false;
+		foreach (const IOInfo& io, input_infos)
+		{
+			if (io.param_name == "in" && io.type == IOInfo::IOT_LIST)
+			{
+				in_param_list_type = true;
+			}
+		}
+		foreach (const IOInfo& io, output_infos)
+		{
+			if (io.param_name == "out" && io.type == IOInfo::IOT_FILE)
+			{
+				out_param_file_type = true;
+			}
+		}
+		
+		if (in_param_list_type && out_param_file_type)
+		{
+			sc_files_per_round_ = 1;
+			sc_files_total_ = parent_total / parent_per_round;
+		}
+		else
+		{
+			sc_files_per_round_ = parent_per_round;
+			sc_files_total_ = parent_total;
+		}
+		
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
+		
+		__DEBUG_END_METHOD__
+	}
+	
 }
 

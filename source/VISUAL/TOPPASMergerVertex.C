@@ -483,13 +483,56 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASMergerVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool /*merger*/, bool /*round_based*/)
+	void TOPPASMergerVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		// Do it this way because from here we cannot access
-		// protected members of TOPPASVertex other than our owns.
-		TOPPASVertex::checkListLengths(unequal_per_round, unequal_over_entire_run, true, round_based_mode_);
+		//all parents checked?
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			if (!((*it)->getSourceVertex()->isScListLengthChecked()))
+			{
+				__DEBUG_END_METHOD__
+				return;
+			}
+		}
+		
+		// do all input lists have equal length?
+		int parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();				
+		if (round_based_mode_)
+		{
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				if ((*it)->getSourceVertex()->getScFilesTotal() != parent_total)
+				{
+					unequal_over_entire_run.push_back(QString::number(topo_nr_));
+					break;
+				}
+			}
+			
+			// number of in edges determines list length per merging round
+			sc_files_per_round_ = inEdgesEnd() - inEdgesBegin();
+			// assume all sc_files_total_'s of inputs are equal already
+			sc_files_total_ = sc_files_per_round_ * parent_total;
+		}
+		else
+		{
+			// no check needed, waiting merger does not care about unequal input list lengths
+			sc_files_per_round_ = 0;
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				sc_files_per_round_ += parent_total;
+			}
+			sc_files_total_ = sc_files_per_round_;
+		}
+		
+		sc_list_length_checked_ = true;
+		
+		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		{
+			TOPPASVertex* tv = (*it)->getTargetVertex();
+			tv->checkListLengths(unequal_per_round, unequal_over_entire_run);
+		}
 		
 		__DEBUG_END_METHOD__
 	}

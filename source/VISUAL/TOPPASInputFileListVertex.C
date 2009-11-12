@@ -171,7 +171,7 @@ namespace OpenMS
 		}
 	}
 	
-	void TOPPASInputFileListVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool /*merger*/, bool /*round_based*/)
+	void TOPPASInputFileListVertex::checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run)
 	{
 		__DEBUG_BEGIN_METHOD__
 		

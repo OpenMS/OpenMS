@@ -77,7 +77,7 @@ namespace OpenMS
 			// documented in base class
 			virtual bool isSubtreeFinished();
 			// documented in base class
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger = false, bool round_based = false);
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
 			
 		protected:
 

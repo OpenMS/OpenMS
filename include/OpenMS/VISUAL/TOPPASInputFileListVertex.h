@@ -65,7 +65,7 @@ namespace OpenMS
 			// documented in base class
 			virtual QPainterPath shape () const;
 			// documented in base class
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger = false, bool round_based = false);
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
 			/// Checks if the given list of file names is valid
 			bool fileNamesValid(const QStringList& files);
 			/// Shows the dialog for editing the files

@@ -138,6 +138,8 @@ namespace OpenMS
 			virtual void setTopoNr(UInt nr);
 			// documented in base class
 			virtual void reset(bool reset_all_files = false);
+			// documented in base class
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
 			/// Returns whether this node has already been processed during the current pipeline execution
 			bool isFinished();
 			/// Sets the Param object of this tool

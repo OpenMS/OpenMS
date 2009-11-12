@@ -173,8 +173,14 @@ namespace OpenMS
 			virtual bool isSubtreeFinished();
 			/// Resets the subtree below this node
 			virtual void resetSubtree(bool including_this_node = true);
-			/// Recursive sanity check for mergers
-			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run, bool merger = false, bool round_based = false);
+			/// Recursive sanity check for mergers and tools
+			virtual void checkListLengths(QStringList& unequal_per_round, QStringList& unequal_over_entire_run);
+			/// Used in sanity check, returns the overall number of files at this node over all merging rounds
+			int getScFilesTotal();
+			/// Used in sanity check, returns the number of files at this node per merging round
+			int getScFilesPerRound();
+			/// Used in sanity check, returns if this node has already been checked
+			bool isScListLengthChecked();
 		
 		public slots:
 		
