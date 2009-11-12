@@ -910,8 +910,10 @@ namespace OpenMS
 		TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 		QDir current_dir(ts->getOutDir());
 		
-		// if no output files, create at least _tmp dir for ini file
-		
+		if (!current_dir.mkpath(getOutputDir().toQString()))
+		{
+			std::cerr << "Could not create path " << getOutputDir() << std::endl;
+		}
 		
 		foreach (const QStringList& files, current_output_files_)
 		{
