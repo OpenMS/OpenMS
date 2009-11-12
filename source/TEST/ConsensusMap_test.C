@@ -341,6 +341,7 @@ START_SECTION((void setExperimentType(const String& experiment_type)))
   TEST_EQUAL(cons_map.getExperimentType(),"itraq")
 END_SECTION
 
+#if 0
 START_SECTION((bool isValid(String& error_message) const))
 	String error_message;
 	ConsensusMap cm;
@@ -371,6 +372,7 @@ START_SECTION((bool isValid(String& error_message) const))
 	cm.push_back(f2);
 
 END_SECTION
+#endif
 
 START_SECTION((void swap(ConsensusMap& from)))
 	ConsensusMap map1, map2;

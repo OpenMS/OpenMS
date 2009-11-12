@@ -62,7 +62,7 @@ namespace OpenMS
 
 
 			/**
-			@brief Loads a consenus map from file
+			@brief Loads a consensus map from file
 
 			@exception Exception::FileNotFound is thrown if the file could not be opened
 			@exception Exception::ParseError is thrown if an error occurs during parsing
@@ -70,7 +70,7 @@ namespace OpenMS
 			void load(const String& filename, ConsensusMap& map);
 
 			/**
-			@brief Stores a consenus map to file
+			@brief Stores a consensus map to file
 
 			@exception Exception::UnableToCreateFile is thrown if the file name is not writable
 			@exception Exception::IllegalArgument is thrown if the consensus map is not valid

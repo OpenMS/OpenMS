@@ -219,6 +219,10 @@ namespace OpenMS
 				experiment_type_ = experiment_type;
 			}
 
+#if 0
+
+      // OBSOLETE and BROKEN since we are using unique ids now - the results will be wrong!  (namely, almost always negative)
+
 			/**
 				@brief Checks if all map identifiers in FeatureHandles have a filename associated
 
@@ -226,6 +230,7 @@ namespace OpenMS
 				@return if the map is valid
 			*/
 			bool isValid(String& error_message) const;
+#endif
 
 			/**
 				@name Sorting.
@@ -349,7 +354,7 @@ namespace OpenMS
 				output_map.reserve(n);
 				std::vector<Peak2D> tmp;
 				tmp.reserve(input_map.getSize());
-				input_map.get2DData(tmp); //Avoid tripling the memory consumption by this call
+				input_map.get2DData(tmp); // TODO Avoid tripling the memory consumption by this call
 				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(Peak2D::IntensityLess()) );
 				for (Size element_index = 0; element_index < n; ++element_index )
 				{

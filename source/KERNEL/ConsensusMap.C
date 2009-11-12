@@ -32,6 +32,7 @@ using namespace std;
 namespace OpenMS
 {
 
+#if 0
 	bool ConsensusMap::isValid(String& error_message) const
 	{
 		//store the size of the input files
@@ -70,6 +71,7 @@ namespace OpenMS
     }
     return true;
 	}
+#endif
 
   ostream& operator << (ostream& os, const ConsensusMap& cons_map)
   {

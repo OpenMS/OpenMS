@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" unique_id="fm_13194286469662031022" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.4" id="fm_13194286469662031022" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2006-03-09T11:31:52" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
@@ -15,9 +15,6 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<featureList count="16">
-		
-		<!-- FRAME FOR VIEWER -->
-		
 		<feature id="f_1">
 			<position dim="0">5</position>
 			<position dim="1">500</position>
@@ -115,10 +112,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>7</overallquality>
 			<charge>1</charge>
-		</feature>		
-
-		<!-- CHARGE 2 -->
-
+		</feature>
 		<feature id="f_9">
 			<position dim="0">15</position>
 			<position dim="1">530</position>
@@ -181,9 +175,6 @@
 			<overallquality>13</overallquality>
 			<charge>2</charge>
 		</feature>
-
-		<!-- CHARGE MISMATCH -->
-
 		<feature id="f_15">
 			<position dim="0">18</position>
 			<position dim="1">550</position>
