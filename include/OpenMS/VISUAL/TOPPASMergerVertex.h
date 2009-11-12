@@ -55,7 +55,7 @@ namespace OpenMS
 			/// Returns the current list of output files
 			QStringList getCurrentOutputList();
 			/// Forwards the pipeline execution downstream
-			void forwardPipelineExecution(bool start_merge_all = false);
+			void forwardPipelineExecution();
 			/// Determines whether all inputs are ready
 			bool allInputsReady();
 			/// Determines whether all merge rounds have been performed
@@ -73,6 +73,8 @@ namespace OpenMS
 			// documented in base class
 			virtual void checkIfSubtreeFinished();
 			// documented in base class
+			virtual bool areAllUpstreamMergersFinished();
+			// documented in base class
 			virtual void reset(bool reset_all_files = false);
 			// documented in base class
 			virtual bool isSubtreeFinished();
@@ -89,6 +91,8 @@ namespace OpenMS
 			bool currently_notifying_parents_;
 			/// The minimum length of all incoming lists
 			int min_input_list_length_;
+			/// Stores the last list of output files that was processed
+			QStringList last_output_files_;
 
 			///@name reimplemented Qt events
       //@{
@@ -97,9 +101,8 @@ namespace OpenMS
 			
 			/// Returns the number of iterations we have to perform
 			int numIterations_();
-			/// Returns the list of all written output files (during the entire pipeline execution) of the parents
+			/// Returns the list of all written output files (possibly over several merging rounds) of the parents
 			QStringList getAllCollectedFiles_();
-
 			
 	};
 }

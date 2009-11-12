@@ -87,7 +87,8 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = QString::number(files_.size())+" output files";
+		QString text = QString::number(files_.size())+" output file"
+										+(files_.size() == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
@@ -166,6 +167,8 @@ namespace OpenMS
 				}
 			}
 		}
+		
+		update(boundingRect());
 		
 		finished_ = true;
 		checkIfSubtreeFinished();

@@ -499,6 +499,7 @@ namespace OpenMS
 				save_param.setValue("vertices:"+id+":toppas_type", DataValue("merger"));
 				save_param.setValue("vertices:"+id+":x_pos", DataValue(tv->x()));
 				save_param.setValue("vertices:"+id+":y_pos", DataValue(tv->y()));
+				save_param.setValue("vertices:"+id+":round_based", DataValue(mv->roundBasedMode() ? "true" : "false"));
 				continue;
 			}
 		}
@@ -593,6 +594,11 @@ namespace OpenMS
 				else if (current_type == "merger")
 				{
 					TOPPASMergerVertex* mv = new TOPPASMergerVertex();
+					if (vertices_param.exists(current_id + ":round_based"))
+					{
+						String rb = vertices_param.getValue(current_id + ":round_based");
+						mv->setRoundBasedMode(rb == "true" ? true : false);
+					}
 					current_vertex = mv;
 				}
 				else
@@ -1177,13 +1183,6 @@ namespace OpenMS
 			{
 				new_action->setEnabled(false);
 			}
-			
-			// TODO (temporarily disabled)
-			if (supported_action == "Change mode")
-			{
-				new_action->setEnabled(false);
-			}
-			//
 		}
 		
 		// ------ execute action on all selected items ------
@@ -1462,9 +1461,9 @@ namespace OpenMS
 										+(unequal_over_entire_run.size()>1 ? "s " : " ")
 										+unequal_over_entire_run.join(", ")+":\n"
 										+"The overall number of files to be merged is not the same "
-										+"for all incoming edges. As soon as one of the edges "
-										+"runs out of files, the last file of the list will "
-										+"be used for all remaining merges.\n\n";
+										+"for all incoming edges. This either means that some files "
+										+"will not be merged or that one and the same file will be "
+										+"merged several times.\n\n";
 				}
 				message += "Do you still want to continue?";
 				

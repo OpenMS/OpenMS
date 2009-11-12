@@ -158,7 +158,9 @@ namespace OpenMS
 			}
 		}
 		
+		last_output_files_ = out_files;
 		min_input_list_length_ = new_min_input_list_length;
+		files_known_ = true;
 		
 		__DEBUG_END_METHOD__
 		return out_files;
@@ -221,11 +223,12 @@ namespace OpenMS
 				return false;
 			}
 		}
+		
 		__DEBUG_END_METHOD__
 		return true;
 	}
 	
-	void TOPPASMergerVertex::forwardPipelineExecution(bool start_merge_all)
+	void TOPPASMergerVertex::forwardPipelineExecution()
 	{
 		__DEBUG_BEGIN_METHOD__
 		
@@ -245,12 +248,31 @@ namespace OpenMS
 			return;
 		}
 		
-		if (!round_based_mode_ && !start_merge_all)
+		if (!round_based_mode_)
 		{
-			debugOut_("Not run because !round_based_mode_ && !start_merge_all");
+			currently_notifying_parents_ = true;
+			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+			{
+				(*it)->getSourceVertex()->checkIfSubtreeFinished();
+			}
+			currently_notifying_parents_ = false;
 			
-			__DEBUG_END_METHOD__
-			return;
+			// still everything ready?
+			if (!allInputsReady())
+			{
+				debugOut_("Not run because !allInputsReady()");
+				
+				__DEBUG_END_METHOD__
+				return;
+			}
+			
+			if (!TOPPASVertex::areAllUpstreamMergersFinished())
+			{
+				debugOut_("Not run because !round_based_mode_ and not all upstream mergers finished");
+				
+				__DEBUG_END_METHOD__
+				return;
+			}
 		}
 		
 		debugOut_("About to run");
@@ -300,6 +322,8 @@ namespace OpenMS
 
 	void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
 	{
+		__DEBUG_BEGIN_METHOD__
+		
 		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		if (isSelected())
 		{
@@ -319,28 +343,32 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = round_based_mode_ ? "Merge" : "Wait & Merge";
+		
+		QString text = round_based_mode_ ? "Merge" : "Merge all";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+		
+		if (files_known_)
+		{
+			if (round_based_mode_)
+			{
+				text = QString::number(merge_counter_)+" / "+QString::number(min_input_list_length_);
+			}
+			else
+			{
+				QString num_files = QString::number(last_output_files_.size());
+				text = (mergeComplete() ? num_files : "0")+" / "+num_files;
+			}
+			text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+			painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
+		}
 		
 		//topo sort number
 		qreal x_pos = -36.0;
 		qreal y_pos = -23.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 		
-		if (round_based_mode_)
-		{
-			if (numIterations_() != -1)
-			{
-				text = QString::number(merge_counter_)+" / "+QString::number(numIterations_());
-				text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-				painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
-			}
-		}
-		else
-		{
-			// TODO display total number of merged files
-		}
+		__DEBUG_END_METHOD__
 	}
 	
 	QRectF TOPPASMergerVertex::boundingRect() const
@@ -373,7 +401,9 @@ namespace OpenMS
 	
 	void TOPPASMergerVertex::setRoundBasedMode(bool b)
 	{
+		reset();
 		round_based_mode_ = b;
+		emit somethingHasChanged();
 	}
 	
 	int TOPPASMergerVertex::numIterations_()
@@ -454,7 +484,7 @@ namespace OpenMS
 		__DEBUG_END_METHOD__
 	}
 	
-	void TOPPASMergerVertex::reset(bool /*reset_all_files*/)
+	void TOPPASMergerVertex::reset(bool reset_all_files)
 	{
 		__DEBUG_BEGIN_METHOD__
 		
@@ -463,7 +493,7 @@ namespace OpenMS
 		
 		// Save subtree_finished_ for mergers, otherwise only 1 parent will be notified that subtree finished
 		bool tmp = subtree_finished_;
-		TOPPASVertex::reset(false);
+		TOPPASVertex::reset(reset_all_files);
 		subtree_finished_ = tmp;
 		
 		__DEBUG_END_METHOD__
@@ -528,7 +558,7 @@ namespace OpenMS
 			sc_files_per_round_ = 0;
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
-				sc_files_per_round_ += parent_total;
+				sc_files_per_round_ += (*it)->getSourceVertex()->getScFilesTotal();
 			}
 			sc_files_total_ = sc_files_per_round_;
 		}
@@ -542,6 +572,22 @@ namespace OpenMS
 		}
 		
 		__DEBUG_END_METHOD__
+	}
+	
+	bool TOPPASMergerVertex::areAllUpstreamMergersFinished()
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		if (!mergeComplete())
+		{
+			__DEBUG_END_METHOD__
+			return false;
+		}
+		
+		bool finished = TOPPASVertex::areAllUpstreamMergersFinished();
+		
+		__DEBUG_END_METHOD__
+		return finished;
 	}
 
 }

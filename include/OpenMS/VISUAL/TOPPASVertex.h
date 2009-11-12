@@ -167,6 +167,8 @@ namespace OpenMS
 			virtual void setTopoNr(UInt nr);
 			/// Checks if the tools in the subtree below this node have finished and if yes, propagates this upwards
 			virtual void checkIfSubtreeFinished();
+			/// Returns if all mergers further upstream in the pipeline have finished merging already
+			virtual bool areAllUpstreamMergersFinished();
 			/// Resets the status
 			virtual void reset(bool reset_all_files = false);
 			/// Returns whether all tools in the subtree below this node are finished
@@ -234,6 +236,8 @@ namespace OpenMS
 			int sc_files_total_;
 			/// Used during sanity check, stores if this node has been checked already
 			bool sc_list_length_checked_;
+			/// Stores if the file names for the current call are already known
+			bool files_known_;
 			
 			#ifdef TOPPAS_DEBUG
 			// Indentation level for nicer debug output

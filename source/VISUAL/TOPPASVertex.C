@@ -50,7 +50,8 @@ namespace OpenMS
 			id_(0),
 			topo_sort_marked_(false),
 			topo_nr_(0),
-			subtree_finished_(false)
+			subtree_finished_(false),
+			files_known_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -69,7 +70,8 @@ namespace OpenMS
 			id_(rhs.id_),
 			topo_sort_marked_(rhs.topo_sort_marked_),
 			topo_nr_(rhs.topo_nr_),
-			subtree_finished_(rhs.subtree_finished_)
+			subtree_finished_(rhs.subtree_finished_),
+			files_known_(rhs.files_known_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -93,6 +95,7 @@ namespace OpenMS
 		topo_sort_marked_ = rhs.topo_sort_marked_;
 		topo_nr_ = rhs.topo_nr_;
 		subtree_finished_ = rhs.subtree_finished_;
+		files_known_ = rhs.files_known_;
 		
 		return *this;
 	}
@@ -367,7 +370,7 @@ namespace OpenMS
 		subtree_finished_ = b;
 	}
 	
-	void TOPPASVertex::reset(bool /*reset_all_files*/)
+	void TOPPASVertex::reset(bool reset_all_files)
 	{
 		__DEBUG_BEGIN_METHOD__
 		
@@ -375,6 +378,10 @@ namespace OpenMS
 		sc_files_per_round_ = 0;
 		sc_files_total_ = 0;
 		sc_list_length_checked_ = false;
+		if (reset_all_files)
+		{
+			files_known_ = false;
+		}
 		update(boundingRect());
 		
 		__DEBUG_END_METHOD__
@@ -387,6 +394,7 @@ namespace OpenMS
 		if (including_this_node)
 		{
 			reset(false);
+			files_known_ = false;
 		}
 		
 		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
@@ -415,6 +423,25 @@ namespace OpenMS
 	bool TOPPASVertex::isScListLengthChecked()
 	{
 		return sc_list_length_checked_;
+	}
+	
+	bool TOPPASVertex::areAllUpstreamMergersFinished()
+	{
+		__DEBUG_BEGIN_METHOD__
+		
+		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		{
+			TOPPASVertex* source = (*it)->getSourceVertex();
+			debugOut_(String("Checking parent ")+source->getTopoNr());
+			if (!source->areAllUpstreamMergersFinished())
+			{
+				__DEBUG_END_METHOD__
+				return false;
+			}
+		}
+		
+		__DEBUG_END_METHOD__
+		return true;
 	}
 	
 }
