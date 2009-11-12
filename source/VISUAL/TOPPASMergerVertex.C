@@ -324,8 +324,8 @@ namespace OpenMS
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 		
 		//topo sort number
-		qreal x_pos = -34.0;
-		qreal y_pos = -22.0; 
+		qreal x_pos = -36.0;
+		qreal y_pos = -23.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 		
 		if (round_based_mode_)
@@ -334,7 +334,7 @@ namespace OpenMS
 			{
 				text = QString::number(merge_counter_)+" / "+QString::number(numIterations_());
 				text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-				painter->drawText(32-(int)(text_boundings.width()), 30, text);
+				painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
 			}
 		}
 		else

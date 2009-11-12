@@ -336,8 +336,8 @@ namespace OpenMS
 		painter->drawEllipse(46,-52, 14, 14);
 		
 		//topo sort number
-		qreal x_pos = -63.0;
-		qreal y_pos = -39.0; 
+		qreal x_pos = -64.0;
+		qreal y_pos = -41.0; 
 		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 		
 		if (progress_color_ != Qt::gray)

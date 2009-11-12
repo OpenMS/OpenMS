@@ -116,7 +116,7 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
-		QString text = "Input files";
+		QString text = QString::number(files_.size())+" input files";
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 	}
