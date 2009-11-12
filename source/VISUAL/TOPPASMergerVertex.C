@@ -498,22 +498,29 @@ namespace OpenMS
 		}
 		
 		// do all input lists have equal length?
-		int parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();				
+		int min_parent_total = (*inEdgesBegin())->getSourceVertex()->getScFilesTotal();
+		int parent_total = min_parent_total;
+		bool equal_length = true;
 		if (round_based_mode_)
 		{
 			for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 			{
-				if ((*it)->getSourceVertex()->getScFilesTotal() != parent_total)
+				int total = (*it)->getSourceVertex()->getScFilesTotal();
+				if (total != parent_total)
 				{
-					unequal_over_entire_run.push_back(QString::number(topo_nr_));
-					break;
+					equal_length = false;
+					min_parent_total = total < min_parent_total ? total : min_parent_total;
 				}
+			}
+			if (!equal_length)
+			{
+				unequal_over_entire_run.push_back(QString::number(topo_nr_));
 			}
 			
 			// number of in edges determines list length per merging round
 			sc_files_per_round_ = inEdgesEnd() - inEdgesBegin();
 			// assume all sc_files_total_'s of inputs are equal already
-			sc_files_total_ = sc_files_per_round_ * parent_total;
+			sc_files_total_ = sc_files_per_round_ * min_parent_total;
 		}
 		else
 		{

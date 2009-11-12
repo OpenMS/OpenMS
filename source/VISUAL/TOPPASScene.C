@@ -1460,11 +1460,11 @@ namespace OpenMS
 				{
 					message += QString("Merger")
 										+(unequal_over_entire_run.size()>1 ? "s " : " ")
-										+unequal_over_entire_run.join(", ")+":\n\n"
+										+unequal_over_entire_run.join(", ")+":\n"
 										+"The overall number of files to be merged is not the same "
-										+"for all incoming edges.\n\nAs soon as one of the input file lists "
-										+"runs out of files, the last file in that list will "
-										+"be merged with the remaining files from other (longer) lists repeatedly.\n\n";
+										+"for all incoming edges. As soon as one of the edges "
+										+"runs out of files, the last file of the list will "
+										+"be used for all remaining merges.\n\n";
 				}
 				message += "Do you still want to continue?";
 				
