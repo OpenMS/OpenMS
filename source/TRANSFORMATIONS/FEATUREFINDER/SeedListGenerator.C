@@ -102,16 +102,18 @@ namespace OpenMS
 																					FeatureMap<>& features)
 	{
 		features.clear(true); // "true" should really be a default value here...
+		Size counter = 0;
 		for (SeedList::const_iterator seed_it = seeds.begin();
-				 seed_it != seeds.end(); ++seed_it)
+				 seed_it != seeds.end(); ++seed_it, ++counter)
 		{
 			Feature feature;
 			feature.setRT(seed_it->getX());
 			feature.setMZ(seed_it->getY());
+			feature.setUniqueId(counter);
 			features.push_back(feature);
 		}
-		// assign unique ids:
-		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+		// // assign unique ids:
+		// features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 	}
 
 
