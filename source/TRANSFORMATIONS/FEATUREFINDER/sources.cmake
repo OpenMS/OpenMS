@@ -17,7 +17,6 @@ FeatureFinderAlgorithmIsotopeWavelet.C
 FeatureFinderAlgorithmPicked.C
 FeatureFinderAlgorithmSimple.C
 FeatureFinderAlgorithmSimplest.C
-FeatureFinderAlgorithmWavelet.C
 FeatureFinderAlgorithmMRM.C
 Fitter1D.C
 GaussFitter1D.C

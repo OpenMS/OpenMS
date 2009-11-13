@@ -369,7 +369,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithmSimple_test
   FeatureFinderAlgorithmSimplest_test
-  FeatureFinderAlgorithmWavelet_test
   FeatureFinderAlgorithm_test
   FeatureFinder_test
   Fitter1D_test

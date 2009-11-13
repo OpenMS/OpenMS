@@ -34,7 +34,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
@@ -58,23 +57,16 @@ namespace OpenMS
 			 FeatureFinderAlgorithmPicked<PeakType,FeatureType>::getProductName(),
 			 &FeatureFinderAlgorithmPicked<PeakType,FeatureType>::create
 			);
-		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-			(
-			 FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::getProductName(),
-			 &FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::create
-			);
-		
     Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 			(
 			 FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::getProductName(),
 			 &FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::create
 			);
-		
-			Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-			  (
-			   FeatureFinderAlgorithmMRM<PeakType,FeatureType>::getProductName(), 
-			   &FeatureFinderAlgorithmMRM<PeakType, FeatureType>::create
-			  );
+		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+		  (
+		   FeatureFinderAlgorithmMRM<PeakType,FeatureType>::getProductName(), 
+		   &FeatureFinderAlgorithmMRM<PeakType, FeatureType>::create
+		  );
 
 	}
 
