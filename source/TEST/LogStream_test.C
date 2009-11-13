@@ -120,12 +120,12 @@ START_SECTION((void setLevel(LogLevel level)))
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT , ERROR);
+  l1.insert(s, OPENMS_DEVELOPMENT , OPENMS_ERROR);
 
   l1 << "1" << endl;
-  l1.setLevel(INFORMATION);
+  l1.setLevel(OPENMS_INFORMATION);
   l1 << "2" << endl;
-  l1.setLevel(FATAL_ERROR);
+  l1.setLevel(OPENMS_FATAL_ERROR);
   l1 << "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
@@ -135,9 +135,9 @@ END_SECTION
 START_SECTION((LogLevel getLevel()))
 {
   LogStream l1(new LogStreamBuf());
-  TEST_EQUAL(l1.getLevel(), DEVELOPMENT)
-  l1.setLevel(FATAL_ERROR);
-  TEST_EQUAL(l1.getLevel(), FATAL_ERROR)
+  TEST_EQUAL(l1.getLevel(), OPENMS_DEVELOPMENT)
+  l1.setLevel(OPENMS_FATAL_ERROR);
+  TEST_EQUAL(l1.getLevel(), OPENMS_FATAL_ERROR)
 }
 END_SECTION
 
@@ -147,11 +147,11 @@ START_SECTION((LogStream& level(LogLevel level)))
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT , ERROR);
+  l1.insert(s, OPENMS_DEVELOPMENT , OPENMS_ERROR);
 
-  l1.level(DEVELOPMENT) << "1" <<endl;
-  l1.level(ERROR) << "2" <<endl;
-  l1.level(FATAL_ERROR) << "X" <<endl;
+  l1.level(OPENMS_DEVELOPMENT) << "1" <<endl;
+  l1.level(OPENMS_ERROR) << "2" <<endl;
+  l1.level(OPENMS_FATAL_ERROR) << "X" <<endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -163,12 +163,12 @@ START_SECTION((void insert(std::ostream &s, LogLevel min_level=LogStreamBuf::MIN
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, ERROR, ERROR);
+  l1.insert(s, OPENMS_ERROR, OPENMS_ERROR);
 
-  l1.level(WARNING) << "X" << endl;
-  l1.level(ERROR) << "1" << endl;
-  l1.level(ERROR)  << "2" << endl;
-  l1.level(FATAL_ERROR)<< "X" << endl;
+  l1.level(OPENMS_WARNING) << "X" << endl;
+  l1.level(OPENMS_ERROR) << "1" << endl;
+  l1.level(OPENMS_ERROR)  << "2" << endl;
+  l1.level(OPENMS_FATAL_ERROR)<< "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -226,11 +226,11 @@ START_SECTION((void setMinLevel(const std::ostream &s, LogLevel min_level)))
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT);
-  l1.setMinLevel(s, WARNING);
-  l1.level(INFORMATION) << "X" << endl;
-  l1.level(WARNING) << "1" << endl;
-  l1.level(ERROR) << "2" << endl;
+  l1.insert(s, OPENMS_DEVELOPMENT);
+  l1.setMinLevel(s, OPENMS_WARNING);
+  l1.level(OPENMS_INFORMATION) << "X" << endl;
+  l1.level(OPENMS_WARNING) << "1" << endl;
+  l1.level(OPENMS_ERROR) << "2" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -242,11 +242,11 @@ START_SECTION((void setMaxLevel(const std::ostream &s, LogLevel max_level)))
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, DEVELOPMENT);
-  l1.setMaxLevel(s, ERROR);
-  l1.level(WARNING) << "1" << endl;
-  l1.level(ERROR) << "2" << endl;
-  l1.level(FATAL_ERROR) << "X" << endl;
+  l1.insert(s, OPENMS_DEVELOPMENT);
+  l1.setMaxLevel(s, OPENMS_ERROR);
+  l1.level(OPENMS_WARNING) << "1" << endl;
+  l1.level(OPENMS_ERROR) << "2" << endl;
+  l1.level(OPENMS_FATAL_ERROR) << "X" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -257,7 +257,7 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	LogStream l1(new LogStreamBuf());
 	ostringstream stream_by_logger;
 	l1.insert(stream_by_logger);
-	l1.setLevel(DEVELOPMENT);
+	l1.setLevel(OPENMS_DEVELOPMENT);
 	l1.setPrefix("%y"); //message type ("Error", "Warning", "Information", "-")
 	l1 << "  2." << endl;
 	l1.setPrefix("%T"); //time (HH:MM:SS)
@@ -310,7 +310,7 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   l1.insert(stream_by_logger);
   l1.insert(stream_by_logger_otherprefix);
   l1.setPrefix(stream_by_logger_otherprefix, "BLABLA"); //message type ("Error", "Warning", "Information", "-")
-  l1.setLevel(DEVELOPMENT);
+  l1.setLevel(OPENMS_DEVELOPMENT);
   l1.setPrefix(stream_by_logger, "%y"); //message type ("Error", "Warning", "Information", "-")
   l1 << "  2." << endl;
   l1.setPrefix(stream_by_logger, "%T"); //time (HH:MM:SS)
@@ -397,7 +397,7 @@ START_SECTION(([EXTRA]Test log caching))
   ofstream s(filename.c_str(), std::ios::out);
   { 
     LogStream l1(new LogStreamBuf());
-    l1.insert(s, DEVELOPMENT);
+    l1.insert(s, OPENMS_DEVELOPMENT);
 
     l1 << "This is a repeptitive message" << endl;
     l1 << "This is another repeptitive message" << endl;
@@ -414,25 +414,25 @@ END_SECTION
 
 START_SECTION(([EXTRA] String LogLevelToStringUpper(LogLevel level)))
 {
-	TEST_STRING_EQUAL(LogLevelToStringUpper(FATAL_ERROR), "FATAL_ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(ERROR), "ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(WARNING), "WARNING")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(INFORMATION), "INFORMATION")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEBUG), "DEBUG")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEBUG_INTENSE), "DEBUG_INTENSE")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(DEVELOPMENT), "DEVELOPMENT")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_FATAL_ERROR), "FATAL_ERROR")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_ERROR), "ERROR")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_WARNING), "WARNING")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_INFORMATION), "INFORMATION")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEBUG), "DEBUG")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEBUG_INTENSE), "DEBUG_INTENSE")
+	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEVELOPMENT), "DEVELOPMENT")
 }
 END_SECTION
 
 START_SECTION(([EXTRA] String LogLevelToString(LogLevel level)))
 {
-	TEST_STRING_EQUAL(LogLevelToString(FATAL_ERROR), "fatal_error")
-	TEST_STRING_EQUAL(LogLevelToString(ERROR), "error")
-	TEST_STRING_EQUAL(LogLevelToString(WARNING), "warning")
-	TEST_STRING_EQUAL(LogLevelToString(INFORMATION), "information")
-	TEST_STRING_EQUAL(LogLevelToString(DEBUG), "debug")
-	TEST_STRING_EQUAL(LogLevelToString(DEBUG_INTENSE), "debug_intense")
-	TEST_STRING_EQUAL(LogLevelToString(DEVELOPMENT), "development")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_FATAL_ERROR), "fatal_error")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_ERROR), "error")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_WARNING), "warning")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_INFORMATION), "information")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEBUG), "debug")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEBUG_INTENSE), "debug_intense")
+	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEVELOPMENT), "development")
 }
 END_SECTION
 

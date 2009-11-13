@@ -64,7 +64,7 @@ namespace OpenMS
 		{
 			unsigned long compressed_length = static_cast<unsigned long>(2*str.size());
 			compressed.resize(compressed_length);
-			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&str[0]), str.size()) != Z_OK)
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&str[0]),(unsigned long) str.size()) != Z_OK)
 			{
 				compressed_length *= 2;
 				compressed.reserve(compressed_length);

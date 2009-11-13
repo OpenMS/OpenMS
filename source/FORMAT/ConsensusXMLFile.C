@@ -535,7 +535,6 @@ namespace OpenMS
 
     if ( Size invalid_unique_ids = consensus_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) )
     {
-
       // TODO Take care *outside* that this does not happen.
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.

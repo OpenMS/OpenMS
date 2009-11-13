@@ -69,35 +69,35 @@ namespace OpenMS
 	//@{
 
     /** Log levels.
-        Constants for the different predefined log levels. Use LogStream::FATAL_ERROR
+        Constants for the different predefined log levels. Use LogStream::OPENMS_FATAL_ERROR
         to indicate fatal errors, which does lead to interruptions in most of the cases. 
-        Use  LogStream::ERROR to indicate a severe error,  LogStream::WARN to 
+        Use  LogStream::OPENMS_ERROR to indicate a severe error,  LogStream::WARN to 
         indicate a problem that could be fixed or is of minor importance, 
-        and  LogStream::INFORMATION for messages that do not indicate any problem 
+        and  LogStream::OPENMS_INFORMATION for messages that do not indicate any problem 
         (e.g. progress messages).
     */
     enum LogLevel
     {
       /// fatal errors, e.g. exceptions that cannot be handled
-      FATAL_ERROR = 6,
+      OPENMS_FATAL_ERROR = 6,
 
       /// severe errors 
-      ERROR = 5,
+      OPENMS_ERROR = 5,
 
       /// warnings
-      WARNING = 4,
+      OPENMS_WARNING = 4,
 
       /// general information
-      INFORMATION = 3,
+      OPENMS_INFORMATION = 3,
 
       /// general debugging information
-      DEBUG = 2,
+      OPENMS_DEBUG = 2,
 
       /// verbose debugging information
-      DEBUG_INTENSE = 1,
+      OPENMS_DEBUG_INTENSE = 1,
 
       /// extensive development/debugging information
-      DEVELOPMENT = 0
+      OPENMS_DEVELOPMENT = 0
     };
 
 	// forward declarations
@@ -326,7 +326,7 @@ namespace OpenMS
 				If the argument <tt>associate_stdio</tt> is set to <b>true</b>,
 				<tt>cout</tt> is associated with all messages of levels  LogStream::WARN_LEVE,
 				and <tt>cerr</tt> is associated with all messages
-				of level  LogStream::ERROR and LogStream::FATAL_ERROR .
+				of level  LogStream::OPENMS_ERROR and LogStream::OPENMS_FATAL_ERROR .
 				@param	buf
 				@param  delete_buf
 				@param	associate_stdio bool, default is false
@@ -510,23 +510,23 @@ namespace OpenMS
 	//@{
 	/// Macro to be used if fatal error are reported (processing stops)
 	#define LOG_FATAL_ERROR \
-  Log.level(Logger::FATAL_ERROR) << __FILE__ << "(" << __LINE__ << "): "
+  Log.level(Logger::OPENMS_FATAL_ERROR) << __FILE__ << "(" << __LINE__ << "): "
 	
 	/// Macro to be used if non-fatal error are reported (processing continues)
 	#define LOG_ERROR \
-  Log.level(Logger::ERROR)
+  Log.level(Logger::OPENMS_ERROR)
 
 	/// Macro if a warning, a piece of information which should be read by the user, should be logged
   #define LOG_WARN \
-  Log.level(Logger::WARNING)
+  Log.level(Logger::OPENMS_WARNING)
 
 	/// Macro if a information, e.g. a status should be reported
   #define LOG_INFO \
-  Log.level(Logger::INFORMATION)
+  Log.level(Logger::OPENMS_INFORMATION)
 
 	/// Macro for general debugging information
   #define LOG_DEBUG \
-  Log.level(Logger::DEBUG) << __FILE__ << "(" << __LINE__ << "): "
+  Log.level(Logger::OPENMS_DEBUG) << __FILE__ << "(" << __LINE__ << "): "
   
 	/// Macro for verbose debugging information
 	#define LOG_INTENSE_DEBUG \
@@ -534,7 +534,7 @@ namespace OpenMS
 
 	/// Macro for development debugging messages
 	#define LOG_DEVELOPMENT \
-	Log.level(Logger::DEVELOPMENT) << __FILE__ << "(" << __LINE__ << "): "
+	Log.level(Logger::OPENMS_DEVELOPMENT) << __FILE__ << "(" << __LINE__ << "): "
 	//@}
 
 

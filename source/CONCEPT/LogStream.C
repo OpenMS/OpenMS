@@ -49,15 +49,15 @@ namespace OpenMS
 	namespace Logger
 	{
 
-	const LogLevel LogStreamBuf::MIN_LEVEL = DEVELOPMENT;
-	const LogLevel LogStreamBuf::MAX_LEVEL = FATAL_ERROR;
+	const LogLevel LogStreamBuf::MIN_LEVEL = OPENMS_DEVELOPMENT;
+	const LogLevel LogStreamBuf::MAX_LEVEL = OPENMS_FATAL_ERROR;
 	const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
 
 	LogStreamBuf::LogStreamBuf() 
 		: std::streambuf(),
 			pbuf_(0),
-			level_(DEVELOPMENT),
-			tmp_level_(DEVELOPMENT),
+			level_(OPENMS_DEVELOPMENT),
+			tmp_level_(OPENMS_DEVELOPMENT),
 			stream_list_(),
 			incomplete_line_(),
       log_cache_counter_(0),
@@ -121,7 +121,7 @@ namespace OpenMS
     }
     else 
     {
-      return DEVELOPMENT;
+      return OPENMS_DEVELOPMENT;
     }
   }
 
@@ -426,8 +426,8 @@ namespace OpenMS
 		{
 			// associate cout to informations and warnings,
 			// cerr to errors by default
-			insert(std::cout, WARNING, FATAL_ERROR);
-			insert(std::cerr, ERROR);
+			insert(std::cout, OPENMS_WARNING, OPENMS_FATAL_ERROR);
+			insert(std::cerr, OPENMS_ERROR);
 		}
 	}
 
@@ -552,13 +552,13 @@ namespace OpenMS
 	{
 		switch (level)
 			{
-			case FATAL_ERROR:   return "fatal_error";
-			case ERROR:         return "error";
-			case WARNING:       return "warning";
-			case INFORMATION:   return "information";
-			case DEBUG:         return "debug";
-			case DEBUG_INTENSE: return "debug_intense";
-			case DEVELOPMENT:   return "development";
+			case OPENMS_FATAL_ERROR:   return "fatal_error";
+			case OPENMS_ERROR:         return "error";
+			case OPENMS_WARNING:       return "warning";
+			case OPENMS_INFORMATION:   return "information";
+			case OPENMS_DEBUG:         return "debug";
+			case OPENMS_DEBUG_INTENSE: return "debug_intense";
+			case OPENMS_DEVELOPMENT:   return "development";
 			default:
 				return "unknown";
 			}
