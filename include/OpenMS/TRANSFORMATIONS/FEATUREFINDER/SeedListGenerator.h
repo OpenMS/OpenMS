@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
     @brief Generate seed lists for feature detection
 
-		Seed lists specify locations in an MS experiment where features are expected. Currently, only the "wavelet" FeatureFinder algorithm (class @p FeatureFinderAlgorithmPicked) supports custom seed lists (in featureXML format).
+		Seed lists specify locations in an MS experiment where features are expected. Currently, only the "centroided" FeatureFinder algorithm (class @p FeatureFinderAlgorithmPicked) supports custom seed lists (in featureXML format).
 
 		@experimental This is a new class that still needs to be tested.
   */
