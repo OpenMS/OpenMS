@@ -127,7 +127,6 @@ namespace OpenMS
 		else
 		  key+=String(Math::round(mass));
 
-
 		String line="";
 		line+=origin.toUpper();
 		line+="\t";
@@ -142,8 +141,6 @@ namespace OpenMS
 		line+=full_name;
 
 		mods_and_keys_[key]=full_id;
-		//std::cout<<"pepNovo Line:"<<line<<std::endl;
-		//std::cout<<"pepNovo key:"<<key<<std::endl;
 
 		return line;
 	}

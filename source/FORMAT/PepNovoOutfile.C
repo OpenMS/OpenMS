@@ -61,8 +61,8 @@ namespace OpenMS
 		vector< PeptideIdentification >&	peptide_identifications,
 		ProteinIdentification& protein_identification,
 		const Real& score_threshold,
-		const map< String, pair<Real, Real> >& rt_and_index,
-		const map<String, String>& keys_to_id
+		const map< String, pair<Real, Real> >& pnovoid_to_rt_mz,
+		const map<String, String>& pnovo_modkey_to_mod_id
 		)
 	{
 		// generally used variables
@@ -98,6 +98,7 @@ namespace OpenMS
 		version = "unknown";
 
 		getSearchEngineAndVersion(result_filename, protein_identification);
+		//if information could not be retrieved from the outfile use defaults
 		if ( protein_identification.getSearchEngineVersion().empty() )
 		{
 			protein_identification.setSearchEngine("PepNovo");
@@ -113,10 +114,10 @@ namespace OpenMS
 		  if(mod_it->empty())
 		    continue;
 		  //cout<<*mod_it<<endl;
-		  if(keys_to_id.find(*mod_it)!=keys_to_id.end())
+		  if(pnovo_modkey_to_mod_id.find(*mod_it)!=pnovo_modkey_to_mod_id.end())
 		  {
 		    //cout<<keys_to_id.find(*mod_it)->second<<endl;
-		    ResidueModification tmp_mod =ModificationsDB::getInstance()->getModification(keys_to_id.find(*mod_it)->second);
+		    ResidueModification tmp_mod =ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
 		    mod_mask_map[*mod_it]=tmp_mod.getOrigin()+"("+tmp_mod.getId()+")";
 		  }
 		  else
@@ -124,12 +125,12 @@ namespace OpenMS
         if(mod_it->prefix(1)!=String('^') && mod_it->prefix(1)!=String('$'))
         {
           mod_mask_map[*mod_it]=mod_it->prefix(1)+"["+mod_it->substr(1)+"]";
-          cout<<mod_mask_map[*mod_it]<<endl;
+          //cout<<mod_mask_map[*mod_it]<<endl;
         }
         else
         {
-          //mod_mask_map[*mod_it]="["+*mod_it+"]";
-          cout<<mod_mask_map[*mod_it]<<endl;
+          mod_mask_map[*mod_it]="["+*mod_it+"]";
+          //cout<<mod_mask_map[*mod_it]<<endl;
         }
 		  }
 		}
@@ -145,13 +146,18 @@ namespace OpenMS
 				  peptide_identifications.push_back(peptide_identification);
 
 				peptide_identification = PeptideIdentification();
-				
-				String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
-				//cout<<"INDEX: "<<index<<endl;
-				if ( rt_and_index.find(index) != rt_and_index.end() )
+				line.split(' ', substrings);
+				//String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
+				if(substrings.size()<2)
 				{
-				  peptide_identification.setMetaValue("RT",  rt_and_index.find(index)->second.first);
-				  peptide_identification.setMetaValue("MZ",  rt_and_index.find(index)->second.second);
+				  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id)in file in line " + String(line_number) + String(" (should be 3)!"), result_filename);
+				}
+				String index = substrings[2].trim();
+				//cout<<"INDEX: "<<index<<endl;
+				if ( pnovoid_to_rt_mz.find(index) != pnovoid_to_rt_mz.end() )
+				{
+				  peptide_identification.setMetaValue("RT",  pnovoid_to_rt_mz.find(index)->second.first);
+				  peptide_identification.setMetaValue("MZ",  pnovoid_to_rt_mz.find(index)->second.second);
 				}
 				peptide_identification.setSignificanceThreshold(score_threshold);
 				peptide_identification.setScoreType(score_type);
@@ -250,10 +256,19 @@ namespace OpenMS
 			if (line.hasPrefix("PepNovo"))
 			{
 			  line.split(',', substrings);
-			  if(substrings.size()==2)
+			  if(substrings.size()==2)//previous version of PepNovo
 			  {
 			    protein_identification.setSearchEngine(substrings[0].trim());
 			    protein_identification.setSearchEngineVersion(substrings[1].trim());//else something is strange and we use defaults later
+			  }
+			  else
+			  {
+			    line.split(' ', substrings);
+			    if(substrings.size()==3)
+			    {
+			      protein_identification.setSearchEngine(substrings[0].trim());
+			      protein_identification.setSearchEngineVersion(substrings[2].trim());//else something is strange and we use defaults later
+			    }
 			  }
 			}
 			if (line.hasPrefix("PM"))

@@ -239,10 +239,25 @@ class TOPPPepNovoAdapter
 			std::map<String, pair<Real, Real> >id_to_rt;
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
+			  Int valid_id;
+			  Size num_pos=0;
 			  String native_id=it->getNativeID();
-			  if(native_id.find('=')!=native_id.length())
-			    native_id=native_id.substr(native_id.find('=')+1);//replace entries "scan=number" by "number"as PepNovo uses it as identifier in output
-				id_to_rt[native_id.trim()]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
+
+			  while(!isdigit(native_id[num_pos]) && num_pos<native_id.length())
+			  {
+			    ++num_pos;
+			  }
+			  if(num_pos==native_id.length())
+			  {
+			    writeLog_("No valid NativeId for spectrum. Aborting!");
+          return INPUT_FILE_CORRUPT;
+			  }
+			  else
+			  {
+			    valid_id=native_id.substr(num_pos).toInt();
+			  }
+			  id_to_rt[valid_id]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
+				//std::cout<<"stored id: "<<valid_id<<std::endl;
 			}
 
 			logfile = getStringOption_("log");
@@ -274,7 +289,7 @@ class TOPPPepNovoAdapter
 			  String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
 			  String tmp_models_dir=qdir_temp.absoluteFilePath("Models");
 
-        std::map<String, String>mods_and_keys, key_to_id;
+        std::map<String, String>mods_and_keys; //, key_to_id;
 
 				if(qdir_temp.cd("Models"))
 				{
@@ -332,7 +347,7 @@ class TOPPPepNovoAdapter
 							ptm_command+=":";
 						}
 						ptm_command+= key_it->first;
-						key_to_id[key_it->second]=key_it->first;
+						//key_to_id[key_it->second]=key_it->first;
 					}
 				}
 
@@ -406,7 +421,7 @@ class TOPPPepNovoAdapter
 				  return EXTERNAL_PROGRAM_ERROR;
 				}
       }
-			catch(...)
+			catch(Exception::BaseException &exc)
 			{
 				//remove all possibly created files and folders ion case of unexpected error
 				qdir_temp.setPath(temp_data_directory);
@@ -435,10 +450,11 @@ class TOPPPepNovoAdapter
 					qdir_temp.cdUp();
 					qdir_temp.remove("tmp_pepnovo_out.txt");
 					qdir_temp.rmdir("Models");
-			}
-      return EXTERNAL_PROGRAM_ERROR;
-		}
-  }
+        }
+        writeLog_(exc.what());
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+    }
 };
 
 //@endcond
