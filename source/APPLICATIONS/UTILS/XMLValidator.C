@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -124,6 +125,10 @@ class TOPPXMLValidator
 				case FileTypes::INI :
 					cout << " against schema version " << Param().getVersion() << endl;
 					valid = Param().isValid(in);
+					break;
+			  case FileTypes::PEPXML :
+					cout << " against schema version " << PepXMLFile().getVersion() << endl;
+					valid = PepXMLFile().isValid(in);
 					break;
 				default:
 					cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
