@@ -69,36 +69,19 @@ namespace OpenMS
       }
 
 	protected:
-
-		void writeCSV_(const String& filename,
-									 const SeedListGenerator::SeedList& seeds)
-			{
-				ofstream outstr(filename.c_str());
-				SVOutStream output(outstr, ",");
-				output.modifyStrings(false);
-				output << "#rt" << "mz" << endl;
-				output.modifyStrings(true);
-				for (SeedListGenerator::SeedList::const_iterator it = seeds.begin();
-						 it != seeds.end(); ++it)
-				{
-					output << it->getX() << it->getY() << endl;
-				}
-				outstr.close();
-			}
-		
-		
+	
 		void registerOptionsAndFlags_()
       {
 				registerInputFile_("in", "<file>", "",
 													 "Input file (see below for details)");
 				setValidFormats_("in", StringList::
 												 create("mzML,idXML,featureXML,consensusXML"));
-        registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s) in featureXML or text/CSV format (detected by file extension)");
+        registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
+        setValidFormats_("out", StringList::create("featureXML"));
 				addEmptyLine_();
-				addText_("If input is consensusXML, one output file per constituent map is required (same order as in the consensusXML).\nOtherwise, one output file is expected.");
-        // setValidFormats_("out", StringList::create("featureXML"));
+				addText_("If input is consensusXML, one output file per constituent map is required (same order as in the consensusXML);\notherwise, exactly one output file.");
 				addEmptyLine_();
-				addText_("Seed lists can be generated from the file types below; seeds are created at the indicated positions (RT/MZ):");
+				addText_("Seed lists can be generated from the file types below. The seeds are created at the indicated positions (RT/MZ):");
 				addText_("- mzML: locations of MS2 precursors");
 				addText_("- idXML: locations of peptide identifications");
 				addText_("- featureXML: locations of unassigned peptide identifications");
@@ -110,56 +93,38 @@ namespace OpenMS
       {
 				String in = getStringOption_("in");
 				StringList out = getStringList_("out");
-
 				SeedListGenerator seed_gen;
+				// results (actually just one result, except for consensusXML input):
+				Map<UInt64, SeedListGenerator::SeedList> seed_lists;
 
+				Size num_maps = 0;
 				FileTypes::Type in_type = FileHandler::getType(in);
+
 				if (in_type == FileTypes::CONSENSUSXML)
 				{
 					ConsensusMap consensus;
 					ConsensusXMLFile().load(in, consensus);
-					Size num_maps = consensus.getFileDescriptions().size();
+					num_maps = consensus.getFileDescriptions().size();
 					if (out.size() != num_maps)
 					{
 						writeLog_("Error: expected " + String(num_maps) +
 											" output filenames");
 						return ILLEGAL_PARAMETERS;
 					}
-
-					Map<UInt64, SeedListGenerator::SeedList> seed_lists;
-					seed_gen.getSeedLists(consensus, seed_lists);
-					num_maps = 0;
-					for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
-								 seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
-					{
-						FileTypes::Type out_type = FileHandler::getType(out[num_maps]);
-						if (out_type == FileTypes::FEATUREXML)
-						{
-							FeatureMap<> features;
-							seed_gen.convert(it->second, features);
-							FeatureXMLFile().store(out[num_maps], features);
-						}
-						else
-						{
-							writeCSV_(out[num_maps], it->second);
-						}			
-					}
-					return EXECUTION_OK;
+					seed_gen.generateSeedLists(consensus, seed_lists);
 				}
 
-				if (out.size() > 1)
+				else if (out.size() > 1)
 				{
 					writeLog_("Error: expected only one output filename");
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				SeedListGenerator::SeedList seeds;
-				
-				if (in_type == FileTypes::MZML)
+				else if (in_type == FileTypes::MZML)
 				{
 					MSExperiment<> experiment;
 					MzMLFile().load(in, experiment);
-					seed_gen.getSeedList(experiment, seeds);
+					seed_gen.generateSeedList(experiment, seed_lists[0]);
 				}
 
 				else if (in_type == FileTypes::IDXML)
@@ -167,33 +132,34 @@ namespace OpenMS
 					vector<ProteinIdentification> proteins;
 					vector<PeptideIdentification> peptides;
 					IdXMLFile().load(in, proteins, peptides);
-					seed_gen.getSeedList(peptides, seeds);
+					seed_gen.generateSeedList(peptides, seed_lists[0]);
 				}
 				
 				else if (in_type == FileTypes::FEATUREXML)
 				{
           FeatureMap<> features;
           FeatureXMLFile().load(in, features);
-					seed_gen.getSeedList(features.getUnassignedPeptideIdentifications(),
-															 seeds);
+					seed_gen.generateSeedList(
+						features.getUnassignedPeptideIdentifications(), seed_lists[0]);
 				}
-				
-				FileTypes::Type out_type = FileHandler::getType(out[0]);
-				if (out_type == FileTypes::FEATUREXML)
+
+				// output:
+				num_maps = 0;
+				for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
+							 seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
 				{
 					FeatureMap<> features;
-					seed_gen.convert(seeds, features);
-					FeatureXMLFile().store(out[0], features);
+					seed_gen.convertSeedList(it->second, features);
+					//annotate output with data processing info:
+					addDataProcessing_(features, getProcessingInfo_(
+															 DataProcessing::DATA_PROCESSING));
+					FeatureXMLFile().store(out[num_maps], features);
 				}
-				else
-				{
-					writeCSV_(out[0], seeds);
-				}			
-
-        return EXECUTION_OK;
-      }
-  };
-
+		
+				return EXECUTION_OK;
+			}
+	};
+	
 } 
 
 
