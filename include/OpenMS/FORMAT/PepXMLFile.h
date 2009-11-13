@@ -28,12 +28,13 @@
 #ifndef OPENMS_FORMAT_PEPXMLFILE_H
 #define OPENMS_FORMAT_PEPXMLFILE_H
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
@@ -65,7 +66,7 @@ namespace OpenMS
 				@brief Loads peptide sequences with modifications out of a PepXML file
 				
 				@param filename PepXML file to load
-				@param protein Protein identification output
+				@param proteins Protein identification output
 				@param peptides Peptide identification output
 				@param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file. 
 				@param experiment MS run to extract the retention times from (PepXML contains only scan numbers). If the experiment is empty, it is read from @a experiment_name.
@@ -73,7 +74,7 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment);
+			void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, MSExperiment<>& experiment);
 									
 			/**
 				@brief @a load function with empty defaults for some parameters (see above)
@@ -81,7 +82,7 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
+			void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
 
 			/**
 				@brief Stores idXML as PepXML file
@@ -145,20 +146,12 @@ namespace OpenMS
 					return *this;
 				}
 
-								
-
 			};
 	
-			/// The sequence of the actual peptide hit				
-			String actual_sequence_;
-			
-			/// The modifications of the actual peptide hit (position is 1-based)
-			std::vector<std::pair<String, Size> > actual_modifications_;
-			
-			/// Pointer to the ProteinIdentification
-			ProteinIdentification* protein_;
+			/// Pointer to the list of identified proteins
+			std::vector<ProteinIdentification>* proteins_;
 						
-			/// Pointer to the identified peptides
+			/// Pointer to the list of identified peptides
 			std::vector<PeptideIdentification>* peptides_;
 			
 			/// Pointer to the experiment from which the pepXML file was generated
@@ -170,48 +163,59 @@ namespace OpenMS
 			/// Pointer to the mapping between scan number in the pepXML file and index in the corresponding MSExperiment
 			std::map<Size, Size>* scan_map_;
 
-			/// Mass of a hydrogen atom (monoisotopic/average depending on case)
-			DoubleReal hydrogen_mass_;
+			/// Retention time and mass-to-charge tolerance
+			DoubleReal rt_tol_, mz_tol_;
+
+			/// Hydrogen data (for mass types)
+			Element hydrogen_;
+
+			/// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
+			bool wrong_experiment_;
+
+			/// References to currently active ProteinIdentifications
+			std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;
+						
+			/// Search parameters of the current identification run
+			ProteinIdentification::SearchParameters params_;
+
+			/// Enyzme associated with the current identification run
+			ProteinIdentification::DigestionEnzyme enzyme_;
+
+			/// PeptideIdentification instance currently being processed
+			PeptideIdentification current_peptide_;
+
+			/// PeptideHit instance currently being processed
+			PeptideHit peptide_hit_;
+
+			/// Sequence of the current peptide hit				
+			String current_sequence_;
+			
+			/// RT and m/z of current PeptideIdentification
+			DoubleReal rt_, mz_;
+						
+			/// Precursor ion charge
+			Int charge_;
+	
+			/// ID of current search result
+			Size search_id_;
 
 			/// Identifier linking PeptideIdentifications and ProteinIdentifications
 			String prot_id_;
 
 			/// Date the pepXML file was generated
 			DateTime date_;
-
-			/// Pointer to PeptideHit instance currently being processed
-			PeptideHit* current_hit_;	
-
-			/// Iterator to PeptideIdentification instance currently being processed
-			std::vector<PeptideIdentification>::iterator current_pep_;		
-
-			/// Are current entries belonging to the experiment of interest (for pepXML files that bundle results from different experiments)?
-			bool wrong_experiment_;
-
-			/// Search parameters
-			ProteinIdentification::SearchParameters params_;
-
-			/// Precursor ion charge
-			Int charge_;
-
-			/// Set of protein accessions (used to generate ProteinHits)
-			std::set<String> accessions_;
-						
-			/// Retention time and mass-to-charge tolerance
-			DoubleReal rt_tol_, mz_tol_;
 		
-			/// fixed aminoacid modifications
+			/// Mass of a hydrogen atom (monoisotopic/average depending on case)
+			DoubleReal hydrogen_mass_;
+
+			/// The modifications of the current peptide hit (position is 1-based)
+			std::vector<std::pair<String, Size> > current_modifications_;
+			
+			/// Fixed aminoacid modifications
 			std::vector<AminoAcidModification> fixed_modifications_;	
 			
-			/// variable aminoacid modifications
+			/// Variable aminoacid modifications
 			std::vector<AminoAcidModification> variable_modifications_;
-
-      /// fixed aminoacid modifications
-      std::vector<AminoAcidModification> term_fixed_modifications_;
-
-      /// variable aminoacid modifications
-      std::vector<AminoAcidModification> term_variable_modifications_;
-
 		
 			//@}
 									
