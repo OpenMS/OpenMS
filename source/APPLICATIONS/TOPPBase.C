@@ -1063,8 +1063,8 @@ namespace OpenMS
 					if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
 					{
 						String valid_strings = "";
-						valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
-						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter \"" + name + "\" given. Valid strings are: \"" + valid_strings + "\".");
+						valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"', '");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
 					}
 				}
 				else if (p.type==ParameterInformation::INPUT_FILE)
