@@ -75,10 +75,7 @@ namespace OpenMS
 				@param id_rt_mz map the spectrum identifiers returned by PepNovo
 				to the rt and mz values of the spectrum (used to map the identifications back to the spectra). key: PepNovo Id, value: pair<rt,mz>.
 				For spectra not present in this map identifications cannot be mapped back.
-        @param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key=PepNovo_key, value=OpenMS fullId
-
-				This class serves to read in a PepNovo outfile. The information can be
-				retrieved via the load function.
+				@param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key=PepNovo_key, value=OpenMS fullId
 			*/
 			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications,
 			    ProteinIdentification& protein_identification,

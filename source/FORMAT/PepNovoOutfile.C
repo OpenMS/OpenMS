@@ -289,7 +289,10 @@ namespace OpenMS
         {
           ptm_it->trim();
         }
-        search_param.variable_modifications=substrings;
+        if(!substrings.empty() && substrings[0]!="None")
+		{
+		search_param.variable_modifications=substrings;
+		}
       }
 			if(line.hasPrefix(">>"))
 			{
