@@ -115,7 +115,7 @@ START_SECTION((void insert(const HandleSetType &handle_set)))
 
 END_SECTION
 
-START_SECTION((void insert(Size map_index, Size element_index, const Peak2D &element)))
+START_SECTION((void insert(UInt64 map_index, UInt64 element_index, const Peak2D &element)))
   ConsensusFeature cf;
   Peak2D el;
   for ( UInt i = 0; i < 3; ++i )
@@ -130,7 +130,7 @@ START_SECTION((void insert(Size map_index, Size element_index, const Peak2D &ele
 
 END_SECTION
 
-START_SECTION((void insert(Size map_index, Size element_index, const ConsensusFeature &element)))
+START_SECTION((void insert(UInt64 map_index, UInt64 element_index, const ConsensusFeature &element)))
   ConsensusFeature cf;
   ConsensusFeature el;
   for ( UInt i = 0; i < 3; ++i )
@@ -179,7 +179,7 @@ START_SECTION((ConsensusFeature(const Feature &feature)))
   TEST_EQUAL(cf.getCharge(),-17);
 END_SECTION
 
-START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Feature &element)))
+START_SECTION((ConsensusFeature(UInt64 map_index, UInt64 element_index, const Feature &element)))
  	ConsensusFeature cons(1,3,tmp_feature);
 
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
@@ -191,7 +191,7 @@ START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Featur
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
-START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Peak2D &element)))
+START_SECTION((ConsensusFeature(UInt64 map_index, UInt64 element_index, const Peak2D &element)))
   Peak2D f;
   f.setIntensity(-17);
   const Peak2D& f_cref = f;
@@ -203,7 +203,7 @@ START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Peak2D
   TEST_EQUAL(it->getIntensity(),-17);
 END_SECTION
 
-START_SECTION((ConsensusFeature(Size map_index, Size element_index, const ConsensusFeature &element)))
+START_SECTION((ConsensusFeature(UInt64 map_index, UInt64 element_index, const ConsensusFeature &element)))
   ConsensusFeature f;
   f.setIntensity(-17);
   const ConsensusFeature& f_cref = f;
@@ -276,7 +276,7 @@ START_SECTION((void insert(const FeatureHandle &handle)))
   TEST_EQUAL(it==cons.end(), true)
 END_SECTION
 
-START_SECTION((void insert(Size map_index, Size element_index, const Feature &element)))
+START_SECTION((void insert(UInt64 map_index, UInt64 element_index, const Feature &element)))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
 
@@ -288,7 +288,7 @@ START_SECTION((void insert(Size map_index, Size element_index, const Feature &el
   TEST_EQUAL(it==cons.end(),true)
 END_SECTION
 
-START_SECTION((QualityType getQuality() const ))
+START_SECTION((QualityType getQuality() const))
 	ConsensusFeature cons;
 	TEST_EQUAL(cons.getQuality(),0.0)
 END_SECTION
@@ -299,7 +299,7 @@ START_SECTION((void setQuality(QualityType quality)))
 	TEST_REAL_SIMILAR(cons.getQuality(),4.5);
 END_SECTION
 
-START_SECTION((Int getCharge() const ))
+START_SECTION((Int getCharge() const))
   ConsensusFeature const cons;
   TEST_EQUAL(cons.getCharge(),0);
 END_SECTION
@@ -310,7 +310,7 @@ START_SECTION((void setCharge(Int charge)))
   TEST_EQUAL(cons.getCharge(),-567);
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const ))
+START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
   ConsensusFeature const cons;
   TEST_EQUAL(cons.getPeptideIdentifications().size(),0);
 END_SECTION

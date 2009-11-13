@@ -71,16 +71,29 @@ START_SECTION((const Param& getParameters() const))
 	TEST_EQUAL(td.getParameters(),Param())
 END_SECTION
 
-START_SECTION((DoubleReal getParam(const String& name) const))
+START_SECTION((const DataValue& getParam(const String &name) const))
 	TransformationDescription td;
 	TEST_EXCEPTION(Exception::ElementNotFound, td.getParam("bla"))
 END_SECTION
 
 START_SECTION((void setParam(const String& name, DoubleReal value)))
-	TransformationDescription td;
-	td.setParam("bla",4.5);
-	TEST_REAL_SIMILAR(td.getParam("bla"),4.5)
+  TransformationDescription td;
+  td.setParam("bla",4.5);
+  TEST_REAL_SIMILAR(td.getParam("bla"),4.5)
 END_SECTION
+
+START_SECTION((void setParam(const String& name, Int value)))
+  TransformationDescription td;
+  td.setParam("bla",17);
+  TEST_EQUAL(td.getParam("bla"),17)
+END_SECTION
+
+START_SECTION((void setParam(const String& name, const String& value)))
+  TransformationDescription td;
+  td.setParam("bla","yummyummmmyummmmmy");
+  TEST_EQUAL(td.getParam("bla"),"yummyummmmyummmmmy")
+END_SECTION
+
 
 START_SECTION((void setParameters(const Param& param)))
 	TransformationDescription td;

@@ -340,11 +340,16 @@ START_SECTION((template <typename  Value > std::ostream & operator<<(std::ostrea
 }
 END_SECTION
 
+#if 0
+// actually seems to *generate* a warning for me! - Clemens
+
 START_SECTION((OPENMS_DLLAPI gsl_matrix * toGslMatrix()))
 {
 	NOT_TESTABLE // avoid warning
 }
 END_SECTION
+
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

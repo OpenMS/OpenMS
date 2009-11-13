@@ -307,7 +307,6 @@ namespace OpenMS
 				@param input_map The container to be converted.  (Must support size() and operator[].)
 				@param output_map The resulting ConsensusMap.
 
-        @todo Discuss how to proceed with the unique id.
 			*/
 			template <typename FeatureT>
 			static void convert(UInt64 const input_map_index, FeatureMap<FeatureT> const & input_map, ConsensusMap& output_map )
@@ -337,7 +336,6 @@ namespace OpenMS
 				@param output_map The resulting ConsensusMap.
 				@param n The maximum number of elements to be copied.
 
-				@todo Discuss how to proceed with the unique id.
 			*/
 			static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n)
 			{

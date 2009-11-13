@@ -42,7 +42,7 @@ using namespace OpenMS;
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(FeatureMap<D>, "$Id$")
+START_TEST(FeatureMap, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -581,6 +581,46 @@ START_SECTION(([EXTRA] void uniqueIdToIndex()))
     TEST_EXCEPTION_WITH_MESSAGE(Exception::Postcondition,fm.updateUniqueIdToIndex(),"Duplicate valid unique ids detected!   RandomAccessContainer has size()==7, num_valid_unique_id==4, uniqueid_to_index_.size()==3");
 }
 END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
+{
+  FeatureMap<> fm;
+  fm.push_back(Feature());
+  fm.push_back(Feature());
+  fm.back().getSubordinates().push_back(Feature());
+
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  fm.setUniqueId();
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  fm.front().clearUniqueId();
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const ))
+{
+  FeatureMap<> fm;
+  FeatureMap<> const & fmc(fm);
+  fm.push_back(Feature());
+  fm.push_back(Feature());
+  fm.back().getSubordinates().push_back(Feature());
+
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  fm.setUniqueId();
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  fm.front().clearUniqueId();
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -45,7 +45,7 @@ namespace OpenMS
 
 	A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-  @todo take care that unique ids are assigned properly by TOPP tools before calling store().
+  @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
 
 	@ingroup FileIO
   */

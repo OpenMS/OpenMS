@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Clemens Groepl $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ START_SECTION((UniqueIdInterface(const UniqueIdInterface &rhs)))
   UniqueIdInterface uii1;
   UniqueIdInterface uii2(uii1);
   // to be continued further below
-  // NOT_TESTABLE
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -68,11 +68,11 @@ START_SECTION((UniqueIdInterface& operator=(UniqueIdInterface const &rhs)))
   UniqueIdInterface uii2;
   uii2 = uii1;
   // to be continued further below
-  // NOT_TESTABLE
+  NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((~UniqueIdInterface()))
+START_SECTION([EXTRA](~UniqueIdInterface()))
 {
   {
     UniqueIdInterface uii1;
@@ -81,7 +81,7 @@ START_SECTION((~UniqueIdInterface()))
     // destructor called when the scope is left
   }
   // to be continued further below ;-)
-  // NOT_TESTABLE
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -129,7 +129,23 @@ START_SECTION((Size clearUniqueId()))
 }
 END_SECTION
 
-START_SECTION((static UniqueIdInterface::isValid(UInt64) ))
+START_SECTION((void swap(UniqueIdInterface &from)))
+{
+	UniqueIdInterface u1;
+	u1.setUniqueId(111);
+	UniqueIdInterface u2;
+	u2.setUniqueId(222);
+	u1.swap(u2);
+	TEST_EQUAL(u1.getUniqueId(),222);
+	TEST_EQUAL(u2.getUniqueId(),111);
+	std::swap(u1,u2);
+	TEST_EQUAL(u1.getUniqueId(),111);
+	TEST_EQUAL(u2.getUniqueId(),222);
+}
+END_SECTION
+
+
+START_SECTION((static bool isValid(UInt64 unique_id)))
 {
   TEST_EQUAL(UniqueIdInterface::isValid(UniqueIdInterface::INVALID),false);
   TEST_EQUAL(UniqueIdInterface::isValid(1234567890),true);

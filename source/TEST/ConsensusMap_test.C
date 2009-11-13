@@ -252,7 +252,7 @@ START_SECTION((ConsensusMap(Base::size_type n)))
 END_SECTION
 
 
-START_SECTION((template < typename FeatureT > static void convert(Size const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map)))
+START_SECTION((template < typename FeatureT > static void convert(UInt64 const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map)))
 
   FeatureMap<> fm;
   Feature f;
@@ -279,7 +279,7 @@ START_SECTION((template < typename FeatureT > static void convert(Size const inp
 
 END_SECTION
 
-START_SECTION((static void convert(Size const input_map_index, MSExperiment<> &input_map, ConsensusMap &output_map, Size n)))
+START_SECTION((static void convert(UInt64 const input_map_index, MSExperiment<> &input_map, ConsensusMap &output_map, Size n)))
 {
   MSExperiment<Peak1D> mse;
   MSSpectrum<Peak1D> mss;
@@ -540,7 +540,7 @@ START_SECTION((void sortByMaps()))
 }
 END_SECTION
 
-START_SECTION(void clear(bool clear_meta_data))
+START_SECTION((void clear(bool clear_meta_data)))
 {
   ConsensusMap map1;
 	ConsensusFeature f;
@@ -560,6 +560,45 @@ START_SECTION(void clear(bool clear_meta_data))
 
 	map1.clear(true);
 	TEST_EQUAL(map1==ConsensusMap(),true)
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
+{
+  ConsensusMap cm;
+  cm.push_back(ConsensusFeature());
+  cm.push_back(ConsensusFeature());
+  cm.push_back(ConsensusFeature());
+
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  cm.setUniqueId();
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  cm.front().clearUniqueId();
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
+}
+END_SECTION
+
+START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const ))
+{
+  ConsensusMap cm;
+  ConsensusMap const & cmc(cm);
+  cm.push_back(ConsensusFeature());
+  cm.push_back(ConsensusFeature());
+  cm.push_back(ConsensusFeature());
+
+  TEST_EQUAL(cmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
+  cm.setUniqueId();
+  TEST_EQUAL(cmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
+  cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  TEST_EQUAL(cmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(cm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
+  cm.front().clearUniqueId();
+  TEST_EQUAL(cmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(cmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
 }
 END_SECTION
 
