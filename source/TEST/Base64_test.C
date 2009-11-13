@@ -250,6 +250,7 @@ START_SECTION((void encodeStrings(std::vector<String>& in, String& out, bool zli
 	//without zlib compression
 	b64.encodeStrings(strings,str,false);
 	b64.decodeStrings(str,strings,false);
+	TEST_EQUAL(strings.size() == 5,true )
 	TEST_EQUAL(strings[0],"das")
 	TEST_EQUAL(strings[1],"ist")
 	TEST_EQUAL(strings[2],"ein")

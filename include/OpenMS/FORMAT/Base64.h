@@ -46,7 +46,6 @@
 #include <zlib.h>
 #include <QtCore/QString>
 
-#include<iostream>
 
 namespace OpenMS
 {
@@ -224,9 +223,9 @@ namespace OpenMS
 		//encode with compression
 		if (zlib_compression)
 		{
-			Size compressed_length = static_cast<Size>(2*input_bytes);
+			unsigned long compressed_length = static_cast<unsigned long>(2*input_bytes);
 			compressed.resize(compressed_length);
-			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), (Size) input_bytes) != Z_OK)
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), input_bytes) != Z_OK)
 			{
 				compressed_length *= 2;
 				compressed.reserve(compressed_length);
@@ -523,9 +522,9 @@ namespace OpenMS
 		//encode with compression (use Qt because of zlib support)
 		if (zlib_compression)
 		{
-			Size compressed_length = static_cast<Size>(2*input_bytes);
+			unsigned long compressed_length = static_cast<unsigned long>(2*input_bytes);
 			compressed.resize(compressed_length);
-			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), (Size) input_bytes) != Z_OK)
+			while(compress(reinterpret_cast<Bytef *>(&compressed[0]),&compressed_length , reinterpret_cast<Bytef*>(&in[0]), input_bytes) != Z_OK)
 			{
 				compressed_length *= 2;
 				compressed.reserve(compressed_length);
