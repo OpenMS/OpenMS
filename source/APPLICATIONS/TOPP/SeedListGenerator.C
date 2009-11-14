@@ -47,7 +47,15 @@ using namespace std;
 	
 	@brief Application to generate seed lists for feature detection.
 	
-	Seed lists specify locations in an MS experiment where features are expected. Currently, only the "wavelet" FeatureFinder algorithm supports custom seed lists (in FeatureXML format).
+	In feature detection algorithms, an early step is generally to identify points of interest in the LC-MS map (so-called seeds) that may later be extended to features. If supported by the feature detection algorithm (currently only the "centroided" algorithm), user-supplied seed lists allow greater control over this process.
+
+	The SeedListGenerator can automatically create seed lists from a variety of sources. The lists are exported in featureXML format - suitable as input to FeatureFinder -, but can be converted to or from text formats (e.g. CSV) using the TextExporter (with "-minimal" option) and TextImporter tools.
+
+	What are possible use cases for custom seed lists?
+	- In analyses that can take into account only features with peptide annotations, it may be useful to focus directly on certain locations in the LC-MS map - on all MS2 precursors (mzML input), or on precursors whose fragment spectra could be matched to a peptide sequence (idXML input).
+	- When additional information becomes available during an analysis, one might want to perform a second, targeted round of feature detection on the experimental data. For example, once a feature map is annotated with peptide identifications, it is possible to go back to the LC-MS map and look for features near unassigned peptides, potentially with a lower score threshold (featureXML input).
+	- Similarly, when features from different experiments are aligned and grouped, the consensus map may reveal where features were missed in the initial detection round in some experiments. The locations of these "holes" in the consensus map can be compiled into seed lists for the individual experiments (consensusXML input). (Note that the resulting seed lists use the retention time scale of the consensus map, which might be different from the original time scales of the experiments if e.g. the MapAligner tool was used to perform retention time correction as part of the alignment process. In this case, the RT transformations from the alignment must be applied to the LC-MS maps prior to the seed list-based feature detection runs.)
+
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_SeedListGenerator.cli
