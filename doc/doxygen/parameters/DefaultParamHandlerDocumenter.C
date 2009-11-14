@@ -133,7 +133,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
@@ -409,8 +409,7 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
-	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
-	DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
+	DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM<Peak1D,Feature>()))
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
