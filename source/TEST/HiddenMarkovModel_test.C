@@ -153,20 +153,20 @@ START_SECTION((const HMMState* getState(const String& name) const))
 	TEST_EQUAL(ptr->getState("state_name_hidden"), state_ptr)
 END_SECTION
 
-START_SECTION((double getTransitionProbability(const String& s1, const String& s2) const))
+START_SECTION((DoubleReal getTransitionProbability(const String& s1, const String& s2) const))
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability("state_name_hidden", "state_name_emitting"), 0.0)
 END_SECTION
 
-START_SECTION((double getTransitionProbability(HMMState* s1, HMMState* s2) const))
+START_SECTION((DoubleReal getTransitionProbability(HMMState* s1, HMMState* s2) const))
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.0)
 END_SECTION
 
-START_SECTION((void setTransitionProbability(const String& s1, const String& s2, double prob)))
+START_SECTION((void setTransitionProbability(const String& s1, const String& s2, DoubleReal prob)))
 	ptr->setTransitionProbability("state_name_hidden", "state_name_emitting", 0.3);
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability("state_name_hidden", "state_name_emitting"), 0.3)
 END_SECTION
 
-START_SECTION((void setTransitionProbability(HMMState* s1, HMMState* s2, double prob)))
+START_SECTION((void setTransitionProbability(HMMState* s1, HMMState* s2, DoubleReal prob)))
 	ptr->setTransitionProbability(state_ptr, state_ptr2, 0.4);
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.4)
 END_SECTION
@@ -179,20 +179,15 @@ START_SECTION((void addSynonymTransition(const String& name1, const String& name
 	ptr->addSynonymTransition("state_name_hidden", "state_name_emitting", "state_name_hidden2", "state_name_emitting2");
 END_SECTION
 
-//START_SECTION((void buildSynonyms()))
-//	ptr->buildSynonyms();
-//	TEST_REAL_SIMILAR(ptr->getTransitionProbability("state_name_hidden2", "state_name_emitting2"), 0.4)
-//END_SECTION
-
-START_SECTION((void setInitialTransitionProbability(const String& state, double prob)))
+START_SECTION((void setInitialTransitionProbability(const String& state, DoubleReal prob)))
 	ptr->setInitialTransitionProbability("state_name_hidden2", 1.0);
 END_SECTION
 
-START_SECTION((void setTrainingEmissionProbability(const String& state, double prob)))
+START_SECTION((void setTrainingEmissionProbability(const String& state, DoubleReal prob)))
 
 END_SECTION
 
-START_SECTION((void setTrainingEmissionProbability(HMMState* state, double prob)))
+START_SECTION((void setTrainingEmissionProbability(HMMState* state, DoubleReal prob)))
 
 END_SECTION
 			
@@ -216,7 +211,7 @@ START_SECTION((void disableTransitions()))
 	ptr->disableTransitions();
 END_SECTION
 
-START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
+START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, DoubleReal>& emission_probs)))
 
 END_SECTION
 
@@ -309,12 +304,12 @@ START_SECTION(void addNewState(const String &name))
 	TEST_EQUAL(ptr->getNumberOfStates(), 1)
 END_SECTION
   
-START_SECTION(void setPseudoCounts(double pseudo_counts))
+START_SECTION(void setPseudoCounts(DoubleReal pseudo_counts))
 	ptr->setPseudoCounts(10e-3);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(double getPseudoCounts() const)
+START_SECTION(DoubleReal getPseudoCounts() const)
 	TEST_EQUAL(ptr->getPseudoCounts(), 10e-3)
 END_SECTION
 

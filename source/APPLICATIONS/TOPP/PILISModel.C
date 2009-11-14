@@ -76,6 +76,8 @@ using namespace std;
 	peptide has charge 0, spectra for all charges from 'min_charge' to 'max_charge' 
 	are generated.
 
+	@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PILISModel.cli
 */
