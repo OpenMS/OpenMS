@@ -78,8 +78,6 @@ add_test("TOPP_FeatureFinder_1" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA
 add_test("TOPP_FeatureFinder_1_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_1_output.featureXML)
 add_test("TOPP_FeatureFinder_2" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
 add_test("TOPP_FeatureFinder_2_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_2_output.featureXML)
-add_test("TOPP_FeatureFinder_3" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_1_input.mzML -out FeatureFinder.tmp)
-add_test("TOPP_FeatureFinder_3_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_3_output.featureXML)
 add_test("TOPP_FeatureFinder_4" ${TOPP_BIN_PATH}/FeatureFinder -test -ini ${DATA_DIR_TOPP}/FeatureFinder_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinder_4_input.mzML -out FeatureFinder.tmp)
 add_test("TOPP_FeatureFinder_4_out1" ${DIFF} -in1 FeatureFinder.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinder_4_output.featureXML)
 add_test("TOPP_FeatureFinder_5" ${TOPP_BIN_PATH}/FeatureFinder -test -in ${DATA_DIR_TOPP}/FeatureFinder_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinder_5.ini -out FeatureFinder.tmp)
