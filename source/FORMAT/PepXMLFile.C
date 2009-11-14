@@ -506,7 +506,11 @@ namespace OpenMS
 			current_peptide_.setMetaValue("RT", rt_);
 			current_peptide_.setMetaValue("MZ", mz_);
 			search_id_ = 1; // references "search_summary"
-			optionalAttributeAsUInt_(search_id_, attributes, "search_id");
+			UInt tmp_id(0);
+			if (optionalAttributeAsUInt_(tmp_id, attributes, "search_id"))
+			{
+				search_id_ = tmp_id;
+			}
 			current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
 		}
 
