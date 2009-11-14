@@ -141,7 +141,7 @@ namespace OpenMS
 			virtual ~HiddenMarkovModel();
 			//@}
 
-			///
+			/// assignment operator
 			HiddenMarkovModel& operator = (const HiddenMarkovModel&);
 			
 			/** Accessors
@@ -157,17 +157,8 @@ namespace OpenMS
 			/// writes the HMM into an outstream
 			void write(std::ostream& out) const;
 
-			/// read a HMM from the given file
-			//void readFromFile(const String& filename);
-
-			/// returns the transition probability of the given states
-			DoubleReal getTransitionProbability(HMMState* s1, HMMState* s2) const;
-
 			/// returns the transition probability of the given state names
 			DoubleReal getTransitionProbability(const String& s1, const String& s2) const;
-
-			/// sets the transition probability of the given states to prob
-			void setTransitionProbability(HMMState* s1, HMMState* s2, DoubleReal prob);
 
 			/// sets the transition probability of the given state names to prob
 			void setTransitionProbability(const String& s1, const String& s2, DoubleReal prob);
@@ -197,22 +188,13 @@ namespace OpenMS
 			void clearInitialTransitionProbabilities();
 
 			/// sets the emission probability of the given state to prob
-			void setTrainingEmissionProbability(HMMState* state, DoubleReal prob);
-
-			/// sets the emission probability of the given state to prob
 			void setTrainingEmissionProbability(const String& state, DoubleReal prob);
 
 			/// clear the emission probabilities
 			void clearTrainingEmissionProbabilities();
 
 			/// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
-			void enableTransition(HMMState* s1, HMMState* s2);
-
-			/// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
 			void enableTransition(const String& s1, const String& s2);
-
-			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
-			void disableTransition(HMMState* s1, HMMState* s2);
 
 			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
 			void disableTransition(const String& s1, const String& s2);
@@ -244,17 +226,33 @@ namespace OpenMS
 			/// clears all data
 			void clear();
 
-			/// 
+			/// sets the pseudo count that are added instead of zero
 			void setPseudoCounts(DoubleReal pseudo_counts);
 
-			///
+			/// returns the pseudo counts
 			DoubleReal getPseudoCounts() const;
 
 			void setVariableModifications(const StringList& modifications);
 			//@}
 			
 		protected:
-			
+		
+			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
+      void disableTransition_(HMMState* s1, HMMState* s2);
+
+      /// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
+      void enableTransition_(HMMState* s1, HMMState* s2);
+
+      /// sets the emission probability of the given state to prob
+      void setTrainingEmissionProbability_(HMMState* state, DoubleReal prob);	
+
+      /// sets the transition probability of the given states to prob
+      void setTransitionProbability_(HMMState* s1, HMMState* s2, DoubleReal prob);
+
+			/// returns the transition probability of the given states
+      DoubleReal getTransitionProbability_(HMMState* s1, HMMState* s2) const;
+
+
 			/// performs the forward algorithm
 			void calculateForwardPart_();
 

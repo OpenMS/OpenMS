@@ -244,7 +244,7 @@ namespace OpenMS
 				out << "    <edge source=\"" << it->first->getName() << "\" target=\"" << (*it1)->getName() << "\" directed=\"true\">" << endl;
 				out << "      <data key=\"d1\">" << endl;
 				out << "        <y:PolyLineEdge>" << endl;
-				out << "          <y:EdgeLabel>" << getTransitionProbability(it->first, *it1) << "</y:EdgeLabel>" << endl;
+				out << "          <y:EdgeLabel>" << getTransitionProbability_(it->first, *it1) << "</y:EdgeLabel>" << endl;
 				out << "        </y:PolyLineEdge>" << endl;
 				out << "      </data>" << endl;
 				out << "    </edge>" << endl;
@@ -393,7 +393,7 @@ namespace OpenMS
 	*/	
 	}
 
-	void HiddenMarkovModel::setTransitionProbability(HMMState * s1, HMMState * s2, DoubleReal trans_prob)
+	void HiddenMarkovModel::setTransitionProbability_(HMMState * s1, HMMState * s2, DoubleReal trans_prob)
 	{
 		trans_[s1][s2] = trans_prob;
 		s1->addSuccessorState(s2);
@@ -430,10 +430,10 @@ namespace OpenMS
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
 		}
 		HMMState* state2 = name_to_state_[s2];
-		return getTransitionProbability(state1, state2);
+		return getTransitionProbability_(state1, state2);
 	}
 	
-	DoubleReal HiddenMarkovModel::getTransitionProbability(HMMState* s1, HMMState* s2) const
+	DoubleReal HiddenMarkovModel::getTransitionProbability_(HMMState* s1, HMMState* s2) const
 	{
 		HMMState* state1 = s1;
 		HMMState* state2 = s2;
@@ -527,7 +527,7 @@ namespace OpenMS
 		for (set<pair<HMMState*, HMMState*> >::const_iterator it = trained_trans_.begin(); it != trained_trans_.end(); ++it)
 		{
 			DoubleReal tmp(0);
-			tmp = num_px * getForwardVariable_(it->first) * getBackwardVariable_(it->second) * getTransitionProbability(it->first, it->second);
+			tmp = num_px * getForwardVariable_(it->first) * getBackwardVariable_(it->second) * getTransitionProbability_(it->first, it->second);
 			tmp += pseudo_counts_;
 			HMMState* s1 = it->first;
 			HMMState* s2 = it->second;
@@ -579,7 +579,7 @@ namespace OpenMS
 						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 						cerr << "\tadding from " << (*it2)->getName() << " " << getForwardVariable_(*it2) << " * " << getTransitionProbability(*it2, *it) << endl;
 						#endif
-						sum += getForwardVariable_(*it2) * getTransitionProbability(*it2, *it);
+						sum += getForwardVariable_(*it2) * getTransitionProbability_(*it2, *it);
 						trained_trans_.insert(make_pair(*it2, *it));
 					}
 					forward_[*it] = sum;
@@ -621,7 +621,7 @@ namespace OpenMS
 						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 						cerr << "\tadding from " << (*it2)->getName() << " " << getBackwardVariable_(*it2) << " * " << getTransitionProbability(*it, *it2) << endl;
 						#endif
-						sum += getBackwardVariable_(*it2) * getTransitionProbability(*it, *it2);
+						sum += getBackwardVariable_(*it2) * getTransitionProbability_(*it, *it2);
 						trained_trans_.insert(make_pair(*it, *it2));
 					}
 					backward_[*it] = sum;
@@ -722,10 +722,10 @@ namespace OpenMS
 #ifdef SIMPLE_DEBUG2
 		cerr << "enableTransition: '" << s1 << "' -> '" << s2 << "'" << endl;
 #endif
-		enableTransition(name_to_state_[s1], name_to_state_[s2]);
+		enableTransition_(name_to_state_[s1], name_to_state_[s2]);
 	}
 
-	void HiddenMarkovModel::enableTransition(HMMState* s1, HMMState* s2)
+	void HiddenMarkovModel::enableTransition_(HMMState* s1, HMMState* s2)
 	{
 		s1->addSuccessorState(s2);
 		s2->addPredecessorState(s1);
@@ -734,10 +734,10 @@ namespace OpenMS
 
 	void HiddenMarkovModel::disableTransition(const String& s1, const String& s2)
 	{
-		disableTransition(name_to_state_[s1], name_to_state_[s2]);
+		disableTransition_(name_to_state_[s1], name_to_state_[s2]);
 	}
 	
-	void HiddenMarkovModel::disableTransition(HMMState* s1, HMMState* s2)
+	void HiddenMarkovModel::disableTransition_(HMMState* s1, HMMState* s2)
 	{
 		s1->deleteSuccessorState(s2);
 		s2->deletePredecessorState(s1);
@@ -768,26 +768,31 @@ namespace OpenMS
 			{
 				for (set<HMMState*>::const_iterator it2 = it->first->getSuccessorStates().begin(); it2 != it->first->getSuccessorStates().end(); ++it2)
 				{
-					//cerr << "->" << (*it2)->getName() << "=(from " << it->first->getName() << ") " << states[it->first] << " + " << getTransitionProbability(it->first, *it2) << endl;
+					//cerr << "->" << (*it2)->getName() << "=(from " << it->first->getName() << "): "; // << states[it->first] << " * " << getTransitionProbability_(it->first, *it2) << " ";
 					if (states.find(*it2) != states.end())
 					{
-						states[*it2] += states[it->first] * getTransitionProbability(it->first, *it2);
+						//cerr << " += " << states[it->first] * getTransitionProbability_(it->first, *it2);
+						states[*it2] += states[it->first] * getTransitionProbability_(it->first, *it2);
 					}
 					else
 					{
-						states[*it2] = states[it->first] * getTransitionProbability(it->first, *it2);
+						//cerr << " = " << states[it->first] * getTransitionProbability_(it->first, *it2);
+						states[*it2] = states[it->first] * getTransitionProbability_(it->first, *it2);
 					}
 					if (!(*it2)->isHidden())
 					{
 						if (emission_probs.find(*it2) != emission_probs.end())
 						{
-							emission_probs[*it2] += states[*it2];
+							//cerr << " emission: += " << states[it->first] * getTransitionProbability_(it->first, *it2);
+							emission_probs[*it2] += states[it->first] * getTransitionProbability_(it->first, *it2);
 						}
 						else
-						{
-							emission_probs[*it2] = states[*it2];
+						{	
+							//cerr << " emission: += " << states[it->first] * getTransitionProbability_(it->first, *it2);
+							emission_probs[*it2] = states[it->first] * getTransitionProbability_(it->first, *it2);
 						}
 					}
+					//cerr << endl;
 				}
 				states.erase(it->first);
 			}
