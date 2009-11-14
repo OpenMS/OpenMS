@@ -42,12 +42,11 @@ namespace OpenMS
 		public: 
 			///Default Constructor
 			Bzip2Ifstream();
-			/// 
+			/// Detailed constructor with filename
 			Bzip2Ifstream(const char * filename);
 			///Destructor
 			virtual ~Bzip2Ifstream();
 			
-			//operator>>();
 			/**
 					@brief reads n bytes from the bzip2 compressed file into buffer s
 					

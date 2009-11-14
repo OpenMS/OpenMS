@@ -41,12 +41,11 @@ namespace OpenMS
 		public: 
 			///Default Constructor
 			GzipIfstream();
-			/// 
+			/// Detailed constructor with filename
 			GzipIfstream(const char * filename);
 			///Destructor
 			virtual ~GzipIfstream();
 			
-			//operator>>();
 			/**
 					@brief reads n bytes from the gzip compressed file into buffer s
 					
@@ -88,17 +87,17 @@ namespace OpenMS
 				@param s the buffer which will be checked
 				@param n the size of the buffer
 			*	
-			void updateCRC32(const char* s,const size_t n);
+			//void updateCRC32(const char* s,const size_t n);
 			
 			*
 				@brief	checks if data is corrupted after crc32 was computed
 				@note 	it can only be used if updateCRC32 was called after every call of function read
 				@return true if the buffer and hence the file is corrupted; no decompression is possible
 			*
-			bool isCorrupted();
+			//bool isCorrupted();
 			
-			unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
-                                       size_t bufLen );*/
+			//unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
+      //                                 size_t bufLen );*/
 			
 		protected:
 
