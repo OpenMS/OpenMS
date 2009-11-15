@@ -74,7 +74,7 @@ Changes to the Build System:
 - SVN Revision (if available) is determined and compiled into OpenMS before the library is build
 	
 Changes to OpenMS XML formats:
-- FeatureXML and ConsensusXML files use unique ids now instead of running indices
+- FeatureXML and ConsensusXML files use unique ids now instead of running indices. New XML Schema versions: 1.4
 
 Changes to the contrib package:
 - Updated GSL to version 1.13
