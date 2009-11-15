@@ -33,13 +33,8 @@
 
 ///////////////////////////
 
-#include <fstream>
-#include <string>
-
-#include <QtCore/QString>
-#include <QtCore/QTime>
 #include <OpenMS/CONCEPT/Types.h>
-#include <iostream>
+
 using namespace std;
 
 START_TEST(Base64, "$Id$")
@@ -153,9 +148,9 @@ START_SECTION([EXTRA] zlib functionality)
 	std::vector<DoubleReal> data_double,res_double;
 	
 	//double_real .- big endian
-	data_double.push_back(300.15);
-	data_double.push_back(303.998);
-	data_double.push_back(304.6);
+	data_double.push_back(300.15f);
+	data_double.push_back(303.998f);
+	data_double.push_back(304.6f);
 	b64.encode(data_double,Base64::BYTEORDER_BIGENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN, res_double,true);
 	TEST_REAL_SIMILAR(res_double[0],300.15);
