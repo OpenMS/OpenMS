@@ -458,11 +458,13 @@ namespace OpenMS
 			TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
 			if (iflv)
 			{
+				// store file names relative to toppas file
+				QDir save_dir(File::path(file).toQString());
 				const QStringList& files_qt = iflv->getFilenames();
 				StringList files;
-				foreach (QString file_qt, files_qt)
+				foreach (const QString& file_qt, files_qt)
 				{
-					files.push_back(String(file_qt));
+					files.push_back(save_dir.relativeFilePath(file_qt));
 				}
 				save_param.setValue("vertices:"+id+":toppas_type", DataValue("input file list"));
 				save_param.setValue("vertices:"+id+":file_names", DataValue(files));
@@ -552,10 +554,12 @@ namespace OpenMS
 				if (current_type == "input file list")
 				{
 					StringList file_names = vertices_param.getValue(current_id + ":file_names");
+					// make file names absolute again
+					QDir load_dir(File::path(file).toQString());
 					QStringList file_names_qt;
 					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
 					{
-						file_names_qt.push_back(str_it->toQString());
+						file_names_qt.push_back(QDir::cleanPath(load_dir.absoluteFilePath(str_it->toQString())));
 					}
 					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;
