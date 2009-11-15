@@ -43,9 +43,12 @@ namespace OpenMS
 		setupUi(this);
 		
 		line_edit->setText(file_name);
+		// disable completer for windows, causes crashes
+		#ifndef OPENMS_WINDOWSPLATFORM
 		QCompleter* completer = new QCompleter(this);
 		completer->setModel(new QDirModel(completer));
 		line_edit->setCompleter(completer);
+		#endif
 		connect (browse_button,SIGNAL(clicked()),this,SLOT(showFileDialog()));
 		connect (ok_button,SIGNAL(clicked()),this,SLOT(checkValidity_()));
 		connect (cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
