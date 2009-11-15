@@ -139,13 +139,14 @@ namespace OpenMS
 		//Help menu
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
-		//help->addAction(QWhatsThis::createAction(help));
-		//help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
+		action = help->addAction("TOPPAS tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPP_tutorial.html");
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
-
+		
+		
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
