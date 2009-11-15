@@ -88,6 +88,25 @@ namespace OpenMS
 		// start drag
 		drag->exec(Qt::CopyAction);
 	}
+	
+	void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
+	{
+		QTreeWidget::keyPressEvent(e);
+		if (currentItem() && e->key() == Qt::Key_Return)
+		{
+			emit itemDoubleClicked(currentItem(), 0);
+		}
+	}
+	
+	void TOPPASTreeView::enterEvent(QEvent* /*e*/)
+	{
+		setFocus();
+	}
+	
+	void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
+	{
+		
+	}
 
 } //namespace OpenMS	
 

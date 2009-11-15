@@ -152,8 +152,10 @@ namespace OpenMS
     	void updateMenu();
     	/// Shows the widget as window in the workspace
     	void showAsWindow_(TOPPASWidget* sw, const String& caption);
-			/// Inserts a new TOPP tool vertex in the current window
-			void insertNewVertex_(double x, double y);
+			/// Inserts a new TOPP tool in the current window at (x,y)
+			void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
+			/// Inserts the @p item in the middle of the current window
+			void insertNewVertexInCenter_(QTreeWidgetItem* item);
 			
     protected:
 
