@@ -110,7 +110,8 @@ namespace OpenMS
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
     file->addAction("&New",this,SLOT(newFileDialog()), Qt::CTRL+Qt::Key_N);
-    file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+		file->addAction("Open &example file",this,SLOT(openExampleDialog()));
+		file->addAction("&Open",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Save",this,SLOT(saveFileDialog()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveAsFileDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
@@ -346,9 +347,21 @@ namespace OpenMS
 	
 	}
 	
+	void TOPPASBase::openExampleDialog()
+	{
+		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"),
+													File::getOpenMSDataPath().toQString()
+													+QDir::separator()+"examples"+QDir::separator()
+													+"TOPPAS"+QDir::separator(),
+													tr("TOPPAS pipelines (*.toppas)"));
+		
+		openFile(file_name);
+	}
+	
 	void TOPPASBase::openFileDialog()
   {
 		QString file_name = QFileDialog::getOpenFileName(this, tr("Open File"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+		
 		openFile(file_name);
   }
  

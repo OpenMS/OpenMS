@@ -87,6 +87,8 @@ namespace OpenMS
     	
     	/// shows the dialog for opening files
       void openFileDialog();
+			/// shows the dialog for opening example files
+			void openExampleDialog();
       /// shows the dialog for creating a new file
       void newFileDialog();
       /// shows the dialog for saving the current file
