@@ -91,8 +91,7 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
   data_double.push_back(304.6);
 	b64.encode(data_double, Base64::BYTEORDER_BIGENDIAN, dest);
 	TEST_EQUAL(dest, "QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma");
-	
-	
+	b64.decode(dest,Base64::BYTEORDER_BIGENDIAN,res_double);
 	
 END_SECTION
 
@@ -148,14 +147,14 @@ START_SECTION([EXTRA] zlib functionality)
 	std::vector<DoubleReal> data_double,res_double;
 	
 	//double_real .- big endian
-	data_double.push_back(300.15f);
-	data_double.push_back(303.998f);
-	data_double.push_back(304.6f);
+	data_double.push_back(300.15);
+	data_double.push_back(15.124);
+	data_double.push_back(304.2);
 	b64.encode(data_double,Base64::BYTEORDER_BIGENDIAN,str,true);
 	b64.decode(str,Base64::BYTEORDER_BIGENDIAN, res_double,true);
 	TEST_REAL_SIMILAR(res_double[0],300.15);
-	TEST_REAL_SIMILAR(res_double[1],303.998);
-	TEST_REAL_SIMILAR(res_double[2],304.6);
+	TEST_REAL_SIMILAR(res_double[1],15.124);
+	TEST_REAL_SIMILAR(res_double[2],304.2);
 	
 	data.clear();
 	data.push_back(120.0f);
