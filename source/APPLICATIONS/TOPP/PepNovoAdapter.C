@@ -73,9 +73,9 @@ using namespace std;
 	as an idXML output file.
 
 	The resulting idXML file can then be directly mapped to the spectra using the
-	IDMapper
+	IDMapper class.
 
-	Consult your PepNovo reference manual for further details.
+	Consult your PepNovo reference manual for further details about parameter meanings.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PepNovoAdapter.cli
@@ -105,13 +105,15 @@ class TOPPPepNovoAdapter
 
 			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true);
 			registerStringOption_("temp_data_directory", "<dir>", "", "Directory were temporary data can be stored. If not set the directory were startet is used.", true);
+      registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
+      addEmptyLine_ ();
+      addText_("PepNovo Parameters");
 			registerFlag_("correct_pm", "find optimal precursor mass and charge values.");
 			registerFlag_("use_spectrum_charge", "do not correct charge");
 			registerFlag_("use_spectrum_mz", "do not correct the precursor m/z value that appears in the file.");
 			registerFlag_("no_quality_filter", "do not remove low quality spectra.");
 			registerDoubleOption_("fragment_tolerance", "<Float>", -1.0, "the fragment tolerance (between 0 and 0.75 Da. Set to -1.0 to use model's default setting)", false, false);
 			registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "the precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
-			registerStringOption_("model_directory", "<file>", " ", "name of the directory where the model files are kept.",true);
 			registerStringOption_("model", "<file>", "CID_IT_TRYP", "name of the model that should be used", false);
 
 			registerStringOption_("digest", "", "TRYPSIN", "enzyme used for digestion (default TRYPSIN)", false);

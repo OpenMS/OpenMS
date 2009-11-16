@@ -73,9 +73,9 @@ namespace OpenMS
 				@param protein_identification the protein identification
 				@param score_threshold cutoff threshold for the PepNovo score (PnvScr)
 				@param id_rt_mz map the spectrum identifiers returned by PepNovo
-				to the rt and mz values of the spectrum (used to map the identifications back to the spectra). key: PepNovo Id, value: pair<rt,mz>.
+				to the rt and mz values of the spectrum (used to map the identifications back to the spectra). key= <PepNovo Id>, value= <pair<rt,mz> >.
 				For spectra not present in this map identifications cannot be mapped back.
-				@param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key=PepNovo_key, value=OpenMS fullId
+				@param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key= <PepNovo_key>, value= <OpenMS FullId>
 			*/
 			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications,
 			    ProteinIdentification& protein_identification,
