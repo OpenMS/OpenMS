@@ -980,4 +980,6 @@
 		}
 	}
 
+	print "\nchecker.php finished: " . date("c") . "\n";
+
 ?>
