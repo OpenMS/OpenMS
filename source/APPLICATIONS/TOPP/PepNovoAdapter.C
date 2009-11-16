@@ -89,7 +89,7 @@ class TOPPPepNovoAdapter
 {
 	public:
 		TOPPPepNovoAdapter()
-			: TOPPBase("PepNovoAdapter", "Annotates MS/MS spectra using PepNovo.")
+			: TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
 		{
 		}
 
