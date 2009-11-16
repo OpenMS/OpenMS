@@ -37,12 +37,17 @@
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
-    You can find the binaries here: http://subversion.tigris.org
+    Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
+		You can find the binaries here: http://subversion.tigris.org. 
+		Svnversion.exe is searched in "c:/program files/subversion/bin" and "c:/programme/subversion/bin". Make sure it is in either of these locations or add
+		the installation directory to your PATH.
     <br>Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
     <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
-    <br>Make sure to add the location of 7z.exe to your PATH (usually this is "C:\progam files\7-zip")
+    <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
+		the installation directory to your PATH.
     <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
-    <br>Make sure to add the location of patch.exe to your PATH. On Vista patch.exe requires elevation, 
+    <br>patch.exe is searched in "C:/Program Files/gnuwin32/bin" and "C:/Program Files/patch/bin". Make sure it is in either of these locations or add
+		the installation directory to your PATH. On Vista patch.exe requires elevation, 
     		i.e. you need an admin account with disabled UAC (User Account Control), otherwise the contrib will not build.
   </UL>
 
