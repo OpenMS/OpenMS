@@ -49,15 +49,28 @@ namespace OpenMS
 	namespace Logger
 	{
 
-	const LogLevel LogStreamBuf::MIN_LEVEL = OPENMS_DEVELOPMENT;
-	const LogLevel LogStreamBuf::MAX_LEVEL = OPENMS_FATAL_ERROR;
 	const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
+	const std::string LogStreamBuf::UNKNOWN_LOG_LEVEL = "UNKNOWN_LOG_LEVEL";
+
+	LogStreamBuf::LogStreamBuf(std::string log_level)
+  : std::streambuf(),
+    pbuf_(0),
+    level_(log_level),
+    stream_list_(),
+    incomplete_line_(),
+    log_cache_counter_(0),
+    log_cache_(),
+    log_time_cache_()
+  {
+    pbuf_ = new char [BUFFER_LENGTH];
+    std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
+  }
+
 
 	LogStreamBuf::LogStreamBuf() 
 		: std::streambuf(),
 			pbuf_(0),
-			level_(OPENMS_DEVELOPMENT),
-			tmp_level_(OPENMS_DEVELOPMENT),
+			level_(UNKNOWN_LOG_LEVEL),
 			stream_list_(),
 			incomplete_line_(),
       log_cache_counter_(0),
@@ -96,7 +109,7 @@ namespace OpenMS
   }
 
 
-  void LogStream::setLevel(LogLevel level) 
+  void LogStream::setLevel(std::string level)
   {
     if (rdbuf() == 0)
     {
@@ -105,15 +118,10 @@ namespace OpenMS
 
     // set the new level
     rdbuf()->level_ = level;
-  
-    // set tmp_level_, too - to otherwise the
-    // new level would take effect in the line after 
-    // the next!
-    rdbuf()->tmp_level_ = level;
   }
 
 
-  LogLevel LogStream::getLevel() 
+  std::string LogStream::getLevel()
   {
     if (rdbuf() != 0)
     {
@@ -121,23 +129,9 @@ namespace OpenMS
     }
     else 
     {
-      return OPENMS_DEVELOPMENT;
+      return LogStreamBuf::UNKNOWN_LOG_LEVEL;
     }
   }
-
-
-  LogStream& LogStream::level(LogLevel level) 
-  {
-    // set the temporary level 
-    // will be reset by sync(), i.e. at the end of the next line
-    if (rdbuf() != 0)
-    {
-      rdbuf()->tmp_level_ = level;
-    }
-    
-    return *this;
-  }
-
 
   // caching methods
   Size LogStreamBuf::getNextLogCounter_()
@@ -148,8 +142,13 @@ namespace OpenMS
 
   bool LogStreamBuf::isInCache_(std::string const & line)
   {
-    if(log_cache_.count(line) == 0) return false;
-    else {
+    //cout << "LogCache (count)" << log_cache_.count(line) << endl;
+    if(log_cache_.count(line) == 0)
+    {
+      return false;
+    }
+    else
+    {
       // increment counter
       log_cache_[line].counter++;
       
@@ -264,52 +263,40 @@ namespace OpenMS
 
 						if (extra_message.size()>0) distribute_(extra_message);
 						distribute_(outstring);
-						
-            // update the line pointers (increment both)
-            line_start = ++line_end;
-		
-            // reset tmp_level_ to the previous level
-            // (needed for LogStream::level() only)
-            tmp_level_ = level_;
           } 
-          else // in cache
-          {
-						line_start = ++line_end;
-					}
+
+          // update the line pointers (increment both)
+          line_start = ++line_end;
 				}
 			}
 
 			// remove all processed lines from the buffer
 			pbump((int)(pbase() - pptr()));
 		}
-	
-		return 0;
+
+    return 0;
 	}
 
 	void LogStreamBuf::distribute_(std::string outstring)
 	{
-	// if there are any streams in our list, we
-	// copy the line into that streams, too and flush them
-	std::list<StreamStruct>::iterator list_it = stream_list_.begin();
-	for (; list_it != stream_list_.end(); ++list_it)
+    // if there are any streams in our list, we
+    // copy the line into that streams, too and flush them
+    std::list<StreamStruct>::iterator list_it = stream_list_.begin();
+    for (; list_it != stream_list_.end(); ++list_it)
 		{
-		// if the stream is open for that level, write to it...
-		if ((list_it->min_level <= tmp_level_) && (list_it->max_level >= tmp_level_))
-			{
-			*(list_it->stream) << expandPrefix_(list_it->prefix, tmp_level_, time(0)).c_str()
-				<< outstring.c_str() << std::endl;
+      *(list_it->stream) << expandPrefix_(list_it->prefix, time(0)).c_str()
+      << outstring.c_str() << std::endl;
 
-			if (list_it->target != 0)
-				{
-				list_it->target->logNotify();
-				}
-			}
-		}
-	}
+      if (list_it->target != 0)
+      {
+        list_it->target->logNotify();
+      }
+    }
+  }
 
 
 	string LogStreamBuf::expandPrefix_
-		(const std::string& prefix, LogLevel level, time_t time) const
+		(const std::string& prefix, time_t time) const
 	{
 		string::size_type	index = 0;
 		Size copied_index = 0;
@@ -336,7 +323,7 @@ namespace OpenMS
 						break;
 
 					case 'y':	// append the message type (error/warning/information)
-						result.append(LogLevelToStringUpper(level));
+						result.append(level_);
 						break;
 
 					case 'T':	// time: HH:MM:SS
@@ -407,27 +394,23 @@ namespace OpenMS
 		registered_at_ = 0;
 	}
 
-	void LogStreamNotifier::registerAt(LogStream& log, LogLevel min_level, LogLevel max_level)
+	void LogStreamNotifier::registerAt(LogStream& log)
 	{
 		unregister();
 
 		registered_at_ = &log;
-		log.insertNotification(stream_, *this, min_level, max_level);
+		log.insertNotification(stream_, *this);
 	}
 
 	// keep the given buffer	
-	LogStream::LogStream(LogStreamBuf* buf, bool delete_buf, bool associate_stdio)
+	LogStream::LogStream(LogStreamBuf* buf, bool delete_buf, std::ostream* stream)
 		: std::ios(buf),
 			std::ostream(buf),
-			delete_buffer_(delete_buf),
-			disable_output_(false)
+			delete_buffer_(delete_buf)
 	{
-		if (associate_stdio) 
+		if (stream != 0)
 		{
-			// associate cout to informations and warnings,
-			// cerr to errors by default
-			insert(std::cout, OPENMS_WARNING, OPENMS_FATAL_ERROR);
-			insert(std::cerr, OPENMS_ERROR);
+		  insert(*stream);
 		}
 	}
 
@@ -440,17 +423,15 @@ namespace OpenMS
 		}
 	}
 
-	void LogStream::insert(std::ostream& stream, LogLevel min_level, LogLevel max_level) 
+	void LogStream::insert(std::ostream& stream)
 	{
 		if (!bound_() || hasStream_(stream))
 		{
 			return;
 		}
 			
-		// we didn`t find it - create a new entry in the list
+		// we didn't find it - create a new entry in the list
 		LogStreamBuf::StreamStruct s_struct;
-		s_struct.min_level = min_level;
-		s_struct.max_level = max_level;
 		s_struct.stream = &stream;
 		rdbuf()->stream_list_.push_back(s_struct);
 	}
@@ -469,12 +450,11 @@ namespace OpenMS
 		}
 	}
 
-	void LogStream::insertNotification(std::ostream& s, LogStreamNotifier& target,
-																		LogLevel min_level, LogLevel max_level)
+	void LogStream::insertNotification(std::ostream& s, LogStreamNotifier& target)
 	{
 		if (!bound_()) return;
 
-		insert(s, min_level, max_level);
+		insert(s);
 
 		StreamIterator it = findStream_(s);
 		(*it).target = &target;
@@ -501,28 +481,6 @@ namespace OpenMS
 		return findStream_(stream) != rdbuf()->stream_list_.end();
 	}
 
-	void LogStream::setMinLevel(const std::ostream& stream, LogLevel level) 
-	{
-		if (!bound_()) return;
-			
-		StreamIterator it = findStream_(stream);
-		if (it != rdbuf()->stream_list_.end())
-		{
-			(*it).min_level = level;
-		}
-	}
-
-	void LogStream::setMaxLevel(const std::ostream& stream, LogLevel level) 
-	{
-		if (!bound_()) return;
-			
-		StreamIterator it = findStream_(stream);
-		if (it != rdbuf()->stream_list_.end())
-		{
-			(*it).max_level = level;
-		}
-	}
-	
 	void LogStream::setPrefix(const std::ostream& s, const string& prefix) 
 	{
 		if (!bound_()) return;
@@ -548,28 +506,6 @@ namespace OpenMS
 		std::ostream::flush();
 	}
 	
-	String LogLevelToString(LogLevel level)
-	{
-		switch (level)
-			{
-			case OPENMS_FATAL_ERROR:   return "fatal_error";
-			case OPENMS_ERROR:         return "error";
-			case OPENMS_WARNING:       return "warning";
-			case OPENMS_INFORMATION:   return "information";
-			case OPENMS_DEBUG:         return "debug";
-			case OPENMS_DEBUG_INTENSE: return "debug_intense";
-			case OPENMS_DEVELOPMENT:   return "development";
-			default:
-				return "unknown";
-			}
-		return "unknown";
-	}
-	
-	String LogLevelToStringUpper(LogLevel level)
-	{
-		return LogLevelToString(level).toUpper();
-	}
-
 	bool LogStream::bound_() const
 	{
 		LogStream*	non_const_this = const_cast<LogStream*>(this);
@@ -580,6 +516,16 @@ namespace OpenMS
 	} // namespace Logger
 
 	// global default logstream
-	OPENMS_DLLAPI	Logger::LogStream Log(new Logger::LogStreamBuf, true, true);
+	OPENMS_DLLAPI  Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
+	OPENMS_DLLAPI	 Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+	OPENMS_DLLAPI  Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
+	OPENMS_DLLAPI  Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+	OPENMS_DLLAPI  Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true, &cout);
+
+	// global debug logstreams
+#ifndef OPENMS_RELEASE_MODE
+	OPENMS_DLLAPI  Logger::LogStream Log_debug_intense(new Logger::LogStreamBuf("DEBUG_INTENSE"), true, &cout);
+	OPENMS_DLLAPI  Logger::LogStream Log_development(new Logger::LogStreamBuf("DEVELOPMENT"), true, &cout);
+#endif
 
 } // namespace OpenMS

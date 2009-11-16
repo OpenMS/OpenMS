@@ -68,38 +68,6 @@ namespace OpenMS
 	*/
 	//@{
 
-    /** Log levels.
-        Constants for the different predefined log levels. Use LogStream::OPENMS_FATAL_ERROR
-        to indicate fatal errors, which does lead to interruptions in most of the cases. 
-        Use  LogStream::OPENMS_ERROR to indicate a severe error,  LogStream::WARN to 
-        indicate a problem that could be fixed or is of minor importance, 
-        and  LogStream::OPENMS_INFORMATION for messages that do not indicate any problem 
-        (e.g. progress messages).
-    */
-    enum LogLevel
-    {
-      /// fatal errors, e.g. exceptions that cannot be handled
-      OPENMS_FATAL_ERROR = 6,
-
-      /// severe errors 
-      OPENMS_ERROR = 5,
-
-      /// warnings
-      OPENMS_WARNING = 4,
-
-      /// general information
-      OPENMS_INFORMATION = 3,
-
-      /// general debugging information
-      OPENMS_DEBUG = 2,
-
-      /// verbose debugging information
-      OPENMS_DEBUG_INTENSE = 1,
-
-      /// extensive development/debugging information
-      OPENMS_DEVELOPMENT = 0
-    };
-
 	// forward declarations
 	class LogStream;
 	class LogStreamNotifier;
@@ -134,9 +102,8 @@ namespace OpenMS
 		/**	@name	Constants
 		*/
 		//@{
-		static const LogLevel MAX_LEVEL;
-		static const LogLevel MIN_LEVEL;
 		static const time_t MAX_TIME;
+		static const std::string UNKNOWN_LOG_LEVEL;
 		//@}
 
 		/**	@name Constructors and Destructors
@@ -144,9 +111,15 @@ namespace OpenMS
 		//@{
 		
 		/** Default constructor.
-				Create a new LogStreamBuf object.
+				Create a new LogStreamBuf object. The level is set to unknown
 		*/
 		LogStreamBuf();
+
+    /**
+        Create a new LogStreamBuf object and set the level to log_level
+        @param log_level The log level of the LogStreamBuf
+    */
+    LogStreamBuf(std::string log_level);
 
 		/** Destructor.
 				Destruct the buffer and free all stored messages strings.
@@ -178,6 +151,26 @@ namespace OpenMS
 		virtual int overflow(int c = -1);
 		//@}
 
+
+    /**
+     * @name Level methods
+     */
+    //@{
+
+    /**
+     * Set the level of the LogStream
+     *
+     * @param level The new LogLevel
+     */
+    void setLevel(std::string level);
+
+
+    /**
+     * Returns the LogLevel of this LogStream
+     */
+    std::string getLevel();
+    //@}
+
     /**
      * @brief Holds a stream that is connected to the LogStream incl. the minimum and maximum
      * level at which the LogStream redirects messages to this stream.
@@ -186,14 +179,10 @@ namespace OpenMS
 		{
 			std::ostream*				stream;
       std::string         prefix;
-			LogLevel									min_level;
-			LogLevel									max_level;
 			LogStreamNotifier*	target;
 		
 			StreamStruct()
 				:	stream(0),
-					min_level(MIN_LEVEL),
-					max_level(MAX_LEVEL),
 					target(0)
 			{
 			}
@@ -211,16 +200,11 @@ namespace OpenMS
 		void distribute_(std::string outstring);
 		
 		// interpret the prefix format string and return the expanded prefix
-		std::string expandPrefix_(const std::string& prefix, LogLevel level, time_t time) const;
+		std::string expandPrefix_(const std::string& prefix, time_t time) const;
 
 		char* 									pbuf_;
-	
-		LogLevel			level_;
-
-		LogLevel			tmp_level_;
-		
+		std::string             level_;
 		std::list<StreamStruct>	stream_list_;
-
 		std::string             incomplete_line_;
 
  		/**	@name Caching
@@ -292,9 +276,7 @@ namespace OpenMS
 		virtual void logNotify();
 
 		///
-		void registerAt(LogStream& log_stream,
-										LogLevel min_level = LogStreamBuf::MIN_LEVEL, 
-										LogLevel max_level = LogStreamBuf::MAX_LEVEL);
+		void registerAt(LogStream& log_stream);
 		///
 		void unregister();
 
@@ -323,15 +305,13 @@ namespace OpenMS
 
 		/** Constructor.
 				Creates a new LogStream object that is not associated with any stream.
-				If the argument <tt>associate_stdio</tt> is set to <b>true</b>,
-				<tt>cout</tt> is associated with all messages of levels  LogStream::WARN_LEVE,
-				and <tt>cerr</tt> is associated with all messages
-				of level  LogStream::OPENMS_ERROR and LogStream::OPENMS_FATAL_ERROR .
+				If the argument <tt>stream</tt> is set to an output stream (e.g. <tt>cout</tt>)
+				all output is send to that stream.
 				@param	buf
 				@param  delete_buf
-				@param	associate_stdio bool, default is false
+				@param	stream
 		*/
-		LogStream(LogStreamBuf* buf = 0, bool delete_buf = true, bool associate_stdio = false);
+		LogStream(LogStreamBuf* buf = 0, bool delete_buf = true, std::ostream* stream = 0);
 
 		/** Destructor.
 				Clears all message buffers.
@@ -354,41 +334,24 @@ namespace OpenMS
 		LogStreamBuf* operator -> ();
 		//@}
 
-		/**	@name Loglevel management 
-		*/
+
+		/**
+		 * @name Level methods
+		 */
 		//@{
 
-		/**	Assign a new log level.
-				This method assigns a new loglevel which will be used
-				for all messages sent to the LogStream after that call
-				(except for messages which use the temporary loglevel
-				set by LogStream::level ).
-		*/
-		void setLevel(LogLevel level);
+		/**
+		 * Set the level of the LogStream
+		 *
+		 * @param level The new LogLevel
+		 */
+		void setLevel(std::string level);
 
-		/**	Return the current log level.
-				The LogStreamBuf object has an internal current log level (<tt>level_</tt>).
-				It is set to 0 by the LogStreamBuf default constructor.
-				This method returns <tt>rdbuf()->level_</tt> if rdbuf() does not
-				return a null pointer, 0 otherwise.
-				@return		int the current log level
-		*/
-		LogLevel getLevel();
 
-		/**	Set a temporary log level.
-				Using <b>level</b>, a temporary loglevel may be defined.
-				It is valid unly until the next <b>flush</b> or <b>endl</b> is issued. \par
-				Use this command to log a single line with a certain log level. \par
-				<b>Example:</b>
-					<tt>log << "log message 1" << endl;</tt> \par
-					<tt>log.level(4) << "log message 2" << endl;</tt> \par
-					<tt>log << "log message 3" << endl;</tt> \par
-				In this example, only the second message will be logged using level 4.
-				
-				@return	LogStream the log stream
-				@param	level the temporary log level
-		*/
-		LogStream& level(LogLevel level);
+		/**
+		 * Returns the LogLevel of this LogStream
+		 */
+		std::string getLevel();
 		//@}
 
 		/**	@name Associating Streams 
@@ -406,12 +369,9 @@ namespace OpenMS
 				If <tt>min_level</tt>	and <tt>max_level</tt> are equal, this function can be used
 				to listen to a specified channel.
 				@param	s a reference to the stream to be associated
-				@param	min_level the minimum level of messages copied to this stream
-				@param	max_level the maximum level of messages copied to this stream
 		*/
 		void insert
-			(std::ostream& s, LogLevel min_level = LogStreamBuf::MIN_LEVEL, 
-			 LogLevel max_level = LogStreamBuf::MAX_LEVEL);
+			(std::ostream& s);
 
 		/**	Remove an association with a stream.
 				Remove a stream from the stream list and avoid the copying of new messages to
@@ -425,27 +385,7 @@ namespace OpenMS
 		/**	Add a notification target
 		*/
 		void insertNotification(std::ostream& s, 
-														LogStreamNotifier& target,
-														LogLevel min_level = LogStreamBuf::MIN_LEVEL, 
-														LogLevel max_level = LogStreamBuf::MAX_LEVEL);
-
-		/**	Set the minimum log level of an associated stream.
-				This method changes the minimum log level of an already
-				associated stream. However, if the stream is not
-				associated, nothing will happen.
-				@param	s the associated stream
-				@param	min_level the new minimum level
-		*/
-		void setMinLevel(const std::ostream& s, LogLevel min_level);
-		
-		/**	Set the maximum log level of an associated stream.
-				This method changes the maximum log level of an already
-				associated stream. However, if the stream is not
-				associated, nothing will happen.
-				@param	s the associated stream
-				@param	max_level the new minimum level
-		*/
-		void setMaxLevel(const std::ostream& s, LogLevel max_level);
+														LogStreamNotifier& target);
 
 		/**	Set prefix for output to this stream.
 				Each line written to the stream will be prefixed by
@@ -487,14 +427,8 @@ namespace OpenMS
 		// the LogStreamBuf, delete_buffer_ is set to true and the ctor
 		// also deletes the buffer.
 		bool	delete_buffer_;
-		bool  disable_output_;
+
 	}; //LogStream
-
-		/// turns a log level into a human readable string
-		OPENMS_DLLAPI String LogLevelToString(LogLevel level);
-
-		/// turn a log level into a human readable uppercase string
-		OPENMS_DLLAPI String LogLevelToStringUpper(LogLevel level);
 
 	} // namespace Logger
 
@@ -510,31 +444,41 @@ namespace OpenMS
 	//@{
 	/// Macro to be used if fatal error are reported (processing stops)
 	#define LOG_FATAL_ERROR \
-  Log.level(Logger::OPENMS_FATAL_ERROR) << __FILE__ << "(" << __LINE__ << "): "
+  Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 	
 	/// Macro to be used if non-fatal error are reported (processing continues)
 	#define LOG_ERROR \
-  Log.level(Logger::OPENMS_ERROR)
+  Log_error
 
 	/// Macro if a warning, a piece of information which should be read by the user, should be logged
   #define LOG_WARN \
-  Log.level(Logger::OPENMS_WARNING)
+  Log_warn
 
 	/// Macro if a information, e.g. a status should be reported
   #define LOG_INFO \
-  Log.level(Logger::OPENMS_INFORMATION)
+  Log_info
 
 	/// Macro for general debugging information
   #define LOG_DEBUG \
-  Log.level(Logger::OPENMS_DEBUG) << __FILE__ << "(" << __LINE__ << "): "
-  
+  Log_debug << __FILE__ << "(" << __LINE__ << "): "
+
+#ifndef OPENMS_RELEASE_MODE
 	/// Macro for verbose debugging information
-	#define LOG_INTENSE_DEBUG \
-  Log.level(Logger::INTENSE_DEBUG) << __FILE__ << "(" << __LINE__ << "): "
+	#define LOG_DEBUG_INTENSE \
+  Log_debug_intense << __FILE__ << "(" << __LINE__ << "): "
 
 	/// Macro for development debugging messages
 	#define LOG_DEVELOPMENT \
-	Log.level(Logger::OPENMS_DEVELOPMENT) << __FILE__ << "(" << __LINE__ << "): "
+  Log_development << __FILE__ << "(" << __LINE__ << "): "
+#else
+  /// Macro for verbose debugging information
+  #define LOG_DEBUG_INTENSE \
+    if(0) cerr
+
+	/// Macro for development debugging messages
+  #define LOG_DEVELOPMENT \
+    if(0) cerr
+#endif
 	//@}
 
 
@@ -542,8 +486,18 @@ namespace OpenMS
 			This instance of LogStream is by default bound to <b>cout</b> <b>cerr</b> by calling
 			the default constructor.
 	*/
+  // global default logstream
+	OPENMS_DLLAPI extern Logger::LogStream	Log_fatal;
+	OPENMS_DLLAPI extern Logger::LogStream  Log_error;
+	OPENMS_DLLAPI extern Logger::LogStream  Log_warn;
+	OPENMS_DLLAPI extern Logger::LogStream  Log_info;
+	OPENMS_DLLAPI extern Logger::LogStream  Log_debug;
 
-	OPENMS_DLLAPI extern Logger::LogStream	Log;
+#ifndef OPENMS_RELEASE_MODE
+  OPENMS_DLLAPI extern Logger::LogStream  Log_debug_intense;
+  OPENMS_DLLAPI extern Logger::LogStream  Log_development;
+#endif
+
 } // namespace OpenMS
 
 #endif // OPENMS_CONCEPT_LOGSTREAM_H

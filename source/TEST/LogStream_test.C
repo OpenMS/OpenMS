@@ -62,7 +62,7 @@ START_TEST(LogStream, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, bool associate_stdio=false))
+START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
   LogStream* l1 = 0;
   l1 = new LogStream((LogStreamBuf*)0);
@@ -114,61 +114,33 @@ START_SECTION((LogStreamBuf* rdbuf()))
 }
 END_SECTION
   
-START_SECTION((void setLevel(LogLevel level)))
+START_SECTION((void setLevel(std::string level)))
 {
-  String filename;
-  NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, OPENMS_DEVELOPMENT , OPENMS_ERROR);
-
-  l1 << "1" << endl;
-  l1.setLevel(OPENMS_INFORMATION);
-  l1 << "2" << endl;
-  l1.setLevel(OPENMS_FATAL_ERROR);
-  l1 << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+  l1.setLevel("INFORMATION");
+  TEST_EQUAL(l1.getLevel(), "INFORMATION")
 }
 END_SECTION
 
 START_SECTION((LogLevel getLevel()))
 {
   LogStream l1(new LogStreamBuf());
-  TEST_EQUAL(l1.getLevel(), OPENMS_DEVELOPMENT)
-  l1.setLevel(OPENMS_FATAL_ERROR);
-  TEST_EQUAL(l1.getLevel(), OPENMS_FATAL_ERROR)
+  TEST_EQUAL(l1.getLevel(), LogStreamBuf::UNKNOWN_LOG_LEVEL)
+  l1.setLevel("FATAL_ERROR");
+  TEST_EQUAL(l1.getLevel(), "FATAL_ERROR")
 }
 END_SECTION
 
-START_SECTION((LogStream& level(LogLevel level)))
+START_SECTION((void insert(std::ostream &s)))
 {
   String filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, OPENMS_DEVELOPMENT , OPENMS_ERROR);
+  l1.insert(s);
 
-  l1.level(OPENMS_DEVELOPMENT) << "1" <<endl;
-  l1.level(OPENMS_ERROR) << "2" <<endl;
-  l1.level(OPENMS_FATAL_ERROR) << "X" <<endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((void insert(std::ostream &s, LogLevel min_level=LogStreamBuf::MIN_LEVEL, LogLevel max_level=LogStreamBuf::MAX_LEVEL)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, OPENMS_ERROR, OPENMS_ERROR);
-
-  l1.level(OPENMS_WARNING) << "X" << endl;
-  l1.level(OPENMS_ERROR) << "1" << endl;
-  l1.level(OPENMS_ERROR)  << "2" << endl;
-  l1.level(OPENMS_FATAL_ERROR)<< "X" << endl;
+  l1 << "1\n";
+  l1 << "2" << endl;
 
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -189,7 +161,7 @@ START_SECTION((void remove(std::ostream &s)))
 }
 END_SECTION
 
-START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target, LogLevel min_level=LogStreamBuf::MIN_LEVEL, LogLevel max_level=LogStreamBuf::MAX_LEVEL)))
+START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target)))
 {
   LogStream l1(new LogStreamBuf());
   TestTarget target;
@@ -220,44 +192,12 @@ START_SECTION(([EXTRA]removeNotification))
 }
 END_SECTION
 
-START_SECTION((void setMinLevel(const std::ostream &s, LogLevel min_level)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, OPENMS_DEVELOPMENT);
-  l1.setMinLevel(s, OPENMS_WARNING);
-  l1.level(OPENMS_INFORMATION) << "X" << endl;
-  l1.level(OPENMS_WARNING) << "1" << endl;
-  l1.level(OPENMS_ERROR) << "2" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
-START_SECTION((void setMaxLevel(const std::ostream &s, LogLevel max_level)))
-{
-  String filename;
-  NEW_TMP_FILE(filename)
-  LogStream l1(new LogStreamBuf());
-  ofstream s(filename.c_str(), std::ios::out);
-  l1.insert(s, OPENMS_DEVELOPMENT);
-  l1.setMaxLevel(s, OPENMS_ERROR);
-  l1.level(OPENMS_WARNING) << "1" << endl;
-  l1.level(OPENMS_ERROR) << "2" << endl;
-  l1.level(OPENMS_FATAL_ERROR) << "X" << endl;
-
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
-}
-END_SECTION
-
 START_SECTION((void setPrefix(const std::string &prefix)))
 {
 	LogStream l1(new LogStreamBuf());
 	ostringstream stream_by_logger;
 	l1.insert(stream_by_logger);
-	l1.setLevel(OPENMS_DEVELOPMENT);
+	l1.setLevel("DEVELOPMENT");
 	l1.setPrefix("%y"); //message type ("Error", "Warning", "Information", "-")
 	l1 << "  2." << endl;
 	l1.setPrefix("%T"); //time (HH:MM:SS)
@@ -310,7 +250,7 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   l1.insert(stream_by_logger);
   l1.insert(stream_by_logger_otherprefix);
   l1.setPrefix(stream_by_logger_otherprefix, "BLABLA"); //message type ("Error", "Warning", "Information", "-")
-  l1.setLevel(OPENMS_DEVELOPMENT);
+  l1.setLevel("DEVELOPMENT");
   l1.setPrefix(stream_by_logger, "%y"); //message type ("Error", "Warning", "Information", "-")
   l1 << "  2." << endl;
   l1.setPrefix(stream_by_logger, "%T"); //time (HH:MM:SS)
@@ -397,7 +337,7 @@ START_SECTION(([EXTRA]Test log caching))
   ofstream s(filename.c_str(), std::ios::out);
   { 
     LogStream l1(new LogStreamBuf());
-    l1.insert(s, OPENMS_DEVELOPMENT);
+    l1.insert(s);
 
     l1 << "This is a repeptitive message" << endl;
     l1 << "This is another repeptitive message" << endl;
@@ -412,30 +352,167 @@ START_SECTION(([EXTRA]Test log caching))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] String LogLevelToStringUpper(LogLevel level)))
+START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
 {
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_FATAL_ERROR), "FATAL_ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_ERROR), "ERROR")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_WARNING), "WARNING")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_INFORMATION), "INFORMATION")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEBUG), "DEBUG")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEBUG_INTENSE), "DEBUG_INTENSE")
-	TEST_STRING_EQUAL(LogLevelToStringUpper(OPENMS_DEVELOPMENT), "DEVELOPMENT")
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_fatal.remove(cerr);
+  ostringstream stream_by_logger;
+  {
+    Log_fatal.insert(stream_by_logger);
+
+    LOG_FATAL_ERROR << "1\n";
+    LOG_FATAL_ERROR << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
 }
 END_SECTION
 
-START_SECTION(([EXTRA] String LogLevelToString(LogLevel level)))
+START_SECTION(([EXTRA] Macro test - LOG_ERROR))
 {
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_FATAL_ERROR), "fatal_error")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_ERROR), "error")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_WARNING), "warning")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_INFORMATION), "information")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEBUG), "debug")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEBUG_INTENSE), "debug_intense")
-	TEST_STRING_EQUAL(LogLevelToString(OPENMS_DEVELOPMENT), "development")
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_error.remove(cerr);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_error.insert(s);
+
+    LOG_ERROR << "1\n";
+    LOG_ERROR << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Macro test - LOG_WARN))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_warn.remove(cout);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_warn.insert(s);
+
+    LOG_WARN << "1\n";
+    LOG_WARN << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_INFO))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_info.remove(cout);
+  String filename;
+  NEW_TMP_FILE(filename)
+  ofstream s(filename.c_str(), std::ios::out);
+  {
+    Log_info.insert(s);
+
+    LOG_INFO << "1\n";
+    LOG_INFO << "2" << endl;
+  }
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_debug.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_debug.insert(stream_by_logger);
+
+    LOG_DEBUG << "1\n";
+    LOG_DEBUG << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEBUG_INTENSE))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_debug_intense.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_debug_intense.insert(stream_by_logger);
+
+    LOG_DEBUG_INTENSE << "1\n";
+    LOG_DEBUG_INTENSE << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Macro test - LOG_DEVELOPMENT))
+{
+  // remove cout/cerr streams from global instances
+  // and append trackable ones
+  Log_development.remove(cout);
+  ostringstream stream_by_logger;
+  {
+    Log_development.insert(stream_by_logger);
+
+    LOG_DEVELOPMENT << "1\n";
+    LOG_DEVELOPMENT << "2" << endl;
+  }
+
+  StringList to_validate_list = StringList::create(String(stream_by_logger.str()),'\n');
+  TEST_EQUAL(to_validate_list.size(),3)
+
+  int pos(0);
+  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
+  {
+    QString to_validate = to_validate_list[i].toQString();
+    QRegExpValidator v(rx, 0);
+    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  }
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
