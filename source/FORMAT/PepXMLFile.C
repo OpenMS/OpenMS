@@ -379,7 +379,7 @@ namespace OpenMS
 
 		wrong_experiment_ = false;
 		parse_(filename, this);
-
+		
 		if (peptides.empty())
 		{
 			warning(LOAD, "No data found for experiment name '" + experiment_name + "'");
@@ -624,7 +624,7 @@ namespace OpenMS
 				else
 				{
 					String desc = aa_mod.aminoacid;
-					if (aa_mod.massdiff.toDouble() > 0)
+					if (aa_mod.massdiff.toDouble() >= 0)
 					{
 						desc += "+" + String(aa_mod.massdiff);
 					}
@@ -645,7 +645,7 @@ namespace OpenMS
 				else
 				{
           String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() > 0)
+          if (aa_mod.massdiff.toDouble() >= 0)
           {
             desc += "+" + String(aa_mod.massdiff);
           }
@@ -817,6 +817,8 @@ namespace OpenMS
 	{
 		String element = sm_.convert(qname);
 
+		// cout << "End: " << element << "\n";
+
 		if (wrong_experiment_)
 		{
 			// do nothing here (skip all elements that belong to the wrong experiment)
@@ -870,12 +872,20 @@ namespace OpenMS
 						{
 							temp_aa_sequence.setNTerminalModification(mod_split[0]);
 						}*/
-					DoubleReal new_mass = it->mass - ResidueDB::getInstance()->getResidue(it->aminoacid)->getMonoWeight(Residue::Internal);
+
+				const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+				if (residue == 0)
+				{
+					error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "'");
+				}
+				else
+				{
+					DoubleReal new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
       		vector<String> mods;
       		ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, 0.001);
 					if (mods.size() == 1)
 					{
-						for (Size i = 0; i != temp_aa_sequence.size(); ++i)
+						for (Size i = 0; i < temp_aa_sequence.size(); ++i)
 						{
 							if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
 							{
@@ -883,22 +893,20 @@ namespace OpenMS
 							}
 						}
 					}
+					else if (mods.size() == 0)
+					{
+						error(LOAD, String("Cannot parse modification of amino acid '") + it->aminoacid + "'");
+					}
 					else
 					{
-						if (mods.size() == 0)
+						String mod_str = mods[0];
+						for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
 						{
-							error(LOAD, String("Cannot parse modification '") + it->aminoacid + " " +  + "'");
+							mod_str += ", " + *mit;
 						}
-						else
-						{
-							String mod_str = mods[0];
-							for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-							{
-								mod_str += ", " + *mit;
-							}
-							error(LOAD, String("Found more than one modification: '") + mod_str +  "'");
-						}
+						error(LOAD, String("Found more than one modification: '") + mod_str +  "'");
 					}
+				}
 				//}
 			}
 

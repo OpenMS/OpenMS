@@ -10,6 +10,7 @@
 	</SearchParameters>
 	<SearchParameters id="SP_1" db="/home/sorcerer/fasta/ipi.HUMAN.v3.52.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		<FixedModification name="C+57.0215" />
+		<FixedModification name="O+0.0000" />
 		<VariableModification name="M+15.9949" />
 	</SearchParameters>
 	<IdentificationRun date="2009-05-25T12:33:22" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
