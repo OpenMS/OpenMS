@@ -218,6 +218,38 @@
 		
 		@section TOPPAS_merger_example Mergers
 		
-		TODO
+		The following example is actually not a useful workflow but is supposed
+		to demonstrate how merger nodes can be used in a pipeline. Have a look at
+		@a merger_tutorial.toppas:
+		
+		@image html TOPPAS_example_merger.png
+		@image latex TOPPAS_example_merger.png "" width=14cm
+		
+		As its name suggests, a merger merges its incoming file lists. It can do that
+		in two different ways, depending on its mode (which can be changed in the context
+		menu).
+		
+		In the standard mode, a merger
+		first takes all first files of all incoming file lists and merges them into a new list (which
+		has as many elements as the merger has incoming edges). All tools this merger has outgoing
+		edges to are called with this merged list as input files.
+		As soon as all files have been processed, the second files of each incoming list are merged
+		and the tools below the merger are called again, and so on.
+		If several mergers are nested, as in this example,
+		mergers further upstream wait until mergers further downstream
+		have performed all their merging rounds and then perform their own next merging round.
+		
+		In "merge all" mode, the merger first waits for all upstream mergers (if there are any)
+		to finish all
+		their merging rounds and then merges all files from all merging rounds for all
+		incoming edges into one single list and calls the next tool with this list of files as input.
+		This will happen exactly once during the entire pipeline run, as opposed to the standard mode.
+		
+		In order to track what is happening, you can just open the example file and run it. When the
+		pipeline execution has finished, have a look at all input and output files (e.g., select
+		@a Open @a in @a TOPPView in the context menu of the input/output nodes).
+		The input files are named rt_1.mzML, rt_2.mzML, ... and each contains a single
+		spectrum with RT as indicated by the filename, so you can easily see which files have
+		been merged together.
 		
 */

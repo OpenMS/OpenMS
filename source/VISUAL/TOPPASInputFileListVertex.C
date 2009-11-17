@@ -160,13 +160,21 @@ namespace OpenMS
 			TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
 			if (ttv)
 			{
-				ttv->runToolIfInputReady();
+				if (!ttv->isAlreadyStarted())
+				{
+					ttv->runToolIfInputReady();
+					ttv->setAlreadyStarted(true);
+				}
 				continue;
 			}
 			TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
 			if (mv)
 			{
-				mv->forwardPipelineExecution();
+				if (!mv->isAlreadyStarted())
+				{
+					mv->forwardPipelineExecution();
+					mv->setAlreadyStarted(true);
+				}
 				continue;
 			}
 		}

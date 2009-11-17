@@ -51,7 +51,8 @@ namespace OpenMS
 			topo_sort_marked_(false),
 			topo_nr_(0),
 			subtree_finished_(false),
-			files_known_(false)
+			files_known_(false),
+			already_started_(false)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);
@@ -71,7 +72,8 @@ namespace OpenMS
 			topo_sort_marked_(rhs.topo_sort_marked_),
 			topo_nr_(rhs.topo_nr_),
 			subtree_finished_(rhs.subtree_finished_),
-			files_known_(rhs.files_known_)
+			files_known_(rhs.files_known_),
+			already_started_(rhs.already_started_)
 	{
 		setFlag(QGraphicsItem::ItemIsSelectable, true);
 		setZValue(42);	
@@ -96,6 +98,7 @@ namespace OpenMS
 		topo_nr_ = rhs.topo_nr_;
 		subtree_finished_ = rhs.subtree_finished_;
 		files_known_ = rhs.files_known_;
+		already_started_ = rhs.already_started_;
 		
 		return *this;
 	}
@@ -381,6 +384,7 @@ namespace OpenMS
 		if (reset_all_files)
 		{
 			files_known_ = false;
+			already_started_ = false;
 		}
 		update(boundingRect());
 		
@@ -442,6 +446,16 @@ namespace OpenMS
 		
 		__DEBUG_END_METHOD__
 		return true;
+	}
+	
+	bool TOPPASVertex::isAlreadyStarted()
+	{
+		return already_started_;
+	}
+	
+	void TOPPASVertex::setAlreadyStarted(bool b)
+	{
+		already_started_ = b;
 	}
 	
 }

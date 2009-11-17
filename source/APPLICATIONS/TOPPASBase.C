@@ -924,6 +924,7 @@ namespace OpenMS
 		{
 			w->getScene()->abortPipeline();
 		}
+		updateMenu();
 	}
 	
 	void TOPPASBase::toolStarted()

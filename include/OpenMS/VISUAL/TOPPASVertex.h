@@ -183,6 +183,10 @@ namespace OpenMS
 			int getScFilesPerRound();
 			/// Used in sanity check, returns if this node has already been checked
 			bool isScListLengthChecked();
+			/// Returns whether this node has already been started by an input file node
+			bool isAlreadyStarted();
+			/// Sets whether this node has already been started by an input file node
+			void setAlreadyStarted(bool b);
 		
 		public slots:
 		
@@ -238,6 +242,8 @@ namespace OpenMS
 			bool sc_list_length_checked_;
 			/// Stores if the file names for the current call are already known
 			bool files_known_;
+			/// Stores if this node has already been started by an input file node
+			bool already_started_;
 			
 			#ifdef TOPPAS_DEBUG
 			// Indentation level for nicer debug output

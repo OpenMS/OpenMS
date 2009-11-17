@@ -1019,6 +1019,7 @@ namespace OpenMS
 	{
 		emit terminateCurrentPipeline();
 		resetProcessesQueue();
+		running_ = false;
 	}
 	
 	void TOPPASScene::resetProcessesQueue()

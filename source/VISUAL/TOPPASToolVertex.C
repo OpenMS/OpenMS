@@ -658,12 +658,6 @@ namespace OpenMS
 			debugOut_("All children started!");
 		}
 		
-		/*	Normally, the subtree finished signal is propagated upstream from finished output nodes.
-				However, if there is a blocking "merge all" node in the way, this will not happen
-				--> additionally check here if subtree is finished ("merge all" nodes will return true
-				in every case)	*/
-		//checkIfSubtreeFinished(); TODO
-		
 		//clean up
 		QProcess* p = qobject_cast<QProcess*>(QObject::sender());
 		if (p)

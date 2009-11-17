@@ -477,6 +477,7 @@ namespace OpenMS
 				debugOut_(String("Notifying parent ")+source->getTopoNr()+" that merging round complete");
 				source->checkIfSubtreeFinished();
 			}
+			subtree_finished_ = false;
 			currently_notifying_parents_ = false;
 			debugOut_("Upstream notification successful");
 		}
@@ -491,11 +492,13 @@ namespace OpenMS
 		merge_counter_ = 0;
 		min_input_list_length_ = -1;
 		
-		// Save subtree_finished_ for mergers, otherwise only 1 parent will be notified that subtree finished
 		bool tmp = subtree_finished_;
 		TOPPASVertex::reset(reset_all_files);
-		subtree_finished_ = tmp;
-		
+		if (!reset_all_files)
+		{
+			// for "soft" reset, restore subtree_finished_, because otherwise only 1 parent is notified that subtree finished
+			subtree_finished_ = tmp;
+		}
 		__DEBUG_END_METHOD__
 	}
 	
