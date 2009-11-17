@@ -112,7 +112,7 @@ int main( int argc, const char* argv[] )
 	string svn_revision;
 	getStdoutFromCommand(string("svnversion \"") + svn_dir + string("\" -n"), svn_revision);
 	svn_revision = string("\"") + svn_revision + string("\"");
-	std::cout << "DEBUG - got svn revision: " << svn_revision << endl;
+	//std::cout << "DEBUG - got svn revision: " << svn_revision << endl;
 	
 	// extract svn revision from header and see if it needs updating
 	ifstream hfile (svn_header_file.c_str());
@@ -122,7 +122,7 @@ int main( int argc, const char* argv[] )
     if (! hfile.eof() )
     {
       getline (hfile,line);
-      std::cout << "DEBUG - got header line: " << line << endl;
+      //std::cout << "DEBUG - got header line: " << line << endl;
     }
     hfile.close();
   }
@@ -141,7 +141,7 @@ int main( int argc, const char* argv[] )
 		return 1;
 	}
 	
-	std::cout << "DEBUG - comparing: '" << substrings[2] << "' vs '" << svn_revision << "'" << endl;
+	//std::cout << "DEBUG - comparing: '" << substrings[2] << "' vs '" << svn_revision << "'" << endl;
 	// compare the two revisions:
 	if (substrings[2] != svn_revision)
 	{
@@ -159,7 +159,7 @@ int main( int argc, const char* argv[] )
 	else
 	{
 		// nothing changed.
-		std::cout << "DEBUG - nothing to be done. Header file is up-to-date." << endl;
+		//std::cout << "DEBUG - nothing to be done. Header file is up-to-date." << endl;
 	}
 	
 }
