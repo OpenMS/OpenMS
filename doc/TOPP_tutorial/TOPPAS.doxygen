@@ -51,8 +51,8 @@
 		@section TOPPAS_interface_introduction Introduction
 		
 			The following figure shows the @b TOPPAS main window and a pipeline which is just being created.
-			The user has added some tools by pressing the mouse on the tool name in the TOPP tool list on the left
-			and drag-and-dropping them onto the central window. Additionally, he has added special nodes
+			The user has added some tools by drag&dropping them from the TOPP tool list on the left
+			onto the central window. Additionally, he has added special nodes
 			for input and output files.
 			
 			Next, the user has drawn some edges between the tools
@@ -64,10 +64,12 @@
 			an input/output parameter
 			mapping dialog shows up and let's the user select the output parameter of the source node and the
 			input parameter of the target node for this data flow.
-			In the figure, the edge being edited is painted yellow, because it
-			is not configured yet. If the file types of the selected input and output parameters are not compatible with each other,
-			@b TOPPAS will refuse to add the edge. In our case, however, the edge will become green (valid) after
-			pressing the @a OK button.
+			If the file types of the selected input and output parameters are not compatible with each other,
+			@b TOPPAS will refuse to add the edge. It will also refuse to add an edge, if this edge
+			would create a cycle in the workflow, or if it just would not make sense, e.g., if
+			its target is an input file node. The edge between the input file node and the BaselineFilter
+			tool is painted yellow which means it is not ready yet, because no input files have been
+			specified yet.
 			
 			@image html TOPPAS_edges.png
 			@image latex TOPPAS_edges.png "" width=14cm
@@ -93,11 +95,11 @@
 			Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
 			belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
 			tools indicate if the tool has finished successfully (green), is currently running (yellow), has not done anything so far (gray), or has crashed (red).
+			The numbers in the bottom-right corner of every tool show how many files have already been processed and
+			the overall number of files to be processed by this tool.
 			When the execution has finished, you can check the generated output files of every node quickly by selecting
 			@a Open @a output @a in @a TOPPView from its context menu.
 			
-			@image html TOPPAS_run.png
-			@image latex TOPPAS_run.png "" width=14cm
 			
 			@section TOPPAS_interface_mk Mouse and keyboard
 			
@@ -193,7 +195,7 @@
 		parameters are already specified, so you can just hit @a Pipeline > @a Run (or press
 		@a F5) and see what happens.
 		
-		@section TOPPAS_peak_picking_example Peak picking
+		@section TOPPAS_peak_picking_example Profile data processing
 		
 		@section TOPPAS_id_example Andreas ID
 		
