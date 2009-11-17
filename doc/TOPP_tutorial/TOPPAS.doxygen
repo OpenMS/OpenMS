@@ -265,6 +265,12 @@
 		the runs. To correct for retention times shift, a map alignment can be done, 
 		either on the spectral data or on the feature data.
 
+		@image html TOPPAS_BSA_results_2d.png
+		@image latex TOPPAS_BSA_results_2d.png "" width=10cm
+
+		@image html TOPPAS_BSA_results_3d.png 
+		@image latex TOPPAS_BSA_results_3d.png "" width=10cm 
+
 
 		@section TOPPAS_merger_example Mergers
 		

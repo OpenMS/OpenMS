@@ -9,6 +9,7 @@ Main improvements of TOPPView:
 - Added visualization of unassigned peptide hits for feature layers
 - Measuring to arbitrary end points is now supported in 1D and 2D view
 - file load progress bar stays responsive under load on Windows
+- rudimentary chromatogram support
 
 Main improvements of TOPP-Framework:
 - TOPP tools now warn when used with parameter files from a different version
@@ -36,6 +37,11 @@ Main improvements of TOPP-Tools:
   - supports calibration functions calculated seperately for each spectrum or one global function
   - supports peptide ids as reference peaks
   - works on peak or feature data now
+- new tool: PrecursorMassCorrector
+	- update precursor m/z information of MS/MS spectra based on MS1 peptide isotope fits (still experimental)
+- gzipped and bzipped XML files can be directly read
+- PepNovoAdapter: complete rewrite of the code, includeing classes
+- FileMerger: accumulated processingMethod entries, which all contained the same information
 
 Main improvements of UTILS:
 - UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
@@ -43,6 +49,10 @@ Main improvements of UTILS:
 Main improvements of OpenMS C++ library:
 - MGF file creation speedup (also affects some TOPP tools)
 - removed FeatureFinder-Wavelet, Isotope-Wavelet is still available
+- support for bzip2 and gzip compressed XML files
+- chromatogram support
+- Comments and other strings of XML writers are now escaped to prevent reading problems
+- IdXMLFile segmentation fault if no protein identification given fixed
 
 Detailed list of changes to specific OpenMS classes
 - New classes:
@@ -68,11 +78,13 @@ Detailed list of changes to specific OpenMS classes
 	- includes (if available) SVN Revision number that the library is build upon
 	  via support by the Build System.
     - SVN Revision information is displayed in the TOPP tools help text.
+- PepXMLFile: handling of PTMs now better
 	
 Changes to the Build System:
 - Unit tests are now in a separate sub-project in <OpenMS/source/TEST/> avoiding huge Solution files in MSVC IDE
 - new targets: test_build, tutorials_build, tutorials_exec
 - SVN Revision (if available) is determined and compiled into OpenMS before the library is build
+- added real install prefix and install target to be able to do a 'make install'
 	
 Changes to OpenMS XML formats:
 - FeatureXML and ConsensusXML files use unique ids now instead of running indices. New XML Schema versions: 1.4
@@ -83,6 +95,10 @@ Changes to the contrib package:
 - Added Z lib and bz2 lib
 
 Bug fixes:
+
+- [2857042]: RTModel/PTModel unable to find modification
+- [2857040]: Modification names with brackets fail to parse
+- [2849215]: OMSSAAdapter fails with Acetlyation not found
 - [2849201]: Parameters in INI files are duplicated
 - [2849439]: Compilation error with Qt 4.3.x
 

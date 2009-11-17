@@ -932,10 +932,12 @@ else()
 		set(OPENMS_ADDCXX_FLAGS "${OPENMS_ADDCXX_FLAGS} -D${i}")
 	endforeach(i)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
-	#Message(STATUS "Definitions: ${OPENMS_ADDCXX_FLAGS}")
 	
 	# build settings and  configs for external code
 	include(CMakeExportBuildSettings)
 	cmake_export_build_settings(${PROJECT_BINARY_DIR}/cmake/OpenMSBuildSettings.cmake)
 	export_library_dependencies(${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryDepends.cmake)
+
+	include(cmake/install.cmake)
 endif()
+
