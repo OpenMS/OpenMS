@@ -15,6 +15,8 @@
    - XCode (version 3.0 or higher) is required to build %OpenMS (the current version can be obtained from <a href="http://developer.apple.com/technology/xcode.html" target="_new">http://developer.apple.com/technology/xcode.html</a>)
    - CMake (version 2.6 or higher) is required to configure and build the package 
 	 - Qt4 (version 4.4. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
+
+	 @note On SnowLeoard (10.6) is no stable Qt version available, the COCOA 4.5.3 dmg package seems to work
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
@@ -26,7 +28,7 @@
  @section install_mac_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn, COINOR, imslib, zlib, bzip2 and XERCES-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
@@ -94,7 +96,11 @@
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
           Please use this option to point CMake to the location %OpenMS should
-          be installed to.</td>
+          be installed to.
+					
+					Install prefixes are not supported for developing with OpenMS. OpenMS must
+          be built in place!
+					</td>
     </tr>
     <tr>
       <td valign="top">CONTRIB_CUSTOM_DIR</td>
