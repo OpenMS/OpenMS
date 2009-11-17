@@ -121,7 +121,7 @@ class TOPPInternalCalibration
 		// get reference m/z values
 		std::vector<PeptideIdentification> pep_ids;
 		vector<DoubleReal> ref_masses;
-    bool ids;
+    bool ids(false);
     if(ref!="")
     {
       ids = FileHandler().getTypeByContent(ref) == FileTypes::IDXML;

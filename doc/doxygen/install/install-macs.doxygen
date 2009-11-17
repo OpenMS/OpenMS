@@ -50,8 +50,6 @@
     <li>'lib/'
     <br>
     It contains the libraries needed by %OpenMS.
-    <br>
-    This directory should be added to your @b DYLD_LIBRARY_PATH variable.</li>
 
     <li>'include/'
     <br>
